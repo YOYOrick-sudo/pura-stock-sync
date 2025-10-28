@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import ProductRow from "./ProductRow";
 import WaveBackground from "./WaveBackground";
-import { Send, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import logoSunset from "@/assets/pura-vida-logo.png";
 
 interface Product {
@@ -120,40 +120,33 @@ const OrderDashboard = () => {
       <WaveBackground />
       
       <div className="container mx-auto px-4 py-6 md:py-10 max-w-3xl relative">
-        {/* Header - Clean & Simple */}
-        <div className="text-center mb-8 md:mb-10">
-          <div className="flex justify-center mb-5">
+        {/* Header - Compact */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-3">
             <img 
               src={logoSunset} 
-              alt="Pura Vida Foodbar" 
-              className="h-16 md:h-20 w-auto"
+              alt="Pura Vida" 
+              className="h-10 md:h-12 w-auto"
             />
+            <div className="text-right">
+              <p className="font-mono text-xs text-muted-foreground">Week {currentWeek}</p>
+            </div>
           </div>
-          <h1 className="font-heading text-2xl md:text-3xl text-foreground mb-2 uppercase tracking-wider">
-            Interne Bestelling
+          <h1 className="font-heading text-lg md:text-xl text-foreground uppercase tracking-wide">
+            Interne Bestelling West
           </h1>
-          <p className="font-mono text-sm text-muted-foreground">
-            Pura Vida West • Week {currentWeek}
-          </p>
         </div>
 
-        {/* Instructions - Minimaal */}
-        <div className="mb-6 md:mb-8">
-          <p className="text-sm md:text-base text-center text-muted-foreground">
-            Tel de voorraad en vul de aantallen in
-          </p>
-        </div>
-
-        {/* Products - Clean List */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 md:p-6 mb-6 md:mb-8">
-          <div className="hidden md:grid grid-cols-4 gap-4 mb-4 pb-3 border-b border-border/30 text-xs font-mono text-muted-foreground uppercase">
-            <div>Product</div>
-            <div className="text-center">Ijzer</div>
-            <div className="text-center">Huidig</div>
-            <div className="text-center">Vullen</div>
+        {/* Products - Professional Table */}
+        <div className="bg-white rounded-md border border-border mb-4 overflow-hidden">
+          <div className="hidden md:grid grid-cols-4 gap-3 px-4 py-2 bg-muted/20 border-b border-border">
+            <div className="text-xs font-semibold text-foreground uppercase tracking-wide">Product</div>
+            <div className="text-xs font-semibold text-foreground uppercase tracking-wide text-right">Ijzer</div>
+            <div className="text-xs font-semibold text-foreground uppercase tracking-wide text-right">Huidig</div>
+            <div className="text-xs font-semibold text-foreground uppercase tracking-wide text-right">Vullen</div>
           </div>
 
-          <div className="space-y-3">
+          <div>
             {products.map((product, index) => (
               <ProductRow
                 key={product.name}
@@ -164,45 +157,33 @@ const OrderDashboard = () => {
               />
             ))}
           </div>
+        </div>
 
-          {/* Total - Clean */}
-          <div className="mt-6 pt-5 border-t border-border/30">
-            <div className="flex justify-between items-center">
-              <span className="font-mono text-sm md:text-base text-foreground uppercase">
-                Totaal aan te vullen
-              </span>
-              <span className="font-heading text-3xl md:text-2xl font-bold text-secondary">
-                {totalToRefill}
-              </span>
-            </div>
+        {/* Total - Professional */}
+        <div className="bg-primary/5 rounded-md border border-primary/20 p-4 mb-4">
+          <div className="flex justify-between items-center">
+            <span className="text-xs font-semibold text-foreground uppercase tracking-wide">
+              Totaal aan te vullen
+            </span>
+            <span className="font-mono text-5xl md:text-6xl font-bold text-primary tabular-nums">
+              {totalToRefill}
+            </span>
           </div>
         </div>
 
-        {/* Submit Button - Clean */}
+        {/* Submit Button - Professional */}
         <Button
           onClick={handleSubmit}
           disabled={isSubmitting}
-          variant="secondary"
           className="w-full"
           size="lg"
         >
-          {isSubmitting ? (
-            <span className="flex items-center gap-2">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              Verzenden...
-            </span>
-          ) : (
-            <span className="flex items-center gap-2">
-              <Send className="h-4 w-4" />
-              Versturen naar Midsland
-            </span>
-          )}
+          {isSubmitting ? "Verzenden..." : "Versturen naar Midsland"}
         </Button>
 
-        {/* Last Submitted - Subtle */}
+        {/* Last Submitted */}
         {lastSubmitted && (
-          <div className="mt-4 text-center text-xs text-muted-foreground">
-            <Check className="h-3 w-3 inline mr-1 text-primary" />
+          <div className="mt-3 text-center text-xs text-muted-foreground font-mono">
             Laatst verzonden: {lastSubmitted}
           </div>
         )}
