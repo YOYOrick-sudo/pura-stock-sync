@@ -192,7 +192,7 @@ export default function OrderDashboard() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      const response = await fetch('https://n8n.puravidafoodbar.nl/webhook/voorraad-west', {
+      const response = await fetch('https://jaapies.app.n8n.cloud/webhook-test/deecbeab-7823-4b18-8bd8-b56bef5927da', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
