@@ -460,29 +460,29 @@ export default function OrderDashboard() {
 
         {/* Success Dialog */}
         <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-          <AlertDialogContent className="max-w-md bg-white border-2 border-[#1B7867]/30 rounded-3xl">
-            <AlertDialogHeader className="space-y-4">
-              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-[#1B7867] to-[#0d5a4c] rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-8 h-8 text-white" />
+          <AlertDialogContent className="max-w-[90vw] sm:max-w-md mx-4 bg-white border-2 border-[#1B7867]/30 rounded-3xl shadow-2xl">
+            <AlertDialogHeader className="space-y-3 sm:space-y-4 pt-2">
+              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#1B7867] to-[#0d5a4c] rounded-full flex items-center justify-center animate-scale-in shadow-lg">
+                <CheckCircle2 className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
               </div>
-              <AlertDialogTitle className="text-2xl font-heading text-center text-[#282E3A]">
+              <AlertDialogTitle className="text-xl sm:text-2xl font-heading text-center text-[#282E3A] px-2">
                 Bestelling verzonden!
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-center text-[#282E3A]/70 text-base space-y-2">
-                <p className="font-medium">Je bestelling is succesvol naar Midsland gestuurd.</p>
+              <AlertDialogDescription className="text-center text-[#282E3A]/70 text-sm sm:text-base space-y-2 px-2">
+                <p className="font-medium leading-relaxed">Je bestelling is succesvol naar Midsland gestuurd.</p>
                 {totalRefill > 0 && (
-                  <div className="mt-4 p-3 bg-[#F5F7DD] rounded-xl">
-                    <p className="text-sm">
-                      <span className="font-semibold text-[#1B7867]">{totalRefill} producten</span> worden aangevuld
+                  <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-[#F5F7DD] rounded-xl">
+                    <p className="text-sm sm:text-base">
+                      <span className="font-semibold text-[#1B7867]">{totalRefill} {totalRefill === 1 ? 'product' : 'producten'}</span> worden aangevuld
                     </p>
                   </div>
                 )}
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
+            <AlertDialogFooter className="mt-2">
               <Button
                 onClick={() => setShowSuccessDialog(false)}
-                className="w-full bg-gradient-to-r from-[#1B7867] to-[#0d5a4c] hover:from-[#0d5a4c] hover:to-[#1B7867] text-white h-12 rounded-2xl font-semibold"
+                className="w-full bg-gradient-to-r from-[#1B7867] to-[#0d5a4c] hover:from-[#0d5a4c] hover:to-[#1B7867] text-white h-11 sm:h-12 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.98] touch-manipulation"
               >
                 Sluiten
               </Button>
