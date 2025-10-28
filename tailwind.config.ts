@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["system-ui", "sans-serif"],
+        sans: ["Roboto", "system-ui", "sans-serif"],
         heading: ["Forma DJR Micro", "system-ui", "sans-serif"],
         mono: ["Roboto Mono", "monospace"],
       },
