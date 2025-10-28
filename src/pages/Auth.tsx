@@ -69,7 +69,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-[#F5F7DD] flex items-center justify-center px-4 py-12">
       <Card className="w-full max-w-md bg-white shadow-lg border border-gray-100 rounded-xl overflow-hidden">
         {/* Header */}
         <div className="px-8 pt-10 pb-6 border-b border-gray-100">
