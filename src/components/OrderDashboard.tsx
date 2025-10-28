@@ -116,42 +116,41 @@ const OrderDashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background">
       <WaveBackground />
       
-      <div className="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
-        {/* Header with Logo */}
-        <div className="text-center mb-12 animate-fade-in">
-          <div className="flex justify-center mb-6">
+      <div className="container mx-auto px-4 py-6 md:py-10 max-w-3xl relative">
+        {/* Header - Clean & Simple */}
+        <div className="text-center mb-8 md:mb-10">
+          <div className="flex justify-center mb-5">
             <img 
               src={logoSunset} 
               alt="Pura Vida Foodbar" 
-              className="h-20 md:h-24 w-auto"
+              className="h-16 md:h-20 w-auto"
             />
           </div>
-          <h1 className="font-heading text-3xl md:text-5xl tracking-widest text-foreground mb-4 uppercase">
+          <h1 className="font-heading text-2xl md:text-3xl text-foreground mb-2 uppercase tracking-wider">
             Interne Bestelling
           </h1>
-          <p className="font-heading text-xl md:text-2xl text-secondary font-bold mb-3 uppercase tracking-wide">
-            Pura Vida West
-          </p>
-          <p className="font-mono text-sm text-muted-foreground">Week {currentWeek}</p>
-        </div>
-
-        {/* Instructions Card */}
-        <div className="bg-card rounded-3xl p-6 md:p-8 mb-8 animate-slide-up shadow-soft border border-border/50">
-          <p className="font-mono text-foreground leading-relaxed text-center md:text-left">
-            Tel de voorraad en vul de aantallen in – wij berekenen de rest! 🌴
+          <p className="font-mono text-sm text-muted-foreground">
+            Pura Vida West • Week {currentWeek}
           </p>
         </div>
 
-        {/* Products Table */}
-        <div className="bg-card rounded-3xl p-4 md:p-8 mb-8 animate-slide-up shadow-medium border border-border/50">
-          <div className="hidden md:grid grid-cols-4 gap-6 mb-6 text-xs font-mono uppercase tracking-wide text-muted-foreground px-5">
+        {/* Instructions - Minimaal */}
+        <div className="mb-6 md:mb-8">
+          <p className="text-sm md:text-base text-center text-muted-foreground">
+            Tel de voorraad en vul de aantallen in
+          </p>
+        </div>
+
+        {/* Products - Clean List */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 md:p-6 mb-6 md:mb-8">
+          <div className="hidden md:grid grid-cols-4 gap-4 mb-4 pb-3 border-b border-border/30 text-xs font-mono text-muted-foreground uppercase">
             <div>Product</div>
-            <div className="text-center">Ijzeren voorraad</div>
-            <div className="text-center">Huidige voorraad</div>
-            <div className="text-center">Aan te vullen</div>
+            <div className="text-center">Ijzer</div>
+            <div className="text-center">Huidig</div>
+            <div className="text-center">Vullen</div>
           </div>
 
           <div className="space-y-3">
@@ -166,45 +165,45 @@ const OrderDashboard = () => {
             ))}
           </div>
 
-          {/* Total Section */}
-          <div className="mt-8 pt-6 border-t border-border">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-3 px-4 md:px-5">
-              <span className="font-heading text-lg md:text-xl text-foreground uppercase tracking-wide">
-                Totaal aan te vullen:
+          {/* Total - Clean */}
+          <div className="mt-6 pt-5 border-t border-border/30">
+            <div className="flex justify-between items-center">
+              <span className="font-mono text-sm md:text-base text-foreground uppercase">
+                Totaal aan te vullen
               </span>
-              <span className="font-heading text-4xl md:text-3xl font-bold text-secondary">
+              <span className="font-heading text-3xl md:text-2xl font-bold text-secondary">
                 {totalToRefill}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Submit Button */}
+        {/* Submit Button - Clean */}
         <Button
           onClick={handleSubmit}
           disabled={isSubmitting}
           variant="secondary"
-          className="w-full shadow-medium hover:shadow-hover"
+          className="w-full"
           size="lg"
         >
           {isSubmitting ? (
-            <span className="flex items-center gap-3">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-background border-t-transparent" />
+            <span className="flex items-center gap-2">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
               Verzenden...
             </span>
           ) : (
-            <span className="flex items-center gap-3">
-              <Send className="h-5 w-5" />
+            <span className="flex items-center gap-2">
+              <Send className="h-4 w-4" />
               Versturen naar Midsland
             </span>
           )}
         </Button>
 
-        {/* Last Submitted Info */}
+        {/* Last Submitted - Subtle */}
         {lastSubmitted && (
-          <div className="mt-6 text-center font-mono text-sm text-muted-foreground animate-fade-in">
-            <Check className="h-4 w-4 inline mr-2 text-primary" />
-            Laatst verzonden op {lastSubmitted}
+          <div className="mt-4 text-center text-xs text-muted-foreground">
+            <Check className="h-3 w-3 inline mr-1 text-primary" />
+            Laatst verzonden: {lastSubmitted}
           </div>
         )}
       </div>

@@ -11,27 +11,34 @@ const ProductRow = ({ name, ironStock, currentStock, onStockChange }: ProductRow
   const toRefill = Math.max(ironStock - currentStock, 0);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-6 items-center p-5 bg-card rounded-2xl shadow-soft hover:shadow-hover transition-all duration-300 hover:scale-[1.01] border border-border/50">
-      <div className="font-heading font-bold text-foreground text-lg md:text-base">{name}</div>
-      <div className="text-center">
-        <div className="text-xs text-muted-foreground font-mono uppercase tracking-wide mb-1 md:hidden">IJzer voorraad</div>
-        <div className="font-mono text-foreground font-semibold text-lg">{ironStock}</div>
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4 items-center py-4 md:py-3 border-b border-border/20 last:border-0">
+      {/* Product Name */}
+      <div className="font-medium text-foreground text-base md:text-sm">{name}</div>
+      
+      {/* Iron Stock */}
+      <div className="flex justify-between md:justify-center items-center">
+        <span className="text-xs text-muted-foreground md:hidden">IJzer voorraad:</span>
+        <span className="font-mono text-foreground">{ironStock}</span>
       </div>
-      <div className="flex justify-center">
-        <div className="w-full md:w-24">
-          <div className="text-xs text-muted-foreground font-mono uppercase tracking-wide mb-1 md:hidden">Huidige voorraad</div>
+      
+      {/* Current Stock Input */}
+      <div className="flex justify-between md:justify-center items-center">
+        <span className="text-xs text-muted-foreground md:hidden">Huidige voorraad:</span>
+        <div className="w-20">
           <Input
             type="number"
             min="0"
             value={currentStock}
             onChange={(e) => onStockChange(Math.max(0, parseInt(e.target.value) || 0))}
-            className="w-full text-center font-mono text-lg font-semibold focus:ring-2 focus:ring-primary transition-all"
+            className="w-full text-center font-mono h-9"
           />
         </div>
       </div>
-      <div className="text-center">
-        <div className="text-xs text-muted-foreground font-mono uppercase tracking-wide mb-1 md:hidden">Aan te vullen</div>
-        <div className="font-mono font-bold text-secondary text-2xl md:text-xl">{toRefill}</div>
+      
+      {/* To Refill */}
+      <div className="flex justify-between md:justify-center items-center">
+        <span className="text-xs text-muted-foreground md:hidden">Aan te vullen:</span>
+        <span className="font-mono font-semibold text-secondary text-lg md:text-base">{toRefill}</span>
       </div>
     </div>
   );
