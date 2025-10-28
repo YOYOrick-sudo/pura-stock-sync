@@ -273,31 +273,22 @@ export default function OrderDashboard() {
   return <div className="min-h-screen bg-[#F5F7DD]">
       {/* Header */}
       <div className="bg-[#F5F7DD] border-b border-[#1B7867]/10">
-        <div className="max-w-3xl mx-auto px-4 py-4 sm:py-5 sm:px-6 lg:px-8 relative">
-          {/* Logout Button */}
-          <Button
-            onClick={() => setShowLogoutDialog(true)}
-            variant="ghost"
-            size="sm"
-            className="absolute top-3 right-3 text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent"
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
-
+        <div className="max-w-3xl mx-auto px-4 py-4 sm:py-5 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4">
-            {/* Left: Week & Date */}
-            <div className="flex-1 flex items-center gap-2 text-xs text-[#282E3A]/50">
-              <span>Week {currentWeek}</span>
-              <span>•</span>
-              <span className="hidden sm:inline">{new Date().toLocaleDateString('nl-NL', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-              })}</span>
-              <span className="sm:hidden">{new Date().toLocaleDateString('nl-NL', {
-                day: 'numeric',
-                month: 'short'
-              })}</span>
+            {/* Left: Week & Voorraad */}
+            <div className="flex-1">
+              <div className="flex items-center gap-2 text-xs text-[#282E3A]/50 mb-1">
+                <span>Week {currentWeek}</span>
+                <span>•</span>
+                <span>{new Date().toLocaleDateString('nl-NL', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric'
+                })}</span>
+              </div>
+              <div className="text-sm text-[#282E3A]/70">
+                Voorraad
+              </div>
             </div>
             
             {/* Center: Logo */}
@@ -305,11 +296,16 @@ export default function OrderDashboard() {
               <img src={logoGreen} alt="Pura Vida Foodbar" className="h-14 sm:h-16 w-auto" />
             </div>
             
-            {/* Right: Location Badge */}
+            {/* Right: Logout */}
             <div className="flex-1 flex justify-end">
-              <span className="inline-flex items-center px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-[#1B7867] text-white text-xs sm:text-sm font-medium">
-                Voorraad - West
-              </span>
+              <Button
+                onClick={() => setShowLogoutDialog(true)}
+                variant="ghost"
+                size="sm"
+                className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
