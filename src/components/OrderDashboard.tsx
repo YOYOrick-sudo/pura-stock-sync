@@ -6,7 +6,7 @@ import { Loader2, Check, Eye, AlertCircle, Package, Plus, X } from 'lucide-react
 import { toast } from 'sonner';
 import { ProductRow } from './ProductRow';
 import { OrderPreview } from './OrderPreview';
-import logoGreen from '@/assets/pura-vida-logo-green.png';
+import logoGreen from '@/assets/pura-vida-logo-official.png';
 
 interface Product {
   name: string;
