@@ -505,8 +505,11 @@ export default function OrderDashboard() {
         </AlertDialog>
 
         {/* Footer */}
-        <div className="mt-12 text-center text-sm text-[#282E3A]/50">
-          <p>🌴 Pura Vida Foodbar – Fresh & Tropical</p>
+        <div className="mt-12 text-center space-y-2">
+          <p className="text-sm text-[#282E3A]/50">🌴 Pura Vida Foodbar – Fresh & Tropical</p>
+          <p className="text-xs text-[#282E3A]/40 italic max-w-md mx-auto px-4">
+            *Resultaten niet gegarandeerd. Vergeten producten invullen kan leiden tot creatief improviseren en boze blikken van Midsland 😉
+          </p>
         </div>
       </div>
     </div>
