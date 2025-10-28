@@ -43,7 +43,7 @@ export const ProductRow = ({ product, onUpdateStock, refillAmount, isFirst, onEn
             onChange={(e) => onUpdateStock(Math.max(0, parseInt(e.target.value) || 0))}
             onKeyDown={handleKeyDown}
             data-index={index}
-            className="w-16 sm:w-20 text-center text-sm sm:text-base h-9 sm:h-10 border-[#1B7867]/20 focus:border-[#1B7867] focus:ring-[#1B7867]/20 rounded-lg bg-white"
+            className="w-16 sm:w-20 text-center text-sm sm:text-base h-9 sm:h-10 border-[#1B7867]/20 focus:border-[#1B7867] focus:ring-[#1B7867]/20 rounded-md bg-white"
             autoFocus={isFirst}
           />
         </div>
