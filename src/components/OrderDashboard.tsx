@@ -273,7 +273,7 @@ export default function OrderDashboard() {
   return <div className="min-h-screen bg-[#F5F7DD]">
       {/* Header */}
       <div className="bg-[#F5F7DD] border-b border-[#1B7867]/10">
-        <div className="max-w-3xl mx-auto px-4 py-5 sm:py-6 sm:px-6 lg:px-8 relative">
+        <div className="max-w-3xl mx-auto px-4 py-4 sm:py-5 sm:px-6 lg:px-8 relative">
           {/* Logout Button */}
           <Button
             onClick={() => setShowLogoutDialog(true)}
@@ -284,23 +284,28 @@ export default function OrderDashboard() {
             <LogOut className="h-4 w-4" />
           </Button>
 
-          <div className="flex items-center justify-center mb-4">
-            <img src={logoGreen} alt="Pura Vida Foodbar" className="h-16 sm:h-20 w-auto" />
-          </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-2">
-              <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#1B7867] text-white text-sm font-medium">
-                Voorraad - West
-              </span>
+          <div className="flex items-center gap-6">
+            {/* Logo Left */}
+            <div className="flex-shrink-0">
+              <img src={logoGreen} alt="Pura Vida Foodbar" className="h-16 sm:h-20 w-auto" />
             </div>
-            <div className="flex items-center justify-center gap-2 text-xs text-[#282E3A]/50">
-              <span>Week {currentWeek}</span>
-              <span>•</span>
-              <span>{new Date().toLocaleDateString('nl-NL', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-              })}</span>
+            
+            {/* Info Right */}
+            <div className="flex-1">
+              <div className="mb-2">
+                <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#1B7867] text-white text-sm font-medium">
+                  Voorraad - West
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-[#282E3A]/50">
+                <span>Week {currentWeek}</span>
+                <span>•</span>
+                <span>{new Date().toLocaleDateString('nl-NL', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric'
+                })}</span>
+              </div>
             </div>
           </div>
         </div>
