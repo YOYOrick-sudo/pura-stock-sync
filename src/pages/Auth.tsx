@@ -7,7 +7,6 @@ import { Card } from '@/components/ui/card';
 import { Loader2, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import logoOfficial from '@/assets/pura-vida-logo-official.png';
-import WaveBackground from '@/components/WaveBackground';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -70,96 +69,90 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5F7DD] via-[#F5F7DD] to-[#e8ecc8] relative overflow-hidden">
-      <WaveBackground />
-      
-      <div className="relative z-10 flex items-center justify-center min-h-screen px-4 py-12">
-        <Card className="w-full max-w-md bg-white shadow-2xl border-0 rounded-2xl overflow-hidden">
-          {/* Header with gradient */}
-          <div className="bg-gradient-to-r from-[#1B7867] to-[#0d5a4c] px-8 pt-10 pb-8">
-            <div className="flex justify-center mb-4">
-              <div className="bg-white/95 rounded-2xl p-4 shadow-lg">
-                <img 
-                  src={logoOfficial} 
-                  alt="Pura Vida Foodbar" 
-                  className="h-16 w-auto"
-                />
-              </div>
-            </div>
-            <div className="text-center">
-              <h1 className="text-2xl font-heading font-bold text-white mb-1">
-                Voorraadregistratie
-              </h1>
-              <p className="text-white/80 text-sm">
-                Pura Vida Foodbar West
-              </p>
-            </div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+      <Card className="w-full max-w-md bg-white shadow-lg border border-gray-100 rounded-xl overflow-hidden">
+        {/* Header */}
+        <div className="px-8 pt-10 pb-6 border-b border-gray-100">
+          <div className="flex justify-center mb-4">
+            <img 
+              src={logoOfficial} 
+              alt="Pura Vida Foodbar" 
+              className="h-14 w-auto"
+            />
           </div>
+          <div className="text-center">
+            <h1 className="text-xl font-heading font-bold text-gray-900 mb-1">
+              Voorraadregistratie
+            </h1>
+            <p className="text-gray-500 text-sm">
+              Pura Vida Foodbar West
+            </p>
+          </div>
+        </div>
 
-          {/* Login Form */}
-          <div className="px-8 py-8">
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div>
-                <label 
-                  htmlFor="email" 
-                  className="block text-xs font-bold uppercase tracking-wide text-[#282E3A]/60 mb-2"
-                >
-                  Gebruikersnaam
-                </label>
-                <div className="relative">
-                  <Input
-                    id="email"
-                    type="text"
-                    value="Pura West Keuken"
-                    className="h-12 border-2 border-[#1B7867]/10 bg-[#F5F7DD]/30 rounded-xl font-semibold text-[#282E3A] cursor-not-allowed"
-                    disabled
-                    readOnly
-                    autoComplete="username"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label 
-                  htmlFor="password" 
-                  className="block text-xs font-bold uppercase tracking-wide text-[#282E3A]/60 mb-2"
-                >
-                  Wachtwoord
-                </label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Vul je wachtwoord in"
-                  className="h-12 border-2 border-[#1B7867]/20 focus:border-[#1B7867] bg-white rounded-xl text-[#282E3A] placeholder:text-[#282E3A]/40"
-                  disabled={loading}
-                  autoComplete="current-password"
-                  autoFocus
-                />
-              </div>
-
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full h-13 bg-gradient-to-r from-[#1B7867] to-[#0d5a4c] hover:from-[#0d5a4c] hover:to-[#1B7867] text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-bold text-base mt-8"
+        {/* Login Form */}
+        <div className="px-8 py-8">
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label 
+                htmlFor="email" 
+                className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2"
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Bezig met inloggen...
-                  </>
-                ) : (
-                  <>
-                    <LogIn className="mr-2 h-5 w-5" />
-                    Inloggen
-                  </>
-                )}
-              </Button>
-            </form>
-          </div>
-        </Card>
-      </div>
+                Gebruikersnaam
+              </label>
+              <div className="relative">
+                <Input
+                  id="email"
+                  type="text"
+                  value="Pura West Keuken"
+                  className="h-11 border border-gray-200 bg-gray-50 rounded-lg font-medium text-gray-700 cursor-not-allowed"
+                  disabled
+                  readOnly
+                  autoComplete="username"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label 
+                htmlFor="password" 
+                className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2"
+              >
+                Wachtwoord
+              </label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Vul je wachtwoord in"
+                className="h-11 border border-gray-300 focus:border-[#1B7867] focus:ring-1 focus:ring-[#1B7867] bg-white rounded-lg text-gray-900 placeholder:text-gray-400"
+                disabled={loading}
+                autoComplete="current-password"
+                autoFocus
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-11 bg-[#1B7867] hover:bg-[#0d5a4c] text-white shadow-sm hover:shadow-md transition-all duration-200 rounded-lg font-semibold text-sm mt-6"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Bezig met inloggen...
+                </>
+              ) : (
+                <>
+                  <LogIn className="mr-2 h-5 w-5" />
+                  Inloggen
+                </>
+              )}
+            </Button>
+          </form>
+        </div>
+      </Card>
     </div>
   );
 };
