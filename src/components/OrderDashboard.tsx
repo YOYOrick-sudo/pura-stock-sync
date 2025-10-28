@@ -274,7 +274,8 @@ export default function OrderDashboard() {
       {/* Header */}
       <div className="bg-[#F5F7DD] border-b border-[#1B7867]/10">
         <div className="max-w-3xl mx-auto px-4 py-4 sm:py-5 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-4">
+          {/* Desktop Layout */}
+          <div className="hidden sm:flex items-center justify-between gap-4">
             {/* Left: Week & Voorraad */}
             <div className="flex-1">
               <div className="text-xs text-[#282E3A]/50 mb-1">
@@ -308,6 +309,32 @@ export default function OrderDashboard() {
               >
                 <LogOut className="h-4 w-4" />
               </Button>
+            </div>
+          </div>
+
+          {/* Mobile Layout */}
+          <div className="sm:hidden">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs text-[#282E3A]/50">
+                Week {currentWeek} • {new Date().toLocaleDateString('nl-NL', {
+                  day: 'numeric',
+                  month: 'short'
+                })}
+              </div>
+              <Button
+                onClick={handleLogout}
+                variant="ghost"
+                size="sm"
+                className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent -mr-2"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex items-center justify-center mb-2">
+              <img src={logoGreen} alt="Pura Vida Foodbar" className="h-14 w-auto" />
+            </div>
+            <div className="text-center text-xs text-[#282E3A]/60">
+              Voorraad - West
             </div>
           </div>
         </div>
