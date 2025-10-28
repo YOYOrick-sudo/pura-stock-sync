@@ -286,14 +286,15 @@ export default function OrderDashboard() {
                   year: 'numeric'
                 })}</span>
               </div>
-              <div className="text-sm text-[#282E3A]/70">
-                Voorraad
+              <div className="flex items-center justify-between text-sm text-[#282E3A]/70">
+                <span>Voorraad</span>
+                <span>Pura Vida - West</span>
               </div>
             </div>
             
             {/* Center: Logo */}
             <div className="flex-shrink-0">
-              <img src={logoGreen} alt="Pura Vida Foodbar" className="h-14 sm:h-16 w-auto" />
+              <img src={logoGreen} alt="Pura Vida Foodbar" className="h-16 sm:h-20 w-auto" />
             </div>
             
             {/* Right: Logout */}
