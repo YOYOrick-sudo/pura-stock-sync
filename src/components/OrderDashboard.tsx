@@ -261,7 +261,7 @@ export default function OrderDashboard() {
             <img 
               src={logoGreen} 
               alt="Pura Vida Foodbar" 
-              className="h-20 sm:h-24 lg:h-28 w-auto"
+              className="h-24 sm:h-28 lg:h-32 w-auto"
             />
           </div>
           <div className="text-center space-y-3">
