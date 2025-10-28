@@ -329,7 +329,7 @@ export default function OrderDashboard() {
         </Card>
 
         {/* Add Extra Product - Inline Form */}
-        <Card className="p-4 mb-6 bg-white border-2 border-[#E27726]/30 shadow-sm">
+        <Card className="p-4 sm:p-5 mb-6 bg-white border-[#E27726]/20 shadow-sm">
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
             <div className="flex-1 w-full">
               <label className="font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Extra product</label>
