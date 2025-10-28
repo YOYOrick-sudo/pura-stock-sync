@@ -266,7 +266,7 @@ export default function OrderDashboard() {
           </div>
           <div className="text-center space-y-3">
             <div className="flex items-center justify-center gap-3 mb-2">
-              <h1 className="text-[#282E3A] font-[Inter] text-[20px]">
+              <h1 className="text-[#282E3A] font-heading text-[20px]">
                 Voorraadregistratie
               </h1>
               <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#1B7867] text-white text-sm">
