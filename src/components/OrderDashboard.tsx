@@ -182,9 +182,14 @@ export default function OrderDashboard() {
         localStorage.setItem('pura-vida-last-submitted', timestamp);
         localStorage.setItem('pura-vida-last-order', JSON.stringify(orderData));
         
-        // Remove temporary products after successful submission
-        const permanentProducts = products.filter(p => !p.isTemporary);
-        setProducts(permanentProducts);
+        // Reset all products to 0 and remove temporary products
+        const resetProducts = products
+          .filter(p => !p.isTemporary)
+          .map(p => ({ ...p, currentStock: 0 }));
+        
+        setProducts(resetProducts);
+        localStorage.setItem('pura-vida-products', JSON.stringify(resetProducts));
+        localStorage.removeItem('pura-vida-temp-products');
         
         // Show success dialog
         setShowSuccessDialog(true);
@@ -213,9 +218,14 @@ export default function OrderDashboard() {
         localStorage.setItem('pura-vida-last-submitted', timestamp);
         localStorage.setItem('pura-vida-last-order', JSON.stringify(orderData));
         
-        // Remove temporary products after successful submission
-        const permanentProducts = products.filter(p => !p.isTemporary);
-        setProducts(permanentProducts);
+        // Reset all products to 0 and remove temporary products
+        const resetProducts = products
+          .filter(p => !p.isTemporary)
+          .map(p => ({ ...p, currentStock: 0 }));
+        
+        setProducts(resetProducts);
+        localStorage.setItem('pura-vida-products', JSON.stringify(resetProducts));
+        localStorage.removeItem('pura-vida-temp-products');
         
         // Show success dialog
         setShowSuccessDialog(true);
@@ -442,13 +452,17 @@ export default function OrderDashboard() {
             </Button>
           </div>
 
-          {lastSubmitted && (
-            <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-[#282E3A]/50 py-2">
-              <div className="w-1 h-1 rounded-full bg-[#1B7867]/30"></div>
-              <p>Laatst verzonden op {lastSubmitted}</p>
-              <div className="w-1 h-1 rounded-full bg-[#1B7867]/30"></div>
-            </div>
-          )}
+          <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-[#282E3A]/50 py-2 min-h-[2rem]">
+            {lastSubmitted ? (
+              <>
+                <div className="w-1 h-1 rounded-full bg-[#1B7867]/30"></div>
+                <p>Laatst verzonden op {lastSubmitted}</p>
+                <div className="w-1 h-1 rounded-full bg-[#1B7867]/30"></div>
+              </>
+            ) : (
+              <p className="text-[#282E3A]/30">Nog niet verzonden</p>
+            )}
+          </div>
         </div>
 
         {/* Order Preview Dialog */}
