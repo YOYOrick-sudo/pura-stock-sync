@@ -121,29 +121,29 @@ const OrderDashboard = () => {
       
       <div className="container mx-auto px-4 py-6 md:py-10 max-w-3xl relative">
         {/* Header - Compact */}
-        <div className="mb-4">
+        <div className="mb-8">
           <div className="flex items-center justify-between mb-3">
             <img 
               src={logoSunset} 
               alt="Pura Vida" 
-              className="h-10 md:h-12 w-auto"
+              className="h-10 md:h-11 w-auto opacity-90"
             />
             <div className="text-right">
-              <p className="font-mono text-xs text-muted-foreground">Week {currentWeek}</p>
+              <p className="font-mono text-xs text-muted-foreground/70">Week {currentWeek}</p>
             </div>
           </div>
-          <h1 className="font-heading text-lg md:text-xl text-foreground uppercase tracking-wide">
+          <h1 className="font-heading text-base md:text-lg text-foreground/80 uppercase tracking-wide font-medium">
             Interne Bestelling West
           </h1>
         </div>
 
         {/* Products - Professional Table */}
-        <div className="bg-white rounded-md border border-border mb-4 overflow-hidden">
-          <div className="hidden md:grid grid-cols-4 gap-3 px-4 py-2 bg-muted/20 border-b border-border">
-            <div className="text-xs font-semibold text-foreground uppercase tracking-wide">Product</div>
-            <div className="text-xs font-semibold text-foreground uppercase tracking-wide text-right">Ijzer</div>
-            <div className="text-xs font-semibold text-foreground uppercase tracking-wide text-right">Huidig</div>
-            <div className="text-xs font-semibold text-foreground uppercase tracking-wide text-right">Vullen</div>
+        <div className="bg-white rounded-lg border border-border/50 mb-6 overflow-hidden">
+          <div className="hidden md:grid grid-cols-4 gap-3 px-4 py-3 bg-muted/10 border-b border-border/40">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Product</div>
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide text-right">Ijzer</div>
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide text-right">Huidig</div>
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide text-right">Vullen</div>
           </div>
 
           <div>
@@ -160,12 +160,12 @@ const OrderDashboard = () => {
         </div>
 
         {/* Total - Professional */}
-        <div className="bg-primary/5 rounded-md border border-primary/20 p-4 mb-4">
+        <div className="bg-primary/5 rounded-lg border border-primary/10 p-5 mb-6">
           <div className="flex justify-between items-center">
-            <span className="text-xs font-semibold text-foreground uppercase tracking-wide">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Totaal aan te vullen
             </span>
-            <span className="font-mono text-5xl md:text-6xl font-bold text-primary tabular-nums">
+            <span className="font-mono text-5xl md:text-6xl font-semibold text-primary tabular-nums">
               {totalToRefill}
             </span>
           </div>

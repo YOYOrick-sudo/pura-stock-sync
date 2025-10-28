@@ -11,19 +11,19 @@ const ProductRow = ({ name, ironStock, currentStock, onStockChange }: ProductRow
   const toRefill = Math.max(ironStock - currentStock, 0);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center px-4 py-2 border-b border-border last:border-0 even:bg-muted/10">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center px-4 py-3 border-b border-border/30 last:border-0 even:bg-muted/5">
       {/* Product Name */}
-      <div className="text-sm font-medium text-foreground">{name}</div>
+      <div className="text-sm font-normal text-foreground/90">{name}</div>
       
       {/* Iron Stock */}
       <div className="flex justify-between md:justify-end items-center">
-        <span className="text-xs text-muted-foreground md:hidden">IJzer:</span>
-        <span className="font-mono text-sm text-foreground tabular-nums">{ironStock}</span>
+        <span className="text-xs text-muted-foreground/70 md:hidden">IJzer:</span>
+        <span className="font-mono text-sm text-foreground/80 tabular-nums">{ironStock}</span>
       </div>
       
       {/* Current Stock Input */}
       <div className="flex justify-between md:justify-end items-center">
-        <span className="text-xs text-muted-foreground md:hidden">Huidig:</span>
+        <span className="text-xs text-muted-foreground/70 md:hidden">Huidig:</span>
         <div className="w-16">
           <Input
             type="number"
@@ -37,8 +37,8 @@ const ProductRow = ({ name, ironStock, currentStock, onStockChange }: ProductRow
       
       {/* To Refill */}
       <div className="flex justify-between md:justify-end items-center">
-        <span className="text-xs text-muted-foreground md:hidden">Vullen:</span>
-        <span className="font-mono text-base font-semibold text-primary tabular-nums">{toRefill}</span>
+        <span className="text-xs text-muted-foreground/70 md:hidden">Vullen:</span>
+        <span className="font-mono text-base font-medium text-primary tabular-nums">{toRefill}</span>
       </div>
     </div>
   );
