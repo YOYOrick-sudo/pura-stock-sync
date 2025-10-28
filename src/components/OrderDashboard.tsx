@@ -50,7 +50,6 @@ export default function OrderDashboard() {
   // Load saved data from localStorage
   useEffect(() => {
     const savedProducts = localStorage.getItem('pura-vida-products');
-    const savedCustomProducts = localStorage.getItem('pura-vida-custom-products');
     const savedTimestamp = localStorage.getItem('pura-vida-last-submitted');
     
     if (savedProducts) {
@@ -58,14 +57,6 @@ export default function OrderDashboard() {
         setProducts(JSON.parse(savedProducts));
       } catch (e) {
         console.error('Failed to parse saved products', e);
-      }
-    }
-    
-    if (savedCustomProducts) {
-      try {
-        setCustomProducts(JSON.parse(savedCustomProducts));
-      } catch (e) {
-        console.error('Failed to parse saved custom products', e);
       }
     }
     
@@ -78,10 +69,6 @@ export default function OrderDashboard() {
   useEffect(() => {
     localStorage.setItem('pura-vida-products', JSON.stringify(products));
   }, [products]);
-
-  useEffect(() => {
-    localStorage.setItem('pura-vida-custom-products', JSON.stringify(customProducts));
-  }, [customProducts]);
   const updateProductStock = (index: number, value: number) => {
     const newProducts = [...products];
     newProducts[index].currentStock = value;
@@ -190,6 +177,10 @@ export default function OrderDashboard() {
         setLastSubmitted(timestamp);
         localStorage.setItem('pura-vida-last-submitted', timestamp);
         localStorage.setItem('pura-vida-last-order', JSON.stringify(orderData));
+        
+        // Clear custom products after successful submit
+        setCustomProducts([]);
+        
         toast.success('🌴 Demo: Bestelling gesimuleerd', {
           description: 'In productie wordt deze naar Midsland gestuurd.'
         });
@@ -214,6 +205,10 @@ export default function OrderDashboard() {
         setLastSubmitted(timestamp);
         localStorage.setItem('pura-vida-last-submitted', timestamp);
         localStorage.setItem('pura-vida-last-order', JSON.stringify(orderData));
+        
+        // Clear custom products after successful submit
+        setCustomProducts([]);
+        
         toast.success('🌴 Bestelling verzonden!', {
           description: 'Midsland ontvangt deze direct.'
         });
@@ -358,7 +353,15 @@ export default function OrderDashboard() {
 
         {/* Add Custom Product Card */}
         <Card className="p-4 sm:p-5 mb-6 bg-white border-[#1B7867]/20 shadow-sm">
-          <h3 className="text-sm font-bold text-[#282E3A] uppercase tracking-wider mb-4">Nieuw Product Toevoegen</h3>
+          <div className="flex items-start gap-3 mb-4">
+            <div className="mt-0.5 text-[#1B7867] flex-shrink-0">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-[#282E3A] mb-1">Incidenteel Extra Product</h3>
+              <p className="text-xs text-[#282E3A]/70">Voor producten die niet in de standaard lijst staan</p>
+            </div>
+          </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1">
               <Input
@@ -373,7 +376,7 @@ export default function OrderDashboard() {
             <div className="w-full sm:w-32">
               <Input
                 type="number"
-                placeholder="Ijzer"
+                placeholder="Aantal"
                 value={newProductTarget}
                 onChange={(e) => setNewProductTarget(e.target.value)}
                 min={1}
