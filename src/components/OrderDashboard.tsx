@@ -272,44 +272,38 @@ export default function OrderDashboard() {
   
   return <div className="min-h-screen bg-[#F5F7DD]">
       {/* Header */}
-      <div className="bg-[#F5F7DD] border-b-2 border-[#1B7867]/20">
-        <div className="max-w-3xl mx-auto px-4 py-6 sm:py-8 sm:px-6 lg:px-8 relative">
+      <div className="bg-[#F5F7DD] border-b border-[#1B7867]/10">
+        <div className="max-w-3xl mx-auto px-4 py-5 sm:py-6 sm:px-6 lg:px-8 relative">
           {/* Logout Button */}
           <Button
             onClick={() => setShowLogoutDialog(true)}
             variant="ghost"
             size="sm"
-            className="absolute top-4 right-4 text-[#282E3A]/60 hover:text-[#E27726] hover:bg-[#E27726]/10"
+            className="absolute top-3 right-3 text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent"
           >
-            <LogOut className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Uitloggen</span>
+            <LogOut className="h-4 w-4" />
           </Button>
 
-          <div className="flex items-center justify-center mb-5">
-            <img src={logoGreen} alt="Pura Vida Foodbar" className="h-24 sm:h-28 lg:h-32 w-auto" />
+          <div className="flex items-center justify-center mb-4">
+            <img src={logoGreen} alt="Pura Vida Foodbar" className="h-16 sm:h-20 w-auto" />
           </div>
-          <div className="text-center space-y-3">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <h1 className="text-[#282E3A] font-heading text-[20px]">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2.5 mb-2">
+              <span className="text-[#282E3A]/70 text-sm">
                 Voorraadregistratie
-              </h1>
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#1B7867] text-white text-sm">
+              </span>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#1B7867] text-white text-xs font-medium">
                 West
               </span>
             </div>
-            <p className="text-xs text-[#282E3A]/50">
-              Ingelogd als: Pura West Keuken
-            </p>
-            <div className="flex items-center justify-center gap-2 pt-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#1B7867]"></div>
-              <p className="text-center text-[#1B7867] text-sm">
-                Week {currentWeek} • {new Date().toLocaleDateString('nl-NL', {
+            <div className="flex items-center justify-center gap-2 text-xs text-[#282E3A]/50">
+              <span>Week {currentWeek}</span>
+              <span>•</span>
+              <span>{new Date().toLocaleDateString('nl-NL', {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric'
-              })}
-              </p>
-              <div className="w-1.5 h-1.5 rounded-full bg-[#1B7867]"></div>
+              })}</span>
             </div>
           </div>
         </div>
