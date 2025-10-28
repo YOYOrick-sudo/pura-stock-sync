@@ -332,7 +332,7 @@ export default function OrderDashboard() {
         <Card className="p-4 mb-6 bg-white border-2 border-[#E27726]/30 shadow-sm">
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
             <div className="flex-1 w-full">
-              <label className="text-xs text-[#282E3A]/60 mb-1 block uppercase tracking-wider text-[rgba(40,46,58,0.88)] text-[13px] font-bold">Extra product</label>
+              <label className="font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Extra product</label>
               <Input
                 placeholder="Bijv. Smoothie basis (bak)"
                 value={newProductName}
@@ -341,7 +341,7 @@ export default function OrderDashboard() {
               />
             </div>
             <div className="w-full sm:w-32">
-              <label className="text-xs text-[#282E3A]/60 mb-1 block uppercase tracking-wider text-[13px] text-[rgba(40,46,58,0.88)] font-bold">Aantal</label>
+              <label className="font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Aantal</label>
               <Input
                 type="number"
                 min="1"
