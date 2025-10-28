@@ -293,7 +293,7 @@ export default function OrderDashboard() {
               <AlertCircle className="w-5 h-5" />
             </div>
             <p className="text-[#282E3A]/90 leading-relaxed flex-1 text-sm sm:text-base">
-              Vul de huidige voorraad in. Het systeem berekent wat Midsland moet bereiden.
+              Noteer de huidige voorraad. Het systeem rekent uit wat Midsland aanvult.
             </p>
           </div>
         </Card>
