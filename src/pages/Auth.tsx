@@ -72,13 +72,14 @@ const Auth = () => {
         {/* Header */}
         <div className="px-8 pt-10 pb-6 border-b border-gray-100">
           <div className="flex justify-center mb-4">
-            <img src={logoOfficial} alt="Pura Vida Foodbar" className="h-14 w-auto" />
+            <img src={logoOfficial} alt="Pura Vida Foodbar" className="h-16 w-auto" />
           </div>
           <div className="text-center">
-            <h1 className="font-heading text-gray-900 mb-1 font-bold text-xl">Voorraadregistratie</h1>
-            <p className="text-gray-500 text-sm">
-              Pura Vida Foodbar West
-            </p>
+            <div className="flex items-center justify-center gap-3 text-sm text-gray-600">
+              <span className="font-medium">Voorraadregistratie</span>
+              <span className="text-gray-300">•</span>
+              <span>Pura Vida Foodbar West</span>
+            </div>
           </div>
         </div>
 
