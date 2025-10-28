@@ -301,7 +301,7 @@ export default function OrderDashboard() {
             {/* Right: Logout */}
             <div className="flex-1 flex justify-end">
               <Button
-                onClick={() => setShowLogoutDialog(true)}
+                onClick={handleLogout}
                 variant="ghost"
                 size="sm"
                 className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent"
