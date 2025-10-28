@@ -293,7 +293,7 @@ export default function OrderDashboard() {
               <AlertCircle className="w-5 h-5" />
             </div>
             <p className="text-[#282E3A]/90 leading-relaxed flex-1 text-sm sm:text-base">
-              Tel de voorraad in de vriezer en vul hieronder de aantallen in. Het systeem berekent automatisch wat Midsland moet aanvullen zodat de ijzeren voorraad weer compleet is.
+              Vul de huidige voorraad in. Het systeem berekent automatisch wat Midsland moet aanvullen.
             </p>
           </div>
         </Card>
