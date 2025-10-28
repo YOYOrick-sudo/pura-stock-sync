@@ -1,231 +1,354 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import ProductRow from "./ProductRow";
-import WaveBackground from "./WaveBackground";
-import { Check, Info, Package, Eye } from "lucide-react";
-import logoSunset from "@/assets/pura-vida-logo.png";
+import { useState, useEffect } from 'react';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Card } from './ui/card';
+import { Loader2, Check, Eye, AlertCircle, Package } from 'lucide-react';
+import { toast } from 'sonner';
+import { ProductRow } from './ProductRow';
+import { OrderPreview } from './OrderPreview';
+import logoGreen from '@/assets/pura-vida-logo.png';
 
 interface Product {
   name: string;
-  ironStock: number;
+  targetStock: number;
   currentStock: number;
 }
 
-const WEBHOOK_URL = "https://n8n.puravidafoodbar.nl/webhook/voorraad-west";
+const INITIAL_PRODUCTS: Product[] = [
+  { name: 'Bananenbrood (tray)', targetStock: 4, currentStock: 0 },
+  { name: 'Energy balls (doos)', targetStock: 3, currentStock: 0 },
+  { name: 'Curry basis (bak)', targetStock: 2, currentStock: 0 },
+  { name: 'Soep basis', targetStock: 2, currentStock: 0 },
+  { name: 'Falafel (bak)', targetStock: 3, currentStock: 0 },
+];
 
-const OrderDashboard = () => {
-  const [products, setProducts] = useState<Product[]>([
-    { name: "Bananenbrood (tray)", ironStock: 4, currentStock: 0 },
-    { name: "Energy balls (doos)", ironStock: 3, currentStock: 0 },
-    { name: "Curry basis (bak)", ironStock: 2, currentStock: 0 },
-    { name: "Soep basis", ironStock: 2, currentStock: 0 },
-    { name: "Falafel (bak)", ironStock: 3, currentStock: 0 },
-  ]);
+function getCurrentWeek(): number {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const diff = now.getTime() - start.getTime();
+  const oneWeek = 1000 * 60 * 60 * 24 * 7;
+  return Math.ceil(diff / oneWeek);
+}
 
+export default function OrderDashboard() {
+  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastSubmitted, setLastSubmitted] = useState<string | null>(null);
-
-  const getWeekNumber = (date: Date) => {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-    return weekNo;
-  };
-  
-  const weekNumber = getWeekNumber(new Date());
-  const currentYear = new Date().getFullYear();
+  const [showPreview, setShowPreview] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
+  const currentWeek = getCurrentWeek();
 
   // Load saved data from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem("puraVidaStock");
-    if (saved) {
+    const savedProducts = localStorage.getItem('pura-vida-products');
+    const savedTimestamp = localStorage.getItem('pura-vida-last-submitted');
+    
+    if (savedProducts) {
       try {
-        const data = JSON.parse(saved);
-        setProducts(data.products);
-        setLastSubmitted(data.lastSubmitted);
+        setProducts(JSON.parse(savedProducts));
       } catch (e) {
-        console.error("Error loading saved data:", e);
+        console.error('Failed to parse saved products', e);
       }
+    }
+    
+    if (savedTimestamp) {
+      setLastSubmitted(savedTimestamp);
     }
   }, []);
 
-  // Save to localStorage whenever products change
+  // Save to localStorage when products change
   useEffect(() => {
-    const data = {
-      products,
-      lastSubmitted,
-    };
-    localStorage.setItem("puraVidaStock", JSON.stringify(data));
-  }, [products, lastSubmitted]);
+    localStorage.setItem('pura-vida-products', JSON.stringify(products));
+  }, [products]);
 
-  const updateStock = (index: number, value: number) => {
+  const updateProductStock = (index: number, value: number) => {
     const newProducts = [...products];
     newProducts[index].currentStock = value;
     setProducts(newProducts);
   };
 
-  const handlePreview = () => {
-    window.print();
+  const focusNextInput = (currentIndex: number) => {
+    // Focus next input field when Enter is pressed
+    const nextIndex = currentIndex + 1;
+    if (nextIndex < products.length) {
+      const nextInput = document.querySelector(`input[data-index="${nextIndex}"]`) as HTMLInputElement;
+      if (nextInput) {
+        nextInput.focus();
+      }
+    }
   };
+
+  const calculateRefill = (targetStock: number, currentStock: number): number => {
+    return Math.max(targetStock - currentStock, 0);
+  };
+
+  const getOrderData = () => ({
+    locatie: 'West',
+    datum: new Date().toISOString(),
+    week: currentWeek,
+    producten: products.map(p => ({
+      naam: p.name,
+      ijzerenVoorraad: p.targetStock,
+      huidigeVoorraad: p.currentStock,
+      aanTeVullen: calculateRefill(p.targetStock, p.currentStock),
+    })),
+  });
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    const orderData = getOrderData();
 
-    const orderData = {
-      locatie: "West",
-      datum: new Date().toISOString(),
-      week: `${weekNumber} (${currentYear})`,
-      producten: products.map((p) => ({
-        naam: p.name,
-        ijzerenVoorraad: p.ironStock,
-        huidigeVoorraad: p.currentStock,
-        aanTeVullen: Math.max(p.ironStock - p.currentStock, 0),
-      })),
-    };
+    // Save order locally
+    const timestamp = new Date().toLocaleString('nl-NL', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    if (demoMode) {
+      // Demo mode - simulate success without calling webhook
+      setTimeout(() => {
+        setLastSubmitted(timestamp);
+        localStorage.setItem('pura-vida-last-submitted', timestamp);
+        localStorage.setItem('pura-vida-last-order', JSON.stringify(orderData));
+        
+        toast.success('🌴 Demo: Bestelling gesimuleerd', {
+          description: 'In productie wordt deze naar Midsland gestuurd.',
+        });
+        setIsSubmitting(false);
+      }, 1500);
+      return;
+    }
 
     try {
-      const response = await fetch(WEBHOOK_URL, {
-        method: "POST",
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const response = await fetch('https://n8n.puravidafoodbar.nl/webhook/voorraad-west', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(orderData),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
+
       if (response.ok) {
-        const timestamp = new Date().toLocaleString("nl-NL");
         setLastSubmitted(timestamp);
-        toast.success("Yes! Bestelling is onderweg naar Midsland ✨", {
-          description: "Je bestelling wordt direct verwerkt.",
-          icon: <Check className="h-5 w-5" />,
+        localStorage.setItem('pura-vida-last-submitted', timestamp);
+        localStorage.setItem('pura-vida-last-order', JSON.stringify(orderData));
+        
+        toast.success('🌴 Bestelling verzonden!', {
+          description: 'Midsland ontvangt deze direct.',
         });
       } else {
-        throw new Error("Failed to submit");
+        throw new Error(`Server responded with ${response.status}`);
       }
     } catch (error) {
-      toast.error("Oeps! Er ging iets mis 🌴", {
-        description: "Probeer het opnieuw of neem contact op.",
-      });
-      console.error("Error submitting order:", error);
+      console.error('Error submitting order:', error);
+      
+      // Save failed order for later retry
+      localStorage.setItem('pura-vida-failed-order', JSON.stringify({
+        data: orderData,
+        timestamp: timestamp,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      }));
+
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.error('⏱️ Verbinding verbroken', {
+          description: 'De webhook reageert niet. Schakel over naar demo-modus?',
+          duration: 6000,
+          action: {
+            label: 'Demo-modus',
+            onClick: () => setDemoMode(true),
+          },
+        });
+      } else {
+        toast.error('🔌 Kan webhook niet bereiken', {
+          description: 'Controleer of de n8n webhook actief is, of gebruik demo-modus.',
+          duration: 6000,
+          action: {
+            label: 'Demo-modus',
+            onClick: () => setDemoMode(true),
+          },
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const totalToRefill = products.reduce(
-    (sum, p) => sum + Math.max(p.ironStock - p.currentStock, 0),
-    0
-  );
+  const hasAnyStock = products.some(p => p.currentStock > 0);
+  const totalRefill = products.reduce((sum, p) => sum + calculateRefill(p.targetStock, p.currentStock), 0);
 
   return (
-    <div className="min-h-screen bg-background">
-      <WaveBackground />
-      
-      <div className="container mx-auto px-4 py-4 md:py-8 max-w-3xl relative">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="text-center mb-3">
+    <div className="min-h-screen bg-[#F5F7DD]">
+      {/* Header */}
+      <div className="bg-[#F5F7DD] border-b-2 border-[#1B7867]/20">
+        <div className="max-w-3xl mx-auto px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center mb-5">
             <img 
-              src={logoSunset} 
-              alt="Pura Vida" 
-              className="h-12 md:h-14 w-auto opacity-90 mx-auto mb-3"
+              src={logoGreen} 
+              alt="Pura Vida Foodbar" 
+              className="h-20 sm:h-24 lg:h-28 w-auto"
             />
-            <h1 className="font-heading text-lg md:text-xl text-foreground/90 font-bold tracking-wide mb-1">
-              Interne Bestelling - West
-            </h1>
-            <p className="font-mono text-[10px] md:text-xs text-muted-foreground/60 mb-2">
-              • Week {weekNumber} •
-            </p>
-            <p className="text-xs text-muted-foreground/50 font-medium tracking-widest uppercase">
-              Foodbar Terschelling
-            </p>
           </div>
-        </div>
-
-        {/* Info Box */}
-        <div className="bg-[#FDF8F3] border border-amber-200/40 rounded-lg p-4 mb-6">
-          <div className="flex gap-3 items-start">
-            <Info className="w-4 h-4 text-amber-600/70 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-muted-foreground/70 leading-relaxed">
-              Tel de voorraad in de vriezer en vul hieronder de aantallen in. 
-              Het systeem berekent automatisch wat Midsland moet aanvullen zodat 
-              de ijzeren voorraad weer compleet is.
-            </p>
-          </div>
-        </div>
-
-        {/* Products - Professional Table */}
-        <div className="bg-white rounded-lg border border-gray-200 mb-6 overflow-hidden">
-          <div className="hidden md:grid grid-cols-4 gap-3 px-4 py-3 bg-muted/10 border-b border-gray-200">
-            <div className="text-xs font-medium text-gray-500/60 uppercase tracking-wide">Product</div>
-            <div className="text-xs font-medium text-gray-500/60 uppercase tracking-wide text-right">Ijzer</div>
-            <div className="text-xs font-medium text-gray-500/60 uppercase tracking-wide text-right">Huidig</div>
-            <div className="text-xs font-medium text-gray-500/60 uppercase tracking-wide text-right">Vullen</div>
-          </div>
-
-          <div>
-            {products.map((product, index) => (
-              <ProductRow
-                key={product.name}
-                name={product.name}
-                ironStock={product.ironStock}
-                currentStock={product.currentStock}
-                onStockChange={(value) => updateStock(index, value)}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Total - Redesigned */}
-        <div className="bg-emerald-500 rounded-lg border border-emerald-600/20 p-5 mb-6">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <Package className="w-6 h-6 text-white/90" />
-              <span className="text-xs font-medium text-white/90 uppercase tracking-wide">
-                Totaal aan te vullen
+          <div className="text-center space-y-3">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <h1 className="text-[#282E3A] font-[Inter] text-[20px]">
+                Voorraadregistratie
+              </h1>
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#1B7867] text-white text-sm">
+                West
               </span>
             </div>
-            <span className="font-mono text-5xl md:text-6xl font-semibold text-white tabular-nums">
-              {totalToRefill}
-            </span>
+            <div className="flex items-center justify-center gap-2 pt-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#1B7867]"></div>
+              <p className="text-center text-[#1B7867] text-sm">
+                Week {currentWeek} • {new Date().toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </p>
+              <div className="w-1.5 h-1.5 rounded-full bg-[#1B7867]"></div>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Buttons */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={handlePreview}
-            className="w-full"
-          >
-            <Eye className="w-4 h-4 mr-2" />
-            Voorbeeld
-          </Button>
-          <Button
-            variant="default"
-            size="lg"
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="w-full"
-          >
-            <Check className="w-4 h-4 mr-2" />
-            {isSubmitting ? "Verzenden..." : "Verstuur naar Midsland"}
-          </Button>
+      {/* Main Content */}
+      <div className="max-w-3xl mx-auto px-3 py-6 sm:px-4 sm:py-8 lg:px-6 pb-10">
+        {/* Instruction Card */}
+        <Card className="p-4 sm:p-5 mb-6 bg-white border-[#1B7867]/20 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 text-[#1B7867] flex-shrink-0">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <p className="text-[#282E3A]/90 leading-relaxed flex-1 text-sm sm:text-base">
+              Tel de voorraad in de vriezer en vul hieronder de aantallen in. Het systeem berekent automatisch wat Midsland moet aanvullen zodat de ijzeren voorraad weer compleet is.
+            </p>
+          </div>
+        </Card>
+
+        {/* Products Table - All Screen Sizes */}
+        <Card className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white mb-6">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-[#1B7867]/10">
+                  <th className="px-4 py-4 sm:px-6 sm:py-5 text-left text-xs sm:text-sm uppercase tracking-wider text-[rgba(40,46,58,0.88)] font-bold">Product</th>
+                  <th className="px-3 py-4 sm:px-5 sm:py-5 text-center text-xs uppercase tracking-wider text-[rgba(40,46,58,0.88)] font-bold">Ijzer</th>
+                  <th className="px-3 py-4 sm:px-5 sm:py-5 text-center text-xs uppercase tracking-wider text-[rgba(40,46,58,0.88)] font-bold">Huidig</th>
+                  <th className="px-3 py-4 sm:px-5 sm:py-5 text-center text-xs uppercase tracking-wider text-[rgba(40,46,58,0.88)] font-bold">Vullen</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#1B7867]/5">
+                {products.map((product, index) => (
+                  <ProductRow
+                    key={product.name}
+                    product={product}
+                    onUpdateStock={(value) => updateProductStock(index, value)}
+                    refillAmount={calculateRefill(product.targetStock, product.currentStock)}
+                    isFirst={index === 0}
+                    onEnter={() => focusNextInput(index)}
+                    index={index}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+
+        {/* Submit Section */}
+        <div className="space-y-4">
+          {demoMode && (
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-white border-l-4 border-[#E27726] rounded-2xl shadow-sm">
+              <AlertCircle className="w-5 h-5 text-[#E27726] flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm text-[#282E3A]">
+                  <span className="font-semibold">Demo-modus</span> – Bestellingen worden gesimuleerd
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setDemoMode(false)}
+                className="text-[#282E3A]/70 hover:text-[#1B7867] hover:bg-white/80 self-end sm:self-auto"
+              >
+                Uitschakelen
+              </Button>
+            </div>
+          )}
+
+          {/* Summary Badge */}
+          {hasAnyStock && (
+            <div className="bg-gradient-to-br from-[#1B7867]/5 to-[#1B7867]/10 rounded-2xl p-5 border-2 border-[#1B7867]/30 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-[#1B7867] rounded-lg">
+                    <Package className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-sm sm:text-base text-[#282E3A] font-semibold">Totaal aan te vullen</span>
+                </div>
+                <span className="text-3xl sm:text-4xl font-bold text-[#1B7867]">
+                  {totalRefill}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              onClick={() => setShowPreview(true)}
+              disabled={!hasAnyStock}
+              variant="outline"
+              className="w-full sm:flex-1 h-12 sm:h-auto sm:py-5 border-2 border-[#1B7867] text-[#1B7867] hover:bg-[#1B7867]/5 rounded-2xl font-semibold transition-all touch-manipulation"
+            >
+              <Eye className="mr-2 h-5 w-5" />
+              Voorbeeld
+            </Button>
+
+            <Button
+              onClick={handleSubmit}
+              disabled={isSubmitting || !hasAnyStock}
+              className="w-full sm:flex-[2] h-12 sm:h-auto sm:py-5 bg-gradient-to-r from-[#1B7867] to-[#0d5a4c] hover:from-[#0d5a4c] hover:to-[#1B7867] text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl font-semibold touch-manipulation active:scale-[0.98]"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Bezig met verzenden...
+                </>
+              ) : (
+                <>
+                  <Check className="mr-2 h-5 w-5" />
+                  Verstuur naar Midsland
+                </>
+              )}
+            </Button>
+          </div>
+
+          {lastSubmitted && (
+            <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-[#282E3A]/50 py-2">
+              <div className="w-1 h-1 rounded-full bg-[#1B7867]/30"></div>
+              <p>Laatst verzonden op {lastSubmitted}</p>
+              <div className="w-1 h-1 rounded-full bg-[#1B7867]/30"></div>
+            </div>
+          )}
         </div>
 
-        {/* Last Submitted */}
-        {lastSubmitted && (
-          <div className="mt-3 text-center text-xs text-muted-foreground font-mono">
-            Laatst verzonden: {lastSubmitted}
-          </div>
-        )}
+        {/* Order Preview Dialog */}
+        <OrderPreview
+          open={showPreview}
+          onClose={() => setShowPreview(false)}
+          orderData={getOrderData()}
+        />
+
+        {/* Footer */}
+        <div className="mt-12 text-center text-sm text-[#282E3A]/50">
+          <p>🌴 Pura Vida Foodbar – Fresh & Tropical</p>
+        </div>
       </div>
     </div>
   );
-};
-
-export default OrderDashboard;
+}

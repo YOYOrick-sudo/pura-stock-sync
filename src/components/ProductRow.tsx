@@ -1,65 +1,53 @@
 import { Input } from "@/components/ui/input";
 
-interface ProductRowProps {
+interface Product {
   name: string;
-  ironStock: number;
+  targetStock: number;
   currentStock: number;
-  onStockChange: (value: number) => void;
 }
 
-const ProductRow = ({ name, ironStock, currentStock, onStockChange }: ProductRowProps) => {
-  const toRefill = Math.max(ironStock - currentStock, 0);
+interface ProductRowProps {
+  product: Product;
+  onUpdateStock: (value: number) => void;
+  refillAmount: number;
+  isFirst: boolean;
+  onEnter: () => void;
+  index: number;
+}
+
+export const ProductRow = ({ product, onUpdateStock, refillAmount, isFirst, onEnter, index }: ProductRowProps) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      onEnter();
+    }
+  };
 
   return (
-    <>
-      {/* Mobile View */}
-      <div className="md:hidden px-4 py-3 border-b border-gray-100 last:border-0 even:bg-muted/5">
-        <div className="text-base font-medium text-foreground/90 mb-3">{name}</div>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="text-center">
-            <div className="text-xs font-bold text-muted-foreground/70 mb-1 uppercase tracking-wide">Ijzer</div>
-            <div className="font-mono text-base text-foreground/80 tabular-nums">{ironStock}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-xs font-bold text-muted-foreground/70 mb-1 uppercase tracking-wide">Huidig</div>
-            <Input
-              type="number"
-              min="0"
-              value={currentStock}
-              onChange={(e) => onStockChange(Math.max(0, parseInt(e.target.value) || 0))}
-              className="w-full text-center h-10"
-            />
-          </div>
-          <div className="text-center">
-            <div className="text-xs font-bold text-muted-foreground/70 mb-1 uppercase tracking-wide">Vullen</div>
-            <div className="font-mono text-lg font-semibold text-primary tabular-nums">{toRefill}</div>
-          </div>
+    <tr className="even:bg-[#1B7867]/[0.02]">
+      <td className="px-4 py-4 sm:px-6 sm:py-4">
+        <span className="text-sm text-[#282E3A]/90 font-medium">{product.name}</span>
+      </td>
+      <td className="px-3 py-4 sm:px-5 sm:py-4 text-center">
+        <span className="font-mono text-sm text-[#282E3A]/80 tabular-nums">{product.targetStock}</span>
+      </td>
+      <td className="px-3 py-4 sm:px-5 sm:py-4">
+        <div className="flex justify-center">
+          <Input
+            type="number"
+            min="0"
+            value={product.currentStock}
+            onChange={(e) => onUpdateStock(Math.max(0, parseInt(e.target.value) || 0))}
+            onKeyDown={handleKeyDown}
+            data-index={index}
+            className="w-16 text-center text-sm h-9 border-[#1B7867]/20 focus:border-[#1B7867] focus:ring-[#1B7867]/20"
+            autoFocus={isFirst}
+          />
         </div>
-      </div>
-
-      {/* Desktop View */}
-      <div className="hidden md:grid grid-cols-4 gap-3 items-center px-4 py-3 border-b border-gray-100 last:border-0 even:bg-muted/5">
-        <div className="text-sm font-medium text-foreground/90">{name}</div>
-        <div className="text-right">
-          <span className="font-mono text-sm text-foreground/80 tabular-nums">{ironStock}</span>
-        </div>
-        <div className="flex justify-end">
-          <div className="w-16">
-            <Input
-              type="number"
-              min="0"
-              value={currentStock}
-              onChange={(e) => onStockChange(Math.max(0, parseInt(e.target.value) || 0))}
-              className="w-full text-right"
-            />
-          </div>
-        </div>
-        <div className="text-right">
-          <span className="font-mono text-base font-medium text-primary tabular-nums">{toRefill}</span>
-        </div>
-      </div>
-    </>
+      </td>
+      <td className="px-3 py-4 sm:px-5 sm:py-4 text-center">
+        <span className="font-mono text-base font-semibold text-[#1B7867] tabular-nums">{refillAmount}</span>
+      </td>
+    </tr>
   );
 };
-
-export default ProductRow;
