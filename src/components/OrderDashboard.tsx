@@ -430,7 +430,7 @@ export default function OrderDashboard() {
         <div className="mt-12 text-center space-y-2">
           
           <p className="text-xs text-[#282E3A]/40 italic max-w-md mx-auto px-4">
-            *Resultaten niet gegarandeerd. Vergeten producten invullen kan leiden tot creatief improviseren en boze blikken van Midsland 😉
+            *Pro tip: Alles netjes invullen = happy Midsland, happy gasten, happy jullie 🎉
           </p>
         </div>
       </div>
