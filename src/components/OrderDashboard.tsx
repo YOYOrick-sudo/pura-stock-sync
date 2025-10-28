@@ -277,7 +277,7 @@ export default function OrderDashboard() {
           <div className="flex items-center justify-between gap-4">
             {/* Left: Week & Voorraad */}
             <div className="flex-1">
-              <div className="flex items-center gap-2 text-xs text-[#282E3A]/50 mb-1">
+              <div className="flex items-center justify-between gap-2 text-xs text-[#282E3A]/50 mb-1">
                 <span>Week {currentWeek}</span>
                 <span>•</span>
                 <span>{new Date().toLocaleDateString('nl-NL', {
