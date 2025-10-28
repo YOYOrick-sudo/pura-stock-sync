@@ -317,7 +317,10 @@ export default function OrderDashboard() {
             {/* Left: Week & Voorraad */}
             <div className="flex-1 text-left">
               <div className="text-xs text-[#282E3A]/50 mb-1">
-                Week {currentWeek}
+                Week {currentWeek} • {new Date().toLocaleDateString('nl-NL', {
+                  day: 'numeric',
+                  month: 'numeric'
+                })}
               </div>
               <div className="text-xs text-[#282E3A]/60">
                 Voorraad - West
