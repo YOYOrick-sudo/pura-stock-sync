@@ -427,9 +427,8 @@ export default function OrderDashboard() {
         </AlertDialog>
 
         {/* Footer */}
-        <div className="mt-12 text-center space-y-2">
-          
-          <p className="text-xs text-[#282E3A]/40 italic max-w-md mx-auto px-4">
+        <div className="mt-8 text-center">
+          <p className="text-sm text-[#282E3A]/60 italic max-w-md mx-auto px-4">
             *Pro tip: Alles netjes invullen = happy Midsland, happy gasten, happy jullie 🎉
           </p>
         </div>
