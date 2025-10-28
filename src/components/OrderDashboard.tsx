@@ -288,12 +288,9 @@ export default function OrderDashboard() {
             <img src={logoGreen} alt="Pura Vida Foodbar" className="h-16 sm:h-20 w-auto" />
           </div>
           <div className="text-center">
-            <div className="flex items-center justify-center gap-2.5 mb-2">
-              <span className="text-[#282E3A]/70 text-sm">
-                Voorraadregistratie
-              </span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#1B7867] text-white text-xs font-medium">
-                West
+            <div className="flex items-center justify-center mb-2">
+              <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#1B7867] text-white text-sm font-medium">
+                Voorraad - West
               </span>
             </div>
             <div className="flex items-center justify-center gap-2 text-xs text-[#282E3A]/50">
