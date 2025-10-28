@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
-import { Loader2, Check, Eye, AlertCircle, Package, Plus, X, CheckCircle2 } from 'lucide-react';
+import { Loader2, Check, Eye, AlertCircle, Package, Plus, X, CheckCircle2, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProductRow } from './ProductRow';
 import { OrderPreview } from './OrderPreview';
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from './ui/alert-dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from './ui/alert-dialog';
 import logoGreen from '@/assets/pura-vida-logo-official.png';
+import { supabase } from '@/lib/supabase';
 interface Product {
   name: string;
   targetStock: number;
@@ -43,11 +45,13 @@ function getCurrentWeek(): number {
   return Math.ceil(diff / oneWeek);
 }
 export default function OrderDashboard() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastSubmitted, setLastSubmitted] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
   const [newProductName, setNewProductName] = useState('');
   const [newProductAmount, setNewProductAmount] = useState('');
@@ -252,12 +256,35 @@ export default function OrderDashboard() {
       setIsSubmitting(false);
     }
   };
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success('Uitgelogd');
+      navigate('/auth');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Uitloggen mislukt');
+    }
+  };
+
   const hasAnyStock = products.some(p => p.currentStock > 0);
   const totalRefill = products.reduce((sum, p) => sum + calculateRefill(p.targetStock, p.currentStock), 0);
+  
   return <div className="min-h-screen bg-[#F5F7DD]">
       {/* Header */}
       <div className="bg-[#F5F7DD] border-b-2 border-[#1B7867]/20">
-        <div className="max-w-3xl mx-auto px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto px-4 py-6 sm:py-8 sm:px-6 lg:px-8 relative">
+          {/* Logout Button */}
+          <Button
+            onClick={() => setShowLogoutDialog(true)}
+            variant="ghost"
+            size="sm"
+            className="absolute top-4 right-4 text-[#282E3A]/60 hover:text-[#E27726] hover:bg-[#E27726]/10"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">Uitloggen</span>
+          </Button>
+
           <div className="flex items-center justify-center mb-5">
             <img src={logoGreen} alt="Pura Vida Foodbar" className="h-24 sm:h-28 lg:h-32 w-auto" />
           </div>
@@ -270,6 +297,9 @@ export default function OrderDashboard() {
                 West
               </span>
             </div>
+            <p className="text-xs text-[#282E3A]/50">
+              Ingelogd als: Pura West Keuken
+            </p>
             <div className="flex items-center justify-center gap-2 pt-1">
               <div className="w-1.5 h-1.5 rounded-full bg-[#1B7867]"></div>
               <p className="text-center text-[#1B7867] text-sm">
@@ -422,6 +452,34 @@ export default function OrderDashboard() {
               <Button onClick={() => setShowSuccessDialog(false)} className="w-full bg-gradient-to-r from-[#1B7867] to-[#0d5a4c] hover:from-[#0d5a4c] hover:to-[#1B7867] text-white h-11 sm:h-12 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.98] touch-manipulation">
                 Sluiten
               </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Logout Confirmation Dialog */}
+        <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+          <AlertDialogContent className="max-w-[90vw] sm:max-w-md mx-4 bg-white border-2 border-[#E27726]/30 rounded-3xl shadow-2xl">
+            <AlertDialogHeader className="space-y-3 sm:space-y-4 pt-2">
+              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#E27726] to-[#d16615] rounded-full flex items-center justify-center shadow-lg">
+                <LogOut className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+              </div>
+              <AlertDialogTitle className="text-xl sm:text-2xl font-heading text-center text-[#282E3A] px-2">
+                Uitloggen?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-center text-[#282E3A]/70 text-sm sm:text-base px-2">
+                Weet je zeker dat je wilt uitloggen?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="mt-2 flex-col sm:flex-row gap-2">
+              <AlertDialogCancel className="w-full sm:w-auto border-2 border-[#1B7867]/20 hover:bg-[#1B7867]/5 rounded-xl">
+                Annuleren
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleLogout}
+                className="w-full sm:w-auto bg-gradient-to-r from-[#E27726] to-[#d16615] hover:from-[#d16615] hover:to-[#E27726] text-white rounded-xl"
+              >
+                Uitloggen
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
