@@ -313,28 +313,32 @@ export default function OrderDashboard() {
           </div>
 
           {/* Mobile Layout */}
-          <div className="sm:hidden">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-xs text-[#282E3A]/50">
-                Week {currentWeek} • {new Date().toLocaleDateString('nl-NL', {
-                  day: 'numeric',
-                  month: 'short'
-                })}
+          <div className="sm:hidden flex items-center justify-between gap-3">
+            {/* Left: Week & Voorraad */}
+            <div className="flex-1 text-left">
+              <div className="text-xs text-[#282E3A]/50 mb-1">
+                Week {currentWeek}
               </div>
+              <div className="text-xs text-[#282E3A]/60">
+                Voorraad - West
+              </div>
+            </div>
+            
+            {/* Center: Logo */}
+            <div className="flex-shrink-0">
+              <img src={logoGreen} alt="Pura Vida Foodbar" className="h-14 w-auto" />
+            </div>
+            
+            {/* Right: Logout */}
+            <div className="flex-1 flex justify-end">
               <Button
                 onClick={handleLogout}
                 variant="ghost"
                 size="sm"
-                className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent -mr-2"
+                className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent"
               >
                 <LogOut className="h-4 w-4" />
               </Button>
-            </div>
-            <div className="flex items-center justify-center mb-2">
-              <img src={logoGreen} alt="Pura Vida Foodbar" className="h-14 w-auto" />
-            </div>
-            <div className="text-center text-xs text-[#282E3A]/60">
-              Voorraad - West
             </div>
           </div>
         </div>
