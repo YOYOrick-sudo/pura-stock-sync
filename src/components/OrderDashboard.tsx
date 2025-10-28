@@ -2,10 +2,18 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
-import { Loader2, Check, Eye, AlertCircle, Package, Plus, X } from 'lucide-react';
+import { Loader2, Check, Eye, AlertCircle, Package, Plus, X, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProductRow } from './ProductRow';
 import { OrderPreview } from './OrderPreview';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+} from './ui/alert-dialog';
 import logoGreen from '@/assets/pura-vida-logo-official.png';
 
 interface Product {
@@ -36,6 +44,7 @@ export default function OrderDashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastSubmitted, setLastSubmitted] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
   const [newProductName, setNewProductName] = useState('');
   const [newProductAmount, setNewProductAmount] = useState('');
@@ -177,9 +186,8 @@ export default function OrderDashboard() {
         const permanentProducts = products.filter(p => !p.isTemporary);
         setProducts(permanentProducts);
         
-        toast.success('🌴 Demo: Bestelling gesimuleerd', {
-          description: 'In productie wordt deze naar Midsland gestuurd.',
-        });
+        // Show success dialog
+        setShowSuccessDialog(true);
         setIsSubmitting(false);
       }, 1500);
       return;
@@ -209,9 +217,8 @@ export default function OrderDashboard() {
         const permanentProducts = products.filter(p => !p.isTemporary);
         setProducts(permanentProducts);
         
-        toast.success('🌴 Bestelling verzonden!', {
-          description: 'Midsland ontvangt deze direct.',
-        });
+        // Show success dialog
+        setShowSuccessDialog(true);
       } else {
         throw new Error(`Server responded with ${response.status}`);
       }
@@ -450,6 +457,38 @@ export default function OrderDashboard() {
           onClose={() => setShowPreview(false)}
           orderData={getOrderData()}
         />
+
+        {/* Success Dialog */}
+        <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+          <AlertDialogContent className="max-w-md bg-white border-2 border-[#1B7867]/30 rounded-3xl">
+            <AlertDialogHeader className="space-y-4">
+              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-[#1B7867] to-[#0d5a4c] rounded-full flex items-center justify-center">
+                <CheckCircle2 className="w-8 h-8 text-white" />
+              </div>
+              <AlertDialogTitle className="text-2xl font-heading text-center text-[#282E3A]">
+                Bestelling verzonden!
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-center text-[#282E3A]/70 text-base space-y-2">
+                <p className="font-medium">Je bestelling is succesvol naar Midsland gestuurd.</p>
+                {totalRefill > 0 && (
+                  <div className="mt-4 p-3 bg-[#F5F7DD] rounded-xl">
+                    <p className="text-sm">
+                      <span className="font-semibold text-[#1B7867]">{totalRefill} producten</span> worden aangevuld
+                    </p>
+                  </div>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <Button
+                onClick={() => setShowSuccessDialog(false)}
+                className="w-full bg-gradient-to-r from-[#1B7867] to-[#0d5a4c] hover:from-[#0d5a4c] hover:to-[#1B7867] text-white h-12 rounded-2xl font-semibold"
+              >
+                Sluiten
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Footer */}
         <div className="mt-12 text-center text-sm text-[#282E3A]/50">
