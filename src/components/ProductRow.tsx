@@ -27,14 +27,14 @@ export const ProductRow = ({ product, onUpdateStock, refillAmount, isFirst, onEn
   };
 
   return (
-    <tr className="even:bg-[#F5F7DD]/20">
-      <td className="px-6 py-5">
-        <span className="text-base text-[#282E3A] font-normal">{product.name}</span>
+    <tr className="even:bg-[#F5F7DD]/15 hover:bg-[#F5F7DD]/30 transition-colors">
+      <td className="px-3 py-2.5 sm:px-4 sm:py-3">
+        <span className="text-sm sm:text-base text-[#282E3A] font-normal">{product.name}</span>
       </td>
-      <td className="px-6 py-5 text-center">
-        <span className="font-mono text-base text-[#282E3A]/80 tabular-nums">{product.targetStock}</span>
+      <td className="px-2 py-2.5 sm:px-3 sm:py-3 text-center">
+        <span className="font-mono text-sm sm:text-base text-[#282E3A]/80 tabular-nums">{product.targetStock}</span>
       </td>
-      <td className="px-6 py-5">
+      <td className="px-2 py-2.5 sm:px-3 sm:py-3">
         <div className="flex justify-center">
           <Input
             type="number"
@@ -43,14 +43,14 @@ export const ProductRow = ({ product, onUpdateStock, refillAmount, isFirst, onEn
             onChange={(e) => onUpdateStock(Math.max(0, parseInt(e.target.value) || 0))}
             onKeyDown={handleKeyDown}
             data-index={index}
-            className="w-32 text-center text-base h-12 border-[#1B7867]/20 focus:border-[#1B7867] focus:ring-[#1B7867]/20 rounded-xl bg-white"
+            className="w-20 sm:w-24 text-center text-sm sm:text-base h-9 sm:h-10 border-[#1B7867]/20 focus:border-[#1B7867] focus:ring-[#1B7867]/20 rounded-lg bg-white"
             autoFocus={isFirst}
           />
         </div>
       </td>
-      <td className="px-6 py-5 text-center">
-        <div className="flex items-center justify-center gap-2">
-          <span className="inline-flex items-center justify-center min-w-[60px] h-10 px-4 rounded-xl bg-[#1B7867]/10 font-mono text-lg font-bold text-[#1B7867] tabular-nums">
+      <td className="px-2 py-2.5 sm:px-3 sm:py-3 text-center">
+        <div className="flex items-center justify-center gap-1 sm:gap-2">
+          <span className="inline-flex items-center justify-center min-w-[48px] sm:min-w-[56px] h-8 sm:h-9 px-3 rounded-lg bg-[#1B7867]/10 font-mono text-base sm:text-lg font-bold text-[#1B7867] tabular-nums">
             {refillAmount}
           </span>
           {onRemove && (
@@ -58,9 +58,9 @@ export const ProductRow = ({ product, onUpdateStock, refillAmount, isFirst, onEn
               variant="ghost"
               size="icon"
               onClick={onRemove}
-              className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 ml-1"
+              className="h-7 w-7 sm:h-8 sm:w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
           )}
         </div>
