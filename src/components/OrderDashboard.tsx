@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import ProductRow from "./ProductRow";
 import WaveBackground from "./WaveBackground";
-import { Package, Send, Check } from "lucide-react";
+import { Send, Check } from "lucide-react";
+import logoSunset from "@/assets/pura-vida-logo.png";
 
 interface Product {
   name: string;
@@ -92,15 +93,15 @@ const OrderDashboard = () => {
       if (response.ok) {
         const timestamp = new Date().toLocaleString("nl-NL");
         setLastSubmitted(timestamp);
-        toast.success("Bestelling verzonden!", {
-          description: "Midsland ontvangt deze direct.",
+        toast.success("Yes! Bestelling is onderweg naar Midsland ✨", {
+          description: "Je bestelling wordt direct verwerkt.",
           icon: <Check className="h-5 w-5" />,
         });
       } else {
         throw new Error("Failed to submit");
       }
     } catch (error) {
-      toast.error("Fout bij verzenden", {
+      toast.error("Oeps! Er ging iets mis 🌴", {
         description: "Probeer het opnieuw of neem contact op.",
       });
       console.error("Error submitting order:", error);
@@ -118,30 +119,35 @@ const OrderDashboard = () => {
     <div className="min-h-screen bg-background relative">
       <WaveBackground />
       
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="text-center mb-8 animate-fade-in">
-          <div className="flex justify-center mb-4">
-            <Package className="h-16 w-16 text-primary" />
+      <div className="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
+        {/* Header with Logo */}
+        <div className="text-center mb-12 animate-fade-in">
+          <div className="flex justify-center mb-6">
+            <img 
+              src={logoSunset} 
+              alt="Pura Vida Foodbar" 
+              className="h-20 md:h-24 w-auto"
+            />
           </div>
-          <h1 className="text-4xl font-bold text-foreground mb-2">
+          <h1 className="font-heading text-3xl md:text-5xl tracking-widest text-foreground mb-4 uppercase">
             Interne Bestelling
           </h1>
-          <p className="text-xl text-secondary font-semibold mb-2">
+          <p className="font-heading text-xl md:text-2xl text-secondary font-bold mb-3 uppercase tracking-wide">
             Pura Vida West
           </p>
-          <p className="text-sm text-muted-foreground">Week {currentWeek}</p>
+          <p className="font-mono text-sm text-muted-foreground">Week {currentWeek}</p>
         </div>
 
-        <div className="bg-muted/30 rounded-2xl p-6 mb-6 animate-slide-up">
-          <p className="text-foreground leading-relaxed">
-            Tel de voorraad in de vriezer en vul hieronder de aantallen in. Het
-            systeem berekent automatisch wat Midsland moet aanvullen zodat de
-            ijzeren voorraad weer compleet is.
+        {/* Instructions Card */}
+        <div className="bg-card rounded-3xl p-6 md:p-8 mb-8 animate-slide-up shadow-soft border border-border/50">
+          <p className="font-mono text-foreground leading-relaxed text-center md:text-left">
+            Tel de voorraad en vul de aantallen in – wij berekenen de rest! 🌴
           </p>
         </div>
 
-        <div className="bg-card/50 rounded-2xl p-6 mb-6 animate-slide-up backdrop-blur-sm">
-          <div className="grid grid-cols-4 gap-4 mb-4 text-sm font-semibold text-muted-foreground px-4">
+        {/* Products Table */}
+        <div className="bg-card rounded-3xl p-4 md:p-8 mb-8 animate-slide-up shadow-medium border border-border/50">
+          <div className="hidden md:grid grid-cols-4 gap-6 mb-6 text-xs font-mono uppercase tracking-wide text-muted-foreground px-5">
             <div>Product</div>
             <div className="text-center">Ijzeren voorraad</div>
             <div className="text-center">Huidige voorraad</div>
@@ -160,40 +166,44 @@ const OrderDashboard = () => {
             ))}
           </div>
 
-          <div className="mt-6 pt-4 border-t border-border">
-            <div className="flex justify-between items-center px-4">
-              <span className="text-lg font-semibold text-foreground">
+          {/* Total Section */}
+          <div className="mt-8 pt-6 border-t border-border">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-3 px-4 md:px-5">
+              <span className="font-heading text-lg md:text-xl text-foreground uppercase tracking-wide">
                 Totaal aan te vullen:
               </span>
-              <span className="text-2xl font-bold text-primary">
+              <span className="font-heading text-4xl md:text-3xl font-bold text-secondary">
                 {totalToRefill}
               </span>
             </div>
           </div>
         </div>
 
+        {/* Submit Button */}
         <Button
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="w-full h-14 text-lg font-semibold rounded-xl shadow-medium hover:shadow-lg transition-all"
+          variant="secondary"
+          className="w-full shadow-medium hover:shadow-hover"
           size="lg"
         >
           {isSubmitting ? (
-            <span className="flex items-center gap-2">
+            <span className="flex items-center gap-3">
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-background border-t-transparent" />
-              Bestelling wordt verzonden...
+              Verzenden...
             </span>
           ) : (
-            <span className="flex items-center gap-2">
+            <span className="flex items-center gap-3">
               <Send className="h-5 w-5" />
               Versturen naar Midsland
             </span>
           )}
         </Button>
 
+        {/* Last Submitted Info */}
         {lastSubmitted && (
-          <div className="mt-6 text-center text-sm text-muted-foreground animate-fade-in">
-            <Check className="h-4 w-4 inline mr-1 text-primary" />
+          <div className="mt-6 text-center font-mono text-sm text-muted-foreground animate-fade-in">
+            <Check className="h-4 w-4 inline mr-2 text-primary" />
             Laatst verzonden op {lastSubmitted}
           </div>
         )}

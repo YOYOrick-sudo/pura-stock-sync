@@ -2,81 +2,107 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+/* Pura Vida Brand Design System - From Official Brand Guidelines
 All colors MUST be HSL.
 */
 
+/* Custom Font-Face Declarations */
+@font-face {
+  font-family: 'Forma DJR Micro';
+  src: url('/fonts/FormaDJRMicro-ExtraBold.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Roboto Mono';
+  src: url('/fonts/RobotoMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   :root {
-    /* Pura Vida Design System */
-    --background: 42 45% 94%;
-    --foreground: 168 60% 15%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 168 60% 15%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 168 60% 15%;
-
-    /* Pura Vida Teal Green - Primary Brand Color */
-    --primary: 168 46% 49%;
+    /* Pura Vida Brand Colors (Official) */
+    
+    /* Sea - Primary Brand Color #1B7867 */
+    --primary: 168 63% 28%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 168 46% 42%;
+    --primary-hover: 168 63% 35%;
 
-    /* Pura Vida Orange - Accent Color */
-    --secondary: 25 88% 58%;
+    /* Sunset - Accent/CTA Color #E27726 */
+    --secondary: 25 75% 52%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Beige/Cream tones */
-    --muted: 42 35% 88%;
+    /* Moonlight - Background Color #F5F7DD */
+    --background: 65 59% 92%;
+    --foreground: 210 19% 21%; /* Midnight for text */
+
+    /* Cards on Moonlight background */
+    --card: 0 0% 100%;
+    --card-foreground: 210 19% 21%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 19% 21%;
+
+    /* Sky - Muted/Borders #B1CFBE */
+    --muted: 145 26% 75%;
     --muted-foreground: 168 30% 35%;
 
-    --accent: 25 88% 58%;
-    --accent-foreground: 0 0% 100%;
+    /* Sunrise - Secondary Accent #F9BD84 */
+    --accent: 25 91% 75%;
+    --accent-foreground: 210 19% 21%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 168 25% 80%;
-    --input: 168 20% 95%;
-    --ring: 168 46% 49%;
+    /* Sky for borders */
+    --border: 145 26% 75%;
+    --input: 65 59% 92%;
+    --ring: 168 63% 28%;
 
     --radius: 1rem;
 
-    /* Shadows */
-    --shadow-soft: 0 2px 8px rgba(69, 179, 157, 0.1);
-    --shadow-medium: 0 4px 16px rgba(69, 179, 157, 0.15);
+    /* Shadows with brand colors */
+    --shadow-soft: 0 2px 8px rgba(27, 120, 103, 0.08);
+    --shadow-medium: 0 4px 16px rgba(27, 120, 103, 0.12);
+    --shadow-hover: 0 8px 24px rgba(27, 120, 103, 0.15);
   }
 
   .dark {
-    --background: 168 50% 12%;
-    --foreground: 42 45% 94%;
+    /* Midnight - Dark Background #282E3A */
+    --background: 210 19% 21%;
+    --foreground: 65 59% 92%;
 
-    --card: 168 45% 15%;
-    --card-foreground: 42 45% 94%;
+    --card: 210 19% 15%;
+    --card-foreground: 65 59% 92%;
 
-    --popover: 168 45% 15%;
-    --popover-foreground: 42 45% 94%;
+    --popover: 210 19% 15%;
+    --popover-foreground: 65 59% 92%;
 
-    --primary: 168 46% 49%;
+    /* Sea stays same in dark mode */
+    --primary: 168 63% 28%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 168 46% 55%;
+    --primary-hover: 168 63% 35%;
 
-    --secondary: 25 88% 58%;
+    /* Sunset stays vibrant */
+    --secondary: 25 75% 52%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 168 30% 20%;
-    --muted-foreground: 42 25% 70%;
+    --muted: 210 19% 30%;
+    --muted-foreground: 145 26% 65%;
 
-    --accent: 25 88% 58%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 25 91% 75%;
+    --accent-foreground: 210 19% 21%;
 
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 168 30% 25%;
-    --input: 168 35% 18%;
-    --ring: 168 46% 49%;
+    --border: 210 19% 30%;
+    --input: 210 19% 18%;
+    --ring: 168 63% 28%;
   }
 }
 

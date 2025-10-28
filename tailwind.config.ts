@@ -14,7 +14,12 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Poppins", "sans-serif"],
+        sans: ["system-ui", "sans-serif"],
+        heading: ["Forma DJR Micro", "system-ui", "sans-serif"],
+        mono: ["Roboto Mono", "monospace"],
+      },
+      letterSpacing: {
+        widest: "0.25em",
       },
       colors: {
         border: "hsl(var(--border))",
@@ -55,6 +60,7 @@ export default {
       boxShadow: {
         soft: "var(--shadow-soft)",
         medium: "var(--shadow-medium)",
+        hover: "var(--shadow-hover)",
       },
       borderRadius: {
         lg: "var(--radius)",
