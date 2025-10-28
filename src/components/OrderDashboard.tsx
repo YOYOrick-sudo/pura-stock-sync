@@ -188,7 +188,7 @@ export default function OrderDashboard() {
           </div>
           <div className="text-center space-y-3">
             <div className="flex items-center justify-center gap-3 mb-2">
-              <h1 className="text-[#282E3A] font-[Inter] text-[[20px]]">
+              <h1 className="text-[#282E3A] font-[Inter] text-[20px]">
                 Voorraadregistratie
               </h1>
               <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#1B7867] text-white text-sm">
@@ -230,10 +230,10 @@ export default function OrderDashboard() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[#1B7867]/10">
-                  <th className="px-4 py-4 sm:px-6 sm:py-5 text-left text-xs sm:text-sm uppercase tracking-wider text-[rgba(40,46,58,0.88)] font-bold">Product</th>
-                  <th className="px-3 py-4 sm:px-5 sm:py-5 text-center text-xs uppercase tracking-wider text-[rgba(40,46,58,0.88)] font-bold">Ijzer</th>
-                  <th className="px-3 py-4 sm:px-5 sm:py-5 text-center text-xs uppercase tracking-wider text-[rgba(40,46,58,0.88)] font-bold">Huidig</th>
-                  <th className="px-3 py-4 sm:px-5 sm:py-5 text-center text-xs uppercase tracking-wider text-[rgba(40,46,58,0.88)] font-bold">Vullen</th>
+                  <th className="px-4 py-4 sm:px-6 sm:py-5 text-left uppercase tracking-wider text-[rgba(40,46,58,0.88)] text-[13px] font-bold">Product</th>
+                  <th className="px-3 py-4 sm:px-5 sm:py-5 text-center uppercase tracking-wider text-[rgba(40,46,58,0.88)] text-[13px] font-bold">Ijzer</th>
+                  <th className="px-3 py-4 sm:px-5 sm:py-5 text-center uppercase tracking-wider text-[rgba(40,46,58,0.88)] text-[13px] font-bold">Huidig</th>
+                  <th className="px-3 py-4 sm:px-5 sm:py-5 text-center uppercase tracking-wider text-[rgba(40,46,58,0.88)] text-[13px] font-bold">Vullen</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1B7867]/5">
