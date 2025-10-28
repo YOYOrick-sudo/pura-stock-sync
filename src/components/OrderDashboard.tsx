@@ -277,17 +277,18 @@ export default function OrderDashboard() {
           <div className="flex items-center justify-between gap-4">
             {/* Left: Week & Voorraad */}
             <div className="flex-1">
-              <div className="flex items-center justify-between gap-2 text-xs text-[#282E3A]/50 mb-1">
+              <div className="text-xs text-[#282E3A]/50 mb-1">
                 <span>Week {currentWeek}</span>
-                <span>•</span>
+                <span className="mx-2">•</span>
                 <span>{new Date().toLocaleDateString('nl-NL', {
                   day: 'numeric',
                   month: 'long',
                   year: 'numeric'
                 })}</span>
               </div>
-              <div className="flex items-center justify-between text-sm text-[#282E3A]/70">
+              <div className="text-sm text-[#282E3A]/70">
                 <span>Voorraad</span>
+                <span className="mx-2">•</span>
                 <span>Pura Vida - West</span>
               </div>
             </div>
