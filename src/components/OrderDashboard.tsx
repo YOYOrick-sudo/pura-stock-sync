@@ -11,28 +11,24 @@ interface Product {
   name: string;
   targetStock: number;
   currentStock: number;
+  isCustom?: boolean;
+  id?: string;
 }
-const INITIAL_PRODUCTS: Product[] = [{
-  name: 'Bananenbrood (tray)',
-  targetStock: 4,
-  currentStock: 0
-}, {
-  name: 'Energy balls (doos)',
-  targetStock: 3,
-  currentStock: 0
-}, {
-  name: 'Curry basis (bak)',
-  targetStock: 2,
-  currentStock: 0
-}, {
-  name: 'Soep basis',
-  targetStock: 2,
-  currentStock: 0
-}, {
-  name: 'Falafel (bak)',
-  targetStock: 3,
-  currentStock: 0
-}];
+
+const INITIAL_PRODUCTS: Product[] = [
+  { name: 'Wortelwalnoot cake', targetStock: 9, currentStock: 0 },
+  { name: 'Cheesecake', targetStock: 9, currentStock: 0 },
+  { name: 'Boterkoek', targetStock: 4, currentStock: 0 },
+  { name: 'Brownie', targetStock: 4, currentStock: 0 },
+  { name: 'Notenbar', targetStock: 4, currentStock: 0 },
+  { name: 'Wortel haveel muffin', targetStock: 5, currentStock: 0 },
+  { name: 'Arabische sinaasappel cake', targetStock: 4, currentStock: 0 },
+  { name: 'Vissoep', targetStock: 9, currentStock: 0 },
+  { name: 'Kip (15 kg)', targetStock: 10, currentStock: 0 },
+  { name: 'Kaas', targetStock: 8, currentStock: 0 },
+  { name: 'Tempeh', targetStock: 6, currentStock: 0 },
+  { name: 'Rode kool', targetStock: 6, currentStock: 0 },
+];
 function getCurrentWeek(): number {
   const now = new Date();
   const start = new Date(now.getFullYear(), 0, 1);
@@ -46,12 +42,17 @@ export default function OrderDashboard() {
   const [lastSubmitted, setLastSubmitted] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
+  const [customProducts, setCustomProducts] = useState<Product[]>([]);
+  const [newProductName, setNewProductName] = useState('');
+  const [newProductTarget, setNewProductTarget] = useState('');
   const currentWeek = getCurrentWeek();
 
   // Load saved data from localStorage
   useEffect(() => {
     const savedProducts = localStorage.getItem('pura-vida-products');
+    const savedCustomProducts = localStorage.getItem('pura-vida-custom-products');
     const savedTimestamp = localStorage.getItem('pura-vida-last-submitted');
+    
     if (savedProducts) {
       try {
         setProducts(JSON.parse(savedProducts));
@@ -59,6 +60,15 @@ export default function OrderDashboard() {
         console.error('Failed to parse saved products', e);
       }
     }
+    
+    if (savedCustomProducts) {
+      try {
+        setCustomProducts(JSON.parse(savedCustomProducts));
+      } catch (e) {
+        console.error('Failed to parse saved custom products', e);
+      }
+    }
+    
     if (savedTimestamp) {
       setLastSubmitted(savedTimestamp);
     }
@@ -68,35 +78,100 @@ export default function OrderDashboard() {
   useEffect(() => {
     localStorage.setItem('pura-vida-products', JSON.stringify(products));
   }, [products]);
+
+  useEffect(() => {
+    localStorage.setItem('pura-vida-custom-products', JSON.stringify(customProducts));
+  }, [customProducts]);
   const updateProductStock = (index: number, value: number) => {
     const newProducts = [...products];
     newProducts[index].currentStock = value;
     setProducts(newProducts);
   };
-  const focusNextInput = (currentIndex: number) => {
-    // Focus next input field when Enter is pressed
+
+  const updateCustomProductStock = (index: number, value: number) => {
+    const newCustomProducts = [...customProducts];
+    newCustomProducts[index].currentStock = value;
+    setCustomProducts(newCustomProducts);
+  };
+
+  const addCustomProduct = () => {
+    const trimmedName = newProductName.trim();
+    const targetStock = parseInt(newProductTarget);
+
+    if (!trimmedName || trimmedName.length > 100) {
+      toast.error('Product naam moet tussen 1 en 100 karakters zijn');
+      return;
+    }
+
+    if (isNaN(targetStock) || targetStock < 1 || targetStock > 999) {
+      toast.error('Ijzeren voorraad moet tussen 1 en 999 zijn');
+      return;
+    }
+
+    const newProduct: Product = {
+      id: `custom-${Date.now()}`,
+      name: trimmedName,
+      targetStock: targetStock,
+      currentStock: 0,
+      isCustom: true,
+    };
+
+    setCustomProducts([...customProducts, newProduct]);
+    setNewProductName('');
+    setNewProductTarget('');
+    toast.success('Product toegevoegd');
+  };
+
+  const removeCustomProduct = (index: number) => {
+    const newCustomProducts = customProducts.filter((_, i) => i !== index);
+    setCustomProducts(newCustomProducts);
+    toast.success('Product verwijderd');
+  };
+  const focusNextInput = (currentIndex: number, isCustom: boolean = false) => {
     const nextIndex = currentIndex + 1;
-    if (nextIndex < products.length) {
-      const nextInput = document.querySelector(`input[data-index="${nextIndex}"]`) as HTMLInputElement;
-      if (nextInput) {
-        nextInput.focus();
+    const totalStandardProducts = products.length;
+    
+    if (isCustom) {
+      if (nextIndex < customProducts.length) {
+        const nextInput = document.querySelector(`input[data-custom-index="${nextIndex}"]`) as HTMLInputElement;
+        if (nextInput) {
+          nextInput.focus();
+        }
+      }
+    } else {
+      if (nextIndex < totalStandardProducts) {
+        const nextInput = document.querySelector(`input[data-index="${nextIndex}"]`) as HTMLInputElement;
+        if (nextInput) {
+          nextInput.focus();
+        }
+      } else if (customProducts.length > 0) {
+        // Jump to first custom product
+        const nextInput = document.querySelector(`input[data-custom-index="0"]`) as HTMLInputElement;
+        if (nextInput) {
+          nextInput.focus();
+        }
       }
     }
   };
   const calculateRefill = (targetStock: number, currentStock: number): number => {
     return Math.max(targetStock - currentStock, 0);
   };
-  const getOrderData = () => ({
-    locatie: 'West',
-    datum: new Date().toISOString(),
-    week: currentWeek,
-    producten: products.map(p => ({
-      naam: p.name,
-      ijzerenVoorraad: p.targetStock,
-      huidigeVoorraad: p.currentStock,
-      aanTeVullen: calculateRefill(p.targetStock, p.currentStock)
-    }))
-  });
+  const getOrderData = () => {
+    const allProducts = [...products, ...customProducts];
+    
+    return {
+      locatie: 'West',
+      datum: new Date().toISOString(),
+      week: currentWeek,
+      producten: allProducts.map(p => ({
+        naam: p.name,
+        ijzerenVoorraad: p.targetStock,
+        huidigeVoorraad: p.currentStock,
+        aanTeVullen: calculateRefill(p.targetStock, p.currentStock),
+        isCustom: p.isCustom || false,
+      })),
+    };
+  };
   const handleSubmit = async () => {
     setIsSubmitting(true);
     const orderData = getOrderData();
@@ -177,8 +252,9 @@ export default function OrderDashboard() {
       setIsSubmitting(false);
     }
   };
-  const hasAnyStock = products.some(p => p.currentStock > 0);
-  const totalRefill = products.reduce((sum, p) => sum + calculateRefill(p.targetStock, p.currentStock), 0);
+  const allProducts = [...products, ...customProducts];
+  const hasAnyStock = allProducts.some(p => p.currentStock > 0);
+  const totalRefill = allProducts.reduce((sum, p) => sum + calculateRefill(p.targetStock, p.currentStock), 0);
   return <div className="min-h-screen bg-[#F5F7DD]">
       {/* Header */}
       <div className="bg-[#F5F7DD] border-b-2 border-[#1B7867]/20">
@@ -240,6 +316,78 @@ export default function OrderDashboard() {
                 {products.map((product, index) => <ProductRow key={product.name} product={product} onUpdateStock={value => updateProductStock(index, value)} refillAmount={calculateRefill(product.targetStock, product.currentStock)} isFirst={index === 0} onEnter={() => focusNextInput(index)} index={index} />)}
               </tbody>
             </table>
+          </div>
+        </Card>
+
+        {/* Custom Products Section */}
+        {customProducts.length > 0 && (
+          <Card className="overflow-hidden shadow-sm border-[#E27726]/20 bg-white mb-6">
+            <div className="bg-gradient-to-r from-[#E27726]/5 to-[#E27726]/10 px-4 py-3 border-b border-[#E27726]/20">
+              <h3 className="text-sm font-bold text-[#282E3A] uppercase tracking-wider">Extra Producten</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-[#1B7867]/10">
+                    <th className="px-4 py-4 sm:px-6 sm:py-5 text-left uppercase tracking-wider text-[rgba(40,46,58,0.88)] text-[13px] font-bold">Product</th>
+                    <th className="px-3 py-4 sm:px-5 sm:py-5 text-center uppercase tracking-wider text-[rgba(40,46,58,0.88)] text-[13px] font-bold">Ijzer</th>
+                    <th className="px-3 py-4 sm:px-5 sm:py-5 text-center uppercase tracking-wider text-[rgba(40,46,58,0.88)] text-[13px] font-bold">Huidig</th>
+                    <th className="px-3 py-4 sm:px-5 sm:py-5 text-center uppercase tracking-wider text-[rgba(40,46,58,0.88)] text-[13px] font-bold">Vullen</th>
+                    <th className="px-3 py-4 sm:px-5 sm:py-5 text-center uppercase tracking-wider text-[rgba(40,46,58,0.88)] text-[13px] font-bold"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#1B7867]/5">
+                  {customProducts.map((product, index) => (
+                    <ProductRow
+                      key={product.id}
+                      product={product}
+                      onUpdateStock={value => updateCustomProductStock(index, value)}
+                      refillAmount={calculateRefill(product.targetStock, product.currentStock)}
+                      isFirst={false}
+                      onEnter={() => focusNextInput(index, true)}
+                      index={index}
+                      isCustom={true}
+                      onRemove={() => removeCustomProduct(index)}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
+
+        {/* Add Custom Product Card */}
+        <Card className="p-4 sm:p-5 mb-6 bg-white border-[#1B7867]/20 shadow-sm">
+          <h3 className="text-sm font-bold text-[#282E3A] uppercase tracking-wider mb-4">Nieuw Product Toevoegen</h3>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1">
+              <Input
+                type="text"
+                placeholder="Product naam"
+                value={newProductName}
+                onChange={(e) => setNewProductName(e.target.value.slice(0, 100))}
+                maxLength={100}
+                className="w-full"
+              />
+            </div>
+            <div className="w-full sm:w-32">
+              <Input
+                type="number"
+                placeholder="Ijzer"
+                value={newProductTarget}
+                onChange={(e) => setNewProductTarget(e.target.value)}
+                min={1}
+                max={999}
+                className="w-full"
+              />
+            </div>
+            <Button
+              onClick={addCustomProduct}
+              disabled={!newProductName.trim() || !newProductTarget}
+              className="w-full sm:w-auto bg-[#1B7867] hover:bg-[#0d5a4c]"
+            >
+              Toevoegen
+            </Button>
           </div>
         </Card>
 

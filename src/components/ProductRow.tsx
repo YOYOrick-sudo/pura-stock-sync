@@ -1,4 +1,6 @@
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 
 interface Product {
   name: string;
@@ -13,9 +15,11 @@ interface ProductRowProps {
   isFirst: boolean;
   onEnter: () => void;
   index: number;
+  isCustom?: boolean;
+  onRemove?: () => void;
 }
 
-export const ProductRow = ({ product, onUpdateStock, refillAmount, isFirst, onEnter, index }: ProductRowProps) => {
+export const ProductRow = ({ product, onUpdateStock, refillAmount, isFirst, onEnter, index, isCustom, onRemove }: ProductRowProps) => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -39,7 +43,8 @@ export const ProductRow = ({ product, onUpdateStock, refillAmount, isFirst, onEn
             value={product.currentStock}
             onChange={(e) => onUpdateStock(Math.max(0, parseInt(e.target.value) || 0))}
             onKeyDown={handleKeyDown}
-            data-index={index}
+            data-index={isCustom ? undefined : index}
+            data-custom-index={isCustom ? index : undefined}
             className="w-16 text-center text-sm h-9 border-[#1B7867]/20 focus:border-[#1B7867] focus:ring-[#1B7867]/20"
             autoFocus={isFirst}
           />
@@ -48,6 +53,18 @@ export const ProductRow = ({ product, onUpdateStock, refillAmount, isFirst, onEn
       <td className="px-3 py-4 sm:px-5 sm:py-4 text-center">
         <span className="font-mono text-base font-semibold text-[#1B7867] tabular-nums">{refillAmount}</span>
       </td>
+      {isCustom && onRemove && (
+        <td className="px-3 py-4 sm:px-5 sm:py-4 text-center">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onRemove}
+            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </td>
+      )}
     </tr>
   );
 };
