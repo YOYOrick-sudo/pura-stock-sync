@@ -303,11 +303,11 @@ export default function OrderDashboard() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#1B7867]/10">
-                  <th className="px-4 py-4 sm:px-6 sm:py-5 text-left text-xs sm:text-sm uppercase tracking-wider text-[#282E3A]/60 font-bold text-[rgba(40,46,58,0.88)] text-[13px]">Product</th>
-                  <th className="px-3 py-4 sm:px-5 sm:py-5 text-center text-xs uppercase tracking-wider text-[#282E3A]/60 text-[rgba(40,46,58,0.88)] text-[13px]">Ijzer</th>
-                  <th className="px-3 py-4 sm:px-5 sm:py-5 text-center text-xs uppercase tracking-wider text-[#282E3A]/60 text-[rgba(40,46,58,0.88)] text-[13px]">Huidig</th>
-                  <th className="px-3 py-4 sm:px-5 sm:py-5 text-center text-xs uppercase tracking-wider text-[#282E3A]/60 text-[rgba(40,46,58,0.88)] text-[13px]">Vullen</th>
+                <tr className="border-b-2 border-[#1B7867]/10 bg-[#F5F7DD]/30">
+                  <th className="px-6 py-5 text-left font-heading font-bold text-[#282E3A]/70 text-sm uppercase tracking-widest">Product</th>
+                  <th className="px-6 py-5 text-center font-heading font-bold text-[#282E3A]/70 text-sm uppercase tracking-widest">Ijzer</th>
+                  <th className="px-6 py-5 text-center font-heading font-bold text-[#282E3A]/70 text-sm uppercase tracking-widest">Huidig</th>
+                  <th className="px-6 py-5 text-center font-heading font-bold text-[#282E3A]/70 text-sm uppercase tracking-widest">Vullen</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1B7867]/5">
