@@ -119,22 +119,20 @@ const OrderDashboard = () => {
     <div className="min-h-screen bg-background">
       <WaveBackground />
       
-      <div className="container mx-auto px-4 py-6 md:py-10 max-w-3xl relative">
-        {/* Header - Compact */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-3">
+      <div className="container mx-auto px-4 py-4 md:py-8 max-w-3xl relative">
+        {/* Header - Redesigned */}
+        <div className="mb-6">
+          <div className="text-center mb-3">
             <img 
               src={logoSunset} 
               alt="Pura Vida" 
-              className="h-10 md:h-11 w-auto opacity-90"
+              className="h-12 md:h-14 w-auto opacity-90 mx-auto mb-3"
             />
-            <div className="text-right">
-              <p className="font-mono text-xs text-muted-foreground/70">Week {currentWeek}</p>
-            </div>
+            <h1 className="font-heading text-xl md:text-2xl text-foreground font-bold tracking-wide mb-1">
+              Bestelling → Midsland
+            </h1>
+            <p className="font-mono text-xs text-muted-foreground/70">Week {currentWeek}</p>
           </div>
-          <h1 className="font-heading text-base md:text-lg text-foreground/80 uppercase tracking-wide font-medium">
-            Interne Bestelling West
-          </h1>
         </div>
 
         {/* Products - Professional Table */}
