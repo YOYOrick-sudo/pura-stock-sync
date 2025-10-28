@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import ProductRow from "./ProductRow";
 import WaveBackground from "./WaveBackground";
-import { Check } from "lucide-react";
+import { Check, Info, Package, Eye } from "lucide-react";
 import logoSunset from "@/assets/pura-vida-logo.png";
 
 interface Product {
@@ -35,7 +35,8 @@ const OrderDashboard = () => {
     return weekNo;
   };
   
-  const currentWeek = `${getWeekNumber(new Date())} (${new Date().getFullYear()})`;
+  const weekNumber = getWeekNumber(new Date());
+  const currentYear = new Date().getFullYear();
 
   // Load saved data from localStorage
   useEffect(() => {
@@ -66,13 +67,17 @@ const OrderDashboard = () => {
     setProducts(newProducts);
   };
 
+  const handlePreview = () => {
+    window.print();
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
 
     const orderData = {
       locatie: "West",
       datum: new Date().toISOString(),
-      week: currentWeek,
+      week: `${weekNumber} (${currentYear})`,
       producten: products.map((p) => ({
         naam: p.name,
         ijzerenVoorraad: p.ironStock,
@@ -120,7 +125,7 @@ const OrderDashboard = () => {
       <WaveBackground />
       
       <div className="container mx-auto px-4 py-4 md:py-8 max-w-3xl relative">
-        {/* Header - Redesigned */}
+        {/* Header */}
         <div className="mb-6">
           <div className="text-center mb-3">
             <img 
@@ -128,20 +133,37 @@ const OrderDashboard = () => {
               alt="Pura Vida" 
               className="h-12 md:h-14 w-auto opacity-90 mx-auto mb-3"
             />
-            <h1 className="font-heading text-xl md:text-2xl text-foreground font-bold tracking-wide mb-1">
-              Bestelling → Midsland
+            <h1 className="font-heading text-lg md:text-xl text-foreground/90 font-bold tracking-wide mb-1">
+              Interne Bestelling - West
             </h1>
-            <p className="font-mono text-xs text-muted-foreground/70">Week {currentWeek}</p>
+            <p className="font-mono text-[10px] md:text-xs text-muted-foreground/60 mb-2">
+              • Week {weekNumber} •
+            </p>
+            <p className="text-xs text-muted-foreground/50 font-medium tracking-widest uppercase">
+              Foodbar Terschelling
+            </p>
+          </div>
+        </div>
+
+        {/* Info Box */}
+        <div className="bg-[#FDF8F3] border border-amber-200/40 rounded-lg p-4 mb-6">
+          <div className="flex gap-3 items-start">
+            <Info className="w-4 h-4 text-amber-600/70 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-muted-foreground/70 leading-relaxed">
+              Tel de voorraad in de vriezer en vul hieronder de aantallen in. 
+              Het systeem berekent automatisch wat Midsland moet aanvullen zodat 
+              de ijzeren voorraad weer compleet is.
+            </p>
           </div>
         </div>
 
         {/* Products - Professional Table */}
-        <div className="bg-white rounded-lg border border-border/50 mb-6 overflow-hidden">
-          <div className="hidden md:grid grid-cols-4 gap-3 px-4 py-3 bg-muted/10 border-b border-border/40">
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Product</div>
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide text-right">Ijzer</div>
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide text-right">Huidig</div>
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide text-right">Vullen</div>
+        <div className="bg-white rounded-lg border border-gray-200 mb-6 overflow-hidden">
+          <div className="hidden md:grid grid-cols-4 gap-3 px-4 py-3 bg-muted/10 border-b border-gray-200">
+            <div className="text-xs font-medium text-gray-500/60 uppercase tracking-wide">Product</div>
+            <div className="text-xs font-medium text-gray-500/60 uppercase tracking-wide text-right">Ijzer</div>
+            <div className="text-xs font-medium text-gray-500/60 uppercase tracking-wide text-right">Huidig</div>
+            <div className="text-xs font-medium text-gray-500/60 uppercase tracking-wide text-right">Vullen</div>
           </div>
 
           <div>
@@ -157,27 +179,43 @@ const OrderDashboard = () => {
           </div>
         </div>
 
-        {/* Total - Professional */}
-        <div className="bg-primary/5 rounded-lg border border-primary/10 p-5 mb-6">
+        {/* Total - Redesigned */}
+        <div className="bg-emerald-500 rounded-lg border border-emerald-600/20 p-5 mb-6">
           <div className="flex justify-between items-center">
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Totaal aan te vullen
-            </span>
-            <span className="font-mono text-5xl md:text-6xl font-semibold text-primary tabular-nums">
+            <div className="flex items-center gap-3">
+              <Package className="w-6 h-6 text-white/90" />
+              <span className="text-xs font-medium text-white/90 uppercase tracking-wide">
+                Totaal aan te vullen
+              </span>
+            </div>
+            <span className="font-mono text-5xl md:text-6xl font-semibold text-white tabular-nums">
               {totalToRefill}
             </span>
           </div>
         </div>
 
-        {/* Submit Button - Professional */}
-        <Button
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-          className="w-full"
-          size="lg"
-        >
-          {isSubmitting ? "Verzenden..." : "Versturen naar Midsland"}
-        </Button>
+        {/* Buttons */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={handlePreview}
+            className="w-full"
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            Voorbeeld
+          </Button>
+          <Button
+            variant="default"
+            size="lg"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="w-full"
+          >
+            <Check className="w-4 h-4 mr-2" />
+            {isSubmitting ? "Verzenden..." : "Verstuur naar Midsland"}
+          </Button>
+        </div>
 
         {/* Last Submitted */}
         {lastSubmitted && (

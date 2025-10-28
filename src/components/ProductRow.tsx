@@ -13,8 +13,8 @@ const ProductRow = ({ name, ironStock, currentStock, onStockChange }: ProductRow
   return (
     <>
       {/* Mobile View */}
-      <div className="md:hidden px-4 py-3 border-b border-border/30 last:border-0 even:bg-muted/5">
-        <div className="text-base font-semibold text-foreground/90 mb-3">{name}</div>
+      <div className="md:hidden px-4 py-3 border-b border-gray-100 last:border-0 even:bg-muted/5">
+        <div className="text-base font-medium text-foreground/90 mb-3">{name}</div>
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center">
             <div className="text-xs font-bold text-muted-foreground/70 mb-1 uppercase tracking-wide">Ijzer</div>
@@ -38,8 +38,8 @@ const ProductRow = ({ name, ironStock, currentStock, onStockChange }: ProductRow
       </div>
 
       {/* Desktop View */}
-      <div className="hidden md:grid grid-cols-4 gap-3 items-center px-4 py-3 border-b border-border/30 last:border-0 even:bg-muted/5">
-        <div className="text-sm font-semibold text-foreground/90">{name}</div>
+      <div className="hidden md:grid grid-cols-4 gap-3 items-center px-4 py-3 border-b border-gray-100 last:border-0 even:bg-muted/5">
+        <div className="text-sm font-medium text-foreground/90">{name}</div>
         <div className="text-right">
           <span className="font-mono text-sm text-foreground/80 tabular-nums">{ironStock}</span>
         </div>
