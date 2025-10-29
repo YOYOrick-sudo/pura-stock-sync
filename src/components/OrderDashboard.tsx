@@ -148,14 +148,11 @@ export default function OrderDashboard() {
     return Math.max(targetStock - currentStock, 0);
   };
   const getOrderData = () => ({
-    locatie: 'West',
-    datum: new Date().toISOString(),
-    week: currentWeek,
+    locatie: 'Pura Vida West',
+    datum: new Date().toISOString().split('T')[0],
     producten: products.map(p => ({
       naam: p.name,
-      ijzerenVoorraad: p.targetStock,
-      huidigeVoorraad: p.currentStock,
-      aanTeVullen: calculateRefill(p.targetStock, p.currentStock)
+      voorraad: p.currentStock
     }))
   });
   const handleSubmit = async () => {

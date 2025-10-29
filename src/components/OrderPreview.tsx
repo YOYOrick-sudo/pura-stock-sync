@@ -11,12 +11,9 @@ import { Printer } from "lucide-react";
 interface OrderData {
   locatie: string;
   datum: string;
-  week: number;
   producten: Array<{
     naam: string;
-    ijzerenVoorraad: number;
-    huidigeVoorraad: number;
-    aanTeVullen: number;
+    voorraad: number;
   }>;
 }
 
@@ -31,7 +28,7 @@ export const OrderPreview = ({ open, onClose, orderData }: OrderPreviewProps) =>
     window.print();
   };
 
-  const totalToRefill = orderData.producten.reduce((sum, p) => sum + p.aanTeVullen, 0);
+  const totalProducts = orderData.producten.length;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -51,18 +48,12 @@ export const OrderPreview = ({ open, onClose, orderData }: OrderPreviewProps) =>
               <span className="font-semibold text-[#282E3A]">{orderData.locatie}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-[#282E3A]/60">Week:</span>
-              <span className="font-semibold text-[#282E3A]">{orderData.week}</span>
-            </div>
-            <div className="flex justify-between text-sm">
               <span className="text-[#282E3A]/60">Datum:</span>
               <span className="font-semibold text-[#282E3A]">
                 {new Date(orderData.datum).toLocaleDateString('nl-NL', {
                   day: 'numeric',
                   month: 'long',
                   year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
                 })}
               </span>
             </div>
@@ -77,13 +68,7 @@ export const OrderPreview = ({ open, onClose, orderData }: OrderPreviewProps) =>
                     Product
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-bold text-[#282E3A]/80 uppercase tracking-wider">
-                    Ijzer
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-[#282E3A]/80 uppercase tracking-wider">
-                    Huidig
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-bold text-[#282E3A]/80 uppercase tracking-wider">
-                    Vullen
+                    Voorraad
                   </th>
                 </tr>
               </thead>
@@ -92,13 +77,7 @@ export const OrderPreview = ({ open, onClose, orderData }: OrderPreviewProps) =>
                   <tr key={index} className="even:bg-[#1B7867]/[0.02]">
                     <td className="px-4 py-3 text-sm text-[#282E3A]/90">{product.naam}</td>
                     <td className="px-4 py-3 text-sm text-center font-mono text-[#282E3A]/80">
-                      {product.ijzerenVoorraad}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center font-mono text-[#282E3A]/80">
-                      {product.huidigeVoorraad}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center font-mono font-semibold text-[#1B7867]">
-                      {product.aanTeVullen}
+                      {product.voorraad}
                     </td>
                   </tr>
                 ))}
@@ -109,8 +88,8 @@ export const OrderPreview = ({ open, onClose, orderData }: OrderPreviewProps) =>
           {/* Total */}
           <div className="bg-gradient-to-br from-[#1B7867]/5 to-[#1B7867]/10 rounded-lg p-4 border-2 border-[#1B7867]/30">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-semibold text-[#282E3A]">Totaal aan te vullen</span>
-              <span className="text-3xl font-bold text-[#1B7867]">{totalToRefill}</span>
+              <span className="text-sm font-semibold text-[#282E3A]">Totaal producten</span>
+              <span className="text-3xl font-bold text-[#1B7867]">{totalProducts}</span>
             </div>
           </div>
 
