@@ -17,15 +17,15 @@ interface Product {
   isTemporary?: boolean;
 }
 const INITIAL_PRODUCTS: Product[] = [{
-  name: 'Bananenbrood (tray)',
+  name: 'Bananenbrood',
   targetStock: 4,
   currentStock: 0
 }, {
-  name: 'Energy balls (doos)',
+  name: 'Energy balls',
   targetStock: 3,
   currentStock: 0
 }, {
-  name: 'Curry basis (bak)',
+  name: 'Curry basis',
   targetStock: 2,
   currentStock: 0
 }, {
@@ -33,7 +33,7 @@ const INITIAL_PRODUCTS: Product[] = [{
   targetStock: 2,
   currentStock: 0
 }, {
-  name: 'Falafel (bak)',
+  name: 'Falafel',
   targetStock: 3,
   currentStock: 0
 }];
