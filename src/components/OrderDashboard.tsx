@@ -157,10 +157,6 @@ export default function OrderDashboard() {
   });
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    
-    // Open webhook test link in new tab
-    window.open('https://jaapies.app.n8n.cloud/webhook-test/pura-vida-voorraad', '_blank');
-    
     const orderData = getOrderData();
 
     // Save order locally
