@@ -76,9 +76,9 @@ const Auth = () => {
           </div>
           <div className="text-center">
             <div className="flex items-center justify-center gap-3 text-sm text-gray-600">
-              <span>Voorraadregistratie</span>
+              <span className="text-xs">Voorraadregistratie</span>
               <span className="text-gray-300">•</span>
-              <span className="whitespace-nowrap">Pura Vida Foodbar - West</span>
+              <span className="whitespace-nowrap text-xs">Pura Vida Foodbar - West</span>
             </div>
           </div>
         </div>
