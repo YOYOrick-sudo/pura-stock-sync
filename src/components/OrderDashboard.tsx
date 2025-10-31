@@ -263,10 +263,8 @@ export default function OrderDashboard() {
       toast.error('Uitloggen mislukt');
     }
   };
-
   const hasAnyStock = products.some(p => p.currentStock > 0);
   const totalRefill = products.reduce((sum, p) => sum + calculateRefill(p.targetStock, p.currentStock), 0);
-  
   return <div className="min-h-screen bg-[#F5F7DD]">
       {/* Header */}
       <div className="bg-[#F5F7DD] border-b border-[#1B7867]/10">
@@ -298,28 +296,9 @@ export default function OrderDashboard() {
             
             {/* Right: Keuken & Logout */}
             <div className="flex-1 flex justify-end gap-2">
-              <Button
-                onClick={() => navigate('/kitchen')}
-                variant="ghost"
-                size="sm"
-                className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent"
-              >
-                <ChefHat className="h-4 w-4" />
-              </Button>
-              <Button
-                onClick={() => navigate('/reservations-demo')}
-                variant="ghost"
-                size="sm"
-                className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent"
-              >
-                <CalendarCheck className="h-4 w-4" />
-              </Button>
-              <Button
-                onClick={handleLogout}
-                variant="ghost"
-                size="sm"
-                className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent"
-              >
+              
+              
+              <Button onClick={handleLogout} variant="ghost" size="sm" className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent">
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
@@ -331,9 +310,9 @@ export default function OrderDashboard() {
             <div className="flex-1 text-left">
               <div className="text-xs text-[#282E3A]/50 mb-1">
                 Week {currentWeek} • {new Date().toLocaleDateString('nl-NL', {
-                  day: 'numeric',
-                  month: 'numeric'
-                })}
+                day: 'numeric',
+                month: 'numeric'
+              })}
               </div>
               <div className="text-xs text-[#282E3A]/60">
                 Voorraad - West
@@ -347,28 +326,13 @@ export default function OrderDashboard() {
             
             {/* Right: Keuken & Logout */}
             <div className="flex-1 flex justify-end gap-2">
-              <Button
-                onClick={() => navigate('/kitchen')}
-                variant="ghost"
-                size="sm"
-                className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent"
-              >
+              <Button onClick={() => navigate('/kitchen')} variant="ghost" size="sm" className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent">
                 <ChefHat className="h-4 w-4" />
               </Button>
-              <Button
-                onClick={() => navigate('/reservations-demo')}
-                variant="ghost"
-                size="sm"
-                className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent"
-              >
+              <Button onClick={() => navigate('/reservations-demo')} variant="ghost" size="sm" className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent">
                 <CalendarCheck className="h-4 w-4" />
               </Button>
-              <Button
-                onClick={handleLogout}
-                variant="ghost"
-                size="sm"
-                className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent"
-              >
+              <Button onClick={handleLogout} variant="ghost" size="sm" className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent">
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
@@ -535,10 +499,7 @@ export default function OrderDashboard() {
               <AlertDialogCancel className="w-full sm:w-auto border-2 border-[#1B7867]/20 hover:bg-[#1B7867]/5 rounded-xl">
                 Annuleren
               </AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={handleLogout}
-                className="w-full sm:w-auto bg-gradient-to-r from-[#E27726] to-[#d16615] hover:from-[#d16615] hover:to-[#E27726] text-white rounded-xl"
-              >
+              <AlertDialogAction onClick={handleLogout} className="w-full sm:w-auto bg-gradient-to-r from-[#E27726] to-[#d16615] hover:from-[#d16615] hover:to-[#E27726] text-white rounded-xl">
                 Uitloggen
               </AlertDialogAction>
             </AlertDialogFooter>
