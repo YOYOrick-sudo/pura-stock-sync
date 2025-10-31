@@ -13,6 +13,7 @@ import RecipeDetail from "./pages/kitchen/RecipeDetail";
 import MepPlanning from "./pages/kitchen/MepPlanning";
 import InternalOrders from "./pages/kitchen/InternalOrders";
 import KitchenTasks from "./pages/kitchen/KitchenTasks";
+import ReservationsDemo from "./pages/ReservationsDemo";
 
 const queryClient = new QueryClient();
 
@@ -23,15 +24,16 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route 
-            path="/" 
-            element={
-              <ProtectedRoute>
-                <Index />
-              </ProtectedRoute>
-            } 
-          />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/reservations-demo" element={<ReservationsDemo />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              }
+            />
           <Route 
             path="/kitchen" 
             element={

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
-import { Loader2, Check, Eye, AlertCircle, Package, Plus, X, CheckCircle2, LogOut, ChefHat } from 'lucide-react';
+import { Loader2, Check, Eye, AlertCircle, Package, Plus, X, CheckCircle2, LogOut, ChefHat, CalendarCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProductRow } from './ProductRow';
 import { OrderPreview } from './OrderPreview';
@@ -307,6 +307,14 @@ export default function OrderDashboard() {
                 <ChefHat className="h-4 w-4" />
               </Button>
               <Button
+                onClick={() => navigate('/reservations-demo')}
+                variant="ghost"
+                size="sm"
+                className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent"
+              >
+                <CalendarCheck className="h-4 w-4" />
+              </Button>
+              <Button
                 onClick={handleLogout}
                 variant="ghost"
                 size="sm"
@@ -346,6 +354,14 @@ export default function OrderDashboard() {
                 className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent"
               >
                 <ChefHat className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => navigate('/reservations-demo')}
+                variant="ghost"
+                size="sm"
+                className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent"
+              >
+                <CalendarCheck className="h-4 w-4" />
               </Button>
               <Button
                 onClick={handleLogout}
