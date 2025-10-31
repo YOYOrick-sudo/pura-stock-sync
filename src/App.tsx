@@ -14,6 +14,7 @@ import MepPlanning from "./pages/kitchen/MepPlanning";
 import InternalOrders from "./pages/kitchen/InternalOrders";
 import KitchenTasks from "./pages/kitchen/KitchenTasks";
 import ReservationsDemo from "./pages/ReservationsDemo";
+import ReservationsPublic from "./pages/ReservationsPublic";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
         <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/reservations-demo" element={<ReservationsDemo />} />
+            <Route path="/reserveren" element={<ReservationsPublic />} />
             <Route
               path="/"
               element={

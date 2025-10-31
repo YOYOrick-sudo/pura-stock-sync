@@ -10,6 +10,7 @@ import { OrderPreview } from './OrderPreview';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from './ui/alert-dialog';
 import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/lib/supabase';
+import ReservationStickyBar from './reservations/ReservationStickyBar';
 interface Product {
   name: string;
   targetStock: number;
@@ -546,11 +547,14 @@ export default function OrderDashboard() {
         </AlertDialog>
 
         {/* Footer */}
-        <div className="mt-8 text-center">
+        <div className="mt-8 pb-20 text-center">
           <p className="text-sm text-[#282E3A]/60 italic max-w-md mx-auto px-4">
             *Pro tip: Alles netjes invullen = happy Midsland, happy gasten, happy jullie 🎉
           </p>
         </div>
       </div>
+
+      {/* Reservation Sticky Bar */}
+      <ReservationStickyBar />
     </div>;
 }
