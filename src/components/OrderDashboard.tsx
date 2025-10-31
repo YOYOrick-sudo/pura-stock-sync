@@ -10,7 +10,6 @@ import { OrderPreview } from './OrderPreview';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from './ui/alert-dialog';
 import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/lib/supabase';
-import ReservationStickyBar from './reservations/ReservationStickyBar';
 interface Product {
   name: string;
   targetStock: number;
@@ -553,8 +552,5 @@ export default function OrderDashboard() {
           </p>
         </div>
       </div>
-
-      {/* Reservation Sticky Bar */}
-      <ReservationStickyBar />
     </div>;
 }
