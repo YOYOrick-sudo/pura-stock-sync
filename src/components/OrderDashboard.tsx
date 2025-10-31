@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
-import { Loader2, Check, Eye, AlertCircle, Package, Plus, X, CheckCircle2, LogOut } from 'lucide-react';
+import { Loader2, Check, Eye, AlertCircle, Package, Plus, X, CheckCircle2, LogOut, ChefHat } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProductRow } from './ProductRow';
 import { OrderPreview } from './OrderPreview';
@@ -296,8 +296,16 @@ export default function OrderDashboard() {
               <img src={logoGreen} alt="Pura Vida Foodbar" className="h-16 sm:h-20 w-auto" />
             </div>
             
-            {/* Right: Logout */}
-            <div className="flex-1 flex justify-end">
+            {/* Right: Keuken & Logout */}
+            <div className="flex-1 flex justify-end gap-2">
+              <Button
+                onClick={() => navigate('/kitchen')}
+                variant="ghost"
+                size="sm"
+                className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent"
+              >
+                <ChefHat className="h-4 w-4" />
+              </Button>
               <Button
                 onClick={handleLogout}
                 variant="ghost"
@@ -329,8 +337,16 @@ export default function OrderDashboard() {
               <img src={logoGreen} alt="Pura Vida Foodbar" className="h-14 w-auto" />
             </div>
             
-            {/* Right: Logout */}
-            <div className="flex-1 flex justify-end">
+            {/* Right: Keuken & Logout */}
+            <div className="flex-1 flex justify-end gap-2">
+              <Button
+                onClick={() => navigate('/kitchen')}
+                variant="ghost"
+                size="sm"
+                className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent"
+              >
+                <ChefHat className="h-4 w-4" />
+              </Button>
               <Button
                 onClick={handleLogout}
                 variant="ghost"

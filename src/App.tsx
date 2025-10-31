@@ -7,6 +7,12 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import KitchenMenu from "./pages/kitchen/KitchenMenu";
+import Recipes from "./pages/kitchen/Recipes";
+import RecipeDetail from "./pages/kitchen/RecipeDetail";
+import MepPlanning from "./pages/kitchen/MepPlanning";
+import InternalOrders from "./pages/kitchen/InternalOrders";
+import KitchenTasks from "./pages/kitchen/KitchenTasks";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +29,54 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Index />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/kitchen" 
+            element={
+              <ProtectedRoute>
+                <KitchenMenu />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/kitchen/recipes" 
+            element={
+              <ProtectedRoute>
+                <Recipes />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/kitchen/recipes/:id" 
+            element={
+              <ProtectedRoute>
+                <RecipeDetail />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/kitchen/mep" 
+            element={
+              <ProtectedRoute>
+                <MepPlanning />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/kitchen/orders" 
+            element={
+              <ProtectedRoute>
+                <InternalOrders />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/kitchen/tasks" 
+            element={
+              <ProtectedRoute>
+                <KitchenTasks />
               </ProtectedRoute>
             } 
           />

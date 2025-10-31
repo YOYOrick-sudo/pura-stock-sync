@@ -14,16 +14,293 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      internal_order_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          order_id: string
+          product_name: string
+          quantity: number
+          unit: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          order_id: string
+          product_name: string
+          quantity: number
+          unit?: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          order_id?: string
+          product_name?: string
+          quantity?: number
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "internal_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      internal_orders: {
+        Row: {
+          approved_by: string | null
+          created_at: string | null
+          delivery_date: string
+          from_location: string
+          id: string
+          notes: string | null
+          order_number: string
+          requested_by: string
+          status: string
+          to_location: string
+          updated_at: string | null
+        }
+        Insert: {
+          approved_by?: string | null
+          created_at?: string | null
+          delivery_date: string
+          from_location: string
+          id?: string
+          notes?: string | null
+          order_number: string
+          requested_by: string
+          status?: string
+          to_location: string
+          updated_at?: string | null
+        }
+        Update: {
+          approved_by?: string | null
+          created_at?: string | null
+          delivery_date?: string
+          from_location?: string
+          id?: string
+          notes?: string | null
+          order_number?: string
+          requested_by?: string
+          status?: string
+          to_location?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      kitchen_tasks: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          completed: boolean | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          due_date: string | null
+          frequency: string
+          id: string
+          location: string
+          title: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category: string
+          completed?: boolean | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          frequency: string
+          id?: string
+          location: string
+          title: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          completed?: boolean | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          frequency?: string
+          id?: string
+          location?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      mep_planning: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          created_at: string | null
+          date: string
+          id: string
+          location: string
+          notes: string | null
+          quantity: number
+          recipe_id: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          date: string
+          id?: string
+          location: string
+          notes?: string | null
+          quantity?: number
+          recipe_id: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          location?: string
+          notes?: string | null
+          quantity?: number
+          recipe_id?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mep_planning_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipe_steps: {
+        Row: {
+          created_at: string | null
+          duration_minutes: number | null
+          id: string
+          instruction: string
+          recipe_id: string
+          step_number: number
+        }
+        Insert: {
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string
+          instruction: string
+          recipe_id: string
+          step_number: number
+        }
+        Update: {
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string
+          instruction?: string
+          recipe_id?: string
+          step_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_steps_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipes: {
+        Row: {
+          category: string
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          location: string
+          name: string
+          prep_time_minutes: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          location: string
+          name: string
+          prep_time_minutes?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          location?: string
+          name?: string
+          prep_time_minutes?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          location: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          location: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          location?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_order_number: { Args: never; Returns: string }
+      get_user_location: { Args: { _user_id: string }; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "manager" | "kitchen_staff"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +427,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "manager", "kitchen_staff"],
+    },
   },
 } as const
