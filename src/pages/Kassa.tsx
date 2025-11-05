@@ -7,17 +7,18 @@ import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
-function getCurrentWeek(): number {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  const diff = now.getTime() - start.getTime();
-  const oneWeek = 1000 * 60 * 60 * 24 * 7;
-  return Math.ceil(diff / oneWeek);
-}
+// Always get week number reliably using ISO 8601
+const getWeekNumber = (date: Date): number => {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+};
 
 const Kassa = () => {
   const navigate = useNavigate();
-  const currentWeek = getCurrentWeek();
+  const weekNumber = getWeekNumber(new Date());
   const DOELSALDO = 157;
 
   const [counts, setCounts] = useState({
@@ -69,7 +70,7 @@ const Kassa = () => {
 
   const handleSubmit = async () => {
     const data = {
-      week: currentWeek,
+      week: weekNumber,
       date: new Date().toISOString(),
       location: 'West',
       denominations: counts,
@@ -104,7 +105,7 @@ const Kassa = () => {
             {/* Left: Week & Page */}
             <div className="flex-1">
               <div className="text-xs text-[#282E3A]/50 mb-1">
-                <span>Week {currentWeek}</span>
+                <span>Week {weekNumber}</span>
                 <span className="mx-2">•</span>
                 <span>{new Date().toLocaleDateString('nl-NL', {
                   day: 'numeric',
@@ -137,7 +138,7 @@ const Kassa = () => {
             {/* Left: Week & Page */}
             <div className="flex-1 text-left">
               <div className="text-xs text-[#282E3A]/50 mb-1">
-                Week {currentWeek} • {new Date().toLocaleDateString('nl-NL', {
+                Week {weekNumber} • {new Date().toLocaleDateString('nl-NL', {
                   day: 'numeric',
                   month: 'numeric'
                 })}
