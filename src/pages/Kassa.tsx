@@ -100,6 +100,17 @@ const Kassa = () => {
             </tbody>
           </table>
         </div>
+
+        <div className="mt-6 bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-4 sm:p-6">
+          <div className="flex items-center justify-between">
+            <span className="text-lg sm:text-xl font-heading font-bold text-[#282E3A]">
+              Totaal
+            </span>
+            <span className="text-2xl sm:text-3xl font-heading font-bold text-[#1B7867]">
+              €0,00
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
