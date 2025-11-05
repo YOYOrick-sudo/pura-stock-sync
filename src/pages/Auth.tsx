@@ -11,7 +11,17 @@ const Auth = () => {
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const fixedEmail = 'purawestkeuken@puravidafoodbar.nl';
+  const [location, setLocation] = useState<'West' | 'Midsland'>('West');
+  
+  const getEmailForLocation = (loc: 'West' | 'Midsland') => {
+    return loc === 'West' 
+      ? 'purawestkeuken@puravidafoodbar.nl'
+      : 'puramidslandkeuken@puravidafoodbar.nl';
+  };
+  
+  const getDisplayName = (loc: 'West' | 'Midsland') => {
+    return loc === 'West' ? 'Pura West Keuken' : 'Pura Midsland';
+  };
 
   // Check if already logged in
   useEffect(() => {
@@ -39,7 +49,7 @@ const Auth = () => {
         data,
         error
       } = await supabase.auth.signInWithPassword({
-        email: fixedEmail,
+        email: getEmailForLocation(location),
         password: password
       });
       if (error) {
@@ -87,11 +97,27 @@ const Auth = () => {
         <div className="px-8 py-8">
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
+              <label htmlFor="location" className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                Locatie
+              </label>
+              <select
+                id="location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value as 'West' | 'Midsland')}
+                className="w-full h-11 border border-gray-300 focus:border-[#1B7867] focus:ring-1 focus:ring-[#1B7867] bg-white rounded-lg text-gray-900 px-3"
+                disabled={loading}
+              >
+                <option value="West">West</option>
+                <option value="Midsland">Midsland</option>
+              </select>
+            </div>
+
+            <div>
               <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
                 Gebruikersnaam
               </label>
               <div className="relative">
-                <Input id="email" type="text" value="Pura West Keuken" className="h-11 border border-gray-200 bg-gray-50 rounded-lg font-medium text-gray-700 cursor-not-allowed" disabled readOnly autoComplete="username" />
+                <Input id="email" type="text" value={getDisplayName(location)} className="h-11 border border-gray-200 bg-gray-50 rounded-lg font-medium text-gray-700 cursor-not-allowed" disabled readOnly autoComplete="username" />
               </div>
             </div>
 

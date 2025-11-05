@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,6 +20,7 @@ const getWeekNumber = (date: Date): number => {
 const KassatellingOverdag = () => {
   const navigate = useNavigate();
   const weekNumber = getWeekNumber(new Date());
+  const [userLocation, setUserLocation] = useState<string>('');
 
   const [kassaLade, setKassaLade] = useState({
     '500': 0,
@@ -54,6 +55,22 @@ const KassatellingOverdag = () => {
   });
 
   const [opmerkingen, setOpmerkingen] = useState('');
+
+  useEffect(() => {
+    const fetchUserLocation = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('user_roles')
+          .select('location')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        setUserLocation(data?.location || 'West');
+      }
+    };
+    fetchUserLocation();
+  }, []);
 
   const updateKassaLade = (denomination: string, value: number) => {
     setKassaLade(prev => ({
@@ -95,7 +112,7 @@ const KassatellingOverdag = () => {
       type: 'open',
       week: weekNumber,
       date: new Date().toISOString(),
-      location: 'West',
+      location: userLocation,
       kassaLade: {
         denominations: kassaLade,
         total: kassaLadeTotal

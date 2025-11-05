@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,6 +21,7 @@ const Kassa = () => {
   const navigate = useNavigate();
   const weekNumber = getWeekNumber(new Date());
   const DOELSALDO = 157;
+  const [userLocation, setUserLocation] = useState<string>('');
 
   const [counts, setCounts] = useState({
     '500': 0,
@@ -40,6 +41,22 @@ const Kassa = () => {
 
   const [cashOmzet, setCashOmzet] = useState(0);
   const [opmerkingen, setOpmerkingen] = useState('');
+
+  useEffect(() => {
+    const fetchUserLocation = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('user_roles')
+          .select('location')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        setUserLocation(data?.location || 'West');
+      }
+    };
+    fetchUserLocation();
+  }, []);
 
   const updateCount = (denomination: string, value: number) => {
     setCounts(prev => ({
@@ -74,7 +91,7 @@ const Kassa = () => {
       type: 'sluit',
       week: weekNumber,
       date: new Date().toISOString(),
-      location: 'West',
+      location: userLocation,
       denominations: counts,
       cashOmzetLightspeed: cashOmzet,
       total: total,
