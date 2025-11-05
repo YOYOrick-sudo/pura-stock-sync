@@ -162,9 +162,15 @@ const KassatellingOverdag = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 py-6 sm:px-4 sm:py-8 lg:px-6 pb-10">
-        <h1 className="text-2xl sm:text-3xl font-heading font-bold text-[#282E3A] mb-6">
-          Kassatelling Overdag — West
-        </h1>
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-heading font-bold text-[#282E3A] flex items-center gap-2">
+            Kassatelling
+            <span className="text-[#1B7867]">•</span>
+            <span className="text-[#1B7867]">Overdag</span>
+            <span className="text-[#1B7867]">•</span>
+            <span>West</span>
+          </h1>
+        </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 items-start">
           {/* Left side: Denomination tables */}
