@@ -159,7 +159,7 @@ const KassatellingOverdag = () => {
               <div className="text-sm text-[#282E3A]/70">
                 <span>Kassatelling Overdag</span>
                 <span className="mx-2">•</span>
-                <span>Pura Vida - West</span>
+                <span>Pura Vida - {userLocation}</span>
               </div>
             </div>
             
@@ -187,7 +187,7 @@ const KassatellingOverdag = () => {
                 })}
               </div>
               <div className="text-xs text-[#282E3A]/60">
-                Kassatelling Overdag - West
+                Kassatelling Overdag - {userLocation}
               </div>
             </div>
             
@@ -217,7 +217,7 @@ const KassatellingOverdag = () => {
             <span className="text-[#1B7867]">•</span>
             <span className="text-[#1B7867]">Overdag</span>
             <span className="text-[#1B7867]">•</span>
-            <span>West</span>
+            <span>{userLocation}</span>
           </h1>
         </div>
         
