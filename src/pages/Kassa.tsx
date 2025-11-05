@@ -17,6 +17,7 @@ function getCurrentWeek(): number {
 const Kassa = () => {
   const navigate = useNavigate();
   const currentWeek = getCurrentWeek();
+  const DOELSALDO = 157;
 
   const [counts, setCounts] = useState({
     '500': 0,
@@ -50,7 +51,8 @@ const Kassa = () => {
   };
 
   const total = calculateTotal();
-  const difference = total - cashOmzet;
+  const afdracht = Math.max(0, total - DOELSALDO);
+  const kasverschil = (total - DOELSALDO) - cashOmzet;
 
   const handleLogout = async () => {
     try {
@@ -71,7 +73,9 @@ const Kassa = () => {
       denominations: counts,
       cashOmzetLightspeed: cashOmzet,
       total: total,
-      difference: difference
+      doelsaldo: DOELSALDO,
+      afdracht: afdracht,
+      kasverschil: kasverschil
     };
     
     // TODO: Send to endpoint URL
@@ -370,18 +374,39 @@ const Kassa = () => {
         </div>
 
         <div className="mt-4 bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-4 sm:p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-2">
             <span className="text-lg sm:text-xl font-heading font-bold text-[#282E3A]">
               Afdracht / Envelop
             </span>
             <span 
               className={`text-2xl sm:text-3xl font-heading font-bold ${
-                difference > 0 ? 'text-green-600' : 
-                difference < 0 ? 'text-red-600' : 
+                afdracht > 0 ? 'text-[#1B7867]' : 'text-gray-500'
+              }`}
+            >
+              €{afdracht.toFixed(2).replace('.', ',')}
+            </span>
+          </div>
+          <p className="text-sm text-[#282E3A]/70 mt-2">
+            {total >= DOELSALDO 
+              ? `Leg €${afdracht.toFixed(2).replace('.', ',')} in de envelop, laat €${DOELSALDO.toFixed(2).replace('.', ',')} in de lade.`
+              : `Aanvullen uit wisselkassa: €${(DOELSALDO - total).toFixed(2).replace('.', ',')} om de lade op €${DOELSALDO.toFixed(2).replace('.', ',')} te brengen.`
+            }
+          </p>
+        </div>
+
+        <div className="mt-4 bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-4 sm:p-6">
+          <div className="flex items-center justify-between">
+            <span className="text-lg sm:text-xl font-heading font-bold text-[#282E3A]">
+              Kasverschil
+            </span>
+            <span 
+              className={`text-2xl sm:text-3xl font-heading font-bold ${
+                kasverschil > 0 ? 'text-green-600' : 
+                kasverschil < 0 ? 'text-red-600' : 
                 'text-[#282E3A]'
               }`}
             >
-              €{difference.toFixed(2).replace('.', ',')}
+              €{kasverschil.toFixed(2).replace('.', ',')}
             </span>
           </div>
         </div>
