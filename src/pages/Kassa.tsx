@@ -63,6 +63,22 @@ const Kassa = () => {
     }
   };
 
+  const handleSubmit = () => {
+    const data = {
+      week: currentWeek,
+      date: new Date().toISOString(),
+      location: 'West',
+      denominations: counts,
+      cashOmzetLightspeed: cashOmzet,
+      total: total,
+      difference: difference
+    };
+    
+    // TODO: Send to endpoint URL
+    console.log('Kassatelling data:', data);
+    toast.success('Data verzameld (endpoint nog niet geconfigureerd)');
+  };
+
   return (
     <div className="min-h-screen bg-[#F5F7DD]">
       {/* Header */}
@@ -368,6 +384,15 @@ const Kassa = () => {
               €{difference.toFixed(2).replace('.', ',')}
             </span>
           </div>
+        </div>
+
+        <div className="mt-6">
+          <Button 
+            onClick={handleSubmit}
+            className="w-full bg-[#1B7867] hover:bg-[#1B7867]/90 text-white font-heading font-bold text-lg py-6"
+          >
+            Verzenden
+          </Button>
         </div>
       </div>
     </div>
