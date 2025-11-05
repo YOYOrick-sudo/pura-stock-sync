@@ -152,12 +152,14 @@ const Kassa = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-3xl mx-auto px-3 py-6 sm:px-4 sm:py-8 lg:px-6 pb-10">
+      <div className="max-w-7xl mx-auto px-3 py-6 sm:px-4 sm:py-8 lg:px-6 pb-10">
         <h1 className="text-2xl sm:text-3xl font-heading font-bold text-[#282E3A] mb-6">
           Kassatelling — invoer
         </h1>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 items-start">
+          {/* Left side: Denomination tables */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Left Column */}
           <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
             <div className="overflow-x-auto">
@@ -345,9 +347,11 @@ const Kassa = () => {
               </table>
             </div>
           </div>
-        </div>
+          </div>
 
-        <div className="mt-6 bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-3 sm:p-4">
+          {/* Right side: Summary card */}
+          <div className="lg:sticky lg:top-6">
+            <div className="bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-3 sm:p-4">
           <div className="flex items-center justify-between py-2">
             <span className="text-lg sm:text-xl font-heading font-bold text-[#282E3A]">
               Totaal
@@ -411,15 +415,17 @@ const Kassa = () => {
               €{kasverschil.toFixed(2).replace('.', ',')}
             </span>
           </div>
-        </div>
 
-        <div className="mt-6">
-          <Button 
-            onClick={handleSubmit}
-            className="w-full bg-[#1B7867] hover:bg-[#1B7867]/90 text-white font-heading font-bold text-lg py-6"
-          >
-            Verzenden
-          </Button>
+          <div className="mt-4">
+            <Button 
+              onClick={handleSubmit}
+              className="w-full bg-[#1B7867] hover:bg-[#1B7867]/90 text-white font-heading font-bold text-lg py-6"
+            >
+              Verzenden
+            </Button>
+          </div>
+          </div>
+        </div>
         </div>
       </div>
     </div>
