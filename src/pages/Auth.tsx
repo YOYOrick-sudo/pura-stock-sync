@@ -16,7 +16,7 @@ const Auth = () => {
   const getEmailForLocation = (loc: 'West' | 'Midsland') => {
     return loc === 'West' 
       ? 'purawestkeuken@puravidafoodbar.nl'
-      : 'puramidslandkeuken@puravidafoodbar.nl';
+      : 'puramidsland@puravidafoodbar.nl';
   };
   
   const getDisplayName = (loc: 'West' | 'Midsland') => {
