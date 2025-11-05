@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import HomeHub from "./pages/HomeHub";
 import Kassa from "./pages/Kassa";
+import KassatellingOverdag from "./pages/KassatellingOverdag";
 import KitchenMenu from "./pages/kitchen/KitchenMenu";
 import Recipes from "./pages/kitchen/Recipes";
 import RecipeDetail from "./pages/kitchen/RecipeDetail";
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/reservations-demo" element={<ReservationsDemo />} />
             <Route path="/home" element={<ProtectedRoute><HomeHub /></ProtectedRoute>} />
             <Route path="/kassa" element={<ProtectedRoute><Kassa /></ProtectedRoute>} />
+            <Route path="/kassa-overdag" element={<ProtectedRoute><KassatellingOverdag /></ProtectedRoute>} />
             <Route
               path="/"
               element={
