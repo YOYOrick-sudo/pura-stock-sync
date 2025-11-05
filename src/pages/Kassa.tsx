@@ -67,7 +67,7 @@ const Kassa = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const data = {
       week: currentWeek,
       date: new Date().toISOString(),
@@ -81,9 +81,17 @@ const Kassa = () => {
       opmerkingen: opmerkingen
     };
     
-    // TODO: Send to endpoint URL
-    console.log('Kassatelling data:', data);
-    toast.success('Data verzameld (endpoint nog niet geconfigureerd)');
+    try {
+      await fetch('https://jaapies.app.n8n.cloud/webhook/kassa-afdracht', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      toast.success('Afdracht verzonden ✅');
+    } catch (error) {
+      console.error('Fout bij verzenden:', error);
+      toast.error('Verzenden mislukt');
+    }
   };
 
   return (
