@@ -128,6 +128,20 @@ const Kassa = () => {
             </span>
           </div>
         </div>
+
+        <div className="mt-4 bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-4 sm:p-6">
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-lg sm:text-xl font-heading font-bold text-[#282E3A]">
+              Cash omzet (Lightspeed)
+            </span>
+            <input 
+              type="number" 
+              defaultValue={0} 
+              min={0} 
+              className="w-32 sm:w-40 px-3 py-2 text-right text-xl sm:text-2xl font-heading font-bold text-[#282E3A] border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" 
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
