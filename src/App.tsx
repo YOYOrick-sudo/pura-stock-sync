@@ -7,6 +7,8 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import HomeHub from "./pages/HomeHub";
+import Kassa from "./pages/Kassa";
 import KitchenMenu from "./pages/kitchen/KitchenMenu";
 import Recipes from "./pages/kitchen/Recipes";
 import RecipeDetail from "./pages/kitchen/RecipeDetail";
@@ -26,6 +28,8 @@ const App = () => (
         <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/reservations-demo" element={<ReservationsDemo />} />
+            <Route path="/home" element={<ProtectedRoute><HomeHub /></ProtectedRoute>} />
+            <Route path="/kassa" element={<ProtectedRoute><Kassa /></ProtectedRoute>} />
             <Route
               path="/"
               element={
