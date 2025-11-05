@@ -82,7 +82,7 @@ const Kassa = () => {
     };
     
     try {
-      await fetch('https://jaapies.app.n8n.cloud/webhook-test/kassa-afdracht', {
+      await fetch('https://jaapies.app.n8n.cloud/webhook/kassa-afdracht', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
