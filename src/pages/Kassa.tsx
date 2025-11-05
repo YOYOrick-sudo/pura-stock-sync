@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { LogOut } from 'lucide-react';
 import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/lib/supabase';
@@ -36,6 +37,7 @@ const Kassa = () => {
   });
 
   const [cashOmzet, setCashOmzet] = useState(0);
+  const [opmerkingen, setOpmerkingen] = useState('');
 
   const updateCount = (denomination: string, value: number) => {
     setCounts(prev => ({
@@ -75,7 +77,8 @@ const Kassa = () => {
       total: total,
       doelsaldo: DOELSALDO,
       afdracht: afdracht,
-      kasverschil: kasverschil
+      kasverschil: kasverschil,
+      opmerkingen: opmerkingen
     };
     
     // TODO: Send to endpoint URL
@@ -414,6 +417,21 @@ const Kassa = () => {
             >
               €{kasverschil.toFixed(2).replace('.', ',')}
             </span>
+          </div>
+
+          <div className="border-t border-[#1B7867]/10 my-2"></div>
+
+          <div className="py-2">
+            <label htmlFor="opmerkingen" className="block text-lg sm:text-xl font-heading font-bold text-[#282E3A] mb-2">
+              Opmerkingen
+            </label>
+            <Textarea
+              id="opmerkingen"
+              value={opmerkingen}
+              onChange={(e) => setOpmerkingen(e.target.value)}
+              placeholder="Voeg hier eventuele opmerkingen toe..."
+              className="w-full min-h-[80px] border-[#1B7867]/20 focus:border-[#1B7867] font-mono text-sm"
+            />
           </div>
 
           <div className="mt-4">
