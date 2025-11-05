@@ -6,96 +6,115 @@ const Kassa = () => {
           Kassatelling — invoer
         </h1>
         
-        <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-[#1B7867]/10 bg-[#F5F7DD]/20">
-                  <th className="px-3 py-3 sm:px-4 sm:py-3 text-left font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Denominatie</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3 text-center font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Aantal</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#1B7867]/5">
-              <tr>
-                <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€500</td>
-                <td className="px-3 py-3 sm:px-4 text-center">
-                  <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
-                </td>
-              </tr>
-              <tr>
-                <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€200</td>
-                <td className="px-3 py-3 sm:px-4 text-center">
-                  <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
-                </td>
-              </tr>
-              <tr>
-                <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€100</td>
-                <td className="px-3 py-3 sm:px-4 text-center">
-                  <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
-                </td>
-              </tr>
-              <tr>
-                <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€50</td>
-                <td className="px-3 py-3 sm:px-4 text-center">
-                  <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
-                </td>
-              </tr>
-              <tr>
-                <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€20</td>
-                <td className="px-3 py-3 sm:px-4 text-center">
-                  <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
-                </td>
-              </tr>
-              <tr>
-                <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€10</td>
-                <td className="px-3 py-3 sm:px-4 text-center">
-                  <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
-                </td>
-              </tr>
-              <tr>
-                <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€5</td>
-                <td className="px-3 py-3 sm:px-4 text-center">
-                  <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
-                </td>
-              </tr>
-              <tr>
-                <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€2</td>
-                <td className="px-3 py-3 sm:px-4 text-center">
-                  <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
-                </td>
-              </tr>
-              <tr>
-                <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€1</td>
-                <td className="px-3 py-3 sm:px-4 text-center">
-                  <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
-                </td>
-              </tr>
-              <tr>
-                <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€0,50</td>
-                <td className="px-3 py-3 sm:px-4 text-center">
-                  <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
-                </td>
-              </tr>
-              <tr>
-                <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€0,20</td>
-                <td className="px-3 py-3 sm:px-4 text-center">
-                  <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
-                </td>
-              </tr>
-              <tr>
-                <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€0,10</td>
-                <td className="px-3 py-3 sm:px-4 text-center">
-                  <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
-                </td>
-              </tr>
-              <tr>
-                <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€0,05</td>
-                <td className="px-3 py-3 sm:px-4 text-center">
-                  <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
-                </td>
-              </tr>
-              </tbody>
-            </table>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Left Column */}
+          <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-[#1B7867]/10 bg-[#F5F7DD]/20">
+                    <th className="px-3 py-3 sm:px-4 sm:py-3 text-left font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Denominatie</th>
+                    <th className="px-3 py-3 sm:px-4 sm:py-3 text-center font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Aantal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#1B7867]/5">
+                  <tr>
+                    <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€500</td>
+                    <td className="px-3 py-3 sm:px-4 text-center">
+                      <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€200</td>
+                    <td className="px-3 py-3 sm:px-4 text-center">
+                      <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€100</td>
+                    <td className="px-3 py-3 sm:px-4 text-center">
+                      <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€50</td>
+                    <td className="px-3 py-3 sm:px-4 text-center">
+                      <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€20</td>
+                    <td className="px-3 py-3 sm:px-4 text-center">
+                      <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€10</td>
+                    <td className="px-3 py-3 sm:px-4 text-center">
+                      <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€5</td>
+                    <td className="px-3 py-3 sm:px-4 text-center">
+                      <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-[#1B7867]/10 bg-[#F5F7DD]/20">
+                    <th className="px-3 py-3 sm:px-4 sm:py-3 text-left font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Denominatie</th>
+                    <th className="px-3 py-3 sm:px-4 sm:py-3 text-center font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Aantal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#1B7867]/5">
+                  <tr>
+                    <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€2</td>
+                    <td className="px-3 py-3 sm:px-4 text-center">
+                      <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€1</td>
+                    <td className="px-3 py-3 sm:px-4 text-center">
+                      <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€0,50</td>
+                    <td className="px-3 py-3 sm:px-4 text-center">
+                      <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€0,20</td>
+                    <td className="px-3 py-3 sm:px-4 text-center">
+                      <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€0,10</td>
+                    <td className="px-3 py-3 sm:px-4 text-center">
+                      <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-3 sm:px-4 text-[#282E3A] font-mono">€0,05</td>
+                    <td className="px-3 py-3 sm:px-4 text-center">
+                      <input type="number" defaultValue={0} min={0} className="w-20 sm:w-24 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
