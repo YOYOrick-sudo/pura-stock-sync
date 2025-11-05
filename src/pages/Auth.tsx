@@ -22,7 +22,7 @@ const Auth = () => {
         }
       } = await supabase.auth.getSession();
       if (session) {
-        navigate('/');
+        navigate('/home');
       }
     };
     checkSession();
@@ -56,7 +56,7 @@ const Auth = () => {
       }
       if (data.session) {
         toast.success('Welkom terug!');
-        navigate('/');
+        navigate('/home');
       }
     } catch (error) {
       console.error('Login error:', error);
