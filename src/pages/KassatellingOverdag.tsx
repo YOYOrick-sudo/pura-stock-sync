@@ -6,6 +6,7 @@ import { LogOut } from 'lucide-react';
 import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { KassaTabBar } from '@/components/KassaTabBar';
 
 // Always get week number reliably using ISO 8601
 const getWeekNumber = (date: Date): number => {
@@ -155,6 +156,9 @@ const KassatellingOverdag = () => {
           </div>
         </div>
       </div>
+
+      {/* Tab Bar */}
+      <KassaTabBar />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 py-6 sm:px-4 sm:py-8 lg:px-6 pb-10">
