@@ -92,7 +92,7 @@ const KassatellingOverdag = () => {
 
   const handleSubmit = async () => {
     const data = {
-      type: 'overdag',
+      type: 'open',
       week: weekNumber,
       date: new Date().toISOString(),
       location: 'West',

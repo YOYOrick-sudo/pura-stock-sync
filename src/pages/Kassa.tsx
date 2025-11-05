@@ -71,6 +71,7 @@ const Kassa = () => {
 
   const handleSubmit = async () => {
     const data = {
+      type: 'sluit',
       week: weekNumber,
       date: new Date().toISOString(),
       location: 'West',
