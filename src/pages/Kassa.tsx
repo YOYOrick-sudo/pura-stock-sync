@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LogOut, ChefHat, CalendarCheck } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -58,14 +58,8 @@ const Kassa = () => {
               <img src={logoGreen} alt="Pura Vida Foodbar" className="h-16 sm:h-20 w-auto" />
             </div>
             
-            {/* Right: Navigation & Logout */}
+            {/* Right: Logout */}
             <div className="flex-1 flex justify-end gap-2">
-              <Button onClick={() => navigate('/kitchen')} variant="ghost" size="sm" className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent">
-                <ChefHat className="h-4 w-4" />
-              </Button>
-              <Button onClick={() => navigate('/reservations-demo')} variant="ghost" size="sm" className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent">
-                <CalendarCheck className="h-4 w-4" />
-              </Button>
               <Button onClick={handleLogout} variant="ghost" size="sm" className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent">
                 <LogOut className="h-4 w-4" />
               </Button>
@@ -92,14 +86,8 @@ const Kassa = () => {
               <img src={logoGreen} alt="Pura Vida Foodbar" className="h-14 w-auto" />
             </div>
             
-            {/* Right: Navigation & Logout */}
+            {/* Right: Logout */}
             <div className="flex-1 flex justify-end gap-2">
-              <Button onClick={() => navigate('/kitchen')} variant="ghost" size="sm" className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent">
-                <ChefHat className="h-4 w-4" />
-              </Button>
-              <Button onClick={() => navigate('/reservations-demo')} variant="ghost" size="sm" className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent">
-                <CalendarCheck className="h-4 w-4" />
-              </Button>
               <Button onClick={handleLogout} variant="ghost" size="sm" className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent">
                 <LogOut className="h-4 w-4" />
               </Button>
