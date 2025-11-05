@@ -34,6 +34,8 @@ const Kassa = () => {
     '0.05': 0,
   });
 
+  const [cashOmzet, setCashOmzet] = useState(0);
+
   const updateCount = (denomination: string, value: number) => {
     setCounts(prev => ({
       ...prev,
@@ -48,6 +50,7 @@ const Kassa = () => {
   };
 
   const total = calculateTotal();
+  const difference = total - cashOmzet;
 
   const handleLogout = async () => {
     try {
@@ -342,10 +345,28 @@ const Kassa = () => {
             </span>
             <input 
               type="number" 
-              defaultValue={0} 
+              value={cashOmzet} 
+              onChange={(e) => setCashOmzet(parseFloat(e.target.value) || 0)}
               min={0} 
               className="w-32 sm:w-40 px-3 py-2 text-right text-xl sm:text-2xl font-heading font-bold text-[#282E3A] border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" 
             />
+          </div>
+        </div>
+
+        <div className="mt-4 bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-4 sm:p-6">
+          <div className="flex items-center justify-between">
+            <span className="text-lg sm:text-xl font-heading font-bold text-[#282E3A]">
+              Afdracht / Envelop
+            </span>
+            <span 
+              className={`text-2xl sm:text-3xl font-heading font-bold ${
+                difference > 0 ? 'text-green-600' : 
+                difference < 0 ? 'text-red-600' : 
+                'text-[#282E3A]'
+              }`}
+            >
+              €{difference.toFixed(2).replace('.', ',')}
+            </span>
           </div>
         </div>
       </div>
