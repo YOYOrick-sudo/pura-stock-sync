@@ -347,8 +347,8 @@ const Kassa = () => {
           </div>
         </div>
 
-        <div className="mt-6 bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-4 sm:p-6">
-          <div className="flex items-center justify-between">
+        <div className="mt-6 bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-3 sm:p-4">
+          <div className="flex items-center justify-between py-2">
             <span className="text-lg sm:text-xl font-heading font-bold text-[#282E3A]">
               Totaal
             </span>
@@ -356,10 +356,10 @@ const Kassa = () => {
               €{total.toFixed(2).replace('.', ',')}
             </span>
           </div>
-        </div>
 
-        <div className="mt-4 bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-4 sm:p-6">
-          <div className="flex items-center justify-between gap-4">
+          <div className="border-t border-[#1B7867]/10 my-2"></div>
+
+          <div className="flex items-center justify-between gap-4 py-2">
             <span className="text-lg sm:text-xl font-heading font-bold text-[#282E3A]">
               Cash omzet (Lightspeed)
             </span>
@@ -371,31 +371,33 @@ const Kassa = () => {
               className="w-32 sm:w-40 px-3 py-2 text-right text-xl sm:text-2xl font-heading font-bold text-[#282E3A] border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" 
             />
           </div>
-        </div>
 
-        <div className="mt-4 bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-4 sm:p-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-lg sm:text-xl font-heading font-bold text-[#282E3A]">
-              Afdracht / Envelop
-            </span>
-            <span 
-              className={`text-2xl sm:text-3xl font-heading font-bold ${
-                afdracht > 0 ? 'text-[#1B7867]' : 'text-gray-500'
-              }`}
-            >
-              €{afdracht.toFixed(2).replace('.', ',')}
-            </span>
+          <div className="border-t border-[#1B7867]/10 my-2"></div>
+
+          <div className="py-2">
+            <div className="flex items-center justify-between">
+              <span className="text-lg sm:text-xl font-heading font-bold text-[#282E3A]">
+                Afdracht / Envelop
+              </span>
+              <span 
+                className={`text-2xl sm:text-3xl font-heading font-bold ${
+                  afdracht > 0 ? 'text-[#1B7867]' : 'text-gray-500'
+                }`}
+              >
+                €{afdracht.toFixed(2).replace('.', ',')}
+              </span>
+            </div>
+            <p className="text-sm text-[#282E3A]/70 mt-2">
+              {total >= DOELSALDO 
+                ? `Leg €${afdracht.toFixed(2).replace('.', ',')} in de envelop, laat €${DOELSALDO.toFixed(2).replace('.', ',')} in de lade.`
+                : `Aanvullen uit wisselkassa: €${(DOELSALDO - total).toFixed(2).replace('.', ',')} om de lade op €${DOELSALDO.toFixed(2).replace('.', ',')} te brengen.`
+              }
+            </p>
           </div>
-          <p className="text-sm text-[#282E3A]/70 mt-2">
-            {total >= DOELSALDO 
-              ? `Leg €${afdracht.toFixed(2).replace('.', ',')} in de envelop, laat €${DOELSALDO.toFixed(2).replace('.', ',')} in de lade.`
-              : `Aanvullen uit wisselkassa: €${(DOELSALDO - total).toFixed(2).replace('.', ',')} om de lade op €${DOELSALDO.toFixed(2).replace('.', ',')} te brengen.`
-            }
-          </p>
-        </div>
 
-        <div className="mt-4 bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-4 sm:p-6">
-          <div className="flex items-center justify-between">
+          <div className="border-t border-[#1B7867]/10 my-2"></div>
+
+          <div className="flex items-center justify-between py-2">
             <span className="text-lg sm:text-xl font-heading font-bold text-[#282E3A]">
               Kasverschil
             </span>
