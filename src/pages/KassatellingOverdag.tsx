@@ -214,21 +214,21 @@ const KassatellingOverdag = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[#1B7867]/10 bg-[#F5F7DD]/20">
-                    <th className="px-2 py-1.5 text-left font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Denom.</th>
-                    <th className="px-2 py-1.5 text-center font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Aantal</th>
+                    <th className="px-2 py-0.5 text-left font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Denom.</th>
+                    <th className="px-2 py-0.5 text-center font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Aantal</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#1B7867]/5">
-                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom) => (
-                    <tr key={denom}>
-                      <td className="px-2 py-1.5 text-[#282E3A] font-mono text-sm">€{denom.replace('.', ',')}</td>
-                      <td className="px-2 py-1.5 text-center">
+                <tbody className="divide-y divide-[#1B7867]/15">
+                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom, index) => (
+                    <tr key={denom} className={index % 2 === 0 ? 'bg-white' : 'bg-[#F5F7DD]/10'}>
+                      <td className="px-2 py-0.5 text-[#282E3A] font-mono text-sm border-r border-[#1B7867]/10">€{denom.replace('.', ',')}</td>
+                      <td className="px-2 py-0.5 text-center">
                         <input 
                           type="number" 
                           value={kassaLade[denom as keyof typeof kassaLade]} 
                           onChange={(e) => updateKassaLade(denom, parseInt(e.target.value) || 0)}
                           min={0} 
-                          className="w-16 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono text-sm" 
+                          className="w-16 px-2 py-0.5 text-center border border-[#1B7867]/30 rounded-md focus:outline-none focus:border-[#1B7867] font-mono text-sm" 
                         />
                       </td>
                     </tr>
@@ -253,21 +253,21 @@ const KassatellingOverdag = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[#1B7867]/10 bg-[#F5F7DD]/20">
-                    <th className="px-2 py-1.5 text-left font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Denom.</th>
-                    <th className="px-2 py-1.5 text-center font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Aantal</th>
+                    <th className="px-2 py-0.5 text-left font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Denom.</th>
+                    <th className="px-2 py-0.5 text-center font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Aantal</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#1B7867]/5">
-                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom) => (
-                    <tr key={denom}>
-                      <td className="px-2 py-1.5 text-[#282E3A] font-mono text-sm">€{denom.replace('.', ',')}</td>
-                      <td className="px-2 py-1.5 text-center">
+                <tbody className="divide-y divide-[#1B7867]/15">
+                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom, index) => (
+                    <tr key={denom} className={index % 2 === 0 ? 'bg-white' : 'bg-[#F5F7DD]/10'}>
+                      <td className="px-2 py-0.5 text-[#282E3A] font-mono text-sm border-r border-[#1B7867]/10">€{denom.replace('.', ',')}</td>
+                      <td className="px-2 py-0.5 text-center">
                         <input 
                           type="number" 
                           value={wisselkas[denom as keyof typeof wisselkas]} 
                           onChange={(e) => updateWisselkas(denom, parseInt(e.target.value) || 0)}
                           min={0} 
-                          className="w-16 px-2 py-1 text-center border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono text-sm" 
+                          className="w-16 px-2 py-0.5 text-center border border-[#1B7867]/30 rounded-md focus:outline-none focus:border-[#1B7867] font-mono text-sm" 
                         />
                       </td>
                     </tr>
