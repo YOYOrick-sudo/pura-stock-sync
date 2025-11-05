@@ -97,27 +97,43 @@ const Auth = () => {
         <div className="px-8 py-8">
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label htmlFor="location" className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
-                Locatie
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">
+                Selecteer Locatie
               </label>
-              <select
-                id="location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value as 'West' | 'Midsland')}
-                className="w-full h-11 border border-gray-300 focus:border-[#1B7867] focus:ring-1 focus:ring-[#1B7867] bg-white rounded-lg text-gray-900 px-3"
-                disabled={loading}
-              >
-                <option value="West">West</option>
-                <option value="Midsland">Midsland</option>
-              </select>
-            </div>
+              <div className="grid grid-cols-2 gap-4">
+                {/* West Card */}
+                <div 
+                  onClick={() => !loading && setLocation('West')}
+                  className={`
+                    cursor-pointer p-6 rounded-lg border-2 transition-all
+                    ${location === 'West' 
+                      ? 'border-[#1B7867] bg-[#1B7867]/5' 
+                      : 'border-gray-200 hover:border-gray-300'
+                    }
+                    ${loading ? 'opacity-50 cursor-not-allowed' : ''}
+                  `}
+                >
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-gray-900">West</div>
+                  </div>
+                </div>
 
-            <div>
-              <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
-                Gebruikersnaam
-              </label>
-              <div className="relative">
-                <Input id="email" type="text" value={getDisplayName(location)} className="h-11 border border-gray-200 bg-gray-50 rounded-lg font-medium text-gray-700 cursor-not-allowed" disabled readOnly autoComplete="username" />
+                {/* Midsland Card */}
+                <div 
+                  onClick={() => !loading && setLocation('Midsland')}
+                  className={`
+                    cursor-pointer p-6 rounded-lg border-2 transition-all
+                    ${location === 'Midsland' 
+                      ? 'border-[#1B7867] bg-[#1B7867]/5' 
+                      : 'border-gray-200 hover:border-gray-300'
+                    }
+                    ${loading ? 'opacity-50 cursor-not-allowed' : ''}
+                  `}
+                >
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-gray-900">Midsland</div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -125,7 +141,17 @@ const Auth = () => {
               <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
                 Wachtwoord
               </label>
-              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Vul je wachtwoord in" className="h-11 border border-gray-300 focus:border-[#1B7867] focus:ring-1 focus:ring-[#1B7867] bg-white rounded-lg text-gray-900 placeholder:text-gray-400" disabled={loading} autoComplete="current-password" autoFocus />
+              <Input 
+                id="password" 
+                type="password" 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                placeholder="Vul je wachtwoord in" 
+                className="h-11 border border-gray-300 focus:border-[#1B7867] focus:ring-1 focus:ring-[#1B7867] bg-white rounded-lg text-gray-900 placeholder:text-gray-400" 
+                disabled={loading} 
+                autoComplete="current-password" 
+                autoFocus 
+              />
             </div>
 
             <Button type="submit" disabled={loading} className="w-full h-11 bg-[#1B7867] hover:bg-[#0d5a4c] text-white shadow-sm hover:shadow-md transition-all duration-200 rounded-lg font-semibold text-sm mt-6">
