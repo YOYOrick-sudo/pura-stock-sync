@@ -7,8 +7,11 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { useNavigate } from 'react-router-dom';
+import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 
 export default function Recipes() {
+  useInactivityTimeout();
+  
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
 

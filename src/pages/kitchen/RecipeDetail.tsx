@@ -4,8 +4,11 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Edit, Clock, MapPin } from 'lucide-react';
+import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 
 export default function RecipeDetail() {
+  useInactivityTimeout();
+  
   const { id } = useParams();
 
   // TODO: Replace with actual data from useRecipe hook

@@ -10,6 +10,7 @@ import { OrderPreview } from './OrderPreview';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from './ui/alert-dialog';
 import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/lib/supabase';
+import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 interface Product {
   name: string;
   targetStock: number;
@@ -47,6 +48,8 @@ function getCurrentWeek(): number {
 export default function OrderDashboard() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  
+  useInactivityTimeout();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastSubmitted, setLastSubmitted] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);

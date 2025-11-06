@@ -8,8 +8,11 @@ import { Plus, Clock, Eye } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { addDays, startOfWeek, format } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 
 export default function MepPlanning() {
+  useInactivityTimeout();
+  
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   // Generate week days
