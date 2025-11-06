@@ -119,6 +119,12 @@ const Kassa = () => {
         body: JSON.stringify(data)
       });
       toast.success('Afdracht verzonden ✅');
+      
+      // Auto logout and redirect after 1.5 seconds
+      setTimeout(async () => {
+        await supabase.auth.signOut();
+        navigate('/');
+      }, 1500);
     } catch (error) {
       console.error('Fout bij verzenden:', error);
       toast.error('Verzenden mislukt');

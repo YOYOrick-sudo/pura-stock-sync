@@ -172,7 +172,7 @@ export default function OrderDashboard() {
     });
     if (demoMode) {
       // Demo mode - simulate success without calling webhook
-      setTimeout(() => {
+      setTimeout(async () => {
         setLastSubmitted(timestamp);
         localStorage.setItem('pura-vida-last-submitted', timestamp);
         localStorage.setItem('pura-vida-last-order', JSON.stringify(orderData));
@@ -189,6 +189,12 @@ export default function OrderDashboard() {
         // Show success dialog
         setShowSuccessDialog(true);
         setIsSubmitting(false);
+        
+        // Auto logout and redirect after 1.5 seconds
+        setTimeout(async () => {
+          await supabase.auth.signOut();
+          navigate('/');
+        }, 1500);
       }, 1500);
       return;
     }
@@ -226,6 +232,12 @@ export default function OrderDashboard() {
 
         // Show success dialog
         setShowSuccessDialog(true);
+        
+        // Auto logout and redirect after 1.5 seconds
+        setTimeout(async () => {
+          await supabase.auth.signOut();
+          navigate('/');
+        }, 1500);
       } else {
         throw new Error(`Server responded with ${response.status}`);
       }
