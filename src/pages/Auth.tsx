@@ -105,7 +105,7 @@ const Auth = () => {
                 <div 
                   onClick={() => !loading && setLocation('West')}
                   className={`
-                    cursor-pointer p-3 rounded-lg border-2 transition-all
+                    cursor-pointer p-2 rounded-lg border-2 transition-all
                     ${location === 'West' 
                       ? 'border-[#1B7867] bg-[#1B7867]/5' 
                       : 'border-gray-200 hover:border-gray-300'
@@ -122,7 +122,7 @@ const Auth = () => {
                 <div 
                   onClick={() => !loading && setLocation('Midsland')}
                   className={`
-                    cursor-pointer p-3 rounded-lg border-2 transition-all
+                    cursor-pointer p-2 rounded-lg border-2 transition-all
                     ${location === 'Midsland' 
                       ? 'border-[#1B7867] bg-[#1B7867]/5' 
                       : 'border-gray-200 hover:border-gray-300'
