@@ -95,6 +95,7 @@ const Kassa = () => {
 
   const handleLogout = async () => {
     try {
+      sessionStorage.removeItem('userLocation');
       await supabase.auth.signOut();
       toast.success('Uitgelogd');
       navigate('/');
