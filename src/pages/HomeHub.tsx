@@ -52,7 +52,7 @@ const HomeHub = () => {
         <LogOut className="h-6 w-6" />
       </Button>
 
-      <Card className="p-5 space-y-4 bg-card/80 backdrop-blur-sm shadow-md max-w-md w-full animate-fade-in">
+      <Card className="p-5 space-y-4 bg-card/80 backdrop-blur-sm shadow-md max-w-sm md:max-w-md w-full animate-fade-in">
         {/* Logo */}
         <div className="flex justify-center">
           
