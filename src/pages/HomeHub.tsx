@@ -8,26 +8,24 @@ import { toast } from "sonner";
 import WaveBackground from "@/components/WaveBackground";
 import logoGreen from "@/assets/pura-vida-logo-official.png";
 import { useInactivityTimeout } from "@/hooks/useInactivityTimeout";
-
 const HomeHub = () => {
   const navigate = useNavigate();
   const [userLocation, setUserLocation] = useState<string>('');
-  
   useInactivityTimeout();
-
   useEffect(() => {
     const fetchUserLocation = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (user) {
-        const { data } = await supabase
-          .from('user_roles')
-          .select('location')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
+        const {
+          data
+        } = await supabase.from('user_roles').select('location').eq('user_id', user.id).maybeSingle();
         const location = data?.location || 'West';
         setUserLocation(location);
-        
+
         // Redirect Midsland users directly to kassa
         if (location === 'Midsland') {
           navigate('/kassa');
@@ -36,7 +34,6 @@ const HomeHub = () => {
     };
     fetchUserLocation();
   }, [navigate]);
-
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -47,62 +44,36 @@ const HomeHub = () => {
       toast.error('Uitloggen mislukt');
     }
   };
-
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative">
+  return <div className="min-h-screen bg-background flex items-center justify-center p-4 relative">
       <WaveBackground />
       
       {/* Logout button */}
-      <Button 
-        onClick={handleLogout}
-        variant="ghost" 
-        size="sm" 
-        className="absolute top-4 right-4 text-foreground/50 hover:text-foreground z-10"
-      >
+      <Button onClick={handleLogout} variant="ghost" size="sm" className="absolute top-4 right-4 text-foreground/50 hover:text-foreground z-10">
         <LogOut className="h-5 w-5" />
       </Button>
 
       <Card className="p-5 space-y-4 bg-card/80 backdrop-blur-sm shadow-md max-w-md w-full animate-fade-in">
         {/* Logo */}
         <div className="flex justify-center">
-          <img 
-            src={logoGreen} 
-            alt="Pura Vida Foodbar" 
-            className="h-12 w-auto animate-scale-in" 
-          />
+          
         </div>
 
         {/* Title */}
-        <h1 className="text-xl font-heading font-medium text-center text-muted-foreground">
-          Kies module
-        </h1>
+        
         
         {/* Buttons */}
         <div className="flex flex-col gap-3 w-full">
-          {userLocation === 'West' && (
-            <Button
-              size="default"
-              className="h-14 text-base"
-              onClick={() => navigate('/voorraad')}
-            >
+          {userLocation === 'West' && <Button size="default" className="h-14 text-base" onClick={() => navigate('/voorraad')}>
               <Package className="mr-3 h-7 w-7" />
               Voorraadregistratie
-            </Button>
-          )}
+            </Button>}
           
-          <Button
-            size="default"
-            variant="secondary"
-            className="h-14 text-base"
-            onClick={() => navigate('/kassa')}
-          >
+          <Button size="default" variant="secondary" className="h-14 text-base" onClick={() => navigate('/kassa')}>
             <Calculator className="mr-3 h-7 w-7" />
             Kassatelling
           </Button>
         </div>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default HomeHub;
