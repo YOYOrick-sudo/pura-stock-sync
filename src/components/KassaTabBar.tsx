@@ -11,7 +11,7 @@ export const KassaTabBar = () => {
   ];
 
   return (
-    <div className="bg-[#F5F7DD] py-4">
+    <div className="bg-[#F5F7DD] py-2">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
         <div className="flex gap-2 justify-start">
           {tabs.map((tab) => {
