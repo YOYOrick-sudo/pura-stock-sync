@@ -396,8 +396,8 @@ export default function OrderDashboard() {
       <div className="max-w-3xl mx-auto px-3 py-6 sm:px-4 sm:py-8 lg:px-6 pb-10">
         {/* Products Table - All Screen Sizes */}
         <Card className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white mb-4">
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div>
+            <table className="w-full table-fixed">
               <thead>
                 <tr className="border-b border-[#1B7867]/10 bg-[#F5F7DD]/20">
                   <th className="px-3 py-3 sm:px-4 sm:py-3 text-left font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Product</th>
@@ -412,10 +412,12 @@ export default function OrderDashboard() {
                   return (
                     <>
                       {showCategoryHeader && product.category && (
-                        <tr key={`category-${product.category}-${index}`} className="bg-[#1B7867] border-t-2 border-b-2 border-[#1B7867]/30">
-                          <td colSpan={4} className="px-3 py-3 sm:px-4 font-heading font-bold text-white text-sm sm:text-base uppercase tracking-wide flex items-center gap-2">
-                            <Layers className="w-4 h-4" />
-                            {product.category}
+                        <tr key={`category-${product.category}-${index}`} className="bg-[#1B7867] border-t border-b border-[#1B7867]/30">
+                          <td colSpan={4} className="px-3 py-2 sm:px-4 font-heading font-bold text-white text-sm uppercase tracking-wide">
+                            <div className="flex items-center gap-2">
+                              <Layers className="w-3 h-3 sm:w-4 sm:h-4" />
+                              {product.category}
+                            </div>
                           </td>
                         </tr>
                       )}
