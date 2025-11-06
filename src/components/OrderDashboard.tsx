@@ -3,7 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
-import { Loader2, Check, Eye, AlertCircle, Package, Plus, X, CheckCircle2, LogOut, ChefHat, CalendarCheck, Info, Layers } from 'lucide-react';
+import { 
+  Loader2, 
+  Check, 
+  Eye, 
+  AlertCircle, 
+  Package, 
+  Plus, 
+  X, 
+  CheckCircle2, 
+  LogOut, 
+  ChefHat, 
+  CalendarCheck, 
+  Info, 
+  Layers 
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { ProductRow } from './ProductRow';
