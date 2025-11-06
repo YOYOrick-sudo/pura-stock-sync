@@ -8,6 +8,7 @@ import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { KassaTabBar } from '@/components/KassaTabBar';
+import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 
 // Always get week number reliably using ISO 8601
 const getWeekNumber = (date: Date): number => {
@@ -25,6 +26,9 @@ const Kassa = () => {
   const [userLocation, setUserLocation] = useState<string>('');
   const [showInstructionsDialog, setShowInstructionsDialog] = useState(false);
   const [naam, setNaam] = useState('');
+  
+  // Enable inactivity timeout
+  useInactivityTimeout();
 
   const [counts, setCounts] = useState({
     '500': '' as number | '',
@@ -84,7 +88,7 @@ const Kassa = () => {
     try {
       await supabase.auth.signOut();
       toast.success('Uitgelogd');
-      navigate('/auth');
+      navigate('/');
     } catch (error) {
       console.error('Logout error:', error);
       toast.error('Uitloggen mislukt');

@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { KassaTabBar } from '@/components/KassaTabBar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 
 // Always get week number reliably using ISO 8601
 const getWeekNumber = (date: Date): number => {
@@ -23,6 +24,9 @@ const KassatellingOverdag = () => {
   const weekNumber = getWeekNumber(new Date());
   const [userLocation, setUserLocation] = useState<string>('');
   const [naam, setNaam] = useState('');
+  
+  // Enable inactivity timeout
+  useInactivityTimeout();
 
   const [kassaLade, setKassaLade] = useState({
     '500': '' as number | '',
@@ -104,7 +108,7 @@ const KassatellingOverdag = () => {
     try {
       await supabase.auth.signOut();
       toast.success('Uitgelogd');
-      navigate('/auth');
+      navigate('/');
     } catch (error) {
       console.error('Logout error:', error);
       toast.error('Uitloggen mislukt');

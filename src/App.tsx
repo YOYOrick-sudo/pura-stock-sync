@@ -27,13 +27,13 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={<Auth />} />
             <Route path="/reservations-demo" element={<ReservationsDemo />} />
             <Route path="/home" element={<ProtectedRoute><HomeHub /></ProtectedRoute>} />
             <Route path="/kassa-overdag" element={<ProtectedRoute><KassatellingOverdag /></ProtectedRoute>} />
             <Route path="/kassa" element={<ProtectedRoute><Kassa /></ProtectedRoute>} />
             <Route
-              path="/"
+              path="/voorraad"
               element={
                 <ProtectedRoute>
                   <Index />

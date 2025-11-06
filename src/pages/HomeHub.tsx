@@ -42,7 +42,7 @@ const HomeHub = () => {
             <Button
               size="lg"
               className="h-16 text-lg"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/voorraad')}
             >
               <Package className="mr-2 h-5 w-5" />
               Voorraadregistratie
