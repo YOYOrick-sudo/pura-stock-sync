@@ -193,12 +193,17 @@ export default function OrderDashboard() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      const response = await fetch('https://jaapies.app.n8n.cloud/webhook/pura-vida-voorraad', {
+      const response = await fetch('https://jaapies.app.n8n.cloud/webhook/inventory-restock', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(orderData),
+        body: JSON.stringify(products.map(product => ({
+          product: product.name,
+          ijzer: product.targetStock,
+          huidig: product.currentStock,
+          vullen: calculateRefill(product.targetStock, product.currentStock)
+        }))),
         signal: controller.signal
       });
       clearTimeout(timeoutId);
