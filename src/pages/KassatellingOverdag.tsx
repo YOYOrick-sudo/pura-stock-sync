@@ -223,8 +223,10 @@ const KassatellingOverdag = () => {
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_400px] gap-6 items-start">
-          {/* Kassa Lade */}
-          <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
+          {/* Kassa Lade + Uitleg */}
+          <div className="space-y-6">
+            {/* Kassa Lade */}
+            <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
             <div className="bg-[#F5F7DD]/30 px-3 py-2 border-b border-[#1B7867]/10">
               <h2 className="font-heading font-bold text-[#282E3A] text-lg">Kassa Lade</h2>
             </div>
@@ -261,6 +263,70 @@ const KassatellingOverdag = () => {
               </div>
             </div>
           </div>
+
+          {/* Uitleg card */}
+          <div className="bg-white rounded-xl shadow-sm border border-[#1B7867]/10 overflow-hidden">
+            <div className="bg-[#F5F7DD]/30 px-4 py-3 border-b border-[#1B7867]/10">
+              <h2 className="text-lg font-heading font-bold text-[#282E3A]">
+                Uitleg
+              </h2>
+            </div>
+            
+            <div className="p-4">
+              <ol className="space-y-2.5">
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
+                  <div>
+                    <span className="font-heading font-medium text-[#282E3A]">Tel de kassa lade</span>
+                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Vul alle aantallen in</p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
+                  <div>
+                    <span className="font-heading font-medium text-[#282E3A]">Tel de wisselkas</span>
+                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Vul alle aantallen in</p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
+                  <div>
+                    <span className="font-heading font-medium text-[#282E3A]">Controleer het totaal</span>
+                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Moet €157,00 zijn</p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
+                  <div>
+                    <span className="font-heading font-medium text-[#282E3A]">Bij tekort/overschot</span>
+                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Meld dit in de opmerkingen</p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
+                  <div>
+                    <span className="font-heading font-medium text-[#282E3A]">Aanvullen indien nodig</span>
+                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Als totaal &lt; €157, vul aan vanuit wisselkassa tot €157</p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">6</span>
+                  <div>
+                    <span className="font-heading font-medium text-[#282E3A]">Geen wijzigingen meer</span>
+                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Na aanvullen niets meer wijzigen in de telling</p>
+                  </div>
+                </li>
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">7</span>
+                  <div>
+                    <span className="font-heading font-medium text-[#282E3A]">Verzenden</span>
+                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Druk op de verzenden knop</p>
+                  </div>
+                </li>
+              </ol>
+            </div>
+          </div>
+        </div>
 
           {/* Wisselkas */}
           <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
@@ -302,7 +368,7 @@ const KassatellingOverdag = () => {
           </div>
 
           {/* Right side: Summary card */}
-          <div className="lg:sticky lg:top-6 space-y-6">
+          <div className="lg:sticky lg:top-6">
             <div className="bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-4">
           {/* Totaal - meest prominent */}
           <div className="flex items-center justify-between py-1.5">
@@ -339,71 +405,8 @@ const KassatellingOverdag = () => {
               Verzenden
             </Button>
           </div>
-
-            {/* Uitleg card */}
-            <div className="bg-white rounded-xl shadow-sm border border-[#1B7867]/10 overflow-hidden">
-              <div className="bg-[#F5F7DD]/30 px-4 py-3 border-b border-[#1B7867]/10">
-                <h2 className="text-lg font-heading font-bold text-[#282E3A]">
-                  Uitleg
-                </h2>
-              </div>
-              
-              <div className="p-4">
-                <ol className="space-y-2.5">
-                  <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
-                    <div>
-                      <span className="font-heading font-medium text-[#282E3A]">Tel de kassa lade</span>
-                      <p className="text-xs text-[#282E3A]/60 mt-0.5">Vul alle aantallen in</p>
-                    </div>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
-                    <div>
-                      <span className="font-heading font-medium text-[#282E3A]">Tel de wisselkas</span>
-                      <p className="text-xs text-[#282E3A]/60 mt-0.5">Vul alle aantallen in</p>
-                    </div>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
-                    <div>
-                      <span className="font-heading font-medium text-[#282E3A]">Controleer het totaal</span>
-                      <p className="text-xs text-[#282E3A]/60 mt-0.5">Moet €157,00 zijn</p>
-                    </div>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
-                    <div>
-                      <span className="font-heading font-medium text-[#282E3A]">Bij tekort/overschot</span>
-                      <p className="text-xs text-[#282E3A]/60 mt-0.5">Meld dit in de opmerkingen</p>
-                    </div>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
-                    <div>
-                      <span className="font-heading font-medium text-[#282E3A]">Aanvullen indien nodig</span>
-                      <p className="text-xs text-[#282E3A]/60 mt-0.5">Als totaal &lt; €157, vul aan vanuit wisselkassa tot €157</p>
-                    </div>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">6</span>
-                    <div>
-                      <span className="font-heading font-medium text-[#282E3A]">Geen wijzigingen meer</span>
-                      <p className="text-xs text-[#282E3A]/60 mt-0.5">Na aanvullen niets meer wijzigen in de telling</p>
-                    </div>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">7</span>
-                    <div>
-                      <span className="font-heading font-medium text-[#282E3A]">Verzenden</span>
-                      <p className="text-xs text-[#282E3A]/60 mt-0.5">Druk op de verzenden knop</p>
-                    </div>
-                  </li>
-                </ol>
-              </div>
             </div>
           </div>
-        </div>
         </div>
       </div>
     </div>
