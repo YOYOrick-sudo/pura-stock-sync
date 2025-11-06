@@ -146,7 +146,7 @@ export default function OrderDashboard() {
     setProducts([...products, newProduct]);
     setNewProductName('');
     setNewProductAmount('');
-    toast.success('✅ Zoet special toegevoegd');
+    toast.success('✅ Extra product toegevoegd');
   };
   const removeTemporaryProduct = (index: number) => {
     const newProducts = products.filter((_, i) => i !== index);
@@ -447,7 +447,7 @@ export default function OrderDashboard() {
         <Card className="p-4 sm:p-5 mb-6 bg-white border-[#E27726]/20 shadow-sm">
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
             <div className="flex-1 w-full">
-              <label className="font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Zoet special</label>
+              <label className="font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Extra product</label>
               <Input placeholder="Bijv. Smoothie basis (bak)" value={newProductName} onChange={e => setNewProductName(e.target.value)} className="border-[#E27726]/20 focus:border-[#E27726] bg-white h-11" />
             </div>
             <div className="w-full sm:w-32">
