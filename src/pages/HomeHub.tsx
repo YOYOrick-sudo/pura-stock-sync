@@ -48,8 +48,8 @@ const HomeHub = () => {
       <WaveBackground />
       
       {/* Logout button */}
-      <Button onClick={handleLogout} variant="ghost" size="sm" className="absolute top-4 right-4 text-foreground/50 hover:text-foreground z-10">
-        <LogOut className="h-5 w-5" />
+      <Button onClick={handleLogout} variant="ghost" size="default" className="absolute top-4 right-4 text-foreground/70 hover:text-foreground z-10">
+        <LogOut className="h-6 w-6" />
       </Button>
 
       <Card className="p-5 space-y-4 bg-card/80 backdrop-blur-sm shadow-md max-w-md w-full animate-fade-in">
