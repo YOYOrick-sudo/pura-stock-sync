@@ -48,7 +48,6 @@ function getCurrentWeek(): number {
 export default function OrderDashboard() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
-  
   useInactivityTimeout();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastSubmitted, setLastSubmitted] = useState<string | null>(null);
@@ -334,12 +333,8 @@ export default function OrderDashboard() {
             
             {/* Right: Keuken & Logout */}
             <div className="flex-1 flex justify-end gap-2">
-              <Button onClick={() => navigate('/kitchen')} variant="ghost" size="sm" className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent">
-                <ChefHat className="h-4 w-4" />
-              </Button>
-              <Button onClick={() => navigate('/reservations-demo')} variant="ghost" size="sm" className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent">
-                <CalendarCheck className="h-4 w-4" />
-              </Button>
+              
+              
               <Button onClick={handleLogout} variant="ghost" size="sm" className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent">
                 <LogOut className="h-4 w-4" />
               </Button>
