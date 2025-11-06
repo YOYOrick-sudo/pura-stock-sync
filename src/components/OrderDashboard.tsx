@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/t
 import { ProductRow } from './ProductRow';
 import { OrderPreview } from './OrderPreview';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from './ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/lib/supabase';
 import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
@@ -55,6 +56,7 @@ export default function OrderDashboard() {
   const [showPreview, setShowPreview] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [showInstructionsDialog, setShowInstructionsDialog] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
   const [newProductName, setNewProductName] = useState('');
   const [newProductAmount, setNewProductAmount] = useState('');
@@ -453,20 +455,31 @@ export default function OrderDashboard() {
               </div>
             </div>}
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button onClick={() => setShowPreview(true)} disabled={!hasAnyStock} variant="outline" className="w-full sm:flex-1 h-12 sm:h-auto sm:py-5 border-2 border-[#1B7867] text-[#1B7867] hover:bg-[#1B7867]/5 rounded-2xl font-semibold transition-all touch-manipulation">
-              <Eye className="mr-2 h-5 w-5" />
-              Voorbeeld
-            </Button>
+          <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button onClick={() => setShowPreview(true)} disabled={!hasAnyStock} variant="outline" className="w-full sm:flex-1 h-12 sm:h-auto sm:py-5 border-2 border-[#1B7867] text-[#1B7867] hover:bg-[#1B7867]/5 rounded-2xl font-semibold transition-all touch-manipulation">
+                <Eye className="mr-2 h-5 w-5" />
+                Voorbeeld
+              </Button>
 
-            <Button onClick={handleSubmit} disabled={isSubmitting || !hasAnyStock} className="w-full sm:flex-[2] h-12 sm:h-auto sm:py-5 bg-gradient-to-r from-[#1B7867] to-[#0d5a4c] hover:from-[#0d5a4c] hover:to-[#1B7867] text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl font-semibold touch-manipulation active:scale-[0.98]">
-              {isSubmitting ? <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Bezig met verzenden...
-                </> : <>
-                  <Check className="mr-2 h-5 w-5" />
-                  Verstuur naar Midsland
-                </>}
+              <Button onClick={handleSubmit} disabled={isSubmitting || !hasAnyStock} className="w-full sm:flex-[2] h-12 sm:h-auto sm:py-5 bg-gradient-to-r from-[#1B7867] to-[#0d5a4c] hover:from-[#0d5a4c] hover:to-[#1B7867] text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl font-semibold touch-manipulation active:scale-[0.98]">
+                {isSubmitting ? <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Bezig met verzenden...
+                  </> : <>
+                    <Check className="mr-2 h-5 w-5" />
+                    Verstuur naar Midsland
+                  </>}
+              </Button>
+            </div>
+            
+            <Button
+              variant="outline"
+              onClick={() => setShowInstructionsDialog(true)}
+              className="w-full border-[#1B7867]/30 text-[#1B7867] hover:bg-[#1B7867]/5 font-heading font-medium flex items-center gap-2 justify-center h-12 sm:h-auto rounded-2xl"
+            >
+              <Info className="h-4 w-4" />
+              Instructies
             </Button>
           </div>
 
@@ -478,6 +491,67 @@ export default function OrderDashboard() {
               </> : <p className="text-[#282E3A]/30">Nog niet verzonden</p>}
           </div>
         </div>
+
+        {/* Instructies Dialog */}
+        <Dialog open={showInstructionsDialog} onOpenChange={setShowInstructionsDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-heading font-bold text-[#282E3A]">
+                Instructies Voorraadregistratie
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="mt-4">
+              <ol className="space-y-4">
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
+                  <div>
+                    <span className="font-heading font-medium text-[#282E3A]">Check de voorraad</span>
+                    <p className="text-sm text-[#282E3A]/70 mt-1">Loop alle producten na en tel de huidige voorraad.</p>
+                  </div>
+                </li>
+
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
+                  <div>
+                    <span className="font-heading font-medium text-[#282E3A]">Vul de aantallen in</span>
+                    <p className="text-sm text-[#282E3A]/70 mt-1">Noteer het aantal van elk product bij "Huidig".</p>
+                  </div>
+                </li>
+
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
+                  <div>
+                    <span className="font-heading font-medium text-[#282E3A]">Extra producten toevoegen</span>
+                    <p className="text-sm text-[#282E3A]/70 mt-1">Heb je extra producten? Voeg ze toe via "Extra product".</p>
+                  </div>
+                </li>
+
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
+                  <div>
+                    <span className="font-heading font-medium text-[#282E3A]">Controleer het overzicht</span>
+                    <p className="text-sm text-[#282E3A]/70 mt-1">Bekijk "Totaal aan te vullen" en klik op "Voorbeeld" voor een overzicht.</p>
+                  </div>
+                </li>
+
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
+                  <div>
+                    <span className="font-heading font-medium text-[#282E3A]">Verstuur naar Midsland</span>
+                    <p className="text-sm text-[#282E3A]/70 mt-1">Klik op "Verstuur naar Midsland" om de bestelling door te geven.</p>
+                  </div>
+                </li>
+              </ol>
+
+              <div className="mt-6 p-4 bg-[#F5F7DD] rounded-xl">
+                <p className="text-sm text-[#282E3A] leading-relaxed">
+                  <span className="font-semibold">Let op:</span> Het systeem berekent automatisch hoeveel producten er aangevuld moeten worden op basis van het ijzer (streefvoorraad) en de huidige voorraad.
+                </p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Order Preview Dialog */}
         <OrderPreview open={showPreview} onClose={() => setShowPreview(false)} orderData={getOrderData()} />
