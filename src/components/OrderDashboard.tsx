@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
-import { Loader2, Check, Eye, AlertCircle, Package, Plus, X, CheckCircle2, LogOut, ChefHat, CalendarCheck } from 'lucide-react';
+import { Loader2, Check, Eye, AlertCircle, Package, Plus, X, CheckCircle2, LogOut, ChefHat, CalendarCheck, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { ProductRow } from './ProductRow';
 import { OrderPreview } from './OrderPreview';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from './ui/alert-dialog';
@@ -289,10 +290,22 @@ export default function OrderDashboard() {
                   year: 'numeric'
                 })}</span>
               </div>
-              <div className="text-sm text-[#282E3A]/70">
+              <div className="text-sm text-[#282E3A]/70 flex items-center gap-2">
                 <span>Voorraad</span>
                 <span className="mx-2">•</span>
                 <span>Pura Vida - West</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="text-[#1B7867] hover:text-[#0d5a4c] transition-colors">
+                        <Info className="h-4 w-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs bg-white border-[#1B7867]/20 text-[#282E3A]">
+                      <p className="text-sm">Noteer de huidige voorraad. Het systeem rekent uit wat Midsland aanvult.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
             
@@ -321,8 +334,20 @@ export default function OrderDashboard() {
                 month: 'numeric'
               })}
               </div>
-              <div className="text-xs text-[#282E3A]/60">
-                Voorraad - West
+              <div className="text-xs text-[#282E3A]/60 flex items-center gap-2">
+                <span>Voorraad - West</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="text-[#1B7867] hover:text-[#0d5a4c] transition-colors">
+                        <Info className="h-3.5 w-3.5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs bg-white border-[#1B7867]/20 text-[#282E3A]">
+                      <p className="text-xs">Noteer de huidige voorraad. Het systeem rekent uit wat Midsland aanvult.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
             
@@ -345,18 +370,6 @@ export default function OrderDashboard() {
 
       {/* Main Content */}
       <div className="max-w-3xl mx-auto px-3 py-6 sm:px-4 sm:py-8 lg:px-6 pb-10">
-        {/* Instruction Card */}
-        <Card className="p-4 sm:p-5 mb-6 bg-white border-[#1B7867]/20 shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 text-[#1B7867] flex-shrink-0">
-              <AlertCircle className="w-5 h-5" />
-            </div>
-            <p className="text-[#282E3A]/90 leading-relaxed flex-1 text-sm sm:text-base">
-              Noteer de huidige voorraad. Het systeem rekent uit wat Midsland aanvult.
-            </p>
-          </div>
-        </Card>
-
         {/* Products Table - All Screen Sizes */}
         <Card className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white mb-4">
           <div className="overflow-x-auto">
