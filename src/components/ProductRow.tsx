@@ -27,7 +27,7 @@ export const ProductRow = ({ product, onUpdateStock, refillAmount, isFirst, onEn
   };
 
   return (
-    <tr className="even:bg-[#F5F7DD]/15 hover:bg-[#F5F7DD]/30 transition-colors">
+    <tr className="even:bg-[#F5F7DD]/15 hover:bg-[#F5F7DD]/30 transition-colors border-b border-[#282E3A]/5">
       <td className="px-3 py-2.5 sm:px-4 sm:py-3">
         <span className="text-sm sm:text-base text-[#282E3A] font-normal">{product.name}</span>
       </td>
