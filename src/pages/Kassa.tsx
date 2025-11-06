@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { LogOut } from 'lucide-react';
+import { LogOut, Info } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -22,6 +23,8 @@ const Kassa = () => {
   const weekNumber = getWeekNumber(new Date());
   const DOELSALDO = 157;
   const [userLocation, setUserLocation] = useState<string>('');
+  const [showInstructionsDialog, setShowInstructionsDialog] = useState(false);
+  const [naam, setNaam] = useState('');
 
   const [counts, setCounts] = useState({
     '500': '' as number | '',
@@ -94,6 +97,7 @@ const Kassa = () => {
       week: weekNumber,
       date: new Date().toISOString(),
       location: userLocation,
+      naam: naam,
       denominations: counts,
       cashOmzetLightspeed: numCashOmzet,
       total: total,
@@ -261,6 +265,22 @@ const Kassa = () => {
 
           <div className="border-t border-[#1B7867]/5 my-3"></div>
 
+          {/* Naam medewerker */}
+          <div className="flex items-center justify-between gap-4 py-1.5">
+            <span className="text-sm font-heading font-medium text-[#282E3A]/60">
+              Naam medewerker
+            </span>
+            <input 
+              type="text" 
+              value={naam} 
+              onChange={(e) => setNaam(e.target.value)}
+              placeholder="Vul je naam in"
+              className="w-48 px-2 py-1.5 text-right text-sm font-heading text-[#282E3A] border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867]" 
+            />
+          </div>
+
+          <div className="border-t border-[#1B7867]/5 my-3"></div>
+
           {/* Afdracht - compacter met kleinere uitleg */}
           <div className="py-1.5">
             <div className="flex items-center justify-between">
@@ -321,11 +341,92 @@ const Kassa = () => {
             >
               Verzenden
             </Button>
+            
+            <Button
+              variant="outline"
+              onClick={() => setShowInstructionsDialog(true)}
+              className="w-full mt-2 border-[#1B7867]/30 text-[#1B7867] hover:bg-[#1B7867]/5 font-heading font-medium flex items-center gap-2 justify-center"
+            >
+              <Info className="h-4 w-4" />
+              Instructies
+            </Button>
           </div>
           </div>
         </div>
         </div>
       </div>
+
+      {/* Instructies Dialog */}
+      <Dialog open={showInstructionsDialog} onOpenChange={setShowInstructionsDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-heading font-bold text-[#282E3A]">
+              Instructies Kassatelling Avond
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="mt-4">
+            <ol className="space-y-4">
+              <li className="flex gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
+                <div>
+                  <span className="font-heading font-medium text-[#282E3A]">Print dagomzet</span>
+                  <p className="text-sm text-[#282E3A]/70 mt-1">Print omzet uit in Lightspeed. Check open en niet-gefinancierde tafels → verplaats naar tafel 100 of 101.</p>
+                </div>
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
+                <div>
+                  <span className="font-heading font-medium text-[#282E3A]">Finaliseer betalingen</span>
+                  <p className="text-sm text-[#282E3A]/70 mt-1">Betaalde maar niet-gefinaliseerde tafels handmatig afronden.</p>
+                </div>
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
+                <div>
+                  <span className="font-heading font-medium text-[#282E3A]">Vul naam in</span>
+                  <p className="text-sm text-[#282E3A]/70 mt-1">Vul je naam in bij "Naam medewerker".</p>
+                </div>
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
+                <div>
+                  <span className="font-heading font-medium text-[#282E3A]">Noteer cash omzet</span>
+                  <p className="text-sm text-[#282E3A]/70 mt-1">Voer het cash bedrag uit Lightspeed in.</p>
+                </div>
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
+                <div>
+                  <span className="font-heading font-medium text-[#282E3A]">Tel de kassa</span>
+                  <p className="text-sm text-[#282E3A]/70 mt-1">Vul alle denominaties in de velden in.</p>
+                </div>
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">6</span>
+                <div>
+                  <span className="font-heading font-medium text-[#282E3A]">Noteer bijzonderheden</span>
+                  <p className="text-sm text-[#282E3A]/70 mt-1">Vermeld tekorten, plussen of andere afwijkingen.</p>
+                  <p className="text-xs text-red-600/80 mt-1 font-medium">⚠️ Altijd melden bij verschillen!</p>
+                </div>
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">7</span>
+                <div>
+                  <span className="font-heading font-medium text-[#282E3A]">Verzend</span>
+                  <p className="text-sm text-[#282E3A]/70 mt-1">Klik op "Verzenden" om de kassatelling te versturen.</p>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

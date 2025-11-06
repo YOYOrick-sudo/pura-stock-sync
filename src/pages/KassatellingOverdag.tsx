@@ -22,6 +22,7 @@ const KassatellingOverdag = () => {
   const navigate = useNavigate();
   const weekNumber = getWeekNumber(new Date());
   const [userLocation, setUserLocation] = useState<string>('');
+  const [naam, setNaam] = useState('');
 
   const [kassaLade, setKassaLade] = useState({
     '500': '' as number | '',
@@ -116,6 +117,7 @@ const KassatellingOverdag = () => {
       week: weekNumber,
       date: new Date().toISOString(),
       location: userLocation,
+      naam: naam,
       kassaLade: {
         denominations: kassaLade,
         total: kassaLadeTotal
@@ -314,6 +316,22 @@ const KassatellingOverdag = () => {
             <span className="text-3xl font-heading font-bold text-[#1B7867]">
               €{total.toFixed(2).replace('.', ',')}
             </span>
+          </div>
+
+          <div className="border-t border-[#1B7867]/5 my-3"></div>
+
+          {/* Naam medewerker */}
+          <div className="flex items-center justify-between gap-4 py-1.5">
+            <span className="text-sm font-heading font-medium text-[#282E3A]/60">
+              Naam medewerker
+            </span>
+            <input 
+              type="text" 
+              value={naam} 
+              onChange={(e) => setNaam(e.target.value)}
+              placeholder="Vul je naam in"
+              className="w-48 px-2 py-1.5 text-right text-sm font-heading text-[#282E3A] border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867]" 
+            />
           </div>
 
           <div className="border-t border-[#1B7867]/5 my-3"></div>
