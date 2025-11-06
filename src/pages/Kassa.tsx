@@ -238,7 +238,7 @@ const Kassa = () => {
           <div className="lg:sticky lg:top-6">
             <div className="bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-4">
           {/* Totaal - meest prominent */}
-          <div className="flex items-center justify-between py-1.5">
+          <div className="flex items-center justify-between py-1">
             <span className="text-sm font-heading font-medium text-[#282E3A]/60">
               Totaal
             </span>
@@ -247,10 +247,10 @@ const Kassa = () => {
             </span>
           </div>
 
-          <div className="border-t border-[#1B7867]/5 my-3"></div>
+          <div className="border-t border-[#1B7867]/5 my-2"></div>
 
           {/* Cash omzet - compacter */}
-          <div className="flex items-center justify-between gap-4 py-1.5">
+          <div className="flex items-center justify-between gap-4 py-1">
             <span className="text-sm font-heading font-medium text-[#282E3A]/60">
               Cash omzet (Lightspeed)
             </span>
@@ -263,10 +263,10 @@ const Kassa = () => {
             />
           </div>
 
-          <div className="border-t border-[#1B7867]/5 my-3"></div>
+          <div className="border-t border-[#1B7867]/5 my-2"></div>
 
           {/* Naam medewerker */}
-          <div className="flex items-center justify-between gap-4 py-1.5">
+          <div className="flex items-center justify-between gap-4 py-1">
             <span className="text-sm font-heading font-medium text-[#282E3A]/60">
               Naam medewerker
             </span>
@@ -279,10 +279,10 @@ const Kassa = () => {
             />
           </div>
 
-          <div className="border-t border-[#1B7867]/5 my-3"></div>
+          <div className="border-t border-[#1B7867]/5 my-2"></div>
 
           {/* Afdracht - compacter met kleinere uitleg */}
-          <div className="py-1.5">
+          <div className="py-1">
             <div className="flex items-center justify-between">
               <span className="text-sm font-heading font-medium text-[#282E3A]/60">
                 Afdracht / Envelop
@@ -301,10 +301,10 @@ const Kassa = () => {
             </p>
           </div>
 
-          <div className="border-t border-[#1B7867]/5 my-3"></div>
+          <div className="border-t border-[#1B7867]/5 my-2"></div>
 
           {/* Kasverschil - prominente kleurcodering */}
-          <div className="flex items-center justify-between py-1.5">
+          <div className="flex items-center justify-between py-1">
             <span className="text-sm font-heading font-medium text-[#282E3A]/60">
               Kasverschil
             </span>
@@ -317,10 +317,10 @@ const Kassa = () => {
             </span>
           </div>
 
-          <div className="border-t border-[#1B7867]/5 my-3"></div>
+          <div className="border-t border-[#1B7867]/5 my-2"></div>
 
           {/* Opmerkingen - compacter label */}
-          <div className="py-1.5">
+          <div className="py-1">
             <label htmlFor="opmerkingen" className="block text-sm font-heading font-medium text-[#282E3A]/60 mb-1.5">
               Opmerkingen
             </label>
