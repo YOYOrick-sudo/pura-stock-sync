@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
-import { Loader2, Check, Eye, AlertCircle, Package, Plus, X, CheckCircle2, LogOut, ChefHat, CalendarCheck, Info } from 'lucide-react';
+import { Loader2, Check, Eye, AlertCircle, Package, Plus, X, CheckCircle2, LogOut, ChefHat, CalendarCheck, Info, Layers } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { ProductRow } from './ProductRow';
@@ -122,6 +122,7 @@ export default function OrderDashboard() {
       name: newProductName.trim(),
       targetStock: amount,
       currentStock: 0,
+      category: "Extra",
       isTemporary: true
     };
     setProducts([...products, newProduct]);
@@ -397,8 +398,9 @@ export default function OrderDashboard() {
                   return (
                     <>
                       {showCategoryHeader && product.category && (
-                        <tr key={`category-${product.category}-${index}`} className="bg-[#F5F7DD]/30">
-                          <td colSpan={4} className="px-3 py-2 sm:px-4 font-heading font-bold text-[#282E3A]/80 text-xs sm:text-sm uppercase tracking-wide">
+                        <tr key={`category-${product.category}-${index}`} className="bg-[#1B7867] border-t-2 border-b-2 border-[#1B7867]/30">
+                          <td colSpan={4} className="px-3 py-3 sm:px-4 font-heading font-bold text-white text-sm sm:text-base uppercase tracking-wide flex items-center gap-2">
+                            <Layers className="w-4 h-4" />
                             {product.category}
                           </td>
                         </tr>
