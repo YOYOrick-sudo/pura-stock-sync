@@ -146,7 +146,7 @@ export default function OrderDashboard() {
     setProducts([...products, newProduct]);
     setNewProductName('');
     setNewProductAmount('');
-    toast.success('✅ Extra product toegevoegd');
+    toast.success('✅ Zoet special toegevoegd');
   };
   const removeTemporaryProduct = (index: number) => {
     const newProducts = products.filter((_, i) => i !== index);
