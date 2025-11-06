@@ -262,7 +262,7 @@ export default function OrderDashboard() {
     try {
       await supabase.auth.signOut();
       toast.success('Uitgelogd');
-      navigate('/auth');
+      navigate('/');
     } catch (error) {
       console.error('Logout error:', error);
       toast.error('Uitloggen mislukt');
