@@ -62,18 +62,18 @@ const HomeHub = () => {
         <LogOut className="h-5 w-5" />
       </Button>
 
-      <Card className="p-8 space-y-8 bg-card/80 backdrop-blur-sm shadow-lg max-w-2xl w-full animate-fade-in">
+      <Card className="p-6 space-y-6 bg-card/80 backdrop-blur-sm shadow-lg max-w-2xl w-full animate-fade-in">
         {/* Logo */}
         <div className="flex justify-center">
           <img 
             src={logoGreen} 
             alt="Pura Vida Foodbar" 
-            className="h-24 w-auto animate-scale-in" 
+            className="h-16 w-auto animate-scale-in" 
           />
         </div>
 
         {/* Title */}
-        <h1 className="text-5xl md:text-6xl font-heading font-bold text-center bg-gradient-to-br from-primary via-primary to-primary-hover bg-clip-text text-transparent">
+        <h1 className="text-2xl md:text-3xl font-heading font-semibold text-center text-muted-foreground">
           Kies module
         </h1>
         
