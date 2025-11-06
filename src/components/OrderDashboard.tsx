@@ -18,28 +18,23 @@ interface Product {
   targetStock: number;
   currentStock: number;
   isTemporary?: boolean;
+  category?: string;
 }
-const INITIAL_PRODUCTS: Product[] = [{
-  name: 'Bananenbrood',
-  targetStock: 4,
-  currentStock: 0
-}, {
-  name: 'Energy balls',
-  targetStock: 3,
-  currentStock: 0
-}, {
-  name: 'Curry basis',
-  targetStock: 2,
-  currentStock: 0
-}, {
-  name: 'Soep basis',
-  targetStock: 2,
-  currentStock: 0
-}, {
-  name: 'Falafel',
-  targetStock: 3,
-  currentStock: 0
-}];
+const INITIAL_PRODUCTS: Product[] = [
+  // Pattiserie
+  { name: "Wortelwalnoot", targetStock: 9, currentStock: 0, category: "Pattiserie" },
+  { name: "Cheesecake", targetStock: 9, currentStock: 0, category: "Pattiserie" },
+  { name: "Notenbar", targetStock: 5, currentStock: 0, category: "Pattiserie" },
+  { name: "Brownie", targetStock: 5, currentStock: 0, category: "Pattiserie" },
+  { name: "Wortelkaneel muffin", targetStock: 5, currentStock: 0, category: "Pattiserie" },
+  { name: "Arabische sinaasappel cake", targetStock: 4, currentStock: 0, category: "Pattiserie" },
+  // Overig
+  { name: "Vissoep", targetStock: 9, currentStock: 0, category: "Overig" },
+  { name: "Kip", targetStock: 10, currentStock: 0, category: "Overig" },
+  { name: "Kaas", targetStock: 8, currentStock: 0, category: "Overig" },
+  { name: "Tempeh", targetStock: 6, currentStock: 0, category: "Overig" },
+  { name: "Rode kool", targetStock: 6, currentStock: 0, category: "Overig" },
+];
 function getCurrentWeek(): number {
   const now = new Date();
   const start = new Date(now.getFullYear(), 0, 1);
@@ -396,8 +391,31 @@ export default function OrderDashboard() {
                   <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Vullen</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1B7867]/5">
-                {products.map((product, index) => <ProductRow key={`${product.name}-${index}`} product={product} onUpdateStock={value => updateProductStock(index, value)} refillAmount={calculateRefill(product.targetStock, product.currentStock)} isFirst={index === 0} onEnter={() => focusNextInput(index)} index={index} onRemove={product.isTemporary ? () => removeTemporaryProduct(index) : undefined} />)}
+              <tbody>
+                {products.map((product, index) => {
+                  const showCategoryHeader = index === 0 || product.category !== products[index - 1]?.category;
+                  return (
+                    <>
+                      {showCategoryHeader && product.category && (
+                        <tr key={`category-${product.category}-${index}`} className="bg-[#F5F7DD]/30">
+                          <td colSpan={4} className="px-3 py-2 sm:px-4 font-heading font-bold text-[#282E3A]/80 text-xs sm:text-sm uppercase tracking-wide">
+                            {product.category}
+                          </td>
+                        </tr>
+                      )}
+                      <ProductRow 
+                        key={`${product.name}-${index}`} 
+                        product={product} 
+                        onUpdateStock={value => updateProductStock(index, value)} 
+                        refillAmount={calculateRefill(product.targetStock, product.currentStock)} 
+                        isFirst={index === 0} 
+                        onEnter={() => focusNextInput(index)} 
+                        index={index} 
+                        onRemove={product.isTemporary ? () => removeTemporaryProduct(index) : undefined} 
+                      />
+                    </>
+                  );
+                })}
               </tbody>
             </table>
           </div>
