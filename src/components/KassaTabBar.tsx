@@ -11,9 +11,9 @@ export const KassaTabBar = () => {
   ];
 
   return (
-    <div className="bg-[#F5F7DD] py-6">
+    <div className="bg-[#F5F7DD] py-4">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-        <div className="flex gap-4 justify-center">
+        <div className="flex gap-2 justify-start">
           {tabs.map((tab) => {
             const isActive = location.pathname === tab.path;
             return (
@@ -21,7 +21,7 @@ export const KassaTabBar = () => {
                 key={tab.id}
                 onClick={() => navigate(tab.path)}
                 className={cn(
-                  "bg-white rounded-lg shadow-sm px-8 py-4 font-heading font-bold text-sm sm:text-base transition-all",
+                  "bg-white rounded-lg shadow-sm px-5 py-2.5 font-heading font-bold text-sm transition-all min-h-[44px]",
                   isActive
                     ? "border-2 border-[#1B7867] text-[#1B7867]"
                     : "border border-[#1B7867]/10 text-[#282E3A]/50 hover:border-[#1B7867]/30 hover:text-[#282E3A]/70"
