@@ -138,10 +138,16 @@ const Kassa = () => {
                   year: 'numeric'
                 })}</span>
               </div>
-              <div className="text-sm text-[#282E3A]/70">
-                <span>Kassatelling</span>
-                <span className="mx-2">•</span>
-                <span>Pura Vida - {userLocation}</span>
+              <div className="flex items-center gap-2 text-sm">
+                <span className="font-heading font-semibold text-[#282E3A]">Kassatelling</span>
+                <span className="text-[#1B7867]/30">•</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded bg-[#1B7867]/10 text-[#1B7867] font-heading font-medium text-xs">
+                  Avond
+                </span>
+                <span className="text-[#1B7867]/30">•</span>
+                <span className="text-[#282E3A]/60 font-mono text-xs tracking-wide">
+                  {userLocation}
+                </span>
               </div>
             </div>
             
@@ -168,8 +174,14 @@ const Kassa = () => {
                   month: 'numeric'
                 })}
               </div>
-              <div className="text-xs text-[#282E3A]/60">
-                Kassatelling - {userLocation}
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="font-heading font-semibold text-[#282E3A]">Kassatelling</span>
+                <span className="text-[#1B7867]/30">•</span>
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#1B7867]/10 text-[#1B7867] font-heading font-medium text-[10px]">
+                  Avond
+                </span>
+                <span className="text-[#1B7867]/30">•</span>
+                <span className="text-[#282E3A]/60 font-mono text-[10px]">{userLocation}</span>
               </div>
             </div>
             
