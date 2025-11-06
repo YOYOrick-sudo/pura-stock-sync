@@ -51,13 +51,6 @@ const Kassa = () => {
 
   useEffect(() => {
     const fetchUserLocation = async () => {
-      // Check sessionStorage first
-      const cachedLocation = sessionStorage.getItem('userLocation');
-      if (cachedLocation) {
-        setUserLocation(cachedLocation);
-        return;
-      }
-
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data } = await supabase
@@ -68,7 +61,6 @@ const Kassa = () => {
         
         const location = data?.location || 'West';
         setUserLocation(location);
-        sessionStorage.setItem('userLocation', location);
       }
     };
     fetchUserLocation();
@@ -95,7 +87,6 @@ const Kassa = () => {
 
   const handleLogout = async () => {
     try {
-      sessionStorage.removeItem('userLocation');
       await supabase.auth.signOut();
       toast.success('Uitgelogd');
       navigate('/');
