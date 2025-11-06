@@ -223,14 +223,12 @@ const KassatellingOverdag = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 py-6 sm:px-4 sm:py-8 lg:px-6 pb-10">
         <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-heading font-bold text-[#282E3A] flex items-center gap-2.5">
+          <h1 className="text-2xl sm:text-3xl font-heading font-bold text-[#282E3A] flex items-center gap-2">
             Kassatelling
-            <span className="text-[#1B7867]/30">•</span>
-            <span className="inline-flex items-center px-3 py-1 rounded-md bg-[#1B7867]/10 text-[#1B7867] font-heading font-bold text-xl sm:text-2xl">
-              Overdag
-            </span>
-            <span className="text-[#1B7867]/30">•</span>
-            <span className="font-mono text-xl sm:text-2xl">{userLocation}</span>
+            <span className="text-[#282E3A]/40">•</span>
+            <span>Overdag</span>
+            <span className="text-[#282E3A]/40">•</span>
+            <span>{userLocation}</span>
           </h1>
         </div>
         
