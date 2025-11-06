@@ -412,8 +412,8 @@ export default function OrderDashboard() {
                   return (
                     <>
                       {showCategoryHeader && product.category && (
-                        <tr key={`category-${product.category}-${index}`} className="bg-[#1B7867] border-t border-b border-[#1B7867]/30">
-                          <td colSpan={4} className="px-3 py-2 sm:px-4 font-heading font-bold text-white text-sm uppercase tracking-wide">
+                        <tr key={`category-${product.category}-${index}`} className="bg-[#1B7867]/20 border-t border-b border-[#1B7867]/20">
+                          <td colSpan={4} className="px-3 py-2 sm:px-4 font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide">
                             <div className="flex items-center gap-2">
                               <Layers className="w-3 h-3 sm:w-4 sm:h-4" />
                               {product.category}
