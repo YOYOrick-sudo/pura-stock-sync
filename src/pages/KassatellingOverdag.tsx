@@ -23,35 +23,35 @@ const KassatellingOverdag = () => {
   const [userLocation, setUserLocation] = useState<string>('');
 
   const [kassaLade, setKassaLade] = useState({
-    '500': 0,
-    '200': 0,
-    '100': 0,
-    '50': 0,
-    '20': 0,
-    '10': 0,
-    '5': 0,
-    '2': 0,
-    '1': 0,
-    '0.50': 0,
-    '0.20': 0,
-    '0.10': 0,
-    '0.05': 0,
+    '500': '' as number | '',
+    '200': '' as number | '',
+    '100': '' as number | '',
+    '50': '' as number | '',
+    '20': '' as number | '',
+    '10': '' as number | '',
+    '5': '' as number | '',
+    '2': '' as number | '',
+    '1': '' as number | '',
+    '0.50': '' as number | '',
+    '0.20': '' as number | '',
+    '0.10': '' as number | '',
+    '0.05': '' as number | '',
   });
 
   const [wisselkas, setWisselkas] = useState({
-    '500': 0,
-    '200': 0,
-    '100': 0,
-    '50': 0,
-    '20': 0,
-    '10': 0,
-    '5': 0,
-    '2': 0,
-    '1': 0,
-    '0.50': 0,
-    '0.20': 0,
-    '0.10': 0,
-    '0.05': 0,
+    '500': '' as number | '',
+    '200': '' as number | '',
+    '100': '' as number | '',
+    '50': '' as number | '',
+    '20': '' as number | '',
+    '10': '' as number | '',
+    '5': '' as number | '',
+    '2': '' as number | '',
+    '1': '' as number | '',
+    '0.50': '' as number | '',
+    '0.20': '' as number | '',
+    '0.10': '' as number | '',
+    '0.05': '' as number | '',
   });
 
   const [opmerkingen, setOpmerkingen] = useState('');
@@ -72,14 +72,14 @@ const KassatellingOverdag = () => {
     fetchUserLocation();
   }, []);
 
-  const updateKassaLade = (denomination: string, value: number) => {
+  const updateKassaLade = (denomination: string, value: number | '') => {
     setKassaLade(prev => ({
       ...prev,
       [denomination]: value
     }));
   };
 
-  const updateWisselkas = (denomination: string, value: number) => {
+  const updateWisselkas = (denomination: string, value: number | '') => {
     setWisselkas(prev => ({
       ...prev,
       [denomination]: value
@@ -88,7 +88,8 @@ const KassatellingOverdag = () => {
 
   const calculateTotal = (counts: typeof kassaLade) => {
     return Object.entries(counts).reduce((sum, [denom, count]) => {
-      return sum + (parseFloat(denom) * count);
+      const numCount = count === '' ? 0 : count;
+      return sum + (parseFloat(denom) * numCount);
     }, 0);
   };
 
@@ -243,7 +244,7 @@ const KassatellingOverdag = () => {
                         <input 
                           type="number" 
                           value={kassaLade[denom as keyof typeof kassaLade]} 
-                          onChange={(e) => updateKassaLade(denom, parseInt(e.target.value) || 0)}
+                          onChange={(e) => updateKassaLade(denom, e.target.value === '' ? '' : parseInt(e.target.value))}
                           min={0} 
                           className="w-16 px-2 py-0.5 text-center border border-[#1B7867]/30 rounded-md focus:outline-none focus:border-[#1B7867] font-mono text-sm" 
                         />
@@ -282,7 +283,7 @@ const KassatellingOverdag = () => {
                         <input 
                           type="number" 
                           value={wisselkas[denom as keyof typeof wisselkas]} 
-                          onChange={(e) => updateWisselkas(denom, parseInt(e.target.value) || 0)}
+                          onChange={(e) => updateWisselkas(denom, e.target.value === '' ? '' : parseInt(e.target.value))}
                           min={0} 
                           className="w-16 px-2 py-0.5 text-center border border-[#1B7867]/30 rounded-md focus:outline-none focus:border-[#1B7867] font-mono text-sm" 
                         />
@@ -302,20 +303,22 @@ const KassatellingOverdag = () => {
 
           {/* Right side: Summary card */}
           <div className="lg:sticky lg:top-6">
-            <div className="bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-3 sm:p-4">
-          <div className="flex items-center justify-between py-2">
-            <span className="text-lg sm:text-xl font-heading font-bold text-[#282E3A]">
+            <div className="bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-4">
+          {/* Totaal - meest prominent */}
+          <div className="flex items-center justify-between py-1.5">
+            <span className="text-sm font-heading font-medium text-[#282E3A]/60">
               Totaal
             </span>
-            <span className="text-2xl sm:text-3xl font-heading font-bold text-[#1B7867]">
+            <span className="text-3xl font-heading font-bold text-[#1B7867]">
               €{total.toFixed(2).replace('.', ',')}
             </span>
           </div>
 
-          <div className="border-t border-[#1B7867]/10 my-2"></div>
+          <div className="border-t border-[#1B7867]/5 my-3"></div>
 
-          <div className="py-2">
-            <label htmlFor="opmerkingen" className="block text-lg sm:text-xl font-heading font-bold text-[#282E3A] mb-2">
+          {/* Opmerkingen - compacter label */}
+          <div className="py-1.5">
+            <label htmlFor="opmerkingen" className="block text-sm font-heading font-medium text-[#282E3A]/60 mb-1.5">
               Opmerkingen
             </label>
             <Textarea
@@ -327,6 +330,7 @@ const KassatellingOverdag = () => {
             />
           </div>
 
+          {/* Verzenden button */}
           <div className="mt-4">
             <Button 
               onClick={handleSubmit}

@@ -24,22 +24,22 @@ const Kassa = () => {
   const [userLocation, setUserLocation] = useState<string>('');
 
   const [counts, setCounts] = useState({
-    '500': 0,
-    '200': 0,
-    '100': 0,
-    '50': 0,
-    '20': 0,
-    '10': 0,
-    '5': 0,
-    '2': 0,
-    '1': 0,
-    '0.50': 0,
-    '0.20': 0,
-    '0.10': 0,
-    '0.05': 0,
+    '500': '' as number | '',
+    '200': '' as number | '',
+    '100': '' as number | '',
+    '50': '' as number | '',
+    '20': '' as number | '',
+    '10': '' as number | '',
+    '5': '' as number | '',
+    '2': '' as number | '',
+    '1': '' as number | '',
+    '0.50': '' as number | '',
+    '0.20': '' as number | '',
+    '0.10': '' as number | '',
+    '0.05': '' as number | '',
   });
 
-  const [cashOmzet, setCashOmzet] = useState(0);
+  const [cashOmzet, setCashOmzet] = useState<number | ''>('');
   const [opmerkingen, setOpmerkingen] = useState('');
 
   useEffect(() => {
@@ -58,7 +58,7 @@ const Kassa = () => {
     fetchUserLocation();
   }, []);
 
-  const updateCount = (denomination: string, value: number) => {
+  const updateCount = (denomination: string, value: number | '') => {
     setCounts(prev => ({
       ...prev,
       [denomination]: value
@@ -67,13 +67,15 @@ const Kassa = () => {
 
   const calculateTotal = () => {
     return Object.entries(counts).reduce((sum, [denom, count]) => {
-      return sum + (parseFloat(denom) * count);
+      const numCount = count === '' ? 0 : count;
+      return sum + (parseFloat(denom) * numCount);
     }, 0);
   };
 
   const total = calculateTotal();
   const afdracht = Math.max(0, total - DOELSALDO);
-  const kasverschil = (total - DOELSALDO) - cashOmzet;
+  const numCashOmzet = cashOmzet === '' ? 0 : cashOmzet;
+  const kasverschil = (total - DOELSALDO) - numCashOmzet;
 
   const handleLogout = async () => {
     try {
@@ -93,7 +95,7 @@ const Kassa = () => {
       date: new Date().toISOString(),
       location: userLocation,
       denominations: counts,
-      cashOmzetLightspeed: cashOmzet,
+      cashOmzetLightspeed: numCashOmzet,
       total: total,
       doelsaldo: DOELSALDO,
       afdracht: afdracht,
@@ -216,7 +218,7 @@ const Kassa = () => {
                         <input 
                           type="number" 
                           value={counts[denom as keyof typeof counts]} 
-                          onChange={(e) => updateCount(denom, parseInt(e.target.value) || 0)}
+                          onChange={(e) => updateCount(denom, e.target.value === '' ? '' : parseInt(e.target.value))}
                           min={0} 
                           className="w-16 px-2 py-0.5 text-center border border-[#1B7867]/30 rounded-md focus:outline-none focus:border-[#1B7867] font-mono text-sm" 
                         />
@@ -230,47 +232,48 @@ const Kassa = () => {
 
           {/* Right side: Summary card */}
           <div className="lg:sticky lg:top-6">
-            <div className="bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-3 sm:p-4">
-          <div className="flex items-center justify-between py-2">
-            <span className="text-lg sm:text-xl font-heading font-bold text-[#282E3A]">
+            <div className="bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-4">
+          {/* Totaal - meest prominent */}
+          <div className="flex items-center justify-between py-1.5">
+            <span className="text-sm font-heading font-medium text-[#282E3A]/60">
               Totaal
             </span>
-            <span className="text-2xl sm:text-3xl font-heading font-bold text-[#1B7867]">
+            <span className="text-3xl font-heading font-bold text-[#1B7867]">
               €{total.toFixed(2).replace('.', ',')}
             </span>
           </div>
 
-          <div className="border-t border-[#1B7867]/10 my-2"></div>
+          <div className="border-t border-[#1B7867]/5 my-3"></div>
 
-          <div className="flex items-center justify-between gap-4 py-2">
-            <span className="text-lg sm:text-xl font-heading font-bold text-[#282E3A]">
+          {/* Cash omzet - compacter */}
+          <div className="flex items-center justify-between gap-4 py-1.5">
+            <span className="text-sm font-heading font-medium text-[#282E3A]/60">
               Cash omzet (Lightspeed)
             </span>
             <input 
               type="number" 
               value={cashOmzet} 
-              onChange={(e) => setCashOmzet(parseFloat(e.target.value) || 0)}
+              onChange={(e) => setCashOmzet(e.target.value === '' ? '' : parseFloat(e.target.value))}
               min={0} 
-              className="w-32 sm:w-40 px-3 py-2 text-right text-xl sm:text-2xl font-heading font-bold text-[#282E3A] border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" 
+              className="w-24 px-2 py-1.5 text-right text-lg font-heading font-bold text-[#282E3A] border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" 
             />
           </div>
 
-          <div className="border-t border-[#1B7867]/10 my-2"></div>
+          <div className="border-t border-[#1B7867]/5 my-3"></div>
 
-          <div className="py-2">
+          {/* Afdracht - compacter met kleinere uitleg */}
+          <div className="py-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-lg sm:text-xl font-heading font-bold text-[#282E3A]">
+              <span className="text-sm font-heading font-medium text-[#282E3A]/60">
                 Afdracht / Envelop
               </span>
-              <span 
-                className={`text-2xl sm:text-3xl font-heading font-bold ${
-                  afdracht > 0 ? 'text-[#1B7867]' : 'text-gray-500'
-                }`}
-              >
+              <span className={`text-2xl font-heading font-bold ${
+                afdracht > 0 ? 'text-[#1B7867]' : 'text-gray-400'
+              }`}>
                 €{afdracht.toFixed(2).replace('.', ',')}
               </span>
             </div>
-            <p className="text-sm text-[#282E3A]/70 mt-2">
+            <p className="text-xs text-[#282E3A]/60 mt-1">
               {total >= DOELSALDO 
                 ? `Leg €${afdracht.toFixed(2).replace('.', ',')} in de envelop, laat €${DOELSALDO.toFixed(2).replace('.', ',')} in de lade.`
                 : `Aanvullen uit wisselkassa: €${(DOELSALDO - total).toFixed(2).replace('.', ',')} om de lade op €${DOELSALDO.toFixed(2).replace('.', ',')} te brengen.`
@@ -278,27 +281,27 @@ const Kassa = () => {
             </p>
           </div>
 
-          <div className="border-t border-[#1B7867]/10 my-2"></div>
+          <div className="border-t border-[#1B7867]/5 my-3"></div>
 
-          <div className="flex items-center justify-between py-2">
-            <span className="text-lg sm:text-xl font-heading font-bold text-[#282E3A]">
+          {/* Kasverschil - prominente kleurcodering */}
+          <div className="flex items-center justify-between py-1.5">
+            <span className="text-sm font-heading font-medium text-[#282E3A]/60">
               Kasverschil
             </span>
-            <span 
-              className={`text-2xl sm:text-3xl font-heading font-bold ${
-                kasverschil > 0 ? 'text-green-600' : 
-                kasverschil < 0 ? 'text-red-600' : 
-                'text-[#282E3A]'
-              }`}
-            >
+            <span className={`text-2xl font-heading font-bold ${
+              kasverschil > 0 ? 'text-green-600' : 
+              kasverschil < 0 ? 'text-red-600' : 
+              'text-[#282E3A]'
+            }`}>
               €{kasverschil.toFixed(2).replace('.', ',')}
             </span>
           </div>
 
-          <div className="border-t border-[#1B7867]/10 my-2"></div>
+          <div className="border-t border-[#1B7867]/5 my-3"></div>
 
-          <div className="py-2">
-            <label htmlFor="opmerkingen" className="block text-lg sm:text-xl font-heading font-bold text-[#282E3A] mb-2">
+          {/* Opmerkingen - compacter label */}
+          <div className="py-1.5">
+            <label htmlFor="opmerkingen" className="block text-sm font-heading font-medium text-[#282E3A]/60 mb-1.5">
               Opmerkingen
             </label>
             <Textarea
@@ -310,6 +313,7 @@ const Kassa = () => {
             />
           </div>
 
+          {/* Verzenden button */}
           <div className="mt-4">
             <Button 
               onClick={handleSubmit}
