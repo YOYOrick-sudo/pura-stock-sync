@@ -48,6 +48,10 @@ const INITIAL_PRODUCTS: Product[] = [
   { name: "Kaas", targetStock: 8, currentStock: 0, category: "Overig" },
   { name: "Tempeh", targetStock: 6, currentStock: 0, category: "Overig" },
   { name: "Rode kool", targetStock: 6, currentStock: 0, category: "Overig" },
+  // Extra
+  { name: "Handzeep", targetStock: 10, currentStock: 0, category: "Extra" },
+  { name: "Zeep vaatwasser blauw", targetStock: 1, currentStock: 0, category: "Extra" },
+  { name: "Zeep vaatwasser wit", targetStock: 1, currentStock: 0, category: "Extra" },
 ];
 function getCurrentWeek(): number {
   const now = new Date();
