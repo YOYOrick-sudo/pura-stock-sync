@@ -85,7 +85,7 @@ const HomeHub = () => {
               className="h-14 text-base"
               onClick={() => navigate('/voorraad')}
             >
-              <Package className="mr-2 h-5 w-5" />
+              <Package className="mr-3 h-7 w-7" />
               Voorraadregistratie
             </Button>
           )}
@@ -96,7 +96,7 @@ const HomeHub = () => {
             className="h-14 text-base"
             onClick={() => navigate('/kassa')}
           >
-            <Calculator className="mr-2 h-5 w-5" />
+            <Calculator className="mr-3 h-7 w-7" />
             Kassatelling
           </Button>
         </div>
