@@ -8,6 +8,7 @@ const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
 export const useInactivityTimeout = () => {
   const navigate = useNavigate();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const resetTimer = () => {
     // Clear existing timeout
@@ -27,13 +28,25 @@ export const useInactivityTimeout = () => {
     }, INACTIVITY_TIMEOUT);
   };
 
-  useEffect(() => {
-    // Events that indicate user activity
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+  const debouncedResetTimer = () => {
+    // Clear existing debounce
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
 
-    // Add event listeners
+    // Debounce to reduce overhead - only reset after 1 second of no events
+    debounceRef.current = setTimeout(() => {
+      resetTimer();
+    }, 1000);
+  };
+
+  useEffect(() => {
+    // Events that indicate user activity - reduced list for better performance
+    const events = ['mousedown', 'keypress', 'touchstart', 'click'];
+
+    // Add event listeners with debounced handler
     events.forEach(event => {
-      document.addEventListener(event, resetTimer);
+      document.addEventListener(event, debouncedResetTimer);
     });
 
     // Initialize timer
@@ -42,10 +55,13 @@ export const useInactivityTimeout = () => {
     // Cleanup
     return () => {
       events.forEach(event => {
-        document.removeEventListener(event, resetTimer);
+        document.removeEventListener(event, debouncedResetTimer);
       });
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+      }
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
       }
     };
   }, []);

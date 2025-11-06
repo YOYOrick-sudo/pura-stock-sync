@@ -21,7 +21,7 @@ export const KassaTabBar = () => {
                 key={tab.id}
                 onClick={() => navigate(tab.path)}
                 className={cn(
-                  "bg-white rounded-lg shadow-sm px-5 py-2.5 font-heading font-bold text-sm transition-all min-h-[44px]",
+                  "bg-white rounded-lg shadow-sm px-5 py-2.5 font-heading font-bold text-sm min-h-[44px]",
                   isActive
                     ? "border-2 border-[#1B7867] text-[#1B7867]"
                     : "border border-[#1B7867]/10 text-[#282E3A]/50 hover:border-[#1B7867]/30 hover:text-[#282E3A]/70"
