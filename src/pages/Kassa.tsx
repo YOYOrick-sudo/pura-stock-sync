@@ -206,7 +206,7 @@ const Kassa = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[#1B7867]/10 bg-[#F5F7DD]/20">
-                    <th className="px-2 py-0.5 text-left font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Denominatie</th>
+                    <th className="px-2 py-0.5 text-left font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Bedrag</th>
                     <th className="px-2 py-0.5 text-center font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Aantal</th>
                   </tr>
                 </thead>
