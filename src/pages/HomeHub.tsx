@@ -62,41 +62,41 @@ const HomeHub = () => {
         <LogOut className="h-5 w-5" />
       </Button>
 
-      <Card className="p-6 space-y-6 bg-card/80 backdrop-blur-sm shadow-lg max-w-2xl w-full animate-fade-in">
+      <Card className="p-5 space-y-4 bg-card/80 backdrop-blur-sm shadow-md max-w-md w-full animate-fade-in">
         {/* Logo */}
         <div className="flex justify-center">
           <img 
             src={logoGreen} 
             alt="Pura Vida Foodbar" 
-            className="h-16 w-auto animate-scale-in" 
+            className="h-12 w-auto animate-scale-in" 
           />
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl md:text-3xl font-heading font-semibold text-center text-muted-foreground">
+        <h1 className="text-xl font-heading font-medium text-center text-muted-foreground">
           Kies module
         </h1>
         
         {/* Buttons */}
-        <div className="flex flex-col gap-4 w-full">
+        <div className="flex flex-col gap-3 w-full">
           {userLocation === 'West' && (
             <Button
-              size="lg"
-              className="h-20 text-xl hover-scale"
+              size="default"
+              className="h-14 text-base"
               onClick={() => navigate('/voorraad')}
             >
-              <Package className="mr-3 h-6 w-6" />
+              <Package className="mr-2 h-5 w-5" />
               Voorraadregistratie
             </Button>
           )}
           
           <Button
-            size="lg"
+            size="default"
             variant="secondary"
-            className="h-20 text-xl hover-scale"
+            className="h-14 text-base"
             onClick={() => navigate('/kassa')}
           >
-            <Calculator className="mr-3 h-6 w-6" />
+            <Calculator className="mr-2 h-5 w-5" />
             Kassatelling
           </Button>
         </div>
