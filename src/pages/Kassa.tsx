@@ -223,6 +223,11 @@ const Kassa = () => {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 items-start">
           {/* Denomination table */}
           <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
+            <div className="bg-[#1B7867]/10 px-3 py-2.5 border-b border-[#1B7867]/20">
+              <h2 className="font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide">
+                Kassa Lade
+              </h2>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -248,6 +253,12 @@ const Kassa = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="bg-[#1B7867]/5 px-3 py-2 border-t border-[#1B7867]/10">
+              <div className="flex items-center justify-between">
+                <span className="font-heading font-bold text-[#1B7867] text-xs uppercase tracking-wide">Totaal</span>
+                <span className="text-xl font-heading font-bold text-[#1B7867]">€{calculateTotal().toFixed(2).replace('.', ',')}</span>
+              </div>
             </div>
           </div>
 

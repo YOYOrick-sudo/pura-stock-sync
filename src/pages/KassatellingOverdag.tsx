@@ -247,8 +247,7 @@ const KassatellingOverdag = () => {
           {/* Kassa Lade */}
           <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
             <div className="bg-[#1B7867]/10 px-3 py-2.5 border-b border-[#1B7867]/20">
-              <h2 className="font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#1B7867]"></span>
+              <h2 className="font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide">
                 Kassa Lade
               </h2>
             </div>
@@ -289,8 +288,7 @@ const KassatellingOverdag = () => {
           {/* Wisselkas */}
           <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
             <div className="bg-[#1B7867]/10 px-3 py-2.5 border-b border-[#1B7867]/20">
-              <h2 className="font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#1B7867]"></span>
+              <h2 className="font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide">
                 Wisselkas
               </h2>
             </div>
