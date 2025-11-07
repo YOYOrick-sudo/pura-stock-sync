@@ -162,7 +162,11 @@ const KassatellingOverdag = () => {
                 })}</span>
               </div>
               <div className="text-sm text-[#282E3A]/70">
-                <span>Kassatelling Pura Vida {userLocation}</span>
+                <span>Kassatelling</span>
+                <span className="mx-2">•</span>
+                <span>Pura Vida</span>
+                <span className="mx-2">•</span>
+                <span>{userLocation}</span>
               </div>
             </div>
             
@@ -190,7 +194,11 @@ const KassatellingOverdag = () => {
               })}
               </div>
               <div className="text-xs text-[#282E3A]/70">
-                <span>Kassatelling Pura Vida {userLocation}</span>
+                <span>Kassatelling</span>
+                <span className="mx-2">•</span>
+                <span>Pura Vida</span>
+                <span className="mx-2">•</span>
+                <span>{userLocation}</span>
               </div>
             </div>
             
