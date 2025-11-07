@@ -227,21 +227,21 @@ const Kassa = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[#1B7867]/10 bg-[#F5F7DD]/20">
-                    <th className="px-2 py-0.5 text-left font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Bedrag</th>
-                    <th className="px-2 py-0.5 text-center font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Aantal</th>
+                    <th className="px-2.5 py-1 text-left font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Bedrag</th>
+                    <th className="px-2.5 py-1 text-center font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Aantal</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1B7867]/15">
                   {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom, index) => (
-                    <tr key={denom} className={index % 2 === 0 ? 'bg-white' : 'bg-[#F5F7DD]/10'}>
-                      <td className="px-2 py-0.5 text-[#282E3A] font-mono text-sm border-r border-[#1B7867]/10">€{denom.replace('.', ',')}</td>
-                      <td className="px-2 py-0.5 text-center">
+                    <tr key={denom} className="even:bg-[#F5F7DD]/15 hover:bg-[#F5F7DD]/30 transition-colors border-b border-[#282E3A]/5">
+                      <td className="px-2.5 py-1 text-[#282E3A] font-mono text-sm border-r border-[#1B7867]/10">€{denom.replace('.', ',')}</td>
+                      <td className="px-2.5 py-1 text-center">
                         <input 
                           type="number" 
                           value={counts[denom as keyof typeof counts]} 
                           onChange={(e) => updateCount(denom, e.target.value === '' ? '' : parseInt(e.target.value))}
                           min={0} 
-                          className="w-16 px-2 py-0.5 text-center border border-[#1B7867]/30 rounded-md focus:outline-none focus:border-[#1B7867] font-mono text-sm" 
+                          className="w-16 px-2 py-1 text-center border border-[#1B7867]/20 focus:border-[#1B7867] focus:ring-1 focus:ring-[#1B7867]/20 rounded-lg bg-[#F5F7DD]/40 font-mono text-sm transition-colors" 
                         />
                       </td>
                     </tr>
