@@ -210,16 +210,6 @@ const Kassa = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 py-6 sm:px-4 sm:py-8 lg:px-6 pb-10">
-        <div className="mb-4">
-          <h1 className="text-2xl sm:text-3xl font-heading font-bold text-[#282E3A] flex items-center gap-2">
-            Kassatelling
-            <span className="text-[#282E3A]/40">•</span>
-            <span>Avond</span>
-            <span className="text-[#282E3A]/40">•</span>
-            <span>{userLocation}</span>
-          </h1>
-        </div>
-        
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 items-start">
           {/* Denomination table */}
           <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
