@@ -223,7 +223,120 @@ const KassatellingOverdag = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 py-6 sm:px-4 sm:py-8 lg:px-6 pb-10">{/* Removed title section - now in KassaTabBar */}
         
-        
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_400px] gap-6 items-start">
+          {/* Kassa Lade */}
+          <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
+            <div className="bg-[#1B7867]/10 px-3 py-2.5 border-b border-[#1B7867]/20">
+              <h2 className="font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide">
+                Kassa Lade
+              </h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-[#1B7867]/10 bg-[#F5F7DD]/20">
+                    <th className="px-2.5 py-1 text-left font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Bedrag</th>
+                    <th className="px-2.5 py-1 text-center font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Aantal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#1B7867]/15">
+                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom, index) => <tr key={denom} className="even:bg-[#F5F7DD]/15 hover:bg-[#F5F7DD]/30 transition-colors border-b border-[#282E3A]/5">
+                      <td className="px-2.5 py-1 text-[#282E3A] font-mono text-sm border-r border-[#1B7867]/10">€{denom.replace('.', ',')}</td>
+                      <td className="px-2.5 py-1 text-center">
+                        <input type="number" value={kassaLade[denom as keyof typeof kassaLade]} onChange={e => updateKassaLade(denom, e.target.value === '' ? '' : parseInt(e.target.value))} min={0} className="w-16 px-2 py-1 text-center border border-[#1B7867]/20 focus:border-[#1B7867] focus:ring-1 focus:ring-[#1B7867]/20 rounded-lg bg-[#F5F7DD]/40 font-mono text-sm transition-colors" />
+                      </td>
+                    </tr>)}
+                </tbody>
+              </table>
+            </div>
+            <div className="bg-[#1B7867]/5 px-3 py-2 border-t border-[#1B7867]/10">
+              <div className="flex items-center justify-between">
+                <span className="font-heading font-bold text-[#1B7867] text-xs uppercase tracking-wide">Totaal</span>
+                <span className="text-xl font-heading font-bold text-[#1B7867]">€{kassaLadeTotal.toFixed(2).replace('.', ',')}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Wisselkas */}
+          <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
+            <div className="bg-[#1B7867]/10 px-3 py-2.5 border-b border-[#1B7867]/20">
+              <h2 className="font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide">
+                Wisselkas
+              </h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-[#1B7867]/10 bg-[#F5F7DD]/20">
+                    <th className="px-2.5 py-1 text-left font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Bedrag</th>
+                    <th className="px-2.5 py-1 text-center font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Aantal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#1B7867]/15">
+                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom, index) => <tr key={denom} className="even:bg-[#F5F7DD]/15 hover:bg-[#F5F7DD]/30 transition-colors border-b border-[#282E3A]/5">
+                      <td className="px-2.5 py-1 text-[#282E3A] font-mono text-sm border-r border-[#1B7867]/10">€{denom.replace('.', ',')}</td>
+                      <td className="px-2.5 py-1 text-center">
+                        <input type="number" value={wisselkas[denom as keyof typeof wisselkas]} onChange={e => updateWisselkas(denom, e.target.value === '' ? '' : parseInt(e.target.value))} min={0} className="w-16 px-2 py-1 text-center border border-[#1B7867]/20 focus:border-[#1B7867] focus:ring-1 focus:ring-[#1B7867]/20 rounded-lg bg-[#F5F7DD]/40 font-mono text-sm transition-colors" />
+                      </td>
+                    </tr>)}
+                </tbody>
+              </table>
+            </div>
+            <div className="bg-[#1B7867]/5 px-3 py-2 border-t border-[#1B7867]/10">
+              <div className="flex items-center justify-between">
+                <span className="font-heading font-bold text-[#1B7867] text-xs uppercase tracking-wide">Totaal</span>
+                <span className="text-xl font-heading font-bold text-[#1B7867]">€{wisselkasTotal.toFixed(2).replace('.', ',')}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right side: Summary card */}
+          <div className="lg:sticky lg:top-6">
+            <div className="bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-4">
+          {/* Totaal - meest prominent */}
+          <div className="flex items-center justify-between py-1.5">
+            <span className="text-sm font-heading font-medium text-[#282E3A]/60">
+              Totaal
+            </span>
+            <span className="text-3xl font-heading font-bold text-[#1B7867]">
+              €{total.toFixed(2).replace('.', ',')}
+            </span>
+          </div>
+
+          <div className="border-t border-[#1B7867]/5 my-3"></div>
+
+          {/* Naam medewerker */}
+          <div className="flex items-center justify-between gap-4 py-1.5">
+            <span className="text-sm font-heading font-medium text-[#282E3A]/60">
+              Naam medewerker
+            </span>
+            <input type="text" value={naam} onChange={e => setNaam(e.target.value)} placeholder="Vul je naam in" className="w-48 px-2 py-1.5 text-right text-sm font-heading text-[#282E3A] border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867]" />
+          </div>
+
+          <div className="border-t border-[#1B7867]/5 my-3"></div>
+
+          {/* Opmerkingen - compacter label */}
+          <div className="py-1.5">
+            <label htmlFor="opmerkingen" className="block text-sm font-heading font-medium text-[#282E3A]/60 mb-1.5">
+              Opmerkingen
+            </label>
+            <Textarea id="opmerkingen" value={opmerkingen} onChange={e => setOpmerkingen(e.target.value)} placeholder="Voeg hier eventuele opmerkingen toe..." className="w-full min-h-[80px] border-[#1B7867]/20 focus:border-[#1B7867] font-mono text-sm" />
+          </div>
+
+          {/* Verzenden button */}
+          <div className="mt-4 space-y-3">
+            <Button onClick={handleSubmit} className="w-full bg-[#1B7867] hover:bg-[#1B7867]/90 text-white font-heading font-bold text-lg py-6">
+              Verzenden
+            </Button>
+            
+            <Button variant="outline" onClick={() => setShowInstructionsDialog(true)} className="w-full border-[#1B7867]/30 text-[#1B7867] hover:bg-[#1B7867]/5 font-heading font-medium flex items-center gap-2 justify-center">
+              <Info className="h-4 w-4" />
+              Instructies
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
 
         {/* Instructies Dialog */}
         <Dialog open={showInstructionsDialog} onOpenChange={setShowInstructionsDialog}>
