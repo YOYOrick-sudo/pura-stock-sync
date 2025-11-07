@@ -21,7 +21,7 @@ export const KassaTabBar = () => {
         <div className="flex items-center gap-6">
           {/* Left: Title and Badge */}
           <div className="flex items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-heading font-semibold text-[#282E3A]">
+            <h1 className="text-xl sm:text-2xl font-heading font-medium tracking-wide text-[#282E3A]">
               Kassatelling
             </h1>
             
