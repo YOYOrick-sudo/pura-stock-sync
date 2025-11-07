@@ -233,14 +233,16 @@ const KassatellingOverdag = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 py-6 sm:px-4 sm:py-8 lg:px-6 pb-10">
-        <div className="mb-4">
-          <div className="flex items-baseline gap-3">
+        <div className="mb-6">
+          <div className="flex items-center gap-3">
             <h1 className="text-2xl sm:text-3xl font-heading font-bold text-[#282E3A]">
               Kassatelling
             </h1>
-            <span className="text-lg font-heading font-medium text-[#1B7867]">Overdag</span>
-            <span className="text-sm font-heading text-[#282E3A]/50">{userLocation}</span>
+            <span className="px-2.5 py-0.5 bg-[#1B7867]/10 text-[#1B7867] rounded-md text-xs font-heading font-semibold uppercase tracking-wide">
+              Overdag
+            </span>
           </div>
+          <p className="text-sm text-[#282E3A]/50 mt-1 font-heading">{userLocation}</p>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_400px] gap-6 items-start">
