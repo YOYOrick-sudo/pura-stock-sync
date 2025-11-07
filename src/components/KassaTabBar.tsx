@@ -17,8 +17,18 @@ export const KassaTabBar = () => {
   return (
     <div className="bg-[#F5F7DD] border-b border-[#1B7867]/10">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-        <div className="flex items-center justify-between gap-4">
-          {/* Left: Tabs */}
+        <div className="flex items-center gap-6">
+          {/* Left: Title and Badge */}
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl sm:text-2xl font-heading font-bold text-[#282E3A]">
+              Kassatelling
+            </h1>
+            <span className="px-2.5 py-0.5 bg-[#1B7867]/10 text-[#1B7867] rounded-md text-xs font-heading font-semibold uppercase tracking-wide">
+              {pageType}
+            </span>
+          </div>
+
+          {/* Right: Tabs */}
           <div className="flex gap-1">
             {tabs.map((tab) => {
               const isActive = location.pathname === tab.path;
@@ -40,16 +50,6 @@ export const KassaTabBar = () => {
                 </button>
               );
             })}
-          </div>
-
-          {/* Right: Title and Badge */}
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-heading font-bold text-[#282E3A]">
-              Kassatelling
-            </h1>
-            <span className="px-2.5 py-0.5 bg-[#1B7867]/10 text-[#1B7867] rounded-md text-xs font-heading font-semibold uppercase tracking-wide">
-              {pageType}
-            </span>
           </div>
         </div>
       </div>
