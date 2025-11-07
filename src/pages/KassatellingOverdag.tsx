@@ -16,18 +16,16 @@ const getWeekNumber = (date: Date): number => {
   const dayNum = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 };
-
 const KassatellingOverdag = () => {
   const navigate = useNavigate();
   const weekNumber = getWeekNumber(new Date());
   const [userLocation, setUserLocation] = useState<string>('');
   const [naam, setNaam] = useState('');
-  
+
   // Enable inactivity timeout
   useInactivityTimeout();
-
   const [kassaLade, setKassaLade] = useState({
     '500': '' as number | '',
     '200': '' as number | '',
@@ -41,9 +39,8 @@ const KassatellingOverdag = () => {
     '0.50': '' as number | '',
     '0.20': '' as number | '',
     '0.10': '' as number | '',
-    '0.05': '' as number | '',
+    '0.05': '' as number | ''
   });
-
   const [wisselkas, setWisselkas] = useState({
     '500': '' as number | '',
     '200': '' as number | '',
@@ -57,54 +54,48 @@ const KassatellingOverdag = () => {
     '0.50': '' as number | '',
     '0.20': '' as number | '',
     '0.10': '' as number | '',
-    '0.05': '' as number | '',
+    '0.05': '' as number | ''
   });
-
   const [opmerkingen, setOpmerkingen] = useState('');
   const [showInstructionsDialog, setShowInstructionsDialog] = useState(false);
-
   useEffect(() => {
     const fetchUserLocation = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (user) {
-        const { data } = await supabase
-          .from('user_roles')
-          .select('location')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
+        const {
+          data
+        } = await supabase.from('user_roles').select('location').eq('user_id', user.id).maybeSingle();
         const location = data?.location || 'West';
         setUserLocation(location);
       }
     };
     fetchUserLocation();
   }, []);
-
   const updateKassaLade = (denomination: string, value: number | '') => {
     setKassaLade(prev => ({
       ...prev,
       [denomination]: value
     }));
   };
-
   const updateWisselkas = (denomination: string, value: number | '') => {
     setWisselkas(prev => ({
       ...prev,
       [denomination]: value
     }));
   };
-
   const calculateTotal = (counts: typeof kassaLade) => {
     return Object.entries(counts).reduce((sum, [denom, count]) => {
       const numCount = count === '' ? 0 : count;
-      return sum + (parseFloat(denom) * numCount);
+      return sum + parseFloat(denom) * numCount;
     }, 0);
   };
-
   const kassaLadeTotal = calculateTotal(kassaLade);
   const wisselkasTotal = calculateTotal(wisselkas);
   const total = kassaLadeTotal + wisselkasTotal;
-
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -115,7 +106,6 @@ const KassatellingOverdag = () => {
       toast.error('Uitloggen mislukt');
     }
   };
-
   const handleSubmit = async () => {
     const data = {
       type: 'open',
@@ -134,15 +124,16 @@ const KassatellingOverdag = () => {
       total: total,
       opmerkingen: opmerkingen
     };
-    
     try {
       await fetch('https://jaapies.app.n8n.cloud/webhook/kassa-afdracht', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(data)
       });
       toast.success('Afdracht verzonden ✅');
-      
+
       // Auto logout and redirect after 1.5 seconds
       setTimeout(async () => {
         await supabase.auth.signOut();
@@ -153,9 +144,7 @@ const KassatellingOverdag = () => {
       toast.error('Verzenden mislukt');
     }
   };
-
-  return (
-    <div className="min-h-screen bg-[#F5F7DD]">
+  return <div className="min-h-screen bg-[#F5F7DD]">
       {/* Header */}
       <div className="bg-[#F5F7DD] border-b border-[#1B7867]/10">
         <div className="max-w-3xl mx-auto px-4 py-4 sm:py-5 sm:px-6 lg:px-8">
@@ -200,9 +189,9 @@ const KassatellingOverdag = () => {
             <div className="flex-1 text-left">
               <div className="text-xs text-[#282E3A]/50 mb-1">
                 Week {weekNumber} • {new Date().toLocaleDateString('nl-NL', {
-                  day: 'numeric',
-                  month: 'numeric'
-                })}
+                day: 'numeric',
+                month: 'numeric'
+              })}
               </div>
               <div className="text-xs text-[#282E3A]/70">
                 <span>Kassatelling</span>
@@ -242,7 +231,7 @@ const KassatellingOverdag = () => {
               Overdag
             </span>
           </div>
-          <p className="text-sm text-[#282E3A]/50 mt-1 font-heading">{userLocation}</p>
+          
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_400px] gap-6 items-start">
@@ -262,20 +251,12 @@ const KassatellingOverdag = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1B7867]/15">
-                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom, index) => (
-                    <tr key={denom} className="even:bg-[#F5F7DD]/15 hover:bg-[#F5F7DD]/30 transition-colors border-b border-[#282E3A]/5">
+                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom, index) => <tr key={denom} className="even:bg-[#F5F7DD]/15 hover:bg-[#F5F7DD]/30 transition-colors border-b border-[#282E3A]/5">
                       <td className="px-2.5 py-1 text-[#282E3A] font-mono text-sm border-r border-[#1B7867]/10">€{denom.replace('.', ',')}</td>
                       <td className="px-2.5 py-1 text-center">
-                        <input 
-                          type="number" 
-                          value={kassaLade[denom as keyof typeof kassaLade]} 
-                          onChange={(e) => updateKassaLade(denom, e.target.value === '' ? '' : parseInt(e.target.value))}
-                          min={0} 
-                          className="w-16 px-2 py-1 text-center border border-[#1B7867]/20 focus:border-[#1B7867] focus:ring-1 focus:ring-[#1B7867]/20 rounded-lg bg-[#F5F7DD]/40 font-mono text-sm transition-colors" 
-                        />
+                        <input type="number" value={kassaLade[denom as keyof typeof kassaLade]} onChange={e => updateKassaLade(denom, e.target.value === '' ? '' : parseInt(e.target.value))} min={0} className="w-16 px-2 py-1 text-center border border-[#1B7867]/20 focus:border-[#1B7867] focus:ring-1 focus:ring-[#1B7867]/20 rounded-lg bg-[#F5F7DD]/40 font-mono text-sm transition-colors" />
                       </td>
-                    </tr>
-                  ))}
+                    </tr>)}
                 </tbody>
               </table>
             </div>
@@ -303,20 +284,12 @@ const KassatellingOverdag = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1B7867]/15">
-                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom, index) => (
-                    <tr key={denom} className="even:bg-[#F5F7DD]/15 hover:bg-[#F5F7DD]/30 transition-colors border-b border-[#282E3A]/5">
+                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom, index) => <tr key={denom} className="even:bg-[#F5F7DD]/15 hover:bg-[#F5F7DD]/30 transition-colors border-b border-[#282E3A]/5">
                       <td className="px-2.5 py-1 text-[#282E3A] font-mono text-sm border-r border-[#1B7867]/10">€{denom.replace('.', ',')}</td>
                       <td className="px-2.5 py-1 text-center">
-                        <input 
-                          type="number" 
-                          value={wisselkas[denom as keyof typeof wisselkas]} 
-                          onChange={(e) => updateWisselkas(denom, e.target.value === '' ? '' : parseInt(e.target.value))}
-                          min={0} 
-                          className="w-16 px-2 py-1 text-center border border-[#1B7867]/20 focus:border-[#1B7867] focus:ring-1 focus:ring-[#1B7867]/20 rounded-lg bg-[#F5F7DD]/40 font-mono text-sm transition-colors" 
-                        />
+                        <input type="number" value={wisselkas[denom as keyof typeof wisselkas]} onChange={e => updateWisselkas(denom, e.target.value === '' ? '' : parseInt(e.target.value))} min={0} className="w-16 px-2 py-1 text-center border border-[#1B7867]/20 focus:border-[#1B7867] focus:ring-1 focus:ring-[#1B7867]/20 rounded-lg bg-[#F5F7DD]/40 font-mono text-sm transition-colors" />
                       </td>
-                    </tr>
-                  ))}
+                    </tr>)}
                 </tbody>
               </table>
             </div>
@@ -348,13 +321,7 @@ const KassatellingOverdag = () => {
             <span className="text-sm font-heading font-medium text-[#282E3A]/60">
               Naam medewerker
             </span>
-            <input 
-              type="text" 
-              value={naam} 
-              onChange={(e) => setNaam(e.target.value)}
-              placeholder="Vul je naam in"
-              className="w-48 px-2 py-1.5 text-right text-sm font-heading text-[#282E3A] border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867]" 
-            />
+            <input type="text" value={naam} onChange={e => setNaam(e.target.value)} placeholder="Vul je naam in" className="w-48 px-2 py-1.5 text-right text-sm font-heading text-[#282E3A] border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867]" />
           </div>
 
           <div className="border-t border-[#1B7867]/5 my-3"></div>
@@ -364,29 +331,16 @@ const KassatellingOverdag = () => {
             <label htmlFor="opmerkingen" className="block text-sm font-heading font-medium text-[#282E3A]/60 mb-1.5">
               Opmerkingen
             </label>
-            <Textarea
-              id="opmerkingen"
-              value={opmerkingen}
-              onChange={(e) => setOpmerkingen(e.target.value)}
-              placeholder="Voeg hier eventuele opmerkingen toe..."
-              className="w-full min-h-[80px] border-[#1B7867]/20 focus:border-[#1B7867] font-mono text-sm"
-            />
+            <Textarea id="opmerkingen" value={opmerkingen} onChange={e => setOpmerkingen(e.target.value)} placeholder="Voeg hier eventuele opmerkingen toe..." className="w-full min-h-[80px] border-[#1B7867]/20 focus:border-[#1B7867] font-mono text-sm" />
           </div>
 
           {/* Verzenden button */}
           <div className="mt-4 space-y-3">
-            <Button 
-              onClick={handleSubmit}
-              className="w-full bg-[#1B7867] hover:bg-[#1B7867]/90 text-white font-heading font-bold text-lg py-6"
-            >
+            <Button onClick={handleSubmit} className="w-full bg-[#1B7867] hover:bg-[#1B7867]/90 text-white font-heading font-bold text-lg py-6">
               Verzenden
             </Button>
             
-            <Button
-              variant="outline"
-              onClick={() => setShowInstructionsDialog(true)}
-              className="w-full border-[#1B7867]/30 text-[#1B7867] hover:bg-[#1B7867]/5 font-heading font-medium flex items-center gap-2 justify-center"
-            >
+            <Button variant="outline" onClick={() => setShowInstructionsDialog(true)} className="w-full border-[#1B7867]/30 text-[#1B7867] hover:bg-[#1B7867]/5 font-heading font-medium flex items-center gap-2 justify-center">
               <Info className="h-4 w-4" />
               Instructies
             </Button>
@@ -460,8 +414,6 @@ const KassatellingOverdag = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default KassatellingOverdag;
