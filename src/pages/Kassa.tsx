@@ -152,9 +152,7 @@ const Kassa = () => {
               <div className="text-sm text-[#282E3A]/70">
                 <span>Kassatelling</span>
                 <span className="mx-2">•</span>
-                <span>Avond</span>
-                <span className="mx-2">•</span>
-                <span>Pura Vida - {userLocation}</span>
+                <span>Pura Vida • {userLocation}</span>
               </div>
             </div>
             
@@ -184,9 +182,7 @@ const Kassa = () => {
               <div className="text-xs text-[#282E3A]/70">
                 <span>Kassatelling</span>
                 <span className="mx-2">•</span>
-                <span>Avond</span>
-                <span className="mx-2">•</span>
-                <span>Pura Vida - {userLocation}</span>
+                <span>Pura Vida • {userLocation}</span>
               </div>
             </div>
             
