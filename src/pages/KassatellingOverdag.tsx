@@ -246,8 +246,11 @@ const KassatellingOverdag = () => {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_400px] gap-6 items-start">
           {/* Kassa Lade */}
           <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
-            <div className="bg-[#F5F7DD]/30 px-3 py-2 border-b border-[#1B7867]/10">
-              <h2 className="font-heading font-bold text-[#282E3A] text-lg">Kassa Lade</h2>
+            <div className="bg-[#1B7867]/10 px-3 py-2.5 border-b border-[#1B7867]/20">
+              <h2 className="font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#1B7867]"></span>
+                Kassa Lade
+              </h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -275,9 +278,9 @@ const KassatellingOverdag = () => {
                 </tbody>
               </table>
             </div>
-            <div className="bg-[#F5F7DD]/30 px-3 py-2 border-t border-[#1B7867]/10">
+            <div className="bg-[#1B7867]/5 px-3 py-2 border-t border-[#1B7867]/10">
               <div className="flex items-center justify-between">
-                <span className="font-heading font-bold text-[#282E3A]">Totaal</span>
+                <span className="font-heading font-bold text-[#1B7867] text-xs uppercase tracking-wide">Totaal</span>
                 <span className="text-xl font-heading font-bold text-[#1B7867]">€{kassaLadeTotal.toFixed(2).replace('.', ',')}</span>
               </div>
             </div>
@@ -285,8 +288,11 @@ const KassatellingOverdag = () => {
 
           {/* Wisselkas */}
           <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
-            <div className="bg-[#F5F7DD]/30 px-3 py-2 border-b border-[#1B7867]/10">
-              <h2 className="font-heading font-bold text-[#282E3A] text-lg">Wisselkas</h2>
+            <div className="bg-[#1B7867]/10 px-3 py-2.5 border-b border-[#1B7867]/20">
+              <h2 className="font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#1B7867]"></span>
+                Wisselkas
+              </h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -314,9 +320,9 @@ const KassatellingOverdag = () => {
                 </tbody>
               </table>
             </div>
-            <div className="bg-[#F5F7DD]/30 px-3 py-2 border-t border-[#1B7867]/10">
+            <div className="bg-[#1B7867]/5 px-3 py-2 border-t border-[#1B7867]/10">
               <div className="flex items-center justify-between">
-                <span className="font-heading font-bold text-[#282E3A]">Totaal</span>
+                <span className="font-heading font-bold text-[#1B7867] text-xs uppercase tracking-wide">Totaal</span>
                 <span className="text-xl font-heading font-bold text-[#1B7867]">€{wisselkasTotal.toFixed(2).replace('.', ',')}</span>
               </div>
             </div>
