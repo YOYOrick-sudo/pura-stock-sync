@@ -13,7 +13,6 @@ import {
 import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { KassaTabBar } from '@/components/KassaTabBar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 
@@ -260,9 +259,6 @@ const KassatellingOverdag = () => {
           </div>
         </div>
       </div>
-
-      {/* Tab Bar */}
-      <KassaTabBar />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 py-6 sm:px-4 sm:py-8 lg:px-6 pb-10">{/* Removed title section - now in KassaTabBar */}

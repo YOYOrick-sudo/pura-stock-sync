@@ -8,7 +8,6 @@ import { LocationGuard } from "@/components/LocationGuard";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
-import Reservations from "./pages/Reservations";
 import FohModule from "./pages/foh/FohModule";
 import Kassatelling from "./pages/Kassatelling";
 import Voorraad from "./pages/Voorraad";
@@ -33,16 +32,8 @@ const App = () => (
                 <Dashboard />
               </ProtectedRoute>
             } 
-          />
-          <Route 
-            path="/reservations" 
-            element={
-              <ProtectedRoute>
-                <Reservations />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
+          /> 
+          <Route
             path="/taken-bediening" 
             element={
               <ProtectedRoute>

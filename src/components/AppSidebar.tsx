@@ -25,12 +25,6 @@ const allNavigationItems = [
     locations: ['West', 'Midsland'],
   },
   {
-    title: 'Reserveringen',
-    url: '/reservations',
-    icon: Calendar,
-    locations: ['West', 'Midsland'],
-  },
-  {
     title: 'Taken Bediening',
     url: '/taken-bediening',
     icon: CheckSquare,
