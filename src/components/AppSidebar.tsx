@@ -75,7 +75,7 @@ export function AppSidebar() {
           className="h-[89px] w-auto object-contain object-left pl-[10px] py-[10px]"
         />
       </SidebarHeader>
-      <SidebarContent className="bg-background">
+      <SidebarContent className="bg-background pt-2">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -87,7 +87,7 @@ export function AppSidebar() {
                     isActive={isActive(item.url)}
                   >
                     <Link to={item.url}>
-                      {item.icon && <item.icon className="h-4 w-4" />}
+                      {item.icon && <item.icon className="h-[18px] w-[18px]" />}
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
