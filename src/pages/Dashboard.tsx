@@ -150,17 +150,6 @@ export default function Dashboard() {
   const [userLocation, setUserLocation] = useState<string>('');
   const navigate = useNavigate();
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    
-    if (hour < 12) {
-      return 'Goedemorgen';
-    } else if (hour < 18) {
-      return 'Goedemiddag';
-    } else {
-      return 'Goedenavond';
-    }
-  };
 
   const getDailyQuote = () => {
     const dayOfMonth = new Date().getDate();
@@ -229,12 +218,12 @@ export default function Dashboard() {
   return (
     <SidebarLayout>
       <div className="space-y-6">
-        <div>
+        <div className="flex items-center justify-between gap-4">
           <h1 className="text-3xl font-heading font-bold text-foreground">
-            {getGreeting()}
+            Aloha! <span className="text-[#1B7867]">{userLocation}</span>
           </h1>
-          <p className="text-sm text-muted-foreground">{userLocation}</p>
-          <p className="text-sm text-muted-foreground italic mt-2">
+          
+          <p className="text-sm text-muted-foreground italic">
             <span className="text-[#1B7867]">•</span> {getDailyQuote()}
           </p>
         </div>
