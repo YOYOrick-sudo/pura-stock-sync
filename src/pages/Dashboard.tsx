@@ -417,7 +417,7 @@ export default function Dashboard() {
         </h1>
           
           <p className="text-sm text-muted-foreground">
-            <span className="text-[#1B7867] font-semibold">Week {getWeekNumber()}</span>
+            <span className="text-[#1B7867]/40 font-medium">Week {getWeekNumber()}</span>
           </p>
         </div>
 
