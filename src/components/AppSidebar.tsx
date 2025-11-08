@@ -68,7 +68,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b pl-2 pr-4 pt-2 pb-3 flex justify-start items-center">
+      <SidebarHeader className="border-b pl-0 pr-4 pt-2 pb-3 flex justify-start items-center">
         <img 
           src={puraVidaLogo} 
           alt="Pura Vida" 
