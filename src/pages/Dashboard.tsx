@@ -194,7 +194,7 @@ interface DashboardCardProps {
 const DashboardCard = ({ title, count, icon: Icon, onClick, isLoading }: DashboardCardProps) => {
   return (
     <Card 
-      className="p-6 cursor-pointer transition-shadow duration-200 hover:shadow-md active:scale-[0.98] bg-gradient-to-br from-white to-gray-50 border border-gray-200"
+      className="p-6 cursor-pointer transition-shadow duration-200 hover:shadow-md active:scale-[0.98] bg-gradient-to-br from-white/50 to-gray-50/50 border border-gray-200/80"
       onClick={onClick}
     >
       <div className="flex items-start justify-between mb-4">
@@ -412,7 +412,7 @@ export default function Dashboard() {
 
   return (
     <SidebarLayout>
-      <div className="space-y-8">
+      <div className="max-w-7xl mx-auto px-6 space-y-10">
         <div className="flex items-center justify-between gap-4">
         <h1 className="text-3xl font-heading font-bold text-foreground">
           Aloha Pura - <span className="text-[#1B7867]">{userLocation}</span>!
