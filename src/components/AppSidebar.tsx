@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import puraVidaLogo from '@/assets/pura-vida-logo-header.jpg';
+import puraVidaLogo from '@/assets/pura-vida-logo-header.png';
 
 const navigationItems = [
   {
