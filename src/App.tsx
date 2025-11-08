@@ -12,6 +12,7 @@ import FohModule from "./pages/foh/FohModule";
 import Kassatelling from "./pages/Kassatelling";
 import Voorraad from "./pages/Voorraad";
 import Settings from "./pages/Settings";
+import InternalOrders from "./pages/kitchen/InternalOrders";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,16 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Settings />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/kitchen-internal-orders" 
+            element={
+              <ProtectedRoute>
+                <LocationGuard allowedLocations={['Oost', 'Mids']}>
+                  <InternalOrders />
+                </LocationGuard>
               </ProtectedRoute>
             } 
           />
