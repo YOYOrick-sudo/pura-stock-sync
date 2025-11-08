@@ -45,8 +45,13 @@ const Auth = () => {
     }
     setLoading(true);
     try {
-      // Eerst oude session clearen
-      await supabase.auth.signOut();
+      // Check of er een oude session is en clear die alleen dan
+      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      if (existingSession) {
+        await supabase.auth.signOut();
+        // Wacht even zodat de auth state update volledig is
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
       
       const {
         data,
