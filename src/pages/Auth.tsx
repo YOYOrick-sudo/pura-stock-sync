@@ -45,6 +45,9 @@ const Auth = () => {
     }
     setLoading(true);
     try {
+      // Eerst oude session clearen
+      await supabase.auth.signOut();
+      
       const {
         data,
         error
@@ -65,7 +68,24 @@ const Auth = () => {
         return;
       }
       if (data.session) {
-        toast.success('Welkom terug!');
+        // Verificeer dat de user location correct is
+        const { data: userRole } = await supabase
+          .from('user_roles')
+          .select('location')
+          .eq('user_id', data.session.user.id)
+          .maybeSingle();
+        
+        console.log('Login voor:', location, '- Database location:', userRole?.location);
+        
+        if (userRole?.location !== location) {
+          toast.error('Verkeerde locatie detecteerd', {
+            description: `Deze account hoort bij ${userRole?.location}`
+          });
+          await supabase.auth.signOut();
+          return;
+        }
+        
+        toast.success(`Welkom bij ${location}!`);
         navigate('/dashboard');
       }
     } catch (error) {
