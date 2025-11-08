@@ -99,6 +99,14 @@ const App = () => (
             } 
           />
           <Route 
+            path="/taken-bediening" 
+            element={
+              <ProtectedRoute>
+                <FohModule />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
             path="/service"
             element={
               <ProtectedRoute>

@@ -1,13 +1,11 @@
-import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
 import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 import { FohTasks } from '@/components/foh/FohTasks';
-import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { SidebarLayout } from '@/components/SidebarLayout';
 
 export default function FohModule() {
   useInactivityTimeout();
-  const navigate = useNavigate();
   const [userLocation, setUserLocation] = useState<string>('');
 
   useEffect(() => {
@@ -26,13 +24,14 @@ export default function FohModule() {
   }, []);
 
   return (
-    <KitchenLayout 
-      title="Bediening"
-      subtitle={`Taken - ${userLocation}`}
-      backTo="/home"
-      backLabel="Dashboard"
-    >
-      <FohTasks />
-    </KitchenLayout>
+    <SidebarLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-heading font-bold text-foreground">Bediening</h1>
+          <p className="text-muted-foreground">Taken - {userLocation}</p>
+        </div>
+        <FohTasks />
+      </div>
+    </SidebarLayout>
   );
 }
