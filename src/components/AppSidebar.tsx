@@ -99,7 +99,7 @@ export function AppSidebar() {
                     isActive={isActive(item.url)}
                     size="lg"
                     className={isActive(item.url) 
-                      ? "bg-white/80 border border-gray-200/60 shadow-sm" 
+                      ? "bg-white/40 border border-gray-200/40 shadow-sm" 
                       : ""
                     }
                   >
