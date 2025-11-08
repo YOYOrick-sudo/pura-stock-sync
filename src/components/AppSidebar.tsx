@@ -64,7 +64,7 @@ export function AppSidebar() {
         <img 
           src={puraVidaLogo} 
           alt="Pura Vida" 
-          className="h-[89px] w-auto object-contain object-left"
+          className="h-[70px] w-auto object-contain object-left"
         />
         <div className="flex items-center gap-2 pr-4">
           <NotificationsDropdown />

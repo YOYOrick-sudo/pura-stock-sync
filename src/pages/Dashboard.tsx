@@ -183,6 +183,12 @@ const getVoorraadStatus = () => {
   };
 };
 
+const getWeekNumber = (date: Date = new Date()): number => {
+  const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+  const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+  return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+};
+
 interface DashboardCardProps {
   title: string;
   count: number;
@@ -263,14 +269,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const getDailyQuote = (location: string) => {
-    const quotes = location === 'West' ? puraVidaQuotesWest : puraVidaQuotesOost;
-    const now = new Date();
-    const start = new Date(now.getFullYear(), 0, 0);
-    const diff = now.getTime() - start.getTime();
-    const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
-    return quotes[dayOfYear % quotes.length];
-  };
 
   useEffect(() => {
     const fetchLocation = async () => {
@@ -412,14 +410,14 @@ export default function Dashboard() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-7xl mx-auto px-6 space-y-10">
+      <div className="max-w-7xl mx-auto px-6 space-y-10 pt-12">
         <div className="flex items-center justify-between gap-4">
         <h1 className="text-3xl font-heading font-bold text-foreground">
           Aloha Pura - <span className="text-[#1B7867]">{userLocation}</span>!
         </h1>
           
-          <p className="text-sm text-muted-foreground italic">
-            <span className="text-[#1B7867]">•</span> {getDailyQuote(userLocation)}
+          <p className="text-sm text-muted-foreground">
+            <span className="text-[#1B7867] font-semibold">Week {getWeekNumber()}</span>
           </p>
         </div>
 
