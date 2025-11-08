@@ -303,52 +303,6 @@ export default function OrderDashboard() {
       {/* Header */}
       <div className="bg-[#F5F7DD] border-b border-[#1B7867]/10">
         <div className="max-w-3xl mx-auto px-4 py-4 sm:py-5 sm:px-6 lg:px-8">
-          {/* Desktop Layout */}
-          <div className="hidden sm:flex items-center justify-between gap-4">
-            {/* Left: Week & Voorraad */}
-            <div className="flex-1">
-              <div className="text-xs text-[#282E3A]/50 mb-1">
-                <span>Week {currentWeek}</span>
-                <span className="mx-2">•</span>
-                <span>{new Date().toLocaleDateString('nl-NL', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric'
-                })}</span>
-              </div>
-              <div className="text-sm text-[#282E3A]/70 flex items-center gap-2">
-                <span>Voorraad</span>
-                <span className="mx-2">•</span>
-                <span>Pura Vida - West</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button className="text-[#1B7867] hover:text-[#0d5a4c] transition-colors">
-                        <Info className="h-4 w-4" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs bg-white border-[#1B7867]/20 text-[#282E3A]">
-                      <p className="text-sm">Noteer de huidige voorraad. Het systeem rekent uit wat Midsland aanvult.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-            
-            {/* Center: Logo */}
-            <div className="flex-shrink-0">
-              <img src={logoGreen} alt="Pura Vida Foodbar" className="h-16 sm:h-20 w-auto" />
-            </div>
-            
-            {/* Right: Keuken & Logout */}
-            <div className="flex-1 flex justify-end gap-2">
-              
-              
-              <Button onClick={handleLogout} variant="ghost" size="sm" className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent">
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
 
           {/* Mobile Layout */}
           <div className="sm:hidden flex items-center justify-between gap-3">
