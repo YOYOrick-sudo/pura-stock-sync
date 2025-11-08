@@ -90,17 +90,22 @@ export function AppSidebar() {
       <SidebarContent className="bg-background pt-2">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-3">
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
                     tooltip={item.title}
                     isActive={isActive(item.url)}
+                    size="lg"
+                    className={isActive(item.url) 
+                      ? "bg-white/80 border border-gray-200/60 shadow-sm" 
+                      : ""
+                    }
                   >
-                    <Link to={item.url}>
-                      {item.icon && <item.icon className="h-5 w-5" />}
-                      <span className="text-base">{item.title}</span>
+                    <Link to={item.url} className="flex items-center gap-3">
+                      {item.icon && <item.icon className="h-6 w-6" />}
+                      <span className="text-lg">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
