@@ -48,6 +48,13 @@ const Kassa = () => {
 
   const [cashOmzet, setCashOmzet] = useState<number | ''>('');
   const [opmerkingen, setOpmerkingen] = useState('');
+  
+  // Validation states
+  const [errors, setErrors] = useState({
+    naam: '',
+    opmerkingen: '',
+    cashOmzet: ''
+  });
 
   useEffect(() => {
     const fetchUserLocation = async () => {
@@ -96,7 +103,34 @@ const Kassa = () => {
     }
   };
 
+  const validateForm = () => {
+    const newErrors = { naam: '', opmerkingen: '', cashOmzet: '' };
+    let isValid = true;
+
+    if (!naam || naam.trim().length < 2) {
+      newErrors.naam = 'Vul je naam in (minimaal 2 letters)';
+      isValid = false;
+    }
+
+    if (!opmerkingen || opmerkingen.trim().length < 3) {
+      newErrors.opmerkingen = 'Vul een korte opmerking in';
+      isValid = false;
+    }
+
+    if (cashOmzet === '' || cashOmzet <= 0) {
+      newErrors.cashOmzet = 'Vul een geldige omzet in';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleSubmit = async () => {
+    if (!validateForm()) {
+      toast.error('Vul alle verplichte velden in');
+      return;
+    }
     const data = {
       type: 'sluit',
       week: weekNumber,
@@ -264,33 +298,53 @@ const Kassa = () => {
           <div className="border-t border-[#1B7867]/5 my-2"></div>
 
           {/* Cash omzet - compacter */}
-          <div className="flex items-center justify-between gap-4 py-1">
-            <span className="text-sm font-heading font-medium text-[#282E3A]/60">
-              Cash omzet (Lightspeed)
-            </span>
-            <input 
-              type="number" 
-              value={cashOmzet} 
-              onChange={(e) => setCashOmzet(e.target.value === '' ? '' : parseFloat(e.target.value))}
-              min={0} 
-              className="w-24 px-2 py-1.5 text-right text-lg font-heading font-bold text-[#282E3A] border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867] font-mono" 
-            />
+          <div className="py-1">
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-sm font-heading font-medium text-[#282E3A]/60">
+                Cash omzet (Lightspeed)
+              </span>
+              <input 
+                type="number" 
+                value={cashOmzet} 
+                onChange={(e) => {
+                  setCashOmzet(e.target.value === '' ? '' : parseFloat(e.target.value));
+                  if (errors.cashOmzet) setErrors(prev => ({ ...prev, cashOmzet: '' }));
+                }}
+                min={0} 
+                className={`w-24 px-2 py-1.5 text-right text-lg font-heading font-bold text-[#282E3A] border rounded-md focus:outline-none font-mono transition-colors ${
+                  errors.cashOmzet ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500' : 'border-[#1B7867]/20 focus:border-[#1B7867]'
+                }`}
+              />
+            </div>
+            {errors.cashOmzet && (
+              <p className="text-xs text-red-500 mt-1 text-right">{errors.cashOmzet}</p>
+            )}
           </div>
 
           <div className="border-t border-[#1B7867]/5 my-2"></div>
 
           {/* Naam medewerker */}
-          <div className="flex items-center justify-between gap-4 py-1">
-            <span className="text-sm font-heading font-medium text-[#282E3A]/60">
-              Naam medewerker
-            </span>
-            <input 
-              type="text" 
-              value={naam} 
-              onChange={(e) => setNaam(e.target.value)}
-              placeholder="Vul je naam in"
-              className="w-48 px-2 py-1.5 text-right text-sm font-heading text-[#282E3A] border border-[#1B7867]/20 rounded-md focus:outline-none focus:border-[#1B7867]" 
-            />
+          <div className="py-1">
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-sm font-heading font-medium text-[#282E3A]/60">
+                Naam medewerker
+              </span>
+              <input 
+                type="text" 
+                value={naam} 
+                onChange={(e) => {
+                  setNaam(e.target.value);
+                  if (errors.naam) setErrors(prev => ({ ...prev, naam: '' }));
+                }}
+                placeholder="Vul je naam in"
+                className={`w-48 px-2 py-1.5 text-right text-sm font-heading text-[#282E3A] border rounded-md focus:outline-none transition-colors ${
+                  errors.naam ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500' : 'border-[#1B7867]/20 focus:border-[#1B7867]'
+                }`}
+              />
+            </div>
+            {errors.naam && (
+              <p className="text-xs text-red-500 mt-1 text-right">{errors.naam}</p>
+            )}
           </div>
 
           <div className="border-t border-[#1B7867]/5 my-2"></div>
@@ -341,17 +395,26 @@ const Kassa = () => {
             <Textarea
               id="opmerkingen"
               value={opmerkingen}
-              onChange={(e) => setOpmerkingen(e.target.value)}
+              onChange={(e) => {
+                setOpmerkingen(e.target.value);
+                if (errors.opmerkingen) setErrors(prev => ({ ...prev, opmerkingen: '' }));
+              }}
               placeholder="Voeg hier eventuele opmerkingen toe..."
-              className="w-full min-h-[80px] border-[#1B7867]/20 focus:border-[#1B7867] font-mono text-sm"
+              className={`w-full min-h-[80px] font-mono text-sm transition-colors ${
+                errors.opmerkingen ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500' : 'border-[#1B7867]/20 focus:border-[#1B7867]'
+              }`}
             />
+            {errors.opmerkingen && (
+              <p className="text-xs text-red-500 mt-1">{errors.opmerkingen}</p>
+            )}
           </div>
 
           {/* Verzenden button */}
           <div className="mt-4">
             <Button 
               onClick={handleSubmit}
-              className="w-full bg-[#1B7867] hover:bg-[#1B7867]/90 text-white font-heading font-bold text-lg py-6"
+              disabled={!naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '' || cashOmzet <= 0}
+              className="w-full bg-[#1B7867] hover:bg-[#1B7867]/90 text-white font-heading font-bold text-lg py-6 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
             >
               Verzenden
             </Button>
