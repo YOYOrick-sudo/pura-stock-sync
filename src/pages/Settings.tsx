@@ -6,10 +6,11 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useUserLocation } from '@/contexts/UserLocationContext';
 
 export default function Settings() {
   const navigate = useNavigate();
-  const [userLocation, setUserLocation] = useState<string>('');
+  const { userLocation } = useUserLocation();
   const [userEmail, setUserEmail] = useState<string>('');
 
   useEffect(() => {
@@ -17,12 +18,6 @@ export default function Settings() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserEmail(user.email || '');
-        const { data } = await supabase
-          .from('user_roles')
-          .select('location')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        setUserLocation(data?.location || '');
       }
     };
     fetchUserData();

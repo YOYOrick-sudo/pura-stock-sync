@@ -72,11 +72,11 @@ export function AppSidebar() {
             />
             <div className="flex items-center gap-2 pr-4">
               <NotificationsDropdown />
-              <SidebarTrigger />
+              <SidebarTrigger className="h-10 w-10" />
             </div>
           </>
         ) : (
-          <SidebarTrigger className="mx-auto" />
+          <SidebarTrigger className="mx-auto h-10 w-10" />
         )}
       </SidebarHeader>
       <SidebarContent className="bg-background pt-2">

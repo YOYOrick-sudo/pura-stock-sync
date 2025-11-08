@@ -1,25 +1,9 @@
 import { FohTasks } from '@/components/foh/FohTasks';
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 import { SidebarLayout } from '@/components/SidebarLayout';
+import { useUserLocation } from '@/contexts/UserLocationContext';
 
 export default function FohModule() {
-  const [userLocation, setUserLocation] = useState<string>('');
-
-  useEffect(() => {
-    const fetchLocation = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase
-          .from('user_roles')
-          .select('location')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        setUserLocation(data?.location || '');
-      }
-    };
-    fetchLocation();
-  }, []);
+  const { userLocation } = useUserLocation();
 
   return (
     <SidebarLayout>

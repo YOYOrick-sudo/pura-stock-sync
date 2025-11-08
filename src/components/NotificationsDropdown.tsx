@@ -116,8 +116,8 @@ export function NotificationsDropdown() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative h-9 w-9">
-          <Bell className="h-5 w-5" />
+        <Button variant="ghost" size="icon" className="relative h-10 w-10">
+          <Bell className="h-6 w-6" />
           {unreadCount > 0 && (
             <span className="absolute top-0.5 right-0.5 h-1.5 w-1.5 rounded-full bg-[#1B7867]" />
           )}

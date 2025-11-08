@@ -14,6 +14,7 @@ import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useUserLocation } from '@/contexts/UserLocationContext';
 
 // Always get week number reliably using ISO 8601
 const getWeekNumber = (date: Date): number => {
@@ -26,7 +27,7 @@ const getWeekNumber = (date: Date): number => {
 const KassatellingOverdag = () => {
   const navigate = useNavigate();
   const weekNumber = getWeekNumber(new Date());
-  const [userLocation, setUserLocation] = useState<string>('');
+  const { userLocation } = useUserLocation();
   const [naam, setNaam] = useState('');
   const [canSubmit, setCanSubmit] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -70,24 +71,6 @@ const KassatellingOverdag = () => {
     opmerkingen: '',
     total: ''
   });
-  useEffect(() => {
-    const fetchUserLocation = async () => {
-      const {
-        data: {
-          user
-        }
-      } = await supabase.auth.getUser();
-      if (user) {
-        const {
-          data
-        } = await supabase.from('user_roles').select('location').eq('user_id', user.id).maybeSingle();
-        const location = data?.location || 'West';
-        setUserLocation(location);
-      }
-    };
-    fetchUserLocation();
-  }, []);
-
   // Check throttling status
   useEffect(() => {
     if (!userLocation) return;

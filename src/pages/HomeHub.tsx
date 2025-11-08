@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Package, Calculator, LogOut, CheckSquare } from "lucide-react";
@@ -7,26 +6,10 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import WaveBackground from "@/components/WaveBackground";
 import logoGreen from "@/assets/pura-vida-logo-official.png";
+import { useUserLocation } from "@/contexts/UserLocationContext";
 const HomeHub = () => {
   const navigate = useNavigate();
-  const [userLocation, setUserLocation] = useState<string>('');
-  useEffect(() => {
-    const fetchUserLocation = async () => {
-      const {
-        data: {
-          user
-        }
-      } = await supabase.auth.getUser();
-      if (user) {
-        const {
-          data
-        } = await supabase.from('user_roles').select('location').eq('user_id', user.id).maybeSingle();
-        const location = data?.location || 'West';
-        setUserLocation(location);
-      }
-    };
-    fetchUserLocation();
-  }, [navigate]);
+  const { userLocation } = useUserLocation();
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();

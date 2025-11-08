@@ -1,10 +1,11 @@
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CheckSquare, Bell, Package, LucideIcon } from 'lucide-react';
+import { useUserLocation } from '@/contexts/UserLocationContext';
 
 const puraVidaQuotesWest = [
   "Geniet van de kleine dingen vandaag",
@@ -265,25 +266,9 @@ const VoorraadCard = () => {
 };
 
 export default function Dashboard() {
-  const [userLocation, setUserLocation] = useState<string>('');
+  const { userLocation } = useUserLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-
-
-  useEffect(() => {
-    const fetchLocation = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase
-          .from('user_roles')
-          .select('location')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        setUserLocation(data?.location || '');
-      }
-    };
-    fetchLocation();
-  }, []);
 
   // Realtime subscription voor FOH Tasks
   useEffect(() => {
