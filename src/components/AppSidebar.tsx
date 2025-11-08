@@ -72,7 +72,7 @@ export function AppSidebar() {
         <img 
           src={puraVidaLogo} 
           alt="Pura Vida" 
-          className="h-[40px] w-auto object-contain"
+          className="h-[52px] w-auto object-contain"
           style={{ maxWidth: '100%' }}
         />
       </SidebarHeader>
