@@ -1,7 +1,6 @@
 import { Home, Calendar, CheckSquare, Calculator, Package, Settings } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useUserLocation } from '@/contexts/UserLocationContext';
 import {
   Sidebar,
   SidebarContent,
@@ -51,22 +50,7 @@ const allNavigationItems = [
 
 export function AppSidebar() {
   const location = useLocation();
-  const [userLocation, setUserLocation] = useState<string>('');
-
-  useEffect(() => {
-    const fetchLocation = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase
-          .from('user_roles')
-          .select('location')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        setUserLocation(data?.location || '');
-      }
-    };
-    fetchLocation();
-  }, []);
+  const { userLocation } = useUserLocation();
 
   const navigationItems = userLocation 
     ? allNavigationItems.filter(item => item.locations.includes(userLocation))
@@ -76,11 +60,11 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b !p-0 flex flex-row items-center justify-between">
+      <SidebarHeader className="border-b px-4 py-4 flex flex-row items-center justify-between">
         <img 
           src={puraVidaLogo} 
           alt="Pura Vida" 
-          className="h-[89px] w-auto object-contain object-left pl-[10px] py-[10px]"
+          className="h-[89px] w-auto object-contain object-left"
         />
         <div className="flex items-center gap-2 pr-4">
           <NotificationsDropdown />

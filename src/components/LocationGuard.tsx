@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { useUserLocation } from '@/contexts/UserLocationContext';
 
 interface LocationGuardProps {
   allowedLocations: string[];
@@ -8,24 +7,7 @@ interface LocationGuardProps {
 }
 
 export const LocationGuard = ({ allowedLocations, children }: LocationGuardProps) => {
-  const [userLocation, setUserLocation] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchLocation = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase
-          .from('user_roles')
-          .select('location')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        setUserLocation(data?.location || '');
-      }
-      setLoading(false);
-    };
-    fetchLocation();
-  }, []);
+  const { userLocation, loading } = useUserLocation();
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">

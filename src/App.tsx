@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { LocationGuard } from "@/components/LocationGuard";
+import { UserLocationProvider } from "@/contexts/UserLocationContext";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
@@ -22,7 +23,8 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
+        <UserLocationProvider>
+          <Routes>
           {/* Auth routes */}
           <Route path="/" element={<Auth />} />
           <Route path="/home" element={<Auth />} />
@@ -83,7 +85,8 @@ const App = () => (
 
           {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />
-        </Routes>
+          </Routes>
+        </UserLocationProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
