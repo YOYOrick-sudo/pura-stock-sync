@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -50,7 +50,8 @@ export function FohTasks() {
         foh_employees (
           id,
           name,
-          location
+          location,
+          created_at
         )
       `);
 
@@ -67,7 +68,7 @@ export function FohTasks() {
       console.error('Error fetching tasks:', error);
       toast.error('Kon taken niet laden');
     } else {
-      setTasks(data || []);
+      setTasks(data as FohTaskWithEmployee[] || []);
     }
     
     setLoading(false);
@@ -208,7 +209,7 @@ export function FohTasks() {
 
     const { data, error } = await supabase
       .from('foh_employees')
-      .insert({ name: name.trim() })
+      .insert({ name: name.trim(), location: '' })
       .select()
       .single();
 
@@ -263,6 +264,7 @@ export function FohTasks() {
         due_date: newTask.due_date,
         priority: newTask.priority,
         assigned_employee_id: newTask.assigned_employee_id,
+        location: '',
       });
 
     if (error) {

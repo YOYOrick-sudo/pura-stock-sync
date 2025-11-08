@@ -25,7 +25,7 @@ import { OrderPreview } from './OrderPreview';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from './ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import logoGreen from '@/assets/pura-vida-logo-official.png';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 interface Product {
   name: string;
   targetStock: number;

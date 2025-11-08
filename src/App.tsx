@@ -28,7 +28,6 @@ const App = () => (
           <Routes>
           {/* Auth routes */}
           <Route path="/" element={<Auth />} />
-          <Route path="/home" element={<Auth />} />
           
           {/* Main module routes - all with sidebar */}
           <Route 

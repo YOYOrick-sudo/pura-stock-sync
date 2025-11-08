@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { ChevronDown, ChevronUp, Package, Calendar, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
