@@ -184,6 +184,25 @@ const getVoorraadStatus = () => {
   };
 };
 
+// Helper functies voor Midsland Delivery
+const getNextWednesday = (): Date => {
+  const today = new Date();
+  const daysUntilWednesday = (3 - today.getDay() + 7) % 7 || 7;
+  const nextWednesday = new Date(today);
+  nextWednesday.setDate(today.getDate() + daysUntilWednesday);
+  return nextWednesday;
+};
+
+const getStartOfWeek = (): Date => {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Monday as start
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + diff);
+  monday.setHours(0, 0, 0, 0);
+  return monday;
+};
+
 const getWeekNumber = (date: Date = new Date()): number => {
   const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
   const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
@@ -260,6 +279,54 @@ const VoorraadCard = () => {
         <p className="text-xs text-gray-500">
           {status.subtitle}
         </p>
+      </div>
+    </Card>
+  );
+};
+
+interface DeliveryCardProps {
+  hasOrderThisWeek: boolean;
+  isLoading: boolean;
+  onClick: () => void;
+}
+
+const DeliveryCard = ({ hasOrderThisWeek, isLoading, onClick }: DeliveryCardProps) => {
+  const nextWednesday = getNextWednesday();
+  
+  return (
+    <Card 
+      className="p-6 cursor-pointer transition-shadow duration-200 hover:shadow-md active:scale-[0.98] border-l-4 border-l-[#1B7867] bg-white"
+      onClick={onClick}
+    >
+      <div className="flex items-start justify-between mb-4">
+        <div className="p-3 bg-[#1B7867]/10 rounded-lg">
+          <Package className="h-6 w-6 text-[#1B7867]" />
+        </div>
+        <div className="text-right">
+          <div className="text-2xl font-bold text-[#1B7867] tracking-tight">
+            {nextWednesday.toLocaleDateString('nl-NL', { 
+              weekday: 'short', 
+              day: 'numeric', 
+              month: 'numeric' 
+            })}
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <p className="text-sm font-semibold text-gray-900 mb-2">
+          Breng Dienst West
+        </p>
+        <p className="text-xs text-gray-600 mb-2">
+          Volgende bezorgdag
+        </p>
+        {isLoading ? (
+          <p className="text-xs text-gray-400 animate-pulse">Laden...</p>
+        ) : (
+          <p className={`text-xs font-semibold ${hasOrderThisWeek ? 'text-[#1B7867]' : 'text-gray-500'}`}>
+            {hasOrderThisWeek ? '✓ Bestelling ontvangen van West' : '○ Wacht op bestelling van West'}
+          </p>
+        )}
       </div>
     </Card>
   );
@@ -379,10 +446,24 @@ export default function Dashboard() {
     },
   });
 
-  // Query 3: Wachtende Bestellingen
+  // Query 3: Wachtende Bestellingen / Midsland Status
   const { data: pendingOrders, isLoading: loadingOrders } = useQuery({
     queryKey: ['dashboard-pending-orders', userLocation],
     queryFn: async () => {
+      if (userLocation === 'Midsland') {
+        // Voor Midsland: check of er deze week een bestelling is
+        const startOfWeek = getStartOfWeek();
+        const { data } = await supabase
+          .from('internal_orders')
+          .select('*')
+          .eq('from_location', 'West')
+          .eq('to_location', 'Midsland')
+          .in('status', ['pending', 'approved'])
+          .gte('created_at', startOfWeek.toISOString());
+        return data && data.length > 0; // Returns boolean
+      }
+      
+      // Voor Oost: bestaande logica (count)
       const { data } = await supabase
         .from('internal_orders')
         .select('*')
@@ -426,10 +507,18 @@ export default function Dashboard() {
           {userLocation === 'Oost' && (
             <DashboardCard
               title="Wachtende Bestellingen"
-              count={pendingOrders || 0}
+              count={(typeof pendingOrders === 'number' ? pendingOrders : 0)}
               icon={Package}
               onClick={() => navigate('/kitchen-internal-orders')}
               isLoading={loadingOrders}
+            />
+          )}
+
+          {userLocation === 'Midsland' && (
+            <DeliveryCard
+              hasOrderThisWeek={(typeof pendingOrders === 'boolean' ? pendingOrders : false)}
+              isLoading={loadingOrders}
+              onClick={() => navigate('/midsland-bestellingen')}
             />
           )}
           

@@ -1,6 +1,7 @@
 import { Home, Calendar, CheckSquare, Calculator, Package, Settings } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
+import { cn } from '@/lib/utils';
 import {
   Sidebar,
   SidebarContent,
@@ -76,7 +77,9 @@ export function AppSidebar() {
             </div>
           </>
         ) : (
-          <SidebarTrigger className="mx-auto h-10 w-10" />
+          <div className="flex flex-col items-center gap-2 w-full">
+            <SidebarTrigger className="h-10 w-10" />
+          </div>
         )}
       </SidebarHeader>
       <SidebarContent className="bg-background pt-2">
@@ -90,14 +93,18 @@ export function AppSidebar() {
                     tooltip={item.title}
                     isActive={isActive(item.url)}
                     size="lg"
-                    className={isActive(item.url) 
-                      ? "bg-white/40 border border-gray-200/40 shadow-sm" 
-                      : ""
-                    }
+                    className={cn(
+                      isActive(item.url) && "bg-white/40 border border-gray-200/40 shadow-sm",
+                      state === "collapsed" && "justify-center"
+                    )}
                   >
                     <Link to={item.url} className="flex items-center gap-3">
-                      {item.icon && <item.icon className="h-6 w-6" />}
-                      <span className="text-lg">{item.title}</span>
+                      {item.icon && (
+                        <item.icon 
+                          className={state === "collapsed" ? "h-8 w-8" : "h-6 w-6"} 
+                        />
+                      )}
+                      {state === "expanded" && <span className="text-lg">{item.title}</span>}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

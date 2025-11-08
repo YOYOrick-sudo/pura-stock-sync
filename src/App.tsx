@@ -14,6 +14,7 @@ import Kassatelling from "./pages/Kassatelling";
 import Voorraad from "./pages/Voorraad";
 import Settings from "./pages/Settings";
 import InternalOrders from "./pages/kitchen/InternalOrders";
+import MidslandOrders from "./pages/MidslandOrders";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,16 @@ const App = () => (
               <ProtectedRoute>
                 <LocationGuard allowedLocations={['Oost', 'Mids']}>
                   <InternalOrders />
+                </LocationGuard>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/midsland-bestellingen" 
+            element={
+              <ProtectedRoute>
+                <LocationGuard allowedLocations={['Midsland']}>
+                  <MidslandOrders />
                 </LocationGuard>
               </ProtectedRoute>
             } 
