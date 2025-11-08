@@ -414,7 +414,7 @@ const Kassa = () => {
             <Button 
               onClick={handleSubmit}
               disabled={!naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '' || cashOmzet <= 0}
-              className="w-full bg-[#1B7867] hover:bg-[#1B7867]/90 text-white font-heading font-bold text-lg py-6 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400"
+              className="w-full bg-[#1B7867] hover:bg-[#1B7867]/90 text-white font-heading font-bold text-lg py-6 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               Verzenden
             </Button>
