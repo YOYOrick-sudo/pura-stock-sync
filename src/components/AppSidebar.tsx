@@ -11,6 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { NotificationsDropdown } from '@/components/NotificationsDropdown';
 import puraVidaLogo from '@/assets/pura-vida-logo-header.png';
@@ -51,6 +52,7 @@ const allNavigationItems = [
 export function AppSidebar() {
   const location = useLocation();
   const { userLocation } = useUserLocation();
+  const { state } = useSidebar();
 
   const navigationItems = userLocation 
     ? allNavigationItems.filter(item => item.locations.includes(userLocation))
@@ -61,15 +63,21 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b px-4 py-4 flex flex-row items-center justify-between">
-        <img 
-          src={puraVidaLogo} 
-          alt="Pura Vida" 
-          className="h-[70px] w-auto object-contain object-left"
-        />
-        <div className="flex items-center gap-2 pr-4">
-          <NotificationsDropdown />
-          <SidebarTrigger />
-        </div>
+        {state === "expanded" ? (
+          <>
+            <img 
+              src={puraVidaLogo} 
+              alt="Pura Vida" 
+              className="h-[70px] w-auto object-contain object-left"
+            />
+            <div className="flex items-center gap-2 pr-4">
+              <NotificationsDropdown />
+              <SidebarTrigger />
+            </div>
+          </>
+        ) : (
+          <SidebarTrigger className="mx-auto" />
+        )}
       </SidebarHeader>
       <SidebarContent className="bg-background pt-2">
         <SidebarGroup>
