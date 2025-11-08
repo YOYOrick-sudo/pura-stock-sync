@@ -68,12 +68,11 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b pl-0 pr-4 pt-2 pb-3 flex justify-start items-center">
+      <SidebarHeader className="border-b p-0 flex items-center">
         <img 
           src={puraVidaLogo} 
           alt="Pura Vida" 
-          className="h-[52px] w-auto object-contain"
-          style={{ maxWidth: '100%' }}
+          className="h-[52px] w-auto object-contain object-left"
         />
       </SidebarHeader>
       <SidebarContent className="bg-background">
