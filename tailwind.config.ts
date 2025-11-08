@@ -56,6 +56,9 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        notification: {
+          badge: "hsl(var(--notification-badge))",
+        },
       },
       boxShadow: {
         soft: "var(--shadow-soft)",

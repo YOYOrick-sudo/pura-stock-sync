@@ -63,6 +63,9 @@ All colors MUST be HSL.
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
+    
+    /* Notification badge - Pastel red */
+    --notification-badge: 0 70% 75%;
 
     /* Sky for borders */
     --border: 145 26% 75%;
@@ -105,6 +108,9 @@ All colors MUST be HSL.
 
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 100%;
+    
+    /* Notification badge - Pastel red */
+    --notification-badge: 0 70% 75%;
 
     --border: 210 19% 30%;
     --input: 210 19% 18%;
