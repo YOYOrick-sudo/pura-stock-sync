@@ -5,11 +5,13 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import puraVidaLogo from '@/assets/pura-vida-logo-header.jpg';
 
 const navigationItems = [
   {
@@ -66,6 +68,13 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
+      <SidebarHeader className="border-b px-4 py-3">
+        <img 
+          src={puraVidaLogo} 
+          alt="Pura Vida" 
+          className="h-[28px] w-auto"
+        />
+      </SidebarHeader>
       <SidebarContent className="bg-background">
         <SidebarGroup>
           <SidebarGroupContent>
