@@ -1,4 +1,4 @@
-import { Home, Calendar, CheckSquare, ChefHat, Settings, ChevronDown } from 'lucide-react';
+import { Home, Calendar, CheckSquare, Calculator, ChefHat, Settings, ChevronDown } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Sidebar,
@@ -32,6 +32,11 @@ const navigationItems = [
     title: 'Taken Bediening',
     url: '/taken-bediening',
     icon: CheckSquare,
+  },
+  {
+    title: 'Kassatelling',
+    url: '/kassatelling-overdag',
+    icon: Calculator,
   },
   {
     title: 'Keuken',
