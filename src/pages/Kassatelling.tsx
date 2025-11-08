@@ -16,9 +16,19 @@ export default function Kassatelling() {
         </div>
 
         <Tabs defaultValue="avond" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 bg-white">
-            <TabsTrigger value="overdag">Overdag</TabsTrigger>
-            <TabsTrigger value="avond">Avond</TabsTrigger>
+          <TabsList className="inline-flex h-10 items-center justify-start rounded-lg bg-muted/50 p-1">
+            <TabsTrigger 
+              value="overdag"
+              className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            >
+              Overdag
+            </TabsTrigger>
+            <TabsTrigger 
+              value="avond"
+              className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            >
+              Avond
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overdag" className="space-y-4">
