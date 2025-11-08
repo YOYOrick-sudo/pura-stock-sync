@@ -4,21 +4,15 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import Index from "./pages/Index";
+import { LocationGuard } from "@/components/LocationGuard";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
-import HomeHub from "./pages/HomeHub";
-import Kassa from "./pages/Kassa";
-import KassatellingOverdag from "./pages/KassatellingOverdag";
-import KitchenMenu from "./pages/kitchen/KitchenMenu";
-import Recipes from "./pages/kitchen/Recipes";
-import RecipeDetail from "./pages/kitchen/RecipeDetail";
-import MepPlanning from "./pages/kitchen/MepPlanning";
-import InternalOrders from "./pages/kitchen/InternalOrders";
-import KitchenTasks from "./pages/kitchen/KitchenTasks";
-import ReservationsDemo from "./pages/ReservationsDemo";
-import ServiceModule from "./pages/service/ServiceModule";
+import Dashboard from "./pages/Dashboard";
+import Reservations from "./pages/Reservations";
 import FohModule from "./pages/foh/FohModule";
+import Kassatelling from "./pages/Kassatelling";
+import Voorraad from "./pages/Voorraad";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -29,72 +23,22 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-            <Route path="/" element={<Auth />} />
-            <Route path="/reservations-demo" element={<ReservationsDemo />} />
-            <Route path="/home" element={<ProtectedRoute><HomeHub /></ProtectedRoute>} />
-            <Route path="/kassa-overdag" element={<ProtectedRoute><KassatellingOverdag /></ProtectedRoute>} />
-            <Route path="/kassa" element={<ProtectedRoute><Kassa /></ProtectedRoute>} />
-            <Route
-              path="/voorraad"
-              element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              }
-            />
+          <Route path="/" element={<Auth />} />
+          
+          {/* Main module routes - all with sidebar */}
           <Route 
-            path="/kitchen" 
+            path="/home" 
             element={
               <ProtectedRoute>
-                <KitchenMenu />
+                <Dashboard />
               </ProtectedRoute>
             } 
           />
           <Route 
-            path="/kitchen/recipes" 
+            path="/reservations" 
             element={
               <ProtectedRoute>
-                <Recipes />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/kitchen/recipes/:id" 
-            element={
-              <ProtectedRoute>
-                <RecipeDetail />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/kitchen/mep" 
-            element={
-              <ProtectedRoute>
-                <MepPlanning />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/kitchen/orders" 
-            element={
-              <ProtectedRoute>
-                <InternalOrders />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/kitchen/tasks" 
-            element={
-              <ProtectedRoute>
-                <KitchenTasks />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/foh" 
-            element={
-              <ProtectedRoute>
-                <FohModule />
+                <Reservations />
               </ProtectedRoute>
             } 
           />
@@ -107,14 +51,33 @@ const App = () => (
             } 
           />
           <Route 
-            path="/service"
+            path="/kassatelling" 
             element={
               <ProtectedRoute>
-                <ServiceModule />
+                <Kassatelling />
               </ProtectedRoute>
             } 
           />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route 
+            path="/voorraad" 
+            element={
+              <ProtectedRoute>
+                <LocationGuard allowedLocations={['West']}>
+                  <Voorraad />
+                </LocationGuard>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/settings" 
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -1,6 +1,7 @@
-import { Home, Calendar, CheckSquare, Calculator, ChefHat, Settings, Bell } from 'lucide-react';
+import { Home, Calendar, CheckSquare, Calculator, Package, Settings, Bell } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 import {
   Sidebar,
   SidebarContent,
@@ -16,37 +17,68 @@ import {
 import { Button } from '@/components/ui/button';
 import puraVidaLogo from '@/assets/pura-vida-logo-header.png';
 
-const navigationItems = [
+const allNavigationItems = [
   {
     title: 'Dashboard',
     url: '/home',
     icon: Home,
+    locations: ['West', 'Midsland'],
   },
   {
     title: 'Reserveringen',
-    url: '/reservations-demo',
+    url: '/reservations',
     icon: Calendar,
+    locations: ['West', 'Midsland'],
   },
   {
     title: 'Taken Bediening',
     url: '/taken-bediening',
     icon: CheckSquare,
+    locations: ['West', 'Midsland'],
   },
   {
     title: 'Kassatelling',
-    url: '/kassatelling-overdag',
+    url: '/kassatelling',
     icon: Calculator,
+    locations: ['West', 'Midsland'],
+  },
+  {
+    title: 'Voorraad',
+    url: '/voorraad',
+    icon: Package,
+    locations: ['West'],
   },
   {
     title: 'Settings',
     url: '/settings',
     icon: Settings,
+    locations: ['West', 'Midsland'],
   },
 ];
 
 export function AppSidebar() {
   const location = useLocation();
   const [hasNotifications, setHasNotifications] = useState(true);
+  const [userLocation, setUserLocation] = useState<string>('');
+
+  useEffect(() => {
+    const fetchLocation = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('user_roles')
+          .select('location')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        setUserLocation(data?.location || '');
+      }
+    };
+    fetchLocation();
+  }, []);
+
+  const navigationItems = userLocation 
+    ? allNavigationItems.filter(item => item.locations.includes(userLocation))
+    : allNavigationItems;
 
   const isActive = (url: string) => location.pathname === url;
 
