@@ -11,7 +11,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       <div className="flex min-h-screen w-full">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
-          <header className="h-16 flex items-center border-b px-4 bg-background">
+          <header className="h-16 flex items-center justify-end border-b px-4 bg-background">
             <SidebarTrigger />
           </header>
           <main className="flex-1 p-6 bg-background">
