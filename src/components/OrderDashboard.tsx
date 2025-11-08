@@ -299,59 +299,10 @@ export default function OrderDashboard() {
   };
   const hasAnyStock = products.some(p => p.currentStock > 0);
   const totalRefill = products.reduce((sum, p) => sum + calculateRefill(p.targetStock, p.currentStock), 0);
-  return <div className="min-h-screen bg-[#F5F7DD]">
-      {/* Header */}
-      <div className="bg-[#F5F7DD] border-b border-[#1B7867]/10">
-        <div className="max-w-3xl mx-auto px-4 py-4 sm:py-5 sm:px-6 lg:px-8">
-
-          {/* Mobile Layout */}
-          <div className="sm:hidden flex items-center justify-between gap-3">
-            {/* Left: Week & Voorraad */}
-            <div className="flex-1 text-left">
-              <div className="text-xs text-[#282E3A]/50 mb-1">
-                Week {currentWeek} • {new Date().toLocaleDateString('nl-NL', {
-                day: 'numeric',
-                month: 'numeric'
-              })}
-              </div>
-              <div className="text-xs text-[#282E3A]/60 flex items-center gap-2">
-                <span>Voorraad - West</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button className="text-[#1B7867] hover:text-[#0d5a4c] transition-colors">
-                        <Info className="h-3.5 w-3.5" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs bg-white border-[#1B7867]/20 text-[#282E3A]">
-                      <p className="text-xs">Noteer de huidige voorraad. Het systeem rekent uit wat Midsland aanvult.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-            
-            {/* Center: Logo */}
-            <div className="flex-shrink-0">
-              <img src={logoGreen} alt="Pura Vida Foodbar" className="h-14 w-auto" />
-            </div>
-            
-            {/* Right: Keuken & Logout */}
-            <div className="flex-1 flex justify-end gap-2">
-              
-              
-              <Button onClick={handleLogout} variant="ghost" size="sm" className="text-[#282E3A]/50 hover:text-[#282E3A] hover:bg-transparent">
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-3xl mx-auto px-3 py-6 sm:px-4 sm:py-8 lg:px-6 pb-10">
+  return (
+    <>
         {/* Products Table - All Screen Sizes */}
-        <Card className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white mb-4">
+        <Card className="overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.06)] border-[#1B7867]/8 bg-white/95 hover:shadow-md transition-shadow duration-200 mb-4">
           <div>
             <table className="w-full table-fixed">
               <thead>
@@ -396,7 +347,7 @@ export default function OrderDashboard() {
         </Card>
 
         {/* Add Extra Product - Inline Form */}
-        <Card className="p-4 sm:p-5 mb-6 bg-white border-[#E27726]/20 shadow-sm">
+        <Card className="p-4 sm:p-5 mb-6 bg-white/95 border-[#E27726]/20 shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:shadow-md transition-shadow duration-200">
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
             <div className="flex-1 w-full">
               <label className="font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Extra product</label>
@@ -606,6 +557,6 @@ export default function OrderDashboard() {
             *Pro tip: Alles netjes invullen = happy Midsland, happy gasten, happy jullie 🎉
           </p>
         </div>
-      </div>
-    </div>;
+    </>
+  );
 }
