@@ -1,6 +1,6 @@
-import { Home, Calendar, CheckSquare, Calculator, Package, Settings, Bell } from 'lucide-react';
+import { Home, Calendar, CheckSquare, Calculator, Package, Settings } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import {
   Sidebar,
@@ -12,9 +12,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
-  useSidebar,
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
+import { NotificationsDropdown } from '@/components/NotificationsDropdown';
 import puraVidaLogo from '@/assets/pura-vida-logo-header.png';
 
 const allNavigationItems = [
@@ -52,7 +51,6 @@ const allNavigationItems = [
 
 export function AppSidebar() {
   const location = useLocation();
-  const [hasNotifications, setHasNotifications] = useState(true);
   const [userLocation, setUserLocation] = useState<string>('');
 
   useEffect(() => {
@@ -85,17 +83,7 @@ export function AppSidebar() {
           className="h-[89px] w-auto object-contain object-left pl-[10px] py-[10px]"
         />
         <div className="flex items-center gap-2 pr-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative h-9 w-9"
-            onClick={() => setHasNotifications(false)}
-          >
-            <Bell className="h-5 w-5" />
-            {hasNotifications && (
-              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-notification-badge" />
-            )}
-          </Button>
+          <NotificationsDropdown />
           <SidebarTrigger />
         </div>
       </SidebarHeader>
