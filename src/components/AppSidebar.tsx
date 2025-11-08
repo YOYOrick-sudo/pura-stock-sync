@@ -72,7 +72,7 @@ export function AppSidebar() {
         <img 
           src={puraVidaLogo} 
           alt="Pura Vida" 
-          className="h-[52px] w-auto object-contain object-left pl-[10px] py-[10px]"
+          className="h-[99px] w-auto object-contain object-left pl-[10px] py-[10px]"
         />
       </SidebarHeader>
       <SidebarContent className="bg-background">
