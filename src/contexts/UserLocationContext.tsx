@@ -15,26 +15,31 @@ export function UserLocationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    // Listen to auth state changes
+    // Listen to auth state changes - ZONDER async operations!
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {  // ✅ NIET async
         if (!mounted) return;
         
         console.log('Auth event:', event, 'Session:', session?.user?.id);
         
         if (event === 'SIGNED_IN' && session) {
-          // Force fresh fetch bij nieuwe login
-          const { data } = await supabase
-            .from('user_roles')
-            .select('location')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-          
-          if (mounted) {
-            console.log('User location loaded:', data?.location);
-            setUserLocation(data?.location || '');
-            setLoading(false);
-          }
+          // ✅ Defer Supabase call met setTimeout
+          setTimeout(() => {
+            if (!mounted) return;
+            
+            supabase
+              .from('user_roles')
+              .select('location')
+              .eq('user_id', session.user.id)
+              .maybeSingle()
+              .then(({ data }) => {
+                if (mounted) {
+                  console.log('User location loaded:', data?.location);
+                  setUserLocation(data?.location || '');
+                  setLoading(false);
+                }
+              });
+          }, 0);
         } else if (event === 'SIGNED_OUT') {
           if (mounted) {
             console.log('User signed out, clearing location');
