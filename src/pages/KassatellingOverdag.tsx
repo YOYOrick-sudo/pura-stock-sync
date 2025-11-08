@@ -2,7 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { LogOut, Info } from 'lucide-react';
+import { LogOut, Info, CheckCircle2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -58,6 +65,7 @@ const KassatellingOverdag = () => {
   });
   const [opmerkingen, setOpmerkingen] = useState('');
   const [showInstructionsDialog, setShowInstructionsDialog] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   
   // Validation states
   const [errors, setErrors] = useState({
@@ -167,13 +175,14 @@ const KassatellingOverdag = () => {
         },
         body: JSON.stringify(data)
       });
-      toast.success('Afdracht verzonden ✅');
+      
+      setShowSuccessDialog(true);
 
-      // Auto logout and redirect after 1.5 seconds
+      // Auto logout and redirect after 3 seconds
       setTimeout(async () => {
         await supabase.auth.signOut();
         navigate('/');
-      }, 1500);
+      }, 3000);
     } catch (error) {
       console.error('Fout bij verzenden:', error);
       toast.error('Verzenden mislukt');
@@ -415,6 +424,35 @@ const KassatellingOverdag = () => {
         </div>
       </div>
     </div>
+
+        {/* Success Dialog */}
+        <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+          <AlertDialogContent className="bg-white">
+            <div className="text-center">
+              <CheckCircle2 className="w-16 h-16 text-[#1B7867] mx-auto mb-4" />
+              
+              <AlertDialogTitle className="text-2xl font-heading font-bold text-[#282E3A]">
+                Kassatelling Verzonden!
+              </AlertDialogTitle>
+              
+              <AlertDialogDescription className="text-[#282E3A]/70 mt-4">
+                Verzonden door {naam}<br/>
+                {new Date().toLocaleString('nl-NL')}
+              </AlertDialogDescription>
+              
+              <AlertDialogAction 
+                onClick={() => {
+                  setShowSuccessDialog(false);
+                  supabase.auth.signOut();
+                  navigate('/');
+                }}
+                className="mt-6 bg-[#1B7867] hover:bg-[#1B7867]/90"
+              >
+                Sluiten
+              </AlertDialogAction>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Instructies Dialog */}
         <Dialog open={showInstructionsDialog} onOpenChange={setShowInstructionsDialog}>
