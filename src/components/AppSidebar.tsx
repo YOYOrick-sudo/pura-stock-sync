@@ -94,7 +94,7 @@ export function AppSidebar() {
                     isActive={isActive(item.url)}
                     size="lg"
                     className={cn(
-                      isActive(item.url) && "bg-white/40 border border-gray-200/40 shadow-sm",
+                      isActive(item.url) && "bg-[#E8F5F1] shadow-sm",
                       state === "collapsed" && "justify-center"
                     )}
                   >
