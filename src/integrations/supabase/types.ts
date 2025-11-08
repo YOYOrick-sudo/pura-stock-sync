@@ -260,6 +260,36 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_members: {
+        Row: {
+          active: boolean
+          created_at: string | null
+          created_by: string
+          id: string
+          location: string
+          name: string
+          role: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string | null
+          created_by: string
+          id?: string
+          location: string
+          name: string
+          role?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          location?: string
+          name?: string
+          role?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null

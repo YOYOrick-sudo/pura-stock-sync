@@ -26,9 +26,9 @@ const HomeHub = () => {
         const location = data?.location || 'West';
         setUserLocation(location);
 
-        // Redirect Midsland users directly to kassa
+        // Redirect Midsland users directly to service module
         if (location === 'Midsland') {
-          navigate('/kassa');
+          navigate('/service');
         }
       }
     };

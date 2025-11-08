@@ -17,6 +17,7 @@ import MepPlanning from "./pages/kitchen/MepPlanning";
 import InternalOrders from "./pages/kitchen/InternalOrders";
 import KitchenTasks from "./pages/kitchen/KitchenTasks";
 import ReservationsDemo from "./pages/ReservationsDemo";
+import ServiceModule from "./pages/service/ServiceModule";
 
 const queryClient = new QueryClient();
 
@@ -85,6 +86,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <KitchenTasks />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/service" 
+            element={
+              <ProtectedRoute>
+                <ServiceModule />
               </ProtectedRoute>
             } 
           />
