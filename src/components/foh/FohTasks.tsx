@@ -294,16 +294,25 @@ export function FohTasks() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div>
-          <h3 className="text-lg font-semibold text-foreground">
-            FOH Taken
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            {sortedTasks.length} {sortedTasks.length === 1 ? 'taak' : 'taken'}
-          </p>
-        </div>
+    <div className="space-y-6">
+      {/* Horizontal row: Tabs left, Button right */}
+      <div className="flex items-center justify-between gap-4">
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as 'open' | 'done')} className="flex-shrink-0">
+          <TabsList className="inline-flex h-10 items-center justify-start rounded-lg bg-muted/50 p-1">
+            <TabsTrigger 
+              value="open"
+              className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            >
+              Open
+            </TabsTrigger>
+            <TabsTrigger 
+              value="done"
+              className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+            >
+              Afgerond
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         <Dialog 
           open={dialogOpen} 
@@ -317,7 +326,7 @@ export function FohTasks() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Nieuwe taak
+              Nieuwe Taak
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -478,13 +487,9 @@ export function FohTasks() {
         </Dialog>
       </div>
 
+      {/* Task list - outside the horizontal row */}
       <Tabs value={filter} onValueChange={(v) => setFilter(v as 'open' | 'done')}>
-        <TabsList className="grid w-full grid-cols-2 bg-white">
-          <TabsTrigger value="open">Open</TabsTrigger>
-          <TabsTrigger value="done">Afgerond</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value={filter} className="mt-4 space-y-3">
+        <TabsContent value={filter} className="mt-0 space-y-3">
           {sortedTasks.length === 0 ? (
             <Card className="p-12 border-dashed border-2 border-muted text-center">
               <p className="text-muted-foreground">

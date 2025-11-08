@@ -25,10 +25,10 @@ export default function FohModule() {
 
   return (
     <SidebarLayout>
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div>
-          <h1 className="text-3xl font-heading font-bold text-foreground">Bediening</h1>
-          <p className="text-muted-foreground">Taken - {userLocation}</p>
+          <h1 className="text-3xl font-heading font-bold text-foreground">Taken Bediening</h1>
+          <p className="text-sm text-muted-foreground">{userLocation}</p>
         </div>
         <FohTasks />
       </div>
