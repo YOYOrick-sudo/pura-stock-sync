@@ -14,6 +14,77 @@ export type Database = {
   }
   public: {
     Tables: {
+      foh_employees: {
+        Row: {
+          created_at: string
+          id: string
+          location: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      foh_tasks: {
+        Row: {
+          archived: boolean
+          assigned_employee_id: string | null
+          completed: boolean
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          due_date: string
+          id: string
+          location: string
+          priority: number
+          title: string
+        }
+        Insert: {
+          archived?: boolean
+          assigned_employee_id?: string | null
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          due_date: string
+          id?: string
+          location: string
+          priority?: number
+          title: string
+        }
+        Update: {
+          archived?: boolean
+          assigned_employee_id?: string | null
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          due_date?: string
+          id?: string
+          location?: string
+          priority?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_foh_tasks_employee"
+            columns: ["assigned_employee_id"]
+            isOneToOne: false
+            referencedRelation: "foh_employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       internal_order_items: {
         Row: {
           created_at: string | null
@@ -319,6 +390,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_user_location: { Args: never; Returns: string }
       generate_order_number: { Args: never; Returns: string }
       get_user_location: { Args: { _user_id: string }; Returns: string }
       has_role: {

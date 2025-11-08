@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Package, Calculator, LogOut } from "lucide-react";
+import { Package, Calculator, LogOut, CheckSquare } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import WaveBackground from "@/components/WaveBackground";
@@ -25,11 +25,6 @@ const HomeHub = () => {
         } = await supabase.from('user_roles').select('location').eq('user_id', user.id).maybeSingle();
         const location = data?.location || 'West';
         setUserLocation(location);
-
-        // Redirect Midsland users directly to service module
-        if (location === 'Midsland') {
-          navigate('/service');
-        }
       }
     };
     fetchUserLocation();
@@ -54,24 +49,34 @@ const HomeHub = () => {
 
       <Card className="p-5 space-y-4 bg-card/80 backdrop-blur-sm shadow-md max-w-sm md:max-w-md w-full animate-fade-in">
         {/* Logo */}
-        <div className="flex justify-center">
-          
+        <div className="flex justify-center mb-4">
+          <img src={logoGreen} alt="Pura Vida" className="h-20" />
         </div>
 
         {/* Title */}
-        
+        <h2 className="text-2xl font-heading font-bold text-center text-foreground mb-6">
+          Dashboard
+        </h2>
         
         {/* Buttons */}
         <div className="flex flex-col gap-3 w-full">
-          {userLocation === 'West' && <Button size="default" className="h-14 text-base" onClick={() => navigate('/voorraad')}>
-              <Package className="mr-3 h-7 w-7" />
-              Voorraadregistratie
-            </Button>}
+          {/* FOH Taken tile - EERSTE en voor ALLE users */}
+          <Button size="default" className="h-16 text-base font-semibold" onClick={() => navigate('/foh')}>
+            <CheckSquare className="mr-3 h-7 w-7" />
+            Bediening Taken
+          </Button>
           
-          <Button size="default" variant="secondary" className="h-14 text-base" onClick={() => navigate('/kassa')}>
+          {/* Kassatelling tile - TWEEDE optie */}
+          <Button size="default" variant="secondary" className="h-16 text-base" onClick={() => navigate('/kassa')}>
             <Calculator className="mr-3 h-7 w-7" />
             Kassatelling
           </Button>
+
+          {/* Voorraad tile - alleen West, DERDE optie */}
+          {userLocation === 'West' && <Button size="default" variant="outline" className="h-16 text-base" onClick={() => navigate('/voorraad')}>
+              <Package className="mr-3 h-7 w-7" />
+              Voorraadregistratie
+            </Button>}
         </div>
       </Card>
     </div>;

@@ -18,6 +18,7 @@ import InternalOrders from "./pages/kitchen/InternalOrders";
 import KitchenTasks from "./pages/kitchen/KitchenTasks";
 import ReservationsDemo from "./pages/ReservationsDemo";
 import ServiceModule from "./pages/service/ServiceModule";
+import FohModule from "./pages/foh/FohModule";
 
 const queryClient = new QueryClient();
 
@@ -90,7 +91,15 @@ const App = () => (
             } 
           />
           <Route 
-            path="/service" 
+            path="/foh" 
+            element={
+              <ProtectedRoute>
+                <FohModule />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/service"
             element={
               <ProtectedRoute>
                 <ServiceModule />
