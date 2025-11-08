@@ -25,8 +25,8 @@ export default function Voorraad() {
     <SidebarLayout>
       <div className="space-y-4">
         <div>
-          <h1 className="text-3xl font-heading font-bold text-foreground">Voorraadregistratie</h1>
-          <p className="text-sm text-muted-foreground">{userLocation}</p>
+          <h1 className="text-3xl font-heading font-bold text-foreground">Telling & Bestelling</h1>
+          <p className="text-sm text-muted-foreground">Bestel bij Pura Midsland</p>
         </div>
         
         <OrderDashboard />

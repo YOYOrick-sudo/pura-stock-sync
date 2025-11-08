@@ -194,7 +194,7 @@ interface DashboardCardProps {
 const DashboardCard = ({ title, count, icon: Icon, onClick, isLoading }: DashboardCardProps) => {
   return (
     <Card 
-      className="p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 bg-gradient-to-br from-white to-gray-50 border border-gray-200"
+      className="p-6 cursor-pointer transition-shadow duration-200 hover:shadow-md active:scale-[0.98] bg-gradient-to-br from-white to-gray-50 border border-gray-200"
       onClick={onClick}
     >
       <div className="flex items-start justify-between mb-4">
@@ -226,7 +226,7 @@ const VoorraadCard = () => {
   
   return (
     <Card 
-      className={`p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-2 ${status.borderColor} ${status.bgColor}`}
+      className={`p-6 cursor-pointer transition-shadow duration-200 hover:shadow-md active:scale-[0.98] border-2 ${status.borderColor} ${status.bgColor}`}
       onClick={() => navigate('/voorraad')}
     >
       <div className="flex items-start justify-between mb-4">
@@ -242,7 +242,10 @@ const VoorraadCard = () => {
       
       <div>
         <p className="text-sm font-semibold text-gray-900 mb-1">
-          Voorraad Telling
+          Telling & Bestelling
+        </p>
+        <p className="text-xs text-gray-500 mb-1">
+          Bestel bij Pura Midsland
         </p>
         <p className={`text-xs ${status.color} font-semibold mb-0.5`}>
           {status.message}
@@ -409,7 +412,7 @@ export default function Dashboard() {
 
   return (
     <SidebarLayout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div className="flex items-center justify-between gap-4">
         <h1 className="text-3xl font-heading font-bold text-foreground">
           Aloha Pura - <span className="text-[#1B7867]">{userLocation}</span>!
