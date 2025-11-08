@@ -6,6 +6,18 @@ import { supabase } from '@/lib/supabase';
 export default function Dashboard() {
   const [userLocation, setUserLocation] = useState<string>('');
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    
+    if (hour < 12) {
+      return 'Goedemorgen';
+    } else if (hour < 18) {
+      return 'Goedemiddag';
+    } else {
+      return 'Goedenavond';
+    }
+  };
+
   useEffect(() => {
     const fetchLocation = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -25,17 +37,10 @@ export default function Dashboard() {
     <SidebarLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-heading font-bold text-foreground">Dashboard</h1>
+          <h1 className="text-3xl font-heading font-bold text-foreground">
+            {getGreeting()}
+          </h1>
           <p className="text-sm text-muted-foreground">{userLocation}</p>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="p-6">
-            <h3 className="font-semibold text-lg mb-2">Welkom</h3>
-            <p className="text-muted-foreground">
-              Gebruik het menu aan de linkerkant om te navigeren naar de verschillende modules.
-            </p>
-          </Card>
         </div>
       </div>
     </SidebarLayout>

@@ -19,7 +19,7 @@ import puraVidaLogo from '@/assets/pura-vida-logo-header.png';
 const allNavigationItems = [
   {
     title: 'Dashboard',
-    url: '/home',
+    url: '/dashboard',
     icon: Home,
     locations: ['West', 'Midsland'],
   },

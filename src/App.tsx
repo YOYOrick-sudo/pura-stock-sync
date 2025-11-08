@@ -22,11 +22,13 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Auth routes */}
           <Route path="/" element={<Auth />} />
+          <Route path="/home" element={<Auth />} />
           
           {/* Main module routes - all with sidebar */}
           <Route 
-            path="/home" 
+            path="/dashboard" 
             element={
               <ProtectedRoute>
                 <Dashboard />

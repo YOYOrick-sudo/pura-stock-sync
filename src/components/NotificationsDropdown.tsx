@@ -119,32 +119,32 @@ export function NotificationsDropdown() {
         <Button variant="ghost" size="icon" className="relative h-9 w-9">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-notification-badge" />
+            <span className="absolute top-0.5 right-0.5 h-1.5 w-1.5 rounded-full bg-[#1B7867]" />
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-96 p-0" align="end" sideOffset={8}>
-        <div className="flex items-center justify-between border-b px-4 py-3">
-          <h3 className="font-semibold text-foreground">
+      <PopoverContent className="w-80 p-0" align="end" sideOffset={8}>
+        <div className="flex items-center justify-between px-3 py-2">
+          <h3 className="text-sm font-medium text-foreground">
             Meldingen {unreadCount > 0 && `(${unreadCount})`}
           </h3>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
               size="sm"
-              className="h-auto px-2 py-1 text-xs"
+              className="h-6 px-2 text-xs hover:bg-transparent hover:text-primary"
               onClick={() => markAllAsReadMutation.mutate()}
             >
-              Alles markeren
+              Alles gelezen
             </Button>
           )}
         </div>
         
-        <ScrollArea className="max-h-[400px]">
+        <ScrollArea className="max-h-[320px]">
           {notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <Bell className="h-12 w-12 text-muted-foreground/50 mb-2" />
-              <p className="text-sm text-muted-foreground">Geen meldingen</p>
+            <div className="flex flex-col items-center justify-center py-6 text-center">
+              <Bell className="h-8 w-8 text-muted-foreground/30 mb-2" />
+              <p className="text-xs text-muted-foreground">Geen meldingen</p>
             </div>
           ) : (
             <div className="divide-y">
@@ -152,22 +152,22 @@ export function NotificationsDropdown() {
                 <button
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
-                  className={`w-full text-left px-4 py-3 transition-colors hover:bg-muted/50 ${
-                    !notification.read ? 'bg-primary/5' : ''
+                  className={`w-full text-left px-3 py-2 transition-colors hover:bg-muted/30 ${
+                    !notification.read ? 'bg-primary/[0.03]' : ''
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <h4 className={`text-sm font-medium ${!notification.read ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  <div className="flex items-center justify-between gap-2 mb-0.5">
+                    <h4 className={`text-sm ${!notification.read ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
                       {notification.title}
                     </h4>
                     {!notification.read && (
-                      <span className="h-2 w-2 rounded-full bg-notification-badge flex-shrink-0 mt-1" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#1B7867] flex-shrink-0" />
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground mb-1">
+                  <p className="text-xs text-muted-foreground">
                     {notification.message}
                   </p>
-                  <p className="text-xs text-muted-foreground/70">
+                  <p className="text-xs text-muted-foreground/60 mt-0.5">
                     {formatDate(notification.created_at)}
                   </p>
                 </button>
