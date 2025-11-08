@@ -38,26 +38,6 @@ const navigationItems = [
     icon: Calculator,
   },
   {
-    title: 'MEP Taken',
-    url: '/kitchen/mep',
-    icon: ChefHat,
-  },
-  {
-    title: 'Halffabricaten',
-    url: '/kitchen/recipes',
-    icon: ChefHat,
-  },
-  {
-    title: 'Interne Bestellingen',
-    url: '/kitchen/orders',
-    icon: ChefHat,
-  },
-  {
-    title: 'Recepten',
-    url: '/kitchen/recipes',
-    icon: ChefHat,
-  },
-  {
     title: 'Settings',
     url: '/settings',
     icon: Settings,
@@ -105,8 +85,8 @@ export function AppSidebar() {
                     isActive={isActive(item.url)}
                   >
                     <Link to={item.url}>
-                      {item.icon && <item.icon className="h-[18px] w-[18px]" />}
-                      <span>{item.title}</span>
+                      {item.icon && <item.icon className="h-5 w-5" />}
+                      <span className="text-base">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
