@@ -68,11 +68,11 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b px-4 py-3">
+      <SidebarHeader className="border-b px-4 pt-2 pb-3">
         <img 
           src={puraVidaLogo} 
           alt="Pura Vida" 
-          className="h-[28px] w-auto"
+          className="h-[22px] w-auto"
         />
       </SidebarHeader>
       <SidebarContent className="bg-background">
