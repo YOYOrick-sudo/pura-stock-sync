@@ -9,7 +9,7 @@ export default function Kassatelling() {
 
   return (
     <SidebarLayout>
-      <div className="space-y-4">
+      <div className="max-w-7xl mx-auto px-6 space-y-10 pt-12">
         <div>
           <h1 className="text-3xl font-heading font-bold text-foreground">Kassatelling</h1>
           <p className="text-sm text-muted-foreground">{userLocation}</p>
