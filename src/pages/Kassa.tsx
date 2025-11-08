@@ -491,6 +491,15 @@ const Kassa = () => {
               <li className="flex gap-3">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">6</span>
                 <div>
+                  <span className="font-heading font-medium text-[#282E3A]">Controleer kassalade</span>
+                  <p className="text-sm text-[#282E3A]/70 mt-1">De kassalade moet altijd €157 bevatten. Vul indien nodig aan vanuit de wisselkassa.</p>
+                  <p className="text-xs text-amber-600/80 mt-1 font-medium">💡 Belangrijk voor zowel Midsland als West</p>
+                </div>
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">7</span>
+                <div>
                   <span className="font-heading font-medium text-[#282E3A]">Noteer bijzonderheden</span>
                   <p className="text-sm text-[#282E3A]/70 mt-1">Vermeld tekorten, plussen of andere afwijkingen.</p>
                   <p className="text-xs text-red-600/80 mt-1 font-medium">⚠️ Altijd melden bij verschillen!</p>
@@ -498,7 +507,7 @@ const Kassa = () => {
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">7</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">8</span>
                 <div>
                   <span className="font-heading font-medium text-[#282E3A]">Verzend</span>
                   <p className="text-sm text-[#282E3A]/70 mt-1">Klik op "Verzenden" om de kassatelling te versturen.</p>
