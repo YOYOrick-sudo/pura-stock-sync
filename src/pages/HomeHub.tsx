@@ -7,11 +7,9 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import WaveBackground from "@/components/WaveBackground";
 import logoGreen from "@/assets/pura-vida-logo-official.png";
-import { useInactivityTimeout } from "@/hooks/useInactivityTimeout";
 const HomeHub = () => {
   const navigate = useNavigate();
   const [userLocation, setUserLocation] = useState<string>('');
-  useInactivityTimeout();
   useEffect(() => {
     const fetchUserLocation = async () => {
       const {

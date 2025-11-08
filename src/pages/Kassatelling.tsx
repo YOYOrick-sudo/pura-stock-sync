@@ -1,5 +1,4 @@
 import { SidebarLayout } from '@/components/SidebarLayout';
-import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -7,7 +6,6 @@ import Kassa from './Kassa';
 import KassatellingOverdag from './KassatellingOverdag';
 
 export default function Kassatelling() {
-  useInactivityTimeout();
   const [userLocation, setUserLocation] = useState<string>('');
 
   useEffect(() => {

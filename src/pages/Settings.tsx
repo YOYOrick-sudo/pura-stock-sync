@@ -1,5 +1,4 @@
 import { SidebarLayout } from '@/components/SidebarLayout';
-import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
@@ -9,7 +8,6 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 export default function Settings() {
-  useInactivityTimeout();
   const navigate = useNavigate();
   const [userLocation, setUserLocation] = useState<string>('');
   const [userEmail, setUserEmail] = useState<string>('');

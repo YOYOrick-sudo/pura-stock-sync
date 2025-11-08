@@ -7,11 +7,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Plus, CheckSquare } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
-import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 
 export default function KitchenTasks() {
-  useInactivityTimeout();
-  
   // TODO: Replace with actual data from useKitchenTasks hook
   const todayTasks: any[] = [];
   const weekTasks: any[] = [];

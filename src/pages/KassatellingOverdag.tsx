@@ -14,7 +14,6 @@ import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 
 // Always get week number reliably using ISO 8601
 const getWeekNumber = (date: Date): number => {
@@ -29,9 +28,8 @@ const KassatellingOverdag = () => {
   const weekNumber = getWeekNumber(new Date());
   const [userLocation, setUserLocation] = useState<string>('');
   const [naam, setNaam] = useState('');
-
-  // Enable inactivity timeout
-  useInactivityTimeout();
+  const [canSubmit, setCanSubmit] = useState(true);
+  const [timeRemaining, setTimeRemaining] = useState(0);
   const [kassaLade, setKassaLade] = useState({
     '500': '' as number | '',
     '200': '' as number | '',
@@ -89,6 +87,34 @@ const KassatellingOverdag = () => {
     };
     fetchUserLocation();
   }, []);
+
+  // Check throttling status
+  useEffect(() => {
+    if (!userLocation) return;
+    
+    const checkSubmitAvailability = () => {
+      const key = `kassatelling_last_submit_${userLocation}_open`;
+      const lastSubmit = localStorage.getItem(key);
+      
+      if (lastSubmit) {
+        const elapsed = Date.now() - parseInt(lastSubmit);
+        const remaining = (10 * 60 * 1000) - elapsed;
+        
+        if (remaining > 0) {
+          setCanSubmit(false);
+          setTimeRemaining(Math.ceil(remaining / 1000));
+        } else {
+          setCanSubmit(true);
+          setTimeRemaining(0);
+        }
+      }
+    };
+    
+    checkSubmitAvailability();
+    const interval = setInterval(checkSubmitAvailability, 1000);
+    
+    return () => clearInterval(interval);
+  }, [userLocation]);
   const updateKassaLade = (denomination: string, value: number | '') => {
     setKassaLade(prev => ({
       ...prev,
@@ -149,6 +175,14 @@ const KassatellingOverdag = () => {
       toast.error('Vul alle verplichte velden in');
       return;
     }
+
+    // Check throttling
+    if (!canSubmit) {
+      const mins = Math.floor(timeRemaining / 60);
+      const secs = timeRemaining % 60;
+      toast.error(`Je kunt pas over ${mins}m ${secs}s opnieuw indienen`);
+      return;
+    }
     const data = {
       type: 'open',
       week: weekNumber,
@@ -174,6 +208,12 @@ const KassatellingOverdag = () => {
         },
         body: JSON.stringify(data)
       });
+
+      // Save timestamp and disable submit
+      const key = `kassatelling_last_submit_${userLocation}_open`;
+      localStorage.setItem(key, Date.now().toString());
+      setCanSubmit(false);
+      setTimeRemaining(10 * 60);
       
       setShowSuccessDialog(true);
 
@@ -400,16 +440,21 @@ const KassatellingOverdag = () => {
 
           {/* Verzenden button */}
           <div className="mt-4 space-y-3">
+            {!canSubmit && timeRemaining > 0 && (
+              <p className="text-xs text-[#282E3A]/60 text-center">
+                Je kunt over {Math.floor(timeRemaining / 60)}m {timeRemaining % 60}s opnieuw indienen
+              </p>
+            )}
             <Button 
               onClick={handleSubmit}
-              disabled={!naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3}
+              disabled={!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3}
               className={`w-full font-heading font-bold text-lg py-6 transition-all ${
-                (!naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3)
+                (!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3)
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-[#1B7867] hover:bg-[#1B7867]/90 text-white'
               }`}
             >
-              Verzenden
+              {!canSubmit ? 'Wacht alsjeblieft...' : 'Verzenden'}
             </Button>
             
             <Button variant="outline" onClick={() => setShowInstructionsDialog(true)} className="w-full border-[#1B7867]/30 text-[#1B7867] hover:bg-[#1B7867]/5 font-heading font-medium flex items-center gap-2 justify-center">

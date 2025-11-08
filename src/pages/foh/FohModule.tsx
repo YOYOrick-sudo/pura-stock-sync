@@ -1,11 +1,9 @@
-import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 import { FohTasks } from '@/components/foh/FohTasks';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { SidebarLayout } from '@/components/SidebarLayout';
 
 export default function FohModule() {
-  useInactivityTimeout();
   const [userLocation, setUserLocation] = useState<string>('');
 
   useEffect(() => {

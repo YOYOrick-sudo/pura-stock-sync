@@ -1,12 +1,9 @@
 import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 import { ServiceTasks } from '@/components/service/ServiceTasks';
 import { ServiceStaff } from '@/components/service/ServiceStaff';
 
 export default function ServiceModule() {
-  useInactivityTimeout();
-
   return (
     <KitchenLayout title="Bediening" subtitle="Taken & Medewerkers - Midsland">
       <Tabs defaultValue="tasks" className="space-y-6">

@@ -1,11 +1,9 @@
 import { SidebarLayout } from '@/components/SidebarLayout';
-import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 import { Card } from '@/components/ui/card';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export default function Dashboard() {
-  useInactivityTimeout();
   const [userLocation, setUserLocation] = useState<string>('');
 
   useEffect(() => {

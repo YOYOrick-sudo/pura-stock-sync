@@ -4,7 +4,6 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import logoGreen from '@/assets/pura-vida-logo-official.png';
-import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 
 interface MenuCardProps {
   to: string;
@@ -45,8 +44,6 @@ const MenuCard = ({ to, icon: Icon, title, description, color }: MenuCardProps) 
 
 export default function KitchenMenu() {
   const navigate = useNavigate();
-  
-  useInactivityTimeout();
 
   return (
     <div className="min-h-screen bg-background">

@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, ArrowRight, Package, X } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 
 interface OrderItem {
   product_name: string;
@@ -18,8 +17,6 @@ interface OrderItem {
 }
 
 export default function InternalOrders() {
-  useInactivityTimeout();
-  
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [newItem, setNewItem] = useState({ product_name: '', quantity: 1, unit: 'stuks' });
 

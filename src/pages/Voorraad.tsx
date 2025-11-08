@@ -1,11 +1,9 @@
 import { SidebarLayout } from '@/components/SidebarLayout';
-import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
 import OrderDashboard from '@/components/OrderDashboard';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export default function Voorraad() {
-  useInactivityTimeout();
   const [userLocation, setUserLocation] = useState<string>('');
 
   useEffect(() => {
