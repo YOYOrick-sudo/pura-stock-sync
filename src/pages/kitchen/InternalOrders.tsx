@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Plus, ArrowRight, Package, X } from 'lucide-react';
+import { Plus, ArrowRight, Package, X, Loader2 } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useUserLocation } from '@/contexts/UserLocationContext';
@@ -20,7 +20,7 @@ interface OrderItem {
 }
 
 export default function InternalOrders() {
-  const { userLocation } = useUserLocation();
+  const { userLocation, loading } = useUserLocation();
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [newItem, setNewItem] = useState({ product_name: '', quantity: 1, unit: 'stuks' });
   const [toLocation, setToLocation] = useState('Midsland');
@@ -41,6 +41,9 @@ export default function InternalOrders() {
   };
 
   const handleSubmitOrder = async () => {
+    if (!userLocation) {
+      return;
+    }
     if (orderItems.length === 0) {
       return;
     }
@@ -78,7 +81,15 @@ export default function InternalOrders() {
 
   return (
     <KitchenLayout title="Interne bestellingen" subtitle="Bestel tussen locaties">
-      <Tabs defaultValue="new" className="space-y-6">
+      {loading ? (
+        <Card className="p-6 bg-white shadow-sm">
+          <div className="text-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-muted-foreground">Gebruikersgegevens laden...</p>
+          </div>
+        </Card>
+      ) : (
+        <Tabs defaultValue="new" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3 bg-white">
           <TabsTrigger value="new">Nieuwe bestelling</TabsTrigger>
           <TabsTrigger value="sent">
@@ -99,7 +110,7 @@ export default function InternalOrders() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Van locatie</Label>
-                  <Input value={userLocation} disabled className="bg-muted" />
+                  <Input value={userLocation || 'Laden...'} disabled className="bg-muted" />
                 </div>
                 <div>
                   <Label>Naar locatie</Label>
@@ -186,7 +197,7 @@ export default function InternalOrders() {
               <Button 
                 className="w-full bg-primary hover:bg-primary-hover"
                 onClick={handleSubmitOrder}
-                disabled={sendOrderMutation.isPending || orderItems.length === 0 || !deliveryDate}
+                disabled={loading || !userLocation || sendOrderMutation.isPending || orderItems.length === 0 || !deliveryDate}
               >
                 <ArrowRight className="h-4 w-4 mr-2" />
                 {sendOrderMutation.isPending ? 'Bezig met verzenden...' : 'Verstuur bestelling'}
@@ -294,7 +305,8 @@ export default function InternalOrders() {
             ))
           )}
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      )}
     </KitchenLayout>
   );
 }
