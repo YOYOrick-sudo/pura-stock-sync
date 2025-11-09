@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ChevronDown, ChevronUp, Package, Calendar, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import { Badge } from '@/components/ui/badge';
 
 interface InternalOrderItem {
   id: string;
@@ -42,6 +43,7 @@ const statusLabels = {
 
 export default function MidslandOrders() {
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ['midsland-orders'],
@@ -60,6 +62,29 @@ export default function MidslandOrders() {
       return data as InternalOrder[];
     },
   });
+
+  // Realtime subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('midsland-orders')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'internal_orders',
+          filter: 'to_location=eq.Midsland'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['midsland-orders'] });
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const toggleOrder = (orderId: string) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
@@ -110,11 +135,11 @@ export default function MidslandOrders() {
                           <h3 className="text-lg font-semibold text-foreground">
                             {order.order_number}
                           </h3>
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-medium border ${statusColor}`}
+                          <Badge
+                            className={statusColor}
                           >
                             {statusLabel}
-                          </span>
+                          </Badge>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1.5">

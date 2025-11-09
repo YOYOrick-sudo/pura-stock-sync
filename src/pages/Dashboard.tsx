@@ -458,7 +458,7 @@ export default function Dashboard() {
           .select('*')
           .eq('from_location', 'West')
           .eq('to_location', 'Midsland')
-          .in('status', ['pending', 'approved'])
+          .eq('status', 'approved')
           .gte('created_at', startOfWeek.toISOString());
         return data && data.length > 0; // Returns boolean
       }

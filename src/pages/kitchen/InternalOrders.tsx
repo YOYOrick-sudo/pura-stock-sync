@@ -9,6 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, ArrowRight, Package, X } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useUserLocation } from '@/contexts/UserLocationContext';
+import { useSendInternalOrder, useSentOrders, useReceivedOrders } from '@/hooks/useInternalOrders';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface OrderItem {
   product_name: string;
@@ -17,12 +20,15 @@ interface OrderItem {
 }
 
 export default function InternalOrders() {
+  const { userLocation } = useUserLocation();
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [newItem, setNewItem] = useState({ product_name: '', quantity: 1, unit: 'stuks' });
+  const [toLocation, setToLocation] = useState('Midsland');
+  const [deliveryDate, setDeliveryDate] = useState('');
 
-  // TODO: Replace with actual data from useInternalOrders hook
-  const sentOrders: any[] = [];
-  const receivedOrders: any[] = [];
+  const sendOrderMutation = useSendInternalOrder();
+  const { data: sentOrders = [], isLoading: loadingSent } = useSentOrders(userLocation);
+  const { data: receivedOrders = [], isLoading: loadingReceived } = useReceivedOrders(userLocation);
 
   const addOrderItem = () => {
     if (!newItem.product_name || newItem.quantity <= 0) return;
@@ -32,6 +38,27 @@ export default function InternalOrders() {
 
   const removeOrderItem = (index: number) => {
     setOrderItems(orderItems.filter((_, i) => i !== index));
+  };
+
+  const handleSubmitOrder = async () => {
+    if (orderItems.length === 0) {
+      return;
+    }
+    if (!deliveryDate) {
+      return;
+    }
+
+    await sendOrderMutation.mutateAsync({
+      from_location: userLocation,
+      to_location: toLocation,
+      delivery_date: deliveryDate,
+      items: orderItems,
+    });
+
+    // Reset form
+    setOrderItems([]);
+    setDeliveryDate('');
+    setToLocation('Midsland');
   };
 
   const getStatusColor = (status: string) => {
@@ -72,11 +99,11 @@ export default function InternalOrders() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Van locatie</Label>
-                  <Input value="West" disabled className="bg-muted" />
+                  <Input value={userLocation} disabled className="bg-muted" />
                 </div>
                 <div>
                   <Label>Naar locatie</Label>
-                  <Select defaultValue="Midsland">
+                  <Select value={toLocation} onValueChange={setToLocation}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -90,7 +117,11 @@ export default function InternalOrders() {
               {/* Delivery Date */}
               <div>
                 <Label>Gewenste leverdatum</Label>
-                <Input type="date" />
+                <Input 
+                  type="date" 
+                  value={deliveryDate}
+                  onChange={(e) => setDeliveryDate(e.target.value)}
+                />
               </div>
 
               {/* Product Items */}
@@ -152,9 +183,13 @@ export default function InternalOrders() {
               </div>
 
               {/* Submit */}
-              <Button className="w-full bg-primary hover:bg-primary-hover">
+              <Button 
+                className="w-full bg-primary hover:bg-primary-hover"
+                onClick={handleSubmitOrder}
+                disabled={sendOrderMutation.isPending || orderItems.length === 0 || !deliveryDate}
+              >
                 <ArrowRight className="h-4 w-4 mr-2" />
-                Verstuur bestelling
+                {sendOrderMutation.isPending ? 'Bezig met verzenden...' : 'Verstuur bestelling'}
               </Button>
             </div>
           </Card>
@@ -162,7 +197,12 @@ export default function InternalOrders() {
 
         {/* Sent Orders Tab */}
         <TabsContent value="sent" className="space-y-4">
-          {sentOrders.length === 0 ? (
+          {loadingSent ? (
+            <div className="space-y-4">
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+          ) : sentOrders.length === 0 ? (
             <EmptyState
               icon={Package}
               title="Geen verzonden bestellingen"
@@ -179,12 +219,24 @@ export default function InternalOrders() {
                     </p>
                   </div>
                   <Badge className={getStatusColor(order.status)}>
-                    {order.status}
+                    {order.status === 'approved' ? 'Goedgekeurd' : order.status}
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground mb-2">
                   Leverdatum: {new Date(order.delivery_date).toLocaleDateString('nl-NL')}
                 </p>
+                {order.internal_order_items && order.internal_order_items.length > 0 && (
+                  <div className="mt-3 pt-3 border-t">
+                    <p className="text-xs font-semibold mb-2">Producten:</p>
+                    <div className="space-y-1">
+                      {order.internal_order_items.map((item: any) => (
+                        <p key={item.id} className="text-xs text-muted-foreground">
+                          • {item.product_name} - {item.quantity} {item.unit}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </Card>
             ))
           )}
@@ -192,7 +244,12 @@ export default function InternalOrders() {
 
         {/* Received Orders Tab */}
         <TabsContent value="received" className="space-y-4">
-          {receivedOrders.length === 0 ? (
+          {loadingReceived ? (
+            <div className="space-y-4">
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+          ) : receivedOrders.length === 0 ? (
             <EmptyState
               icon={Package}
               title="Geen ontvangen bestellingen"
@@ -209,17 +266,28 @@ export default function InternalOrders() {
                     </p>
                   </div>
                   <Badge className={getStatusColor(order.status)}>
-                    {order.status}
+                    {order.status === 'approved' ? 'Goedgekeurd' : order.status}
                   </Badge>
                 </div>
-                {order.status === 'pending' && (
-                  <div className="flex gap-2 mt-3">
-                    <Button size="sm" className="flex-1 bg-primary hover:bg-primary-hover">
-                      Goedkeuren
-                    </Button>
-                    <Button size="sm" variant="outline" className="flex-1">
-                      Afwijzen
-                    </Button>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Leverdatum: {new Date(order.delivery_date).toLocaleDateString('nl-NL')}
+                </p>
+                {order.internal_order_items && order.internal_order_items.length > 0 && (
+                  <div className="mt-3 pt-3 border-t">
+                    <p className="text-xs font-semibold mb-2">Producten:</p>
+                    <div className="space-y-1">
+                      {order.internal_order_items.map((item: any) => (
+                        <p key={item.id} className="text-xs text-muted-foreground">
+                          • {item.product_name} - {item.quantity} {item.unit}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {order.notes && (
+                  <div className="mt-3 pt-3 border-t">
+                    <p className="text-xs font-semibold mb-1">Notities:</p>
+                    <p className="text-xs text-muted-foreground">{order.notes}</p>
                   </div>
                 )}
               </Card>
