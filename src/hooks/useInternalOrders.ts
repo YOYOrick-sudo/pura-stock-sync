@@ -67,11 +67,11 @@ export const useSendInternalOrder = () => {
         description: 'De bestelling is succesvol aangemaakt en goedgekeurd',
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error sending order:', error);
       toast({
-        title: 'Error',
-        description: 'Er is iets misgegaan bij het versturen van de bestelling',
+        title: 'Fout bij versturen bestelling',
+        description: error.message || 'Er is iets misgegaan bij het versturen van de bestelling',
         variant: 'destructive',
       });
     },
