@@ -43,6 +43,18 @@ const allNavigationItems = [
     locations: ['West'],
   },
   {
+    title: 'Interne Bestellingen',
+    url: '/internal-orders',
+    icon: Package,
+    locations: ['West'],
+  },
+  {
+    title: 'Bestellingen van West',
+    url: '/midsland-bestellingen',
+    icon: Package,
+    locations: ['Midsland'],
+  },
+  {
     title: 'Settings',
     url: '/settings',
     icon: Settings,

@@ -509,7 +509,7 @@ export default function Dashboard() {
               title="Wachtende Bestellingen"
               count={(typeof pendingOrders === 'number' ? pendingOrders : 0)}
               icon={Package}
-              onClick={() => navigate('/kitchen-internal-orders')}
+              onClick={() => navigate('/internal-orders')}
               isLoading={loadingOrders}
             />
           )}

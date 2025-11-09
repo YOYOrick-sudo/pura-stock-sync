@@ -73,10 +73,10 @@ const App = () => (
             } 
           />
           <Route 
-            path="/kitchen-internal-orders" 
+            path="/internal-orders" 
             element={
               <ProtectedRoute>
-                <LocationGuard allowedLocations={['Oost', 'Mids']}>
+                <LocationGuard allowedLocations={['West']}>
                   <InternalOrders />
                 </LocationGuard>
               </ProtectedRoute>
