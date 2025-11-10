@@ -14,18 +14,58 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Loader2, Plus, Check, ChevronsUpDown, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import type { FohTask, FohEmployee, FohTaskWithEmployee, PhaseType, PhaseWindow } from '@/types/foh';
+import { toZonedTime } from 'date-fns-tz';
+import type { FohTask, FohEmployee, FohTaskWithEmployee, PhaseType } from '@/types/foh';
 
-// Phase time windows
-const PHASE_WINDOWS: PhaseWindow[] = [
-  { phase: 'open', label: 'Open', start: '08:30', end: '10:30' },
-  { phase: 'tussen', label: 'Tussen', start: '12:00', end: '18:00' },
-  { phase: 'sluit', label: 'Sluit', start: '20:00', end: '01:00' },
-];
+// Phase time windows (minutes-based)
+const PHASE_WINDOWS = [
+  { phase: 'open' as const, label: 'Open', startMin: 8 * 60 + 30, endMin: 10 * 60 + 30 },
+  { phase: 'tussen' as const, label: 'Tussen', startMin: 12 * 60, endMin: 18 * 60 },
+  { phase: 'sluit' as const, label: 'Sluit', startMin: 20 * 60, endMin: 24 * 60 + 60 },
+] as const;
+
+const nowInAmsterdamMinutes = (): number => {
+  const TIMEZONE = 'Europe/Amsterdam';
+  const nowInAmsterdam = toZonedTime(new Date(), TIMEZONE);
+  const hours = nowInAmsterdam.getHours();
+  const minutes = nowInAmsterdam.getMinutes();
+  let totalMinutes = hours * 60 + minutes;
+  
+  if (hours === 0) {
+    totalMinutes += 24 * 60;
+  }
+  
+  return totalMinutes;
+};
+
+const minutesToTimeString = (minutes: number): string => {
+  const adjustedMinutes = minutes >= 24 * 60 ? minutes - 24 * 60 : minutes;
+  const hours = Math.floor(adjustedMinutes / 60);
+  const mins = adjustedMinutes % 60;
+  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+};
+
+const getCurrentPhaseByTime = (): PhaseType => {
+  const currentMinutes = nowInAmsterdamMinutes();
+  
+  for (const window of PHASE_WINDOWS) {
+    if (currentMinutes >= window.startMin && currentMinutes <= window.endMin) {
+      return window.phase;
+    }
+  }
+  
+  if (currentMinutes < PHASE_WINDOWS[0].startMin) return 'open';
+  if (currentMinutes > PHASE_WINDOWS[0].endMin && currentMinutes < PHASE_WINDOWS[1].startMin) return 'tussen';
+  if (currentMinutes > PHASE_WINDOWS[1].endMin && currentMinutes < PHASE_WINDOWS[2].startMin) return 'sluit';
+  
+  return 'open';
+};
 
 export function FohTasks() {
   const [taskType, setTaskType] = useState<'daily' | 'extra'>('daily');
   const [filter, setFilter] = useState<'open' | 'done'>('open');
+  const [activePhase, setActivePhase] = useState<PhaseType>('open');
+  const [isPhaseManuallySelected, setIsPhaseManuallySelected] = useState(false);
   const [dailyTasks, setDailyTasks] = useState<FohTaskWithEmployee[]>([]);
   const [extraTasks, setExtraTasks] = useState<FohTaskWithEmployee[]>([]);
   const [employees, setEmployees] = useState<FohEmployee[]>([]);
@@ -48,6 +88,12 @@ export function FohTasks() {
     fetchEmployees();
     generateDailyTasks();
   }, []);
+
+  useEffect(() => {
+    if (!isPhaseManuallySelected && taskType === 'daily') {
+      setActivePhase(getCurrentPhaseByTime());
+    }
+  }, [taskType, isPhaseManuallySelected]);
 
   useEffect(() => {
     if (taskType === 'daily') {
@@ -188,24 +234,18 @@ export function FohTasks() {
 
   // Check if a phase is overdue
   const isPhaseOverdue = (phase: PhaseType): boolean => {
-    const now = new Date();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
-    
+    const currentMinutes = nowInAmsterdamMinutes();
     const window = PHASE_WINDOWS.find(w => w.phase === phase);
     if (!window) return false;
-    
-    const [endHour, endMin] = window.end.split(':').map(Number);
-    let endTimeMinutes = endHour * 60 + endMin;
-    
-    // If end time < 08:00, it's next day (e.g., 01:00)
-    if (endHour < 8) {
-      endTimeMinutes += 24 * 60;
-      if (now.getHours() < 8) {
-        return currentTime + 24 * 60 > endTimeMinutes;
-      }
-    }
-    
-    return currentTime > endTimeMinutes;
+    return currentMinutes > window.endMin;
+  };
+
+  const sortTasksInPhase = (tasks: FohTaskWithEmployee[]): FohTaskWithEmployee[] => {
+    return [...tasks].sort((a, b) => {
+      if (!a.completed && b.completed) return -1;
+      if (a.completed && !b.completed) return 1;
+      return 0;
+    });
   };
 
   // Group daily tasks by phase
@@ -220,6 +260,10 @@ export function FohTasks() {
       if (task.phase && task.phase in grouped) {
         grouped[task.phase].push(task);
       }
+    });
+    
+    (Object.keys(grouped) as PhaseType[]).forEach(phase => {
+      grouped[phase] = sortTasksInPhase(grouped[phase]);
     });
     
     return grouped;
@@ -429,7 +473,17 @@ export function FohTasks() {
     <div className="space-y-6">
       {/* Level 1: Task Type Tabs */}
       <div className="flex items-center justify-between gap-4">
-        <Tabs value={taskType} onValueChange={(v) => setTaskType(v as 'daily' | 'extra')} className="flex-shrink-0">
+        <Tabs 
+          value={taskType} 
+          onValueChange={(v) => {
+            setTaskType(v as 'daily' | 'extra');
+            if (v === 'daily') {
+              setIsPhaseManuallySelected(false);
+              setActivePhase(getCurrentPhaseByTime());
+            }
+          }} 
+          className="flex-shrink-0"
+        >
           <TabsList className="inline-flex h-10 items-center justify-start rounded-lg bg-muted/50 p-1">
             <TabsTrigger 
               value="daily"
@@ -620,6 +674,30 @@ export function FohTasks() {
         )}
       </div>
 
+      {taskType === 'daily' && (
+        <div className="flex items-center gap-2 mb-4">
+          {PHASE_WINDOWS.map(window => (
+            <Button
+              key={window.phase}
+              variant={activePhase === window.phase ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setActivePhase(window.phase);
+                setIsPhaseManuallySelected(true);
+              }}
+              className={cn(
+                "rounded-full px-4 py-1 text-xs font-medium transition-all",
+                activePhase === window.phase 
+                  ? "bg-[#1B7867] text-white shadow-sm" 
+                  : "bg-white text-muted-foreground hover:bg-gray-50"
+              )}
+            >
+              {window.label}
+            </Button>
+          ))}
+        </div>
+      )}
+
       {/* Level 2: Status Filter Tabs */}
       <Tabs value={filter} onValueChange={(v) => setFilter(v as 'open' | 'done')}>
         <TabsList className="inline-flex h-10 items-center justify-start rounded-lg bg-muted/50 p-1">
@@ -639,20 +717,22 @@ export function FohTasks() {
 
         <TabsContent value={filter} className="mt-6 space-y-6">
           {taskType === 'daily' ? (
-            // Daily tasks grouped by phase
             <>
-              {PHASE_WINDOWS.map(window => {
-                const phaseTasks = groupedDailyTasks[window.phase];
-                const isOverdue = isPhaseOverdue(window.phase);
+              {(() => {
+                const activeWindow = PHASE_WINDOWS.find(w => w.phase === activePhase);
+                const phaseTasks = groupedDailyTasks[activePhase];
+                const isOverdue = isPhaseOverdue(activePhase);
+                
+                if (!activeWindow) return null;
                 
                 return (
-                  <div key={window.phase} className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-lg font-semibold">{window.label}</h3>
-                      <Badge variant="outline" className="text-xs">
-                        {window.start} - {window.end}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 pb-2 border-b">
+                      <h2 className="text-xl font-bold">{activeWindow.label}</h2>
+                      <Badge variant="outline" className="text-xs font-normal">
+                        {minutesToTimeString(activeWindow.startMin)} – {minutesToTimeString(activeWindow.endMin)}
                       </Badge>
-                      {isOverdue && filter === 'open' && (
+                      {isOverdue && (
                         <Badge variant="destructive" className="text-xs">
                           Overtijd
                         </Badge>
@@ -660,9 +740,9 @@ export function FohTasks() {
                     </div>
                     
                     {phaseTasks.length === 0 ? (
-                      <Card className="p-8 border-dashed border-2 border-muted text-center">
+                      <Card className="p-8 text-center bg-gray-50 border-dashed">
                         <p className="text-sm text-muted-foreground">
-                          Geen taken voor deze fase
+                          Geen taken voor {activeWindow.label}
                         </p>
                       </Card>
                     ) : (
@@ -671,9 +751,9 @@ export function FohTasks() {
                           <Card 
                             key={task.id} 
                             className={cn(
-                              "p-4 bg-white shadow-sm",
+                              "p-4 bg-white shadow-sm border transition-colors",
                               task.completed && "opacity-50",
-                              isOverdue && !task.completed && "border-red-300 bg-red-50"
+                              isOverdue && !task.completed && "border-red-400 bg-red-50"
                             )}
                           >
                             <div className="flex items-start gap-3">
@@ -683,22 +763,18 @@ export function FohTasks() {
                                 disabled={task.completed}
                               />
                               <div className="flex-1">
-                                <div className="flex items-start justify-between mb-2">
-                                  <div className="flex-1">
-                                    <h3 className={`font-semibold ${task.completed ? 'line-through' : ''}`}>
-                                      {task.title}
-                                    </h3>
-                                    <div className="flex gap-2 mt-2 flex-wrap">
-                                      <Badge className={getPriorityConfig(task.priority).color}>
-                                        {getPriorityConfig(task.priority).label}
-                                      </Badge>
-                                      {task.foh_employees && (
-                                        <Badge variant="outline">
-                                          👤 {task.foh_employees.name}
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  </div>
+                                <h3 className={`font-semibold ${task.completed ? 'line-through text-gray-400' : ''}`}>
+                                  {task.title}
+                                </h3>
+                                <div className="flex gap-2 mt-2 flex-wrap">
+                                  <Badge className={getPriorityConfig(task.priority).color}>
+                                    {getPriorityConfig(task.priority).label}
+                                  </Badge>
+                                  {task.foh_employees && (
+                                    <Badge variant="outline">
+                                      👤 {task.foh_employees.name}
+                                    </Badge>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -708,7 +784,7 @@ export function FohTasks() {
                     )}
                   </div>
                 );
-              })}
+              })()}
             </>
           ) : (
             // Extra tasks with existing logic
