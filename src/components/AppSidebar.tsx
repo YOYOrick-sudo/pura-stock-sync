@@ -37,12 +37,6 @@ const allNavigationItems = [
     locations: ['West', 'Midsland'],
   },
   {
-    title: 'Voorraad',
-    url: '/voorraad',
-    icon: Package,
-    locations: ['West'],
-  },
-  {
     title: 'Interne Bestellingen',
     url: '/internal-orders',
     icon: Package,
