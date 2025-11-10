@@ -151,6 +151,7 @@ export function AppSidebar() {
                     size="lg"
                     className={cn(
                       isActive(item.url) && "bg-[#D1E3CD] shadow-sm",
+                      !isActive(item.url) && "opacity-50",
                       state === "collapsed" && "justify-center"
                     )}
                     onClick={item.requiresCode ? (e) => handleProtectedClick(e, item.url) : undefined}

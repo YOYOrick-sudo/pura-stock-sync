@@ -791,7 +791,8 @@ export function FohTasks() {
             {(() => {
               const activeWindow = PHASE_WINDOWS.find(w => w.phase === activePhase);
               const phaseTasks = groupedDailyTasks[activePhase];
-              const isOverdue = isPhaseOverdue(activePhase);
+              const openTasksCount = phaseTasks.filter(t => !t.completed).length;
+              const isOverdue = openTasksCount > 0 && isPhaseOverdue(activePhase);
             
             if (!activeWindow) return null;
             

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { useUserLocation } from '@/contexts/UserLocationContext';
+import { useStatisticsTimeout } from '@/hooks/useStatisticsTimeout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,8 @@ import { toast } from 'sonner';
 export default function FohAnalytics() {
   const { userLocation } = useUserLocation();
   const [dateRange, setDateRange] = useState(30); // Last 30 days
+  
+  useStatisticsTimeout();
 
   // Fetch tasks with history
   const { data: tasks = [], isLoading } = useQuery({
