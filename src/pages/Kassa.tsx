@@ -25,6 +25,19 @@ const getWeekNumber = (date: Date): number => {
   return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
 };
 
+// Fixed starting balance that should always remain in the register
+const BEGINSALDO_VERDELING = {
+  '20': 2,    // 2 × €20 = €40
+  '10': 5,    // 5 × €10 = €50
+  '5': 5,     // 5 × €5 = €25
+  '2': 10,    // 10 × €2 = €20
+  '1': 10,    // 10 × €1 = €10
+  '0.50': 10, // 10 × €0,50 = €5
+  '0.20': 20, // 20 × €0,20 = €4
+  '0.10': 20, // 20 × €0,10 = €2
+  '0.05': 20, // 20 × €0,05 = €1
+};
+
 const Kassa = () => {
   const navigate = useNavigate();
   const weekNumber = getWeekNumber(new Date());
@@ -202,6 +215,47 @@ const Kassa = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 py-6 sm:px-4 sm:py-8 lg:px-6 pb-10">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 items-start">
+          {/* Starting Balance Reference - What should remain */}
+          <div className="lg:col-span-2 overflow-hidden shadow-sm border-[#1B7867]/10 bg-[#1B7867]/5 rounded-lg border mb-4">
+            <div className="bg-[#1B7867]/10 px-3 py-2.5 border-b border-[#1B7867]/20">
+              <h2 className="font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide flex items-center gap-2">
+                💰 Beginsaldo - Blijft altijd in de kassa
+              </h2>
+            </div>
+            <div className="overflow-x-auto p-3">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-[#1B7867]/20 bg-[#1B7867]/5">
+                    <th className="px-2.5 py-1.5 text-left font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Bedrag</th>
+                    <th className="px-2.5 py-1.5 text-center font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Aantal</th>
+                    <th className="px-2.5 py-1.5 text-right font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Totaal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#1B7867]/10">
+                  {Object.entries(BEGINSALDO_VERDELING).map(([denom, count]) => (
+                    <tr key={denom} className="even:bg-white/30">
+                      <td className="px-2.5 py-1.5 text-[#282E3A] font-mono text-sm">€{denom.replace('.', ',')}</td>
+                      <td className="px-2.5 py-1.5 text-center text-[#282E3A] font-mono text-sm">{count}</td>
+                      <td className="px-2.5 py-1.5 text-right text-[#282E3A] font-mono text-sm">
+                        €{(parseFloat(denom) * count).toFixed(2).replace('.', ',')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-[#1B7867]/30 bg-[#1B7867]/10">
+                    <td colSpan={2} className="px-2.5 py-2 font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide">
+                      Totaal beginsaldo
+                    </td>
+                    <td className="px-2.5 py-2 text-right font-heading font-bold text-[#1B7867] text-lg">
+                      €{Object.entries(BEGINSALDO_VERDELING).reduce((sum, [denom, count]) => sum + (parseFloat(denom) * count), 0).toFixed(2).replace('.', ',')}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
           {/* Denomination table */}
           <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
             <div className="bg-[#1B7867]/10 px-3 py-2.5 border-b border-[#1B7867]/20">

@@ -1,18 +1,34 @@
+import { useState } from 'react';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Package, Loader2 } from 'lucide-react';
+import { ArrowRight, Package, Loader2, ChevronDown } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useSentOrders, useReceivedOrders } from '@/hooks/useInternalOrders';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
 import OrderDashboard from '@/components/OrderDashboard';
 
 export default function InternalOrders() {
   const { userLocation, loading } = useUserLocation();
   const { data: sentOrders = [], isLoading: loadingSent } = useSentOrders(userLocation);
   const { data: receivedOrders = [], isLoading: loadingReceived } = useReceivedOrders(userLocation);
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
+
+  const toggleOrder = (orderId: string) => {
+    setExpandedOrders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
+      }
+      return newSet;
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -76,34 +92,56 @@ export default function InternalOrders() {
                 />
               ) : (
                 sentOrders.map((order) => (
-                  <Card key={order.id} className={`p-4 bg-white shadow-sm border-l-4 ${getStatusColor(order.status).replace('bg-', 'border-').split(' ')[0]}`}>
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="font-mono font-bold text-foreground">{order.order_number}</h3>
-                        <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
-                          {order.from_location} <ArrowRight className="h-3 w-3" /> {order.to_location}
-                        </p>
-                      </div>
-                      <Badge className={getStatusColor(order.status)}>
-                        {order.status === 'approved' ? 'Goedgekeurd' : order.status}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-2">
-                      Leverdatum: {new Date(order.delivery_date).toLocaleDateString('nl-NL')}
-                    </p>
-                    {order.internal_order_items && order.internal_order_items.length > 0 && (
-                      <div className="mt-3 pt-3 border-t">
-                        <p className="text-xs font-semibold mb-2">Producten:</p>
-                        <div className="space-y-1">
-                          {order.internal_order_items.map((item: any) => (
-                            <p key={item.id} className="text-xs text-muted-foreground">
-                              • {item.product_name} - {item.quantity} {item.unit}
+                  <Collapsible key={order.id} open={expandedOrders.has(order.id)} onOpenChange={() => toggleOrder(order.id)}>
+                    <Card className={cn(
+                      "bg-white shadow-sm border-l-4 transition-all hover:shadow-md",
+                      getStatusColor(order.status).replace('bg-', 'border-').split(' ')[0]
+                    )}>
+                      <CollapsibleTrigger className="w-full text-left p-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <h3 className="font-mono font-bold text-sm text-foreground">{order.order_number}</h3>
+                              <Badge className={cn("text-xs", getStatusColor(order.status))}>
+                                {order.status === 'approved' ? 'Goedgekeurd' : order.status}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                              {order.from_location} <ArrowRight className="h-3 w-3" /> {order.to_location}
                             </p>
-                          ))}
+                            <div className="flex items-center gap-2 mt-1">
+                              <p className="text-xs text-muted-foreground">
+                                📅 {new Date(order.delivery_date).toLocaleDateString('nl-NL')}
+                              </p>
+                              <span className="text-xs text-muted-foreground">•</span>
+                              <p className="text-xs text-muted-foreground">
+                                {order.internal_order_items?.length || 0} producten
+                              </p>
+                            </div>
+                          </div>
+                          <ChevronDown className={cn(
+                            "h-4 w-4 text-muted-foreground transition-transform ml-2 mt-1 flex-shrink-0",
+                            expandedOrders.has(order.id) && "rotate-180"
+                          )} />
                         </div>
-                      </div>
-                    )}
-                  </Card>
+                      </CollapsibleTrigger>
+                      
+                      <CollapsibleContent>
+                        {order.internal_order_items && order.internal_order_items.length > 0 && (
+                          <div className="px-3 pb-3 pt-2 border-t">
+                            <p className="text-xs font-semibold mb-2 text-foreground">Producten:</p>
+                            <div className="space-y-1">
+                              {order.internal_order_items.map((item: any) => (
+                                <p key={item.id} className="text-xs text-muted-foreground">
+                                  • {item.product_name} - {item.quantity} {item.unit}
+                                </p>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </CollapsibleContent>
+                    </Card>
+                  </Collapsible>
                 ))
               )}
             </TabsContent>
@@ -123,40 +161,62 @@ export default function InternalOrders() {
                 />
               ) : (
                 receivedOrders.map((order) => (
-                  <Card key={order.id} className={`p-4 bg-white shadow-sm border-l-4 ${getStatusColor(order.status).replace('bg-', 'border-').split(' ')[0]}`}>
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="font-mono font-bold text-foreground">{order.order_number}</h3>
-                        <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
-                          {order.from_location} <ArrowRight className="h-3 w-3" /> {order.to_location}
-                        </p>
-                      </div>
-                      <Badge className={getStatusColor(order.status)}>
-                        {order.status === 'approved' ? 'Goedgekeurd' : order.status}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-2">
-                      Leverdatum: {new Date(order.delivery_date).toLocaleDateString('nl-NL')}
-                    </p>
-                    {order.internal_order_items && order.internal_order_items.length > 0 && (
-                      <div className="mt-3 pt-3 border-t">
-                        <p className="text-xs font-semibold mb-2">Producten:</p>
-                        <div className="space-y-1">
-                          {order.internal_order_items.map((item: any) => (
-                            <p key={item.id} className="text-xs text-muted-foreground">
-                              • {item.product_name} - {item.quantity} {item.unit}
+                  <Collapsible key={order.id} open={expandedOrders.has(order.id)} onOpenChange={() => toggleOrder(order.id)}>
+                    <Card className={cn(
+                      "bg-white shadow-sm border-l-4 transition-all hover:shadow-md",
+                      getStatusColor(order.status).replace('bg-', 'border-').split(' ')[0]
+                    )}>
+                      <CollapsibleTrigger className="w-full text-left p-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <h3 className="font-mono font-bold text-sm text-foreground">{order.order_number}</h3>
+                              <Badge className={cn("text-xs", getStatusColor(order.status))}>
+                                {order.status === 'approved' ? 'Goedgekeurd' : order.status}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                              {order.from_location} <ArrowRight className="h-3 w-3" /> {order.to_location}
                             </p>
-                          ))}
+                            <div className="flex items-center gap-2 mt-1">
+                              <p className="text-xs text-muted-foreground">
+                                📅 {new Date(order.delivery_date).toLocaleDateString('nl-NL')}
+                              </p>
+                              <span className="text-xs text-muted-foreground">•</span>
+                              <p className="text-xs text-muted-foreground">
+                                {order.internal_order_items?.length || 0} producten
+                              </p>
+                            </div>
+                          </div>
+                          <ChevronDown className={cn(
+                            "h-4 w-4 text-muted-foreground transition-transform ml-2 mt-1 flex-shrink-0",
+                            expandedOrders.has(order.id) && "rotate-180"
+                          )} />
                         </div>
-                      </div>
-                    )}
-                    {order.notes && (
-                      <div className="mt-3 pt-3 border-t">
-                        <p className="text-xs font-semibold mb-1">Notities:</p>
-                        <p className="text-xs text-muted-foreground">{order.notes}</p>
-                      </div>
-                    )}
-                  </Card>
+                      </CollapsibleTrigger>
+                      
+                      <CollapsibleContent>
+                        {order.internal_order_items && order.internal_order_items.length > 0 && (
+                          <div className="px-3 pb-2 pt-2 border-t">
+                            <p className="text-xs font-semibold mb-2 text-foreground">Producten:</p>
+                            <div className="space-y-1">
+                              {order.internal_order_items.map((item: any) => (
+                                <p key={item.id} className="text-xs text-muted-foreground">
+                                  • {item.product_name} - {item.quantity} {item.unit}
+                                </p>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {order.notes && (
+                          <div className="px-3 pb-3 pt-2 border-t">
+                            <p className="text-xs font-semibold mb-1 text-foreground">📝 Notities:</p>
+                            <p className="text-xs text-muted-foreground">{order.notes}</p>
+                          </div>
+                        )}
+                      </CollapsibleContent>
+                    </Card>
+                  </Collapsible>
                 ))
               )}
             </TabsContent>
