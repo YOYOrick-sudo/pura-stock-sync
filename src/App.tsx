@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import FohModule from "./pages/foh/FohModule";
+import FohAnalytics from "./pages/foh/FohAnalytics";
 import Kassatelling from "./pages/Kassatelling";
 import Voorraad from "./pages/Voorraad";
 import Settings from "./pages/Settings";
@@ -46,8 +47,16 @@ const App = () => (
               </ProtectedRoute>
             } 
           />
+          <Route
+            path="/taken-analyse" 
+            element={
+              <ProtectedRoute>
+                <FohAnalytics />
+              </ProtectedRoute>
+            } 
+          />
           <Route 
-            path="/kassatelling" 
+            path="/kassatelling"
             element={
               <ProtectedRoute>
                 <Kassatelling />

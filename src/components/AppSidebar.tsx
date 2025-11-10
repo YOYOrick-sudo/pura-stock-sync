@@ -1,4 +1,4 @@
-import { Home, Calendar, CheckSquare, Calculator, Package, Settings } from 'lucide-react';
+import { Home, Calendar, CheckSquare, Calculator, Package, Settings, BarChart3 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { cn } from '@/lib/utils';
@@ -28,6 +28,12 @@ const allNavigationItems = [
     title: 'Taken Bediening',
     url: '/taken-bediening',
     icon: CheckSquare,
+    locations: ['West', 'Midsland'],
+  },
+  {
+    title: 'Taken Analyse',
+    url: '/taken-analyse',
+    icon: BarChart3,
     locations: ['West', 'Midsland'],
   },
   {
