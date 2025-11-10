@@ -26,6 +26,8 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/integrations/supabase/client';
+import { useUserLocation } from '@/contexts/UserLocationContext';
+import { useSendInternalOrder } from '@/hooks/useInternalOrders';
 interface Product {
   name: string;
   targetStock: number;
@@ -61,6 +63,8 @@ function getCurrentWeek(): number {
 }
 export default function OrderDashboard() {
   const navigate = useNavigate();
+  const { userLocation } = useUserLocation();
+  const sendOrderMutation = useSendInternalOrder();
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastSubmitted, setLastSubmitted] = useState<string | null>(null);
@@ -231,6 +235,30 @@ export default function OrderDashboard() {
       });
       clearTimeout(timeoutId);
       if (response.ok) {
+        // Create internal order in database
+        if (userLocation) {
+          const orderItems = products
+            .map(p => ({
+              product_name: p.name,
+              quantity: calculateRefill(p.targetStock, p.currentStock),
+              unit: 'stuks'
+            }))
+            .filter(item => item.quantity > 0);
+
+          if (orderItems.length > 0) {
+            try {
+              await sendOrderMutation.mutateAsync({
+                from_location: userLocation,
+                to_location: 'Midsland',
+                delivery_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Next day
+                items: orderItems,
+              });
+            } catch (error) {
+              console.error('Error creating internal order:', error);
+            }
+          }
+        }
+
         setLastSubmitted(timestamp);
         localStorage.setItem('pura-vida-last-submitted', timestamp);
         localStorage.setItem('pura-vida-last-order', JSON.stringify(orderData));

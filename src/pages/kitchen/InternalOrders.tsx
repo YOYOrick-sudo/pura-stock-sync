@@ -1,68 +1,18 @@
-import { useState } from 'react';
 import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Plus, ArrowRight, Package, X, Loader2 } from 'lucide-react';
+import { ArrowRight, Package, Loader2 } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useUserLocation } from '@/contexts/UserLocationContext';
-import { useSendInternalOrder, useSentOrders, useReceivedOrders } from '@/hooks/useInternalOrders';
+import { useSentOrders, useReceivedOrders } from '@/hooks/useInternalOrders';
 import { Skeleton } from '@/components/ui/skeleton';
-
-interface OrderItem {
-  product_name: string;
-  quantity: number;
-  unit: string;
-}
+import OrderDashboard from '@/components/OrderDashboard';
 
 export default function InternalOrders() {
   const { userLocation, loading } = useUserLocation();
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
-  const [newItem, setNewItem] = useState({ product_name: '', quantity: 1, unit: 'stuks' });
-  const [toLocation, setToLocation] = useState('Midsland');
-  const [deliveryDate, setDeliveryDate] = useState('');
-
-  const sendOrderMutation = useSendInternalOrder();
   const { data: sentOrders = [], isLoading: loadingSent } = useSentOrders(userLocation);
   const { data: receivedOrders = [], isLoading: loadingReceived } = useReceivedOrders(userLocation);
-
-  const addOrderItem = () => {
-    if (!newItem.product_name || newItem.quantity <= 0) return;
-    setOrderItems([...orderItems, newItem]);
-    setNewItem({ product_name: '', quantity: 1, unit: 'stuks' });
-  };
-
-  const removeOrderItem = (index: number) => {
-    setOrderItems(orderItems.filter((_, i) => i !== index));
-  };
-
-  const handleSubmitOrder = async () => {
-    if (!userLocation) {
-      return;
-    }
-    if (orderItems.length === 0) {
-      return;
-    }
-    if (!deliveryDate) {
-      return;
-    }
-
-    await sendOrderMutation.mutateAsync({
-      from_location: userLocation,
-      to_location: toLocation,
-      delivery_date: deliveryDate,
-      items: orderItems,
-    });
-
-    // Reset form
-    setOrderItems([]);
-    setDeliveryDate('');
-    setToLocation('Midsland');
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -102,108 +52,7 @@ export default function InternalOrders() {
 
         {/* New Order Tab */}
         <TabsContent value="new" className="space-y-6">
-          <Card className="p-6 bg-white shadow-sm">
-            <h3 className="font-heading font-bold text-lg mb-4 text-foreground">Nieuwe bestelling maken</h3>
-            
-            <div className="space-y-4">
-              {/* Location Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label>Van locatie</Label>
-                  <Input value={userLocation || 'Laden...'} disabled className="bg-muted" />
-                </div>
-                <div>
-                  <Label>Naar locatie</Label>
-                  <Select value={toLocation} onValueChange={setToLocation}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Midsland">Midsland</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Delivery Date */}
-              <div>
-                <Label>Gewenste leverdatum</Label>
-                <Input 
-                  type="date" 
-                  value={deliveryDate}
-                  onChange={(e) => setDeliveryDate(e.target.value)}
-                />
-              </div>
-
-              {/* Product Items */}
-              <div>
-                <Label className="mb-2 block">Producten</Label>
-                {orderItems.length > 0 && (
-                  <div className="space-y-2 mb-3">
-                    {orderItems.map((item, index) => (
-                      <div key={index} className="flex items-center gap-2 p-2 bg-background/50 rounded-lg">
-                        <span className="flex-1 text-sm">{item.product_name}</span>
-                        <span className="text-sm text-muted-foreground">{item.quantity} {item.unit}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeOrderItem(index)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="grid grid-cols-12 gap-2">
-                  <Input
-                    placeholder="Product naam"
-                    value={newItem.product_name}
-                    onChange={(e) => setNewItem({ ...newItem, product_name: e.target.value })}
-                    className="col-span-6"
-                  />
-                  <Input
-                    type="number"
-                    min="1"
-                    value={newItem.quantity}
-                    onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) })}
-                    className="col-span-3"
-                  />
-                  <Select value={newItem.unit} onValueChange={(value) => setNewItem({ ...newItem, unit: value })}>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="stuks">stuks</SelectItem>
-                      <SelectItem value="bakken">bakken</SelectItem>
-                      <SelectItem value="porties">porties</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={addOrderItem}
-                  className="mt-2 w-full"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Product toevoegen
-                </Button>
-              </div>
-
-              {/* Submit */}
-              <Button 
-                className="w-full bg-primary hover:bg-primary-hover"
-                onClick={handleSubmitOrder}
-                disabled={loading || !userLocation || sendOrderMutation.isPending || orderItems.length === 0 || !deliveryDate}
-              >
-                <ArrowRight className="h-4 w-4 mr-2" />
-                {sendOrderMutation.isPending ? 'Bezig met verzenden...' : 'Verstuur bestelling'}
-              </Button>
-            </div>
-          </Card>
+          <OrderDashboard />
         </TabsContent>
 
         {/* Sent Orders Tab */}
