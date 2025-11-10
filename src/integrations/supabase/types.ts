@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       foh_daily_templates: {
         Row: {
+          category: string
           created_at: string
           id: string
           location: string
@@ -25,6 +26,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          category?: string
           created_at?: string
           id?: string
           location: string
@@ -34,6 +36,7 @@ export type Database = {
           title: string
         }
         Update: {
+          category?: string
           created_at?: string
           id?: string
           location?: string
@@ -69,6 +72,7 @@ export type Database = {
         Row: {
           archived: boolean
           assigned_employee_id: string | null
+          category: string
           completed: boolean
           completed_at: string | null
           completed_by: string | null
@@ -85,6 +89,7 @@ export type Database = {
         Insert: {
           archived?: boolean
           assigned_employee_id?: string | null
+          category?: string
           completed?: boolean
           completed_at?: string | null
           completed_by?: string | null
@@ -101,6 +106,7 @@ export type Database = {
         Update: {
           archived?: boolean
           assigned_employee_id?: string | null
+          category?: string
           completed?: boolean
           completed_at?: string | null
           completed_by?: string | null

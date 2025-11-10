@@ -25,6 +25,9 @@ const PHASE_WINDOWS = [
   { phase: 'sluit' as const, label: 'Sluit', startMin: 20 * 60, endMin: 24 * 60 + 60 },
 ] as const;
 
+// Category order for display
+const CATEGORY_ORDER = ['Bar', 'Keuken', 'Terras', 'Toilet', 'Entree', 'Algemeen'] as const;
+
 const nowInAmsterdamMinutes = (): number => {
   const TIMEZONE = 'Europe/Amsterdam';
   const nowInAmsterdam = toZonedTime(new Date(), TIMEZONE);
@@ -101,6 +104,36 @@ const getFirstPhaseWithOpenTasks = (tasks: FohTaskWithEmployee[]): PhaseType => 
   
   // If all tasks are complete, default to time-based detection
   return getCurrentPhaseByTime();
+};
+
+// Group tasks by category
+const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
+  const grouped: Record<string, FohTaskWithEmployee[]> = {};
+  
+  tasks.forEach(task => {
+    const category = task.category || 'Algemeen';
+    if (!grouped[category]) {
+      grouped[category] = [];
+    }
+    grouped[category].push(task);
+  });
+  
+  // Sort categories by predefined order
+  const sortedGrouped: Record<string, FohTaskWithEmployee[]> = {};
+  CATEGORY_ORDER.forEach(cat => {
+    if (grouped[cat] && grouped[cat].length > 0) {
+      sortedGrouped[cat] = grouped[cat];
+    }
+  });
+  
+  // Add any categories not in the predefined order
+  Object.keys(grouped).forEach(cat => {
+    if (!sortedGrouped[cat]) {
+      sortedGrouped[cat] = grouped[cat];
+    }
+  });
+  
+  return sortedGrouped;
 };
 
 export function FohTasks() {
@@ -820,37 +853,58 @@ export function FohTasks() {
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-0">
-                    {phaseTasks.map((task) => (
-                      <div 
-                        key={task.id} 
-                        className={cn(
-                          "flex items-center gap-4 py-3",
-                          task.completed && "opacity-40"
-                        )}
-                      >
-                        <Checkbox
-                          checked={task.completed}
-                          onCheckedChange={() => toggleTask(task.id, task.completed)}
-                          disabled={task.completed}
-                          className="flex-shrink-0"
-                        />
-                        {isOverdue && !task.completed && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
-                        )}
-                        <span className={cn(
-                          "text-base flex-1",
-                          task.completed && "line-through text-muted-foreground"
-                        )}>
-                          {task.title}
-                        </span>
-                        {task.foh_employees && (
-                          <span className="text-xs text-muted-foreground flex-shrink-0">
-                            {task.foh_employees.name}
-                          </span>
-                        )}
-                      </div>
-                    ))}
+                  <div className="space-y-8">
+                    {(() => {
+                      const groupedByCategory = groupTasksByCategory(phaseTasks);
+                      return Object.entries(groupedByCategory).map(([category, categoryTasks]) => {
+                        const completedInCategory = categoryTasks.filter(t => t.completed).length;
+                        return (
+                          <div key={category} className="space-y-2">
+                            {/* Category Header */}
+                            <div className="flex items-baseline gap-2 pb-2 border-b border-border/50">
+                              <h3 className="text-sm font-semibold text-foreground">{category}</h3>
+                              <span className="text-xs text-muted-foreground">
+                                {completedInCategory}/{categoryTasks.length} ✓
+                              </span>
+                            </div>
+                            
+                            {/* Tasks in Category */}
+                            <div className="space-y-0">
+                              {categoryTasks.map((task) => (
+                                <div 
+                                  key={task.id} 
+                                  className={cn(
+                                    "flex items-center gap-4 py-2.5",
+                                    task.completed && "opacity-40"
+                                  )}
+                                >
+                                  <Checkbox
+                                    checked={task.completed}
+                                    onCheckedChange={() => toggleTask(task.id, task.completed)}
+                                    disabled={task.completed}
+                                    className="flex-shrink-0"
+                                  />
+                                  {isOverdue && !task.completed && (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+                                  )}
+                                  <span className={cn(
+                                    "text-base flex-1",
+                                    task.completed && "line-through text-muted-foreground"
+                                  )}>
+                                    {task.title}
+                                  </span>
+                                  {task.foh_employees && (
+                                    <span className="text-xs text-muted-foreground flex-shrink-0">
+                                      {task.foh_employees.name}
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                 )}
               </div>
@@ -867,40 +921,61 @@ export function FohTasks() {
               </p>
             </div>
           ) : (
-            <div className="space-y-0">
-              {sortedExtraTasks.map((task) => (
-                <div 
-                  key={task.id} 
-                  className={cn(
-                    "flex items-center gap-4 py-3",
-                    task.completed && "opacity-40"
-                  )}
-                >
-                  <Checkbox
-                    checked={task.completed}
-                    onCheckedChange={() => toggleTask(task.id, task.completed)}
-                    disabled={task.completed}
-                    className="flex-shrink-0"
-                  />
-                  <span className={cn(
-                    "text-base flex-1",
-                    task.completed && "line-through text-muted-foreground"
-                  )}>
-                    {task.title}
-                  </span>
-                  <span className={cn(
-                    "text-xs flex-shrink-0",
-                    getDateLabelColor(task.due_date)
-                  )}>
-                    {getDateLabel(task.due_date)}
-                  </span>
-                  {task.foh_employees && (
-                    <span className="text-xs text-muted-foreground flex-shrink-0">
-                      {task.foh_employees.name}
-                    </span>
-                  )}
-                </div>
-              ))}
+            <div className="space-y-8">
+              {(() => {
+                const groupedByCategory = groupTasksByCategory(sortedExtraTasks);
+                return Object.entries(groupedByCategory).map(([category, categoryTasks]) => {
+                  const completedInCategory = categoryTasks.filter(t => t.completed).length;
+                  return (
+                    <div key={category} className="space-y-2">
+                      {/* Category Header */}
+                      <div className="flex items-baseline gap-2 pb-2 border-b border-border/50">
+                        <h3 className="text-sm font-semibold text-foreground">{category}</h3>
+                        <span className="text-xs text-muted-foreground">
+                          {completedInCategory}/{categoryTasks.length} ✓
+                        </span>
+                      </div>
+                      
+                      {/* Tasks in Category */}
+                      <div className="space-y-0">
+                        {categoryTasks.map((task) => (
+                          <div 
+                            key={task.id} 
+                            className={cn(
+                              "flex items-center gap-4 py-2.5",
+                              task.completed && "opacity-40"
+                            )}
+                          >
+                            <Checkbox
+                              checked={task.completed}
+                              onCheckedChange={() => toggleTask(task.id, task.completed)}
+                              disabled={task.completed}
+                              className="flex-shrink-0"
+                            />
+                            <span className={cn(
+                              "text-base flex-1",
+                              task.completed && "line-through text-muted-foreground"
+                            )}>
+                              {task.title}
+                            </span>
+                            <span className={cn(
+                              "text-xs flex-shrink-0",
+                              getDateLabelColor(task.due_date)
+                            )}>
+                              {getDateLabel(task.due_date)}
+                            </span>
+                            {task.foh_employees && (
+                              <span className="text-xs text-muted-foreground flex-shrink-0">
+                                {task.foh_employees.name}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           )}
         </>

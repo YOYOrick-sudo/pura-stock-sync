@@ -11,6 +11,7 @@ export interface FohTask {
   assigned_employee_id: string | null;
   template_id: string | null;
   phase: 'open' | 'tussen' | 'sluit' | null;
+  category: string;
   created_at: string;
 }
 
@@ -31,6 +32,7 @@ export interface FohDailyTemplate {
   phase: 'open' | 'tussen' | 'sluit';
   title: string;
   priority: 1 | 2 | 3;
+  category: string;
   created_at: string;
 }
 
