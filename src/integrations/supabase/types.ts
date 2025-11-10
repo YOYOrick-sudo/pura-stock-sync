@@ -21,6 +21,7 @@ export type Database = {
           location: string
           phase: string
           priority: number
+          repeat_type: string | null
           title: string
         }
         Insert: {
@@ -29,6 +30,7 @@ export type Database = {
           location: string
           phase: string
           priority?: number
+          repeat_type?: string | null
           title: string
         }
         Update: {
@@ -37,6 +39,7 @@ export type Database = {
           location?: string
           phase?: string
           priority?: number
+          repeat_type?: string | null
           title?: string
         }
         Relationships: []
@@ -75,6 +78,7 @@ export type Database = {
           location: string
           phase: string | null
           priority: number
+          repeat_type: string | null
           template_id: string | null
           title: string
         }
@@ -90,6 +94,7 @@ export type Database = {
           location: string
           phase?: string | null
           priority?: number
+          repeat_type?: string | null
           template_id?: string | null
           title: string
         }
@@ -105,6 +110,7 @@ export type Database = {
           location?: string
           phase?: string | null
           priority?: number
+          repeat_type?: string | null
           template_id?: string | null
           title?: string
         }
