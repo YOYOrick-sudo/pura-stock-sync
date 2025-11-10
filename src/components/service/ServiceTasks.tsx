@@ -7,6 +7,7 @@ import { Plus, CheckSquare } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { z } from 'zod';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Dialog,
@@ -99,13 +100,23 @@ export function ServiceTasks() {
     }
   };
 
+  const taskSchema = z.object({
+    title: z.string().trim().min(1, 'Titel is verplicht').max(200, 'Titel mag maximaal 200 tekens zijn'),
+    description: z.string().max(500, 'Beschrijving mag maximaal 500 tekens zijn').optional(),
+  });
+
   const createTask = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      if (!newTask.title.trim()) {
-        toast.error('Titel is verplicht');
+      const validation = taskSchema.safeParse({ 
+        title: newTask.title,
+        description: newTask.description 
+      });
+      
+      if (!validation.success) {
+        toast.error(validation.error.errors[0].message);
         return;
       }
 
@@ -113,6 +124,8 @@ export function ServiceTasks() {
         .from('kitchen_tasks')
         .insert({
           ...newTask,
+          title: validation.data.title,
+          description: validation.data.description || '',
           location: 'Midsland',
           created_by: user.id,
         });

@@ -5,6 +5,7 @@ import { Plus, UserX, Users } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { z } from 'zod';
 import {
   Dialog,
   DialogContent,
@@ -56,20 +57,26 @@ export function ServiceStaff() {
     }
   };
 
+  const staffSchema = z.object({
+    name: z.string().trim().min(1, 'Naam is verplicht').max(100, 'Naam mag maximaal 100 tekens zijn'),
+  });
+
   const addStaff = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      if (!newStaffName.trim()) {
-        toast.error('Naam is verplicht');
+      const validation = staffSchema.safeParse({ name: newStaffName });
+      
+      if (!validation.success) {
+        toast.error(validation.error.errors[0].message);
         return;
       }
 
       const { error } = await supabase
         .from('staff_members')
         .insert({
-          name: newStaffName.trim(),
+          name: validation.data.name,
           location: 'Midsland',
           role: 'service',
           created_by: user.id,

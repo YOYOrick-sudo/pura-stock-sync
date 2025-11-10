@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { z } from 'zod';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command';
@@ -478,16 +479,22 @@ export function FohTasks() {
     return true;
   };
 
+  const taskSchema = z.object({
+    title: z.string().trim().min(1, 'Titel is verplicht').max(200, 'Titel mag maximaal 200 tekens zijn'),
+  });
+
   const createTask = async () => {
-    if (!newTask.title.trim()) {
-      toast.error('Vul een titel in');
+    const validation = taskSchema.safeParse({ title: newTask.title });
+    
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
       return;
     }
 
     const { error } = await supabase
       .from('foh_tasks')
       .insert({
-        title: newTask.title.trim(),
+        title: validation.data.title,
         due_date: newTask.due_date,
         priority: newTask.priority,
         assigned_employee_id: newTask.assigned_employee_id,
