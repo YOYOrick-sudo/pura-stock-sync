@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { LogOut, Info, CheckCircle2 } from 'lucide-react';
+import { LogOut, Info, CheckCircle2, Wallet, ChevronDown } from 'lucide-react';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -48,6 +49,7 @@ const Kassa = () => {
   const [naam, setNaam] = useState('');
   const [canSubmit, setCanSubmit] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [beginsaldoExpanded, setBeginsaldoExpanded] = useState(false);
 
   const [counts, setCounts] = useState({
     '500': '' as number | '',
@@ -258,32 +260,56 @@ const Kassa = () => {
 
           {/* Right side: Summary card */}
           <div className="lg:sticky lg:top-6 space-y-4">
-            {/* Beginsaldo Reference - Compact */}
-            <div className="bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-heading font-bold text-[#1B7867] uppercase tracking-wide">
-                  💰 Beginsaldo (blijft in kassa)
-                </span>
-              </div>
-              <div className="space-y-0.5">
-                {Object.entries(BEGINSALDO_VERDELING).map(([denom, count]) => (
-                  <div key={denom} className="flex items-center justify-between text-xs">
-                    <span className="text-[#282E3A]/60 font-mono">€{denom.replace('.', ',')} × {count}</span>
-                    <span className="text-[#282E3A]/60 font-mono">
-                      €{(parseFloat(denom) * count).toFixed(2).replace('.', ',')}
-                    </span>
+            {/* Beginsaldo Reference - Collapsible */}
+            <Collapsible open={beginsaldoExpanded} onOpenChange={setBeginsaldoExpanded}>
+              <div className="bg-white rounded-xl shadow-sm border border-[#1B7867]/10 overflow-hidden">
+                
+                {/* Clickable header met icon en pijltje */}
+                <CollapsibleTrigger className="w-full p-3 hover:bg-[#1B7867]/5 transition-colors cursor-pointer">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Wallet className="h-4 w-4 text-[#1B7867]" />
+                      <span className="text-xs font-heading font-bold text-[#1B7867] uppercase tracking-wide">
+                        Beginsaldo (blijft in kassa)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-heading font-bold text-[#1B7867]">
+                        €{Object.entries(BEGINSALDO_VERDELING).reduce((sum, [denom, count]) => sum + (parseFloat(denom) * count), 0).toFixed(2).replace('.', ',')}
+                      </span>
+                      <ChevronDown 
+                        className={`h-4 w-4 text-[#1B7867] transition-transform duration-200 ${
+                          beginsaldoExpanded ? 'rotate-180' : ''
+                        }`} 
+                      />
+                    </div>
                   </div>
-                ))}
+                </CollapsibleTrigger>
+                
+                {/* Uitklapbare content met denominaties */}
+                <CollapsibleContent className="px-3 pb-3">
+                  <div className="border-t border-[#1B7867]/10 pt-2 space-y-0.5">
+                    {Object.entries(BEGINSALDO_VERDELING).map(([denom, count]) => (
+                      <div key={denom} className="flex items-center justify-between text-xs">
+                        <span className="text-[#282E3A]/60 font-mono">€{denom.replace('.', ',')} × {count}</span>
+                        <span className="text-[#282E3A]/60 font-mono">
+                          €{(parseFloat(denom) * count).toFixed(2).replace('.', ',')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="border-t border-[#1B7867]/10 mt-2 pt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-heading font-bold text-[#282E3A]/70">Totaal</span>
+                      <span className="text-lg font-heading font-bold text-[#1B7867]">
+                        €{Object.entries(BEGINSALDO_VERDELING).reduce((sum, [denom, count]) => sum + (parseFloat(denom) * count), 0).toFixed(2).replace('.', ',')}
+                      </span>
+                    </div>
+                  </div>
+                </CollapsibleContent>
+                
               </div>
-              <div className="border-t border-[#1B7867]/10 mt-2 pt-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-heading font-bold text-[#282E3A]/70">Totaal</span>
-                  <span className="text-lg font-heading font-bold text-[#1B7867]">
-                    €{Object.entries(BEGINSALDO_VERDELING).reduce((sum, [denom, count]) => sum + (parseFloat(denom) * count), 0).toFixed(2).replace('.', ',')}
-                  </span>
-                </div>
-              </div>
-            </div>
+            </Collapsible>
 
             {/* Summary card */}
             <div className="bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-4">
