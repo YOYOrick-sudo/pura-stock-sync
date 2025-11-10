@@ -111,6 +111,7 @@ export function FohTasks() {
   const [extraTasks, setExtraTasks] = useState<FohTaskWithEmployee[]>([]);
   const [employees, setEmployees] = useState<FohEmployee[]>([]);
   const [loading, setLoading] = useState(true);
+  const [switching, setSwitching] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   
   const [newTask, setNewTask] = useState({
@@ -138,11 +139,17 @@ export function FohTasks() {
   }, [taskType, isPhaseManuallySelected, dailyTasks]);
 
   useEffect(() => {
-    if (taskType === 'daily') {
-      fetchDailyTasks();
-    } else {
-      fetchExtraTasks();
-    }
+    const fetchTasks = async () => {
+      setSwitching(true);
+      if (taskType === 'daily') {
+        await fetchDailyTasks();
+      } else {
+        await fetchExtraTasks();
+      }
+      // Small delay for smooth transition
+      setTimeout(() => setSwitching(false), 150);
+    };
+    fetchTasks();
   }, [taskType]);
 
   // Midnight detection - reset to auto mode when date changes
@@ -779,12 +786,16 @@ export function FohTasks() {
       </div>
 
       {/* Task Content */}
-      {taskType === 'daily' ? (
-        <>
-          {(() => {
-            const activeWindow = PHASE_WINDOWS.find(w => w.phase === activePhase);
-            const phaseTasks = groupedDailyTasks[activePhase];
-            const isOverdue = isPhaseOverdue(activePhase);
+      <div className={cn(
+        "transition-opacity duration-200 ease-in-out",
+        switching ? "opacity-0" : "opacity-100"
+      )}>
+        {taskType === 'daily' ? (
+          <>
+            {(() => {
+              const activeWindow = PHASE_WINDOWS.find(w => w.phase === activePhase);
+              const phaseTasks = groupedDailyTasks[activePhase];
+              const isOverdue = isPhaseOverdue(activePhase);
             
             if (!activeWindow) return null;
             
@@ -902,9 +913,10 @@ export function FohTasks() {
                 </Card>
               ))}
             </div>
-          )}
-        </>
-      )}
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
