@@ -791,68 +791,78 @@ export function FohTasks() {
             {(() => {
               const activeWindow = PHASE_WINDOWS.find(w => w.phase === activePhase);
               const phaseTasks = groupedDailyTasks[activePhase];
-              const openTasksCount = phaseTasks.filter(t => !t.completed).length;
+              const completedCount = phaseTasks.filter(t => t.completed).length;
+              const totalCount = phaseTasks.length;
+              const openTasksCount = totalCount - completedCount;
               const isOverdue = openTasksCount > 0 && isPhaseOverdue(activePhase);
             
             if (!activeWindow) return null;
             
             return (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 pb-2 border-b">
-                  <h2 className="text-xl font-bold">{activeWindow.label}</h2>
-                  <Badge variant="outline" className="text-xs font-normal">
-                    {minutesToTimeString(activeWindow.startMin)} – {minutesToTimeString(activeWindow.endMin)}
-                  </Badge>
-                  {isOverdue && (
-                    <Badge variant="destructive" className="text-xs">
-                      Overtijd
-                    </Badge>
-                  )}
+              <div className="space-y-0">
+                {/* Sticky Header with Stats */}
+                <div className="sticky top-0 z-10 bg-background border-b border-border mb-4 pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-lg font-bold">{activeWindow.label}</h2>
+                      <Badge variant="outline" className="text-xs font-normal">
+                        {minutesToTimeString(activeWindow.startMin)} – {minutesToTimeString(activeWindow.endMin)}
+                      </Badge>
+                      {isOverdue && (
+                        <Badge variant="destructive" className="text-xs">
+                          Overtijd
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {completedCount} van {totalCount} afgerond
+                    </div>
+                  </div>
                 </div>
                 
                 {phaseTasks.length === 0 ? (
-                  <Card className="p-8 text-center bg-gray-50 border-dashed">
+                  <div className="p-12 text-center border border-dashed rounded-lg bg-muted/20">
                     <p className="text-sm text-muted-foreground">
                       Geen taken voor {activeWindow.label}
                     </p>
-                  </Card>
+                  </div>
                 ) : (
-                  <div className="space-y-3">
-                    {phaseTasks.map((task) => (
-                      <Card 
+                  <div className="border rounded-lg overflow-hidden bg-card">
+                    {phaseTasks.map((task, index) => (
+                      <div 
                         key={task.id} 
                         className={cn(
-                          "p-4 bg-white shadow-sm border transition-colors",
-                          task.completed && "opacity-40",
-                          isOverdue && !task.completed && "border-red-400 bg-red-50"
+                          "flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-muted/30",
+                          task.completed && "opacity-50",
+                          isOverdue && !task.completed && "bg-destructive/5 border-l-2 border-l-destructive",
+                          index !== phaseTasks.length - 1 && "border-b border-border"
                         )}
                       >
-                        <div className="flex items-start gap-3">
-                          <Checkbox
-                            checked={task.completed}
-                            onCheckedChange={() => toggleTask(task.id, task.completed)}
-                            disabled={task.completed}
-                          />
-                          <div className="flex-1">
-                            <h3 className={cn(
-                              "font-semibold",
-                              task.completed && "line-through text-muted-foreground"
-                            )}>
-                              {task.title}
-                            </h3>
-                            <div className="flex gap-2 mt-2 flex-wrap">
-                              <Badge className={getPriorityConfig(task.priority).color}>
-                                {getPriorityConfig(task.priority).label}
-                              </Badge>
-                              {task.foh_employees && (
-                                <Badge variant="outline">
-                                  👤 {task.foh_employees.name}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
+                        <Checkbox
+                          checked={task.completed}
+                          onCheckedChange={() => toggleTask(task.id, task.completed)}
+                          disabled={task.completed}
+                          className="flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h3 className={cn(
+                            "font-medium text-sm",
+                            task.completed && "line-through text-muted-foreground"
+                          )}>
+                            {task.title}
+                          </h3>
                         </div>
-                      </Card>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <Badge variant="secondary" className={cn("text-xs px-1.5 py-0", getPriorityConfig(task.priority).color)}>
+                            {getPriorityConfig(task.priority).label}
+                          </Badge>
+                          {task.foh_employees && (
+                            <Badge variant="outline" className="text-xs px-1.5 py-0">
+                              👤 {task.foh_employees.name}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -864,50 +874,50 @@ export function FohTasks() {
         // Extra tasks
         <>
           {sortedExtraTasks.length === 0 ? (
-            <Card className="p-12 border-dashed border-2 border-muted text-center">
+            <div className="p-12 text-center border border-dashed rounded-lg bg-muted/20">
               <p className="text-muted-foreground">
                 Geen taken
               </p>
-            </Card>
+            </div>
           ) : (
-            <div className="space-y-3">
-              {sortedExtraTasks.map((task) => (
-                <Card 
+            <div className="border rounded-lg overflow-hidden bg-card">
+              {sortedExtraTasks.map((task, index) => (
+                <div 
                   key={task.id} 
                   className={cn(
-                    "p-4 bg-white shadow-sm border transition-colors",
-                    task.completed && "opacity-40"
+                    "flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-muted/30",
+                    task.completed && "opacity-50",
+                    index !== sortedExtraTasks.length - 1 && "border-b border-border"
                   )}
                 >
-                  <div className="flex items-start gap-3">
-                    <Checkbox
-                      checked={task.completed}
-                      onCheckedChange={() => toggleTask(task.id, task.completed)}
-                      disabled={task.completed}
-                    />
-                    <div className="flex-1">
-                      <h3 className={cn(
-                        "font-semibold",
-                        task.completed && "line-through text-muted-foreground"
-                      )}>
-                        {task.title}
-                      </h3>
-                      <div className="flex gap-2 mt-2 flex-wrap">
-                        <Badge className={getDateLabelColor(task.due_date)}>
-                          {getDateLabel(task.due_date)}
-                        </Badge>
-                        <Badge className={getPriorityConfig(task.priority).color}>
-                          {getPriorityConfig(task.priority).label}
-                        </Badge>
-                        {task.foh_employees && (
-                          <Badge variant="outline">
-                            👤 {task.foh_employees.name}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
+                  <Checkbox
+                    checked={task.completed}
+                    onCheckedChange={() => toggleTask(task.id, task.completed)}
+                    disabled={task.completed}
+                    className="flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <h3 className={cn(
+                      "font-medium text-sm",
+                      task.completed && "line-through text-muted-foreground"
+                    )}>
+                      {task.title}
+                    </h3>
                   </div>
-                </Card>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <Badge variant="secondary" className={cn("text-xs px-1.5 py-0", getDateLabelColor(task.due_date))}>
+                      {getDateLabel(task.due_date)}
+                    </Badge>
+                    <Badge variant="secondary" className={cn("text-xs px-1.5 py-0", getPriorityConfig(task.priority).color)}>
+                      {getPriorityConfig(task.priority).label}
+                    </Badge>
+                    {task.foh_employees && (
+                      <Badge variant="outline" className="text-xs px-1.5 py-0">
+                        👤 {task.foh_employees.name}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
               ))}
             </div>
           )}
