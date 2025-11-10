@@ -801,21 +801,14 @@ export function FohTasks() {
             return (
               <div className="space-y-0">
                 {/* Sticky Header with Stats */}
-                <div className="sticky top-0 z-10 bg-background border-b border-border mb-4 pb-3">
+                <div className="sticky top-0 z-10 bg-background border-b border-border mb-6 pb-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-lg font-bold">{activeWindow.label}</h2>
-                      <Badge variant="outline" className="text-xs font-normal">
-                        {minutesToTimeString(activeWindow.startMin)} – {minutesToTimeString(activeWindow.endMin)}
-                      </Badge>
-                      {isOverdue && (
-                        <Badge variant="destructive" className="text-xs">
-                          Overtijd
-                        </Badge>
-                      )}
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span className="font-semibold text-foreground">{activeWindow.label}</span>
+                      <span>({minutesToTimeString(activeWindow.startMin)} – {minutesToTimeString(activeWindow.endMin)})</span>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {completedCount} van {totalCount} afgerond
+                      {completedCount}/{totalCount} ✓
                     </div>
                   </div>
                 </div>
@@ -827,15 +820,13 @@ export function FohTasks() {
                     </p>
                   </div>
                 ) : (
-                  <div className="border rounded-lg overflow-hidden bg-card">
-                    {phaseTasks.map((task, index) => (
+                  <div className="space-y-0">
+                    {phaseTasks.map((task) => (
                       <div 
                         key={task.id} 
                         className={cn(
-                          "flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-muted/30",
-                          task.completed && "opacity-50",
-                          isOverdue && !task.completed && "bg-destructive/5 border-l-2 border-l-destructive",
-                          index !== phaseTasks.length - 1 && "border-b border-border"
+                          "flex items-center gap-4 py-3",
+                          task.completed && "opacity-40"
                         )}
                       >
                         <Checkbox
@@ -844,24 +835,20 @@ export function FohTasks() {
                           disabled={task.completed}
                           className="flex-shrink-0"
                         />
-                        <div className="flex-1 min-w-0">
-                          <h3 className={cn(
-                            "font-medium text-sm",
-                            task.completed && "line-through text-muted-foreground"
-                          )}>
-                            {task.title}
-                          </h3>
-                        </div>
-                        <div className="flex items-center gap-1.5 flex-shrink-0">
-                          <Badge variant="secondary" className={cn("text-xs px-1.5 py-0", getPriorityConfig(task.priority).color)}>
-                            {getPriorityConfig(task.priority).label}
-                          </Badge>
-                          {task.foh_employees && (
-                            <Badge variant="outline" className="text-xs px-1.5 py-0">
-                              👤 {task.foh_employees.name}
-                            </Badge>
-                          )}
-                        </div>
+                        {isOverdue && !task.completed && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+                        )}
+                        <span className={cn(
+                          "text-base flex-1",
+                          task.completed && "line-through text-muted-foreground"
+                        )}>
+                          {task.title}
+                        </span>
+                        {task.foh_employees && (
+                          <span className="text-xs text-muted-foreground flex-shrink-0">
+                            {task.foh_employees.name}
+                          </span>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -880,14 +867,13 @@ export function FohTasks() {
               </p>
             </div>
           ) : (
-            <div className="border rounded-lg overflow-hidden bg-card">
-              {sortedExtraTasks.map((task, index) => (
+            <div className="space-y-0">
+              {sortedExtraTasks.map((task) => (
                 <div 
                   key={task.id} 
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-muted/30",
-                    task.completed && "opacity-50",
-                    index !== sortedExtraTasks.length - 1 && "border-b border-border"
+                    "flex items-center gap-4 py-3",
+                    task.completed && "opacity-40"
                   )}
                 >
                   <Checkbox
@@ -896,27 +882,23 @@ export function FohTasks() {
                     disabled={task.completed}
                     className="flex-shrink-0"
                   />
-                  <div className="flex-1 min-w-0">
-                    <h3 className={cn(
-                      "font-medium text-sm",
-                      task.completed && "line-through text-muted-foreground"
-                    )}>
-                      {task.title}
-                    </h3>
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <Badge variant="secondary" className={cn("text-xs px-1.5 py-0", getDateLabelColor(task.due_date))}>
-                      {getDateLabel(task.due_date)}
-                    </Badge>
-                    <Badge variant="secondary" className={cn("text-xs px-1.5 py-0", getPriorityConfig(task.priority).color)}>
-                      {getPriorityConfig(task.priority).label}
-                    </Badge>
-                    {task.foh_employees && (
-                      <Badge variant="outline" className="text-xs px-1.5 py-0">
-                        👤 {task.foh_employees.name}
-                      </Badge>
-                    )}
-                  </div>
+                  <span className={cn(
+                    "text-base flex-1",
+                    task.completed && "line-through text-muted-foreground"
+                  )}>
+                    {task.title}
+                  </span>
+                  <span className={cn(
+                    "text-xs flex-shrink-0",
+                    getDateLabelColor(task.due_date)
+                  )}>
+                    {getDateLabel(task.due_date)}
+                  </span>
+                  {task.foh_employees && (
+                    <span className="text-xs text-muted-foreground flex-shrink-0">
+                      {task.foh_employees.name}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
