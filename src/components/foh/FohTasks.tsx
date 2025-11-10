@@ -67,11 +67,47 @@ const getAmsterdamDateString = (): string => {
   return nowInAmsterdam.toISOString().split('T')[0]; // YYYY-MM-DD
 };
 
+// Group tasks by phase helper (needed before component for getFirstPhaseWithOpenTasks)
+const groupTasksByPhase = (tasks: FohTaskWithEmployee[]) => {
+  const grouped: Record<PhaseType, FohTaskWithEmployee[]> = {
+    open: [],
+    tussen: [],
+    sluit: [],
+  };
+  
+  tasks.forEach(task => {
+    if (task.phase && task.phase in grouped) {
+      grouped[task.phase].push(task);
+    }
+  });
+  
+  return grouped;
+};
+
+// Get the first phase that has open (incomplete) tasks, respecting phase order
+const getFirstPhaseWithOpenTasks = (tasks: FohTaskWithEmployee[]): PhaseType => {
+  const grouped = groupTasksByPhase(tasks);
+  const phaseOrder: PhaseType[] = ['open', 'tussen', 'sluit'];
+  
+  for (const phase of phaseOrder) {
+    const phaseTasks = grouped[phase];
+    const hasOpenTasks = phaseTasks.some(task => !task.completed);
+    
+    if (hasOpenTasks) {
+      return phase;
+    }
+  }
+  
+  // If all tasks are complete, default to time-based detection
+  return getCurrentPhaseByTime();
+};
+
 export function FohTasks() {
   const [taskType, setTaskType] = useState<'daily' | 'extra'>('daily');
   const [filter, setFilter] = useState<'open' | 'done'>('open');
   const [activePhase, setActivePhase] = useState<PhaseType>('open');
   const [isPhaseManuallySelected, setIsPhaseManuallySelected] = useState(false);
+  const [showPhaseWarning, setShowPhaseWarning] = useState(false);
   const [currentDate, setCurrentDate] = useState<string>('');
   const [dailyTasks, setDailyTasks] = useState<FohTaskWithEmployee[]>([]);
   const [extraTasks, setExtraTasks] = useState<FohTaskWithEmployee[]>([]);
@@ -98,9 +134,10 @@ export function FohTasks() {
 
   useEffect(() => {
     if (!isPhaseManuallySelected && taskType === 'daily') {
-      setActivePhase(getCurrentPhaseByTime());
+      const targetPhase = getFirstPhaseWithOpenTasks(dailyTasks);
+      setActivePhase(targetPhase);
     }
-  }, [taskType, isPhaseManuallySelected]);
+  }, [taskType, isPhaseManuallySelected, dailyTasks]);
 
   useEffect(() => {
     if (taskType === 'daily') {
@@ -124,7 +161,8 @@ export function FohTasks() {
       if (newDate !== currentDate && currentDate !== '') {
         // Date has changed (midnight passed)
         setIsPhaseManuallySelected(false);
-        setActivePhase(getCurrentPhaseByTime());
+        const targetPhase = getFirstPhaseWithOpenTasks(dailyTasks);
+        setActivePhase(targetPhase);
         setCurrentDate(newDate);
         toast.info('Nieuwe dag begonnen - automatische fase-detectie hervat');
       }
@@ -276,27 +314,6 @@ export function FohTasks() {
       if (a.completed && !b.completed) return 1;
       return 0;
     });
-  };
-
-  // Group daily tasks by phase
-  const groupTasksByPhase = (tasks: FohTaskWithEmployee[]) => {
-    const grouped: Record<PhaseType, FohTaskWithEmployee[]> = {
-      open: [],
-      tussen: [],
-      sluit: [],
-    };
-    
-    tasks.forEach(task => {
-      if (task.phase && task.phase in grouped) {
-        grouped[task.phase].push(task);
-      }
-    });
-    
-    (Object.keys(grouped) as PhaseType[]).forEach(phase => {
-      grouped[phase] = sortTasksInPhase(grouped[phase]);
-    });
-    
-    return grouped;
   };
 
   // Bucket-based sorting for extra tasks
@@ -455,8 +472,29 @@ export function FohTasks() {
 
   const revertToAutoMode = () => {
     setIsPhaseManuallySelected(false);
-    setActivePhase(getCurrentPhaseByTime());
+    const targetPhase = getFirstPhaseWithOpenTasks(dailyTasks);
+    setActivePhase(targetPhase);
+    setShowPhaseWarning(false);
     toast.success('Automatische fase-detectie ingeschakeld');
+  };
+
+  // Check if user is allowed to switch to target phase
+  const canSwitchToPhase = (targetPhase: PhaseType): boolean => {
+    const phaseOrder: PhaseType[] = ['open', 'tussen', 'sluit'];
+    const targetIndex = phaseOrder.indexOf(targetPhase);
+    
+    // Check all phases before target phase
+    for (let i = 0; i < targetIndex; i++) {
+      const priorPhase = phaseOrder[i];
+      const priorTasks = groupedDailyTasks[priorPhase];
+      const hasOpenTasks = priorTasks.some(task => !task.completed);
+      
+      if (hasOpenTasks) {
+        return false; // Cannot skip to target if prior phase has open tasks
+      }
+    }
+    
+    return true;
   };
 
   const createTask = async () => {
@@ -495,7 +533,15 @@ export function FohTasks() {
   };
 
   const sortedExtraTasks = sortExtraTasks(extraTasks);
-  const groupedDailyTasks = groupTasksByPhase(dailyTasks);
+  
+  // Group daily tasks by phase with sorting
+  const groupedDailyTasks = (() => {
+    const grouped = groupTasksByPhase(dailyTasks);
+    (Object.keys(grouped) as PhaseType[]).forEach(phase => {
+      grouped[phase] = sortTasksInPhase(grouped[phase]);
+    });
+    return grouped;
+  })();
 
   if (loading) {
     return (
@@ -515,9 +561,10 @@ export function FohTasks() {
             setTaskType(v as 'daily' | 'extra');
             if (v === 'daily') {
               setIsPhaseManuallySelected(false);
-              setActivePhase(getCurrentPhaseByTime());
+              setActivePhase(getFirstPhaseWithOpenTasks(dailyTasks));
+              setShowPhaseWarning(false);
             }
-          }} 
+          }}
           className="flex-shrink-0"
         >
           <TabsList className="inline-flex h-10 items-center justify-start rounded-lg bg-muted/50 p-1">
@@ -720,8 +767,28 @@ export function FohTasks() {
                   variant={activePhase === window.phase ? "default" : "outline"}
                   size="sm"
                   onClick={() => {
-                    setActivePhase(window.phase);
+                    const targetPhase = window.phase;
+                    
+                    // Check if switching to this phase is allowed
+                    if (!canSwitchToPhase(targetPhase)) {
+                      // Not allowed - revert to first phase with open tasks
+                      const correctPhase = getFirstPhaseWithOpenTasks(dailyTasks);
+                      setActivePhase(correctPhase);
+                      setShowPhaseWarning(true);
+                      
+                      // Hide warning after 5 seconds
+                      setTimeout(() => {
+                        setShowPhaseWarning(false);
+                      }, 5000);
+                      
+                      toast.warning('Voltooi eerst de eerdere taken');
+                      return;
+                    }
+                    
+                    // Allowed - proceed with phase switch
+                    setActivePhase(targetPhase);
                     setIsPhaseManuallySelected(true);
+                    setShowPhaseWarning(false);
                   }}
                   className={cn(
                     "rounded-full px-4 py-1 text-xs font-medium transition-all",
@@ -786,6 +853,12 @@ export function FohTasks() {
                 
                 return (
                   <div className="space-y-4">
+                    {showPhaseWarning && (
+                      <p className="text-xs text-muted-foreground italic mb-1">
+                        Graag eerst de ochtend taken afronden voordat je begint met de volgende.
+                      </p>
+                    )}
+                    
                     <div className="flex items-center gap-3 pb-2 border-b">
                       <h2 className="text-xl font-bold">{activeWindow.label}</h2>
                       <Badge variant="outline" className="text-xs font-normal">
