@@ -341,58 +341,6 @@ export default function FohAnalytics() {
           </CardContent>
         </Card>
 
-        {/* Task History Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Taakgeschiedenis</CardTitle>
-            <CardDescription>Alle taken in de geselecteerde periode</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Datum</TableHead>
-                  <TableHead>Fase</TableHead>
-                  <TableHead>Taak</TableHead>
-                  <TableHead>Prioriteit</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Toegewezen aan</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tasks.slice(0, 50).map((task) => (
-                  <TableRow key={task.id}>
-                    <TableCell>{format(new Date(task.due_date), 'dd MMM yyyy', { locale: nl })}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{task.phase?.toUpperCase() || '-'}</Badge>
-                    </TableCell>
-                    <TableCell className="font-medium">{task.title}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={task.priority === 1 ? 'destructive' : task.priority === 2 ? 'default' : 'secondary'}
-                      >
-                        P{task.priority}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {task.completed ? (
-                        <Badge className="bg-primary">Voltooid</Badge>
-                      ) : (
-                        <Badge variant="outline">Open</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>{task.foh_employees?.name || '-'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            {tasks.length > 50 && (
-              <p className="text-sm text-muted-foreground mt-4 text-center">
-                Toont eerste 50 van {tasks.length} taken. Gebruik export voor volledige lijst.
-              </p>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </SidebarLayout>
   );
