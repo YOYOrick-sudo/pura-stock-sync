@@ -61,11 +61,18 @@ const getCurrentPhaseByTime = (): PhaseType => {
   return 'open';
 };
 
+const getAmsterdamDateString = (): string => {
+  const TIMEZONE = 'Europe/Amsterdam';
+  const nowInAmsterdam = toZonedTime(new Date(), TIMEZONE);
+  return nowInAmsterdam.toISOString().split('T')[0]; // YYYY-MM-DD
+};
+
 export function FohTasks() {
   const [taskType, setTaskType] = useState<'daily' | 'extra'>('daily');
   const [filter, setFilter] = useState<'open' | 'done'>('open');
   const [activePhase, setActivePhase] = useState<PhaseType>('open');
   const [isPhaseManuallySelected, setIsPhaseManuallySelected] = useState(false);
+  const [currentDate, setCurrentDate] = useState<string>('');
   const [dailyTasks, setDailyTasks] = useState<FohTaskWithEmployee[]>([]);
   const [extraTasks, setExtraTasks] = useState<FohTaskWithEmployee[]>([]);
   const [employees, setEmployees] = useState<FohEmployee[]>([]);
@@ -102,6 +109,29 @@ export function FohTasks() {
       fetchExtraTasks();
     }
   }, [taskType, filter]);
+
+  // Midnight detection - reset to auto mode when date changes
+  useEffect(() => {
+    if (taskType !== 'daily') return;
+    
+    // Initialize current date
+    const initialDate = getAmsterdamDateString();
+    setCurrentDate(initialDate);
+    
+    // Check for date change every minute
+    const interval = setInterval(() => {
+      const newDate = getAmsterdamDateString();
+      if (newDate !== currentDate && currentDate !== '') {
+        // Date has changed (midnight passed)
+        setIsPhaseManuallySelected(false);
+        setActivePhase(getCurrentPhaseByTime());
+        setCurrentDate(newDate);
+        toast.info('Nieuwe dag begonnen - automatische fase-detectie hervat');
+      }
+    }, 60000); // Check every minute
+    
+    return () => clearInterval(interval);
+  }, [taskType, currentDate]);
 
   // Generate daily tasks from templates if not already generated today
   const generateDailyTasks = async () => {
@@ -423,6 +453,12 @@ export function FohTasks() {
     }
   };
 
+  const revertToAutoMode = () => {
+    setIsPhaseManuallySelected(false);
+    setActivePhase(getCurrentPhaseByTime());
+    toast.success('Automatische fase-detectie ingeschakeld');
+  };
+
   const createTask = async () => {
     if (!newTask.title.trim()) {
       toast.error('Vul een titel in');
@@ -674,29 +710,52 @@ export function FohTasks() {
         )}
       </div>
 
-      {taskType === 'daily' && (
-        <div className="flex items-center gap-2 mb-4">
-          {PHASE_WINDOWS.map(window => (
-            <Button
-              key={window.phase}
-              variant={activePhase === window.phase ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                setActivePhase(window.phase);
-                setIsPhaseManuallySelected(true);
-              }}
-              className={cn(
-                "rounded-full px-4 py-1 text-xs font-medium transition-all",
-                activePhase === window.phase 
-                  ? "bg-[#1B7867] text-white shadow-sm" 
-                  : "bg-white text-muted-foreground hover:bg-gray-50"
+        {taskType === 'daily' && (
+          <div className="space-y-2 mb-4">
+            {/* Phase Pills Row */}
+            <div className="flex items-center gap-2">
+              {PHASE_WINDOWS.map(window => (
+                <Button
+                  key={window.phase}
+                  variant={activePhase === window.phase ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    setActivePhase(window.phase);
+                    setIsPhaseManuallySelected(true);
+                  }}
+                  className={cn(
+                    "rounded-full px-4 py-1 text-xs font-medium transition-all",
+                    activePhase === window.phase 
+                      ? "bg-[#1B7867] text-white shadow-sm" 
+                      : "bg-white text-muted-foreground hover:bg-gray-50"
+                  )}
+                >
+                  {window.label}
+                </Button>
+              ))}
+              
+              {/* Manual Mode Indicator & Auto Button */}
+              {isPhaseManuallySelected && (
+                <>
+                  <Badge 
+                    variant="outline" 
+                    className="ml-2 text-xs px-2 py-0.5 bg-amber-50 text-amber-700 border-amber-200"
+                  >
+                    🔒 Handmatig
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={revertToAutoMode}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    → Auto
+                  </Button>
+                </>
               )}
-            >
-              {window.label}
-            </Button>
-          ))}
-        </div>
-      )}
+            </div>
+          </div>
+        )}
 
       {/* Level 2: Status Filter Tabs */}
       <Tabs value={filter} onValueChange={(v) => setFilter(v as 'open' | 'done')}>
