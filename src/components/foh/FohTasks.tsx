@@ -104,10 +104,8 @@ const getFirstPhaseWithOpenTasks = (tasks: FohTaskWithEmployee[]): PhaseType => 
 
 export function FohTasks() {
   const [taskType, setTaskType] = useState<'daily' | 'extra'>('daily');
-  const [filter, setFilter] = useState<'open' | 'done'>('open');
   const [activePhase, setActivePhase] = useState<PhaseType>('open');
   const [isPhaseManuallySelected, setIsPhaseManuallySelected] = useState(false);
-  const [showPhaseWarning, setShowPhaseWarning] = useState(false);
   const [currentDate, setCurrentDate] = useState<string>('');
   const [dailyTasks, setDailyTasks] = useState<FohTaskWithEmployee[]>([]);
   const [extraTasks, setExtraTasks] = useState<FohTaskWithEmployee[]>([]);
@@ -145,7 +143,7 @@ export function FohTasks() {
     } else {
       fetchExtraTasks();
     }
-  }, [taskType, filter]);
+  }, [taskType]);
 
   // Midnight detection - reset to auto mode when date changes
   useEffect(() => {
@@ -221,7 +219,7 @@ export function FohTasks() {
     setLoading(true);
     const today = new Date().toISOString().split('T')[0];
     
-    let query = supabase
+    const { data, error } = await supabase
       .from('foh_tasks')
       .select(`
         *,
@@ -234,14 +232,6 @@ export function FohTasks() {
       `)
       .not('template_id', 'is', null)
       .eq('due_date', today);
-
-    if (filter === 'open') {
-      query = query.eq('completed', false).eq('archived', false);
-    } else {
-      query = query.or('completed.eq.true,archived.eq.true');
-    }
-
-    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching daily tasks:', error);
@@ -256,7 +246,7 @@ export function FohTasks() {
   const fetchExtraTasks = async () => {
     setLoading(true);
     
-    let query = supabase
+    const { data, error } = await supabase
       .from('foh_tasks')
       .select(`
         *,
@@ -268,14 +258,6 @@ export function FohTasks() {
         )
       `)
       .is('template_id', null);
-
-    if (filter === 'open') {
-      query = query.eq('completed', false).eq('archived', false);
-    } else {
-      query = query.or('completed.eq.true,archived.eq.true');
-    }
-
-    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching extra tasks:', error);
@@ -474,7 +456,6 @@ export function FohTasks() {
     setIsPhaseManuallySelected(false);
     const targetPhase = getFirstPhaseWithOpenTasks(dailyTasks);
     setActivePhase(targetPhase);
-    setShowPhaseWarning(false);
     toast.success('Automatische fase-detectie ingeschakeld');
   };
 
@@ -553,36 +534,76 @@ export function FohTasks() {
 
   return (
     <div className="space-y-6">
-      {/* Level 1: Task Type Tabs */}
+      {/* Unified Control Bar */}
       <div className="flex items-center justify-between gap-4">
-        <Tabs 
-          value={taskType} 
-          onValueChange={(v) => {
-            setTaskType(v as 'daily' | 'extra');
-            if (v === 'daily') {
-              setIsPhaseManuallySelected(false);
-              setActivePhase(getFirstPhaseWithOpenTasks(dailyTasks));
-              setShowPhaseWarning(false);
-            }
-          }}
-          className="flex-shrink-0"
-        >
-          <TabsList className="inline-flex h-10 items-center justify-start rounded-lg bg-muted/50 p-1">
-            <TabsTrigger 
-              value="daily"
-              className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-            >
-              Dagelijks
-            </TabsTrigger>
-            <TabsTrigger 
-              value="extra"
-              className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-            >
-              Extra
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-4">
+          {/* Task Type Tabs */}
+          <Tabs 
+            value={taskType} 
+            onValueChange={(v) => {
+              setTaskType(v as 'daily' | 'extra');
+              if (v === 'daily') {
+                setIsPhaseManuallySelected(false);
+                setActivePhase(getFirstPhaseWithOpenTasks(dailyTasks));
+              }
+            }}
+            className="flex-shrink-0"
+          >
+            <TabsList className="inline-flex h-10 items-center justify-start rounded-lg bg-muted/50 p-1">
+              <TabsTrigger 
+                value="daily"
+                className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+              >
+                Dagelijks
+              </TabsTrigger>
+              <TabsTrigger 
+                value="extra"
+                className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+              >
+                Extra
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
+          {/* Phase Pills (only for daily tasks) */}
+          {taskType === 'daily' && (
+            <div className="flex items-center gap-2">
+              {PHASE_WINDOWS.map(window => (
+                <Button
+                  key={window.phase}
+                  variant={activePhase === window.phase ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    const targetPhase = window.phase;
+                    
+                    // Check if switching to this phase is allowed
+                    if (!canSwitchToPhase(targetPhase)) {
+                      // Not allowed - revert to first phase with open tasks
+                      const correctPhase = getFirstPhaseWithOpenTasks(dailyTasks);
+                      setActivePhase(correctPhase);
+                      toast.warning('Voltooi eerst de eerdere taken');
+                      return;
+                    }
+                    
+                    // Allowed - proceed with phase switch
+                    setActivePhase(targetPhase);
+                    setIsPhaseManuallySelected(true);
+                  }}
+                  className={cn(
+                    "rounded-full px-4 py-1 text-xs font-medium transition-all",
+                    activePhase === window.phase 
+                      ? "bg-[#1B7867] text-white shadow-sm" 
+                      : "bg-white text-muted-foreground hover:bg-gray-50"
+                  )}
+                >
+                  {window.label}
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* New Task Button (only for extra tasks) */}
         {taskType === 'extra' && (
           <Dialog 
             open={dialogOpen} 
@@ -757,195 +778,61 @@ export function FohTasks() {
         )}
       </div>
 
-        {taskType === 'daily' && (
-          <div className="space-y-2 mb-4">
-            {/* Phase Pills Row */}
-            <div className="flex items-center gap-2">
-              {PHASE_WINDOWS.map(window => (
-                <Button
-                  key={window.phase}
-                  variant={activePhase === window.phase ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => {
-                    const targetPhase = window.phase;
-                    
-                    // Check if switching to this phase is allowed
-                    if (!canSwitchToPhase(targetPhase)) {
-                      // Not allowed - revert to first phase with open tasks
-                      const correctPhase = getFirstPhaseWithOpenTasks(dailyTasks);
-                      setActivePhase(correctPhase);
-                      setShowPhaseWarning(true);
-                      
-                      // Hide warning after 5 seconds
-                      setTimeout(() => {
-                        setShowPhaseWarning(false);
-                      }, 5000);
-                      
-                      toast.warning('Voltooi eerst de eerdere taken');
-                      return;
-                    }
-                    
-                    // Allowed - proceed with phase switch
-                    setActivePhase(targetPhase);
-                    setIsPhaseManuallySelected(true);
-                    setShowPhaseWarning(false);
-                  }}
-                  className={cn(
-                    "rounded-full px-4 py-1 text-xs font-medium transition-all",
-                    activePhase === window.phase 
-                      ? "bg-[#1B7867] text-white shadow-sm" 
-                      : "bg-white text-muted-foreground hover:bg-gray-50"
-                  )}
-                >
-                  {window.label}
-                </Button>
-              ))}
-              
-              {/* Manual Mode Indicator & Auto Button */}
-              {isPhaseManuallySelected && (
-                <>
-                  <Badge 
-                    variant="outline" 
-                    className="ml-2 text-xs px-2 py-0.5 bg-amber-50 text-amber-700 border-amber-200"
-                  >
-                    🔒 Handmatig
+      {/* Task Content */}
+      {taskType === 'daily' ? (
+        <>
+          {(() => {
+            const activeWindow = PHASE_WINDOWS.find(w => w.phase === activePhase);
+            const phaseTasks = groupedDailyTasks[activePhase];
+            const isOverdue = isPhaseOverdue(activePhase);
+            
+            if (!activeWindow) return null;
+            
+            return (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 pb-2 border-b">
+                  <h2 className="text-xl font-bold">{activeWindow.label}</h2>
+                  <Badge variant="outline" className="text-xs font-normal">
+                    {minutesToTimeString(activeWindow.startMin)} – {minutesToTimeString(activeWindow.endMin)}
                   </Badge>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={revertToAutoMode}
-                    className="text-xs text-muted-foreground hover:text-foreground"
-                  >
-                    → Auto
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-
-      {/* Level 2: Status Filter Tabs */}
-      <Tabs value={filter} onValueChange={(v) => setFilter(v as 'open' | 'done')}>
-        <TabsList className="inline-flex h-10 items-center justify-start rounded-lg bg-muted/50 p-1">
-          <TabsTrigger 
-            value="open"
-            className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-          >
-            Open
-          </TabsTrigger>
-          <TabsTrigger 
-            value="done"
-            className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-          >
-            Afgerond
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value={filter} className="mt-6 space-y-6">
-          {taskType === 'daily' ? (
-            <>
-              {(() => {
-                const activeWindow = PHASE_WINDOWS.find(w => w.phase === activePhase);
-                const phaseTasks = groupedDailyTasks[activePhase];
-                const isOverdue = isPhaseOverdue(activePhase);
+                  {isOverdue && (
+                    <Badge variant="destructive" className="text-xs">
+                      Overtijd
+                    </Badge>
+                  )}
+                </div>
                 
-                if (!activeWindow) return null;
-                
-                return (
-                  <div className="space-y-4">
-                    {showPhaseWarning && (
-                      <p className="text-xs text-muted-foreground italic mb-1">
-                        Graag eerst de ochtend taken afronden voordat je begint met de volgende.
-                      </p>
-                    )}
-                    
-                    <div className="flex items-center gap-3 pb-2 border-b">
-                      <h2 className="text-xl font-bold">{activeWindow.label}</h2>
-                      <Badge variant="outline" className="text-xs font-normal">
-                        {minutesToTimeString(activeWindow.startMin)} – {minutesToTimeString(activeWindow.endMin)}
-                      </Badge>
-                      {isOverdue && (
-                        <Badge variant="destructive" className="text-xs">
-                          Overtijd
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    {phaseTasks.length === 0 ? (
-                      <Card className="p-8 text-center bg-gray-50 border-dashed">
-                        <p className="text-sm text-muted-foreground">
-                          Geen taken voor {activeWindow.label}
-                        </p>
-                      </Card>
-                    ) : (
-                      <div className="space-y-3">
-                        {phaseTasks.map((task) => (
-                          <Card 
-                            key={task.id} 
-                            className={cn(
-                              "p-4 bg-white shadow-sm border transition-colors",
-                              task.completed && "opacity-50",
-                              isOverdue && !task.completed && "border-red-400 bg-red-50"
-                            )}
-                          >
-                            <div className="flex items-start gap-3">
-                              <Checkbox
-                                checked={task.completed}
-                                onCheckedChange={() => toggleTask(task.id, task.completed)}
-                                disabled={task.completed}
-                              />
-                              <div className="flex-1">
-                                <h3 className={`font-semibold ${task.completed ? 'line-through text-gray-400' : ''}`}>
-                                  {task.title}
-                                </h3>
-                                <div className="flex gap-2 mt-2 flex-wrap">
-                                  <Badge className={getPriorityConfig(task.priority).color}>
-                                    {getPriorityConfig(task.priority).label}
-                                  </Badge>
-                                  {task.foh_employees && (
-                                    <Badge variant="outline">
-                                      👤 {task.foh_employees.name}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-            </>
-          ) : (
-            // Extra tasks with existing logic
-            <>
-              {sortedExtraTasks.length === 0 ? (
-                <Card className="p-12 border-dashed border-2 border-muted text-center">
-                  <p className="text-muted-foreground">
-                    {filter === 'open' ? "Geen open taken" : "Geen afgeronde taken"}
-                  </p>
-                </Card>
-              ) : (
-                sortedExtraTasks.map((task) => (
-                  <Card key={task.id} className={`p-4 bg-white shadow-sm ${task.completed ? 'opacity-50' : ''}`}>
-                    <div className="flex items-start gap-3">
-                      <Checkbox
-                        checked={task.completed}
-                        onCheckedChange={() => toggleTask(task.id, task.completed)}
-                        disabled={task.completed}
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-2">
+                {phaseTasks.length === 0 ? (
+                  <Card className="p-8 text-center bg-gray-50 border-dashed">
+                    <p className="text-sm text-muted-foreground">
+                      Geen taken voor {activeWindow.label}
+                    </p>
+                  </Card>
+                ) : (
+                  <div className="space-y-3">
+                    {phaseTasks.map((task) => (
+                      <Card 
+                        key={task.id} 
+                        className={cn(
+                          "p-4 bg-white shadow-sm border transition-colors",
+                          task.completed && "opacity-40",
+                          isOverdue && !task.completed && "border-red-400 bg-red-50"
+                        )}
+                      >
+                        <div className="flex items-start gap-3">
+                          <Checkbox
+                            checked={task.completed}
+                            onCheckedChange={() => toggleTask(task.id, task.completed)}
+                            disabled={task.completed}
+                          />
                           <div className="flex-1">
-                            <h3 className={`font-semibold ${task.completed ? 'line-through' : ''}`}>
+                            <h3 className={cn(
+                              "font-semibold",
+                              task.completed && "line-through text-muted-foreground"
+                            )}>
                               {task.title}
                             </h3>
                             <div className="flex gap-2 mt-2 flex-wrap">
-                              <Badge className={getDateLabelColor(task.due_date)}>
-                                {getDateLabel(task.due_date)}
-                              </Badge>
                               <Badge className={getPriorityConfig(task.priority).color}>
                                 {getPriorityConfig(task.priority).label}
                               </Badge>
@@ -957,15 +844,67 @@ export function FohTasks() {
                             </div>
                           </div>
                         </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </>
+      ) : (
+        // Extra tasks
+        <>
+          {sortedExtraTasks.length === 0 ? (
+            <Card className="p-12 border-dashed border-2 border-muted text-center">
+              <p className="text-muted-foreground">
+                Geen taken
+              </p>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {sortedExtraTasks.map((task) => (
+                <Card 
+                  key={task.id} 
+                  className={cn(
+                    "p-4 bg-white shadow-sm border transition-colors",
+                    task.completed && "opacity-40"
+                  )}
+                >
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      checked={task.completed}
+                      onCheckedChange={() => toggleTask(task.id, task.completed)}
+                      disabled={task.completed}
+                    />
+                    <div className="flex-1">
+                      <h3 className={cn(
+                        "font-semibold",
+                        task.completed && "line-through text-muted-foreground"
+                      )}>
+                        {task.title}
+                      </h3>
+                      <div className="flex gap-2 mt-2 flex-wrap">
+                        <Badge className={getDateLabelColor(task.due_date)}>
+                          {getDateLabel(task.due_date)}
+                        </Badge>
+                        <Badge className={getPriorityConfig(task.priority).color}>
+                          {getPriorityConfig(task.priority).label}
+                        </Badge>
+                        {task.foh_employees && (
+                          <Badge variant="outline">
+                            👤 {task.foh_employees.name}
+                          </Badge>
+                        )}
                       </div>
                     </div>
-                  </Card>
-                ))
-              )}
-            </>
+                  </div>
+                </Card>
+              ))}
+            </div>
           )}
-        </TabsContent>
-      </Tabs>
+        </>
+      )}
     </div>
   );
 }
