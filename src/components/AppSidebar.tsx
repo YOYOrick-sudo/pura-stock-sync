@@ -31,7 +31,7 @@ const allNavigationItems = [
     locations: ['West', 'Midsland'],
   },
   {
-    title: 'Taken Analyse',
+    title: 'Statistieken',
     url: '/taken-analyse',
     icon: BarChart3,
     locations: ['West', 'Midsland'],
