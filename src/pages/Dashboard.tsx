@@ -253,7 +253,7 @@ const VoorraadCard = () => {
   return (
     <Card 
       className={`p-6 cursor-pointer transition-shadow duration-200 hover:shadow-md active:scale-[0.98] border-2 ${status.borderColor} ${status.bgColor}`}
-      onClick={() => navigate('/voorraad')}
+      onClick={() => navigate('/internal-orders')}
     >
       <div className="flex items-start justify-between mb-4">
         <div className={`p-3 rounded-lg ${status.bgColor === 'bg-red-50' ? 'bg-red-100' : status.bgColor === 'bg-orange-50' ? 'bg-orange-100' : 'bg-green-100'}`}>

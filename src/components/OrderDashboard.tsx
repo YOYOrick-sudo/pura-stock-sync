@@ -208,10 +208,9 @@ export default function OrderDashboard() {
         setShowSuccessDialog(true);
         setIsSubmitting(false);
         
-        // Auto logout and redirect after 1.5 seconds
-        setTimeout(async () => {
-          await supabase.auth.signOut();
-          navigate('/');
+        // Redirect to dashboard after 1.5 seconds
+        setTimeout(() => {
+          navigate('/dashboard');
         }, 1500);
       }, 1500);
       return;
@@ -275,10 +274,9 @@ export default function OrderDashboard() {
         // Show success dialog
         setShowSuccessDialog(true);
         
-        // Auto logout and redirect after 1.5 seconds
-        setTimeout(async () => {
-          await supabase.auth.signOut();
-          navigate('/');
+        // Redirect to dashboard after 1.5 seconds
+        setTimeout(() => {
+          navigate('/dashboard');
         }, 1500);
       } else {
         throw new Error(`Server responded with ${response.status}`);
