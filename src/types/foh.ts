@@ -9,6 +9,8 @@ export interface FohTask {
   completed_at: string | null;
   completed_by: string | null;
   assigned_employee_id: string | null;
+  template_id: string | null;
+  phase: 'open' | 'tussen' | 'sluit' | null;
   created_at: string;
 }
 
@@ -21,4 +23,22 @@ export interface FohEmployee {
 
 export interface FohTaskWithEmployee extends FohTask {
   foh_employees?: FohEmployee | null;
+}
+
+export interface FohDailyTemplate {
+  id: string;
+  location: string;
+  phase: 'open' | 'tussen' | 'sluit';
+  title: string;
+  priority: 1 | 2 | 3;
+  created_at: string;
+}
+
+export type PhaseType = 'open' | 'tussen' | 'sluit';
+
+export interface PhaseWindow {
+  phase: PhaseType;
+  label: string;
+  start: string; // HH:mm format
+  end: string;
 }

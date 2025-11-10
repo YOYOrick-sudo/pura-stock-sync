@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      foh_daily_templates: {
+        Row: {
+          created_at: string
+          id: string
+          location: string
+          phase: string
+          priority: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location: string
+          phase: string
+          priority?: number
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location?: string
+          phase?: string
+          priority?: number
+          title?: string
+        }
+        Relationships: []
+      }
       foh_employees: {
         Row: {
           created_at: string
@@ -46,7 +73,9 @@ export type Database = {
           due_date: string
           id: string
           location: string
+          phase: string | null
           priority: number
+          template_id: string | null
           title: string
         }
         Insert: {
@@ -59,7 +88,9 @@ export type Database = {
           due_date: string
           id?: string
           location: string
+          phase?: string | null
           priority?: number
+          template_id?: string | null
           title: string
         }
         Update: {
@@ -72,7 +103,9 @@ export type Database = {
           due_date?: string
           id?: string
           location?: string
+          phase?: string | null
           priority?: number
+          template_id?: string | null
           title?: string
         }
         Relationships: [
@@ -81,6 +114,13 @@ export type Database = {
             columns: ["assigned_employee_id"]
             isOneToOne: false
             referencedRelation: "foh_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foh_tasks_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "foh_daily_templates"
             referencedColumns: ["id"]
           },
         ]

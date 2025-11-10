@@ -14,14 +14,23 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Loader2, Plus, Check, ChevronsUpDown, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import type { FohTask, FohEmployee, FohTaskWithEmployee } from '@/types/foh';
+import type { FohTask, FohEmployee, FohTaskWithEmployee, PhaseType, PhaseWindow } from '@/types/foh';
+
+// Phase time windows
+const PHASE_WINDOWS: PhaseWindow[] = [
+  { phase: 'open', label: 'Open', start: '08:30', end: '10:30' },
+  { phase: 'tussen', label: 'Tussen', start: '12:00', end: '18:00' },
+  { phase: 'sluit', label: 'Sluit', start: '20:00', end: '01:00' },
+];
 
 export function FohTasks() {
-  const [tasks, setTasks] = useState<FohTaskWithEmployee[]>([]);
+  const [taskType, setTaskType] = useState<'daily' | 'extra'>('daily');
+  const [filter, setFilter] = useState<'open' | 'done'>('open');
+  const [dailyTasks, setDailyTasks] = useState<FohTaskWithEmployee[]>([]);
+  const [extraTasks, setExtraTasks] = useState<FohTaskWithEmployee[]>([]);
   const [employees, setEmployees] = useState<FohEmployee[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [filter, setFilter] = useState<'open' | 'done'>('open');
   
   const [newTask, setNewTask] = useState({
     title: '',
@@ -36,11 +45,101 @@ export function FohTasks() {
   const [isCreatingEmployee, setIsCreatingEmployee] = useState(false);
 
   useEffect(() => {
-    fetchTasks();
     fetchEmployees();
-  }, [filter]);
+    generateDailyTasks();
+  }, []);
 
-  const fetchTasks = async () => {
+  useEffect(() => {
+    if (taskType === 'daily') {
+      fetchDailyTasks();
+    } else {
+      fetchExtraTasks();
+    }
+  }, [taskType, filter]);
+
+  // Generate daily tasks from templates if not already generated today
+  const generateDailyTasks = async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Check if tasks already generated for today
+    const { data: existingTasks } = await supabase
+      .from('foh_tasks')
+      .select('template_id')
+      .not('template_id', 'is', null)
+      .eq('due_date', today);
+
+    if (existingTasks && existingTasks.length > 0) {
+      return;
+    }
+
+    // Fetch all templates
+    const { data: templates } = await supabase
+      .from('foh_daily_templates')
+      .select('*');
+
+    if (!templates || templates.length === 0) return;
+
+    // Generate tasks for today
+    const tasksToInsert = templates.map(template => ({
+      title: template.title,
+      due_date: today,
+      priority: template.priority,
+      template_id: template.id,
+      phase: template.phase,
+      completed: false,
+      archived: false,
+      assigned_employee_id: null,
+      location: '', // Set by trigger
+    }));
+
+    const { error } = await supabase
+      .from('foh_tasks')
+      .insert(tasksToInsert);
+
+    if (error) {
+      console.error('Error generating daily tasks:', error);
+    }
+  };
+
+  const fetchDailyTasks = async () => {
+    setLoading(true);
+    const today = new Date().toISOString().split('T')[0];
+    
+    let query = supabase
+      .from('foh_tasks')
+      .select(`
+        *,
+        foh_employees (
+          id,
+          name,
+          location,
+          created_at
+        )
+      `)
+      .not('template_id', 'is', null)
+      .eq('due_date', today);
+
+    if (filter === 'open') {
+      query = query.eq('completed', false).eq('archived', false);
+    } else {
+      query = query.or('completed.eq.true,archived.eq.true');
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching daily tasks:', error);
+      toast.error('Kon dagelijkse taken niet laden');
+    } else {
+      setDailyTasks(data as FohTaskWithEmployee[] || []);
+    }
+    
+    setLoading(false);
+  };
+
+  const fetchExtraTasks = async () => {
     setLoading(true);
     
     let query = supabase
@@ -53,9 +152,9 @@ export function FohTasks() {
           location,
           created_at
         )
-      `);
+      `)
+      .is('template_id', null);
 
-    // Server-side filtering
     if (filter === 'open') {
       query = query.eq('completed', false).eq('archived', false);
     } else {
@@ -65,10 +164,10 @@ export function FohTasks() {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching tasks:', error);
+      console.error('Error fetching extra tasks:', error);
       toast.error('Kon taken niet laden');
     } else {
-      setTasks(data as FohTaskWithEmployee[] || []);
+      setExtraTasks(data as FohTaskWithEmployee[] || []);
     }
     
     setLoading(false);
@@ -87,8 +186,47 @@ export function FohTasks() {
     }
   };
 
-  // Bucket-based sorting
-  const sortTasks = (tasksToSort: FohTaskWithEmployee[]) => {
+  // Check if a phase is overdue
+  const isPhaseOverdue = (phase: PhaseType): boolean => {
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    const window = PHASE_WINDOWS.find(w => w.phase === phase);
+    if (!window) return false;
+    
+    const [endHour, endMin] = window.end.split(':').map(Number);
+    let endTimeMinutes = endHour * 60 + endMin;
+    
+    // If end time < 08:00, it's next day (e.g., 01:00)
+    if (endHour < 8) {
+      endTimeMinutes += 24 * 60;
+      if (now.getHours() < 8) {
+        return currentTime + 24 * 60 > endTimeMinutes;
+      }
+    }
+    
+    return currentTime > endTimeMinutes;
+  };
+
+  // Group daily tasks by phase
+  const groupTasksByPhase = (tasks: FohTaskWithEmployee[]) => {
+    const grouped: Record<PhaseType, FohTaskWithEmployee[]> = {
+      open: [],
+      tussen: [],
+      sluit: [],
+    };
+    
+    tasks.forEach(task => {
+      if (task.phase && task.phase in grouped) {
+        grouped[task.phase].push(task);
+      }
+    });
+    
+    return grouped;
+  };
+
+  // Bucket-based sorting for extra tasks
+  const sortExtraTasks = (tasksToSort: FohTaskWithEmployee[]) => {
     const today = new Date().toISOString().split('T')[0];
     const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
     
@@ -100,24 +238,19 @@ export function FohTasks() {
       const aIsTomorrow = a.due_date === tomorrow;
       const bIsTomorrow = b.due_date === tomorrow;
       
-      // Bucket 1: Te laat
       if (aIsLate && !bIsLate) return -1;
       if (!aIsLate && bIsLate) return 1;
       
-      // Bucket 2: Vandaag
       if (aIsToday && !bIsToday) return -1;
       if (!aIsToday && bIsToday) return 1;
       
-      // Bucket 3: Morgen
       if (aIsTomorrow && !bIsTomorrow) return -1;
       if (!aIsTomorrow && bIsTomorrow) return 1;
       
-      // Bucket 4: Overig (datum oplopend)
       if (a.due_date !== b.due_date) {
         return a.due_date.localeCompare(b.due_date);
       }
       
-      // Binnen bucket: priority oplopend (1 voor 2 voor 3)
       return a.priority - b.priority;
     });
   };
@@ -157,7 +290,6 @@ export function FohTasks() {
 
   const toggleTask = async (taskId: string, currentCompleted: boolean) => {
     if (currentCompleted) {
-      // MVP: uncheck uitgeschakeld
       toast.info('Afgeronde taken kunnen niet worden teruggezet');
       return;
     }
@@ -182,23 +314,25 @@ export function FohTasks() {
     }
 
     toast.success('Taak afgerond!');
-    fetchTasks();
+    
+    if (taskType === 'daily') {
+      fetchDailyTasks();
+    } else {
+      fetchExtraTasks();
+    }
   };
 
-  // Filter employees based on input
+  // Employee autocomplete logic
   const filteredEmployees = employees.filter(emp =>
     emp.name.toLowerCase().includes(employeeInput.toLowerCase())
   );
 
-  // Check if input matches existing employee exactly
   const exactMatch = employees.find(
     emp => emp.name.toLowerCase() === employeeInput.trim().toLowerCase()
   );
 
-  // Check if we should show "add new" CTA
   const shouldShowAddNew = employeeInput.trim().length > 0 && !exactMatch;
 
-  // Create new employee inline
   const createEmployeeInline = async (name: string) => {
     if (!name.trim()) {
       toast.error('Vul een naam in');
@@ -226,21 +360,16 @@ export function FohTasks() {
     }
 
     toast.success(`${name} toegevoegd als medewerker`);
-    
-    // Refresh employee list
     await fetchEmployees();
-    
     return data;
   };
 
-  // Handle employee selection
   const handleEmployeeSelect = (employeeId: string, employeeName: string) => {
     setNewTask({ ...newTask, assigned_employee_id: employeeId });
     setEmployeeInput(employeeName);
     setEmployeeOpen(false);
   };
 
-  // Handle "Add new employee" action
   const handleAddNewEmployee = async () => {
     const newEmployee = await createEmployeeInline(employeeInput);
     
@@ -256,7 +385,6 @@ export function FohTasks() {
       return;
     }
 
-    // BELANGRIJK: location wordt NIET meegegeven, wordt automatisch gezet door trigger
     const { error } = await supabase
       .from('foh_tasks')
       .insert({
@@ -264,6 +392,7 @@ export function FohTasks() {
         due_date: newTask.due_date,
         priority: newTask.priority,
         assigned_employee_id: newTask.assigned_employee_id,
+        template_id: null, // Extra tasks have no template_id
         location: '',
       });
 
@@ -282,10 +411,11 @@ export function FohTasks() {
       assigned_employee_id: null,
     });
     setEmployeeInput('');
-    fetchTasks();
+    fetchExtraTasks();
   };
 
-  const sortedTasks = sortTasks(tasks);
+  const sortedExtraTasks = sortExtraTasks(extraTasks);
+  const groupedDailyTasks = groupTasksByPhase(dailyTasks);
 
   if (loading) {
     return (
@@ -297,241 +427,334 @@ export function FohTasks() {
 
   return (
     <div className="space-y-6">
-      {/* Horizontal row: Tabs left, Button right */}
+      {/* Level 1: Task Type Tabs */}
       <div className="flex items-center justify-between gap-4">
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as 'open' | 'done')} className="flex-shrink-0">
+        <Tabs value={taskType} onValueChange={(v) => setTaskType(v as 'daily' | 'extra')} className="flex-shrink-0">
           <TabsList className="inline-flex h-10 items-center justify-start rounded-lg bg-muted/50 p-1">
             <TabsTrigger 
-              value="open"
+              value="daily"
               className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
             >
-              Open
+              Dagelijks
             </TabsTrigger>
             <TabsTrigger 
-              value="done"
+              value="extra"
               className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
             >
-              Afgerond
+              Extra
             </TabsTrigger>
           </TabsList>
         </Tabs>
 
-        <Dialog 
-          open={dialogOpen} 
-          onOpenChange={(open) => {
-            setDialogOpen(open);
-            if (!open) {
-              setEmployeeInput('');
-            }
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Nieuwe Taak
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Nieuwe Taak Aanmaken</DialogTitle>
-            </DialogHeader>
-            
-            <div className="space-y-4 py-4">
-              <div>
-                <Label htmlFor="title">Titel *</Label>
-                <Input
-                  id="title"
-                  value={newTask.title}
-                  onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                  placeholder="Bijv. 'Tafels dekken'"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="due_date">Datum *</Label>
-                <Input
-                  id="due_date"
-                  type="date"
-                  value={newTask.due_date}
-                  onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="priority">Prioriteit</Label>
-                <Select
-                  value={newTask.priority.toString()}
-                  onValueChange={(value) =>
-                    setNewTask({ ...newTask, priority: parseInt(value) as 1 | 2 | 3 })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">🔴 Hoog</SelectItem>
-                    <SelectItem value="2">🟡 Midden</SelectItem>
-                    <SelectItem value="3">🔵 Laag</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="employee">Medewerker (optioneel)</Label>
-                
-                <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={employeeOpen}
-                      className="w-full justify-between"
-                    >
-                      {newTask.assigned_employee_id
-                        ? employees.find(emp => emp.id === newTask.assigned_employee_id)?.name
-                        : "Selecteer of typ een naam..."}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  
-                  <PopoverContent className="w-[400px] p-0" align="start">
-                    <Command shouldFilter={false}>
-                      <CommandInput
-                        placeholder="Zoek of typ nieuwe naam..."
-                        value={employeeInput}
-                        onValueChange={setEmployeeInput}
-                      />
-                      <CommandList>
-                        {filteredEmployees.length === 0 && !shouldShowAddNew && (
-                          <CommandEmpty>Geen medewerkers gevonden</CommandEmpty>
-                        )}
-                        
-                        {filteredEmployees.length > 0 && (
-                          <CommandGroup heading="Bestaande medewerkers">
-                            {filteredEmployees.map((emp) => (
-                              <CommandItem
-                                key={emp.id}
-                                value={emp.id}
-                                onSelect={() => handleEmployeeSelect(emp.id, emp.name)}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    newTask.assigned_employee_id === emp.id
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {emp.name}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        )}
-                        
-                        {shouldShowAddNew && (
-                          <>
-                            {filteredEmployees.length > 0 && <CommandSeparator />}
-                            <CommandGroup>
-                              <CommandItem
-                                onSelect={handleAddNewEmployee}
-                                className="bg-green-50 text-green-700"
-                                disabled={isCreatingEmployee}
-                              >
-                                {isCreatingEmployee ? (
-                                  <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Medewerker toevoegen...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Voeg "{employeeInput.trim()}" toe als nieuwe medewerker
-                                  </>
-                                )}
-                              </CommandItem>
-                            </CommandGroup>
-                          </>
-                        )}
-                        
-                        {/* Option to clear selection */}
-                        {newTask.assigned_employee_id && (
-                          <>
-                            <CommandSeparator />
-                            <CommandGroup>
-                              <CommandItem
-                                onSelect={() => {
-                                  setNewTask({ ...newTask, assigned_employee_id: null });
-                                  setEmployeeInput('');
-                                  setEmployeeOpen(false);
-                                }}
-                                className="text-muted-foreground"
-                              >
-                                <X className="mr-2 h-4 w-4" />
-                                Geen medewerker toewijzen
-                              </CommandItem>
-                            </CommandGroup>
-                          </>
-                        )}
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                Annuleren
+        {taskType === 'extra' && (
+          <Dialog 
+            open={dialogOpen} 
+            onOpenChange={(open) => {
+              setDialogOpen(open);
+              if (!open) {
+                setEmployeeInput('');
+              }
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Nieuwe Taak
               </Button>
-              <Button onClick={createTask}>Aanmaken</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Nieuwe Taak Aanmaken</DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-4 py-4">
+                <div>
+                  <Label htmlFor="title">Titel *</Label>
+                  <Input
+                    id="title"
+                    value={newTask.title}
+                    onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                    placeholder="Bijv. 'Tafels dekken'"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="due_date">Datum *</Label>
+                  <Input
+                    id="due_date"
+                    type="date"
+                    value={newTask.due_date}
+                    onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="priority">Prioriteit</Label>
+                  <Select
+                    value={newTask.priority.toString()}
+                    onValueChange={(value) =>
+                      setNewTask({ ...newTask, priority: parseInt(value) as 1 | 2 | 3 })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">🔴 Hoog</SelectItem>
+                      <SelectItem value="2">🟡 Midden</SelectItem>
+                      <SelectItem value="3">🔵 Laag</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="employee">Medewerker (optioneel)</Label>
+                  
+                  <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={employeeOpen}
+                        className="w-full justify-between"
+                      >
+                        {newTask.assigned_employee_id
+                          ? employees.find(emp => emp.id === newTask.assigned_employee_id)?.name
+                          : "Selecteer of typ een naam..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    
+                    <PopoverContent className="w-[400px] p-0" align="start">
+                      <Command shouldFilter={false}>
+                        <CommandInput
+                          placeholder="Zoek of typ nieuwe naam..."
+                          value={employeeInput}
+                          onValueChange={setEmployeeInput}
+                        />
+                        <CommandList>
+                          {filteredEmployees.length === 0 && !shouldShowAddNew && (
+                            <CommandEmpty>Geen medewerkers gevonden</CommandEmpty>
+                          )}
+                          
+                          {filteredEmployees.length > 0 && (
+                            <CommandGroup heading="Bestaande medewerkers">
+                              {filteredEmployees.map((emp) => (
+                                <CommandItem
+                                  key={emp.id}
+                                  value={emp.id}
+                                  onSelect={() => handleEmployeeSelect(emp.id, emp.name)}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      newTask.assigned_employee_id === emp.id
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  {emp.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          )}
+                          
+                          {shouldShowAddNew && (
+                            <>
+                              {filteredEmployees.length > 0 && <CommandSeparator />}
+                              <CommandGroup>
+                                <CommandItem
+                                  onSelect={handleAddNewEmployee}
+                                  className="bg-green-50 text-green-700"
+                                  disabled={isCreatingEmployee}
+                                >
+                                  {isCreatingEmployee ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                      Medewerker toevoegen...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Plus className="mr-2 h-4 w-4" />
+                                      Voeg "{employeeInput.trim()}" toe als nieuwe medewerker
+                                    </>
+                                  )}
+                                </CommandItem>
+                              </CommandGroup>
+                            </>
+                          )}
+                          
+                          {newTask.assigned_employee_id && (
+                            <>
+                              <CommandSeparator />
+                              <CommandGroup>
+                                <CommandItem
+                                  onSelect={() => {
+                                    setNewTask({ ...newTask, assigned_employee_id: null });
+                                    setEmployeeInput('');
+                                    setEmployeeOpen(false);
+                                  }}
+                                  className="text-muted-foreground"
+                                >
+                                  <X className="mr-2 h-4 w-4" />
+                                  Geen medewerker toewijzen
+                                </CommandItem>
+                              </CommandGroup>
+                            </>
+                          )}
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                  Annuleren
+                </Button>
+                <Button onClick={createTask}>Aanmaken</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
-      {/* Task list - outside the horizontal row */}
+      {/* Level 2: Status Filter Tabs */}
       <Tabs value={filter} onValueChange={(v) => setFilter(v as 'open' | 'done')}>
-        <TabsContent value={filter} className="mt-0 space-y-3">
-          {sortedTasks.length === 0 ? (
-            <Card className="p-12 border-dashed border-2 border-muted text-center">
-              <p className="text-muted-foreground">
-                {filter === 'open' ? "Geen open taken" : "Geen afgeronde taken"}
-              </p>
-            </Card>
+        <TabsList className="inline-flex h-10 items-center justify-start rounded-lg bg-muted/50 p-1">
+          <TabsTrigger 
+            value="open"
+            className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+          >
+            Open
+          </TabsTrigger>
+          <TabsTrigger 
+            value="done"
+            className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+          >
+            Afgerond
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value={filter} className="mt-6 space-y-6">
+          {taskType === 'daily' ? (
+            // Daily tasks grouped by phase
+            <>
+              {PHASE_WINDOWS.map(window => {
+                const phaseTasks = groupedDailyTasks[window.phase];
+                const isOverdue = isPhaseOverdue(window.phase);
+                
+                return (
+                  <div key={window.phase} className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-lg font-semibold">{window.label}</h3>
+                      <Badge variant="outline" className="text-xs">
+                        {window.start} - {window.end}
+                      </Badge>
+                      {isOverdue && filter === 'open' && (
+                        <Badge variant="destructive" className="text-xs">
+                          Overtijd
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    {phaseTasks.length === 0 ? (
+                      <Card className="p-8 border-dashed border-2 border-muted text-center">
+                        <p className="text-sm text-muted-foreground">
+                          Geen taken voor deze fase
+                        </p>
+                      </Card>
+                    ) : (
+                      <div className="space-y-3">
+                        {phaseTasks.map((task) => (
+                          <Card 
+                            key={task.id} 
+                            className={cn(
+                              "p-4 bg-white shadow-sm",
+                              task.completed && "opacity-50",
+                              isOverdue && !task.completed && "border-red-300 bg-red-50"
+                            )}
+                          >
+                            <div className="flex items-start gap-3">
+                              <Checkbox
+                                checked={task.completed}
+                                onCheckedChange={() => toggleTask(task.id, task.completed)}
+                                disabled={task.completed}
+                              />
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between mb-2">
+                                  <div className="flex-1">
+                                    <h3 className={`font-semibold ${task.completed ? 'line-through' : ''}`}>
+                                      {task.title}
+                                    </h3>
+                                    <div className="flex gap-2 mt-2 flex-wrap">
+                                      <Badge className={getPriorityConfig(task.priority).color}>
+                                        {getPriorityConfig(task.priority).label}
+                                      </Badge>
+                                      {task.foh_employees && (
+                                        <Badge variant="outline">
+                                          👤 {task.foh_employees.name}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </>
           ) : (
-            sortedTasks.map((task) => (
-              <Card key={task.id} className={`p-4 bg-white shadow-sm ${task.completed ? 'opacity-50' : ''}`}>
-                <div className="flex items-start gap-3">
-                  <Checkbox
-                    checked={task.completed}
-                    onCheckedChange={() => toggleTask(task.id, task.completed)}
-                    disabled={task.completed}
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-2">
+            // Extra tasks with existing logic
+            <>
+              {sortedExtraTasks.length === 0 ? (
+                <Card className="p-12 border-dashed border-2 border-muted text-center">
+                  <p className="text-muted-foreground">
+                    {filter === 'open' ? "Geen open taken" : "Geen afgeronde taken"}
+                  </p>
+                </Card>
+              ) : (
+                sortedExtraTasks.map((task) => (
+                  <Card key={task.id} className={`p-4 bg-white shadow-sm ${task.completed ? 'opacity-50' : ''}`}>
+                    <div className="flex items-start gap-3">
+                      <Checkbox
+                        checked={task.completed}
+                        onCheckedChange={() => toggleTask(task.id, task.completed)}
+                        disabled={task.completed}
+                      />
                       <div className="flex-1">
-                        <h3 className={`font-semibold ${task.completed ? 'line-through' : ''}`}>
-                          {task.title}
-                        </h3>
-                        <div className="flex gap-2 mt-2 flex-wrap">
-                          <Badge className={getDateLabelColor(task.due_date)}>
-                            {getDateLabel(task.due_date)}
-                          </Badge>
-                          <Badge className={getPriorityConfig(task.priority).color}>
-                            {getPriorityConfig(task.priority).label}
-                          </Badge>
-                          {task.foh_employees && (
-                            <Badge variant="outline">
-                              👤 {task.foh_employees.name}
-                            </Badge>
-                          )}
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <h3 className={`font-semibold ${task.completed ? 'line-through' : ''}`}>
+                              {task.title}
+                            </h3>
+                            <div className="flex gap-2 mt-2 flex-wrap">
+                              <Badge className={getDateLabelColor(task.due_date)}>
+                                {getDateLabel(task.due_date)}
+                              </Badge>
+                              <Badge className={getPriorityConfig(task.priority).color}>
+                                {getPriorityConfig(task.priority).label}
+                              </Badge>
+                              {task.foh_employees && (
+                                <Badge variant="outline">
+                                  👤 {task.foh_employees.name}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </Card>
-            ))
+                  </Card>
+                ))
+              )}
+            </>
           )}
         </TabsContent>
       </Tabs>
