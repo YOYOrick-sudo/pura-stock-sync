@@ -215,47 +215,6 @@ const Kassa = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-3 py-6 sm:px-4 sm:py-8 lg:px-6 pb-10">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 items-start">
-          {/* Starting Balance Reference - What should remain */}
-          <div className="lg:col-span-2 overflow-hidden shadow-sm border-[#1B7867]/10 bg-[#1B7867]/5 rounded-lg border mb-4">
-            <div className="bg-[#1B7867]/10 px-3 py-2.5 border-b border-[#1B7867]/20">
-              <h2 className="font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide flex items-center gap-2">
-                💰 Beginsaldo - Blijft altijd in de kassa
-              </h2>
-            </div>
-            <div className="overflow-x-auto p-3">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-[#1B7867]/20 bg-[#1B7867]/5">
-                    <th className="px-2.5 py-1.5 text-left font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Bedrag</th>
-                    <th className="px-2.5 py-1.5 text-center font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Aantal</th>
-                    <th className="px-2.5 py-1.5 text-right font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Totaal</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#1B7867]/10">
-                  {Object.entries(BEGINSALDO_VERDELING).map(([denom, count]) => (
-                    <tr key={denom} className="even:bg-white/30">
-                      <td className="px-2.5 py-1.5 text-[#282E3A] font-mono text-sm">€{denom.replace('.', ',')}</td>
-                      <td className="px-2.5 py-1.5 text-center text-[#282E3A] font-mono text-sm">{count}</td>
-                      <td className="px-2.5 py-1.5 text-right text-[#282E3A] font-mono text-sm">
-                        €{(parseFloat(denom) * count).toFixed(2).replace('.', ',')}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="border-t-2 border-[#1B7867]/30 bg-[#1B7867]/10">
-                    <td colSpan={2} className="px-2.5 py-2 font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide">
-                      Totaal beginsaldo
-                    </td>
-                    <td className="px-2.5 py-2 text-right font-heading font-bold text-[#1B7867] text-lg">
-                      €{Object.entries(BEGINSALDO_VERDELING).reduce((sum, [denom, count]) => sum + (parseFloat(denom) * count), 0).toFixed(2).replace('.', ',')}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-
           {/* Denomination table */}
           <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
             <div className="bg-[#1B7867]/10 px-3 py-2.5 border-b border-[#1B7867]/20">
@@ -298,7 +257,35 @@ const Kassa = () => {
           </div>
 
           {/* Right side: Summary card */}
-          <div className="lg:sticky lg:top-6">
+          <div className="lg:sticky lg:top-6 space-y-4">
+            {/* Beginsaldo Reference - Compact */}
+            <div className="bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-heading font-bold text-[#1B7867] uppercase tracking-wide">
+                  💰 Beginsaldo (blijft in kassa)
+                </span>
+              </div>
+              <div className="space-y-0.5">
+                {Object.entries(BEGINSALDO_VERDELING).map(([denom, count]) => (
+                  <div key={denom} className="flex items-center justify-between text-xs">
+                    <span className="text-[#282E3A]/60 font-mono">€{denom.replace('.', ',')} × {count}</span>
+                    <span className="text-[#282E3A]/60 font-mono">
+                      €{(parseFloat(denom) * count).toFixed(2).replace('.', ',')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-[#1B7867]/10 mt-2 pt-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-heading font-bold text-[#282E3A]/70">Totaal</span>
+                  <span className="text-lg font-heading font-bold text-[#1B7867]">
+                    €{Object.entries(BEGINSALDO_VERDELING).reduce((sum, [denom, count]) => sum + (parseFloat(denom) * count), 0).toFixed(2).replace('.', ',')}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Summary card */}
             <div className="bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-4">
           {/* Totaal - meest prominent */}
           <div className="flex items-center justify-between py-1">
