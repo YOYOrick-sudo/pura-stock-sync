@@ -1,52 +1,53 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Pura Vida Brand Design System - From Official Brand Guidelines
-All colors MUST be HSL.
-*/
-
-/* Custom Font-Face Declarations */
-@font-face {
-  font-family: 'Forma DJR Micro';
-  src: url('/fonts/FormaDJRMicro-ExtraBold.otf') format('opentype');
-  font-weight: 800;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Roboto Mono';
-  src: url('/fonts/RobotoMono-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
+/* === POLAR + PURA VIDA DESIGN SYSTEM === */
 
 @layer base {
   :root {
-    /* Font Variables */
-    --font-header: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    /* === POLAR BASE COLORS === */
+    --polar-white: #FFFFFF;
+    --polar-background: #F4F5F6;
+    --polar-surface: #FAFAFA;
     
-    /* Pura Vida Brand Colors (Official) */
+    /* Polar Text Colors */
+    --polar-text-primary: #17171C;
+    --polar-text-secondary: #36373A;
+    --polar-text-tertiary: #73747B;
+    --polar-text-disabled: #ACAEB3;
     
+    /* Polar Border Colors */
+    --polar-border-default: #ECEDED;
+    --polar-border-light: #F4F5F6;
+    --polar-border-dark: #36373A;
+    
+    /* === PURA VIDA BRAND COLORS (Polar Brand Colors Mapped) === */
     /* Sea - Primary Brand Color #1B7867 */
     --primary: 168 63% 28%;
     --primary-foreground: 0 0% 100%;
     --primary-hover: 168 63% 35%;
+    
+    --polar-brand-primary: #1B7867;
+    --polar-brand-hover: #156556;
+    --polar-brand-light: #E6F4F1;
+    --polar-brand-border: #B3D9D4;
 
     /* Sunset - Accent/CTA Color #E27726 */
     --secondary: 25 75% 52%;
     --secondary-foreground: 0 0% 100%;
+    
+    /* Sunrise - Secondary Accent #F9BD84 */
+    --accent: 25 91% 75%;
+    --accent-foreground: 210 19% 21%;
 
     /* Moonlight - Background Color #F5F7DD */
     --background: 65 59% 92%;
     --foreground: 210 19% 21%; /* Midnight for text */
 
-    /* Cards on Moonlight background */
+    /* Cards - Polar White */
     --card: 0 0% 100%;
     --card-foreground: 210 19% 21%;
 
@@ -57,27 +58,37 @@ All colors MUST be HSL.
     --muted: 145 26% 75%;
     --muted-foreground: 168 30% 35%;
 
-    /* Sunrise - Secondary Accent #F9BD84 */
-    --accent: 25 91% 75%;
-    --accent-foreground: 210 19% 21%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
     
     /* Notification badge - Pastel red */
     --notification-badge: 0 70% 75%;
 
-    /* Sky for borders */
+    /* Borders */
     --border: 145 26% 75%;
     --input: 65 59% 92%;
     --ring: 168 63% 28%;
 
     --radius: 1rem;
 
-    /* Subtle shadows */
-    --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.05);
-    --shadow-medium: 0 2px 6px rgba(0, 0, 0, 0.06);
-    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
+    /* Polar Spacing */
+    --polar-space-1: 4px;
+    --polar-space-2: 8px;
+    --polar-space-3: 12px;
+    --polar-space-4: 16px;
+    --polar-space-6: 24px;
+    --polar-space-8: 32px;
+    --polar-space-12: 48px;
+    
+    /* Polar Border Radius */
+    --polar-radius-sm: 8px;
+    --polar-radius-md: 12px;
+    --polar-radius-lg: 16px;
+    --polar-radius-xl: 20px;
+    
+    /* Polar Shadows (minimal) */
+    --polar-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --polar-shadow-md: 0 2px 4px 0 rgb(0 0 0 / 0.05);
   }
 
   .dark {
@@ -124,7 +135,53 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: var(--font-body);
+    @apply bg-polar-background text-polar-text-primary;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+  
+  /* Polar Typography Classes */
+  .polar-h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--polar-text-primary);
+  }
+  
+  .polar-metric {
+    font-size: 56px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  
+  .polar-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--polar-text-primary);
+  }
+  
+  .polar-body {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--polar-text-primary);
+  }
+  
+  .polar-secondary {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--polar-text-secondary);
+  }
+  
+  /* Polar Animations */
+  @keyframes polar-skeleton-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  @keyframes polar-skeleton-wave {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
 }
