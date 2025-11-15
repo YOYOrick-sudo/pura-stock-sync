@@ -43,8 +43,8 @@
     --accent: 25 91% 75%;
     --accent-foreground: 210 19% 21%;
 
-    /* Moonlight - Background Color #F5F7DD */
-    --background: 65 59% 92%;
+    /* Subtle grey with warm tint from #F4F7DE */
+    --background: 65 20% 96%;
     --foreground: 210 19% 21%; /* Midnight for text */
 
     /* Cards - Polar White */
