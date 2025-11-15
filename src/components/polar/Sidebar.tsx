@@ -162,7 +162,7 @@ export function PolarSidebar({
                   border: item.active ? '1px solid transparent' : '1px solid transparent',
                   transition: 'background-color 150ms ease',
                   fontFamily: 'Inter, sans-serif',
-                  fontSize: '15px',
+                  fontSize: '16px',
                   fontWeight: item.active ? 500 : 400,
                   color: item.active ? '#1B7867' : '#73747B',
                   justifyContent: collapsed ? 'center' : 'flex-start',
@@ -181,8 +181,8 @@ export function PolarSidebar({
                 <Icon
                   className="shrink-0"
                   style={{
-                    width: collapsed ? '20px' : '18px',
-                    height: collapsed ? '20px' : '18px',
+                    width: collapsed ? '22px' : '20px',
+                    height: collapsed ? '22px' : '20px',
                     marginRight: collapsed ? '0' : '12px',
                     color: item.active ? '#1B7867' : '#73747B',
                   }}
