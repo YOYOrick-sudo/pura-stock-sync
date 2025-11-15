@@ -1,22 +1,48 @@
-import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { PolarHeader } from '@/components/polar';
+import { useLocation } from 'react-router-dom';
 
 interface SidebarLayoutProps {
   children: React.ReactNode;
 }
 
 export function SidebarLayout({ children }: SidebarLayoutProps) {
-  const isMobile = useIsMobile();
+  const location = useLocation();
+  
+  const getPageTitle = (pathname: string) => {
+    const titles: Record<string, string> = {
+      '/dashboard': 'Dashboard',
+      '/kassatelling': 'Kassatelling',
+      '/kassatelling-overdag': 'Kassatelling Overdag',
+      '/kassa': 'Kassa',
+      '/taken-bediening': 'Taken Bediening',
+      '/internal-orders': 'Interne Bestellingen',
+      '/midsland-bestellingen': 'Bestellingen van West',
+      '/kitchen-menu': 'Keuken Menu',
+      '/kitchen-tasks': 'Keuken Taken',
+      '/recipes': 'Recepten',
+      '/mep-planning': 'MEP Planning',
+      '/voorraad': 'Voorraad',
+      '/settings': 'Instellingen',
+      '/taken-analyse': 'Statistieken',
+    };
+    return titles[pathname] || 'Pura Vida';
+  };
   
   return (
-    <SidebarProvider defaultOpen={!isMobile}>
-      <div className="flex min-h-screen w-full">
-        <AppSidebar />
-        <main className="flex-1 p-4 sm:p-6 bg-background">
+    <div className="flex min-h-screen w-full" style={{ backgroundColor: '#F4F5F6' }}>
+      <AppSidebar />
+      
+      <div className="flex flex-col flex-1">
+        <PolarHeader 
+          title={getPageTitle(location.pathname)}
+          showStatusIndicator={false}
+        />
+        
+        <main style={{ padding: '48px' }}>
           {children}
         </main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }
