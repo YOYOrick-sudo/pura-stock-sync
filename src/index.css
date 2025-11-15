@@ -43,8 +43,8 @@
     --accent: 25 91% 75%;
     --accent-foreground: 210 19% 21%;
 
-    /* Subtle grey with warm tint from #F4F7DE */
-    --background: 65 20% 96%;
+    /* Lighter version of #F4F7DE (warm beige/green tint) */
+    --background: 65 59% 95%;
     --foreground: 210 19% 21%; /* Midnight for text */
 
     /* Cards - Polar White */
