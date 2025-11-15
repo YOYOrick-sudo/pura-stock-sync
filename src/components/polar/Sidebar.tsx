@@ -127,11 +127,11 @@ export function PolarSidebar({
       <nav
         style={{
           flex: 1,
-          padding: collapsed ? '12px 8px' : '12px 16px',
+          padding: collapsed ? '24px 8px' : '24px 16px',
           overflowY: 'auto',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {items.map((item) => {
             const Icon = item.icon;
             
@@ -151,24 +151,25 @@ export function PolarSidebar({
                   !item.requiresCode && 'cursor-pointer'
                 )}
                 style={{
-                  height: '48px',
+                  height: '44px',
                   display: 'flex',
                   alignItems: 'center',
                   padding: collapsed ? '0 12px' : '0 16px',
                   borderRadius: '8px',
                   backgroundColor: item.active
-                    ? 'rgba(27, 120, 103, 0.08)'
+                    ? '#FFFFFF'
                     : 'transparent',
+                  border: item.active ? '1px solid #ECEDED' : '1px solid transparent',
                   transition: 'background-color 150ms ease',
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '15px',
-                  fontWeight: 500,
-                  color: item.active ? '#1B7867' : '#36373A',
+                  fontWeight: item.active ? 500 : 400,
+                  color: item.active ? '#1B7867' : '#73747B',
                   justifyContent: collapsed ? 'center' : 'flex-start',
                 }}
                 onMouseEnter={(e) => {
                   if (!item.active) {
-                    e.currentTarget.style.backgroundColor = '#F4F5F6';
+                    e.currentTarget.style.backgroundColor = '#FAFAFA';
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -180,9 +181,10 @@ export function PolarSidebar({
                 <Icon
                   className="shrink-0"
                   style={{
-                    width: collapsed ? '28px' : '24px',
-                    height: collapsed ? '28px' : '24px',
+                    width: collapsed ? '20px' : '18px',
+                    height: collapsed ? '20px' : '18px',
                     marginRight: collapsed ? '0' : '12px',
+                    color: item.active ? '#1B7867' : '#73747B',
                   }}
                 />
                 {!collapsed && <span>{item.title}</span>}
