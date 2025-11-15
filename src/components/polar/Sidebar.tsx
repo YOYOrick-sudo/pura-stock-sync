@@ -159,8 +159,7 @@ export function PolarSidebar({
                   backgroundColor: item.active
                     ? 'rgba(27, 120, 103, 0.08)'
                     : 'transparent',
-                  borderLeft: item.active ? '3px solid #1B7867' : '3px solid transparent',
-                  transition: 'background-color 150ms ease, border-left 150ms ease',
+                  transition: 'background-color 150ms ease',
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '15px',
                   fontWeight: 500,
