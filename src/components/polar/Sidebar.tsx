@@ -56,7 +56,7 @@ export function PolarSidebar({
       style={{
         width: collapsed ? '64px' : '280px',
         height: '100vh',
-        backgroundColor: '#F4F5F6',
+        backgroundColor: '#FFFFFF',
         borderRight: '1px solid #ECEDED',
         position: 'sticky',
         top: 0,
