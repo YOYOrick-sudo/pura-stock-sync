@@ -17,6 +17,11 @@ export interface PolarKPICardProps {
     secondary?: string;
   };
   compact?: boolean;
+  statusColor?: {
+    bg: string;
+    text: string;
+    border?: string;
+  };
 }
 
 export function PolarKPICard({ 
@@ -32,6 +37,7 @@ export function PolarKPICard({
   activeDot = 0,
   contentText,
   compact = false,
+  statusColor,
 }: PolarKPICardProps) {
   
   // Calculate chart line points
@@ -53,12 +59,13 @@ export function PolarKPICard({
     return (
       <div
         style={{
-          backgroundColor: '#F4F5F6',
+          backgroundColor: statusColor?.bg || '#F4F5F6',
           borderRadius: '16px',
           padding: '24px',
           display: 'flex',
           flexDirection: 'column',
           gap: '12px',
+          borderLeft: statusColor?.border ? `4px solid ${statusColor.border}` : 'none',
         }}
       >
         <div
@@ -90,12 +97,13 @@ export function PolarKPICard({
   return (
     <div
       style={{
-        backgroundColor: '#F4F5F6',
+        backgroundColor: statusColor?.bg || '#F4F5F6',
         borderRadius: '16px',
         padding: '24px',
         display: 'flex',
         flexDirection: 'column',
         minHeight: '320px',
+        borderLeft: statusColor?.border ? `4px solid ${statusColor.border}` : 'none',
       }}
     >
       {/* Header - on grey background */}
@@ -203,7 +211,7 @@ export function PolarKPICard({
                 fontFamily: 'Inter, sans-serif',
                 fontSize: '15px',
                 fontWeight: 400,
-                color: '#17171C',
+                color: statusColor?.text || '#17171C',
                 marginBottom: contentText.secondary ? '4px' : '0',
               }}
             >
