@@ -116,61 +116,137 @@ export function NotificationsDropdown() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative h-10 w-10">
-          <Bell className="h-6 w-6" />
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="relative h-10 w-10"
+          style={{
+            borderRadius: '8px',
+            transition: 'background-color 200ms',
+          }}
+        >
+          <Bell className="h-6 w-6" style={{ color: '#36373A' }} />
           {unreadCount > 0 && (
-            <span className="absolute top-0.5 right-0.5 h-1.5 w-1.5 rounded-full bg-[#1B7867]" />
+            <span 
+              className="absolute top-0.5 right-0.5 rounded-full" 
+              style={{
+                width: '6px',
+                height: '6px',
+                backgroundColor: '#1B7867',
+              }}
+            />
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end" sideOffset={8}>
-        <div className="flex items-center justify-between px-3 py-2">
-          <h3 className="text-sm font-medium text-foreground">
-            Meldingen {unreadCount > 0 && `(${unreadCount})`}
+      <PopoverContent 
+        className="w-80 p-0" 
+        align="end" 
+        sideOffset={8}
+        style={{
+          borderRadius: '16px',
+          border: '1px solid #ECEDED',
+          boxShadow: '0 2px 4px 0 rgb(0 0 0 / 0.05)',
+        }}
+      >
+        <div 
+          className="flex items-center justify-between px-3 py-2"
+          style={{ borderBottom: '1px solid #ECEDED' }}
+        >
+          <h3 
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '15px',
+              fontWeight: 600,
+              color: '#17171C',
+            }}
+          >
+            Meldingen
           </h3>
           {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 px-2 text-xs hover:bg-transparent hover:text-primary"
+            <button
               onClick={() => markAllAsReadMutation.mutate()}
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '13px',
+                color: '#1B7867',
+                fontWeight: 500,
+                transition: 'opacity 150ms',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = '0.7';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = '1';
+              }}
             >
-              Alles gelezen
-            </Button>
+              Alles als gelezen markeren
+            </button>
           )}
         </div>
         
-        <ScrollArea className="max-h-[320px]">
+        <ScrollArea className="h-[400px]">
           {notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-6 text-center">
-              <Bell className="h-8 w-8 text-muted-foreground/30 mb-2" />
-              <p className="text-xs text-muted-foreground">Geen meldingen</p>
+            <div 
+              className="p-4 text-center"
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '14px',
+                color: '#73747B',
+              }}
+            >
+              Geen meldingen
             </div>
           ) : (
-            <div className="divide-y">
-              {notifications.map((notification) => (
-                <button
+            <div>
+              {notifications.map((notification, index) => (
+                <div
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
-                  className={`w-full text-left px-3 py-2 transition-colors hover:bg-muted/30 ${
-                    !notification.read ? 'bg-primary/[0.03]' : ''
-                  }`}
+                  className="cursor-pointer"
+                  style={{
+                    padding: '12px 16px',
+                    backgroundColor: !notification.read ? '#F4F5F6' : '#FFFFFF',
+                    borderBottom: index < notifications.length - 1 ? '1px solid #ECEDED' : 'none',
+                    transition: 'background-color 150ms',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(27, 120, 103, 0.04)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = !notification.read ? '#F4F5F6' : '#FFFFFF';
+                  }}
                 >
-                  <div className="flex items-center justify-between gap-2 mb-0.5">
-                    <h4 className={`text-sm ${!notification.read ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
+                  <div className="flex justify-between items-start mb-1">
+                    <h4 
+                      style={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: '15px',
+                        fontWeight: 500,
+                        color: '#17171C',
+                      }}
+                    >
                       {notification.title}
                     </h4>
-                    {!notification.read && (
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#1B7867] flex-shrink-0" />
-                    )}
+                    <span 
+                      style={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: '13px',
+                        color: '#73747B',
+                      }}
+                    >
+                      {formatDate(notification.created_at)}
+                    </span>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p 
+                    style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '14px',
+                      color: '#36373A',
+                    }}
+                  >
                     {notification.message}
                   </p>
-                  <p className="text-xs text-muted-foreground/60 mt-0.5">
-                    {formatDate(notification.created_at)}
-                  </p>
-                </button>
+                </div>
               ))}
             </div>
           )}
