@@ -1,11 +1,10 @@
 import { SidebarLayout } from '@/components/SidebarLayout';
-import { Card } from '@/components/ui/card';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { CheckSquare, Bell, Package, LucideIcon } from 'lucide-react';
 import { useUserLocation } from '@/contexts/UserLocationContext';
+import { PolarKPICard } from '@/components/polar';
 
 const puraVidaQuotesWest = [
   "Geniet van de kleine dingen vandaag",
@@ -212,36 +211,19 @@ const getWeekNumber = (date: Date = new Date()): number => {
 interface DashboardCardProps {
   title: string;
   count: number;
-  icon: LucideIcon;
   onClick: () => void;
   isLoading?: boolean;
 }
 
-const DashboardCard = ({ title, count, icon: Icon, onClick, isLoading }: DashboardCardProps) => {
+const DashboardCard = ({ title, count, onClick, isLoading }: DashboardCardProps) => {
   return (
-    <Card 
-      className="p-6 cursor-pointer transition-shadow duration-200 hover:shadow-md active:scale-[0.98] bg-gradient-to-br from-white/50 to-gray-50/50 border border-gray-200/80"
-      onClick={onClick}
-    >
-      <div className="flex items-start justify-between mb-4">
-        <div className="p-3 bg-[#1B7867]/10 rounded-lg">
-          <Icon className="h-6 w-6 text-[#1B7867]" />
-        </div>
-        <div className="text-right">
-          <span className="text-4xl font-bold text-[#1B7867] tracking-tight">
-            {isLoading ? (
-              <span className="animate-pulse">...</span>
-            ) : (
-              count
-            )}
-          </span>
-        </div>
-      </div>
-      <div>
-        <p className="text-sm font-semibold text-gray-900 mb-1">{title}</p>
-        <p className="text-xs text-gray-500">Klik voor details</p>
-      </div>
-    </Card>
+    <div onClick={onClick} style={{ cursor: 'pointer' }}>
+      <PolarKPICard
+        compact
+        title={title}
+        value={isLoading ? "..." : String(count)}
+      />
+    </div>
   );
 };
 
@@ -250,37 +232,32 @@ const VoorraadCard = () => {
   const status = getVoorraadStatus();
   const nextFriday = getNextFriday();
   
+  // Map status naar status colors
+  const getStatusColors = (status: any) => {
+    switch(status.status) {
+      case 'urgent':
+        return { bg: '#FEF2F2', text: '#DC2626', border: '#DC2626' }; // red-50, red-600
+      case 'warning':
+        return { bg: '#FFF7ED', text: '#EA580C', border: '#EA580C' }; // orange-50, orange-600
+      case 'ok':
+        return { bg: '#F0FDF4', text: '#1B7867', border: '#1B7867' }; // green-50, brand green
+      default:
+        return undefined;
+    }
+  };
+  
   return (
-    <Card 
-      className={`p-6 cursor-pointer transition-shadow duration-200 hover:shadow-md active:scale-[0.98] border-2 ${status.borderColor} ${status.bgColor}`}
-      onClick={() => navigate('/internal-orders')}
-    >
-      <div className="flex items-start justify-between mb-4">
-        <div className={`p-3 rounded-lg ${status.bgColor === 'bg-red-50' ? 'bg-red-100' : status.bgColor === 'bg-orange-50' ? 'bg-orange-100' : 'bg-green-100'}`}>
-          <Package className={`h-6 w-6 ${status.color}`} />
-        </div>
-        <div className="text-right">
-          <div className={`text-3xl font-bold ${status.color} tracking-tight`}>
-            {nextFriday.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
-          </div>
-        </div>
-      </div>
-      
-      <div>
-        <p className="text-sm font-semibold text-gray-900 mb-1">
-          Telling & Bestelling
-        </p>
-        <p className="text-xs text-gray-500 mb-1">
-          Bestel bij Pura Midsland
-        </p>
-        <p className={`text-xs ${status.color} font-semibold mb-0.5`}>
-          {status.message}
-        </p>
-        <p className="text-xs text-gray-500">
-          {status.subtitle}
-        </p>
-      </div>
-    </Card>
+    <div onClick={() => navigate('/internal-orders')} style={{ cursor: 'pointer' }}>
+      <PolarKPICard
+        title="Telling & Bestelling"
+        value={nextFriday.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
+        contentText={{
+          primary: status.message,
+          secondary: status.subtitle
+        }}
+        statusColor={getStatusColors(status)}
+      />
+    </div>
   );
 };
 
@@ -293,42 +270,32 @@ interface DeliveryCardProps {
 const DeliveryCard = ({ hasOrderThisWeek, isLoading, onClick }: DeliveryCardProps) => {
   const nextWednesday = getNextWednesday();
   
+  // Groen status voor geplaatste orders
+  const statusColor = hasOrderThisWeek 
+    ? { bg: '#F0FDF4', text: '#1B7867', border: '#1B7867' }
+    : undefined;
+  
   return (
-    <Card 
-      className="p-6 cursor-pointer transition-shadow duration-200 hover:shadow-md active:scale-[0.98] border-l-4 border-l-[#1B7867] bg-white"
-      onClick={onClick}
-    >
-      <div className="flex items-start justify-between mb-4">
-        <div className="p-3 bg-[#1B7867]/10 rounded-lg">
-          <Package className="h-6 w-6 text-[#1B7867]" />
-        </div>
-        <div className="text-right">
-          <div className="text-2xl font-bold text-[#1B7867] tracking-tight">
-            {nextWednesday.toLocaleDateString('nl-NL', { 
+    <div onClick={onClick} style={{ cursor: 'pointer' }}>
+      <PolarKPICard
+        title="Levering van West"
+        value={isLoading 
+          ? "..." 
+          : nextWednesday.toLocaleDateString('nl-NL', { 
               weekday: 'short', 
               day: 'numeric', 
-              month: 'numeric' 
-            })}
-          </div>
-        </div>
-      </div>
-      
-      <div>
-        <p className="text-sm font-semibold text-gray-900 mb-2">
-          Breng Dienst West
-        </p>
-        <p className="text-xs text-gray-600 mb-2">
-          Volgende bezorgdag
-        </p>
-        {isLoading ? (
-          <p className="text-xs text-gray-400 animate-pulse">Laden...</p>
-        ) : (
-          <p className={`text-xs font-semibold ${hasOrderThisWeek ? 'text-[#1B7867]' : 'text-gray-500'}`}>
-            {hasOrderThisWeek ? '✓ Bestelling ontvangen van West' : '○ Wacht op bestelling van West'}
-          </p>
-        )}
-      </div>
-    </Card>
+              month: 'short' 
+            })
+        }
+        contentText={{
+          primary: hasOrderThisWeek ? "Bestelling geplaatst" : "Nog geen bestelling",
+          secondary: hasOrderThisWeek 
+            ? "Levering wordt verwacht woensdag" 
+            : "Plaats een bestelling bij West"
+        }}
+        statusColor={statusColor}
+      />
+    </div>
   );
 };
 
@@ -477,21 +444,33 @@ export default function Dashboard() {
   return (
     <SidebarLayout>
       <div className="max-w-7xl mx-auto px-6 space-y-10 pt-12">
-        <div className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-heading font-bold text-foreground">
-          Aloha Pura - <span className="text-[#1B7867]">{userLocation}</span>!
-        </h1>
-          
-          <p className="text-sm text-muted-foreground">
-            <span className="text-[#1B7867]/40 font-medium">Week {getWeekNumber()}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+          <p style={{
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '14px',
+            fontWeight: 500,
+            color: '#73747B'
+          }}>
+            {userLocation}
+          </p>
+          <p style={{
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '14px',
+            fontWeight: 400,
+            color: '#73747B'
+          }}>
+            Week {getWeekNumber()}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '24px'
+        }}>
           <DashboardCard
             title="Openstaande Taken"
             count={pendingTasks || 0}
-            icon={CheckSquare}
             onClick={() => navigate('/taken-bediening')}
             isLoading={loadingTasks}
           />
@@ -499,7 +478,6 @@ export default function Dashboard() {
           <DashboardCard
             title="Nieuwe Meldingen"
             count={unreadNotifications || 0}
-            icon={Bell}
             onClick={() => {/* Could trigger notifications dropdown */}}
             isLoading={loadingNotifications}
           />
@@ -508,7 +486,6 @@ export default function Dashboard() {
             <DashboardCard
               title="Wachtende Bestellingen"
               count={(typeof pendingOrders === 'number' ? pendingOrders : 0)}
-              icon={Package}
               onClick={() => navigate('/internal-orders')}
               isLoading={loadingOrders}
             />
