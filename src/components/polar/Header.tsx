@@ -23,7 +23,7 @@ export function PolarHeader({
     <div 
       style={{
         height: '72px',
-        backgroundColor: '#FAFAF7',
+        backgroundColor: '#EAF0EB',
         display: 'flex',
         alignItems: 'center',
         padding: '0 48px',
