@@ -30,7 +30,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   };
   
   return (
-    <div className="flex min-h-screen w-full" style={{ backgroundColor: '#F0F4E6' }}>
+    <div className="flex min-h-screen w-full" style={{ backgroundColor: '#EAF0EB' }}>
       <AppSidebar />
       
       <div className="flex flex-col flex-1">
