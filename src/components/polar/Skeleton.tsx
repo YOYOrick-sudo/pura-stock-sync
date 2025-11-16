@@ -46,7 +46,7 @@ export function PolarSkeleton({
       };
     } else if (animation === 'wave') {
       return {
-        background: 'linear-gradient(90deg, #ECEDED 25%, #F4F5F6 50%, #ECEDED 75%)',
+        background: 'linear-gradient(90deg, rgba(197, 197, 202, 0.3) 25%, #FEFFF1 50%, rgba(197, 197, 202, 0.3) 75%)',
         backgroundSize: '200% 100%',
         animation: 'polar-skeleton-wave 1.5s ease-in-out infinite',
       };
@@ -57,7 +57,7 @@ export function PolarSkeleton({
   return (
     <div
       style={{
-        backgroundColor: '#ECEDED',
+        backgroundColor: '#FEFFF1',
         ...getVariantStyles(),
         ...getAnimationStyles(),
       }}

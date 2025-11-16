@@ -20,7 +20,7 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
     <div
       style={{
         backgroundColor: '#FFFFFF',
-        border: '1px solid #ECEDED',
+        border: '1px solid rgba(197, 197, 202, 0.5)',
         borderRadius: '16px',
         overflow: 'hidden',
       }}
@@ -32,8 +32,8 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
           gridTemplateColumns: `repeat(${columns.length}, 1fr)`,
           gap: '24px',
           padding: '12px 24px',
-          borderBottom: '1px solid #ECEDED',
-          backgroundColor: '#F4F5F6',
+          borderBottom: '1px solid rgba(197, 197, 202, 0.5)',
+          backgroundColor: '#F6F7DD',
         }}
       >
         {columns.map((column) => (
@@ -43,7 +43,7 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
               fontFamily: 'Inter, sans-serif',
               fontSize: '14px',
               fontWeight: 400,
-              color: '#17171C',
+              color: '#282E3A',
               textAlign: column.align || 'left',
               display: 'flex',
               alignItems: 'center',
@@ -53,7 +53,7 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
           >
             {column.label}
             {column.sortable && (
-              <ChevronDown size={14} style={{ color: '#17171C' }} />
+              <ChevronDown size={14} style={{ color: '#282E3A' }} />
             )}
           </div>
         ))}
@@ -68,7 +68,7 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
             fontFamily: 'Inter, sans-serif',
             fontSize: '14px',
             fontWeight: 400,
-            color: '#17171C',
+            color: '#282E3A',
             backgroundColor: '#FFFFFF',
           }}
         >
@@ -87,7 +87,7 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
                 gridTemplateColumns: `repeat(${columns.length}, 1fr)`,
                 gap: '24px',
                 padding: '16px 24px',
-                borderBottom: rowIndex < data.length - 1 ? '1px solid #ECEDED' : 'none',
+                borderBottom: rowIndex < data.length - 1 ? '1px solid rgba(197, 197, 202, 0.5)' : 'none',
                 backgroundColor: '#FFFFFF',
               }}
             >
@@ -98,7 +98,7 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
                     fontFamily: 'Inter, sans-serif',
                     fontSize: '14px',
                     fontWeight: 400,
-                    color: '#17171C',
+                    color: '#282E3A',
                     textAlign: column.align || 'left',
                   }}
                 >

@@ -35,7 +35,7 @@ export function PolarRadioGroup({
             fontFamily: 'Inter, sans-serif',
             fontSize: '14px',
             fontWeight: 500,
-            color: error ? '#E64D4D' : '#17171C',
+            color: error ? '#E64D4D' : '#282E3A',
           }}
         >
           {label}
@@ -72,7 +72,7 @@ export function PolarRadioGroup({
                   width: '20px',
                   height: '20px',
                   borderRadius: '50%',
-                  border: error ? '2px solid #E64D4D' : isChecked ? '2px solid #1B7867' : '2px solid #ECEDED',
+                  border: error ? '2px solid #E64D4D' : isChecked ? '2px solid #1B7867' : '2px solid rgba(197, 197, 202, 0.5)',
                   backgroundColor: '#FFFFFF',
                   cursor: isDisabled ? 'not-allowed' : 'pointer',
                   display: 'flex',
@@ -97,7 +97,7 @@ export function PolarRadioGroup({
                 style={{
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '15px',
-                  color: error ? '#E64D4D' : '#17171C',
+                  color: error ? '#E64D4D' : '#282E3A',
                   userSelect: 'none',
                 }}
               >
@@ -113,7 +113,7 @@ export function PolarRadioGroup({
           style={{
             fontFamily: 'Inter, sans-serif',
             fontSize: '14px',
-            color: error ? '#E64D4D' : '#36373A',
+            color: error ? '#E64D4D' : '#73747B',
           }}
         >
           {helperText}
