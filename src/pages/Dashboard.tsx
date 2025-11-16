@@ -232,15 +232,15 @@ const VoorraadCard = () => {
   const status = getVoorraadStatus();
   const nextFriday = getNextFriday();
   
-  // Map status naar status colors
+  // Map status naar Pura Vida colors
   const getStatusColors = (status: any) => {
     switch(status.status) {
       case 'urgent':
-        return { bg: '#FEF2F2', text: '#DC2626', border: '#DC2626' }; // red-50, red-600
+        return { bg: '#FEF5F5', text: '#E64D4D', border: '#E64D4D' }; // Polar error colors
       case 'warning':
-        return { bg: '#FFF7ED', text: '#EA580C', border: '#EA580C' }; // orange-50, orange-600
+        return { bg: '#FFF8F0', text: '#E27726', border: '#E27726' }; // Pura Vida Sunset
       case 'ok':
-        return { bg: '#F0FDF4', text: '#1B7867', border: '#1B7867' }; // green-50, brand green
+        return { bg: '#E6F4F1', text: '#1B7867', border: '#1B7867' }; // Pura Vida Sea
       default:
         return undefined;
     }
@@ -249,6 +249,7 @@ const VoorraadCard = () => {
   return (
     <div onClick={() => navigate('/internal-orders')} style={{ cursor: 'pointer' }}>
       <PolarKPICard
+        compact
         title="Telling & Bestelling"
         value={nextFriday.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
         contentText={{
@@ -270,14 +271,15 @@ interface DeliveryCardProps {
 const DeliveryCard = ({ hasOrderThisWeek, isLoading, onClick }: DeliveryCardProps) => {
   const nextWednesday = getNextWednesday();
   
-  // Groen status voor geplaatste orders
+  // Pura Vida Sea voor geplaatste orders
   const statusColor = hasOrderThisWeek 
-    ? { bg: '#F0FDF4', text: '#1B7867', border: '#1B7867' }
+    ? { bg: '#E6F4F1', text: '#1B7867', border: '#1B7867' }
     : undefined;
   
   return (
     <div onClick={onClick} style={{ cursor: 'pointer' }}>
       <PolarKPICard
+        compact
         title="Levering van West"
         value={isLoading 
           ? "..." 
@@ -290,8 +292,8 @@ const DeliveryCard = ({ hasOrderThisWeek, isLoading, onClick }: DeliveryCardProp
         contentText={{
           primary: hasOrderThisWeek ? "Bestelling geplaatst" : "Nog geen bestelling",
           secondary: hasOrderThisWeek 
-            ? "Levering wordt verwacht woensdag" 
-            : "Plaats een bestelling bij West"
+            ? "Levering woensdag" 
+            : "Plaats bestelling"
         }}
         statusColor={statusColor}
       />
@@ -465,8 +467,9 @@ export default function Dashboard() {
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '24px'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: '20px',
+          maxWidth: '1200px'
         }}>
           <DashboardCard
             title="Openstaande Taken"
