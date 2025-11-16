@@ -33,7 +33,7 @@ export function SidebarLayout({
       <AppSidebar />
       
       <div className="flex flex-col flex-1">
-        <PolarHeader title={getPageTitle(location.pathname)} showStatusIndicator={false} className="bg-[transpareant] bg-[#f4f7f5]" />
+        <PolarHeader title={getPageTitle(location.pathname)} showStatusIndicator={false} />
         
         <main style={{
         padding: '48px'

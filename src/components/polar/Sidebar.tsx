@@ -157,7 +157,7 @@ export function PolarSidebar({
                   padding: collapsed ? '0 12px' : '0 16px',
                   borderRadius: '8px',
                   backgroundColor: item.active
-                    ? '#F6F7DD'
+                    ? '#F4F7F5'
                     : 'transparent',
                   border: item.active ? '1px solid transparent' : '1px solid transparent',
                   transition: 'background-color 150ms ease',
