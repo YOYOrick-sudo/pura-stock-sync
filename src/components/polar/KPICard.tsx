@@ -60,7 +60,7 @@ export function PolarKPICard({
     return (
       <div
         style={{
-          backgroundColor: statusColor?.bg || '#FEFFF1',
+          backgroundColor: statusColor?.bg || '#F6F7DD',
           borderRadius: '12px',
           padding: '20px',
           display: 'flex',
@@ -94,7 +94,7 @@ export function PolarKPICard({
             fontFamily: 'Inter, sans-serif',
             fontSize: '32px',
             fontWeight: 600,
-            color: statusColor?.text || '#282E3A',
+            color: '#282E3A',
             letterSpacing: '-0.01em',
             lineHeight: '1',
             marginTop: '4px',
@@ -108,7 +108,7 @@ export function PolarKPICard({
               fontFamily: 'Inter, sans-serif',
               fontSize: '13px',
               fontWeight: 500,
-              color: statusColor?.text || '#282E3A',
+              color: '#282E3A',
               marginTop: '4px',
             }}
           >
