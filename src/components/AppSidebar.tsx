@@ -15,7 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { NotificationsDropdown } from '@/components/NotificationsDropdown';
 import { PolarSidebar } from '@/components/polar/Sidebar';
-import puraVidaLogo from '@/assets/pura-vida-logo-header.png';
+import puraVidaLogo from '@/assets/pura-vida-logo-dark.png';
 
 const allNavigationItems = [
   {
