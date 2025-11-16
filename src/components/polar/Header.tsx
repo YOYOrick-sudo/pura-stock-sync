@@ -34,7 +34,7 @@ export function PolarHeader({
           fontFamily: 'Inter, sans-serif',
           fontSize: '24px',
           fontWeight: 600,
-          color: '#17171C',
+          color: '#282E3A',
           marginTop: '14px',
         }}
       >

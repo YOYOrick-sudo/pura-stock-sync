@@ -8,21 +8,21 @@
 export const PolarColors = {
   // Base Colors
   white: '#FFFFFF',
-  background: '#F4F5F6',
-  surface: '#FAFAFA',
+  background: '#FEFFF1',          // Pura Vida Cream
+  surface: '#FFFFFF',              // White for contrast cards
   
   // Text Colors
   text: {
-    primary: '#17171C',
-    secondary: '#36373A',
+    primary: '#282E3A',            // Pura Vida Midnight
+    secondary: '#73747B',          // Subtle text
     tertiary: '#73747B',
     disabled: '#ACAEB3',
   },
 
   // Border Colors
   border: {
-    default: '#ECEDED',
-    light: '#F4F5F6',
+    default: 'rgba(197, 197, 202, 0.5)',  // Semi-transparent
+    light: 'rgba(197, 197, 202, 0.3)',    // Lighter
     dark: '#36373A',
   },
 
@@ -102,7 +102,8 @@ export const PolarColors = {
   puravida: {
     sunset: '#E27726',    // Sunset - Accent/CTA
     sunrise: '#F9BD84',   // Sunrise - Secondary Accent
-    moonlight: '#F5F7DD', // Moonlight - Background
+    moonlight: '#F6F7DD', // Moonlight - Sidebar background
+    cream: '#FEFFF1',     // Cream - Main background
     midnight: '#282E3A',  // Midnight - Dark text
     sky: '#B1CFBE',       // Sky - Muted/Borders
   },

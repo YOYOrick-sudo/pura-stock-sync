@@ -37,7 +37,7 @@ export function PolarCheckbox({
             width: '20px',
             height: '20px',
             borderRadius: '6px',
-            border: error ? '2px solid #E64D4D' : checked ? '2px solid #1B7867' : '2px solid #ECEDED',
+            border: error ? '2px solid #E64D4D' : checked ? '2px solid #1B7867' : '2px solid rgba(197, 197, 202, 0.5)',
             backgroundColor: checked ? '#1B7867' : '#FFFFFF',
             cursor: disabled ? 'not-allowed' : 'pointer',
             display: 'flex',
@@ -54,7 +54,7 @@ export function PolarCheckbox({
             style={{
               fontFamily: 'Inter, sans-serif',
               fontSize: '15px',
-              color: error ? '#E64D4D' : '#17171C',
+              color: error ? '#E64D4D' : '#282E3A',
               userSelect: 'none',
             }}
           >
@@ -67,7 +67,7 @@ export function PolarCheckbox({
           style={{
             fontFamily: 'Inter, sans-serif',
             fontSize: '14px',
-            color: error ? '#E64D4D' : '#36373A',
+            color: error ? '#E64D4D' : '#73747B',
             paddingLeft: '28px',
           }}
         >

@@ -59,7 +59,7 @@ export function PolarKPICard({
     return (
       <div
         style={{
-          backgroundColor: statusColor?.bg || '#F4F5F6',
+          backgroundColor: statusColor?.bg || '#FEFFF1',
           borderRadius: '16px',
           padding: '24px',
           display: 'flex',
@@ -73,7 +73,7 @@ export function PolarKPICard({
             fontFamily: 'Inter, sans-serif',
             fontSize: '14px',
             fontWeight: 400,
-            color: '#36373A',
+            color: '#73747B',
           }}
         >
           {title}
@@ -83,7 +83,7 @@ export function PolarKPICard({
             fontFamily: 'Inter, sans-serif',
             fontSize: '40px',
             fontWeight: 600,
-            color: '#17171C',
+            color: '#282E3A',
             letterSpacing: '-0.01em',
             lineHeight: '1',
           }}
@@ -97,7 +97,7 @@ export function PolarKPICard({
   return (
     <div
       style={{
-        backgroundColor: statusColor?.bg || '#F4F5F6',
+        backgroundColor: statusColor?.bg || '#FEFFF1',
         borderRadius: '16px',
         padding: '24px',
         display: 'flex',
@@ -106,7 +106,7 @@ export function PolarKPICard({
         borderLeft: statusColor?.border ? `4px solid ${statusColor.border}` : 'none',
       }}
     >
-      {/* Header - on grey background */}
+      {/* Header */}
       <div
         style={{
           display: 'flex',
@@ -121,13 +121,13 @@ export function PolarKPICard({
               fontFamily: 'Inter, sans-serif',
               fontSize: '15px',
               fontWeight: 400,
-              color: '#17171C',
+              color: '#282E3A',
             }}
           >
             {title}
           </span>
           {hasDropdown && (
-            <ChevronDown size={16} style={{ color: '#36373A' }} />
+            <ChevronDown size={16} style={{ color: '#73747B' }} />
           )}
         </div>
         {actionLink && (
@@ -136,7 +136,7 @@ export function PolarKPICard({
               fontFamily: 'Inter, sans-serif',
               fontSize: '15px',
               fontWeight: 400,
-              color: '#17171C',
+              color: '#282E3A',
               background: 'none',
               border: 'none',
               cursor: 'pointer',
