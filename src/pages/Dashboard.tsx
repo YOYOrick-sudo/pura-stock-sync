@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { PolarKPICard } from '@/components/polar';
-import { CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { CheckCircle, AlertCircle, Clock, ListTodo, Bell, Package } from 'lucide-react';
+import { HandoverCard } from '@/components/HandoverCard';
 
 const puraVidaQuotesWest = [
   "Geniet van de kleine dingen vandaag",
@@ -214,16 +215,17 @@ interface DashboardCardProps {
   count: number;
   onClick: () => void;
   isLoading?: boolean;
+  icon?: React.ReactNode;
 }
 
-const DashboardCard = ({ title, count, onClick, isLoading }: DashboardCardProps) => {
+const DashboardCard = ({ title, count, onClick, isLoading, icon }: DashboardCardProps) => {
   return (
     <div onClick={onClick} style={{ cursor: 'pointer' }}>
       <PolarKPICard
         compact
         title={title}
         value={isLoading ? "..." : String(count)}
-        statusColor={{ bg: '#F6F7DD' }}
+        statusColor={{ bg: '#F6F7DD', icon }}
       />
     </div>
   );
@@ -478,6 +480,7 @@ export default function Dashboard() {
             count={pendingTasks || 0}
             onClick={() => navigate('/taken-bediening')}
             isLoading={loadingTasks}
+            icon={<ListTodo size={16} color="#1B7867" />}
           />
           
           <DashboardCard
@@ -485,6 +488,7 @@ export default function Dashboard() {
             count={unreadNotifications || 0}
             onClick={() => {/* Could trigger notifications dropdown */}}
             isLoading={loadingNotifications}
+            icon={<Bell size={16} color="#1B7867" />}
           />
           
           {userLocation === 'Oost' && (
@@ -493,6 +497,7 @@ export default function Dashboard() {
               count={(typeof pendingOrders === 'number' ? pendingOrders : 0)}
               onClick={() => navigate('/internal-orders')}
               isLoading={loadingOrders}
+              icon={<Package size={16} color="#1B7867" />}
             />
           )}
 
@@ -505,6 +510,11 @@ export default function Dashboard() {
           )}
           
           {userLocation === 'West' && <VoorraadCard />}
+        </div>
+
+        {/* Handover Card - full width below the grid */}
+        <div style={{ maxWidth: '1200px' }}>
+          <HandoverCard />
         </div>
       </div>
     </SidebarLayout>

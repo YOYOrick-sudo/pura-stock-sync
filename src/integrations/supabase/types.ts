@@ -137,6 +137,33 @@ export type Database = {
           },
         ]
       }
+      handover_memos: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          location: string
+          message: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          location: string
+          message: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          location?: string
+          message?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       internal_order_items: {
         Row: {
           created_at: string | null
