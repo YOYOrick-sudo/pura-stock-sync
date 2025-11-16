@@ -19,7 +19,7 @@ export interface PolarKPICardProps {
   compact?: boolean;
   statusColor?: {
     bg: string;
-    text: string;
+    text?: string;
     border?: string;
     icon?: React.ReactNode;
   };
@@ -67,6 +67,7 @@ export function PolarKPICard({
           flexDirection: 'column',
           gap: '8px',
           minHeight: '140px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
         }}
       >
         <div
