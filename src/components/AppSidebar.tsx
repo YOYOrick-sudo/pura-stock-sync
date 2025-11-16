@@ -112,7 +112,7 @@ export function AppSidebar() {
           <img 
             src={puraVidaLogo} 
             alt="Pura Vida" 
-            className="h-[60px] w-auto"
+            className="h-[72px] w-auto"
           />
         }
         items={navigationItems.map(item => ({
