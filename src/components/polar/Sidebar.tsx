@@ -57,7 +57,7 @@ export function PolarSidebar({
         width: collapsed ? '64px' : '280px',
         height: '100vh',
         backgroundColor: '#F6F7DD',
-        borderRight: '1px solid #ECEDED',
+        borderRight: '1px solid #C5C5CA',
         position: 'sticky',
         top: 0,
         transition: 'width 200ms cubic-bezier(0.4, 0, 0.2, 1)',
@@ -71,7 +71,7 @@ export function PolarSidebar({
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: collapsed ? '0 12px' : '0 24px',
-          borderBottom: '1px solid #ECEDED',
+          borderBottom: '1px solid #C5C5CA',
         }}
       >
         {/* Logo */}
@@ -159,7 +159,7 @@ export function PolarSidebar({
                   backgroundColor: item.active
                     ? '#FEFFF1'
                     : 'transparent',
-                  border: item.active ? '1px solid #9A9AA0' : '1px solid transparent',
+                  border: item.active ? '1px solid #C5C5CA' : '1px solid transparent',
                   transition: 'background-color 150ms ease',
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '16px',
