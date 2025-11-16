@@ -1,14 +1,13 @@
 import { AppSidebar } from '@/components/AppSidebar';
 import { PolarHeader } from '@/components/polar';
 import { useLocation } from 'react-router-dom';
-
 interface SidebarLayoutProps {
   children: React.ReactNode;
 }
-
-export function SidebarLayout({ children }: SidebarLayoutProps) {
+export function SidebarLayout({
+  children
+}: SidebarLayoutProps) {
   const location = useLocation();
-  
   const getPageTitle = (pathname: string) => {
     const titles: Record<string, string> = {
       '/dashboard': 'Dashboard',
@@ -24,25 +23,23 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       '/mep-planning': 'MEP Planning',
       '/voorraad': 'Voorraad',
       '/settings': 'Instellingen',
-      '/taken-analyse': 'Statistieken',
+      '/taken-analyse': 'Statistieken'
     };
     return titles[pathname] || 'Pura Vida';
   };
-  
-  return (
-    <div className="flex min-h-screen w-full" style={{ backgroundColor: '#EAF0EB' }}>
+  return <div className="flex min-h-screen w-full" style={{
+    backgroundColor: '#EAF0EB'
+  }}>
       <AppSidebar />
       
       <div className="flex flex-col flex-1">
-        <PolarHeader 
-          title={getPageTitle(location.pathname)}
-          showStatusIndicator={false}
-        />
+        <PolarHeader title={getPageTitle(location.pathname)} showStatusIndicator={false} className="bg-[transpareant] bg-[#f4f7f5]" />
         
-        <main style={{ padding: '48px' }}>
+        <main style={{
+        padding: '48px'
+      }} className="bg-[#f4f7f5]">
           {children}
         </main>
       </div>
-    </div>
-  );
+    </div>;
 }
