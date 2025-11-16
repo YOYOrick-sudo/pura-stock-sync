@@ -160,7 +160,8 @@ export function PolarSidebar({
                     ? '#FEFFF1'
                     : 'transparent',
                   border: item.active ? '1px solid rgba(197, 197, 202, 0.5)' : '1px solid transparent',
-                  transition: 'background-color 150ms ease',
+                  boxShadow: item.active ? '0 1px 3px rgba(0, 0, 0, 0.05)' : 'none',
+                  transition: 'background-color 150ms ease, box-shadow 150ms ease',
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '16px',
                   fontWeight: item.active ? 500 : 400,
