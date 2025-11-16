@@ -54,26 +54,29 @@ export function PolarKPICard({
 
   const linePoints = points.map(p => `${p.x},${p.y}`).join(' ');
 
-  // Compact variant - small simple card with grey background
+  // Compact variant - small card with optional status
   if (compact) {
     return (
       <div
         style={{
           backgroundColor: statusColor?.bg || '#FEFFF1',
-          borderRadius: '16px',
-          padding: '24px',
+          borderRadius: '12px',
+          padding: '20px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '12px',
-          borderLeft: statusColor?.border ? `4px solid ${statusColor.border}` : 'none',
+          gap: '8px',
+          borderLeft: statusColor?.border ? `3px solid ${statusColor.border}` : 'none',
+          minHeight: '140px',
         }}
       >
         <div
           style={{
             fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            fontWeight: 400,
+            fontSize: '13px',
+            fontWeight: 500,
             color: '#73747B',
+            textTransform: 'uppercase',
+            letterSpacing: '0.02em',
           }}
         >
           {title}
@@ -81,15 +84,41 @@ export function PolarKPICard({
         <div
           style={{
             fontFamily: 'Inter, sans-serif',
-            fontSize: '40px',
+            fontSize: '32px',
             fontWeight: 600,
-            color: '#282E3A',
+            color: statusColor?.text || '#282E3A',
             letterSpacing: '-0.01em',
             lineHeight: '1',
+            marginTop: '4px',
           }}
         >
           {value}
         </div>
+        {contentText?.primary && (
+          <div
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '13px',
+              fontWeight: 500,
+              color: statusColor?.text || '#282E3A',
+              marginTop: '4px',
+            }}
+          >
+            {contentText.primary}
+          </div>
+        )}
+        {contentText?.secondary && (
+          <div
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '12px',
+              fontWeight: 400,
+              color: '#73747B',
+            }}
+          >
+            {contentText.secondary}
+          </div>
+        )}
       </div>
     );
   }
