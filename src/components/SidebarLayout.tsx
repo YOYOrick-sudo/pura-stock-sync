@@ -28,7 +28,7 @@ export function SidebarLayout({
     return titles[pathname] || 'Pura Vida';
   };
   return <div className="flex min-h-screen w-full" style={{
-    backgroundColor: '#EAF0EB'
+    backgroundColor: '#FEFFF1'
   }}>
       <AppSidebar />
       
@@ -36,8 +36,9 @@ export function SidebarLayout({
         <PolarHeader title={getPageTitle(location.pathname)} showStatusIndicator={false} />
         
         <main style={{
-        padding: '48px'
-      }} className="bg-[#f4f7f5]">
+        padding: '48px',
+        backgroundColor: '#FEFFF1'
+      }}>
           {children}
         </main>
       </div>
