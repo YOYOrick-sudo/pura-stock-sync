@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { PolarKPICard } from '@/components/polar';
+import { CheckCircle, AlertCircle, Clock } from 'lucide-react';
 
 const puraVidaQuotesWest = [
   "Geniet van de kleine dingen vandaag",
@@ -236,11 +237,11 @@ const VoorraadCard = () => {
   const getStatusColors = (status: any) => {
     switch(status.status) {
       case 'urgent':
-        return { bg: '#FEF5F5', text: '#E64D4D', border: '#E64D4D' }; // Polar error colors
+        return { bg: '#FFFFFF', text: '#E64D4D', icon: <AlertCircle size={16} /> };
       case 'warning':
-        return { bg: '#FFF8F0', text: '#E27726', border: '#E27726' }; // Pura Vida Sunset
+        return { bg: '#FFFFFF', text: '#E27726', icon: <Clock size={16} /> };
       case 'ok':
-        return { bg: '#E6F4F1', text: '#1B7867', border: '#1B7867' }; // Pura Vida Sea
+        return { bg: '#FFFFFF', text: '#1B7867', icon: <CheckCircle size={16} /> };
       default:
         return undefined;
     }
@@ -273,7 +274,7 @@ const DeliveryCard = ({ hasOrderThisWeek, isLoading, onClick }: DeliveryCardProp
   
   // Pura Vida Sea voor geplaatste orders
   const statusColor = hasOrderThisWeek 
-    ? { bg: '#E6F4F1', text: '#1B7867', border: '#1B7867' }
+    ? { bg: '#FFFFFF', text: '#1B7867', icon: <CheckCircle size={16} /> }
     : undefined;
   
   return (

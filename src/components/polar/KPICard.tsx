@@ -21,6 +21,7 @@ export interface PolarKPICardProps {
     bg: string;
     text: string;
     border?: string;
+    icon?: React.ReactNode;
   };
 }
 
@@ -65,7 +66,6 @@ export function PolarKPICard({
           display: 'flex',
           flexDirection: 'column',
           gap: '8px',
-          borderLeft: statusColor?.border ? `3px solid ${statusColor.border}` : 'none',
           minHeight: '140px',
         }}
       >
@@ -77,8 +77,16 @@ export function PolarKPICard({
             color: '#73747B',
             textTransform: 'uppercase',
             letterSpacing: '0.02em',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
           }}
         >
+          {statusColor?.icon && (
+            <span style={{ color: statusColor.text, display: 'flex', alignItems: 'center' }}>
+              {statusColor.icon}
+            </span>
+          )}
           {title}
         </div>
         <div
@@ -132,7 +140,6 @@ export function PolarKPICard({
         display: 'flex',
         flexDirection: 'column',
         minHeight: '320px',
-        borderLeft: statusColor?.border ? `4px solid ${statusColor.border}` : 'none',
       }}
     >
       {/* Header */}
