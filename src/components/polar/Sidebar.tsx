@@ -159,7 +159,7 @@ export function PolarSidebar({
                   backgroundColor: item.active
                     ? '#FEFFF1'
                     : 'transparent',
-                  border: item.active ? '1px solid #E5E6E8' : '1px solid transparent',
+                  border: item.active ? '1px solid #9A9AA0' : '1px solid transparent',
                   transition: 'background-color 150ms ease',
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '16px',
