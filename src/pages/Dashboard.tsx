@@ -237,11 +237,11 @@ const VoorraadCard = () => {
   const getStatusColors = (status: any) => {
     switch(status.status) {
       case 'urgent':
-        return { bg: '#FFFFFF', text: '#E64D4D', icon: <AlertCircle size={16} /> };
+        return { bg: '#F6F7DD', text: '#DC2626', icon: <AlertCircle size={16} /> };
       case 'warning':
-        return { bg: '#FFFFFF', text: '#E27726', icon: <Clock size={16} /> };
+        return { bg: '#F6F7DD', text: '#D97706', icon: <Clock size={16} /> };
       case 'ok':
-        return { bg: '#FFFFFF', text: '#1B7867', icon: <CheckCircle size={16} /> };
+        return { bg: '#F6F7DD', text: '#1B7867', icon: <CheckCircle size={16} /> };
       default:
         return undefined;
     }
@@ -274,7 +274,7 @@ const DeliveryCard = ({ hasOrderThisWeek, isLoading, onClick }: DeliveryCardProp
   
   // Pura Vida Sea voor geplaatste orders
   const statusColor = hasOrderThisWeek 
-    ? { bg: '#FFFFFF', text: '#1B7867', icon: <CheckCircle size={16} /> }
+    ? { bg: '#F6F7DD', text: '#1B7867', icon: <CheckCircle size={16} /> }
     : undefined;
   
   return (
