@@ -22,6 +22,7 @@ interface AIWeatherAdvisorProps {
 export function AIWeatherAdvisor({ suggestions, onRefresh }: AIWeatherAdvisorProps) {
   const { userLocation } = useUserLocation();
   const [feedbackStates, setFeedbackStates] = useState<Record<number, { showNote: boolean; note: string }>>({});
+  const [dismissedIndices, setDismissedIndices] = useState<Set<number>>(new Set());
 
   const handleFeedback = async (index: number, feedback: 'accepted' | 'rejected', note?: string) => {
     try {
@@ -48,11 +49,17 @@ export function AIWeatherAdvisor({ suggestions, onRefresh }: AIWeatherAdvisorPro
 
       toast.success(feedback === 'accepted' ? 'Suggestie geaccepteerd' : 'Feedback opgeslagen');
       
-      // Clear note state
+      // Mark as dismissed and clear note state
+      setDismissedIndices(prev => new Set(prev).add(index));
       setFeedbackStates(prev => ({
         ...prev,
         [index]: { showNote: false, note: '' }
       }));
+
+      // Fetch new suggestions after a short delay for animation
+      setTimeout(() => {
+        onRefresh();
+      }, 500);
     } catch (error) {
       console.error('Error saving feedback:', error);
       toast.error('Fout bij opslaan feedback');
@@ -134,10 +141,12 @@ export function AIWeatherAdvisor({ suggestions, onRefresh }: AIWeatherAdvisorPro
       </div>
 
       <div className="space-y-4">
-        {suggestions.map((suggestion, index) => (
+        {suggestions
+          .filter((_, index) => !dismissedIndices.has(index))
+          .map((suggestion, index) => (
           <div 
             key={index} 
-            className="p-4 rounded-lg"
+            className="p-4 rounded-lg transition-all duration-300"
             style={{ 
               backgroundColor: '#FFFFFF',
               border: '1px solid rgba(197, 197, 202, 0.3)'
@@ -202,6 +211,13 @@ export function AIWeatherAdvisor({ suggestions, onRefresh }: AIWeatherAdvisorPro
                     onClick={() => handleFeedback(index, 'rejected', feedbackStates[index]?.note)}
                   >
                     Verstuur Feedback
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleFeedback(index, 'rejected')}
+                  >
+                    Afwijzen zonder reden
                   </Button>
                   <Button
                     size="sm"

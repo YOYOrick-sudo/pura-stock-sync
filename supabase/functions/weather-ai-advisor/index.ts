@@ -236,20 +236,46 @@ Wees creatief maar niet te specifiek - geef inspiratie, geen volledige uitwerkin
     }
 
     const aiData = await openAIResponse.json();
-    console.log('OpenAI response:', JSON.stringify(aiData, null, 2));
+    console.log('OpenAI full response:', JSON.stringify(aiData, null, 2));
     
-    // Parse tool call response
+    // Parse tool call response with detailed error handling
     let parsedResponse;
     try {
-      const toolCall = aiData.choices[0].message.tool_calls?.[0];
-      if (!toolCall) {
+      // Check if response structure exists
+      if (!aiData.choices || !aiData.choices[0]) {
+        console.error('Invalid AI response structure - no choices:', aiData);
+        throw new Error('No choices in AI response');
+      }
+
+      const message = aiData.choices[0].message;
+      console.log('Message object:', JSON.stringify(message, null, 2));
+
+      if (!message.tool_calls || message.tool_calls.length === 0) {
+        console.error('No tool calls in message:', message);
         throw new Error('No tool call in response');
       }
+
+      const toolCall = message.tool_calls[0];
+      console.log('Tool call:', JSON.stringify(toolCall, null, 2));
+
+      if (!toolCall.function || !toolCall.function.arguments) {
+        console.error('Invalid tool call structure:', toolCall);
+        throw new Error('Invalid tool call structure');
+      }
+
       parsedResponse = JSON.parse(toolCall.function.arguments);
-      console.log('Parsed suggestions:', parsedResponse);
+      console.log('Successfully parsed suggestions:', JSON.stringify(parsedResponse, null, 2));
+
+      // Validate parsed response has suggestions array
+      if (!parsedResponse.suggestions || !Array.isArray(parsedResponse.suggestions)) {
+        console.error('Parsed response missing suggestions array:', parsedResponse);
+        throw new Error('Invalid suggestions format');
+      }
+
     } catch (e) {
-      console.error('Failed to parse AI tool call:', e);
-      throw new Error('Invalid AI response format');
+      console.error('Failed to parse AI response:', e);
+      console.error('Error details:', e instanceof Error ? e.message : String(e));
+      throw new Error(`Invalid AI response format: ${e instanceof Error ? e.message : String(e)}`);
     }
 
     // Store suggestions in database
