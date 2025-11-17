@@ -1,12 +1,16 @@
 import { SidebarLayout } from '@/components/SidebarLayout';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { PolarKPICard } from '@/components/polar';
-import { CheckCircle, AlertCircle, Clock, ListTodo, Bell, Package } from 'lucide-react';
+import { CheckCircle, AlertCircle, Clock, ListTodo, Bell, Package, RefreshCw } from 'lucide-react';
 import { HandoverCard } from '@/components/HandoverCard';
+import { WeatherWidget } from '@/components/dashboard/WeatherWidget';
+import { AIWeatherAdvisor } from '@/components/dashboard/AIWeatherAdvisor';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 const puraVidaQuotesWest = [
   "Geniet van de kleine dingen vandaag",
@@ -309,6 +313,18 @@ export default function Dashboard() {
   const { userLocation } = useUserLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [weatherData, setWeatherData] = useState<{
+    condition: string;
+    temperature: number;
+    windSpeed: number;
+    precipitation: number;
+  } | null>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<Array<{
+    type: string;
+    text: string;
+    reasoning: string;
+  }>>([]);
+  const [loadingWeather, setLoadingWeather] = useState(false);
 
   // Realtime subscription voor FOH Tasks
   useEffect(() => {
@@ -389,6 +405,43 @@ export default function Dashboard() {
     };
   }, [userLocation, queryClient]);
 
+  // Fetch weather and AI suggestions
+  const fetchWeatherAndSuggestions = async () => {
+    if (!userLocation) return;
+    
+    setLoadingWeather(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('weather-ai-advisor', {
+        body: { location: userLocation }
+      });
+
+      if (error) throw error;
+
+      if (data.weather) {
+        setWeatherData(data.weather);
+      }
+      if (data.suggestions) {
+        setAiSuggestions(data.suggestions);
+      }
+    } catch (error) {
+      console.error('Error fetching weather:', error);
+      toast.error('Kon weer niet ophalen');
+    } finally {
+      setLoadingWeather(false);
+    }
+  };
+
+  // Fetch weather on mount and every 3 hours
+  useEffect(() => {
+    fetchWeatherAndSuggestions();
+    
+    const interval = setInterval(() => {
+      fetchWeatherAndSuggestions();
+    }, 3 * 60 * 60 * 1000); // 3 hours
+
+    return () => clearInterval(interval);
+  }, [userLocation]);
+
   // Query 1: Openstaande FOH Taken
   const { data: pendingTasks, isLoading: loadingTasks } = useQuery({
     queryKey: ['dashboard-pending-tasks', userLocation],
@@ -468,6 +521,39 @@ export default function Dashboard() {
             Week {getWeekNumber()}
           </p>
         </div>
+
+        {/* Weather and AI Section */}
+        {weatherData && (
+          <div style={{ maxWidth: '1200px', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '18px',
+                fontWeight: 600,
+                color: '#282E3A'
+              }}>
+                Weer & AI Assistent
+              </h2>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={fetchWeatherAndSuggestions}
+                disabled={loadingWeather}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${loadingWeather ? 'animate-spin' : ''}`} />
+                Ververs
+              </Button>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px', marginBottom: '32px' }}>
+              <WeatherWidget {...weatherData} />
+              <AIWeatherAdvisor 
+                suggestions={aiSuggestions} 
+                onRefresh={fetchWeatherAndSuggestions}
+              />
+            </div>
+          </div>
+        )}
 
         <div style={{
           display: 'grid',
