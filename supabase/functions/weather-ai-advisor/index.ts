@@ -7,6 +7,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function to get current season
+const getSeason = () => {
+  const month = new Date().getMonth() + 1;
+  if (month >= 3 && month <= 5) return 'lente';
+  if (month >= 6 && month <= 8) return 'zomer';
+  if (month >= 9 && month <= 11) return 'herfst';
+  return 'winter';
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -86,46 +95,85 @@ serve(async (req) => {
       onConflict: 'location,date'
     });
 
-    // Fetch historical successful suggestions (last 10 accepted)
+    // Check if we need new suggestions (only if > 2 days since last one)
+    const { data: lastSuggestion } = await supabase
+      .from('ai_suggestions')
+      .select('created_at, suggestion_text, reasoning')
+      .eq('location', location)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    const daysSinceLastSuggestion = lastSuggestion 
+      ? Math.floor((Date.now() - new Date(lastSuggestion.created_at).getTime()) / (1000 * 60 * 60 * 24))
+      : 999;
+
+    // If suggestions were generated less than 2 days ago, return existing ones
+    if (daysSinceLastSuggestion < 2 && lastSuggestion) {
+      const { data: existingSuggestions } = await supabase
+        .from('ai_suggestions')
+        .select('*')
+        .eq('location', location)
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      return new Response(
+        JSON.stringify({
+          weather: {
+            condition,
+            temperature,
+            windSpeed,
+            precipitation,
+          },
+          suggestions: existingSuggestions?.map(s => ({
+            type: s.suggestion_type,
+            text: s.suggestion_text,
+            reasoning: s.reasoning,
+          })) || [],
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Fetch historical successful suggestions for context
     const { data: historicalSuggestions } = await supabase
       .from('ai_suggestions')
       .select('suggestion_text, reasoning, weather_condition, temperature')
       .eq('location', location)
       .eq('user_feedback', 'accepted')
       .order('created_at', { ascending: false })
-      .limit(10);
+      .limit(5);
 
     const historicalContext = historicalSuggestions && historicalSuggestions.length > 0
-      ? `\n\nHistorisch succesvolle acties bij vergelijkbaar weer:\n${historicalSuggestions.map((s, i) => 
-          `${i + 1}. "${s.suggestion_text}" (${s.weather_condition}, ${s.temperature}°C)\n   Reden: ${s.reasoning}`
+      ? `\n\nEerdere succesvolle ideeën:\n${historicalSuggestions.map((s, i) => 
+          `${i + 1}. "${s.suggestion_text}" (${s.weather_condition}, ${s.temperature}°C)`
         ).join('\n')}`
       : '';
 
-    // Generate AI suggestions using OpenAI
-    const prompt = `Je bent een restaurant operations advisor voor Pura Vida op Terschelling.
+    // Generate AI suggestions using OpenAI with new inspirational prompt
+    const season = getSeason();
+    const prompt = `Je bent een creatieve inspiratiebron voor Pura Vida op Terschelling.
 
 Context:
 - Locatie: ${location}
-- Weer vandaag: ${condition}, ${temperature}°C, wind ${windSpeed} km/h, neerslag ${precipitation}mm
+- Weer vandaag: ${condition}, ${temperature}°C, wind ${windSpeed} km/h
+- Seizoen: ${season}
 ${historicalContext}
 
-Genereer 3-5 concrete, uitvoerbare suggesties voor:
-1. Operationele taken (terras, voorraad, decoratie, etc)
-2. Menu/verkoop optimalisatie
-3. Personeel/planning
+Genereer 2-3 **inspirerende product/sfeer ideeën** die passen bij het weer en seizoen:
+- Denk aan: warme dranken, specials, seizoensproducten, sfeer/decoratie
+- Geef de suggestie in 1-2 zinnen, conceptueel maar niet te specifiek
+- Laat ruimte voor eigen creativiteit
 
-Focus op acties die bewezen impact hebben gehad of logisch zijn voor dit weer.
+Voorbeelden van goede suggesties:
+- "Het is fris buiten, de tijd van pompoenen is aangebroken. Idee: laten we een leuke warme drank special gaan verkopen."
+- "Perfect terrasweer! Misschien tijd voor een frisse lunch special of ijskoffie actie?"
+- "Grijs weer vandaag. Een warme drank met iets zoets kan de sfeer opfleuren."
 
-Antwoord in dit exacte JSON formaat:
-{
-  "suggestions": [
-    {
-      "type": "task",
-      "text": "Korte, concrete actie",
-      "reasoning": "Waarom deze suggestie relevant is"
-    }
-  ]
-}`;
+Wees creatief maar niet te specifiek - geef inspiratie, geen volledige uitwerking.`;
 
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -136,10 +184,48 @@ Antwoord in dit exacte JSON formaat:
       body: JSON.stringify({
         model: 'gpt-5-mini-2025-08-07',
         messages: [
-          { role: 'system', content: 'Je bent een expert restaurant operations advisor. Antwoord altijd in valide JSON formaat.' },
+          { role: 'system', content: 'Je bent een creatieve inspiratiebron voor restaurants. Je geeft korte, inspirerende ideeën gebaseerd op weer en seizoen.' },
           { role: 'user', content: prompt }
         ],
-        max_completion_tokens: 1000,
+        tools: [{
+          type: "function",
+          function: {
+            name: "suggest_ideas",
+            description: "Genereer 2-3 inspirerende product/sfeer ideeën",
+            parameters: {
+              type: "object",
+              properties: {
+                suggestions: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      type: { 
+                        type: "string", 
+                        enum: ["inspiration"],
+                        description: "Het type suggestie, altijd 'inspiration'"
+                      },
+                      text: { 
+                        type: "string",
+                        description: "De inspirerende suggestie in 1-2 zinnen"
+                      },
+                      reasoning: { 
+                        type: "string",
+                        description: "Korte uitleg waarom dit past bij het weer/seizoen"
+                      }
+                    },
+                    required: ["type", "text", "reasoning"]
+                  },
+                  minItems: 2,
+                  maxItems: 3
+                }
+              },
+              required: ["suggestions"]
+            }
+          }
+        }],
+        tool_choice: { type: "function", function: { name: "suggest_ideas" } },
+        max_completion_tokens: 800,
       }),
     });
 
@@ -150,14 +236,19 @@ Antwoord in dit exacte JSON formaat:
     }
 
     const aiData = await openAIResponse.json();
-    const aiContent = aiData.choices[0].message.content;
+    console.log('OpenAI response:', JSON.stringify(aiData, null, 2));
     
-    // Parse JSON response
+    // Parse tool call response
     let parsedResponse;
     try {
-      parsedResponse = JSON.parse(aiContent);
+      const toolCall = aiData.choices[0].message.tool_calls?.[0];
+      if (!toolCall) {
+        throw new Error('No tool call in response');
+      }
+      parsedResponse = JSON.parse(toolCall.function.arguments);
+      console.log('Parsed suggestions:', parsedResponse);
     } catch (e) {
-      console.error('Failed to parse AI response:', aiContent);
+      console.error('Failed to parse AI tool call:', e);
       throw new Error('Invalid AI response format');
     }
 
@@ -167,13 +258,14 @@ Antwoord in dit exacte JSON formaat:
         location,
         weather_condition: condition,
         temperature,
-        suggestion_type: s.type || 'task',
+        suggestion_type: s.type || 'inspiration',
         suggestion_text: s.text,
         reasoning: s.reasoning,
       })
     );
 
     await Promise.all(suggestionPromises);
+    console.log('Stored suggestions in database');
 
     return new Response(
       JSON.stringify({

@@ -431,15 +431,11 @@ export default function Dashboard() {
     }
   };
 
-  // Fetch weather on mount and every 3 hours
+  // Fetch weather only on mount (no automatic refresh)
   useEffect(() => {
-    fetchWeatherAndSuggestions();
-    
-    const interval = setInterval(() => {
+    if (userLocation) {
       fetchWeatherAndSuggestions();
-    }, 3 * 60 * 60 * 1000); // 3 hours
-
-    return () => clearInterval(interval);
+    }
   }, [userLocation]);
 
   // Query 1: Openstaande FOH Taken
