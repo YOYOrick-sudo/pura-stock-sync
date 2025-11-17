@@ -61,7 +61,7 @@ export function PolarKPICard({
       <div
         style={{
           backgroundColor: statusColor?.bg || '#F6F7DD',
-          borderRadius: '12px',
+          borderRadius: '16px',
           padding: '20px',
           display: 'flex',
           flexDirection: 'column',
@@ -276,7 +276,7 @@ export function PolarKPICard({
           style={{
             marginTop: 'auto',
             backgroundColor: '#FFFFFF',
-            borderRadius: '12px',
+            borderRadius: '16px',
             padding: '24px',
           }}
         >

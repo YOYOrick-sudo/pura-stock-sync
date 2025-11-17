@@ -115,7 +115,7 @@ export const HandoverCard = () => {
       <div
         style={{
           backgroundColor: '#F6F7DD',
-          borderRadius: '12px',
+          borderRadius: '16px',
           padding: '20px 24px',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
           minHeight: '100px',
@@ -133,7 +133,7 @@ export const HandoverCard = () => {
     <div
       style={{
         backgroundColor: '#F6F7DD',
-        borderRadius: '12px',
+        borderRadius: '16px',
         padding: '20px 24px',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
         display: 'flex',
