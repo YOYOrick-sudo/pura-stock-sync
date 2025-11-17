@@ -66,7 +66,7 @@ export function AIWeatherAdvisor({ suggestions, onRefresh }: AIWeatherAdvisorPro
     }
   };
 
-  const handleCreateTask = async (suggestion: Suggestion) => {
+  const handleCreateTask = async (suggestion: Suggestion, index: number) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -109,6 +109,13 @@ export function AIWeatherAdvisor({ suggestions, onRefresh }: AIWeatherAdvisorPro
       }
 
       toast.success('Taak aangemaakt');
+      
+      // Mark as dismissed and fetch new suggestion
+      setDismissedIndices(prev => new Set(prev).add(index));
+      
+      setTimeout(() => {
+        onRefresh();
+      }, 500);
     } catch (error) {
       console.error('Error creating task:', error);
       toast.error('Fout bij aanmaken taak');
@@ -166,7 +173,7 @@ export function AIWeatherAdvisor({ suggestions, onRefresh }: AIWeatherAdvisorPro
             <div className="flex items-center gap-2 mt-3">
               <Button
                 size="sm"
-                onClick={() => handleCreateTask(suggestion)}
+                onClick={() => handleCreateTask(suggestion, index)}
                 className="gap-1"
                 style={{ 
                   backgroundColor: '#1B7867',
