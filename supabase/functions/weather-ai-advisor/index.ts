@@ -150,27 +150,56 @@ serve(async (req) => {
         ).join('\n')}`
       : '';
 
-    // Generate AI suggestions using OpenAI with new inspirational prompt
+    // Fetch historical rejected suggestions to learn from
+    const { data: rejectedSuggestions } = await supabase
+      .from('ai_suggestions')
+      .select('suggestion_text, feedback_note, weather_condition, temperature')
+      .eq('location', location)
+      .eq('user_feedback', 'rejected')
+      .not('feedback_note', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    const rejectedContext = rejectedSuggestions && rejectedSuggestions.length > 0
+      ? `\n\nAfgewezen ideeën (NIET dit soort dingen):\n${rejectedSuggestions.map((s, i) => 
+          `${i + 1}. "${s.suggestion_text}" - Reden: ${s.feedback_note} (${s.weather_condition}, ${s.temperature}°C)`
+        ).join('\n')}`
+      : '';
+
+    // Generate AI suggestions using OpenAI with new concrete prompt
     const season = getSeason();
-    const prompt = `Je bent een creatieve inspiratiebron voor Pura Vida op Terschelling.
+    const prompt = `Je levert uitsluitend concrete, uitvoerbare horeca-voorstellen voor Pura Vida op Terschelling.
 
 Context:
 - Locatie: ${location}
 - Weer vandaag: ${condition}, ${temperature}°C, wind ${windSpeed} km/h
 - Seizoen: ${season}
 ${historicalContext}
+${rejectedContext}
 
-Genereer exact ${missingCount} **inspirerende product/sfeer ideeën** die passen bij het weer en seizoen:
-- Denk aan: warme dranken, specials, seizoensproducten, sfeer/decoratie
-- Geef de suggestie in 1-2 zinnen, conceptueel maar niet te specifiek
-- Laat ruimte voor eigen creativiteit
+REGELS WAARAAN JE ALTIJD MOET VOLDOEN:
+1. Baseer elk voorstel op het actuele weer (temperatuur, wind, bewolking, seizoen).
+2. Elk idee moet bijdragen aan: hogere marge, betere sfeer & beleving, zichtbare kwaliteitsverhoging, gastcomfort (wandelaars, toeristen, locals).
+3. Wees altijd specifiek: geen algemene horeca-adviezen, maar direct uitvoerbare concepten.
 
-Voorbeelden van goede suggesties:
-- "Het is fris buiten, de tijd van pompoenen is aangebroken. Idee: laten we een leuke warme drank special gaan verkopen."
-- "Perfect terrasweer! Misschien tijd voor een frisse lunch special of ijskoffie actie?"
-- "Grijs weer vandaag. Een warme drank met iets zoets kan de sfeer opfleuren."
+Genereer exact ${missingCount} voorstellen volgens deze structuur:
 
-Wees creatief maar niet te specifiek - geef inspiratie, geen volledige uitwerking.`;
+1. PRODUCTIDEE
+Eén concreet voorstel: naam, smaak, recept, ingrediënten, presentatie en korte uitleg waarom het aansluit op het weer.
+
+2. MARGETOENAME
+Beschrijf exact hoe dit idee de marge verhoogt (bundel, upsell, prijsrange, lage inkoop).
+
+3. DEAL / BUNDEL
+Maak van het product een simpele actie (bijv. warm drankje + zoetigheid).
+
+4. SFEER & BELEVING
+Eén kleine ingreep die direct uitvoerbaar is (licht, hoekje, styling, signaalbord), passend bij het weer.
+
+5. OPERATIONELE HAALBAARHEID
+Korte check: waarom is dit binnen Pura Vida snel uitvoerbaar?
+
+Stijl: Kort, concreet, praktisch, creatief, direct toepasbaar. Geen lange verhalen, alleen ideeën die vandaag uitvoerbaar zijn.`;
 
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -181,14 +210,14 @@ Wees creatief maar niet te specifiek - geef inspiratie, geen volledige uitwerkin
       body: JSON.stringify({
         model: 'gpt-5-mini-2025-08-07',
         messages: [
-          { role: 'system', content: 'Je bent een creatieve inspiratiebron voor restaurants. Je geeft korte, inspirerende ideeën gebaseerd op weer en seizoen.' },
+          { role: 'system', content: 'Je bent een praktische advisor voor horeca. Je geeft concrete, direct uitvoerbare voorstellen met focus op marge, sfeer en haalbaarheid.' },
           { role: 'user', content: prompt }
         ],
         tools: [{
           type: "function",
           function: {
             name: "suggest_ideas",
-            description: `Genereer exact ${missingCount} inspirerende product/sfeer ideeën`,
+            description: `Genereer exact ${missingCount} concrete, uitvoerbare horeca-voorstellen`,
             parameters: {
               type: "object",
               properties: {
@@ -197,27 +226,36 @@ Wees creatief maar niet te specifiek - geef inspiratie, geen volledige uitwerkin
                   items: {
                     type: "object",
                     properties: {
-                      type: { 
-                        type: "string", 
-                        enum: ["inspiration"],
-                        description: "Het type suggestie, altijd 'inspiration'"
-                      },
-                      text: { 
+                      product_idea: { 
                         type: "string",
-                        description: "De inspirerende suggestie in 1-2 zinnen"
+                        description: "Naam, smaak, recept, ingrediënten, presentatie en uitleg"
                       },
-                      reasoning: { 
+                      margin_increase: { 
                         type: "string",
-                        description: "Korte uitleg waarom dit past bij het weer/seizoen"
+                        description: "Hoe verhoogt dit de marge (bundel, upsell, prijsrange)"
+                      },
+                      deal_bundle: { 
+                        type: "string",
+                        description: "Concrete actie of bundel voorstel"
+                      },
+                      atmosphere: { 
+                        type: "string",
+                        description: "Kleine ingreep voor sfeer (licht, styling, signaalbord)"
+                      },
+                      feasibility: { 
+                        type: "string",
+                        description: "Waarom snel uitvoerbaar binnen Pura Vida"
                       }
                     },
-                    required: ["type", "text", "reasoning"]
+                    required: ["product_idea", "margin_increase", "deal_bundle", "atmosphere", "feasibility"],
+                    additionalProperties: false
                   },
                   minItems: missingCount,
                   maxItems: missingCount
                 }
               },
-              required: ["suggestions"]
+              required: ["suggestions"],
+              additionalProperties: false
             }
           }
         }],
@@ -275,14 +313,32 @@ Wees creatief maar niet te specifiek - geef inspiratie, geen volledige uitwerkin
       throw new Error(`Invalid AI response format: ${e instanceof Error ? e.message : String(e)}`);
     }
 
-    // Store suggestions in database
-    const suggestionPromises = parsedResponse.suggestions.map((s: any) =>
+    // Format as markdown and store suggestions in database
+    const formattedSuggestions = parsedResponse.suggestions.map((s: any) => ({
+      suggestion_text: `### 🎯 Productidee
+${s.product_idea}
+
+### 💰 Margetoename
+${s.margin_increase}
+
+### 🎁 Deal / Bundel
+${s.deal_bundle}
+
+### ✨ Sfeer & Beleving
+${s.atmosphere}
+
+### ⚡ Operationele Haalbaarheid
+${s.feasibility}`,
+      reasoning: `Gebaseerd op ${condition}, ${temperature}°C, wind ${windSpeed} km/h`
+    }));
+
+    const suggestionPromises = formattedSuggestions.map((s: any) =>
       supabase.from('ai_suggestions').insert({
         location,
         weather_condition: condition,
         temperature,
-        suggestion_type: s.type || 'inspiration',
-        suggestion_text: s.text,
+        suggestion_type: 'inspiration',
+        suggestion_text: s.suggestion_text,
         reasoning: s.reasoning,
       })
     );
