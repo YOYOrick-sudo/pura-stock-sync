@@ -222,7 +222,7 @@ Wees creatief maar niet te specifiek - geef inspiratie, geen volledige uitwerkin
           }
         }],
         tool_choice: { type: "function", function: { name: "suggest_ideas" } },
-        max_completion_tokens: 800,
+        max_completion_tokens: 2000,
       }),
     });
 
