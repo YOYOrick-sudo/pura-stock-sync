@@ -95,29 +95,19 @@ serve(async (req) => {
       onConflict: 'location,date'
     });
 
-    // Check if we need new suggestions (only if > 2 days since last one)
-    const { data: lastSuggestion } = await supabase
+    // Check if we already have suggestions for today
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const { data: todaySuggestions } = await supabase
       .from('ai_suggestions')
-      .select('created_at, suggestion_text, reasoning')
+      .select('*')
       .eq('location', location)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
+      .gte('created_at', `${today}T00:00:00`)
+      .lte('created_at', `${today}T23:59:59`)
+      .order('created_at', { ascending: false });
 
-    const daysSinceLastSuggestion = lastSuggestion 
-      ? Math.floor((Date.now() - new Date(lastSuggestion.created_at).getTime()) / (1000 * 60 * 60 * 24))
-      : 999;
-
-    // If suggestions were generated less than 2 days ago, return existing ones
-    if (daysSinceLastSuggestion < 2 && lastSuggestion) {
-      const { data: existingSuggestions } = await supabase
-        .from('ai_suggestions')
-        .select('*')
-        .eq('location', location)
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-        .order('created_at', { ascending: false })
-        .limit(3);
-
+    // If we already have suggestions for today, return them
+    if (todaySuggestions && todaySuggestions.length > 0) {
+      console.log(`Returning ${todaySuggestions.length} existing suggestions from today`);
       return new Response(
         JSON.stringify({
           weather: {
@@ -126,17 +116,19 @@ serve(async (req) => {
             windSpeed,
             precipitation,
           },
-          suggestions: existingSuggestions?.map(s => ({
+          suggestions: todaySuggestions.map(s => ({
             type: s.suggestion_type,
             text: s.suggestion_text,
             reasoning: s.reasoning,
-          })) || [],
+          })),
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
     }
+
+    console.log('No suggestions for today yet, generating new ones...');
 
     // Fetch historical successful suggestions for context
     const { data: historicalSuggestions } = await supabase
@@ -163,7 +155,7 @@ Context:
 - Seizoen: ${season}
 ${historicalContext}
 
-Genereer 2-3 **inspirerende product/sfeer ideeën** die passen bij het weer en seizoen:
+Genereer exact 2 **inspirerende product/sfeer ideeën** die passen bij het weer en seizoen:
 - Denk aan: warme dranken, specials, seizoensproducten, sfeer/decoratie
 - Geef de suggestie in 1-2 zinnen, conceptueel maar niet te specifiek
 - Laat ruimte voor eigen creativiteit
@@ -191,7 +183,7 @@ Wees creatief maar niet te specifiek - geef inspiratie, geen volledige uitwerkin
           type: "function",
           function: {
             name: "suggest_ideas",
-            description: "Genereer 2-3 inspirerende product/sfeer ideeën",
+            description: "Genereer exact 2 inspirerende product/sfeer ideeën",
             parameters: {
               type: "object",
               properties: {
@@ -217,7 +209,7 @@ Wees creatief maar niet te specifiek - geef inspiratie, geen volledige uitwerkin
                     required: ["type", "text", "reasoning"]
                   },
                   minItems: 2,
-                  maxItems: 3
+                  maxItems: 2
                 }
               },
               required: ["suggestions"]
