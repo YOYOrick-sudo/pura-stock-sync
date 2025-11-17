@@ -161,12 +161,37 @@ export function AIWeatherAdvisor({ suggestions, onRefresh }: AIWeatherAdvisorPro
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
-                <p className="font-medium mb-1" style={{ color: '#282E3A' }}>
-                  {suggestion.text}
-                </p>
-                <p className="text-sm" style={{ color: '#73747B' }}>
-                  {suggestion.reasoning}
-                </p>
+                {/* Render markdown met secties */}
+                <div className="space-y-3">
+                  {suggestion.text.split('\n').map((line, i) => {
+                    if (line.startsWith('### 🎯')) {
+                      return <h3 key={i} className="text-base font-semibold mt-3 mb-1" style={{ color: '#282E3A' }}>{line.replace('###', '').trim()}</h3>;
+                    }
+                    if (line.startsWith('### 💰')) {
+                      return <h3 key={i} className="text-base font-semibold mt-3 mb-1" style={{ color: '#282E3A' }}>{line.replace('###', '').trim()}</h3>;
+                    }
+                    if (line.startsWith('### 🎁')) {
+                      return <h3 key={i} className="text-base font-semibold mt-3 mb-1" style={{ color: '#282E3A' }}>{line.replace('###', '').trim()}</h3>;
+                    }
+                    if (line.startsWith('### ✨')) {
+                      return <h3 key={i} className="text-base font-semibold mt-3 mb-1" style={{ color: '#282E3A' }}>{line.replace('###', '').trim()}</h3>;
+                    }
+                    if (line.startsWith('### ⚡')) {
+                      return <h3 key={i} className="text-base font-semibold mt-3 mb-1" style={{ color: '#282E3A' }}>{line.replace('###', '').trim()}</h3>;
+                    }
+                    if (line.trim()) {
+                      return <p key={i} className="text-sm mb-2" style={{ color: '#282E3A' }}>{line}</p>;
+                    }
+                    return null;
+                  })}
+                </div>
+                
+                {/* Reasoning onderaan in klein grijze tekst */}
+                {suggestion.reasoning && (
+                  <p className="text-xs mt-3" style={{ color: '#73747B' }}>
+                    {suggestion.reasoning}
+                  </p>
+                )}
               </div>
             </div>
 
