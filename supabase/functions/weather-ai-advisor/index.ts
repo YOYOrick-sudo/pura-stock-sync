@@ -95,57 +95,45 @@ serve(async (req) => {
       onConflict: 'location,date'
     });
 
-    // Check for today's active suggestions (without user_feedback)
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-    const { data: todaySuggestions } = await supabase
+    // Check for today's active advice set (1 complete set with products + checks)
+    const today = new Date().toISOString().split('T')[0];
+    const { data: todayAdvice } = await supabase
       .from('ai_suggestions')
       .select('*')
       .eq('location', location)
       .gte('created_at', `${today}T00:00:00`)
       .lte('created_at', `${today}T23:59:59`)
+      .eq('suggestion_type', 'daily_advice')
       .is('user_feedback', null)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(1);
 
-    const activeCount = todaySuggestions?.length || 0;
-
-    // If we have 2+ active suggestions, return them
-    if (todaySuggestions && activeCount >= 2) {
-      console.log(`Returning ${activeCount} active suggestions from today`);
+    // If we already have a complete set for today, return it
+    if (todayAdvice && todayAdvice.length > 0) {
+      console.log('Returning today\'s advice set');
       return new Response(
         JSON.stringify({
-          weather: {
-            condition,
-            temperature,
-            windSpeed,
-            precipitation,
-          },
-          suggestions: todaySuggestions.slice(0, 2).map(s => ({
-            type: s.suggestion_type,
-            text: s.suggestion_text,
-            reasoning: s.reasoning,
-          })),
+          weather: { condition, temperature, windSpeed, precipitation },
+          advice: JSON.parse(todayAdvice[0].suggestion_text),
         }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Calculate how many new suggestions we need
-    const missingCount = 2 - activeCount;
-    console.log(`Only ${activeCount} active suggestions, generating ${missingCount} new ones...`);
+    // Otherwise generate new set
+    console.log('Generating new advice set...');
 
-    // Fetch historical successful suggestions for context
-    const { data: historicalSuggestions } = await supabase
+    // Fetch historical accepted suggestions for learning
+    const { data: acceptedSuggestions } = await supabase
       .from('ai_suggestions')
-      .select('suggestion_text, reasoning, weather_condition, temperature')
+      .select('suggestion_text, weather_condition, temperature')
       .eq('location', location)
       .eq('user_feedback', 'accepted')
       .order('created_at', { ascending: false })
       .limit(5);
 
-    const historicalContext = historicalSuggestions && historicalSuggestions.length > 0
-      ? `\n\nEerdere succesvolle ideeën:\n${historicalSuggestions.map((s, i) => 
+    const historicalContext = acceptedSuggestions && acceptedSuggestions.length > 0
+      ? `\n\nEerdere succesvolle ideeën:\n${acceptedSuggestions.map((s, i) => 
           `${i + 1}. "${s.suggestion_text}" (${s.weather_condition}, ${s.temperature}°C)`
         ).join('\n')}`
       : '';
@@ -166,9 +154,8 @@ serve(async (req) => {
         ).join('\n')}`
       : '';
 
-    // Generate AI suggestions using OpenAI with new concrete prompt
     const season = getSeason();
-    const prompt = `Je levert uitsluitend concrete, uitvoerbare horeca-voorstellen voor Pura Vida op Terschelling.
+    const prompt = `Je genereert direct uitvoerbare horeca-ideeën voor Pura Vida op Terschelling die omzet verhogen, service verbeteren en de totale uitstraling versterken.
 
 Context:
 - Locatie: ${location}
@@ -177,30 +164,33 @@ Context:
 ${historicalContext}
 ${rejectedContext}
 
-REGELS WAARAAN JE ALTIJD MOET VOLDOEN:
-1. Baseer elk voorstel op het actuele weer (temperatuur, wind, bewolking, seizoen).
-2. Elk idee moet bijdragen aan: hogere marge, betere sfeer & beleving, zichtbare kwaliteitsverhoging, gastcomfort (wandelaars, toeristen, locals).
-3. Wees altijd specifiek: geen algemene horeca-adviezen, maar direct uitvoerbare concepten.
+PURA VIDA IDENTITEIT (altijd meenemen):
+- Kleur, warmte, vrolijk, laagdrempelig
+- Snel, praktisch, max 1-2 extra handelingen
+- Bestaande voorraad: chai, koffie, lemonades, smoothies, zoet, snacks
+- Gasten: wandelaars, toeristen, locals
+- Focus: omzet, gastbeleving, uitstraling van de zaak
 
-Genereer exact ${missingCount} voorstellen volgens deze structuur:
+DENK ALTIJD NA OVER:
+- Het actuele weer (temperatuur, wind, regen, zon)
+- Margeverhoging (bundel, upsell, premium toevoeging)
+- Snelheid & haalbaarheid
+- Beleving & uitstraling (presentatie, zichtbaarheid, sfeer)
+- Servicechecks (bar netjes, kaarten schoon, counter presentatie)
 
-1. PRODUCTIDEE
-Eén concreet voorstel: naam, smaak, recept, ingrediënten, presentatie en korte uitleg waarom het aansluit op het weer.
+GENEREER:
+1. Productideeën (1-3 stuks):
+   - Elk idee: naam, beschrijving, waarom het past bij het weer, marge/deal info
+   - Kort en concreet, direct uitvoerbaar
 
-2. MARGETOENAME
-Beschrijf exact hoe dit idee de marge verhoogt (bundel, upsell, prijsrange, lage inkoop).
+2. Kwaliteitschecks (2-4 stuks):
+   - Service & uitstraling checks
+   - Bar, counter, menukaarten, schoonmaak, presentatie
+   - Kleine ingrepen die groot effect hebben
 
-3. DEAL / BUNDEL
-Maak van het product een simpele actie (bijv. warm drankje + zoetigheid).
+Stijl: Kort, concreet, creatief, professioneel. Toepasbaar vandaag.`;
 
-4. SFEER & BELEVING
-Eén kleine ingreep die direct uitvoerbaar is (licht, hoekje, styling, signaalbord), passend bij het weer.
-
-5. OPERATIONELE HAALBAARHEID
-Korte check: waarom is dit binnen Pura Vida snel uitvoerbaar?
-
-Stijl: Kort, concreet, praktisch, creatief, direct toepasbaar. Geen lange verhalen, alleen ideeën die vandaag uitvoerbaar zijn.`;
-
+    console.log('Calling OpenAI API...');
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -210,56 +200,66 @@ Stijl: Kort, concreet, praktisch, creatief, direct toepasbaar. Geen lange verhal
       body: JSON.stringify({
         model: 'gpt-5-mini-2025-08-07',
         messages: [
-          { role: 'system', content: 'Je bent een praktische advisor voor horeca. Je geeft concrete, direct uitvoerbare voorstellen met focus op marge, sfeer en haalbaarheid.' },
+          { role: 'system', content: 'Je bent een expert horeca-adviseur voor Pura Vida op Terschelling.' },
           { role: 'user', content: prompt }
         ],
         tools: [{
           type: "function",
           function: {
-            name: "suggest_ideas",
-            description: `Genereer exact ${missingCount} concrete, uitvoerbare horeca-voorstellen`,
+            name: "generate_daily_advice",
+            description: "Genereer 1 complete adviesset met productideeën en kwaliteitschecks",
             parameters: {
               type: "object",
               properties: {
-                suggestions: {
+                product_ideas: {
                   type: "array",
+                  description: "1-3 concrete productideeën voor vandaag",
                   items: {
                     type: "object",
                     properties: {
-                      product_idea: { 
+                      title: { 
                         type: "string",
-                        description: "Naam, smaak, recept, ingrediënten, presentatie en uitleg"
+                        description: "Korte, pakkende naam van het product/idee"
                       },
-                      margin_increase: { 
+                      description: { 
                         type: "string",
-                        description: "Hoe verhoogt dit de marge (bundel, upsell, prijsrange)"
-                      },
-                      deal_bundle: { 
-                        type: "string",
-                        description: "Concrete actie of bundel voorstel"
-                      },
-                      atmosphere: { 
-                        type: "string",
-                        description: "Kleine ingreep voor sfeer (licht, styling, signaalbord)"
-                      },
-                      feasibility: { 
-                        type: "string",
-                        description: "Waarom snel uitvoerbaar binnen Pura Vida"
+                        description: "Volledige uitleg: ingrediënten, bereiding, presentatie, waarom het past bij het weer, marge/deal info"
                       }
                     },
-                    required: ["product_idea", "margin_increase", "deal_bundle", "atmosphere", "feasibility"],
+                    required: ["title", "description"],
                     additionalProperties: false
                   },
-                  minItems: missingCount,
-                  maxItems: missingCount
+                  minItems: 1,
+                  maxItems: 3
+                },
+                quality_checks: {
+                  type: "array",
+                  description: "2-4 kwaliteitschecks voor service & uitstraling",
+                  items: {
+                    type: "object",
+                    properties: {
+                      title: { 
+                        type: "string",
+                        description: "Wat moet gecheckt worden (bijv. 'Barpresentatie', 'Menukaarten')"
+                      },
+                      description: { 
+                        type: "string",
+                        description: "Concrete actie: wat checken, waarom belangrijk, wat aanpassen"
+                      }
+                    },
+                    required: ["title", "description"],
+                    additionalProperties: false
+                  },
+                  minItems: 2,
+                  maxItems: 4
                 }
               },
-              required: ["suggestions"],
+              required: ["product_ideas", "quality_checks"],
               additionalProperties: false
             }
           }
         }],
-        tool_choice: { type: "function", function: { name: "suggest_ideas" } },
+        tool_choice: { type: "function", function: { name: "generate_daily_advice" } },
         max_completion_tokens: 2000,
       }),
     });
@@ -267,107 +267,62 @@ Stijl: Kort, concreet, praktisch, creatief, direct toepasbaar. Geen lange verhal
     if (!openAIResponse.ok) {
       const errorText = await openAIResponse.text();
       console.error('OpenAI API error:', openAIResponse.status, errorText);
-      throw new Error('Failed to generate AI suggestions');
+      throw new Error(`OpenAI API error: ${openAIResponse.status}`);
     }
 
-    const aiData = await openAIResponse.json();
-    console.log('OpenAI full response:', JSON.stringify(aiData, null, 2));
-    
-    // Parse tool call response with detailed error handling
-    let parsedResponse;
-    try {
-      // Check if response structure exists
-      if (!aiData.choices || !aiData.choices[0]) {
-        console.error('Invalid AI response structure - no choices:', aiData);
-        throw new Error('No choices in AI response');
-      }
+    const openAIData = await openAIResponse.json();
+    console.log('OpenAI full response:', JSON.stringify(openAIData, null, 2));
 
-      const message = aiData.choices[0].message;
-      console.log('Message object:', JSON.stringify(message, null, 2));
+    const message = openAIData.choices[0].message;
+    console.log('Message object:', JSON.stringify(message, null, 2));
 
-      if (!message.tool_calls || message.tool_calls.length === 0) {
-        console.error('No tool calls in message:', message);
-        throw new Error('No tool call in response');
-      }
-
-      const toolCall = message.tool_calls[0];
-      console.log('Tool call:', JSON.stringify(toolCall, null, 2));
-
-      if (!toolCall.function || !toolCall.function.arguments) {
-        console.error('Invalid tool call structure:', toolCall);
-        throw new Error('Invalid tool call structure');
-      }
-
-      parsedResponse = JSON.parse(toolCall.function.arguments);
-      console.log('Successfully parsed suggestions:', JSON.stringify(parsedResponse, null, 2));
-
-      // Validate parsed response has suggestions array
-      if (!parsedResponse.suggestions || !Array.isArray(parsedResponse.suggestions)) {
-        console.error('Parsed response missing suggestions array:', parsedResponse);
-        throw new Error('Invalid suggestions format');
-      }
-
-    } catch (e) {
-      console.error('Failed to parse AI response:', e);
-      console.error('Error details:', e instanceof Error ? e.message : String(e));
-      throw new Error(`Invalid AI response format: ${e instanceof Error ? e.message : String(e)}`);
+    if (!message.tool_calls || message.tool_calls.length === 0) {
+      throw new Error('No tool calls in response');
     }
 
-    // Format as markdown and store suggestions in database
-    const formattedSuggestions = parsedResponse.suggestions.map((s: any) => ({
-      suggestion_text: `### 🎯 Productidee
-${s.product_idea}
+    const toolCall = message.tool_calls[0];
+    console.log('Tool call:', JSON.stringify(toolCall, null, 2));
 
-### 💰 Margetoename
-${s.margin_increase}
+    const parsedResponse = JSON.parse(toolCall.function.arguments);
+    console.log('Successfully parsed advice:', JSON.stringify(parsedResponse, null, 2));
 
-### 🎁 Deal / Bundel
-${s.deal_bundle}
-
-### ✨ Sfeer & Beleving
-${s.atmosphere}
-
-### ⚡ Operationele Haalbaarheid
-${s.feasibility}`,
-      reasoning: `Gebaseerd op ${condition}, ${temperature}°C, wind ${windSpeed} km/h`
-    }));
-
-    const suggestionPromises = formattedSuggestions.map((s: any) =>
-      supabase.from('ai_suggestions').insert({
+    // Store as 1 record
+    const { error: insertError } = await supabase
+      .from('ai_suggestions')
+      .insert({
         location,
         weather_condition: condition,
         temperature,
-        suggestion_type: 'inspiration',
-        suggestion_text: s.suggestion_text,
-        reasoning: s.reasoning,
-      })
-    );
+        suggestion_type: 'daily_advice',
+        suggestion_text: JSON.stringify(parsedResponse),
+        reasoning: `Gebaseerd op ${condition}, ${temperature}°C, wind ${windSpeed} km/h, seizoen: ${season}`,
+      });
 
-    await Promise.all(suggestionPromises);
-    console.log('Stored suggestions in database');
+    if (insertError) {
+      console.error('Database insert error:', insertError);
+      throw insertError;
+    }
+
+    console.log('Stored daily advice set in database');
 
     return new Response(
       JSON.stringify({
-        weather: {
-          condition,
-          temperature,
-          windSpeed,
-          precipitation,
-        },
-        suggestions: parsedResponse.suggestions,
+        weather: { condition, temperature, windSpeed, precipitation },
+        advice: parsedResponse,
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Error in weather-ai-advisor:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      {
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        details: error instanceof Error ? error.stack : undefined
+      }),
+      { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }
