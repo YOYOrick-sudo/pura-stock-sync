@@ -36,7 +36,7 @@ export function SidebarLayout({
         <PolarHeader title={getPageTitle(location.pathname)} showStatusIndicator={false} />
         
         <main style={{
-        padding: '48px',
+        padding: '32px 48px',
         backgroundColor: '#FEFFF1'
       }}>
           {children}

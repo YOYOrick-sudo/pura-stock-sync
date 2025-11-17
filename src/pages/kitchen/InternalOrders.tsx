@@ -47,7 +47,7 @@ export default function InternalOrders() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-7xl mx-auto px-6 space-y-10 pt-12">
+      <div className="max-w-7xl mx-auto px-6 space-y-6">
         <div>
           <h1 className="text-3xl font-heading font-bold text-foreground">Interne bestellingen</h1>
           <p className="text-sm text-muted-foreground">{userLocation}</p>

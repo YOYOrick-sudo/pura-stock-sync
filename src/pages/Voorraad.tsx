@@ -37,7 +37,7 @@ export default function Voorraad() {
   return (
     <SidebarLayout>
       <div className="min-h-screen bg-gradient-to-b from-[#F5F7DD] to-[#F5F7DD]/50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-6 pt-12 pb-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-6 pb-20">
           {/* Header */}
           <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
             <div className="flex items-start gap-3">
