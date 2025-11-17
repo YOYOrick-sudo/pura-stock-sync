@@ -30,7 +30,7 @@ export function PolarSetupCard({
         className="flex flex-col"
         style={{
           backgroundColor: '#FFFFFF',
-          borderRadius: '12px',
+          borderRadius: '16px',
           padding: '24px',
         }}
       >
