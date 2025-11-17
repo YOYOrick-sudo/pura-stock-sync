@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_suggestions: {
+        Row: {
+          created_at: string
+          created_task_id: string | null
+          feedback_note: string | null
+          id: string
+          impact_score: number | null
+          location: string
+          reasoning: string
+          suggestion_text: string
+          suggestion_type: string
+          temperature: number
+          user_feedback: string | null
+          weather_condition: string
+        }
+        Insert: {
+          created_at?: string
+          created_task_id?: string | null
+          feedback_note?: string | null
+          id?: string
+          impact_score?: number | null
+          location: string
+          reasoning: string
+          suggestion_text: string
+          suggestion_type: string
+          temperature: number
+          user_feedback?: string | null
+          weather_condition: string
+        }
+        Update: {
+          created_at?: string
+          created_task_id?: string | null
+          feedback_note?: string | null
+          id?: string
+          impact_score?: number | null
+          location?: string
+          reasoning?: string
+          suggestion_text?: string
+          suggestion_type?: string
+          temperature?: number
+          user_feedback?: string | null
+          weather_condition?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_suggestions_created_task_id_fkey"
+            columns: ["created_task_id"]
+            isOneToOne: false
+            referencedRelation: "foh_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       foh_daily_templates: {
         Row: {
           category: string
@@ -494,6 +547,39 @@ export type Database = {
           location?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      weather_data: {
+        Row: {
+          condition: string
+          date: string
+          fetched_at: string
+          id: string
+          location: string
+          precipitation: number | null
+          temperature: number
+          wind_speed: number | null
+        }
+        Insert: {
+          condition: string
+          date: string
+          fetched_at?: string
+          id?: string
+          location: string
+          precipitation?: number | null
+          temperature: number
+          wind_speed?: number | null
+        }
+        Update: {
+          condition?: string
+          date?: string
+          fetched_at?: string
+          id?: string
+          location?: string
+          precipitation?: number | null
+          temperature?: number
+          wind_speed?: number | null
         }
         Relationships: []
       }
