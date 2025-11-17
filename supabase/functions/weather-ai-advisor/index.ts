@@ -95,7 +95,7 @@ serve(async (req) => {
       onConflict: 'location,date'
     });
 
-    // Check if we already have suggestions for today
+    // Check for today's active suggestions (without user_feedback)
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     const { data: todaySuggestions } = await supabase
       .from('ai_suggestions')
@@ -103,11 +103,14 @@ serve(async (req) => {
       .eq('location', location)
       .gte('created_at', `${today}T00:00:00`)
       .lte('created_at', `${today}T23:59:59`)
+      .is('user_feedback', null)
       .order('created_at', { ascending: false });
 
-    // If we already have suggestions for today, return them
-    if (todaySuggestions && todaySuggestions.length > 0) {
-      console.log(`Returning ${todaySuggestions.length} existing suggestions from today`);
+    const activeCount = todaySuggestions?.length || 0;
+
+    // If we have 2+ active suggestions, return them
+    if (todaySuggestions && activeCount >= 2) {
+      console.log(`Returning ${activeCount} active suggestions from today`);
       return new Response(
         JSON.stringify({
           weather: {
@@ -116,7 +119,7 @@ serve(async (req) => {
             windSpeed,
             precipitation,
           },
-          suggestions: todaySuggestions.map(s => ({
+          suggestions: todaySuggestions.slice(0, 2).map(s => ({
             type: s.suggestion_type,
             text: s.suggestion_text,
             reasoning: s.reasoning,
@@ -128,7 +131,9 @@ serve(async (req) => {
       );
     }
 
-    console.log('No suggestions for today yet, generating new ones...');
+    // Calculate how many new suggestions we need
+    const missingCount = 2 - activeCount;
+    console.log(`Only ${activeCount} active suggestions, generating ${missingCount} new ones...`);
 
     // Fetch historical successful suggestions for context
     const { data: historicalSuggestions } = await supabase
@@ -155,7 +160,7 @@ Context:
 - Seizoen: ${season}
 ${historicalContext}
 
-Genereer exact 2 **inspirerende product/sfeer ideeën** die passen bij het weer en seizoen:
+Genereer exact ${missingCount} **inspirerende product/sfeer ideeën** die passen bij het weer en seizoen:
 - Denk aan: warme dranken, specials, seizoensproducten, sfeer/decoratie
 - Geef de suggestie in 1-2 zinnen, conceptueel maar niet te specifiek
 - Laat ruimte voor eigen creativiteit
@@ -183,7 +188,7 @@ Wees creatief maar niet te specifiek - geef inspiratie, geen volledige uitwerkin
           type: "function",
           function: {
             name: "suggest_ideas",
-            description: "Genereer exact 2 inspirerende product/sfeer ideeën",
+            description: `Genereer exact ${missingCount} inspirerende product/sfeer ideeën`,
             parameters: {
               type: "object",
               properties: {
@@ -208,8 +213,8 @@ Wees creatief maar niet te specifiek - geef inspiratie, geen volledige uitwerkin
                     },
                     required: ["type", "text", "reasoning"]
                   },
-                  minItems: 2,
-                  maxItems: 2
+                  minItems: missingCount,
+                  maxItems: missingCount
                 }
               },
               required: ["suggestions"]
