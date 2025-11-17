@@ -618,7 +618,6 @@ export default function Dashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
               <WeatherWidget {...weatherData} />
               <AIWeatherAdvisor 
-                suggestions={aiSuggestions} 
                 onRefresh={fetchWeatherAndSuggestions}
               />
             </div>
