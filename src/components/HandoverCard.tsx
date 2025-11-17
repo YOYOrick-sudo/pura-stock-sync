@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { MessageSquare, Edit2 } from 'lucide-react';
+import { MessageSquare, Edit2, X, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 
@@ -78,6 +77,11 @@ export const HandoverCard = () => {
     setIsEditing(true);
   };
 
+  const handleCancel = () => {
+    setIsEditing(false);
+    setMemoText('');
+  };
+
   const handleSave = async () => {
     if (!memoText.trim()) {
       toast.error('Vul een bericht in');
@@ -126,42 +130,75 @@ export const HandoverCard = () => {
   }
 
   return (
-    <>
+    <div
+      style={{
+        backgroundColor: '#F6F7DD',
+        borderRadius: '12px',
+        padding: '20px 24px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+        minHeight: '100px',
+      }}
+    >
       <div
         style={{
-          backgroundColor: '#F6F7DD',
-          borderRadius: '12px',
-          padding: '20px 24px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'center',
-          minHeight: '100px',
-          gap: '16px',
+          justifyContent: 'space-between',
         }}
       >
-        <div style={{ flex: 1 }}>
-          <div
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <MessageSquare size={18} color="#1B7867" />
+          <h3
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              marginBottom: '8px',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '14px',
+              fontWeight: 600,
+              color: '#282E3A',
             }}
           >
-            <MessageSquare size={18} color="#1B7867" />
-            <h3
-              style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '14px',
-                fontWeight: 600,
-                color: '#282E3A',
-              }}
-            >
-              Bijzonderheden Vandaag
-            </h3>
-          </div>
+            Bijzonderheden Vandaag
+          </h3>
+        </div>
 
+        {isAdmin && !isEditing && (
+          <Button variant="outline" size="sm" onClick={handleEdit}>
+            <Edit2 size={14} />
+          </Button>
+        )}
+      </div>
+
+      {isEditing ? (
+        <>
+          <Textarea
+            value={memoText}
+            onChange={(e) => setMemoText(e.target.value)}
+            placeholder="Bijv. Vandaag komt iemand een bon afhalen om 15:00 uur"
+            rows={4}
+            className="resize-none"
+            autoFocus
+          />
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+            <Button variant="outline" size="sm" onClick={handleCancel}>
+              <X size={14} />
+              Annuleren
+            </Button>
+            <Button size="sm" onClick={handleSave}>
+              <Check size={14} />
+              Opslaan
+            </Button>
+          </div>
+        </>
+      ) : (
+        <>
           <p
             style={{
               fontFamily: 'Inter, sans-serif',
@@ -181,7 +218,6 @@ export const HandoverCard = () => {
                 fontFamily: 'Inter, sans-serif',
                 fontSize: '12px',
                 color: '#73747B',
-                marginTop: '6px',
               }}
             >
               Laatst bijgewerkt: {new Date(latestMemo.updated_at).toLocaleString('nl-NL', {
@@ -192,35 +228,8 @@ export const HandoverCard = () => {
               })}
             </p>
           )}
-        </div>
-
-        {isAdmin && (
-          <Button variant="outline" size="sm" onClick={handleEdit}>
-            <Edit2 size={14} />
-          </Button>
-        )}
-      </div>
-
-      <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Bijzonderheden bewerken</DialogTitle>
-          </DialogHeader>
-          <Textarea
-            value={memoText}
-            onChange={(e) => setMemoText(e.target.value)}
-            placeholder="Bijv. Vandaag komt iemand een bon afhalen om 15:00 uur"
-            rows={4}
-            className="resize-none"
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditing(false)}>
-              Annuleren
-            </Button>
-            <Button onClick={handleSave}>Opslaan</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+        </>
+      )}
+    </div>
   );
 };
