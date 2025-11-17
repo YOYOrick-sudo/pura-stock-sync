@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, PanelLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -117,7 +117,7 @@ export function PolarSidebar({
             {collapsed ? (
               <Menu className="h-5 w-5" style={{ color: '#36373A' }} />
             ) : (
-              <X className="h-5 w-5" style={{ color: '#36373A' }} />
+              <PanelLeft className="h-5 w-5" style={{ color: '#36373A' }} />
             )}
           </Button>
         </div>
