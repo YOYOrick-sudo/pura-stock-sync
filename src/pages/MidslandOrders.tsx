@@ -92,7 +92,7 @@ export default function MidslandOrders() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-7xl mx-auto px-6 space-y-6 pt-8">
+      <div className="max-w-7xl mx-auto px-6 space-y-6">
         <div className="flex items-center gap-3">
           <Package className="h-8 w-8 text-[#1B7867]" />
           <h1 className="text-3xl font-bold text-foreground">

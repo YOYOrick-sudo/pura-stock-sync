@@ -165,7 +165,7 @@ export default function FohAnalytics() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-7xl mx-auto px-6 space-y-10 pt-12">
+      <div className="max-w-7xl mx-auto px-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
