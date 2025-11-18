@@ -25,8 +25,6 @@ export function AIWeatherAdvisor({ onRefresh }: AIWeatherAdvisorProps) {
     showNote: boolean; 
     note: string;
   }>>({});
-  const [showRejectNote, setShowRejectNote] = useState(false);
-  const [rejectNote, setRejectNote] = useState('');
 
   useEffect(() => {
     fetchAdvice();
@@ -41,9 +39,8 @@ export function AIWeatherAdvisor({ onRefresh }: AIWeatherAdvisorProps) {
       
       if (error) throw error;
       
-      setAdvice(data.advice);
-      setShowRejectNote(false);
-      setRejectNote('');
+      setSuggestions(data.suggestions || []);
+      setFeedbackStates({});
     } catch (error) {
       console.error('Error fetching advice:', error);
       toast.error('Kon advies niet ophalen');
@@ -80,68 +77,37 @@ export function AIWeatherAdvisor({ onRefresh }: AIWeatherAdvisorProps) {
     }
   };
 
-  const handleAcceptAdvice = async () => {
+  const handleAcceptSuggestion = async (suggestionId: string) => {
     try {
-      const today = new Date().toISOString().split('T')[0];
-      const { data: todayAdvice } = await supabase
+      await supabase
         .from('ai_suggestions')
-        .select('id')
-        .eq('location', userLocation)
-        .gte('created_at', `${today}T00:00:00`)
-        .lte('created_at', `${today}T23:59:59`)
-        .eq('suggestion_type', 'daily_advice')
-        .is('user_feedback', null)
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (todayAdvice && todayAdvice.length > 0) {
-        await supabase
-          .from('ai_suggestions')
-          .update({ user_feedback: 'accepted' })
-          .eq('id', todayAdvice[0].id);
-      }
-
-      toast.success('Advies geaccepteerd');
-      setTimeout(() => fetchAdvice(), 500);
+        .update({ user_feedback: 'accepted' })
+        .eq('id', suggestionId);
+      
+      toast.success('Feedback opgeslagen');
+      setSuggestions(prev => prev.filter(s => s.id !== suggestionId));
     } catch (error) {
-      console.error('Error accepting advice:', error);
+      console.error('Error accepting suggestion:', error);
       toast.error('Fout bij opslaan feedback');
     }
   };
 
-  const handleRejectAdvice = async () => {
-    if (!showRejectNote) {
-      setShowRejectNote(true);
-      return;
-    }
-
+  const handleRejectSuggestion = async (suggestionId: string) => {
     try {
-      const today = new Date().toISOString().split('T')[0];
-      const { data: todayAdvice } = await supabase
+      const note = feedbackStates[suggestionId]?.note || null;
+      
+      await supabase
         .from('ai_suggestions')
-        .select('id')
-        .eq('location', userLocation)
-        .gte('created_at', `${today}T00:00:00`)
-        .lte('created_at', `${today}T23:59:59`)
-        .eq('suggestion_type', 'daily_advice')
-        .is('user_feedback', null)
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (todayAdvice && todayAdvice.length > 0) {
-        await supabase
-          .from('ai_suggestions')
-          .update({ 
-            user_feedback: 'rejected',
-            feedback_note: rejectNote || null
-          })
-          .eq('id', todayAdvice[0].id);
-      }
-
+        .update({ 
+          user_feedback: 'rejected',
+          feedback_note: note
+        })
+        .eq('id', suggestionId);
+      
       toast.success('Feedback opgeslagen');
-      setTimeout(() => fetchAdvice(), 500);
+      setSuggestions(prev => prev.filter(s => s.id !== suggestionId));
     } catch (error) {
-      console.error('Error rejecting advice:', error);
+      console.error('Error rejecting suggestion:', error);
       toast.error('Fout bij opslaan feedback');
     }
   };
@@ -162,140 +128,99 @@ export function AIWeatherAdvisor({ onRefresh }: AIWeatherAdvisorProps) {
     );
   }
 
-  if (!advice) {
-    return null;
-  }
-
   return (
     <Card className="col-span-1 lg:col-span-3">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Lightbulb className="h-5 w-5" style={{ color: '#1B7867' }} />
-          AI Dagadvies
+          AI Suggesties ({suggestions.length})
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-6">
-          {/* Productideeën Sectie */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2" style={{ color: '#282E3A' }}>
-              <Utensils className="h-5 w-5" style={{ color: '#1B7867' }} />
-              Productideeën ({advice.product_ideas.length})
-            </h3>
-            <div className="space-y-3">
-              {advice.product_ideas.map((idea, i) => (
-                <div 
-                  key={i}
-                  className="p-4 rounded-polar-md"
-                  style={{ 
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid rgba(197, 197, 202, 0.3)'
-                  }}
-                >
-                  <h4 className="font-semibold text-base mb-2" style={{ color: '#282E3A' }}>
-                    {idea.title}
-                  </h4>
-                  <p className="text-sm whitespace-pre-line" style={{ color: '#282E3A' }}>
-                    {idea.description}
-                  </p>
-                  
-                  {/* Actie knoppen per product */}
-                  <div className="flex gap-2 mt-3">
-                    <Button
-                      size="sm"
-                      onClick={() => handleCreateTask(idea.title, idea.description)}
-                      style={{ backgroundColor: '#1B7867', color: '#FFFFFF' }}
-                      className="rounded-polar-md"
-                    >
-                      <CheckCircle2 className="h-4 w-4 mr-1" />
-                      Maak Taak
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Kwaliteitschecks Sectie */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2" style={{ color: '#282E3A' }}>
-              <ClipboardCheck className="h-5 w-5" style={{ color: '#1B7867' }} />
-              Kwaliteitschecks ({advice.quality_checks.length})
-            </h3>
-            <div className="space-y-2">
-              {advice.quality_checks.map((check, i) => (
-                <div 
-                  key={i}
-                  className="p-3 rounded-polar-md flex items-start gap-3"
-                  style={{ 
-                    backgroundColor: '#F6F7DD',
-                    border: '1px solid rgba(197, 197, 202, 0.3)'
-                  }}
-                >
-                  <div className="flex-shrink-0 mt-0.5">
-                    <div 
-                      className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold"
-                      style={{ backgroundColor: '#1B7867', color: '#FFFFFF' }}
-                    >
-                      {i + 1}
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-sm mb-1" style={{ color: '#282E3A' }}>
-                      {check.title}
-                    </h4>
-                    <p className="text-sm" style={{ color: '#282E3A' }}>
-                      {check.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Feedback knoppen onderaan */}
-          <div className="pt-4 border-t space-y-3" style={{ borderColor: 'rgba(197, 197, 202, 0.3)' }}>
-            {showRejectNote && (
-              <div className="space-y-2">
+        <div className="space-y-3">
+          {suggestions.map((suggestion) => (
+            <div 
+              key={suggestion.id}
+              className="p-4 rounded-polar-md"
+              style={{ 
+                backgroundColor: '#FFFFFF',
+                border: '1px solid rgba(197, 197, 202, 0.3)'
+              }}
+            >
+              <h4 className="font-semibold text-base mb-2" style={{ color: '#282E3A' }}>
+                {suggestion.text}
+              </h4>
+              
+              <p className="text-sm mb-3" style={{ color: '#73747B' }}>
+                {suggestion.reasoning}
+              </p>
+              
+              {feedbackStates[suggestion.id]?.showNote && (
                 <Textarea
-                  placeholder="Waarom is dit niet relevant? (optioneel)"
-                  value={rejectNote}
-                  onChange={(e) => setRejectNote(e.target.value)}
-                  className="min-h-[80px]"
+                  placeholder="Waarom niet relevant? (optioneel)"
+                  value={feedbackStates[suggestion.id]?.note || ''}
+                  onChange={(e) => setFeedbackStates(prev => ({
+                    ...prev,
+                    [suggestion.id]: { ...prev[suggestion.id], note: e.target.value }
+                  }))}
+                  className="mb-3 min-h-[60px]"
                 />
+              )}
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => handleCreateTask(suggestion.id, suggestion.text, suggestion.reasoning)}
+                  style={{ backgroundColor: '#1B7867', color: '#FFFFFF' }}
+                  className="rounded-polar-md"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-1" />
+                  Maak Taak
+                </Button>
+                
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleAcceptSuggestion(suggestion.id)}
+                  className="rounded-polar-md"
+                >
+                  <ThumbsUp className="h-4 w-4 mr-1" />
+                  Nuttig
+                </Button>
+                
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    if (feedbackStates[suggestion.id]?.showNote) {
+                      handleRejectSuggestion(suggestion.id);
+                    } else {
+                      setFeedbackStates(prev => ({
+                        ...prev,
+                        [suggestion.id]: { showNote: true, note: '' }
+                      }));
+                    }
+                  }}
+                  className="rounded-polar-md"
+                >
+                  <ThumbsDown className="h-4 w-4 mr-1" />
+                  {feedbackStates[suggestion.id]?.showNote ? 'Verstuur' : 'Niet relevant'}
+                </Button>
               </div>
-            )}
-            
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleAcceptAdvice}
-                className="rounded-polar-md"
-              >
-                <ThumbsUp className="h-4 w-4 mr-1" />
-                Nuttig advies
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleRejectAdvice}
-                className="rounded-polar-md"
-              >
-                <ThumbsDown className="h-4 w-4 mr-1" />
-                {showRejectNote ? 'Verstuur feedback' : 'Niet relevant'}
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => fetchAdvice()}
-                className="rounded-polar-md"
-              >
-                <RefreshCw className="h-4 w-4 mr-1" />
-                Nieuw advies
-              </Button>
             </div>
-          </div>
+          ))}
+        </div>
+        
+        <div className="mt-4">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => fetchAdvice()}
+            className="rounded-polar-md"
+          >
+            <RefreshCw className="h-4 w-4 mr-1" />
+            Ververs suggesties
+          </Button>
         </div>
       </CardContent>
     </Card>
