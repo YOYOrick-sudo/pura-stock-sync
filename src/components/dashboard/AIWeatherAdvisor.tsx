@@ -15,9 +15,10 @@ interface Suggestion {
 
 interface AIWeatherAdvisorProps {
   onRefresh: () => void;
+  canRefresh?: boolean;
 }
 
-export function AIWeatherAdvisor({ onRefresh }: AIWeatherAdvisorProps) {
+export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvisorProps) {
   const { userLocation } = useUserLocation();
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,7 +134,7 @@ export function AIWeatherAdvisor({ onRefresh }: AIWeatherAdvisorProps) {
               size="sm"
               variant="outline"
               onClick={onRefresh}
-              disabled={loading}
+              disabled={loading || !canRefresh}
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Ververs
