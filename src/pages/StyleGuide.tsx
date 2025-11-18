@@ -131,11 +131,9 @@ export default function StyleGuide() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '24px' }}>
             <ColorBlock color={PolarColors.puravida.cream} name="Cream (Background)" hex="#FEFFF1" />
             <ColorBlock color={PolarColors.puravida.moonlight} name="Moonlight (Sidebar)" hex="#F6F7DD" />
-            <ColorBlock color={PolarColors.white} name="White (Cards)" hex="#FFFFFF" />
             <ColorBlock color={PolarColors.puravida.midnight} name="Midnight (Primary Text)" hex="#282E3A" />
             <ColorBlock color={PolarColors.text.secondary} name="Secondary Text" hex="#73747B" />
             <ColorBlock color={PolarColors.brand.primary} name="Pura Vida Sea (Brand)" hex="#1B7867" />
-            <ColorBlock color={PolarColors.brand.primaryHover} name="Sea Hover" hex="#156556" />
             <ColorBlock color={PolarColors.puravida.sunset} name="Sunset (Accent)" hex="#E27726" />
             <ColorBlock color={PolarColors.status.success} name="Success" hex="#10B981" />
             <ColorBlock color={PolarColors.status.warning} name="Warning" hex="#E64D4D" />
@@ -277,14 +275,15 @@ color: PolarColors.brand.primary`}
                   marginBottom: '12px',
                 }}
               >
-                12px - Buttons, inputs, medium componenten
+                12px - Inputs, medium componenten
               </div>
               <div
                 style={{
                   width: '200px',
                   height: '40px',
-                  backgroundColor: '#1B7867',
+                  backgroundColor: '#F6F7DD',
                   borderRadius: '12px',
+                  border: '1px solid rgba(197, 197, 202, 0.5)',
                 }}
               />
               <CodeBlock id="radius-md" code={`borderRadius: '12px' // rounded-polar-md`} />
@@ -299,18 +298,40 @@ color: PolarColors.brand.primary`}
                   marginBottom: '12px',
                 }}
               >
-                16px - Cards, panels, grote containers
+                16px - Buttons, cards, panels, grote containers
+              </div>
+              <div
+                style={{
+                  width: '200px',
+                  height: '40px',
+                  backgroundColor: '#1B7867',
+                  borderRadius: '16px',
+                }}
+              />
+              <CodeBlock id="radius-buttons" code={`borderRadius: '16px' // rounded-polar-lg (buttons)`} />
+            </div>
+            <div>
+              <div
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: '#282E3A',
+                  marginBottom: '12px',
+                }}
+              >
+                20px - Extra grote containers
               </div>
               <div
                 style={{
                   width: '200px',
                   height: '80px',
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '16px',
+                  backgroundColor: '#FEFFF1',
+                  borderRadius: '20px',
                   border: '1px solid rgba(197, 197, 202, 0.5)',
                 }}
               />
-              <CodeBlock id="radius-lg" code={`borderRadius: '16px' // rounded-polar-lg`} />
+              <CodeBlock id="radius-xl" code={`borderRadius: '20px' // rounded-polar-xl`} />
             </div>
           </div>
         </Section>
@@ -332,7 +353,7 @@ color: PolarColors.brand.primary`}
               </div>
               <div
                 style={{
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: '#FEFFF1',
                   border: '1px solid rgba(197, 197, 202, 0.5)',
                   borderRadius: '16px',
                   padding: '24px',
@@ -346,7 +367,7 @@ color: PolarColors.brand.primary`}
               <CodeBlock
                 id="card-standard"
                 code={`style={{
-  backgroundColor: '#FFFFFF',
+  backgroundColor: '#FEFFF1', // cream
   border: '1px solid rgba(197, 197, 202, 0.5)',
   borderRadius: '16px',
   padding: '24px',
@@ -411,13 +432,13 @@ color: PolarColors.brand.primary`}
               >
                 <div
                   style={{
-                    backgroundColor: '#FFFFFF',
+                    backgroundColor: '#FEFFF1',
                     borderRadius: '12px',
                     padding: '16px',
                   }}
                 >
                   <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#282E3A' }}>
-                    Inner white card voor extra contrast
+                    Inner cream card voor extra contrast
                   </div>
                 </div>
               </div>
@@ -425,14 +446,14 @@ color: PolarColors.brand.primary`}
                 id="card-double"
                 code={`// Outer card
 style={{
-  backgroundColor: '#F6F7DD',
+  backgroundColor: '#F6F7DD', // moonlight
   borderRadius: '16px',
   padding: '24px',
 }}
 
 // Inner card
 style={{
-  backgroundColor: '#FFFFFF',
+  backgroundColor: '#FEFFF1', // cream
   borderRadius: '12px',
   padding: '16px',
 }}`}
@@ -885,7 +906,8 @@ padding: '32px 48px'`}
                 <li>Gebruik geen random border-radius waardes (bijv. 10px, 14px)</li>
                 <li>Gebruik geen Tailwind classes voor Polar componenten</li>
                 <li>Verzin geen nieuwe kleuren - gebruik het palet</li>
-                <li>Gebruik geen text-white of bg-white zonder context</li>
+                <li>Buttons hebben 16px radius, niet 12px</li>
+                <li>Gebruik cream (#FEFFF1) voor cards, niet white</li>
                 <li>Mix geen verschillende design systemen</li>
               </ul>
             </div>
