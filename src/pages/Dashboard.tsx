@@ -533,13 +533,14 @@ export default function Dashboard() {
             icon={<ListTodo size={16} color="#1B7867" />}
           />
           
-          <DashboardCard
-            title="Nieuwe Meldingen"
-            count={unreadNotifications || 0}
-            onClick={() => {/* Could trigger notifications dropdown */}}
-            isLoading={loadingNotifications}
-            icon={<Bell size={16} color="#1B7867" />}
-          />
+          {weatherData && (
+            <WeatherWidget
+              condition={weatherData.condition}
+              temperature={weatherData.temperature}
+              windSpeed={weatherData.windSpeed}
+              precipitation={weatherData.precipitation}
+            />
+          )}
           
           {userLocation === 'Oost' && (
             <DashboardCard
@@ -567,72 +568,9 @@ export default function Dashboard() {
           <HandoverCard />
         </div>
 
-        {/* Weather and AI Section - full width below handover */}
+        {/* AI Dagadvies Section - full width below handover */}
         <div style={{ maxWidth: '1200px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h2 style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '18px',
-              fontWeight: 600,
-              color: '#282E3A'
-            }}>
-              Weer & AI Assistent
-            </h2>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={fetchWeatherAndSuggestions}
-              disabled={loadingWeather}
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${loadingWeather ? 'animate-spin' : ''}`} />
-              Ververs
-            </Button>
-          </div>
-          
-          {loadingWeather && !weatherData ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
-              <div style={{ 
-                backgroundColor: '#F6F7DD', 
-                borderRadius: '16px', 
-                padding: '24px',
-                height: '200px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <RefreshCw className="h-8 w-8 animate-spin" style={{ color: '#73747B' }} />
-              </div>
-              <div style={{ 
-                backgroundColor: '#F6F7DD', 
-                borderRadius: '16px', 
-                padding: '24px',
-                height: '200px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <RefreshCw className="h-8 w-8 animate-spin" style={{ color: '#73747B' }} />
-              </div>
-            </div>
-          ) : weatherData ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
-              <WeatherWidget {...weatherData} />
-              <AIWeatherAdvisor 
-                onRefresh={fetchWeatherAndSuggestions}
-              />
-            </div>
-          ) : (
-            <div style={{ 
-              backgroundColor: '#F6F7DD', 
-              borderRadius: '16px', 
-              padding: '24px',
-              textAlign: 'center'
-            }}>
-              <p style={{ color: '#73747B', fontFamily: 'Inter, sans-serif', fontSize: '14px' }}>
-                Kon weer en AI suggesties niet laden. Probeer opnieuw.
-              </p>
-            </div>
-          )}
+          <AIWeatherAdvisor onRefresh={fetchWeatherAndSuggestions} />
         </div>
       </div>
     </SidebarLayout>
