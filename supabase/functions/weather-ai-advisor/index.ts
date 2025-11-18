@@ -95,32 +95,37 @@ serve(async (req) => {
       onConflict: 'location,date'
     });
 
-    // Check for today's active advice set (1 complete set with products + checks)
+    // Check hoeveel suggesties we al hebben voor vandaag
     const today = new Date().toISOString().split('T')[0];
-    const { data: todayAdvice } = await supabase
+    const { data: todaySuggestions, count } = await supabase
       .from('ai_suggestions')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('location', location)
       .gte('created_at', `${today}T00:00:00`)
       .lte('created_at', `${today}T23:59:59`)
-      .eq('suggestion_type', 'daily_advice')
-      .is('user_feedback', null)
-      .order('created_at', { ascending: false })
-      .limit(1);
+      .eq('suggestion_type', 'inspiration')
+      .is('user_feedback', null);
 
-    // If we already have a complete set for today, return it
-    if (todayAdvice && todayAdvice.length > 0) {
-      console.log('Returning today\'s advice set');
+    const TARGET_SUGGESTIONS = 2;
+    const missingCount = Math.max(0, TARGET_SUGGESTIONS - (count || 0));
+
+    // Als we al genoeg hebben, return bestaande
+    if (missingCount === 0 && todaySuggestions) {
+      console.log('Returning existing suggestions');
       return new Response(
         JSON.stringify({
           weather: { condition, temperature, windSpeed, precipitation },
-          advice: JSON.parse(todayAdvice[0].suggestion_text),
+          suggestions: todaySuggestions.map(s => ({
+            id: s.id,
+            text: s.suggestion_text,
+            reasoning: s.reasoning
+          })),
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Otherwise generate new set
+    console.log(`Generating ${missingCount} new suggestions...`);
     console.log('Generating new advice set...');
 
     // Fetch historical accepted suggestions for learning
@@ -202,60 +207,39 @@ Stijl: Kort, bondig, concreet, professioneel. Geen lange uitleg.`;
         tools: [{
           type: "function",
           function: {
-            name: "generate_daily_advice",
-            description: "Genereer 1 complete adviesset met productideeën en kwaliteitschecks",
+            name: "generate_suggestions",
+            description: `Genereer ${missingCount} korte, concrete suggesties voor Pura Vida`,
             parameters: {
               type: "object",
               properties: {
-                product_ideas: {
+                suggestions: {
                   type: "array",
-                  description: "1-3 concrete productideeën voor vandaag",
+                  description: `${missingCount} verschillende suggesties (product, kwaliteit, margin, service, sfeer)`,
                   items: {
                     type: "object",
                     properties: {
                       title: { 
                         type: "string",
-                        description: "Korte, pakkende naam van het product/idee"
+                        description: "Korte, pakkende titel (3-6 woorden)"
                       },
                       description: { 
                         type: "string",
-                        description: "Volledige uitleg: ingrediënten, bereiding, presentatie, waarom het past bij het weer, marge/deal info"
+                        description: "Korte beschrijving (max 1-2 zinnen) met duidelijk doel"
                       }
                     },
                     required: ["title", "description"],
                     additionalProperties: false
                   },
-                  minItems: 1,
-                  maxItems: 3
-                },
-                quality_checks: {
-                  type: "array",
-                  description: "2-4 kwaliteitschecks voor service & uitstraling",
-                  items: {
-                    type: "object",
-                    properties: {
-                      title: { 
-                        type: "string",
-                        description: "Wat moet gecheckt worden (bijv. 'Barpresentatie', 'Menukaarten')"
-                      },
-                      description: { 
-                        type: "string",
-                        description: "Concrete actie: wat checken, waarom belangrijk, wat aanpassen"
-                      }
-                    },
-                    required: ["title", "description"],
-                    additionalProperties: false
-                  },
-                  minItems: 2,
-                  maxItems: 4
+                  minItems: missingCount,
+                  maxItems: missingCount
                 }
               },
-              required: ["product_ideas", "quality_checks"],
+              required: ["suggestions"],
               additionalProperties: false
             }
           }
         }],
-        tool_choice: { type: "function", function: { name: "generate_daily_advice" } },
+        tool_choice: { type: "function", function: { name: "generate_suggestions" } },
         max_completion_tokens: 2000,
       }),
     });
@@ -280,31 +264,47 @@ Stijl: Kort, bondig, concreet, professioneel. Geen lange uitleg.`;
     console.log('Tool call:', JSON.stringify(toolCall, null, 2));
 
     const parsedResponse = JSON.parse(toolCall.function.arguments);
-    console.log('Successfully parsed advice:', JSON.stringify(parsedResponse, null, 2));
+    console.log('Successfully parsed suggestions:', JSON.stringify(parsedResponse, null, 2));
 
-    // Store as 1 record
+    // Store elke suggestie als aparte record
+    const suggestionRecords = parsedResponse.suggestions.map((s: any) => ({
+      location,
+      weather_condition: condition,
+      temperature,
+      suggestion_type: 'inspiration',
+      suggestion_text: s.title,
+      reasoning: s.description,
+    }));
+
     const { error: insertError } = await supabase
       .from('ai_suggestions')
-      .insert({
-        location,
-        weather_condition: condition,
-        temperature,
-        suggestion_type: 'daily_advice',
-        suggestion_text: JSON.stringify(parsedResponse),
-        reasoning: `Gebaseerd op ${condition}, ${temperature}°C, wind ${windSpeed} km/h, seizoen: ${season}`,
-      });
+      .insert(suggestionRecords);
 
     if (insertError) {
       console.error('Database insert error:', insertError);
       throw insertError;
     }
 
-    console.log('Stored daily advice set in database');
+    console.log(`Stored ${suggestionRecords.length} new suggestions`);
+
+    // Return alle suggesties (oude + nieuwe)
+    const { data: allSuggestions } = await supabase
+      .from('ai_suggestions')
+      .select('*')
+      .eq('location', location)
+      .gte('created_at', `${today}T00:00:00`)
+      .lte('created_at', `${today}T23:59:59`)
+      .eq('suggestion_type', 'inspiration')
+      .is('user_feedback', null);
 
     return new Response(
       JSON.stringify({
         weather: { condition, temperature, windSpeed, precipitation },
-        advice: parsedResponse,
+        suggestions: allSuggestions?.map(s => ({
+          id: s.id,
+          text: s.suggestion_text,
+          reasoning: s.reasoning
+        })) || [],
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
