@@ -13,7 +13,7 @@ const buttonVariants = cva(
         destructive: "bg-[#DC2626] text-white shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.08)] hover:bg-[#B91C1C]",
         outline: "border border-[rgba(197,197,202,0.5)] bg-transparent text-[#282E3A] hover:bg-[#F6F7DD] hover:border-[rgba(197,197,202,0.7)]",
         secondary: "bg-[#F6F7DD] text-[#282E3A] border border-[rgba(197,197,202,0.5)] hover:bg-[#EBEBC8]",
-        ghost: "bg-transparent text-[#282E3A] hover:bg-[#F6F7DD]",
+        ghost: "border border-[rgba(197,197,202,0.3)] bg-transparent text-[#282E3A] hover:bg-[#F6F7DD] hover:border-[rgba(197,197,202,0.5)]",
         link: "text-[#1B7867] underline-offset-4 hover:underline hover:text-[#156152]",
       },
       size: {
