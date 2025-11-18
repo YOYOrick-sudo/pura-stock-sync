@@ -407,12 +407,16 @@ export default function Dashboard() {
 
   // Fetch weather and AI suggestions
   const fetchWeatherAndSuggestions = async () => {
-    if (!userLocation) return;
+    // More robust check: ensure location exists and is not just whitespace
+    if (!userLocation?.trim()) {
+      console.log('Skipping weather fetch: no location available');
+      return;
+    }
     
     setLoadingWeather(true);
     try {
       const { data, error } = await supabase.functions.invoke('weather-ai-advisor', {
-        body: { location: userLocation }
+        body: { location: userLocation.trim() }
       });
 
       if (error) throw error;
@@ -431,9 +435,9 @@ export default function Dashboard() {
     }
   };
 
-  // Fetch weather only on mount (no automatic refresh)
+  // Fetch weather only when location is available
   useEffect(() => {
-    if (userLocation) {
+    if (userLocation?.trim()) {
       fetchWeatherAndSuggestions();
     }
   }, [userLocation]);
@@ -570,7 +574,10 @@ export default function Dashboard() {
 
         {/* AI Dagadvies Section - full width below handover */}
         <div style={{ maxWidth: '1200px' }}>
-          <AIWeatherAdvisor onRefresh={fetchWeatherAndSuggestions} />
+          <AIWeatherAdvisor 
+            onRefresh={fetchWeatherAndSuggestions}
+            canRefresh={!!userLocation?.trim()}
+          />
         </div>
       </div>
     </SidebarLayout>
