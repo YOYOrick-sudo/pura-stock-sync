@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Switch } from '@/components/ui/switch';
 import { useState } from 'react';
 import { Copy, Check, AlertCircle, CheckCircle2, Info, AlertTriangle } from 'lucide-react';
 
@@ -13,6 +14,9 @@ export default function StyleGuide() {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [checkboxValue, setCheckboxValue] = useState(false);
   const [radioValue, setRadioValue] = useState('option1');
+  const [emailNotifications, setEmailNotifications] = useState(false);
+  const [autoConfirm, setAutoConfirm] = useState(true);
+  const [smsReminders, setSmsReminders] = useState(false);
 
   const copyToClipboard = (code: string, id: string) => {
     navigator.clipboard.writeText(code);
@@ -253,6 +257,72 @@ className="border-polar-border"`}
     <Label htmlFor="option1">Option 1</Label>
   </div>
 </RadioGroup>`}
+              />
+            </div>
+            <div>
+              <Label>Toggle (Switch)</Label>
+              <div style={{ fontSize: '14px', color: '#73747B', marginTop: '8px', marginBottom: '16px' }}>
+                Toggles (switches) are used for binary on/off settings. They provide immediate visual feedback and trigger instant changes.
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontWeight: 500, color: '#282E3A', marginBottom: '4px' }}>Email Notifications</div>
+                    <div style={{ fontSize: '14px', color: '#73747B' }}>Receive email updates for new reservations</div>
+                  </div>
+                  <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} />
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontWeight: 500, color: '#282E3A', marginBottom: '4px' }}>Auto-confirm</div>
+                    <div style={{ fontSize: '14px', color: '#73747B' }}>Automatically confirm new reservations</div>
+                  </div>
+                  <Switch checked={autoConfirm} onCheckedChange={setAutoConfirm} />
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontWeight: 500, color: '#282E3A', marginBottom: '4px' }}>SMS Reminders</div>
+                    <div style={{ fontSize: '14px', color: '#73747B' }}>Send SMS reminders 2 hours before reservation</div>
+                  </div>
+                  <Switch checked={smsReminders} onCheckedChange={setSmsReminders} />
+                </div>
+              </div>
+
+              <div style={{ marginTop: '32px' }}>
+                <div style={{ fontWeight: 600, fontSize: '18px', marginBottom: '16px' }}>Toggle States</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
+                  <div>
+                    <div style={{ fontWeight: 500, color: '#282E3A', marginBottom: '8px' }}>Off</div>
+                    <Switch checked={false} />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 500, color: '#282E3A', marginBottom: '8px' }}>On</div>
+                    <Switch checked={true} />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 500, color: '#282E3A', marginBottom: '8px' }}>Disabled (Off)</div>
+                    <Switch checked={false} disabled />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 500, color: '#282E3A', marginBottom: '8px' }}>Disabled (On)</div>
+                    <Switch checked={true} disabled />
+                  </div>
+                </div>
+              </div>
+
+              <CodeBlock
+                id="form-switch"
+                code={`<Label>Toggle Setting</Label>
+<Switch 
+  checked={isEnabled} 
+  onCheckedChange={setIsEnabled} 
+/>
+
+// Disabled state
+<Switch checked={true} disabled />`}
               />
             </div>
           </div>
