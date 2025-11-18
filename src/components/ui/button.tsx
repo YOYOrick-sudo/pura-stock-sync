@@ -5,22 +5,22 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-polar-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-polar-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-polar-brand text-white hover:bg-polar-brand-hover",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-polar-border bg-white hover:bg-polar-background hover:text-polar-text-primary",
-        secondary: "bg-polar-background text-polar-text-primary hover:bg-polar-border",
-        ghost: "hover:bg-polar-background hover:text-polar-text-primary",
-        link: "text-polar-brand underline-offset-4 hover:underline",
+        default: "bg-[#1B7867] text-white shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.08)] hover:bg-[#156152]",
+        destructive: "bg-[#DC2626] text-white shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.08)] hover:bg-[#B91C1C]",
+        outline: "border border-[rgba(197,197,202,0.5)] bg-transparent text-[#282E3A] hover:bg-[rgba(246,247,221,0.3)]",
+        secondary: "bg-[#F6F7DD] text-[#282E3A] border border-[rgba(197,197,202,0.5)] hover:bg-[#FEFFF1]",
+        ghost: "bg-transparent text-[#282E3A] hover:bg-[rgba(246,247,221,0.3)]",
+        link: "text-[#1B7867] underline-offset-4 hover:underline hover:text-[#156152]",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-polar-md px-3",
-        lg: "h-11 rounded-polar-md px-8",
-        icon: "h-10 w-10",
+        default: "h-12 px-6 py-3",
+        sm: "h-9 px-4 py-2 text-sm rounded-polar-lg",
+        lg: "h-14 px-8 py-4 text-base rounded-polar-lg",
+        icon: "h-12 w-12",
       },
     },
     defaultVariants: {

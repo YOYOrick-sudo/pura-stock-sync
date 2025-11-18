@@ -81,7 +81,6 @@ export default {
       },
       borderRadius: {
         'polar-sm': '8px',
-        'polar-md': '12px',
         'polar-lg': '16px',
         'polar-xl': '20px',
         lg: "var(--radius)",
