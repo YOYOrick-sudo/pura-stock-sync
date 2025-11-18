@@ -1,13 +1,18 @@
 import { AppSidebar } from '@/components/AppSidebar';
 import { PolarHeader } from '@/components/polar';
 import { useLocation } from 'react-router-dom';
+import { useUserLocation } from '@/contexts/UserLocationContext';
+
 interface SidebarLayoutProps {
   children: React.ReactNode;
 }
+
 export function SidebarLayout({
   children
 }: SidebarLayoutProps) {
   const location = useLocation();
+  const { userLocation } = useUserLocation();
+  
   const getPageTitle = (pathname: string) => {
     const titles: Record<string, string> = {
       '/dashboard': 'Dashboard',
@@ -27,20 +32,27 @@ export function SidebarLayout({
     };
     return titles[pathname] || 'Pura Vida';
   };
-  return <div className="flex min-h-screen w-full" style={{
-    backgroundColor: '#FEFFF1'
-  }}>
+
+  return (
+    <div className="flex min-h-screen w-full" style={{
+      backgroundColor: '#FEFFF1'
+    }}>
       <AppSidebar />
       
       <div className="flex flex-col flex-1">
-        <PolarHeader title={getPageTitle(location.pathname)} showStatusIndicator={false} />
+        <PolarHeader 
+          title={getPageTitle(location.pathname)} 
+          showStatusIndicator={false} 
+          location={userLocation}
+        />
         
         <main style={{
-        padding: '32px 48px',
-        backgroundColor: '#FEFFF1'
-      }}>
+          padding: '32px 48px',
+          backgroundColor: '#FEFFF1'
+        }}>
           {children}
         </main>
       </div>
-    </div>;
+    </div>
+  );
 }
