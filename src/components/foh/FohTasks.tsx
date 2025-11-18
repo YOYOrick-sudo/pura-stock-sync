@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { PolarCheckbox } from '@/components/polar/Checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command';
-import { Loader2, Plus, Check, ChevronsUpDown, X, HelpCircle, Clock } from 'lucide-react';
+import { Loader2, Plus, Check, ChevronsUpDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { toZonedTime } from 'date-fns-tz';
@@ -38,13 +37,6 @@ const nowInAmsterdamMinutes = (): number => {
   return totalMinutes;
 };
 
-const minutesToTimeString = (minutes: number): string => {
-  const adjustedMinutes = minutes >= 24 * 60 ? minutes - 24 * 60 : minutes;
-  const hours = Math.floor(adjustedMinutes / 60);
-  const mins = adjustedMinutes % 60;
-  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-};
-
 const getCurrentPhaseByTime = (): PhaseType => {
   const currentMinutes = nowInAmsterdamMinutes();
   
@@ -64,10 +56,10 @@ const getCurrentPhaseByTime = (): PhaseType => {
 const getAmsterdamDateString = (): string => {
   const TIMEZONE = 'Europe/Amsterdam';
   const nowInAmsterdam = toZonedTime(new Date(), TIMEZONE);
-  return nowInAmsterdam.toISOString().split('T')[0]; // YYYY-MM-DD
+  return nowInAmsterdam.toISOString().split('T')[0];
 };
 
-// Group tasks by phase helper (needed before component for getFirstPhaseWithOpenTasks)
+// Group tasks by phase helper
 const groupTasksByPhase = (tasks: FohTaskWithEmployee[]) => {
   const grouped: Record<PhaseType, FohTaskWithEmployee[]> = {
     open: [],
@@ -84,7 +76,7 @@ const groupTasksByPhase = (tasks: FohTaskWithEmployee[]) => {
   return grouped;
 };
 
-// Get the first phase that has open (incomplete) tasks, respecting phase order
+// Get the first phase that has open (incomplete) tasks
 const getFirstPhaseWithOpenTasks = (tasks: FohTaskWithEmployee[]): PhaseType => {
   const grouped = groupTasksByPhase(tasks);
   const phaseOrder: PhaseType[] = ['open', 'tussen', 'sluit'];
@@ -98,11 +90,10 @@ const getFirstPhaseWithOpenTasks = (tasks: FohTaskWithEmployee[]): PhaseType => 
     }
   }
   
-  // If all tasks are complete, default to time-based detection
   return getCurrentPhaseByTime();
 };
 
-// Group tasks by category
+// Group tasks by category with ordering
 const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
   const grouped: Record<string, FohTaskWithEmployee[]> = {};
   
@@ -114,15 +105,15 @@ const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
     grouped[category].push(task);
   });
   
-  // Sort categories by predefined order
+  // Sort grouped object by CATEGORY_ORDER
   const sortedGrouped: Record<string, FohTaskWithEmployee[]> = {};
   CATEGORY_ORDER.forEach(cat => {
-    if (grouped[cat] && grouped[cat].length > 0) {
+    if (grouped[cat]) {
       sortedGrouped[cat] = grouped[cat];
     }
   });
   
-  // Add any categories not in the predefined order
+  // Add any remaining categories not in CATEGORY_ORDER
   Object.keys(grouped).forEach(cat => {
     if (!sortedGrouped[cat]) {
       sortedGrouped[cat] = grouped[cat];
@@ -132,18 +123,70 @@ const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
   return sortedGrouped;
 };
 
+// Sort tasks within phase by completion status
+const sortTasksInPhase = (tasks: FohTaskWithEmployee[]) => {
+  return [...tasks].sort((a, b) => {
+    if (a.completed === b.completed) return 0;
+    return a.completed ? 1 : -1;
+  });
+};
+
+// Sort extra tasks by date, then priority
+const sortExtraTasks = (tasks: FohTaskWithEmployee[]) => {
+  return [...tasks].sort((a, b) => {
+    const dateCompare = a.due_date.localeCompare(b.due_date);
+    if (dateCompare !== 0) return dateCompare;
+    return a.priority - b.priority;
+  });
+};
+
+// Helper functions for extra tasks
+const getDateLabel = (dateString: string): string => {
+  const TIMEZONE = 'Europe/Amsterdam';
+  const today = toZonedTime(new Date(), TIMEZONE);
+  const todayDateStr = today.toISOString().split('T')[0];
+  
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowDateStr = tomorrow.toISOString().split('T')[0];
+  
+  if (dateString === todayDateStr) return 'Vandaag';
+  if (dateString === tomorrowDateStr) return 'Morgen';
+  if (dateString < todayDateStr) return 'Overdag';
+  return dateString;
+};
+
+const getDateLabelColor = (dateString: string): string => {
+  const TIMEZONE = 'Europe/Amsterdam';
+  const today = toZonedTime(new Date(), TIMEZONE);
+  const todayDateStr = today.toISOString().split('T')[0];
+  
+  if (dateString < todayDateStr) return '#DC2626';
+  if (dateString === todayDateStr) return '#1B7867';
+  return '#73747B';
+};
+
+const getPriorityConfig = (priority: number) => {
+  switch (priority) {
+    case 1: return { label: 'Hoog', emoji: '🔴', color: '#DC2626' };
+    case 3: return { label: 'Laag', emoji: '🟢', color: '#16A34A' };
+    default: return { label: 'Normaal', emoji: '🟡', color: '#EAB308' };
+  }
+};
+
 export function FohTasks() {
   const { userLocation } = useUserLocation();
-  const [taskType, setTaskType] = useState<'daily' | 'extra'>('daily');
+  
+  const [mainCategory, setMainCategory] = useState<'dagelijks' | 'periodiek'>('dagelijks');
   const [activePhase, setActivePhase] = useState<PhaseType>('open');
   const [isPhaseManuallySelected, setIsPhaseManuallySelected] = useState(false);
-  const [currentDate, setCurrentDate] = useState<string>('');
+  
   const [dailyTasks, setDailyTasks] = useState<FohTaskWithEmployee[]>([]);
   const [extraTasks, setExtraTasks] = useState<FohTaskWithEmployee[]>([]);
   const [employees, setEmployees] = useState<FohEmployee[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
   
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
     due_date: new Date().toISOString().split('T')[0],
@@ -151,362 +194,184 @@ export function FohTasks() {
     assigned_employee_id: null as string | null,
     category: 'Algemeen' as string,
   });
-
-  // Employee autocomplete state
+  
   const [employeeInput, setEmployeeInput] = useState('');
   const [employeeOpen, setEmployeeOpen] = useState(false);
-  const [isCreatingEmployee, setIsCreatingEmployee] = useState(false);
 
-  useEffect(() => {
-    if (userLocation) {
-      fetchEmployees();
-      generateDailyTasks();
-    }
-  }, [userLocation]);
-
-  useEffect(() => {
-    if (!isPhaseManuallySelected && taskType === 'daily') {
-      const targetPhase = getFirstPhaseWithOpenTasks(dailyTasks);
-      setActivePhase(targetPhase);
-    }
-  }, [taskType, isPhaseManuallySelected, dailyTasks]);
-
-  useEffect(() => {
-    if (userLocation) {
-      if (taskType === 'daily') {
-        fetchDailyTasks();
-      } else {
-        fetchExtraTasks();
-      }
-    }
-  }, [taskType, userLocation]);
-
-  // Midnight detection - reset to auto mode when date changes
-  useEffect(() => {
-    if (taskType !== 'daily') return;
-    
-    // Initialize current date
-    const initialDate = getAmsterdamDateString();
-    setCurrentDate(initialDate);
-    
-    // Check for date change every minute
-    const interval = setInterval(() => {
-      const newDate = getAmsterdamDateString();
-      if (newDate !== currentDate && currentDate !== '') {
-        // Date has changed (midnight passed)
-        setIsPhaseManuallySelected(false);
-        const targetPhase = getFirstPhaseWithOpenTasks(dailyTasks);
-        setActivePhase(targetPhase);
-        setCurrentDate(newDate);
-        toast.info('Nieuwe dag begonnen - automatische fase-detectie hervat');
-      }
-    }, 60000); // Check every minute
-    
-    return () => clearInterval(interval);
-  }, [taskType, currentDate]);
-
-  // Generate daily tasks from templates if not already generated today
+  // Data fetching functions
   const generateDailyTasks = async () => {
-    if (!userLocation) return;
+    const todayDate = getAmsterdamDateString();
     
-    const today = new Date().toISOString().split('T')[0];
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    // Check if tasks already generated for today
     const { data: existingTasks } = await supabase
       .from('foh_tasks')
-      .select('template_id')
-      .not('template_id', 'is', null)
-      .eq('due_date', today);
-
+      .select('id')
+      .eq('location', userLocation)
+      .eq('due_date', todayDate)
+      .not('phase', 'is', null)
+      .limit(1);
+    
     if (existingTasks && existingTasks.length > 0) {
       return;
     }
-
-    // Fetch all templates for this location
+    
     const { data: templates } = await supabase
       .from('foh_daily_templates')
       .select('*')
-      .eq('location', userLocation);
-
+      .eq('location', userLocation)
+      .eq('repeat_type', 'daily');
+    
     if (!templates || templates.length === 0) return;
-
-    // Generate tasks for today
+    
     const tasksToInsert = templates.map(template => ({
       title: template.title,
-      due_date: today,
+      due_date: todayDate,
       priority: template.priority,
-      template_id: template.id,
       phase: template.phase,
-      category: template.category || 'Algemeen',
-      repeat_type: template.repeat_type,
+      location: userLocation,
+      category: template.category,
+      template_id: template.id,
+      repeat_type: 'daily',
       completed: false,
       archived: false,
       assigned_employee_id: null,
-      location: userLocation,
     }));
-
-    const { error } = await supabase
-      .from('foh_tasks')
-      .insert(tasksToInsert);
-
-    if (error) {
-      console.error('Error generating daily tasks:', error);
-    }
+    
+    await supabase.from('foh_tasks').insert(tasksToInsert);
   };
 
   const fetchDailyTasks = async () => {
-    if (!userLocation) return;
-    
-    setLoading(true);
-    const today = new Date().toISOString().split('T')[0];
+    const todayDate = getAmsterdamDateString();
     
     const { data, error } = await supabase
       .from('foh_tasks')
-      .select(`
-        *,
-        foh_employees (
-          id,
-          name,
-          location,
-          created_at
-        )
-      `)
-      .not('template_id', 'is', null)
-      .eq('due_date', today)
-      .eq('location', userLocation);
-
+      .select('*, foh_employees(*)')
+      .eq('location', userLocation)
+      .eq('due_date', todayDate)
+      .eq('archived', false)
+      .not('phase', 'is', null)
+      .order('created_at', { ascending: true });
+    
     if (error) {
       console.error('Error fetching daily tasks:', error);
-      toast.error('Kon dagelijkse taken niet laden');
-    } else {
-      setDailyTasks(data as FohTaskWithEmployee[] || []);
+      return;
     }
     
+    setDailyTasks((data || []) as FohTaskWithEmployee[]);
     setLoading(false);
   };
 
   const fetchExtraTasks = async () => {
-    if (!userLocation) return;
-    
-    setLoading(true);
-    
     const { data, error } = await supabase
       .from('foh_tasks')
-      .select(`
-        *,
-        foh_employees (
-          id,
-          name,
-          location,
-          created_at
-        )
-      `)
-      .is('template_id', null)
-      .eq('location', userLocation);
-
+      .select('*, foh_employees(*)')
+      .eq('location', userLocation)
+      .eq('archived', false)
+      .is('phase', null)
+      .order('due_date', { ascending: true })
+      .order('priority', { ascending: true });
+    
     if (error) {
       console.error('Error fetching extra tasks:', error);
-      toast.error('Kon taken niet laden');
-    } else {
-      setExtraTasks(data as FohTaskWithEmployee[] || []);
+      return;
     }
     
-    setLoading(false);
+    setExtraTasks((data || []) as FohTaskWithEmployee[]);
   };
 
   const fetchEmployees = async () => {
-    if (!userLocation) return;
-    
     const { data, error } = await supabase
       .from('foh_employees')
       .select('*')
       .eq('location', userLocation)
-      .order('name');
-
+      .order('name', { ascending: true });
+    
     if (error) {
       console.error('Error fetching employees:', error);
-    } else {
-      setEmployees(data || []);
-    }
-  };
-
-  // Check if a phase is overdue
-  const isPhaseOverdue = (phase: PhaseType): boolean => {
-    const currentMinutes = nowInAmsterdamMinutes();
-    const window = PHASE_WINDOWS.find(w => w.phase === phase);
-    if (!window) return false;
-    return currentMinutes > window.endMin;
-  };
-
-  const sortTasksInPhase = (tasks: FohTaskWithEmployee[]): FohTaskWithEmployee[] => {
-    return [...tasks].sort((a, b) => {
-      if (!a.completed && b.completed) return -1;
-      if (a.completed && !b.completed) return 1;
-      return 0;
-    });
-  };
-
-  // Bucket-based sorting for extra tasks
-  const sortExtraTasks = (tasksToSort: FohTaskWithEmployee[]) => {
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-    
-    return [...tasksToSort].sort((a, b) => {
-      const aIsLate = a.due_date < today;
-      const bIsLate = b.due_date < today;
-      const aIsToday = a.due_date === today;
-      const bIsToday = b.due_date === today;
-      const aIsTomorrow = a.due_date === tomorrow;
-      const bIsTomorrow = b.due_date === tomorrow;
-      
-      if (aIsLate && !bIsLate) return -1;
-      if (!aIsLate && bIsLate) return 1;
-      
-      if (aIsToday && !bIsToday) return -1;
-      if (!aIsToday && bIsToday) return 1;
-      
-      if (aIsTomorrow && !bIsTomorrow) return -1;
-      if (!aIsTomorrow && bIsTomorrow) return 1;
-      
-      if (a.due_date !== b.due_date) {
-        return a.due_date.localeCompare(b.due_date);
-      }
-      
-      return a.priority - b.priority;
-    });
-  };
-
-  const getDateLabel = (dueDate: string) => {
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-    
-    if (dueDate < today) return 'Te laat';
-    if (dueDate === today) return 'Vandaag';
-    if (dueDate === tomorrow) return 'Morgen';
-    
-    return new Date(dueDate).toLocaleDateString('nl-NL', { 
-      day: 'numeric', 
-      month: 'short' 
-    });
-  };
-
-  const getDateLabelColor = (dueDate: string) => {
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-    
-    if (dueDate < today) return 'bg-red-100 text-red-700';
-    if (dueDate === today) return 'bg-green-100 text-green-700';
-    if (dueDate === tomorrow) return 'bg-blue-100 text-blue-700';
-    return 'bg-gray-100 text-gray-700';
-  };
-
-  const getPriorityConfig = (priority: number) => {
-    switch(priority) {
-      case 1: return { label: 'Hoog', color: 'bg-red-100 text-red-700' };
-      case 2: return { label: 'Midden', color: 'bg-yellow-100 text-yellow-700' };
-      case 3: return { label: 'Laag', color: 'bg-blue-100 text-blue-700' };
-      default: return { label: 'Midden', color: 'bg-yellow-100 text-yellow-700' };
-    }
-  };
-
-  const toggleTask = async (taskId: string, currentCompleted: boolean) => {
-    if (currentCompleted) {
-      toast.info('Afgeronde taken kunnen niet worden teruggezet');
       return;
     }
+    
+    setEmployees(data || []);
+  };
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+  useEffect(() => {
+    const generateAndFetchDailyTasks = async () => {
+      await generateDailyTasks();
+      await fetchDailyTasks();
+    };
+    generateAndFetchDailyTasks();
+    fetchExtraTasks();
+    fetchEmployees();
+  }, [userLocation]);
+  
+  // Auto-detect phase based on time and open tasks
+  useEffect(() => {
+    if (mainCategory === 'dagelijks' && !isPhaseManuallySelected) {
+      const targetPhase = getFirstPhaseWithOpenTasks(dailyTasks);
+      setActivePhase(targetPhase);
+    }
+  }, [dailyTasks, mainCategory, isPhaseManuallySelected]);
 
+  // Toggle task completion
+  const toggleTask = async (id: string, currentCompleted: boolean) => {
+    const now = new Date().toISOString();
     const { error } = await supabase
       .from('foh_tasks')
       .update({
-        completed: true,
-        archived: true,
-        completed_at: new Date().toISOString(),
-        completed_by: user.id,
+        completed: !currentCompleted,
+        completed_at: !currentCompleted ? now : null,
       })
-      .eq('id', taskId);
-
+      .eq('id', id);
+    
     if (error) {
-      toast.error('Kon taak niet afvinken');
+      toast.error('Kon taak niet bijwerken');
       console.error(error);
       return;
     }
-
-    toast.success('Taak afgerond!');
     
-    if (taskType === 'daily') {
-      fetchDailyTasks();
-    } else {
-      fetchExtraTasks();
-    }
+    await fetchDailyTasks();
+    await fetchExtraTasks();
   };
 
-  // Employee autocomplete logic
-  const filteredEmployees = employees.filter(emp =>
-    emp.name.toLowerCase().includes(employeeInput.toLowerCase())
+  // Employee management functions
+  const filteredEmployees = employees.filter(e => 
+    e.name.toLowerCase().includes(employeeInput.toLowerCase())
   );
-
-  const exactMatch = employees.find(
-    emp => emp.name.toLowerCase() === employeeInput.trim().toLowerCase()
+  
+  const exactMatch = employees.find(e => 
+    e.name.toLowerCase() === employeeInput.toLowerCase()
   );
-
+  
   const shouldShowAddNew = employeeInput.trim().length > 0 && !exactMatch;
-
+  
   const createEmployeeInline = async (name: string) => {
-    if (!name.trim() || !userLocation) {
-      toast.error('Vul een naam in');
-      return null;
-    }
-
-    setIsCreatingEmployee(true);
-
     const { data, error } = await supabase
       .from('foh_employees')
-      .insert({ name: name.trim(), location: userLocation })
+      .insert({ name, location: userLocation })
       .select()
       .single();
-
-    setIsCreatingEmployee(false);
-
+    
     if (error) {
-      if (error.code === '23505') {
-        toast.error('Deze naam bestaat al');
-      } else {
-        toast.error('Kon medewerker niet toevoegen');
-        console.error(error);
-      }
+      toast.error('Kon medewerker niet aanmaken');
+      console.error(error);
       return null;
     }
-
-    toast.success(`${name} toegevoegd als medewerker`);
+    
+    toast.success(`${name} toegevoegd!`);
     await fetchEmployees();
     return data;
   };
-
-  const handleEmployeeSelect = (employeeId: string, employeeName: string) => {
+  
+  const handleEmployeeSelect = (employeeId: string) => {
     setNewTask({ ...newTask, assigned_employee_id: employeeId });
-    setEmployeeInput(employeeName);
     setEmployeeOpen(false);
   };
-
+  
   const handleAddNewEmployee = async () => {
-    const newEmployee = await createEmployeeInline(employeeInput);
-    
+    const newEmployee = await createEmployeeInline(employeeInput.trim());
     if (newEmployee) {
       setNewTask({ ...newTask, assigned_employee_id: newEmployee.id });
       setEmployeeOpen(false);
     }
-  };
-
-  const revertToAutoMode = () => {
-    setIsPhaseManuallySelected(false);
-    const targetPhase = getFirstPhaseWithOpenTasks(dailyTasks);
-    setActivePhase(targetPhase);
-    toast.success('Automatische fase-detectie ingeschakeld');
   };
 
   // Check if user is allowed to switch to target phase
@@ -514,50 +379,23 @@ export function FohTasks() {
     const phaseOrder: PhaseType[] = ['open', 'tussen', 'sluit'];
     const targetIndex = phaseOrder.indexOf(targetPhase);
     
-    // Check all phases before target phase
+    const grouped = groupTasksByPhase(dailyTasks);
+    
     for (let i = 0; i < targetIndex; i++) {
       const priorPhase = phaseOrder[i];
-      const priorTasks = groupedDailyTasks[priorPhase];
+      const priorTasks = grouped[priorPhase];
       const hasOpenTasks = priorTasks.some(task => !task.completed);
       
       if (hasOpenTasks) {
-        return false; // Cannot skip to target if prior phase has open tasks
+        return false;
       }
     }
     
     return true;
   };
 
-  // Get current tasks to display
-  const getCurrentTasks = () => {
-    if (mainCategory === 'dagelijks') {
-      return groupedDailyTasks[activePhase];
-    } else {
-      return sortedExtraTasks;
-    }
-  };
-
-  // Calculate overall stats for all tasks
-  const getAllTasks = () => {
-    return [...dailyTasks, ...extraTasks];
-  };
-
-  const allTasks = getAllTasks();
-  const completedCount = allTasks.filter(t => t.completed).length;
-  const totalCount = allTasks.length;
-  const progressPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-  const isComplete = progressPercentage === 100;
-
-  // Calculate stats per phase for buttons
-  const getDailyListStats = (phase: PhaseType) => {
-    const listTasks = groupedDailyTasks[phase];
-    const completed = listTasks.filter(t => t.completed).length;
-    const total = listTasks.length;
-    return { completed, total };
-  };
-
+  // Create new task
   const createTask = async () => {
-    // Simple validation without zod
     const trimmedTitle = newTask.title.trim();
     if (!trimmedTitle) {
       toast.error('Titel is verplicht');
@@ -602,9 +440,9 @@ export function FohTasks() {
     fetchExtraTasks();
   };
 
+  // Process tasks for display
   const sortedExtraTasks = sortExtraTasks(extraTasks);
   
-  // Group daily tasks by phase with sorting
   const groupedDailyTasks = (() => {
     const grouped = groupTasksByPhase(dailyTasks);
     (Object.keys(grouped) as PhaseType[]).forEach(phase => {
@@ -612,6 +450,30 @@ export function FohTasks() {
     });
     return grouped;
   })();
+
+  // Get current tasks to display
+  const getCurrentTasks = () => {
+    if (mainCategory === 'dagelijks') {
+      return groupedDailyTasks[activePhase];
+    } else {
+      return sortedExtraTasks;
+    }
+  };
+
+  // Calculate overall stats for all tasks
+  const allTasks = [...dailyTasks, ...extraTasks];
+  const completedCount = allTasks.filter(t => t.completed).length;
+  const totalCount = allTasks.length;
+  const progressPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const isComplete = progressPercentage === 100;
+
+  // Calculate stats per phase for buttons
+  const getDailyListStats = (phase: PhaseType) => {
+    const listTasks = groupedDailyTasks[phase];
+    const completed = listTasks.filter(t => t.completed).length;
+    const total = listTasks.length;
+    return { completed, total };
+  };
 
   if (loading) {
     return (
@@ -625,647 +487,679 @@ export function FohTasks() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#FEFFF1', fontFamily: 'Inter, sans-serif' }}>
-      
-      {/* Main Content */}
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-            <TabsList style={{ backgroundColor: '#F6F7DD', border: '1px solid rgba(197, 197, 202, 0.5)', borderRadius: '8px', padding: '4px', display: 'inline-flex', gap: '4px', height: '40px' }}>
-              <TabsTrigger 
-                value="daily"
-                style={{ 
-                  borderRadius: '8px', 
-                  fontFamily: 'Inter, sans-serif', 
-                  fontSize: '14px', 
-                  fontWeight: 500, 
-                  padding: '8px 16px',
-                  backgroundColor: taskType === 'daily' ? '#F6F7DD' : 'transparent',
-                  color: taskType === 'daily' ? '#282E3A' : '#73747B',
-                  border: 'none',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                Dagelijks
-              </TabsTrigger>
-              <TabsTrigger 
-                value="extra"
-                style={{ 
-                  borderRadius: '8px', 
-                  fontFamily: 'Inter, sans-serif', 
-                  fontSize: '14px', 
-                  fontWeight: 500, 
-                  padding: '8px 16px',
-                  backgroundColor: taskType === 'extra' ? '#F6F7DD' : 'transparent',
-                  color: taskType === 'extra' ? '#282E3A' : '#73747B',
-                  border: 'none',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                Extra
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          {/* Phase Pills (only for daily tasks) */}
-          {taskType === 'daily' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {PHASE_WINDOWS.map(window => (
-                <button
-                  key={window.phase}
-                  onClick={() => {
-                    const targetPhase = window.phase;
-                    
-                    // Check if switching to this phase is allowed
-                    if (!canSwitchToPhase(targetPhase)) {
-                      // Not allowed - revert to first phase with open tasks
-                      const correctPhase = getFirstPhaseWithOpenTasks(dailyTasks);
-                      setActivePhase(correctPhase);
-                      toast.warning('Voltooi eerst de eerdere taken');
-                      return;
-                    }
-                    
-                    // Allowed - proceed with phase switch
-                    setActivePhase(targetPhase);
-                    setIsPhaseManuallySelected(true);
-                  }}
-                  disabled={!canSwitchToPhase(window.phase)}
-                  style={{
-                    backgroundColor: activePhase === window.phase ? '#1B7867' : '#FFFFFF',
-                    color: activePhase === window.phase ? '#FFFFFF' : '#282E3A',
-                    border: `1px solid ${activePhase === window.phase ? '#1B7867' : 'rgba(197, 197, 202, 0.5)'}`,
-                    borderRadius: '8px',
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '13px',
-                    fontWeight: 500,
-                    padding: '8px 16px',
-                    opacity: !canSwitchToPhase(window.phase) ? 0.4 : 1,
-                    cursor: !canSwitchToPhase(window.phase) ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.15s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <span>{window.label}</span>
-                  <span style={{ fontSize: '12px', opacity: 0.8 }}>
-                    ({minutesToTimeString(window.startMin)} – {minutesToTimeString(window.endMin)})
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* New Task Button (only for extra tasks) */}
-        {taskType === 'extra' && (
-          <Dialog 
-            open={dialogOpen} 
-            onOpenChange={(open) => {
-              setDialogOpen(open);
-              if (!open) {
-                setEmployeeInput('');
-              }
-            }}
-          >
-            <DialogTrigger asChild>
-              <Button>
-                <Plus size={16} style={{ marginRight: '8px' }} />
-                Nieuwe Taak
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Nieuwe Taak Aanmaken</DialogTitle>
-              </DialogHeader>
+        <div style={{
+          backgroundColor: '#F6F7DD',
+          borderRadius: '16px',
+          border: '1px solid rgba(197, 197, 202, 0.5)',
+          padding: '24px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            {/* Single row with all buttons */}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                <div>
-                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', display: 'block', marginBottom: '8px' }}>
-                    Titel *
-                  </label>
-                  <Input
-                    value={newTask.title}
-                    onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                    placeholder="Bijv. 'Tafels dekken'"
-                    style={{ borderRadius: '16px', border: '1px solid rgba(197, 197, 202, 0.5)', fontFamily: 'Inter, sans-serif', fontSize: '14px', padding: '10px 12px' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', display: 'block', marginBottom: '8px' }}>
-                    Datum *
-                  </label>
-                  <Input
-                    type="date"
-                    value={newTask.due_date}
-                    onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
-                    style={{ borderRadius: '16px', border: '1px solid rgba(197, 197, 202, 0.5)', fontFamily: 'Inter, sans-serif', fontSize: '14px', padding: '10px 12px' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', display: 'block', marginBottom: '8px' }}>
-                    Prioriteit
-                  </label>
-                  <Select
-                    value={newTask.priority.toString()}
-                    onValueChange={(value) =>
-                      setNewTask({ ...newTask, priority: parseInt(value) as 1 | 2 | 3 })
-                    }
-                  >
-                    <SelectTrigger style={{ borderRadius: '16px', border: '1px solid rgba(197, 197, 202, 0.5)', fontFamily: 'Inter, sans-serif', fontSize: '14px' }}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">Hoog</SelectItem>
-                      <SelectItem value="2">Normaal</SelectItem>
-                      <SelectItem value="3">Laag</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', display: 'block', marginBottom: '8px' }}>
-                    Categorie
-                  </label>
-                  <Select
-                    value={newTask.category}
-                    onValueChange={(value) => setNewTask({ ...newTask, category: value })}
-                  >
-                    <SelectTrigger style={{ borderRadius: '16px', border: '1px solid rgba(197, 197, 202, 0.5)', fontFamily: 'Inter, sans-serif', fontSize: '14px' }}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CATEGORY_ORDER.map(cat => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', display: 'block', marginBottom: '8px' }}>
-                    Medewerker (optioneel)
-                  </label>
-                  
-                  <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={employeeOpen}
-                        className="w-full justify-between"
-                      >
-                        {newTask.assigned_employee_id
-                          ? employees.find(emp => emp.id === newTask.assigned_employee_id)?.name
-                          : "Selecteer of typ een naam..."}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    
-                    <PopoverContent className="w-[400px] p-0" align="start">
-                      <Command shouldFilter={false}>
-                        <CommandInput
-                          placeholder="Zoek of typ nieuwe naam..."
-                          value={employeeInput}
-                          onValueChange={setEmployeeInput}
-                        />
-                        <CommandList>
-                          {filteredEmployees.length === 0 && !shouldShowAddNew && (
-                            <CommandEmpty>Geen medewerkers gevonden</CommandEmpty>
-                          )}
-                          
-                          {filteredEmployees.length > 0 && (
-                            <CommandGroup heading="Bestaande medewerkers">
-                              {filteredEmployees.map((emp) => (
-                                <CommandItem
-                                  key={emp.id}
-                                  value={emp.id}
-                                  onSelect={() => handleEmployeeSelect(emp.id, emp.name)}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      newTask.assigned_employee_id === emp.id
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                  {emp.name}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          )}
-                          
-                          {shouldShowAddNew && (
-                            <>
-                              {filteredEmployees.length > 0 && <CommandSeparator />}
-                              <CommandGroup>
-                                <CommandItem
-                                  onSelect={handleAddNewEmployee}
-                                  className="bg-green-50 text-green-700"
-                                  disabled={isCreatingEmployee}
-                                >
-                                  {isCreatingEmployee ? (
-                                    <>
-                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                      Medewerker toevoegen...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Plus className="mr-2 h-4 w-4" />
-                                      Voeg "{employeeInput.trim()}" toe als nieuwe medewerker
-                                    </>
-                                  )}
-                                </CommandItem>
-                              </CommandGroup>
-                            </>
-                          )}
-                          
-                          {newTask.assigned_employee_id && (
-                            <>
-                              <CommandSeparator />
-                              <CommandGroup>
-                                <CommandItem
-                                  onSelect={() => {
-                                    setNewTask({ ...newTask, assigned_employee_id: null });
-                                    setEmployeeInput('');
-                                    setEmployeeOpen(false);
-                                  }}
-                                  className="text-muted-foreground"
-                                >
-                                  <X className="mr-2 h-4 w-4" />
-                                  Geen medewerker toewijzen
-                                </CommandItem>
-                              </CommandGroup>
-                            </>
-                          )}
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setDialogOpen(false)}
-                >
-                  Annuleren
-                </Button>
-                <Button
-                  onClick={createTask}
-                >
-                  Taak Aanmaken
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
-
-      {/* Task Content */}
-      {taskType === 'daily' ? (
-          <>
-            {(() => {
-              const activeWindow = PHASE_WINDOWS.find(w => w.phase === activePhase);
-              const phaseTasks = groupedDailyTasks[activePhase];
-              const completedCount = phaseTasks.filter(t => t.completed).length;
-              const totalCount = phaseTasks.length;
-              const openTasksCount = totalCount - completedCount;
-              const isOverdue = openTasksCount > 0 && isPhaseOverdue(activePhase);
-            
-            if (!activeWindow) return null;
-            
-            return (
-              <div style={{
-                backgroundColor: '#F6F7DD',
-                border: '1px solid rgba(197, 197, 197, 0.5)',
-                borderRadius: '16px',
-                padding: '32px',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)'
-              }}>
-                {/* Header with Stats */}
-                <div style={{
-                  marginBottom: '32px',
-                  paddingBottom: '20px',
-                  borderBottom: '1px solid rgba(197, 197, 202, 0.3)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
-                }}>
-                  <div>
-                    <h3 style={{
-                      fontFamily: 'Inter, sans-serif',
-                      fontSize: '18px',
-                      fontWeight: 600,
-                      color: '#282E3A',
-                      marginBottom: '4px'
-                    }}>
-                      {activeWindow.label}
-                    </h3>
-                    <span style={{
-                      fontFamily: 'Inter, sans-serif',
-                      fontSize: '13px',
-                      color: '#73747B'
-                    }}>
-                      {minutesToTimeString(activeWindow.startMin)} – {minutesToTimeString(activeWindow.endMin)}
-                    </span>
-                  </div>
-                  
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <span style={{
-                      fontFamily: 'Inter, sans-serif',
-                      fontSize: '14px',
-                      color: '#73747B'
-                    }}>
-                      {completedCount}/{totalCount} ✓
-                    </span>
-                    
-                    {isOverdue && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <div style={{
-                          width: '8px',
-                          height: '8px',
-                          borderRadius: '50%',
-                          backgroundColor: '#E64D4D'
-                        }} />
-                        <span style={{
-                          fontFamily: 'Inter, sans-serif',
-                          fontSize: '13px',
-                          color: '#E64D4D',
-                          fontWeight: 500
-                        }}>
-                          Overtijd
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+              {/* Dagelijks phase buttons */}
+              {(['open', 'tussen', 'sluit'] as PhaseType[]).map((phase) => {
+                const stats = getDailyListStats(phase);
+                const isActive = mainCategory === 'dagelijks' && activePhase === phase;
+                const labels = { open: 'Open', tussen: 'Tussen', sluit: 'Sluit' };
+                const canSwitch = canSwitchToPhase(phase);
                 
-                {phaseTasks.length === 0 ? (
-                  <div style={{
-                    padding: '48px 24px',
-                    textAlign: 'center',
-                    backgroundColor: '#FEFFF1',
-                    border: '1px dashed rgba(197, 197, 202, 0.5)',
-                    borderRadius: '16px'
-                  }}>
-                    <p style={{
-                      fontFamily: 'Inter, sans-serif',
+                return (
+                  <button
+                    key={phase}
+                    onClick={() => {
+                      if (!canSwitch && phase !== activePhase) {
+                        toast.error('Voltooien eerst alle taken in eerdere fases');
+                        return;
+                      }
+                      setMainCategory('dagelijks');
+                      setActivePhase(phase);
+                      setIsPhaseManuallySelected(true);
+                    }}
+                    disabled={!canSwitch && phase !== activePhase}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
                       fontSize: '14px',
-                      color: '#73747B'
+                      fontWeight: 500,
+                      padding: '10px 16px',
+                      backgroundColor: isActive ? '#1B7867' : '#FEFFF1',
+                      color: isActive ? '#FFFFFF' : '#282E3A',
+                      border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+                      borderRadius: '16px',
+                      cursor: (!canSwitch && phase !== activePhase) ? 'not-allowed' : 'pointer',
+                      opacity: (!canSwitch && phase !== activePhase) ? 0.5 : 1,
+                      transition: 'all 0.15s ease',
+                      fontFamily: 'Inter, sans-serif',
+                    }}
+                  >
+                    <span>{labels[phase]}</span>
+                    <span style={{
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      backgroundColor: isActive ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.04)',
+                      color: isActive ? '#FFFFFF' : '#73747B',
+                      minWidth: '32px',
                     }}>
-                      Geen taken voor {activeWindow.label}
-                    </p>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-                    {(() => {
-                      const groupedByCategory = groupTasksByCategory(phaseTasks);
-                      return Object.entries(groupedByCategory).map(([category, categoryTasks]) => {
-                        const completedInCategory = categoryTasks.filter(t => t.completed).length;
-                        return (
-                          <div key={category} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            {/* Category Header */}
-                            <div style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '12px',
-                              paddingBottom: '12px',
-                              borderBottom: '1px solid rgba(197, 197, 202, 0.2)'
-                            }}>
-                              <h4 style={{
-                                fontFamily: 'Inter, sans-serif',
-                                fontSize: '14px',
-                                fontWeight: 600,
-                                color: '#282E3A',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.5px'
-                              }}>
-                                {category}
-                              </h4>
-                              <span style={{
-                                fontFamily: 'Inter, sans-serif',
-                                fontSize: '12px',
-                                color: '#73747B'
-                              }}>
-                                {completedInCategory}/{categoryTasks.length} ✓
-                              </span>
-                            </div>
-                            
-                            {/* Tasks in Category */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                              {categoryTasks.map((task) => (
-                                <div 
-                                  key={task.id} 
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '12px',
-                                    padding: '14px 16px',
-                                    backgroundColor: task.completed ? '#FEFFF1' : '#FFFFFF',
-                                    border: '1px solid rgba(197, 197, 202, 0.3)',
-                                    borderRadius: '16px',
-                                    opacity: task.completed ? 0.4 : 1,
-                                    transition: 'all 0.15s ease'
-                                  }}
-                                >
-                                  <PolarCheckbox
-                                    checked={task.completed}
-                                    onChange={() => toggleTask(task.id, !task.completed)}
-                                  />
-                                  {isOverdue && !task.completed && (
-                                    <div style={{
-                                      width: '8px',
-                                      height: '8px',
-                                      borderRadius: '50%',
-                                      backgroundColor: '#E64D4D',
-                                      flexShrink: 0
-                                    }} />
-                                  )}
-                                  <div style={{ flex: 1 }}>
-                                    <span style={{
-                                      fontFamily: 'Inter, sans-serif',
-                                      fontSize: '15px',
-                                      fontWeight: 500,
-                                      color: '#282E3A',
-                                      textDecoration: task.completed ? 'line-through' : 'none'
-                                    }}>
-                                      {task.title}
-                                    </span>
-                                    
-                                    {task.foh_employees && (
-                                      <span style={{
-                                        fontFamily: 'Inter, sans-serif',
-                                        fontSize: '13px',
-                                        color: '#73747B',
-                                        marginLeft: '8px'
-                                      }}>
-                                        • {task.foh_employees.name}
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      });
-                    })()}
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-        </>
-      ) : (
-        // Extra tasks
-        <>
-          {sortedExtraTasks.length === 0 ? (
-            <div style={{
-              padding: '48px 24px',
-              textAlign: 'center',
-              backgroundColor: '#FEFFF1',
-              border: '1px dashed rgba(197, 197, 202, 0.5)',
-              borderRadius: '16px'
-            }}>
-              <p style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '14px',
-                color: '#73747B'
-              }}>
-                Geen extra taken
-              </p>
-            </div>
-          ) : (
-            <div style={{
-              backgroundColor: '#F6F7DD',
-              border: '1px solid rgba(197, 197, 202, 0.5)',
-              borderRadius: '16px',
-              padding: '32px',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '32px'
-            }}>
+                      {stats.completed}/{stats.total}
+                    </span>
+                  </button>
+                );
+              })}
+              
+              {/* Visual separator */}
+              <div style={{
+                width: '1px',
+                height: '32px',
+                backgroundColor: 'rgba(197, 197, 202, 0.5)',
+                margin: '0 4px',
+              }} />
+              
+              {/* Periodiek button (unified) */}
               {(() => {
-                const groupedByCategory = groupTasksByCategory(sortedExtraTasks);
-                return Object.entries(groupedByCategory).map(([category, categoryTasks]) => {
-                  const completedInCategory = categoryTasks.filter(t => t.completed).length;
-                  return (
-                    <div key={category} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {/* Category Header */}
-                      <div style={{
+                const completed = extraTasks.filter(t => t.completed).length;
+                const total = extraTasks.length;
+                const isActive = mainCategory === 'periodiek';
+                
+                return (
+                  <button
+                    onClick={() => {
+                      setMainCategory('periodiek');
+                    }}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      padding: '10px 16px',
+                      backgroundColor: isActive ? '#1B7867' : '#FEFFF1',
+                      color: isActive ? '#FFFFFF' : '#282E3A',
+                      border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+                      borderRadius: '16px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      fontFamily: 'Inter, sans-serif',
+                    }}
+                  >
+                    <span>Periodiek</span>
+                    <span style={{
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      backgroundColor: isActive ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.04)',
+                      color: isActive ? '#FFFFFF' : '#73747B',
+                      minWidth: '32px',
+                    }}>
+                      {completed}/{total}
+                    </span>
+                  </button>
+                );
+              })()}
+
+              {/* New Task Button - only for periodiek */}
+              {mainCategory === 'periodiek' && (
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      style={{
+                        backgroundColor: '#1B7867',
+                        color: '#FFFFFF',
+                        borderRadius: '16px',
+                        padding: '10px 16px',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '12px',
-                        paddingBottom: '12px',
-                        borderBottom: '1px solid rgba(197, 197, 202, 0.2)'
+                        gap: '8px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontFamily: 'Inter, sans-serif',
+                        fontWeight: 500,
+                        fontSize: '14px',
+                      }}
+                    >
+                      <Plus size={16} />
+                      Nieuwe Taak
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(197, 197, 202, 0.5)',
+                    padding: '24px',
+                    maxWidth: '480px',
+                  }}>
+                    <DialogHeader>
+                      <DialogTitle style={{
+                        fontSize: '18px',
+                        fontWeight: 500,
+                        color: '#282E3A',
+                        fontFamily: 'Inter, sans-serif',
                       }}>
-                        <h4 style={{
-                          fontFamily: 'Inter, sans-serif',
+                        Nieuwe Taak Aanmaken
+                      </DialogTitle>
+                    </DialogHeader>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
+                      <div>
+                        <label style={{
+                          display: 'block',
                           fontSize: '14px',
-                          fontWeight: 600,
+                          fontWeight: 500,
                           color: '#282E3A',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px'
-                        }}>
-                          {category}
-                        </h4>
-                        <span style={{
+                          marginBottom: '8px',
                           fontFamily: 'Inter, sans-serif',
-                          fontSize: '12px',
-                          color: '#73747B'
                         }}>
-                          {completedInCategory}/{categoryTasks.length} ✓
-                        </span>
+                          Titel *
+                        </label>
+                        <Input
+                          value={newTask.title}
+                          onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                          placeholder="Bijv. Koelkasten diep reinigen"
+                          style={{
+                            borderRadius: '16px',
+                            border: '1px solid rgba(197, 197, 202, 0.5)',
+                            fontFamily: 'Inter, sans-serif',
+                          }}
+                        />
                       </div>
-                      
-                      {/* Tasks in Category */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {categoryTasks.map((task) => {
-                          const priorityConfig = getPriorityConfig(task.priority);
-                          return (
-                            <div 
-                              key={task.id} 
+
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          color: '#282E3A',
+                          marginBottom: '8px',
+                          fontFamily: 'Inter, sans-serif',
+                        }}>
+                          Datum *
+                        </label>
+                        <Input
+                          type="date"
+                          value={newTask.due_date}
+                          onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
+                          style={{
+                            borderRadius: '16px',
+                            border: '1px solid rgba(197, 197, 202, 0.5)',
+                            fontFamily: 'Inter, sans-serif',
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          color: '#282E3A',
+                          marginBottom: '8px',
+                          fontFamily: 'Inter, sans-serif',
+                        }}>
+                          Prioriteit
+                        </label>
+                        <Select
+                          value={String(newTask.priority)}
+                          onValueChange={(v) => setNewTask({ ...newTask, priority: Number(v) as 1 | 2 | 3 })}
+                        >
+                          <SelectTrigger style={{
+                            borderRadius: '16px',
+                            border: '1px solid rgba(197, 197, 202, 0.5)',
+                            fontFamily: 'Inter, sans-serif',
+                          }}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">🔴 Hoog</SelectItem>
+                            <SelectItem value="2">🟡 Normaal</SelectItem>
+                            <SelectItem value="3">🟢 Laag</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          color: '#282E3A',
+                          marginBottom: '8px',
+                          fontFamily: 'Inter, sans-serif',
+                        }}>
+                          Categorie
+                        </label>
+                        <Select
+                          value={newTask.category}
+                          onValueChange={(v) => setNewTask({ ...newTask, category: v })}
+                        >
+                          <SelectTrigger style={{
+                            borderRadius: '16px',
+                            border: '1px solid rgba(197, 197, 202, 0.5)',
+                            fontFamily: 'Inter, sans-serif',
+                          }}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CATEGORY_ORDER.map(cat => (
+                              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          color: '#282E3A',
+                          marginBottom: '8px',
+                          fontFamily: 'Inter, sans-serif',
+                        }}>
+                          Medewerker (optioneel)
+                        </label>
+                        <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={employeeOpen}
                               style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                                padding: '14px 16px',
-                                backgroundColor: task.completed ? '#FEFFF1' : '#FFFFFF',
-                                border: '1px solid rgba(197, 197, 202, 0.3)',
+                                width: '100%',
+                                justifyContent: 'space-between',
                                 borderRadius: '16px',
-                                opacity: task.completed ? 0.4 : 1,
-                                transition: 'all 0.15s ease'
+                                fontFamily: 'Inter, sans-serif',
                               }}
                             >
-                              <PolarCheckbox
-                                checked={task.completed}
-                                onChange={() => toggleTask(task.id, !task.completed)}
+                              {newTask.assigned_employee_id
+                                ? employees.find((e) => e.id === newTask.assigned_employee_id)?.name
+                                : "Selecteer medewerker..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput
+                                placeholder="Zoek of maak nieuwe medewerker..."
+                                value={employeeInput}
+                                onValueChange={setEmployeeInput}
                               />
-                              <div style={{ flex: 1 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                  <span style={{
-                                    fontFamily: 'Inter, sans-serif',
-                                    fontSize: '15px',
-                                    fontWeight: 500,
-                                    color: '#282E3A',
-                                    textDecoration: task.completed ? 'line-through' : 'none'
-                                  }}>
-                                    {task.title}
-                                  </span>
-                                  
-                                  {task.priority === 1 && (
-                                    <div style={{
-                                      width: '8px',
-                                      height: '8px',
-                                      borderRadius: '50%',
-                                      backgroundColor: priorityConfig.color,
-                                      flexShrink: 0
-                                    }} />
+                              <CommandList>
+                                {filteredEmployees.length === 0 && employeeInput.length === 0 && (
+                                  <CommandEmpty>Geen medewerkers gevonden.</CommandEmpty>
+                                )}
+                                {filteredEmployees.length === 0 && employeeInput.length > 0 && (
+                                  <CommandEmpty>Geen resultaten.</CommandEmpty>
+                                )}
+                                {filteredEmployees.length > 0 && (
+                                  <CommandGroup heading="Bestaande medewerkers">
+                                    {filteredEmployees.map((employee) => (
+                                      <CommandItem
+                                        key={employee.id}
+                                        value={employee.name}
+                                        onSelect={() => handleEmployeeSelect(employee.id)}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            "mr-2 h-4 w-4",
+                                            newTask.assigned_employee_id === employee.id ? "opacity-100" : "opacity-0"
+                                          )}
+                                        />
+                                        {employee.name}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                )}
+                                {shouldShowAddNew && (
+                                  <>
+                                    {filteredEmployees.length > 0 && <CommandSeparator />}
+                                    <CommandGroup>
+                                      <CommandItem onSelect={handleAddNewEmployee}>
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        Maak "{employeeInput}" aan
+                                      </CommandItem>
+                                    </CommandGroup>
+                                  </>
+                                )}
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+
+                    <DialogFooter style={{ marginTop: '16px', gap: '8px' }}>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setDialogOpen(false);
+                          setNewTask({
+                            title: '',
+                            due_date: new Date().toISOString().split('T')[0],
+                            priority: 2,
+                            assigned_employee_id: null,
+                            category: 'Algemeen',
+                          });
+                          setEmployeeInput('');
+                        }}
+                        style={{
+                          borderRadius: '16px',
+                          fontFamily: 'Inter, sans-serif',
+                        }}
+                      >
+                        Annuleren
+                      </Button>
+                      <Button
+                        onClick={createTask}
+                        style={{
+                          backgroundColor: '#1B7867',
+                          color: '#FFFFFF',
+                          borderRadius: '16px',
+                          fontFamily: 'Inter, sans-serif',
+                        }}
+                      >
+                        Aanmaken
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </div>
+
+            <hr style={{ border: 'none', borderTop: '1px solid rgba(197, 197, 202, 0.5)', margin: 0 }} />
+
+            {/* Full-width progress bar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  height: '8px',
+                  backgroundColor: '#FEFFF1',
+                  borderRadius: '4px',
+                  overflow: 'hidden',
+                }}>
+                  <div style={{
+                    height: '100%',
+                    width: `${progressPercentage}%`,
+                    backgroundColor: '#1B7867',
+                    transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }} />
+                </div>
+              </div>
+              
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                flexShrink: 0,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '13px', color: '#73747B', fontFamily: 'Inter, sans-serif' }}>
+                    {completedCount}/{totalCount}
+                  </span>
+                  <span style={{
+                    fontWeight: 600,
+                    color: isComplete ? '#1B7867' : '#282E3A',
+                    fontSize: '15px',
+                    fontFamily: 'Inter, sans-serif',
+                  }}>
+                    {progressPercentage}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <hr style={{ border: 'none', borderTop: '1px solid rgba(197, 197, 202, 0.5)', margin: 0 }} />
+
+            {/* Tasks list */}
+            <div>
+              {mainCategory === 'dagelijks' ? (
+                <>
+                  {Object.entries(groupTasksByCategory(currentTasks)).map(([category, categoryTasks]) => (
+                    <div key={category} style={{ marginBottom: '24px' }}>
+                      <div style={{
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: '#73747B',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        marginBottom: '12px',
+                        fontFamily: 'Inter, sans-serif',
+                      }}>
+                        {category}
+                      </div>
+
+                      {categoryTasks.map((task, index) => (
+                        <div key={task.id}>
+                          <div style={{
+                            padding: '14px 0',
+                            opacity: task.completed ? 0.5 : 1,
+                            transition: 'opacity 0.2s',
+                          }}>
+                            <div style={{
+                              display: 'flex',
+                              gap: '12px',
+                              alignItems: 'flex-start',
+                            }}>
+                              <div style={{ paddingTop: '2px' }}>
+                                <button
+                                  onClick={() => toggleTask(task.id, task.completed)}
+                                  style={{
+                                    width: '20px',
+                                    height: '20px',
+                                    borderRadius: '6px',
+                                    border: '1.5px solid rgba(197, 197, 202, 0.5)',
+                                    backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.15s ease',
+                                    padding: 0,
+                                  }}
+                                >
+                                  {task.completed && (
+                                    <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                                      <path
+                                        d="M1 5L4.5 8.5L11 1.5"
+                                        stroke="#FFFFFF"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
                                   )}
+                                </button>
+                              </div>
+                              
+                              <span style={{
+                                flex: 1,
+                                textDecoration: task.completed ? 'line-through' : 'none',
+                                color: task.completed ? '#73747B' : '#282E3A',
+                                fontWeight: 500,
+                                fontSize: '15px',
+                                fontFamily: 'Inter, sans-serif',
+                              }}>
+                                {task.title}
+                              </span>
+                              
+                              {task.foh_employees && (
+                                <span style={{
+                                  fontSize: '12px',
+                                  fontWeight: 500,
+                                  color: '#73747B',
+                                  backgroundColor: '#FEFFF1',
+                                  padding: '4px 8px',
+                                  borderRadius: '6px',
+                                  fontFamily: 'Inter, sans-serif',
+                                }}>
+                                  {task.foh_employees.name}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {index < categoryTasks.length - 1 && (
+                            <div style={{ height: '1px', backgroundColor: 'rgba(197, 197, 202, 0.3)' }} />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <>
+                  {Object.entries(groupTasksByCategory(currentTasks)).map(([category, categoryTasks]) => (
+                    <div key={category} style={{ marginBottom: '24px' }}>
+                      <div style={{
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: '#73747B',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        marginBottom: '12px',
+                        fontFamily: 'Inter, sans-serif',
+                      }}>
+                        {category}
+                      </div>
+
+                      {categoryTasks.map((task, index) => {
+                        const dateLabel = getDateLabel(task.due_date);
+                        const dateLabelColor = getDateLabelColor(task.due_date);
+                        const priorityConfig = getPriorityConfig(task.priority);
+
+                        return (
+                          <div key={task.id}>
+                            <div style={{
+                              padding: '14px 0',
+                              opacity: task.completed ? 0.5 : 1,
+                              transition: 'opacity 0.2s',
+                            }}>
+                              <div style={{
+                                display: 'flex',
+                                gap: '12px',
+                                alignItems: 'flex-start',
+                              }}>
+                                <div style={{ paddingTop: '2px' }}>
+                                  <button
+                                    onClick={() => toggleTask(task.id, task.completed)}
+                                    style={{
+                                      width: '20px',
+                                      height: '20px',
+                                      borderRadius: '6px',
+                                      border: '1.5px solid rgba(197, 197, 202, 0.5)',
+                                      backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      transition: 'all 0.15s ease',
+                                      padding: 0,
+                                    }}
+                                  >
+                                    {task.completed && (
+                                      <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                                        <path
+                                          d="M1 5L4.5 8.5L11 1.5"
+                                          stroke="#FFFFFF"
+                                          strokeWidth="2"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                      </svg>
+                                    )}
+                                  </button>
                                 </div>
                                 
-                                <div style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '8px',
-                                  marginTop: '4px',
-                                  flexWrap: 'wrap'
+                                <span style={{
+                                  flex: 1,
+                                  textDecoration: task.completed ? 'line-through' : 'none',
+                                  color: task.completed ? '#73747B' : '#282E3A',
+                                  fontWeight: 500,
+                                  fontSize: '15px',
+                                  fontFamily: 'Inter, sans-serif',
                                 }}>
+                                  {task.title}
+                                </span>
+
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                  <span style={{
+                                    fontSize: '12px',
+                                    fontWeight: 500,
+                                    color: dateLabelColor,
+                                    backgroundColor: '#FEFFF1',
+                                    padding: '4px 8px',
+                                    borderRadius: '6px',
+                                    fontFamily: 'Inter, sans-serif',
+                                  }}>
+                                    {dateLabel}
+                                  </span>
+
+                                  <span style={{
+                                    fontSize: '12px',
+                                    fontWeight: 500,
+                                    color: '#FFFFFF',
+                                    backgroundColor: priorityConfig.color,
+                                    padding: '4px 8px',
+                                    borderRadius: '6px',
+                                    fontFamily: 'Inter, sans-serif',
+                                  }}>
+                                    {priorityConfig.emoji} {priorityConfig.label}
+                                  </span>
+
                                   {task.foh_employees && (
                                     <span style={{
+                                      fontSize: '12px',
+                                      fontWeight: 500,
+                                      color: '#73747B',
+                                      backgroundColor: '#FEFFF1',
+                                      padding: '4px 8px',
+                                      borderRadius: '6px',
                                       fontFamily: 'Inter, sans-serif',
-                                      fontSize: '13px',
-                                      color: '#73747B'
                                     }}>
                                       {task.foh_employees.name}
-                                    </span>
-                                  )}
-                                  {task.due_date && (
-                                    <span style={{
-                                      fontFamily: 'Inter, sans-serif',
-                                      fontSize: '13px',
-                                      color: '#73747B'
-                                    }}>
-                                      • {getDateLabel(task.due_date)}
                                     </span>
                                   )}
                                 </div>
                               </div>
                             </div>
-                          );
-                        })}
-                      </div>
+                            {index < categoryTasks.length - 1 && (
+                              <div style={{ height: '1px', backgroundColor: 'rgba(197, 197, 202, 0.3)' }} />
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                });
-              })()}
+                  ))}
+                </>
+              )}
+
+              {currentTasks.length === 0 && (
+                <div style={{
+                  padding: '48px 24px',
+                  textAlign: 'center',
+                }}>
+                  <p style={{
+                    fontSize: '15px',
+                    color: '#73747B',
+                    fontFamily: 'Inter, sans-serif',
+                  }}>
+                    Geen taken gevonden
+                  </p>
+                </div>
+              )}
             </div>
-          )}
-        </>
-      )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
