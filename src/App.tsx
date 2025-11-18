@@ -16,6 +16,7 @@ import Voorraad from "./pages/Voorraad";
 import Settings from "./pages/Settings";
 import InternalOrders from "./pages/kitchen/InternalOrders";
 import MidslandOrders from "./pages/MidslandOrders";
+import StyleGuide from "./pages/StyleGuide";
 
 const queryClient = new QueryClient();
 
@@ -98,6 +99,14 @@ const App = () => (
                 <LocationGuard allowedLocations={['Midsland']}>
                   <MidslandOrders />
                 </LocationGuard>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/style-guide" 
+            element={
+              <ProtectedRoute>
+                <StyleGuide />
               </ProtectedRoute>
             } 
           />
