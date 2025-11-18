@@ -508,22 +508,22 @@ export function FohTasks() {
     return true;
   };
 
-  const taskSchema = z.object({
-    title: z.string().trim().min(1, 'Titel is verplicht').max(200, 'Titel mag maximaal 200 tekens zijn'),
-  });
-
   const createTask = async () => {
-    const validation = taskSchema.safeParse({ title: newTask.title });
-    
-    if (!validation.success) {
-      toast.error(validation.error.errors[0].message);
+    // Simple validation without zod
+    const trimmedTitle = newTask.title.trim();
+    if (!trimmedTitle) {
+      toast.error('Titel is verplicht');
+      return;
+    }
+    if (trimmedTitle.length > 200) {
+      toast.error('Titel mag maximaal 200 tekens zijn');
       return;
     }
 
     const { error } = await supabase
       .from('foh_tasks')
       .insert({
-        title: validation.data.title,
+        title: trimmedTitle,
         due_date: newTask.due_date,
         priority: newTask.priority,
         assigned_employee_id: newTask.assigned_employee_id,
@@ -661,48 +661,56 @@ export function FohTasks() {
                 <DialogTitle>Nieuwe Taak Aanmaken</DialogTitle>
               </DialogHeader>
               
-              <div className="space-y-4 py-4">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 <div>
-                  <Label htmlFor="title">Titel *</Label>
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', display: 'block', marginBottom: '8px' }}>
+                    Titel *
+                  </label>
                   <Input
-                    id="title"
                     value={newTask.title}
                     onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                     placeholder="Bijv. 'Tafels dekken'"
+                    style={{ borderRadius: '12px', border: '1px solid rgba(197, 197, 202, 0.5)', fontFamily: 'Inter, sans-serif', fontSize: '14px', padding: '10px 12px' }}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="due_date">Datum *</Label>
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', display: 'block', marginBottom: '8px' }}>
+                    Datum *
+                  </label>
                   <Input
-                    id="due_date"
                     type="date"
                     value={newTask.due_date}
                     onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
+                    style={{ borderRadius: '12px', border: '1px solid rgba(197, 197, 202, 0.5)', fontFamily: 'Inter, sans-serif', fontSize: '14px', padding: '10px 12px' }}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="priority">Prioriteit</Label>
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', display: 'block', marginBottom: '8px' }}>
+                    Prioriteit
+                  </label>
                   <Select
                     value={newTask.priority.toString()}
                     onValueChange={(value) =>
                       setNewTask({ ...newTask, priority: parseInt(value) as 1 | 2 | 3 })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger style={{ borderRadius: '12px', border: '1px solid rgba(197, 197, 202, 0.5)', fontFamily: 'Inter, sans-serif', fontSize: '14px' }}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">🔴 Hoog</SelectItem>
-                      <SelectItem value="2">🟡 Midden</SelectItem>
-                      <SelectItem value="3">🔵 Laag</SelectItem>
+                      <SelectItem value="1">Hoog</SelectItem>
+                      <SelectItem value="2">Normaal</SelectItem>
+                      <SelectItem value="3">Laag</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label htmlFor="employee">Medewerker (optioneel)</Label>
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', display: 'block', marginBottom: '8px' }}>
+                    Medewerker (optioneel)
+                  </label>
                   
                   <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
                     <PopoverTrigger asChild>
@@ -874,11 +882,9 @@ export function FohTasks() {
                                     task.completed && "opacity-40"
                                   )}
                                 >
-                                  <Checkbox
+                                  <PolarCheckbox
                                     checked={task.completed}
-                                    onCheckedChange={() => toggleTask(task.id, task.completed)}
-                                    disabled={task.completed}
-                                    className="flex-shrink-0"
+                                    onChange={() => toggleTask(task.id, !task.completed)}
                                   />
                                   {isOverdue && !task.completed && (
                                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
@@ -942,11 +948,9 @@ export function FohTasks() {
                               task.completed && "opacity-40"
                             )}
                           >
-                            <Checkbox
+                            <PolarCheckbox
                               checked={task.completed}
-                              onCheckedChange={() => toggleTask(task.id, task.completed)}
-                              disabled={task.completed}
-                              className="flex-shrink-0"
+                              onChange={() => toggleTask(task.id, !task.completed)}
                             />
                             <span className={cn(
                               "text-base flex-1",
