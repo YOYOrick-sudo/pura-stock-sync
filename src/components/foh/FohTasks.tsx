@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { toZonedTime } from 'date-fns-tz';
 import type { FohTask, FohEmployee, FohTaskWithEmployee, PhaseType } from '@/types/foh';
+import { useUserLocation } from '@/contexts/UserLocationContext';
 
 // Phase time windows (minutes-based)
 const PHASE_WINDOWS = [
@@ -133,6 +134,7 @@ const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
 };
 
 export function FohTasks() {
+  const { userLocation } = useUserLocation();
   const [taskType, setTaskType] = useState<'daily' | 'extra'>('daily');
   const [activePhase, setActivePhase] = useState<PhaseType>('open');
   const [isPhaseManuallySelected, setIsPhaseManuallySelected] = useState(false);
@@ -148,6 +150,7 @@ export function FohTasks() {
     due_date: new Date().toISOString().split('T')[0],
     priority: 2 as 1 | 2 | 3,
     assigned_employee_id: null as string | null,
+    category: 'Algemeen' as string,
   });
 
   // Employee autocomplete state
@@ -156,9 +159,11 @@ export function FohTasks() {
   const [isCreatingEmployee, setIsCreatingEmployee] = useState(false);
 
   useEffect(() => {
-    fetchEmployees();
-    generateDailyTasks();
-  }, []);
+    if (userLocation) {
+      fetchEmployees();
+      generateDailyTasks();
+    }
+  }, [userLocation]);
 
   useEffect(() => {
     if (!isPhaseManuallySelected && taskType === 'daily') {
@@ -168,12 +173,14 @@ export function FohTasks() {
   }, [taskType, isPhaseManuallySelected, dailyTasks]);
 
   useEffect(() => {
-    if (taskType === 'daily') {
-      fetchDailyTasks();
-    } else {
-      fetchExtraTasks();
+    if (userLocation) {
+      if (taskType === 'daily') {
+        fetchDailyTasks();
+      } else {
+        fetchExtraTasks();
+      }
     }
-  }, [taskType]);
+  }, [taskType, userLocation]);
 
   // Midnight detection - reset to auto mode when date changes
   useEffect(() => {
@@ -201,6 +208,8 @@ export function FohTasks() {
 
   // Generate daily tasks from templates if not already generated today
   const generateDailyTasks = async () => {
+    if (!userLocation) return;
+    
     const today = new Date().toISOString().split('T')[0];
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -216,10 +225,11 @@ export function FohTasks() {
       return;
     }
 
-    // Fetch all templates
+    // Fetch all templates for this location
     const { data: templates } = await supabase
       .from('foh_daily_templates')
-      .select('*');
+      .select('*')
+      .eq('location', userLocation);
 
     if (!templates || templates.length === 0) return;
 
@@ -230,10 +240,12 @@ export function FohTasks() {
       priority: template.priority,
       template_id: template.id,
       phase: template.phase,
+      category: template.category || 'Algemeen',
+      repeat_type: template.repeat_type,
       completed: false,
       archived: false,
       assigned_employee_id: null,
-      location: '', // Set by trigger
+      location: userLocation,
     }));
 
     const { error } = await supabase
@@ -246,6 +258,8 @@ export function FohTasks() {
   };
 
   const fetchDailyTasks = async () => {
+    if (!userLocation) return;
+    
     setLoading(true);
     const today = new Date().toISOString().split('T')[0];
     
@@ -261,7 +275,8 @@ export function FohTasks() {
         )
       `)
       .not('template_id', 'is', null)
-      .eq('due_date', today);
+      .eq('due_date', today)
+      .eq('location', userLocation);
 
     if (error) {
       console.error('Error fetching daily tasks:', error);
@@ -274,6 +289,8 @@ export function FohTasks() {
   };
 
   const fetchExtraTasks = async () => {
+    if (!userLocation) return;
+    
     setLoading(true);
     
     const { data, error } = await supabase
@@ -287,7 +304,8 @@ export function FohTasks() {
           created_at
         )
       `)
-      .is('template_id', null);
+      .is('template_id', null)
+      .eq('location', userLocation);
 
     if (error) {
       console.error('Error fetching extra tasks:', error);
@@ -300,9 +318,12 @@ export function FohTasks() {
   };
 
   const fetchEmployees = async () => {
+    if (!userLocation) return;
+    
     const { data, error } = await supabase
       .from('foh_employees')
       .select('*')
+      .eq('location', userLocation)
       .order('name');
 
     if (error) {
@@ -437,7 +458,7 @@ export function FohTasks() {
   const shouldShowAddNew = employeeInput.trim().length > 0 && !exactMatch;
 
   const createEmployeeInline = async (name: string) => {
-    if (!name.trim()) {
+    if (!name.trim() || !userLocation) {
       toast.error('Vul een naam in');
       return null;
     }
@@ -446,7 +467,7 @@ export function FohTasks() {
 
     const { data, error } = await supabase
       .from('foh_employees')
-      .insert({ name: name.trim(), location: '' })
+      .insert({ name: name.trim(), location: userLocation })
       .select()
       .single();
 
@@ -527,8 +548,12 @@ export function FohTasks() {
         due_date: newTask.due_date,
         priority: newTask.priority,
         assigned_employee_id: newTask.assigned_employee_id,
-        template_id: null, // Extra tasks have no template_id
-        location: '',
+        template_id: null,
+        location: userLocation,
+        category: newTask.category,
+        phase: null,
+        completed: false,
+        archived: false,
       });
 
     if (error) {
@@ -544,6 +569,7 @@ export function FohTasks() {
       due_date: new Date().toISOString().split('T')[0],
       priority: 2,
       assigned_employee_id: null,
+      category: 'Algemeen',
     });
     setEmployeeInput('');
     fetchExtraTasks();
@@ -703,6 +729,25 @@ export function FohTasks() {
                       <SelectItem value="1">Hoog</SelectItem>
                       <SelectItem value="2">Normaal</SelectItem>
                       <SelectItem value="3">Laag</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', display: 'block', marginBottom: '8px' }}>
+                    Categorie
+                  </label>
+                  <Select
+                    value={newTask.category}
+                    onValueChange={(value) => setNewTask({ ...newTask, category: value })}
+                  >
+                    <SelectTrigger style={{ borderRadius: '12px', border: '1px solid rgba(197, 197, 202, 0.5)', fontFamily: 'Inter, sans-serif', fontSize: '14px' }}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORY_ORDER.map(cat => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
