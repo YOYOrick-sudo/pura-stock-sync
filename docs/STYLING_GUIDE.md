@@ -2,8 +2,9 @@
 
 ## Border Radius Standaarden
 
-### 🎯 Cards & Grote Panels
+### 🎯 Cards, Buttons & Grote Panels
 **16px** - `rounded-polar-lg` of `borderRadius: '16px'`
+- **Buttons (primary, secondary, ghost)** ✅
 - Dashboard cards
 - Handover card
 - KPI cards
@@ -11,15 +12,10 @@
 - Form cards
 - Content panels
 - Dropdowns
-
-### 🔘 Buttons & Medium Elements  
-**12px** - `rounded-polar-md` of `borderRadius: '12px'`
-- Buttons (primary, secondary, ghost)
 - Text inputs
 - Select inputs
 - Textareas
 - Medium containers
-- Icon containers
 
 ### 📝 Kleine Interactive Elements
 **8px** - `rounded-polar-sm` of `borderRadius: '8px'`
@@ -29,14 +25,20 @@
 - Compact elements
 - Tooltips
 
+### 🏔️ Extra Grote Containers
+**20px** - `rounded-polar-xl` of `borderRadius: '20px'`
+- Extra grote modals
+- Full-width sections
+- Feature cards
+
 ---
 
 ## Hiërarchie Overzicht
 
 ```
-8px  → Kleine interactieve elementen (sidebar menu)
-12px → Buttons, inputs, medium componenten
-16px → Cards, panels, grote containers
+8px  → Kleine interactieve elementen (sidebar menu, badges)
+16px → Buttons, inputs, cards, panels, containers
+20px → Extra grote containers en feature cards
 ```
 
 ---
