@@ -610,7 +610,7 @@ export function FohTasks() {
               }
             }}
           >
-            <TabsList style={{ backgroundColor: '#FFFFFF', border: '1px solid rgba(197, 197, 202, 0.5)', borderRadius: '8px', padding: '4px', display: 'inline-flex', gap: '4px', height: '40px' }}>
+            <TabsList style={{ backgroundColor: '#F6F7DD', border: '1px solid rgba(197, 197, 202, 0.5)', borderRadius: '8px', padding: '4px', display: 'inline-flex', gap: '4px', height: '40px' }}>
               <TabsTrigger 
                 value="daily"
                 style={{ 
@@ -708,26 +708,10 @@ export function FohTasks() {
             }}
           >
             <DialogTrigger asChild>
-              <button
-                onClick={() => setDialogOpen(true)}
-                style={{
-                  backgroundColor: '#1B7867',
-                  color: '#FFFFFF',
-                  borderRadius: '12px',
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  padding: '10px 20px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
-              >
-                <Plus size={16} />
+              <Button>
+                <Plus size={16} style={{ marginRight: '8px' }} />
                 Nieuwe Taak
-              </button>
+              </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -743,7 +727,7 @@ export function FohTasks() {
                     value={newTask.title}
                     onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                     placeholder="Bijv. 'Tafels dekken'"
-                    style={{ borderRadius: '12px', border: '1px solid rgba(197, 197, 202, 0.5)', fontFamily: 'Inter, sans-serif', fontSize: '14px', padding: '10px 12px' }}
+                    style={{ borderRadius: '16px', border: '1px solid rgba(197, 197, 202, 0.5)', fontFamily: 'Inter, sans-serif', fontSize: '14px', padding: '10px 12px' }}
                   />
                 </div>
 
@@ -755,7 +739,7 @@ export function FohTasks() {
                     type="date"
                     value={newTask.due_date}
                     onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
-                    style={{ borderRadius: '12px', border: '1px solid rgba(197, 197, 202, 0.5)', fontFamily: 'Inter, sans-serif', fontSize: '14px', padding: '10px 12px' }}
+                    style={{ borderRadius: '16px', border: '1px solid rgba(197, 197, 202, 0.5)', fontFamily: 'Inter, sans-serif', fontSize: '14px', padding: '10px 12px' }}
                   />
                 </div>
 
@@ -769,7 +753,7 @@ export function FohTasks() {
                       setNewTask({ ...newTask, priority: parseInt(value) as 1 | 2 | 3 })
                     }
                   >
-                    <SelectTrigger style={{ borderRadius: '12px', border: '1px solid rgba(197, 197, 202, 0.5)', fontFamily: 'Inter, sans-serif', fontSize: '14px' }}>
+                    <SelectTrigger style={{ borderRadius: '16px', border: '1px solid rgba(197, 197, 202, 0.5)', fontFamily: 'Inter, sans-serif', fontSize: '14px' }}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -788,7 +772,7 @@ export function FohTasks() {
                     value={newTask.category}
                     onValueChange={(value) => setNewTask({ ...newTask, category: value })}
                   >
-                    <SelectTrigger style={{ borderRadius: '12px', border: '1px solid rgba(197, 197, 202, 0.5)', fontFamily: 'Inter, sans-serif', fontSize: '14px' }}>
+                    <SelectTrigger style={{ borderRadius: '16px', border: '1px solid rgba(197, 197, 202, 0.5)', fontFamily: 'Inter, sans-serif', fontSize: '14px' }}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -904,38 +888,17 @@ export function FohTasks() {
               </div>
 
               <DialogFooter>
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => setDialogOpen(false)}
-                  style={{
-                    borderRadius: '12px',
-                    border: '1px solid rgba(197, 197, 202, 0.5)',
-                    color: '#282E3A',
-                    backgroundColor: 'transparent',
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    padding: '10px 20px',
-                    cursor: 'pointer'
-                  }}
                 >
                   Annuleren
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={createTask}
-                  style={{
-                    borderRadius: '12px',
-                    backgroundColor: '#1B7867',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    padding: '10px 20px',
-                    cursor: 'pointer'
-                  }}
                 >
                   Taak Aanmaken
-                </button>
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -957,7 +920,7 @@ export function FohTasks() {
             
             return (
               <div style={{
-                backgroundColor: '#FFFFFF',
+                backgroundColor: '#F6F7DD',
                 border: '1px solid rgba(197, 197, 197, 0.5)',
                 borderRadius: '16px',
                 padding: '32px',
@@ -1027,7 +990,7 @@ export function FohTasks() {
                     textAlign: 'center',
                     backgroundColor: '#FEFFF1',
                     border: '1px dashed rgba(197, 197, 202, 0.5)',
-                    borderRadius: '12px'
+                    borderRadius: '16px'
                   }}>
                     <p style={{
                       fontFamily: 'Inter, sans-serif',
@@ -1084,7 +1047,7 @@ export function FohTasks() {
                                     padding: '14px 16px',
                                     backgroundColor: task.completed ? '#FEFFF1' : '#FFFFFF',
                                     border: '1px solid rgba(197, 197, 202, 0.3)',
-                                    borderRadius: '12px',
+                                    borderRadius: '16px',
                                     opacity: task.completed ? 0.4 : 1,
                                     transition: 'all 0.15s ease'
                                   }}
@@ -1146,7 +1109,7 @@ export function FohTasks() {
               textAlign: 'center',
               backgroundColor: '#FEFFF1',
               border: '1px dashed rgba(197, 197, 202, 0.5)',
-              borderRadius: '12px'
+              borderRadius: '16px'
             }}>
               <p style={{
                 fontFamily: 'Inter, sans-serif',
@@ -1158,7 +1121,7 @@ export function FohTasks() {
             </div>
           ) : (
             <div style={{
-              backgroundColor: '#FFFFFF',
+              backgroundColor: '#F6F7DD',
               border: '1px solid rgba(197, 197, 202, 0.5)',
               borderRadius: '16px',
               padding: '32px',
@@ -1214,7 +1177,7 @@ export function FohTasks() {
                                 padding: '14px 16px',
                                 backgroundColor: task.completed ? '#FEFFF1' : '#FFFFFF',
                                 border: '1px solid rgba(197, 197, 202, 0.3)',
-                                borderRadius: '12px',
+                                borderRadius: '16px',
                                 opacity: task.completed ? 0.4 : 1,
                                 transition: 'all 0.15s ease'
                               }}
