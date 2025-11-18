@@ -3,6 +3,7 @@ import React from 'react';
 export interface PolarHeaderProps {
   title?: string;
   showStatusIndicator?: boolean;
+  location?: string;
 }
 
 /**
@@ -17,7 +18,8 @@ export interface PolarHeaderProps {
  */
 export function PolarHeader({ 
   title = 'Dashboard', 
-  showStatusIndicator = true 
+  showStatusIndicator = true,
+  location
 }: PolarHeaderProps) {
   return (
     <div 
@@ -26,6 +28,7 @@ export function PolarHeader({
         backgroundColor: '#FEFFF1',
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'space-between',
         padding: '0 48px',
       }}
     >
@@ -40,6 +43,19 @@ export function PolarHeader({
       >
         {title}
       </h1>
+      {location && (
+        <div
+          style={{
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '14px',
+            fontWeight: 500,
+            color: '#73747B',
+            marginTop: '14px',
+          }}
+        >
+          Locatie: {location}
+        </div>
+      )}
     </div>
   );
 }
