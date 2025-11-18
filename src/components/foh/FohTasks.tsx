@@ -5,10 +5,9 @@ import { PolarCheckbox } from '@/components/polar/Checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command';
-import { Loader2, Plus, Check, ChevronsUpDown, X } from 'lucide-react';
+import { Loader2, Plus, Check, ChevronsUpDown, X, HelpCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { toZonedTime } from 'date-fns-tz';
@@ -529,6 +528,34 @@ export function FohTasks() {
     return true;
   };
 
+  // Get current tasks to display
+  const getCurrentTasks = () => {
+    if (mainCategory === 'dagelijks') {
+      return groupedDailyTasks[activePhase];
+    } else {
+      return sortedExtraTasks;
+    }
+  };
+
+  // Calculate overall stats for all tasks
+  const getAllTasks = () => {
+    return [...dailyTasks, ...extraTasks];
+  };
+
+  const allTasks = getAllTasks();
+  const completedCount = allTasks.filter(t => t.completed).length;
+  const totalCount = allTasks.length;
+  const progressPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const isComplete = progressPercentage === 100;
+
+  // Calculate stats per phase for buttons
+  const getDailyListStats = (phase: PhaseType) => {
+    const listTasks = groupedDailyTasks[phase];
+    const completed = listTasks.filter(t => t.completed).length;
+    const total = listTasks.length;
+    return { completed, total };
+  };
+
   const createTask = async () => {
     // Simple validation without zod
     const trimmedTitle = newTask.title.trim();
@@ -594,22 +621,13 @@ export function FohTasks() {
     );
   }
 
+  const currentTasks = getCurrentTasks();
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', backgroundColor: '#FEFFF1', minHeight: '100vh', padding: '0' }}>
-      {/* Unified Control Bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {/* Task Type Tabs */}
-          <Tabs 
-            value={taskType} 
-            onValueChange={(v) => {
-              setTaskType(v as 'daily' | 'extra');
-              if (v === 'daily') {
-                setIsPhaseManuallySelected(false);
-                setActivePhase(getFirstPhaseWithOpenTasks(dailyTasks));
-              }
-            }}
-          >
+    <div style={{ minHeight: '100vh', backgroundColor: '#FEFFF1', fontFamily: 'Inter, sans-serif' }}>
+      
+      {/* Main Content */}
+      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
             <TabsList style={{ backgroundColor: '#F6F7DD', border: '1px solid rgba(197, 197, 202, 0.5)', borderRadius: '8px', padding: '4px', display: 'inline-flex', gap: '4px', height: '40px' }}>
               <TabsTrigger 
                 value="daily"
