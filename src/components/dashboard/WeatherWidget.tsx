@@ -1,4 +1,4 @@
-import { Cloud, CloudRain, Sun, Wind } from 'lucide-react';
+import { Cloud, CloudRain, Sun, Wind, Droplets } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
 interface WeatherWidgetProps {
@@ -12,14 +12,14 @@ const getWeatherIcon = (condition: string) => {
   switch (condition) {
     case 'sunny':
     case 'partly_cloudy':
-      return <Sun className="h-8 w-8" style={{ color: '#1B7867' }} />;
+      return Sun;
     case 'rainy':
     case 'stormy':
-      return <CloudRain className="h-8 w-8" style={{ color: '#1B7867' }} />;
+      return CloudRain;
     case 'windy':
-      return <Wind className="h-8 w-8" style={{ color: '#1B7867' }} />;
+      return Wind;
     default:
-      return <Cloud className="h-8 w-8" style={{ color: '#1B7867' }} />;
+      return Cloud;
   }
 };
 
@@ -38,36 +38,64 @@ const getWeatherLabel = (condition: string) => {
 };
 
 export function WeatherWidget({ condition, temperature, windSpeed, precipitation }: WeatherWidgetProps) {
+  const WeatherIcon = getWeatherIcon(condition);
+  
   return (
-    <Card 
-      className="p-6"
-      style={{ 
+    <div
+      style={{
         backgroundColor: '#F6F7DD',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)'
+        border: '1px solid rgba(197, 197, 202, 0.5)',
+        borderRadius: '16px',
+        padding: '20px',
+        cursor: 'default',
+        transition: 'all 0.2s ease-in-out',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+        height: '100%'
       }}
     >
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-sm font-medium" style={{ color: '#73747B' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Sun size={16} style={{ color: '#1B7867' }} />
+          <p style={{ 
+            fontSize: '14px', 
+            fontWeight: 500,
+            color: '#282E3A'
+          }}>
             Weer Vandaag
-          </h3>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-bold" style={{ color: '#282E3A' }}>
-              {temperature}°C
-            </span>
-            <span className="text-sm" style={{ color: '#73747B' }}>
-              {getWeatherLabel(condition)}
-            </span>
-          </div>
-          <div className="mt-2 flex gap-4 text-sm" style={{ color: '#73747B' }}>
-            <span>Wind: {windSpeed} km/h</span>
-            <span>Neerslag: {precipitation}mm</span>
-          </div>
-        </div>
-        <div className="flex-shrink-0">
-          {getWeatherIcon(condition)}
+          </p>
         </div>
       </div>
-    </Card>
+      
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+        <span style={{ 
+          fontSize: '28px', 
+          fontWeight: 600,
+          color: '#282E3A'
+        }}>
+          {temperature}°C
+        </span>
+        <span style={{ 
+          fontSize: '14px',
+          fontWeight: 400,
+          color: '#73747B'
+        }}>
+          {getWeatherLabel(condition)}
+        </span>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Wind size={14} style={{ color: '#73747B' }} />
+          <span style={{ fontSize: '13px', color: '#73747B' }}>{windSpeed} km/h</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Droplets size={14} style={{ color: '#73747B' }} />
+          <span style={{ fontSize: '13px', color: '#73747B' }}>{precipitation}mm</span>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -114,14 +114,33 @@ export function AIWeatherAdvisor({ onRefresh }: AIWeatherAdvisorProps) {
 
   if (loading) {
     return (
-      <Card className="col-span-1 lg:col-span-3">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lightbulb className="h-5 w-5" style={{ color: '#1B7867' }} />
-            AI Dagadvies
-          </CardTitle>
+      <Card style={{ 
+        backgroundColor: '#F6F7DD',
+        border: '1px solid rgba(197, 197, 202, 0.5)',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)'
+      }}>
+        <CardHeader className="pb-4">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <CardTitle style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '18px',
+              fontWeight: 600,
+              color: '#282E3A'
+            }}>
+              AI Dagadvies
+            </CardTitle>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onRefresh}
+              disabled={loading}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Ververs
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           <p className="text-sm" style={{ color: '#73747B' }}>Advies wordt gegenereerd...</p>
         </CardContent>
       </Card>
@@ -129,14 +148,33 @@ export function AIWeatherAdvisor({ onRefresh }: AIWeatherAdvisorProps) {
   }
 
   return (
-    <Card className="col-span-1 lg:col-span-3">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Lightbulb className="h-5 w-5" style={{ color: '#1B7867' }} />
-          AI Suggesties ({suggestions.length})
-        </CardTitle>
+    <Card style={{ 
+      backgroundColor: '#F6F7DD',
+      border: '1px solid rgba(197, 197, 202, 0.5)',
+      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)'
+    }}>
+      <CardHeader className="pb-4">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <CardTitle style={{
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '18px',
+            fontWeight: 600,
+            color: '#282E3A'
+          }}>
+            AI Dagadvies
+          </CardTitle>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onRefresh}
+            disabled={loading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Ververs
+          </Button>
+        </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-0">
         <div className="space-y-3">
           {suggestions.map((suggestion) => (
             <div 
@@ -209,18 +247,6 @@ export function AIWeatherAdvisor({ onRefresh }: AIWeatherAdvisorProps) {
               </div>
             </div>
           ))}
-        </div>
-        
-        <div className="mt-4">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => fetchAdvice()}
-            className="rounded-polar-md"
-          >
-            <RefreshCw className="h-4 w-4 mr-1" />
-            Ververs suggesties
-          </Button>
         </div>
       </CardContent>
     </Card>
