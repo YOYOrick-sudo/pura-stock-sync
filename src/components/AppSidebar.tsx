@@ -1,4 +1,4 @@
-import { Home, Calendar, CheckSquare, Calculator, Package, Settings, BarChart3 } from 'lucide-react';
+import { Home, Calendar, CheckSquare, Calculator, Package, Settings, BarChart3, Palette } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useState } from 'react';
@@ -52,6 +52,12 @@ const allNavigationItems = [
     title: 'Settings',
     url: '/settings',
     icon: Settings,
+    locations: ['West', 'Midsland'],
+  },
+  {
+    title: 'Style Guide',
+    url: '/style-guide',
+    icon: Palette,
     locations: ['West', 'Midsland'],
   },
   {
