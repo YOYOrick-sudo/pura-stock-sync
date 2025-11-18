@@ -178,17 +178,13 @@ DENK ALTIJD NA OVER:
 - Beleving & uitstraling (presentatie, zichtbaarheid, sfeer)
 - Servicechecks (bar netjes, kaarten schoon, counter presentatie)
 
-GENEREER:
-1. Productideeën (1-3 stuks):
-   - Elk idee: naam, beschrijving, waarom het past bij het weer, marge/deal info
-   - Kort en concreet, direct uitvoerbaar
+GENEREER ${missingCount} concrete suggesties:
+- Elk kan zijn: productidee, kwaliteitscheck, margin-verhogend idee, service, sfeer
+- KORTE titel (3-6 woorden)
+- KORTE beschrijving (max 1-2 zinnen) met duidelijk doel
+- Direct uitvoerbaar vandaag
 
-2. Kwaliteitschecks (2-4 stuks):
-   - Service & uitstraling checks
-   - Bar, counter, menukaarten, schoonmaak, presentatie
-   - Kleine ingrepen die groot effect hebben
-
-Stijl: Kort, concreet, creatief, professioneel. Toepasbaar vandaag.`;
+Stijl: Kort, bondig, concreet, professioneel. Geen lange uitleg.`;
 
     console.log('Calling OpenAI API...');
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
