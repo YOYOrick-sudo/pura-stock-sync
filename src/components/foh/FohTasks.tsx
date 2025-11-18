@@ -588,17 +588,17 @@ export function FohTasks() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#1B7867]" />
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <Loader2 style={{ width: '32px', height: '32px', color: '#1B7867' }} className="animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', backgroundColor: '#FEFFF1', minHeight: '100vh', padding: '0' }}>
       {/* Unified Control Bar */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {/* Task Type Tabs */}
           <Tabs 
             value={taskType} 
@@ -609,18 +609,37 @@ export function FohTasks() {
                 setActivePhase(getFirstPhaseWithOpenTasks(dailyTasks));
               }
             }}
-            className="flex-shrink-0"
           >
-            <TabsList className="inline-flex h-10 items-center justify-start rounded-lg bg-muted/50 p-1">
+            <TabsList style={{ backgroundColor: '#FFFFFF', border: '1px solid rgba(197, 197, 202, 0.5)', borderRadius: '8px', padding: '4px', display: 'inline-flex', gap: '4px', height: '40px' }}>
               <TabsTrigger 
                 value="daily"
-                className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                style={{ 
+                  borderRadius: '8px', 
+                  fontFamily: 'Inter, sans-serif', 
+                  fontSize: '14px', 
+                  fontWeight: 500, 
+                  padding: '8px 16px',
+                  backgroundColor: taskType === 'daily' ? '#F6F7DD' : 'transparent',
+                  color: taskType === 'daily' ? '#282E3A' : '#73747B',
+                  border: 'none',
+                  transition: 'all 0.15s ease'
+                }}
               >
                 Dagelijks
               </TabsTrigger>
               <TabsTrigger 
                 value="extra"
-                className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                style={{ 
+                  borderRadius: '8px', 
+                  fontFamily: 'Inter, sans-serif', 
+                  fontSize: '14px', 
+                  fontWeight: 500, 
+                  padding: '8px 16px',
+                  backgroundColor: taskType === 'extra' ? '#F6F7DD' : 'transparent',
+                  color: taskType === 'extra' ? '#282E3A' : '#73747B',
+                  border: 'none',
+                  transition: 'all 0.15s ease'
+                }}
               >
                 Extra
               </TabsTrigger>
@@ -629,12 +648,10 @@ export function FohTasks() {
 
           {/* Phase Pills (only for daily tasks) */}
           {taskType === 'daily' && (
-            <div className="flex items-center gap-2">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               {PHASE_WINDOWS.map(window => (
-                <Button
+                <button
                   key={window.phase}
-                  variant={activePhase === window.phase ? "default" : "outline"}
-                  size="sm"
                   onClick={() => {
                     const targetPhase = window.phase;
                     
@@ -651,15 +668,29 @@ export function FohTasks() {
                     setActivePhase(targetPhase);
                     setIsPhaseManuallySelected(true);
                   }}
-                  className={cn(
-                    "rounded-full px-4 py-1 text-xs font-medium transition-all",
-                    activePhase === window.phase 
-                      ? "bg-[#1B7867] text-white shadow-sm" 
-                      : "bg-white text-muted-foreground hover:bg-gray-50"
-                  )}
+                  disabled={!canSwitchToPhase(window.phase)}
+                  style={{
+                    backgroundColor: activePhase === window.phase ? '#1B7867' : '#FFFFFF',
+                    color: activePhase === window.phase ? '#FFFFFF' : '#282E3A',
+                    border: `1px solid ${activePhase === window.phase ? '#1B7867' : 'rgba(197, 197, 202, 0.5)'}`,
+                    borderRadius: '8px',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    padding: '8px 16px',
+                    opacity: !canSwitchToPhase(window.phase) ? 0.4 : 1,
+                    cursor: !canSwitchToPhase(window.phase) ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.15s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
                 >
-                  {window.label}
-                </Button>
+                  <span>{window.label}</span>
+                  <span style={{ fontSize: '12px', opacity: 0.8 }}>
+                    ({minutesToTimeString(window.startMin)} – {minutesToTimeString(window.endMin)})
+                  </span>
+                </button>
               ))}
             </div>
           )}
@@ -677,10 +708,26 @@ export function FohTasks() {
             }}
           >
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
+              <button
+                onClick={() => setDialogOpen(true)}
+                style={{
+                  backgroundColor: '#1B7867',
+                  color: '#FFFFFF',
+                  borderRadius: '12px',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  padding: '10px 20px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <Plus size={16} />
                 Nieuwe Taak
-              </Button>
+              </button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -857,10 +904,38 @@ export function FohTasks() {
               </div>
 
               <DialogFooter>
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                <button
+                  onClick={() => setDialogOpen(false)}
+                  style={{
+                    borderRadius: '12px',
+                    border: '1px solid rgba(197, 197, 202, 0.5)',
+                    color: '#282E3A',
+                    backgroundColor: 'transparent',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    padding: '10px 20px',
+                    cursor: 'pointer'
+                  }}
+                >
                   Annuleren
-                </Button>
-                <Button onClick={createTask}>Aanmaken</Button>
+                </button>
+                <button
+                  onClick={createTask}
+                  style={{
+                    borderRadius: '12px',
+                    backgroundColor: '#1B7867',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    padding: '10px 20px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Taak Aanmaken
+                </button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -881,70 +956,174 @@ export function FohTasks() {
             if (!activeWindow) return null;
             
             return (
-              <div className="space-y-0">
-                {/* Sticky Header with Stats */}
-                <div className="sticky top-0 z-10 bg-background border-b border-border mb-6 pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span className="font-semibold text-foreground">{activeWindow.label}</span>
-                      <span>({minutesToTimeString(activeWindow.startMin)} – {minutesToTimeString(activeWindow.endMin)})</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
+              <div style={{
+                backgroundColor: '#FFFFFF',
+                border: '1px solid rgba(197, 197, 197, 0.5)',
+                borderRadius: '16px',
+                padding: '32px',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)'
+              }}>
+                {/* Header with Stats */}
+                <div style={{
+                  marginBottom: '32px',
+                  paddingBottom: '20px',
+                  borderBottom: '1px solid rgba(197, 197, 202, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div>
+                    <h3 style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '18px',
+                      fontWeight: 600,
+                      color: '#282E3A',
+                      marginBottom: '4px'
+                    }}>
+                      {activeWindow.label}
+                    </h3>
+                    <span style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '13px',
+                      color: '#73747B'
+                    }}>
+                      {minutesToTimeString(activeWindow.startMin)} – {minutesToTimeString(activeWindow.endMin)}
+                    </span>
+                  </div>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <span style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '14px',
+                      color: '#73747B'
+                    }}>
                       {completedCount}/{totalCount} ✓
-                    </div>
+                    </span>
+                    
+                    {isOverdue && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{
+                          width: '8px',
+                          height: '8px',
+                          borderRadius: '50%',
+                          backgroundColor: '#E64D4D'
+                        }} />
+                        <span style={{
+                          fontFamily: 'Inter, sans-serif',
+                          fontSize: '13px',
+                          color: '#E64D4D',
+                          fontWeight: 500
+                        }}>
+                          Overtijd
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 
                 {phaseTasks.length === 0 ? (
-                  <div className="p-12 text-center border border-dashed rounded-lg bg-muted/20">
-                    <p className="text-sm text-muted-foreground">
+                  <div style={{
+                    padding: '48px 24px',
+                    textAlign: 'center',
+                    backgroundColor: '#FEFFF1',
+                    border: '1px dashed rgba(197, 197, 202, 0.5)',
+                    borderRadius: '12px'
+                  }}>
+                    <p style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '14px',
+                      color: '#73747B'
+                    }}>
                       Geen taken voor {activeWindow.label}
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-8">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                     {(() => {
                       const groupedByCategory = groupTasksByCategory(phaseTasks);
                       return Object.entries(groupedByCategory).map(([category, categoryTasks]) => {
                         const completedInCategory = categoryTasks.filter(t => t.completed).length;
                         return (
-                          <div key={category} className="space-y-2">
+                          <div key={category} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {/* Category Header */}
-                            <div className="flex items-baseline gap-2 pb-2 border-b border-border/50">
-                              <h3 className="text-sm font-semibold text-foreground">{category}</h3>
-                              <span className="text-xs text-muted-foreground">
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '12px',
+                              paddingBottom: '12px',
+                              borderBottom: '1px solid rgba(197, 197, 202, 0.2)'
+                            }}>
+                              <h4 style={{
+                                fontFamily: 'Inter, sans-serif',
+                                fontSize: '14px',
+                                fontWeight: 600,
+                                color: '#282E3A',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                              }}>
+                                {category}
+                              </h4>
+                              <span style={{
+                                fontFamily: 'Inter, sans-serif',
+                                fontSize: '12px',
+                                color: '#73747B'
+                              }}>
                                 {completedInCategory}/{categoryTasks.length} ✓
                               </span>
                             </div>
                             
                             {/* Tasks in Category */}
-                            <div className="space-y-0">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                               {categoryTasks.map((task) => (
                                 <div 
                                   key={task.id} 
-                                  className={cn(
-                                    "flex items-center gap-4 py-2.5",
-                                    task.completed && "opacity-40"
-                                  )}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '12px',
+                                    padding: '14px 16px',
+                                    backgroundColor: task.completed ? '#FEFFF1' : '#FFFFFF',
+                                    border: '1px solid rgba(197, 197, 202, 0.3)',
+                                    borderRadius: '12px',
+                                    opacity: task.completed ? 0.4 : 1,
+                                    transition: 'all 0.15s ease'
+                                  }}
                                 >
                                   <PolarCheckbox
                                     checked={task.completed}
                                     onChange={() => toggleTask(task.id, !task.completed)}
                                   />
                                   {isOverdue && !task.completed && (
-                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+                                    <div style={{
+                                      width: '8px',
+                                      height: '8px',
+                                      borderRadius: '50%',
+                                      backgroundColor: '#E64D4D',
+                                      flexShrink: 0
+                                    }} />
                                   )}
-                                  <span className={cn(
-                                    "text-base flex-1",
-                                    task.completed && "line-through text-muted-foreground"
-                                  )}>
-                                    {task.title}
-                                  </span>
-                                  {task.foh_employees && (
-                                    <span className="text-xs text-muted-foreground flex-shrink-0">
-                                      {task.foh_employees.name}
+                                  <div style={{ flex: 1 }}>
+                                    <span style={{
+                                      fontFamily: 'Inter, sans-serif',
+                                      fontSize: '15px',
+                                      fontWeight: 500,
+                                      color: '#282E3A',
+                                      textDecoration: task.completed ? 'line-through' : 'none'
+                                    }}>
+                                      {task.title}
                                     </span>
-                                  )}
+                                    
+                                    {task.foh_employees && (
+                                      <span style={{
+                                        fontFamily: 'Inter, sans-serif',
+                                        fontSize: '13px',
+                                        color: '#73747B',
+                                        marginLeft: '8px'
+                                      }}>
+                                        • {task.foh_employees.name}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -962,60 +1141,141 @@ export function FohTasks() {
         // Extra tasks
         <>
           {sortedExtraTasks.length === 0 ? (
-            <div className="p-12 text-center border border-dashed rounded-lg bg-muted/20">
-              <p className="text-muted-foreground">
-                Geen taken
+            <div style={{
+              padding: '48px 24px',
+              textAlign: 'center',
+              backgroundColor: '#FEFFF1',
+              border: '1px dashed rgba(197, 197, 202, 0.5)',
+              borderRadius: '12px'
+            }}>
+              <p style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '14px',
+                color: '#73747B'
+              }}>
+                Geen extra taken
               </p>
             </div>
           ) : (
-            <div className="space-y-8">
+            <div style={{
+              backgroundColor: '#FFFFFF',
+              border: '1px solid rgba(197, 197, 202, 0.5)',
+              borderRadius: '16px',
+              padding: '32px',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '32px'
+            }}>
               {(() => {
                 const groupedByCategory = groupTasksByCategory(sortedExtraTasks);
                 return Object.entries(groupedByCategory).map(([category, categoryTasks]) => {
                   const completedInCategory = categoryTasks.filter(t => t.completed).length;
                   return (
-                    <div key={category} className="space-y-2">
+                    <div key={category} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {/* Category Header */}
-                      <div className="flex items-baseline gap-2 pb-2 border-b border-border/50">
-                        <h3 className="text-sm font-semibold text-foreground">{category}</h3>
-                        <span className="text-xs text-muted-foreground">
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        paddingBottom: '12px',
+                        borderBottom: '1px solid rgba(197, 197, 202, 0.2)'
+                      }}>
+                        <h4 style={{
+                          fontFamily: 'Inter, sans-serif',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          color: '#282E3A',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px'
+                        }}>
+                          {category}
+                        </h4>
+                        <span style={{
+                          fontFamily: 'Inter, sans-serif',
+                          fontSize: '12px',
+                          color: '#73747B'
+                        }}>
                           {completedInCategory}/{categoryTasks.length} ✓
                         </span>
                       </div>
                       
                       {/* Tasks in Category */}
-                      <div className="space-y-0">
-                        {categoryTasks.map((task) => (
-                          <div 
-                            key={task.id} 
-                            className={cn(
-                              "flex items-center gap-4 py-2.5",
-                              task.completed && "opacity-40"
-                            )}
-                          >
-                            <PolarCheckbox
-                              checked={task.completed}
-                              onChange={() => toggleTask(task.id, !task.completed)}
-                            />
-                            <span className={cn(
-                              "text-base flex-1",
-                              task.completed && "line-through text-muted-foreground"
-                            )}>
-                              {task.title}
-                            </span>
-                            <span className={cn(
-                              "text-xs flex-shrink-0",
-                              getDateLabelColor(task.due_date)
-                            )}>
-                              {getDateLabel(task.due_date)}
-                            </span>
-                            {task.foh_employees && (
-                              <span className="text-xs text-muted-foreground flex-shrink-0">
-                                {task.foh_employees.name}
-                              </span>
-                            )}
-                          </div>
-                        ))}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {categoryTasks.map((task) => {
+                          const priorityConfig = getPriorityConfig(task.priority);
+                          return (
+                            <div 
+                              key={task.id} 
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                padding: '14px 16px',
+                                backgroundColor: task.completed ? '#FEFFF1' : '#FFFFFF',
+                                border: '1px solid rgba(197, 197, 202, 0.3)',
+                                borderRadius: '12px',
+                                opacity: task.completed ? 0.4 : 1,
+                                transition: 'all 0.15s ease'
+                              }}
+                            >
+                              <PolarCheckbox
+                                checked={task.completed}
+                                onChange={() => toggleTask(task.id, !task.completed)}
+                              />
+                              <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                  <span style={{
+                                    fontFamily: 'Inter, sans-serif',
+                                    fontSize: '15px',
+                                    fontWeight: 500,
+                                    color: '#282E3A',
+                                    textDecoration: task.completed ? 'line-through' : 'none'
+                                  }}>
+                                    {task.title}
+                                  </span>
+                                  
+                                  {task.priority === 1 && (
+                                    <div style={{
+                                      width: '8px',
+                                      height: '8px',
+                                      borderRadius: '50%',
+                                      backgroundColor: priorityConfig.color,
+                                      flexShrink: 0
+                                    }} />
+                                  )}
+                                </div>
+                                
+                                <div style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px',
+                                  marginTop: '4px',
+                                  flexWrap: 'wrap'
+                                }}>
+                                  {task.foh_employees && (
+                                    <span style={{
+                                      fontFamily: 'Inter, sans-serif',
+                                      fontSize: '13px',
+                                      color: '#73747B'
+                                    }}>
+                                      {task.foh_employees.name}
+                                    </span>
+                                  )}
+                                  {task.due_date && (
+                                    <span style={{
+                                      fontFamily: 'Inter, sans-serif',
+                                      fontSize: '13px',
+                                      color: '#73747B'
+                                    }}>
+                                      • {getDateLabel(task.due_date)}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   );
