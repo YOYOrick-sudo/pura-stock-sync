@@ -7,19 +7,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 
-interface ProductIdea {
-  title: string;
-  description: string;
-}
-
-interface QualityCheck {
-  title: string;
-  description: string;
-}
-
-interface DailyAdvice {
-  product_ideas: ProductIdea[];
-  quality_checks: QualityCheck[];
+interface Suggestion {
+  id: string;
+  text: string;
+  reasoning: string;
 }
 
 interface AIWeatherAdvisorProps {
@@ -28,8 +19,12 @@ interface AIWeatherAdvisorProps {
 
 export function AIWeatherAdvisor({ onRefresh }: AIWeatherAdvisorProps) {
   const { userLocation } = useUserLocation();
-  const [advice, setAdvice] = useState<DailyAdvice | null>(null);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [feedbackStates, setFeedbackStates] = useState<Record<string, { 
+    showNote: boolean; 
+    note: string;
+  }>>({});
   const [showRejectNote, setShowRejectNote] = useState(false);
   const [rejectNote, setRejectNote] = useState('');
 
@@ -57,7 +52,7 @@ export function AIWeatherAdvisor({ onRefresh }: AIWeatherAdvisorProps) {
     }
   };
 
-  const handleCreateTask = async (title: string, description: string) => {
+  const handleCreateTask = async (suggestionId: string, title: string, description: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
