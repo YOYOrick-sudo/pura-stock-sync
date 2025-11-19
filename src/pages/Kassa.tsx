@@ -213,36 +213,55 @@ const Kassa = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F7DD]">
+    <div style={{ minHeight: '100vh', backgroundColor: '#FEFFF1', fontFamily: 'Inter, sans-serif' }}>
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-3 py-6 sm:px-4 sm:py-8 lg:px-6 pb-10">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 items-start">
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px', alignItems: 'start' }}>
           {/* Denomination table */}
-          <div className="overflow-hidden shadow-sm border-[#1B7867]/10 bg-white rounded-lg border">
-            <div className="bg-[#1B7867]/10 px-3 py-2.5 border-b border-[#1B7867]/20">
-              <h2 className="font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide">
+          <div style={{
+            backgroundColor: '#F6F7DD',
+            borderRadius: '20px',
+            border: '1px solid rgba(197, 197, 202, 0.5)',
+            overflow: 'hidden',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
+          }}>
+            <div style={{ backgroundColor: '#FFFFFF', padding: '12px 16px', borderBottom: '1px solid rgba(197, 197, 202, 0.5)' }}>
+              <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Kassa Lade
               </h2>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div style={{ overflowX: 'auto', backgroundColor: '#FFFFFF', padding: '16px' }}>
+              <table style={{ width: '100%', fontFamily: 'Inter, sans-serif' }}>
                 <thead>
-                  <tr className="border-b border-[#1B7867]/10 bg-[#F5F7DD]/20">
-                    <th className="px-2.5 py-1 text-left font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Bedrag</th>
-                    <th className="px-2.5 py-1 text-center font-heading font-bold text-[#282E3A]/70 text-xs uppercase tracking-wide">Aantal</th>
+                  <tr style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.3)' }}>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#73747B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bedrag</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#73747B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Aantal</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#1B7867]/15">
+                <tbody>
                   {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom, index) => (
-                    <tr key={denom} className="even:bg-[#F5F7DD]/15 hover:bg-[#F5F7DD]/30 transition-colors border-b border-[#282E3A]/5">
-                      <td className="px-2.5 py-1 text-[#282E3A] font-mono text-sm border-r border-[#1B7867]/10">€{denom.replace('.', ',')}</td>
-                      <td className="px-2.5 py-1 text-center">
+                    <tr key={denom} style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
+                      <td style={{ padding: '8px 12px', color: '#282E3A', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid rgba(197, 197, 202, 0.3)' }}>€{denom.replace('.', ',')}</td>
+                      <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                         <input 
                           type="number" 
                           value={counts[denom as keyof typeof counts]} 
                           onChange={(e) => updateCount(denom, e.target.value === '' ? '' : parseInt(e.target.value))}
                           min={0} 
-                          className="w-16 px-2 py-1 text-center border border-[#1B7867]/20 focus:border-[#1B7867] focus:ring-1 focus:ring-[#1B7867]/20 rounded-lg bg-[#F5F7DD]/40 font-mono text-sm transition-colors" 
+                          style={{
+                            width: '80px',
+                            padding: '6px 8px',
+                            textAlign: 'center',
+                            border: '1px solid rgba(197, 197, 202, 0.5)',
+                            borderRadius: '16px',
+                            backgroundColor: '#FFFFFF',
+                            fontFamily: 'monospace',
+                            fontSize: '14px',
+                            color: '#282E3A',
+                            outline: 'none',
+                          }}
+                          onFocus={(e) => e.target.style.borderColor = '#1B7867'}
+                          onBlur={(e) => e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)'}
                         />
                       </td>
                     </tr>
@@ -250,64 +269,68 @@ const Kassa = () => {
                 </tbody>
               </table>
             </div>
-            <div className="bg-[#1B7867]/5 px-3 py-2 border-t border-[#1B7867]/10">
-              <div className="flex items-center justify-between">
-                <span className="font-heading font-bold text-[#1B7867] text-xs uppercase tracking-wide">Totaal</span>
-                <span className="text-xl font-heading font-bold text-[#1B7867]">€{calculateTotal().toFixed(2).replace('.', ',')}</span>
+            <div style={{ backgroundColor: '#FFFFFF', padding: '12px 16px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
+                <span style={{ fontSize: '24px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>€{calculateTotal().toFixed(2).replace('.', ',')}</span>
               </div>
             </div>
           </div>
 
           {/* Right side: Summary card */}
-          <div className="lg:sticky lg:top-6 space-y-4">
+          <div style={{ position: 'sticky', top: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Beginsaldo Reference - Collapsible */}
             <Collapsible open={beginsaldoExpanded} onOpenChange={setBeginsaldoExpanded}>
-              <div className="bg-white rounded-xl shadow-sm border border-[#1B7867]/10 overflow-hidden">
+              <div style={{
+                backgroundColor: '#F6F7DD',
+                borderRadius: '20px',
+                border: '1px solid rgba(197, 197, 202, 0.5)',
+                overflow: 'hidden',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
+              }}>
                 
                 {/* Clickable header met icon en pijltje */}
-                <CollapsibleTrigger className="w-full p-3 hover:bg-[#1B7867]/5 transition-colors cursor-pointer">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Wallet className="h-4 w-4 text-[#1B7867]" />
-                      <span className="text-xs font-heading font-bold text-[#1B7867] uppercase tracking-wide">
+                <CollapsibleTrigger style={{ width: '100%', padding: '12px 16px', backgroundColor: '#FFFFFF', cursor: 'pointer', border: 'none', transition: 'background-color 0.15s' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F6F7DD'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFFFFF'}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Wallet style={{ width: '16px', height: '16px', color: '#1B7867' }} />
+                      <span style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Beginsaldo (blijft in kassa)
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-heading font-bold text-[#1B7867]">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '18px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>
                         €{Object.entries(BEGINSALDO_VERDELING).reduce((sum, [denom, count]) => sum + (parseFloat(denom) * count), 0).toFixed(2).replace('.', ',')}
                       </span>
                       <ChevronDown 
-                        className={`h-4 w-4 text-[#1B7867] transition-transform duration-200 ${
-                          beginsaldoExpanded ? 'rotate-180' : ''
-                        }`} 
+                        style={{ width: '16px', height: '16px', color: '#1B7867', transition: 'transform 0.2s', transform: beginsaldoExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} 
                       />
                     </div>
                   </div>
                 </CollapsibleTrigger>
                 
                 {/* Uitklapbare content met denominaties */}
-                <CollapsibleContent className="px-3 pb-3">
-                  <div className="border-t border-[#1B7867]/10 pt-2 space-y-0.5">
+                <CollapsibleContent>
+                  <div style={{ padding: '12px 16px', backgroundColor: '#FFFFFF', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
                     {Object.entries(BEGINSALDO_VERDELING).map(([denom, count]) => (
-                      <div key={denom} className="flex items-center justify-between text-xs">
-                        <span className="text-[#282E3A]/60 font-mono">€{denom.replace('.', ',')} × {count}</span>
-                        <span className="text-[#282E3A]/60 font-mono">
+                      <div key={denom} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
+                        <span style={{ fontFamily: 'monospace', fontSize: '13px', color: '#282E3A' }}>€{denom.replace('.', ',')} × {count}</span>
+                        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#73747B' }}>
                           €{(parseFloat(denom) * count).toFixed(2).replace('.', ',')}
                         </span>
                       </div>
                     ))}
-                  </div>
-                  <div className="border-t border-[#1B7867]/10 mt-2 pt-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-heading font-bold text-[#282E3A]/70">Totaal</span>
-                      <span className="text-lg font-heading font-bold text-[#1B7867]">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', marginTop: '8px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
+                      <span style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
+                      <span style={{ fontSize: '18px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>
                         €{Object.entries(BEGINSALDO_VERDELING).reduce((sum, [denom, count]) => sum + (parseFloat(denom) * count), 0).toFixed(2).replace('.', ',')}
                       </span>
                     </div>
                   </div>
                 </CollapsibleContent>
-                
               </div>
             </Collapsible>
 
