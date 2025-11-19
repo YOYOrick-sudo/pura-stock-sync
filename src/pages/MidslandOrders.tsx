@@ -280,19 +280,29 @@ export default function MidslandOrders() {
                           <Package className="h-4 w-4" style={{ color: '#1B7867' }} />
                           Producten
                         </h4>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ 
+                          backgroundColor: '#FFFFFF',
+                          border: '1px solid rgba(197, 197, 202, 0.5)',
+                          borderRadius: '16px',
+                          overflow: 'hidden'
+                        }}>
                           {order.internal_order_items && order.internal_order_items.length > 0 ? (
-                            order.internal_order_items.map((item) => (
+                            order.internal_order_items.map((item, index) => (
                               <div
                                 key={item.id}
                                 style={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
+                                  display: 'grid',
+                                  gridTemplateColumns: '1fr auto',
                                   alignItems: 'center',
-                                  padding: '16px',
-                                  backgroundColor: '#FFFFFF',
-                                  border: '1px solid rgba(197, 197, 202, 0.3)',
-                                  borderRadius: '16px'
+                                  padding: '16px 20px',
+                                  borderBottom: index < order.internal_order_items.length - 1 ? '1px solid rgba(197, 197, 202, 0.3)' : 'none',
+                                  transition: 'background-color 0.2s'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#FEFFF1';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = 'transparent';
                                 }}
                               >
                                 <span style={{ 
@@ -307,7 +317,9 @@ export default function MidslandOrders() {
                                   fontFamily: 'Inter, sans-serif',
                                   fontSize: '14px',
                                   fontWeight: 600,
-                                  color: '#1B7867'
+                                  color: '#1B7867',
+                                  textAlign: 'right',
+                                  minWidth: '80px'
                                 }}>
                                   {item.quantity} {item.unit}
                                 </span>
@@ -315,7 +327,7 @@ export default function MidslandOrders() {
                             ))
                           ) : (
                             <div style={{ 
-                              padding: '16px', 
+                              padding: '20px', 
                               textAlign: 'center',
                               fontFamily: 'Inter, sans-serif',
                               fontSize: '14px',
