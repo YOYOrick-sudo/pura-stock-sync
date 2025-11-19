@@ -455,6 +455,8 @@ const KassatellingOverdag = () => {
                       if (canSubmit && naam && naam.length >= 2 && opmerkingen && opmerkingen.length >= 3) {
                         e.currentTarget.style.backgroundColor = '#1B7867';
                         e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
+                      } else {
+                        e.currentTarget.style.backgroundColor = '#D1D5DB';
                       }
                     }}
                   >
