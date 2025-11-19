@@ -326,14 +326,87 @@ export function FohTasks() {
     setEmployees(data || []);
   };
 
+  // Client-side fallback: check if tasks need reset
+  const shouldResetTasks = (): boolean => {
+    const location = userLocation || 'West';
+    const lastReset = localStorage.getItem(`lastTaskReset_${location}`);
+    const now = new Date();
+    const amsterdamTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' }));
+    
+    // If never reset before, needs reset
+    if (!lastReset) return true;
+    
+    const lastResetDate = new Date(lastReset);
+    const lastResetAmsterdam = new Date(lastResetDate.toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' }));
+    
+    // Check if it's after 04:00 and we haven't reset today yet
+    const currentHour = amsterdamTime.getHours();
+    const lastResetDay = lastResetAmsterdam.toDateString();
+    const currentDay = amsterdamTime.toDateString();
+    
+    // If it's a new day AND it's after 04:00, we need to reset
+    if (currentDay !== lastResetDay && currentHour >= 4) {
+      return true;
+    }
+    
+    // If it's the same day but before 04:00, check if last reset was yesterday
+    if (currentHour < 4) {
+      const yesterday = new Date(amsterdamTime);
+      yesterday.setDate(yesterday.getDate() - 1);
+      if (lastResetDay === yesterday.toDateString()) {
+        return false; // Already reset for "today" (which extends until 04:00)
+      }
+    }
+    
+    return false;
+  };
+
+  const performClientSideReset = async () => {
+    const location = userLocation || 'West';
+    try {
+      console.log(`[${location}] Performing client-side task reset...`);
+      
+      const todayDate = getAmsterdamDateString();
+      
+      // Archive old tasks
+      const { error: archiveError } = await supabase
+        .from('foh_tasks')
+        .update({ archived: true })
+        .eq('location', location)
+        .lt('due_date', todayDate)
+        .eq('archived', false);
+      
+      if (archiveError) {
+        console.error('Error archiving old tasks:', archiveError);
+        return;
+      }
+      
+      // Generate new tasks
+      await generateDailyTasks();
+      
+      // Mark reset as done
+      localStorage.setItem(`lastTaskReset_${location}`, new Date().toISOString());
+      console.log(`[${location}] Client-side reset completed`);
+    } catch (error) {
+      console.error('Error in client-side reset:', error);
+    }
+  };
+
   useEffect(() => {
-    const generateAndFetchDailyTasks = async () => {
+    const initializeTasks = async () => {
+      // Check if reset is needed (client-side fallback)
+      if (shouldResetTasks()) {
+        await performClientSideReset();
+      }
+      
+      // Generate and fetch current tasks
       await generateDailyTasks();
       await fetchDailyTasks();
+      fetchExtraTasks();
+      fetchEmployees();
     };
-    generateAndFetchDailyTasks();
-    fetchExtraTasks();
-    fetchEmployees();
+    
+    initializeTasks();
   }, [userLocation]);
   
   // Auto-detect phase based on time and open tasks
