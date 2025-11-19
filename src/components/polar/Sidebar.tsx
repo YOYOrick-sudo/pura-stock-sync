@@ -60,6 +60,7 @@ export function PolarSidebar({
         borderRight: '1px solid rgba(197, 197, 202, 0.5)',
         position: 'sticky',
         top: 0,
+        paddingTop: '16px',
         transition: 'width 200ms cubic-bezier(0.4, 0, 0.2, 1)',
       }}
     >
@@ -71,7 +72,6 @@ export function PolarSidebar({
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: collapsed ? '0 12px' : '0 24px',
-          paddingTop: '16px',
           borderBottom: '1px solid rgba(197, 197, 202, 0.5)',
         }}
       >
