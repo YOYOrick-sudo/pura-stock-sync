@@ -22,7 +22,7 @@ const PHASE_WINDOWS = [
 ] as const;
 
 // Category order for display
-const CATEGORY_ORDER = ['Bar', 'Keuken', 'Terras', 'Toilet', 'Entree', 'Algemeen'] as const;
+const CATEGORY_ORDER = ['Bar', 'Keuken', 'Zaal', 'Terras', 'Sanitair', 'Entree', 'Voorraad', 'Algemeen'] as const;
 
 const nowInAmsterdamMinutes = (): number => {
   const TIMEZONE = 'Europe/Amsterdam';
@@ -194,6 +194,7 @@ export function FohTasks() {
     priority: 2 as 1 | 2 | 3,
     assigned_employee_id: null as string | null,
     category: 'Algemeen' as string,
+    estimated_minutes: null as number | null,
   });
   
   const [employeeInput, setEmployeeInput] = useState('');
@@ -241,6 +242,7 @@ export function FohTasks() {
       completed: false,
       archived: false,
       assigned_employee_id: null,
+      estimated_minutes: template.estimated_minutes,
     }));
     
     await supabase.from('foh_tasks').insert(tasksToInsert);
@@ -426,6 +428,7 @@ export function FohTasks() {
         phase: null,
         completed: false,
         archived: false,
+        estimated_minutes: newTask.estimated_minutes,
       });
 
     if (error) {
@@ -442,6 +445,7 @@ export function FohTasks() {
       priority: 2,
       assigned_employee_id: null,
       category: 'Algemeen',
+      estimated_minutes: null,
     });
     setEmployeeInput('');
     fetchExtraTasks();
@@ -868,6 +872,46 @@ export function FohTasks() {
                             marginBottom: '6px',
                             fontFamily: 'Inter, sans-serif',
                           }}>
+                            Geschatte tijd (optioneel)
+                          </label>
+                          <Select
+                            value={newTask.estimated_minutes?.toString() || ''}
+                            onValueChange={(value) => setNewTask({ ...newTask, estimated_minutes: value ? Number(value) : null })}
+                          >
+                            <SelectTrigger style={{
+                              backgroundColor: '#FFFFFF',
+                              border: '1px solid rgba(197, 197, 202, 0.5)',
+                              borderRadius: '16px',
+                              padding: '10px 14px',
+                              fontFamily: 'Inter, sans-serif',
+                            }}>
+                              <SelectValue placeholder="Niet ingevuld" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="0">Niet ingevuld</SelectItem>
+                              <SelectItem value="3">3 minuten</SelectItem>
+                              <SelectItem value="5">5 minuten</SelectItem>
+                              <SelectItem value="10">10 minuten</SelectItem>
+                              <SelectItem value="15">15 minuten</SelectItem>
+                              <SelectItem value="20">20 minuten</SelectItem>
+                              <SelectItem value="30">30 minuten</SelectItem>
+                              <SelectItem value="45">45 minuten</SelectItem>
+                              <SelectItem value="60">1 uur</SelectItem>
+                              <SelectItem value="90">1,5 uur</SelectItem>
+                              <SelectItem value="120">2 uur</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <label style={{
+                            display: 'block',
+                            fontSize: '13px',
+                            fontWeight: 500,
+                            color: '#282E3A',
+                            marginBottom: '6px',
+                            fontFamily: 'Inter, sans-serif',
+                          }}>
                             Prioriteit
                           </label>
                           <Select
@@ -918,9 +962,11 @@ export function FohTasks() {
                             <SelectContent>
                               <SelectItem value="Bar">Bar</SelectItem>
                               <SelectItem value="Keuken">Keuken</SelectItem>
+                              <SelectItem value="Zaal">Zaal</SelectItem>
                               <SelectItem value="Terras">Terras</SelectItem>
-                              <SelectItem value="Toilet">Toilet</SelectItem>
+                              <SelectItem value="Sanitair">Sanitair</SelectItem>
                               <SelectItem value="Entree">Entree</SelectItem>
+                              <SelectItem value="Voorraad">Voorraad</SelectItem>
                               <SelectItem value="Algemeen">Algemeen</SelectItem>
                             </SelectContent>
                           </Select>
@@ -1023,6 +1069,7 @@ export function FohTasks() {
                               priority: 2,
                               assigned_employee_id: null,
                               category: 'Algemeen',
+                              estimated_minutes: null,
                             });
                             setEmployeeInput('');
                           }}
@@ -1276,6 +1323,20 @@ export function FohTasks() {
                                   </span>
 
                                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    {task.estimated_minutes && (
+                                      <span style={{
+                                        fontSize: '12px',
+                                        fontWeight: 500,
+                                        color: '#73747B',
+                                        fontFamily: 'Inter, sans-serif',
+                                        whiteSpace: 'nowrap',
+                                      }}>
+                                        ~{task.estimated_minutes < 60 
+                                          ? `${task.estimated_minutes}min` 
+                                          : `${Math.floor(task.estimated_minutes / 60)}u${task.estimated_minutes % 60 > 0 ? ` ${task.estimated_minutes % 60}min` : ''}`}
+                                      </span>
+                                    )}
+                                    
                                     <span style={{
                                       fontSize: '12px',
                                       fontWeight: 500,
