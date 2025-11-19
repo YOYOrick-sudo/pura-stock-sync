@@ -560,7 +560,7 @@ export function FohTasks() {
                 width: '1px',
                 height: '32px',
                 backgroundColor: 'rgba(197, 197, 202, 0.5)',
-                margin: '0 4px',
+                margin: '0 16px',
               }} />
               
               {/* Periodiek button (unified) */}
@@ -608,272 +608,6 @@ export function FohTasks() {
                 );
               })()}
 
-              {/* New Task Button - only for periodiek */}
-              {mainCategory === 'periodiek' && (
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button
-                      style={{
-                        backgroundColor: '#1B7867',
-                        color: '#FFFFFF',
-                        borderRadius: '16px',
-                        padding: '10px 16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontFamily: 'Inter, sans-serif',
-                        fontWeight: 500,
-                        fontSize: '14px',
-                      }}
-                    >
-                      <Plus size={16} />
-                      Nieuwe Taak
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent style={{
-                    backgroundColor: '#FFFFFF',
-                    borderRadius: '16px',
-                    border: '1px solid rgba(197, 197, 202, 0.5)',
-                    padding: '24px',
-                    maxWidth: '480px',
-                  }}>
-                    <DialogHeader>
-                      <DialogTitle style={{
-                        fontSize: '18px',
-                        fontWeight: 500,
-                        color: '#282E3A',
-                        fontFamily: 'Inter, sans-serif',
-                      }}>
-                        Nieuwe Taak Aanmaken
-                      </DialogTitle>
-                    </DialogHeader>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-                      <div>
-                        <label style={{
-                          display: 'block',
-                          fontSize: '14px',
-                          fontWeight: 500,
-                          color: '#282E3A',
-                          marginBottom: '8px',
-                          fontFamily: 'Inter, sans-serif',
-                        }}>
-                          Titel *
-                        </label>
-                        <Input
-                          value={newTask.title}
-                          onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                          placeholder="Bijv. Koelkasten diep reinigen"
-                          style={{
-                            borderRadius: '16px',
-                            border: '1px solid rgba(197, 197, 202, 0.5)',
-                            fontFamily: 'Inter, sans-serif',
-                          }}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{
-                          display: 'block',
-                          fontSize: '14px',
-                          fontWeight: 500,
-                          color: '#282E3A',
-                          marginBottom: '8px',
-                          fontFamily: 'Inter, sans-serif',
-                        }}>
-                          Datum *
-                        </label>
-                        <Input
-                          type="date"
-                          value={newTask.due_date}
-                          onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
-                          style={{
-                            borderRadius: '16px',
-                            border: '1px solid rgba(197, 197, 202, 0.5)',
-                            fontFamily: 'Inter, sans-serif',
-                          }}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{
-                          display: 'block',
-                          fontSize: '14px',
-                          fontWeight: 500,
-                          color: '#282E3A',
-                          marginBottom: '8px',
-                          fontFamily: 'Inter, sans-serif',
-                        }}>
-                          Prioriteit
-                        </label>
-                        <Select
-                          value={String(newTask.priority)}
-                          onValueChange={(v) => setNewTask({ ...newTask, priority: Number(v) as 1 | 2 | 3 })}
-                        >
-                          <SelectTrigger style={{
-                            borderRadius: '16px',
-                            border: '1px solid rgba(197, 197, 202, 0.5)',
-                            fontFamily: 'Inter, sans-serif',
-                          }}>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">🔴 Hoog</SelectItem>
-                            <SelectItem value="2">🟡 Normaal</SelectItem>
-                            <SelectItem value="3">🟢 Laag</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <label style={{
-                          display: 'block',
-                          fontSize: '14px',
-                          fontWeight: 500,
-                          color: '#282E3A',
-                          marginBottom: '8px',
-                          fontFamily: 'Inter, sans-serif',
-                        }}>
-                          Categorie
-                        </label>
-                        <Select
-                          value={newTask.category}
-                          onValueChange={(v) => setNewTask({ ...newTask, category: v })}
-                        >
-                          <SelectTrigger style={{
-                            borderRadius: '16px',
-                            border: '1px solid rgba(197, 197, 202, 0.5)',
-                            fontFamily: 'Inter, sans-serif',
-                          }}>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {CATEGORY_ORDER.map(cat => (
-                              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <label style={{
-                          display: 'block',
-                          fontSize: '14px',
-                          fontWeight: 500,
-                          color: '#282E3A',
-                          marginBottom: '8px',
-                          fontFamily: 'Inter, sans-serif',
-                        }}>
-                          Medewerker (optioneel)
-                        </label>
-                        <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              aria-expanded={employeeOpen}
-                              style={{
-                                width: '100%',
-                                justifyContent: 'space-between',
-                                borderRadius: '16px',
-                                fontFamily: 'Inter, sans-serif',
-                              }}
-                            >
-                              {newTask.assigned_employee_id
-                                ? employees.find((e) => e.id === newTask.assigned_employee_id)?.name
-                                : "Selecteer medewerker..."}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-full p-0">
-                            <Command>
-                              <CommandInput
-                                placeholder="Zoek of maak nieuwe medewerker..."
-                                value={employeeInput}
-                                onValueChange={setEmployeeInput}
-                              />
-                              <CommandList>
-                                {filteredEmployees.length === 0 && employeeInput.length === 0 && (
-                                  <CommandEmpty>Geen medewerkers gevonden.</CommandEmpty>
-                                )}
-                                {filteredEmployees.length === 0 && employeeInput.length > 0 && (
-                                  <CommandEmpty>Geen resultaten.</CommandEmpty>
-                                )}
-                                {filteredEmployees.length > 0 && (
-                                  <CommandGroup heading="Bestaande medewerkers">
-                                    {filteredEmployees.map((employee) => (
-                                      <CommandItem
-                                        key={employee.id}
-                                        value={employee.name}
-                                        onSelect={() => handleEmployeeSelect(employee.id)}
-                                      >
-                                        <Check
-                                          className={cn(
-                                            "mr-2 h-4 w-4",
-                                            newTask.assigned_employee_id === employee.id ? "opacity-100" : "opacity-0"
-                                          )}
-                                        />
-                                        {employee.name}
-                                      </CommandItem>
-                                    ))}
-                                  </CommandGroup>
-                                )}
-                                {shouldShowAddNew && (
-                                  <>
-                                    {filteredEmployees.length > 0 && <CommandSeparator />}
-                                    <CommandGroup>
-                                      <CommandItem onSelect={handleAddNewEmployee}>
-                                        <Plus className="mr-2 h-4 w-4" />
-                                        Maak "{employeeInput}" aan
-                                      </CommandItem>
-                                    </CommandGroup>
-                                  </>
-                                )}
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
-
-                    <DialogFooter style={{ marginTop: '16px', gap: '8px' }}>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setDialogOpen(false);
-                          setNewTask({
-                            title: '',
-                            due_date: new Date().toISOString().split('T')[0],
-                            priority: 2,
-                            assigned_employee_id: null,
-                            category: 'Algemeen',
-                          });
-                          setEmployeeInput('');
-                        }}
-                        style={{
-                          borderRadius: '16px',
-                          fontFamily: 'Inter, sans-serif',
-                        }}
-                      >
-                        Annuleren
-                      </Button>
-                      <Button
-                        onClick={createTask}
-                        style={{
-                          backgroundColor: '#1B7867',
-                          color: '#FFFFFF',
-                          borderRadius: '16px',
-                          fontFamily: 'Inter, sans-serif',
-                        }}
-                      >
-                        Aanmaken
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              )}
             </div>
 
             <hr style={{ border: 'none', borderTop: '1px solid rgba(197, 197, 202, 0.5)', margin: 0 }} />
@@ -915,6 +649,292 @@ export function FohTasks() {
                     {progressPercentage}%
                   </span>
                 </div>
+
+                {/* New Task Button - only for periodiek */}
+                {mainCategory === 'periodiek' && (
+                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        style={{
+                          backgroundColor: '#1B7867',
+                          color: '#FFFFFF',
+                          borderRadius: '16px',
+                          padding: '10px 16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontFamily: 'Inter, sans-serif',
+                          fontWeight: 500,
+                          fontSize: '14px',
+                          width: '140px',
+                        }}
+                      >
+                        <Plus size={16} />
+                        Nieuwe Taak
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '16px',
+                      border: '1px solid rgba(197, 197, 202, 0.5)',
+                      padding: '24px',
+                      maxWidth: '480px',
+                    }}>
+                      <DialogHeader>
+                        <DialogTitle style={{
+                          fontSize: '18px',
+                          fontWeight: 500,
+                          color: '#282E3A',
+                          fontFamily: 'Inter, sans-serif',
+                        }}>
+                          Nieuwe Periodieke Taak
+                        </DialogTitle>
+                      </DialogHeader>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
+                        <div>
+                          <label style={{
+                            display: 'block',
+                            fontSize: '13px',
+                            fontWeight: 500,
+                            color: '#282E3A',
+                            marginBottom: '6px',
+                            fontFamily: 'Inter, sans-serif',
+                          }}>
+                            Titel
+                          </label>
+                          <Input
+                            value={newTask.title}
+                            onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                            placeholder="Bijv. Voorraad controleren"
+                            style={{
+                              backgroundColor: '#FFFFFF',
+                              border: '1px solid rgba(197, 197, 202, 0.5)',
+                              borderRadius: '16px',
+                              padding: '10px 14px',
+                              fontFamily: 'Inter, sans-serif',
+                              fontSize: '14px',
+                            }}
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{
+                            display: 'block',
+                            fontSize: '13px',
+                            fontWeight: 500,
+                            color: '#282E3A',
+                            marginBottom: '6px',
+                            fontFamily: 'Inter, sans-serif',
+                          }}>
+                            Deadline
+                          </label>
+                          <Input
+                            type="date"
+                            value={newTask.due_date}
+                            onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
+                            style={{
+                              backgroundColor: '#FFFFFF',
+                              border: '1px solid rgba(197, 197, 202, 0.5)',
+                              borderRadius: '16px',
+                              padding: '10px 14px',
+                              fontFamily: 'Inter, sans-serif',
+                              fontSize: '14px',
+                            }}
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{
+                            display: 'block',
+                            fontSize: '13px',
+                            fontWeight: 500,
+                            color: '#282E3A',
+                            marginBottom: '6px',
+                            fontFamily: 'Inter, sans-serif',
+                          }}>
+                            Prioriteit
+                          </label>
+                          <Select
+                            value={String(newTask.priority)}
+                            onValueChange={(value) => setNewTask({ ...newTask, priority: Number(value) as 1 | 2 | 3 })}
+                          >
+                            <SelectTrigger style={{
+                              backgroundColor: '#FFFFFF',
+                              border: '1px solid rgba(197, 197, 202, 0.5)',
+                              borderRadius: '16px',
+                              padding: '10px 14px',
+                              fontFamily: 'Inter, sans-serif',
+                            }}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1">🔴 Hoog</SelectItem>
+                              <SelectItem value="2">🟡 Normaal</SelectItem>
+                              <SelectItem value="3">🟢 Laag</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <label style={{
+                            display: 'block',
+                            fontSize: '13px',
+                            fontWeight: 500,
+                            color: '#282E3A',
+                            marginBottom: '6px',
+                            fontFamily: 'Inter, sans-serif',
+                          }}>
+                            Categorie
+                          </label>
+                          <Select
+                            value={newTask.category}
+                            onValueChange={(value) => setNewTask({ ...newTask, category: value })}
+                          >
+                            <SelectTrigger style={{
+                              backgroundColor: '#FFFFFF',
+                              border: '1px solid rgba(197, 197, 202, 0.5)',
+                              borderRadius: '16px',
+                              padding: '10px 14px',
+                              fontFamily: 'Inter, sans-serif',
+                            }}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Bar">Bar</SelectItem>
+                              <SelectItem value="Keuken">Keuken</SelectItem>
+                              <SelectItem value="Terras">Terras</SelectItem>
+                              <SelectItem value="Toilet">Toilet</SelectItem>
+                              <SelectItem value="Entree">Entree</SelectItem>
+                              <SelectItem value="Algemeen">Algemeen</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <label style={{
+                            display: 'block',
+                            fontSize: '13px',
+                            fontWeight: 500,
+                            color: '#282E3A',
+                            marginBottom: '6px',
+                            fontFamily: 'Inter, sans-serif',
+                          }}>
+                            Toegewezen aan
+                          </label>
+                          <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={employeeOpen}
+                                style={{
+                                  width: '100%',
+                                  justifyContent: 'space-between',
+                                  backgroundColor: '#FFFFFF',
+                                  border: '1px solid rgba(197, 197, 202, 0.5)',
+                                  borderRadius: '16px',
+                                  padding: '10px 14px',
+                                  fontFamily: 'Inter, sans-serif',
+                                  fontSize: '14px',
+                                  fontWeight: 400,
+                                }}
+                              >
+                                {newTask.assigned_employee_id
+                                  ? employees.find((e) => e.id === newTask.assigned_employee_id)?.name
+                                  : "Selecteer medewerker..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[400px] p-0">
+                              <Command shouldFilter={false}>
+                                <CommandInput
+                                  placeholder="Zoek of maak nieuwe medewerker..."
+                                  value={employeeInput}
+                                  onValueChange={setEmployeeInput}
+                                />
+                                <CommandList>
+                                  {filteredEmployees.length === 0 && employeeInput.length === 0 && (
+                                    <CommandEmpty>Geen medewerkers gevonden.</CommandEmpty>
+                                  )}
+                                  {filteredEmployees.length === 0 && employeeInput.length > 0 && (
+                                    <CommandEmpty>Geen resultaten.</CommandEmpty>
+                                  )}
+                                  {filteredEmployees.length > 0 && (
+                                    <CommandGroup heading="Bestaande medewerkers">
+                                      {filteredEmployees.map((employee) => (
+                                        <CommandItem
+                                          key={employee.id}
+                                          value={employee.name}
+                                          onSelect={() => handleEmployeeSelect(employee.id)}
+                                        >
+                                          <Check
+                                            className={cn(
+                                              "mr-2 h-4 w-4",
+                                              newTask.assigned_employee_id === employee.id ? "opacity-100" : "opacity-0"
+                                            )}
+                                          />
+                                          {employee.name}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  )}
+                                  {shouldShowAddNew && (
+                                    <>
+                                      {filteredEmployees.length > 0 && <CommandSeparator />}
+                                      <CommandGroup>
+                                        <CommandItem onSelect={handleAddNewEmployee}>
+                                          <Plus className="mr-2 h-4 w-4" />
+                                          Maak "{employeeInput}" aan
+                                        </CommandItem>
+                                      </CommandGroup>
+                                    </>
+                                  )}
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </div>
+
+                      <DialogFooter style={{ marginTop: '16px', gap: '8px' }}>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setDialogOpen(false);
+                            setNewTask({
+                              title: '',
+                              due_date: new Date().toISOString().split('T')[0],
+                              priority: 2,
+                              assigned_employee_id: null,
+                              category: 'Algemeen',
+                            });
+                            setEmployeeInput('');
+                          }}
+                          style={{
+                            borderRadius: '16px',
+                            fontFamily: 'Inter, sans-serif',
+                          }}
+                        >
+                          Annuleren
+                        </Button>
+                        <Button
+                          onClick={createTask}
+                          style={{
+                            backgroundColor: '#1B7867',
+                            color: '#FFFFFF',
+                            borderRadius: '16px',
+                            fontFamily: 'Inter, sans-serif',
+                          }}
+                        >
+                          Aanmaken
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                )}
               </div>
             </div>
 
