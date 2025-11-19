@@ -63,10 +63,10 @@ export function PolarSidebar({
         transition: 'width 200ms cubic-bezier(0.4, 0, 0.2, 1)',
       }}
     >
-      {/* Header - 72px */}
+      {/* Header - 76px */}
       <div
         style={{
-          height: '72px',
+          height: '76px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
