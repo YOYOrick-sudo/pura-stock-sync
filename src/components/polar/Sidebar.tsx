@@ -60,7 +60,6 @@ export function PolarSidebar({
         borderRight: '1px solid rgba(197, 197, 202, 0.5)',
         position: 'sticky',
         top: 0,
-        paddingTop: '16px',
         transition: 'width 200ms cubic-bezier(0.4, 0, 0.2, 1)',
       }}
     >

@@ -35,13 +35,17 @@ export function SidebarLayout({
 
   return (
     <div className="flex min-h-screen w-full" style={{
-      backgroundColor: '#FEFFF1',
-      paddingTop: '16px',
+      backgroundColor: '#FEFFF1'
     }}>
-      <AppSidebar />
+      <div style={{ 
+        backgroundColor: '#F6F7DD',
+        paddingTop: '16px',
+      }}>
+        <AppSidebar />
+      </div>
       
       <div className="flex flex-col flex-1">
-        <PolarHeader 
+        <PolarHeader
           title={getPageTitle(location.pathname)} 
           showStatusIndicator={false} 
           location={userLocation}
