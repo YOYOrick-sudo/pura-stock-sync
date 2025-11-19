@@ -35,7 +35,8 @@ export function SidebarLayout({
 
   return (
     <div className="flex min-h-screen w-full" style={{
-      backgroundColor: '#FEFFF1'
+      backgroundColor: '#FEFFF1',
+      paddingTop: '16px',
     }}>
       <AppSidebar />
       

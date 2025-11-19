@@ -30,7 +30,6 @@ export function PolarHeader({
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 48px',
-        paddingTop: '16px',
       }}
     >
       <h1 
