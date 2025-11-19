@@ -10,6 +10,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState<'West' | 'Midsland'>('West');
+  const [hoveredCard, setHoveredCard] = useState<'West' | 'Midsland' | null>(null);
   
   const getEmailForLocation = (loc: 'West' | 'Midsland') => {
     return loc === 'West' 
@@ -164,16 +165,27 @@ const Auth = () => {
                 {/* West Card */}
                 <div
                   onClick={() => !loading && setLocation('West')}
+                  onMouseEnter={() => !loading && setHoveredCard('West')}
+                  onMouseLeave={() => setHoveredCard(null)}
                   style={{
                     cursor: loading ? 'not-allowed' : 'pointer',
                     padding: '16px',
                     borderRadius: '20px',
                     border: location === 'West' 
                       ? '2px solid #1B7867' 
-                      : '1px solid rgba(197, 197, 202, 0.5)',
-                    backgroundColor: location === 'West' ? '#FEFFF1' : '#F6F7DD',
+                      : hoveredCard === 'West'
+                        ? '1px solid rgba(197, 197, 202, 0.7)'
+                        : '1px solid rgba(197, 197, 202, 0.5)',
+                    backgroundColor: location === 'West' 
+                      ? '#FEFFF1' 
+                      : hoveredCard === 'West'
+                        ? '#FEFFF1'
+                        : '#F6F7DD',
                     transition: 'all 200ms',
-                    opacity: loading ? 0.5 : 1
+                    opacity: loading ? 0.5 : 1,
+                    boxShadow: hoveredCard === 'West' && location !== 'West'
+                      ? '0 2px 4px rgba(0, 0, 0, 0.08)'
+                      : 'none'
                   }}
                 >
                   <div style={{
@@ -190,16 +202,27 @@ const Auth = () => {
                 {/* Midsland Card */}
                 <div
                   onClick={() => !loading && setLocation('Midsland')}
+                  onMouseEnter={() => !loading && setHoveredCard('Midsland')}
+                  onMouseLeave={() => setHoveredCard(null)}
                   style={{
                     cursor: loading ? 'not-allowed' : 'pointer',
                     padding: '16px',
                     borderRadius: '20px',
                     border: location === 'Midsland' 
                       ? '2px solid #1B7867' 
-                      : '1px solid rgba(197, 197, 202, 0.5)',
-                    backgroundColor: location === 'Midsland' ? '#FEFFF1' : '#F6F7DD',
+                      : hoveredCard === 'Midsland'
+                        ? '1px solid rgba(197, 197, 202, 0.7)'
+                        : '1px solid rgba(197, 197, 202, 0.5)',
+                    backgroundColor: location === 'Midsland' 
+                      ? '#FEFFF1' 
+                      : hoveredCard === 'Midsland'
+                        ? '#FEFFF1'
+                        : '#F6F7DD',
                     transition: 'all 200ms',
-                    opacity: loading ? 0.5 : 1
+                    opacity: loading ? 0.5 : 1,
+                    boxShadow: hoveredCard === 'Midsland' && location !== 'Midsland'
+                      ? '0 2px 4px rgba(0, 0, 0, 0.08)'
+                      : 'none'
                   }}
                 >
                   <div style={{
