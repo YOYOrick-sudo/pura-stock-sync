@@ -282,6 +282,7 @@ export function FohTasks() {
       .eq('due_date', todayDate)
       .eq('archived', false)
       .not('phase', 'is', null)
+      .order('sort_order', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: true });
     
     if (error) {
