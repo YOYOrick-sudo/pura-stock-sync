@@ -48,7 +48,7 @@ export default function InternalOrders() {
       <div
         key={order.id}
         style={{
-          backgroundColor: '#FEFFF1',
+          backgroundColor: '#F6F7DD',
           borderRadius: '20px',
           border: '1px solid rgba(197, 197, 202, 0.5)',
           overflow: 'hidden',
