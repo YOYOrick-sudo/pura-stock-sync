@@ -659,20 +659,36 @@ export function FohTasks() {
                           backgroundColor: '#1B7867',
                           color: '#FFFFFF',
                           borderRadius: '16px',
-                          padding: '10px 16px',
+                          padding: '10px',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '8px',
-                          border: 'none',
+                          justifyContent: 'center',
+                          border: '1px solid rgba(255,255,255,0.2)',
                           cursor: 'pointer',
                           fontFamily: 'Inter, sans-serif',
                           fontWeight: 500,
                           fontSize: '14px',
-                          width: '140px',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                          transition: 'all 150ms ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#229580';
+                          e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#1B7867';
+                          e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                        }}
+                        onMouseDown={(e) => {
+                          e.currentTarget.style.backgroundColor = '#156353';
+                          e.currentTarget.style.transform = 'scale(0.95)';
+                        }}
+                        onMouseUp={(e) => {
+                          e.currentTarget.style.backgroundColor = '#229580';
+                          e.currentTarget.style.transform = 'scale(1)';
                         }}
                       >
-                        <Plus size={16} />
-                        Nieuwe Taak
+                        <Plus size={20} />
                       </Button>
                     </DialogTrigger>
                     <DialogContent style={{
