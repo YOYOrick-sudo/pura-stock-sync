@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useState } from 'react';
 import { Copy, Check, AlertCircle, CheckCircle2, Info, AlertTriangle } from 'lucide-react';
 
@@ -463,6 +464,152 @@ className="space-y-6"   // 24px vertical spacing
 className="gap-4"       // 16px gap
 className="space-x-2"   // 8px horizontal spacing`}
             />
+          </div>
+        </Section>
+
+        <Section title="Dialogs & Modals">
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#73747B', marginBottom: '16px' }}>
+            Alle dialogs en modals volgen dezelfde Polar styling voor consistentie
+          </p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Live voorbeeld */}
+            <div>
+              <h3 className="polar-title" style={{ marginBottom: '12px' }}>Live Voorbeeld</h3>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button>Open Voorbeeld Dialog</Button>
+                </DialogTrigger>
+                <DialogContent style={{
+                  backgroundColor: '#FEFFF1',
+                  borderRadius: '20px',
+                  border: '1px solid rgba(197, 197, 202, 0.5)',
+                  padding: '32px',
+                  maxWidth: '480px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                }}>
+                  <DialogHeader>
+                    <DialogTitle style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '18px',
+                      fontWeight: 600,
+                      color: '#282E3A',
+                      marginBottom: '8px',
+                    }}>
+                      Dialog Titel
+                    </DialogTitle>
+                    <DialogDescription style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '14px',
+                      fontWeight: 400,
+                      color: '#73747B',
+                      marginBottom: '24px',
+                    }}>
+                      Dit is een beschrijving van de dialog, uitleggen wat de gebruiker kan doen.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div>
+                      <label style={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        color: '#282E3A',
+                        marginBottom: '8px',
+                        display: 'block',
+                      }}>
+                        Input Label
+                      </label>
+                      <Input 
+                        placeholder="Voer iets in..."
+                        style={{
+                          backgroundColor: '#FFFFFF',
+                          borderRadius: '16px',
+                          border: '1px solid rgba(197, 197, 202, 0.5)',
+                          padding: '12px 16px',
+                          fontFamily: 'Inter, sans-serif',
+                          fontSize: '14px',
+                        }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                      <Button 
+                        variant="outline"
+                        style={{
+                          borderRadius: '20px',
+                          fontFamily: 'Inter, sans-serif',
+                        }}
+                      >
+                        Annuleren
+                      </Button>
+                      <Button
+                        style={{
+                          backgroundColor: '#1B7867',
+                          color: '#FFFFFF',
+                          borderRadius: '20px',
+                          fontFamily: 'Inter, sans-serif',
+                        }}
+                      >
+                        Opslaan
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Code voorbeeld */}
+            <div>
+              <h3 className="polar-title" style={{ marginBottom: '12px' }}>Implementatie</h3>
+              <CodeBlock
+                id="dialog-styling"
+                code={`<Dialog open={open} onOpenChange={setOpen}>
+  <DialogContent style={{
+    backgroundColor: '#FEFFF1',
+    borderRadius: '20px',
+    border: '1px solid rgba(197, 197, 202, 0.5)',
+    padding: '32px',
+    maxWidth: '480px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+  }}>
+    <DialogHeader>
+      <DialogTitle style={{
+        fontFamily: 'Inter, sans-serif',
+        fontSize: '18px',
+        fontWeight: 600,
+        color: '#282E3A',
+        marginBottom: '8px',
+      }}>
+        Titel
+      </DialogTitle>
+      <DialogDescription style={{
+        fontFamily: 'Inter, sans-serif',
+        fontSize: '14px',
+        fontWeight: 400,
+        color: '#73747B',
+        marginBottom: '24px',
+      }}>
+        Beschrijving
+      </DialogDescription>
+    </DialogHeader>
+    {/* Content */}
+  </DialogContent>
+</Dialog>`}
+              />
+            </div>
+
+            {/* Specificaties */}
+            <div>
+              <h3 className="polar-title" style={{ marginBottom: '12px' }}>Styling Specificaties</h3>
+              <ul style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#282E3A', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <li><strong>Container:</strong> Cream background (#FEFFF1), 20px border-radius, subtle border, box-shadow</li>
+                <li><strong>Title:</strong> 18px, weight 600, Midnight color</li>
+                <li><strong>Description:</strong> 14px, weight 400, Secondary text color</li>
+                <li><strong>Inputs:</strong> White background (contrast!), 16px border-radius, subtle border</li>
+                <li><strong>Buttons:</strong> 20px border-radius, primary/secondary variants</li>
+                <li><strong>Spacing:</strong> 32px padding, 24px between sections, 16px between fields</li>
+              </ul>
+            </div>
           </div>
         </Section>
 
