@@ -32,7 +32,13 @@ export const OrderPreview = ({ open, onClose, orderData }: OrderPreviewProps) =>
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" style={{
+        backgroundColor: '#FEFFF1',
+        borderRadius: '20px',
+        border: '1px solid rgba(197, 197, 202, 0.5)',
+        padding: '32px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+      }}>
         <DialogHeader>
           <DialogTitle className="text-2xl text-[#282E3A]">Bestelvoorbeeld</DialogTitle>
           <DialogDescription className="text-[#282E3A]/60">

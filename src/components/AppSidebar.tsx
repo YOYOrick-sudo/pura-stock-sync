@@ -131,10 +131,31 @@ export function AppSidebar() {
       />
 
       <AlertDialog open={showCodeDialog} onOpenChange={setShowCodeDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent style={{
+          backgroundColor: '#FEFFF1',
+          borderRadius: '20px',
+          border: '1px solid rgba(197, 197, 202, 0.5)',
+          padding: '32px',
+          maxWidth: '480px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+        }}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Toegangscode vereist</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '18px',
+              fontWeight: 600,
+              color: '#282E3A',
+              marginBottom: '8px',
+            }}>
+              Toegangscode vereist
+            </AlertDialogTitle>
+            <AlertDialogDescription style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '14px',
+              fontWeight: 400,
+              color: '#73747B',
+              marginBottom: '24px',
+            }}>
               Voer de toegangscode in om toegang te krijgen tot Statistieken.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -146,19 +167,56 @@ export function AppSidebar() {
               onChange={(e) => setCodeInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCodeSubmit()}
               className="w-full"
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '16px',
+                border: `1px solid ${codeError ? '#EF4444' : 'rgba(197, 197, 202, 0.5)'}`,
+                padding: '12px 16px',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '14px',
+                color: '#282E3A',
+              }}
             />
             {codeError && (
-              <p className="text-sm text-destructive mt-2">{codeError}</p>
+              <p style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '13px',
+                color: '#EF4444',
+                marginTop: '8px',
+              }}>
+                {codeError}
+              </p>
             )}
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              setCodeInput('');
-              setCodeError('');
-            }}>
+            <AlertDialogCancel 
+              onClick={() => {
+                setCodeInput('');
+                setCodeError('');
+              }}
+              style={{
+                backgroundColor: 'transparent',
+                color: '#282E3A',
+                borderRadius: '20px',
+                border: '1px solid rgba(197, 197, 202, 0.5)',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '14px',
+                fontWeight: 500,
+              }}
+            >
               Annuleren
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleCodeSubmit}>
+            <AlertDialogAction 
+              onClick={handleCodeSubmit}
+              style={{
+                backgroundColor: '#1B7867',
+                color: '#FFFFFF',
+                borderRadius: '20px',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '14px',
+                fontWeight: 500,
+              }}
+            >
               Bevestigen
             </AlertDialogAction>
           </AlertDialogFooter>

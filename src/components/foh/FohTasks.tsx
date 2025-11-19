@@ -793,18 +793,20 @@ export function FohTasks() {
                       </Button>
                     </DialogTrigger>
                     <DialogContent style={{
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: '16px',
+                      backgroundColor: '#FEFFF1',
+                      borderRadius: '20px',
                       border: '1px solid rgba(197, 197, 202, 0.5)',
-                      padding: '24px',
+                      padding: '32px',
                       maxWidth: '480px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                     }}>
                       <DialogHeader>
                         <DialogTitle style={{
                           fontSize: '18px',
-                          fontWeight: 500,
+                          fontWeight: 600,
                           color: '#282E3A',
                           fontFamily: 'Inter, sans-serif',
+                          marginBottom: '24px',
                         }}>
                           Nieuwe Periodieke Taak
                         </DialogTitle>
@@ -1074,7 +1076,7 @@ export function FohTasks() {
                             setEmployeeInput('');
                           }}
                           style={{
-                            borderRadius: '16px',
+                            borderRadius: '20px',
                             fontFamily: 'Inter, sans-serif',
                           }}
                         >
@@ -1085,7 +1087,7 @@ export function FohTasks() {
                           style={{
                             backgroundColor: '#1B7867',
                             color: '#FFFFFF',
-                            borderRadius: '16px',
+                            borderRadius: '20px',
                             fontFamily: 'Inter, sans-serif',
                           }}
                         >
