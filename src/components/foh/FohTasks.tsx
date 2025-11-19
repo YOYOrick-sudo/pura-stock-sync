@@ -22,7 +22,7 @@ const PHASE_WINDOWS = [
 ] as const;
 
 // Category order for display
-const CATEGORY_ORDER = ['Bar', 'Keuken', 'Zaal', 'Terras', 'Sanitair', 'Entree', 'Voorraad', 'Algemeen'] as const;
+const CATEGORY_ORDER = ['Deel 1', 'Deel 2', 'Deel 3', 'Bar', 'Keuken', 'Zaal', 'Terras', 'Sanitair', 'Entree', 'Voorraad', 'Algemeen'] as const;
 
 const nowInAmsterdamMinutes = (): number => {
   const TIMEZONE = 'Europe/Amsterdam';
@@ -58,6 +58,13 @@ const getAmsterdamDateString = (): string => {
   const TIMEZONE = 'Europe/Amsterdam';
   const nowInAmsterdam = toZonedTime(new Date(), TIMEZONE);
   return nowInAmsterdam.toISOString().split('T')[0];
+};
+
+const isClosedDay = (): boolean => {
+  const TIMEZONE = 'Europe/Amsterdam';
+  const nowInAmsterdam = toZonedTime(new Date(), TIMEZONE);
+  const dayOfWeek = nowInAmsterdam.getDay(); // 0 = Sunday, 1 = Monday, 2 = Tuesday
+  return dayOfWeek === 1 || dayOfWeek === 2; // Monday or Tuesday
 };
 
 // Group tasks by phase helper
@@ -110,7 +117,13 @@ const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
   const sortedGrouped: Record<string, FohTaskWithEmployee[]> = {};
   CATEGORY_ORDER.forEach(cat => {
     if (grouped[cat]) {
-      sortedGrouped[cat] = grouped[cat];
+      // Sort tasks within category by sort_order
+      sortedGrouped[cat] = grouped[cat].sort((a, b) => {
+        if (a.sort_order !== undefined && b.sort_order !== undefined) {
+          return a.sort_order - b.sort_order;
+        }
+        return 0;
+      });
     }
   });
   
@@ -124,9 +137,14 @@ const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
   return sortedGrouped;
 };
 
-// Sort tasks within phase by completion status
+// Sort tasks within phase by sort_order first, then completion status
 const sortTasksInPhase = (tasks: FohTaskWithEmployee[]) => {
   return [...tasks].sort((a, b) => {
+    // First sort by sort_order if both have it
+    if (a.sort_order !== undefined && b.sort_order !== undefined) {
+      return a.sort_order - b.sort_order;
+    }
+    // Then by completion status
     if (a.completed === b.completed) return 0;
     return a.completed ? 1 : -1;
   });
@@ -208,6 +226,11 @@ export function FohTasks() {
 
   // Data fetching functions
   const generateDailyTasks = async () => {
+    // Don't generate tasks on Monday and Tuesday (closed days)
+    if (isClosedDay()) {
+      return;
+    }
+    
     const todayDate = getAmsterdamDateString();
     
     const { data: existingTasks } = await supabase
@@ -243,6 +266,7 @@ export function FohTasks() {
       archived: false,
       assigned_employee_id: null,
       estimated_minutes: template.estimated_minutes,
+      sort_order: template.sort_order,
     }));
     
     await supabase.from('foh_tasks').insert(tasksToInsert);
@@ -556,6 +580,40 @@ export function FohTasks() {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <Loader2 style={{ width: '32px', height: '32px', color: '#1B7867' }} className="animate-spin" />
+      </div>
+    );
+  }
+
+  // Show closed message on Monday and Tuesday
+  if (isClosedDay()) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#FEFFF1', fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+          <div style={{
+            backgroundColor: '#F6F7DD',
+            borderRadius: '20px',
+            border: '1px solid rgba(197, 197, 202, 0.5)',
+            padding: '48px 24px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
+            textAlign: 'center',
+          }}>
+            <h2 style={{
+              fontSize: '24px',
+              fontWeight: 600,
+              color: '#282E3A',
+              marginBottom: '12px',
+            }}>
+              Wij zijn gesloten
+            </h2>
+            <p style={{
+              fontSize: '16px',
+              color: '#73747B',
+              marginBottom: '0',
+            }}>
+              Op maandag en dinsdag zijn er geen taken. We zien je graag terug op woensdag!
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
