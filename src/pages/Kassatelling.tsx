@@ -1,39 +1,93 @@
+import { useState } from 'react';
 import { SidebarLayout } from '@/components/SidebarLayout';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import Kassa from './Kassa';
 import KassatellingOverdag from './KassatellingOverdag';
 
 export default function Kassatelling() {
   const { userLocation } = useUserLocation();
+  const [activeTab, setActiveTab] = useState<'overdag' | 'avond'>('avond');
 
   return (
     <SidebarLayout>
-      <div className="max-w-7xl mx-auto px-6 space-y-6">
-        <Tabs defaultValue="avond" className="space-y-4">
-          <TabsList className="inline-flex h-10 items-center justify-start rounded-lg bg-muted/50 p-1">
-            <TabsTrigger 
-              value="overdag"
-              className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-            >
-              Overdag
-            </TabsTrigger>
-            <TabsTrigger 
-              value="avond"
-              className="rounded-md px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-            >
-              Avond
-            </TabsTrigger>
-          </TabsList>
+      <div style={{
+        maxWidth: '1280px',
+        margin: '0 auto',
+        padding: '0 24px',
+        fontFamily: 'Inter, sans-serif',
+      }}>
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+          <button
+            onClick={() => setActiveTab('overdag')}
+            onMouseEnter={(e) => {
+              if (activeTab !== 'overdag') {
+                e.currentTarget.style.backgroundColor = '#F6F7DD';
+                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== 'overdag') {
+                e.currentTarget.style.backgroundColor = '#FEFFF1';
+                e.currentTarget.style.boxShadow = 'none';
+              }
+            }}
+            style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '14px',
+              fontWeight: 500,
+              padding: '10px 16px',
+              backgroundColor: activeTab === 'overdag' ? '#1B7867' : '#FEFFF1',
+              color: activeTab === 'overdag' ? '#FFFFFF' : '#282E3A',
+              border: activeTab === 'overdag' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+              borderRadius: '20px',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              fontFamily: 'Inter, sans-serif',
+            }}
+          >
+            Overdag
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('avond')}
+            onMouseEnter={(e) => {
+              if (activeTab !== 'avond') {
+                e.currentTarget.style.backgroundColor = '#F6F7DD';
+                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== 'avond') {
+                e.currentTarget.style.backgroundColor = '#FEFFF1';
+                e.currentTarget.style.boxShadow = 'none';
+              }
+            }}
+            style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '14px',
+              fontWeight: 500,
+              padding: '10px 16px',
+              backgroundColor: activeTab === 'avond' ? '#1B7867' : '#FEFFF1',
+              color: activeTab === 'avond' ? '#FFFFFF' : '#282E3A',
+              border: activeTab === 'avond' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+              borderRadius: '20px',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              fontFamily: 'Inter, sans-serif',
+            }}
+          >
+            Avond
+          </button>
+        </div>
 
-          <TabsContent value="overdag" className="space-y-4">
-            <KassatellingOverdag />
-          </TabsContent>
-
-          <TabsContent value="avond" className="space-y-4">
-            <Kassa />
-          </TabsContent>
-        </Tabs>
+        {activeTab === 'overdag' && <KassatellingOverdag />}
+        {activeTab === 'avond' && <Kassa />}
       </div>
     </SidebarLayout>
   );
