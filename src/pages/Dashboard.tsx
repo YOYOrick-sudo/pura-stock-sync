@@ -516,14 +516,13 @@ export default function Dashboard() {
             icon={<ListTodo size={16} color="#1B7867" />}
           />
           
-          {weatherData && (
-            <WeatherWidget
-              condition={weatherData.condition}
-              temperature={weatherData.temperature}
-              windSpeed={weatherData.windSpeed}
-              precipitation={weatherData.precipitation}
-            />
-          )}
+          <WeatherWidget
+            condition={weatherData?.condition}
+            temperature={weatherData?.temperature}
+            windSpeed={weatherData?.windSpeed}
+            precipitation={weatherData?.precipitation}
+            isLoading={loadingWeather || !weatherData}
+          />
           
           {userLocation === 'Oost' && (
             <DashboardCard

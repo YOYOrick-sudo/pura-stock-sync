@@ -2,10 +2,11 @@ import { Cloud, CloudRain, Sun, Wind, Droplets } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
 interface WeatherWidgetProps {
-  condition: string;
-  temperature: number;
-  windSpeed: number;
-  precipitation: number;
+  condition?: string;
+  temperature?: number;
+  windSpeed?: number;
+  precipitation?: number;
+  isLoading?: boolean;
 }
 
 const getWeatherIcon = (condition: string) => {
@@ -37,8 +38,15 @@ const getWeatherLabel = (condition: string) => {
   return labels[condition] || 'Onbekend';
 };
 
-export function WeatherWidget({ condition, temperature, windSpeed, precipitation }: WeatherWidgetProps) {
-  const WeatherIcon = getWeatherIcon(condition);
+export function WeatherWidget({ 
+  condition, 
+  temperature, 
+  windSpeed, 
+  precipitation, 
+  isLoading 
+}: WeatherWidgetProps) {
+  const WeatherIcon = getWeatherIcon(condition || 'cloudy');
+  const isFallback = isLoading || condition === undefined;
   
   return (
     <div
@@ -75,25 +83,29 @@ export function WeatherWidget({ condition, temperature, windSpeed, precipitation
           fontWeight: 600,
           color: '#282E3A'
         }}>
-          {temperature}°C
+          {isFallback ? '...' : `${temperature}°C`}
         </span>
         <span style={{ 
           fontSize: '14px',
           fontWeight: 400,
           color: '#73747B'
         }}>
-          {getWeatherLabel(condition)}
+          {isFallback ? 'Laden...' : getWeatherLabel(condition || 'cloudy')}
         </span>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Wind size={14} style={{ color: '#73747B' }} />
-          <span style={{ fontSize: '13px', color: '#73747B' }}>{windSpeed} km/h</span>
+          <Wind size={14} style={{ color: '#73747B', opacity: isFallback ? 0.5 : 1 }} />
+          <span style={{ fontSize: '13px', color: '#73747B' }}>
+            {isFallback ? '... km/h' : `${windSpeed} km/h`}
+          </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Droplets size={14} style={{ color: '#73747B' }} />
-          <span style={{ fontSize: '13px', color: '#73747B' }}>{precipitation}mm</span>
+          <Droplets size={14} style={{ color: '#73747B', opacity: isFallback ? 0.5 : 1 }} />
+          <span style={{ fontSize: '13px', color: '#73747B' }}>
+            {isFallback ? '... mm' : `${precipitation}mm`}
+          </span>
         </div>
       </div>
     </div>
