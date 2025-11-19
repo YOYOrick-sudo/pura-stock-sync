@@ -224,12 +224,12 @@ const KassatellingOverdag = () => {
             overflow: 'hidden',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
           }}>
-            <div style={{ backgroundColor: '#FFFFFF', padding: '12px 16px', borderBottom: '1px solid rgba(197, 197, 202, 0.5)' }}>
+            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderBottom: '1px solid rgba(197, 197, 202, 0.5)' }}>
               <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Kassa Lade
               </h2>
             </div>
-            <div style={{ overflowX: 'auto', backgroundColor: '#FFFFFF', padding: '16px' }}>
+            <div style={{ overflowX: 'auto', backgroundColor: '#FEFFF1', padding: '16px' }}>
               <table style={{ width: '100%', fontFamily: 'Inter, sans-serif' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.3)' }}>
@@ -247,7 +247,7 @@ const KassatellingOverdag = () => {
                           textAlign: 'center',
                           border: '1px solid rgba(197, 197, 202, 0.5)',
                           borderRadius: '16px',
-                          backgroundColor: '#FFFFFF',
+                          backgroundColor: '#FEFFF1',
                           fontFamily: 'monospace',
                           fontSize: '14px',
                           color: '#282E3A',
@@ -261,7 +261,7 @@ const KassatellingOverdag = () => {
                 </tbody>
               </table>
             </div>
-            <div style={{ backgroundColor: '#FFFFFF', padding: '12px 16px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
+            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
                 <span style={{ fontSize: '24px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>€{kassaLadeTotal.toFixed(2).replace('.', ',')}</span>
@@ -277,12 +277,12 @@ const KassatellingOverdag = () => {
             overflow: 'hidden',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
           }}>
-            <div style={{ backgroundColor: '#FFFFFF', padding: '12px 16px', borderBottom: '1px solid rgba(197, 197, 202, 0.5)' }}>
+            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderBottom: '1px solid rgba(197, 197, 202, 0.5)' }}>
               <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Wisselkas
               </h2>
             </div>
-            <div style={{ overflowX: 'auto', backgroundColor: '#FFFFFF', padding: '16px' }}>
+            <div style={{ overflowX: 'auto', backgroundColor: '#FEFFF1', padding: '16px' }}>
               <table style={{ width: '100%', fontFamily: 'Inter, sans-serif' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.3)' }}>
@@ -300,7 +300,7 @@ const KassatellingOverdag = () => {
                           textAlign: 'center',
                           border: '1px solid rgba(197, 197, 202, 0.5)',
                           borderRadius: '16px',
-                          backgroundColor: '#FFFFFF',
+                          backgroundColor: '#FEFFF1',
                           fontFamily: 'monospace',
                           fontSize: '14px',
                           color: '#282E3A',
@@ -314,7 +314,7 @@ const KassatellingOverdag = () => {
                 </tbody>
               </table>
             </div>
-            <div style={{ backgroundColor: '#FFFFFF', padding: '12px 16px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
+            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
                 <span style={{ fontSize: '24px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>€{wisselkasTotal.toFixed(2).replace('.', ',')}</span>
@@ -331,7 +331,7 @@ const KassatellingOverdag = () => {
               padding: '20px',
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
             }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: '#FFFFFF', borderRadius: '16px', padding: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: '#FEFFF1', borderRadius: '16px', padding: '16px' }}>
                 {/* Totaal */}
                 <div style={{ padding: '6px 0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -368,7 +368,7 @@ const KassatellingOverdag = () => {
                         padding: '8px 12px',
                         border: errors.naam ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
                         borderRadius: '16px',
-                        backgroundColor: '#FFFFFF',
+                        backgroundColor: '#FEFFF1',
                         fontFamily: 'Inter, sans-serif',
                         fontSize: '14px',
                         color: '#282E3A',
@@ -403,7 +403,7 @@ const KassatellingOverdag = () => {
                       padding: '8px 12px',
                       border: errors.opmerkingen ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
                       borderRadius: '16px',
-                      backgroundColor: '#FFFFFF',
+                      backgroundColor: '#FEFFF1',
                       fontFamily: 'Inter, sans-serif',
                       fontSize: '14px',
                       color: '#282E3A',
@@ -466,7 +466,7 @@ const KassatellingOverdag = () => {
                     style={{
                       width: '100%',
                       padding: '10px 20px',
-                      backgroundColor: '#FFFFFF',
+                      backgroundColor: '#FEFFF1',
                       color: '#1B7867',
                       fontFamily: 'Inter, sans-serif',
                       fontWeight: 500,
@@ -484,7 +484,7 @@ const KassatellingOverdag = () => {
                       e.currentTarget.style.backgroundColor = 'rgba(27, 120, 103, 0.05)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#FFFFFF';
+                      e.currentTarget.style.backgroundColor = '#FEFFF1';
                     }}
                   >
                     <Info style={{ width: '16px', height: '16px' }} />
