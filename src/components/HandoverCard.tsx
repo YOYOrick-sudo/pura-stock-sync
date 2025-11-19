@@ -184,6 +184,7 @@ export const HandoverCard = () => {
             placeholder="Bijv. Vandaag komt iemand een bon afhalen om 15:00 uur"
             rows={4}
             className="resize-none"
+            style={{ whiteSpace: 'pre-wrap' }}
             autoFocus
           />
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
@@ -207,6 +208,7 @@ export const HandoverCard = () => {
               color: latestMemo ? '#282E3A' : '#73747B',
               fontStyle: latestMemo ? 'normal' : 'italic',
               lineHeight: 1.5,
+              whiteSpace: 'pre-wrap',
             }}
           >
             {latestMemo?.message || 'Geen bijzonderheden vandaag'}
