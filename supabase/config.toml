@@ -2,3 +2,6 @@ project_id = "ajtqzzzpawqcoaphdkaz"
 
 [functions.weather-ai-advisor]
 verify_jwt = false
+
+[functions.reset-daily-tasks]
+verify_jwt = false
