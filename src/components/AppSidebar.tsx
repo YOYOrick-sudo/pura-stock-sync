@@ -55,12 +55,6 @@ const allNavigationItems = [
     locations: ['West', 'Midsland'],
   },
   {
-    title: 'Style Guide',
-    url: '/style-guide',
-    icon: Palette,
-    locations: ['West', 'Midsland'],
-  },
-  {
     title: 'Statistieken',
     url: '/taken-analyse',
     icon: BarChart3,
@@ -118,7 +112,7 @@ export function AppSidebar() {
           <img 
             src={puraVidaLogo} 
             alt="Pura Vida" 
-            className="h-[84px] w-auto"
+            className="h-[92px] w-auto"
           />
         }
         items={navigationItems.map(item => ({
