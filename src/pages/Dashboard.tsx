@@ -281,7 +281,7 @@ const DeliveryCard = ({ hasOrderThisWeek, isLoading, onClick }: DeliveryCardProp
   // Pura Vida Sea voor geplaatste orders
   const statusColor = hasOrderThisWeek 
     ? { bg: '#F6F7DD', text: '#1B7867', icon: <CheckCircle size={16} color="#1B7867" /> }
-    : { bg: '#F6F7DD', text: '#73747B', icon: <Package size={16} color="#73747B" /> };
+    : { bg: '#F6F7DD', text: '#73747B', icon: <Package size={16} color="#1B7867" /> };
   
   return (
     <div onClick={onClick} style={{ cursor: 'pointer' }}>
