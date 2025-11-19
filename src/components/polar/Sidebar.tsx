@@ -151,7 +151,7 @@ export function PolarSidebar({
                   !item.requiresCode && 'cursor-pointer'
                 )}
                 style={{
-                  height: '44px',
+                  height: '48px',
                   display: 'flex',
                   alignItems: 'center',
                   padding: collapsed ? '0 12px' : '0 16px',
@@ -163,7 +163,7 @@ export function PolarSidebar({
                   boxShadow: item.active ? '0 1px 3px rgba(0, 0, 0, 0.05)' : 'none',
                   transition: 'background-color 150ms ease, box-shadow 150ms ease',
                   fontFamily: 'Inter, sans-serif',
-                  fontSize: '16px',
+                  fontSize: '17px',
                   fontWeight: item.active ? 500 : 400,
                   color: item.active ? '#282E3A' : '#73747B',
                   justifyContent: collapsed ? 'center' : 'flex-start',
@@ -182,8 +182,8 @@ export function PolarSidebar({
                 <Icon
                   className="shrink-0"
                   style={{
-                    width: collapsed ? '22px' : '20px',
-                    height: collapsed ? '22px' : '20px',
+                    width: collapsed ? '24px' : '22px',
+                    height: collapsed ? '24px' : '22px',
                     marginRight: collapsed ? '0' : '12px',
                     color: item.active ? '#282E3A' : '#73747B',
                   }}
