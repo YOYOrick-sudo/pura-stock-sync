@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { SidebarLayout } from '@/components/SidebarLayout';
-import { Card } from '@/components/ui/card';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { ChevronDown, ChevronUp, Package, Calendar, FileText } from 'lucide-react';
+import { ChevronDown, ChevronUp, Package, Calendar, FileText, Loader2, Truck } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { Badge } from '@/components/ui/badge';
 
 interface InternalOrderItem {
   id: string;
@@ -26,13 +24,6 @@ interface InternalOrder {
   notes: string | null;
   internal_order_items: InternalOrderItem[];
 }
-
-const statusColors = {
-  pending: 'bg-orange-100 text-orange-800 border-orange-200',
-  approved: 'bg-green-100 text-green-800 border-green-200',
-  rejected: 'bg-red-100 text-red-800 border-red-200',
-  delivered: 'bg-blue-100 text-blue-800 border-blue-200',
-};
 
 const statusLabels = {
   pending: 'In afwachting',
@@ -92,127 +83,244 @@ export default function MidslandOrders() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-7xl mx-auto px-6 space-y-6">
-        <div className="flex items-center gap-3">
-          <Package className="h-8 w-8 text-[#1B7867]" />
-          <h1 className="text-3xl font-bold text-foreground">
-            Bestellingen van West
-          </h1>
-        </div>
+      <div style={{
+        backgroundColor: '#FEFFF1',
+        border: '1px solid rgba(197, 197, 202, 0.5)',
+        borderRadius: '20px',
+        padding: '32px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)'
+      }}>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1B7867] mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Bestellingen laden...</p>
-            </div>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            padding: '48px 0' 
+          }}>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: '#1B7867' }}></div>
           </div>
         ) : !orders || orders.length === 0 ? (
-          <Card className="p-12 text-center">
-            <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-lg text-muted-foreground">Nog geen bestellingen</p>
-          </Card>
+          <div style={{
+            backgroundColor: '#FFFFFF',
+            border: '1px solid rgba(197, 197, 202, 0.5)',
+            borderRadius: '20px',
+            padding: '48px',
+            textAlign: 'center'
+          }}>
+            <Package className="h-16 w-16 mx-auto mb-4" style={{ color: '#C5C5CA' }} />
+            <p style={{ 
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '16px',
+              color: '#73747B'
+            }}>Nog geen bestellingen</p>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {orders.map((order) => {
               const isExpanded = expandedOrder === order.id;
-              const statusColor = statusColors[order.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800 border-gray-200';
               const statusLabel = statusLabels[order.status as keyof typeof statusLabels] || order.status;
+              
+              let statusStyle = {};
+              if (order.status === 'pending') {
+                statusStyle = { backgroundColor: '#F6F7DD', color: '#282E3A' };
+              } else if (order.status === 'approved') {
+                statusStyle = { backgroundColor: '#D1FAE5', color: '#1B7867' };
+              } else if (order.status === 'rejected') {
+                statusStyle = { backgroundColor: '#FEE2E2', color: '#DC2626' };
+              } else if (order.status === 'delivered') {
+                statusStyle = { backgroundColor: '#DBEAFE', color: '#2563EB' };
+              }
 
               return (
-                <Card
+                <div
                   key={order.id}
-                  className="overflow-hidden border-l-4 border-l-[#1B7867] transition-all duration-200 hover:shadow-md"
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid rgba(197, 197, 202, 0.5)',
+                    borderRadius: '20px',
+                    padding: '24px',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
+                    cursor: 'pointer',
+                    transition: 'box-shadow 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.06)';
+                  }}
                 >
                   {/* Header - Always Visible */}
-                  <div
-                    className="p-6 cursor-pointer"
-                    onClick={() => toggleOrder(order.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-semibold text-foreground">
+                  <div onClick={() => toggleOrder(order.id)}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                          <h3 style={{ 
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: '18px',
+                            fontWeight: 600,
+                            color: '#282E3A'
+                          }}>
                             {order.order_number}
                           </h3>
-                          <Badge
-                            className={statusColor}
-                          >
+                          <span style={{
+                            padding: '4px 12px',
+                            borderRadius: '20px',
+                            fontSize: '13px',
+                            fontWeight: 500,
+                            fontFamily: 'Inter, sans-serif',
+                            ...statusStyle
+                          }}>
                             {statusLabel}
-                          </Badge>
+                          </span>
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1.5">
-                            <Calendar className="h-4 w-4" />
-                            <span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Calendar className="h-4 w-4" style={{ color: '#73747B' }} />
+                            <span style={{ 
+                              fontFamily: 'Inter, sans-serif',
+                              fontSize: '14px',
+                              color: '#73747B'
+                            }}>
                               Aangemaakt: {format(new Date(order.created_at), 'dd MMM yyyy', { locale: nl })}
                             </span>
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <Package className="h-4 w-4" />
-                            <span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Package className="h-4 w-4" style={{ color: '#73747B' }} />
+                            <span style={{ 
+                              fontFamily: 'Inter, sans-serif',
+                              fontSize: '14px',
+                              color: '#73747B'
+                            }}>
                               Leverdatum: {format(new Date(order.delivery_date), 'dd MMM yyyy', { locale: nl })}
                             </span>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="text-right">
-                          <p className="text-sm text-muted-foreground">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ textAlign: 'right' }}>
+                          <p style={{ 
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: '14px',
+                            color: '#73747B'
+                          }}>
                             {order.internal_order_items?.length || 0} product
                             {(order.internal_order_items?.length || 0) !== 1 ? 'en' : ''}
                           </p>
                         </div>
-                        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                        <div style={{ 
+                          padding: '8px',
+                          borderRadius: '50%',
+                          transition: 'background-color 0.2s'
+                        }}>
                           {isExpanded ? (
-                            <ChevronUp className="h-5 w-5 text-[#1B7867]" />
+                            <ChevronUp className="h-5 w-5" style={{ color: '#1B7867' }} />
                           ) : (
-                            <ChevronDown className="h-5 w-5 text-gray-400" />
+                            <ChevronDown className="h-5 w-5" style={{ color: '#73747B' }} />
                           )}
-                        </button>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Expanded Details */}
                   {isExpanded && (
-                    <div className="border-t bg-gray-50/50 p-6 space-y-4">
+                    <div style={{ 
+                      marginTop: '24px', 
+                      paddingTop: '24px', 
+                      borderTop: '1px solid rgba(197, 197, 202, 0.5)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '24px'
+                    }}>
                       {/* Order Notes */}
                       {order.notes && (
-                        <div className="bg-white p-4 rounded-lg border">
-                          <div className="flex items-start gap-2">
-                            <FileText className="h-4 w-4 text-[#1B7867] mt-0.5" />
-                            <div>
-                              <p className="text-sm font-medium text-foreground mb-1">Opmerkingen</p>
-                              <p className="text-sm text-muted-foreground">{order.notes}</p>
-                            </div>
-                          </div>
+                        <div>
+                          <h4 style={{ 
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            color: '#282E3A',
+                            marginBottom: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}>
+                            <FileText className="h-4 w-4" style={{ color: '#1B7867' }} />
+                            Opmerkingen
+                          </h4>
+                          <p style={{ 
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: '14px',
+                            color: '#73747B',
+                            padding: '16px',
+                            backgroundColor: '#FFFFFF',
+                            border: '1px solid rgba(197, 197, 202, 0.3)',
+                            borderRadius: '16px',
+                            whiteSpace: 'pre-wrap'
+                          }}>
+                            {order.notes}
+                          </p>
                         </div>
                       )}
 
                       {/* Product List */}
                       <div>
-                        <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                          <Package className="h-4 w-4 text-[#1B7867]" />
+                        <h4 style={{ 
+                          fontFamily: 'Inter, sans-serif',
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          color: '#282E3A',
+                          marginBottom: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}>
+                          <Package className="h-4 w-4" style={{ color: '#1B7867' }} />
                           Producten
                         </h4>
-                        <div className="bg-white rounded-lg border divide-y">
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                           {order.internal_order_items && order.internal_order_items.length > 0 ? (
                             order.internal_order_items.map((item) => (
                               <div
                                 key={item.id}
-                                className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  padding: '16px',
+                                  backgroundColor: '#FFFFFF',
+                                  border: '1px solid rgba(197, 197, 202, 0.3)',
+                                  borderRadius: '16px'
+                                }}
                               >
-                                <span className="text-sm font-medium text-foreground">
+                                <span style={{ 
+                                  fontFamily: 'Inter, sans-serif',
+                                  fontSize: '14px',
+                                  fontWeight: 500,
+                                  color: '#282E3A'
+                                }}>
                                   {item.product_name}
                                 </span>
-                                <span className="text-sm text-muted-foreground font-medium">
+                                <span style={{ 
+                                  fontFamily: 'Inter, sans-serif',
+                                  fontSize: '14px',
+                                  fontWeight: 600,
+                                  color: '#1B7867'
+                                }}>
                                   {item.quantity} {item.unit}
                                 </span>
                               </div>
                             ))
                           ) : (
-                            <div className="p-4 text-center text-sm text-muted-foreground">
+                            <div style={{ 
+                              padding: '16px', 
+                              textAlign: 'center',
+                              fontFamily: 'Inter, sans-serif',
+                              fontSize: '14px',
+                              color: '#73747B'
+                            }}>
                               Geen producten gevonden
                             </div>
                           )}
@@ -220,7 +328,7 @@ export default function MidslandOrders() {
                       </div>
                     </div>
                   )}
-                </Card>
+                </div>
               );
             })}
           </div>
