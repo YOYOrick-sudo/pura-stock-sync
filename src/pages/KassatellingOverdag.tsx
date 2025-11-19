@@ -429,30 +429,30 @@ const KassatellingOverdag = () => {
                   )}
                   <button 
                     onClick={handleSubmit}
-                    disabled={!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3}
+                    disabled={!canSubmit || !naam || naam.length < 2}
                     style={{
                       width: '100%',
                       padding: '14px 20px',
-                      backgroundColor: (!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3) ? '#D1D5DB' : '#1B7867',
+                      backgroundColor: (!canSubmit || !naam || naam.length < 2) ? '#D1D5DB' : '#1B7867',
                       color: '#FFFFFF',
                       fontFamily: 'Inter, sans-serif',
                       fontWeight: 600,
                       fontSize: '14px',
                       borderRadius: '20px',
                       border: 'none',
-                      cursor: (!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3) ? 'not-allowed' : 'pointer',
+                      cursor: (!canSubmit || !naam || naam.length < 2) ? 'not-allowed' : 'pointer',
                       transition: 'all 0.15s',
-                      boxShadow: (!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3) ? 'none' : '0 1px 2px rgba(0, 0, 0, 0.05)',
+                      boxShadow: (!canSubmit || !naam || naam.length < 2) ? 'none' : '0 1px 2px rgba(0, 0, 0, 0.05)',
                       marginBottom: '12px',
                     }}
                     onMouseEnter={(e) => {
-                      if (canSubmit && naam && naam.length >= 2 && opmerkingen && opmerkingen.length >= 3) {
+                      if (canSubmit && naam && naam.length >= 2) {
                         e.currentTarget.style.backgroundColor = '#156B5A';
                         e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (canSubmit && naam && naam.length >= 2 && opmerkingen && opmerkingen.length >= 3) {
+                      if (canSubmit && naam && naam.length >= 2) {
                         e.currentTarget.style.backgroundColor = '#1B7867';
                         e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
                       } else {
