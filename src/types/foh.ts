@@ -14,6 +14,7 @@ export interface FohTask {
   category: string;
   created_at: string;
   estimated_minutes: number | null;
+  sort_order?: number;
 }
 
 export interface FohEmployee {
@@ -36,6 +37,7 @@ export interface FohDailyTemplate {
   category: string;
   created_at: string;
   estimated_minutes: number | null;
+  sort_order?: number;
 }
 
 export type PhaseType = 'open' | 'tussen' | 'sluit';
