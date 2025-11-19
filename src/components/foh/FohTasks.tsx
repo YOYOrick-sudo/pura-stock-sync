@@ -488,17 +488,17 @@ export function FohTasks() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#FEFFF1', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        <div style={{
-          backgroundColor: '#F6F7DD',
-          borderRadius: '16px',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
-          padding: '24px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
-        }}>
+      <div style={{
+        backgroundColor: '#F6F7DD',
+        borderRadius: '20px',
+        border: '1px solid rgba(197, 197, 202, 0.5)',
+        padding: '24px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
+      }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
-            {/* Single row with all buttons */}
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {/* Single row with all buttons */}
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
               
               {/* Dagelijks phase buttons */}
               {(['open', 'tussen', 'sluit'] as PhaseType[]).map((phase) => {
@@ -540,12 +540,12 @@ export function FohTasks() {
                       gap: '8px',
                       fontSize: '14px',
                       fontWeight: 500,
-                      padding: '10px 16px',
-                      backgroundColor: isActive ? '#1B7867' : '#FEFFF1',
-                      color: isActive ? '#FFFFFF' : '#282E3A',
-                      border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
-                      borderRadius: '16px',
-                      cursor: (!canSwitch && phase !== activePhase) ? 'not-allowed' : 'pointer',
+                  padding: '10px 16px',
+                  backgroundColor: isActive ? '#1B7867' : '#FEFFF1',
+                  color: isActive ? '#FFFFFF' : '#282E3A',
+                  border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+                  borderRadius: '20px',
+                  cursor: (!canSwitch && phase !== activePhase) ? 'not-allowed' : 'pointer',
                       opacity: (!canSwitch && phase !== activePhase) ? 0.5 : 1,
                       transition: 'all 0.15s ease',
                       fontFamily: 'Inter, sans-serif',
@@ -567,13 +567,13 @@ export function FohTasks() {
                 );
               })}
               
-              {/* Visual separator */}
-              <div style={{
-                width: '1px',
-                height: '32px',
-                backgroundColor: 'rgba(197, 197, 202, 0.5)',
-                margin: '0 16px',
-              }} />
+            {/* Visual separator */}
+            <div style={{
+              width: '1px',
+              height: '32px',
+              backgroundColor: 'rgba(197, 197, 202, 0.5)',
+              margin: '0 20px',
+            }} />
               
               {/* Periodiek button (unified) */}
               {(() => {
@@ -606,12 +606,12 @@ export function FohTasks() {
                       gap: '8px',
                       fontSize: '14px',
                       fontWeight: 500,
-                      padding: '10px 16px',
-                      backgroundColor: isActive ? '#1B7867' : '#FEFFF1',
-                      color: isActive ? '#FFFFFF' : '#282E3A',
-                      border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
-                      borderRadius: '16px',
-                      cursor: 'pointer',
+                    padding: '10px 16px',
+                    backgroundColor: isActive ? '#1B7867' : '#FEFFF1',
+                    color: isActive ? '#FFFFFF' : '#282E3A',
+                    border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+                    borderRadius: '20px',
+                    cursor: 'pointer',
                       transition: 'all 0.15s ease',
                       fontFamily: 'Inter, sans-serif',
                     }}
@@ -682,7 +682,7 @@ export function FohTasks() {
                         style={{
                           backgroundColor: '#1B7867',
                           color: '#FFFFFF',
-                          borderRadius: '16px',
+                          borderRadius: '20px',
                           padding: '7px 10px',
                           display: 'flex',
                           alignItems: 'center',
