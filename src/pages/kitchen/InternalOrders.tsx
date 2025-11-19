@@ -197,28 +197,6 @@ export default function InternalOrders() {
         padding: '0 24px',
         fontFamily: 'Inter, sans-serif',
       }}>
-        {/* Header */}
-        <div style={{ marginBottom: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h1 style={{
-              fontSize: '28px',
-              fontWeight: 600,
-              color: '#282E3A',
-              fontFamily: 'Inter, sans-serif',
-              margin: 0,
-            }}>
-              Interne bestellingen
-            </h1>
-            <p style={{
-              fontSize: '14px',
-              color: '#73747B',
-              fontFamily: 'Inter, sans-serif',
-            }}>
-              {userLocation}
-            </p>
-          </div>
-        </div>
-
         {loading ? (
           <div style={{
             backgroundColor: '#F6F7DD',
