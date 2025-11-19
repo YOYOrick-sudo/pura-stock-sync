@@ -48,7 +48,7 @@ export default function InternalOrders() {
       <div
         key={order.id}
         style={{
-          backgroundColor: '#F6F7DD',
+          backgroundColor: '#FFFFFF',
           borderRadius: '20px',
           border: '1px solid rgba(197, 197, 202, 0.5)',
           overflow: 'hidden',
@@ -105,333 +105,351 @@ export default function InternalOrders() {
               }}>
                 {order.from_location} <ArrowRight size={14} /> {order.to_location}
               </p>
-
+              
               <div style={{
                 display: 'flex',
-                alignItems: 'center',
                 gap: '12px',
-                flexWrap: 'wrap',
+                fontSize: '12px',
+                color: '#73747B',
                 fontFamily: 'Inter, sans-serif',
               }}>
-                <p style={{ fontSize: '12px', color: '#73747B' }}>
-                  📅 {new Date(order.delivery_date).toLocaleDateString('nl-NL')}
-                </p>
-                <span style={{ fontSize: '12px', color: '#73747B' }}>•</span>
-                <p style={{ fontSize: '12px', color: '#73747B' }}>
-                  {order.internal_order_items?.length || 0} producten
-                </p>
+                <span>📅 {new Date(order.delivery_date).toLocaleDateString('nl-NL')}</span>
+                <span>👤 {order.requested_by}</span>
               </div>
             </div>
-
+            
             <ChevronDown
               size={20}
               style={{
                 color: '#73747B',
-                marginLeft: '16px',
-                flexShrink: 0,
-                transition: 'transform 0.2s ease',
                 transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s ease',
+                marginLeft: '12px',
               }}
             />
           </div>
         </button>
 
-        {isExpanded && order.internal_order_items && order.internal_order_items.length > 0 && (
+        {isExpanded && (
           <div style={{
             padding: '0 20px 20px 20px',
             borderTop: '1px solid rgba(197, 197, 202, 0.3)',
-            paddingTop: '16px',
             fontFamily: 'Inter, sans-serif',
           }}>
-            <p style={{
-              fontSize: '12px',
-              fontWeight: 600,
-              marginBottom: '12px',
-              color: '#282E3A',
-            }}>
-              Producten:
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {order.internal_order_items.map((item: any) => (
-                <p key={item.id} style={{
-                  fontSize: '13px',
-                  color: '#73747B',
-                  paddingLeft: '12px',
-                  position: 'relative',
-                }}>
-                  <span style={{
-                    position: 'absolute',
-                    left: 0,
-                    color: '#1B7867',
-                  }}>•</span>
-                  {item.product_name} - {item.quantity} {item.unit}
-                </p>
-              ))}
-            </div>
-            {order.notes && (
-              <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(197, 197, 202, 0.2)' }}>
-                <p style={{
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  marginBottom: '6px',
-                  color: '#282E3A',
-                }}>
-                  Opmerkingen:
-                </p>
-                <p style={{ fontSize: '13px', color: '#73747B' }}>
-                  {order.notes}
-                </p>
+            <div style={{ marginTop: '16px' }}>
+              <h4 style={{
+                fontSize: '13px',
+                fontWeight: 600,
+                color: '#282E3A',
+                marginBottom: '12px',
+                fontFamily: 'Inter, sans-serif',
+              }}>
+                Producten:
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {order.internal_order_items?.map((item: any) => (
+                  <div
+                    key={item.id}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '10px 12px',
+                      backgroundColor: '#FEFFF1',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(197, 197, 202, 0.3)',
+                      fontSize: '13px',
+                      fontFamily: 'Inter, sans-serif',
+                    }}
+                  >
+                    <span style={{ color: '#282E3A', fontWeight: 500 }}>{item.product_name}</span>
+                    <span style={{ color: '#1B7867', fontWeight: 600 }}>
+                      {item.quantity} {item.unit}
+                    </span>
+                  </div>
+                ))}
               </div>
-            )}
+              
+              {order.notes && (
+                <div style={{ marginTop: '12px' }}>
+                  <h4 style={{
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#282E3A',
+                    marginBottom: '8px',
+                    fontFamily: 'Inter, sans-serif',
+                  }}>
+                    Notities:
+                  </h4>
+                  <p style={{
+                    fontSize: '13px',
+                    color: '#73747B',
+                    padding: '10px 12px',
+                    backgroundColor: '#FEFFF1',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(197, 197, 202, 0.3)',
+                    fontFamily: 'Inter, sans-serif',
+                  }}>
+                    {order.notes}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
     );
   };
 
-  return (
-    <SidebarLayout>
-      <div style={{
-        maxWidth: '1400px',
-        margin: '0 auto',
-        padding: '0 24px',
-        fontFamily: 'Inter, sans-serif',
-      }}>
-        {loading ? (
+  if (loading) {
+    return (
+      <SidebarLayout>
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
           <div style={{
             backgroundColor: '#F6F7DD',
             borderRadius: '20px',
             border: '1px solid rgba(197, 197, 202, 0.5)',
-            padding: '48px',
-            textAlign: 'center',
+            padding: '24px',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
           }}>
-            <Loader2 size={32} style={{
-              color: '#1B7867',
-              animation: 'spin 1s linear infinite',
-              margin: '0 auto 16px',
-            }} />
-            <p style={{
-              color: '#73747B',
-              fontSize: '14px',
-              fontFamily: 'Inter, sans-serif',
-            }}>
-              Gebruikersgegevens laden...
-            </p>
-          </div>
-        ) : (
-          <>
-            {/* Tab Buttons */}
             <div style={{
               display: 'flex',
-              gap: '12px',
-              marginBottom: '24px',
-              flexWrap: 'wrap',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '48px 24px',
+              fontFamily: 'Inter, sans-serif',
             }}>
-              <button
-                onClick={() => setActiveTab('new')}
-                style={{
-                  minWidth: '160px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  padding: '10px 20px',
-                  backgroundColor: activeTab === 'new' ? '#1B7867' : '#FEFFF1',
-                  color: activeTab === 'new' ? '#FFFFFF' : '#282E3A',
-                  border: activeTab === 'new' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
-                  borderRadius: '20px',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  fontFamily: 'Inter, sans-serif',
-                }}
-                onMouseEnter={(e) => {
-                  if (activeTab !== 'new') {
-                    e.currentTarget.style.backgroundColor = '#F6F7DD';
-                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (activeTab !== 'new') {
-                    e.currentTarget.style.backgroundColor = '#FEFFF1';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }
-                }}
-              >
-                Nieuwe bestelling
-              </button>
-
-              <button
-                onClick={() => setActiveTab('sent')}
-                style={{
-                  minWidth: '160px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  padding: '10px 20px',
-                  backgroundColor: activeTab === 'sent' ? '#1B7867' : '#FEFFF1',
-                  color: activeTab === 'sent' ? '#FFFFFF' : '#282E3A',
-                  border: activeTab === 'sent' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
-                  borderRadius: '20px',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  fontFamily: 'Inter, sans-serif',
-                  gap: '8px',
-                }}
-                onMouseEnter={(e) => {
-                  if (activeTab !== 'sent') {
-                    e.currentTarget.style.backgroundColor = '#F6F7DD';
-                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (activeTab !== 'sent') {
-                    e.currentTarget.style.backgroundColor = '#FEFFF1';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }
-                }}
-              >
-                Verzonden
-                <span style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minWidth: '24px',
-                  height: '24px',
-                  padding: '0 6px',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  backgroundColor: activeTab === 'sent' ? 'rgba(255, 255, 255, 0.2)' : '#F6F7DD',
-                  color: activeTab === 'sent' ? '#FFFFFF' : '#1B7867',
-                }}>
-                  {sentOrders.length}
-                </span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('received')}
-                style={{
-                  minWidth: '160px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  padding: '10px 20px',
-                  backgroundColor: activeTab === 'received' ? '#1B7867' : '#FEFFF1',
-                  color: activeTab === 'received' ? '#FFFFFF' : '#282E3A',
-                  border: activeTab === 'received' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
-                  borderRadius: '20px',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  fontFamily: 'Inter, sans-serif',
-                  gap: '8px',
-                }}
-                onMouseEnter={(e) => {
-                  if (activeTab !== 'received') {
-                    e.currentTarget.style.backgroundColor = '#F6F7DD';
-                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (activeTab !== 'received') {
-                    e.currentTarget.style.backgroundColor = '#FEFFF1';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }
-                }}
-              >
-                Ontvangen
-                <span style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minWidth: '24px',
-                  height: '24px',
-                  padding: '0 6px',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  backgroundColor: activeTab === 'received' ? 'rgba(255, 255, 255, 0.2)' : '#F6F7DD',
-                  color: activeTab === 'received' ? '#FFFFFF' : '#1B7867',
-                }}>
-                  {receivedOrders.length}
-                </span>
-              </button>
+              <Loader2 size={48} className="animate-spin" style={{ color: '#1B7867', marginBottom: '16px' }} />
+              <p style={{
+                fontSize: '16px',
+                color: '#73747B',
+                fontFamily: 'Inter, sans-serif',
+              }}>
+                Locatie wordt geladen...
+              </p>
             </div>
+          </div>
+        </div>
+      </SidebarLayout>
+    );
+  }
 
-            {/* Tab Content */}
-            {activeTab === 'new' && (
-              <div>
-                <OrderDashboard />
-              </div>
-            )}
+  return (
+    <SidebarLayout>
+      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+        <div style={{
+          backgroundColor: '#F6F7DD',
+          borderRadius: '20px',
+          border: '1px solid rgba(197, 197, 202, 0.5)',
+          padding: '24px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
+        }}>
+          {/* Tab buttons */}
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            marginBottom: '24px',
+            flexWrap: 'wrap',
+          }}>
+            <button
+              onClick={() => setActiveTab('new')}
+              style={{
+                minWidth: '160px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: 500,
+                padding: '10px 20px',
+                backgroundColor: activeTab === 'new' ? '#1B7867' : '#FEFFF1',
+                color: activeTab === 'new' ? '#FFFFFF' : '#282E3A',
+                border: activeTab === 'new' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                fontFamily: 'Inter, sans-serif',
+              }}
+              onMouseEnter={(e) => {
+                if (activeTab !== 'new') {
+                  e.currentTarget.style.backgroundColor = '#F6F7DD';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== 'new') {
+                  e.currentTarget.style.backgroundColor = '#FEFFF1';
+                  e.currentTarget.style.boxShadow = 'none';
+                }
+              }}
+            >
+              Nieuwe bestelling
+            </button>
 
-            {activeTab === 'sent' && (
-              <div>
-                {loadingSent ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {[1, 2].map((i) => (
-                      <div
-                        key={i}
-                        style={{
-                          height: '120px',
-                          backgroundColor: '#F6F7DD',
-                          borderRadius: '20px',
-                          border: '1px solid rgba(197, 197, 202, 0.5)',
-                          animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        }}
-                      />
-                    ))}
-                  </div>
-                ) : sentOrders.length === 0 ? (
-                  <EmptyState
-                    icon={Package}
-                    title="Geen verzonden bestellingen"
-                    description="Maak een nieuwe bestelling om te beginnen"
-                  />
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {sentOrders.map(renderOrderCard)}
-                  </div>
-                )}
-              </div>
-            )}
+            <button
+              onClick={() => setActiveTab('sent')}
+              style={{
+                minWidth: '160px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: 500,
+                padding: '10px 20px',
+                backgroundColor: activeTab === 'sent' ? '#1B7867' : '#FEFFF1',
+                color: activeTab === 'sent' ? '#FFFFFF' : '#282E3A',
+                border: activeTab === 'sent' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                fontFamily: 'Inter, sans-serif',
+                gap: '8px',
+              }}
+              onMouseEnter={(e) => {
+                if (activeTab !== 'sent') {
+                  e.currentTarget.style.backgroundColor = '#F6F7DD';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== 'sent') {
+                  e.currentTarget.style.backgroundColor = '#FEFFF1';
+                  e.currentTarget.style.boxShadow = 'none';
+                }
+              }}
+            >
+              Verzonden
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '24px',
+                height: '24px',
+                padding: '0 6px',
+                borderRadius: '8px',
+                fontSize: '12px',
+                fontWeight: 600,
+                backgroundColor: activeTab === 'sent' ? 'rgba(255, 255, 255, 0.2)' : '#F6F7DD',
+                color: activeTab === 'sent' ? '#FFFFFF' : '#1B7867',
+              }}>
+                {sentOrders.length}
+              </span>
+            </button>
 
-            {activeTab === 'received' && (
-              <div>
-                {loadingReceived ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {[1, 2].map((i) => (
-                      <div
-                        key={i}
-                        style={{
-                          height: '120px',
-                          backgroundColor: '#F6F7DD',
-                          borderRadius: '20px',
-                          border: '1px solid rgba(197, 197, 202, 0.5)',
-                          animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        }}
-                      />
-                    ))}
-                  </div>
-                ) : receivedOrders.length === 0 ? (
-                  <EmptyState
-                    icon={Package}
-                    title="Geen ontvangen bestellingen"
-                    description="Wacht op bestellingen van andere locaties"
-                  />
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {receivedOrders.map(renderOrderCard)}
-                  </div>
-                )}
-              </div>
-            )}
-          </>
-        )}
+            <button
+              onClick={() => setActiveTab('received')}
+              style={{
+                minWidth: '160px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: 500,
+                padding: '10px 20px',
+                backgroundColor: activeTab === 'received' ? '#1B7867' : '#FEFFF1',
+                color: activeTab === 'received' ? '#FFFFFF' : '#282E3A',
+                border: activeTab === 'received' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                fontFamily: 'Inter, sans-serif',
+                gap: '8px',
+              }}
+              onMouseEnter={(e) => {
+                if (activeTab !== 'received') {
+                  e.currentTarget.style.backgroundColor = '#F6F7DD';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== 'received') {
+                  e.currentTarget.style.backgroundColor = '#FEFFF1';
+                  e.currentTarget.style.boxShadow = 'none';
+                }
+              }}
+            >
+              Ontvangen
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '24px',
+                height: '24px',
+                padding: '0 6px',
+                borderRadius: '8px',
+                fontSize: '12px',
+                fontWeight: 600,
+                backgroundColor: activeTab === 'received' ? 'rgba(255, 255, 255, 0.2)' : '#F6F7DD',
+                color: activeTab === 'received' ? '#FFFFFF' : '#1B7867',
+              }}>
+                {receivedOrders.length}
+              </span>
+            </button>
+          </div>
+
+          {/* Content based on active tab */}
+          {activeTab === 'new' && (
+            <OrderDashboard />
+          )}
+
+          {activeTab === 'sent' && (
+            <div>
+              {loadingSent ? (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '48px 24px',
+                  fontFamily: 'Inter, sans-serif',
+                }}>
+                  <Loader2 size={32} className="animate-spin" style={{ color: '#1B7867' }} />
+                </div>
+              ) : sentOrders.length === 0 ? (
+                <EmptyState 
+                  icon={Package}
+                  title="Geen verzonden bestellingen"
+                  description="Er zijn nog geen bestellingen verzonden"
+                />
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gap: '12px',
+                }}>
+                  {sentOrders.map(renderOrderCard)}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'received' && (
+            <div>
+              {loadingReceived ? (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '48px 24px',
+                  fontFamily: 'Inter, sans-serif',
+                }}>
+                  <Loader2 size={32} className="animate-spin" style={{ color: '#1B7867' }} />
+                </div>
+              ) : receivedOrders.length === 0 ? (
+                <EmptyState 
+                  icon={Package}
+                  title="Geen ontvangen bestellingen"
+                  description="Er zijn nog geen bestellingen ontvangen"
+                />
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gap: '12px',
+                }}>
+                  {receivedOrders.map(renderOrderCard)}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </SidebarLayout>
   );
