@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { MessageSquare, Edit2, X, Check } from 'lucide-react';
+import { ClipboardList, Edit2, X, Check, Clock, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { Button } from '@/components/ui/button';
@@ -83,11 +83,6 @@ export const HandoverCard = () => {
   };
 
   const handleSave = async () => {
-    if (!memoText.trim()) {
-      toast.error('Vul een bericht in');
-      return;
-    }
-
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
@@ -100,13 +95,43 @@ export const HandoverCard = () => {
       });
 
     if (error) {
-      toast.error('Kon memo niet opslaan');
+      toast.error('Kon overdracht niet opslaan');
       console.error(error);
       return;
     }
 
-    toast.success('Bijzonderheden opgeslagen');
+    if (!memoText.trim()) {
+      toast.success('Overdracht gewist');
+    } else {
+      toast.success('Overdracht opgeslagen');
+    }
+    
     setIsEditing(false);
+    setMemoText('');
+    queryClient.invalidateQueries({ queryKey: ['handover-memo', userLocation] });
+  };
+
+  const handleClear = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('handover_memos')
+      .insert({
+        location: userLocation,
+        message: '',
+        created_by: user.id,
+      });
+
+    if (error) {
+      toast.error('Kon overdracht niet wissen');
+      console.error(error);
+      return;
+    }
+
+    toast.success('Overdracht gewist');
+    setIsEditing(false);
+    setMemoText('');
     queryClient.invalidateQueries({ queryKey: ['handover-memo', userLocation] });
   };
 
@@ -152,21 +177,39 @@ export const HandoverCard = () => {
         <div
           style={{
             display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
+            flexDirection: 'column',
+            gap: '4px',
           }}
         >
-          <MessageSquare size={18} color="#1B7867" />
-          <h3
+          <div
             style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '14px',
-              fontWeight: 600,
-              color: '#282E3A',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
             }}
           >
-            Bijzonderheden Vandaag
-          </h3>
+            <ClipboardList size={18} color="#1B7867" />
+            <h3
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '14px',
+                fontWeight: 600,
+                color: '#282E3A',
+              }}
+            >
+              Overdracht - Bijzonderheden
+            </h3>
+          </div>
+          <p
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '12px',
+              color: '#73747B',
+              paddingLeft: '26px',
+            }}
+          >
+            Voor de volgende dienst
+          </p>
         </div>
 
         {isAdmin && !isEditing && (
@@ -181,21 +224,27 @@ export const HandoverCard = () => {
           <Textarea
             value={memoText}
             onChange={(e) => setMemoText(e.target.value)}
-            placeholder="Bijv. Vandaag komt iemand een bon afhalen om 15:00 uur"
-            rows={4}
+            placeholder="Noteer hier belangrijke informatie voor de volgende shift:&#10;• Speciale afspraken of afhalingen&#10;• Bijzonderheden van vandaag&#10;• Aandachtspunten voor straks"
+            rows={5}
             className="resize-none"
             style={{ whiteSpace: 'pre-wrap' }}
             autoFocus
           />
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-            <Button variant="outline" size="sm" onClick={handleCancel}>
-              <X size={14} />
-              Annuleren
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'space-between' }}>
+            <Button variant="ghost" size="sm" onClick={handleClear}>
+              <Trash2 size={14} />
+              Wis overdracht
             </Button>
-            <Button size="sm" onClick={handleSave}>
-              <Check size={14} />
-              Opslaan
-            </Button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Button variant="outline" size="sm" onClick={handleCancel}>
+                <X size={14} />
+                Annuleren
+              </Button>
+              <Button size="sm" onClick={handleSave}>
+                <Check size={14} />
+                Opslaan
+              </Button>
+            </div>
           </div>
         </>
       ) : (
@@ -205,30 +254,39 @@ export const HandoverCard = () => {
               fontFamily: 'Inter, sans-serif',
               fontSize: '15px',
               fontWeight: 400,
-              color: latestMemo ? '#282E3A' : '#73747B',
-              fontStyle: latestMemo ? 'normal' : 'italic',
+              color: latestMemo?.message ? '#282E3A' : '#73747B',
+              fontStyle: latestMemo?.message ? 'normal' : 'italic',
               lineHeight: 1.5,
               whiteSpace: 'pre-wrap',
             }}
           >
-            {latestMemo?.message || 'Geen bijzonderheden vandaag'}
+            {latestMemo?.message || 'Geen overdracht voor vandaag'}
           </p>
 
-          {latestMemo && (
-            <p
+          {latestMemo && latestMemo.message && (
+            <div
               style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '12px',
-                color: '#73747B',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
               }}
             >
-              Laatst bijgewerkt: {new Date(latestMemo.updated_at).toLocaleString('nl-NL', {
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </p>
+              <Clock size={14} color="#73747B" />
+              <p
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '12px',
+                  color: '#73747B',
+                }}
+              >
+                Laatst bijgewerkt: {new Date(latestMemo.updated_at).toLocaleString('nl-NL', {
+                  day: 'numeric',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </p>
+            </div>
           )}
         </>
       )}
