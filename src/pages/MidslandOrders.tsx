@@ -84,7 +84,7 @@ export default function MidslandOrders() {
   return (
     <SidebarLayout>
       <div style={{
-        backgroundColor: '#FEFFF1',
+        backgroundColor: '#F6F7DD',
         border: '1px solid rgba(197, 197, 202, 0.5)',
         borderRadius: '20px',
         padding: '32px',
