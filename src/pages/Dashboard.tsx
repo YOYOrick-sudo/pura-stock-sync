@@ -8,7 +8,6 @@ import { PolarKPICard } from '@/components/polar';
 import { CheckCircle, AlertCircle, Clock, ListTodo, Bell, Package, RefreshCw } from 'lucide-react';
 import { HandoverCard } from '@/components/HandoverCard';
 import { WeatherWidget } from '@/components/dashboard/WeatherWidget';
-import { AIWeatherAdvisor } from '@/components/dashboard/AIWeatherAdvisor';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -552,13 +551,6 @@ export default function Dashboard() {
           <HandoverCard />
         </div>
 
-        {/* AI Dagadvies Section - full width below handover */}
-        <div style={{ maxWidth: '1200px' }}>
-          <AIWeatherAdvisor 
-            onRefresh={fetchWeatherAndSuggestions}
-            canRefresh={!!userLocation?.trim()}
-          />
-        </div>
       </div>
     </SidebarLayout>
   );
