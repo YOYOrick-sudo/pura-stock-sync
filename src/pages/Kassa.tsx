@@ -241,8 +241,8 @@ const Kassa = () => {
                 <tbody>
                   {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom, index) => (
                     <tr key={denom} style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
-                      <td style={{ padding: '8px 12px', color: '#282E3A', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid rgba(197, 197, 202, 0.3)' }}>€{denom.replace('.', ',')}</td>
-                      <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                      <td style={{ padding: '6px 12px', color: '#282E3A', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid rgba(197, 197, 202, 0.3)' }}>€{denom.replace('.', ',')}</td>
+                      <td style={{ padding: '6px 12px', textAlign: 'center' }}>
                         <input 
                           type="number" 
                           value={counts[denom as keyof typeof counts]} 
@@ -498,7 +498,8 @@ const Kassa = () => {
                     backgroundColor: '#FEFFF1',
                     outline: 'none',
                     resize: 'vertical',
-                    transition: 'border-color 0.15s'
+                    transition: 'border-color 0.15s',
+                    whiteSpace: 'pre-wrap'
                   }}
                   onFocus={(e) => !errors.opmerkingen && (e.target.style.borderColor = '#1B7867')}
                   onBlur={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}

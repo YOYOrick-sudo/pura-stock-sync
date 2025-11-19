@@ -239,8 +239,8 @@ const KassatellingOverdag = () => {
                 </thead>
                 <tbody>
                   {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom) => <tr key={denom} style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
-                      <td style={{ padding: '8px 12px', color: '#282E3A', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid rgba(197, 197, 202, 0.3)' }}>€{denom.replace('.', ',')}</td>
-                      <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                      <td style={{ padding: '6px 12px', color: '#282E3A', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid rgba(197, 197, 202, 0.3)' }}>€{denom.replace('.', ',')}</td>
+                      <td style={{ padding: '6px 12px', textAlign: 'center' }}>
                         <input type="number" value={kassaLade[denom as keyof typeof kassaLade]} onChange={e => updateKassaLade(denom, e.target.value === '' ? '' : parseInt(e.target.value))} min={0} style={{
                           width: '80px',
                           padding: '6px 8px',
@@ -292,8 +292,8 @@ const KassatellingOverdag = () => {
                 </thead>
                 <tbody>
                   {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom) => <tr key={denom} style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
-                      <td style={{ padding: '8px 12px', color: '#282E3A', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid rgba(197, 197, 202, 0.3)' }}>€{denom.replace('.', ',')}</td>
-                      <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                      <td style={{ padding: '6px 12px', color: '#282E3A', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid rgba(197, 197, 202, 0.3)' }}>€{denom.replace('.', ',')}</td>
+                      <td style={{ padding: '6px 12px', textAlign: 'center' }}>
                         <input type="number" value={wisselkas[denom as keyof typeof wisselkas]} onChange={e => updateWisselkas(denom, e.target.value === '' ? '' : parseInt(e.target.value))} min={0} style={{
                           width: '80px',
                           padding: '6px 8px',
@@ -409,6 +409,7 @@ const KassatellingOverdag = () => {
                       color: '#282E3A',
                       outline: 'none',
                       resize: 'vertical',
+                      whiteSpace: 'pre-wrap'
                     }}
                     onFocus={(e) => !errors.opmerkingen && (e.target.style.borderColor = '#1B7867')}
                     onBlur={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
