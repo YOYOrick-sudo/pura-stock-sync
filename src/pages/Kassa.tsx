@@ -219,7 +219,7 @@ const Kassa = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px', alignItems: 'start' }}>
           {/* Denomination table */}
           <div style={{
-            backgroundColor: '#F6F7DD',
+            backgroundColor: '#FEFFF1',
             borderRadius: '20px',
             border: '1px solid rgba(197, 197, 202, 0.5)',
             overflow: 'hidden',
@@ -282,7 +282,7 @@ const Kassa = () => {
             {/* Beginsaldo Reference - Collapsible */}
             <Collapsible open={beginsaldoExpanded} onOpenChange={setBeginsaldoExpanded}>
               <div style={{
-                backgroundColor: '#F6F7DD',
+                backgroundColor: '#FEFFF1',
                 borderRadius: '20px',
                 border: '1px solid rgba(197, 197, 202, 0.5)',
                 overflow: 'hidden',
@@ -336,7 +336,7 @@ const Kassa = () => {
 
             {/* Summary card */}
             <div style={{
-              backgroundColor: '#F6F7DD',
+              backgroundColor: '#FEFFF1',
               borderRadius: '20px',
               border: '1px solid rgba(197, 197, 202, 0.5)',
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
