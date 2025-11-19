@@ -48,7 +48,7 @@ export default function Kassatelling() {
               fontFamily: 'Inter, sans-serif',
             }}
           >
-            Overdag
+            Open
           </button>
           
           <button
@@ -82,7 +82,7 @@ export default function Kassatelling() {
               fontFamily: 'Inter, sans-serif',
             }}
           >
-            Avond
+            Sluit
           </button>
         </div>
 

@@ -517,29 +517,29 @@ const Kassa = () => {
                 )}
                 <button 
                   onClick={handleSubmit}
-                  disabled={!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '' || cashOmzet <= 0}
+                  disabled={!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === ''}
                   style={{
                     width: '100%',
                     padding: '20px',
                     fontFamily: 'Inter, sans-serif',
                     fontWeight: 600,
                     fontSize: '18px',
-                    backgroundColor: (!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '' || cashOmzet <= 0) ? '#D1D5DB' : '#1B7867',
+                    backgroundColor: (!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '') ? '#D1D5DB' : '#1B7867',
                     color: '#FEFFF1',
                     border: 'none',
                     borderRadius: '20px',
-                    cursor: (!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '' || cashOmzet <= 0) ? 'not-allowed' : 'pointer',
+                    cursor: (!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '') ? 'not-allowed' : 'pointer',
                     transition: 'all 0.15s',
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                   }}
                   onMouseEnter={(e) => {
-                    if (!(!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '' || cashOmzet <= 0)) {
+                    if (!(!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '')) {
                       e.currentTarget.style.backgroundColor = '#145f55';
                       e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.15)';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!(!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '' || cashOmzet <= 0)) {
+                    if (!(!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '')) {
                       e.currentTarget.style.backgroundColor = '#1B7867';
                       e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
                     } else {
