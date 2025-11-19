@@ -16,7 +16,7 @@ export default function Kassatelling() {
         padding: '0 24px',
         fontFamily: 'Inter, sans-serif',
       }}>
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', gap: '20px', marginBottom: '24px' }}>
           <button
             onClick={() => setActiveTab('overdag')}
             onMouseEnter={(e) => {
@@ -32,7 +32,6 @@ export default function Kassatelling() {
               }
             }}
             style={{
-              flex: 1,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -66,7 +65,6 @@ export default function Kassatelling() {
               }
             }}
             style={{
-              flex: 1,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
