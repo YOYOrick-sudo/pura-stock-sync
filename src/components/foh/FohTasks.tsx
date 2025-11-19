@@ -460,12 +460,27 @@ export function FohTasks() {
     }
   };
 
-  // Calculate overall stats for all tasks
-  const allTasks = [...dailyTasks, ...extraTasks];
-  const completedCount = allTasks.filter(t => t.completed).length;
-  const totalCount = allTasks.length;
-  const progressPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-  const isComplete = progressPercentage === 100;
+  // Calculate stats specific to the current active section
+  const getCurrentSectionStats = () => {
+    let tasks: FohTaskWithEmployee[] = [];
+    
+    if (mainCategory === 'dagelijks') {
+      // Get tasks for the active phase only
+      tasks = groupedDailyTasks[activePhase];
+    } else {
+      // Get periodic tasks
+      tasks = sortedExtraTasks;
+    }
+    
+    const completed = tasks.filter(t => t.completed).length;
+    const total = tasks.length;
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+    const isComplete = percentage === 100;
+    
+    return { completed, total, percentage, isComplete };
+  };
+
+  const { completed: completedCount, total: totalCount, percentage: progressPercentage, isComplete } = getCurrentSectionStats();
 
   // Calculate stats per phase for buttons
   const getDailyListStats = (phase: PhaseType) => {
