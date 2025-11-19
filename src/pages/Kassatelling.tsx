@@ -11,7 +11,7 @@ export default function Kassatelling() {
   return (
     <SidebarLayout>
       <div style={{
-        maxWidth: '1280px',
+        maxWidth: '1400px',
         margin: '0 auto',
         padding: '0 24px',
         fontFamily: 'Inter, sans-serif',
@@ -32,6 +32,7 @@ export default function Kassatelling() {
               }
             }}
             style={{
+              flex: 1,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -65,6 +66,7 @@ export default function Kassatelling() {
               }
             }}
             style={{
+              flex: 1,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

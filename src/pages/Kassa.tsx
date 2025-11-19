@@ -542,6 +542,8 @@ const Kassa = () => {
                     if (!(!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '' || cashOmzet <= 0)) {
                       e.currentTarget.style.backgroundColor = '#1B7867';
                       e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+                    } else {
+                      e.currentTarget.style.backgroundColor = '#D1D5DB';
                     }
                   }}
                 >
