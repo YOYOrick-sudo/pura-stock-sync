@@ -68,9 +68,11 @@ export function WeatherWidget({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Sun size={16} style={{ color: '#1B7867' }} />
           <p style={{ 
-            fontSize: '14px', 
+            fontSize: '13px', 
             fontWeight: 500,
-            color: '#282E3A'
+            color: '#73747B',
+            textTransform: 'uppercase',
+            letterSpacing: '0.02em'
           }}>
             Weer Vandaag
           </p>
