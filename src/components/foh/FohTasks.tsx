@@ -1272,7 +1272,7 @@ export function FohTasks() {
                               <div style={{
                                 transform: `translateX(-${swipeOffset}px)`,
                                 transition: swipeOffset === 0 ? 'transform 0.2s ease' : 'none',
-                                backgroundColor: '#FEFFF1',
+                                backgroundColor: 'transparent',
                                 position: 'relative',
                               }}>
                                 <div style={{
@@ -1325,9 +1325,11 @@ export function FohTasks() {
                                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                     {task.estimated_minutes && (
                                       <span style={{
-                                        fontSize: '12px',
-                                        fontWeight: 500,
+                                        fontSize: '11px',
+                                        fontWeight: 400,
                                         color: '#73747B',
+                                        opacity: 0.7,
+                                        fontStyle: 'italic',
                                         fontFamily: 'Inter, sans-serif',
                                         whiteSpace: 'nowrap',
                                       }}>
@@ -1355,6 +1357,39 @@ export function FohTasks() {
                                       borderRadius: '2px',
                                       backgroundColor: priorityConfig.color,
                                     }} />
+
+                                    {!task.phase && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          deleteTask(task.id);
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          e.currentTarget.style.backgroundColor = '#FEE2E2';
+                                          e.currentTarget.style.borderColor = '#EF4444';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.currentTarget.style.backgroundColor = '#FEFFF1';
+                                          e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
+                                        }}
+                                        style={{
+                                          width: '24px',
+                                          height: '24px',
+                                          borderRadius: '8px',
+                                          border: '1px solid rgba(197,197,202,0.5)',
+                                          backgroundColor: '#FEFFF1',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          cursor: 'pointer',
+                                          transition: 'all 0.15s ease',
+                                          padding: 0,
+                                        }}
+                                        title="Verwijder taak"
+                                      >
+                                        <Trash2 size={14} style={{ color: '#EF4444' }} />
+                                      </button>
+                                    )}
 
                                     {task.foh_employees && (
                                       <span style={{
