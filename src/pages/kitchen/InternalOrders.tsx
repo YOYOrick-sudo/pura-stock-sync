@@ -28,15 +28,15 @@ export default function InternalOrders() {
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'delivered':
-        return { bg: '#D1FAE5', color: '#059669', label: 'Afgeleverd' };
+        return { bg: '#F0FDF4', color: '#10B981', label: 'Afgeleverd' };
       case 'in_transit':
-        return { bg: '#E9D5FF', color: '#9333EA', label: 'Onderweg' };
+        return { bg: '#E6F4F1', color: '#1B7867', label: 'Onderweg' };
       case 'approved':
-        return { bg: '#DBEAFE', color: '#2563EB', label: 'Goedgekeurd' };
+        return { bg: '#E6F4F1', color: '#1B7867', label: 'Goedgekeurd' };
       case 'cancelled':
-        return { bg: '#FEE2E2', color: '#DC2626', label: 'Geannuleerd' };
+        return { bg: '#FEF5F5', color: '#E64D4D', label: 'Geannuleerd' };
       default:
-        return { bg: '#FEF3C7', color: '#D97706', label: 'In afwachting' };
+        return { bg: '#FFF8F0', color: '#FF9800', label: 'In afwachting' };
     }
   };
 
@@ -48,7 +48,7 @@ export default function InternalOrders() {
       <div
         key={order.id}
         style={{
-          backgroundColor: '#FFFFFF',
+          backgroundColor: '#FEFFF1',
           borderRadius: '20px',
           border: '1px solid rgba(197, 197, 202, 0.5)',
           overflow: 'hidden',
