@@ -1,15 +1,9 @@
 import { useState } from 'react';
 import { SidebarLayout } from '@/components/SidebarLayout';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Package, Loader2, ChevronDown } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useSentOrders, useReceivedOrders } from '@/hooks/useInternalOrders';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
-import { cn } from '@/lib/utils';
 import OrderDashboard from '@/components/OrderDashboard';
 
 export default function InternalOrders() {
@@ -17,6 +11,7 @@ export default function InternalOrders() {
   const { data: sentOrders = [], isLoading: loadingSent } = useSentOrders(userLocation);
   const { data: receivedOrders = [], isLoading: loadingReceived } = useReceivedOrders(userLocation);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState<'new' | 'sent' | 'received'>('new');
 
   const toggleOrder = (orderId: string) => {
     setExpandedOrders(prev => {
@@ -30,197 +25,434 @@ export default function InternalOrders() {
     });
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusInfo = (status: string) => {
     switch (status) {
       case 'delivered':
-        return 'bg-green-100 text-green-600';
+        return { bg: '#D1FAE5', color: '#059669', label: 'Afgeleverd' };
       case 'in_transit':
-        return 'bg-purple-100 text-purple-600';
+        return { bg: '#E9D5FF', color: '#9333EA', label: 'Onderweg' };
       case 'approved':
-        return 'bg-blue-100 text-blue-600';
+        return { bg: '#DBEAFE', color: '#2563EB', label: 'Goedgekeurd' };
       case 'cancelled':
-        return 'bg-red-100 text-red-600';
+        return { bg: '#FEE2E2', color: '#DC2626', label: 'Geannuleerd' };
       default:
-        return 'bg-yellow-100 text-yellow-600';
+        return { bg: '#FEF3C7', color: '#D97706', label: 'In afwachting' };
     }
+  };
+
+  const renderOrderCard = (order: any) => {
+    const isExpanded = expandedOrders.has(order.id);
+    const statusInfo = getStatusInfo(order.status);
+
+    return (
+      <div
+        key={order.id}
+        style={{
+          backgroundColor: '#FFFFFF',
+          borderRadius: '20px',
+          border: '1px solid rgba(197, 197, 202, 0.5)',
+          overflow: 'hidden',
+          transition: 'all 0.2s ease',
+        }}
+      >
+        <button
+          onClick={() => toggleOrder(order.id)}
+          style={{
+            width: '100%',
+            textAlign: 'left',
+            padding: '20px',
+            backgroundColor: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            fontFamily: 'Inter, sans-serif',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between' }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <h3 style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#282E3A',
+                  letterSpacing: '0.5px',
+                }}>
+                  {order.order_number}
+                </h3>
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  padding: '4px 12px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  backgroundColor: statusInfo.bg,
+                  color: statusInfo.color,
+                  fontFamily: 'Inter, sans-serif',
+                }}>
+                  {statusInfo.label}
+                </span>
+              </div>
+              
+              <p style={{
+                fontSize: '13px',
+                color: '#73747B',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                marginBottom: '8px',
+                fontFamily: 'Inter, sans-serif',
+              }}>
+                {order.from_location} <ArrowRight size={14} /> {order.to_location}
+              </p>
+
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                flexWrap: 'wrap',
+                fontFamily: 'Inter, sans-serif',
+              }}>
+                <p style={{ fontSize: '12px', color: '#73747B' }}>
+                  📅 {new Date(order.delivery_date).toLocaleDateString('nl-NL')}
+                </p>
+                <span style={{ fontSize: '12px', color: '#73747B' }}>•</span>
+                <p style={{ fontSize: '12px', color: '#73747B' }}>
+                  {order.internal_order_items?.length || 0} producten
+                </p>
+              </div>
+            </div>
+
+            <ChevronDown
+              size={20}
+              style={{
+                color: '#73747B',
+                marginLeft: '16px',
+                flexShrink: 0,
+                transition: 'transform 0.2s ease',
+                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+              }}
+            />
+          </div>
+        </button>
+
+        {isExpanded && order.internal_order_items && order.internal_order_items.length > 0 && (
+          <div style={{
+            padding: '0 20px 20px 20px',
+            borderTop: '1px solid rgba(197, 197, 202, 0.3)',
+            paddingTop: '16px',
+            fontFamily: 'Inter, sans-serif',
+          }}>
+            <p style={{
+              fontSize: '12px',
+              fontWeight: 600,
+              marginBottom: '12px',
+              color: '#282E3A',
+            }}>
+              Producten:
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {order.internal_order_items.map((item: any) => (
+                <p key={item.id} style={{
+                  fontSize: '13px',
+                  color: '#73747B',
+                  paddingLeft: '12px',
+                  position: 'relative',
+                }}>
+                  <span style={{
+                    position: 'absolute',
+                    left: 0,
+                    color: '#1B7867',
+                  }}>•</span>
+                  {item.product_name} - {item.quantity} {item.unit}
+                </p>
+              ))}
+            </div>
+            {order.notes && (
+              <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(197, 197, 202, 0.2)' }}>
+                <p style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  marginBottom: '6px',
+                  color: '#282E3A',
+                }}>
+                  Opmerkingen:
+                </p>
+                <p style={{ fontSize: '13px', color: '#73747B' }}>
+                  {order.notes}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
     <SidebarLayout>
-      <div className="max-w-7xl mx-auto px-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-heading font-bold text-foreground">Interne bestellingen</h1>
-          <p className="text-sm text-muted-foreground">{userLocation}</p>
+      <div style={{
+        maxWidth: '1400px',
+        margin: '0 auto',
+        padding: '0 24px',
+        fontFamily: 'Inter, sans-serif',
+      }}>
+        {/* Header */}
+        <div style={{ marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h1 style={{
+              fontSize: '28px',
+              fontWeight: 600,
+              color: '#282E3A',
+              fontFamily: 'Inter, sans-serif',
+              margin: 0,
+            }}>
+              Interne bestellingen
+            </h1>
+            <p style={{
+              fontSize: '14px',
+              color: '#73747B',
+              fontFamily: 'Inter, sans-serif',
+            }}>
+              {userLocation}
+            </p>
+          </div>
         </div>
 
         {loading ? (
-          <Card className="p-6 bg-white shadow-sm">
-            <div className="text-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-              <p className="text-muted-foreground">Gebruikersgegevens laden...</p>
-            </div>
-          </Card>
+          <div style={{
+            backgroundColor: '#F6F7DD',
+            borderRadius: '20px',
+            border: '1px solid rgba(197, 197, 202, 0.5)',
+            padding: '48px',
+            textAlign: 'center',
+          }}>
+            <Loader2 size={32} style={{
+              color: '#1B7867',
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto 16px',
+            }} />
+            <p style={{
+              color: '#73747B',
+              fontSize: '14px',
+              fontFamily: 'Inter, sans-serif',
+            }}>
+              Gebruikersgegevens laden...
+            </p>
+          </div>
         ) : (
-          <Tabs defaultValue="new" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 bg-white">
-              <TabsTrigger value="new">Nieuwe bestelling</TabsTrigger>
-              <TabsTrigger value="sent">
-                Verzonden ({sentOrders.length})
-              </TabsTrigger>
-              <TabsTrigger value="received">
-                Ontvangen ({receivedOrders.length})
-              </TabsTrigger>
-            </TabsList>
+          <>
+            {/* Tab Buttons */}
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              marginBottom: '24px',
+              flexWrap: 'wrap',
+            }}>
+              <button
+                onClick={() => setActiveTab('new')}
+                style={{
+                  minWidth: '160px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  padding: '10px 20px',
+                  backgroundColor: activeTab === 'new' ? '#1B7867' : '#FEFFF1',
+                  color: activeTab === 'new' ? '#FFFFFF' : '#282E3A',
+                  border: activeTab === 'new' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+                  borderRadius: '20px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  fontFamily: 'Inter, sans-serif',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== 'new') {
+                    e.currentTarget.style.backgroundColor = '#F6F7DD';
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== 'new') {
+                    e.currentTarget.style.backgroundColor = '#FEFFF1';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }
+                }}
+              >
+                Nieuwe bestelling
+              </button>
 
-            {/* New Order Tab */}
-            <TabsContent value="new" className="space-y-6">
-              <OrderDashboard />
-            </TabsContent>
+              <button
+                onClick={() => setActiveTab('sent')}
+                style={{
+                  minWidth: '160px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  padding: '10px 20px',
+                  backgroundColor: activeTab === 'sent' ? '#1B7867' : '#FEFFF1',
+                  color: activeTab === 'sent' ? '#FFFFFF' : '#282E3A',
+                  border: activeTab === 'sent' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+                  borderRadius: '20px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  fontFamily: 'Inter, sans-serif',
+                  gap: '8px',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== 'sent') {
+                    e.currentTarget.style.backgroundColor = '#F6F7DD';
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== 'sent') {
+                    e.currentTarget.style.backgroundColor = '#FEFFF1';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }
+                }}
+              >
+                Verzonden
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minWidth: '24px',
+                  height: '24px',
+                  padding: '0 6px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  backgroundColor: activeTab === 'sent' ? 'rgba(255, 255, 255, 0.2)' : '#F6F7DD',
+                  color: activeTab === 'sent' ? '#FFFFFF' : '#1B7867',
+                }}>
+                  {sentOrders.length}
+                </span>
+              </button>
 
-            {/* Sent Orders Tab */}
-            <TabsContent value="sent" className="space-y-4">
-              {loadingSent ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-24 w-full" />
-                  <Skeleton className="h-24 w-full" />
-                </div>
-              ) : sentOrders.length === 0 ? (
-                <EmptyState
-                  icon={Package}
-                  title="Geen verzonden bestellingen"
-                  description="Maak een nieuwe bestelling om te beginnen"
-                />
-              ) : (
-                sentOrders.map((order) => (
-                  <Collapsible key={order.id} open={expandedOrders.has(order.id)} onOpenChange={() => toggleOrder(order.id)}>
-                    <Card className={cn(
-                      "bg-white shadow-sm border-l-4 transition-all hover:shadow-md",
-                      getStatusColor(order.status).replace('bg-', 'border-').split(' ')[0]
-                    )}>
-                      <CollapsibleTrigger className="w-full text-left p-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-1">
-                              <h3 className="font-mono font-bold text-sm text-foreground">{order.order_number}</h3>
-                              <Badge className={cn("text-xs", getStatusColor(order.status))}>
-                                {order.status === 'approved' ? 'Goedgekeurd' : order.status}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                              {order.from_location} <ArrowRight className="h-3 w-3" /> {order.to_location}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <p className="text-xs text-muted-foreground">
-                                📅 {new Date(order.delivery_date).toLocaleDateString('nl-NL')}
-                              </p>
-                              <span className="text-xs text-muted-foreground">•</span>
-                              <p className="text-xs text-muted-foreground">
-                                {order.internal_order_items?.length || 0} producten
-                              </p>
-                            </div>
-                          </div>
-                          <ChevronDown className={cn(
-                            "h-4 w-4 text-muted-foreground transition-transform ml-2 mt-1 flex-shrink-0",
-                            expandedOrders.has(order.id) && "rotate-180"
-                          )} />
-                        </div>
-                      </CollapsibleTrigger>
-                      
-                      <CollapsibleContent>
-                        {order.internal_order_items && order.internal_order_items.length > 0 && (
-                          <div className="px-3 pb-3 pt-2 border-t">
-                            <p className="text-xs font-semibold mb-2 text-foreground">Producten:</p>
-                            <div className="space-y-1">
-                              {order.internal_order_items.map((item: any) => (
-                                <p key={item.id} className="text-xs text-muted-foreground">
-                                  • {item.product_name} - {item.quantity} {item.unit}
-                                </p>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </CollapsibleContent>
-                    </Card>
-                  </Collapsible>
-                ))
-              )}
-            </TabsContent>
+              <button
+                onClick={() => setActiveTab('received')}
+                style={{
+                  minWidth: '160px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  padding: '10px 20px',
+                  backgroundColor: activeTab === 'received' ? '#1B7867' : '#FEFFF1',
+                  color: activeTab === 'received' ? '#FFFFFF' : '#282E3A',
+                  border: activeTab === 'received' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+                  borderRadius: '20px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  fontFamily: 'Inter, sans-serif',
+                  gap: '8px',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== 'received') {
+                    e.currentTarget.style.backgroundColor = '#F6F7DD';
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== 'received') {
+                    e.currentTarget.style.backgroundColor = '#FEFFF1';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }
+                }}
+              >
+                Ontvangen
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minWidth: '24px',
+                  height: '24px',
+                  padding: '0 6px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  backgroundColor: activeTab === 'received' ? 'rgba(255, 255, 255, 0.2)' : '#F6F7DD',
+                  color: activeTab === 'received' ? '#FFFFFF' : '#1B7867',
+                }}>
+                  {receivedOrders.length}
+                </span>
+              </button>
+            </div>
 
-            {/* Received Orders Tab */}
-            <TabsContent value="received" className="space-y-4">
-              {loadingReceived ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-24 w-full" />
-                  <Skeleton className="h-24 w-full" />
-                </div>
-              ) : receivedOrders.length === 0 ? (
-                <EmptyState
-                  icon={Package}
-                  title="Geen ontvangen bestellingen"
-                  description="Wacht op bestellingen van andere locaties"
-                />
-              ) : (
-                receivedOrders.map((order) => (
-                  <Collapsible key={order.id} open={expandedOrders.has(order.id)} onOpenChange={() => toggleOrder(order.id)}>
-                    <Card className={cn(
-                      "bg-white shadow-sm border-l-4 transition-all hover:shadow-md",
-                      getStatusColor(order.status).replace('bg-', 'border-').split(' ')[0]
-                    )}>
-                      <CollapsibleTrigger className="w-full text-left p-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-1">
-                              <h3 className="font-mono font-bold text-sm text-foreground">{order.order_number}</h3>
-                              <Badge className={cn("text-xs", getStatusColor(order.status))}>
-                                {order.status === 'approved' ? 'Goedgekeurd' : order.status}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                              {order.from_location} <ArrowRight className="h-3 w-3" /> {order.to_location}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <p className="text-xs text-muted-foreground">
-                                📅 {new Date(order.delivery_date).toLocaleDateString('nl-NL')}
-                              </p>
-                              <span className="text-xs text-muted-foreground">•</span>
-                              <p className="text-xs text-muted-foreground">
-                                {order.internal_order_items?.length || 0} producten
-                              </p>
-                            </div>
-                          </div>
-                          <ChevronDown className={cn(
-                            "h-4 w-4 text-muted-foreground transition-transform ml-2 mt-1 flex-shrink-0",
-                            expandedOrders.has(order.id) && "rotate-180"
-                          )} />
-                        </div>
-                      </CollapsibleTrigger>
-                      
-                      <CollapsibleContent>
-                        {order.internal_order_items && order.internal_order_items.length > 0 && (
-                          <div className="px-3 pb-2 pt-2 border-t">
-                            <p className="text-xs font-semibold mb-2 text-foreground">Producten:</p>
-                            <div className="space-y-1">
-                              {order.internal_order_items.map((item: any) => (
-                                <p key={item.id} className="text-xs text-muted-foreground">
-                                  • {item.product_name} - {item.quantity} {item.unit}
-                                </p>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        {order.notes && (
-                          <div className="px-3 pb-3 pt-2 border-t">
-                            <p className="text-xs font-semibold mb-1 text-foreground">📝 Notities:</p>
-                            <p className="text-xs text-muted-foreground">{order.notes}</p>
-                          </div>
-                        )}
-                      </CollapsibleContent>
-                    </Card>
-                  </Collapsible>
-                ))
-              )}
-            </TabsContent>
-          </Tabs>
+            {/* Tab Content */}
+            {activeTab === 'new' && (
+              <div>
+                <OrderDashboard />
+              </div>
+            )}
+
+            {activeTab === 'sent' && (
+              <div>
+                {loadingSent ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {[1, 2].map((i) => (
+                      <div
+                        key={i}
+                        style={{
+                          height: '120px',
+                          backgroundColor: '#F6F7DD',
+                          borderRadius: '20px',
+                          border: '1px solid rgba(197, 197, 202, 0.5)',
+                          animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : sentOrders.length === 0 ? (
+                  <EmptyState
+                    icon={Package}
+                    title="Geen verzonden bestellingen"
+                    description="Maak een nieuwe bestelling om te beginnen"
+                  />
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {sentOrders.map(renderOrderCard)}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'received' && (
+              <div>
+                {loadingReceived ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {[1, 2].map((i) => (
+                      <div
+                        key={i}
+                        style={{
+                          height: '120px',
+                          backgroundColor: '#F6F7DD',
+                          borderRadius: '20px',
+                          border: '1px solid rgba(197, 197, 202, 0.5)',
+                          animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : receivedOrders.length === 0 ? (
+                  <EmptyState
+                    icon={Package}
+                    title="Geen ontvangen bestellingen"
+                    description="Wacht op bestellingen van andere locaties"
+                  />
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {receivedOrders.map(renderOrderCard)}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     </SidebarLayout>
