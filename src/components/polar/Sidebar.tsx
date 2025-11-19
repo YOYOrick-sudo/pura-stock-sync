@@ -128,7 +128,7 @@ export function PolarSidebar({
       <nav
         style={{
           flex: 1,
-          padding: collapsed ? '24px 8px' : '24px 16px',
+          padding: collapsed ? '28px 8px' : '28px 16px',
           overflowY: 'auto',
         }}
       >
