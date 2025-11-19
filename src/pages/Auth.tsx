@@ -167,11 +167,11 @@ const Auth = () => {
                   style={{
                     cursor: loading ? 'not-allowed' : 'pointer',
                     padding: '16px',
-                    borderRadius: '16px',
+                    borderRadius: '20px',
                     border: location === 'West' 
                       ? '2px solid #1B7867' 
                       : '1px solid rgba(197, 197, 202, 0.5)',
-                    backgroundColor: location === 'West' ? '#FEFFF1' : '#FFFFFF',
+                    backgroundColor: location === 'West' ? '#FEFFF1' : '#F6F7DD',
                     transition: 'all 200ms',
                     opacity: loading ? 0.5 : 1
                   }}
@@ -193,11 +193,11 @@ const Auth = () => {
                   style={{
                     cursor: loading ? 'not-allowed' : 'pointer',
                     padding: '16px',
-                    borderRadius: '16px',
+                    borderRadius: '20px',
                     border: location === 'Midsland' 
                       ? '2px solid #1B7867' 
                       : '1px solid rgba(197, 197, 202, 0.5)',
-                    backgroundColor: location === 'Midsland' ? '#FEFFF1' : '#FFFFFF',
+                    backgroundColor: location === 'Midsland' ? '#FEFFF1' : '#F6F7DD',
                     transition: 'all 200ms',
                     opacity: loading ? 0.5 : 1
                   }}
