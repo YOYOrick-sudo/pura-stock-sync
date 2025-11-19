@@ -10,11 +10,6 @@ export default function Kassatelling() {
   return (
     <SidebarLayout>
       <div className="max-w-7xl mx-auto px-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-heading font-bold text-foreground">Kassatelling</h1>
-          <p className="text-sm text-muted-foreground">{userLocation}</p>
-        </div>
-
         <Tabs defaultValue="avond" className="space-y-4">
           <TabsList className="inline-flex h-10 items-center justify-start rounded-lg bg-muted/50 p-1">
             <TabsTrigger 

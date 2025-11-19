@@ -225,12 +225,12 @@ const Kassa = () => {
             overflow: 'hidden',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
           }}>
-            <div style={{ backgroundColor: '#FFFFFF', padding: '12px 16px', borderBottom: '1px solid rgba(197, 197, 202, 0.5)' }}>
+            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderBottom: '1px solid rgba(197, 197, 202, 0.5)' }}>
               <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Kassa Lade
               </h2>
             </div>
-            <div style={{ overflowX: 'auto', backgroundColor: '#FFFFFF', padding: '16px' }}>
+            <div style={{ overflowX: 'auto', backgroundColor: '#FEFFF1', padding: '16px' }}>
               <table style={{ width: '100%', fontFamily: 'Inter, sans-serif' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.3)' }}>
@@ -254,7 +254,7 @@ const Kassa = () => {
                             textAlign: 'center',
                             border: '1px solid rgba(197, 197, 202, 0.5)',
                             borderRadius: '16px',
-                            backgroundColor: '#FFFFFF',
+                            backgroundColor: '#FEFFF1',
                             fontFamily: 'monospace',
                             fontSize: '14px',
                             color: '#282E3A',
@@ -269,7 +269,7 @@ const Kassa = () => {
                 </tbody>
               </table>
             </div>
-            <div style={{ backgroundColor: '#FFFFFF', padding: '12px 16px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
+            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
                 <span style={{ fontSize: '24px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>€{calculateTotal().toFixed(2).replace('.', ',')}</span>
@@ -290,9 +290,9 @@ const Kassa = () => {
               }}>
                 
                 {/* Clickable header met icon en pijltje */}
-                <CollapsibleTrigger style={{ width: '100%', padding: '12px 16px', backgroundColor: '#FFFFFF', cursor: 'pointer', border: 'none', transition: 'background-color 0.15s' }}
+                <CollapsibleTrigger style={{ width: '100%', padding: '12px 16px', backgroundColor: '#FEFFF1', cursor: 'pointer', border: 'none', transition: 'background-color 0.15s' }}
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F6F7DD'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFFFFF'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FEFFF1'}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -314,7 +314,7 @@ const Kassa = () => {
                 
                 {/* Uitklapbare content met denominaties */}
                 <CollapsibleContent>
-                  <div style={{ padding: '12px 16px', backgroundColor: '#FFFFFF', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
+                  <div style={{ padding: '12px 16px', backgroundColor: '#FEFFF1', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
                     {Object.entries(BEGINSALDO_VERDELING).map(([denom, count]) => (
                       <div key={denom} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
                         <span style={{ fontFamily: 'monospace', fontSize: '13px', color: '#282E3A' }}>€{denom.replace('.', ',')} × {count}</span>
@@ -335,160 +335,253 @@ const Kassa = () => {
             </Collapsible>
 
             {/* Summary card */}
-            <div className="bg-white rounded-xl shadow-sm border border-[#1B7867]/10 p-4">
-          {/* Totaal - meest prominent */}
-          <div className="flex items-center justify-between py-1">
-            <span className="text-sm font-heading font-medium text-[#282E3A]/60">
-              Totaal
-            </span>
-            <span className="text-3xl font-heading font-bold text-[#1B7867]">
-              €{total.toFixed(2).replace('.', ',')}
-            </span>
-          </div>
+            <div style={{
+              backgroundColor: '#F6F7DD',
+              borderRadius: '20px',
+              border: '1px solid rgba(197, 197, 202, 0.5)',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
+              padding: '16px'
+            }}>
+              {/* Totaal - meest prominent */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
+                <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+                  Totaal
+                </span>
+                <span style={{ fontSize: '30px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>
+                  €{total.toFixed(2).replace('.', ',')}
+                </span>
+              </div>
 
-          <div className="border-t border-[#1B7867]/5 my-2"></div>
+              <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '8px 0' }}></div>
 
-          {/* Cash omzet - compacter */}
-          <div className="py-1">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-sm font-heading font-medium text-[#282E3A]/60">
-                Cash omzet (Lightspeed)
-              </span>
-              <input 
-                type="number" 
-                value={cashOmzet} 
-                onChange={(e) => {
-                  setCashOmzet(e.target.value === '' ? '' : parseFloat(e.target.value));
-                  if (errors.cashOmzet) setErrors(prev => ({ ...prev, cashOmzet: '' }));
-                }}
-                min={0} 
-                className={`w-24 px-2 py-1.5 text-right text-lg font-heading font-bold text-[#282E3A] border rounded-md focus:outline-none font-mono transition-colors ${
-                  errors.cashOmzet ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500' : 'border-[#1B7867]/20 focus:border-[#1B7867]'
-                }`}
-              />
+              {/* Cash omzet - compacter */}
+              <div style={{ padding: '4px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+                  <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+                    Cash omzet (Lightspeed)
+                  </span>
+                  <input 
+                    type="number" 
+                    value={cashOmzet} 
+                    onChange={(e) => {
+                      setCashOmzet(e.target.value === '' ? '' : parseFloat(e.target.value));
+                      if (errors.cashOmzet) setErrors(prev => ({ ...prev, cashOmzet: '' }));
+                    }}
+                    min={0}
+                    style={{
+                      width: '96px',
+                      padding: '6px 8px',
+                      textAlign: 'right',
+                      fontSize: '18px',
+                      fontFamily: 'Inter, sans-serif',
+                      fontWeight: 700,
+                      color: '#282E3A',
+                      border: errors.cashOmzet ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
+                      borderRadius: '16px',
+                      backgroundColor: '#FEFFF1',
+                      outline: 'none',
+                      transition: 'border-color 0.15s'
+                    }}
+                    onFocus={(e) => !errors.cashOmzet && (e.target.style.borderColor = '#1B7867')}
+                    onBlur={(e) => !errors.cashOmzet && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
+                  />
+                </div>
+                {errors.cashOmzet && (
+                  <p style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px', textAlign: 'right', fontFamily: 'Inter, sans-serif' }}>{errors.cashOmzet}</p>
+                )}
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '8px 0' }}></div>
+
+              {/* Naam medewerker */}
+              <div style={{ padding: '4px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+                  <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+                    Naam medewerker
+                  </span>
+                  <input 
+                    type="text" 
+                    value={naam} 
+                    onChange={(e) => {
+                      setNaam(e.target.value);
+                      if (errors.naam) setErrors(prev => ({ ...prev, naam: '' }));
+                    }}
+                    placeholder="Vul je naam in"
+                    style={{
+                      width: '192px',
+                      padding: '6px 8px',
+                      textAlign: 'right',
+                      fontSize: '14px',
+                      fontFamily: 'Inter, sans-serif',
+                      color: '#282E3A',
+                      border: errors.naam ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
+                      borderRadius: '16px',
+                      backgroundColor: '#FEFFF1',
+                      outline: 'none',
+                      transition: 'border-color 0.15s'
+                    }}
+                    onFocus={(e) => !errors.naam && (e.target.style.borderColor = '#1B7867')}
+                    onBlur={(e) => !errors.naam && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
+                  />
+                </div>
+                {errors.naam && (
+                  <p style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px', textAlign: 'right', fontFamily: 'Inter, sans-serif' }}>{errors.naam}</p>
+                )}
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '8px 0' }}></div>
+
+              {/* Afdracht - compacter met kleinere uitleg */}
+              <div style={{ padding: '4px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+                    Afdracht / Envelop
+                  </span>
+                  <span style={{
+                    fontSize: '24px',
+                    fontFamily: 'Inter, sans-serif',
+                    fontWeight: 700,
+                    color: afdracht > 0 ? '#1B7867' : '#9CA3AF'
+                  }}>
+                    €{afdracht.toFixed(2).replace('.', ',')}
+                  </span>
+                </div>
+                <p style={{ fontSize: '12px', color: '#73747B', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>
+                  {total >= DOELSALDO 
+                    ? `Leg €${afdracht.toFixed(2).replace('.', ',')} in de envelop, laat €${DOELSALDO.toFixed(2).replace('.', ',')} in de lade.`
+                    : `Aanvullen uit wisselkassa: €${(DOELSALDO - total).toFixed(2).replace('.', ',')} om de lade op €${DOELSALDO.toFixed(2).replace('.', ',')} te brengen.`
+                  }
+                </p>
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '8px 0' }}></div>
+
+              {/* Kasverschil - prominente kleurcodering */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
+                <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+                  Kasverschil
+                </span>
+                <span style={{
+                  fontSize: '24px',
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: 700,
+                  color: kasverschil > 0 ? '#16A34A' : kasverschil < 0 ? '#DC2626' : '#282E3A'
+                }}>
+                  €{kasverschil.toFixed(2).replace('.', ',')}
+                </span>
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '8px 0' }}></div>
+
+              {/* Opmerkingen - compacter label */}
+              <div style={{ padding: '4px 0' }}>
+                <label htmlFor="opmerkingen" style={{ display: 'block', fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B', marginBottom: '6px' }}>
+                  Opmerkingen
+                </label>
+                <textarea
+                  id="opmerkingen"
+                  value={opmerkingen}
+                  onChange={(e) => {
+                    setOpmerkingen(e.target.value);
+                    if (errors.opmerkingen) setErrors(prev => ({ ...prev, opmerkingen: '' }));
+                  }}
+                  placeholder="Voeg hier eventuele opmerkingen toe..."
+                  style={{
+                    width: '100%',
+                    minHeight: '80px',
+                    padding: '8px 12px',
+                    fontFamily: 'monospace',
+                    fontSize: '14px',
+                    color: '#282E3A',
+                    border: errors.opmerkingen ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
+                    borderRadius: '16px',
+                    backgroundColor: '#FEFFF1',
+                    outline: 'none',
+                    resize: 'vertical',
+                    transition: 'border-color 0.15s'
+                  }}
+                  onFocus={(e) => !errors.opmerkingen && (e.target.style.borderColor = '#1B7867')}
+                  onBlur={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
+                />
+                {errors.opmerkingen && (
+                  <p style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>{errors.opmerkingen}</p>
+                )}
+              </div>
+
+              {/* Verzenden button */}
+              <div style={{ marginTop: '16px' }}>
+                {!canSubmit && timeRemaining > 0 && (
+                  <p style={{ fontSize: '12px', color: '#73747B', marginBottom: '8px', textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>
+                    Je kunt over {Math.floor(timeRemaining / 60)}m {timeRemaining % 60}s opnieuw indienen
+                  </p>
+                )}
+                <button 
+                  onClick={handleSubmit}
+                  disabled={!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '' || cashOmzet <= 0}
+                  style={{
+                    width: '100%',
+                    padding: '20px',
+                    fontFamily: 'Inter, sans-serif',
+                    fontWeight: 600,
+                    fontSize: '18px',
+                    backgroundColor: (!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '' || cashOmzet <= 0) ? '#D1D5DB' : '#1B7867',
+                    color: '#FEFFF1',
+                    border: 'none',
+                    borderRadius: '20px',
+                    cursor: (!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '' || cashOmzet <= 0) ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.15s',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!(!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '' || cashOmzet <= 0)) {
+                      e.currentTarget.style.backgroundColor = '#145f55';
+                      e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.15)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!(!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '' || cashOmzet <= 0)) {
+                      e.currentTarget.style.backgroundColor = '#1B7867';
+                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+                    }
+                  }}
+                >
+                  {!canSubmit ? 'Wacht alsjeblieft...' : 'Verzenden'}
+                </button>
+                
+                <button
+                  onClick={() => setShowInstructionsDialog(true)}
+                  style={{
+                    width: '100%',
+                    marginTop: '8px',
+                    padding: '10px 20px',
+                    fontFamily: 'Inter, sans-serif',
+                    fontWeight: 500,
+                    fontSize: '14px',
+                    backgroundColor: '#FEFFF1',
+                    color: '#1B7867',
+                    border: '1px solid rgba(197, 197, 202, 0.5)',
+                    borderRadius: '20px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#F6F7DD';
+                    e.currentTarget.style.borderColor = '#1B7867';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#FEFFF1';
+                    e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.5)';
+                  }}
+                >
+                  <Info style={{ width: '16px', height: '16px' }} />
+                  Instructies
+                </button>
+              </div>
             </div>
-            {errors.cashOmzet && (
-              <p className="text-xs text-red-500 mt-1 text-right">{errors.cashOmzet}</p>
-            )}
-          </div>
-
-          <div className="border-t border-[#1B7867]/5 my-2"></div>
-
-          {/* Naam medewerker */}
-          <div className="py-1">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-sm font-heading font-medium text-[#282E3A]/60">
-                Naam medewerker
-              </span>
-              <input 
-                type="text" 
-                value={naam} 
-                onChange={(e) => {
-                  setNaam(e.target.value);
-                  if (errors.naam) setErrors(prev => ({ ...prev, naam: '' }));
-                }}
-                placeholder="Vul je naam in"
-                className={`w-48 px-2 py-1.5 text-right text-sm font-heading text-[#282E3A] border rounded-md focus:outline-none transition-colors ${
-                  errors.naam ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500' : 'border-[#1B7867]/20 focus:border-[#1B7867]'
-                }`}
-              />
-            </div>
-            {errors.naam && (
-              <p className="text-xs text-red-500 mt-1 text-right">{errors.naam}</p>
-            )}
-          </div>
-
-          <div className="border-t border-[#1B7867]/5 my-2"></div>
-
-          {/* Afdracht - compacter met kleinere uitleg */}
-          <div className="py-1">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-heading font-medium text-[#282E3A]/60">
-                Afdracht / Envelop
-              </span>
-              <span className={`text-2xl font-heading font-bold ${
-                afdracht > 0 ? 'text-[#1B7867]' : 'text-gray-400'
-              }`}>
-                €{afdracht.toFixed(2).replace('.', ',')}
-              </span>
-            </div>
-            <p className="text-xs text-[#282E3A]/60 mt-1">
-              {total >= DOELSALDO 
-                ? `Leg €${afdracht.toFixed(2).replace('.', ',')} in de envelop, laat €${DOELSALDO.toFixed(2).replace('.', ',')} in de lade.`
-                : `Aanvullen uit wisselkassa: €${(DOELSALDO - total).toFixed(2).replace('.', ',')} om de lade op €${DOELSALDO.toFixed(2).replace('.', ',')} te brengen.`
-              }
-            </p>
-          </div>
-
-          <div className="border-t border-[#1B7867]/5 my-2"></div>
-
-          {/* Kasverschil - prominente kleurcodering */}
-          <div className="flex items-center justify-between py-1">
-            <span className="text-sm font-heading font-medium text-[#282E3A]/60">
-              Kasverschil
-            </span>
-            <span className={`text-2xl font-heading font-bold ${
-              kasverschil > 0 ? 'text-green-600' : 
-              kasverschil < 0 ? 'text-red-600' : 
-              'text-[#282E3A]'
-            }`}>
-              €{kasverschil.toFixed(2).replace('.', ',')}
-            </span>
-          </div>
-
-          <div className="border-t border-[#1B7867]/5 my-2"></div>
-
-          {/* Opmerkingen - compacter label */}
-          <div className="py-1">
-            <label htmlFor="opmerkingen" className="block text-sm font-heading font-medium text-[#282E3A]/60 mb-1.5">
-              Opmerkingen
-            </label>
-            <Textarea
-              id="opmerkingen"
-              value={opmerkingen}
-              onChange={(e) => {
-                setOpmerkingen(e.target.value);
-                if (errors.opmerkingen) setErrors(prev => ({ ...prev, opmerkingen: '' }));
-              }}
-              placeholder="Voeg hier eventuele opmerkingen toe..."
-              className={`w-full min-h-[80px] font-mono text-sm transition-colors ${
-                errors.opmerkingen ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500' : 'border-[#1B7867]/20 focus:border-[#1B7867]'
-              }`}
-            />
-            {errors.opmerkingen && (
-              <p className="text-xs text-red-500 mt-1">{errors.opmerkingen}</p>
-            )}
-          </div>
-
-          {/* Verzenden button */}
-          <div className="mt-4">
-            {!canSubmit && timeRemaining > 0 && (
-              <p className="text-xs text-[#282E3A]/60 mb-2 text-center">
-                Je kunt over {Math.floor(timeRemaining / 60)}m {timeRemaining % 60}s opnieuw indienen
-              </p>
-            )}
-            <Button 
-              onClick={handleSubmit}
-              disabled={!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '' || cashOmzet <= 0}
-              className={`w-full font-heading font-bold text-lg py-6 transition-all ${
-                (!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3 || cashOmzet === '' || cashOmzet <= 0)
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-[#1B7867] hover:bg-[#1B7867]/90 text-white'
-              }`}
-            >
-              {!canSubmit ? 'Wacht alsjeblieft...' : 'Verzenden'}
-            </Button>
-            
-            <Button
-              variant="outline"
-              onClick={() => setShowInstructionsDialog(true)}
-              className="w-full mt-2 border-[#1B7867]/30 text-[#1B7867] hover:bg-[#1B7867]/5 font-heading font-medium flex items-center gap-2 justify-center"
-            >
-              <Info className="h-4 w-4" />
-              Instructies
-            </Button>
-          </div>
-          </div>
         </div>
         </div>
       </div>
