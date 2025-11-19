@@ -71,6 +71,7 @@ export function PolarSidebar({
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: collapsed ? '0 12px' : '0 24px',
+          paddingTop: '16px',
           borderBottom: '1px solid rgba(197, 197, 202, 0.5)',
         }}
       >
