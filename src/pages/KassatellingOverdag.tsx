@@ -218,7 +218,7 @@ const KassatellingOverdag = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 400px', gap: '24px', alignItems: 'start' }}>
           {/* Kassa Lade */}
           <div style={{
-            backgroundColor: '#F6F7DD',
+            backgroundColor: '#FEFFF1',
             borderRadius: '20px',
             border: '1px solid rgba(197, 197, 202, 0.5)',
             overflow: 'hidden',
@@ -271,7 +271,7 @@ const KassatellingOverdag = () => {
 
           {/* Wisselkas */}
           <div style={{
-            backgroundColor: '#F6F7DD',
+            backgroundColor: '#FEFFF1',
             borderRadius: '20px',
             border: '1px solid rgba(197, 197, 202, 0.5)',
             overflow: 'hidden',
@@ -325,7 +325,7 @@ const KassatellingOverdag = () => {
           {/* Right side: Summary card */}
           <div style={{ position: 'sticky', top: '24px' }}>
             <div style={{
-              backgroundColor: '#F6F7DD',
+              backgroundColor: '#FEFFF1',
               borderRadius: '20px',
               border: '1px solid rgba(197, 197, 202, 0.5)',
               padding: '20px',
