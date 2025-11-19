@@ -503,26 +503,6 @@ export default function Dashboard() {
   return (
     <SidebarLayout>
       <div className="max-w-7xl mx-auto px-6 space-y-6">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-          <p style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            fontWeight: 500,
-            color: '#73747B'
-          }}>
-            {userLocation}
-          </p>
-          <p style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            fontWeight: 400,
-            color: '#73747B'
-          }}>
-            Week {getWeekNumber()}
-          </p>
-        </div>
-
-
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',

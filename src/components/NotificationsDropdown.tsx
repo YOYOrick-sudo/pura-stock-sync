@@ -123,6 +123,7 @@ export function NotificationsDropdown() {
           style={{
             borderRadius: '8px',
             transition: 'background-color 200ms',
+            border: 'none',
           }}
         >
           <Bell className="h-6 w-6" style={{ color: '#36373A' }} />

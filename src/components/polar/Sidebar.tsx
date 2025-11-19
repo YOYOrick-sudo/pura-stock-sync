@@ -112,6 +112,7 @@ export function PolarSidebar({
               height: '40px',
               borderRadius: '8px',
               transition: 'background-color 150ms',
+              border: 'none',
             }}
           >
             {collapsed ? (
