@@ -520,6 +520,18 @@ export function FohTasks() {
                       setIsPhaseManuallySelected(true);
                     }}
                     disabled={!canSwitch && phase !== activePhase}
+                    onMouseEnter={(e) => {
+                      if (!isActive && canSwitch) {
+                        e.currentTarget.style.backgroundColor = '#F6F7DD';
+                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor = '#FEFFF1';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }
+                    }}
                     style={{
                       flex: 1,
                       display: 'flex',
@@ -573,6 +585,18 @@ export function FohTasks() {
                   <button
                     onClick={() => {
                       setMainCategory('periodiek');
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor = '#F6F7DD';
+                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.backgroundColor = '#FEFFF1';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }
                     }}
                     style={{
                       flex: 1,
@@ -659,7 +683,7 @@ export function FohTasks() {
                           backgroundColor: '#1B7867',
                           color: '#FFFFFF',
                           borderRadius: '16px',
-                          padding: '10px',
+                          padding: '7px 10px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
