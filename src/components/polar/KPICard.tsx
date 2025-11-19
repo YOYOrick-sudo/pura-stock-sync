@@ -66,6 +66,7 @@ export function PolarKPICard({
           display: 'flex',
           flexDirection: 'column',
           gap: '8px',
+          height: '100%',
           minHeight: '140px',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
         }}
