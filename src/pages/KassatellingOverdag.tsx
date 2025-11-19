@@ -210,7 +210,8 @@ const KassatellingOverdag = () => {
       toast.error('Verzenden mislukt');
     }
   };
-  return <div style={{ minHeight: '100vh', backgroundColor: '#FEFFF1', fontFamily: 'Inter, sans-serif' }}>
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#FEFFF1', fontFamily: 'Inter, sans-serif' }}>
       {/* Main Content */}
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '24px' }}>
         
@@ -331,101 +332,173 @@ const KassatellingOverdag = () => {
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
             }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: '#FFFFFF', borderRadius: '16px', padding: '16px' }}>
-              {/* Totaal - meest prominent */}
-              <div style={{ padding: '6px 0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
-                    Totaal
-                  </span>
-                  <span style={{ fontSize: '30px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: errors.total ? '#EF4444' : '#1B7867' }}>
-                    €{total.toFixed(2).replace('.', ',')}
-                  </span>
+                {/* Totaal */}
+                <div style={{ padding: '6px 0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+                      Totaal
+                    </span>
+                    <span style={{ fontSize: '30px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: errors.total ? '#EF4444' : '#1B7867' }}>
+                      €{total.toFixed(2).replace('.', ',')}
+                    </span>
+                  </div>
+                  {errors.total && (
+                    <p style={{ fontSize: '12px', color: '#EF4444', fontFamily: 'Inter, sans-serif', marginTop: '4px', textAlign: 'right' }}>{errors.total}</p>
+                  )}
                 </div>
-                {errors.total && (
-                  <p style={{ fontSize: '12px', color: '#EF4444', fontFamily: 'Inter, sans-serif', marginTop: '4px', textAlign: 'right' }}>{errors.total}</p>
-                )}
+
+                <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '12px 0' }}></div>
+
+                {/* Naam medewerker */}
+                <div style={{ padding: '6px 0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+                    <label style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#73747B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Naam *
+                    </label>
+                    <input 
+                      type="text" 
+                      value={naam} 
+                      onChange={e => {
+                        setNaam(e.target.value);
+                        if (errors.naam) setErrors(prev => ({ ...prev, naam: '' }));
+                      }}
+                      placeholder="Naam" 
+                      style={{
+                        flex: 1,
+                        padding: '8px 12px',
+                        border: errors.naam ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
+                        borderRadius: '16px',
+                        backgroundColor: '#FFFFFF',
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: '14px',
+                        color: '#282E3A',
+                        outline: 'none',
+                      }}
+                      onFocus={(e) => !errors.naam && (e.target.style.borderColor = '#1B7867')}
+                      onBlur={(e) => !errors.naam && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
+                    />
+                  </div>
+                  {errors.naam && (
+                    <p style={{ fontSize: '12px', color: '#EF4444', fontFamily: 'Inter, sans-serif', marginTop: '4px' }}>{errors.naam}</p>
+                  )}
+                </div>
+
+                <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '12px 0' }}></div>
+
+                {/* Opmerkingen */}
+                <div style={{ padding: '6px 0' }}>
+                  <label style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#73747B', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>
+                    Opmerkingen *
+                  </label>
+                  <textarea 
+                    value={opmerkingen} 
+                    onChange={e => {
+                      setOpmerkingen(e.target.value);
+                      if (errors.opmerkingen) setErrors(prev => ({ ...prev, opmerkingen: '' }));
+                    }}
+                    placeholder="Belangrijke opmerkingen..." 
+                    style={{
+                      minHeight: '60px',
+                      width: '100%',
+                      padding: '8px 12px',
+                      border: errors.opmerkingen ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
+                      borderRadius: '16px',
+                      backgroundColor: '#FFFFFF',
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '14px',
+                      color: '#282E3A',
+                      outline: 'none',
+                      resize: 'vertical',
+                    }}
+                    onFocus={(e) => !errors.opmerkingen && (e.target.style.borderColor = '#1B7867')}
+                    onBlur={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
+                  />
+                  {errors.opmerkingen && (
+                    <p style={{ fontSize: '12px', color: '#EF4444', fontFamily: 'Inter, sans-serif', marginTop: '4px' }}>{errors.opmerkingen}</p>
+                  )}
+                </div>
+
+                <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '12px 0' }}></div>
+
+                {/* Verzenden button */}
+                <div>
+                  {!canSubmit && timeRemaining > 0 && (
+                    <p style={{ fontSize: '12px', color: '#73747B', fontFamily: 'Inter, sans-serif', textAlign: 'center', marginBottom: '12px' }}>
+                      Je kunt over {Math.floor(timeRemaining / 60)}m {timeRemaining % 60}s opnieuw indienen
+                    </p>
+                  )}
+                  <button 
+                    onClick={handleSubmit}
+                    disabled={!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3}
+                    style={{
+                      width: '100%',
+                      padding: '14px 20px',
+                      backgroundColor: (!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3) ? '#D1D5DB' : '#1B7867',
+                      color: '#FFFFFF',
+                      fontFamily: 'Inter, sans-serif',
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      borderRadius: '20px',
+                      border: 'none',
+                      cursor: (!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3) ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.15s',
+                      boxShadow: (!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3) ? 'none' : '0 1px 2px rgba(0, 0, 0, 0.05)',
+                      marginBottom: '12px',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (canSubmit && naam && naam.length >= 2 && opmerkingen && opmerkingen.length >= 3) {
+                        e.currentTarget.style.backgroundColor = '#156B5A';
+                        e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (canSubmit && naam && naam.length >= 2 && opmerkingen && opmerkingen.length >= 3) {
+                        e.currentTarget.style.backgroundColor = '#1B7867';
+                        e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
+                      }
+                    }}
+                  >
+                    {!canSubmit ? 'Wacht alsjeblieft...' : 'Verzenden'}
+                  </button>
+                  
+                  <button 
+                    onClick={() => setShowInstructionsDialog(true)} 
+                    style={{
+                      width: '100%',
+                      padding: '10px 20px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#1B7867',
+                      fontFamily: 'Inter, sans-serif',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      borderRadius: '20px',
+                      border: '1px solid rgba(27, 120, 103, 0.3)',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(27, 120, 103, 0.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#FFFFFF';
+                    }}
+                  >
+                    <Info style={{ width: '16px', height: '16px' }} />
+                    Instructies
+                  </button>
+                </div>
               </div>
-
-          <div className="border-t border-[#1B7867]/5 my-3"></div>
-
-          {/* Naam medewerker */}
-          <div className="py-1.5">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-sm font-heading font-medium text-[#282E3A]/60">
-                Naam medewerker
-              </span>
-              <input 
-                type="text" 
-                value={naam} 
-                onChange={e => {
-                  setNaam(e.target.value);
-                  if (errors.naam) setErrors(prev => ({ ...prev, naam: '' }));
-                }}
-                placeholder="Vul je naam in" 
-                className={`w-48 px-2 py-1.5 text-right text-sm font-heading text-[#282E3A] border rounded-md focus:outline-none transition-colors ${
-                  errors.naam ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500' : 'border-[#1B7867]/20 focus:border-[#1B7867]'
-                }`}
-              />
             </div>
-            {errors.naam && (
-              <p className="text-xs text-red-500 mt-1 text-right">{errors.naam}</p>
-            )}
-          </div>
-
-          <div className="border-t border-[#1B7867]/5 my-3"></div>
-
-          {/* Opmerkingen - compacter label */}
-          <div className="py-1.5">
-            <label htmlFor="opmerkingen" className="block text-sm font-heading font-medium text-[#282E3A]/60 mb-1.5">
-              Opmerkingen
-            </label>
-            <Textarea 
-              id="opmerkingen" 
-              value={opmerkingen} 
-              onChange={e => {
-                setOpmerkingen(e.target.value);
-                if (errors.opmerkingen) setErrors(prev => ({ ...prev, opmerkingen: '' }));
-              }}
-              placeholder="Voeg hier eventuele opmerkingen toe..." 
-              className={`w-full min-h-[80px] font-mono text-sm transition-colors ${
-                errors.opmerkingen ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500' : 'border-[#1B7867]/20 focus:border-[#1B7867]'
-              }`}
-            />
-            {errors.opmerkingen && (
-              <p className="text-xs text-red-500 mt-1">{errors.opmerkingen}</p>
-            )}
-          </div>
-
-          {/* Verzenden button */}
-          <div className="mt-4 space-y-3">
-            {!canSubmit && timeRemaining > 0 && (
-              <p className="text-xs text-[#282E3A]/60 text-center">
-                Je kunt over {Math.floor(timeRemaining / 60)}m {timeRemaining % 60}s opnieuw indienen
-              </p>
-            )}
-            <Button 
-              onClick={handleSubmit}
-              disabled={!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3}
-              className={`w-full font-heading font-bold text-lg py-6 transition-all ${
-                (!canSubmit || !naam || naam.length < 2 || !opmerkingen || opmerkingen.length < 3)
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-[#1B7867] hover:bg-[#1B7867]/90 text-white'
-              }`}
-            >
-              {!canSubmit ? 'Wacht alsjeblieft...' : 'Verzenden'}
-            </Button>
-            
-            <Button variant="outline" onClick={() => setShowInstructionsDialog(true)} className="w-full border-[#1B7867]/30 text-[#1B7867] hover:bg-[#1B7867]/5 font-heading font-medium flex items-center gap-2 justify-center">
-              <Info className="h-4 w-4" />
-              Instructies
-            </Button>
           </div>
         </div>
       </div>
-    </div>
 
-        {/* Success Dialog */}
-        <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+      {/* Success Dialog */}
+      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
           <AlertDialogContent className="bg-white">
             <div className="text-center">
               <CheckCircle2 className="w-16 h-16 text-[#1B7867] mx-auto mb-4" />
@@ -517,7 +590,8 @@ const KassatellingOverdag = () => {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
-    </div>;
+    </div>
+  );
 };
+
 export default KassatellingOverdag;
