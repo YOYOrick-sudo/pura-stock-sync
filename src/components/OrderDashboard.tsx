@@ -328,7 +328,7 @@ export default function OrderDashboard() {
   return (
     <>
         {/* Products Table - All Screen Sizes */}
-        <Card className="overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.06)] border-[#1B7867]/8 bg-[#F6F7DD] hover:shadow-md transition-shadow duration-200 mb-4">
+        <Card className="overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.06)] border-[#1B7867]/8 bg-white hover:shadow-md transition-shadow duration-200 mb-4">
           <div>
             <table className="w-full table-fixed">
               <thead>
@@ -373,7 +373,7 @@ export default function OrderDashboard() {
         </Card>
 
         {/* Add Extra Product - Inline Form */}
-        <Card className="p-4 sm:p-5 mb-6 bg-[#F6F7DD] border-[#E27726]/20 shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:shadow-md transition-shadow duration-200">
+        <Card className="p-4 sm:p-5 mb-6 bg-white border-[#E27726]/20 shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:shadow-md transition-shadow duration-200">
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
             <div className="flex-1 w-full">
               <label className="font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Extra product</label>
