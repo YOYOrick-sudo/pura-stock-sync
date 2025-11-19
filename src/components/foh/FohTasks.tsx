@@ -203,6 +203,7 @@ export function FohTasks() {
   const [swipedTaskId, setSwipedTaskId] = useState<string | null>(null);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const [swipeOffset, setSwipeOffset] = useState(0);
 
   // Data fetching functions
   const generateDailyTasks = async () => {
@@ -473,16 +474,28 @@ export function FohTasks() {
     setTouchEnd(e.targetTouches[0].clientX);
     const diff = touchStart - e.targetTouches[0].clientX;
     
-    if (diff > 50) {
+    // Prevent scroll if horizontal swipe is detected
+    if (Math.abs(diff) > 10) {
+      e.preventDefault();
+    }
+    
+    // Update swipe offset for live feedback (cap at 80px)
+    setSwipeOffset(Math.min(Math.max(diff, 0), 80));
+    
+    if (diff > 30) {
       setSwipedTaskId(taskId);
     } else if (diff < -10) {
       setSwipedTaskId(null);
+      setSwipeOffset(0);
     }
   };
 
   const handleTouchEnd = () => {
     setTouchStart(0);
     setTouchEnd(0);
+    if (!swipedTaskId) {
+      setSwipeOffset(0);
+    }
   };
 
   // Process tasks for display
@@ -1210,9 +1223,9 @@ export function FohTasks() {
 
                               {/* Task content */}
                               <div style={{
-                                transform: isSwiped ? 'translateX(-80px)' : 'translateX(0)',
-                                transition: 'transform 0.2s ease',
-                                backgroundColor: '#FFFFFF',
+                                transform: `translateX(-${swipeOffset}px)`,
+                                transition: swipeOffset === 0 ? 'transform 0.2s ease' : 'none',
+                                backgroundColor: '#FEFFF1',
                                 position: 'relative',
                               }}>
                                 <div style={{
