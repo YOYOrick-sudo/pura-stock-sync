@@ -6,12 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command';
-import { Loader2, Plus, Check, ChevronsUpDown } from 'lucide-react';
+import { Loader2, Plus, Check, ChevronsUpDown, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { toZonedTime } from 'date-fns-tz';
 import type { FohTask, FohEmployee, FohTaskWithEmployee, PhaseType } from '@/types/foh';
 import { useUserLocation } from '@/contexts/UserLocationContext';
+import { PolarColors } from '@/components/polar/colors';
 
 // Phase time windows (minutes-based)
 const PHASE_WINDOWS = [
@@ -168,9 +169,9 @@ const getDateLabelColor = (dateString: string): string => {
 
 const getPriorityConfig = (priority: number) => {
   switch (priority) {
-    case 1: return { label: 'Hoog', emoji: '🔴', color: '#DC2626' };
-    case 3: return { label: 'Laag', emoji: '🟢', color: '#16A34A' };
-    default: return { label: 'Normaal', emoji: '🟡', color: '#EAB308' };
+    case 1: return { color: PolarColors.status.error };       // Hoog - Rood
+    case 3: return { color: PolarColors.status.success };     // Laag - Groen
+    default: return { color: PolarColors.status.pending };    // Normaal - Oranje
   }
 };
 
@@ -197,6 +198,11 @@ export function FohTasks() {
   
   const [employeeInput, setEmployeeInput] = useState('');
   const [employeeOpen, setEmployeeOpen] = useState(false);
+  
+  // Swipe state for delete functionality
+  const [swipedTaskId, setSwipedTaskId] = useState<string | null>(null);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   // Data fetching functions
   const generateDailyTasks = async () => {
@@ -438,6 +444,45 @@ export function FohTasks() {
     });
     setEmployeeInput('');
     fetchExtraTasks();
+  };
+
+  // Delete periodic task
+  const deleteTask = async (taskId: string) => {
+    const { error } = await supabase
+      .from('foh_tasks')
+      .update({ archived: true })
+      .eq('id', taskId);
+
+    if (error) {
+      console.error('Error deleting task:', error);
+      toast.error('Fout bij verwijderen taak');
+      return;
+    }
+
+    toast.success('Taak verwijderd');
+    setSwipedTaskId(null);
+    fetchExtraTasks();
+  };
+
+  // Swipe handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent, taskId: string) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+    const diff = touchStart - e.targetTouches[0].clientX;
+    
+    if (diff > 50) {
+      setSwipedTaskId(taskId);
+    } else if (diff < -10) {
+      setSwipedTaskId(null);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setTouchStart(0);
+    setTouchEnd(0);
   };
 
   // Process tasks for display
@@ -1110,99 +1155,147 @@ export function FohTasks() {
                         const dateLabel = getDateLabel(task.due_date);
                         const dateLabelColor = getDateLabelColor(task.due_date);
                         const priorityConfig = getPriorityConfig(task.priority);
+                        const isPeriodic = !task.phase;
+                        const isSwiped = swipedTaskId === task.id;
 
                         return (
                           <div key={task.id}>
-                            <div style={{
-                              padding: '14px 0',
-                              opacity: task.completed ? 0.5 : 1,
-                              transition: 'opacity 0.2s',
-                            }}>
-                              <div style={{
-                                display: 'flex',
-                                gap: '12px',
-                                alignItems: 'flex-start',
-                              }}>
-                                <div style={{ paddingTop: '2px' }}>
+                            <div 
+                              style={{
+                                padding: '14px 0',
+                                opacity: task.completed ? 0.5 : 1,
+                                transition: 'all 0.2s ease',
+                                position: 'relative',
+                                overflow: 'hidden',
+                              }}
+                              onTouchStart={isPeriodic ? handleTouchStart : undefined}
+                              onTouchMove={isPeriodic ? (e) => handleTouchMove(e, task.id) : undefined}
+                              onTouchEnd={isPeriodic ? handleTouchEnd : undefined}
+                            >
+                              {/* Delete button (shown on swipe for periodic tasks) */}
+                              {isPeriodic && (
+                                <div style={{
+                                  position: 'absolute',
+                                  right: 0,
+                                  top: 0,
+                                  bottom: 0,
+                                  width: '80px',
+                                  backgroundColor: PolarColors.status.error,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  transform: isSwiped ? 'translateX(0)' : 'translateX(100%)',
+                                  transition: 'transform 0.2s ease',
+                                }}>
                                   <button
-                                    onClick={() => toggleTask(task.id, task.completed)}
+                                    onClick={() => deleteTask(task.id)}
                                     style={{
-                                      width: '20px',
-                                      height: '20px',
-                                      borderRadius: '6px',
-                                      border: '1.5px solid rgba(197, 197, 202, 0.5)',
-                                      backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
+                                      background: 'transparent',
+                                      border: 'none',
+                                      color: '#FFFFFF',
                                       cursor: 'pointer',
+                                      padding: '8px',
                                       display: 'flex',
                                       alignItems: 'center',
-                                      justifyContent: 'center',
-                                      transition: 'all 0.15s ease',
-                                      padding: 0,
+                                      gap: '4px',
+                                      fontFamily: 'Inter, sans-serif',
+                                      fontSize: '13px',
+                                      fontWeight: 500,
                                     }}
                                   >
-                                    {task.completed && (
-                                      <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
-                                        <path
-                                          d="M1 5L4.5 8.5L11 1.5"
-                                          stroke="#FFFFFF"
-                                          strokeWidth="2"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                      </svg>
-                                    )}
+                                    <Trash2 size={16} />
                                   </button>
                                 </div>
-                                
-                                <span style={{
-                                  flex: 1,
-                                  textDecoration: task.completed ? 'line-through' : 'none',
-                                  color: task.completed ? '#73747B' : '#282E3A',
-                                  fontWeight: 500,
-                                  fontSize: '15px',
-                                  fontFamily: 'Inter, sans-serif',
+                              )}
+
+                              {/* Task content */}
+                              <div style={{
+                                transform: isSwiped ? 'translateX(-80px)' : 'translateX(0)',
+                                transition: 'transform 0.2s ease',
+                                backgroundColor: '#FFFFFF',
+                                position: 'relative',
+                              }}>
+                                <div style={{
+                                  display: 'flex',
+                                  gap: '12px',
+                                  alignItems: 'flex-start',
                                 }}>
-                                  {task.title}
-                                </span>
-
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                  <div style={{ paddingTop: '2px' }}>
+                                    <button
+                                      onClick={() => toggleTask(task.id, task.completed)}
+                                      style={{
+                                        width: '20px',
+                                        height: '20px',
+                                        borderRadius: '6px',
+                                        border: '1.5px solid rgba(197, 197, 202, 0.5)',
+                                        backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        transition: 'all 0.15s ease',
+                                        padding: 0,
+                                      }}
+                                    >
+                                      {task.completed && (
+                                        <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                                          <path
+                                            d="M1 5L4.5 8.5L11 1.5"
+                                            stroke="#FFFFFF"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                          />
+                                        </svg>
+                                      )}
+                                    </button>
+                                  </div>
+                                  
                                   <span style={{
-                                    fontSize: '12px',
+                                    flex: 1,
+                                    textDecoration: task.completed ? 'line-through' : 'none',
+                                    color: task.completed ? '#73747B' : '#282E3A',
                                     fontWeight: 500,
-                                    color: dateLabelColor,
-                                    backgroundColor: '#FEFFF1',
-                                    padding: '4px 8px',
-                                    borderRadius: '6px',
+                                    fontSize: '15px',
                                     fontFamily: 'Inter, sans-serif',
                                   }}>
-                                    {dateLabel}
+                                    {task.title}
                                   </span>
 
-                                  <span style={{
-                                    fontSize: '12px',
-                                    fontWeight: 500,
-                                    color: '#FFFFFF',
-                                    backgroundColor: priorityConfig.color,
-                                    padding: '4px 8px',
-                                    borderRadius: '6px',
-                                    fontFamily: 'Inter, sans-serif',
-                                  }}>
-                                    {priorityConfig.emoji} {priorityConfig.label}
-                                  </span>
-
-                                  {task.foh_employees && (
+                                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                     <span style={{
                                       fontSize: '12px',
                                       fontWeight: 500,
-                                      color: '#73747B',
+                                      color: dateLabelColor,
                                       backgroundColor: '#FEFFF1',
                                       padding: '4px 8px',
                                       borderRadius: '6px',
                                       fontFamily: 'Inter, sans-serif',
                                     }}>
-                                      {task.foh_employees.name}
+                                      {dateLabel}
                                     </span>
-                                  )}
+
+                                    <div style={{
+                                      width: '8px',
+                                      height: '8px',
+                                      borderRadius: '2px',
+                                      backgroundColor: priorityConfig.color,
+                                    }} />
+
+                                    {task.foh_employees && (
+                                      <span style={{
+                                        fontSize: '12px',
+                                        fontWeight: 500,
+                                        color: '#73747B',
+                                        backgroundColor: '#FEFFF1',
+                                        padding: '4px 8px',
+                                        borderRadius: '6px',
+                                        fontFamily: 'Inter, sans-serif',
+                                      }}>
+                                        {task.foh_employees.name}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
