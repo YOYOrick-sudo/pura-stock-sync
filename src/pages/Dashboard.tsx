@@ -501,13 +501,8 @@ export default function Dashboard() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-7xl mx-auto px-6 space-y-6">
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '20px',
-          maxWidth: '1200px'
-        }}>
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-[1200px]">
           <DashboardCard
             title="Openstaande Taken"
             count={pendingTasks || 0}
@@ -546,7 +541,7 @@ export default function Dashboard() {
         </div>
 
         {/* Handover Card - full width below the grid */}
-        <div style={{ maxWidth: '1200px' }}>
+        <div className="max-w-[1200px]">
           <HandoverCard />
         </div>
 

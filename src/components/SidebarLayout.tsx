@@ -2,6 +2,9 @@ import { AppSidebar } from '@/components/AppSidebar';
 import { PolarHeader } from '@/components/polar';
 import { useLocation } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { useState } from 'react';
 
 interface SidebarLayoutProps {
   children: React.ReactNode;
@@ -12,6 +15,8 @@ export function SidebarLayout({
 }: SidebarLayoutProps) {
   const location = useLocation();
   const { userLocation } = useUserLocation();
+  const isMobile = useIsMobile();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const getPageTitle = (pathname: string) => {
     const titles: Record<string, string> = {
@@ -37,22 +42,36 @@ export function SidebarLayout({
     <div className="flex min-h-screen w-full" style={{
       backgroundColor: '#FEFFF1'
     }}>
-      <div style={{ 
-        backgroundColor: '#F6F7DD',
-        paddingTop: '16px',
-      }}>
-        <AppSidebar />
-      </div>
+      {/* Desktop Sidebar - hidden on mobile */}
+      {!isMobile && (
+        <div style={{ 
+          backgroundColor: '#F6F7DD',
+          paddingTop: '16px',
+        }}>
+          <AppSidebar />
+        </div>
+      )}
+
+      {/* Mobile Menu Sheet */}
+      {isMobile && (
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetContent side="left" className="w-[280px] p-0" style={{ backgroundColor: '#F6F7DD' }}>
+            <div style={{ paddingTop: '16px' }}>
+              <AppSidebar onNavigate={() => setMobileMenuOpen(false)} />
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
       
       <div className="flex flex-col flex-1">
         <PolarHeader
           title={getPageTitle(location.pathname)} 
           showStatusIndicator={false} 
           location={userLocation}
+          onMenuClick={isMobile ? () => setMobileMenuOpen(true) : undefined}
         />
         
-        <main style={{
-          padding: '32px 48px',
+        <main className="p-4 md:p-6 lg:px-12 lg:py-8" style={{
           backgroundColor: '#FEFFF1'
         }}>
           {children}

@@ -63,7 +63,11 @@ const allNavigationItems = [
   },
 ];
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  onNavigate?: () => void;
+}
+
+export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
   const location = useLocation();
   const navigate = useNavigate();
   const { userLocation } = useUserLocation();
@@ -78,6 +82,12 @@ export function AppSidebar() {
     : allNavigationItems;
 
   const isActive = (url: string) => location.pathname === url;
+
+  const handleNavigation = () => {
+    if (onNavigate) {
+      onNavigate();
+    }
+  };
 
   const handleProtectedClick = (e: React.MouseEvent, url: string) => {
     e.preventDefault();
@@ -123,7 +133,7 @@ export function AppSidebar() {
           requiresCode: item.requiresCode,
           onClick: item.requiresCode 
             ? (e) => handleProtectedClick(e, item.url)
-            : undefined,
+            : handleNavigation,
         }))}
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
