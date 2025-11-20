@@ -1902,7 +1902,6 @@ export function FohTasks() {
               right: 0,
               bottom: 0,
               backgroundColor: 'rgba(0, 0, 0, 0.3)',
-              backdropFilter: 'blur(2px)',
               zIndex: 50,
             }}
           />
@@ -1912,7 +1911,7 @@ export function FohTasks() {
             style={{
               position: 'absolute',
               left: '50%',
-              top: '35%',
+              top: '45%',
               transform: 'translateX(-50%)',
               backgroundColor: '#FEFFF1',
               border: '1px solid rgba(197, 197, 202, 0.5)',
@@ -1925,46 +1924,15 @@ export function FohTasks() {
               zIndex: 51,
             }}
           >
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
+            <h4 style={{
+              fontSize: '15px',
+              fontWeight: 600,
+              color: '#282E3A',
+              margin: 0,
               marginBottom: '12px',
             }}>
-              <h4 style={{
-                fontSize: '15px',
-                fontWeight: 600,
-                color: '#282E3A',
-                margin: 0,
-                paddingRight: '8px',
-              }}>
-                {selectedTaskInfo.title}
-              </h4>
-              <button
-                onClick={() => setInfoVisible(false)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '24px',
-                  height: '24px',
-                  border: 'none',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  color: '#73747B',
-                  padding: 0,
-                  flexShrink: 0,
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#282E3A';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = '#73747B';
-                }}
-              >
-                <X size={18} />
-              </button>
-            </div>
+              {selectedTaskInfo.title}
+            </h4>
             
             <div style={{
               fontSize: '13px',
@@ -1973,21 +1941,6 @@ export function FohTasks() {
               whiteSpace: 'pre-wrap',
             }}>
               {selectedTaskInfo.description}
-            </div>
-            
-            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
-              <Button
-                variant="outline"
-                onClick={() => setInfoVisible(false)}
-                style={{
-                  borderRadius: '20px',
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '13px',
-                  padding: '8px 16px',
-                }}
-              >
-                Sluiten
-              </Button>
             </div>
           </div>
         </>
