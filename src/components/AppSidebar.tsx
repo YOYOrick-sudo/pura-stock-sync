@@ -83,7 +83,8 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
 
   const isActive = (url: string) => location.pathname === url;
 
-  const handleNavigation = () => {
+  const handleNavigation = (url: string) => {
+    navigate(url);
     if (onNavigate) {
       onNavigate();
     }
@@ -133,7 +134,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
           requiresCode: item.requiresCode,
           onClick: item.requiresCode 
             ? (e) => handleProtectedClick(e, item.url)
-            : handleNavigation,
+            : () => handleNavigation(item.url),
         }))}
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
