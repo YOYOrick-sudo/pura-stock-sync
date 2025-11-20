@@ -1924,20 +1924,11 @@ export function FohTasks() {
               zIndex: 51,
             }}
           >
-            <h4 style={{
+            <div style={{
               fontSize: '15px',
               fontWeight: 600,
               color: '#282E3A',
-              margin: 0,
-              marginBottom: '12px',
-            }}>
-              {selectedTaskInfo.title}
-            </h4>
-            
-            <div style={{
-              fontSize: '13px',
-              color: '#282E3A',
-              lineHeight: '1.6',
+              lineHeight: '1.5',
               whiteSpace: 'pre-wrap',
             }}>
               {selectedTaskInfo.description}
