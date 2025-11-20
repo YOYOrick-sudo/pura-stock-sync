@@ -200,12 +200,6 @@ const Kassa = () => {
       setTimeRemaining(10 * 60);
       
       setShowSuccessDialog(true);
-      
-      // Auto logout and redirect after 3 seconds
-      setTimeout(async () => {
-        await supabase.auth.signOut();
-        navigate('/');
-      }, 3000);
     } catch (error) {
       console.error('Fout bij verzenden:', error);
       toast.error('Verzenden mislukt');
@@ -315,7 +309,9 @@ const Kassa = () => {
                 {/* Uitklapbare content met denominaties */}
                 <CollapsibleContent>
                   <div style={{ padding: '12px 16px', backgroundColor: '#FEFFF1', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
-                    {Object.entries(BEGINSALDO_VERDELING).map(([denom, count]) => (
+                    {Object.entries(BEGINSALDO_VERDELING)
+                      .sort((a, b) => parseFloat(b[0]) - parseFloat(a[0]))
+                      .map(([denom, count]) => (
                       <div key={denom} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
                         <span style={{ fontFamily: 'monospace', fontSize: '13px', color: '#282E3A' }}>€{denom.replace('.', ',')} × {count}</span>
                         <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#73747B' }}>

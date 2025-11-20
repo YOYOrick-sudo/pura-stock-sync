@@ -137,16 +137,13 @@ const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
   return sortedGrouped;
 };
 
-// Sort tasks within phase by sort_order first, then completion status
+// Sort tasks within phase by sort_order only
 const sortTasksInPhase = (tasks: FohTaskWithEmployee[]) => {
   return [...tasks].sort((a, b) => {
-    // First sort by sort_order if both have it
     if (a.sort_order !== undefined && b.sort_order !== undefined) {
       return a.sort_order - b.sort_order;
     }
-    // Then by completion status
-    if (a.completed === b.completed) return 0;
-    return a.completed ? 1 : -1;
+    return 0;
   });
 };
 

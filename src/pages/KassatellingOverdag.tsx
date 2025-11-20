@@ -199,12 +199,6 @@ const KassatellingOverdag = () => {
       setTimeRemaining(10 * 60);
       
       setShowSuccessDialog(true);
-
-      // Auto logout and redirect after 3 seconds
-      setTimeout(async () => {
-        await supabase.auth.signOut();
-        navigate('/');
-      }, 3000);
     } catch (error) {
       console.error('Fout bij verzenden:', error);
       toast.error('Verzenden mislukt');
