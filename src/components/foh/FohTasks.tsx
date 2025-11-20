@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command';
-import { Loader2, Plus, Check, ChevronsUpDown, Trash2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Loader2, Plus, Check, ChevronsUpDown, Trash2, Info, Pencil, Settings, Shield, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { toZonedTime } from 'date-fns-tz';
@@ -220,6 +222,13 @@ export function FohTasks() {
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const [swipeOffset, setSwipeOffset] = useState(0);
+  
+  // Admin mode states
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editDescription, setEditDescription] = useState('');
 
   // Data fetching functions
   const generateDailyTasks = async () => {
@@ -728,22 +737,17 @@ export function FohTasks() {
                 return (
                   <button
                     key={phase}
-                    onClick={() => {
-                      if (!canSwitch && phase !== activePhase) {
-                        toast.error('Voltooien eerst alle taken in eerdere fases');
-                        return;
-                      }
-                      setMainCategory('dagelijks');
-                      setActivePhase(phase);
-                      setIsPhaseManuallySelected(true);
-                    }}
-                    disabled={!canSwitch && phase !== activePhase}
-                    onMouseEnter={(e) => {
-                      if (!isActive && canSwitch) {
-                        e.currentTarget.style.backgroundColor = '#F6F7DD';
-                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
-                      }
-                    }}
+                onClick={() => {
+                  setMainCategory('dagelijks');
+                  setActivePhase(phase);
+                  setIsPhaseManuallySelected(true);
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = '#F6F7DD';
+                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
+                  }
+                }}
                     onMouseLeave={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.backgroundColor = '#FEFFF1';
@@ -763,8 +767,8 @@ export function FohTasks() {
                   color: isActive ? '#FFFFFF' : '#282E3A',
                   border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
                   borderRadius: '20px',
-                  cursor: (!canSwitch && phase !== activePhase) ? 'not-allowed' : 'pointer',
-                      opacity: (!canSwitch && phase !== activePhase) ? 0.5 : 1,
+                  cursor: 'pointer',
+                  opacity: 1,
                       transition: 'all 0.15s ease',
                       fontFamily: 'Inter, sans-serif',
                     }}
@@ -891,6 +895,141 @@ export function FohTasks() {
                     {progressPercentage}%
                   </span>
                 </div>
+
+                {/* Admin Mode Indicator */}
+                {isAdminMode && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '6px 12px',
+                    backgroundColor: '#FEF3C7',
+                    borderRadius: '12px',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    color: '#92400E',
+                    fontFamily: 'Inter, sans-serif',
+                  }}>
+                    <Shield size={14} />
+                    Admin Modus
+                    <button
+                      onClick={() => setIsAdminMode(false)}
+                      style={{
+                        marginLeft: '4px',
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: '#92400E',
+                        padding: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
+                
+                {/* Admin Edit Button */}
+                <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+                  <DialogTrigger asChild>
+                    <button
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '8px 16px',
+                        backgroundColor: '#FEFFF1',
+                        color: '#282E3A',
+                        border: '1px solid rgba(197, 197, 202, 0.5)',
+                        borderRadius: '20px',
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        fontFamily: 'Inter, sans-serif',
+                        transition: 'all 0.2s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#F6F7DD';
+                        e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.7)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#FEFFF1';
+                        e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.5)';
+                      }}
+                    >
+                      <Settings size={16} />
+                      Bewerk Info
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent style={{
+                    backgroundColor: '#FEFFF1',
+                    border: '1px solid rgba(197, 197, 202, 0.5)',
+                    borderRadius: '20px',
+                    fontFamily: 'Inter, sans-serif',
+                  }}>
+                    <DialogHeader>
+                      <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#282E3A' }}>
+                        Admin Toegang
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div style={{ padding: '16px 0' }}>
+                      <Input
+                        type="password"
+                        placeholder="Voer wachtwoord in"
+                        value={passwordInput}
+                        onChange={(e) => setPasswordInput(e.target.value)}
+                        style={{
+                          borderRadius: '16px',
+                          fontFamily: 'Inter, sans-serif',
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && passwordInput === '0000') {
+                            setIsAdminMode(true);
+                            setPasswordDialogOpen(false);
+                            setPasswordInput('');
+                            toast.success('Admin modus geactiveerd');
+                          }
+                        }}
+                      />
+                    </div>
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setPasswordDialogOpen(false);
+                          setPasswordInput('');
+                        }}
+                        style={{
+                          borderRadius: '20px',
+                          fontFamily: 'Inter, sans-serif',
+                        }}
+                      >
+                        Annuleren
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (passwordInput === '0000') {
+                            setIsAdminMode(true);
+                            setPasswordDialogOpen(false);
+                            setPasswordInput('');
+                            toast.success('Admin modus geactiveerd');
+                          } else {
+                            toast.error('Onjuist wachtwoord');
+                          }
+                        }}
+                        style={{
+                          backgroundColor: '#1B7867',
+                          color: '#FFFFFF',
+                          borderRadius: '20px',
+                          fontFamily: 'Inter, sans-serif',
+                        }}
+                      >
+                        Bevestigen
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
 
                 {/* New Task Button - only for periodiek */}
                 {mainCategory === 'periodiek' && (
@@ -1304,16 +1443,106 @@ export function FohTasks() {
                                 </button>
                               </div>
                               
-                              <span style={{
-                                flex: 1,
-                                textDecoration: task.completed ? 'line-through' : 'none',
-                                color: task.completed ? '#73747B' : '#282E3A',
-                                fontWeight: 500,
-                                fontSize: '15px',
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '8px',
+                        flex: 1 
+                      }}>
+                        <span style={{
+                          flex: 1,
+                          textDecoration: task.completed ? 'line-through' : 'none',
+                          color: task.completed ? '#73747B' : '#282E3A',
+                          fontWeight: 500,
+                          fontSize: '15px',
+                          fontFamily: 'Inter, sans-serif',
+                        }}>
+                          {task.title}
+                        </span>
+                        
+                        {/* Info Icon with Popover */}
+                        {task.description && (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: '20px',
+                                  height: '20px',
+                                  border: 'none',
+                                  background: 'transparent',
+                                  cursor: 'pointer',
+                                  color: '#73747B',
+                                  padding: 0,
+                                  flexShrink: 0,
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.color = '#1B7867';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.color = '#73747B';
+                                }}
+                              >
+                                <Info size={16} />
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              style={{
+                                backgroundColor: '#FEFFF1',
+                                border: '1px solid rgba(197, 197, 202, 0.5)',
+                                borderRadius: '20px',
+                                padding: '16px',
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                                maxWidth: '320px',
                                 fontFamily: 'Inter, sans-serif',
+                              }}
+                            >
+                              <div style={{
+                                fontSize: '13px',
+                                color: '#282E3A',
+                                lineHeight: '1.6',
+                                whiteSpace: 'pre-wrap',
                               }}>
-                                {task.title}
-                              </span>
+                                {task.description}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        )}
+                        
+                        {/* Admin Edit Icon */}
+                        {isAdminMode && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingTaskId(task.id);
+                              setEditDescription(task.description || '');
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '20px',
+                              height: '20px',
+                              border: 'none',
+                              background: 'transparent',
+                              cursor: 'pointer',
+                              color: '#73747B',
+                              padding: 0,
+                              flexShrink: 0,
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.color = '#1B7867';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.color = '#73747B';
+                            }}
+                          >
+                            <Pencil size={14} />
+                          </button>
+                        )}
+                      </div>
                               
                               {task.foh_employees && (
                                 <span style={{
@@ -1580,6 +1809,96 @@ export function FohTasks() {
           </div>
         </div>
       </div>
+      
+      {/* Edit Description Dialog */}
+      <Dialog open={!!editingTaskId} onOpenChange={(open) => {
+        if (!open) {
+          setEditingTaskId(null);
+          setEditDescription('');
+        }
+      }}>
+        <DialogContent style={{
+          backgroundColor: '#FEFFF1',
+          border: '1px solid rgba(197, 197, 202, 0.5)',
+          borderRadius: '20px',
+          fontFamily: 'Inter, sans-serif',
+        }}>
+          <DialogHeader>
+            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#282E3A' }}>
+              Bewerk Taakinformatie
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div style={{ padding: '16px 0' }}>
+            <Label style={{ 
+              fontFamily: 'Inter, sans-serif',
+              color: '#282E3A',
+              fontSize: '14px',
+              fontWeight: 500,
+              marginBottom: '8px',
+              display: 'block',
+            }}>
+              Uitgebreide informatie
+            </Label>
+            <Textarea
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              placeholder="Voeg extra instructies of details toe..."
+              rows={6}
+              style={{
+                borderRadius: '16px',
+                fontFamily: 'Inter, sans-serif',
+                marginTop: '8px',
+              }}
+            />
+          </div>
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setEditingTaskId(null);
+                setEditDescription('');
+              }}
+              style={{ 
+                borderRadius: '20px',
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
+              Annuleren
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!editingTaskId) return;
+                
+                const { error } = await supabase
+                  .from('foh_tasks')
+                  .update({ description: editDescription })
+                  .eq('id', editingTaskId);
+                
+                if (error) {
+                  toast.error('Fout bij opslaan');
+                  console.error('Error updating task description:', error);
+                } else {
+                  toast.success('Informatie opgeslagen');
+                  setEditingTaskId(null);
+                  setEditDescription('');
+                  await fetchDailyTasks();
+                  await fetchExtraTasks();
+                }
+              }}
+              style={{
+                backgroundColor: '#1B7867',
+                color: '#FFFFFF',
+                borderRadius: '20px',
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
+              Opslaan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

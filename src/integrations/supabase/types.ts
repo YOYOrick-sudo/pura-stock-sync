@@ -71,6 +71,7 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          description: string | null
           estimated_minutes: number | null
           id: string
           location: string
@@ -83,6 +84,7 @@ export type Database = {
         Insert: {
           category?: string
           created_at?: string
+          description?: string | null
           estimated_minutes?: number | null
           id?: string
           location: string
@@ -95,6 +97,7 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          description?: string | null
           estimated_minutes?: number | null
           id?: string
           location?: string
@@ -136,6 +139,7 @@ export type Database = {
           completed_at: string | null
           completed_by: string | null
           created_at: string
+          description: string | null
           due_date: string
           estimated_minutes: number | null
           id: string
@@ -155,6 +159,7 @@ export type Database = {
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string
+          description?: string | null
           due_date: string
           estimated_minutes?: number | null
           id?: string
@@ -174,6 +179,7 @@ export type Database = {
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string
+          description?: string | null
           due_date?: string
           estimated_minutes?: number | null
           id?: string
