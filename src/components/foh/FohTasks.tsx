@@ -534,7 +534,7 @@ export function FohTasks() {
   const [adminPanelOpen, setAdminPanelOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
-  const [adminTab, setAdminTab] = useState<'edit' | 'templates'>('edit');
+  const [adminTab, setAdminTab] = useState<'edit' | 'templates'>('templates');
   
   // Edit mode states (for Tab 1: Huidige Taken Bewerken)
   const [isEditMode, setIsEditMode] = useState(false);
@@ -772,12 +772,7 @@ export function FohTasks() {
     initializeTasks();
   }, [userLocation]);
   
-  useEffect(() => {
-    if (mainCategory === 'dagelijks' && !isPhaseManuallySelected) {
-      const targetPhase = getFirstPhaseWithOpenTasks(dailyTasks);
-      setActivePhase(targetPhase);
-    }
-  }, [dailyTasks, mainCategory, isPhaseManuallySelected]);
+  // Auto phase-switching disabled to maintain task order consistency
 
   // ===== TASK ACTIONS =====
   const toggleTask = async (id: string, currentCompleted: boolean) => {
@@ -2353,199 +2348,141 @@ export function FohTasks() {
             </DialogTitle>
           </DialogHeader>
 
-          <Tabs value={adminTab} onValueChange={(v) => setAdminTab(v as 'edit' | 'templates')} style={{ padding: '16px 0' }}>
-            <TabsList style={{
-              backgroundColor: '#F6F7DD',
-              borderRadius: '12px',
-              padding: '4px',
-              width: '100%',
-            }}>
-              <TabsTrigger value="edit" style={{
-                flex: 1,
-                borderRadius: '8px',
-                fontFamily: 'Inter, sans-serif',
-              }}>
-                Huidige Taken Bewerken
-              </TabsTrigger>
-              <TabsTrigger value="templates" style={{
-                flex: 1,
-                borderRadius: '8px',
-                fontFamily: 'Inter, sans-serif',
-              }}>
-                Templates Beheren
-              </TabsTrigger>
-            </TabsList>
+          <div style={{ padding: '16px 0', maxHeight: '60vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <p style={{ fontSize: '14px', color: '#73747B', fontFamily: 'Inter, sans-serif' }}>
+                Beheer templates voor {activePhase === 'open' ? 'Openlijst' : activePhase === 'tussen' ? 'Tussenlijst' : 'Sluitlijst'}.
+              </p>
 
-            <TabsContent value="edit" style={{ marginTop: '20px', maxHeight: '60vh', overflowY: 'auto' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <p style={{ fontSize: '14px', color: '#73747B', fontFamily: 'Inter, sans-serif' }}>
-                  Bewerk de huidige taken voor vandaag. Let op: dit wijzigt alleen de taken van vandaag, niet de template.
-                </p>
+              {/* Create new template button */}
+              <Button
+                onClick={() => setNewTemplateDialogOpen(true)}
+                style={{
+                  backgroundColor: '#1B7867',
+                  color: '#FFFFFF',
+                  borderRadius: '20px',
+                  fontFamily: 'Inter, sans-serif',
+                }}
+              >
+                <Plus size={16} style={{ marginRight: '8px' }} />
+                Nieuwe Template
+              </Button>
 
-                <Button
-                  onClick={() => {
-                    setIsEditMode(true);
-                    setEditedTasks(getCurrentTasks());
-                    setDeletedTaskIds([]);
-                    setNewTasks([]);
-                    setAdminPanelOpen(false);
-                  }}
-                  disabled={mainCategory !== 'dagelijks'}
-                  style={{
-                    backgroundColor: mainCategory === 'dagelijks' ? '#1B7867' : '#D1D5DB',
-                    color: '#FFFFFF',
-                    borderRadius: '20px',
-                    fontFamily: 'Inter, sans-serif',
-                  }}
-                >
-                  <Pencil size={16} style={{ marginRight: '8px' }} />
-                  Start Bewerken
-                </Button>
-
-                {mainCategory !== 'dagelijks' && (
-                  <p style={{ fontSize: '13px', color: '#73747B', fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>
-                    (Alleen beschikbaar voor dagelijkse taken)
-                  </p>
-                )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="templates" style={{ marginTop: '20px', maxHeight: '60vh', overflowY: 'auto' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <p style={{ fontSize: '14px', color: '#73747B', fontFamily: 'Inter, sans-serif' }}>
-                  Beheer templates voor {activePhase === 'open' ? 'Openlijst' : activePhase === 'tussen' ? 'Tussenlijst' : 'Sluitlijst'}.
-                </p>
-
-                {/* Create new template button */}
-                <Button
-                  onClick={() => setNewTemplateDialogOpen(true)}
-                  style={{
-                    backgroundColor: '#1B7867',
-                    color: '#FFFFFF',
-                    borderRadius: '20px',
-                    fontFamily: 'Inter, sans-serif',
-                  }}
-                >
-                  <Plus size={16} style={{ marginRight: '8px' }} />
-                  Nieuwe Template
-                </Button>
-
-                {/* Template list */}
-                {templatesLoading ? (
-                  <div style={{ display: 'flex', justifyContent: 'center', padding: '32px' }}>
-                    <Loader2 size={24} className="animate-spin" style={{ color: '#1B7867' }} />
-                  </div>
-                ) : groupedTemplates && Object.keys(groupedTemplates).length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {Object.values(groupedTemplates).map(template => (
-                      <div key={template.name} style={{
-                        padding: '16px',
-                        backgroundColor: '#F6F7DD',
-                        borderRadius: '12px',
-                        border: template.isActive ? '2px solid #1B7867' : '1px solid rgba(197,197,202,0.5)',
-                      }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <h4 style={{
-                                fontSize: '15px',
+              {/* Template list */}
+              {templatesLoading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '32px' }}>
+                  <Loader2 size={24} className="animate-spin" style={{ color: '#1B7867' }} />
+                </div>
+              ) : groupedTemplates && Object.keys(groupedTemplates).length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {Object.values(groupedTemplates).map(template => (
+                    <div key={template.name} style={{
+                      padding: '16px',
+                      backgroundColor: '#F6F7DD',
+                      borderRadius: '12px',
+                      border: template.isActive ? '2px solid #1B7867' : '1px solid rgba(197,197,202,0.5)',
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <h4 style={{
+                              fontSize: '15px',
+                              fontWeight: 600,
+                              color: '#282E3A',
+                              fontFamily: 'Inter, sans-serif',
+                              margin: 0,
+                            }}>
+                              {template.name}
+                            </h4>
+                            {template.isActive && (
+                              <span style={{
+                                fontSize: '11px',
                                 fontWeight: 600,
-                                color: '#282E3A',
-                                fontFamily: 'Inter, sans-serif',
-                                margin: 0,
-                              }}>
-                                {template.name}
-                              </h4>
-                              {template.isActive && (
-                                <span style={{
-                                  fontSize: '11px',
-                                  fontWeight: 600,
-                                  padding: '2px 8px',
-                                  borderRadius: '4px',
-                                  backgroundColor: '#1B7867',
-                                  color: '#FFFFFF',
-                                  fontFamily: 'Inter, sans-serif',
-                                }}>
-                                  ACTIEF
-                                </span>
-                              )}
-                            </div>
-                            <p style={{ fontSize: '13px', color: '#73747B', fontFamily: 'Inter, sans-serif', margin: '4px 0 0 0' }}>
-                              {template.tasks.length} taken
-                            </p>
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                          {!template.isActive && (
-                            <Button
-                              size="sm"
-                              onClick={() => handleMakeTemplateActive(template.name)}
-                              style={{
+                                padding: '2px 8px',
+                                borderRadius: '4px',
                                 backgroundColor: '#1B7867',
                                 color: '#FFFFFF',
-                                borderRadius: '12px',
                                 fontFamily: 'Inter, sans-serif',
-                                fontSize: '13px',
-                              }}
-                            >
-                              <Check size={14} style={{ marginRight: '4px' }} />
-                              Maak Actief
-                            </Button>
-                          )}
+                              }}>
+                                ACTIEF
+                              </span>
+                            )}
+                          </div>
+                          <p style={{ fontSize: '13px', color: '#73747B', fontFamily: 'Inter, sans-serif', margin: '4px 0 0 0' }}>
+                            {template.tasks.length} taken
+                          </p>
+                        </div>
+                      </div>
 
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        {!template.isActive && (
                           <Button
                             size="sm"
-                            variant="outline"
-                            onClick={() => handleOpenTemplateEditor(template.name)}
+                            onClick={() => handleMakeTemplateActive(template.name)}
                             style={{
+                              backgroundColor: '#1B7867',
+                              color: '#FFFFFF',
                               borderRadius: '12px',
                               fontFamily: 'Inter, sans-serif',
                               fontSize: '13px',
                             }}
                           >
-                            <Pencil size={14} style={{ marginRight: '4px' }} />
-                            Bewerk Template
+                            <Check size={14} style={{ marginRight: '4px' }} />
+                            Maak Actief
                           </Button>
+                        )}
 
-                          {!template.isActive && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                if (confirm(`Weet je zeker dat je template "${template.name}" wilt verwijderen?`)) {
-                                  handleDeleteTemplate(template.name);
-                                }
-                              }}
-                              style={{
-                                borderRadius: '12px',
-                                fontFamily: 'Inter, sans-serif',
-                                fontSize: '13px',
-                                borderColor: '#EF4444',
-                                color: '#EF4444',
-                              }}
-                            >
-                              <Trash2 size={14} style={{ marginRight: '4px' }} />
-                              Verwijder
-                            </Button>
-                          )}
-                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleOpenTemplateEditor(template.name)}
+                          style={{
+                            borderRadius: '12px',
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: '13px',
+                          }}
+                        >
+                          <Pencil size={14} style={{ marginRight: '4px' }} />
+                          Bewerk Template
+                        </Button>
+
+                        {!template.isActive && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              if (confirm(`Weet je zeker dat je template "${template.name}" wilt verwijderen?`)) {
+                                handleDeleteTemplate(template.name);
+                              }
+                            }}
+                            style={{
+                              borderRadius: '12px',
+                              fontFamily: 'Inter, sans-serif',
+                              fontSize: '13px',
+                              borderColor: '#EF4444',
+                              color: '#EF4444',
+                            }}
+                          >
+                            <Trash2 size={14} style={{ marginRight: '4px' }} />
+                            Verwijder
+                          </Button>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div style={{
-                    padding: '32px',
-                    textAlign: 'center',
-                    color: '#73747B',
-                    fontFamily: 'Inter, sans-serif',
-                  }}>
-                    Geen templates gevonden
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{
+                  padding: '32px',
+                  textAlign: 'center',
+                  color: '#73747B',
+                  fontFamily: 'Inter, sans-serif',
+                }}>
+                  Geen templates gevonden
+                </div>
+              )}
+            </div>
+          </div>
 
           <DialogFooter>
             <Button
