@@ -230,18 +230,7 @@ export function FohTasks() {
     
     const todayDate = getAmsterdamDateString();
     
-    const { data: existingTasks } = await supabase
-      .from('foh_tasks')
-      .select('id')
-      .eq('location', userLocation)
-      .eq('due_date', todayDate)
-      .not('phase', 'is', null)
-      .limit(1);
-    
-    if (existingTasks && existingTasks.length > 0) {
-      return;
-    }
-    
+    // Haal alle templates op
     const { data: templates } = await supabase
       .from('foh_daily_templates')
       .select('*')
@@ -250,23 +239,46 @@ export function FohTasks() {
     
     if (!templates || templates.length === 0) return;
     
-    const tasksToInsert = templates.map(template => ({
-      title: template.title,
-      due_date: todayDate,
-      priority: template.priority,
-      phase: template.phase,
-      location: userLocation,
-      category: template.category,
-      template_id: template.id,
-      repeat_type: 'daily',
-      completed: false,
-      archived: false,
-      assigned_employee_id: null,
-      estimated_minutes: template.estimated_minutes,
-      sort_order: template.sort_order,
-    }));
+    // Groepeer per fase en check/genereer individueel
+    const phases = ['open', 'tussen', 'sluit'] as const;
+    const tasksToInsert: any[] = [];
     
-    await supabase.from('foh_tasks').insert(tasksToInsert);
+    for (const phase of phases) {
+      // Check of deze specifieke fase al taken heeft
+      const { data: existingPhaseTasks } = await supabase
+        .from('foh_tasks')
+        .select('id')
+        .eq('location', userLocation)
+        .eq('due_date', todayDate)
+        .eq('phase', phase)
+        .limit(1);
+      
+      // Als deze fase GEEN taken heeft, genereer ze
+      if (!existingPhaseTasks || existingPhaseTasks.length === 0) {
+        const phaseTemplates = templates.filter(t => t.phase === phase);
+        const phaseTasks = phaseTemplates.map(template => ({
+          title: template.title,
+          due_date: todayDate,
+          priority: template.priority,
+          phase: template.phase,
+          location: userLocation,
+          category: template.category,
+          template_id: template.id,
+          repeat_type: 'daily',
+          completed: false,
+          archived: false,
+          assigned_employee_id: null,
+          estimated_minutes: template.estimated_minutes,
+          sort_order: template.sort_order,
+        }));
+        tasksToInsert.push(...phaseTasks);
+      }
+    }
+    
+    // Voeg alle ontbrekende taken toe
+    if (tasksToInsert.length > 0) {
+      await supabase.from('foh_tasks').insert(tasksToInsert);
+    }
   };
 
   const fetchDailyTasks = async () => {
