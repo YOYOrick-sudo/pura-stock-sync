@@ -74,11 +74,13 @@ export type Database = {
           description: string | null
           estimated_minutes: number | null
           id: string
+          is_active: boolean
           location: string
           phase: string
           priority: number
           repeat_type: string | null
           sort_order: number | null
+          template_name: string
           title: string
         }
         Insert: {
@@ -87,11 +89,13 @@ export type Database = {
           description?: string | null
           estimated_minutes?: number | null
           id?: string
+          is_active?: boolean
           location: string
           phase: string
           priority?: number
           repeat_type?: string | null
           sort_order?: number | null
+          template_name?: string
           title: string
         }
         Update: {
@@ -100,11 +104,13 @@ export type Database = {
           description?: string | null
           estimated_minutes?: number | null
           id?: string
+          is_active?: boolean
           location?: string
           phase?: string
           priority?: number
           repeat_type?: string | null
           sort_order?: number | null
+          template_name?: string
           title?: string
         }
         Relationships: []
