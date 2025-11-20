@@ -1941,7 +1941,7 @@ export function FohTasks() {
                                 }}
                                 toggleTask={!isEditMode ? toggleTask : undefined}
                                 isDeleted={deletedTaskIds.includes(task.id)}
-                                showAdminTools={!isEditMode}
+                                showAdminTools={false}
                               />
                             ))}
                           </SortableContext>
@@ -2660,6 +2660,7 @@ export function FohTasks() {
                       setDeletedTemplateTaskIds(prev => [...prev, id]);
                     }}
                     isDeleted={deletedTemplateTaskIds.includes(task.id)}
+                    showAdminTools={true}
                   />
                 ))}
               </SortableContext>
