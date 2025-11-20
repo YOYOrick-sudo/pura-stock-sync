@@ -229,6 +229,10 @@ export function FohTasks() {
   const [passwordInput, setPasswordInput] = useState('');
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editDescription, setEditDescription] = useState('');
+  
+  // Info popup state
+  const [infoVisible, setInfoVisible] = useState(false);
+  const [selectedTaskInfo, setSelectedTaskInfo] = useState<{ title: string; description: string } | null>(null);
 
   // Data fetching functions
   const generateDailyTasks = async () => {
@@ -721,6 +725,7 @@ export function FohTasks() {
         border: '1px solid rgba(197, 197, 202, 0.5)',
         padding: '24px',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
+        position: 'relative',
       }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
@@ -1460,55 +1465,39 @@ export function FohTasks() {
                           {task.title}
                         </span>
                         
-                        {/* Info Icon with Popover */}
+                        {/* Info Icon */}
                         {task.description && (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <button
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  width: '20px',
-                                  height: '20px',
-                                  border: 'none',
-                                  background: 'transparent',
-                                  cursor: 'pointer',
-                                  color: '#73747B',
-                                  padding: 0,
-                                  flexShrink: 0,
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.color = '#1B7867';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.color = '#73747B';
-                                }}
-                              >
-                                <Info size={16} />
-                              </button>
-                            </PopoverTrigger>
-                            <PopoverContent
-                              style={{
-                                backgroundColor: '#FEFFF1',
-                                border: '1px solid rgba(197, 197, 202, 0.5)',
-                                borderRadius: '20px',
-                                padding: '16px',
-                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                                maxWidth: '320px',
-                                fontFamily: 'Inter, sans-serif',
-                              }}
-                            >
-                              <div style={{
-                                fontSize: '13px',
-                                color: '#282E3A',
-                                lineHeight: '1.6',
-                                whiteSpace: 'pre-wrap',
-                              }}>
-                                {task.description}
-                              </div>
-                            </PopoverContent>
-                          </Popover>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedTaskInfo({ 
+                                title: task.title, 
+                                description: task.description || '' 
+                              });
+                              setInfoVisible(true);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '20px',
+                              height: '20px',
+                              border: 'none',
+                              background: 'transparent',
+                              cursor: 'pointer',
+                              color: '#73747B',
+                              padding: 0,
+                              flexShrink: 0,
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.color = '#1B7867';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.color = '#73747B';
+                            }}
+                          >
+                            <Info size={16} />
+                          </button>
                         )}
                         
                         {/* Admin Edit Icon */}
@@ -1899,6 +1888,110 @@ export function FohTasks() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Info Popup - Centered in task list */}
+      {infoVisible && selectedTaskInfo && (
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={() => setInfoVisible(false)}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              backdropFilter: 'blur(2px)',
+              zIndex: 50,
+            }}
+          />
+          
+          {/* Popup */}
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '35%',
+              transform: 'translateX(-50%)',
+              backgroundColor: '#FEFFF1',
+              border: '1px solid rgba(197, 197, 202, 0.5)',
+              borderRadius: '20px',
+              padding: '20px',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+              maxWidth: '320px',
+              width: 'calc(100% - 48px)',
+              fontFamily: 'Inter, sans-serif',
+              zIndex: 51,
+            }}
+          >
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              marginBottom: '12px',
+            }}>
+              <h4 style={{
+                fontSize: '15px',
+                fontWeight: 600,
+                color: '#282E3A',
+                margin: 0,
+                paddingRight: '8px',
+              }}>
+                {selectedTaskInfo.title}
+              </h4>
+              <button
+                onClick={() => setInfoVisible(false)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '24px',
+                  height: '24px',
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  color: '#73747B',
+                  padding: 0,
+                  flexShrink: 0,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#282E3A';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#73747B';
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            
+            <div style={{
+              fontSize: '13px',
+              color: '#282E3A',
+              lineHeight: '1.6',
+              whiteSpace: 'pre-wrap',
+            }}>
+              {selectedTaskInfo.description}
+            </div>
+            
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                variant="outline"
+                onClick={() => setInfoVisible(false)}
+                style={{
+                  borderRadius: '20px',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '13px',
+                  padding: '8px 16px',
+                }}
+              >
+                Sluiten
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
