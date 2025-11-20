@@ -8,13 +8,16 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Loader2, Plus, Check, ChevronsUpDown, Trash2, Info, Pencil, Settings, Shield, X } from 'lucide-react';
+import { Loader2, Plus, Check, ChevronsUpDown, Trash2, Info, Pencil, Settings, Shield, X, GripVertical, BookTemplate } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { toZonedTime } from 'date-fns-tz';
 import type { FohTask, FohEmployee, FohTaskWithEmployee, PhaseType } from '@/types/foh';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { PolarColors } from '@/components/polar/colors';
+import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // Phase time windows (minutes-based)
 const PHASE_WINDOWS = [
@@ -25,6 +28,186 @@ const PHASE_WINDOWS = [
 
 // Category order for display
 const CATEGORY_ORDER = ['Deel 1', 'Deel 2', 'Deel 3', 'Bar', 'Keuken', 'Zaal', 'Terras', 'Sanitair', 'Entree', 'Voorraad', 'Algemeen'] as const;
+
+// Sortable Task Item Component
+interface SortableTaskItemProps {
+  task: FohTaskWithEmployee;
+  isEditMode: boolean;
+  onTitleChange: (id: string, title: string) => void;
+  onDelete: (id: string) => void;
+  toggleTask: (id: string, completed: boolean) => void;
+  isDeleted: boolean;
+}
+
+function SortableTaskItem({ task, isEditMode, onTitleChange, onDelete, toggleTask, isDeleted }: SortableTaskItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : (isDeleted ? 0.3 : 1),
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <div style={{
+        padding: '14px 0',
+        opacity: isDeleted ? 0.3 : 1,
+      }}>
+        <div style={{
+          display: 'flex',
+          gap: '12px',
+          alignItems: 'center',
+        }}>
+          {/* Drag Handle */}
+          {isEditMode && !isDeleted && (
+            <div 
+              {...attributes} 
+              {...listeners}
+              style={{
+                cursor: 'grab',
+                color: '#73747B',
+                opacity: 0.5,
+                display: 'flex',
+                alignItems: 'center',
+                paddingTop: '2px',
+              }}
+            >
+              <GripVertical size={16} />
+            </div>
+          )}
+
+          {/* Checkbox - disabled in edit mode */}
+          {!isEditMode && (
+            <div style={{ paddingTop: '2px' }}>
+              <button
+                onClick={() => toggleTask(task.id, task.completed)}
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '6px',
+                  border: '1.5px solid rgba(197, 197, 202, 0.5)',
+                  backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.15s ease',
+                  padding: 0,
+                }}
+              >
+                {task.completed && (
+                  <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                    <path
+                      d="M1 5L4.5 8.5L11 1.5"
+                      stroke="#FFFFFF"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Title - editable in edit mode */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            flex: 1 
+          }}>
+            {isEditMode ? (
+              <Input
+                value={task.title}
+                onChange={(e) => onTitleChange(task.id, e.target.value)}
+                disabled={isDeleted}
+                style={{
+                  flex: 1,
+                  borderRadius: '16px',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '15px',
+                  fontWeight: 500,
+                  textDecoration: isDeleted ? 'line-through' : 'none',
+                }}
+              />
+            ) : (
+              <span style={{
+                flex: 1,
+                textDecoration: task.completed ? 'line-through' : 'none',
+                color: task.completed ? '#73747B' : '#282E3A',
+                fontWeight: 500,
+                fontSize: '15px',
+                fontFamily: 'Inter, sans-serif',
+              }}>
+                {task.title}
+              </span>
+            )}
+          </div>
+
+          {/* Time indicator & Delete button */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}>
+            {task.estimated_minutes && (
+              <span style={{
+                fontSize: '11px',
+                fontWeight: 400,
+                color: '#73747B',
+                opacity: 0.7,
+                fontStyle: 'italic',
+                fontFamily: 'Inter, sans-serif',
+              }}>
+                ~{task.estimated_minutes}min
+              </span>
+            )}
+
+            {/* Delete button in edit mode */}
+            {isEditMode && !isDeleted && (
+              <button
+                onClick={() => onDelete(task.id)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#FEE2E2';
+                  e.currentTarget.style.borderColor = '#EF4444';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#FEFFF1';
+                  e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
+                }}
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(197,197,202,0.5)',
+                  backgroundColor: '#FEFFF1',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  padding: 0,
+                }}
+                title="Verwijder taak"
+              >
+                <Trash2 size={14} style={{ color: '#EF4444' }} />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const nowInAmsterdamMinutes = (): number => {
   const TIMEZONE = 'Europe/Amsterdam';
@@ -233,6 +416,14 @@ export function FohTasks() {
   // Info popup state
   const [infoVisible, setInfoVisible] = useState(false);
   const [selectedTaskInfo, setSelectedTaskInfo] = useState<{ title: string; description: string } | null>(null);
+
+  // Edit mode states
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editedTasks, setEditedTasks] = useState<FohTaskWithEmployee[]>([]);
+  const [deletedTaskIds, setDeletedTaskIds] = useState<string[]>([]);
+  const [newTasks, setNewTasks] = useState<Array<{tempId: string, title: string, category: string}>>([]);
+  const [newTaskInput, setNewTaskInput] = useState('');
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
 
   // Data fetching functions
   const generateDailyTasks = async () => {
@@ -587,6 +778,173 @@ export function FohTasks() {
     toast.success('Taak verwijderd');
     setSwipedTaskId(null);
     fetchExtraTasks();
+  };
+
+  // Drag and drop sensor
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
+
+  // Handle drag end for reordering
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id) {
+      return;
+    }
+    
+    setEditedTasks((tasks) => {
+      const oldIndex = tasks.findIndex((t) => t.id === active.id);
+      const newIndex = tasks.findIndex((t) => t.id === over.id);
+      
+      if (oldIndex === -1 || newIndex === -1) return tasks;
+      
+      const newTasks = [...tasks];
+      const [movedTask] = newTasks.splice(oldIndex, 1);
+      newTasks.splice(newIndex, 0, movedTask);
+      
+      // Recalculate sort_order (10, 20, 30, etc.)
+      return newTasks.map((task, idx) => ({
+        ...task,
+        sort_order: (idx + 1) * 10,
+      }));
+    });
+  };
+
+  // Save changes from edit mode
+  const handleSaveChanges = async () => {
+    try {
+      // Update existing tasks (title, sort_order, category)
+      for (const task of editedTasks) {
+        if (deletedTaskIds.includes(task.id)) continue;
+        
+        const { error } = await supabase
+          .from('foh_tasks')
+          .update({
+            title: task.title,
+            sort_order: task.sort_order,
+            category: task.category,
+          })
+          .eq('id', task.id);
+        
+        if (error) {
+          console.error('Error updating task:', error);
+          toast.error('Fout bij opslaan');
+          return;
+        }
+      }
+      
+      // Soft delete removed tasks
+      if (deletedTaskIds.length > 0) {
+        const { error } = await supabase
+          .from('foh_tasks')
+          .update({ archived: true })
+          .in('id', deletedTaskIds);
+        
+        if (error) {
+          console.error('Error deleting tasks:', error);
+          toast.error('Fout bij verwijderen taken');
+          return;
+        }
+      }
+      
+      // Insert new tasks
+      if (newTasks.length > 0) {
+        const maxSortOrder = Math.max(...editedTasks.map(t => t.sort_order || 0), 0);
+        const tasksToInsert = newTasks.map((task, idx) => ({
+          location: userLocation,
+          phase: activePhase,
+          title: task.title,
+          category: task.category,
+          due_date: getAmsterdamDateString(),
+          priority: 2,
+          sort_order: maxSortOrder + (idx + 1) * 10,
+          completed: false,
+          archived: false,
+        }));
+        
+        const { error } = await supabase
+          .from('foh_tasks')
+          .insert(tasksToInsert);
+        
+        if (error) {
+          console.error('Error inserting new tasks:', error);
+          toast.error('Fout bij toevoegen taken');
+          return;
+        }
+      }
+      
+      // Refresh and exit edit mode
+      await fetchDailyTasks();
+      setIsEditMode(false);
+      setEditedTasks([]);
+      setDeletedTaskIds([]);
+      setNewTasks([]);
+      setNewTaskInput('');
+      toast.success('Wijzigingen opgeslagen');
+    } catch (error) {
+      console.error('Error saving changes:', error);
+      toast.error('Fout bij opslaan');
+    }
+  };
+
+  // Save as template
+  const handleSaveAsTemplate = async () => {
+    try {
+      const currentPhaseTasks = getCurrentTasks().filter(t => !t.archived);
+      
+      if (currentPhaseTasks.length === 0) {
+        toast.error('Geen taken om op te slaan als template');
+        return;
+      }
+      
+      // Delete old templates for this location + phase
+      const { error: deleteError } = await supabase
+        .from('foh_daily_templates')
+        .delete()
+        .eq('location', userLocation)
+        .eq('phase', activePhase)
+        .eq('repeat_type', 'daily');
+      
+      if (deleteError) {
+        console.error('Error deleting old templates:', deleteError);
+        toast.error('Fout bij verwijderen oude template');
+        return;
+      }
+      
+      // Insert new templates
+      const templatesToInsert = currentPhaseTasks.map(task => ({
+        location: task.location,
+        phase: task.phase,
+        title: task.title,
+        category: task.category,
+        priority: task.priority,
+        estimated_minutes: task.estimated_minutes,
+        sort_order: task.sort_order,
+        description: task.description,
+        repeat_type: 'daily',
+      }));
+      
+      const { error: insertError } = await supabase
+        .from('foh_daily_templates')
+        .insert(templatesToInsert);
+      
+      if (insertError) {
+        console.error('Error inserting templates:', insertError);
+        toast.error('Fout bij opslaan template');
+        return;
+      }
+      
+      toast.success(`Template opgeslagen voor ${activePhase}-lijst`);
+      setTemplateDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving template:', error);
+      toast.error('Fout bij opslaan template');
+    }
   };
 
   // Swipe handlers
@@ -1036,6 +1394,42 @@ export function FohTasks() {
                   </DialogContent>
                 </Dialog>
 
+                {/* Edit Mode Button - only for dagelijks */}
+                {mainCategory === 'dagelijks' && !isEditMode && (
+                  <button
+                    onClick={() => {
+                      setIsEditMode(true);
+                      setEditedTasks(getCurrentTasks());
+                      setDeletedTaskIds([]);
+                      setNewTasks([]);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '8px 16px',
+                      backgroundColor: '#1B7867',
+                      color: '#FFFFFF',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '20px',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      fontFamily: 'Inter, sans-serif',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#229580';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#1B7867';
+                    }}
+                  >
+                    <Pencil size={16} />
+                    Bewerken
+                  </button>
+                )}
+
                 {/* New Task Button - only for periodiek */}
                 {mainCategory === 'periodiek' && (
                   <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -1388,173 +1782,363 @@ export function FohTasks() {
             <hr style={{ border: 'none', borderTop: '1px solid rgba(197, 197, 202, 0.5)', margin: 0 }} />
 
             {/* Tasks list */}
-            <div>
+            <div style={{ position: 'relative' }}>
               {mainCategory === 'dagelijks' ? (
                 <>
-                  {Object.entries(groupTasksByCategory(currentTasks)).map(([category, categoryTasks]) => (
-                    <div key={category} style={{ marginBottom: '24px' }}>
-                      <div style={{
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        color: '#73747B',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        marginBottom: '12px',
-                        fontFamily: 'Inter, sans-serif',
-                      }}>
-                        {category}
-                      </div>
-
-                      {categoryTasks.map((task, index) => (
-                        <div key={task.id}>
-                          <div style={{
-                            padding: '14px 0',
-                            opacity: task.completed ? 0.5 : 1,
-                            transition: 'opacity 0.2s',
-                          }}>
+                  {isEditMode ? (
+                    /* EDIT MODE WITH DRAG & DROP */
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={editedTasks.map(t => t.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {Object.entries(groupTasksByCategory(editedTasks)).map(([category, categoryTasks]) => (
+                          <div key={category} style={{ marginBottom: '24px' }}>
                             <div style={{
-                              display: 'flex',
-                              gap: '12px',
-                              alignItems: 'flex-start',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              color: '#73747B',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.05em',
+                              marginBottom: '12px',
+                              fontFamily: 'Inter, sans-serif',
                             }}>
-                              <div style={{ paddingTop: '2px' }}>
-                                <button
-                                  onClick={() => toggleTask(task.id, task.completed)}
-                                  style={{
-                                    width: '20px',
-                                    height: '20px',
-                                    borderRadius: '6px',
-                                    border: '1.5px solid rgba(197, 197, 202, 0.5)',
-                                    backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    transition: 'all 0.15s ease',
-                                    padding: 0,
+                              {category}
+                            </div>
+
+                            {categoryTasks.map((task, index) => (
+                              <div key={task.id}>
+                                <SortableTaskItem
+                                  task={task}
+                                  isEditMode={true}
+                                  onTitleChange={(id, title) => {
+                                    setEditedTasks(tasks =>
+                                      tasks.map(t => t.id === id ? { ...t, title } : t)
+                                    );
                                   }}
-                                >
-                                  {task.completed && (
-                                    <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
-                                      <path
-                                        d="M1 5L4.5 8.5L11 1.5"
-                                        stroke="#FFFFFF"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
-                                  )}
-                                </button>
+                                  onDelete={(id) => {
+                                    setDeletedTaskIds(prev => [...prev, id]);
+                                  }}
+                                  toggleTask={toggleTask}
+                                  isDeleted={deletedTaskIds.includes(task.id)}
+                                />
+                                {index < categoryTasks.length - 1 && (
+                                  <div style={{ height: '1px', backgroundColor: 'rgba(197, 197, 202, 0.3)' }} />
+                                )}
                               </div>
-                              
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '8px',
-                        flex: 1 
-                      }}>
-                        <span style={{
-                          flex: 1,
-                          textDecoration: task.completed ? 'line-through' : 'none',
-                          color: task.completed ? '#73747B' : '#282E3A',
-                          fontWeight: 500,
-                          fontSize: '15px',
+                            ))}
+                          </div>
+                        ))}
+                      </SortableContext>
+                    </DndContext>
+                  ) : (
+                    /* NORMAL MODE */
+                    Object.entries(groupTasksByCategory(currentTasks)).map(([category, categoryTasks]) => (
+                      <div key={category} style={{ marginBottom: '24px' }}>
+                        <div style={{
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          color: '#73747B',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em',
+                          marginBottom: '12px',
                           fontFamily: 'Inter, sans-serif',
                         }}>
-                          {task.title}
-                        </span>
-                        
-                        {/* Info Icon */}
-                        {task.description && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedTaskInfo({ 
-                                title: task.title, 
-                                description: task.description || '' 
-                              });
-                              setInfoVisible(true);
-                            }}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: '20px',
-                              height: '20px',
-                              border: 'none',
-                              background: 'transparent',
-                              cursor: 'pointer',
-                              color: '#73747B',
-                              padding: 0,
-                              flexShrink: 0,
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.color = '#1B7867';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.color = '#73747B';
-                            }}
-                          >
-                            <Info size={16} />
-                          </button>
-                        )}
-                        
-                        {/* Admin Edit Icon */}
-                        {isAdminMode && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingTaskId(task.id);
-                              setEditDescription(task.description || '');
-                            }}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: '20px',
-                              height: '20px',
-                              border: 'none',
-                              background: 'transparent',
-                              cursor: 'pointer',
-                              color: '#73747B',
-                              padding: 0,
-                              flexShrink: 0,
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.color = '#1B7867';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.color = '#73747B';
-                            }}
-                          >
-                            <Pencil size={14} />
-                          </button>
-                        )}
-                      </div>
-                              
-                              {task.foh_employees && (
-                                <span style={{
-                                  fontSize: '12px',
-                                  fontWeight: 500,
-                                  color: '#73747B',
-                                  backgroundColor: '#FEFFF1',
-                                  padding: '4px 8px',
-                                  borderRadius: '6px',
-                                  fontFamily: 'Inter, sans-serif',
-                                }}>
-                                  {task.foh_employees.name}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          {index < categoryTasks.length - 1 && (
-                            <div style={{ height: '1px', backgroundColor: 'rgba(197, 197, 202, 0.3)' }} />
-                          )}
+                          {category}
                         </div>
-                      ))}
+
+                        {categoryTasks.map((task, index) => (
+                          <div key={task.id}>
+                            <SortableTaskItem
+                              task={task}
+                              isEditMode={false}
+                              onTitleChange={() => {}}
+                              onDelete={() => {}}
+                              toggleTask={toggleTask}
+                              isDeleted={false}
+                            />
+                            {index < categoryTasks.length - 1 && (
+                              <div style={{ height: '1px', backgroundColor: 'rgba(197, 197, 202, 0.3)' }} />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ))
+                  )}
+
+                  {/* Add New Task Input (Edit Mode Only) */}
+                  {isEditMode && (
+                    <div style={{
+                      padding: '16px 0',
+                      borderTop: '1px solid rgba(197, 197, 202, 0.5)',
+                    }}>
+                      <div style={{
+                        display: 'flex',
+                        gap: '12px',
+                        alignItems: 'center',
+                      }}>
+                        <Input
+                          value={newTaskInput}
+                          onChange={(e) => setNewTaskInput(e.target.value)}
+                          placeholder="Nieuwe taak toevoegen..."
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && newTaskInput.trim()) {
+                              setNewTasks(prev => [...prev, {
+                                tempId: `temp-${Date.now()}`,
+                                title: newTaskInput.trim(),
+                                category: 'Algemeen',
+                              }]);
+                              setNewTaskInput('');
+                            }
+                          }}
+                          style={{
+                            flex: 1,
+                            borderRadius: '16px',
+                            fontFamily: 'Inter, sans-serif',
+                          }}
+                        />
+                        <button
+                          onClick={() => {
+                            if (newTaskInput.trim()) {
+                              setNewTasks(prev => [...prev, {
+                                tempId: `temp-${Date.now()}`,
+                                title: newTaskInput.trim(),
+                                category: 'Algemeen',
+                              }]);
+                              setNewTaskInput('');
+                            }
+                          }}
+                          style={{
+                            padding: '8px 16px',
+                            backgroundColor: '#1B7867',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            borderRadius: '20px',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            fontFamily: 'Inter, sans-serif',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                          }}
+                        >
+                          <Plus size={16} />
+                          Toevoegen
+                        </button>
+                      </div>
+
+                      {/* Display new tasks */}
+                      {newTasks.length > 0 && (
+                        <div style={{ marginTop: '16px' }}>
+                          <div style={{
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: '#73747B',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            marginBottom: '12px',
+                            fontFamily: 'Inter, sans-serif',
+                          }}>
+                            Nieuwe Taken
+                          </div>
+                          {newTasks.map((task, index) => (
+                            <div key={task.tempId} style={{
+                              padding: '14px 0',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '12px',
+                            }}>
+                              <span style={{
+                                flex: 1,
+                                color: '#282E3A',
+                                fontWeight: 500,
+                                fontSize: '15px',
+                                fontFamily: 'Inter, sans-serif',
+                              }}>
+                                {task.title}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setNewTasks(prev => prev.filter(t => t.tempId !== task.tempId));
+                                }}
+                                style={{
+                                  width: '24px',
+                                  height: '24px',
+                                  borderRadius: '8px',
+                                  border: '1px solid rgba(197,197,202,0.5)',
+                                  backgroundColor: '#FEFFF1',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  cursor: 'pointer',
+                                  padding: 0,
+                                }}
+                              >
+                                <X size={14} style={{ color: '#EF4444' }} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  ))}
+                  )}
+
+                  {/* Edit Mode Footer */}
+                  {isEditMode && (
+                    <div style={{
+                      padding: '16px 0',
+                      borderTop: '1px solid rgba(197, 197, 202, 0.5)',
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      gap: '12px',
+                    }}>
+                      <button
+                        onClick={() => {
+                          setIsEditMode(false);
+                          setEditedTasks([]);
+                          setDeletedTaskIds([]);
+                          setNewTasks([]);
+                          setNewTaskInput('');
+                        }}
+                        style={{
+                          padding: '8px 20px',
+                          backgroundColor: '#FEFFF1',
+                          color: '#282E3A',
+                          border: '1px solid rgba(197, 197, 202, 0.5)',
+                          borderRadius: '20px',
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                          fontFamily: 'Inter, sans-serif',
+                        }}
+                      >
+                        Annuleren
+                      </button>
+                      <button
+                        onClick={handleSaveChanges}
+                        style={{
+                          padding: '8px 20px',
+                          backgroundColor: '#1B7867',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          borderRadius: '20px',
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                          fontFamily: 'Inter, sans-serif',
+                        }}
+                      >
+                        Opslaan
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Save as Template Button (Normal Mode Only) */}
+                  {!isEditMode && mainCategory === 'dagelijks' && currentTasks.length > 0 && (
+                    <div style={{
+                      padding: '16px 0',
+                      borderTop: '1px solid rgba(197, 197, 202, 0.5)',
+                      display: 'flex',
+                      justifyContent: 'center',
+                    }}>
+                      <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
+                        <DialogTrigger asChild>
+                          <button
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              padding: '8px 20px',
+                              backgroundColor: '#FEFFF1',
+                              color: '#282E3A',
+                              border: '1px solid rgba(197, 197, 202, 0.5)',
+                              borderRadius: '20px',
+                              fontSize: '14px',
+                              fontWeight: 500,
+                              cursor: 'pointer',
+                              fontFamily: 'Inter, sans-serif',
+                              transition: 'all 0.2s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#F6F7DD';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = '#FEFFF1';
+                            }}
+                          >
+                            <BookTemplate size={16} />
+                            Opslaan als template
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent style={{
+                          backgroundColor: '#FEFFF1',
+                          border: '1px solid rgba(197, 197, 202, 0.5)',
+                          borderRadius: '20px',
+                          fontFamily: 'Inter, sans-serif',
+                        }}>
+                          <DialogHeader>
+                            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#282E3A' }}>
+                              Template Opslaan
+                            </DialogTitle>
+                          </DialogHeader>
+                          <div style={{ padding: '16px 0' }}>
+                            <p style={{
+                              fontSize: '14px',
+                              color: '#282E3A',
+                              fontFamily: 'Inter, sans-serif',
+                              lineHeight: '1.6',
+                            }}>
+                              Weet je zeker dat je de huidige {activePhase}-lijst wilt opslaan als template?
+                              Dit overschrijft de bestaande template voor deze fase.
+                            </p>
+                          </div>
+                          <DialogFooter>
+                            <Button
+                              variant="outline"
+                              onClick={() => setTemplateDialogOpen(false)}
+                              style={{
+                                borderRadius: '20px',
+                                fontFamily: 'Inter, sans-serif',
+                              }}
+                            >
+                              Annuleren
+                            </Button>
+                            <Button
+                              onClick={handleSaveAsTemplate}
+                              style={{
+                                backgroundColor: '#1B7867',
+                                color: '#FFFFFF',
+                                borderRadius: '20px',
+                                fontFamily: 'Inter, sans-serif',
+                              }}
+                            >
+                              Opslaan
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  )}
+
+                  {currentTasks.length === 0 && (
+                    <div style={{
+                      padding: '48px 24px',
+                      textAlign: 'center',
+                    }}>
+                      <p style={{
+                        fontSize: '15px',
+                        color: '#73747B',
+                        fontFamily: 'Inter, sans-serif',
+                      }}>
+                        Geen taken gevonden
+                      </p>
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
