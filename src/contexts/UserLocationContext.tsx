@@ -20,8 +20,6 @@ export function UserLocationProvider({ children }: { children: ReactNode }) {
       (event, session) => {  // ✅ NIET async
         if (!mounted) return;
         
-        console.log('Auth event:', event, 'Session:', session?.user?.id);
-        
         if (event === 'SIGNED_IN' && session) {
           // ✅ Defer Supabase call met setTimeout
           setTimeout(() => {
@@ -34,7 +32,6 @@ export function UserLocationProvider({ children }: { children: ReactNode }) {
               .maybeSingle()
               .then(({ data }) => {
                 if (mounted) {
-                  console.log('User location loaded:', data?.location);
                   setUserLocation(data?.location || '');
                   setLoading(false);
                 }
@@ -42,7 +39,6 @@ export function UserLocationProvider({ children }: { children: ReactNode }) {
           }, 0);
         } else if (event === 'SIGNED_OUT') {
           if (mounted) {
-            console.log('User signed out, clearing location');
             setUserLocation('');
             setLoading(false);
           }

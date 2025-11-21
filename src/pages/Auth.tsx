@@ -71,8 +71,6 @@ const Auth = () => {
           .eq('user_id', data.session.user.id)
           .maybeSingle();
         
-        console.log('Login voor:', location, '- Database location:', userRole?.location);
-        
         if (userRole?.location !== location) {
           toast.error('Verkeerde locatie detecteerd', {
             description: `Deze account hoort bij ${userRole?.location}`
