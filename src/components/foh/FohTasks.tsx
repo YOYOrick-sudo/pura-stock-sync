@@ -37,13 +37,14 @@ interface SortableTaskItemProps {
   isEditMode: boolean;
   onTitleChange: (id: string, title: string) => void;
   onDescriptionChange?: (id: string, description: string) => void;
+  onEstimatedMinutesChange?: (id: string, minutes: number | null) => void;
   onDelete: (id: string) => void;
   toggleTask?: (id: string, completed: boolean) => void;
   isDeleted: boolean;
   showAdminTools?: boolean;
 }
 
-function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onDelete, toggleTask, isDeleted, showAdminTools = false }: SortableTaskItemProps) {
+function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onDelete, toggleTask, isDeleted, showAdminTools = false }: SortableTaskItemProps) {
   const {
     attributes,
     listeners,
@@ -166,17 +167,50 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
             alignItems: 'center',
             gap: '8px',
           }}>
-            {task.estimated_minutes && (
-              <span style={{
-                fontSize: '11px',
-                fontWeight: 400,
-                color: '#73747B',
-                opacity: 0.7,
-                fontStyle: 'italic',
-                fontFamily: 'Inter, sans-serif',
-              }}>
-                ~{task.estimated_minutes}min
-              </span>
+            {/* Time indicator - editable in edit mode */}
+            {isEditMode ? (
+              <Select 
+                value={task.estimated_minutes?.toString() || 'null'}
+                onValueChange={(value) => {
+                  if (onEstimatedMinutesChange) {
+                    onEstimatedMinutesChange(task.id, value === 'null' ? null : parseInt(value));
+                  }
+                }}
+                disabled={isDeleted}
+              >
+                <SelectTrigger style={{
+                  width: '90px',
+                  height: '28px',
+                  fontSize: '11px',
+                  borderRadius: '8px',
+                  fontFamily: 'Inter, sans-serif',
+                }}>
+                  <SelectValue placeholder="Tijd" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="null">Geen</SelectItem>
+                  <SelectItem value="5">~5min</SelectItem>
+                  <SelectItem value="10">~10min</SelectItem>
+                  <SelectItem value="15">~15min</SelectItem>
+                  <SelectItem value="20">~20min</SelectItem>
+                  <SelectItem value="30">~30min</SelectItem>
+                  <SelectItem value="45">~45min</SelectItem>
+                  <SelectItem value="60">~60min</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              task.estimated_minutes && (
+                <span style={{
+                  fontSize: '11px',
+                  fontWeight: 400,
+                  color: '#73747B',
+                  opacity: 0.7,
+                  fontStyle: 'italic',
+                  fontFamily: 'Inter, sans-serif',
+                }}>
+                  ~{task.estimated_minutes}min
+                </span>
+              )
             )}
 
             {/* Info button - only visible if task has description */}
@@ -551,6 +585,8 @@ export function FohTasks() {
   const [deletedTemplateTaskIds, setDeletedTemplateTaskIds] = useState<string[]>([]);
   const [newTemplateDialogOpen, setNewTemplateDialogOpen] = useState(false);
   const [newTemplateName, setNewTemplateName] = useState('');
+  const [newTemplateTaskInput, setNewTemplateTaskInput] = useState('');
+  const [newTemplateTaskCategory, setNewTemplateTaskCategory] = useState('Algemeen');
   
   // Fetch templates query
   const { data: templates, isLoading: templatesLoading } = useQuery({
@@ -1246,11 +1282,42 @@ export function FohTasks() {
     }
   };
 
+  const handleAddTemplateTask = () => {
+    if (!newTemplateTaskInput.trim()) {
+      toast.error('Vul een taaknaam in');
+      return;
+    }
+    
+    const maxSortOrder = Math.max(...editingTemplate.map(t => t.sort_order || 0), 0);
+    const tempId = `temp-${Date.now()}`;
+    
+    const newTask = {
+      id: tempId,
+      title: newTemplateTaskInput,
+      category: newTemplateTaskCategory,
+      sort_order: maxSortOrder + 10,
+      estimated_minutes: null,
+      description: null,
+      phase: editingTemplate[0]?.phase || activePhase,
+      location: editingTemplate[0]?.location || userLocation,
+      priority: 2,
+      repeat_type: 'daily',
+      template_name: editingTemplateName,
+      is_active: true,
+      isNew: true,
+    };
+    
+    setEditingTemplate(prev => [...prev, newTask]);
+    setNewTemplateTaskInput('');
+    toast.success('Taak toegevoegd');
+  };
+
   const handleSaveTemplateEdits = async () => {
     try {
       // Update existing template tasks
       for (const task of editingTemplate) {
         if (deletedTemplateTaskIds.includes(task.id)) continue;
+        if (task.isNew) continue; // Skip new tasks in this loop
         
         const { error } = await supabase
           .from('foh_daily_templates')
@@ -1266,6 +1333,32 @@ export function FohTasks() {
         if (error) {
           console.error('Error updating template task:', error);
           toast.error('Fout bij opslaan');
+          return;
+        }
+      }
+      
+      // Insert new template tasks
+      const newTasks = editingTemplate.filter(t => t.isNew);
+      for (const task of newTasks) {
+        const { error } = await supabase
+          .from('foh_daily_templates')
+          .insert({
+            location: task.location,
+            phase: task.phase,
+            title: task.title,
+            priority: task.priority,
+            category: task.category,
+            repeat_type: task.repeat_type,
+            template_name: task.template_name,
+            is_active: task.is_active,
+            estimated_minutes: task.estimated_minutes,
+            sort_order: task.sort_order,
+            description: task.description,
+          });
+        
+        if (error) {
+          console.error('Error inserting new template task:', error);
+          toast.error('Fout bij toevoegen nieuwe taak');
           return;
         }
       }
@@ -1286,6 +1379,8 @@ export function FohTasks() {
       
       toast.success('Template opgeslagen');
       setTemplateEditorOpen(false);
+      setNewTemplateTaskInput('');
+      setNewTemplateTaskCategory('Algemeen');
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
     } catch (error) {
       console.error('Error saving template edits:', error);
@@ -1930,6 +2025,9 @@ export function FohTasks() {
                                 }}
                                 onDescriptionChange={(id, description) => {
                                   setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, description } : t));
+                                }}
+                                onEstimatedMinutesChange={(id, minutes) => {
+                                  setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, estimated_minutes: minutes } : t));
                                 }}
                                 onDelete={(id) => {
                                   setDeletedTaskIds(prev => [...prev, id]);
@@ -2593,6 +2691,9 @@ export function FohTasks() {
                     onDescriptionChange={(id, description) => {
                       setEditingTemplate(prev => prev.map(t => t.id === id ? { ...t, description } : t));
                     }}
+                    onEstimatedMinutesChange={(id, minutes) => {
+                      setEditingTemplate(prev => prev.map(t => t.id === id ? { ...t, estimated_minutes: minutes } : t));
+                    }}
                     onDelete={(id) => {
                       setDeletedTemplateTaskIds(prev => [...prev, id]);
                     }}
@@ -2602,6 +2703,79 @@ export function FohTasks() {
                 ))}
               </SortableContext>
             </DndContext>
+
+            {/* Add task section */}
+            <div style={{
+              padding: '16px',
+              borderTop: '1px solid rgba(197, 197, 202, 0.3)',
+              marginTop: '16px',
+            }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: '#73747B',
+                    marginBottom: '6px',
+                    fontFamily: 'Inter, sans-serif',
+                  }}>
+                    Nieuwe taak toevoegen
+                  </label>
+                  <Input
+                    value={newTemplateTaskInput}
+                    onChange={(e) => setNewTemplateTaskInput(e.target.value)}
+                    placeholder="Taaknaam..."
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') handleAddTemplateTask();
+                    }}
+                    style={{
+                      borderRadius: '16px',
+                      fontFamily: 'Inter, sans-serif',
+                    }}
+                  />
+                </div>
+                <div style={{ width: '160px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: '#73747B',
+                    marginBottom: '6px',
+                    fontFamily: 'Inter, sans-serif',
+                  }}>
+                    Categorie
+                  </label>
+                  <Select value={newTemplateTaskCategory} onValueChange={setNewTemplateTaskCategory}>
+                    <SelectTrigger style={{ borderRadius: '16px' }}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORY_ORDER.map(cat => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  onClick={handleAddTemplateTask}
+                  style={{
+                    backgroundColor: '#1B7867',
+                    color: '#FFFFFF',
+                    borderRadius: '20px',
+                    fontFamily: 'Inter, sans-serif',
+                    minWidth: '100px',
+                  }}
+                >
+                  <Plus size={16} style={{ marginRight: '4px' }} />
+                  Toevoegen
+                </Button>
+              </div>
+            </div>
           </div>
 
           <DialogFooter>
