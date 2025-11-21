@@ -2435,7 +2435,7 @@ export function FohTasks() {
           border: '1px solid rgba(197, 197, 202, 0.5)',
           borderRadius: '20px',
           fontFamily: 'Inter, sans-serif',
-          maxWidth: '900px',
+          maxWidth: '650px',
           maxHeight: '90vh',
           overflow: 'hidden',
         }}>
@@ -2664,7 +2664,7 @@ export function FohTasks() {
           border: '1px solid rgba(197, 197, 202, 0.5)',
           borderRadius: '20px',
           fontFamily: 'Inter, sans-serif',
-          maxWidth: '900px',
+          maxWidth: '650px',
           maxHeight: '90vh',
         }}>
           <DialogHeader>
