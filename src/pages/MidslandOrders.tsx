@@ -117,8 +117,9 @@ export default function MidslandOrders() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {orders.map((order) => {
+            {orders.map((order, index) => {
               const isExpanded = expandedOrder === order.id;
+              const isNewest = index === 0;
               const statusLabel = statusLabels[order.status as keyof typeof statusLabels] || order.status;
               
               let statusStyle = {};
@@ -156,6 +157,16 @@ export default function MidslandOrders() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                          {isNewest && (
+                            <div style={{
+                              width: '10px',
+                              height: '10px',
+                              borderRadius: '50%',
+                              backgroundColor: '#1B7867',
+                              boxShadow: '0 0 0 2px rgba(27, 120, 103, 0.1)',
+                              flexShrink: 0
+                            }} />
+                          )}
                           <h3 style={{ 
                             fontFamily: 'Inter, sans-serif',
                             fontSize: '18px',
