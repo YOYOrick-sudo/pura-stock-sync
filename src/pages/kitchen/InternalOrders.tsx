@@ -40,8 +40,9 @@ export default function InternalOrders() {
     }
   };
 
-  const renderOrderCard = (order: any) => {
+  const renderOrderCard = (order: any, index: number) => {
     const isExpanded = expandedOrders.has(order.id);
+    const isNewest = index === 0;
     const statusInfo = getStatusInfo(order.status);
 
     return (
@@ -70,15 +71,27 @@ export default function InternalOrders() {
           <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between' }}>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <h3 style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  color: '#282E3A',
-                  letterSpacing: '0.5px',
-                }}>
-                  {order.order_number}
-                </h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {isNewest && (
+                    <div style={{
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      backgroundColor: '#1B7867',
+                      boxShadow: '0 0 0 2px rgba(27, 120, 103, 0.1)',
+                      flexShrink: 0
+                    }} />
+                  )}
+                  <h3 style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#282E3A',
+                    letterSpacing: '0.5px',
+                  }}>
+                    {order.order_number}
+                  </h3>
+                </div>
                 <span style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -415,7 +428,7 @@ export default function InternalOrders() {
                   display: 'grid',
                   gap: '12px',
                 }}>
-                  {sentOrders.map(renderOrderCard)}
+                  {sentOrders.map((order, index) => renderOrderCard(order, index))}
                 </div>
               )}
             </div>
@@ -444,7 +457,7 @@ export default function InternalOrders() {
                   display: 'grid',
                   gap: '12px',
                 }}>
-                  {receivedOrders.map(renderOrderCard)}
+                  {receivedOrders.map((order, index) => renderOrderCard(order, index))}
                 </div>
               )}
             </div>
