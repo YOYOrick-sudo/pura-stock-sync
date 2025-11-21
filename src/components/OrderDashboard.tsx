@@ -39,9 +39,11 @@ const INITIAL_PRODUCTS: Product[] = [
   // Pattiserie
   { name: "Wortelwalnoot", targetStock: 9, currentStock: 0, category: "Pattiserie" },
   { name: "Cheesecake", targetStock: 9, currentStock: 0, category: "Pattiserie" },
-  { name: "Notenbar", targetStock: 5, currentStock: 0, category: "Pattiserie" },
-  { name: "Brownie", targetStock: 5, currentStock: 0, category: "Pattiserie" },
-  { name: "Wortelkaneel muffin", targetStock: 5, currentStock: 0, category: "Pattiserie" },
+  { name: "Notenbar", targetStock: 4, currentStock: 0, category: "Pattiserie" },
+  { name: "Brownie", targetStock: 4, currentStock: 0, category: "Pattiserie" },
+  { name: "Vegan boterkoek", targetStock: 4, currentStock: 0, category: "Pattiserie" },
+  { name: "Tahini choco", targetStock: 4, currentStock: 0, category: "Pattiserie" },
+  { name: "Bananencake", targetStock: 4, currentStock: 0, category: "Pattiserie" },
   { name: "Arabische sinaasappel cake", targetStock: 4, currentStock: 0, category: "Pattiserie" },
   // Overig
   { name: "Vissoep", targetStock: 9, currentStock: 0, category: "Overig" },
