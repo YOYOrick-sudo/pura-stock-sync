@@ -31,6 +31,27 @@ const PHASE_WINDOWS = [
 // Category order for display
 const CATEGORY_ORDER = ['Deel 1', 'Deel 2', 'Deel 3', 'Bar', 'Keuken', 'Zaal', 'Terras', 'Sanitair', 'Entree', 'Voorraad', 'Algemeen'] as const;
 
+// Get available categories based on location and phase
+const getAvailableCategoriesForPhase = (location: string, phase: string): string[] => {
+  // Midsland - open
+  if (location === 'Midsland' && phase === 'open') {
+    return ['Deel 1', 'Deel 2', 'Deel 3'];
+  }
+  
+  // Midsland - tussen
+  if (location === 'Midsland' && phase === 'tussen') {
+    return ['Binnen', 'Deel 1 - Bar Prep Check', 'Deel 2 - Bijvullen', 'Hygiëne', 'Overdracht', 'Terras'];
+  }
+  
+  // Midsland - sluit
+  if (location === 'Midsland' && phase === 'sluit') {
+    return ['BAR', 'BIJVULLEN (FIFO)', 'BINNEN', 'HYGIENE', 'LAATSTE LOODJES', 'TERRAS'];
+  }
+  
+  // Fallback voor andere locaties/fases
+  return [...CATEGORY_ORDER];
+};
+
 // ===== SORTABLE TASK ITEM COMPONENT =====
 interface SortableTaskItemProps {
   task: FohTaskWithEmployee;
@@ -586,7 +607,10 @@ export function FohTasks() {
   const [newTemplateDialogOpen, setNewTemplateDialogOpen] = useState(false);
   const [newTemplateName, setNewTemplateName] = useState('');
   const [newTemplateTaskInput, setNewTemplateTaskInput] = useState('');
-  const [newTemplateTaskCategory, setNewTemplateTaskCategory] = useState('Algemeen');
+  
+  // Get available categories for current location and phase
+  const availableCategories = getAvailableCategoriesForPhase(userLocation, activePhase);
+  const [newTemplateTaskCategory, setNewTemplateTaskCategory] = useState(availableCategories[0] || 'Algemeen');
   
   // Fetch templates query
   const { data: templates, isLoading: templatesLoading } = useQuery({
@@ -1832,7 +1856,7 @@ export function FohTasks() {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                {CATEGORY_ORDER.map(cat => (
+                                {getAvailableCategoriesForPhase(userLocation, 'periodiek').map(cat => (
                                   <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                                 ))}
                               </SelectContent>
@@ -2755,7 +2779,7 @@ export function FohTasks() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {CATEGORY_ORDER.map(cat => (
+                      {getAvailableCategoriesForPhase(userLocation, activePhase).map(cat => (
                         <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                       ))}
                     </SelectContent>
