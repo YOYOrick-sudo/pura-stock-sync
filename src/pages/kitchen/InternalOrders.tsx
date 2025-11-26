@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { SidebarLayout } from '@/components/SidebarLayout';
-import { ArrowRight, Package, Loader2, ChevronDown } from 'lucide-react';
+import { ArrowRight, Package, Loader2, ChevronDown, AlertCircle } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useSentOrders, useReceivedOrders } from '@/hooks/useInternalOrders';
@@ -29,6 +29,8 @@ export default function InternalOrders() {
     switch (status) {
       case 'delivered':
         return { bg: '#F0FDF4', color: '#10B981', label: 'Afgeleverd' };
+      case 'partially_delivered':
+        return { bg: '#FEF3C7', color: '#D97706', label: 'Deels geleverd' };
       case 'in_transit':
         return { bg: '#E6F4F1', color: '#1B7867', label: 'Onderweg' };
       case 'approved':
@@ -204,6 +206,37 @@ export default function InternalOrders() {
                     fontFamily: 'Inter, sans-serif',
                   }}>
                     {order.notes}
+                  </p>
+                </div>
+              )}
+
+              {/* Receiver Feedback */}
+              {order.receiver_notes && (
+                <div style={{ marginTop: '12px' }}>
+                  <h4 style={{
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#282E3A',
+                    marginBottom: '8px',
+                    fontFamily: 'Inter, sans-serif',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}>
+                    <AlertCircle size={14} style={{ color: '#D97706' }} />
+                    Ontvangst feedback:
+                  </h4>
+                  <p style={{
+                    fontSize: '13px',
+                    color: '#73747B',
+                    padding: '10px 12px',
+                    backgroundColor: '#FEF3C7',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(217, 119, 6, 0.3)',
+                    fontFamily: 'Inter, sans-serif',
+                    whiteSpace: 'pre-wrap',
+                  }}>
+                    {order.receiver_notes}
                   </p>
                 </div>
               )}

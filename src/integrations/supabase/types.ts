@@ -285,6 +285,8 @@ export type Database = {
           id: string
           notes: string | null
           order_number: string
+          received_at: string | null
+          receiver_notes: string | null
           requested_by: string
           status: string
           to_location: string
@@ -298,6 +300,8 @@ export type Database = {
           id?: string
           notes?: string | null
           order_number: string
+          received_at?: string | null
+          receiver_notes?: string | null
           requested_by: string
           status?: string
           to_location: string
@@ -311,6 +315,8 @@ export type Database = {
           id?: string
           notes?: string | null
           order_number?: string
+          received_at?: string | null
+          receiver_notes?: string | null
           requested_by?: string
           status?: string
           to_location?: string
