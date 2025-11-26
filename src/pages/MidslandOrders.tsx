@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { SidebarLayout } from '@/components/SidebarLayout';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { ChevronDown, ChevronUp, Package, Calendar, FileText, Loader2, Truck } from 'lucide-react';
+import { ChevronDown, ChevronUp, Package, Calendar, FileText, Loader2, Truck, CheckCircle, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 interface InternalOrderItem {
   id: string;
@@ -22,6 +23,8 @@ interface InternalOrder {
   delivery_date: string;
   created_at: string;
   notes: string | null;
+  receiver_notes: string | null;
+  received_at: string | null;
   internal_order_items: InternalOrderItem[];
 }
 
@@ -30,10 +33,13 @@ const statusLabels = {
   approved: 'Goedgekeurd',
   rejected: 'Afgewezen',
   delivered: 'Geleverd',
+  partially_delivered: 'Deels geleverd',
 };
 
 export default function MidslandOrders() {
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [feedbackText, setFeedbackText] = useState<{ [key: string]: string }>({});
+  const [showFeedbackFor, setShowFeedbackFor] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: orders, isLoading } = useQuery({
@@ -79,6 +85,61 @@ export default function MidslandOrders() {
 
   const toggleOrder = (orderId: string) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
+  };
+
+  // Mutation to update order status
+  const updateOrderMutation = useMutation({
+    mutationFn: async ({ 
+      orderId, 
+      status, 
+      receiverNotes 
+    }: { 
+      orderId: string; 
+      status: string; 
+      receiverNotes?: string 
+    }) => {
+      const { error } = await supabase
+        .from('internal_orders')
+        .update({
+          status,
+          receiver_notes: receiverNotes || null,
+          received_at: new Date().toISOString(),
+        })
+        .eq('id', orderId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['midsland-orders'] });
+      toast.success('Bestelling status bijgewerkt');
+      setShowFeedbackFor(null);
+      setFeedbackText({});
+    },
+    onError: (error) => {
+      console.error('Error updating order:', error);
+      toast.error('Fout bij bijwerken van bestelling');
+    },
+  });
+
+  const handleFullyReceived = (orderId: string) => {
+    updateOrderMutation.mutate({ orderId, status: 'delivered' });
+  };
+
+  const handlePartiallyReceived = (orderId: string) => {
+    setShowFeedbackFor(orderId);
+  };
+
+  const submitPartialDelivery = (orderId: string) => {
+    const feedback = feedbackText[orderId]?.trim();
+    if (!feedback) {
+      toast.error('Voer feedback in voor deels geleverde bestelling');
+      return;
+    }
+    updateOrderMutation.mutate({ 
+      orderId, 
+      status: 'partially_delivered', 
+      receiverNotes: feedback 
+    });
   };
 
   return (
@@ -131,6 +192,8 @@ export default function MidslandOrders() {
                 statusStyle = { backgroundColor: '#FEE2E2', color: '#DC2626' };
               } else if (order.status === 'delivered') {
                 statusStyle = { backgroundColor: '#DBEAFE', color: '#2563EB' };
+              } else if (order.status === 'partially_delivered') {
+                statusStyle = { backgroundColor: '#FEF3C7', color: '#D97706' };
               }
 
               return (
@@ -349,6 +412,179 @@ export default function MidslandOrders() {
                           )}
                         </div>
                       </div>
+
+                      {/* Receiver Feedback (if exists) */}
+                      {order.receiver_notes && (
+                        <div>
+                          <h4 style={{ 
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            color: '#282E3A',
+                            marginBottom: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}>
+                            <AlertCircle className="h-4 w-4" style={{ color: '#D97706' }} />
+                            Ontvangst feedback
+                          </h4>
+                          <p style={{ 
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: '14px',
+                            color: '#73747B',
+                            padding: '16px',
+                            backgroundColor: '#FEF3C7',
+                            border: '1px solid rgba(217, 119, 6, 0.3)',
+                            borderRadius: '16px',
+                            whiteSpace: 'pre-wrap'
+                          }}>
+                            {order.receiver_notes}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Receive buttons for approved orders */}
+                      {order.status === 'approved' && (
+                        <div style={{ 
+                          marginTop: '16px',
+                          paddingTop: '16px',
+                          borderTop: '1px solid rgba(197, 197, 202, 0.5)'
+                        }}>
+                          {showFeedbackFor === order.id ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              <textarea
+                                value={feedbackText[order.id] || ''}
+                                onChange={(e) => setFeedbackText({ ...feedbackText, [order.id]: e.target.value })}
+                                placeholder="Wat is er niet geleverd? (bijv. 'Brie was op')"
+                                style={{
+                                  fontFamily: 'Inter, sans-serif',
+                                  fontSize: '14px',
+                                  padding: '12px',
+                                  borderRadius: '16px',
+                                  border: '1px solid rgba(197, 197, 202, 0.5)',
+                                  backgroundColor: '#FFFFFF',
+                                  color: '#282E3A',
+                                  minHeight: '80px',
+                                  resize: 'vertical',
+                                }}
+                              />
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                  onClick={() => submitPartialDelivery(order.id)}
+                                  disabled={updateOrderMutation.isPending}
+                                  style={{
+                                    flex: 1,
+                                    fontFamily: 'Inter, sans-serif',
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    padding: '12px 20px',
+                                    borderRadius: '20px',
+                                    backgroundColor: '#D97706',
+                                    color: '#FFFFFF',
+                                    border: 'none',
+                                    cursor: updateOrderMutation.isPending ? 'not-allowed' : 'pointer',
+                                    opacity: updateOrderMutation.isPending ? 0.5 : 1,
+                                  }}
+                                >
+                                  {updateOrderMutation.isPending ? 'Bezig...' : 'Feedback versturen'}
+                                </button>
+                                <button
+                                  onClick={() => setShowFeedbackFor(null)}
+                                  style={{
+                                    fontFamily: 'Inter, sans-serif',
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    padding: '12px 20px',
+                                    borderRadius: '20px',
+                                    backgroundColor: '#FFFFFF',
+                                    color: '#73747B',
+                                    border: '1px solid rgba(197, 197, 202, 0.5)',
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  Annuleren
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleFullyReceived(order.id);
+                                }}
+                                disabled={updateOrderMutation.isPending}
+                                style={{
+                                  flex: 1,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '8px',
+                                  fontFamily: 'Inter, sans-serif',
+                                  fontSize: '14px',
+                                  fontWeight: 500,
+                                  padding: '12px 20px',
+                                  borderRadius: '20px',
+                                  backgroundColor: '#1B7867',
+                                  color: '#FFFFFF',
+                                  border: 'none',
+                                  cursor: updateOrderMutation.isPending ? 'not-allowed' : 'pointer',
+                                  opacity: updateOrderMutation.isPending ? 0.5 : 1,
+                                  transition: 'background-color 0.2s',
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (!updateOrderMutation.isPending) {
+                                    e.currentTarget.style.backgroundColor = '#156B5A';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#1B7867';
+                                }}
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                                Volledig ontvangen
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handlePartiallyReceived(order.id);
+                                }}
+                                disabled={updateOrderMutation.isPending}
+                                style={{
+                                  flex: 1,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '8px',
+                                  fontFamily: 'Inter, sans-serif',
+                                  fontSize: '14px',
+                                  fontWeight: 500,
+                                  padding: '12px 20px',
+                                  borderRadius: '20px',
+                                  backgroundColor: '#FFFFFF',
+                                  color: '#D97706',
+                                  border: '1px solid #D97706',
+                                  cursor: updateOrderMutation.isPending ? 'not-allowed' : 'pointer',
+                                  opacity: updateOrderMutation.isPending ? 0.5 : 1,
+                                  transition: 'background-color 0.2s',
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (!updateOrderMutation.isPending) {
+                                    e.currentTarget.style.backgroundColor = '#FEF3C7';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#FFFFFF';
+                                }}
+                              >
+                                <AlertCircle className="h-4 w-4" />
+                                Deels ontvangen
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
