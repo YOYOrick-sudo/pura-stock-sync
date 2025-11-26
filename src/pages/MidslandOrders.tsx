@@ -456,7 +456,7 @@ export default function MidslandOrders() {
                               <textarea
                                 value={feedbackText[order.id] || ''}
                                 onChange={(e) => setFeedbackText({ ...feedbackText, [order.id]: e.target.value })}
-                                placeholder="Wat is er niet geleverd? (bijv. 'Brie was op')"
+                                placeholder="Wat gaat er niet mee? (bijv. 'Brie was op')"
                                 style={{
                                   fontFamily: 'Inter, sans-serif',
                                   fontSize: '14px',
@@ -543,7 +543,7 @@ export default function MidslandOrders() {
                                 }}
                               >
                                 <CheckCircle className="h-4 w-4" />
-                                Volledig ontvangen
+                                Alles mee
                               </button>
                               <button
                                 onClick={(e) => {
@@ -579,7 +579,7 @@ export default function MidslandOrders() {
                                 }}
                               >
                                 <AlertCircle className="h-4 w-4" />
-                                Deels ontvangen
+                                Niet alles mee
                               </button>
                             </div>
                           )}
