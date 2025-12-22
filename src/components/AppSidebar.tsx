@@ -1,4 +1,4 @@
-import { LayoutDashboard, ClipboardCheck, Coins, PackageOpen, Cog, TrendingUp } from 'lucide-react';
+import { Home, ListChecks, Wallet, Package, SlidersHorizontal, BarChart3 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useState } from 'react';
@@ -21,43 +21,43 @@ const allNavigationItems = [
   {
     title: 'Dashboard',
     url: '/dashboard',
-    icon: LayoutDashboard,
+    icon: Home,
     locations: ['West', 'Midsland'],
   },
   {
     title: 'Taken Bediening',
     url: '/taken-bediening',
-    icon: ClipboardCheck,
+    icon: ListChecks,
     locations: ['West', 'Midsland'],
   },
   {
     title: 'Kassatelling',
     url: '/kassatelling',
-    icon: Coins,
+    icon: Wallet,
     locations: ['West', 'Midsland'],
   },
   {
     title: 'Interne Bestellingen',
     url: '/internal-orders',
-    icon: PackageOpen,
+    icon: Package,
     locations: ['West'],
   },
   {
     title: 'Bestellingen van West',
     url: '/midsland-bestellingen',
-    icon: PackageOpen,
+    icon: Package,
     locations: ['Midsland'],
   },
   {
     title: 'Settings',
     url: '/settings',
-    icon: Cog,
+    icon: SlidersHorizontal,
     locations: ['West', 'Midsland'],
   },
   {
     title: 'Statistieken',
     url: '/taken-analyse',
-    icon: TrendingUp,
+    icon: BarChart3,
     locations: ['West', 'Midsland'],
     requiresCode: true,
   },
