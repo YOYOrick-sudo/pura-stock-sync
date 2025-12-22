@@ -14,7 +14,7 @@ export function PolarFormCard({ title, children }: PolarFormCardProps) {
             fontFamily: 'Inter, sans-serif',
             fontSize: '18px',
             fontWeight: 500,
-            color: '#282E3A',
+            color: '#111827',
             marginBottom: '24px',
           }}
         >
@@ -25,7 +25,7 @@ export function PolarFormCard({ title, children }: PolarFormCardProps) {
       <div
         style={{
           backgroundColor: '#FFFFFF',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
+          border: '1px solid #E5E7EB',
           borderRadius: '16px',
           padding: '32px',
         }}
@@ -51,14 +51,14 @@ export function PolarFormField({ label, description, children, required }: Polar
           fontFamily: 'Inter, sans-serif',
           fontSize: '14px',
           fontWeight: 500,
-          color: '#282E3A',
+          color: '#111827',
           display: 'block',
           marginBottom: description ? '4px' : '12px',
         }}
       >
         {label}
         {required && (
-          <span style={{ color: '#282E3A', marginLeft: '2px' }}>*</span>
+          <span style={{ color: '#111827', marginLeft: '2px' }}>*</span>
         )}
       </label>
       
@@ -68,7 +68,7 @@ export function PolarFormField({ label, description, children, required }: Polar
             fontFamily: 'Inter, sans-serif',
             fontSize: '14px',
             fontWeight: 400,
-            color: '#73747B',
+            color: '#6B7280',
             marginBottom: '12px',
           }}
         >

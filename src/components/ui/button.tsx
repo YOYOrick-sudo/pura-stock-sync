@@ -9,12 +9,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-[#1B7867] text-white shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.08)] hover:bg-[#22907C]",
-        destructive: "bg-[#DC2626] text-white shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.08)] hover:bg-[#B91C1C]",
-        outline: "border border-[rgba(197,197,202,0.5)] bg-transparent text-[#282E3A] hover:bg-[#F6F7DD] hover:border-[rgba(197,197,202,0.7)]",
-        secondary: "bg-[#F6F7DD] text-[#282E3A] border border-[rgba(197,197,202,0.5)] hover:bg-[#EBEBC8]",
-        ghost: "border border-[rgba(197,197,202,0.3)] bg-transparent text-[#282E3A] hover:bg-[#F6F7DD] hover:border-[rgba(197,197,202,0.5)]",
-        link: "text-[#1B7867] underline-offset-4 hover:underline hover:text-[#156152]",
+        default: "bg-polar-brand text-white shadow-sm hover:bg-polar-brand-hover",
+        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        outline: "border border-polar-border bg-white text-polar-text-primary hover:bg-polar-background",
+        secondary: "bg-polar-background text-polar-text-primary border border-polar-border hover:bg-gray-100",
+        ghost: "text-polar-text-secondary hover:bg-polar-background hover:text-polar-text-primary",
+        link: "text-polar-brand underline-offset-4 hover:underline hover:text-polar-brand-hover",
       },
       size: {
         default: "h-12 px-6 py-3",
