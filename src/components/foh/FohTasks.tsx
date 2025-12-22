@@ -116,20 +116,40 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         onClick={handleRowClick}
         style={{
           padding: taskPadding,
-          opacity: isDeleted ? 0.3 : 1,
+          opacity: isDeleted ? 0.3 : (task.completed ? 0.7 : 1),
           borderBottom: '1px solid rgba(197, 197, 202, 0.3)',
           cursor: !isEditMode && toggleTask ? 'pointer' : 'default',
-          transition: 'background-color 0.1s ease',
+          transition: 'all 0.15s ease',
           position: 'relative',
           overflow: 'hidden',
+          backgroundColor: task.completed ? 'rgba(27, 120, 103, 0.04)' : 'transparent',
+          borderLeft: `4px solid ${getPriorityConfig(task.priority).borderColor}`,
+          marginLeft: '-4px',
+          paddingLeft: '12px',
         }}
         onMouseEnter={(e) => {
           if (!isEditMode && toggleTask) {
-            e.currentTarget.style.backgroundColor = 'rgba(27, 120, 103, 0.03)';
+            e.currentTarget.style.backgroundColor = task.completed 
+              ? 'rgba(27, 120, 103, 0.06)' 
+              : 'rgba(27, 120, 103, 0.05)';
           }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'transparent';
+          e.currentTarget.style.backgroundColor = task.completed 
+            ? 'rgba(27, 120, 103, 0.04)' 
+            : 'transparent';
+        }}
+        onMouseDown={(e) => {
+          if (!isEditMode && toggleTask) {
+            e.currentTarget.style.backgroundColor = 'rgba(27, 120, 103, 0.08)';
+          }
+        }}
+        onMouseUp={(e) => {
+          if (!isEditMode && toggleTask) {
+            e.currentTarget.style.backgroundColor = task.completed 
+              ? 'rgba(27, 120, 103, 0.06)' 
+              : 'rgba(27, 120, 103, 0.05)';
+          }
         }}
       >
         {/* Ripple effect for tablet */}
@@ -278,10 +298,11 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
               task.estimated_minutes && (
                 <span style={{
                   fontSize: '11px',
-                  fontWeight: 400,
+                  fontWeight: 500,
                   color: '#73747B',
-                  opacity: 0.7,
-                  fontStyle: 'italic',
+                  backgroundColor: 'rgba(115, 116, 123, 0.08)',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
                   fontFamily: 'Inter, sans-serif',
                 }}>
                   ~{task.estimated_minutes}min
@@ -540,7 +561,13 @@ const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
   const sortedGrouped: Record<string, FohTaskWithEmployee[]> = {};
   CATEGORY_ORDER.forEach(cat => {
     if (grouped[cat]) {
+      // Sort by sort_order first, then move completed tasks to bottom
       sortedGrouped[cat] = grouped[cat].sort((a, b) => {
+        // Completed tasks go to bottom
+        if (a.completed !== b.completed) {
+          return a.completed ? 1 : -1;
+        }
+        // Within same completion status, sort by sort_order
         if (a.sort_order !== undefined && b.sort_order !== undefined) {
           return a.sort_order - b.sort_order;
         }
@@ -551,11 +578,24 @@ const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
   
   Object.keys(grouped).forEach(cat => {
     if (!sortedGrouped[cat]) {
-      sortedGrouped[cat] = grouped[cat];
+      // Also sort non-standard categories with completed at bottom
+      sortedGrouped[cat] = grouped[cat].sort((a, b) => {
+        if (a.completed !== b.completed) {
+          return a.completed ? 1 : -1;
+        }
+        return 0;
+      });
     }
   });
   
   return sortedGrouped;
+};
+
+// Get category progress stats
+const getCategoryProgress = (tasks: FohTaskWithEmployee[]) => {
+  const completed = tasks.filter(t => t.completed).length;
+  const total = tasks.length;
+  return { completed, total, allDone: completed === total && total > 0 };
 };
 
 const sortTasksInPhase = (tasks: FohTaskWithEmployee[]) => {
@@ -638,9 +678,9 @@ const getDateLabelColor = (dateString: string): string => {
 
 const getPriorityConfig = (priority: number) => {
   switch (priority) {
-    case 1: return { color: PolarColors.status.error };
-    case 3: return { color: PolarColors.status.success };
-    default: return { color: PolarColors.status.pending };
+    case 1: return { color: '#DC2626', borderColor: '#DC2626' }; // High - Red
+    case 3: return { color: '#1B7867', borderColor: '#1B7867' }; // Low - Green
+    default: return { color: '#F59E0B', borderColor: '#F59E0B' }; // Normal - Orange/Yellow
   }
 };
 
@@ -2123,48 +2163,78 @@ export function FohTasks() {
                   onDragEnd={handleDragEnd}
                 >
                   <div>
-                    {Object.entries(groupedCurrentTasks).map(([category, categoryTasks]) => (
-                      <div key={category} style={{ marginBottom: '24px' }}>
-                        <h3 style={{
-                          fontSize: '13px',
-                          fontWeight: 600,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.05em',
-                          color: '#73747B',
-                          marginBottom: '12px',
-                          fontFamily: 'Inter, sans-serif',
-                        }}>
-                          {category}
-                        </h3>
-                        <div style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.3)', paddingBottom: '16px' }}>
-                          <SortableContext items={categoryTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-                            {categoryTasks.map(task => (
-                              <SortableTaskItem
-                                key={task.id}
-                                task={task}
-                                isEditMode={isEditMode}
-                                onTitleChange={(id, title) => {
-                                  setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, title } : t));
-                                }}
-                                onDescriptionChange={(id, description) => {
-                                  setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, description } : t));
-                                }}
-                                onEstimatedMinutesChange={(id, minutes) => {
-                                  setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, estimated_minutes: minutes } : t));
-                                }}
-                                onDelete={(id) => {
-                                  setDeletedTaskIds(prev => [...prev, id]);
-                                }}
-                                toggleTask={!isEditMode ? toggleTask : undefined}
-                                isDeleted={deletedTaskIds.includes(task.id)}
-                                showAdminTools={false}
-                                taskPadding={taskPadding}
-                              />
-                            ))}
-                          </SortableContext>
+                    {Object.entries(groupedCurrentTasks).map(([category, categoryTasks]) => {
+                      const progress = getCategoryProgress(categoryTasks);
+                      return (
+                        <div key={category} style={{ marginBottom: '24px' }}>
+                          <h3 style={{
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            color: progress.allDone ? '#1B7867' : '#73747B',
+                            marginBottom: '12px',
+                            fontFamily: 'Inter, sans-serif',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                          }}>
+                            {category}
+                            <span style={{
+                              fontSize: '11px',
+                              fontWeight: 500,
+                              color: progress.allDone ? '#1B7867' : '#9CA3AF',
+                              backgroundColor: progress.allDone ? 'rgba(27, 120, 103, 0.1)' : 'rgba(156, 163, 175, 0.1)',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                            }}>
+                              {progress.completed}/{progress.total}
+                            </span>
+                          </h3>
+                          <div style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.3)', paddingBottom: '16px' }}>
+                            {progress.allDone ? (
+                              <div style={{
+                                padding: '20px',
+                                textAlign: 'center',
+                                color: '#1B7867',
+                                fontSize: '14px',
+                                fontWeight: 500,
+                                fontFamily: 'Inter, sans-serif',
+                                animation: 'fade-in 0.3s ease-out',
+                              }}>
+                                🎉 Alle taken voltooid!
+                              </div>
+                            ) : (
+                              <SortableContext items={categoryTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+                                {categoryTasks.map(task => (
+                                  <SortableTaskItem
+                                    key={task.id}
+                                    task={task}
+                                    isEditMode={isEditMode}
+                                    onTitleChange={(id, title) => {
+                                      setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, title } : t));
+                                    }}
+                                    onDescriptionChange={(id, description) => {
+                                      setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, description } : t));
+                                    }}
+                                    onEstimatedMinutesChange={(id, minutes) => {
+                                      setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, estimated_minutes: minutes } : t));
+                                    }}
+                                    onDelete={(id) => {
+                                      setDeletedTaskIds(prev => [...prev, id]);
+                                    }}
+                                    toggleTask={!isEditMode ? toggleTask : undefined}
+                                    isDeleted={deletedTaskIds.includes(task.id)}
+                                    showAdminTools={false}
+                                    taskPadding={taskPadding}
+                                  />
+                                ))}
+                              </SortableContext>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </DndContext>
               )}
@@ -2204,16 +2274,24 @@ export function FohTasks() {
                               onClick={() => toggleTask(task.id, task.completed)}
                               style={{
                                 padding: taskPadding,
-                                backgroundColor: 'transparent',
+                                backgroundColor: task.completed ? 'rgba(27, 120, 103, 0.04)' : 'transparent',
                                 borderBottom: '1px solid rgba(197, 197, 202, 0.3)',
+                                borderLeft: `4px solid ${getPriorityConfig(task.priority).borderColor}`,
+                                marginLeft: '-4px',
+                                paddingLeft: '12px',
                                 cursor: 'pointer',
-                                transition: 'background-color 0.1s ease',
+                                transition: 'all 0.15s ease',
+                                opacity: task.completed ? 0.7 : 1,
                               }}
                               onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(27, 120, 103, 0.03)';
+                                e.currentTarget.style.backgroundColor = task.completed 
+                                  ? 'rgba(27, 120, 103, 0.06)' 
+                                  : 'rgba(27, 120, 103, 0.05)';
                               }}
                               onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'transparent';
+                                e.currentTarget.style.backgroundColor = task.completed 
+                                  ? 'rgba(27, 120, 103, 0.04)' 
+                                  : 'transparent';
                               }}
                             >
                               <div style={{
@@ -2232,7 +2310,7 @@ export function FohTasks() {
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  transition: 'all 0.15s ease',
+                                  transition: 'all 0.1s ease',
                                   pointerEvents: 'none',
                                 }}>
                                   {task.completed && (
@@ -2271,12 +2349,6 @@ export function FohTasks() {
                                   alignItems: 'center',
                                   gap: '8px',
                                 }}>
-                                  <div style={{
-                                    width: '8px',
-                                    height: '8px',
-                                    borderRadius: '50%',
-                                    backgroundColor: getPriorityConfig(task.priority).color,
-                                  }} />
 
                                   {/* Delete button - compact */}
                                   <button
