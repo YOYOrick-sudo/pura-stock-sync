@@ -183,10 +183,12 @@ export function PolarSidebar({
                 <Icon
                   className="shrink-0"
                   style={{
-                    width: collapsed ? '24px' : '22px',
-                    height: collapsed ? '24px' : '22px',
-                    marginRight: collapsed ? '0' : '12px',
-                    color: item.active ? '#282E3A' : '#73747B',
+                    width: collapsed ? '22px' : '20px',
+                    height: collapsed ? '22px' : '20px',
+                    marginRight: collapsed ? '0' : '14px',
+                    color: item.active ? '#1B7867' : '#9CA3AF',
+                    strokeWidth: 1.5,
+                    transition: 'color 150ms ease, transform 150ms ease',
                   }}
                 />
                 {!collapsed && <span>{item.title}</span>}
