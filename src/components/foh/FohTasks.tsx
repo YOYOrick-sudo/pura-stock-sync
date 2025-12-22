@@ -81,10 +81,9 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState(task.description || '');
   
-  // Touch feedback states (tablet only)
+  // Touch feedback state (tablet only)
   const isTablet = useIsTablet();
   const [ripple, setRipple] = useState<{ x: number; y: number } | null>(null);
-  const [checkPulse, setCheckPulse] = useState(false);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -105,9 +104,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
         setRipple({ x, y });
-        setCheckPulse(true);
         setTimeout(() => setRipple(null), 400);
-        setTimeout(() => setCheckPulse(false), 300);
       }
       toggleTask(task.id, task.completed);
     }
@@ -177,22 +174,19 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
 
           {/* Checkbox - compact, whole row is clickable */}
           {!isEditMode && toggleTask && (
-            <div 
-              className={isTablet && checkPulse ? 'animate-check-pulse' : ''}
-              style={{
-                width: '20px',
-                height: '20px',
-                minWidth: '20px',
-                borderRadius: '6px',
-                border: '2px solid rgba(197, 197, 202, 0.5)',
-                backgroundColor: task.completed ? 'hsl(var(--primary))' : 'hsl(var(--background))',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.15s ease',
-                pointerEvents: 'none', // Row handles the click
-              }}
-            >
+            <div style={{
+              width: '20px',
+              height: '20px',
+              minWidth: '20px',
+              borderRadius: '6px',
+              border: '2px solid rgba(197, 197, 202, 0.5)',
+              backgroundColor: task.completed ? 'hsl(var(--primary))' : 'hsl(var(--background))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.1s ease',
+              pointerEvents: 'none', // Row handles the click
+            }}>
               {task.completed && (
                 <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
                   <path
