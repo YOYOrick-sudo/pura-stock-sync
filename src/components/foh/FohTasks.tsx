@@ -87,12 +87,12 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
   return (
     <div ref={setNodeRef} style={style}>
       <div style={{
-        padding: '14px 0',
+        padding: '18px 0',
         opacity: isDeleted ? 0.3 : 1,
       }}>
         <div style={{
           display: 'flex',
-          gap: '12px',
+          gap: '16px',
           alignItems: 'center',
         }}>
           {/* Drag Handle */}
@@ -106,23 +106,27 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 opacity: 0.5,
                 display: 'flex',
                 alignItems: 'center',
-                paddingTop: '2px',
+                justifyContent: 'center',
+                width: '44px',
+                height: '44px',
+                minWidth: '44px',
               }}
             >
-              <GripVertical size={16} />
+              <GripVertical size={22} />
             </div>
           )}
 
           {/* Checkbox - disabled in edit mode */}
           {!isEditMode && toggleTask && (
-            <div style={{ paddingTop: '2px' }}>
+            <div>
               <button
                 onClick={() => toggleTask(task.id, task.completed)}
                 style={{
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '6px',
-                  border: '1.5px solid rgba(197, 197, 202, 0.5)',
+                  width: '44px',
+                  height: '44px',
+                  minWidth: '44px',
+                  borderRadius: '12px',
+                  border: '2px solid rgba(197, 197, 202, 0.5)',
                   backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
                   cursor: 'pointer',
                   display: 'flex',
@@ -133,11 +137,11 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 }}
               >
                 {task.completed && (
-                  <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                  <svg width="20" height="16" viewBox="0 0 12 10" fill="none">
                     <path
                       d="M1 5L4.5 8.5L11 1.5"
                       stroke="#FFFFFF"
-                      strokeWidth="2"
+                      strokeWidth="2.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
@@ -163,8 +167,9 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   flex: 1,
                   borderRadius: '16px',
                   fontFamily: 'Inter, sans-serif',
-                  fontSize: '15px',
+                  fontSize: '17px',
                   fontWeight: 500,
+                  height: '44px',
                   textDecoration: isDeleted ? 'line-through' : 'none',
                 }}
               />
@@ -174,7 +179,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 textDecoration: toggleTask && task.completed ? 'line-through' : 'none',
                 color: toggleTask && task.completed ? '#73747B' : '#282E3A',
                 fontWeight: 500,
-                fontSize: '15px',
+                fontSize: '17px',
                 fontFamily: 'Inter, sans-serif',
               }}>
                 {task.title}
@@ -200,10 +205,10 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 disabled={isDeleted}
               >
                 <SelectTrigger style={{
-                  width: '90px',
-                  height: '28px',
-                  fontSize: '11px',
-                  borderRadius: '8px',
+                  width: '100px',
+                  height: '44px',
+                  fontSize: '14px',
+                  borderRadius: '12px',
                   fontFamily: 'Inter, sans-serif',
                 }}>
                   <SelectValue placeholder="Tijd" />
@@ -222,7 +227,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
             ) : (
               task.estimated_minutes && (
                 <span style={{
-                  fontSize: '11px',
+                  fontSize: '14px',
                   fontWeight: 400,
                   color: '#73747B',
                   opacity: 0.7,
@@ -241,9 +246,10 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   setIsEditingDescription(true);
                 }}
                 style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '8px',
+                  width: '44px',
+                  height: '44px',
+                  minWidth: '44px',
+                  borderRadius: '12px',
                   border: '1px solid rgba(197,197,202,0.5)',
                   backgroundColor: '#FEFFF1',
                   display: 'flex',
@@ -255,7 +261,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 }}
                 title="Bekijk info"
               >
-                <Info size={14} style={{ color: '#1B7867' }} />
+                <Info size={20} style={{ color: '#1B7867' }} />
               </button>
             )}
 
@@ -267,9 +273,10 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   setIsEditingDescription(true);
                 }}
                 style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '8px',
+                  width: '44px',
+                  height: '44px',
+                  minWidth: '44px',
+                  borderRadius: '12px',
                   border: '1px solid rgba(197,197,202,0.5)',
                   backgroundColor: '#FEFFF1',
                   display: 'flex',
@@ -281,7 +288,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 }}
                 title="Bewerk omschrijving"
               >
-                <Pencil size={14} style={{ color: '#73747B' }} />
+                <Pencil size={20} style={{ color: '#73747B' }} />
               </button>
             )}
 
@@ -298,9 +305,10 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
                 }}
                 style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '8px',
+                  width: '44px',
+                  height: '44px',
+                  minWidth: '44px',
+                  borderRadius: '12px',
                   border: '1px solid rgba(197,197,202,0.5)',
                   backgroundColor: '#FEFFF1',
                   display: 'flex',
@@ -312,7 +320,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 }}
                 title="Verwijder taak"
               >
-                <Trash2 size={14} style={{ color: '#EF4444' }} />
+                <Trash2 size={20} style={{ color: '#EF4444' }} />
               </button>
             )}
           </div>
@@ -1539,9 +1547,9 @@ export function FohTasks() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '8px',
-                      fontSize: '14px',
+                      fontSize: '15px',
                       fontWeight: 500,
-                  padding: '10px 16px',
+                  padding: '14px 20px',
                   backgroundColor: isActive ? '#1B7867' : '#FEFFF1',
                   color: isActive ? '#FFFFFF' : '#282E3A',
                   border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
@@ -1554,13 +1562,13 @@ export function FohTasks() {
                   >
                     <span>{labels[phase]}</span>
                     <span style={{
-                      fontSize: '11px',
+                      fontSize: '13px',
                       fontWeight: 600,
-                      padding: '2px 6px',
-                      borderRadius: '4px',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
                       backgroundColor: isActive ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.04)',
                       color: isActive ? '#FFFFFF' : '#73747B',
-                      minWidth: '32px',
+                      minWidth: '40px',
                     }}>
                       {stats.completed}/{stats.total}
                     </span>
@@ -1605,9 +1613,9 @@ export function FohTasks() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '8px',
-                      fontSize: '14px',
+                      fontSize: '15px',
                       fontWeight: 500,
-                    padding: '10px 16px',
+                    padding: '14px 20px',
                     backgroundColor: isActive ? '#1B7867' : '#FEFFF1',
                     color: isActive ? '#FFFFFF' : '#282E3A',
                     border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
@@ -1619,13 +1627,13 @@ export function FohTasks() {
                   >
                     <span>Periodiek</span>
                     <span style={{
-                      fontSize: '11px',
+                      fontSize: '13px',
                       fontWeight: 600,
-                      padding: '2px 6px',
-                      borderRadius: '4px',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
                       backgroundColor: isActive ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.04)',
                       color: isActive ? '#FFFFFF' : '#73747B',
-                      minWidth: '32px',
+                      minWidth: '40px',
                     }}>
                       {completed}/{total}
                     </span>
@@ -1662,13 +1670,13 @@ export function FohTasks() {
                 flexShrink: 0,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '13px', color: '#73747B', fontFamily: 'Inter, sans-serif' }}>
+                  <span style={{ fontSize: '15px', color: '#73747B', fontFamily: 'Inter, sans-serif' }}>
                     {completedCount}/{totalCount}
                   </span>
                   <span style={{
                     fontWeight: 600,
                     color: isComplete ? '#1B7867' : '#282E3A',
-                    fontSize: '15px',
+                    fontSize: '17px',
                     fontFamily: 'Inter, sans-serif',
                   }}>
                     {progressPercentage}%
@@ -1682,12 +1690,12 @@ export function FohTasks() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    padding: '8px 16px',
+                    padding: '12px 20px',
                     backgroundColor: '#FEFFF1',
                     color: '#1B7867',
                     border: '1px solid rgba(197, 197, 202, 0.5)',
                     borderRadius: '20px',
-                    fontSize: '14px',
+                    fontSize: '15px',
                     fontWeight: 500,
                     cursor: 'pointer',
                     fontFamily: 'Inter, sans-serif',
@@ -1702,7 +1710,7 @@ export function FohTasks() {
                     e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.5)';
                   }}
                 >
-                  <Settings size={16} />
+                  <Settings size={18} />
                   Admin
                 </button>
 
@@ -1712,15 +1720,15 @@ export function FohTasks() {
                     <DialogTrigger asChild>
                       <button
                         style={{
-                          width: '40px',
-                          height: '40px',
+                          width: '48px',
+                          height: '48px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           backgroundColor: '#1B7867',
                           color: '#FFFFFF',
                           border: '1px solid rgba(255,255,255,0.2)',
-                          borderRadius: '8px',
+                          borderRadius: '12px',
                           cursor: 'pointer',
                           boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                           transition: 'all 0.2s ease',
@@ -1740,7 +1748,7 @@ export function FohTasks() {
                           e.currentTarget.style.transform = 'scale(1)';
                         }}
                       >
-                        <Plus size={20} />
+                        <Plus size={24} />
                       </button>
                     </DialogTrigger>
                     <DialogContent style={{
@@ -2042,22 +2050,23 @@ export function FohTasks() {
                         onTouchEnd={handleTouchEnd}
                       >
                         <div style={{
-                          padding: '14px 0',
+                          padding: '18px 0',
                           backgroundColor: 'transparent',
                         }}>
                           <div style={{
                             display: 'flex',
-                            gap: '12px',
+                            gap: '16px',
                             alignItems: 'center',
                           }}>
-                            <div style={{ paddingTop: '2px' }}>
+                            <div>
                               <button
                                 onClick={() => toggleTask(task.id, task.completed)}
                                 style={{
-                                  width: '20px',
-                                  height: '20px',
-                                  borderRadius: '6px',
-                                  border: '1.5px solid rgba(197, 197, 202, 0.5)',
+                                  width: '44px',
+                                  height: '44px',
+                                  minWidth: '44px',
+                                  borderRadius: '12px',
+                                  border: '2px solid rgba(197, 197, 202, 0.5)',
                                   backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
                                   cursor: 'pointer',
                                   display: 'flex',
@@ -2068,11 +2077,11 @@ export function FohTasks() {
                                 }}
                               >
                                 {task.completed && (
-                                  <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                                  <svg width="20" height="16" viewBox="0 0 12 10" fill="none">
                                     <path
                                       d="M1 5L4.5 8.5L11 1.5"
                                       stroke="#FFFFFF"
-                                      strokeWidth="2"
+                                      strokeWidth="2.5"
                                       strokeLinecap="round"
                                       strokeLinejoin="round"
                                     />
@@ -2092,7 +2101,7 @@ export function FohTasks() {
                                 textDecoration: task.completed ? 'line-through' : 'none',
                                 color: task.completed ? '#73747B' : '#282E3A',
                                 fontWeight: 500,
-                                fontSize: '15px',
+                                fontSize: '17px',
                                 fontFamily: 'Inter, sans-serif',
                               }}>
                                 {task.title}
@@ -2102,13 +2111,13 @@ export function FohTasks() {
                             <div style={{
                               display: 'flex',
                               alignItems: 'center',
-                              gap: '8px',
+                              gap: '12px',
                             }}>
                               <span style={{
-                                fontSize: '11px',
+                                fontSize: '13px',
                                 fontWeight: 600,
-                                padding: '4px 8px',
-                                borderRadius: '4px',
+                                padding: '6px 10px',
+                                borderRadius: '6px',
                                 backgroundColor: '#FEFFF1',
                                 color: getDateLabelColor(task.due_date),
                                 fontFamily: 'Inter, sans-serif',
@@ -2117,8 +2126,8 @@ export function FohTasks() {
                               </span>
 
                               <div style={{
-                                width: '6px',
-                                height: '6px',
+                                width: '8px',
+                                height: '8px',
                                 borderRadius: '50%',
                                 backgroundColor: getPriorityConfig(task.priority).color,
                               }} />
@@ -2134,9 +2143,10 @@ export function FohTasks() {
                                   e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
                                 }}
                                 style={{
-                                  width: '24px',
-                                  height: '24px',
-                                  borderRadius: '8px',
+                                  width: '44px',
+                                  height: '44px',
+                                  minWidth: '44px',
+                                  borderRadius: '12px',
                                   border: '1px solid rgba(197,197,202,0.5)',
                                   backgroundColor: '#FEFFF1',
                                   display: 'flex',
@@ -2148,7 +2158,7 @@ export function FohTasks() {
                                 }}
                                 title="Verwijder taak"
                               >
-                                <Trash2 size={14} style={{ color: '#EF4444' }} />
+                                <Trash2 size={20} style={{ color: '#EF4444' }} />
                               </button>
                             </div>
                           </div>
