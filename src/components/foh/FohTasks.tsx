@@ -9,12 +9,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Loader2, Plus, Check, ChevronsUpDown, Trash2, Info, Pencil, Settings, Shield, X, GripVertical, BookTemplate } from 'lucide-react';
+import { Loader2, Plus, Check, ChevronsUpDown, Trash2, Info, Pencil, Settings, Shield, X, GripVertical, BookTemplate, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { toZonedTime } from 'date-fns-tz';
 import type { FohTask, FohEmployee, FohTaskWithEmployee, PhaseType } from '@/types/foh';
 import { useUserLocation } from '@/contexts/UserLocationContext';
+import { useIsTablet } from '@/hooks/use-mobile';
 
 import { PolarColors } from '@/components/polar/colors';
 import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
@@ -64,9 +65,10 @@ interface SortableTaskItemProps {
   toggleTask?: (id: string, completed: boolean) => void;
   isDeleted: boolean;
   showAdminTools?: boolean;
+  taskPadding?: string;
 }
 
-function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onDelete, toggleTask, isDeleted, showAdminTools = false }: SortableTaskItemProps) {
+function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0' }: SortableTaskItemProps) {
   const {
     attributes,
     listeners,
@@ -101,7 +103,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
       <div 
         onClick={handleRowClick}
         style={{
-          padding: '14px 0',
+          padding: taskPadding,
           opacity: isDeleted ? 0.3 : 1,
           borderBottom: '1px solid rgba(197, 197, 202, 0.3)',
           cursor: !isEditMode && toggleTask ? 'pointer' : 'default',
@@ -558,6 +560,42 @@ const getDateLabel = (dateString: string): string => {
   return dateString;
 };
 
+// Group tasks by day for periodic tasks view
+const groupTasksByDay = (tasks: FohTaskWithEmployee[]) => {
+  const grouped: Record<string, FohTaskWithEmployee[]> = {};
+  tasks.forEach(task => {
+    const dateKey = task.due_date;
+    if (!grouped[dateKey]) grouped[dateKey] = [];
+    grouped[dateKey].push(task);
+  });
+  // Sort by date
+  return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
+};
+
+// Format day header for periodic tasks
+const formatDayHeader = (dateString: string): string => {
+  const TIMEZONE = 'Europe/Amsterdam';
+  const today = toZonedTime(new Date(), TIMEZONE);
+  const todayDateStr = today.toISOString().split('T')[0];
+  
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowDateStr = tomorrow.toISOString().split('T')[0];
+  
+  if (dateString === todayDateStr) return 'Vandaag';
+  if (dateString === tomorrowDateStr) return 'Morgen';
+  if (dateString < todayDateStr) return 'Overdag';
+  
+  // Format as "Maandag 23 dec"
+  const date = new Date(dateString + 'T12:00:00');
+  const days = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
+  const months = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+  const dayName = days[date.getDay()];
+  const dayNum = date.getDate();
+  const monthName = months[date.getMonth()];
+  return `${dayName} ${dayNum} ${monthName}`;
+};
+
 const getDateLabelColor = (dateString: string): string => {
   const TIMEZONE = 'Europe/Amsterdam';
   const today = toZonedTime(new Date(), TIMEZONE);
@@ -580,6 +618,7 @@ const getPriorityConfig = (priority: number) => {
 export function FohTasks() {
   const { userLocation } = useUserLocation();
   const queryClient = useQueryClient();
+  const isTablet = useIsTablet();
   
   const [mainCategory, setMainCategory] = useState<'dagelijks' | 'periodiek'>('dagelijks');
   const [activePhase, setActivePhase] = useState<PhaseType>('open');
@@ -591,6 +630,7 @@ export function FohTasks() {
   const [loading, setLoading] = useState(true);
   
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
     due_date: new Date().toISOString().split('T')[0],
@@ -600,6 +640,8 @@ export function FohTasks() {
     estimated_minutes: null as number | null,
   });
   
+  // Task padding: slightly more on tablet
+  const taskPadding = isTablet ? '18px 0' : '14px 0';
   const [employeeInput, setEmployeeInput] = useState('');
   const [employeeOpen, setEmployeeOpen] = useState(false);
   
@@ -1786,6 +1828,7 @@ export function FohTasks() {
                         </DialogTitle>
                       </DialogHeader>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 0' }}>
+                        {/* Essential fields - always visible */}
                         <div>
                           <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
                             Titel *
@@ -1802,164 +1845,201 @@ export function FohTasks() {
                           />
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                          <div>
-                            <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
-                              Prioriteit
-                            </Label>
-                            <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
-                              {[
-                                { value: 1, label: 'Hoog', color: PolarColors.status.error },
-                                { value: 2, label: 'Normaal', color: PolarColors.status.pending },
-                                { value: 3, label: 'Laag', color: PolarColors.status.success },
-                              ].map(({ value, label, color }) => (
-                                <button
-                                  key={value}
-                                  onClick={() => setNewTask({ ...newTask, priority: value as 1 | 2 | 3 })}
-                                  style={{
-                                    flex: 1,
-                                    padding: '8px',
-                                    borderRadius: '8px',
-                                    border: newTask.priority === value ? `2px solid ${color}` : '1px solid rgba(197,197,202,0.5)',
-                                    backgroundColor: newTask.priority === value ? `${color}15` : '#FEFFF1',
-                                    color: '#282E3A',
-                                    cursor: 'pointer',
-                                    fontSize: '13px',
-                                    fontWeight: 500,
-                                    fontFamily: 'Inter, sans-serif',
-                                    transition: 'all 0.15s ease',
-                                  }}
-                                >
-                                  {label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div>
-                            <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
-                              Categorie
-                            </Label>
-                            <Select value={newTask.category} onValueChange={(val) => setNewTask({ ...newTask, category: val })}>
-                              <SelectTrigger style={{ marginTop: '6px', borderRadius: '16px', fontFamily: 'Inter, sans-serif' }}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {getAvailableCategoriesForPhase(userLocation, 'periodiek').map(cat => (
-                                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                          <div>
-                            <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
-                              Vervaldatum *
-                            </Label>
-                            <Input
-                              type="date"
-                              value={newTask.due_date}
-                              onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
-                              style={{
-                                marginTop: '6px',
-                                borderRadius: '16px',
-                                fontFamily: 'Inter, sans-serif',
-                              }}
-                            />
-                          </div>
-
-                          <div>
-                            <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
-                              Geschatte tijd
-                            </Label>
-                            <Select 
-                              value={newTask.estimated_minutes?.toString() || ''} 
-                              onValueChange={(val) => setNewTask({ ...newTask, estimated_minutes: val ? parseInt(val) : null })}
-                            >
-                              <SelectTrigger style={{ marginTop: '6px', borderRadius: '16px', fontFamily: 'Inter, sans-serif' }}>
-                                <SelectValue placeholder="Selecteer..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="5">5 min</SelectItem>
-                                <SelectItem value="10">10 min</SelectItem>
-                                <SelectItem value="15">15 min</SelectItem>
-                                <SelectItem value="20">20 min</SelectItem>
-                                <SelectItem value="30">30 min</SelectItem>
-                                <SelectItem value="45">45 min</SelectItem>
-                                <SelectItem value="60">60 min</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
                         <div>
                           <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
-                            Medewerker
+                            Vervaldatum *
                           </Label>
-                          <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                role="combobox"
-                                aria-expanded={employeeOpen}
-                                style={{
-                                  width: '100%',
-                                  justifyContent: 'space-between',
-                                  marginTop: '6px',
-                                  borderRadius: '16px',
-                                  fontFamily: 'Inter, sans-serif',
-                                }}
-                              >
-                                {newTask.assigned_employee_id
-                                  ? employees.find((e) => e.id === newTask.assigned_employee_id)?.name
-                                  : "Selecteer medewerker..."}
-                                <ChevronsUpDown style={{ marginLeft: '8px', height: '16px', width: '16px', opacity: 0.5 }} />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent style={{ width: '100%', padding: 0, fontFamily: 'Inter, sans-serif' }}>
-                              <Command>
-                                <CommandInput 
-                                  placeholder="Zoek medewerker..." 
-                                  value={employeeInput}
-                                  onValueChange={setEmployeeInput}
-                                />
-                                <CommandList>
-                                  <CommandEmpty>Geen medewerkers gevonden</CommandEmpty>
-                                  <CommandGroup>
-                                    {filteredEmployees.map((employee) => (
-                                      <CommandItem
-                                        key={employee.id}
-                                        value={employee.name}
-                                        onSelect={() => handleEmployeeSelect(employee.id)}
-                                      >
-                                        <Check
-                                          className={cn(
-                                            "mr-2 h-4 w-4",
-                                            newTask.assigned_employee_id === employee.id ? "opacity-100" : "opacity-0"
-                                          )}
-                                        />
-                                        {employee.name}
-                                      </CommandItem>
-                                    ))}
-                                  </CommandGroup>
-                                  {shouldShowAddNew && (
-                                    <>
-                                      <CommandSeparator />
-                                      <CommandGroup>
-                                        <CommandItem onSelect={handleAddNewEmployee}>
-                                          <Plus style={{ marginRight: '8px', height: '16px', width: '16px' }} />
-                                          Voeg "{employeeInput}" toe
-                                        </CommandItem>
-                                      </CommandGroup>
-                                    </>
-                                  )}
-                                </CommandList>
-                              </Command>
-                            </PopoverContent>
-                          </Popover>
+                          <Input
+                            type="date"
+                            value={newTask.due_date}
+                            onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
+                            style={{
+                              marginTop: '6px',
+                              borderRadius: '16px',
+                              fontFamily: 'Inter, sans-serif',
+                            }}
+                          />
                         </div>
+
+                        {/* Toggle for advanced options */}
+                        <button
+                          type="button"
+                          onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px',
+                            padding: '10px',
+                            backgroundColor: 'transparent',
+                            border: '1px solid rgba(197, 197, 202, 0.5)',
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: '13px',
+                            fontWeight: 500,
+                            color: '#73747B',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          {showAdvancedOptions ? (
+                            <>
+                              <ChevronUp size={16} />
+                              Minder opties
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown size={16} />
+                              Meer opties
+                            </>
+                          )}
+                        </button>
+
+                        {/* Advanced options - hidden by default */}
+                        {showAdvancedOptions && (
+                          <>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                              <div>
+                                <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+                                  Prioriteit
+                                </Label>
+                                <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                                  {[
+                                    { value: 1, label: 'Hoog', color: PolarColors.status.error },
+                                    { value: 2, label: 'Normaal', color: PolarColors.status.pending },
+                                    { value: 3, label: 'Laag', color: PolarColors.status.success },
+                                  ].map(({ value, label, color }) => (
+                                    <button
+                                      key={value}
+                                      onClick={() => setNewTask({ ...newTask, priority: value as 1 | 2 | 3 })}
+                                      style={{
+                                        flex: 1,
+                                        padding: '8px',
+                                        borderRadius: '8px',
+                                        border: newTask.priority === value ? `2px solid ${color}` : '1px solid rgba(197,197,202,0.5)',
+                                        backgroundColor: newTask.priority === value ? `${color}15` : '#FEFFF1',
+                                        color: '#282E3A',
+                                        cursor: 'pointer',
+                                        fontSize: '13px',
+                                        fontWeight: 500,
+                                        fontFamily: 'Inter, sans-serif',
+                                        transition: 'all 0.15s ease',
+                                      }}
+                                    >
+                                      {label}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div>
+                                <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+                                  Categorie
+                                </Label>
+                                <Select value={newTask.category} onValueChange={(val) => setNewTask({ ...newTask, category: val })}>
+                                  <SelectTrigger style={{ marginTop: '6px', borderRadius: '16px', fontFamily: 'Inter, sans-serif' }}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {getAvailableCategoriesForPhase(userLocation, 'periodiek').map(cat => (
+                                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+
+                            <div>
+                              <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+                                Geschatte tijd
+                              </Label>
+                              <Select 
+                                value={newTask.estimated_minutes?.toString() || ''} 
+                                onValueChange={(val) => setNewTask({ ...newTask, estimated_minutes: val ? parseInt(val) : null })}
+                              >
+                                <SelectTrigger style={{ marginTop: '6px', borderRadius: '16px', fontFamily: 'Inter, sans-serif' }}>
+                                  <SelectValue placeholder="Selecteer..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="5">5 min</SelectItem>
+                                  <SelectItem value="10">10 min</SelectItem>
+                                  <SelectItem value="15">15 min</SelectItem>
+                                  <SelectItem value="20">20 min</SelectItem>
+                                  <SelectItem value="30">30 min</SelectItem>
+                                  <SelectItem value="45">45 min</SelectItem>
+                                  <SelectItem value="60">60 min</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+                                Medewerker
+                              </Label>
+                              <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={employeeOpen}
+                                    style={{
+                                      width: '100%',
+                                      justifyContent: 'space-between',
+                                      marginTop: '6px',
+                                      borderRadius: '16px',
+                                      fontFamily: 'Inter, sans-serif',
+                                    }}
+                                  >
+                                    {newTask.assigned_employee_id
+                                      ? employees.find((e) => e.id === newTask.assigned_employee_id)?.name
+                                      : "Selecteer medewerker..."}
+                                    <ChevronsUpDown style={{ marginLeft: '8px', height: '16px', width: '16px', opacity: 0.5 }} />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent style={{ width: '100%', padding: 0, fontFamily: 'Inter, sans-serif' }}>
+                                  <Command>
+                                    <CommandInput 
+                                      placeholder="Zoek medewerker..." 
+                                      value={employeeInput}
+                                      onValueChange={setEmployeeInput}
+                                    />
+                                    <CommandList>
+                                      <CommandEmpty>Geen medewerkers gevonden</CommandEmpty>
+                                      <CommandGroup>
+                                        {filteredEmployees.map((employee) => (
+                                          <CommandItem
+                                            key={employee.id}
+                                            value={employee.name}
+                                            onSelect={() => handleEmployeeSelect(employee.id)}
+                                          >
+                                            <Check
+                                              className={cn(
+                                                "mr-2 h-4 w-4",
+                                                newTask.assigned_employee_id === employee.id ? "opacity-100" : "opacity-0"
+                                              )}
+                                            />
+                                            {employee.name}
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                      {shouldShowAddNew && (
+                                        <>
+                                          <CommandSeparator />
+                                          <CommandGroup>
+                                            <CommandItem onSelect={handleAddNewEmployee}>
+                                              <Plus style={{ marginRight: '8px', height: '16px', width: '16px' }} />
+                                              Voeg "{employeeInput}" toe
+                                            </CommandItem>
+                                          </CommandGroup>
+                                        </>
+                                      )}
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                          </>
+                        )}
                       </div>
                       <DialogFooter>
                         <Button
@@ -2048,6 +2128,7 @@ export function FohTasks() {
                                 toggleTask={!isEditMode ? toggleTask : undefined}
                                 isDeleted={deletedTaskIds.includes(task.id)}
                                 showAdminTools={false}
+                                taskPadding={taskPadding}
                               />
                             ))}
                           </SortableContext>
@@ -2060,176 +2141,183 @@ export function FohTasks() {
 
               {mainCategory === 'periodiek' && (
                 <div>
-                  {sortedExtraTasks.map(task => (
-                    <div key={task.id}>
-                      <div
-                        style={{
-                          position: 'relative',
-                          transform: swipedTaskId === task.id ? `translateX(-${swipeOffset}px)` : 'none',
-                          transition: touchStart === 0 ? 'transform 0.3s ease' : 'none',
-                        }}
-                        onTouchStart={handleTouchStart}
-                        onTouchMove={(e) => handleTouchMove(e, task.id)}
-                        onTouchEnd={handleTouchEnd}
-                      >
-                        <div 
-                          onClick={() => toggleTask(task.id, task.completed)}
-                          style={{
-                            padding: '14px 0',
-                            backgroundColor: 'transparent',
-                            borderBottom: '1px solid rgba(197, 197, 202, 0.3)',
-                            cursor: 'pointer',
-                            transition: 'background-color 0.1s ease',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(27, 120, 103, 0.03)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                          }}
-                        >
-                          <div style={{
-                            display: 'flex',
-                            gap: '12px',
-                            alignItems: 'center',
-                          }}>
-                            {/* Checkbox - compact, row is clickable */}
-                            <div style={{
-                              width: '20px',
-                              height: '20px',
-                              minWidth: '20px',
-                              borderRadius: '6px',
-                              border: '2px solid rgba(197, 197, 202, 0.5)',
-                              backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              transition: 'all 0.15s ease',
-                              pointerEvents: 'none',
-                            }}>
-                              {task.completed && (
-                                <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
-                                  <path
-                                    d="M1 5L4.5 8.5L11 1.5"
-                                    stroke="#FFFFFF"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                              )}
-                            </div>
-
-                            <div style={{ 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              gap: '8px',
-                              flex: 1 
-                            }}>
-                              <span style={{
-                                flex: 1,
-                                textDecoration: task.completed ? 'line-through' : 'none',
-                                color: task.completed ? '#73747B' : '#282E3A',
-                                fontWeight: 500,
-                                fontSize: '15px',
-                                fontFamily: 'Inter, sans-serif',
-                              }}>
-                                {task.title}
-                              </span>
-                            </div>
-
-                            <div style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px',
-                            }}>
-                              <span style={{
-                                fontSize: '11px',
-                                fontWeight: 600,
-                                padding: '4px 8px',
-                                borderRadius: '6px',
-                                backgroundColor: '#FEFFF1',
-                                color: getDateLabelColor(task.due_date),
-                                fontFamily: 'Inter, sans-serif',
-                              }}>
-                                {getDateLabel(task.due_date)}
-                              </span>
-
+                  {groupTasksByDay(sortedExtraTasks).map(([dateKey, tasksForDay]) => (
+                    <div key={dateKey} style={{ marginBottom: '20px' }}>
+                      {/* Day header */}
+                      <h3 style={{
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        color: getDateLabelColor(dateKey),
+                        marginBottom: '8px',
+                        marginTop: '16px',
+                        fontFamily: 'Inter, sans-serif',
+                      }}>
+                        {formatDayHeader(dateKey)}
+                      </h3>
+                      
+                      {/* Tasks for this day */}
+                      {tasksForDay.map(task => (
+                        <div key={task.id}>
+                          <div
+                            style={{
+                              position: 'relative',
+                              transform: swipedTaskId === task.id ? `translateX(-${swipeOffset}px)` : 'none',
+                              transition: touchStart === 0 ? 'transform 0.3s ease' : 'none',
+                            }}
+                            onTouchStart={handleTouchStart}
+                            onTouchMove={(e) => handleTouchMove(e, task.id)}
+                            onTouchEnd={handleTouchEnd}
+                          >
+                            <div 
+                              onClick={() => toggleTask(task.id, task.completed)}
+                              style={{
+                                padding: taskPadding,
+                                backgroundColor: 'transparent',
+                                borderBottom: '1px solid rgba(197, 197, 202, 0.3)',
+                                cursor: 'pointer',
+                                transition: 'background-color 0.1s ease',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(27, 120, 103, 0.03)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                              }}
+                            >
                               <div style={{
-                                width: '8px',
-                                height: '8px',
-                                borderRadius: '50%',
-                                backgroundColor: getPriorityConfig(task.priority).color,
-                              }} />
-
-                              {/* Delete button - compact */}
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteTask(task.id);
-                                }}
-                                style={{
-                                  width: '24px',
-                                  height: '24px',
-                                  minWidth: '24px',
+                                display: 'flex',
+                                gap: '12px',
+                                alignItems: 'center',
+                              }}>
+                                {/* Checkbox - compact, row is clickable */}
+                                <div style={{
+                                  width: '20px',
+                                  height: '20px',
+                                  minWidth: '20px',
                                   borderRadius: '6px',
-                                  border: '1px solid rgba(197,197,202,0.5)',
-                                  backgroundColor: '#FEFFF1',
+                                  border: '2px solid rgba(197, 197, 202, 0.5)',
+                                  backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  padding: 0,
-                                  cursor: 'pointer',
                                   transition: 'all 0.15s ease',
-                                }}
-                                title="Verwijder taak"
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#FEE2E2';
-                                  e.currentTarget.style.borderColor = '#EF4444';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#FEFFF1';
-                                  e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
-                                }}
-                              >
-                                <Trash2 size={14} style={{ color: '#EF4444' }} />
-                              </button>
+                                  pointerEvents: 'none',
+                                }}>
+                                  {task.completed && (
+                                    <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                                      <path
+                                        d="M1 5L4.5 8.5L11 1.5"
+                                        stroke="#FFFFFF"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                  )}
+                                </div>
+
+                                <div style={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  gap: '8px',
+                                  flex: 1 
+                                }}>
+                                  <span style={{
+                                    flex: 1,
+                                    textDecoration: task.completed ? 'line-through' : 'none',
+                                    color: task.completed ? '#73747B' : '#282E3A',
+                                    fontWeight: 500,
+                                    fontSize: '15px',
+                                    fontFamily: 'Inter, sans-serif',
+                                  }}>
+                                    {task.title}
+                                  </span>
+                                </div>
+
+                                <div style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px',
+                                }}>
+                                  <div style={{
+                                    width: '8px',
+                                    height: '8px',
+                                    borderRadius: '50%',
+                                    backgroundColor: getPriorityConfig(task.priority).color,
+                                  }} />
+
+                                  {/* Delete button - compact */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteTask(task.id);
+                                    }}
+                                    style={{
+                                      width: '24px',
+                                      height: '24px',
+                                      minWidth: '24px',
+                                      borderRadius: '6px',
+                                      border: '1px solid rgba(197,197,202,0.5)',
+                                      backgroundColor: '#FEFFF1',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      padding: 0,
+                                      cursor: 'pointer',
+                                      transition: 'all 0.15s ease',
+                                    }}
+                                    title="Verwijder taak"
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.backgroundColor = '#FEE2E2';
+                                      e.currentTarget.style.borderColor = '#EF4444';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.backgroundColor = '#FEFFF1';
+                                      e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
+                                    }}
+                                  >
+                                    <Trash2 size={14} style={{ color: '#EF4444' }} />
+                                  </button>
+                                </div>
+                              </div>
                             </div>
+
+                            {swipedTaskId === task.id && (
+                              <div style={{
+                                position: 'absolute',
+                                right: 0,
+                                top: 0,
+                                height: '100%',
+                                width: '80px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}>
+                                <button
+                                  onClick={() => {
+                                    deleteTask(task.id);
+                                  }}
+                                  style={{
+                                    backgroundColor: '#EF4444',
+                                    color: '#FFFFFF',
+                                    border: 'none',
+                                    padding: '8px 16px',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontSize: '13px',
+                                    fontWeight: 500,
+                                    fontFamily: 'Inter, sans-serif',
+                                  }}
+                                >
+                                  Verwijder
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
-
-                        {swipedTaskId === task.id && (
-                          <div style={{
-                            position: 'absolute',
-                            right: 0,
-                            top: 0,
-                            height: '100%',
-                            width: '80px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}>
-                            <button
-                              onClick={() => {
-                                deleteTask(task.id);
-                              }}
-                              style={{
-                                backgroundColor: '#EF4444',
-                                color: '#FFFFFF',
-                                border: 'none',
-                                padding: '8px 16px',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '13px',
-                                fontWeight: 500,
-                                fontFamily: 'Inter, sans-serif',
-                              }}
-                            >
-                              Verwijder
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                      ))}
                     </div>
                   ))}
                 </div>
