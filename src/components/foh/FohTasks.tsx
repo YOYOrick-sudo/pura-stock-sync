@@ -123,9 +123,6 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
           position: 'relative',
           overflow: 'hidden',
           backgroundColor: task.completed ? 'rgba(27, 120, 103, 0.04)' : 'transparent',
-          borderLeft: `4px solid ${getPriorityConfig(task.priority).borderColor}`,
-          marginLeft: '-4px',
-          paddingLeft: '12px',
         }}
         onMouseEnter={(e) => {
           if (!isEditMode && toggleTask) {
