@@ -1,4 +1,4 @@
-import { Home, ListChecks, Wallet, Package, SlidersHorizontal, BarChart3 } from 'lucide-react';
+import { Home, ListChecks, Wallet, Package, Settings, BarChart3 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useState } from 'react';
@@ -51,7 +51,7 @@ const allNavigationItems = [
   {
     title: 'Settings',
     url: '/settings',
-    icon: SlidersHorizontal,
+    icon: Settings,
     locations: ['West', 'Midsland'],
   },
   {
