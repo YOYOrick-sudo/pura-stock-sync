@@ -8,22 +8,22 @@
 export const PolarColors = {
   // Base Colors
   white: '#FFFFFF',
-  background: '#FEFFF1',          // Pura Vida Cream
-  surface: '#FFFFFF',              // White for contrast cards
+  background: '#F8F9FA',             // Modern light gray
+  surface: '#FFFFFF',                // White for cards
   
   // Text Colors
   text: {
-    primary: '#282E3A',            // Pura Vida Midnight
-    secondary: '#73747B',          // Subtle text
-    tertiary: '#73747B',
-    disabled: '#ACAEB3',
+    primary: '#111827',              // Dark gray
+    secondary: '#4B5563',            // Medium gray
+    tertiary: '#9CA3AF',
+    disabled: '#D1D5DB',
   },
 
   // Border Colors
   border: {
-    default: 'rgba(197, 197, 202, 0.5)',  // Semi-transparent
-    light: 'rgba(197, 197, 202, 0.3)',    // Lighter
-    dark: '#36373A',
+    default: '#E5E7EB',              // Neutral gray
+    light: '#F3F4F6',                // Lighter
+    dark: '#374151',
   },
 
   // Brand Colors (Pura Vida Sea)
@@ -102,10 +102,10 @@ export const PolarColors = {
   puravida: {
     sunset: '#E27726',    // Sunset - Accent/CTA
     sunrise: '#F9BD84',   // Sunrise - Secondary Accent
-    moonlight: '#F6F7DD', // Moonlight - Sidebar background
-    cream: '#FEFFF1',     // Cream - Main background
-    midnight: '#282E3A',  // Midnight - Dark text
-    sky: '#B1CFBE',       // Sky - Muted/Borders
+    moonlight: '#FFFFFF', // Moonlight - Sidebar background (now white)
+    cream: '#F8F9FA',     // Cream - Main background (now light gray)
+    midnight: '#111827',  // Midnight - Dark text
+    sky: '#E5E7EB',       // Sky - Muted/Borders
   },
 } as const;
 

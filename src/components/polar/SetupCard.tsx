@@ -19,7 +19,7 @@ export function PolarSetupCard({
   return (
     <div
       style={{
-        backgroundColor: '#FEFFF1',
+        backgroundColor: '#F3F4F6',
         borderRadius: '16px',
         padding: '24px',
         width: '380px',
@@ -44,11 +44,11 @@ export function PolarSetupCard({
               justifyContent: 'center',
               width: '48px',
               height: '48px',
-              backgroundColor: '#F6F7DD',
+              backgroundColor: '#ECFDF5',
               borderRadius: '12px',
             }}
           >
-            <Icon size={24} style={{ color: '#282E3A' }} />
+            <Icon size={24} style={{ color: '#1B7867' }} />
           </div>
         )}
 
@@ -58,7 +58,7 @@ export function PolarSetupCard({
             fontFamily: 'Inter, sans-serif',
             fontSize: '18px',
             fontWeight: 500,
-            color: '#282E3A',
+            color: '#111827',
             marginBottom: '8px',
           }}
         >
@@ -71,7 +71,7 @@ export function PolarSetupCard({
             fontFamily: 'Inter, sans-serif',
             fontSize: '14px',
             fontWeight: 400,
-            color: '#73747B',
+            color: '#6B7280',
             marginBottom: '24px',
             lineHeight: '20px',
           }}

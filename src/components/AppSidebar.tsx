@@ -143,9 +143,9 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
 
       <AlertDialog open={showCodeDialog} onOpenChange={setShowCodeDialog}>
         <AlertDialogContent style={{
-          backgroundColor: '#FEFFF1',
+          backgroundColor: '#FFFFFF',
           borderRadius: '20px',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
+          border: '1px solid #E5E7EB',
           padding: '32px',
           maxWidth: '480px',
           boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
@@ -155,7 +155,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
               fontFamily: 'Inter, sans-serif',
               fontSize: '18px',
               fontWeight: 600,
-              color: '#282E3A',
+              color: '#111827',
               marginBottom: '8px',
             }}>
               Toegangscode vereist
@@ -164,7 +164,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
               fontFamily: 'Inter, sans-serif',
               fontSize: '14px',
               fontWeight: 400,
-              color: '#73747B',
+              color: '#6B7280',
               marginBottom: '24px',
             }}>
               Voer de toegangscode in om toegang te krijgen tot Statistieken.
@@ -181,11 +181,11 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
               style={{
                 backgroundColor: '#FFFFFF',
                 borderRadius: '16px',
-                border: `1px solid ${codeError ? '#EF4444' : 'rgba(197, 197, 202, 0.5)'}`,
+                border: `1px solid ${codeError ? '#EF4444' : '#E5E7EB'}`,
                 padding: '12px 16px',
                 fontFamily: 'Inter, sans-serif',
                 fontSize: '14px',
-                color: '#282E3A',
+                color: '#111827',
               }}
             />
             {codeError && (
@@ -207,9 +207,9 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
               }}
               style={{
                 backgroundColor: 'transparent',
-                color: '#282E3A',
+                color: '#111827',
                 borderRadius: '20px',
-                border: '1px solid rgba(197, 197, 202, 0.5)',
+                border: '1px solid #E5E7EB',
                 fontFamily: 'Inter, sans-serif',
                 fontSize: '14px',
                 fontWeight: 500,
