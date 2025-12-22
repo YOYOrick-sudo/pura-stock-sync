@@ -124,12 +124,23 @@ export default {
             transform: "translateY(0)",
           },
         },
+        "ripple": {
+          "0%": { transform: "scale(0)", opacity: "0.4" },
+          "100%": { transform: "scale(4)", opacity: "0" },
+        },
+        "check-pulse": {
+          "0%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.25)" },
+          "100%": { transform: "scale(1)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.5s ease-out",
         "slide-up": "slide-up 0.4s ease-out",
+        "ripple": "ripple 0.4s ease-out forwards",
+        "check-pulse": "check-pulse 0.3s ease-out",
       },
     },
   },

@@ -80,6 +80,11 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
 
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState(task.description || '');
+  
+  // Touch feedback states (tablet only)
+  const isTablet = useIsTablet();
+  const [ripple, setRipple] = useState<{ x: number; y: number } | null>(null);
+  const [checkPulse, setCheckPulse] = useState(false);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -94,6 +99,16 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
       return;
     }
     if (!isEditMode && toggleTask && !isDeleted) {
+      // Trigger ripple effect on tablet
+      if (isTablet) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        setRipple({ x, y });
+        setCheckPulse(true);
+        setTimeout(() => setRipple(null), 400);
+        setTimeout(() => setCheckPulse(false), 300);
+      }
       toggleTask(task.id, task.completed);
     }
   };
@@ -108,6 +123,8 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
           borderBottom: '1px solid rgba(197, 197, 202, 0.3)',
           cursor: !isEditMode && toggleTask ? 'pointer' : 'default',
           transition: 'background-color 0.1s ease',
+          position: 'relative',
+          overflow: 'hidden',
         }}
         onMouseEnter={(e) => {
           if (!isEditMode && toggleTask) {
@@ -118,6 +135,22 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
           e.currentTarget.style.backgroundColor = 'transparent';
         }}
       >
+        {/* Ripple effect for tablet */}
+        {isTablet && ripple && (
+          <span
+            className="animate-ripple"
+            style={{
+              position: 'absolute',
+              left: ripple.x - 25,
+              top: ripple.y - 25,
+              width: 50,
+              height: 50,
+              borderRadius: '50%',
+              backgroundColor: 'hsl(var(--primary) / 0.25)',
+              pointerEvents: 'none',
+            }}
+          />
+        )}
         <div style={{
           display: 'flex',
           gap: '12px',
@@ -144,24 +177,27 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
 
           {/* Checkbox - compact, whole row is clickable */}
           {!isEditMode && toggleTask && (
-            <div style={{
-              width: '20px',
-              height: '20px',
-              minWidth: '20px',
-              borderRadius: '6px',
-              border: '2px solid rgba(197, 197, 202, 0.5)',
-              backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.15s ease',
-              pointerEvents: 'none', // Row handles the click
-            }}>
+            <div 
+              className={isTablet && checkPulse ? 'animate-check-pulse' : ''}
+              style={{
+                width: '20px',
+                height: '20px',
+                minWidth: '20px',
+                borderRadius: '6px',
+                border: '2px solid rgba(197, 197, 202, 0.5)',
+                backgroundColor: task.completed ? 'hsl(var(--primary))' : 'hsl(var(--background))',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease',
+                pointerEvents: 'none', // Row handles the click
+              }}
+            >
               {task.completed && (
                 <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
                   <path
                     d="M1 5L4.5 8.5L11 1.5"
-                    stroke="#FFFFFF"
+                    stroke="hsl(var(--primary-foreground))"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
