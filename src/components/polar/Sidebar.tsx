@@ -56,8 +56,8 @@ export function PolarSidebar({
       style={{
         width: collapsed ? '64px' : '280px',
         height: '100vh',
-        backgroundColor: '#FFFFFF',
-        borderRight: '1px solid #E5E7EB',
+        backgroundColor: '#F6F7DD',
+        borderRight: '1px solid rgba(197, 197, 202, 0.5)',
         position: 'sticky',
         top: 0,
         transition: 'width 200ms cubic-bezier(0.4, 0, 0.2, 1)',
@@ -71,7 +71,7 @@ export function PolarSidebar({
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: collapsed ? '0 12px' : '0 24px',
-          borderBottom: '1px solid #E5E7EB',
+          borderBottom: '1px solid rgba(197, 197, 202, 0.5)',
         }}
       >
         {/* Logo */}
@@ -158,20 +158,20 @@ export function PolarSidebar({
                   padding: collapsed ? '0 12px' : '0 16px',
                   borderRadius: '8px',
                   backgroundColor: item.active
-                    ? '#ECFDF5'
+                    ? '#FEFFF1'
                     : 'transparent',
-                  border: item.active ? '1px solid #A7F3D0' : '1px solid transparent',
+                  border: item.active ? '1px solid rgba(197, 197, 202, 0.5)' : '1px solid transparent',
                   boxShadow: item.active ? '0 1px 3px rgba(0, 0, 0, 0.05)' : 'none',
                   transition: 'background-color 150ms ease, box-shadow 150ms ease',
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '17px',
                   fontWeight: item.active ? 500 : 400,
-                  color: item.active ? '#1B7867' : '#4B5563',
+                  color: item.active ? '#282E3A' : '#73747B',
                   justifyContent: collapsed ? 'center' : 'flex-start',
                 }}
                 onMouseEnter={(e) => {
                   if (!item.active) {
-                    e.currentTarget.style.backgroundColor = '#F9FAFB';
+                    e.currentTarget.style.backgroundColor = '#FEFFF1';
                   }
                 }}
                 onMouseLeave={(e) => {

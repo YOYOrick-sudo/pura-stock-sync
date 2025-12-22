@@ -8,68 +8,68 @@
 
 @layer base {
   :root {
-    /* === POLAR MODERN MINIMALIST DESIGN === */
+    /* === POLAR BASE COLORS === */
     --polar-white: #FFFFFF;
-    --polar-background: #F8F9FA;
-    --polar-surface: #FFFFFF;
+    --polar-background: #F4F5F6;
+    --polar-surface: #FAFAFA;
     
     /* Polar Text Colors */
-    --polar-text-primary: #111827;
-    --polar-text-secondary: #4B5563;
-    --polar-text-tertiary: #9CA3AF;
-    --polar-text-disabled: #D1D5DB;
+    --polar-text-primary: #17171C;
+    --polar-text-secondary: #36373A;
+    --polar-text-tertiary: #73747B;
+    --polar-text-disabled: #ACAEB3;
     
     /* Polar Border Colors */
-    --polar-border-default: #E5E7EB;
-    --polar-border-light: #F3F4F6;
-    --polar-border-dark: #374151;
+    --polar-border-default: #ECEDED;
+    --polar-border-light: #F4F5F6;
+    --polar-border-dark: #36373A;
     
-    /* === PURA VIDA BRAND COLORS === */
+    /* === PURA VIDA BRAND COLORS (Polar Brand Colors Mapped) === */
     /* Sea - Primary Brand Color #1B7867 */
     --primary: 168 63% 28%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 168 63% 24%;
+    --primary-hover: 168 63% 35%;
     
     --polar-brand-primary: #1B7867;
     --polar-brand-hover: #156556;
-    --polar-brand-light: #ECFDF5;
-    --polar-brand-border: #A7F3D0;
+    --polar-brand-light: #E6F4F1;
+    --polar-brand-border: #B3D9D4;
 
-    /* Secondary - Subtle green for hover states */
-    --secondary: 168 30% 96%;
-    --secondary-foreground: 168 63% 28%;
+    /* Sunset - Accent/CTA Color #E27726 */
+    --secondary: 25 75% 52%;
+    --secondary-foreground: 0 0% 100%;
     
-    /* Accent - For highlights */
-    --accent: 168 30% 94%;
-    --accent-foreground: 168 63% 28%;
+    /* Sunrise - Secondary Accent #F9BD84 */
+    --accent: 25 91% 75%;
+    --accent-foreground: 210 19% 21%;
 
-    /* Clean white/grey background */
-    --background: 210 20% 98%;
-    --foreground: 220 13% 13%;
+    /* Moonlight - Background Color #F5F7DD */
+    --background: 65 59% 92%;
+    --foreground: 210 19% 21%; /* Midnight for text */
 
-    /* Cards - Pure white */
+    /* Cards - Polar White */
     --card: 0 0% 100%;
-    --card-foreground: 220 13% 13%;
+    --card-foreground: 210 19% 21%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 13%;
+    --popover-foreground: 210 19% 21%;
 
-    /* Muted - Neutral grey */
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    /* Sky - Muted/Borders #B1CFBE */
+    --muted: 145 26% 75%;
+    --muted-foreground: 168 30% 35%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
     
-    /* Notification badge */
-    --notification-badge: 0 84% 60%;
+    /* Notification badge - Pastel red */
+    --notification-badge: 0 70% 75%;
 
-    /* Borders - Clean neutral */
-    --border: 220 13% 91%;
-    --input: 220 14% 96%;
+    /* Borders */
+    --border: 145 26% 75%;
+    --input: 65 59% 92%;
     --ring: 168 63% 28%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
     /* Polar Spacing */
     --polar-space-1: 4px;
@@ -82,48 +82,49 @@
     
     /* Polar Border Radius */
     --polar-radius-sm: 8px;
-    --polar-radius-lg: 12px;
-    --polar-radius-xl: 16px;
+    --polar-radius-lg: 16px;
+    --polar-radius-xl: 20px;
     
-    /* Polar Shadows (subtle) */
-    --polar-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.03);
-    --polar-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05);
-    --polar-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08);
+    /* Polar Shadows (minimal) */
+    --polar-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --polar-shadow-md: 0 2px 4px 0 rgb(0 0 0 / 0.05);
   }
 
   .dark {
-    /* Dark mode - Slate base */
-    --background: 224 71% 4%;
-    --foreground: 213 31% 91%;
+    /* Midnight - Dark Background #282E3A */
+    --background: 210 19% 21%;
+    --foreground: 65 59% 92%;
 
-    --card: 224 71% 6%;
-    --card-foreground: 213 31% 91%;
+    --card: 210 19% 15%;
+    --card-foreground: 65 59% 92%;
 
-    --popover: 224 71% 6%;
-    --popover-foreground: 213 31% 91%;
+    --popover: 210 19% 15%;
+    --popover-foreground: 65 59% 92%;
 
     /* Sea stays same in dark mode */
-    --primary: 168 63% 35%;
+    --primary: 168 63% 28%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 168 63% 40%;
+    --primary-hover: 168 63% 35%;
 
-    --secondary: 168 30% 15%;
-    --secondary-foreground: 168 63% 70%;
+    /* Sunset stays vibrant */
+    --secondary: 25 75% 52%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 223 47% 11%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 210 19% 30%;
+    --muted-foreground: 145 26% 65%;
 
-    --accent: 168 30% 15%;
-    --accent-foreground: 168 63% 70%;
+    --accent: 25 91% 75%;
+    --accent-foreground: 210 19% 21%;
 
-    --destructive: 0 63% 50%;
+    --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 100%;
     
-    --notification-badge: 0 63% 50%;
+    /* Notification badge - Pastel red */
+    --notification-badge: 0 70% 75%;
 
-    --border: 216 34% 17%;
-    --input: 216 34% 17%;
-    --ring: 168 63% 35%;
+    --border: 210 19% 30%;
+    --input: 210 19% 18%;
+    --ring: 168 63% 28%;
   }
 }
 

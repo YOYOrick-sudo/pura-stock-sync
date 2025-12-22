@@ -95,7 +95,7 @@ const Auth = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#F8F9FA',
+      backgroundColor: '#FEFFF1',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -104,8 +104,8 @@ const Auth = () => {
       <div style={{
         width: '100%',
         maxWidth: '500px',
-        backgroundColor: '#FFFFFF',
-        border: '1px solid #E5E7EB',
+        backgroundColor: '#F6F7DD',
+        border: '1px solid rgba(197, 197, 202, 0.5)',
         borderRadius: '20px',
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)',
         overflow: 'hidden'
@@ -113,7 +113,7 @@ const Auth = () => {
         {/* Header */}
         <div style={{
           padding: '48px 32px 24px',
-          borderBottom: '1px solid #E5E7EB'
+          borderBottom: '1px solid rgba(197, 197, 202, 0.3)'
         }}>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
             <img 
@@ -171,12 +171,14 @@ const Auth = () => {
                     borderRadius: '20px',
                     border: location === 'West' 
                       ? '2px solid #1B7867' 
-                      : '1px solid #E5E7EB',
-                    backgroundColor: location === 'West' 
-                      ? '#ECFDF5' 
                       : hoveredCard === 'West'
-                        ? '#F9FAFB'
-                        : '#FFFFFF',
+                        ? '1px solid rgba(197, 197, 202, 0.7)'
+                        : '1px solid rgba(197, 197, 202, 0.5)',
+                    backgroundColor: location === 'West' 
+                      ? '#FEFFF1' 
+                      : hoveredCard === 'West'
+                        ? '#FEFFF1'
+                        : '#F6F7DD',
                     transition: 'all 200ms',
                     opacity: loading ? 0.5 : 1,
                     boxShadow: hoveredCard === 'West' && location !== 'West'
@@ -206,12 +208,14 @@ const Auth = () => {
                     borderRadius: '20px',
                     border: location === 'Midsland' 
                       ? '2px solid #1B7867' 
-                      : '1px solid #E5E7EB',
-                    backgroundColor: location === 'Midsland' 
-                      ? '#ECFDF5' 
                       : hoveredCard === 'Midsland'
-                        ? '#F9FAFB'
-                        : '#FFFFFF',
+                        ? '1px solid rgba(197, 197, 202, 0.7)'
+                        : '1px solid rgba(197, 197, 202, 0.5)',
+                    backgroundColor: location === 'Midsland' 
+                      ? '#FEFFF1' 
+                      : hoveredCard === 'Midsland'
+                        ? '#FEFFF1'
+                        : '#F6F7DD',
                     transition: 'all 200ms',
                     opacity: loading ? 0.5 : 1,
                     boxShadow: hoveredCard === 'Midsland' && location !== 'Midsland'
@@ -263,15 +267,15 @@ const Auth = () => {
                   padding: '0 16px',
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '15px',
-                  color: '#111827',
-                  backgroundColor: '#FFFFFF',
-                  border: '1px solid #E5E7EB',
+                  color: '#282E3A',
+                  backgroundColor: '#FEFFF1',
+                  border: '1px solid rgba(197, 197, 202, 0.5)',
                   borderRadius: '16px',
                   outline: 'none',
                   transition: 'border-color 200ms',
                 }}
                 onFocus={(e) => e.currentTarget.style.borderColor = '#1B7867'}
-                onBlur={(e) => e.currentTarget.style.borderColor = '#E5E7EB'}
+                onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.5)'}
               />
             </div>
 

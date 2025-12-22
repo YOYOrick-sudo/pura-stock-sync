@@ -139,11 +139,10 @@ export const HandoverCard = () => {
     return (
       <div
         style={{
-          backgroundColor: '#FFFFFF',
+          backgroundColor: '#F6F7DD',
           borderRadius: '16px',
           padding: '20px 24px',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
-          border: '1px solid #E5E7EB',
           minHeight: '100px',
         }}
       >
@@ -158,11 +157,10 @@ export const HandoverCard = () => {
   return (
     <div
       style={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#F6F7DD',
         borderRadius: '16px',
         padding: '20px 24px',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
-        border: '1px solid #E5E7EB',
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
@@ -196,7 +194,7 @@ export const HandoverCard = () => {
                 fontFamily: 'Inter, sans-serif',
                 fontSize: '14px',
                 fontWeight: 600,
-                color: '#111827',
+                color: '#282E3A',
               }}
             >
               Overdracht - Bijzonderheden
@@ -206,7 +204,7 @@ export const HandoverCard = () => {
             style={{
               fontFamily: 'Inter, sans-serif',
               fontSize: '12px',
-              color: '#6B7280',
+              color: '#73747B',
               paddingLeft: '26px',
             }}
           >
@@ -256,7 +254,7 @@ export const HandoverCard = () => {
               fontFamily: 'Inter, sans-serif',
               fontSize: '15px',
               fontWeight: 400,
-              color: latestMemo?.message ? '#111827' : '#6B7280',
+              color: latestMemo?.message ? '#282E3A' : '#73747B',
               fontStyle: latestMemo?.message ? 'normal' : 'italic',
               lineHeight: 1.5,
               whiteSpace: 'pre-wrap',
@@ -273,12 +271,12 @@ export const HandoverCard = () => {
                 gap: '6px',
               }}
             >
-              <Clock size={14} color="#6B7280" />
+              <Clock size={14} color="#73747B" />
               <p
                 style={{
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '12px',
-                  color: '#6B7280',
+                  color: '#73747B',
                 }}
               >
                 Laatst bijgewerkt: {new Date(latestMemo.updated_at).toLocaleString('nl-NL', {

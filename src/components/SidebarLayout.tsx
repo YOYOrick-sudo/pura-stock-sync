@@ -40,12 +40,12 @@ export function SidebarLayout({
 
   return (
     <div className="flex min-h-screen w-full" style={{
-      backgroundColor: '#F8F9FA'
+      backgroundColor: '#FEFFF1'
     }}>
       {/* Desktop Sidebar - hidden on mobile */}
       {!isMobile && (
         <div style={{ 
-          backgroundColor: '#FFFFFF',
+          backgroundColor: '#F6F7DD',
           paddingTop: '16px',
         }}>
           <AppSidebar />
@@ -55,7 +55,7 @@ export function SidebarLayout({
       {/* Mobile Menu Sheet */}
       {isMobile && (
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetContent side="left" className="w-[280px] p-0" style={{ backgroundColor: '#FFFFFF' }}>
+          <SheetContent side="left" className="w-[280px] p-0" style={{ backgroundColor: '#F6F7DD' }}>
             <div style={{ paddingTop: '16px' }}>
               <AppSidebar onNavigate={() => setMobileMenuOpen(false)} />
             </div>
@@ -72,7 +72,7 @@ export function SidebarLayout({
         />
         
         <main className="p-4 md:p-6 lg:px-12 lg:py-8" style={{
-          backgroundColor: '#F8F9FA'
+          backgroundColor: '#FEFFF1'
         }}>
           {children}
         </main>
