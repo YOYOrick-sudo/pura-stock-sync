@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { toZonedTime } from 'date-fns-tz';
 import type { FohTask, FohEmployee, FohTaskWithEmployee, PhaseType } from '@/types/foh';
 import { useUserLocation } from '@/contexts/UserLocationContext';
+import { useIsTablet } from '@/hooks/use-mobile';
 import { PolarColors } from '@/components/polar/colors';
 import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
@@ -63,9 +64,10 @@ interface SortableTaskItemProps {
   toggleTask?: (id: string, completed: boolean) => void;
   isDeleted: boolean;
   showAdminTools?: boolean;
+  isTablet?: boolean;
 }
 
-function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onDelete, toggleTask, isDeleted, showAdminTools = false }: SortableTaskItemProps) {
+function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onDelete, toggleTask, isDeleted, showAdminTools = false, isTablet = false }: SortableTaskItemProps) {
   const {
     attributes,
     listeners,
@@ -87,15 +89,15 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
   return (
     <div ref={setNodeRef} style={style}>
       <div style={{
-        padding: '16px 0',
+        padding: isTablet ? '16px 0' : '14px 0',
         opacity: isDeleted ? 0.3 : 1,
       }}>
         <div style={{
           display: 'flex',
-          gap: '16px',
+          gap: isTablet ? '16px' : '12px',
           alignItems: 'center',
         }}>
-          {/* Drag Handle - 44px touch area, 36px visual */}
+          {/* Drag Handle - tablet: 44px touch area, 36px visual; desktop: 24px */}
           {isEditMode && !isDeleted && (
             <div 
               {...attributes} 
@@ -105,55 +107,91 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '44px',
-                height: '44px',
-                minWidth: '44px',
+                width: isTablet ? '44px' : '24px',
+                height: isTablet ? '44px' : '24px',
+                minWidth: isTablet ? '44px' : '24px',
               }}
             >
-              <div style={{
-                width: '36px',
-                height: '36px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#73747B',
-                opacity: 0.5,
-              }}>
-                <GripVertical size={18} />
-              </div>
+              {isTablet ? (
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#73747B',
+                  opacity: 0.5,
+                }}>
+                  <GripVertical size={18} />
+                </div>
+              ) : (
+                <GripVertical size={18} style={{ color: '#73747B', opacity: 0.5 }} />
+              )}
             </div>
           )}
 
-          {/* Checkbox - 44px touch area, 28px visual */}
+          {/* Checkbox - tablet: 44px touch area, 28px visual; desktop: 20px */}
           {!isEditMode && toggleTask && (
-            <button
-              onClick={() => toggleTask(task.id, task.completed)}
-              style={{
-                width: '44px',
-                height: '44px',
-                minWidth: '44px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 0,
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              <div style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '8px',
-                border: '2px solid rgba(197, 197, 202, 0.5)',
-                backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.15s ease',
-              }}>
+            isTablet ? (
+              <button
+                onClick={() => toggleTask(task.id, task.completed)}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  minWidth: '44px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '8px',
+                  border: '2px solid rgba(197, 197, 202, 0.5)',
+                  backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.15s ease',
+                }}>
+                  {task.completed && (
+                    <svg width="14" height="11" viewBox="0 0 12 10" fill="none">
+                      <path
+                        d="M1 5L4.5 8.5L11 1.5"
+                        stroke="#FFFFFF"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                </div>
+              </button>
+            ) : (
+              <button
+                onClick={() => toggleTask(task.id, task.completed)}
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  minWidth: '20px',
+                  borderRadius: '6px',
+                  border: '2px solid rgba(197, 197, 202, 0.5)',
+                  backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
                 {task.completed && (
-                  <svg width="14" height="11" viewBox="0 0 12 10" fill="none">
+                  <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
                     <path
                       d="M1 5L4.5 8.5L11 1.5"
                       stroke="#FFFFFF"
@@ -163,8 +201,8 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                     />
                   </svg>
                 )}
-              </div>
-            </button>
+              </button>
+            )
           )}
 
           {/* Title - editable in edit mode */}
@@ -183,9 +221,9 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   flex: 1,
                   borderRadius: '16px',
                   fontFamily: 'Inter, sans-serif',
-                  fontSize: '17px',
+                  fontSize: isTablet ? '17px' : '15px',
                   fontWeight: 500,
-                  height: '44px',
+                  height: isTablet ? '44px' : '36px',
                   textDecoration: isDeleted ? 'line-through' : 'none',
                 }}
               />
@@ -195,7 +233,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 textDecoration: toggleTask && task.completed ? 'line-through' : 'none',
                 color: toggleTask && task.completed ? '#73747B' : '#282E3A',
                 fontWeight: 500,
-                fontSize: '16px',
+                fontSize: isTablet ? '16px' : '15px',
                 fontFamily: 'Inter, sans-serif',
               }}>
                 {task.title}
@@ -207,7 +245,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
+            gap: isTablet ? '8px' : '6px',
           }}>
             {/* Time indicator - editable in edit mode */}
             {isEditMode ? (
@@ -221,9 +259,9 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 disabled={isDeleted}
               >
                 <SelectTrigger style={{
-                  width: '100px',
-                  height: '44px',
-                  fontSize: '14px',
+                  width: isTablet ? '100px' : '80px',
+                  height: isTablet ? '44px' : '28px',
+                  fontSize: isTablet ? '14px' : '12px',
                   borderRadius: '12px',
                   fontFamily: 'Inter, sans-serif',
                 }}>
@@ -243,7 +281,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
             ) : (
               task.estimated_minutes && (
                 <span style={{
-                  fontSize: '14px',
+                  fontSize: isTablet ? '14px' : '11px',
                   fontWeight: 400,
                   color: '#73747B',
                   opacity: 0.7,
@@ -255,99 +293,28 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
               )
             )}
 
-            {/* Info button - 44px touch area, 32px visual */}
+            {/* Info button - tablet: 44px touch area, 32px visual; desktop: 24px */}
             {!isEditMode && task.description && (
-              <button
-                onClick={() => {
-                  setIsEditingDescription(true);
-                }}
-                style={{
-                  width: '44px',
-                  height: '44px',
-                  minWidth: '44px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 0,
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-                title="Bekijk info"
-              >
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(197,197,202,0.5)',
-                  backgroundColor: '#FEFFF1',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.15s ease',
-                }}>
-                  <Info size={16} style={{ color: '#1B7867' }} />
-                </div>
-              </button>
-            )}
-
-            {/* Edit description button - 44px touch area, 32px visual */}
-            {showAdminTools && !isDeleted && (
-              <button
-                onClick={() => {
-                  setDescriptionValue(task.description || '');
-                  setIsEditingDescription(true);
-                }}
-                style={{
-                  width: '44px',
-                  height: '44px',
-                  minWidth: '44px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 0,
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-                title="Bewerk omschrijving"
-              >
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(197,197,202,0.5)',
-                  backgroundColor: '#FEFFF1',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.15s ease',
-                }}>
-                  <Pencil size={16} style={{ color: '#73747B' }} />
-                </div>
-              </button>
-            )}
-
-            {/* Delete button - 44px touch area, 32px visual */}
-            {isEditMode && !isDeleted && (
-              <button
-                onClick={() => onDelete(task.id)}
-                style={{
-                  width: '44px',
-                  height: '44px',
-                  minWidth: '44px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 0,
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-                title="Verwijder taak"
-              >
-                <div 
+              isTablet ? (
+                <button
+                  onClick={() => {
+                    setIsEditingDescription(true);
+                  }}
                   style={{
+                    width: '44px',
+                    height: '44px',
+                    minWidth: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 0,
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                  title="Bekijk info"
+                >
+                  <div style={{
                     width: '32px',
                     height: '32px',
                     borderRadius: '10px',
@@ -357,7 +324,160 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                     alignItems: 'center',
                     justifyContent: 'center',
                     transition: 'all 0.15s ease',
+                  }}>
+                    <Info size={16} style={{ color: '#1B7867' }} />
+                  </div>
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setIsEditingDescription(true);
                   }}
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    minWidth: '24px',
+                    borderRadius: '6px',
+                    border: '1px solid rgba(197,197,202,0.5)',
+                    backgroundColor: '#FEFFF1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 0,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                  title="Bekijk info"
+                >
+                  <Info size={14} style={{ color: '#1B7867' }} />
+                </button>
+              )
+            )}
+
+            {/* Edit description button - tablet: 44px touch area, 32px visual; desktop: 24px */}
+            {showAdminTools && !isDeleted && (
+              isTablet ? (
+                <button
+                  onClick={() => {
+                    setDescriptionValue(task.description || '');
+                    setIsEditingDescription(true);
+                  }}
+                  style={{
+                    width: '44px',
+                    height: '44px',
+                    minWidth: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 0,
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                  title="Bewerk omschrijving"
+                >
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(197,197,202,0.5)',
+                    backgroundColor: '#FEFFF1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.15s ease',
+                  }}>
+                    <Pencil size={16} style={{ color: '#73747B' }} />
+                  </div>
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setDescriptionValue(task.description || '');
+                    setIsEditingDescription(true);
+                  }}
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    minWidth: '24px',
+                    borderRadius: '6px',
+                    border: '1px solid rgba(197,197,202,0.5)',
+                    backgroundColor: '#FEFFF1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 0,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                  title="Bewerk omschrijving"
+                >
+                  <Pencil size={14} style={{ color: '#73747B' }} />
+                </button>
+              )
+            )}
+
+            {/* Delete button - tablet: 44px touch area, 32px visual; desktop: 24px */}
+            {isEditMode && !isDeleted && (
+              isTablet ? (
+                <button
+                  onClick={() => onDelete(task.id)}
+                  style={{
+                    width: '44px',
+                    height: '44px',
+                    minWidth: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 0,
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                  title="Verwijder taak"
+                >
+                  <div 
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '10px',
+                      border: '1px solid rgba(197,197,202,0.5)',
+                      backgroundColor: '#FEFFF1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#FEE2E2';
+                      e.currentTarget.style.borderColor = '#EF4444';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#FEFFF1';
+                      e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
+                    }}
+                  >
+                    <Trash2 size={16} style={{ color: '#EF4444' }} />
+                  </div>
+                </button>
+              ) : (
+                <button
+                  onClick={() => onDelete(task.id)}
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    minWidth: '24px',
+                    borderRadius: '6px',
+                    border: '1px solid rgba(197,197,202,0.5)',
+                    backgroundColor: '#FEFFF1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 0,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                  title="Verwijder taak"
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = '#FEE2E2';
                     e.currentTarget.style.borderColor = '#EF4444';
@@ -367,9 +487,9 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                     e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
                   }}
                 >
-                  <Trash2 size={16} style={{ color: '#EF4444' }} />
-                </div>
-              </button>
+                  <Trash2 size={14} style={{ color: '#EF4444' }} />
+                </button>
+              )
             )}
           </div>
         </div>
@@ -604,6 +724,7 @@ const getPriorityConfig = (priority: number) => {
 // ===== MAIN COMPONENT =====
 export function FohTasks() {
   const { userLocation } = useUserLocation();
+  const isTablet = useIsTablet();
   const queryClient = useQueryClient();
   
   const [mainCategory, setMainCategory] = useState<'dagelijks' | 'periodiek'>('dagelijks');
@@ -2073,6 +2194,7 @@ export function FohTasks() {
                                 toggleTask={!isEditMode ? toggleTask : undefined}
                                 isDeleted={deletedTaskIds.includes(task.id)}
                                 showAdminTools={false}
+                                isTablet={isTablet}
                               />
                             ))}
                           </SortableContext>
@@ -2098,43 +2220,75 @@ export function FohTasks() {
                         onTouchEnd={handleTouchEnd}
                       >
                         <div style={{
-                          padding: '16px 0',
+                          padding: isTablet ? '16px 0' : '14px 0',
                           backgroundColor: 'transparent',
                         }}>
                           <div style={{
                             display: 'flex',
-                            gap: '16px',
+                            gap: isTablet ? '16px' : '12px',
                             alignItems: 'center',
                           }}>
-                            {/* Checkbox - 44px touch area, 28px visual */}
-                            <button
-                              onClick={() => toggleTask(task.id, task.completed)}
-                              style={{
-                                width: '44px',
-                                height: '44px',
-                                minWidth: '44px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: 0,
-                                background: 'transparent',
-                                border: 'none',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              <div style={{
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '8px',
-                                border: '2px solid rgba(197, 197, 202, 0.5)',
-                                backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                transition: 'all 0.15s ease',
-                              }}>
+                            {/* Checkbox - tablet: 44px touch area, 28px visual; desktop: 20px */}
+                            {isTablet ? (
+                              <button
+                                onClick={() => toggleTask(task.id, task.completed)}
+                                style={{
+                                  width: '44px',
+                                  height: '44px',
+                                  minWidth: '44px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  padding: 0,
+                                  background: 'transparent',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                <div style={{
+                                  width: '28px',
+                                  height: '28px',
+                                  borderRadius: '8px',
+                                  border: '2px solid rgba(197, 197, 202, 0.5)',
+                                  backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  transition: 'all 0.15s ease',
+                                }}>
+                                  {task.completed && (
+                                    <svg width="14" height="11" viewBox="0 0 12 10" fill="none">
+                                      <path
+                                        d="M1 5L4.5 8.5L11 1.5"
+                                        stroke="#FFFFFF"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                  )}
+                                </div>
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => toggleTask(task.id, task.completed)}
+                                style={{
+                                  width: '20px',
+                                  height: '20px',
+                                  minWidth: '20px',
+                                  borderRadius: '6px',
+                                  border: '2px solid rgba(197, 197, 202, 0.5)',
+                                  backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  padding: 0,
+                                  cursor: 'pointer',
+                                  transition: 'all 0.15s ease',
+                                }}
+                              >
                                 {task.completed && (
-                                  <svg width="14" height="11" viewBox="0 0 12 10" fill="none">
+                                  <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
                                     <path
                                       d="M1 5L4.5 8.5L11 1.5"
                                       stroke="#FFFFFF"
@@ -2144,8 +2298,8 @@ export function FohTasks() {
                                     />
                                   </svg>
                                 )}
-                              </div>
-                            </button>
+                              </button>
+                            )}
 
                             <div style={{ 
                               display: 'flex', 
@@ -2158,7 +2312,7 @@ export function FohTasks() {
                                 textDecoration: task.completed ? 'line-through' : 'none',
                                 color: task.completed ? '#73747B' : '#282E3A',
                                 fontWeight: 500,
-                                fontSize: '16px',
+                                fontSize: isTablet ? '16px' : '15px',
                                 fontFamily: 'Inter, sans-serif',
                               }}>
                                 {task.title}
@@ -2168,12 +2322,12 @@ export function FohTasks() {
                             <div style={{
                               display: 'flex',
                               alignItems: 'center',
-                              gap: '12px',
+                              gap: isTablet ? '12px' : '8px',
                             }}>
                               <span style={{
-                                fontSize: '12px',
+                                fontSize: isTablet ? '12px' : '11px',
                                 fontWeight: 600,
-                                padding: '6px 10px',
+                                padding: isTablet ? '6px 10px' : '4px 8px',
                                 borderRadius: '6px',
                                 backgroundColor: '#FEFFF1',
                                 color: getDateLabelColor(task.due_date),
@@ -2189,35 +2343,66 @@ export function FohTasks() {
                                 backgroundColor: getPriorityConfig(task.priority).color,
                               }} />
 
-                              {/* Delete button - 44px touch area, 32px visual */}
-                              <button
-                                onClick={() => deleteTask(task.id)}
-                                style={{
-                                  width: '44px',
-                                  height: '44px',
-                                  minWidth: '44px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  padding: 0,
-                                  background: 'transparent',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                }}
-                                title="Verwijder taak"
-                              >
-                                <div 
+                              {/* Delete button - tablet: 44px touch area, 32px visual; desktop: 24px */}
+                              {isTablet ? (
+                                <button
+                                  onClick={() => deleteTask(task.id)}
                                   style={{
-                                    width: '32px',
-                                    height: '32px',
-                                    borderRadius: '10px',
+                                    width: '44px',
+                                    height: '44px',
+                                    minWidth: '44px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: 0,
+                                    background: 'transparent',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                  }}
+                                  title="Verwijder taak"
+                                >
+                                  <div 
+                                    style={{
+                                      width: '32px',
+                                      height: '32px',
+                                      borderRadius: '10px',
+                                      border: '1px solid rgba(197,197,202,0.5)',
+                                      backgroundColor: '#FEFFF1',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      transition: 'all 0.15s ease',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.backgroundColor = '#FEE2E2';
+                                      e.currentTarget.style.borderColor = '#EF4444';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.backgroundColor = '#FEFFF1';
+                                      e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
+                                    }}
+                                  >
+                                    <Trash2 size={16} style={{ color: '#EF4444' }} />
+                                  </div>
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => deleteTask(task.id)}
+                                  style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    minWidth: '24px',
+                                    borderRadius: '6px',
                                     border: '1px solid rgba(197,197,202,0.5)',
                                     backgroundColor: '#FEFFF1',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
+                                    padding: 0,
+                                    cursor: 'pointer',
                                     transition: 'all 0.15s ease',
                                   }}
+                                  title="Verwijder taak"
                                   onMouseEnter={(e) => {
                                     e.currentTarget.style.backgroundColor = '#FEE2E2';
                                     e.currentTarget.style.borderColor = '#EF4444';
@@ -2227,9 +2412,9 @@ export function FohTasks() {
                                     e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
                                   }}
                                 >
-                                  <Trash2 size={16} style={{ color: '#EF4444' }} />
-                                </div>
-                              </button>
+                                  <Trash2 size={14} style={{ color: '#EF4444' }} />
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -2761,6 +2946,7 @@ export function FohTasks() {
                     }}
                     isDeleted={deletedTemplateTaskIds.includes(task.id)}
                     showAdminTools={true}
+                    isTablet={isTablet}
                   />
                 ))}
               </SortableContext>
