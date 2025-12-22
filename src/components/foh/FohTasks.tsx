@@ -431,13 +431,6 @@ const getAmsterdamDateString = (): string => {
   return nowInAmsterdam.toISOString().split('T')[0];
 };
 
-const isClosedDay = (): boolean => {
-  const TIMEZONE = 'Europe/Amsterdam';
-  const nowInAmsterdam = toZonedTime(new Date(), TIMEZONE);
-  const dayOfWeek = nowInAmsterdam.getDay();
-  return dayOfWeek === 1 || dayOfWeek === 2;
-};
-
 const groupTasksByPhase = (tasks: FohTaskWithEmployee[]) => {
   const grouped: Record<PhaseType, FohTaskWithEmployee[]> = {
     open: [],
@@ -651,8 +644,6 @@ export function FohTasks() {
 
   // ===== DATA FETCHING =====
   const generateDailyTasks = async () => {
-    if (isClosedDay()) return;
-    
     const todayDate = getAmsterdamDateString();
     
     // Fetch only active templates
@@ -1493,39 +1484,6 @@ export function FohTasks() {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <Loader2 style={{ width: '32px', height: '32px', color: '#1B7867' }} className="animate-spin" />
-      </div>
-    );
-  }
-
-  if (isClosedDay()) {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#FEFFF1', fontFamily: 'Inter, sans-serif' }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-          <div style={{
-            backgroundColor: '#F6F7DD',
-            borderRadius: '20px',
-            border: '1px solid rgba(197, 197, 202, 0.5)',
-            padding: '48px 24px',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
-            textAlign: 'center',
-          }}>
-            <h2 style={{
-              fontSize: '24px',
-              fontWeight: 600,
-              color: '#282E3A',
-              marginBottom: '12px',
-            }}>
-              Wij zijn gesloten
-            </h2>
-            <p style={{
-              fontSize: '16px',
-              color: '#73747B',
-              marginBottom: '0',
-            }}>
-              Op maandag en dinsdag zijn er geen taken. We zien je graag terug op woensdag!
-            </p>
-          </div>
-        </div>
       </div>
     );
   }

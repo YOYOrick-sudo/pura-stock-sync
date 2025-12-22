@@ -67,12 +67,6 @@ Deno.serve(async (req) => {
     let totalGenerated = 0;
 
     for (const location of locations) {
-      // Check if location is closed (Midsland on Monday/Tuesday)
-      if (location === 'Midsland' && (dayOfWeek === 1 || dayOfWeek === 2)) {
-        console.log(`Skipping ${location} - closed on Monday/Tuesday`);
-        continue;
-      }
-
       // Check if tasks already exist for this location and date
       const { data: existingTasks } = await supabase
         .from('foh_tasks')

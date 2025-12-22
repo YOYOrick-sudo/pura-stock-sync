@@ -43,14 +43,28 @@ export default function FohAnalytics() {
     enabled: !!userLocation,
   });
 
-  // Calculate statistics
+  // Group tasks by date to identify active days (days with at least 1 completed task)
+  const activeDays = useMemo(() => {
+    const daysWithActivity = new Set<string>();
+    tasks.forEach(t => {
+      if (t.completed) {
+        daysWithActivity.add(t.due_date);
+      }
+    });
+    return daysWithActivity;
+  }, [tasks]);
+
+  // Calculate statistics - only count tasks from active days
   const stats = useMemo(() => {
-    const total = tasks.length;
-    const completed = tasks.filter(t => t.completed).length;
+    // Filter tasks to only include those from active days
+    const activeDayTasks = tasks.filter(t => activeDays.has(t.due_date));
+    
+    const total = activeDayTasks.length;
+    const completed = activeDayTasks.filter(t => t.completed).length;
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-    // Tasks that are incomplete and past due date
-    const problematic = tasks.filter(t => 
+    // Tasks that are incomplete and past due date (only from active days)
+    const problematic = activeDayTasks.filter(t => 
       !t.completed && 
       new Date(t.due_date) < new Date()
     ).length;
@@ -70,8 +84,8 @@ export default function FohAnalytics() {
 
     const topPerformer = Object.values(employeeStats).sort((a, b) => b.count - a.count)[0];
 
-    return { total, completed, completionRate, problematic, topPerformer };
-  }, [tasks]);
+    return { total, completed, completionRate, problematic, topPerformer, activeDaysCount: activeDays.size };
+  }, [tasks, activeDays]);
 
   // Tasks per phase
   const phaseData = useMemo(() => {
@@ -84,7 +98,7 @@ export default function FohAnalytics() {
     }));
   }, [tasks]);
 
-  // Completion rate over time (per week)
+  // Completion rate over time (per week) - only show weeks with activity
   const timelineData = useMemo(() => {
     const weeks = Math.ceil(dateRange / 7);
     const data = [];
@@ -100,21 +114,24 @@ export default function FohAnalytics() {
 
       const completed = weekTasks.filter(t => t.completed).length;
       const total = weekTasks.length;
-      const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-      data.push({
-        week: format(weekStart, 'dd MMM', { locale: nl }),
-        rate,
-      });
+      
+      // Only include weeks with at least 1 completed task (active week)
+      if (completed > 0) {
+        const rate = Math.round((completed / total) * 100);
+        data.push({
+          week: format(weekStart, 'dd MMM', { locale: nl }),
+          rate,
+        });
+      }
     }
 
     return data;
   }, [tasks, dateRange]);
 
-  // Most problematic tasks (templates that often remain incomplete)
+  // Most problematic tasks - only count from active days
   const problematicTasks = useMemo(() => {
     const taskStats = tasks
-      .filter(t => !t.completed)
+      .filter(t => !t.completed && activeDays.has(t.due_date)) // Only from active days
       .reduce((acc, task) => {
         const title = task.title;
         if (!acc[title]) {
@@ -127,7 +144,7 @@ export default function FohAnalytics() {
     return Object.values(taskStats)
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
-  }, [tasks]);
+  }, [tasks, activeDays]);
 
   // Export to CSV
   const exportToCSV = () => {
