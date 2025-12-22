@@ -87,7 +87,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
   return (
     <div ref={setNodeRef} style={style}>
       <div style={{
-        padding: '18px 0',
+        padding: '16px 0',
         opacity: isDeleted ? 0.3 : 1,
       }}>
         <div style={{
@@ -95,15 +95,13 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
           gap: '16px',
           alignItems: 'center',
         }}>
-          {/* Drag Handle */}
+          {/* Drag Handle - 44px touch area, 36px visual */}
           {isEditMode && !isDeleted && (
             <div 
               {...attributes} 
               {...listeners}
               style={{
                 cursor: 'grab',
-                color: '#73747B',
-                opacity: 0.5,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -112,43 +110,61 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 minWidth: '44px',
               }}
             >
-              <GripVertical size={22} />
+              <div style={{
+                width: '36px',
+                height: '36px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#73747B',
+                opacity: 0.5,
+              }}>
+                <GripVertical size={18} />
+              </div>
             </div>
           )}
 
-          {/* Checkbox - disabled in edit mode */}
+          {/* Checkbox - 44px touch area, 28px visual */}
           {!isEditMode && toggleTask && (
-            <div>
-              <button
-                onClick={() => toggleTask(task.id, task.completed)}
-                style={{
-                  width: '44px',
-                  height: '44px',
-                  minWidth: '44px',
-                  borderRadius: '12px',
-                  border: '2px solid rgba(197, 197, 202, 0.5)',
-                  backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.15s ease',
-                  padding: 0,
-                }}
-              >
+            <button
+              onClick={() => toggleTask(task.id, task.completed)}
+              style={{
+                width: '44px',
+                height: '44px',
+                minWidth: '44px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 0,
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              <div style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '8px',
+                border: '2px solid rgba(197, 197, 202, 0.5)',
+                backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s ease',
+              }}>
                 {task.completed && (
-                  <svg width="20" height="16" viewBox="0 0 12 10" fill="none">
+                  <svg width="14" height="11" viewBox="0 0 12 10" fill="none">
                     <path
                       d="M1 5L4.5 8.5L11 1.5"
                       stroke="#FFFFFF"
-                      strokeWidth="2.5"
+                      strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
                   </svg>
                 )}
-              </button>
-            </div>
+              </div>
+            </button>
           )}
 
           {/* Title - editable in edit mode */}
@@ -179,7 +195,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 textDecoration: toggleTask && task.completed ? 'line-through' : 'none',
                 color: toggleTask && task.completed ? '#73747B' : '#282E3A',
                 fontWeight: 500,
-                fontSize: '17px',
+                fontSize: '16px',
                 fontFamily: 'Inter, sans-serif',
               }}>
                 {task.title}
@@ -239,7 +255,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
               )
             )}
 
-            {/* Info button - only visible if task has description */}
+            {/* Info button - 44px touch area, 32px visual */}
             {!isEditMode && task.description && (
               <button
                 onClick={() => {
@@ -249,23 +265,33 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   width: '44px',
                   height: '44px',
                   minWidth: '44px',
-                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+                title="Bekijk info"
+              >
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '10px',
                   border: '1px solid rgba(197,197,202,0.5)',
                   backgroundColor: '#FEFFF1',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  cursor: 'pointer',
                   transition: 'all 0.15s ease',
-                  padding: 0,
-                }}
-                title="Bekijk info"
-              >
-                <Info size={20} style={{ color: '#1B7867' }} />
+                }}>
+                  <Info size={16} style={{ color: '#1B7867' }} />
+                </div>
               </button>
             )}
 
-            {/* Edit description button - only in admin mode */}
+            {/* Edit description button - 44px touch area, 32px visual */}
             {showAdminTools && !isDeleted && (
               <button
                 onClick={() => {
@@ -276,51 +302,73 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   width: '44px',
                   height: '44px',
                   minWidth: '44px',
-                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+                title="Bewerk omschrijving"
+              >
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '10px',
                   border: '1px solid rgba(197,197,202,0.5)',
                   backgroundColor: '#FEFFF1',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  cursor: 'pointer',
                   transition: 'all 0.15s ease',
-                  padding: 0,
-                }}
-                title="Bewerk omschrijving"
-              >
-                <Pencil size={20} style={{ color: '#73747B' }} />
+                }}>
+                  <Pencil size={16} style={{ color: '#73747B' }} />
+                </div>
               </button>
             )}
 
-            {/* Delete button in edit mode */}
+            {/* Delete button - 44px touch area, 32px visual */}
             {isEditMode && !isDeleted && (
               <button
                 onClick={() => onDelete(task.id)}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#FEE2E2';
-                  e.currentTarget.style.borderColor = '#EF4444';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#FEFFF1';
-                  e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
-                }}
                 style={{
                   width: '44px',
                   height: '44px',
                   minWidth: '44px',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(197,197,202,0.5)',
-                  backgroundColor: '#FEFFF1',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
                   padding: 0,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
                 }}
                 title="Verwijder taak"
               >
-                <Trash2 size={20} style={{ color: '#EF4444' }} />
+                <div 
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(197,197,202,0.5)',
+                    backgroundColor: '#FEFFF1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#FEE2E2';
+                    e.currentTarget.style.borderColor = '#EF4444';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#FEFFF1';
+                    e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
+                  }}
+                >
+                  <Trash2 size={16} style={{ color: '#EF4444' }} />
+                </div>
               </button>
             )}
           </div>
@@ -2050,7 +2098,7 @@ export function FohTasks() {
                         onTouchEnd={handleTouchEnd}
                       >
                         <div style={{
-                          padding: '18px 0',
+                          padding: '16px 0',
                           backgroundColor: 'transparent',
                         }}>
                           <div style={{
@@ -2058,37 +2106,46 @@ export function FohTasks() {
                             gap: '16px',
                             alignItems: 'center',
                           }}>
-                            <div>
-                              <button
-                                onClick={() => toggleTask(task.id, task.completed)}
-                                style={{
-                                  width: '44px',
-                                  height: '44px',
-                                  minWidth: '44px',
-                                  borderRadius: '12px',
-                                  border: '2px solid rgba(197, 197, 202, 0.5)',
-                                  backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  transition: 'all 0.15s ease',
-                                  padding: 0,
-                                }}
-                              >
+                            {/* Checkbox - 44px touch area, 28px visual */}
+                            <button
+                              onClick={() => toggleTask(task.id, task.completed)}
+                              style={{
+                                width: '44px',
+                                height: '44px',
+                                minWidth: '44px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: 0,
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <div style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '8px',
+                                border: '2px solid rgba(197, 197, 202, 0.5)',
+                                backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.15s ease',
+                              }}>
                                 {task.completed && (
-                                  <svg width="20" height="16" viewBox="0 0 12 10" fill="none">
+                                  <svg width="14" height="11" viewBox="0 0 12 10" fill="none">
                                     <path
                                       d="M1 5L4.5 8.5L11 1.5"
                                       stroke="#FFFFFF"
-                                      strokeWidth="2.5"
+                                      strokeWidth="2"
                                       strokeLinecap="round"
                                       strokeLinejoin="round"
                                     />
                                   </svg>
                                 )}
-                              </button>
-                            </div>
+                              </div>
+                            </button>
 
                             <div style={{ 
                               display: 'flex', 
@@ -2101,7 +2158,7 @@ export function FohTasks() {
                                 textDecoration: task.completed ? 'line-through' : 'none',
                                 color: task.completed ? '#73747B' : '#282E3A',
                                 fontWeight: 500,
-                                fontSize: '17px',
+                                fontSize: '16px',
                                 fontFamily: 'Inter, sans-serif',
                               }}>
                                 {task.title}
@@ -2114,7 +2171,7 @@ export function FohTasks() {
                               gap: '12px',
                             }}>
                               <span style={{
-                                fontSize: '13px',
+                                fontSize: '12px',
                                 fontWeight: 600,
                                 padding: '6px 10px',
                                 borderRadius: '6px',
@@ -2132,33 +2189,46 @@ export function FohTasks() {
                                 backgroundColor: getPriorityConfig(task.priority).color,
                               }} />
 
+                              {/* Delete button - 44px touch area, 32px visual */}
                               <button
                                 onClick={() => deleteTask(task.id)}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#FEE2E2';
-                                  e.currentTarget.style.borderColor = '#EF4444';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#FEFFF1';
-                                  e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
-                                }}
                                 style={{
                                   width: '44px',
                                   height: '44px',
                                   minWidth: '44px',
-                                  borderRadius: '12px',
-                                  border: '1px solid rgba(197,197,202,0.5)',
-                                  backgroundColor: '#FEFFF1',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  cursor: 'pointer',
-                                  transition: 'all 0.15s ease',
                                   padding: 0,
+                                  background: 'transparent',
+                                  border: 'none',
+                                  cursor: 'pointer',
                                 }}
                                 title="Verwijder taak"
                               >
-                                <Trash2 size={20} style={{ color: '#EF4444' }} />
+                                <div 
+                                  style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '10px',
+                                    border: '1px solid rgba(197,197,202,0.5)',
+                                    backgroundColor: '#FEFFF1',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.15s ease',
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#FEE2E2';
+                                    e.currentTarget.style.borderColor = '#EF4444';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#FEFFF1';
+                                    e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
+                                  }}
+                                >
+                                  <Trash2 size={16} style={{ color: '#EF4444' }} />
+                                </div>
                               </button>
                             </div>
                           </div>
