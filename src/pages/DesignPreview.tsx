@@ -147,18 +147,15 @@ const DesignPreview = () => {
             </div>
           </div>
 
-          {/* RIGHT: Modern Pura Vida */}
+          {/* RIGHT: Modern Pura Vida (Hybride) */}
           <div>
             <div className="mb-4 flex items-center gap-2">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#1B7867' }}></div>
               <h2 className="text-lg font-semibold text-slate-700">Modern Pura Vida</h2>
             </div>
             
-            {/* Light Sea background */}
-            <div 
-              className="rounded-2xl p-5 space-y-3"
-              style={{ backgroundColor: '#F0F7F5' }}
-            >
+            {/* Grey background with green accents */}
+            <div className="bg-slate-100 rounded-2xl p-5 space-y-3">
               <ModernKPICard 
                 title="Omzet vandaag"
                 value="€2.847"
@@ -183,9 +180,9 @@ const DesignPreview = () => {
             <div className="mt-4 p-3 rounded-xl border" style={{ backgroundColor: '#E6F4F1', borderColor: '#B3D9D4' }}>
               <h3 className="text-xs font-semibold mb-2" style={{ color: '#1B7867' }}>Kenmerken:</h3>
               <ul className="text-xs space-y-1" style={{ color: '#2D8B7A' }}>
-                <li>• Light Sea achtergrond (#F0F7F5)</li>
+                <li>• Grijze achtergrond (slate-100)</li>
                 <li>• Groene border accent</li>
-                <li>• On-brand Pura Vida</li>
+                <li>• Best of both worlds</li>
               </ul>
             </div>
           </div>
@@ -269,20 +266,20 @@ const DesignPreview = () => {
 
             {/* Pura Vida colors */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-              <h3 className="font-semibold mb-4" style={{ color: '#1B7867' }}>Pura Vida</h3>
+              <h3 className="font-semibold mb-4" style={{ color: '#1B7867' }}>Pura Vida (Hybride)</h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg" style={{ backgroundColor: '#F0F7F5' }}></div>
+                  <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200"></div>
                   <div>
-                    <div className="text-sm font-medium text-slate-900">#F0F7F5</div>
-                    <div className="text-xs text-slate-500">Light Sea</div>
+                    <div className="text-sm font-medium text-slate-900">slate-100</div>
+                    <div className="text-xs text-slate-500">Achtergrond (neutraal)</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-white border-2" style={{ borderColor: '#B3D9D4' }}></div>
                   <div>
                     <div className="text-sm font-medium text-slate-900">#B3D9D4</div>
-                    <div className="text-xs text-slate-500">Border accent</div>
+                    <div className="text-xs text-slate-500">Border accent (on-brand)</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
