@@ -17,6 +17,7 @@ export default {
         sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "system-ui", "sans-serif"],
       },
       colors: {
+        // Legacy polar colors (keep for backward compatibility)
         'polar-white': '#FFFFFF',
         'polar-background': '#F4F5F6',
         'polar-surface': '#FAFAFA',
@@ -27,6 +28,21 @@ export default {
         'polar-brand': '#1B7867',
         'polar-brand-hover': '#156556',
         'polar-brand-light': '#E6F4F1',
+        
+        // Pura Vida Design System - Hybrid Style
+        'pv': {
+          'background': 'hsl(210 20% 98%)',      // slate-50 - page background
+          'surface': 'hsl(0 0% 100%)',            // white - card surfaces
+          'border': 'hsl(169 35% 77%)',           // #B3D9D4 - subtle green border
+          'border-hover': 'hsl(163 65% 26%)',     // #1B7867 - hover state
+          'primary': 'hsl(163 65% 26%)',          // #1B7867 - Pura Vida Sea
+          'primary-hover': 'hsl(163 65% 21%)',    // #156556 - darker sea
+          'primary-light': 'hsl(163 35% 93%)',    // #E6F4F1 - light accent
+          'success': 'hsl(142 71% 45%)',          // green
+          'warning': 'hsl(38 92% 50%)',           // amber
+          'error': 'hsl(0 84% 60%)',              // red
+          'muted': 'hsl(215 16% 47%)',            // slate-500
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
