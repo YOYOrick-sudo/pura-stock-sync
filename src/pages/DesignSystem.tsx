@@ -302,20 +302,20 @@ const StatusBadge = ({
 // ==================== REAL-WORLD MODULES ====================
 
 const OrderCard = () => (
-  <div className="bg-white rounded-xl border border-[hsl(169_35%_77%)] p-5 hover:border-[hsl(163_65%_26%)] hover:shadow-elevated transition-all">
+  <div className="bg-card rounded-xl border border-border p-5 hover:border-primary hover:shadow-elevated transition-all">
     <div className="flex items-start justify-between mb-4">
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-[hsl(163_35%_93%)] flex items-center justify-center">
-          <span className="text-lg font-bold text-[hsl(163_65%_26%)]">T5</span>
+        <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
+          <span className="text-lg font-bold text-primary">T5</span>
         </div>
         <div>
-          <h4 className="font-semibold text-[hsl(222_47%_11%)]">Tafel 5</h4>
-          <p className="text-sm text-[hsl(215_16%_47%)]">Bestelling #1247</p>
+          <h4 className="font-semibold text-foreground">Tafel 5</h4>
+          <p className="text-sm text-muted-foreground">Bestelling #1247</p>
         </div>
       </div>
       <StatusBadge status="pending" />
     </div>
-    
+
     <div className="space-y-2 mb-4">
       {[
         { icon: UtensilsCrossed, item: "2x Surf & Turf", price: "€54.00" },
@@ -323,17 +323,17 @@ const OrderCard = () => (
         { icon: Coffee, item: "2x Koffie", price: "€6.00" },
       ].map((line, i) => (
         <div key={i} className="flex items-center justify-between text-sm">
-          <span className="text-[hsl(215_16%_47%)] flex items-center gap-2">
+          <span className="text-muted-foreground flex items-center gap-2">
             <line.icon className="w-4 h-4" />
             {line.item}
           </span>
-          <span className="font-medium text-[hsl(222_47%_11%)]">{line.price}</span>
+          <span className="font-medium text-foreground">{line.price}</span>
         </div>
       ))}
     </div>
-    
-    <div className="flex items-center justify-between pt-4 border-t border-[hsl(210_40%_96%)]">
-      <div className="flex items-center gap-2 text-sm text-[hsl(215_16%_47%)]">
+
+    <div className="flex items-center justify-between pt-4 border-t border-border">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Clock className="w-4 h-4" />
         <span>12 min geleden</span>
       </div>
@@ -345,21 +345,25 @@ const OrderCard = () => (
   </div>
 );
 
-const TaskCard = ({ status = 'open' }: { status?: 'open' | 'progress' | 'done' }) => {
+const TaskCard = ({ status = "open" }: { status?: "open" | "progress" | "done" }) => {
   const statusConfig = {
-    open: { badge: 'bg-[hsl(215_16%_93%)] text-[hsl(215_16%_30%)]', dot: 'bg-[hsl(215_16%_47%)]', label: 'Open' },
-    progress: { badge: 'bg-[hsl(217_91%_93%)] text-[hsl(217_91%_30%)]', dot: 'bg-[hsl(217_91%_60%)]', label: 'In uitvoering' },
-    done: { badge: 'bg-[hsl(142_71%_93%)] text-[hsl(142_71%_30%)]', dot: 'bg-[hsl(142_71%_45%)]', label: 'Voltooid' },
+    open: { badge: "bg-muted text-muted-foreground", dot: "bg-muted-foreground", label: "Open" },
+    progress: { badge: "bg-pv-info/10 text-pv-info", dot: "bg-pv-info", label: "In uitvoering" },
+    done: { badge: "bg-pv-success/10 text-pv-success", dot: "bg-pv-success", label: "Voltooid" },
   };
   const s = statusConfig[status];
-  
+
   return (
-    <div className={`bg-white rounded-xl border ${status === 'done' ? 'border-[hsl(142_71%_70%)]' : 'border-[hsl(169_35%_77%)]'} p-5 hover:shadow-elevated transition-all ${status === 'done' ? 'opacity-75' : ''}`}>
+    <div
+      className={`bg-card rounded-xl border ${
+        status === "done" ? "border-pv-success/50" : "border-border"
+      } p-5 hover:shadow-elevated transition-all ${status === "done" ? "opacity-75" : ""}`}
+    >
       <div className="flex items-start gap-4">
-        <Checkbox checked={status === 'done'} className="mt-1" />
+        <Checkbox checked={status === "done"} className="mt-1" />
         <div className="flex-1">
           <div className="flex items-start justify-between mb-2">
-            <h4 className={`font-semibold ${status === 'done' ? 'text-[hsl(215_16%_47%)] line-through' : 'text-[hsl(222_47%_11%)]'}`}>
+            <h4 className={`font-semibold ${status === "done" ? "text-muted-foreground line-through" : "text-foreground"}`}>
               Terras klaarzetten
             </h4>
             <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${s.badge}`}>
@@ -367,24 +371,24 @@ const TaskCard = ({ status = 'open' }: { status?: 'open' | 'progress' | 'done' }
               {s.label}
             </span>
           </div>
-          
-          <p className="text-sm text-[hsl(215_16%_47%)] mb-3">
+
+          <p className="text-sm text-muted-foreground mb-3">
             Tafels en stoelen plaatsen, parasols opzetten, menu's neerleggen
           </p>
-          
+
           <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1.5 text-[hsl(215_16%_47%)]">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
               <Clock className="w-4 h-4" />
               <span>15 min</span>
             </div>
-            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[hsl(0_84%_93%)] text-[hsl(0_84%_30%)]">
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-destructive/10 text-destructive">
               Hoog
             </span>
             <div className="flex items-center gap-1.5">
               <Avatar className="w-5 h-5">
-                <AvatarFallback className="text-xs bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]">JV</AvatarFallback>
+                <AvatarFallback className="text-xs bg-secondary text-primary">JV</AvatarFallback>
               </Avatar>
-              <span className="text-[hsl(215_16%_47%)]">Jan</span>
+              <span className="text-muted-foreground">Jan</span>
             </div>
           </div>
         </div>
@@ -394,22 +398,20 @@ const TaskCard = ({ status = 'open' }: { status?: 'open' | 'progress' | 'done' }
 };
 
 const ReservationCard = () => (
-  <div className="bg-white rounded-xl border border-[hsl(169_35%_77%)] p-5 hover:border-[hsl(163_65%_26%)] hover:shadow-elevated transition-all">
+  <div className="bg-card rounded-xl border border-border p-5 hover:border-primary hover:shadow-elevated transition-all">
     <div className="flex items-start justify-between mb-4">
       <div className="flex items-center gap-3">
         <Avatar className="w-12 h-12">
-          <AvatarFallback className="bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)] font-semibold">
-            MB
-          </AvatarFallback>
+          <AvatarFallback className="bg-secondary text-primary font-semibold">MB</AvatarFallback>
         </Avatar>
         <div>
-          <h4 className="font-semibold text-[hsl(222_47%_11%)]">Marie Bakker</h4>
-          <p className="text-sm text-[hsl(215_16%_47%)]">Reservering #R-2847</p>
+          <h4 className="font-semibold text-foreground">Marie Bakker</h4>
+          <p className="text-sm text-muted-foreground">Reservering #R-2847</p>
         </div>
       </div>
       <StatusBadge status="active" />
     </div>
-    
+
     <div className="grid grid-cols-2 gap-3 mb-4">
       {[
         { icon: Calendar, text: "24 december 2024" },
@@ -418,18 +420,18 @@ const ReservationCard = () => (
         { icon: MapPin, text: "Terras" },
       ].map((item, i) => (
         <div key={i} className="flex items-center gap-2 text-sm">
-          <item.icon className="w-4 h-4 text-[hsl(215_20%_65%)]" />
-          <span className="text-[hsl(215_16%_47%)]">{item.text}</span>
+          <item.icon className="w-4 h-4 text-muted-foreground" />
+          <span className="text-muted-foreground">{item.text}</span>
         </div>
       ))}
     </div>
-    
-    <div className="p-3 rounded-lg bg-[hsl(38_92%_97%)] border border-[hsl(38_92%_80%)] mb-4">
-      <p className="text-sm text-[hsl(38_92%_30%)]">
+
+    <div className="p-3 rounded-lg bg-pv-warning/10 border border-pv-warning/25 mb-4">
+      <p className="text-sm text-foreground">
         <strong>Notitie:</strong> Verjaardag, graag taart en kaarsje
       </p>
     </div>
-    
+
     <div className="flex gap-2">
       <Button variant="outline" size="sm" className="flex-1">
         <Phone className="w-4 h-4" />
@@ -444,36 +446,34 @@ const ReservationCard = () => (
   </div>
 );
 
-const StaffCard = ({ status = 'working' }: { status?: 'working' | 'break' | 'offline' }) => {
+const StaffCard = ({ status = "working" }: { status?: "working" | "break" | "offline" }) => {
   const statusConfig = {
-    working: { badge: 'bg-[hsl(142_71%_93%)] text-[hsl(142_71%_30%)]', dot: 'bg-[hsl(142_71%_45%)]', label: 'Aan het werk' },
-    break: { badge: 'bg-[hsl(38_92%_93%)] text-[hsl(38_92%_30%)]', dot: 'bg-[hsl(38_92%_50%)]', label: 'Pauze' },
-    offline: { badge: 'bg-[hsl(215_16%_93%)] text-[hsl(215_16%_30%)]', dot: 'bg-[hsl(215_16%_47%)]', label: 'Offline' },
+    working: { badge: "bg-pv-success/10 text-pv-success", dot: "bg-pv-success", label: "Aan het werk" },
+    break: { badge: "bg-pv-warning/10 text-pv-warning", dot: "bg-pv-warning", label: "Pauze" },
+    offline: { badge: "bg-muted text-muted-foreground", dot: "bg-muted-foreground", label: "Offline" },
   };
   const s = statusConfig[status];
-  
+
   return (
-    <div className="bg-white rounded-xl border border-[hsl(169_35%_77%)] p-5 hover:border-[hsl(163_65%_26%)] hover:shadow-elevated transition-all">
+    <div className="bg-card rounded-xl border border-border p-5 hover:border-primary hover:shadow-elevated transition-all">
       <div className="flex items-start gap-4">
         <div className="relative">
           <Avatar className="w-14 h-14">
             <AvatarImage src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" />
-            <AvatarFallback className="bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)] font-semibold">
-              SJ
-            </AvatarFallback>
+            <AvatarFallback className="bg-secondary text-primary font-semibold">SJ</AvatarFallback>
           </Avatar>
-          <span className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-white ${s.dot}`} />
+          <span className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-card ${s.dot}`} />
         </div>
         <div className="flex-1">
           <div className="flex items-start justify-between mb-1">
-            <h4 className="font-semibold text-[hsl(222_47%_11%)]">Sophie Jansen</h4>
+            <h4 className="font-semibold text-foreground">Sophie Jansen</h4>
             <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${s.badge}`}>
               {s.label}
             </span>
           </div>
-          <p className="text-sm text-[hsl(215_16%_47%)] mb-3">Bediening • West-Terschelling</p>
-          
-          <div className="flex items-center gap-4 text-sm text-[hsl(215_16%_47%)]">
+          <p className="text-sm text-muted-foreground mb-3">Bediening • West-Terschelling</p>
+
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <Clock className="w-4 h-4" />
               <span>Sinds 10:00</span>
@@ -484,7 +484,7 @@ const StaffCard = ({ status = 'working' }: { status?: 'working' | 'break' | 'off
             </div>
           </div>
         </div>
-        
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -495,7 +495,7 @@ const StaffCard = ({ status = 'working' }: { status?: 'working' | 'break' | 'off
             <DropdownMenuItem><Edit className="w-4 h-4 mr-2" />Bewerken</DropdownMenuItem>
             <DropdownMenuItem><Mail className="w-4 h-4 mr-2" />Bericht sturen</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-[hsl(0_84%_60%)]"><Trash2 className="w-4 h-4 mr-2" />Verwijderen</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive"><Trash2 className="w-4 h-4 mr-2" />Verwijderen</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -507,11 +507,11 @@ const StaffCard = ({ status = 'working' }: { status?: 'working' | 'break' | 'off
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center py-12 text-center">
-    <div className="w-16 h-16 rounded-full bg-[hsl(210_40%_96%)] flex items-center justify-center mb-4">
-      <Inbox className="w-8 h-8 text-[hsl(215_16%_47%)]" />
+    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+      <Inbox className="w-8 h-8 text-muted-foreground" />
     </div>
-    <h3 className="text-lg font-semibold text-[hsl(222_47%_11%)] mb-1">Geen items gevonden</h3>
-    <p className="text-sm text-[hsl(215_16%_47%)] mb-4 max-w-sm">
+    <h3 className="text-lg font-semibold text-foreground mb-1">Geen items gevonden</h3>
+    <p className="text-sm text-muted-foreground mb-4 max-w-sm">
       Er zijn nog geen items om weer te geven. Maak een nieuwe aan om te beginnen.
     </p>
     <Button>
@@ -523,11 +523,11 @@ const EmptyState = () => (
 
 const ErrorState = () => (
   <div className="flex flex-col items-center justify-center py-12 text-center">
-    <div className="w-16 h-16 rounded-full bg-[hsl(0_84%_95%)] flex items-center justify-center mb-4">
-      <AlertCircle className="w-8 h-8 text-[hsl(0_84%_60%)]" />
+    <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+      <AlertCircle className="w-8 h-8 text-destructive" />
     </div>
-    <h3 className="text-lg font-semibold text-[hsl(222_47%_11%)] mb-1">Er ging iets mis</h3>
-    <p className="text-sm text-[hsl(215_16%_47%)] mb-4 max-w-sm">
+    <h3 className="text-lg font-semibold text-foreground mb-1">Er ging iets mis</h3>
+    <p className="text-sm text-muted-foreground mb-4 max-w-sm">
       We konden de gegevens niet laden. Probeer het opnieuw.
     </p>
     <Button variant="outline">
@@ -652,33 +652,33 @@ const DesignSystem = () => {
             <Section id="typography" title="Typography" description="Tekststijlen en hiërarchie">
               <div className="space-y-6">
                 <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-[hsl(210_40%_98%)]">
-                    <code className="text-xs text-[hsl(163_65%_26%)] font-mono mb-2 block">text-display / 36px Bold</code>
-                    <span className="text-4xl font-bold text-[hsl(222_47%_11%)]">Display Heading</span>
+                  <div className="p-4 rounded-xl bg-muted">
+                    <code className="text-xs text-primary font-mono mb-2 block">text-display / 36px Bold</code>
+                    <span className="text-4xl font-bold text-foreground">Display Heading</span>
                   </div>
-                  <div className="p-4 rounded-xl bg-[hsl(210_40%_98%)]">
-                    <code className="text-xs text-[hsl(163_65%_26%)] font-mono mb-2 block">text-h1 / 24px Bold</code>
-                    <span className="text-2xl font-bold text-[hsl(222_47%_11%)]">Heading 1</span>
+                  <div className="p-4 rounded-xl bg-muted">
+                    <code className="text-xs text-primary font-mono mb-2 block">text-h1 / 24px Bold</code>
+                    <span className="text-2xl font-bold text-foreground">Heading 1</span>
                   </div>
-                  <div className="p-4 rounded-xl bg-[hsl(210_40%_98%)]">
-                    <code className="text-xs text-[hsl(163_65%_26%)] font-mono mb-2 block">text-h2 / 20px Semibold</code>
-                    <span className="text-xl font-semibold text-[hsl(222_47%_11%)]">Heading 2</span>
+                  <div className="p-4 rounded-xl bg-muted">
+                    <code className="text-xs text-primary font-mono mb-2 block">text-h2 / 20px Semibold</code>
+                    <span className="text-xl font-semibold text-foreground">Heading 2</span>
                   </div>
-                  <div className="p-4 rounded-xl bg-[hsl(210_40%_98%)]">
-                    <code className="text-xs text-[hsl(163_65%_26%)] font-mono mb-2 block">text-h3 / 18px Semibold</code>
-                    <span className="text-lg font-semibold text-[hsl(222_47%_11%)]">Heading 3</span>
+                  <div className="p-4 rounded-xl bg-muted">
+                    <code className="text-xs text-primary font-mono mb-2 block">text-h3 / 18px Semibold</code>
+                    <span className="text-lg font-semibold text-foreground">Heading 3</span>
                   </div>
-                  <div className="p-4 rounded-xl bg-[hsl(210_40%_98%)]">
-                    <code className="text-xs text-[hsl(163_65%_26%)] font-mono mb-2 block">text-body / 16px Regular</code>
-                    <span className="text-base text-[hsl(222_47%_11%)]">Body tekst voor paragrafen en content</span>
+                  <div className="p-4 rounded-xl bg-muted">
+                    <code className="text-xs text-primary font-mono mb-2 block">text-body / 16px Regular</code>
+                    <span className="text-base text-foreground">Body tekst voor paragrafen en content</span>
                   </div>
-                  <div className="p-4 rounded-xl bg-[hsl(210_40%_98%)]">
-                    <code className="text-xs text-[hsl(163_65%_26%)] font-mono mb-2 block">text-body-sm / 14px Regular (secondary color)</code>
-                    <span className="text-sm text-[hsl(215_16%_47%)]">Kleinere body tekst voor secundaire informatie</span>
+                  <div className="p-4 rounded-xl bg-muted">
+                    <code className="text-xs text-primary font-mono mb-2 block">text-body-sm / 14px Regular (secondary color)</code>
+                    <span className="text-sm text-muted-foreground">Kleinere body tekst voor secundaire informatie</span>
                   </div>
-                  <div className="p-4 rounded-xl bg-[hsl(210_40%_98%)]">
-                    <code className="text-xs text-[hsl(163_65%_26%)] font-mono mb-2 block">text-caption / 12px Medium (muted color)</code>
-                    <span className="text-xs font-medium text-[hsl(215_20%_65%)]">CAPTION TEKST VOOR LABELS</span>
+                  <div className="p-4 rounded-xl bg-muted">
+                    <code className="text-xs text-primary font-mono mb-2 block">text-caption / 12px Medium (muted color)</code>
+                    <span className="text-xs font-medium text-muted-foreground">CAPTION TEKST VOOR LABELS</span>
                   </div>
                 </div>
               </div>
@@ -731,38 +731,38 @@ const DesignSystem = () => {
                 <SubSection title="Text Inputs">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-[hsl(222_47%_11%)]">Standaard input</label>
+                      <label className="text-sm font-medium text-foreground">Standaard input</label>
                       <Input placeholder="Type hier..." />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-[hsl(222_47%_11%)]">Met icoon</label>
+                      <label className="text-sm font-medium text-foreground">Met icoon</label>
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(215_20%_65%)]" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input placeholder="Zoeken..." className="pl-10" />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-[hsl(222_47%_11%)]">Disabled</label>
+                      <label className="text-sm font-medium text-foreground">Disabled</label>
                       <Input placeholder="Niet beschikbaar" disabled />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-[hsl(0_84%_60%)]">Error state</label>
-                      <Input placeholder="Foutieve invoer" className="border-[hsl(0_84%_60%)] focus-visible:ring-[hsl(0_84%_60%)]" />
-                      <p className="text-xs text-[hsl(0_84%_60%)]">Dit veld is verplicht</p>
+                      <label className="text-sm font-medium text-destructive">Error state</label>
+                      <Input placeholder="Foutieve invoer" className="border-destructive focus-visible:ring-destructive" />
+                      <p className="text-xs text-destructive">Dit veld is verplicht</p>
                     </div>
                   </div>
                 </SubSection>
 
                 <SubSection title="Textarea">
                   <div className="max-w-md space-y-2">
-                    <label className="text-sm font-medium text-[hsl(222_47%_11%)]">Bericht</label>
+                    <label className="text-sm font-medium text-foreground">Bericht</label>
                     <Textarea placeholder="Typ je bericht..." rows={4} />
                   </div>
                 </SubSection>
 
                 <SubSection title="Select">
                   <div className="max-w-xs space-y-2">
-                    <label className="text-sm font-medium text-[hsl(222_47%_11%)]">Selecteer optie</label>
+                    <label className="text-sm font-medium text-foreground">Selecteer optie</label>
                     <Select>
                       <SelectTrigger>
                         <SelectValue placeholder="Kies een optie" />
@@ -780,11 +780,11 @@ const DesignSystem = () => {
                   <div className="flex flex-wrap gap-8">
                     <div className="flex items-center gap-3">
                       <Checkbox id="terms" />
-                      <label htmlFor="terms" className="text-sm text-[hsl(222_47%_11%)]">Ik ga akkoord met de voorwaarden</label>
+                      <label htmlFor="terms" className="text-sm text-foreground">Ik ga akkoord met de voorwaarden</label>
                     </div>
                     <div className="flex items-center gap-3">
                       <Switch id="notifications" />
-                      <label htmlFor="notifications" className="text-sm text-[hsl(222_47%_11%)]">Notificaties aan</label>
+                      <label htmlFor="notifications" className="text-sm text-foreground">Notificaties aan</label>
                     </div>
                   </div>
                 </SubSection>
@@ -805,11 +805,11 @@ const DesignSystem = () => {
 
                 <SubSection title="Content Card">
                   <div className="max-w-md">
-                    <div className="bg-white rounded-xl border border-[hsl(169_35%_77%)] overflow-hidden hover:shadow-elevated transition-all">
-                      <div className="aspect-video bg-gradient-to-br from-[hsl(163_35%_93%)] to-[hsl(163_65%_26%)]" />
+                    <div className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-elevated transition-all">
+                      <div className="aspect-video bg-gradient-to-br from-secondary to-primary" />
                       <div className="p-5">
-                        <h3 className="font-semibold text-[hsl(222_47%_11%)] mb-2">Card Titel</h3>
-                        <p className="text-sm text-[hsl(215_16%_47%)] mb-4">
+                        <h3 className="font-semibold text-foreground mb-2">Card Titel</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
                           Dit is een voorbeeld van een content card met afbeelding, titel, beschrijving en actie.
                         </p>
                         <div className="flex gap-2">
@@ -828,15 +828,15 @@ const DesignSystem = () => {
                       { icon: ClipboardList, title: "Taken", desc: "Dagelijkse checklist" },
                       { icon: Users, title: "Team", desc: "Personeel beheren" },
                     ].map((item, i) => (
-                      <button key={i} className="flex items-center gap-4 p-5 bg-white rounded-xl border border-[hsl(169_35%_77%)] hover:border-[hsl(163_65%_26%)] hover:shadow-elevated transition-all text-left group">
-                        <div className="p-3 rounded-xl bg-[hsl(163_35%_93%)] group-hover:bg-[hsl(163_65%_26%)] transition-colors">
-                          <item.icon className="w-6 h-6 text-[hsl(163_65%_26%)] group-hover:text-white transition-colors" />
+                      <button key={i} className="flex items-center gap-4 p-5 bg-card rounded-xl border border-border hover:border-primary hover:shadow-elevated transition-all text-left group">
+                        <div className="p-3 rounded-xl bg-secondary group-hover:bg-primary transition-colors">
+                          <item.icon className="w-6 h-6 text-primary group-hover:text-primary-foreground transition-colors" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-semibold text-[hsl(222_47%_11%)]">{item.title}</h4>
-                          <p className="text-sm text-[hsl(215_16%_47%)]">{item.desc}</p>
+                          <h4 className="font-semibold text-foreground">{item.title}</h4>
+                          <p className="text-sm text-muted-foreground">{item.desc}</p>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-[hsl(215_20%_65%)] group-hover:text-[hsl(163_65%_26%)] transition-colors" />
+                        <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                       </button>
                     ))}
                   </div>
@@ -866,10 +866,10 @@ const DesignSystem = () => {
                 </SubSection>
 
                 <SubSection title="Tabel">
-                  <div className="rounded-xl border border-[hsl(169_35%_77%)] overflow-hidden">
+                  <div className="rounded-xl border border-border overflow-hidden">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-[hsl(210_40%_98%)] hover:bg-[hsl(210_40%_98%)]">
+                        <TableRow className="bg-muted hover:bg-muted">
                           <TableHead className="font-semibold">Naam</TableHead>
                           <TableHead className="font-semibold">Rol</TableHead>
                           <TableHead className="font-semibold">Status</TableHead>
@@ -882,9 +882,9 @@ const DesignSystem = () => {
                           { name: "Sophie Jansen", role: "Keuken", status: "pending" as const, tasks: 5 },
                           { name: "Peter de Groot", role: "Manager", status: "active" as const, tasks: 12 },
                         ].map((row, i) => (
-                          <TableRow key={i} className="hover:bg-[hsl(210_40%_98%)]">
+                          <TableRow key={i} className="hover:bg-muted/50">
                             <TableCell className="font-medium">{row.name}</TableCell>
-                            <TableCell className="text-[hsl(215_16%_47%)]">{row.role}</TableCell>
+                            <TableCell className="text-muted-foreground">{row.role}</TableCell>
                             <TableCell><StatusBadge status={row.status} /></TableCell>
                             <TableCell className="text-right">{row.tasks}</TableCell>
                           </TableRow>
@@ -898,15 +898,15 @@ const DesignSystem = () => {
                   <div className="space-y-4 max-w-md">
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-[hsl(222_47%_11%)]">Taken voltooid</span>
-                        <span className="text-[hsl(215_16%_47%)]">75%</span>
+                        <span className="text-foreground">Taken voltooid</span>
+                        <span className="text-muted-foreground">75%</span>
                       </div>
                       <Progress value={75} className="h-2" />
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-[hsl(222_47%_11%)]">Reserveringen</span>
-                        <span className="text-[hsl(215_16%_47%)]">45%</span>
+                        <span className="text-foreground">Reserveringen</span>
+                        <span className="text-muted-foreground">45%</span>
                       </div>
                       <Progress value={45} className="h-2" />
                     </div>
@@ -929,37 +929,37 @@ const DesignSystem = () => {
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
                       <Avatar className="w-8 h-8">
-                        <AvatarFallback className="text-xs bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]">XS</AvatarFallback>
+                        <AvatarFallback className="text-xs bg-secondary text-primary">XS</AvatarFallback>
                       </Avatar>
                       <Avatar className="w-10 h-10">
-                        <AvatarFallback className="text-sm bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]">SM</AvatarFallback>
+                        <AvatarFallback className="text-sm bg-secondary text-primary">SM</AvatarFallback>
                       </Avatar>
                       <Avatar className="w-12 h-12">
-                        <AvatarFallback className="bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]">MD</AvatarFallback>
+                        <AvatarFallback className="bg-secondary text-primary">MD</AvatarFallback>
                       </Avatar>
                       <Avatar className="w-16 h-16">
                         <AvatarImage src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" />
-                        <AvatarFallback className="bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]">LG</AvatarFallback>
+                        <AvatarFallback className="bg-secondary text-primary">LG</AvatarFallback>
                       </Avatar>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="relative">
                         <Avatar className="w-12 h-12">
-                          <AvatarFallback className="bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]">JV</AvatarFallback>
+                          <AvatarFallback className="bg-secondary text-primary">JV</AvatarFallback>
                         </Avatar>
-                        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[hsl(142_71%_45%)] border-2 border-white" />
+                        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-pv-success border-2 border-card" />
                       </div>
                       <div className="relative">
                         <Avatar className="w-12 h-12">
-                          <AvatarFallback className="bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]">SJ</AvatarFallback>
+                          <AvatarFallback className="bg-secondary text-primary">SJ</AvatarFallback>
                         </Avatar>
-                        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[hsl(38_92%_50%)] border-2 border-white" />
+                        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-pv-warning border-2 border-card" />
                       </div>
                       <div className="relative">
                         <Avatar className="w-12 h-12">
-                          <AvatarFallback className="bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]">PG</AvatarFallback>
+                          <AvatarFallback className="bg-secondary text-primary">PG</AvatarFallback>
                         </Avatar>
-                        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[hsl(215_16%_47%)] border-2 border-white" />
+                        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-muted-foreground border-2 border-card" />
                       </div>
                     </div>
                   </div>
@@ -1047,10 +1047,10 @@ const DesignSystem = () => {
 
                 <SubSection title="Empty & Error States">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="border border-[hsl(169_35%_77%)] rounded-xl">
+                    <div className="border border-border rounded-xl">
                       <EmptyState />
                     </div>
-                    <div className="border border-[hsl(169_35%_77%)] rounded-xl">
+                    <div className="border border-border rounded-xl">
                       <ErrorState />
                     </div>
                   </div>
@@ -1101,25 +1101,25 @@ const DesignSystem = () => {
                       <TabsTrigger value="analytics">Analyse</TabsTrigger>
                       <TabsTrigger value="settings">Instellingen</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="overview" className="p-4 bg-[hsl(210_40%_98%)] rounded-lg mt-4">
-                      <p className="text-sm text-[hsl(215_16%_47%)]">Overzicht content</p>
+                    <TabsContent value="overview" className="p-4 bg-muted rounded-lg mt-4">
+                      <p className="text-sm text-muted-foreground">Overzicht content</p>
                     </TabsContent>
-                    <TabsContent value="analytics" className="p-4 bg-[hsl(210_40%_98%)] rounded-lg mt-4">
-                      <p className="text-sm text-[hsl(215_16%_47%)]">Analyse content</p>
+                    <TabsContent value="analytics" className="p-4 bg-muted rounded-lg mt-4">
+                      <p className="text-sm text-muted-foreground">Analyse content</p>
                     </TabsContent>
-                    <TabsContent value="settings" className="p-4 bg-[hsl(210_40%_98%)] rounded-lg mt-4">
-                      <p className="text-sm text-[hsl(215_16%_47%)]">Instellingen content</p>
+                    <TabsContent value="settings" className="p-4 bg-muted rounded-lg mt-4">
+                      <p className="text-sm text-muted-foreground">Instellingen content</p>
                     </TabsContent>
                   </Tabs>
                 </SubSection>
 
                 <SubSection title="Breadcrumbs">
                   <nav className="flex items-center gap-2 text-sm">
-                    <a href="#" className="text-[hsl(215_16%_47%)] hover:text-[hsl(163_65%_26%)]">Home</a>
-                    <ChevronRight className="w-4 h-4 text-[hsl(215_20%_65%)]" />
-                    <a href="#" className="text-[hsl(215_16%_47%)] hover:text-[hsl(163_65%_26%)]">Dashboard</a>
-                    <ChevronRight className="w-4 h-4 text-[hsl(215_20%_65%)]" />
-                    <span className="text-[hsl(222_47%_11%)] font-medium">Taken</span>
+                    <a href="#" className="text-muted-foreground hover:text-primary">Home</a>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    <a href="#" className="text-muted-foreground hover:text-primary">Dashboard</a>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-foreground font-medium">Taken</span>
                   </nav>
                 </SubSection>
 
@@ -1137,7 +1137,7 @@ const DesignSystem = () => {
                       <DropdownMenuItem><Settings className="w-4 h-4 mr-2" />Instellingen</DropdownMenuItem>
                       <DropdownMenuItem><Bell className="w-4 h-4 mr-2" />Notificaties</DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-[hsl(0_84%_60%)]"><LogOut className="w-4 h-4 mr-2" />Uitloggen</DropdownMenuItem>
+                      <DropdownMenuItem className="text-destructive"><LogOut className="w-4 h-4 mr-2" />Uitloggen</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </SubSection>
