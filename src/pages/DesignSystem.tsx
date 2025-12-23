@@ -35,6 +35,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { 
   Check, 
@@ -52,7 +61,32 @@ import {
   Bell,
   Settings,
   Loader2,
+  MoreHorizontal,
+  User,
+  LogOut,
+  Edit,
+  Trash2,
+  Calendar,
+  MapPin,
+  Phone,
+  Mail,
+  UtensilsCrossed,
+  Coffee,
+  Wine,
+  Package,
+  FileText,
+  Star,
+  ChefHat,
+  ClipboardList,
+  UserCheck,
+  Timer,
+  AlertOctagon,
+  RefreshCw,
+  Inbox,
+  X,
 } from "lucide-react";
+
+// ==================== HELPER COMPONENTS ====================
 
 // Color swatch component with copy functionality
 const ColorSwatch = ({ 
@@ -204,11 +238,11 @@ const Alert = ({
   };
   
   const v = variants[variant];
-  const Icon = v.icon;
+  const IconComponent = v.icon;
   
   return (
     <div className={`${v.bg} ${v.border} border rounded-xl p-4 flex gap-3`}>
-      <Icon className={`w-5 h-5 ${v.iconColor} flex-shrink-0 mt-0.5`} />
+      <IconComponent className={`w-5 h-5 ${v.iconColor} flex-shrink-0 mt-0.5`} />
       <div>
         <div className={`font-semibold ${v.titleColor}`}>{title}</div>
         <div className={`text-sm ${v.descColor} mt-0.5`}>{description}</div>
@@ -216,6 +250,451 @@ const Alert = ({
     </div>
   );
 };
+
+// Status Badge component
+const StatusBadge = ({ 
+  status, 
+  size = 'default' 
+}: { 
+  status: 'active' | 'pending' | 'inactive' | 'error';
+  size?: 'default' | 'sm';
+}) => {
+  const styles = {
+    active: 'bg-green-100 text-green-700',
+    pending: 'bg-amber-100 text-amber-700',
+    inactive: 'bg-slate-100 text-slate-700',
+    error: 'bg-red-100 text-red-700',
+  };
+  const dots = {
+    active: 'bg-green-500',
+    pending: 'bg-amber-500',
+    inactive: 'bg-slate-500',
+    error: 'bg-red-500',
+  };
+  const labels = {
+    active: 'Actief',
+    pending: 'In behandeling',
+    inactive: 'Inactief',
+    error: 'Fout',
+  };
+  
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-${size === 'sm' ? '2' : '3'} py-${size === 'sm' ? '0.5' : '1'} rounded-full text-xs font-medium ${styles[status]}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${dots[status]}`} />
+      {labels[status]}
+    </span>
+  );
+};
+
+// ==================== REAL-WORLD SCENARIO CARDS ====================
+
+// Order Card Module
+const OrderCard = () => (
+  <div className="bg-white rounded-xl border border-pv-border p-5 hover:border-pv-border-hover hover:shadow-md transition-all">
+    <div className="flex items-start justify-between mb-4">
+      <div className="flex items-center gap-3">
+        <div className="w-12 h-12 rounded-xl bg-pv-primary-light flex items-center justify-center">
+          <span className="text-lg font-bold text-pv-primary">T5</span>
+        </div>
+        <div>
+          <h4 className="font-semibold text-slate-900">Tafel 5</h4>
+          <p className="text-sm text-slate-500">Bestelling #1247</p>
+        </div>
+      </div>
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+        In bereiding
+      </span>
+    </div>
+    
+    <div className="space-y-2 mb-4">
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-slate-600 flex items-center gap-2">
+          <UtensilsCrossed className="w-4 h-4" />
+          2x Surf & Turf
+        </span>
+        <span className="font-medium text-slate-900">€54.00</span>
+      </div>
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-slate-600 flex items-center gap-2">
+          <Wine className="w-4 h-4" />
+          1x Witte Wijn
+        </span>
+        <span className="font-medium text-slate-900">€8.50</span>
+      </div>
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-slate-600 flex items-center gap-2">
+          <Coffee className="w-4 h-4" />
+          2x Koffie
+        </span>
+        <span className="font-medium text-slate-900">€6.00</span>
+      </div>
+    </div>
+    
+    <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+      <div className="flex items-center gap-2 text-sm text-slate-500">
+        <Clock className="w-4 h-4" />
+        <span>12 min geleden</span>
+      </div>
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm">Details</Button>
+        <Button size="sm">Gereed</Button>
+      </div>
+    </div>
+  </div>
+);
+
+// Task Card Module
+const TaskCard = ({ status = 'open' }: { status?: 'open' | 'progress' | 'done' }) => {
+  const statusStyles = {
+    open: { badge: 'bg-slate-100 text-slate-700', dot: 'bg-slate-500', label: 'Open' },
+    progress: { badge: 'bg-blue-100 text-blue-700', dot: 'bg-blue-500', label: 'In uitvoering' },
+    done: { badge: 'bg-green-100 text-green-700', dot: 'bg-green-500', label: 'Voltooid' },
+  };
+  const s = statusStyles[status];
+  
+  return (
+    <div className={`bg-white rounded-xl border ${status === 'done' ? 'border-green-200' : 'border-pv-border'} p-5 hover:shadow-md transition-all ${status === 'done' ? 'opacity-75' : ''}`}>
+      <div className="flex items-start gap-4">
+        <Checkbox checked={status === 'done'} className="mt-1" />
+        <div className="flex-1">
+          <div className="flex items-start justify-between mb-2">
+            <h4 className={`font-semibold ${status === 'done' ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
+              Terras klaarzetten
+            </h4>
+            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${s.badge}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+              {s.label}
+            </span>
+          </div>
+          
+          <p className="text-sm text-slate-500 mb-3">
+            Tafels en stoelen plaatsen, parasols opzetten, menu's neerleggen
+          </p>
+          
+          <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-1.5 text-slate-500">
+              <Clock className="w-4 h-4" />
+              <span>15 min</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                Hoog
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Avatar className="w-5 h-5">
+                <AvatarFallback className="text-xs bg-pv-primary-light text-pv-primary">JV</AvatarFallback>
+              </Avatar>
+              <span className="text-slate-600">Jan</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Reservation Card Module
+const ReservationCard = () => (
+  <div className="bg-white rounded-xl border border-pv-border p-5 hover:border-pv-border-hover hover:shadow-md transition-all">
+    <div className="flex items-start justify-between mb-4">
+      <div className="flex items-center gap-3">
+        <Avatar className="w-12 h-12">
+          <AvatarFallback className="bg-pv-primary-light text-pv-primary font-semibold">
+            MB
+          </AvatarFallback>
+        </Avatar>
+        <div>
+          <h4 className="font-semibold text-slate-900">Marie Bakker</h4>
+          <p className="text-sm text-slate-500">Reservering #R-2847</p>
+        </div>
+      </div>
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+        <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+        Bevestigd
+      </span>
+    </div>
+    
+    <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="flex items-center gap-2 text-sm">
+        <Calendar className="w-4 h-4 text-slate-400" />
+        <span className="text-slate-600">24 december 2024</span>
+      </div>
+      <div className="flex items-center gap-2 text-sm">
+        <Clock className="w-4 h-4 text-slate-400" />
+        <span className="text-slate-600">19:30</span>
+      </div>
+      <div className="flex items-center gap-2 text-sm">
+        <Users className="w-4 h-4 text-slate-400" />
+        <span className="text-slate-600">6 personen</span>
+      </div>
+      <div className="flex items-center gap-2 text-sm">
+        <MapPin className="w-4 h-4 text-slate-400" />
+        <span className="text-slate-600">Terras</span>
+      </div>
+    </div>
+    
+    <div className="p-3 rounded-lg bg-amber-50 border border-amber-100 mb-4">
+      <p className="text-sm text-amber-800">
+        <strong>Notitie:</strong> Verjaardag, graag taart en kaarsje
+      </p>
+    </div>
+    
+    <div className="flex gap-2">
+      <Button variant="outline" size="sm" className="flex-1">
+        <Phone className="w-4 h-4" />
+        Bel
+      </Button>
+      <Button variant="outline" size="sm" className="flex-1">
+        <Mail className="w-4 h-4" />
+        Mail
+      </Button>
+      <Button size="sm" className="flex-1">Inchecken</Button>
+    </div>
+  </div>
+);
+
+// Staff Card Module
+const StaffCard = ({ status = 'working' }: { status?: 'working' | 'break' | 'offline' }) => {
+  const statusStyles = {
+    working: { badge: 'bg-green-100 text-green-700', dot: 'bg-green-500', label: 'Aan het werk' },
+    break: { badge: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500', label: 'Pauze' },
+    offline: { badge: 'bg-slate-100 text-slate-700', dot: 'bg-slate-500', label: 'Offline' },
+  };
+  const s = statusStyles[status];
+  
+  return (
+    <div className="bg-white rounded-xl border border-pv-border p-5 hover:border-pv-border-hover hover:shadow-md transition-all">
+      <div className="flex items-start gap-4">
+        <div className="relative">
+          <Avatar className="w-14 h-14">
+            <AvatarImage src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" />
+            <AvatarFallback className="bg-pv-primary-light text-pv-primary font-semibold">
+              SJ
+            </AvatarFallback>
+          </Avatar>
+          <span className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-white ${s.dot}`} />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-start justify-between mb-1">
+            <h4 className="font-semibold text-slate-900">Sophie Jansen</h4>
+            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${s.badge}`}>
+              {s.label}
+            </span>
+          </div>
+          <p className="text-sm text-slate-500 mb-3">Bediening • West-Terschelling</p>
+          
+          <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-1.5 text-slate-500">
+              <Clock className="w-4 h-4" />
+              <span>Sinds 10:00</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-slate-500">
+              <ClipboardList className="w-4 h-4" />
+              <span>8 taken</span>
+            </div>
+          </div>
+        </div>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <MoreHorizontal className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-white">
+            <DropdownMenuItem>
+              <User className="w-4 h-4 mr-2" />
+              Profiel bekijken
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Edit className="w-4 h-4 mr-2" />
+              Bewerken
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-red-600">
+              <Trash2 className="w-4 h-4 mr-2" />
+              Verwijderen
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
+  );
+};
+
+// ==================== CARD VARIANTS ====================
+
+// Content Card
+const ContentCard = () => (
+  <div className="bg-white rounded-xl border border-pv-border p-6 hover:border-pv-border-hover hover:shadow-md transition-all">
+    <div className="flex items-start justify-between mb-4">
+      <div className="p-2.5 rounded-xl bg-pv-primary-light">
+        <FileText className="w-5 h-5 text-pv-primary" />
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <MoreHorizontal className="w-4 h-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="bg-white">
+          <DropdownMenuItem>Bewerken</DropdownMenuItem>
+          <DropdownMenuItem>Dupliceren</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem className="text-red-600">Verwijderen</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+    <h3 className="font-semibold text-slate-900 mb-2">Dagmenu Kerst</h3>
+    <p className="text-sm text-slate-500 mb-4">
+      Speciaal kerstmenu met seizoensgebonden ingrediënten en feestelijke gerechten.
+    </p>
+    <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+      <div className="flex items-center gap-2 text-sm text-slate-500">
+        <Calendar className="w-4 h-4" />
+        <span>24-26 dec</span>
+      </div>
+      <Button variant="ghost" size="sm">
+        Bekijk
+        <ChevronRight className="w-4 h-4" />
+      </Button>
+    </div>
+  </div>
+);
+
+// Form Card
+const FormCard = () => (
+  <div className="bg-white rounded-xl border border-pv-border p-6">
+    <h3 className="font-semibold text-slate-900 mb-4">Nieuwe Reservering</h3>
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-slate-700">Naam</label>
+        <Input placeholder="Voer naam in..." />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-slate-700">Datum</label>
+          <Input type="date" />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-slate-700">Tijd</label>
+          <Select>
+            <SelectTrigger>
+              <SelectValue placeholder="Kies tijd" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="18:00">18:00</SelectItem>
+              <SelectItem value="19:00">19:00</SelectItem>
+              <SelectItem value="20:00">20:00</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-slate-700">Notities</label>
+        <Textarea placeholder="Optionele opmerkingen..." className="resize-none" rows={3} />
+      </div>
+      <div className="flex gap-3 pt-2">
+        <Button variant="outline" className="flex-1">Annuleren</Button>
+        <Button className="flex-1">Opslaan</Button>
+      </div>
+    </div>
+  </div>
+);
+
+// Settings Card
+const SettingsCard = () => (
+  <div className="bg-white rounded-xl border border-pv-border p-6">
+    <h3 className="font-semibold text-slate-900 mb-4">Notificatie Instellingen</h3>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="font-medium text-slate-900">Push notificaties</p>
+          <p className="text-sm text-slate-500">Ontvang meldingen op je telefoon</p>
+        </div>
+        <Switch defaultChecked />
+      </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="font-medium text-slate-900">Email updates</p>
+          <p className="text-sm text-slate-500">Dagelijkse samenvatting per email</p>
+        </div>
+        <Switch />
+      </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="font-medium text-slate-900">Geluidseffecten</p>
+          <p className="text-sm text-slate-500">Geluid bij nieuwe bestellingen</p>
+        </div>
+        <Switch defaultChecked />
+      </div>
+    </div>
+  </div>
+);
+
+// ==================== EMPTY & ERROR STATES ====================
+
+const EmptyState = () => (
+  <div className="flex flex-col items-center justify-center py-12 text-center">
+    <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+      <Inbox className="w-8 h-8 text-slate-400" />
+    </div>
+    <h3 className="font-semibold text-slate-900 mb-2">Geen items gevonden</h3>
+    <p className="text-sm text-slate-500 mb-6 max-w-sm">
+      Er zijn momenteel geen items om weer te geven. Voeg een nieuw item toe om te beginnen.
+    </p>
+    <Button>
+      <Package className="w-4 h-4" />
+      Nieuw item toevoegen
+    </Button>
+  </div>
+);
+
+const ErrorState = () => (
+  <div className="flex flex-col items-center justify-center py-12 text-center">
+    <div className="w-16 h-16 rounded-2xl bg-red-100 flex items-center justify-center mb-4">
+      <AlertOctagon className="w-8 h-8 text-red-500" />
+    </div>
+    <h3 className="font-semibold text-slate-900 mb-2">Er ging iets mis</h3>
+    <p className="text-sm text-slate-500 mb-6 max-w-sm">
+      We konden de gegevens niet laden. Controleer je verbinding en probeer het opnieuw.
+    </p>
+    <Button variant="outline">
+      <RefreshCw className="w-4 h-4" />
+      Probeer opnieuw
+    </Button>
+  </div>
+);
+
+// ==================== LIST ITEMS ====================
+
+const NotificationItem = ({ read = false }: { read?: boolean }) => (
+  <div className={`flex items-start gap-4 p-4 rounded-xl border transition-all cursor-pointer ${read ? 'bg-white border-slate-100' : 'bg-pv-primary-light/30 border-pv-border'} hover:border-pv-border-hover`}>
+    <div className="relative">
+      <Avatar className="w-10 h-10">
+        <AvatarFallback className="bg-pv-primary text-white">KT</AvatarFallback>
+      </Avatar>
+      {!read && (
+        <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-pv-primary border-2 border-white" />
+      )}
+    </div>
+    <div className="flex-1">
+      <div className="flex items-start justify-between">
+        <p className={`text-sm ${read ? 'text-slate-600' : 'text-slate-900 font-medium'}`}>
+          <strong>Keuken Team</strong> heeft bestelling #1248 voltooid
+        </p>
+        <Button variant="ghost" size="icon" className="h-6 w-6 -mr-2">
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
+      <p className="text-xs text-slate-500 mt-1">2 minuten geleden</p>
+    </div>
+  </div>
+);
+
+// ==================== MAIN COMPONENT ====================
 
 export default function DesignSystem() {
   const [inputValue, setInputValue] = useState("");
@@ -507,6 +986,12 @@ export default function DesignSystem() {
                 />
               </div>
 
+              {/* Textarea */}
+              <div className="space-y-3 md:col-span-2">
+                <label className="text-sm font-medium text-slate-700">Textarea</label>
+                <Textarea placeholder="Voer een langere tekst in..." className="resize-none" rows={3} />
+              </div>
+
               {/* Checkbox */}
               <div className="flex items-center gap-3">
                 <Checkbox 
@@ -530,6 +1015,151 @@ export default function DesignSystem() {
                   Toggle switch
                 </label>
               </div>
+            </div>
+          </Section>
+
+          {/* ========== AVATARS ========== */}
+          <Section 
+            title="Avatars" 
+            description="Gebruikers profielfoto's in verschillende formaten"
+          >
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
+                  Formaten
+                </h3>
+                <div className="flex items-center gap-6">
+                  <Avatar className="w-8 h-8">
+                    <AvatarFallback className="text-xs bg-pv-primary-light text-pv-primary">XS</AvatarFallback>
+                  </Avatar>
+                  <Avatar className="w-10 h-10">
+                    <AvatarFallback className="text-sm bg-pv-primary-light text-pv-primary">SM</AvatarFallback>
+                  </Avatar>
+                  <Avatar className="w-12 h-12">
+                    <AvatarFallback className="bg-pv-primary-light text-pv-primary">MD</AvatarFallback>
+                  </Avatar>
+                  <Avatar className="w-16 h-16">
+                    <AvatarFallback className="text-lg bg-pv-primary-light text-pv-primary">LG</AvatarFallback>
+                  </Avatar>
+                  <Avatar className="w-20 h-20">
+                    <AvatarFallback className="text-xl bg-pv-primary-light text-pv-primary">XL</AvatarFallback>
+                  </Avatar>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
+                  Met Status
+                </h3>
+                <div className="flex items-center gap-6">
+                  <div className="relative">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" />
+                      <AvatarFallback>JD</AvatarFallback>
+                    </Avatar>
+                    <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-green-500 border-2 border-white" />
+                  </div>
+                  <div className="relative">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" />
+                      <AvatarFallback>AB</AvatarFallback>
+                    </Avatar>
+                    <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-amber-500 border-2 border-white" />
+                  </div>
+                  <div className="relative">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop" />
+                      <AvatarFallback>CD</AvatarFallback>
+                    </Avatar>
+                    <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-slate-400 border-2 border-white" />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
+                  User Chips
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-pv-primary-light border border-pv-border">
+                    <Avatar className="w-6 h-6">
+                      <AvatarFallback className="text-xs bg-pv-primary text-white">JV</AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium text-slate-700">Jan de Vries</span>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200">
+                    <Avatar className="w-6 h-6">
+                      <AvatarFallback className="text-xs bg-slate-500 text-white">MB</AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium text-slate-700">Marie Bakker</span>
+                    <X className="w-4 h-4 text-slate-400 cursor-pointer hover:text-slate-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Section>
+
+          {/* ========== DROPDOWN MENUS ========== */}
+          <Section 
+            title="Dropdown Menus" 
+            description="Context menus en action dropdowns"
+          >
+            <div className="flex flex-wrap gap-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    Acties
+                    <ChevronRight className="w-4 h-4 rotate-90" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-white">
+                  <DropdownMenuItem>
+                    <Edit className="w-4 h-4 mr-2" />
+                    Bewerken
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Dupliceren
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Star className="w-4 h-4 mr-2" />
+                    Favorieten
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-red-600">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Verwijderen
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <User className="w-4 h-4" />
+                    Account
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-white">
+                  <div className="px-2 py-1.5 border-b border-slate-100 mb-1">
+                    <p className="font-medium text-sm text-slate-900">Jan de Vries</p>
+                    <p className="text-xs text-slate-500">jan@puravida.nl</p>
+                  </div>
+                  <DropdownMenuItem>
+                    <User className="w-4 h-4 mr-2" />
+                    Profiel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Settings className="w-4 h-4 mr-2" />
+                    Instellingen
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-red-600">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Uitloggen
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </Section>
 
@@ -564,6 +1194,97 @@ export default function DesignSystem() {
                 icon={Clock}
                 trend={{ value: "-3 min", positive: true }}
               />
+            </div>
+          </Section>
+
+          {/* ========== CARD VARIANTS ========== */}
+          <Section 
+            title="Card Variaties" 
+            description="Verschillende card types voor verschillende use cases"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <ContentCard />
+              <FormCard />
+              <SettingsCard />
+            </div>
+          </Section>
+
+          {/* ========== REAL-WORLD SCENARIO MODULES ========== */}
+          <Section 
+            title="Real-World Scenario Modules" 
+            description="Concrete voorbeelden van hoe componenten samen komen in de praktijk"
+          >
+            <div className="space-y-8">
+              {/* Order Cards */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
+                  Order Card
+                </h3>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <OrderCard />
+                  <OrderCard />
+                </div>
+              </div>
+
+              {/* Task Cards */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
+                  Taak Card (verschillende states)
+                </h3>
+                <div className="space-y-3">
+                  <TaskCard status="open" />
+                  <TaskCard status="progress" />
+                  <TaskCard status="done" />
+                </div>
+              </div>
+
+              {/* Reservation Cards */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
+                  Reservering Card
+                </h3>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <ReservationCard />
+                </div>
+              </div>
+
+              {/* Staff Cards */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
+                  Staff Card (verschillende statussen)
+                </h3>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <StaffCard status="working" />
+                  <StaffCard status="break" />
+                  <StaffCard status="offline" />
+                </div>
+              </div>
+            </div>
+          </Section>
+
+          {/* ========== LIST ITEMS ========== */}
+          <Section 
+            title="List Items" 
+            description="Notificaties en andere lijst elementen"
+          >
+            <div className="space-y-3">
+              <NotificationItem read={false} />
+              <NotificationItem read={true} />
+            </div>
+          </Section>
+
+          {/* ========== EMPTY & ERROR STATES ========== */}
+          <Section 
+            title="Empty & Error States" 
+            description="Feedback states voor lege data en fouten"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="border border-dashed border-slate-200 rounded-xl">
+                <EmptyState />
+              </div>
+              <div className="border border-dashed border-slate-200 rounded-xl">
+                <ErrorState />
+              </div>
             </div>
           </Section>
 
@@ -608,6 +1329,23 @@ export default function DesignSystem() {
                   </span>
                 </div>
               </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
+                  Priority Badges
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                    Hoog
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                    Medium
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                    Laag
+                  </span>
+                </div>
+              </div>
             </div>
           </Section>
 
@@ -636,6 +1374,23 @@ export default function DesignSystem() {
               <div className="flex items-center gap-4">
                 <Loader2 className="w-6 h-6 animate-spin text-pv-primary" />
                 <span className="text-sm text-slate-500">Loading state...</span>
+              </div>
+
+              {/* Skeleton Loading */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
+                  Skeleton Loading
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-slate-200 animate-pulse" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-slate-200 rounded animate-pulse w-1/3" />
+                      <div className="h-3 bg-slate-200 rounded animate-pulse w-1/2" />
+                    </div>
+                  </div>
+                  <div className="h-20 bg-slate-200 rounded-xl animate-pulse" />
+                </div>
               </div>
             </div>
           </Section>
@@ -825,20 +1580,29 @@ export default function DesignSystem() {
             description="Hover en click states"
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {['Keuken', 'Bediening', 'Kassa'].map((item) => (
+              {[
+                { name: 'Keuken', icon: ChefHat },
+                { name: 'Bediening', icon: UserCheck },
+                { name: 'Kassa', icon: Euro },
+              ].map((item) => (
                 <div 
-                  key={item}
+                  key={item.name}
                   className="p-5 rounded-xl border border-pv-border bg-white hover:border-pv-border-hover hover:shadow-md transition-all cursor-pointer group"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-slate-900 group-hover:text-pv-primary transition-colors">
-                      {item}
-                    </span>
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-xl bg-pv-primary-light group-hover:bg-pv-primary transition-colors">
+                      <item.icon className="w-6 h-6 text-pv-primary group-hover:text-white transition-colors" />
+                    </div>
+                    <div className="flex-1">
+                      <span className="font-semibold text-slate-900 group-hover:text-pv-primary transition-colors">
+                        {item.name}
+                      </span>
+                      <p className="text-sm text-slate-500">
+                        Naar {item.name.toLowerCase()} module
+                      </p>
+                    </div>
                     <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-pv-primary group-hover:translate-x-1 transition-all" />
                   </div>
-                  <p className="text-sm text-slate-500 mt-2">
-                    Klik om naar {item.toLowerCase()} module te gaan
-                  </p>
                 </div>
               ))}
             </div>
