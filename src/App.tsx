@@ -119,14 +119,8 @@ const App = () => (
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="/design-system" 
-            element={
-              <ProtectedRoute>
-                <DesignSystem />
-              </ProtectedRoute>
-            } 
-          />
+          {/* Public Design System route - no login needed */}
+          <Route path="/design-system" element={<DesignSystem />} />
           {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />
           </Routes>

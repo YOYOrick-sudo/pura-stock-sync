@@ -17,32 +17,34 @@ export default {
         sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "system-ui", "sans-serif"],
       },
       colors: {
-        // Legacy polar colors (keep for backward compatibility)
-        'polar-white': '#FFFFFF',
-        'polar-background': '#F4F5F6',
-        'polar-surface': '#FAFAFA',
-        'polar-text-primary': '#17171C',
-        'polar-text-secondary': '#36373A',
-        'polar-text-tertiary': '#73747B',
-        'polar-border': '#ECEDED',
-        'polar-brand': '#1B7867',
-        'polar-brand-hover': '#156556',
-        'polar-brand-light': '#E6F4F1',
-        
-        // Pura Vida Design System - Hybrid Style
+        // === PURA VIDA MODERN DESIGN SYSTEM ===
         'pv': {
-          'background': 'hsl(210 20% 98%)',      // slate-50 - page background
-          'surface': 'hsl(0 0% 100%)',            // white - card surfaces
-          'border': 'hsl(169 35% 77%)',           // #B3D9D4 - subtle green border
-          'border-hover': 'hsl(163 65% 26%)',     // #1B7867 - hover state
-          'primary': 'hsl(163 65% 26%)',          // #1B7867 - Pura Vida Sea
-          'primary-hover': 'hsl(163 65% 21%)',    // #156556 - darker sea
-          'primary-light': 'hsl(163 35% 93%)',    // #E6F4F1 - light accent
-          'success': 'hsl(142 71% 45%)',          // green
-          'warning': 'hsl(38 92% 50%)',           // amber
-          'error': 'hsl(0 84% 60%)',              // red
-          'muted': 'hsl(215 16% 47%)',            // slate-500
+          // Backgrounds (Modern Slate)
+          'bg': {
+            'page': 'hsl(210 40% 98%)',      // #F8FAFC - Main page background
+            'card': 'hsl(0 0% 100%)',         // #FFFFFF - Cards & surfaces
+            'muted': 'hsl(210 40% 96%)',      // #F1F5F9 - Secondary areas
+            'hover': 'hsl(210 31% 91%)',      // #E2E8F0 - Hover states
+          },
+          // Brand Green (Pura Vida Sea)
+          'sea': 'hsl(163 65% 26%)',           // #1B7867 - Primary
+          'sea-dark': 'hsl(163 65% 21%)',      // #156556 - Hover/active
+          'sea-light': 'hsl(163 35% 93%)',     // #E6F4F1 - Subtle backgrounds
+          'sea-border': 'hsl(169 35% 77%)',    // #B3D9D4 - Subtle borders
+          // Text Colors
+          'text': {
+            'primary': 'hsl(222 47% 11%)',    // #0F172A - Slate-900
+            'secondary': 'hsl(215 16% 47%)',  // #64748B - Slate-500
+            'muted': 'hsl(215 20% 65%)',      // #94A3B8 - Slate-400
+          },
+          // Status Colors
+          'success': 'hsl(142 71% 45%)',       // #22C55E
+          'warning': 'hsl(38 92% 50%)',        // #F59E0B
+          'error': 'hsl(0 84% 60%)',           // #EF4444
+          'info': 'hsl(217 91% 60%)',          // #3B82F6
         },
+        
+        // Shadcn semantic tokens
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -81,73 +83,39 @@ export default {
           badge: "hsl(var(--notification-badge))",
         },
       },
-      spacing: {
-        'polar-1': '4px',
-        'polar-2': '8px',
-        'polar-3': '12px',
-        'polar-4': '16px',
-        'polar-6': '24px',
-        'polar-8': '32px',
-        'polar-12': '48px',
-      },
       boxShadow: {
-        soft: "var(--shadow-soft)",
-        medium: "var(--shadow-medium)",
-        hover: "var(--shadow-hover)",
+        'soft': '0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px 0 rgb(0 0 0 / 0.02)',
+        'card': '0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05)',
+        'elevated': '0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05)',
+        'hover': '0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05)',
       },
       borderRadius: {
-        'polar-sm': '8px',
-        'polar-lg': '16px',
-        'polar-xl': '20px',
+        'xl': '16px',
+        '2xl': '20px',
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
         "fade-in": {
-          from: {
-            opacity: "0",
-            transform: "translateY(10px)",
-          },
-          to: {
-            opacity: "1",
-            transform: "translateY(0)",
-          },
+          from: { opacity: "0", transform: "translateY(10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
         },
         "slide-up": {
-          from: {
-            opacity: "0",
-            transform: "translateY(20px)",
-          },
-          to: {
-            opacity: "1",
-            transform: "translateY(0)",
-          },
+          from: { opacity: "0", transform: "translateY(20px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
         },
-        "ripple": {
-          "0%": { transform: "scale(0)", opacity: "0.4" },
-          "100%": { transform: "scale(4)", opacity: "0" },
-        },
-        "check-pulse": {
-          "0%": { transform: "scale(1)" },
-          "50%": { transform: "scale(1.25)" },
-          "100%": { transform: "scale(1)" },
+        "pulse-subtle": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.6" },
         },
       },
       animation: {
@@ -155,8 +123,7 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.5s ease-out",
         "slide-up": "slide-up 0.4s ease-out",
-        "ripple": "ripple 0.4s ease-out forwards",
-        "check-pulse": "check-pulse 0.3s ease-out",
+        "pulse-subtle": "pulse-subtle 2s ease-in-out infinite",
       },
     },
   },

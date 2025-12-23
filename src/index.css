@@ -1,130 +1,92 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* === POLAR + PURA VIDA DESIGN SYSTEM === */
+/* === PURA VIDA MODERN DESIGN SYSTEM === */
 
 @layer base {
   :root {
-    /* === POLAR BASE COLORS === */
-    --polar-white: #FFFFFF;
-    --polar-background: #F4F5F6;
-    --polar-surface: #FAFAFA;
+    /* === MODERN COLOR PALETTE (HSL Values) === */
     
-    /* Polar Text Colors */
-    --polar-text-primary: #17171C;
-    --polar-text-secondary: #36373A;
-    --polar-text-tertiary: #73747B;
-    --polar-text-disabled: #ACAEB3;
+    /* Backgrounds - Modern Slate (NO MORE CRÈME!) */
+    --background: 210 40% 98%;           /* #F8FAFC - Slate-50 */
+    --foreground: 222 47% 11%;           /* #0F172A - Slate-900 */
     
-    /* Polar Border Colors */
-    --polar-border-default: #ECEDED;
-    --polar-border-light: #F4F5F6;
-    --polar-border-dark: #36373A;
-    
-    /* === PURA VIDA BRAND COLORS (Polar Brand Colors Mapped) === */
-    /* Sea - Primary Brand Color #1B7867 */
-    --primary: 168 63% 28%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 168 63% 35%;
-    
-    --polar-brand-primary: #1B7867;
-    --polar-brand-hover: #156556;
-    --polar-brand-light: #E6F4F1;
-    --polar-brand-border: #B3D9D4;
-
-    /* Sunset - Accent/CTA Color #E27726 */
-    --secondary: 25 75% 52%;
-    --secondary-foreground: 0 0% 100%;
-    
-    /* Sunrise - Secondary Accent #F9BD84 */
-    --accent: 25 91% 75%;
-    --accent-foreground: 210 19% 21%;
-
-    /* Moonlight - Background Color #F5F7DD */
-    --background: 65 59% 92%;
-    --foreground: 210 19% 21%; /* Midnight for text */
-
-    /* Cards - Polar White */
+    /* Card surfaces - Pure white */
     --card: 0 0% 100%;
-    --card-foreground: 210 19% 21%;
-
+    --card-foreground: 222 47% 11%;
+    
     --popover: 0 0% 100%;
-    --popover-foreground: 210 19% 21%;
-
-    /* Sky - Muted/Borders #B1CFBE */
-    --muted: 145 26% 75%;
-    --muted-foreground: 168 30% 35%;
-
-    --destructive: 0 84.2% 60.2%;
+    --popover-foreground: 222 47% 11%;
+    
+    /* Primary - Pura Vida Sea Green */
+    --primary: 163 65% 26%;              /* #1B7867 */
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 163 65% 21%;        /* #156556 */
+    
+    /* Secondary - Light green tint */
+    --secondary: 163 35% 93%;            /* #E6F4F1 */
+    --secondary-foreground: 163 65% 26%;
+    
+    /* Muted - Slate grays */
+    --muted: 210 40% 96%;                /* #F1F5F9 */
+    --muted-foreground: 215 16% 47%;     /* #64748B */
+    
+    /* Accent - Warm sunset (for CTAs) */
+    --accent: 25 95% 53%;                /* #F97316 */
+    --accent-foreground: 0 0% 100%;
+    
+    /* Destructive */
+    --destructive: 0 84% 60%;            /* #EF4444 */
     --destructive-foreground: 0 0% 100%;
     
-    /* Notification badge - Pastel red */
-    --notification-badge: 0 70% 75%;
-
-    /* Borders */
-    --border: 145 26% 75%;
-    --input: 65 59% 92%;
-    --ring: 168 63% 28%;
-
-    --radius: 1rem;
-
-    /* Polar Spacing */
-    --polar-space-1: 4px;
-    --polar-space-2: 8px;
-    --polar-space-3: 12px;
-    --polar-space-4: 16px;
-    --polar-space-6: 24px;
-    --polar-space-8: 32px;
-    --polar-space-12: 48px;
+    /* Notification badge */
+    --notification-badge: 0 70% 60%;
     
-    /* Polar Border Radius */
-    --polar-radius-sm: 8px;
-    --polar-radius-lg: 16px;
-    --polar-radius-xl: 20px;
+    /* Borders - Subtle green tint */
+    --border: 169 35% 77%;               /* #B3D9D4 */
+    --input: 210 40% 96%;                /* #F1F5F9 */
+    --ring: 163 65% 26%;                 /* Primary green */
     
-    /* Polar Shadows (minimal) */
-    --polar-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --polar-shadow-md: 0 2px 4px 0 rgb(0 0 0 / 0.05);
+    /* Radius */
+    --radius: 0.75rem;
   }
 
   .dark {
-    /* Midnight - Dark Background #282E3A */
-    --background: 210 19% 21%;
-    --foreground: 65 59% 92%;
-
-    --card: 210 19% 15%;
-    --card-foreground: 65 59% 92%;
-
-    --popover: 210 19% 15%;
-    --popover-foreground: 65 59% 92%;
-
-    /* Sea stays same in dark mode */
-    --primary: 168 63% 28%;
+    /* Dark mode - Midnight palette */
+    --background: 222 47% 11%;           /* Slate-900 */
+    --foreground: 210 40% 98%;           /* Slate-50 */
+    
+    --card: 217 33% 17%;                 /* Slate-800 */
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 98%;
+    
+    /* Primary stays vibrant in dark */
+    --primary: 163 65% 35%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 168 63% 35%;
-
-    /* Sunset stays vibrant */
-    --secondary: 25 75% 52%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 210 19% 30%;
-    --muted-foreground: 145 26% 65%;
-
-    --accent: 25 91% 75%;
-    --accent-foreground: 210 19% 21%;
-
-    --destructive: 0 62.8% 50%;
+    --primary-hover: 163 65% 40%;
+    
+    --secondary: 217 33% 25%;
+    --secondary-foreground: 210 40% 98%;
+    
+    --muted: 217 33% 25%;
+    --muted-foreground: 215 20% 65%;
+    
+    --accent: 25 95% 53%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
     
-    /* Notification badge - Pastel red */
-    --notification-badge: 0 70% 75%;
-
-    --border: 210 19% 30%;
-    --input: 210 19% 18%;
-    --ring: 168 63% 28%;
+    --notification-badge: 0 70% 65%;
+    
+    --border: 217 33% 30%;
+    --input: 217 33% 20%;
+    --ring: 163 65% 35%;
   }
 }
 
@@ -134,53 +96,80 @@
   }
 
   body {
-    @apply bg-polar-background text-polar-text-primary;
+    @apply bg-background text-foreground antialiased;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     font-size: 15px;
     font-weight: 400;
-    line-height: 1.5;
+    line-height: 1.6;
+  }
+}
+
+/* === TYPOGRAPHY SYSTEM === */
+@layer components {
+  .text-display {
+    @apply text-4xl font-bold tracking-tight;
+    color: hsl(222 47% 11%);
   }
   
-  /* Polar Typography Classes */
-  .polar-h1 {
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--polar-text-primary);
+  .text-h1 {
+    @apply text-2xl font-bold;
+    color: hsl(222 47% 11%);
   }
   
-  .polar-metric {
-    font-size: 56px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    line-height: 1;
+  .text-h2 {
+    @apply text-xl font-semibold;
+    color: hsl(222 47% 11%);
   }
   
-  .polar-title {
-    font-size: 18px;
-    font-weight: 500;
-    color: var(--polar-text-primary);
+  .text-h3 {
+    @apply text-lg font-semibold;
+    color: hsl(222 47% 11%);
   }
   
-  .polar-body {
-    font-size: 15px;
-    font-weight: 400;
-    color: var(--polar-text-primary);
+  .text-body {
+    @apply text-base font-normal;
+    color: hsl(222 47% 11%);
   }
   
-  .polar-secondary {
-    font-size: 14px;
-    font-weight: 400;
-    color: var(--polar-text-secondary);
+  .text-body-sm {
+    @apply text-sm font-normal;
+    color: hsl(215 16% 47%);
   }
   
-  /* Polar Animations */
-  @keyframes polar-skeleton-pulse {
+  .text-caption {
+    @apply text-xs font-medium;
+    color: hsl(215 20% 65%);
+  }
+  
+  .text-label {
+    @apply text-sm font-medium;
+    color: hsl(222 47% 11%);
+  }
+}
+
+/* === ANIMATION UTILITIES === */
+@layer utilities {
+  .animate-in {
+    animation: fade-in 0.3s ease-out;
+  }
+  
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .skeleton-pulse {
+    animation: skeleton-pulse 2s ease-in-out infinite;
+  }
+  
+  @keyframes skeleton-pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
-  }
-  
-  @keyframes polar-skeleton-wave {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
   }
 }

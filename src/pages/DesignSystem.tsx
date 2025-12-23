@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { SidebarLayout } from "@/components/SidebarLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,6 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Tooltip,
@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { 
   Check, 
@@ -73,90 +74,100 @@ import {
   UtensilsCrossed,
   Coffee,
   Wine,
-  Package,
-  FileText,
-  Star,
+  Plus,
+  Home,
   ChefHat,
   ClipboardList,
-  UserCheck,
-  Timer,
-  AlertOctagon,
-  RefreshCw,
+  ArrowRight,
+  Eye,
+  Download,
+  Share2,
+  Heart,
+  Star,
   Inbox,
+  RefreshCw,
   X,
 } from "lucide-react";
 
 // ==================== HELPER COMPONENTS ====================
 
-// Color swatch component with copy functionality
 const ColorSwatch = ({ 
   name, 
   value, 
-  description, 
-  textColor = "text-slate-900" 
+  cssVar,
+  textDark = true 
 }: { 
   name: string; 
   value: string; 
-  description: string;
-  textColor?: string;
+  cssVar?: string;
+  textDark?: boolean;
 }) => {
   const [copied, setCopied] = useState(false);
   
   const handleCopy = () => {
-    navigator.clipboard.writeText(value);
+    navigator.clipboard.writeText(cssVar || value);
     setCopied(true);
+    toast.success("Gekopieerd!");
     setTimeout(() => setCopied(false), 2000);
   };
   
   return (
-    <div 
-      className="group flex items-center gap-4 p-3 rounded-xl bg-white border border-pv-border hover:border-pv-border-hover transition-colors cursor-pointer"
+    <button 
       onClick={handleCopy}
+      className="group flex flex-col items-start gap-2 p-3 rounded-xl bg-white border border-[hsl(169_35%_77%)] hover:border-[hsl(163_65%_26%)] hover:shadow-elevated transition-all text-left w-full"
     >
       <div 
-        className="w-14 h-14 rounded-xl shadow-sm border border-slate-200"
+        className="w-full h-16 rounded-lg shadow-soft border border-black/5"
         style={{ backgroundColor: value }}
       />
-      <div className="flex-1">
-        <div className={`font-semibold ${textColor}`}>{name}</div>
-        <div className="text-sm text-slate-500">{description}</div>
-        <code className="text-xs text-pv-primary font-mono">{value}</code>
+      <div className="w-full">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold text-sm text-[hsl(222_47%_11%)]">{name}</span>
+          {copied ? (
+            <Check className="w-4 h-4 text-[hsl(163_65%_26%)]" />
+          ) : (
+            <Copy className="w-4 h-4 text-[hsl(215_16%_47%)] opacity-0 group-hover:opacity-100 transition-opacity" />
+          )}
+        </div>
+        <code className="text-xs text-[hsl(215_16%_47%)] font-mono">{value}</code>
       </div>
-      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-        {copied ? (
-          <Check className="w-5 h-5 text-pv-primary" />
-        ) : (
-          <Copy className="w-5 h-5 text-slate-400" />
-        )}
-      </div>
-    </div>
+    </button>
   );
 };
 
-// Section wrapper component
 const Section = ({ 
+  id,
   title, 
   description, 
   children 
 }: { 
+  id?: string;
   title: string; 
   description?: string; 
   children: React.ReactNode 
 }) => (
-  <section className="space-y-6">
-    <div>
-      <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
+  <section id={id} className="scroll-mt-24">
+    <div className="mb-6">
+      <h2 className="text-2xl font-bold text-[hsl(222_47%_11%)]">{title}</h2>
       {description && (
-        <p className="text-slate-500 mt-1">{description}</p>
+        <p className="text-[hsl(215_16%_47%)] mt-1">{description}</p>
       )}
     </div>
-    <div className="bg-white rounded-2xl border border-pv-border p-6 shadow-sm">
+    <div className="bg-white rounded-2xl border border-[hsl(169_35%_77%)] p-6 shadow-soft">
       {children}
     </div>
   </section>
 );
 
-// KPI Card component (new style)
+const SubSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <div className="space-y-4">
+    <h3 className="text-lg font-semibold text-[hsl(222_47%_11%)] border-b border-[hsl(169_35%_77%)] pb-2">{title}</h3>
+    {children}
+  </div>
+);
+
+// ==================== KPI CARD ====================
+
 const KPICard = ({ 
   title, 
   value, 
@@ -170,29 +181,30 @@ const KPICard = ({
   icon: React.ElementType;
   trend?: { value: string; positive: boolean };
 }) => (
-  <div className="bg-white rounded-xl border border-pv-border p-5 hover:border-pv-border-hover transition-all hover:shadow-md">
+  <div className="bg-white rounded-xl border border-[hsl(169_35%_77%)] p-5 hover:border-[hsl(163_65%_26%)] transition-all hover:shadow-elevated">
     <div className="flex items-start justify-between mb-3">
-      <div className="p-2.5 rounded-xl bg-pv-primary-light">
-        <Icon className="w-5 h-5 text-pv-primary" />
+      <div className="p-2.5 rounded-xl bg-[hsl(163_35%_93%)]">
+        <Icon className="w-5 h-5 text-[hsl(163_65%_26%)]" />
       </div>
       {trend && (
         <div className={`flex items-center gap-1 text-sm font-medium ${
-          trend.positive ? 'text-green-600' : 'text-red-600'
+          trend.positive ? 'text-[hsl(142_71%_45%)]' : 'text-[hsl(0_84%_60%)]'
         }`}>
           <TrendingUp className={`w-4 h-4 ${!trend.positive && 'rotate-180'}`} />
           {trend.value}
         </div>
       )}
     </div>
-    <div className="text-2xl font-bold text-slate-900">{value}</div>
-    <div className="text-sm text-slate-500 mt-1">{title}</div>
+    <div className="text-2xl font-bold text-[hsl(222_47%_11%)]">{value}</div>
+    <div className="text-sm text-[hsl(215_16%_47%)] mt-1">{title}</div>
     {subtitle && (
-      <div className="text-xs text-pv-primary mt-2">{subtitle}</div>
+      <div className="text-xs text-[hsl(163_65%_26%)] mt-2 font-medium">{subtitle}</div>
     )}
   </div>
 );
 
-// Alert component
+// ==================== ALERT COMPONENT ====================
+
 const Alert = ({ 
   variant, 
   title, 
@@ -204,36 +216,36 @@ const Alert = ({
 }) => {
   const variants = {
     info: {
-      bg: 'bg-blue-50',
-      border: 'border-blue-200',
+      bg: 'bg-[hsl(217_91%_97%)]',
+      border: 'border-[hsl(217_91%_80%)]',
       icon: Info,
-      iconColor: 'text-blue-600',
-      titleColor: 'text-blue-900',
-      descColor: 'text-blue-700',
+      iconColor: 'text-[hsl(217_91%_60%)]',
+      titleColor: 'text-[hsl(217_91%_30%)]',
+      descColor: 'text-[hsl(217_91%_40%)]',
     },
     success: {
-      bg: 'bg-green-50',
-      border: 'border-green-200',
+      bg: 'bg-[hsl(142_71%_97%)]',
+      border: 'border-[hsl(142_71%_70%)]',
       icon: CheckCircle,
-      iconColor: 'text-green-600',
-      titleColor: 'text-green-900',
-      descColor: 'text-green-700',
+      iconColor: 'text-[hsl(142_71%_45%)]',
+      titleColor: 'text-[hsl(142_71%_25%)]',
+      descColor: 'text-[hsl(142_71%_35%)]',
     },
     warning: {
-      bg: 'bg-amber-50',
-      border: 'border-amber-200',
+      bg: 'bg-[hsl(38_92%_97%)]',
+      border: 'border-[hsl(38_92%_70%)]',
       icon: AlertTriangle,
-      iconColor: 'text-amber-600',
-      titleColor: 'text-amber-900',
-      descColor: 'text-amber-700',
+      iconColor: 'text-[hsl(38_92%_45%)]',
+      titleColor: 'text-[hsl(38_92%_25%)]',
+      descColor: 'text-[hsl(38_92%_35%)]',
     },
     error: {
-      bg: 'bg-red-50',
-      border: 'border-red-200',
+      bg: 'bg-[hsl(0_84%_97%)]',
+      border: 'border-[hsl(0_84%_80%)]',
       icon: AlertCircle,
-      iconColor: 'text-red-600',
-      titleColor: 'text-red-900',
-      descColor: 'text-red-700',
+      iconColor: 'text-[hsl(0_84%_60%)]',
+      titleColor: 'text-[hsl(0_84%_30%)]',
+      descColor: 'text-[hsl(0_84%_40%)]',
     },
   };
   
@@ -251,88 +263,65 @@ const Alert = ({
   );
 };
 
-// Status Badge component
+// ==================== STATUS BADGE ====================
+
 const StatusBadge = ({ 
-  status, 
-  size = 'default' 
+  status 
 }: { 
   status: 'active' | 'pending' | 'inactive' | 'error';
-  size?: 'default' | 'sm';
 }) => {
   const styles = {
-    active: 'bg-green-100 text-green-700',
-    pending: 'bg-amber-100 text-amber-700',
-    inactive: 'bg-slate-100 text-slate-700',
-    error: 'bg-red-100 text-red-700',
-  };
-  const dots = {
-    active: 'bg-green-500',
-    pending: 'bg-amber-500',
-    inactive: 'bg-slate-500',
-    error: 'bg-red-500',
-  };
-  const labels = {
-    active: 'Actief',
-    pending: 'In behandeling',
-    inactive: 'Inactief',
-    error: 'Fout',
+    active: { bg: 'bg-[hsl(142_71%_93%)]', text: 'text-[hsl(142_71%_30%)]', dot: 'bg-[hsl(142_71%_45%)]', label: 'Actief' },
+    pending: { bg: 'bg-[hsl(38_92%_93%)]', text: 'text-[hsl(38_92%_30%)]', dot: 'bg-[hsl(38_92%_50%)]', label: 'In behandeling' },
+    inactive: { bg: 'bg-[hsl(215_16%_93%)]', text: 'text-[hsl(215_16%_30%)]', dot: 'bg-[hsl(215_16%_47%)]', label: 'Inactief' },
+    error: { bg: 'bg-[hsl(0_84%_93%)]', text: 'text-[hsl(0_84%_30%)]', dot: 'bg-[hsl(0_84%_60%)]', label: 'Fout' },
   };
   
+  const s = styles[status];
+  
   return (
-    <span className={`inline-flex items-center gap-1.5 px-${size === 'sm' ? '2' : '3'} py-${size === 'sm' ? '0.5' : '1'} rounded-full text-xs font-medium ${styles[status]}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${dots[status]}`} />
-      {labels[status]}
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${s.bg} ${s.text}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+      {s.label}
     </span>
   );
 };
 
-// ==================== REAL-WORLD SCENARIO CARDS ====================
+// ==================== REAL-WORLD MODULES ====================
 
-// Order Card Module
 const OrderCard = () => (
-  <div className="bg-white rounded-xl border border-pv-border p-5 hover:border-pv-border-hover hover:shadow-md transition-all">
+  <div className="bg-white rounded-xl border border-[hsl(169_35%_77%)] p-5 hover:border-[hsl(163_65%_26%)] hover:shadow-elevated transition-all">
     <div className="flex items-start justify-between mb-4">
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-pv-primary-light flex items-center justify-center">
-          <span className="text-lg font-bold text-pv-primary">T5</span>
+        <div className="w-12 h-12 rounded-xl bg-[hsl(163_35%_93%)] flex items-center justify-center">
+          <span className="text-lg font-bold text-[hsl(163_65%_26%)]">T5</span>
         </div>
         <div>
-          <h4 className="font-semibold text-slate-900">Tafel 5</h4>
-          <p className="text-sm text-slate-500">Bestelling #1247</p>
+          <h4 className="font-semibold text-[hsl(222_47%_11%)]">Tafel 5</h4>
+          <p className="text-sm text-[hsl(215_16%_47%)]">Bestelling #1247</p>
         </div>
       </div>
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-        In bereiding
-      </span>
+      <StatusBadge status="pending" />
     </div>
     
     <div className="space-y-2 mb-4">
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-slate-600 flex items-center gap-2">
-          <UtensilsCrossed className="w-4 h-4" />
-          2x Surf & Turf
-        </span>
-        <span className="font-medium text-slate-900">€54.00</span>
-      </div>
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-slate-600 flex items-center gap-2">
-          <Wine className="w-4 h-4" />
-          1x Witte Wijn
-        </span>
-        <span className="font-medium text-slate-900">€8.50</span>
-      </div>
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-slate-600 flex items-center gap-2">
-          <Coffee className="w-4 h-4" />
-          2x Koffie
-        </span>
-        <span className="font-medium text-slate-900">€6.00</span>
-      </div>
+      {[
+        { icon: UtensilsCrossed, item: "2x Surf & Turf", price: "€54.00" },
+        { icon: Wine, item: "1x Witte Wijn", price: "€8.50" },
+        { icon: Coffee, item: "2x Koffie", price: "€6.00" },
+      ].map((line, i) => (
+        <div key={i} className="flex items-center justify-between text-sm">
+          <span className="text-[hsl(215_16%_47%)] flex items-center gap-2">
+            <line.icon className="w-4 h-4" />
+            {line.item}
+          </span>
+          <span className="font-medium text-[hsl(222_47%_11%)]">{line.price}</span>
+        </div>
+      ))}
     </div>
     
-    <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-      <div className="flex items-center gap-2 text-sm text-slate-500">
+    <div className="flex items-center justify-between pt-4 border-t border-[hsl(210_40%_96%)]">
+      <div className="flex items-center gap-2 text-sm text-[hsl(215_16%_47%)]">
         <Clock className="w-4 h-4" />
         <span>12 min geleden</span>
       </div>
@@ -344,22 +333,21 @@ const OrderCard = () => (
   </div>
 );
 
-// Task Card Module
 const TaskCard = ({ status = 'open' }: { status?: 'open' | 'progress' | 'done' }) => {
-  const statusStyles = {
-    open: { badge: 'bg-slate-100 text-slate-700', dot: 'bg-slate-500', label: 'Open' },
-    progress: { badge: 'bg-blue-100 text-blue-700', dot: 'bg-blue-500', label: 'In uitvoering' },
-    done: { badge: 'bg-green-100 text-green-700', dot: 'bg-green-500', label: 'Voltooid' },
+  const statusConfig = {
+    open: { badge: 'bg-[hsl(215_16%_93%)] text-[hsl(215_16%_30%)]', dot: 'bg-[hsl(215_16%_47%)]', label: 'Open' },
+    progress: { badge: 'bg-[hsl(217_91%_93%)] text-[hsl(217_91%_30%)]', dot: 'bg-[hsl(217_91%_60%)]', label: 'In uitvoering' },
+    done: { badge: 'bg-[hsl(142_71%_93%)] text-[hsl(142_71%_30%)]', dot: 'bg-[hsl(142_71%_45%)]', label: 'Voltooid' },
   };
-  const s = statusStyles[status];
+  const s = statusConfig[status];
   
   return (
-    <div className={`bg-white rounded-xl border ${status === 'done' ? 'border-green-200' : 'border-pv-border'} p-5 hover:shadow-md transition-all ${status === 'done' ? 'opacity-75' : ''}`}>
+    <div className={`bg-white rounded-xl border ${status === 'done' ? 'border-[hsl(142_71%_70%)]' : 'border-[hsl(169_35%_77%)]'} p-5 hover:shadow-elevated transition-all ${status === 'done' ? 'opacity-75' : ''}`}>
       <div className="flex items-start gap-4">
         <Checkbox checked={status === 'done'} className="mt-1" />
         <div className="flex-1">
           <div className="flex items-start justify-between mb-2">
-            <h4 className={`font-semibold ${status === 'done' ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
+            <h4 className={`font-semibold ${status === 'done' ? 'text-[hsl(215_16%_47%)] line-through' : 'text-[hsl(222_47%_11%)]'}`}>
               Terras klaarzetten
             </h4>
             <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${s.badge}`}>
@@ -368,25 +356,23 @@ const TaskCard = ({ status = 'open' }: { status?: 'open' | 'progress' | 'done' }
             </span>
           </div>
           
-          <p className="text-sm text-slate-500 mb-3">
+          <p className="text-sm text-[hsl(215_16%_47%)] mb-3">
             Tafels en stoelen plaatsen, parasols opzetten, menu's neerleggen
           </p>
           
           <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1.5 text-slate-500">
+            <div className="flex items-center gap-1.5 text-[hsl(215_16%_47%)]">
               <Clock className="w-4 h-4" />
               <span>15 min</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
-                Hoog
-              </span>
-            </div>
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[hsl(0_84%_93%)] text-[hsl(0_84%_30%)]">
+              Hoog
+            </span>
             <div className="flex items-center gap-1.5">
               <Avatar className="w-5 h-5">
-                <AvatarFallback className="text-xs bg-pv-primary-light text-pv-primary">JV</AvatarFallback>
+                <AvatarFallback className="text-xs bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]">JV</AvatarFallback>
               </Avatar>
-              <span className="text-slate-600">Jan</span>
+              <span className="text-[hsl(215_16%_47%)]">Jan</span>
             </div>
           </div>
         </div>
@@ -395,48 +381,39 @@ const TaskCard = ({ status = 'open' }: { status?: 'open' | 'progress' | 'done' }
   );
 };
 
-// Reservation Card Module
 const ReservationCard = () => (
-  <div className="bg-white rounded-xl border border-pv-border p-5 hover:border-pv-border-hover hover:shadow-md transition-all">
+  <div className="bg-white rounded-xl border border-[hsl(169_35%_77%)] p-5 hover:border-[hsl(163_65%_26%)] hover:shadow-elevated transition-all">
     <div className="flex items-start justify-between mb-4">
       <div className="flex items-center gap-3">
         <Avatar className="w-12 h-12">
-          <AvatarFallback className="bg-pv-primary-light text-pv-primary font-semibold">
+          <AvatarFallback className="bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)] font-semibold">
             MB
           </AvatarFallback>
         </Avatar>
         <div>
-          <h4 className="font-semibold text-slate-900">Marie Bakker</h4>
-          <p className="text-sm text-slate-500">Reservering #R-2847</p>
+          <h4 className="font-semibold text-[hsl(222_47%_11%)]">Marie Bakker</h4>
+          <p className="text-sm text-[hsl(215_16%_47%)]">Reservering #R-2847</p>
         </div>
       </div>
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-        <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-        Bevestigd
-      </span>
+      <StatusBadge status="active" />
     </div>
     
-    <div className="grid grid-cols-2 gap-4 mb-4">
-      <div className="flex items-center gap-2 text-sm">
-        <Calendar className="w-4 h-4 text-slate-400" />
-        <span className="text-slate-600">24 december 2024</span>
-      </div>
-      <div className="flex items-center gap-2 text-sm">
-        <Clock className="w-4 h-4 text-slate-400" />
-        <span className="text-slate-600">19:30</span>
-      </div>
-      <div className="flex items-center gap-2 text-sm">
-        <Users className="w-4 h-4 text-slate-400" />
-        <span className="text-slate-600">6 personen</span>
-      </div>
-      <div className="flex items-center gap-2 text-sm">
-        <MapPin className="w-4 h-4 text-slate-400" />
-        <span className="text-slate-600">Terras</span>
-      </div>
+    <div className="grid grid-cols-2 gap-3 mb-4">
+      {[
+        { icon: Calendar, text: "24 december 2024" },
+        { icon: Clock, text: "19:30" },
+        { icon: Users, text: "6 personen" },
+        { icon: MapPin, text: "Terras" },
+      ].map((item, i) => (
+        <div key={i} className="flex items-center gap-2 text-sm">
+          <item.icon className="w-4 h-4 text-[hsl(215_20%_65%)]" />
+          <span className="text-[hsl(215_16%_47%)]">{item.text}</span>
+        </div>
+      ))}
     </div>
     
-    <div className="p-3 rounded-lg bg-amber-50 border border-amber-100 mb-4">
-      <p className="text-sm text-amber-800">
+    <div className="p-3 rounded-lg bg-[hsl(38_92%_97%)] border border-[hsl(38_92%_80%)] mb-4">
+      <p className="text-sm text-[hsl(38_92%_30%)]">
         <strong>Notitie:</strong> Verjaardag, graag taart en kaarsje
       </p>
     </div>
@@ -455,22 +432,21 @@ const ReservationCard = () => (
   </div>
 );
 
-// Staff Card Module
 const StaffCard = ({ status = 'working' }: { status?: 'working' | 'break' | 'offline' }) => {
-  const statusStyles = {
-    working: { badge: 'bg-green-100 text-green-700', dot: 'bg-green-500', label: 'Aan het werk' },
-    break: { badge: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500', label: 'Pauze' },
-    offline: { badge: 'bg-slate-100 text-slate-700', dot: 'bg-slate-500', label: 'Offline' },
+  const statusConfig = {
+    working: { badge: 'bg-[hsl(142_71%_93%)] text-[hsl(142_71%_30%)]', dot: 'bg-[hsl(142_71%_45%)]', label: 'Aan het werk' },
+    break: { badge: 'bg-[hsl(38_92%_93%)] text-[hsl(38_92%_30%)]', dot: 'bg-[hsl(38_92%_50%)]', label: 'Pauze' },
+    offline: { badge: 'bg-[hsl(215_16%_93%)] text-[hsl(215_16%_30%)]', dot: 'bg-[hsl(215_16%_47%)]', label: 'Offline' },
   };
-  const s = statusStyles[status];
+  const s = statusConfig[status];
   
   return (
-    <div className="bg-white rounded-xl border border-pv-border p-5 hover:border-pv-border-hover hover:shadow-md transition-all">
+    <div className="bg-white rounded-xl border border-[hsl(169_35%_77%)] p-5 hover:border-[hsl(163_65%_26%)] hover:shadow-elevated transition-all">
       <div className="flex items-start gap-4">
         <div className="relative">
           <Avatar className="w-14 h-14">
             <AvatarImage src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" />
-            <AvatarFallback className="bg-pv-primary-light text-pv-primary font-semibold">
+            <AvatarFallback className="bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)] font-semibold">
               SJ
             </AvatarFallback>
           </Avatar>
@@ -478,19 +454,19 @@ const StaffCard = ({ status = 'working' }: { status?: 'working' | 'break' | 'off
         </div>
         <div className="flex-1">
           <div className="flex items-start justify-between mb-1">
-            <h4 className="font-semibold text-slate-900">Sophie Jansen</h4>
+            <h4 className="font-semibold text-[hsl(222_47%_11%)]">Sophie Jansen</h4>
             <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${s.badge}`}>
               {s.label}
             </span>
           </div>
-          <p className="text-sm text-slate-500 mb-3">Bediening • West-Terschelling</p>
+          <p className="text-sm text-[hsl(215_16%_47%)] mb-3">Bediening • West-Terschelling</p>
           
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1.5 text-slate-500">
+          <div className="flex items-center gap-4 text-sm text-[hsl(215_16%_47%)]">
+            <div className="flex items-center gap-1.5">
               <Clock className="w-4 h-4" />
               <span>Sinds 10:00</span>
             </div>
-            <div className="flex items-center gap-1.5 text-slate-500">
+            <div className="flex items-center gap-1.5">
               <ClipboardList className="w-4 h-4" />
               <span>8 taken</span>
             </div>
@@ -503,20 +479,11 @@ const StaffCard = ({ status = 'working' }: { status?: 'working' | 'break' | 'off
               <MoreHorizontal className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-white">
-            <DropdownMenuItem>
-              <User className="w-4 h-4 mr-2" />
-              Profiel bekijken
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Edit className="w-4 h-4 mr-2" />
-              Bewerken
-            </DropdownMenuItem>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem><Edit className="w-4 h-4 mr-2" />Bewerken</DropdownMenuItem>
+            <DropdownMenuItem><Mail className="w-4 h-4 mr-2" />Bericht sturen</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600">
-              <Trash2 className="w-4 h-4 mr-2" />
-              Verwijderen
-            </DropdownMenuItem>
+            <DropdownMenuItem className="text-[hsl(0_84%_60%)]"><Trash2 className="w-4 h-4 mr-2" />Verwijderen</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -524,1092 +491,658 @@ const StaffCard = ({ status = 'working' }: { status?: 'working' | 'break' | 'off
   );
 };
 
-// ==================== CARD VARIANTS ====================
-
-// Content Card
-const ContentCard = () => (
-  <div className="bg-white rounded-xl border border-pv-border p-6 hover:border-pv-border-hover hover:shadow-md transition-all">
-    <div className="flex items-start justify-between mb-4">
-      <div className="p-2.5 rounded-xl bg-pv-primary-light">
-        <FileText className="w-5 h-5 text-pv-primary" />
-      </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <MoreHorizontal className="w-4 h-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="bg-white">
-          <DropdownMenuItem>Bewerken</DropdownMenuItem>
-          <DropdownMenuItem>Dupliceren</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-red-600">Verwijderen</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-    <h3 className="font-semibold text-slate-900 mb-2">Dagmenu Kerst</h3>
-    <p className="text-sm text-slate-500 mb-4">
-      Speciaal kerstmenu met seizoensgebonden ingrediënten en feestelijke gerechten.
-    </p>
-    <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-      <div className="flex items-center gap-2 text-sm text-slate-500">
-        <Calendar className="w-4 h-4" />
-        <span>24-26 dec</span>
-      </div>
-      <Button variant="ghost" size="sm">
-        Bekijk
-        <ChevronRight className="w-4 h-4" />
-      </Button>
-    </div>
-  </div>
-);
-
-// Form Card
-const FormCard = () => (
-  <div className="bg-white rounded-xl border border-pv-border p-6">
-    <h3 className="font-semibold text-slate-900 mb-4">Nieuwe Reservering</h3>
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-slate-700">Naam</label>
-        <Input placeholder="Voer naam in..." />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700">Datum</label>
-          <Input type="date" />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700">Tijd</label>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Kies tijd" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="18:00">18:00</SelectItem>
-              <SelectItem value="19:00">19:00</SelectItem>
-              <SelectItem value="20:00">20:00</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-slate-700">Notities</label>
-        <Textarea placeholder="Optionele opmerkingen..." className="resize-none" rows={3} />
-      </div>
-      <div className="flex gap-3 pt-2">
-        <Button variant="outline" className="flex-1">Annuleren</Button>
-        <Button className="flex-1">Opslaan</Button>
-      </div>
-    </div>
-  </div>
-);
-
-// Settings Card
-const SettingsCard = () => (
-  <div className="bg-white rounded-xl border border-pv-border p-6">
-    <h3 className="font-semibold text-slate-900 mb-4">Notificatie Instellingen</h3>
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="font-medium text-slate-900">Push notificaties</p>
-          <p className="text-sm text-slate-500">Ontvang meldingen op je telefoon</p>
-        </div>
-        <Switch defaultChecked />
-      </div>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="font-medium text-slate-900">Email updates</p>
-          <p className="text-sm text-slate-500">Dagelijkse samenvatting per email</p>
-        </div>
-        <Switch />
-      </div>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="font-medium text-slate-900">Geluidseffecten</p>
-          <p className="text-sm text-slate-500">Geluid bij nieuwe bestellingen</p>
-        </div>
-        <Switch defaultChecked />
-      </div>
-    </div>
-  </div>
-);
-
 // ==================== EMPTY & ERROR STATES ====================
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center py-12 text-center">
-    <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-      <Inbox className="w-8 h-8 text-slate-400" />
+    <div className="w-16 h-16 rounded-full bg-[hsl(210_40%_96%)] flex items-center justify-center mb-4">
+      <Inbox className="w-8 h-8 text-[hsl(215_16%_47%)]" />
     </div>
-    <h3 className="font-semibold text-slate-900 mb-2">Geen items gevonden</h3>
-    <p className="text-sm text-slate-500 mb-6 max-w-sm">
-      Er zijn momenteel geen items om weer te geven. Voeg een nieuw item toe om te beginnen.
+    <h3 className="text-lg font-semibold text-[hsl(222_47%_11%)] mb-1">Geen items gevonden</h3>
+    <p className="text-sm text-[hsl(215_16%_47%)] mb-4 max-w-sm">
+      Er zijn nog geen items om weer te geven. Maak een nieuwe aan om te beginnen.
     </p>
     <Button>
-      <Package className="w-4 h-4" />
-      Nieuw item toevoegen
+      <Plus className="w-4 h-4" />
+      Nieuw item
     </Button>
   </div>
 );
 
 const ErrorState = () => (
   <div className="flex flex-col items-center justify-center py-12 text-center">
-    <div className="w-16 h-16 rounded-2xl bg-red-100 flex items-center justify-center mb-4">
-      <AlertOctagon className="w-8 h-8 text-red-500" />
+    <div className="w-16 h-16 rounded-full bg-[hsl(0_84%_95%)] flex items-center justify-center mb-4">
+      <AlertCircle className="w-8 h-8 text-[hsl(0_84%_60%)]" />
     </div>
-    <h3 className="font-semibold text-slate-900 mb-2">Er ging iets mis</h3>
-    <p className="text-sm text-slate-500 mb-6 max-w-sm">
-      We konden de gegevens niet laden. Controleer je verbinding en probeer het opnieuw.
+    <h3 className="text-lg font-semibold text-[hsl(222_47%_11%)] mb-1">Er ging iets mis</h3>
+    <p className="text-sm text-[hsl(215_16%_47%)] mb-4 max-w-sm">
+      We konden de gegevens niet laden. Probeer het opnieuw.
     </p>
     <Button variant="outline">
       <RefreshCw className="w-4 h-4" />
-      Probeer opnieuw
+      Opnieuw proberen
     </Button>
   </div>
 );
 
-// ==================== LIST ITEMS ====================
+// ==================== NAVIGATION ITEMS ====================
 
-const NotificationItem = ({ read = false }: { read?: boolean }) => (
-  <div className={`flex items-start gap-4 p-4 rounded-xl border transition-all cursor-pointer ${read ? 'bg-white border-slate-100' : 'bg-pv-primary-light/30 border-pv-border'} hover:border-pv-border-hover`}>
-    <div className="relative">
-      <Avatar className="w-10 h-10">
-        <AvatarFallback className="bg-pv-primary text-white">KT</AvatarFallback>
-      </Avatar>
-      {!read && (
-        <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-pv-primary border-2 border-white" />
-      )}
-    </div>
-    <div className="flex-1">
-      <div className="flex items-start justify-between">
-        <p className={`text-sm ${read ? 'text-slate-600' : 'text-slate-900 font-medium'}`}>
-          <strong>Keuken Team</strong> heeft bestelling #1248 voltooid
-        </p>
-        <Button variant="ghost" size="icon" className="h-6 w-6 -mr-2">
-          <X className="w-4 h-4" />
-        </Button>
-      </div>
-      <p className="text-xs text-slate-500 mt-1">2 minuten geleden</p>
-    </div>
-  </div>
-);
+const navItems = [
+  { id: 'colors', label: 'Kleuren', icon: '🎨' },
+  { id: 'typography', label: 'Typography', icon: '📝' },
+  { id: 'buttons', label: 'Buttons', icon: '🔘' },
+  { id: 'forms', label: 'Formulieren', icon: '📋' },
+  { id: 'cards', label: 'Cards', icon: '🃏' },
+  { id: 'data', label: 'Data Display', icon: '📊' },
+  { id: 'feedback', label: 'Feedback', icon: '💬' },
+  { id: 'modules', label: 'Modules', icon: '📦' },
+];
 
 // ==================== MAIN COMPONENT ====================
 
-export default function DesignSystem() {
-  const [inputValue, setInputValue] = useState("");
-  const [switchValue, setSwitchValue] = useState(false);
-  const [checkboxValue, setCheckboxValue] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+const DesignSystem = () => {
+  const [activeSection, setActiveSection] = useState('colors');
 
-  const handleLoadingDemo = () => {
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 2000);
+  const scrollToSection = (id: string) => {
+    setActiveSection(id);
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <SidebarLayout>
-      <div className="min-h-screen bg-pv-background">
-        {/* Header */}
-        <div className="bg-white border-b border-pv-border px-8 py-6">
-          <div className="max-w-6xl">
-            <h1 className="text-3xl font-bold text-slate-900">
-              Pura Vida Design System
-            </h1>
-            <p className="text-slate-500 mt-2">
-              Complete component library met de hybride stijl: grijze achtergrond, groene accenten, witte cards
-            </p>
+    <div className="min-h-screen bg-[hsl(210_40%_98%)]">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-[hsl(169_35%_77%)]">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-[hsl(222_47%_11%)]">
+                Pura Vida Design System
+              </h1>
+              <p className="text-sm text-[hsl(215_16%_47%)]">
+                Modern • Professioneel • Consistent
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge variant="secondary" className="bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)] border-0">
+                v2.0
+              </Badge>
+              <Button variant="outline" size="sm" asChild>
+                <a href="/dashboard">
+                  <Home className="w-4 h-4" />
+                  Naar App
+                </a>
+              </Button>
+            </div>
           </div>
         </div>
+      </header>
 
-        {/* Content */}
-        <div className="max-w-6xl px-8 py-8 space-y-12">
-          
-          {/* ========== COLORS ========== */}
-          <Section 
-            title="Kleurenpalet" 
-            description="De hybride Pura Vida kleurenschema combineert neutrale grijstinten met groene accenten"
-          >
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  Achtergronden
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <ColorSwatch 
-                    name="Background" 
-                    value="#F8FAFC" 
-                    description="Page background (slate-50)"
-                  />
-                  <ColorSwatch 
-                    name="Surface" 
-                    value="#FFFFFF" 
-                    description="Card & component surfaces"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  Pura Vida Branding
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <ColorSwatch 
-                    name="Primary" 
-                    value="#1B7867" 
-                    description="Main brand color"
-                    textColor="text-white"
-                  />
-                  <ColorSwatch 
-                    name="Primary Hover" 
-                    value="#156556" 
-                    description="Hover & active states"
-                    textColor="text-white"
-                  />
-                  <ColorSwatch 
-                    name="Primary Light" 
-                    value="#E6F4F1" 
-                    description="Subtle backgrounds"
-                  />
-                  <ColorSwatch 
-                    name="Border" 
-                    value="#B3D9D4" 
-                    description="Subtle green borders"
-                  />
-                  <ColorSwatch 
-                    name="Border Hover" 
-                    value="#1B7867" 
-                    description="Border on hover"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  Status Kleuren
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <ColorSwatch 
-                    name="Success" 
-                    value="#22C55E" 
-                    description="Positive actions"
-                    textColor="text-white"
-                  />
-                  <ColorSwatch 
-                    name="Warning" 
-                    value="#F59E0B" 
-                    description="Warnings & alerts"
-                    textColor="text-white"
-                  />
-                  <ColorSwatch 
-                    name="Error" 
-                    value="#EF4444" 
-                    description="Errors & destructive"
-                    textColor="text-white"
-                  />
-                  <ColorSwatch 
-                    name="Info" 
-                    value="#3B82F6" 
-                    description="Informational"
-                    textColor="text-white"
-                  />
-                </div>
-              </div>
-            </div>
-          </Section>
-
-          {/* ========== TYPOGRAPHY ========== */}
-          <Section 
-            title="Typography" 
-            description="Inter font family met duidelijke hiërarchie"
-          >
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-baseline gap-4 pb-4 border-b border-slate-100">
-                  <code className="text-xs text-slate-400 w-32">text-3xl bold</code>
-                  <span className="text-3xl font-bold text-slate-900">Heading 1</span>
-                </div>
-                <div className="flex items-baseline gap-4 pb-4 border-b border-slate-100">
-                  <code className="text-xs text-slate-400 w-32">text-2xl bold</code>
-                  <span className="text-2xl font-bold text-slate-900">Heading 2</span>
-                </div>
-                <div className="flex items-baseline gap-4 pb-4 border-b border-slate-100">
-                  <code className="text-xs text-slate-400 w-32">text-xl semibold</code>
-                  <span className="text-xl font-semibold text-slate-900">Heading 3</span>
-                </div>
-                <div className="flex items-baseline gap-4 pb-4 border-b border-slate-100">
-                  <code className="text-xs text-slate-400 w-32">text-lg medium</code>
-                  <span className="text-lg font-medium text-slate-900">Heading 4</span>
-                </div>
-                <div className="flex items-baseline gap-4 pb-4 border-b border-slate-100">
-                  <code className="text-xs text-slate-400 w-32">text-base</code>
-                  <span className="text-base text-slate-700">Body text - Lorem ipsum dolor sit amet, consectetur adipiscing elit.</span>
-                </div>
-                <div className="flex items-baseline gap-4 pb-4 border-b border-slate-100">
-                  <code className="text-xs text-slate-400 w-32">text-sm</code>
-                  <span className="text-sm text-slate-500">Secondary text - Smaller body copy for descriptions</span>
-                </div>
-                <div className="flex items-baseline gap-4">
-                  <code className="text-xs text-slate-400 w-32">text-xs uppercase</code>
-                  <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Label / Caption</span>
-                </div>
-              </div>
-            </div>
-          </Section>
-
-          {/* ========== BUTTONS ========== */}
-          <Section 
-            title="Buttons" 
-            description="Alle button varianten en states"
-          >
-            <div className="space-y-8">
-              {/* Variants */}
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  Varianten
-                </h3>
-                <div className="flex flex-wrap gap-4">
-                  <Button variant="default">Primary</Button>
-                  <Button variant="secondary">Secondary</Button>
-                  <Button variant="outline">Outline</Button>
-                  <Button variant="ghost">Ghost</Button>
-                  <Button variant="destructive">Destructive</Button>
-                  <Button variant="link">Link</Button>
-                </div>
-              </div>
-
-              {/* Sizes */}
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  Formaten
-                </h3>
-                <div className="flex flex-wrap items-center gap-4">
-                  <Button size="sm">Small</Button>
-                  <Button size="default">Default</Button>
-                  <Button size="lg">Large</Button>
-                  <Button size="icon"><Settings className="w-4 h-4" /></Button>
-                </div>
-              </div>
-
-              {/* States */}
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  States
-                </h3>
-                <div className="flex flex-wrap items-center gap-4">
-                  <Button disabled>Disabled</Button>
-                  <Button onClick={handleLoadingDemo}>
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Loading...
-                      </>
-                    ) : (
-                      'Click to Load'
-                    )}
-                  </Button>
-                </div>
-              </div>
-
-              {/* With Icons */}
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  Met Icons
-                </h3>
-                <div className="flex flex-wrap gap-4">
-                  <Button>
-                    <Check className="w-4 h-4" />
-                    Bevestigen
-                  </Button>
-                  <Button variant="outline">
-                    <Bell className="w-4 h-4" />
-                    Notificaties
-                  </Button>
-                  <Button variant="secondary">
-                    Volgende
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Section>
-
-          {/* ========== FORM ELEMENTS ========== */}
-          <Section 
-            title="Form Elements" 
-            description="Input fields, selects, checkboxes en switches"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Text Input */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-slate-700">Text Input</label>
-                <Input 
-                  placeholder="Voer tekst in..." 
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                />
-              </div>
-
-              {/* Search Input */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-slate-700">Search Input</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <Input 
-                    placeholder="Zoeken..." 
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-
-              {/* Select */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-slate-700">Select</label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Kies een optie" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="west">West-Terschelling</SelectItem>
-                    <SelectItem value="midsland">Midsland</SelectItem>
-                    <SelectItem value="formerum">Formerum</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Disabled Input */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-slate-700">Disabled Input</label>
-                <Input 
-                  placeholder="Niet bewerkbaar" 
-                  disabled
-                />
-              </div>
-
-              {/* Textarea */}
-              <div className="space-y-3 md:col-span-2">
-                <label className="text-sm font-medium text-slate-700">Textarea</label>
-                <Textarea placeholder="Voer een langere tekst in..." className="resize-none" rows={3} />
-              </div>
-
-              {/* Checkbox */}
-              <div className="flex items-center gap-3">
-                <Checkbox 
-                  id="demo-checkbox"
-                  checked={checkboxValue}
-                  onCheckedChange={(checked) => setCheckboxValue(checked as boolean)}
-                />
-                <label htmlFor="demo-checkbox" className="text-sm text-slate-700">
-                  Checkbox label
-                </label>
-              </div>
-
-              {/* Switch */}
-              <div className="flex items-center gap-3">
-                <Switch 
-                  id="demo-switch"
-                  checked={switchValue}
-                  onCheckedChange={setSwitchValue}
-                />
-                <label htmlFor="demo-switch" className="text-sm text-slate-700">
-                  Toggle switch
-                </label>
-              </div>
-            </div>
-          </Section>
-
-          {/* ========== AVATARS ========== */}
-          <Section 
-            title="Avatars" 
-            description="Gebruikers profielfoto's in verschillende formaten"
-          >
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  Formaten
-                </h3>
-                <div className="flex items-center gap-6">
-                  <Avatar className="w-8 h-8">
-                    <AvatarFallback className="text-xs bg-pv-primary-light text-pv-primary">XS</AvatarFallback>
-                  </Avatar>
-                  <Avatar className="w-10 h-10">
-                    <AvatarFallback className="text-sm bg-pv-primary-light text-pv-primary">SM</AvatarFallback>
-                  </Avatar>
-                  <Avatar className="w-12 h-12">
-                    <AvatarFallback className="bg-pv-primary-light text-pv-primary">MD</AvatarFallback>
-                  </Avatar>
-                  <Avatar className="w-16 h-16">
-                    <AvatarFallback className="text-lg bg-pv-primary-light text-pv-primary">LG</AvatarFallback>
-                  </Avatar>
-                  <Avatar className="w-20 h-20">
-                    <AvatarFallback className="text-xl bg-pv-primary-light text-pv-primary">XL</AvatarFallback>
-                  </Avatar>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  Met Status
-                </h3>
-                <div className="flex items-center gap-6">
-                  <div className="relative">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" />
-                      <AvatarFallback>JD</AvatarFallback>
-                    </Avatar>
-                    <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-green-500 border-2 border-white" />
-                  </div>
-                  <div className="relative">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" />
-                      <AvatarFallback>AB</AvatarFallback>
-                    </Avatar>
-                    <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-amber-500 border-2 border-white" />
-                  </div>
-                  <div className="relative">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop" />
-                      <AvatarFallback>CD</AvatarFallback>
-                    </Avatar>
-                    <span className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-slate-400 border-2 border-white" />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  User Chips
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-pv-primary-light border border-pv-border">
-                    <Avatar className="w-6 h-6">
-                      <AvatarFallback className="text-xs bg-pv-primary text-white">JV</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm font-medium text-slate-700">Jan de Vries</span>
-                  </div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200">
-                    <Avatar className="w-6 h-6">
-                      <AvatarFallback className="text-xs bg-slate-500 text-white">MB</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm font-medium text-slate-700">Marie Bakker</span>
-                    <X className="w-4 h-4 text-slate-400 cursor-pointer hover:text-slate-600" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Section>
-
-          {/* ========== DROPDOWN MENUS ========== */}
-          <Section 
-            title="Dropdown Menus" 
-            description="Context menus en action dropdowns"
-          >
-            <div className="flex flex-wrap gap-4">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    Acties
-                    <ChevronRight className="w-4 h-4 rotate-90" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-white">
-                  <DropdownMenuItem>
-                    <Edit className="w-4 h-4 mr-2" />
-                    Bewerken
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Dupliceren
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Star className="w-4 h-4 mr-2" />
-                    Favorieten
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-red-600">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Verwijderen
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <User className="w-4 h-4" />
-                    Account
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-white">
-                  <div className="px-2 py-1.5 border-b border-slate-100 mb-1">
-                    <p className="font-medium text-sm text-slate-900">Jan de Vries</p>
-                    <p className="text-xs text-slate-500">jan@puravida.nl</p>
-                  </div>
-                  <DropdownMenuItem>
-                    <User className="w-4 h-4 mr-2" />
-                    Profiel
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings className="w-4 h-4 mr-2" />
-                    Instellingen
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-red-600">
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Uitloggen
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </Section>
-
-          {/* ========== KPI CARDS ========== */}
-          <Section 
-            title="KPI Cards" 
-            description="Data visualisatie cards met de nieuwe hybride stijl"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <KPICard 
-                title="Omzet vandaag"
-                value="€2.847"
-                icon={Euro}
-                trend={{ value: "+12%", positive: true }}
-                subtitle="vs. vorige week"
-              />
-              <KPICard 
-                title="Gasten"
-                value="142"
-                icon={Users}
-                trend={{ value: "+8%", positive: true }}
-              />
-              <KPICard 
-                title="Taken voltooid"
-                value="18/24"
-                icon={Check}
-                subtitle="75% compleet"
-              />
-              <KPICard 
-                title="Gemiddelde wachttijd"
-                value="12 min"
-                icon={Clock}
-                trend={{ value: "-3 min", positive: true }}
-              />
-            </div>
-          </Section>
-
-          {/* ========== CARD VARIANTS ========== */}
-          <Section 
-            title="Card Variaties" 
-            description="Verschillende card types voor verschillende use cases"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <ContentCard />
-              <FormCard />
-              <SettingsCard />
-            </div>
-          </Section>
-
-          {/* ========== REAL-WORLD SCENARIO MODULES ========== */}
-          <Section 
-            title="Real-World Scenario Modules" 
-            description="Concrete voorbeelden van hoe componenten samen komen in de praktijk"
-          >
-            <div className="space-y-8">
-              {/* Order Cards */}
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  Order Card
-                </h3>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <OrderCard />
-                  <OrderCard />
-                </div>
-              </div>
-
-              {/* Task Cards */}
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  Taak Card (verschillende states)
-                </h3>
-                <div className="space-y-3">
-                  <TaskCard status="open" />
-                  <TaskCard status="progress" />
-                  <TaskCard status="done" />
-                </div>
-              </div>
-
-              {/* Reservation Cards */}
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  Reservering Card
-                </h3>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <ReservationCard />
-                </div>
-              </div>
-
-              {/* Staff Cards */}
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  Staff Card (verschillende statussen)
-                </h3>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  <StaffCard status="working" />
-                  <StaffCard status="break" />
-                  <StaffCard status="offline" />
-                </div>
-              </div>
-            </div>
-          </Section>
-
-          {/* ========== LIST ITEMS ========== */}
-          <Section 
-            title="List Items" 
-            description="Notificaties en andere lijst elementen"
-          >
-            <div className="space-y-3">
-              <NotificationItem read={false} />
-              <NotificationItem read={true} />
-            </div>
-          </Section>
-
-          {/* ========== EMPTY & ERROR STATES ========== */}
-          <Section 
-            title="Empty & Error States" 
-            description="Feedback states voor lege data en fouten"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="border border-dashed border-slate-200 rounded-xl">
-                <EmptyState />
-              </div>
-              <div className="border border-dashed border-slate-200 rounded-xl">
-                <ErrorState />
-              </div>
-            </div>
-          </Section>
-
-          {/* ========== BADGES ========== */}
-          <Section 
-            title="Badges & Tags" 
-            description="Status indicators en labels"
-          >
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  Standaard Badges
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                  <Badge>Default</Badge>
-                  <Badge variant="secondary">Secondary</Badge>
-                  <Badge variant="outline">Outline</Badge>
-                  <Badge variant="destructive">Destructive</Badge>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  Status Badges
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                    Actief
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                    In behandeling
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                    Gestopt
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-                    Inactief
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  Priority Badges
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
-                    Hoog
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                    Medium
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                    Laag
-                  </span>
-                </div>
-              </div>
-            </div>
-          </Section>
-
-          {/* ========== PROGRESS ========== */}
-          <Section 
-            title="Progress & Loading" 
-            description="Voortgangsindicatoren"
-          >
-            <div className="space-y-6">
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-700">Taken voltooid</span>
-                  <span className="text-pv-primary font-medium">75%</span>
-                </div>
-                <Progress value={75} className="h-2" />
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-700">Upload progress</span>
-                  <span className="text-pv-primary font-medium">45%</span>
-                </div>
-                <Progress value={45} className="h-2" />
-              </div>
-
-              <div className="flex items-center gap-4">
-                <Loader2 className="w-6 h-6 animate-spin text-pv-primary" />
-                <span className="text-sm text-slate-500">Loading state...</span>
-              </div>
-
-              {/* Skeleton Loading */}
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  Skeleton Loading
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-slate-200 animate-pulse" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-slate-200 rounded animate-pulse w-1/3" />
-                      <div className="h-3 bg-slate-200 rounded animate-pulse w-1/2" />
-                    </div>
-                  </div>
-                  <div className="h-20 bg-slate-200 rounded-xl animate-pulse" />
-                </div>
-              </div>
-            </div>
-          </Section>
-
-          {/* ========== ALERTS ========== */}
-          <Section 
-            title="Alerts & Feedback" 
-            description="Notificaties en berichten"
-          >
-            <div className="space-y-4">
-              <Alert 
-                variant="info"
-                title="Informatie"
-                description="Dit is een informatief bericht over de huidige status."
-              />
-              <Alert 
-                variant="success"
-                title="Succes!"
-                description="De actie is succesvol uitgevoerd."
-              />
-              <Alert 
-                variant="warning"
-                title="Let op"
-                description="Er zijn enkele punten die aandacht vereisen."
-              />
-              <Alert 
-                variant="error"
-                title="Fout"
-                description="Er is iets misgegaan. Probeer het opnieuw."
-              />
-              
-              <div className="pt-4">
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">
-                  Toast Notifications
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => toast.success("Actie succesvol!")}
-                  >
-                    Success Toast
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => toast.error("Er ging iets mis")}
-                  >
-                    Error Toast
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => toast.info("Ter informatie")}
-                  >
-                    Info Toast
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Section>
-
-          {/* ========== TABS ========== */}
-          <Section 
-            title="Tabs" 
-            description="Navigatie tabs"
-          >
-            <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="w-full justify-start">
-                <TabsTrigger value="overview">Overzicht</TabsTrigger>
-                <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                <TabsTrigger value="settings">Instellingen</TabsTrigger>
-              </TabsList>
-              <TabsContent value="overview" className="mt-4">
-                <div className="p-4 rounded-xl bg-slate-50 text-slate-600">
-                  Overzicht content hier...
-                </div>
-              </TabsContent>
-              <TabsContent value="analytics" className="mt-4">
-                <div className="p-4 rounded-xl bg-slate-50 text-slate-600">
-                  Analytics content hier...
-                </div>
-              </TabsContent>
-              <TabsContent value="settings" className="mt-4">
-                <div className="p-4 rounded-xl bg-slate-50 text-slate-600">
-                  Instellingen content hier...
-                </div>
-              </TabsContent>
-            </Tabs>
-          </Section>
-
-          {/* ========== TABLE ========== */}
-          <Section 
-            title="Tables" 
-            description="Data weergave in tabel formaat"
-          >
-            <div className="rounded-xl border border-pv-border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-slate-50">
-                    <TableHead>Naam</TableHead>
-                    <TableHead>Locatie</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actie</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow className="hover:bg-pv-primary-light/30">
-                    <TableCell className="font-medium">Jan de Vries</TableCell>
-                    <TableCell>West-Terschelling</TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                        Actief
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">Bewerk</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow className="hover:bg-pv-primary-light/30">
-                    <TableCell className="font-medium">Marie Bakker</TableCell>
-                    <TableCell>Midsland</TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                        Pauze
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">Bewerk</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow className="hover:bg-pv-primary-light/30">
-                    <TableCell className="font-medium">Pieter Jansen</TableCell>
-                    <TableCell>Formerum</TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-                        Offline
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">Bewerk</Button>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
-          </Section>
-
-          {/* ========== DIALOGS & TOOLTIPS ========== */}
-          <Section 
-            title="Overlays" 
-            description="Dialogs, tooltips en popovers"
-          >
-            <div className="flex flex-wrap gap-4">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline">Open Dialog</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Bevestiging</DialogTitle>
-                    <DialogDescription>
-                      Dit is een voorbeeld dialog. Weet je zeker dat je wilt doorgaan?
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="flex justify-end gap-3 mt-4">
-                    <Button variant="outline">Annuleren</Button>
-                    <Button>Bevestigen</Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline">Hover voor Tooltip</Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Dit is een tooltip</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </Section>
-
-          {/* ========== INTERACTIVE CARD EXAMPLE ========== */}
-          <Section 
-            title="Interactive Cards" 
-            description="Hover en click states"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { name: 'Keuken', icon: ChefHat },
-                { name: 'Bediening', icon: UserCheck },
-                { name: 'Kassa', icon: Euro },
-              ].map((item) => (
-                <div 
-                  key={item.name}
-                  className="p-5 rounded-xl border border-pv-border bg-white hover:border-pv-border-hover hover:shadow-md transition-all cursor-pointer group"
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="flex gap-8">
+          {/* Sidebar Navigation */}
+          <nav className="hidden lg:block w-56 flex-shrink-0">
+            <div className="sticky top-28 space-y-1">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => scrollToSection(item.id)}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    activeSection === item.id
+                      ? 'bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]'
+                      : 'text-[hsl(215_16%_47%)] hover:bg-[hsl(210_40%_96%)] hover:text-[hsl(222_47%_11%)]'
+                  }`}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-xl bg-pv-primary-light group-hover:bg-pv-primary transition-colors">
-                      <item.icon className="w-6 h-6 text-pv-primary group-hover:text-white transition-colors" />
-                    </div>
-                    <div className="flex-1">
-                      <span className="font-semibold text-slate-900 group-hover:text-pv-primary transition-colors">
-                        {item.name}
-                      </span>
-                      <p className="text-sm text-slate-500">
-                        Naar {item.name.toLowerCase()} module
-                      </p>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-pv-primary group-hover:translate-x-1 transition-all" />
-                  </div>
-                </div>
+                  <span>{item.icon}</span>
+                  {item.label}
+                </button>
               ))}
             </div>
-          </Section>
+          </nav>
 
+          {/* Main Content */}
+          <main className="flex-1 space-y-12">
+            
+            {/* ==================== COLORS ==================== */}
+            <Section id="colors" title="Kleurenpalet" description="De basis van ons design systeem">
+              <div className="space-y-8">
+                <SubSection title="Achtergronden">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <ColorSwatch name="Page" value="#F8FAFC" cssVar="hsl(210 40% 98%)" />
+                    <ColorSwatch name="Card" value="#FFFFFF" cssVar="hsl(0 0% 100%)" />
+                    <ColorSwatch name="Muted" value="#F1F5F9" cssVar="hsl(210 40% 96%)" />
+                    <ColorSwatch name="Hover" value="#E2E8F0" cssVar="hsl(210 31% 91%)" />
+                  </div>
+                </SubSection>
+
+                <SubSection title="Brand (Pura Vida Sea)">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <ColorSwatch name="Sea Primary" value="#1B7867" cssVar="hsl(163 65% 26%)" textDark={false} />
+                    <ColorSwatch name="Sea Dark" value="#156556" cssVar="hsl(163 65% 21%)" textDark={false} />
+                    <ColorSwatch name="Sea Light" value="#E6F4F1" cssVar="hsl(163 35% 93%)" />
+                    <ColorSwatch name="Sea Border" value="#B3D9D4" cssVar="hsl(169 35% 77%)" />
+                  </div>
+                </SubSection>
+
+                <SubSection title="Tekst">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <ColorSwatch name="Primary" value="#0F172A" cssVar="hsl(222 47% 11%)" textDark={false} />
+                    <ColorSwatch name="Secondary" value="#64748B" cssVar="hsl(215 16% 47%)" />
+                    <ColorSwatch name="Muted" value="#94A3B8" cssVar="hsl(215 20% 65%)" />
+                  </div>
+                </SubSection>
+
+                <SubSection title="Status">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <ColorSwatch name="Success" value="#22C55E" cssVar="hsl(142 71% 45%)" textDark={false} />
+                    <ColorSwatch name="Warning" value="#F59E0B" cssVar="hsl(38 92% 50%)" textDark={false} />
+                    <ColorSwatch name="Error" value="#EF4444" cssVar="hsl(0 84% 60%)" textDark={false} />
+                    <ColorSwatch name="Info" value="#3B82F6" cssVar="hsl(217 91% 60%)" textDark={false} />
+                  </div>
+                </SubSection>
+              </div>
+            </Section>
+
+            {/* ==================== TYPOGRAPHY ==================== */}
+            <Section id="typography" title="Typography" description="Tekststijlen en hiërarchie">
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl bg-[hsl(210_40%_98%)]">
+                    <code className="text-xs text-[hsl(163_65%_26%)] font-mono mb-2 block">text-display / 36px Bold</code>
+                    <span className="text-4xl font-bold text-[hsl(222_47%_11%)]">Display Heading</span>
+                  </div>
+                  <div className="p-4 rounded-xl bg-[hsl(210_40%_98%)]">
+                    <code className="text-xs text-[hsl(163_65%_26%)] font-mono mb-2 block">text-h1 / 24px Bold</code>
+                    <span className="text-2xl font-bold text-[hsl(222_47%_11%)]">Heading 1</span>
+                  </div>
+                  <div className="p-4 rounded-xl bg-[hsl(210_40%_98%)]">
+                    <code className="text-xs text-[hsl(163_65%_26%)] font-mono mb-2 block">text-h2 / 20px Semibold</code>
+                    <span className="text-xl font-semibold text-[hsl(222_47%_11%)]">Heading 2</span>
+                  </div>
+                  <div className="p-4 rounded-xl bg-[hsl(210_40%_98%)]">
+                    <code className="text-xs text-[hsl(163_65%_26%)] font-mono mb-2 block">text-h3 / 18px Semibold</code>
+                    <span className="text-lg font-semibold text-[hsl(222_47%_11%)]">Heading 3</span>
+                  </div>
+                  <div className="p-4 rounded-xl bg-[hsl(210_40%_98%)]">
+                    <code className="text-xs text-[hsl(163_65%_26%)] font-mono mb-2 block">text-body / 16px Regular</code>
+                    <span className="text-base text-[hsl(222_47%_11%)]">Body tekst voor paragrafen en content</span>
+                  </div>
+                  <div className="p-4 rounded-xl bg-[hsl(210_40%_98%)]">
+                    <code className="text-xs text-[hsl(163_65%_26%)] font-mono mb-2 block">text-body-sm / 14px Regular (secondary color)</code>
+                    <span className="text-sm text-[hsl(215_16%_47%)]">Kleinere body tekst voor secundaire informatie</span>
+                  </div>
+                  <div className="p-4 rounded-xl bg-[hsl(210_40%_98%)]">
+                    <code className="text-xs text-[hsl(163_65%_26%)] font-mono mb-2 block">text-caption / 12px Medium (muted color)</code>
+                    <span className="text-xs font-medium text-[hsl(215_20%_65%)]">CAPTION TEKST VOOR LABELS</span>
+                  </div>
+                </div>
+              </div>
+            </Section>
+
+            {/* ==================== BUTTONS ==================== */}
+            <Section id="buttons" title="Buttons" description="Interactieve elementen voor acties">
+              <div className="space-y-8">
+                <SubSection title="Varianten">
+                  <div className="flex flex-wrap gap-4">
+                    <Button>Primary</Button>
+                    <Button variant="secondary">Secondary</Button>
+                    <Button variant="outline">Outline</Button>
+                    <Button variant="ghost">Ghost</Button>
+                    <Button variant="destructive">Destructive</Button>
+                    <Button variant="link">Link</Button>
+                  </div>
+                </SubSection>
+
+                <SubSection title="Sizes">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <Button size="sm">Small</Button>
+                    <Button>Default</Button>
+                    <Button size="lg">Large</Button>
+                    <Button size="icon"><Plus className="w-4 h-4" /></Button>
+                  </div>
+                </SubSection>
+
+                <SubSection title="Met iconen">
+                  <div className="flex flex-wrap gap-4">
+                    <Button><Plus className="w-4 h-4" />Toevoegen</Button>
+                    <Button variant="outline"><Download className="w-4 h-4" />Download</Button>
+                    <Button variant="secondary">Volgende<ArrowRight className="w-4 h-4" /></Button>
+                  </div>
+                </SubSection>
+
+                <SubSection title="States">
+                  <div className="flex flex-wrap gap-4">
+                    <Button>Enabled</Button>
+                    <Button disabled>Disabled</Button>
+                    <Button disabled><Loader2 className="w-4 h-4 animate-spin" />Loading</Button>
+                  </div>
+                </SubSection>
+              </div>
+            </Section>
+
+            {/* ==================== FORMS ==================== */}
+            <Section id="forms" title="Formulieren" description="Input elementen en form controls">
+              <div className="space-y-8">
+                <SubSection title="Text Inputs">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-[hsl(222_47%_11%)]">Standaard input</label>
+                      <Input placeholder="Type hier..." />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-[hsl(222_47%_11%)]">Met icoon</label>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(215_20%_65%)]" />
+                        <Input placeholder="Zoeken..." className="pl-10" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-[hsl(222_47%_11%)]">Disabled</label>
+                      <Input placeholder="Niet beschikbaar" disabled />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-[hsl(0_84%_60%)]">Error state</label>
+                      <Input placeholder="Foutieve invoer" className="border-[hsl(0_84%_60%)] focus-visible:ring-[hsl(0_84%_60%)]" />
+                      <p className="text-xs text-[hsl(0_84%_60%)]">Dit veld is verplicht</p>
+                    </div>
+                  </div>
+                </SubSection>
+
+                <SubSection title="Textarea">
+                  <div className="max-w-md space-y-2">
+                    <label className="text-sm font-medium text-[hsl(222_47%_11%)]">Bericht</label>
+                    <Textarea placeholder="Typ je bericht..." rows={4} />
+                  </div>
+                </SubSection>
+
+                <SubSection title="Select">
+                  <div className="max-w-xs space-y-2">
+                    <label className="text-sm font-medium text-[hsl(222_47%_11%)]">Selecteer optie</label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Kies een optie" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">Optie 1</SelectItem>
+                        <SelectItem value="2">Optie 2</SelectItem>
+                        <SelectItem value="3">Optie 3</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </SubSection>
+
+                <SubSection title="Checkbox & Switch">
+                  <div className="flex flex-wrap gap-8">
+                    <div className="flex items-center gap-3">
+                      <Checkbox id="terms" />
+                      <label htmlFor="terms" className="text-sm text-[hsl(222_47%_11%)]">Ik ga akkoord met de voorwaarden</label>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Switch id="notifications" />
+                      <label htmlFor="notifications" className="text-sm text-[hsl(222_47%_11%)]">Notificaties aan</label>
+                    </div>
+                  </div>
+                </SubSection>
+              </div>
+            </Section>
+
+            {/* ==================== CARDS ==================== */}
+            <Section id="cards" title="Cards" description="Container componenten voor content">
+              <div className="space-y-8">
+                <SubSection title="KPI Cards">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <KPICard title="Omzet vandaag" value="€2.847" icon={Euro} trend={{ value: "+12%", positive: true }} />
+                    <KPICard title="Gasten" value="156" icon={Users} trend={{ value: "+8%", positive: true }} subtitle="23 reserveringen" />
+                    <KPICard title="Gemiddelde tijd" value="42 min" icon={Clock} trend={{ value: "-5%", positive: true }} />
+                    <KPICard title="Open taken" value="12" icon={ClipboardList} />
+                  </div>
+                </SubSection>
+
+                <SubSection title="Content Card">
+                  <div className="max-w-md">
+                    <div className="bg-white rounded-xl border border-[hsl(169_35%_77%)] overflow-hidden hover:shadow-elevated transition-all">
+                      <div className="aspect-video bg-gradient-to-br from-[hsl(163_35%_93%)] to-[hsl(163_65%_26%)]" />
+                      <div className="p-5">
+                        <h3 className="font-semibold text-[hsl(222_47%_11%)] mb-2">Card Titel</h3>
+                        <p className="text-sm text-[hsl(215_16%_47%)] mb-4">
+                          Dit is een voorbeeld van een content card met afbeelding, titel, beschrijving en actie.
+                        </p>
+                        <div className="flex gap-2">
+                          <Button size="sm">Bekijken</Button>
+                          <Button variant="outline" size="sm">Delen</Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </SubSection>
+
+                <SubSection title="Interactive Card">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {[
+                      { icon: ChefHat, title: "Keuken", desc: "Recepten en MEP" },
+                      { icon: ClipboardList, title: "Taken", desc: "Dagelijkse checklist" },
+                      { icon: Users, title: "Team", desc: "Personeel beheren" },
+                    ].map((item, i) => (
+                      <button key={i} className="flex items-center gap-4 p-5 bg-white rounded-xl border border-[hsl(169_35%_77%)] hover:border-[hsl(163_65%_26%)] hover:shadow-elevated transition-all text-left group">
+                        <div className="p-3 rounded-xl bg-[hsl(163_35%_93%)] group-hover:bg-[hsl(163_65%_26%)] transition-colors">
+                          <item.icon className="w-6 h-6 text-[hsl(163_65%_26%)] group-hover:text-white transition-colors" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-[hsl(222_47%_11%)]">{item.title}</h4>
+                          <p className="text-sm text-[hsl(215_16%_47%)]">{item.desc}</p>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-[hsl(215_20%_65%)] group-hover:text-[hsl(163_65%_26%)] transition-colors" />
+                      </button>
+                    ))}
+                  </div>
+                </SubSection>
+              </div>
+            </Section>
+
+            {/* ==================== DATA DISPLAY ==================== */}
+            <Section id="data" title="Data Display" description="Tabellen, badges en status indicators">
+              <div className="space-y-8">
+                <SubSection title="Badges">
+                  <div className="flex flex-wrap gap-3">
+                    <Badge>Default</Badge>
+                    <Badge variant="secondary">Secondary</Badge>
+                    <Badge variant="outline">Outline</Badge>
+                    <Badge variant="destructive">Destructive</Badge>
+                  </div>
+                </SubSection>
+
+                <SubSection title="Status Badges">
+                  <div className="flex flex-wrap gap-3">
+                    <StatusBadge status="active" />
+                    <StatusBadge status="pending" />
+                    <StatusBadge status="inactive" />
+                    <StatusBadge status="error" />
+                  </div>
+                </SubSection>
+
+                <SubSection title="Tabel">
+                  <div className="rounded-xl border border-[hsl(169_35%_77%)] overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-[hsl(210_40%_98%)] hover:bg-[hsl(210_40%_98%)]">
+                          <TableHead className="font-semibold">Naam</TableHead>
+                          <TableHead className="font-semibold">Rol</TableHead>
+                          <TableHead className="font-semibold">Status</TableHead>
+                          <TableHead className="font-semibold text-right">Taken</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {[
+                          { name: "Jan Visser", role: "Bediening", status: "active" as const, tasks: 8 },
+                          { name: "Sophie Jansen", role: "Keuken", status: "pending" as const, tasks: 5 },
+                          { name: "Peter de Groot", role: "Manager", status: "active" as const, tasks: 12 },
+                        ].map((row, i) => (
+                          <TableRow key={i} className="hover:bg-[hsl(210_40%_98%)]">
+                            <TableCell className="font-medium">{row.name}</TableCell>
+                            <TableCell className="text-[hsl(215_16%_47%)]">{row.role}</TableCell>
+                            <TableCell><StatusBadge status={row.status} /></TableCell>
+                            <TableCell className="text-right">{row.tasks}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </SubSection>
+
+                <SubSection title="Progress">
+                  <div className="space-y-4 max-w-md">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-[hsl(222_47%_11%)]">Taken voltooid</span>
+                        <span className="text-[hsl(215_16%_47%)]">75%</span>
+                      </div>
+                      <Progress value={75} className="h-2" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-[hsl(222_47%_11%)]">Reserveringen</span>
+                        <span className="text-[hsl(215_16%_47%)]">45%</span>
+                      </div>
+                      <Progress value={45} className="h-2" />
+                    </div>
+                  </div>
+                </SubSection>
+
+                <SubSection title="Skeleton Loading">
+                  <div className="flex gap-4">
+                    <div className="space-y-3 w-64">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </div>
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <Skeleton className="h-24 w-48 rounded-xl" />
+                  </div>
+                </SubSection>
+
+                <SubSection title="Avatars">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="w-8 h-8">
+                        <AvatarFallback className="text-xs bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]">XS</AvatarFallback>
+                      </Avatar>
+                      <Avatar className="w-10 h-10">
+                        <AvatarFallback className="text-sm bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]">SM</AvatarFallback>
+                      </Avatar>
+                      <Avatar className="w-12 h-12">
+                        <AvatarFallback className="bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]">MD</AvatarFallback>
+                      </Avatar>
+                      <Avatar className="w-16 h-16">
+                        <AvatarImage src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" />
+                        <AvatarFallback className="bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]">LG</AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <Avatar className="w-12 h-12">
+                          <AvatarFallback className="bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]">JV</AvatarFallback>
+                        </Avatar>
+                        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[hsl(142_71%_45%)] border-2 border-white" />
+                      </div>
+                      <div className="relative">
+                        <Avatar className="w-12 h-12">
+                          <AvatarFallback className="bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]">SJ</AvatarFallback>
+                        </Avatar>
+                        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[hsl(38_92%_50%)] border-2 border-white" />
+                      </div>
+                      <div className="relative">
+                        <Avatar className="w-12 h-12">
+                          <AvatarFallback className="bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]">PG</AvatarFallback>
+                        </Avatar>
+                        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[hsl(215_16%_47%)] border-2 border-white" />
+                      </div>
+                    </div>
+                  </div>
+                </SubSection>
+              </div>
+            </Section>
+
+            {/* ==================== FEEDBACK ==================== */}
+            <Section id="feedback" title="Feedback" description="Alerts, dialogs en meldingen">
+              <div className="space-y-8">
+                <SubSection title="Alerts">
+                  <div className="space-y-4">
+                    <Alert variant="info" title="Informatie" description="Dit is een informatief bericht voor de gebruiker." />
+                    <Alert variant="success" title="Succes" description="De actie is succesvol uitgevoerd." />
+                    <Alert variant="warning" title="Waarschuwing" description="Let op, er kan iets mis gaan." />
+                    <Alert variant="error" title="Fout" description="Er is een fout opgetreden. Probeer het opnieuw." />
+                  </div>
+                </SubSection>
+
+                <SubSection title="Toast Notifications">
+                  <div className="flex flex-wrap gap-4">
+                    <Button variant="outline" onClick={() => toast.success("Succesvol opgeslagen!")}>
+                      Success Toast
+                    </Button>
+                    <Button variant="outline" onClick={() => toast.error("Er ging iets mis!")}>
+                      Error Toast
+                    </Button>
+                    <Button variant="outline" onClick={() => toast.info("Nieuwe update beschikbaar")}>
+                      Info Toast
+                    </Button>
+                    <Button variant="outline" onClick={() => toast.warning("Let op: bijna vol")}>
+                      Warning Toast
+                    </Button>
+                  </div>
+                </SubSection>
+
+                <SubSection title="Dialog">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button>Open Dialog</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Bevestig actie</DialogTitle>
+                        <DialogDescription>
+                          Weet je zeker dat je deze actie wilt uitvoeren? Dit kan niet ongedaan gemaakt worden.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter>
+                        <Button variant="outline">Annuleren</Button>
+                        <Button>Bevestigen</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </SubSection>
+
+                <SubSection title="Tooltip">
+                  <div className="flex gap-4">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" size="icon"><Info className="w-4 h-4" /></Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Dit is een tooltip met extra informatie</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" size="icon"><Settings className="w-4 h-4" /></Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Instellingen</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" size="icon"><Bell className="w-4 h-4" /></Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Notificaties</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </SubSection>
+
+                <SubSection title="Empty & Error States">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="border border-[hsl(169_35%_77%)] rounded-xl">
+                      <EmptyState />
+                    </div>
+                    <div className="border border-[hsl(169_35%_77%)] rounded-xl">
+                      <ErrorState />
+                    </div>
+                  </div>
+                </SubSection>
+              </div>
+            </Section>
+
+            {/* ==================== REAL-WORLD MODULES ==================== */}
+            <Section id="modules" title="Real-World Modules" description="Complete UI componenten uit de applicatie">
+              <div className="space-y-8">
+                <SubSection title="Order Card">
+                  <div className="max-w-md">
+                    <OrderCard />
+                  </div>
+                </SubSection>
+
+                <SubSection title="Task Cards">
+                  <div className="space-y-4">
+                    <TaskCard status="open" />
+                    <TaskCard status="progress" />
+                    <TaskCard status="done" />
+                  </div>
+                </SubSection>
+
+                <SubSection title="Reservation Card">
+                  <div className="max-w-md">
+                    <ReservationCard />
+                  </div>
+                </SubSection>
+
+                <SubSection title="Staff Card">
+                  <div className="space-y-4 max-w-lg">
+                    <StaffCard status="working" />
+                    <StaffCard status="break" />
+                    <StaffCard status="offline" />
+                  </div>
+                </SubSection>
+              </div>
+            </Section>
+
+            {/* ==================== NAVIGATION ==================== */}
+            <Section id="navigation" title="Navigatie" description="Tabs, breadcrumbs en menu's">
+              <div className="space-y-8">
+                <SubSection title="Tabs">
+                  <Tabs defaultValue="overview" className="w-full">
+                    <TabsList>
+                      <TabsTrigger value="overview">Overzicht</TabsTrigger>
+                      <TabsTrigger value="analytics">Analyse</TabsTrigger>
+                      <TabsTrigger value="settings">Instellingen</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="overview" className="p-4 bg-[hsl(210_40%_98%)] rounded-lg mt-4">
+                      <p className="text-sm text-[hsl(215_16%_47%)]">Overzicht content</p>
+                    </TabsContent>
+                    <TabsContent value="analytics" className="p-4 bg-[hsl(210_40%_98%)] rounded-lg mt-4">
+                      <p className="text-sm text-[hsl(215_16%_47%)]">Analyse content</p>
+                    </TabsContent>
+                    <TabsContent value="settings" className="p-4 bg-[hsl(210_40%_98%)] rounded-lg mt-4">
+                      <p className="text-sm text-[hsl(215_16%_47%)]">Instellingen content</p>
+                    </TabsContent>
+                  </Tabs>
+                </SubSection>
+
+                <SubSection title="Breadcrumbs">
+                  <nav className="flex items-center gap-2 text-sm">
+                    <a href="#" className="text-[hsl(215_16%_47%)] hover:text-[hsl(163_65%_26%)]">Home</a>
+                    <ChevronRight className="w-4 h-4 text-[hsl(215_20%_65%)]" />
+                    <a href="#" className="text-[hsl(215_16%_47%)] hover:text-[hsl(163_65%_26%)]">Dashboard</a>
+                    <ChevronRight className="w-4 h-4 text-[hsl(215_20%_65%)]" />
+                    <span className="text-[hsl(222_47%_11%)] font-medium">Taken</span>
+                  </nav>
+                </SubSection>
+
+                <SubSection title="Dropdown Menu">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline">
+                        <User className="w-4 h-4" />
+                        Account
+                        <ChevronRight className="w-4 h-4 rotate-90" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      <DropdownMenuItem><User className="w-4 h-4 mr-2" />Profiel</DropdownMenuItem>
+                      <DropdownMenuItem><Settings className="w-4 h-4 mr-2" />Instellingen</DropdownMenuItem>
+                      <DropdownMenuItem><Bell className="w-4 h-4 mr-2" />Notificaties</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-[hsl(0_84%_60%)]"><LogOut className="w-4 h-4 mr-2" />Uitloggen</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </SubSection>
+              </div>
+            </Section>
+
+          </main>
         </div>
       </div>
-    </SidebarLayout>
+    </div>
   );
-}
+};
+
+export default DesignSystem;
