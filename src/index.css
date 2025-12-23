@@ -45,9 +45,9 @@
     /* Notification badge */
     --notification-badge: 0 70% 60%;
     
-    /* Borders - Subtle green tint */
-    --border: 169 35% 77%;               /* #B3D9D4 */
-    --input: 210 40% 96%;                /* #F1F5F9 */
+    /* Borders - Neutral slate (clean & modern) */
+    --border: 214 32% 91%;               /* #E2E8F0 */
+    --input: 214 32% 91%;                /* #E2E8F0 */
     --ring: 163 65% 26%;                 /* Primary green */
     
     /* Radius */
