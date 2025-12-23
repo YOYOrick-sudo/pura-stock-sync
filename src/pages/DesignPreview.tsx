@@ -33,8 +33,8 @@ const DesignPreview = () => {
           </p>
         </div>
 
-        {/* Comparison Grid */}
-        <div className="grid lg:grid-cols-2 gap-8">
+        {/* Comparison Grid - 3 columns */}
+        <div className="grid lg:grid-cols-3 gap-6">
           
           {/* LEFT: Current Style */}
           <div>
@@ -45,39 +45,23 @@ const DesignPreview = () => {
             
             {/* Simulated current background */}
             <div 
-              className="rounded-2xl p-6 space-y-4"
+              className="rounded-2xl p-5 space-y-3"
               style={{ backgroundColor: '#F6F7DD' }}
             >
-              {/* Current KPI Cards with inline styles (simulated) */}
               <div 
                 style={{
                   backgroundColor: '#FEFFF1',
                   borderRadius: '16px',
-                  padding: '24px',
-                  border: 'none'
+                  padding: '20px',
                 }}
               >
-                <div style={{ 
-                  fontSize: '14px', 
-                  fontWeight: 600, 
-                  color: '#7A7B6D',
-                  marginBottom: '8px'
-                }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#7A7B6D', marginBottom: '6px' }}>
                   Omzet vandaag
                 </div>
-                <div style={{ 
-                  fontSize: '56px', 
-                  fontWeight: 600, 
-                  color: '#282E3A',
-                  lineHeight: 1
-                }}>
+                <div style={{ fontSize: '40px', fontWeight: 600, color: '#282E3A', lineHeight: 1 }}>
                   €2.847
                 </div>
-                <div style={{ 
-                  fontSize: '14px', 
-                  color: '#7A7B6D',
-                  marginTop: '8px'
-                }}>
+                <div style={{ fontSize: '12px', color: '#7A7B6D', marginTop: '6px' }}>
                   +12% vs vorige week
                 </div>
               </div>
@@ -86,32 +70,14 @@ const DesignPreview = () => {
                 style={{
                   backgroundColor: '#FEFFF1',
                   borderRadius: '16px',
-                  padding: '24px',
-                  border: 'none'
+                  padding: '20px',
                 }}
               >
-                <div style={{ 
-                  fontSize: '14px', 
-                  fontWeight: 600, 
-                  color: '#7A7B6D',
-                  marginBottom: '8px'
-                }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#7A7B6D', marginBottom: '6px' }}>
                   Bestellingen
                 </div>
-                <div style={{ 
-                  fontSize: '56px', 
-                  fontWeight: 600, 
-                  color: '#282E3A',
-                  lineHeight: 1
-                }}>
+                <div style={{ fontSize: '40px', fontWeight: 600, color: '#282E3A', lineHeight: 1 }}>
                   47
-                </div>
-                <div style={{ 
-                  fontSize: '14px', 
-                  color: '#7A7B6D',
-                  marginTop: '8px'
-                }}>
-                  Vandaag verwerkt
                 </div>
               </div>
 
@@ -119,79 +85,107 @@ const DesignPreview = () => {
                 style={{
                   backgroundColor: '#FEFFF1',
                   borderRadius: '16px',
-                  padding: '24px',
-                  border: 'none'
+                  padding: '20px',
                 }}
               >
-                <div style={{ 
-                  fontSize: '14px', 
-                  fontWeight: 600, 
-                  color: '#7A7B6D',
-                  marginBottom: '8px'
-                }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#7A7B6D', marginBottom: '6px' }}>
                   Taken voltooid
                 </div>
-                <div style={{ 
-                  fontSize: '56px', 
-                  fontWeight: 600, 
-                  color: '#282E3A',
-                  lineHeight: 1
-                }}>
+                <div style={{ fontSize: '40px', fontWeight: 600, color: '#282E3A', lineHeight: 1 }}>
                   12/15
                 </div>
               </div>
             </div>
 
             {/* Style notes */}
-            <div className="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-200">
-              <h3 className="text-sm font-semibold text-amber-800 mb-2">Kenmerken:</h3>
-              <ul className="text-sm text-amber-700 space-y-1">
-                <li>• Inline styles (moeilijk te onderhouden)</li>
-                <li>• Crème achtergrond (#F6F7DD)</li>
+            <div className="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-200">
+              <h3 className="text-xs font-semibold text-amber-800 mb-2">Kenmerken:</h3>
+              <ul className="text-xs text-amber-700 space-y-1">
+                <li>• Crème achtergrond</li>
+                <li>• Geen shadows</li>
                 <li>• Geen hover effecten</li>
-                <li>• Geen shadows (flat design)</li>
-                <li>• Grote getallen (56px)</li>
               </ul>
             </div>
           </div>
 
-          {/* RIGHT: Modern Style */}
+          {/* MIDDLE: Modern Grijs */}
           <div>
             <div className="mb-4 flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-              <h2 className="text-lg font-semibold text-slate-700">Nieuwe Moderne Stijl</h2>
+              <div className="w-3 h-3 rounded-full bg-slate-400"></div>
+              <h2 className="text-lg font-semibold text-slate-700">Modern Grijs</h2>
             </div>
             
-            {/* Modern background */}
-            <div className="bg-slate-100 rounded-2xl p-6 space-y-4">
+            <div className="bg-slate-100 rounded-2xl p-5 space-y-3">
               <ModernKPICard 
                 title="Omzet vandaag"
                 value="€2.847"
                 trend={{ value: '+12% vs vorige week', positive: true }}
+                variant="default"
               />
               
               <ModernKPICard 
                 title="Bestellingen"
                 value="47"
-                subtitle="Vandaag verwerkt"
+                variant="default"
               />
               
               <ModernKPICard 
                 title="Taken voltooid"
                 value="12/15"
-                trend={{ value: '80% compleet', positive: true }}
+                variant="default"
               />
             </div>
 
             {/* Style notes */}
-            <div className="mt-4 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
-              <h3 className="text-sm font-semibold text-emerald-800 mb-2">Kenmerken:</h3>
-              <ul className="text-sm text-emerald-700 space-y-1">
-                <li>• Tailwind classes (makkelijk te onderhouden)</li>
-                <li>• Lichtgrijze achtergrond (slate-100)</li>
-                <li>• Hover: lift + meer shadow</li>
-                <li>• Subtiele shadows (depth)</li>
-                <li>• Strakker lettertype (48px, bold)</li>
+            <div className="mt-4 p-3 bg-slate-100 rounded-xl border border-slate-200">
+              <h3 className="text-xs font-semibold text-slate-700 mb-2">Kenmerken:</h3>
+              <ul className="text-xs text-slate-600 space-y-1">
+                <li>• Grijze achtergrond</li>
+                <li>• Witte cards + shadow</li>
+                <li>• Hover effecten</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* RIGHT: Modern Pura Vida */}
+          <div>
+            <div className="mb-4 flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#1B7867' }}></div>
+              <h2 className="text-lg font-semibold text-slate-700">Modern Pura Vida</h2>
+            </div>
+            
+            {/* Light Sea background */}
+            <div 
+              className="rounded-2xl p-5 space-y-3"
+              style={{ backgroundColor: '#F0F7F5' }}
+            >
+              <ModernKPICard 
+                title="Omzet vandaag"
+                value="€2.847"
+                trend={{ value: '+12% vs vorige week', positive: true }}
+                variant="puravida"
+              />
+              
+              <ModernKPICard 
+                title="Bestellingen"
+                value="47"
+                variant="puravida"
+              />
+              
+              <ModernKPICard 
+                title="Taken voltooid"
+                value="12/15"
+                variant="puravida"
+              />
+            </div>
+
+            {/* Style notes */}
+            <div className="mt-4 p-3 rounded-xl border" style={{ backgroundColor: '#E6F4F1', borderColor: '#B3D9D4' }}>
+              <h3 className="text-xs font-semibold mb-2" style={{ color: '#1B7867' }}>Kenmerken:</h3>
+              <ul className="text-xs space-y-1" style={{ color: '#2D8B7A' }}>
+                <li>• Light Sea achtergrond (#F0F7F5)</li>
+                <li>• Groene border accent</li>
+                <li>• On-brand Pura Vida</li>
               </ul>
             </div>
           </div>
@@ -230,58 +224,72 @@ const DesignPreview = () => {
         <div className="mt-12">
           <h2 className="text-xl font-bold text-slate-900 mb-4">Kleurenpalet Vergelijking</h2>
           
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-3 gap-6">
             {/* Current colors */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
               <h3 className="font-semibold text-slate-700 mb-4">Huidige Kleuren</h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg" style={{ backgroundColor: '#F6F7DD' }}></div>
+                  <div className="w-10 h-10 rounded-lg" style={{ backgroundColor: '#F6F7DD' }}></div>
                   <div>
-                    <div className="font-medium text-slate-900">#F6F7DD</div>
-                    <div className="text-sm text-slate-500">Page achtergrond</div>
+                    <div className="text-sm font-medium text-slate-900">#F6F7DD</div>
+                    <div className="text-xs text-slate-500">Achtergrond</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg" style={{ backgroundColor: '#FEFFF1' }}></div>
+                  <div className="w-10 h-10 rounded-lg" style={{ backgroundColor: '#FEFFF1' }}></div>
                   <div>
-                    <div className="font-medium text-slate-900">#FEFFF1</div>
-                    <div className="text-sm text-slate-500">Card achtergrond</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg" style={{ backgroundColor: '#1B7867' }}></div>
-                  <div>
-                    <div className="font-medium text-slate-900">#1B7867</div>
-                    <div className="text-sm text-slate-500">Pura Vida groen (blijft!)</div>
+                    <div className="text-sm font-medium text-slate-900">#FEFFF1</div>
+                    <div className="text-xs text-slate-500">Cards</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* New colors */}
+            {/* Modern Grijs colors */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-              <h3 className="font-semibold text-slate-700 mb-4">Nieuwe Kleuren</h3>
+              <h3 className="font-semibold text-slate-700 mb-4">Modern Grijs</h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg bg-slate-50 border border-slate-200"></div>
+                  <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200"></div>
                   <div>
-                    <div className="font-medium text-slate-900">slate-50</div>
-                    <div className="text-sm text-slate-500">Page achtergrond</div>
+                    <div className="text-sm font-medium text-slate-900">slate-100</div>
+                    <div className="text-xs text-slate-500">Achtergrond</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg bg-white border border-slate-200 shadow-sm"></div>
+                  <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 shadow-sm"></div>
                   <div>
-                    <div className="font-medium text-slate-900">white + shadow</div>
-                    <div className="text-sm text-slate-500">Card achtergrond</div>
+                    <div className="text-sm font-medium text-slate-900">white</div>
+                    <div className="text-xs text-slate-500">Cards + shadow</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Pura Vida colors */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+              <h3 className="font-semibold mb-4" style={{ color: '#1B7867' }}>Pura Vida</h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg" style={{ backgroundColor: '#F0F7F5' }}></div>
+                  <div>
+                    <div className="text-sm font-medium text-slate-900">#F0F7F5</div>
+                    <div className="text-xs text-slate-500">Light Sea</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg" style={{ backgroundColor: '#1B7867' }}></div>
+                  <div className="w-10 h-10 rounded-lg bg-white border-2" style={{ borderColor: '#B3D9D4' }}></div>
                   <div>
-                    <div className="font-medium text-slate-900">#1B7867</div>
-                    <div className="text-sm text-slate-500">Pura Vida groen (blijft!)</div>
+                    <div className="text-sm font-medium text-slate-900">#B3D9D4</div>
+                    <div className="text-xs text-slate-500">Border accent</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg" style={{ backgroundColor: '#1B7867' }}></div>
+                  <div>
+                    <div className="text-sm font-medium text-slate-900">#1B7867</div>
+                    <div className="text-xs text-slate-500">Pura Vida Sea</div>
                   </div>
                 </div>
               </div>

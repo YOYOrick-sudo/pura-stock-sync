@@ -8,16 +8,23 @@ interface ModernKPICardProps {
     value: string;
     positive: boolean;
   };
+  variant?: 'default' | 'puravida';
 }
 
 export const ModernKPICard: React.FC<ModernKPICardProps> = ({
   title,
   value,
   subtitle,
-  trend
+  trend,
+  variant = 'default'
 }) => {
+  const variantStyles = {
+    default: 'bg-white border-slate-100',
+    puravida: 'bg-white border-[#B3D9D4]'
+  };
+
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 cursor-pointer">
+    <div className={`rounded-2xl p-6 shadow-sm border transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 cursor-pointer ${variantStyles[variant]}`}>
       <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide">
         {title}
       </h3>
