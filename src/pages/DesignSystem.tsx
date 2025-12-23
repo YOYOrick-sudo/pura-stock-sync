@@ -103,33 +103,33 @@ const ColorSwatch = ({
   textDark?: boolean;
 }) => {
   const [copied, setCopied] = useState(false);
-  
+
   const handleCopy = () => {
     navigator.clipboard.writeText(cssVar || value);
     setCopied(true);
     toast.success("Gekopieerd!");
     setTimeout(() => setCopied(false), 2000);
   };
-  
+
   return (
-    <button 
+    <button
       onClick={handleCopy}
-      className="group flex flex-col items-start gap-2 p-3 rounded-xl bg-white border border-[hsl(169_35%_77%)] hover:border-[hsl(163_65%_26%)] hover:shadow-elevated transition-all text-left w-full"
+      className="group flex flex-col items-start gap-2 p-3 rounded-xl bg-card border border-border hover:border-primary hover:shadow-elevated transition-all text-left w-full"
     >
-      <div 
-        className="w-full h-16 rounded-lg shadow-soft border border-black/5"
+      <div
+        className="w-full h-16 rounded-lg shadow-soft border border-border/50"
         style={{ backgroundColor: value }}
       />
       <div className="w-full">
         <div className="flex items-center justify-between">
-          <span className="font-semibold text-sm text-[hsl(222_47%_11%)]">{name}</span>
+          <span className="font-semibold text-sm text-foreground">{name}</span>
           {copied ? (
-            <Check className="w-4 h-4 text-[hsl(163_65%_26%)]" />
+            <Check className="w-4 h-4 text-primary" />
           ) : (
-            <Copy className="w-4 h-4 text-[hsl(215_16%_47%)] opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Copy className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
           )}
         </div>
-        <code className="text-xs text-[hsl(215_16%_47%)] font-mono">{value}</code>
+        <code className="text-xs text-muted-foreground font-mono">{value}</code>
       </div>
     </button>
   );
@@ -148,12 +148,12 @@ const Section = ({
 }) => (
   <section id={id} className="scroll-mt-24">
     <div className="mb-6">
-      <h2 className="text-2xl font-bold text-[hsl(222_47%_11%)]">{title}</h2>
+      <h2 className="text-2xl font-bold text-foreground">{title}</h2>
       {description && (
-        <p className="text-[hsl(215_16%_47%)] mt-1">{description}</p>
+        <p className="text-muted-foreground mt-1">{description}</p>
       )}
     </div>
-    <div className="bg-white rounded-2xl border border-[hsl(169_35%_77%)] p-6 shadow-soft">
+    <div className="bg-card rounded-2xl border border-border p-6 shadow-soft">
       {children}
     </div>
   </section>
@@ -161,7 +161,7 @@ const Section = ({
 
 const SubSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div className="space-y-4">
-    <h3 className="text-lg font-semibold text-[hsl(222_47%_11%)] border-b border-[hsl(169_35%_77%)] pb-2">{title}</h3>
+    <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">{title}</h3>
     {children}
   </div>
 );
@@ -181,83 +181,73 @@ const KPICard = ({
   icon: React.ElementType;
   trend?: { value: string; positive: boolean };
 }) => (
-  <div className="bg-white rounded-xl border border-[hsl(169_35%_77%)] p-5 hover:border-[hsl(163_65%_26%)] transition-all hover:shadow-elevated">
+  <div className="bg-card rounded-xl border border-border p-5 hover:border-primary transition-all hover:shadow-elevated">
     <div className="flex items-start justify-between mb-3">
-      <div className="p-2.5 rounded-xl bg-[hsl(163_35%_93%)]">
-        <Icon className="w-5 h-5 text-[hsl(163_65%_26%)]" />
+      <div className="p-2.5 rounded-xl bg-secondary">
+        <Icon className="w-5 h-5 text-primary" />
       </div>
       {trend && (
-        <div className={`flex items-center gap-1 text-sm font-medium ${
-          trend.positive ? 'text-[hsl(142_71%_45%)]' : 'text-[hsl(0_84%_60%)]'
-        }`}>
-          <TrendingUp className={`w-4 h-4 ${!trend.positive && 'rotate-180'}`} />
+        <div
+          className={`flex items-center gap-1 text-sm font-medium ${
+            trend.positive ? "text-pv-success" : "text-destructive"
+          }`}
+        >
+          <TrendingUp className={`w-4 h-4 ${!trend.positive && "rotate-180"}`} />
           {trend.value}
         </div>
       )}
     </div>
-    <div className="text-2xl font-bold text-[hsl(222_47%_11%)]">{value}</div>
-    <div className="text-sm text-[hsl(215_16%_47%)] mt-1">{title}</div>
+    <div className="text-2xl font-bold text-foreground">{value}</div>
+    <div className="text-sm text-muted-foreground mt-1">{title}</div>
     {subtitle && (
-      <div className="text-xs text-[hsl(163_65%_26%)] mt-2 font-medium">{subtitle}</div>
+      <div className="text-xs text-primary mt-2 font-medium">{subtitle}</div>
     )}
   </div>
 );
 
 // ==================== ALERT COMPONENT ====================
 
-const Alert = ({ 
-  variant, 
-  title, 
-  description 
-}: { 
-  variant: 'info' | 'success' | 'warning' | 'error';
+const Alert = ({
+  variant,
+  title,
+  description,
+}: {
+  variant: "info" | "success" | "warning" | "error";
   title: string;
   description: string;
 }) => {
   const variants = {
     info: {
-      bg: 'bg-[hsl(217_91%_97%)]',
-      border: 'border-[hsl(217_91%_80%)]',
+      wrap: "bg-pv-info/10 border-pv-info/25",
       icon: Info,
-      iconColor: 'text-[hsl(217_91%_60%)]',
-      titleColor: 'text-[hsl(217_91%_30%)]',
-      descColor: 'text-[hsl(217_91%_40%)]',
+      iconColor: "text-pv-info",
     },
     success: {
-      bg: 'bg-[hsl(142_71%_97%)]',
-      border: 'border-[hsl(142_71%_70%)]',
+      wrap: "bg-pv-success/10 border-pv-success/25",
       icon: CheckCircle,
-      iconColor: 'text-[hsl(142_71%_45%)]',
-      titleColor: 'text-[hsl(142_71%_25%)]',
-      descColor: 'text-[hsl(142_71%_35%)]',
+      iconColor: "text-pv-success",
     },
     warning: {
-      bg: 'bg-[hsl(38_92%_97%)]',
-      border: 'border-[hsl(38_92%_70%)]',
+      wrap: "bg-pv-warning/10 border-pv-warning/25",
       icon: AlertTriangle,
-      iconColor: 'text-[hsl(38_92%_45%)]',
-      titleColor: 'text-[hsl(38_92%_25%)]',
-      descColor: 'text-[hsl(38_92%_35%)]',
+      iconColor: "text-pv-warning",
     },
     error: {
-      bg: 'bg-[hsl(0_84%_97%)]',
-      border: 'border-[hsl(0_84%_80%)]',
+      wrap: "bg-destructive/10 border-destructive/25",
       icon: AlertCircle,
-      iconColor: 'text-[hsl(0_84%_60%)]',
-      titleColor: 'text-[hsl(0_84%_30%)]',
-      descColor: 'text-[hsl(0_84%_40%)]',
+      iconColor: "text-destructive",
     },
   };
-  
+
   const v = variants[variant];
   const IconComponent = v.icon;
-  
+
   return (
-    <div className={`${v.bg} ${v.border} border rounded-xl p-4 flex gap-3`}>
+    <div className={`${v.wrap} border rounded-xl p-4 flex gap-3`}>
       <IconComponent className={`w-5 h-5 ${v.iconColor} flex-shrink-0 mt-0.5`} />
       <div>
-        <div className={`font-semibold ${v.titleColor}`}>{title}</div>
-        <div className={`text-sm ${v.descColor} mt-0.5`}>{description}</div>
+        <div className="font-semibold text-foreground">{title}</div>
+        <div className="text-sm text-muted-foreground mt-0.5">{description}</div>
       </div>
     </div>
   );
@@ -265,22 +255,44 @@ const Alert = ({
 
 // ==================== STATUS BADGE ====================
 
-const StatusBadge = ({ 
-  status 
-}: { 
-  status: 'active' | 'pending' | 'inactive' | 'error';
+const StatusBadge = ({
+  status,
+}: {
+  status: "active" | "pending" | "inactive" | "error";
 }) => {
   const styles = {
-    active: { bg: 'bg-[hsl(142_71%_93%)]', text: 'text-[hsl(142_71%_30%)]', dot: 'bg-[hsl(142_71%_45%)]', label: 'Actief' },
-    pending: { bg: 'bg-[hsl(38_92%_93%)]', text: 'text-[hsl(38_92%_30%)]', dot: 'bg-[hsl(38_92%_50%)]', label: 'In behandeling' },
-    inactive: { bg: 'bg-[hsl(215_16%_93%)]', text: 'text-[hsl(215_16%_30%)]', dot: 'bg-[hsl(215_16%_47%)]', label: 'Inactief' },
-    error: { bg: 'bg-[hsl(0_84%_93%)]', text: 'text-[hsl(0_84%_30%)]', dot: 'bg-[hsl(0_84%_60%)]', label: 'Fout' },
+    active: {
+      bg: "bg-pv-success/10",
+      text: "text-pv-success",
+      dot: "bg-pv-success",
+      label: "Actief",
+    },
+    pending: {
+      bg: "bg-pv-warning/10",
+      text: "text-pv-warning",
+      dot: "bg-pv-warning",
+      label: "In behandeling",
+    },
+    inactive: {
+      bg: "bg-muted",
+      text: "text-muted-foreground",
+      dot: "bg-muted-foreground",
+      label: "Inactief",
+    },
+    error: {
+      bg: "bg-destructive/10",
+      text: "text-destructive",
+      dot: "bg-destructive",
+      label: "Fout",
+    },
   };
-  
+
   const s = styles[status];
-  
+
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${s.bg} ${s.text}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${s.bg} ${s.text}`}
+    >
       <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
       {s.label}
     </span>
@@ -549,23 +561,17 @@ const DesignSystem = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[hsl(210_40%_98%)]">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-[hsl(169_35%_77%)]">
+      <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-[hsl(222_47%_11%)]">
-                Pura Vida Design System
-              </h1>
-              <p className="text-sm text-[hsl(215_16%_47%)]">
-                Modern • Professioneel • Consistent
-              </p>
+              <h1 className="text-2xl font-bold text-foreground">Pura Vida Design System</h1>
+              <p className="text-sm text-muted-foreground">Modern • Professioneel • Consistent</p>
             </div>
             <div className="flex items-center gap-3">
-              <Badge variant="secondary" className="bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)] border-0">
-                v2.0
-              </Badge>
+              <Badge variant="secondary">v2.0</Badge>
               <Button variant="outline" size="sm" asChild>
                 <a href="/dashboard">
                   <Home className="w-4 h-4" />
@@ -588,8 +594,8 @@ const DesignSystem = () => {
                   onClick={() => scrollToSection(item.id)}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                     activeSection === item.id
-                      ? 'bg-[hsl(163_35%_93%)] text-[hsl(163_65%_26%)]'
-                      : 'text-[hsl(215_16%_47%)] hover:bg-[hsl(210_40%_96%)] hover:text-[hsl(222_47%_11%)]'
+                      ? "bg-secondary text-secondary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
                   <span>{item.icon}</span>
