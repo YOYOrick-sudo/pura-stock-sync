@@ -1,4 +1,4 @@
-import { Home, ListChecks, Wallet, Package, Settings, BarChart3 } from 'lucide-react';
+import { Home, ListChecks, Wallet, Package, Settings, BarChart3, Palette } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useState } from 'react';
@@ -60,6 +60,12 @@ const allNavigationItems = [
     icon: BarChart3,
     locations: ['West', 'Midsland'],
     requiresCode: true,
+  },
+  {
+    title: 'Design System',
+    url: '/design-system',
+    icon: Palette,
+    locations: ['West', 'Midsland'],
   },
 ];
 
