@@ -18,7 +18,7 @@ import InternalOrders from "./pages/kitchen/InternalOrders";
 import MidslandOrders from "./pages/MidslandOrders";
 import StyleGuide from "./pages/StyleGuide";
 import DesignPreview from "./pages/DesignPreview";
-
+import DesignSystem from "./pages/DesignSystem";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -119,7 +119,14 @@ const App = () => (
               </ProtectedRoute>
             } 
           />
-
+          <Route 
+            path="/design-system" 
+            element={
+              <ProtectedRoute>
+                <DesignSystem />
+              </ProtectedRoute>
+            } 
+          />
           {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />
           </Routes>
