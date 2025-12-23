@@ -17,6 +17,7 @@ import Settings from "./pages/Settings";
 import InternalOrders from "./pages/kitchen/InternalOrders";
 import MidslandOrders from "./pages/MidslandOrders";
 import StyleGuide from "./pages/StyleGuide";
+import DesignPreview from "./pages/DesignPreview";
 
 const queryClient = new QueryClient();
 
@@ -107,6 +108,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <StyleGuide />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/design-preview" 
+            element={
+              <ProtectedRoute>
+                <DesignPreview />
               </ProtectedRoute>
             } 
           />
