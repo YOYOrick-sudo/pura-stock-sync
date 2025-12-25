@@ -24,7 +24,7 @@ export const ModernKPICard: React.FC<ModernKPICardProps> = ({
   };
 
   return (
-    <div className={`rounded-2xl p-6 shadow-sm border transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 cursor-pointer ${variantStyles[variant]}`}>
+    <div className={`rounded-polar-lg p-6 shadow-sm border transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 cursor-pointer ${variantStyles[variant]}`}>
       <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide">
         {title}
       </h3>

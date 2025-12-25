@@ -18,25 +18,25 @@ export function PolarSetupCard({
 }: PolarSetupCardProps) {
   return (
     <div
+      className="rounded-polar-lg"
       style={{
         backgroundColor: '#FEFFF1',
-        borderRadius: '16px',
         padding: '24px',
         width: '380px',
       }}
     >
       {/* White inner layer */}
       <div
-        className="flex flex-col"
+        className="flex flex-col rounded-polar-lg"
         style={{
           backgroundColor: '#FFFFFF',
-          borderRadius: '16px',
           padding: '24px',
         }}
       >
         {/* Icon */}
         {Icon && (
           <div
+            className="rounded-polar-md"
             style={{
               marginBottom: '16px',
               display: 'flex',
@@ -45,7 +45,6 @@ export function PolarSetupCard({
               width: '48px',
               height: '48px',
               backgroundColor: '#F6F7DD',
-              borderRadius: '12px',
             }}
           >
             <Icon size={24} style={{ color: '#282E3A' }} />
