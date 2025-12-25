@@ -506,7 +506,7 @@ const StaffCard = ({ status = "working" }: { status?: "working" | "break" | "off
 // ==================== EMPTY & ERROR STATES ====================
 
 const EmptyState = () => (
-  <div className="flex flex-col items-center justify-center py-12 text-center">
+  <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-border-state rounded-polar-lg">
     <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
       <Inbox className="w-8 h-8 text-muted-foreground" />
     </div>
@@ -522,7 +522,7 @@ const EmptyState = () => (
 );
 
 const ErrorState = () => (
-  <div className="flex flex-col items-center justify-center py-12 text-center">
+  <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-border-state rounded-polar-lg">
     <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
       <AlertCircle className="w-8 h-8 text-destructive" />
     </div>

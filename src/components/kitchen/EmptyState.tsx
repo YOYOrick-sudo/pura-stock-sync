@@ -14,7 +14,7 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
   return (
-    <Card className="p-12 border-dashed border-2 border-muted text-center">
+    <Card className="p-12 border-dashed border-2 border-border-state text-center">
       <Icon className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
       <h3 className="text-lg font-semibold text-foreground/80 mb-2">{title}</h3>
       <p className="text-sm text-muted-foreground mb-6">{description}</p>

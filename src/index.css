@@ -47,6 +47,7 @@
     
     /* Borders - Neutral slate (clean & modern) */
     --border: 214 32% 91%;               /* #E2E8F0 */
+    --border-state: 214 25% 80%;         /* #C5CED8 - State containers (empty/error/loading) */
     --input: 214 32% 91%;                /* #E2E8F0 */
     --ring: 163 65% 26%;                 /* Primary green */
     
@@ -85,6 +86,7 @@
     --notification-badge: 0 70% 65%;
     
     --border: 217 33% 30%;
+    --border-state: 217 33% 45%;         /* State containers in dark mode */
     --input: 217 33% 20%;
     --ring: 163 65% 35%;
   }
