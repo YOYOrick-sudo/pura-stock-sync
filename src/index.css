@@ -45,10 +45,10 @@
     /* Notification badge */
     --notification-badge: 0 70% 60%;
     
-    /* Borders - Neutral slate (clean & modern) */
-    --border: 214 32% 91%;               /* #E2E8F0 */
-    --border-state: 214 25% 80%;         /* #C5CED8 - State containers (empty/error/loading) */
-    --input: 214 32% 91%;                /* #E2E8F0 */
+    /* Borders - Clear & visible (like modern SaaS forms) */
+    --border: 214 32% 82%;               /* #CBD5E1 - Slate-300 equivalent */
+    --border-state: 214 25% 75%;         /* #B0BDC9 - State containers (empty/error/loading) */
+    --input: 214 32% 82%;                /* #CBD5E1 - Same as border */
     --ring: 163 65% 26%;                 /* Primary green */
     
     /* Radius */
