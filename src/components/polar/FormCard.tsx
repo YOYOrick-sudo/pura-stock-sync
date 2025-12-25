@@ -23,10 +23,10 @@ export function PolarFormCard({ title, children }: PolarFormCardProps) {
       )}
       
       <div
+        className="rounded-polar-lg"
         style={{
           backgroundColor: '#FFFFFF',
           border: '1px solid rgba(197, 197, 202, 0.5)',
-          borderRadius: '16px',
           padding: '32px',
         }}
       >

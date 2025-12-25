@@ -59,9 +59,9 @@ export function PolarKPICard({
   if (compact) {
     return (
       <div
+        className="rounded-polar-lg"
         style={{
           backgroundColor: statusColor?.bg || '#F6F7DD',
-          borderRadius: '16px',
           padding: '20px',
           display: 'flex',
           flexDirection: 'column',
@@ -135,9 +135,9 @@ export function PolarKPICard({
 
   return (
     <div
+      className="rounded-polar-lg"
       style={{
         backgroundColor: statusColor?.bg || '#FEFFF1',
-        borderRadius: '16px',
         padding: '24px',
         display: 'flex',
         flexDirection: 'column',
@@ -274,10 +274,10 @@ export function PolarKPICard({
       {/* Chart - WHITE background layer inside grey card */}
       {showChart && chartData.length > 0 && (
         <div
+          className="rounded-polar-lg"
           style={{
             marginTop: 'auto',
             backgroundColor: '#FFFFFF',
-            borderRadius: '16px',
             padding: '24px',
           }}
         >

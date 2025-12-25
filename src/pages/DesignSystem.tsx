@@ -114,7 +114,7 @@ const ColorSwatch = ({
   return (
     <button
       onClick={handleCopy}
-      className="group flex flex-col items-start gap-2 p-3 rounded-xl bg-card border border-border hover:border-primary hover:shadow-elevated transition-all text-left w-full"
+      className="group flex flex-col items-start gap-2 p-3 rounded-polar-lg bg-card border border-border hover:border-primary hover:shadow-elevated transition-all text-left w-full"
     >
       <div
         className="w-full h-16 rounded-lg shadow-soft border border-border/50"
@@ -181,7 +181,7 @@ const KPICard = ({
   icon: React.ElementType;
   trend?: { value: string; positive: boolean };
 }) => (
-  <div className="bg-card rounded-xl border border-border p-5 hover:border-primary transition-all hover:shadow-elevated">
+  <div className="bg-card rounded-polar-lg border border-border p-5 hover:border-primary transition-all hover:shadow-elevated">
     <div className="flex items-start justify-between mb-3">
       <div className="p-2.5 rounded-xl bg-secondary">
         <Icon className="w-5 h-5 text-primary" />
@@ -243,7 +243,7 @@ const Alert = ({
   const IconComponent = v.icon;
 
   return (
-    <div className={`${v.wrap} border rounded-xl p-4 flex gap-3`}>
+    <div className={`${v.wrap} border rounded-polar-lg p-4 flex gap-3`}>
       <IconComponent className={`w-5 h-5 ${v.iconColor} flex-shrink-0 mt-0.5`} />
       <div>
         <div className="font-semibold text-foreground">{title}</div>
@@ -302,7 +302,7 @@ const StatusBadge = ({
 // ==================== REAL-WORLD MODULES ====================
 
 const OrderCard = () => (
-  <div className="bg-card rounded-xl border border-border p-5 hover:border-primary hover:shadow-elevated transition-all">
+  <div className="bg-card rounded-polar-lg border border-border p-5 hover:border-primary hover:shadow-elevated transition-all">
     <div className="flex items-start justify-between mb-4">
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
@@ -355,7 +355,7 @@ const TaskCard = ({ status = "open" }: { status?: "open" | "progress" | "done" }
 
   return (
     <div
-      className={`bg-card rounded-xl border ${
+      className={`bg-card rounded-polar-lg border ${
         status === "done" ? "border-pv-success/50" : "border-border"
       } p-5 hover:shadow-elevated transition-all ${status === "done" ? "opacity-75" : ""}`}
     >
@@ -398,7 +398,7 @@ const TaskCard = ({ status = "open" }: { status?: "open" | "progress" | "done" }
 };
 
 const ReservationCard = () => (
-  <div className="bg-card rounded-xl border border-border p-5 hover:border-primary hover:shadow-elevated transition-all">
+  <div className="bg-card rounded-polar-lg border border-border p-5 hover:border-primary hover:shadow-elevated transition-all">
     <div className="flex items-start justify-between mb-4">
       <div className="flex items-center gap-3">
         <Avatar className="w-12 h-12">
@@ -455,7 +455,7 @@ const StaffCard = ({ status = "working" }: { status?: "working" | "break" | "off
   const s = statusConfig[status];
 
   return (
-    <div className="bg-card rounded-xl border border-border p-5 hover:border-primary hover:shadow-elevated transition-all">
+    <div className="bg-card rounded-polar-lg border border-border p-5 hover:border-primary hover:shadow-elevated transition-all">
       <div className="flex items-start gap-4">
         <div className="relative">
           <Avatar className="w-14 h-14">
@@ -506,7 +506,7 @@ const StaffCard = ({ status = "working" }: { status?: "working" | "break" | "off
 // ==================== EMPTY & ERROR STATES ====================
 
 const EmptyState = () => (
-  <div className="bg-card border border-border rounded-polar-xl p-8 shadow-soft">
+  <div className="bg-card border border-border rounded-polar-lg p-8 shadow-soft">
     <div className="flex flex-col items-center justify-center py-4 text-center">
       <div className="w-16 h-16 rounded-2xl bg-primary/5 ring-1 ring-primary/10 flex items-center justify-center mb-4">
         <Inbox className="w-8 h-8 text-primary/60" />
@@ -524,7 +524,7 @@ const EmptyState = () => (
 );
 
 const ErrorState = () => (
-  <div className="bg-card border border-border rounded-polar-xl p-8 shadow-soft">
+  <div className="bg-card border border-border rounded-polar-lg p-8 shadow-soft">
     <div className="flex flex-col items-center justify-center py-4 text-center">
       <div className="w-16 h-16 rounded-2xl bg-destructive/5 ring-1 ring-destructive/10 flex items-center justify-center mb-4">
         <AlertCircle className="w-8 h-8 text-destructive/70" />
@@ -809,7 +809,7 @@ const DesignSystem = () => {
 
                 <SubSection title="Content Card">
                   <div className="max-w-md">
-                    <div className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-elevated transition-all">
+                    <div className="bg-card rounded-polar-lg border border-border overflow-hidden hover:shadow-elevated transition-all">
                       <div className="aspect-video bg-gradient-to-br from-secondary to-primary" />
                       <div className="p-5">
                         <h3 className="font-semibold text-foreground mb-2">Card Titel</h3>
@@ -832,8 +832,8 @@ const DesignSystem = () => {
                       { icon: ClipboardList, title: "Taken", desc: "Dagelijkse checklist" },
                       { icon: Users, title: "Team", desc: "Personeel beheren" },
                     ].map((item, i) => (
-                      <button key={i} className="flex items-center gap-4 p-5 bg-card rounded-xl border border-border hover:border-primary hover:shadow-elevated transition-all text-left group">
-                        <div className="p-3 rounded-xl bg-secondary group-hover:bg-primary transition-colors">
+                      <button key={i} className="flex items-center gap-4 p-5 bg-card rounded-polar-lg border border-border hover:border-primary hover:shadow-elevated transition-all text-left group">
+                        <div className="p-3 rounded-polar-md bg-secondary group-hover:bg-primary transition-colors">
                           <item.icon className="w-6 h-6 text-primary group-hover:text-primary-foreground transition-colors" />
                         </div>
                         <div className="flex-1">
@@ -870,7 +870,7 @@ const DesignSystem = () => {
                 </SubSection>
 
                 <SubSection title="Tabel">
-                  <div className="rounded-xl border border-border overflow-hidden">
+                  <div className="rounded-polar-lg border border-border overflow-hidden">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted hover:bg-muted">
@@ -1051,12 +1051,8 @@ const DesignSystem = () => {
 
                 <SubSection title="Empty & Error States">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="border border-border rounded-xl">
-                      <EmptyState />
-                    </div>
-                    <div className="border border-border rounded-xl">
-                      <ErrorState />
-                    </div>
+                    <EmptyState />
+                    <ErrorState />
                   </div>
                 </SubSection>
               </div>
