@@ -46,16 +46,7 @@ export function PolarCheckbox({
             padding: 0,
           }}
         >
-          {checked && (
-            <div 
-              style={{
-                width: '10px',
-                height: '10px',
-                borderRadius: '50%',
-                backgroundColor: 'hsl(var(--primary-foreground))',
-              }}
-            />
-          )}
+          {/* Volledig gevuld - geen binnenste cirkel nodig */}
         </button>
         {label && (
           <span

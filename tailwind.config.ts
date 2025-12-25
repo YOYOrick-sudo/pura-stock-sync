@@ -38,7 +38,7 @@ export default {
             'muted': 'hsl(215 20% 65%)',      // #94A3B8 - Slate-400
           },
           // Status Colors
-          'success': 'hsl(142 71% 45%)',       // #22C55E
+          'success': 'hsl(163 55% 40%)',       // Brand-aligned sea green
           'warning': 'hsl(38 92% 50%)',        // #F59E0B
           'error': 'hsl(0 84% 60%)',           // #EF4444
           'info': 'hsl(217 91% 60%)',          // #3B82F6
