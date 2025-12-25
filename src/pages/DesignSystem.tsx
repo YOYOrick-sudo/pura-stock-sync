@@ -506,34 +506,38 @@ const StaffCard = ({ status = "working" }: { status?: "working" | "break" | "off
 // ==================== EMPTY & ERROR STATES ====================
 
 const EmptyState = () => (
-  <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-border-state rounded-polar-lg">
-    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-      <Inbox className="w-8 h-8 text-muted-foreground" />
+  <div className="bg-card border border-border rounded-polar-xl p-8 shadow-soft">
+    <div className="flex flex-col items-center justify-center py-4 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-primary/5 ring-1 ring-primary/10 flex items-center justify-center mb-4">
+        <Inbox className="w-8 h-8 text-primary/60" />
+      </div>
+      <h3 className="text-lg font-semibold text-foreground mb-1">Geen items gevonden</h3>
+      <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+        Er zijn nog geen items om weer te geven. Maak een nieuwe aan om te beginnen.
+      </p>
+      <Button>
+        <Plus className="w-4 h-4" />
+        Nieuw item
+      </Button>
     </div>
-    <h3 className="text-lg font-semibold text-foreground mb-1">Geen items gevonden</h3>
-    <p className="text-sm text-muted-foreground mb-4 max-w-sm">
-      Er zijn nog geen items om weer te geven. Maak een nieuwe aan om te beginnen.
-    </p>
-    <Button>
-      <Plus className="w-4 h-4" />
-      Nieuw item
-    </Button>
   </div>
 );
 
 const ErrorState = () => (
-  <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-border-state rounded-polar-lg">
-    <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
-      <AlertCircle className="w-8 h-8 text-destructive" />
+  <div className="bg-card border border-border rounded-polar-xl p-8 shadow-soft">
+    <div className="flex flex-col items-center justify-center py-4 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-destructive/5 ring-1 ring-destructive/10 flex items-center justify-center mb-4">
+        <AlertCircle className="w-8 h-8 text-destructive/70" />
+      </div>
+      <h3 className="text-lg font-semibold text-foreground mb-1">Er ging iets mis</h3>
+      <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+        We konden de gegevens niet laden. Probeer het opnieuw.
+      </p>
+      <Button variant="secondary">
+        <RefreshCw className="w-4 h-4" />
+        Opnieuw proberen
+      </Button>
     </div>
-    <h3 className="text-lg font-semibold text-foreground mb-1">Er ging iets mis</h3>
-    <p className="text-sm text-muted-foreground mb-4 max-w-sm">
-      We konden de gegevens niet laden. Probeer het opnieuw.
-    </p>
-    <Button variant="outline">
-      <RefreshCw className="w-4 h-4" />
-      Opnieuw proberen
-    </Button>
   </div>
 );
 
