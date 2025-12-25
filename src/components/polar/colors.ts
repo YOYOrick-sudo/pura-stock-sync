@@ -1,120 +1,115 @@
 /**
- * Polar Design System - Color Presets (Pura Vida Edition)
+ * Polar Design System - Color Presets (Modern Slate Edition)
  * 
- * Complete color palette mapped to Pura Vida brand colors.
- * Polar teal (#1d979e) replaced with Pura Vida Sea (#1B7867)
+ * Complete color palette using modern slate tones.
+ * All legacy crème/moonlight colors removed.
  */
 
 export const PolarColors = {
-  // Base Colors
+  // Base Colors (Modern Slate)
   white: '#FFFFFF',
-  background: '#FEFFF1',          // Pura Vida Cream
-  surface: '#FFFFFF',              // White for contrast cards
+  background: '#F8FAFC',              // Slate-50 (modern, no yellow)
+  surface: '#FFFFFF',                  // White for cards
   
   // Text Colors
   text: {
-    primary: '#282E3A',            // Pura Vida Midnight
-    secondary: '#73747B',          // Subtle text
-    tertiary: '#73747B',
-    disabled: '#ACAEB3',
+    primary: '#0F172A',               // Slate-900
+    secondary: '#64748B',             // Slate-500
+    tertiary: '#94A3B8',              // Slate-400
+    disabled: '#CBD5E1',              // Slate-300
   },
 
   // Border Colors
   border: {
-    default: 'rgba(197, 197, 202, 0.5)',  // Semi-transparent
-    light: 'rgba(197, 197, 202, 0.3)',    // Lighter
-    dark: '#36373A',
+    default: '#E2E8F0',               // Slate-200
+    light: '#F1F5F9',                 // Slate-100
+    dark: '#334155',                  // Slate-700
   },
 
   // Brand Colors (Pura Vida Sea)
   brand: {
-    primary: '#1B7867',        // Pura Vida Sea (was #1d979e)
-    primaryHover: '#156556',   // Darker Sea (was #188991)
-    primaryLight: '#E6F4F1',   // Light Sea (was #E7F9FA)
-    primaryBorder: '#B3D9D4',  // Sea border (was #C4EBEC)
+    primary: '#1B7867',               // Pura Vida Sea
+    primaryHover: '#156556',          // Darker Sea
+    primaryLight: '#E6F4F1',          // Light Sea
+    primaryBorder: '#B3D9D4',         // Sea border
   },
 
   // Status Colors
   status: {
-    success: '#10B981',
-    successLight: '#F0FDF4',
-    successBorder: '#D1FAE5',
+    success: '#22C55E',               // Green-500
+    successLight: '#F0FDF4',          // Green-50
+    successBorder: '#BBF7D0',         // Green-200
     
-    pending: '#FF9800',
-    pendingLight: '#FFF8F0',
-    pendingBorder: '#FFE7CC',
+    pending: '#F59E0B',               // Amber-500
+    pendingLight: '#FFFBEB',          // Amber-50
+    pendingBorder: '#FDE68A',         // Amber-200
     
-    warning: '#E64D4D',
-    warningLight: '#FEF5F5',
-    warningBorder: '#FEE7E7',
+    warning: '#F59E0B',               // Amber-500
+    warningLight: '#FFFBEB',          // Amber-50
+    warningBorder: '#FDE68A',         // Amber-200
     
-    error: '#E64D4D',
-    errorLight: '#FEF5F5',
-    errorBorder: '#FEE7E7',
+    error: '#EF4444',                 // Red-500
+    errorLight: '#FEF2F2',            // Red-50
+    errorBorder: '#FECACA',           // Red-200
     
-    info: '#1B7867',          // Pura Vida Sea (was #1d979e)
-    infoLight: '#E6F4F1',     // Light Sea (was #E7F9FA)
-    infoBorder: '#B3D9D4',    // Sea border (was #C4EBEC)
+    info: '#3B82F6',                  // Blue-500
+    infoLight: '#EFF6FF',             // Blue-50
+    infoBorder: '#BFDBFE',            // Blue-200
   },
 
   // Component-specific colors
   badge: {
     default: {
-      bg: '#F4F5F6',
-      text: '#36373A',
-      border: '#ECEDED',
+      bg: '#F1F5F9',                  // Slate-100
+      text: '#334155',                // Slate-700
+      border: '#E2E8F0',              // Slate-200
     },
     success: {
       bg: '#F0FDF4',
-      text: '#10B981',
-      border: '#D1FAE5',
+      text: '#22C55E',
+      border: '#BBF7D0',
     },
     pending: {
-      bg: '#FFF8F0',
-      text: '#FF9800',
-      border: '#FFE7CC',
+      bg: '#FFFBEB',
+      text: '#F59E0B',
+      border: '#FDE68A',
     },
     warning: {
-      bg: '#FEF5F5',
-      text: '#E64D4D',
-      border: '#FEE7E7',
+      bg: '#FFFBEB',
+      text: '#F59E0B',
+      border: '#FDE68A',
     },
     error: {
-      bg: '#FEF5F5',
-      text: '#E64D4D',
-      border: '#FEE7E7',
+      bg: '#FEF2F2',
+      text: '#EF4444',
+      border: '#FECACA',
     },
     info: {
-      bg: '#E6F4F1',           // Light Sea (was #E7F9FA)
-      text: '#1B7867',         // Pura Vida Sea (was #1d979e)
-      border: '#B3D9D4',       // Sea border (was #C4EBEC)
+      bg: '#EFF6FF',
+      text: '#3B82F6',
+      border: '#BFDBFE',
     },
   },
 
   // Avatar
   avatar: {
-    online: '#10B981',
-    offline: '#73747B',
-    background: '#F4F5F6',
+    online: '#22C55E',
+    offline: '#94A3B8',
+    background: '#F1F5F9',
   },
 
-  // Extra Pura Vida accent colors
-  puravida: {
-    sunset: '#E27726',    // Sunset - Accent/CTA
-    sunrise: '#F9BD84',   // Sunrise - Secondary Accent
-    moonlight: '#F6F7DD', // Moonlight - Sidebar background
-    cream: '#FEFFF1',     // Cream - Main background
-    midnight: '#282E3A',  // Midnight - Dark text
-    sky: '#B1CFBE',       // Sky - Muted/Borders
+  // Muted/Secondary surfaces
+  muted: {
+    bg: '#F1F5F9',                    // Slate-100
+    hover: '#E2E8F0',                 // Slate-200
   },
 } as const;
 
 // Export individual color groups for convenience
-export const { white, background, surface, text, border, brand, status, badge, avatar } = PolarColors;
+export const { white, background, surface, text, border, brand, status, badge, avatar, muted } = PolarColors;
 
-// Helper function to get status color with opacity
+// Helper function to get color with opacity
 export function withOpacity(color: string, opacity: number): string {
-  // Convert hex to rgba
   const hex = color.replace('#', '');
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);

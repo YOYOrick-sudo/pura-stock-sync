@@ -90,6 +90,13 @@ export default {
         'hover': '0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05)',
       },
       borderRadius: {
+        // Polar UI radius system
+        'polar-sm': '8px',
+        'polar-md': '12px',
+        'polar-lg': '16px',
+        'polar-xl': '20px',
+        'polar-2xl': '24px',
+        // Shadcn defaults (mapped to polar)
         'xl': '16px',
         '2xl': '20px',
         lg: "var(--radius)",
