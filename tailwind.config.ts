@@ -13,6 +13,9 @@ export default {
       },
     },
     extend: {
+      borderWidth: {
+        '1.5': '1.5px',
+      },
       fontFamily: {
         sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "system-ui", "sans-serif"],
       },
