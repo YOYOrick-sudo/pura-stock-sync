@@ -533,7 +533,7 @@ const ErrorState = () => (
       <p className="text-sm text-muted-foreground mb-6 max-w-sm">
         We konden de gegevens niet laden. Probeer het opnieuw.
       </p>
-      <Button variant="secondary">
+      <Button variant="outline">
         <RefreshCw className="w-4 h-4" />
         Opnieuw proberen
       </Button>
