@@ -1,5 +1,4 @@
 import React from 'react';
-import { Check } from 'lucide-react';
 
 export interface PolarCheckboxProps {
   checked: boolean;
@@ -36,9 +35,9 @@ export function PolarCheckbox({
           style={{
             width: '20px',
             height: '20px',
-            borderRadius: '6px',
-            border: error ? '2px solid #E64D4D' : checked ? '2px solid #1B7867' : '2px solid rgba(197, 197, 202, 0.5)',
-            backgroundColor: checked ? '#1B7867' : '#FFFFFF',
+            borderRadius: '50%',
+            border: error ? '2px solid hsl(var(--destructive))' : checked ? '2px solid hsl(var(--primary))' : '2px solid hsl(var(--input))',
+            backgroundColor: checked ? 'hsl(var(--primary))' : 'hsl(var(--background))',
             cursor: disabled ? 'not-allowed' : 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -47,14 +46,23 @@ export function PolarCheckbox({
             padding: 0,
           }}
         >
-          {checked && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
+          {checked && (
+            <div 
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                backgroundColor: 'hsl(var(--primary-foreground))',
+              }}
+            />
+          )}
         </button>
         {label && (
           <span
             style={{
               fontFamily: 'Inter, sans-serif',
               fontSize: '15px',
-              color: error ? '#E64D4D' : '#282E3A',
+              color: error ? 'hsl(var(--destructive))' : 'hsl(var(--foreground))',
               userSelect: 'none',
             }}
           >
@@ -67,7 +75,7 @@ export function PolarCheckbox({
           style={{
             fontFamily: 'Inter, sans-serif',
             fontSize: '14px',
-            color: error ? '#E64D4D' : '#73747B',
+            color: error ? 'hsl(var(--destructive))' : 'hsl(var(--muted-foreground))',
             paddingLeft: '28px',
           }}
         >
