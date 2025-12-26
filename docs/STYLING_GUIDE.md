@@ -111,9 +111,64 @@ style={{ borderRadius: '8px' }}   // polar-sm
 
 ---
 
+## 🎨 Icon Sizes
+
+| Context | Size | Tailwind Class |
+|---------|------|----------------|
+| Navigation | 20px | `w-5 h-5` |
+| Buttons | 16px | `w-4 h-4` |
+| KPI/Cards | 20-24px | `w-5 h-5` / `w-6 h-6` |
+| Inline text | 16px | `w-4 h-4` |
+| Status dots | 6-8px | `w-1.5 h-1.5` / `w-2 h-2` |
+
+---
+
+## 🔄 Interactive States Hiërarchie
+
+| State | Background | Border | Extra |
+|-------|------------|--------|-------|
+| Default | `transparent` / `bg-card` | `border-border` | - |
+| Hover | `bg-pv-bg-hover` | `border-primary/30` | - |
+| Active/Selected | `bg-primary` | `border-primary` | `shadow-sm` |
+| Focus | - | - | `ring-2 ring-primary/50` |
+| Disabled | - | - | `opacity-50` |
+
+```tsx
+// ✅ Correct hover pattern
+className="hover:bg-pv-bg-hover hover:border-primary/30 transition-colors duration-200"
+
+// ✅ Correct active pattern
+className="data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:border-primary/20"
+
+// ✅ Focus ring (use .focus-ring class or inline)
+className="focus-ring"
+// of
+className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
+```
+
+---
+
+## ⏱️ Transition Durations
+
+| Type | Duration | Tailwind Class | Gebruik |
+|------|----------|----------------|---------|
+| Fast | 150ms | `duration-fast` | Hovers, micro-interactions |
+| Default | 200ms | `duration-200` | Standard UI changes |
+| Slow | 300ms | `duration-slow` | Larger animations, modals |
+
+```tsx
+// ✅ Standard transition
+className="transition-all duration-200"
+
+// ✅ Fast hover only
+className="transition-colors duration-fast"
+```
+
+---
+
 ## Tailwind Config Referentie
 
-Zie `tailwind.config.ts` voor de exacte definities van de Polar border-radius tokens:
+Zie `tailwind.config.ts` voor de exacte definities van de Polar tokens:
 
 ```typescript
 borderRadius: {
@@ -121,5 +176,11 @@ borderRadius: {
   'polar-md': '12px',  // inner layers, buttons
   'polar-lg': '16px',  // cards ⭐ (default)
   'polar-xl': '20px',  // grote panels
+}
+
+transitionDuration: {
+  'fast': '150ms',     // hovers, micro-interactions
+  'DEFAULT': '200ms',  // standard UI changes
+  'slow': '300ms',     // larger animations
 }
 ```
