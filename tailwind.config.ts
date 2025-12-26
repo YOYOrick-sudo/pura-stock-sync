@@ -109,6 +109,12 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      // Transition duration standards
+      transitionDuration: {
+        'fast': '150ms',      // Hovers, micro-interactions
+        'DEFAULT': '200ms',   // Standard UI changes
+        'slow': '300ms',      // Larger animations
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
