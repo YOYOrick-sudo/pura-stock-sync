@@ -546,6 +546,8 @@ const ErrorState = () => (
 const navItems = [
   { id: 'colors', label: 'Kleuren', icon: '🎨' },
   { id: 'typography', label: 'Typography', icon: '📝' },
+  { id: 'borders', label: 'Borders', icon: '🔲' },
+  { id: 'radius', label: 'Border Radius', icon: '⬜' },
   { id: 'buttons', label: 'Buttons', icon: '🔘' },
   { id: 'forms', label: 'Formulieren', icon: '📋' },
   { id: 'cards', label: 'Cards', icon: '🃏' },
@@ -643,7 +645,7 @@ const DesignSystem = () => {
 
                 <SubSection title="Status">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <ColorSwatch name="Success" value="#22C55E" cssVar="hsl(142 71% 45%)" textDark={false} />
+                    <ColorSwatch name="Success" value="#2D8E6F" cssVar="hsl(156 60% 35%)" textDark={false} />
                     <ColorSwatch name="Warning" value="#F59E0B" cssVar="hsl(38 92% 50%)" textDark={false} />
                     <ColorSwatch name="Error" value="#EF4444" cssVar="hsl(0 84% 60%)" textDark={false} />
                     <ColorSwatch name="Info" value="#3B82F6" cssVar="hsl(217 91% 60%)" textDark={false} />
@@ -685,6 +687,234 @@ const DesignSystem = () => {
                     <span className="text-xs font-medium text-muted-foreground">CAPTION TEKST VOOR LABELS</span>
                   </div>
                 </div>
+              </div>
+            </Section>
+
+            {/* ==================== BORDERS ==================== */}
+            <Section id="borders" title="Borders" description="Border dikte en kleur standaarden">
+              <div className="space-y-8">
+                <SubSection title="Border Dikte Hiërarchie">
+                  <div className="p-4 rounded-polar-lg bg-pv-success/10 border border-pv-success/25 mb-6">
+                    <p className="text-sm font-medium text-foreground">
+                      💡 <strong>TL;DR:</strong> Twijfel je? Gebruik <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-xs">border-1.5</code> — dit is de standaard voor 95% van alle elementen.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* 1px */}
+                    <div className="space-y-3">
+                      <div className="p-6 rounded-polar-lg bg-card border border-border flex items-center justify-center">
+                        <Input placeholder="Zoeken..." className="max-w-48" />
+                      </div>
+                      <div className="space-y-1">
+                        <code className="text-xs font-mono text-primary block">border (1px)</code>
+                        <p className="text-sm font-semibold text-foreground">Search Inputs</p>
+                        <p className="text-xs text-muted-foreground">Alleen standaard state</p>
+                      </div>
+                    </div>
+
+                    {/* 1.5px - STANDAARD */}
+                    <div className="space-y-3">
+                      <div className="p-6 rounded-polar-lg bg-pv-sea-light border-1.5 border-primary/20 flex flex-col items-center gap-3">
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">Outline</Button>
+                          <div className="w-20 h-10 rounded-polar-lg border-1.5 border-border bg-card flex items-center justify-center text-xs text-muted-foreground">Card</div>
+                        </div>
+                        <Badge variant="secondary">⭐ Standaard</Badge>
+                      </div>
+                      <div className="space-y-1">
+                        <code className="text-xs font-mono text-primary block">border-1.5 (1.5px)</code>
+                        <p className="text-sm font-semibold text-foreground">De Standaard ⭐</p>
+                        <p className="text-xs text-muted-foreground">Cards, Buttons, Sidebar, Inputs (focus), Modals, Tables</p>
+                      </div>
+                    </div>
+
+                    {/* 2px */}
+                    <div className="space-y-3">
+                      <div className="p-6 rounded-polar-lg bg-card border border-border flex items-center justify-center gap-3">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-pv-success/10 text-pv-success border-2 border-pv-success/50">
+                          Succes
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-destructive/10 text-destructive border-2 border-destructive/50">
+                          Error
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        <code className="text-xs font-mono text-primary block">border-2 (2px)</code>
+                        <p className="text-sm font-semibold text-foreground">Status Indicators</p>
+                        <p className="text-xs text-muted-foreground">"LET OP!" elementen</p>
+                      </div>
+                    </div>
+                  </div>
+                </SubSection>
+
+                <SubSection title="Border Kleur Hiërarchie">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {/* border-border */}
+                    <div className="space-y-3">
+                      <div className="h-20 rounded-polar-lg border-1.5 border-border bg-card flex items-center justify-center">
+                        <span className="text-xs text-muted-foreground">Default</span>
+                      </div>
+                      <div className="space-y-1">
+                        <code className="text-xs font-mono text-primary block">border-border</code>
+                        <p className="text-xs text-muted-foreground">Standaard cards & containers</p>
+                      </div>
+                    </div>
+
+                    {/* border-subtle */}
+                    <div className="space-y-3">
+                      <div className="h-20 rounded-polar-lg border-1.5 border-subtle bg-card flex items-center justify-center">
+                        <span className="text-xs text-muted-foreground">Subtle</span>
+                      </div>
+                      <div className="space-y-1">
+                        <code className="text-xs font-mono text-primary block">border-subtle</code>
+                        <p className="text-xs text-muted-foreground">Subtiele brand hint (10%)</p>
+                      </div>
+                    </div>
+
+                    {/* border-accent */}
+                    <div className="space-y-3">
+                      <div className="h-20 rounded-polar-lg border-1.5 border-accent bg-card flex items-center justify-center">
+                        <span className="text-xs text-muted-foreground">Accent</span>
+                      </div>
+                      <div className="space-y-1">
+                        <code className="text-xs font-mono text-primary block">border-accent</code>
+                        <p className="text-xs text-muted-foreground">Active/focus states (20%)</p>
+                      </div>
+                    </div>
+
+                    {/* border-strong */}
+                    <div className="space-y-3">
+                      <div className="h-20 rounded-polar-lg border-1.5 border-strong bg-card flex items-center justify-center">
+                        <span className="text-xs text-muted-foreground">Strong</span>
+                      </div>
+                      <div className="space-y-1">
+                        <code className="text-xs font-mono text-primary block">border-strong</code>
+                        <p className="text-xs text-muted-foreground">Hover states (30%)</p>
+                      </div>
+                    </div>
+
+                    {/* border-primary */}
+                    <div className="space-y-3">
+                      <div className="h-20 rounded-polar-lg border-1.5 border-primary bg-card flex items-center justify-center">
+                        <span className="text-xs text-primary font-medium">Primary</span>
+                      </div>
+                      <div className="space-y-1">
+                        <code className="text-xs font-mono text-primary block">border-primary</code>
+                        <p className="text-xs text-muted-foreground">Geselecteerd/actief (100%)</p>
+                      </div>
+                    </div>
+                  </div>
+                </SubSection>
+
+                <SubSection title="Interactive Demo">
+                  <p className="text-sm text-muted-foreground mb-4">Hover over deze cards om de border transitions te zien:</p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-5 rounded-polar-lg bg-card border-1.5 border-border hover:border-strong transition-colors duration-200 cursor-pointer">
+                      <p className="text-sm font-medium text-foreground">Hover Card</p>
+                      <p className="text-xs text-muted-foreground mt-1">border-border → border-strong</p>
+                    </div>
+                    <div className="p-5 rounded-polar-lg bg-card border-1.5 border-border hover:border-primary transition-colors duration-200 cursor-pointer">
+                      <p className="text-sm font-medium text-foreground">Active Card</p>
+                      <p className="text-xs text-muted-foreground mt-1">border-border → border-primary</p>
+                    </div>
+                    <div className="p-5 rounded-polar-lg bg-card border-1.5 border-accent shadow-sm">
+                      <p className="text-sm font-medium text-foreground">Selected State</p>
+                      <p className="text-xs text-muted-foreground mt-1">border-accent + shadow-sm</p>
+                    </div>
+                  </div>
+                </SubSection>
+              </div>
+            </Section>
+
+            {/* ==================== BORDER RADIUS ==================== */}
+            <Section id="radius" title="Border Radius" description="Consistente afronding hiërarchie">
+              <div className="space-y-8">
+                <SubSection title="Radius Waarden">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    {/* rounded-polar-sm */}
+                    <div className="space-y-3">
+                      <div className="h-24 w-full bg-primary/10 border border-primary/20 rounded-polar-sm flex items-center justify-center">
+                        <span className="text-xs text-primary font-mono">8px</span>
+                      </div>
+                      <div className="space-y-1">
+                        <code className="text-xs font-mono text-primary block">rounded-polar-sm</code>
+                        <p className="text-sm font-semibold text-foreground">Small (8px)</p>
+                        <p className="text-xs text-muted-foreground">Sidebar items, badges, chips</p>
+                      </div>
+                    </div>
+
+                    {/* rounded-polar-md */}
+                    <div className="space-y-3">
+                      <div className="h-24 w-full bg-primary/10 border border-primary/20 rounded-polar-md flex items-center justify-center">
+                        <span className="text-xs text-primary font-mono">12px</span>
+                      </div>
+                      <div className="space-y-1">
+                        <code className="text-xs font-mono text-primary block">rounded-polar-md</code>
+                        <p className="text-sm font-semibold text-foreground">Medium (12px)</p>
+                        <p className="text-xs text-muted-foreground">Inner layers, icon boxes, buttons</p>
+                      </div>
+                    </div>
+
+                    {/* rounded-polar-lg */}
+                    <div className="space-y-3">
+                      <div className="h-24 w-full bg-primary/10 border border-primary/20 rounded-polar-lg flex items-center justify-center">
+                        <span className="text-xs text-primary font-mono">16px</span>
+                      </div>
+                      <div className="space-y-1">
+                        <code className="text-xs font-mono text-primary block">rounded-polar-lg</code>
+                        <p className="text-sm font-semibold text-foreground">Large (16px) ⭐</p>
+                        <p className="text-xs text-muted-foreground">Alle cards (KPI, Order, Task, etc.)</p>
+                      </div>
+                    </div>
+
+                    {/* rounded-polar-xl */}
+                    <div className="space-y-3">
+                      <div className="h-24 w-full bg-primary/10 border border-primary/20 rounded-polar-xl flex items-center justify-center">
+                        <span className="text-xs text-primary font-mono">20px</span>
+                      </div>
+                      <div className="space-y-1">
+                        <code className="text-xs font-mono text-primary block">rounded-polar-xl</code>
+                        <p className="text-sm font-semibold text-foreground">Extra Large (20px)</p>
+                        <p className="text-xs text-muted-foreground">Modals, page sections</p>
+                      </div>
+                    </div>
+                  </div>
+                </SubSection>
+
+                <SubSection title="Praktijkvoorbeelden">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Card met inner layer */}
+                    <div className="p-5 bg-card border-1.5 border-border rounded-polar-lg space-y-3">
+                      <div className="p-3 bg-secondary rounded-polar-md flex items-center gap-3">
+                        <div className="w-10 h-10 bg-primary/10 rounded-polar-sm flex items-center justify-center">
+                          <ChefHat className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Nested Example</p>
+                          <p className="text-xs text-muted-foreground">Card → Inner → Icon</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Card: <code className="text-primary">rounded-polar-lg</code> → 
+                        Inner: <code className="text-primary">rounded-polar-md</code> → 
+                        Icon: <code className="text-primary">rounded-polar-sm</code>
+                      </p>
+                    </div>
+
+                    {/* Button variants */}
+                    <div className="p-5 bg-card border-1.5 border-border rounded-polar-lg space-y-3">
+                      <div className="flex gap-3">
+                        <Button size="sm" className="rounded-polar-md">Button</Button>
+                        <Badge variant="secondary" className="rounded-polar-sm">Badge</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Buttons: <code className="text-primary">rounded-polar-md</code> (12px), 
+                        Badges: <code className="text-primary">rounded-polar-sm</code> (8px)
+                      </p>
+                    </div>
+                  </div>
+                </SubSection>
               </div>
             </Section>
 
