@@ -115,11 +115,13 @@ style={{ borderRadius: '8px' }}   // polar-sm
 
 ### Border Dikte Hiërarchie
 
-| Type | Dikte | Tailwind Class | Gebruik |
-|------|-------|----------------|---------|
-| Default | 1px | `border` | Cards, inputs, dividers |
-| Emphasis | 1.5px | `border-1.5` | Speciale nadruk (optioneel) |
-| Strong | 2px | `border-2` | Geselecteerde items, focus states |
+> 💡 **TL;DR:** Twijfel je? Gebruik `border-1.5` — dit is de standaard voor 95% van alle elementen.
+
+| Dikte | Tailwind Class | Gebruik |
+|-------|----------------|---------|
+| 1px | `border` | Search inputs (alleen standaard state) |
+| **1.5px** | **`border-1.5`** | **STANDAARD** ⭐ Cards, Buttons (outline), Sidebar borders, Inputs (focus), Modals, Tables — basically alles wat klikbaar/interactief is |
+| 2px | `border-2` | Status indicators (success/warning/error badges), "LET OP!" elementen |
 
 ### Border Kleur Hiërarchie
 
@@ -136,11 +138,12 @@ style={{ borderRadius: '8px' }}   // polar-sm
 
 | Component | Default Border | Hover Border | Active Border |
 |-----------|---------------|--------------|---------------|
-| Cards | `border border-border` | `hover:border-strong` | - |
-| Tab item (active) | - | - | `border border-accent` |
+| Cards | `border-1.5 border-border` | `hover:border-strong` | - |
+| Tab item (active) | - | - | `border-1.5 border-accent` |
 | Inputs | `border border-border` | `hover:border-strong` | `focus:border-primary` |
-| Dialogs/Modals | `border border-border` | - | - |
-| Buttons (outline) | `border border-border` | `hover:border-strong` | - |
+| Dialogs/Modals | `border-1.5 border-border` | - | - |
+| Buttons (outline) | `border-1.5 border-border` | `hover:border-strong` | - |
+| Status badges | `border-2 border-{status}/50` | - | - |
 
 ### ❌ Vermijd hardcoded borders
 
