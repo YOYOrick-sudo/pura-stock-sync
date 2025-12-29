@@ -111,6 +111,54 @@ style={{ borderRadius: '8px' }}   // polar-sm
 
 ---
 
+## 🔲 Border Standaarden
+
+### Border Dikte Hiërarchie
+
+| Type | Dikte | Tailwind Class | Gebruik |
+|------|-------|----------------|---------|
+| Default | 1px | `border` | Cards, inputs, dividers |
+| Emphasis | 1.5px | `border-1.5` | Speciale nadruk (optioneel) |
+| Strong | 2px | `border-2` | Geselecteerde items, focus states |
+
+### Border Kleur Hiërarchie
+
+| Context | Tailwind Class | Gebruik |
+|---------|----------------|---------|
+| Default | `border-border` | Standaard cards, containers |
+| State containers | `border-border-state` | Empty/error/loading states |
+| Subtle accent | `border-subtle` / `border-primary/10` | Subtiele brand hint |
+| Active/Focus | `border-accent` / `border-primary/20` | Active tabs, selected items |
+| Hover | `border-strong` / `border-primary/30` | Hover states |
+| Primary | `border-primary` | Geselecteerde/actieve items |
+
+### Per Component Type
+
+| Component | Default Border | Hover Border | Active Border |
+|-----------|---------------|--------------|---------------|
+| Cards | `border border-border` | `hover:border-strong` | - |
+| Tab item (active) | - | - | `border border-accent` |
+| Inputs | `border border-border` | `hover:border-strong` | `focus:border-primary` |
+| Dialogs/Modals | `border border-border` | - | - |
+| Buttons (outline) | `border border-border` | `hover:border-strong` | - |
+
+### ❌ Vermijd hardcoded borders
+
+```tsx
+// ❌ Vermijd - hardcoded hex colors
+className="border-[#1B7867]/20"
+className="border-[#E2E8F0]"
+
+// ✅ Correct - gebruik semantic tokens
+className="border-primary/20"    // of border-accent
+className="border-primary/10"    // of border-subtle
+className="border-primary/30"    // of border-strong
+className="border-border"        // standaard border
+className="border-border-state"  // state containers
+```
+
+---
+
 ## 🎨 Icon Sizes
 
 | Context | Size | Tailwind Class |
