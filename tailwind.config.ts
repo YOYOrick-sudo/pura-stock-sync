@@ -51,6 +51,10 @@ export default {
         border: {
           DEFAULT: "hsl(var(--border))",
           state: "hsl(var(--border-state))",
+          // Semantic border colors for interactive states
+          subtle: "hsl(var(--primary) / 0.1)",   // Subtle brand hint
+          accent: "hsl(var(--primary) / 0.2)",   // Active/focus states
+          strong: "hsl(var(--primary) / 0.3)",   // Hover states
         },
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
