@@ -512,12 +512,11 @@ const KassatellingOverdag = () => {
               <AlertDialogAction 
                 onClick={() => {
                   setShowSuccessDialog(false);
-                  supabase.auth.signOut();
-                  navigate('/');
+                  navigate('/dashboard');
                 }}
                 className="mt-6 bg-[#1B7867] hover:bg-[#1B7867]/90"
               >
-                Sluiten
+                Terug naar Dashboard
               </AlertDialogAction>
             </div>
           </AlertDialogContent>
