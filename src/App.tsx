@@ -19,6 +19,8 @@ import MidslandOrders from "./pages/MidslandOrders";
 import StyleGuide from "./pages/StyleGuide";
 import DesignPreview from "./pages/DesignPreview";
 import DesignSystem from "./pages/DesignSystem";
+// HR Module
+import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } from "./pages/hr";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -121,6 +123,49 @@ const App = () => (
           />
           {/* Public Design System route - no login needed */}
           <Route path="/design-system" element={<DesignSystem />} />
+          
+          {/* HR Module Routes */}
+          <Route 
+            path="/hr" 
+            element={
+              <ProtectedRoute>
+                <HrInbox />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/hr/applicants/new" 
+            element={
+              <ProtectedRoute>
+                <ApplicantForm />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/hr/applicants/:id" 
+            element={
+              <ProtectedRoute>
+                <ApplicantDetail />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/hr/housing" 
+            element={
+              <ProtectedRoute>
+                <HousingPlanner />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/hr/housing/new" 
+            element={
+              <ProtectedRoute>
+                <HousingForm />
+              </ProtectedRoute>
+            } 
+          />
+          
           {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />
           </Routes>
