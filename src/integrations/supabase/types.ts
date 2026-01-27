@@ -14,6 +14,114 @@ export type Database = {
   }
   public: {
     Tables: {
+      accommodation_assignments: {
+        Row: {
+          accommodation_id: string
+          candidate_id: string
+          created_at: string
+          created_by: string | null
+          end_date: string | null
+          id: string
+          notes: string | null
+          start_date: string
+          status: string
+        }
+        Insert: {
+          accommodation_id: string
+          candidate_id: string
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          start_date: string
+          status?: string
+        }
+        Update: {
+          accommodation_id?: string
+          candidate_id?: string
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          start_date?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accommodation_assignments_accommodation_id_fkey"
+            columns: ["accommodation_id"]
+            isOneToOne: false
+            referencedRelation: "accommodation_occupancy"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_assignments_accommodation_id_fkey"
+            columns: ["accommodation_id"]
+            isOneToOne: false
+            referencedRelation: "accommodations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accommodation_assignments_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accommodations: {
+        Row: {
+          address: string | null
+          amenities: string[] | null
+          capacity: number
+          created_at: string
+          description: string | null
+          house_rules_template_id: string | null
+          id: string
+          is_active: boolean
+          location: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          amenities?: string[] | null
+          capacity: number
+          created_at?: string
+          description?: string | null
+          house_rules_template_id?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          amenities?: string[] | null
+          capacity?: number
+          created_at?: string
+          description?: string | null
+          house_rules_template_id?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_house_rules_template"
+            columns: ["house_rules_template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_suggestions: {
         Row: {
           created_at: string
@@ -63,6 +171,220 @@ export type Database = {
             columns: ["created_task_id"]
             isOneToOne: false
             referencedRelation: "foh_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      application_status_log: {
+        Row: {
+          action_type: string
+          application_id: string
+          changed_by: string | null
+          created_at: string
+          id: string
+          new_status: string
+          notes: string | null
+          previous_status: string | null
+        }
+        Insert: {
+          action_type: string
+          application_id: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status: string
+          notes?: string | null
+          previous_status?: string | null
+        }
+        Update: {
+          action_type?: string
+          application_id?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status?: string
+          notes?: string | null
+          previous_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_status_log_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      applications: {
+        Row: {
+          candidate_id: string
+          contract_signed: boolean
+          created_at: string
+          created_by: string | null
+          house_rules_sent: boolean
+          housing_arranged: boolean
+          housing_required: boolean
+          id: string
+          last_contact_at: string | null
+          next_action_at: string | null
+          next_action_type: string | null
+          onboarding_docs_sent: boolean
+          owner_user_id: string | null
+          position: string
+          priority: number
+          season: string | null
+          source: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["application_status"]
+          target_location: string | null
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          contract_signed?: boolean
+          created_at?: string
+          created_by?: string | null
+          house_rules_sent?: boolean
+          housing_arranged?: boolean
+          housing_required?: boolean
+          id?: string
+          last_contact_at?: string | null
+          next_action_at?: string | null
+          next_action_type?: string | null
+          onboarding_docs_sent?: boolean
+          owner_user_id?: string | null
+          position: string
+          priority?: number
+          season?: string | null
+          source?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          target_location?: string | null
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          contract_signed?: boolean
+          created_at?: string
+          created_by?: string | null
+          house_rules_sent?: boolean
+          housing_arranged?: boolean
+          housing_required?: boolean
+          id?: string
+          last_contact_at?: string | null
+          next_action_at?: string | null
+          next_action_type?: string | null
+          onboarding_docs_sent?: boolean
+          owner_user_id?: string | null
+          position?: string
+          priority?: number
+          season?: string | null
+          source?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          target_location?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidates: {
+        Row: {
+          created_at: string
+          cv_url: string | null
+          date_of_birth: string | null
+          email: string | null
+          first_name: string
+          id: string
+          last_name: string
+          nationality: string | null
+          notes: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          cv_url?: string | null
+          date_of_birth?: string | null
+          email?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          nationality?: string | null
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          cv_url?: string | null
+          date_of_birth?: string | null
+          email?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          nationality?: string | null
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      document_templates: {
+        Row: {
+          accommodation_id: string | null
+          content: string
+          created_at: string
+          id: string
+          is_active: boolean
+          location: string | null
+          name: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          accommodation_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          name: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          accommodation_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          name?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_templates_accommodation_id_fkey"
+            columns: ["accommodation_id"]
+            isOneToOne: false
+            referencedRelation: "accommodation_occupancy"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_templates_accommodation_id_fkey"
+            columns: ["accommodation_id"]
+            isOneToOne: false
+            referencedRelation: "accommodations"
             referencedColumns: ["id"]
           },
         ]
@@ -526,6 +848,57 @@ export type Database = {
         }
         Relationships: []
       }
+      sent_documents: {
+        Row: {
+          acknowledged_at: string | null
+          application_id: string
+          channel: string
+          document_url: string | null
+          generated_content: string
+          id: string
+          sent_at: string
+          sent_by: string | null
+          template_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          application_id: string
+          channel: string
+          document_url?: string | null
+          generated_content: string
+          id?: string
+          sent_at?: string
+          sent_by?: string | null
+          template_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          application_id?: string
+          channel?: string
+          document_url?: string | null
+          generated_content?: string
+          id?: string
+          sent_at?: string
+          sent_by?: string | null
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sent_documents_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sent_documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff_members: {
         Row: {
           active: boolean
@@ -615,7 +988,17 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      accommodation_occupancy: {
+        Row: {
+          available_spots: number | null
+          capacity: number | null
+          current_occupancy: number | null
+          id: string | null
+          location: string | null
+          name: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       current_user_location: { Args: never; Returns: string }
@@ -630,7 +1013,16 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "manager" | "kitchen_staff"
+      app_role: "admin" | "manager" | "kitchen_staff" | "hr"
+      application_status:
+        | "received"
+        | "screening"
+        | "interview_scheduled"
+        | "trial_scheduled"
+        | "offer_sent"
+        | "hired"
+        | "rejected"
+        | "reserve"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -758,7 +1150,17 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "manager", "kitchen_staff"],
+      app_role: ["admin", "manager", "kitchen_staff", "hr"],
+      application_status: [
+        "received",
+        "screening",
+        "interview_scheduled",
+        "trial_scheduled",
+        "offer_sent",
+        "hired",
+        "rejected",
+        "reserve",
+      ],
     },
   },
 } as const

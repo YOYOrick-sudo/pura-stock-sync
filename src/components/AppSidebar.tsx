@@ -1,4 +1,4 @@
-import { Home, ListChecks, Wallet, Package, Settings, BarChart3, Palette } from 'lucide-react';
+import { Home, ListChecks, Wallet, Package, Settings, BarChart3, Palette, Users } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useState } from 'react';
@@ -47,6 +47,12 @@ const allNavigationItems = [
     url: '/midsland-bestellingen',
     icon: Package,
     locations: ['Midsland'],
+  },
+  {
+    title: 'HR Inbox',
+    url: '/hr',
+    icon: Users,
+    locations: ['West', 'Midsland'],
   },
   {
     title: 'Settings',
