@@ -43,7 +43,7 @@ export const FohTaskList = memo(function FohTaskList({
             <div key={category} className="mb-6">
               {/* Sticky category header */}
               <h3
-                className="text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2 sticky top-0 bg-secondary/80 backdrop-blur-sm py-2 -mx-1 px-1 z-10 rounded-md"
+                className="text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2 sticky top-0 bg-card/80 backdrop-blur-sm py-2 -mx-1 px-1 z-10 rounded-md"
                 style={{ color: progress.allDone ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))' }}
               >
                 {category}
