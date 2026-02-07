@@ -68,13 +68,13 @@ export const FohTaskItem = memo(function FohTaskItem({
           cursor: !isEditMode && toggleTask ? 'pointer' : 'default',
           transition: 'background-color 0.15s ease, opacity 0.2s ease',
           position: 'relative',
-          backgroundColor: task.completed ? 'hsl(var(--primary) / 0.04)' : 'transparent',
+          backgroundColor: 'transparent',
         }}
         onMouseEnter={(e) => {
-          if (!isEditMode && toggleTask) e.currentTarget.style.backgroundColor = 'hsl(var(--primary) / 0.06)';
+          if (!isEditMode && toggleTask) e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = task.completed ? 'hsl(var(--primary) / 0.04)' : 'transparent';
+          e.currentTarget.style.backgroundColor = 'transparent';
         }}
       >
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>

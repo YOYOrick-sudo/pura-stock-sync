@@ -168,7 +168,7 @@ export function FohTasks() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-[1400px] mx-auto">
-        <div className="bg-secondary rounded-[20px] border border-border p-6 shadow-soft relative">
+        <div className="bg-card rounded-[20px] border border-border p-6 shadow-soft relative">
           <div className="flex flex-col gap-5">
             {/* Header with phase buttons and progress */}
             <FohTaskHeader
