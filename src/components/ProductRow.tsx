@@ -27,7 +27,7 @@ export const ProductRow = ({ product, onUpdateStock, refillAmount, isFirst, onEn
   };
 
   return (
-    <tr className="even:bg-[#F5F7DD]/15 hover:bg-[#F5F7DD]/30 transition-colors border-b border-[#282E3A]/5">
+    <tr className="even:bg-[#FFF7ED]/15 hover:bg-[#FFF7ED]/30 transition-colors border-b border-[#282E3A]/5">
       <td className="px-3 py-2.5 sm:px-4 sm:py-3">
         <span className="text-sm sm:text-base text-[#282E3A] font-normal">{product.name}</span>
       </td>
@@ -43,14 +43,14 @@ export const ProductRow = ({ product, onUpdateStock, refillAmount, isFirst, onEn
             onChange={(e) => onUpdateStock(Math.max(0, parseInt(e.target.value) || 0))}
             onKeyDown={handleKeyDown}
             data-index={index}
-            className="w-20 sm:w-24 text-center text-sm sm:text-base h-9 sm:h-10 px-3 border border-[#1B7867]/20 focus:border-[#1B7867] focus:ring-[#1B7867]/20 rounded-lg bg-[#F5F7DD]/40"
+            className="w-20 sm:w-24 text-center text-sm sm:text-base h-9 sm:h-10 px-3 border border-[#E27726]/20 focus:border-[#E27726] focus:ring-[#E27726]/20 rounded-lg bg-[#FFF7ED]/40"
             autoFocus={isFirst}
           />
         </div>
       </td>
       <td className="px-2 py-2.5 sm:px-3 sm:py-3 text-center">
         <div className="flex items-center justify-center gap-1 sm:gap-2">
-          <span className="inline-flex items-center justify-center min-w-[48px] sm:min-w-[56px] h-8 sm:h-9 px-3 rounded-lg bg-[#1B7867]/10 font-mono text-base sm:text-lg font-bold text-[#1B7867] tabular-nums">
+          <span className="inline-flex items-center justify-center min-w-[48px] sm:min-w-[56px] h-8 sm:h-9 px-3 rounded-lg bg-[#E27726]/10 font-mono text-base sm:text-lg font-bold text-[#E27726] tabular-nums">
             {refillAmount}
           </span>
           {onRemove && (
