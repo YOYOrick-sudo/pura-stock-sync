@@ -33,7 +33,7 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
           gap: '24px',
           padding: '12px 24px',
           borderBottom: '1px solid rgba(197, 197, 202, 0.5)',
-          backgroundColor: '#F6F7DD',
+          backgroundColor: '#F8F9FA',
         }}
       >
         {columns.map((column) => (

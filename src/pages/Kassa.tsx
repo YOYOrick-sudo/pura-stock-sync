@@ -254,7 +254,7 @@ const Kassa = () => {
                             color: '#282E3A',
                             outline: 'none',
                           }}
-                          onFocus={(e) => e.target.style.borderColor = '#1B7867'}
+                          onFocus={(e) => e.target.style.borderColor = '#E27726'}
                           onBlur={(e) => e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)'}
                         />
                       </td>
@@ -266,7 +266,7 @@ const Kassa = () => {
             <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
-                <span style={{ fontSize: '24px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>€{calculateTotal().toFixed(2).replace('.', ',')}</span>
+                <span style={{ fontSize: '24px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#E27726' }}>€{calculateTotal().toFixed(2).replace('.', ',')}</span>
               </div>
             </div>
           </div>
@@ -290,17 +290,17 @@ const Kassa = () => {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Wallet style={{ width: '16px', height: '16px', color: '#1B7867' }} />
+                      <Wallet style={{ width: '16px', height: '16px', color: '#E27726' }} />
                       <span style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Beginsaldo (blijft in kassa)
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '18px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>
+                      <span style={{ fontSize: '18px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#E27726' }}>
                         €{Object.entries(BEGINSALDO_VERDELING).reduce((sum, [denom, count]) => sum + (parseFloat(denom) * count), 0).toFixed(2).replace('.', ',')}
                       </span>
                       <ChevronDown 
-                        style={{ width: '16px', height: '16px', color: '#1B7867', transition: 'transform 0.2s', transform: beginsaldoExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} 
+                        style={{ width: '16px', height: '16px', color: '#E27726', transition: 'transform 0.2s', transform: beginsaldoExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} 
                       />
                     </div>
                   </div>
@@ -321,7 +321,7 @@ const Kassa = () => {
                     ))}
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', marginTop: '8px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
                       <span style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
-                      <span style={{ fontSize: '18px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>
+                      <span style={{ fontSize: '18px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#E27726' }}>
                         €{Object.entries(BEGINSALDO_VERDELING).reduce((sum, [denom, count]) => sum + (parseFloat(denom) * count), 0).toFixed(2).replace('.', ',')}
                       </span>
                     </div>
@@ -343,7 +343,7 @@ const Kassa = () => {
                 <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
                   Totaal
                 </span>
-                <span style={{ fontSize: '30px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>
+                <span style={{ fontSize: '30px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#E27726' }}>
                   €{total.toFixed(2).replace('.', ',')}
                 </span>
               </div>
@@ -378,7 +378,7 @@ const Kassa = () => {
                       outline: 'none',
                       transition: 'border-color 0.15s'
                     }}
-                    onFocus={(e) => !errors.cashOmzet && (e.target.style.borderColor = '#1B7867')}
+                    onFocus={(e) => !errors.cashOmzet && (e.target.style.borderColor = '#E27726')}
                     onBlur={(e) => !errors.cashOmzet && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
                   />
                 </div>
@@ -416,7 +416,7 @@ const Kassa = () => {
                       outline: 'none',
                       transition: 'border-color 0.15s'
                     }}
-                    onFocus={(e) => !errors.naam && (e.target.style.borderColor = '#1B7867')}
+                    onFocus={(e) => !errors.naam && (e.target.style.borderColor = '#E27726')}
                     onBlur={(e) => !errors.naam && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
                   />
                 </div>
@@ -437,7 +437,7 @@ const Kassa = () => {
                     fontSize: '24px',
                     fontFamily: 'Inter, sans-serif',
                     fontWeight: 700,
-                    color: afdracht > 0 ? '#1B7867' : '#9CA3AF'
+                    color: afdracht > 0 ? '#E27726' : '#9CA3AF'
                   }}>
                     €{afdracht.toFixed(2).replace('.', ',')}
                   </span>
@@ -497,7 +497,7 @@ const Kassa = () => {
                     transition: 'border-color 0.15s',
                     whiteSpace: 'pre-wrap'
                   }}
-                  onFocus={(e) => !errors.opmerkingen && (e.target.style.borderColor = '#1B7867')}
+                  onFocus={(e) => !errors.opmerkingen && (e.target.style.borderColor = '#E27726')}
                   onBlur={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
                 />
                 {errors.opmerkingen && (
@@ -521,7 +521,7 @@ const Kassa = () => {
                     fontFamily: 'Inter, sans-serif',
                     fontWeight: 600,
                     fontSize: '18px',
-                    backgroundColor: (!canSubmit || !naam || naam.length < 2 || cashOmzet === '') ? '#D1D5DB' : '#1B7867',
+                    backgroundColor: (!canSubmit || !naam || naam.length < 2 || cashOmzet === '') ? '#D1D5DB' : '#E27726',
                     color: '#FEFFF1',
                     border: 'none',
                     borderRadius: '20px',
@@ -531,13 +531,13 @@ const Kassa = () => {
                   }}
                   onMouseEnter={(e) => {
                     if (!(!canSubmit || !naam || naam.length < 2 || cashOmzet === '')) {
-                      e.currentTarget.style.backgroundColor = '#145f55';
+                      e.currentTarget.style.backgroundColor = '#C9630E';
                       e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.15)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!(!canSubmit || !naam || naam.length < 2 || cashOmzet === '')) {
-                      e.currentTarget.style.backgroundColor = '#1B7867';
+                      e.currentTarget.style.backgroundColor = '#E27726';
                       e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
                     } else {
                       e.currentTarget.style.backgroundColor = '#D1D5DB';
@@ -556,8 +556,8 @@ const Kassa = () => {
                     fontFamily: 'Inter, sans-serif',
                     fontWeight: 500,
                     fontSize: '14px',
-                    backgroundColor: '#FEFFF1',
-                    color: '#1B7867',
+                    backgroundColor: '#FFFFFF',
+                    color: '#E27726',
                     border: '1px solid rgba(197, 197, 202, 0.5)',
                     borderRadius: '20px',
                     cursor: 'pointer',
@@ -568,11 +568,11 @@ const Kassa = () => {
                     gap: '8px'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#F6F7DD';
-                    e.currentTarget.style.borderColor = '#1B7867';
+                    e.currentTarget.style.backgroundColor = '#FFF7ED';
+                    e.currentTarget.style.borderColor = '#E27726';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#FEFFF1';
+                    e.currentTarget.style.backgroundColor = '#FFFFFF';
                     e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.5)';
                   }}
                 >
@@ -589,7 +589,7 @@ const Kassa = () => {
       <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
         <AlertDialogContent className="bg-white">
           <div className="text-center">
-            <CheckCircle2 className="w-16 h-16 text-[#1B7867] mx-auto mb-4" />
+            <CheckCircle2 className="w-16 h-16 text-[#E27726] mx-auto mb-4" />
             
             <AlertDialogTitle className="text-2xl font-heading font-bold text-[#282E3A]">
               Kassatelling Verzonden!
@@ -605,7 +605,7 @@ const Kassa = () => {
                 setShowSuccessDialog(false);
                 navigate('/dashboard');
               }}
-              className="mt-6 bg-[#1B7867] hover:bg-[#1B7867]/90"
+              className="mt-6 bg-[#E27726] hover:bg-[#E27726]/90"
             >
               Terug naar Dashboard
             </AlertDialogAction>
@@ -625,7 +625,7 @@ const Kassa = () => {
           <div className="mt-4">
             <ol className="space-y-4">
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#E27726] text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
                 <div>
                   <span className="font-heading font-medium text-[#282E3A]">Print dagomzet</span>
                   <p className="text-sm text-[#282E3A]/70 mt-1">Print omzet uit in Lightspeed. Check open en niet-gefinancierde tafels → verplaats naar tafel 100 of 101.</p>
@@ -633,7 +633,7 @@ const Kassa = () => {
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#E27726] text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
                 <div>
                   <span className="font-heading font-medium text-[#282E3A]">Finaliseer betalingen</span>
                   <p className="text-sm text-[#282E3A]/70 mt-1">Betaalde maar niet-gefinaliseerde tafels handmatig afronden.</p>
@@ -641,7 +641,7 @@ const Kassa = () => {
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#E27726] text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
                 <div>
                   <span className="font-heading font-medium text-[#282E3A]">Vul naam in</span>
                   <p className="text-sm text-[#282E3A]/70 mt-1">Vul je naam in bij "Naam medewerker".</p>
@@ -649,7 +649,7 @@ const Kassa = () => {
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#E27726] text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
                 <div>
                   <span className="font-heading font-medium text-[#282E3A]">Noteer cash omzet</span>
                   <p className="text-sm text-[#282E3A]/70 mt-1">Voer het cash bedrag uit Lightspeed in.</p>
@@ -657,7 +657,7 @@ const Kassa = () => {
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#E27726] text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
                 <div>
                   <span className="font-heading font-medium text-[#282E3A]">Tel de kassa</span>
                   <p className="text-sm text-[#282E3A]/70 mt-1">Vul alle denominaties in de velden in.</p>
@@ -665,7 +665,7 @@ const Kassa = () => {
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">6</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#E27726] text-white text-sm font-heading font-bold flex items-center justify-center">6</span>
                 <div>
                   <span className="font-heading font-medium text-[#282E3A]">Controleer kassalade</span>
                   <p className="text-sm text-[#282E3A]/70 mt-1">De kassalade moet altijd €157 bevatten. Vul indien nodig aan vanuit de wisselkassa.</p>
@@ -674,7 +674,7 @@ const Kassa = () => {
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">7</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#E27726] text-white text-sm font-heading font-bold flex items-center justify-center">7</span>
                 <div>
                   <span className="font-heading font-medium text-[#282E3A]">Noteer bijzonderheden</span>
                   <p className="text-sm text-[#282E3A]/70 mt-1">Vermeld tekorten, plussen of andere afwijkingen.</p>
@@ -683,7 +683,7 @@ const Kassa = () => {
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">8</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#E27726] text-white text-sm font-heading font-bold flex items-center justify-center">8</span>
                 <div>
                   <span className="font-heading font-medium text-[#282E3A]">Verzend</span>
                   <p className="text-sm text-[#282E3A]/70 mt-1">Klik op "Verzenden" om de kassatelling te versturen.</p>

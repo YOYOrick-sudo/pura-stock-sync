@@ -140,7 +140,7 @@ export const HandoverCard = () => {
       <div
         className="rounded-polar-lg"
         style={{
-          backgroundColor: '#F6F7DD',
+          backgroundColor: '#FFF7ED',
           padding: '20px 24px',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
           minHeight: '100px',
@@ -158,7 +158,7 @@ export const HandoverCard = () => {
     <div
       className="rounded-polar-lg"
       style={{
-        backgroundColor: '#F6F7DD',
+        backgroundColor: '#FFF7ED',
         padding: '20px 24px',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
         display: 'flex',
@@ -188,7 +188,7 @@ export const HandoverCard = () => {
               gap: '8px',
             }}
           >
-            <ClipboardList size={18} color="#1B7867" />
+            <ClipboardList size={18} color="#E27726" />
             <h3
               style={{
                 fontFamily: 'Inter, sans-serif',

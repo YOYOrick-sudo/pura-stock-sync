@@ -20,7 +20,7 @@ export const ModernKPICard: React.FC<ModernKPICardProps> = ({
 }) => {
   const variantStyles = {
     default: 'bg-white border-slate-100',
-    puravida: 'bg-white border-[#B3D9D4]'
+    puravida: 'bg-white border-[#F5D0A9]'
   };
 
   return (

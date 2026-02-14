@@ -155,7 +155,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
 
       <AlertDialog open={showCodeDialog} onOpenChange={setShowCodeDialog}>
         <AlertDialogContent style={{
-          backgroundColor: '#FEFFF1',
+          backgroundColor: '#FFFFFF',
           borderRadius: '20px',
           border: '1px solid rgba(197, 197, 202, 0.5)',
           padding: '32px',
@@ -232,7 +232,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
             <AlertDialogAction 
               onClick={handleCodeSubmit}
               style={{
-                backgroundColor: '#1B7867',
+                backgroundColor: '#E27726',
                 color: '#FFFFFF',
                 borderRadius: '20px',
                 fontFamily: 'Inter, sans-serif',
