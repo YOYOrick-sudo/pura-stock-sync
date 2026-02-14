@@ -60,7 +60,6 @@ export default function MidslandOrders() {
     },
   });
 
-  // Realtime subscription
   useEffect(() => {
     const channel = supabase
       .channel('midsland-orders')
@@ -87,7 +86,6 @@ export default function MidslandOrders() {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
 
-  // Mutation to update order status
   const updateOrderMutation = useMutation({
     mutationFn: async ({ 
       orderId, 
@@ -145,7 +143,7 @@ export default function MidslandOrders() {
   return (
     <SidebarLayout>
       <div style={{
-        backgroundColor: '#F6F7DD',
+        backgroundColor: '#FFF7ED',
         border: '1px solid rgba(197, 197, 202, 0.5)',
         borderRadius: '20px',
         padding: '32px',
@@ -159,7 +157,7 @@ export default function MidslandOrders() {
             alignItems: 'center', 
             padding: '48px 0' 
           }}>
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: '#1B7867' }}></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: '#E27726' }}></div>
           </div>
         ) : !orders || orders.length === 0 ? (
           <div style={{
@@ -185,9 +183,9 @@ export default function MidslandOrders() {
               
               let statusStyle = {};
               if (order.status === 'pending') {
-                statusStyle = { backgroundColor: '#F6F7DD', color: '#282E3A' };
+                statusStyle = { backgroundColor: '#FFF7ED', color: '#282E3A' };
               } else if (order.status === 'approved') {
-                statusStyle = { backgroundColor: '#D1FAE5', color: '#1B7867' };
+                statusStyle = { backgroundColor: '#D1FAE5', color: '#E27726' };
               } else if (order.status === 'rejected') {
                 statusStyle = { backgroundColor: '#FEE2E2', color: '#DC2626' };
               } else if (order.status === 'delivered') {
@@ -225,8 +223,8 @@ export default function MidslandOrders() {
                               width: '10px',
                               height: '10px',
                               borderRadius: '50%',
-                              backgroundColor: '#1B7867',
-                              boxShadow: '0 0 0 2px rgba(27, 120, 103, 0.1)',
+                              backgroundColor: '#E27726',
+                              boxShadow: '0 0 0 2px rgba(226, 119, 38, 0.1)',
                               flexShrink: 0
                             }} />
                           )}
@@ -289,7 +287,7 @@ export default function MidslandOrders() {
                           transition: 'background-color 0.2s'
                         }}>
                           {isExpanded ? (
-                            <ChevronUp className="h-5 w-5" style={{ color: '#1B7867' }} />
+                            <ChevronUp className="h-5 w-5" style={{ color: '#E27726' }} />
                           ) : (
                             <ChevronDown className="h-5 w-5" style={{ color: '#73747B' }} />
                           )}
@@ -308,7 +306,6 @@ export default function MidslandOrders() {
                       flexDirection: 'column',
                       gap: '24px'
                     }}>
-                      {/* Order Notes */}
                       {order.notes && (
                         <div>
                           <h4 style={{ 
@@ -321,7 +318,7 @@ export default function MidslandOrders() {
                             alignItems: 'center',
                             gap: '8px'
                           }}>
-                            <FileText className="h-4 w-4" style={{ color: '#1B7867' }} />
+                            <FileText className="h-4 w-4" style={{ color: '#E27726' }} />
                             Opmerkingen
                           </h4>
                           <p style={{ 
@@ -339,7 +336,6 @@ export default function MidslandOrders() {
                         </div>
                       )}
 
-                      {/* Product List */}
                       <div>
                         <h4 style={{ 
                           fontFamily: 'Inter, sans-serif',
@@ -351,7 +347,7 @@ export default function MidslandOrders() {
                           alignItems: 'center',
                           gap: '8px'
                         }}>
-                          <Package className="h-4 w-4" style={{ color: '#1B7867' }} />
+                          <Package className="h-4 w-4" style={{ color: '#E27726' }} />
                           Producten
                         </h4>
                         <div style={{ 
@@ -373,7 +369,7 @@ export default function MidslandOrders() {
                                   transition: 'background-color 0.2s'
                                 }}
                                 onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#FEFFF1';
+                                  e.currentTarget.style.backgroundColor = '#FFF7ED';
                                 }}
                                 onMouseLeave={(e) => {
                                   e.currentTarget.style.backgroundColor = 'transparent';
@@ -391,7 +387,7 @@ export default function MidslandOrders() {
                                   fontFamily: 'Inter, sans-serif',
                                   fontSize: '14px',
                                   fontWeight: 600,
-                                  color: '#1B7867',
+                                  color: '#E27726',
                                   textAlign: 'right',
                                   minWidth: '80px'
                                 }}>
@@ -413,7 +409,6 @@ export default function MidslandOrders() {
                         </div>
                       </div>
 
-                      {/* Receiver Feedback (if exists) */}
                       {order.receiver_notes && (
                         <div>
                           <h4 style={{ 
@@ -444,7 +439,6 @@ export default function MidslandOrders() {
                         </div>
                       )}
 
-                      {/* Receive buttons for approved orders */}
                       {order.status === 'approved' && (
                         <div style={{ 
                           marginTop: '16px',
@@ -526,7 +520,7 @@ export default function MidslandOrders() {
                                   fontWeight: 500,
                                   padding: '12px 20px',
                                   borderRadius: '20px',
-                                  backgroundColor: '#1B7867',
+                                  backgroundColor: '#E27726',
                                   color: '#FFFFFF',
                                   border: 'none',
                                   cursor: updateOrderMutation.isPending ? 'not-allowed' : 'pointer',
@@ -535,11 +529,11 @@ export default function MidslandOrders() {
                                 }}
                                 onMouseEnter={(e) => {
                                   if (!updateOrderMutation.isPending) {
-                                    e.currentTarget.style.backgroundColor = '#156B5A';
+                                    e.currentTarget.style.backgroundColor = '#C9630E';
                                   }
                                 }}
                                 onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#1B7867';
+                                  e.currentTarget.style.backgroundColor = '#E27726';
                                 }}
                               >
                                 <CheckCircle className="h-4 w-4" />

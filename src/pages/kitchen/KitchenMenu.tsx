@@ -15,7 +15,7 @@ interface MenuCardProps {
 
 const MenuCard = ({ to, icon: Icon, title, description, color }: MenuCardProps) => {
   const colorClasses = {
-    sea: 'border-l-[#1B7867] text-[#1B7867]',
+    sea: 'border-l-[#E27726] text-[#E27726]',
     sunset: 'border-l-[#E27726] text-[#E27726]',
     sky: 'border-l-[#5BA5C8] text-[#5BA5C8]',
     moonlight: 'border-l-[#9B87B5] text-[#9B87B5]',
