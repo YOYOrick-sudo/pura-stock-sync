@@ -17,7 +17,7 @@ export default function Kassatelling() {
       }}>
         {/* Eén grote moonlight card die alles omvat */}
         <div style={{
-          backgroundColor: '#F6F7DD',
+          backgroundColor: '#FFF7ED',
           borderRadius: '20px',
           border: '1px solid rgba(197, 197, 202, 0.5)',
           padding: '24px',
@@ -29,13 +29,13 @@ export default function Kassatelling() {
               onClick={() => setActiveTab('overdag')}
               onMouseEnter={(e) => {
                 if (activeTab !== 'overdag') {
-                  e.currentTarget.style.backgroundColor = '#F6F7DD';
+                  e.currentTarget.style.backgroundColor = '#FFF7ED';
                   e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (activeTab !== 'overdag') {
-                  e.currentTarget.style.backgroundColor = '#FEFFF1';
+                  e.currentTarget.style.backgroundColor = '#FFFFFF';
                   e.currentTarget.style.boxShadow = 'none';
                 }
               }}
@@ -47,7 +47,7 @@ export default function Kassatelling() {
                 fontSize: '14px',
                 fontWeight: 500,
                 padding: '10px 16px',
-                backgroundColor: activeTab === 'overdag' ? '#1B7867' : '#FEFFF1',
+                backgroundColor: activeTab === 'overdag' ? '#E27726' : '#FFFFFF',
                 color: activeTab === 'overdag' ? '#FFFFFF' : '#282E3A',
                 border: activeTab === 'overdag' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
                 borderRadius: '20px',
@@ -63,13 +63,13 @@ export default function Kassatelling() {
               onClick={() => setActiveTab('avond')}
               onMouseEnter={(e) => {
                 if (activeTab !== 'avond') {
-                  e.currentTarget.style.backgroundColor = '#F6F7DD';
+                  e.currentTarget.style.backgroundColor = '#FFF7ED';
                   e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (activeTab !== 'avond') {
-                  e.currentTarget.style.backgroundColor = '#FEFFF1';
+                  e.currentTarget.style.backgroundColor = '#FFFFFF';
                   e.currentTarget.style.boxShadow = 'none';
                 }
               }}
@@ -81,7 +81,7 @@ export default function Kassatelling() {
                 fontSize: '14px',
                 fontWeight: 500,
                 padding: '10px 16px',
-                backgroundColor: activeTab === 'avond' ? '#1B7867' : '#FEFFF1',
+                backgroundColor: activeTab === 'avond' ? '#E27726' : '#FFFFFF',
                 color: activeTab === 'avond' ? '#FFFFFF' : '#282E3A',
                 border: activeTab === 'avond' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
                 borderRadius: '20px',

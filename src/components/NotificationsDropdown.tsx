@@ -133,7 +133,7 @@ export function NotificationsDropdown() {
               style={{
                 width: '6px',
                 height: '6px',
-                backgroundColor: '#1B7867',
+                backgroundColor: '#E27726',
               }}
             />
           )}
@@ -169,7 +169,7 @@ export function NotificationsDropdown() {
               style={{
                 fontFamily: 'Inter, sans-serif',
                 fontSize: '13px',
-                color: '#1B7867',
+                color: '#E27726',
                 fontWeight: 500,
                 transition: 'opacity 150ms',
               }}
@@ -211,7 +211,7 @@ export function NotificationsDropdown() {
                     transition: 'background-color 150ms',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(27, 120, 103, 0.04)';
+                    e.currentTarget.style.backgroundColor = 'rgba(226, 119, 38, 0.04)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = !notification.read ? '#F4F5F6' : '#FFFFFF';

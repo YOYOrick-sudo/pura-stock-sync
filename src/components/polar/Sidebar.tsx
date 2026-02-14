@@ -56,7 +56,7 @@ export function PolarSidebar({
       style={{
         width: collapsed ? '64px' : '280px',
         height: '100vh',
-        backgroundColor: '#F6F7DD',
+        backgroundColor: '#FFF7ED',
         borderRight: '1px solid rgba(197, 197, 202, 0.5)',
         position: 'sticky',
         top: 0,
@@ -92,7 +92,7 @@ export function PolarSidebar({
             style={{
               fontSize: '20px',
               fontWeight: 600,
-              color: '#1B7867',
+              color: '#E27726',
               fontFamily: 'Inter, sans-serif',
             }}
           >
@@ -158,7 +158,7 @@ export function PolarSidebar({
                   padding: collapsed ? '0 12px' : '0 16px',
                   borderRadius: '8px',
                   backgroundColor: item.active
-                    ? '#FEFFF1'
+                    ? '#FFFFFF'
                     : 'transparent',
                   border: item.active ? '1px solid rgba(197, 197, 202, 0.5)' : '1px solid transparent',
                   boxShadow: item.active ? '0 1px 3px rgba(0, 0, 0, 0.05)' : 'none',
@@ -171,7 +171,7 @@ export function PolarSidebar({
                 }}
                 onMouseEnter={(e) => {
                   if (!item.active) {
-                    e.currentTarget.style.backgroundColor = '#FEFFF1';
+                    e.currentTarget.style.backgroundColor = '#FFFFFF';
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -186,7 +186,7 @@ export function PolarSidebar({
                     width: collapsed ? '22px' : '20px',
                     height: collapsed ? '22px' : '20px',
                     marginRight: collapsed ? '0' : '14px',
-                    color: item.active ? '#1B7867' : '#9CA3AF',
+                    color: item.active ? '#E27726' : '#9CA3AF',
                     strokeWidth: 1.5,
                     transition: 'color 150ms ease, transform 150ms ease',
                   }}

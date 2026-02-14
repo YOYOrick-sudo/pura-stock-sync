@@ -95,7 +95,7 @@ const Auth = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#FEFFF1',
+      backgroundColor: '#F8F9FA',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -104,7 +104,7 @@ const Auth = () => {
       <div style={{
         width: '100%',
         maxWidth: '500px',
-        backgroundColor: '#F6F7DD',
+        backgroundColor: '#FFF7ED',
         border: '1px solid rgba(197, 197, 202, 0.5)',
         borderRadius: '20px',
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)',
@@ -170,15 +170,15 @@ const Auth = () => {
                     padding: '16px',
                     borderRadius: '20px',
                     border: location === 'West' 
-                      ? '2px solid #1B7867' 
+                      ? '2px solid #E27726' 
                       : hoveredCard === 'West'
                         ? '1px solid rgba(197, 197, 202, 0.7)'
                         : '1px solid rgba(197, 197, 202, 0.5)',
                     backgroundColor: location === 'West' 
-                      ? '#FEFFF1' 
+                      ? '#FFFFFF' 
                       : hoveredCard === 'West'
-                        ? '#FEFFF1'
-                        : '#F6F7DD',
+                        ? '#FFFFFF'
+                        : '#FFF7ED',
                     transition: 'all 200ms',
                     opacity: loading ? 0.5 : 1,
                     boxShadow: hoveredCard === 'West' && location !== 'West'
@@ -207,15 +207,15 @@ const Auth = () => {
                     padding: '16px',
                     borderRadius: '20px',
                     border: location === 'Midsland' 
-                      ? '2px solid #1B7867' 
+                      ? '2px solid #E27726' 
                       : hoveredCard === 'Midsland'
                         ? '1px solid rgba(197, 197, 202, 0.7)'
                         : '1px solid rgba(197, 197, 202, 0.5)',
                     backgroundColor: location === 'Midsland' 
-                      ? '#FEFFF1' 
+                      ? '#FFFFFF' 
                       : hoveredCard === 'Midsland'
-                        ? '#FEFFF1'
-                        : '#F6F7DD',
+                        ? '#FFFFFF'
+                        : '#FFF7ED',
                     transition: 'all 200ms',
                     opacity: loading ? 0.5 : 1,
                     boxShadow: hoveredCard === 'Midsland' && location !== 'Midsland'
@@ -268,13 +268,13 @@ const Auth = () => {
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '15px',
                   color: '#282E3A',
-                  backgroundColor: '#FEFFF1',
+                  backgroundColor: '#FFFFFF',
                   border: '1px solid rgba(197, 197, 202, 0.5)',
                   borderRadius: '16px',
                   outline: 'none',
                   transition: 'border-color 200ms',
                 }}
-                onFocus={(e) => e.currentTarget.style.borderColor = '#1B7867'}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#E27726'}
                 onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.5)'}
               />
             </div>
@@ -290,7 +290,7 @@ const Auth = () => {
                 fontSize: '15px',
                 fontWeight: 600,
                 color: '#FFFFFF',
-                backgroundColor: loading ? '#D1D5DB' : '#1B7867',
+                backgroundColor: loading ? '#D1D5DB' : '#E27726',
                 border: 'none',
                 borderRadius: '20px',
                 cursor: loading ? 'not-allowed' : 'pointer',
@@ -298,19 +298,19 @@ const Auth = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                boxShadow: loading ? 'none' : '0 2px 4px rgba(27, 120, 103, 0.15)',
+                boxShadow: loading ? 'none' : '0 2px 4px rgba(226, 119, 38, 0.15)',
                 transition: 'all 200ms',
               }}
               onMouseEnter={(e) => {
                 if (!loading) {
-                  e.currentTarget.style.backgroundColor = '#156B5A';
-                  e.currentTarget.style.boxShadow = '0 4px 6px rgba(27, 120, 103, 0.2)';
+                  e.currentTarget.style.backgroundColor = '#C9630E';
+                  e.currentTarget.style.boxShadow = '0 4px 6px rgba(226, 119, 38, 0.2)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!loading) {
-                  e.currentTarget.style.backgroundColor = '#1B7867';
-                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(27, 120, 103, 0.15)';
+                  e.currentTarget.style.backgroundColor = '#E27726';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(226, 119, 38, 0.15)';
                 }
               }}
             >

@@ -22,7 +22,7 @@ export function PolarDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
         style={{
-          backgroundColor: '#FEFFF1',
+          backgroundColor: '#FFFFFF',
           borderRadius: '20px',
           border: '1px solid rgba(197, 197, 202, 0.5)',
           padding: '32px',
@@ -88,7 +88,7 @@ export const polarDialogLabelStyle: React.CSSProperties = {
 };
 
 export const polarDialogButtonPrimaryStyle: React.CSSProperties = {
-  backgroundColor: '#1B7867',
+  backgroundColor: '#E27726',
   color: '#FFFFFF',
   borderRadius: '20px',
   padding: '12px 24px',

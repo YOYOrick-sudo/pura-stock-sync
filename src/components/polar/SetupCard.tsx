@@ -20,7 +20,7 @@ export function PolarSetupCard({
     <div
       className="rounded-polar-lg"
       style={{
-        backgroundColor: '#FEFFF1',
+        backgroundColor: '#FFF7ED',
         padding: '24px',
         width: '380px',
       }}
@@ -44,7 +44,7 @@ export function PolarSetupCard({
               justifyContent: 'center',
               width: '48px',
               height: '48px',
-              backgroundColor: '#F6F7DD',
+              backgroundColor: '#FFF7ED',
             }}
           >
             <Icon size={24} style={{ color: '#282E3A' }} />
@@ -86,7 +86,7 @@ export function PolarSetupCard({
             fontSize: '15px',
             fontWeight: 500,
             color: '#FFFFFF',
-            backgroundColor: '#1B7867',
+            backgroundColor: '#E27726',
             border: 'none',
             borderRadius: '8px',
             padding: '10px 16px',

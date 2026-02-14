@@ -28,14 +28,14 @@ export function PolarHeader({
     <div 
       className="h-[60px] md:h-[72px] flex items-center justify-between px-4 md:px-12"
       style={{
-        backgroundColor: '#FEFFF1',
+        backgroundColor: '#F8F9FA',
       }}
     >
       <div className="flex items-center gap-3">
         {onMenuClick && (
           <button
             onClick={onMenuClick}
-            className="flex items-center justify-center w-10 h-10 rounded-lg transition-colors hover:bg-[#F6F7DD]"
+            className="flex items-center justify-center w-10 h-10 rounded-lg transition-colors hover:bg-[#FFF7ED]"
             style={{
               border: '1px solid rgba(197, 197, 202, 0.3)',
             }}

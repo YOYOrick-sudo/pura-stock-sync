@@ -73,7 +73,7 @@ export function PolarTimePicker({
             border: error
               ? '1px solid #E64D4D'
               : isFocused
-              ? '1px solid #1B7867'
+              ? '1px solid #E27726'
               : '1px solid #ECEDED',
             borderRadius: '16px',
             backgroundColor: disabled ? '#F4F5F6' : '#FFFFFF',

@@ -116,7 +116,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
   if (loading) {
     return (
       <Card style={{ 
-        backgroundColor: '#F6F7DD',
+        backgroundColor: '#FFF7ED',
         border: '1px solid rgba(197, 197, 202, 0.5)',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)'
       }}>
@@ -150,7 +150,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
 
   return (
     <Card style={{ 
-      backgroundColor: '#F6F7DD',
+      backgroundColor: '#FFF7ED',
       border: '1px solid rgba(197, 197, 202, 0.5)',
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)'
     }}>
@@ -210,7 +210,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
                 <Button
                   size="sm"
                   onClick={() => handleCreateTask(suggestion.id, suggestion.text, suggestion.reasoning)}
-                  style={{ backgroundColor: '#1B7867', color: '#FFFFFF' }}
+                  style={{ backgroundColor: '#E27726', color: '#FFFFFF' }}
                   className="rounded-polar-md"
                 >
                   <CheckCircle2 className="h-4 w-4 mr-1" />

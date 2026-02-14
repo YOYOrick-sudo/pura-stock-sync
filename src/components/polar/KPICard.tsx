@@ -61,7 +61,7 @@ export function PolarKPICard({
       <div
         className="rounded-polar-lg"
         style={{
-          backgroundColor: statusColor?.bg || '#F6F7DD',
+          backgroundColor: statusColor?.bg || '#FFF7ED',
           padding: '20px',
           display: 'flex',
           flexDirection: 'column',
@@ -137,7 +137,7 @@ export function PolarKPICard({
     <div
       className="rounded-polar-lg"
       style={{
-        backgroundColor: statusColor?.bg || '#FEFFF1',
+        backgroundColor: statusColor?.bg || '#FFFFFF',
         padding: '24px',
         display: 'flex',
         flexDirection: 'column',
@@ -222,7 +222,7 @@ export function PolarKPICard({
             >
               <Circle
                 size={8}
-                fill="#1B7867"
+                fill="#E27726"
                 stroke="none"
               />
               <span
@@ -306,7 +306,7 @@ export function PolarKPICard({
                 <polyline
                   points={linePoints}
                   fill="none"
-                  stroke="#1B7867"
+                  stroke="#E27726"
                   strokeWidth="1.5"
                   vectorEffect="non-scaling-stroke"
                   style={{
@@ -361,7 +361,7 @@ export function PolarKPICard({
                 width: '8px',
                 height: '8px',
                 borderRadius: '50%',
-                backgroundColor: index === activeDot ? '#1B7867' : '#ECEDED',
+                backgroundColor: index === activeDot ? '#E27726' : '#ECEDED',
                 transition: 'background-color 0.2s ease',
               }}
             />

@@ -72,7 +72,7 @@ export function PolarRadioGroup({
                   width: '20px',
                   height: '20px',
                   borderRadius: '50%',
-                  border: error ? '2px solid #E64D4D' : isChecked ? '2px solid #1B7867' : '2px solid rgba(197, 197, 202, 0.5)',
+                  border: error ? '2px solid #E64D4D' : isChecked ? '2px solid #E27726' : '2px solid rgba(197, 197, 202, 0.5)',
                   backgroundColor: '#FFFFFF',
                   cursor: isDisabled ? 'not-allowed' : 'pointer',
                   display: 'flex',
@@ -88,7 +88,7 @@ export function PolarRadioGroup({
                       width: '10px',
                       height: '10px',
                       borderRadius: '50%',
-                      backgroundColor: '#1B7867',
+                      backgroundColor: '#E27726',
                     }}
                   />
                 )}

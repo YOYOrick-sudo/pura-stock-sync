@@ -51,7 +51,7 @@ export function WeatherWidget({
   return (
     <div
       style={{
-        backgroundColor: '#F6F7DD',
+        backgroundColor: '#FFF7ED',
         border: '1px solid rgba(197, 197, 202, 0.5)',
         borderRadius: '16px',
         padding: '20px',
@@ -66,7 +66,7 @@ export function WeatherWidget({
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Sun size={16} style={{ color: '#1B7867' }} />
+          <Sun size={16} style={{ color: '#E27726' }} />
           <p style={{ 
             fontSize: '13px', 
             fontWeight: 500,
