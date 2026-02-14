@@ -1,41 +1,41 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* === PURA VIDA MODERN DESIGN SYSTEM === */
+/* === PURA VIDA OS v6.0 - SUNSET ORANGE DESIGN SYSTEM === */
 
 @layer base {
   :root {
-    /* === MODERN COLOR PALETTE (HSL Values) === */
+    /* === SUNSET ORANGE COLOR PALETTE (HSL Values) === */
     
-    /* Backgrounds - Modern Slate (NO MORE CRÈME!) */
-    --background: 210 40% 98%;           /* #F8FAFC - Slate-50 */
-    --foreground: 222 47% 11%;           /* #0F172A - Slate-900 */
+    /* Backgrounds - Midnight Slate */
+    --background: 210 17% 98%;           /* #F8F9FA - Midnight Slate 50 */
+    --foreground: 218 33% 18%;           /* #282E3A - Midnight Slate 800 */
     
     /* Card surfaces - Pure white */
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 218 33% 18%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 218 33% 18%;
     
-    /* Primary - Pura Vida Sea Green */
-    --primary: 163 65% 26%;              /* #1B7867 */
+    /* Primary - Sunset Orange */
+    --primary: 25 76% 52%;               /* #E27726 */
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 163 65% 21%;        /* #156556 */
+    --primary-hover: 25 88% 42%;         /* #C9630E */
     
-    /* Secondary - Light green tint */
-    --secondary: 163 35% 93%;            /* #E6F4F1 */
-    --secondary-foreground: 163 65% 26%;
+    /* Secondary - Light orange tint */
+    --secondary: 25 100% 97%;            /* #FFF7ED */
+    --secondary-foreground: 25 76% 52%;
     
-    /* Muted - Slate grays */
-    --muted: 210 40% 96%;                /* #F1F5F9 */
-    --muted-foreground: 215 16% 47%;     /* #64748B */
+    /* Muted - Midnight Slate grays */
+    --muted: 210 20% 96%;                /* #F1F3F5 - Midnight Slate 75 */
+    --muted-foreground: 222 10% 44%;     /* #636878 - Midnight Slate 400 */
     
-    /* Accent - Warm sunset (for CTAs) */
-    --accent: 25 95% 53%;                /* #F97316 */
+    /* Accent - Same as primary (Sunset Orange) */
+    --accent: 25 76% 52%;                /* #E27726 */
     --accent-foreground: 0 0% 100%;
     
     /* Destructive */
@@ -45,39 +45,39 @@
     /* Notification badge */
     --notification-badge: 0 70% 60%;
     
-    /* Borders - Neutral slate (clean & modern) */
-    --border: 214 32% 91%;               /* #E2E8F0 */
-    --border-state: 214 25% 80%;         /* #C5CED8 - State containers (empty/error/loading) */
-    --input: 214 32% 91%;                /* #E2E8F0 */
-    --ring: 163 65% 26%;                 /* Primary green */
+    /* Borders - Midnight Slate */
+    --border: 220 13% 91%;               /* #EAECF0 - Midnight Slate 100 */
+    --border-state: 220 10% 80%;         /* State containers */
+    --input: 220 13% 91%;               /* #EAECF0 */
+    --ring: 25 76% 52%;                  /* Orange focus ring */
     
     /* Radius */
-    --radius: 0.75rem;
+    --radius: 0.875rem;                  /* 14px base for buttons/inputs */
   }
 
   .dark {
     /* Dark mode - Midnight palette */
-    --background: 222 47% 11%;           /* Slate-900 */
-    --foreground: 210 40% 98%;           /* Slate-50 */
+    --background: 220 25% 8%;            /* #0F1318 - Midnight Slate 950 */
+    --foreground: 210 17% 98%;           /* #F8F9FA */
     
-    --card: 217 33% 17%;                 /* Slate-800 */
-    --card-foreground: 210 40% 98%;
+    --card: 220 22% 13%;                 /* #1A1F28 - Midnight Slate 900 */
+    --card-foreground: 210 17% 98%;
     
-    --popover: 217 33% 17%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 220 22% 13%;
+    --popover-foreground: 210 17% 98%;
     
     /* Primary stays vibrant in dark */
-    --primary: 163 65% 35%;
+    --primary: 25 76% 55%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 163 65% 40%;
+    --primary-hover: 25 76% 60%;
     
-    --secondary: 217 33% 25%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 220 22% 18%;
+    --secondary-foreground: 210 17% 98%;
     
-    --muted: 217 33% 25%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 220 22% 18%;
+    --muted-foreground: 220 10% 60%;
     
-    --accent: 25 95% 53%;
+    --accent: 25 76% 55%;
     --accent-foreground: 0 0% 100%;
     
     --destructive: 0 62% 50%;
@@ -85,10 +85,10 @@
     
     --notification-badge: 0 70% 65%;
     
-    --border: 217 33% 30%;
-    --border-state: 217 33% 45%;         /* State containers in dark mode */
-    --input: 217 33% 20%;
-    --ring: 163 65% 35%;
+    --border: 220 22% 22%;
+    --border-state: 220 22% 35%;
+    --input: 220 22% 18%;
+    --ring: 25 76% 55%;
   }
 }
 
@@ -110,42 +110,46 @@
 @layer components {
   .text-display {
     @apply text-4xl font-bold tracking-tight;
-    color: hsl(222 47% 11%);
+    font-family: 'Instrument Sans', 'Inter', sans-serif;
+    color: hsl(218 33% 18%);
   }
   
   .text-h1 {
     @apply text-2xl font-bold;
-    color: hsl(222 47% 11%);
+    font-family: 'Instrument Sans', 'Inter', sans-serif;
+    color: hsl(218 33% 18%);
   }
   
   .text-h2 {
     @apply text-xl font-semibold;
-    color: hsl(222 47% 11%);
+    font-family: 'Instrument Sans', 'Inter', sans-serif;
+    color: hsl(218 33% 18%);
   }
   
   .text-h3 {
     @apply text-lg font-semibold;
-    color: hsl(222 47% 11%);
+    font-family: 'Instrument Sans', 'Inter', sans-serif;
+    color: hsl(218 33% 18%);
   }
   
   .text-body {
     @apply text-base font-normal;
-    color: hsl(222 47% 11%);
+    color: hsl(218 33% 18%);
   }
   
   .text-body-sm {
     @apply text-sm font-normal;
-    color: hsl(215 16% 47%);
+    color: hsl(222 10% 44%);
   }
   
   .text-caption {
     @apply text-xs font-medium;
-    color: hsl(215 20% 65%);
+    color: hsl(220 10% 60%);
   }
   
   .text-label {
     @apply text-sm font-medium;
-    color: hsl(222 47% 11%);
+    color: hsl(218 33% 18%);
   }
 }
 
@@ -179,6 +183,6 @@
 /* === INTERACTIVE FOCUS STATES === */
 @layer components {
   .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2;
   }
 }
