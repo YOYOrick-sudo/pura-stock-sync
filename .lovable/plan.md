@@ -1,113 +1,89 @@
 
+# Plan: Design System Kleuren Doorvoeren in Alle Componenten
 
-# Plan: Design System Migratie naar Pura Vida OS v6.0
+## Probleem
 
-Dit plan vervangt het huidige groene "Polar/Sea" design system door het oranje "Sunset Orange" Pura Vida OS design system uit de geuploadde documentatie.
+De CSS tokens (`index.css`, `tailwind.config.ts`, `colors.ts`) zijn correct geüpdatet naar het Sunset Orange design system, maar **35 bestanden** bevatten nog hardcoded groene hex-kleuren uit het oude systeem. Die worden direct als inline `style={{}}` gebruikt en negeren daardoor de CSS variabelen.
 
----
+## Kleurvervanging
 
-## Wat verandert er
+De volgende kleuren worden systematisch vervangen:
 
-### Kleuren
-- **Primary**: Groen (#1B7867) wordt Sunset Orange (#E27726)
-- **Gray scale**: Slate wordt Midnight Slate (nieuwe hex waarden: 0:#FFFFFF tot 950:#0F1318)
-- **Semantic kleuren**: Blijven grotendeels gelijk (success, warning, error, info)
-- **Sidebar**: Witte achtergrond met oranje active states (was: groen)
+| Oud (Groen) | Nieuw (Oranje/Neutral) | Gebruik |
+|---|---|---|
+| `#1B7867` | `#E27726` | Primary/accent kleur (knoppen, iconen, actieve states) |
+| `#5A8F7F` | `#C9630E` | Hover/donkerder primary |
+| `#F6F7DD` | `#FFF7ED` | Lichte primary achtergrond (hover, sidebar) |
+| `#FEFFF1` | `#FFFFFF` | Card/surface achtergrond (wordt wit conform v6.0) |
+| `rgba(27, 120, 103, ...)` | `rgba(226, 119, 38, ...)` | Primary met opacity |
 
-### Typografie
-- **Display font**: Instrument Sans toevoegen (voor titels, headings)
-- **Mono font**: Geist Mono toevoegen (voor bedragen, data, IDs)
-- **Body font**: Inter blijft (al aanwezig)
+## Getroffen Bestanden (35 stuks)
 
-### Border Radius
-- sm: 12px, md: 14px (buttons/inputs), lg: 16px, xl: 20px (cards), 2xl: 24px (modals)
-- Minimaal 12px overal (behalve checkbox 4px)
+### Navigatie & Layout
+- `src/components/polar/Sidebar.tsx` - Sidebar kleuren en active states
+- `src/components/AppSidebar.tsx`
+- `src/components/SidebarLayout.tsx`
 
-### Shadows
-- Lichtere, subtielere shadows conform het nieuwe systeem
-- Focus ring: oranje (rgba(226,119,38,0.2))
+### Dashboard & Widgets
+- `src/pages/Dashboard.tsx`
+- `src/components/dashboard/WeatherWidget.tsx`
+- `src/components/dashboard/AIWeatherAdvisor.tsx`
 
----
+### Polar Design Components
+- `src/components/polar/Skeleton.tsx`
+- `src/components/polar/DatePicker.tsx`
+- `src/components/polar/FormCard.tsx`
+- `src/components/polar/Header.tsx`
+- `src/components/polar/KPICard.tsx`
+- `src/components/polar/ModernKPICard.tsx`
+- `src/components/polar/Progress.tsx`
+- `src/components/polar/SetupCard.tsx`
+- `src/components/polar/Table.tsx`
+- `src/components/polar/Textarea.tsx`
+- `src/components/polar/TimePicker.tsx`
+- `src/components/polar/Dialog.tsx`
+- `src/components/polar/Checkbox.tsx`
+- `src/components/polar/Radio.tsx`
+- `src/components/polar/Alert.tsx`
 
-## Bestanden die worden aangepast
+### Pagina's
+- `src/pages/Kassa.tsx`
+- `src/pages/Kassatelling.tsx`
+- `src/pages/KassatellingOverdag.tsx`
+- `src/pages/MidslandOrders.tsx`
+- `src/pages/Voorraad.tsx`
+- `src/pages/HomeHub.tsx`
+- `src/pages/Auth.tsx`
+- `src/pages/Settings.tsx`
 
-### 1. index.html
-- Google Fonts link uitbreiden met Instrument Sans en Geist Mono
+### Module Pagina's
+- `src/pages/foh/FohModule.tsx`
+- `src/pages/foh/FohAnalytics.tsx`
+- `src/components/foh/FohTasks.tsx`
+- `src/pages/kitchen/*.tsx` (meerdere bestanden)
+- `src/pages/service/ServiceModule.tsx`
 
-### 2. src/index.css
-- Alle CSS custom properties (--primary, --accent, --background, etc.) updaten naar oranje palette
-- HSL waarden herberekenen voor het nieuwe kleurenschema
-- Dark mode variabelen updaten
+### Overige Componenten
+- `src/components/HandoverCard.tsx`
+- `src/components/NotificationsDropdown.tsx`
+- `src/components/OrderDashboard.tsx`
+- `src/components/ProductRow.tsx`
+- `src/components/WaveBackground.tsx`
 
-### 3. tailwind.config.ts
-- `pv` namespace kleuren vervangen door nieuwe orange/midnight-slate tokens
-- Font families uitbreiden: `display` (Instrument Sans), `mono` (Geist Mono)
-- Border radius waarden updaten
-- Shadow waarden updaten
+## Aanvullend
 
-### 4. src/components/polar/colors.ts
-- Alle kleurconstanten updaten naar het nieuwe palette
-- Brand primary: #E27726 (was #1B7867)
-- Gray scale naar midnight slate waarden
+### Geist Mono font toevoegen
+Het `index.html` bestand mist nog de Geist Mono font import. Die wordt toegevoegd.
 
----
+### PWA theme-color
+De `manifest.json` en `index.html` bevatten nog `#5A8F7F` als theme-color, dit wordt `#E27726`.
+
+## Aanpak
+
+Elk bestand wordt doorlopen en alle hardcoded groene kleuren worden vervangen door de corresponderende oranje waarden. De functionaliteit en layout blijven exact gelijk - alleen de kleurwaarden veranderen.
 
 ## Wat NIET verandert
-- Bestaande component structuur (shadcn/ui, Polar components)
-- Routing, hooks, pagina's
-- Database en backend
-- Functionele logica
-
----
-
-## Technische Details
-
-### Nieuwe CSS Root Variables (Light Mode)
-
-```text
---primary:        25 76% 52%    (was: 163 65% 26%)     -> #E27726
---primary-hover:  25 88% 42%    (was: 163 65% 21%)     -> #C9630E  
---accent:         25 76% 52%    (wordt zelfde als primary)
---background:     210 17% 98%   -> #F8F9FA (Midnight Slate 50)
---foreground:     218 33% 18%   -> #282E3A (Midnight Slate 800)
---muted:          210 20% 96%   -> #F1F3F5 (Midnight Slate 75)
---border:         220 13% 91%   -> #EAECF0 (Midnight Slate 100)
---ring:           25 76% 52%    -> orange focus ring
-```
-
-### Nieuwe Tailwind pv Namespace
-
-```text
-pv-primary-50:  #FFF7ED    pv-primary-500: #E27726
-pv-primary-600: #C9630E    pv-primary-700: #A5500D
-pv-gray-50:     #F8F9FA    pv-gray-100: #EAECF0
-pv-gray-200:    #C1C5CF    pv-gray-400: #636878
-pv-gray-800:    #282E3A    pv-gray-900: #1A1F28
-```
-
-### Font Families
-
-```text
-font-sans:    'Inter', system-ui, sans-serif
-font-display: 'Instrument Sans', 'Inter', sans-serif
-font-mono:    'Geist Mono', 'SF Mono', monospace
-```
-
-### Border Radius
-
-```text
-polar-sm:  12px (was 8px)
-polar-md:  14px (was 12px)  -> buttons, inputs
-polar-lg:  16px (was 16px)  -> cards
-polar-xl:  20px (was 20px)  -> dropdowns
-polar-2xl: 24px (was 24px)  -> modals
-```
-
----
-
-## Opmerking over het DOCX bestand
-
-Het DOCX bestand bevat een ouder groen design system (DM Sans, JetBrains Mono, groene primary). Het JSX v2 bestand is nieuwer (v6.0) en completer. Dit plan volgt het JSX v2 bestand als de autoritatieve bron.
-
-Het kleurpaletten-bestand (teal/sage/emerald vergelijker) is een exploratief document en wordt niet overgenomen - het oranje systeem uit het JSX v2 bestand is de keuze.
-
+- Component structuur en functionaliteit
+- Layout en spacing
+- Database, hooks, routes
+- Border styles (alleen kleurgerelateerde borders)
