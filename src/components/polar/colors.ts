@@ -1,68 +1,67 @@
 /**
- * Polar Design System - Color Presets (Modern Slate Edition)
+ * Polar Design System - Color Presets (Pura Vida OS v6.0 - Sunset Orange)
  * 
- * Complete color palette using modern slate tones.
- * All legacy crème/moonlight colors removed.
+ * Complete color palette using Midnight Slate tones and Sunset Orange primary.
  */
 
 export const PolarColors = {
-  // Base Colors (Modern Slate)
+  // Base Colors (Midnight Slate)
   white: '#FFFFFF',
-  background: '#F8FAFC',              // Slate-50 (modern, no yellow)
+  background: '#F8F9FA',              // Midnight Slate 50
   surface: '#FFFFFF',                  // White for cards
   
   // Text Colors
   text: {
-    primary: '#0F172A',               // Slate-900
-    secondary: '#64748B',             // Slate-500
-    tertiary: '#94A3B8',              // Slate-400
-    disabled: '#CBD5E1',              // Slate-300
+    primary: '#282E3A',               // Midnight Slate 800
+    secondary: '#636878',             // Midnight Slate 400
+    tertiary: '#9DA3AF',              // Midnight Slate 300
+    disabled: '#C1C5CF',              // Midnight Slate 200
   },
 
   // Border Colors
   border: {
-    default: '#E2E8F0',               // Slate-200
-    light: '#F1F5F9',                 // Slate-100
-    dark: '#334155',                  // Slate-700
+    default: '#EAECF0',               // Midnight Slate 100
+    light: '#F1F3F5',                 // Midnight Slate 75
+    dark: '#2F3440',                  // Midnight Slate 700
   },
 
-  // Brand Colors (Pura Vida Sea)
+  // Brand Colors (Sunset Orange)
   brand: {
-    primary: '#1B7867',               // Pura Vida Sea
-    primaryHover: '#156556',          // Darker Sea
-    primaryLight: '#E6F4F1',          // Light Sea
-    primaryBorder: '#B3D9D4',         // Sea border
+    primary: '#E27726',               // Sunset Orange 500
+    primaryHover: '#C9630E',          // Sunset Orange 600
+    primaryLight: '#FFF7ED',          // Sunset Orange 50
+    primaryBorder: '#FED7AA',         // Sunset Orange 200
   },
 
   // Status Colors
   status: {
-    success: '#22C55E',               // Green-500
-    successLight: '#F0FDF4',          // Green-50
-    successBorder: '#BBF7D0',         // Green-200
+    success: '#22C55E',
+    successLight: '#F0FDF4',
+    successBorder: '#BBF7D0',
     
-    pending: '#F59E0B',               // Amber-500
-    pendingLight: '#FFFBEB',          // Amber-50
-    pendingBorder: '#FDE68A',         // Amber-200
+    pending: '#F59E0B',
+    pendingLight: '#FFFBEB',
+    pendingBorder: '#FDE68A',
     
-    warning: '#F59E0B',               // Amber-500
-    warningLight: '#FFFBEB',          // Amber-50
-    warningBorder: '#FDE68A',         // Amber-200
+    warning: '#F59E0B',
+    warningLight: '#FFFBEB',
+    warningBorder: '#FDE68A',
     
-    error: '#EF4444',                 // Red-500
-    errorLight: '#FEF2F2',            // Red-50
-    errorBorder: '#FECACA',           // Red-200
+    error: '#EF4444',
+    errorLight: '#FEF2F2',
+    errorBorder: '#FECACA',
     
-    info: '#3B82F6',                  // Blue-500
-    infoLight: '#EFF6FF',             // Blue-50
-    infoBorder: '#BFDBFE',            // Blue-200
+    info: '#3B82F6',
+    infoLight: '#EFF6FF',
+    infoBorder: '#BFDBFE',
   },
 
   // Component-specific colors
   badge: {
     default: {
-      bg: '#F1F5F9',                  // Slate-100
-      text: '#334155',                // Slate-700
-      border: '#E2E8F0',              // Slate-200
+      bg: '#F1F3F5',
+      text: '#2F3440',
+      border: '#EAECF0',
     },
     success: {
       bg: '#F0FDF4',
@@ -94,14 +93,14 @@ export const PolarColors = {
   // Avatar
   avatar: {
     online: '#22C55E',
-    offline: '#94A3B8',
-    background: '#F1F5F9',
+    offline: '#9DA3AF',
+    background: '#F1F3F5',
   },
 
   // Muted/Secondary surfaces
   muted: {
-    bg: '#F1F5F9',                    // Slate-100
-    hover: '#E2E8F0',                 // Slate-200
+    bg: '#F1F3F5',
+    hover: '#EAECF0',
   },
 } as const;
 
