@@ -117,7 +117,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
     return (
       <Card style={{ 
         backgroundColor: '#FFF7ED',
-        border: '1px solid rgba(197, 197, 202, 0.5)',
+        border: '1px solid #D5D8E0',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)'
       }}>
         <CardHeader className="pb-4">
@@ -151,7 +151,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
   return (
     <Card style={{ 
       backgroundColor: '#FFF7ED',
-      border: '1px solid rgba(197, 197, 202, 0.5)',
+      border: '1px solid #D5D8E0',
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)'
     }}>
       <CardHeader className="pb-4">
@@ -183,7 +183,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
               className="p-4 rounded-polar-md"
               style={{ 
                 backgroundColor: '#FFFFFF',
-                border: '1px solid rgba(197, 197, 202, 0.3)'
+                border: '1px solid #EAECF0'
               }}
             >
               <h4 className="font-semibold text-base mb-2" style={{ color: '#282E3A' }}>

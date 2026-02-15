@@ -144,7 +144,7 @@ export default function MidslandOrders() {
     <SidebarLayout>
       <div style={{
         backgroundColor: '#FFF7ED',
-        border: '1px solid rgba(197, 197, 202, 0.5)',
+        border: '1px solid #D5D8E0',
         borderRadius: '20px',
         padding: '32px',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)'
@@ -162,12 +162,12 @@ export default function MidslandOrders() {
         ) : !orders || orders.length === 0 ? (
           <div style={{
             backgroundColor: '#FFFFFF',
-            border: '1px solid rgba(197, 197, 202, 0.5)',
+            border: '1px solid #D5D8E0',
             borderRadius: '20px',
             padding: '48px',
             textAlign: 'center'
           }}>
-            <Package className="h-16 w-16 mx-auto mb-4" style={{ color: '#C5C5CA' }} />
+            <Package className="h-16 w-16 mx-auto mb-4" style={{ color: '#C1C5CF' }} />
             <p style={{ 
               fontFamily: 'Inter, sans-serif',
               fontSize: '16px',
@@ -199,7 +199,7 @@ export default function MidslandOrders() {
                   key={order.id}
                   style={{
                     backgroundColor: '#FFFFFF',
-                    border: '1px solid rgba(197, 197, 202, 0.5)',
+                    border: '1px solid #D5D8E0',
                     borderRadius: '20px',
                     padding: '24px',
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
@@ -301,7 +301,7 @@ export default function MidslandOrders() {
                     <div style={{ 
                       marginTop: '24px', 
                       paddingTop: '24px', 
-                      borderTop: '1px solid rgba(197, 197, 202, 0.5)',
+                      borderTop: '1px solid #D5D8E0',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '24px'
@@ -327,7 +327,7 @@ export default function MidslandOrders() {
                             color: '#636878',
                             padding: '16px',
                             backgroundColor: '#FFFFFF',
-                            border: '1px solid rgba(197, 197, 202, 0.3)',
+                            border: '1px solid #EAECF0',
                             borderRadius: '16px',
                             whiteSpace: 'pre-wrap'
                           }}>
@@ -352,7 +352,7 @@ export default function MidslandOrders() {
                         </h4>
                         <div style={{ 
                           backgroundColor: '#FFFFFF',
-                          border: '1px solid rgba(197, 197, 202, 0.5)',
+                           border: '1px solid #D5D8E0',
                           borderRadius: '16px',
                           overflow: 'hidden'
                         }}>
@@ -365,7 +365,7 @@ export default function MidslandOrders() {
                                   gridTemplateColumns: '1fr auto',
                                   alignItems: 'center',
                                   padding: '16px 20px',
-                                  borderBottom: index < order.internal_order_items.length - 1 ? '1px solid rgba(197, 197, 202, 0.3)' : 'none',
+                                  borderBottom: index < order.internal_order_items.length - 1 ? '1px solid #EAECF0' : 'none',
                                   transition: 'background-color 0.2s'
                                 }}
                                 onMouseEnter={(e) => {
@@ -443,7 +443,7 @@ export default function MidslandOrders() {
                         <div style={{ 
                           marginTop: '16px',
                           paddingTop: '16px',
-                          borderTop: '1px solid rgba(197, 197, 202, 0.5)'
+                          borderTop: '1px solid #D5D8E0'
                         }}>
                           {showFeedbackFor === order.id ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -456,7 +456,7 @@ export default function MidslandOrders() {
                                   fontSize: '14px',
                                   padding: '12px',
                                   borderRadius: '16px',
-                                  border: '1px solid rgba(197, 197, 202, 0.5)',
+                                  border: '1px solid #D5D8E0',
                                   backgroundColor: '#FFFFFF',
                                   color: '#282E3A',
                                   minHeight: '80px',
@@ -493,7 +493,7 @@ export default function MidslandOrders() {
                                     borderRadius: '20px',
                                     backgroundColor: '#FFFFFF',
                                     color: '#636878',
-                                    border: '1px solid rgba(197, 197, 202, 0.5)',
+                                    border: '1px solid #D5D8E0',
                                     cursor: 'pointer',
                                   }}
                                 >

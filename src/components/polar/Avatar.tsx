@@ -40,8 +40,8 @@ export function PolarAvatar({
           width: `${avatarSize}px`,
           height: `${avatarSize}px`,
           borderRadius: '50%',
-          backgroundColor: showImage ? 'transparent' : '#F4F5F6',
-          border: '1px solid #ECEDED',
+          backgroundColor: showImage ? 'transparent' : '#F1F3F5',
+          border: '1px solid #EAECF0',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -49,7 +49,7 @@ export function PolarAvatar({
           fontFamily: 'Inter, sans-serif',
           fontSize: fontSize,
           fontWeight: 600,
-          color: '#36373A',
+          color: '#636878',
         }}
       >
         {showImage && (
@@ -65,7 +65,7 @@ export function PolarAvatar({
           />
         )}
         {showInitials && initials}
-        {showIcon && (fallbackIcon || <User size={iconSize} color="#36373A" />)}
+        {showIcon && (fallbackIcon || <User size={iconSize} color="#636878" />)}
       </div>
       
       {online !== undefined && (
@@ -143,15 +143,15 @@ export function PolarAvatarGroup({
             width: `${avatarSize}px`,
             height: `${avatarSize}px`,
             borderRadius: '50%',
-            backgroundColor: '#F4F5F6',
-            border: '1px solid #ECEDED',
+            backgroundColor: '#F1F3F5',
+            border: '1px solid #EAECF0',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontFamily: 'Inter, sans-serif',
             fontSize: size === 'small' ? '13px' : size === 'large' ? '18px' : '15px',
             fontWeight: 600,
-            color: '#36373A',
+            color: '#636878',
             marginLeft: `-${avatarSize * 0.25}px`,
             zIndex: 0,
           }}

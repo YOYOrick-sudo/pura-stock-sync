@@ -24,7 +24,7 @@ export function PolarDialog({
         style={{
           backgroundColor: '#FFFFFF',
           borderRadius: '20px',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
+          border: '1px solid #D5D8E0',
           padding: '32px',
           maxWidth,
           boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
@@ -70,7 +70,7 @@ export function PolarDialog({
 export const polarDialogInputStyle: React.CSSProperties = {
   backgroundColor: '#FFFFFF',
   borderRadius: '16px',
-  border: '1px solid rgba(197, 197, 202, 0.5)',
+  border: '1px solid #D5D8E0',
   padding: '12px 16px',
   fontFamily: 'Inter, sans-serif',
   fontSize: '14px',
@@ -108,7 +108,7 @@ export const polarDialogButtonSecondaryStyle: React.CSSProperties = {
   fontFamily: 'Inter, sans-serif',
   fontSize: '14px',
   fontWeight: 500,
-  border: '1px solid rgba(197, 197, 202, 0.5)',
+  border: '1px solid #D5D8E0',
   cursor: 'pointer',
   transition: 'all 0.15s ease',
 };
