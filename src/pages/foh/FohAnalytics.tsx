@@ -5,7 +5,7 @@ import { useStatisticsTimeout } from '@/hooks/useStatisticsTimeout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { FohTaskWithEmployee, PhaseType } from '@/types/foh';
 import { format, subDays } from 'date-fns';
 import { nl } from 'date-fns/locale';
