@@ -122,7 +122,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
           transition: 'all 0.15s ease',
           position: 'relative',
           overflow: 'hidden',
-          backgroundColor: task.completed ? 'rgba(27, 120, 103, 0.04)' : 'transparent',
+          backgroundColor: task.completed ? 'rgba(226, 119, 38, 0.04)' : 'transparent',
         }}
         onMouseEnter={(e) => {
           if (!isEditMode && toggleTask) {
@@ -138,7 +138,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         }}
         onMouseDown={(e) => {
           if (!isEditMode && toggleTask) {
-            e.currentTarget.style.backgroundColor = 'rgba(27, 120, 103, 0.08)';
+            e.currentTarget.style.backgroundColor = 'rgba(226, 119, 38, 0.08)';
           }
         }}
         onMouseUp={(e) => {
@@ -320,7 +320,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   minWidth: '24px',
                   borderRadius: '6px',
                   border: '1px solid rgba(197,197,202,0.5)',
-                  backgroundColor: '#FEFFF1',
+                  backgroundColor: '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -330,7 +330,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 }}
                 title="Bekijk info"
               >
-                <Info size={14} style={{ color: '#1B7867' }} />
+                <Info size={14} style={{ color: '#E27726' }} />
               </button>
             )}
 

@@ -27,7 +27,7 @@ export const ProductRow = ({ product, onUpdateStock, refillAmount, isFirst, onEn
   };
 
   return (
-    <tr className="even:bg-[#FFF7ED]/15 hover:bg-[#FFF7ED]/30 transition-colors border-b border-[#282E3A]/5">
+    <tr className="even:bg-[#F8F9FA]/50 hover:bg-[#F8F9FA] transition-colors border-b border-[#EAECF0]">
       <td className="px-3 py-2.5 sm:px-4 sm:py-3">
         <span className="text-sm sm:text-base text-[#282E3A] font-normal">{product.name}</span>
       </td>
@@ -43,7 +43,7 @@ export const ProductRow = ({ product, onUpdateStock, refillAmount, isFirst, onEn
             onChange={(e) => onUpdateStock(Math.max(0, parseInt(e.target.value) || 0))}
             onKeyDown={handleKeyDown}
             data-index={index}
-            className="w-20 sm:w-24 text-center text-sm sm:text-base h-9 sm:h-10 px-3 border border-[#E27726]/20 focus:border-[#E27726] focus:ring-[#E27726]/20 rounded-lg bg-[#FFF7ED]/40"
+            className="w-20 sm:w-24 text-center text-sm sm:text-base h-9 sm:h-10 px-3 border border-[#C1C5CF] focus:border-[#E27726] focus:ring-[rgba(226,119,38,0.2)] rounded-[14px] bg-white"
             autoFocus={isFirst}
           />
         </div>
