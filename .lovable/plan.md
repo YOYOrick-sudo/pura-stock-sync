@@ -1,112 +1,86 @@
 
 
-# Plan: /hr/medewerkers (EmployeesPage.tsx) - Medewerkersoverzicht
+# Plan: Restyle Dashboard volgens Pura Vida OS v6.0
 
 ## Overzicht
 
-Een nieuwe pagina voor managers/owners om alle medewerkers te bekijken, zoeken, filteren en uit te nodigen. Bevat een tabel met profiel- en rolgegevens, een uitnodigingsmodal, en een edge function voor het aanmaken van nieuwe gebruikers.
+De Dashboard pagina wordt volledig hergestyled. De huidige cards gebruiken `PolarKPICard` met oranje achtergronden (#FFF7ED) en missen de v6.0 stat card specificaties (witte achtergrond, border, accent bar, icon container). De pagina mist ook een page header.
 
 ---
 
-## 1. Edge Function: `invite-employee`
+## Wijzigingen
 
-Een nieuwe backend functie die veilig een gebruiker aanmaakt met de Supabase admin API (service role key):
+### 1. `src/pages/Dashboard.tsx` - Volledig herschrijven render + card componenten
 
-- **Pad**: `supabase/functions/invite-employee/index.ts`
-- **Config**: `verify_jwt = false` (we valideren de JWT handmatig in de code)
-- **Functionaliteit**:
-  1. Valideert dat de aanvrager een manager/owner/admin rol heeft (via service role query op `user_roles`)
-  2. Maakt een nieuwe gebruiker aan via `supabase.auth.admin.createUser({ email, password, email_confirm: true })`
-  3. Maakt automatisch een `user_roles` record aan (locatie, rol, contract_type, hired_date)
-  4. Het `profiles` record wordt automatisch aangemaakt door de bestaande `handle_new_user` trigger
-  5. Update het profiel met voornaam/achternaam via een update op `profiles`
-  6. Retourneert success of error
+**Page Header toevoegen:**
+- Titel: "Dashboard" - 24px/700 Instrument Sans, kleur #1A1F28, letter-spacing -0.02em
+- Subtitel: locatie naam + huidige datum - 14px Inter, kleur #636878
+- Border-bottom 1px #D5D8E0, paddingBottom 20px
 
-- **Beveiliging**: Alleen managers/owners/admins kunnen deze functie aanroepen (gevalideerd server-side)
+**Stat Cards vervangen (DashboardCard, VoorraadCard, DeliveryCard):**
+- Verwijder PolarKPICard dependency voor deze cards
+- Nieuwe inline stat card styling conform v6.0 spec:
+  - Container: bg white, border 1px #D5D8E0, radius 20px, shadow-sm
+  - 3px accent bar bovenaan (full-width, vlakke kleur per card)
+  - Icoon container: 36x36px, radius 12px, vlakke bg (12% opacity van accent), icoon 18px
+  - Label: 12px/500 Inter uppercase, kleur #636878, tracking 0.03em
+  - Waarde: 28px/700 Instrument Sans, kleur #1A1F28, tracking -0.03em
+  - Content tekst: 13px Inter #303542
+  - Hover: shadow-md + translateY(-1px), transition 0.15s (alleen klikbare cards)
+- Accent kleuren per card:
+  - Openstaande Taken: primary (#E27726)
+  - Weer: info (#3B82F6)
+  - Bestellingen/Telling/Levering: warning (#F59E0B)
 
----
+**Layout aanpassen:**
+- max-w-7xl vervangen door max-width: 1200px, margin: 0 auto
+- Padding: 32px horizontaal, 28px verticaal
+- Grid gap: 14px (conform stat card grid spec)
+- Secties gap: 40px
 
-## 2. Database: RLS Policy toevoeging
+### 2. `src/components/dashboard/WeatherWidget.tsx` - Restyle
 
-Profiles tabel heeft momenteel geen SELECT policy voor reguliere users om andere profielen te zien. Managers kunnen al profielen in hun locatie zien via `is_manager_same_location`. Dit is voldoende voor de medewerkerspagina.
+- Achtergrond: wit (#FFFFFF) ipv #FFF7ED
+- Border: 1px solid #D5D8E0
+- Radius: 20px
+- Shadow-sm
+- 3px accent bar bovenaan (kleur #3B82F6 - info)
+- Icoon container: 36x36px, radius 12px, bg rgba(59,130,246,0.12)
+- Label: 12px/500 uppercase Inter, tracking 0.03em, kleur #636878
+- Temperatuur waarde: 28px/700 Instrument Sans, kleur #1A1F28
+- Wind/neerslag tekst: 13px Inter #636878
+- Hover: shadow-md + translateY(-1px)
 
-Geen extra migratie nodig - de bestaande policies dekken de use case:
-- `profiles`: managers zien locatie-profielen via `is_manager_same_location`
-- `user_roles`: managers zien rollen in dezelfde locatie
+### 3. `src/components/HandoverCard.tsx` - Restyle
 
----
-
-## 3. Nieuw bestand: `src/pages/hr/EmployeesPage.tsx`
-
-### Toolbar
-- Zoekbalk (max 320px, radius 16px, search icoon links)
-- Segmented control: Alle / West / Midsland (bg gray-50, radius 16px, actief=white+shadow)
-- Rol filter: dropdown select
-- Primary button: "Medewerker uitnodigen" (#E27726, radius 16px, UserPlus icoon)
-
-### Tabel
-- Container: card met radius 20px, border 1px #D5D8E0, bg white
-- Header: bg #F8F9FA, 11px uppercase #636878, weight 500, tracking 0.05em
-- Kolommen: Naam (met 28px avatar circle bg #E27726 + initialen), Email (mono 12px), Locatie, Rol (badge), Contract, Status (success/gray badge), Acties
-- Rij hover: bg #FCFCFD
-- Acties: pencil icoon (alleen zichtbaar op hover)
-- Sorteerbaar op naam, email, locatie
-- Paginatie: "1-10 van X" links, prev/next buttons rechts
-
-### Uitnodigen Modal
-- Radius 24px, backdrop blur, z-310
-- Header: "Medewerker uitnodigen" (16px/600)
-- Velden: email, voornaam, achternaam, locatie (select: West/Midsland), rol (select: employee/team_lead/manager/kitchen_staff), contract type (select), startdatum
-- Labels boven velden, 6px gap, verplicht = rode asterisk
-- Footer: Annuleren (secondary) + Uitnodigen (primary)
-- Bij submit: roept de `invite-employee` edge function aan
-- Genereert een tijdelijk wachtwoord dat wordt getoond na succesvolle aanmaak
-
-### Loading State
-- Skeleton tabel: 5 rijen met avatar circle + text lines
-
-### Empty State
-- 52x52 icoon container (Users icoon), bg #F1F3F5, radius 12px
-- Titel: "Geen medewerkers gevonden"
-- Beschrijving: "Nodig je eerste medewerker uit"
-- CTA knop: "Medewerker uitnodigen"
-
-### Data
-- Query `profiles` met join op `user_roles` (via user_id)
-- Client-side filtering op zoekterm, locatie, rol
-- Paginated (10 per pagina)
-
----
-
-## 4. Routing: `src/App.tsx`
-
-- Nieuwe route: `/hr/medewerkers` met `RoleGuard` voor `['owner', 'manager', 'admin']`
-- Wrapped in `SidebarLayout` (zelfde als andere HR pagina's)
-- Import en registreer `EmployeesPage`
-
----
-
-## 5. Barrel export: `src/pages/hr/index.ts`
-
-- Exporteer `EmployeesPage`
+- Achtergrond: wit (#FFFFFF) ipv #FFF7ED
+- Border: 1px solid #D5D8E0
+- Radius: 20px
+- Shadow-xs (lichter dan stat cards)
+- Padding: 20px
+- Titel: 14px/600 Inter #282E3A
+- Subtitel: 12px Inter #636878 (ipv #73747B)
+- Bericht tekst: 13px Inter #303542 (ipv 15px)
+- Timestamp: 12px Inter #636878
 
 ---
 
 ## Technische details
 
-### Edge function architectuur
-- Gebruikt `SUPABASE_URL` en `SUPABASE_SERVICE_ROLE_KEY` (beide al geconfigureerd als secrets)
-- CORS headers standaard patroon
-- JWT validatie: extract token uit Authorization header, verifieer via `supabase.auth.getUser(token)`
-- Admin operatie via service role client
+### Verwijderde dependencies
+- `PolarKPICard` import wordt verwijderd uit Dashboard.tsx (component blijft bestaan voor ander gebruik)
 
-### Query strategie
-- Twee queries: `profiles` (voor namen) en `user_roles` (voor rollen/locatie)
-- Join client-side op `user_id`
-- Filter op `is_active = true` standaard, met optie om inactieve te tonen
+### Kleur vervanging
+Alle oude kleuren worden vervangen:
+- #73747B wordt #636878 (gray-400)
+- #36373A wordt #303542 (gray-700)
+- #17171C wordt #1A1F28 (gray-900)
+- #ECEDED wordt #EAECF0 (gray-100)
+- Alle `bg: '#FFF7ED'` op cards wordt `bg: '#FFFFFF'` met border
 
-### Wachtwoord generatie
-- Edge function genereert een random wachtwoord (12 chars, letters+cijfers)
-- Wordt eenmalig getoond in een success-state van de modal
-- Medewerker kan het later wijzigen via wachtwoord reset
+### Geen wijzigingen aan
+- Data queries en realtime subscriptions blijven ongewijzigd
+- Business logica (quotes, helpers) blijft ongewijzigd
+- PolarKPICard component zelf wordt niet gewijzigd (gebruikt elders)
+- SidebarLayout wrapper blijft
 
