@@ -1,114 +1,112 @@
 
 
-# Plan: Bouw /mijn/profiel en /mijn/rooster pagina's
+# Plan: Bouw /rooster (RoosterPage.tsx) - Management Roosterweergave
 
 ## Overzicht
 
-Twee nieuwe pagina's bouwen voor de personeelsapp, volledig conform het Pura Vida OS v6.0 design system. Beide vervangen de huidige placeholder pagina's.
+Een nieuwe management-pagina voor het weekrooster, alleen toegankelijk voor managers, owners en admins. Toont alle medewerkers van een locatie in een horizontaal weekgrid met gekleurde dienstblokken.
 
 ---
 
-## Pagina 1: EmployeeProfile.tsx (/mijn/profiel)
+## Nieuw bestand: `src/pages/RoosterPage.tsx`
 
 ### Layout
 - SidebarLayout wrapper (bestaand patroon)
-- Page header: "Mijn Profiel" (24px/700 Instrument Sans)
-- 2-kolom grid: `grid-template-columns: 2fr 1fr`, gap 24px
-- Responsive: 1 kolom op mobile
+- Page header: "Rooster" (24px/700 Instrument Sans) + beschrijving "Plan en beheer diensten per week."
+- Toolbar:
+  - Links: weeknavigatie (ChevronLeft + "Deze week" + ChevronRight) + weeknummer/datumbereik
+  - Rechts: locatie filter (select, via user_roles locaties) + "Dienst toevoegen" knop (primary)
 
-### Linker kolom - Profiel bewerken
-- **Avatar sectie**: 80px circle avatar met camera-icoon upload overlay
-- **Formulier** met 6 velden in 2-kolom grid (gap 16px):
-  - Voornaam, Achternaam (rij 1)
-  - Telefoon, Geboortedatum (rij 2)
-  - Nationaliteit, Noodcontact (rij 3)
+### Weekweergave (horizontale tabel/grid)
+- Container: card met radius 20px, border 1px #D5D8E0, overflow hidden
+- Header rij: bg #F8F9FA, kolommen "Medewerker" + Ma t/m Zo (met datum, 11px uppercase)
+- Rijen: per medewerker
+  - Eerste kolom: avatar (28px circle, primary bg, initialen) + naam (13px Inter)
+  - Dag-kolommen: dienstblokken als gekleurde pills
+    - Ochtend: bg #DBEAFE, text #1D4ED8
+    - Middag: bg #FEF3C7, text #B45309
+    - Avond: bg #FFF7ED, text #A5500D
+    - Dubbel: bg #DCFCE8, text #15803D
+    - Lege cel: klikbaar (+ icoon, hover bg #F8F9FA), opent modal met datum/medewerker vooringevuld
+  - Dienstblok toont: tijden (Geist Mono 11px) + shift_type pill
+  - Klik op bestaand blok: opent modal in edit-modus
+
+### "Dienst toevoegen" Modal
+- Modal: radius 24px, shadow-xl, max-width 480px
+- Header: "Dienst toevoegen" (16px/600), border-bottom
+- Body velden (2-kolom grid, gap 16px):
+  - Medewerker (select dropdown van profiles in locatie)
+  - Datum (date input)
+  - Starttijd + Eindtijd (time inputs)
+  - Pauze in minuten (number input)
+  - Type (select: ochtend/middag/avond/dubbel)
+  - Notities (textarea)
+- Footer: Annuleren (secondary) + Opslaan (primary, #E27726)
 - Labels: 13px/500 Inter, 6px gap boven veld
-- Inputs: 36px hoogte, 14px radius, border 1px #C1C5CF, focus ring orange
-- Opslaan knop: rechts uitgelijnd, bg #E27726, hover #C9630E, radius 16px
+- Inputs: 36px hoogte, 14px radius
 
-### Rechter kolom - Info cards
-- **Contract info card** (radius 20px, border #D5D8E0):
-  - Rijen: Contract type, Startdatum, Locatie, Rol
-  - Data uit `user_roles` tabel (contract_type, hired_date, location, role)
-- **Documenten card**:
-  - Lijst van `employee_documents` voor huidige user
-  - Per document: file_name + type badge + download link (ExternalLink icoon)
-  - Empty state als geen documenten
+### Empty State
+- Wanneer geen medewerkers of schedules: centered empty state
+- Icoon: CalendarDays in 48x48 container (bg #F1F3F5, radius 12px)
+- Titel: "Geen diensten ingepland"
+- Beschrijving: "Voeg diensten toe om het rooster te vullen."
+- CTA: "Dienst toevoegen" knop
+
+### Loading State
+- Skeleton tabel: 5 rijen met avatar circle + text placeholders per kolom
 
 ### Data
-- Profiel laden/opslaan via `profiles` tabel (user_id = auth.uid())
-- Contract info via `user_roles` tabel
-- Documenten via `employee_documents` tabel
-- INSERT policy ontbreekt op profiles -- migratie nodig om `Users can insert own profile` toe te voegen
+- Query `schedules` WHERE location = geselecteerde locatie AND date binnen weekbereik
+- Join met `profiles` via user_id voor medewerker namen/initialen
+- Query `user_roles` WHERE location = geselecteerde locatie AND is_active = true voor medewerkerlijst
+- Insert nieuwe schedules via supabase met created_by = auth.uid()
+- Gebruiker's eigen locatie als default locatie filter (via `user_roles`)
 
 ---
 
-## Pagina 2: EmployeeSchedule.tsx (/mijn/rooster)
+## Wijzigingen in bestaand bestand: `src/App.tsx`
 
-### Layout
-- SidebarLayout wrapper
-- Page header: "Mijn Rooster" (24px/700 Instrument Sans)
-
-### Weeknavigatie
-- Flex row: Vorige week (chevron left) + "Deze week" reset knop + Volgende week (chevron right)
-- Huidige weeknummer en datumbereik als subtitel
-
-### Weekweergave
-- Verticale lijst van 7 dagen (Ma t/m Zo)
-- Elke dag is een card (radius 20px, border #D5D8E0):
-  - **Datum header**: "Maandag 17 feb" -- bold + primary kleur als vandaag
-  - **Dienst blok**: start-eind tijd, shift_type badge (pill), locatie, pauze info
-  - **Vrij**: lichtgrijze tekst "Vrij"
-  - **Verlof**: badge met type verlof (vakantie/ziek/bijzonder)
-
-### Dienst Ruil
-- "Ruil aanvragen" knop bij elke dienst
-- Modal: selecteer collega (dropdown van schedules op zelfde dag/locatie)
-- Maakt swap request aan (schedule status -> 'swapped' met status 'pending')
-
-### Verlof Aanvragen
-- "Verlof aanvragen" knop bovenaan
-- Modal met: type (select: vakantie/ziek/bijzonder), van datum, tot datum, reden (textarea)
-- Insert in `leave_requests` tabel
-
-### Data
-- Query `schedules` WHERE user_id = auth.uid() voor geselecteerde week
-- Query `leave_requests` WHERE user_id = auth.uid() voor dezelfde periode
-- Join met `profiles` voor collega-namen bij ruil
+- Import RoosterPage
+- Nieuwe route `/rooster` met RoleGuard voor `['owner', 'manager', 'admin']`
 
 ---
 
-## Wijzigingen in bestaande bestanden
+## Wijzigingen in bestaand bestand: `src/components/SidebarLayout.tsx`
 
-### App.tsx
-- Import EmployeeProfile en EmployeeSchedule
-- Vervang MijnPlaceholder op `/mijn/profiel` route door EmployeeProfile
-- Vervang MijnPlaceholder op `/mijn/rooster` route door EmployeeSchedule
+- Voeg '/rooster': 'Rooster' toe aan de `titles` map in `getPageTitle`
 
-### Database migratie
-- Voeg INSERT policy toe op `profiles` tabel zodat users hun eigen profiel kunnen aanmaken:
-  ```sql
-  CREATE POLICY "Users can insert own profile"
-    ON public.profiles FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
-  ```
+---
+
+## Wijzigingen in bestaand bestand: `src/components/AppSidebar.tsx`
+
+- Voeg "Rooster" nav item toe aan de sidebar met CalendarDays icoon, link naar `/rooster`
+
+---
+
+## Geen database wijzigingen nodig
+
+De `schedules` tabel bestaat al met de juiste kolommen en RLS policies:
+- Managers kunnen schedules aanmaken, updaten en verwijderen
+- Managers kunnen schedules van hun locatie bekijken via `is_manager_same_location`
 
 ---
 
 ## Technische details
 
-### Nieuwe bestanden
-1. `src/pages/mijn/EmployeeProfile.tsx` -- profiel pagina
-2. `src/pages/mijn/EmployeeSchedule.tsx` -- rooster pagina
-
-### Design compliance checklist
-- Inputs: 36px, radius 14px, border #C1C5CF, focus ring rgba(226,119,38,0.2)
-- Cards: radius 20px, border 1px #D5D8E0, bg white
-- Buttons: primary #E27726, hover #C9630E, radius 16px, geen gradient, geen hover lift, press scale(0.97)
-- Badges: pill radius 9999px, 12px font
-- Labels: 13px/500 Inter boven velden, 6px gap
-- Typography: Instrument Sans voor titels, Inter voor body, Geist Mono voor data
+### Design compliance
+- Cards: radius 20px, border 1px #D5D8E0
+- Tabel header: bg #F8F9FA, 11px uppercase #636878, weight 500, letter-spacing 0.05em
+- Inputs: 36px hoogte, radius 14px, border #C1C5CF, focus ring orange
+- Buttons: primary #E27726, hover #C9630E, radius 16px, geen gradient, geen hover lift
+- Modal: radius 24px, backdrop blur(4px), rgba(15,19,24,0.5)
+- Badges/pills: radius 9999px, 12px font
+- Typography: Instrument Sans titels, Inter body, Geist Mono tijden
 - Spacing: 4px grid, secties 40px gap
-- Empty states conform design system
-- Loading: skeleton states voor content
+- Tabel rij hover: bg #FCFCFD
+- Lege cellen: hover bg #F8F9FA met + icoon
+
+### Responsief
+- Desktop: volledige weekweergave
+- Tablet: horizontaal scrollbaar
+- Mobile: dag-voor-dag cards (vergelijkbaar met EmployeeSchedule)
 
