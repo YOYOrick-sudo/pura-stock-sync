@@ -26,7 +26,7 @@ import EmployeeProfile from "./pages/mijn/EmployeeProfile";
 import EmployeeSchedule from "./pages/mijn/EmployeeSchedule";
 import RoosterPage from "./pages/RoosterPage";
 // HR Module
-import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } from "./pages/hr";
+import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm, LeavePage } from "./pages/hr";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -207,8 +207,18 @@ const App = () => (
               </ProtectedRoute>
             } 
           />
+          <Route 
+            path="/hr/verlof" 
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['owner', 'manager', 'admin', 'hr']}>
+                  <LeavePage />
+                </RoleGuard>
+              </ProtectedRoute>
+            } 
+          />
 
-          {/* Personeelsapp routes - all authenticated roles */}
+
           <Route 
             path="/mijn/dashboard" 
             element={
