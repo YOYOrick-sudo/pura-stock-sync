@@ -62,7 +62,7 @@ export function PolarTextarea({
             : '1px solid #ECEDED',
           borderRadius: '16px',
           backgroundColor: disabled ? '#F4F5F6' : '#FFFFFF',
-          color: disabled ? '#73747B' : '#17171C',
+          color: disabled ? '#8D93A0' : '#282E3A',
           outline: 'none',
           transition: 'border-color 200ms',
           resize: 'vertical',
@@ -88,7 +88,7 @@ export function PolarTextarea({
             style={{
               fontFamily: 'Inter, sans-serif',
               fontSize: '14px',
-              color: value.length >= maxLength ? '#E64D4D' : '#73747B',
+              color: value.length >= maxLength ? '#E64D4D' : '#636878',
               marginLeft: 'auto',
             }}
           >

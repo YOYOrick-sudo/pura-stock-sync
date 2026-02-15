@@ -142,7 +142,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <p className="text-sm" style={{ color: '#73747B' }}>Advies wordt gegenereerd...</p>
+          <p className="text-sm" style={{ color: '#636878' }}>Advies wordt gegenereerd...</p>
         </CardContent>
       </Card>
     );
@@ -190,7 +190,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
                 {suggestion.text}
               </h4>
               
-              <p className="text-sm mb-3" style={{ color: '#73747B' }}>
+              <p className="text-sm mb-3" style={{ color: '#636878' }}>
                 {suggestion.reasoning}
               </p>
               

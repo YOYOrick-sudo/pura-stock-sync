@@ -77,7 +77,7 @@ export function PolarDatePicker({
               : '1px solid #ECEDED',
             borderRadius: '16px',
             backgroundColor: disabled ? '#F4F5F6' : '#FFFFFF',
-            color: disabled ? '#73747B' : '#17171C',
+            color: disabled ? '#8D93A0' : '#282E3A',
             outline: 'none',
             transition: 'border-color 200ms',
             width: '100%',

@@ -51,7 +51,7 @@ export function PolarDialog({
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '14px',
                   fontWeight: 400,
-                  color: '#73747B',
+                  color: '#636878',
                   marginBottom: '24px',
                 }}
               >

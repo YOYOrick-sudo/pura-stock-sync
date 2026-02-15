@@ -171,7 +171,7 @@ export default function MidslandOrders() {
             <p style={{ 
               fontFamily: 'Inter, sans-serif',
               fontSize: '16px',
-              color: '#73747B'
+              color: '#636878'
             }}>Nog geen bestellingen</p>
           </div>
         ) : (
@@ -249,21 +249,21 @@ export default function MidslandOrders() {
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <Calendar className="h-4 w-4" style={{ color: '#73747B' }} />
+                            <Calendar className="h-4 w-4" style={{ color: '#636878' }} />
                             <span style={{ 
                               fontFamily: 'Inter, sans-serif',
                               fontSize: '14px',
-                              color: '#73747B'
+                              color: '#636878'
                             }}>
                               Aangemaakt: {format(new Date(order.created_at), 'dd MMM yyyy', { locale: nl })}
                             </span>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <Package className="h-4 w-4" style={{ color: '#73747B' }} />
+                            <Package className="h-4 w-4" style={{ color: '#636878' }} />
                             <span style={{ 
                               fontFamily: 'Inter, sans-serif',
                               fontSize: '14px',
-                              color: '#73747B'
+                              color: '#636878'
                             }}>
                               Leverdatum: {format(new Date(order.delivery_date), 'dd MMM yyyy', { locale: nl })}
                             </span>
@@ -275,7 +275,7 @@ export default function MidslandOrders() {
                           <p style={{ 
                             fontFamily: 'Inter, sans-serif',
                             fontSize: '14px',
-                            color: '#73747B'
+                            color: '#636878'
                           }}>
                             {order.internal_order_items?.length || 0} product
                             {(order.internal_order_items?.length || 0) !== 1 ? 'en' : ''}
@@ -289,7 +289,7 @@ export default function MidslandOrders() {
                           {isExpanded ? (
                             <ChevronUp className="h-5 w-5" style={{ color: '#E27726' }} />
                           ) : (
-                            <ChevronDown className="h-5 w-5" style={{ color: '#73747B' }} />
+                            <ChevronDown className="h-5 w-5" style={{ color: '#636878' }} />
                           )}
                         </div>
                       </div>
@@ -324,7 +324,7 @@ export default function MidslandOrders() {
                           <p style={{ 
                             fontFamily: 'Inter, sans-serif',
                             fontSize: '14px',
-                            color: '#73747B',
+                            color: '#636878',
                             padding: '16px',
                             backgroundColor: '#FFFFFF',
                             border: '1px solid rgba(197, 197, 202, 0.3)',
@@ -401,7 +401,7 @@ export default function MidslandOrders() {
                               textAlign: 'center',
                               fontFamily: 'Inter, sans-serif',
                               fontSize: '14px',
-                              color: '#73747B'
+                              color: '#636878'
                             }}>
                               Geen producten gevonden
                             </div>
@@ -427,7 +427,7 @@ export default function MidslandOrders() {
                           <p style={{ 
                             fontFamily: 'Inter, sans-serif',
                             fontSize: '14px',
-                            color: '#73747B',
+                            color: '#636878',
                             padding: '16px',
                             backgroundColor: '#FEF3C7',
                             border: '1px solid rgba(217, 119, 6, 0.3)',
@@ -492,7 +492,7 @@ export default function MidslandOrders() {
                                     padding: '12px 20px',
                                     borderRadius: '20px',
                                     backgroundColor: '#FFFFFF',
-                                    color: '#73747B',
+                                    color: '#636878',
                                     border: '1px solid rgba(197, 197, 202, 0.5)',
                                     cursor: 'pointer',
                                   }}

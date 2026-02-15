@@ -192,7 +192,7 @@ export function NotificationsDropdown() {
               style={{
                 fontFamily: 'Inter, sans-serif',
                 fontSize: '14px',
-                color: '#73747B',
+                color: '#636878',
               }}
             >
               Geen meldingen
@@ -232,7 +232,7 @@ export function NotificationsDropdown() {
                       style={{
                         fontFamily: 'Inter, sans-serif',
                         fontSize: '13px',
-                        color: '#73747B',
+                        color: '#636878',
                       }}
                     >
                       {formatDate(notification.created_at)}

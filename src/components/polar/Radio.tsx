@@ -113,7 +113,7 @@ export function PolarRadioGroup({
           style={{
             fontFamily: 'Inter, sans-serif',
             fontSize: '14px',
-            color: error ? '#E64D4D' : '#73747B',
+            color: error ? '#E64D4D' : '#636878',
           }}
         >
           {helperText}

@@ -76,7 +76,7 @@ export function PolarKPICard({
             fontFamily: 'Inter, sans-serif',
             fontSize: '13px',
             fontWeight: 500,
-            color: '#73747B',
+            color: '#636878',
             textTransform: 'uppercase',
             letterSpacing: '0.02em',
             display: 'flex',
@@ -123,7 +123,7 @@ export function PolarKPICard({
               fontFamily: 'Inter, sans-serif',
               fontSize: '12px',
               fontWeight: 400,
-              color: '#73747B',
+              color: '#636878',
             }}
           >
             {contentText.secondary}
@@ -165,7 +165,7 @@ export function PolarKPICard({
             {title}
           </span>
           {hasDropdown && (
-            <ChevronDown size={16} style={{ color: '#73747B' }} />
+            <ChevronDown size={16} style={{ color: '#636878' }} />
           )}
         </div>
         {actionLink && (
@@ -186,13 +186,13 @@ export function PolarKPICard({
         )}
       </div>
 
-      {/* Value - on grey background */}
+      {/* Value */}
       <div
         style={{
           fontFamily: 'Inter, sans-serif',
           fontSize: '56px',
           fontWeight: 600,
-          color: '#17171C',
+          color: '#282E3A',
           letterSpacing: '-0.02em',
           lineHeight: '1',
           marginBottom: dateRanges.length > 0 ? '20px' : '24px',
@@ -201,7 +201,7 @@ export function PolarKPICard({
         {value}
       </div>
 
-      {/* Date Ranges - on grey background */}
+      {/* Date Ranges */}
       {dateRanges.length > 0 && (
         <div
           style={{
@@ -240,7 +240,7 @@ export function PolarKPICard({
         </div>
       )}
 
-      {/* Content Text - on grey background (for non-chart cards) */}
+      {/* Content Text */}
       {contentText && !showChart && (
         <div style={{ marginTop: 'auto' }}>
           {contentText.primary && (
@@ -249,7 +249,7 @@ export function PolarKPICard({
                 fontFamily: 'Inter, sans-serif',
                 fontSize: '15px',
                 fontWeight: 400,
-                color: statusColor?.text || '#17171C',
+                color: statusColor?.text || '#282E3A',
                 marginBottom: contentText.secondary ? '4px' : '0',
               }}
             >
@@ -271,7 +271,7 @@ export function PolarKPICard({
         </div>
       )}
 
-      {/* Chart - WHITE background layer inside grey card */}
+      {/* Chart */}
       {showChart && chartData.length > 0 && (
         <div
           className="rounded-polar-lg"
@@ -281,7 +281,6 @@ export function PolarKPICard({
             padding: '24px',
           }}
         >
-          {/* Chart SVG */}
           <div style={{ height: `${chartHeight}px`, width: '100%', marginBottom: '12px' }}>
             <svg
               width="100%"
@@ -290,18 +289,10 @@ export function PolarKPICard({
               preserveAspectRatio="none"
               style={{ display: 'block' }}
             >
-              {/* Bottom border line */}
               <line 
-                x1="0" 
-                y1="100" 
-                x2="100" 
-                y2="100" 
-                stroke="#ECEDED" 
-                strokeWidth="1" 
-                vectorEffect="non-scaling-stroke"
+                x1="0" y1="100" x2="100" y2="100" 
+                stroke="#ECEDED" strokeWidth="1" vectorEffect="non-scaling-stroke"
               />
-
-              {/* Line */}
               {chartData.length > 1 && (
                 <polyline
                   points={linePoints}
@@ -309,33 +300,15 @@ export function PolarKPICard({
                   stroke="#E27726"
                   strokeWidth="1.5"
                   vectorEffect="non-scaling-stroke"
-                  style={{
-                    strokeLinecap: 'round',
-                    strokeLinejoin: 'round',
-                  }}
+                  style={{ strokeLinecap: 'round', strokeLinejoin: 'round' }}
                 />
               )}
             </svg>
           </div>
-
-          {/* X-Axis Labels */}
           {xAxisLabels.length > 0 && (
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-              }}
-            >
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               {xAxisLabels.map((label, index) => (
-                <span
-                  key={index}
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '13px',
-                    fontWeight: 400,
-                    color: '#36373A',
-                  }}
-                >
+                <span key={index} style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 400, color: '#36373A' }}>
                   {label}
                 </span>
               ))}
@@ -346,14 +319,7 @@ export function PolarKPICard({
 
       {/* Dot indicators */}
       {showDots && (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '8px',
-            marginTop: '16px',
-          }}
-        >
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '16px' }}>
           {Array.from({ length: 3 }).map((_, index) => (
             <div
               key={index}
