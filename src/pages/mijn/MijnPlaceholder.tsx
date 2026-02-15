@@ -1,4 +1,3 @@
-import { SidebarLayout } from '@/components/SidebarLayout';
 import { Clock } from 'lucide-react';
 
 interface MijnPlaceholderProps {
@@ -8,7 +7,7 @@ interface MijnPlaceholderProps {
 
 const MijnPlaceholder = ({ title, description }: MijnPlaceholderProps) => {
   return (
-    <SidebarLayout>
+    <div style={{ padding: '32px', maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ padding: '32px', maxWidth: '1200px', margin: '0 auto' }}>
         <h1 style={{
           fontFamily: "'Instrument Sans', sans-serif",
@@ -55,7 +54,7 @@ const MijnPlaceholder = ({ title, description }: MijnPlaceholderProps) => {
           </p>
         </div>
       </div>
-    </SidebarLayout>
+    </div>
   );
 };
 

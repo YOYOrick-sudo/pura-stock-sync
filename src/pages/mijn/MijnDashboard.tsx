@@ -1,9 +1,8 @@
-import { SidebarLayout } from '@/components/SidebarLayout';
 import { Home } from 'lucide-react';
 
 const MijnDashboard = () => {
   return (
-    <SidebarLayout>
+    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ padding: '32px', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{
           display: 'flex',
@@ -67,7 +66,7 @@ const MijnDashboard = () => {
           </p>
         </div>
       </div>
-    </SidebarLayout>
+    </div>
   );
 };
 

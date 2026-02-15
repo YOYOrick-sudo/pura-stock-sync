@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { SidebarLayout } from '@/components/SidebarLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -162,35 +161,32 @@ const EmployeeProfile = () => {
 
   if (loading) {
     return (
-      <SidebarLayout>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <Skeleton className="h-8 w-48 mb-2" />
-          <Skeleton className="h-5 w-64 mb-8" />
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
-            <div>
-              <Skeleton className="h-20 w-20 rounded-full mb-6" />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                {[...Array(6)].map((_, i) => (
-                  <div key={i}>
-                    <Skeleton className="h-4 w-24 mb-1.5" />
-                    <Skeleton className="h-9 w-full rounded-[14px]" />
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <Skeleton className="h-48 w-full rounded-[20px]" />
-              <Skeleton className="h-48 w-full rounded-[20px]" />
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <Skeleton className="h-8 w-48 mb-2" />
+        <Skeleton className="h-5 w-64 mb-8" />
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+          <div>
+            <Skeleton className="h-20 w-20 rounded-full mb-6" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              {[...Array(6)].map((_, i) => (
+                <div key={i}>
+                  <Skeleton className="h-4 w-24 mb-1.5" />
+                  <Skeleton className="h-9 w-full rounded-[14px]" />
+                </div>
+              ))}
             </div>
           </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <Skeleton className="h-48 w-full rounded-[20px]" />
+            <Skeleton className="h-48 w-full rounded-[20px]" />
+          </div>
         </div>
-      </SidebarLayout>
+      </div>
     );
   }
 
   return (
-    <SidebarLayout>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         {/* Page Header */}
         <h1 style={{
           fontFamily: "'Instrument Sans', sans-serif",
@@ -516,9 +512,8 @@ const EmployeeProfile = () => {
               )}
             </div>
           </div>
-        </div>
       </div>
-    </SidebarLayout>
+    </div>
   );
 };
 

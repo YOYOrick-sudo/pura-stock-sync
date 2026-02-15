@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { EmployeeLayout } from "@/components/EmployeeLayout";
 import { RoleGuard } from "@/components/RoleGuard";
 import { LocationGuard } from "@/components/LocationGuard";
 import { UserLocationProvider } from "@/contexts/UserLocationContext";
@@ -224,7 +225,7 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <RoleGuard allowedRoles={['employee', 'team_lead', 'manager', 'owner', 'admin', 'kitchen_staff', 'hr']} fallbackPath="/">
-                  <MijnDashboard />
+                  <EmployeeLayout><MijnDashboard /></EmployeeLayout>
                 </RoleGuard>
               </ProtectedRoute>
             } 
@@ -234,7 +235,7 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <RoleGuard allowedRoles={['employee', 'team_lead', 'manager', 'owner', 'admin', 'kitchen_staff', 'hr']} fallbackPath="/">
-                  <EmployeeSchedule />
+                  <EmployeeLayout><EmployeeSchedule /></EmployeeLayout>
                 </RoleGuard>
               </ProtectedRoute>
             } 
@@ -244,7 +245,17 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <RoleGuard allowedRoles={['employee', 'team_lead', 'manager', 'owner', 'admin', 'kitchen_staff', 'hr']} fallbackPath="/">
-                  <MijnPlaceholder title="Mijn Taken" description="Bekijk en beheer je toegewezen taken." />
+                  <EmployeeLayout><MijnPlaceholder title="Mijn Taken" description="Bekijk en beheer je toegewezen taken." /></EmployeeLayout>
+                </RoleGuard>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/mijn/documenten" 
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['employee', 'team_lead', 'manager', 'owner', 'admin', 'kitchen_staff', 'hr']} fallbackPath="/">
+                  <EmployeeLayout><MijnPlaceholder title="Documenten" description="Bekijk en beheer je documenten." /></EmployeeLayout>
                 </RoleGuard>
               </ProtectedRoute>
             } 
@@ -254,7 +265,7 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <RoleGuard allowedRoles={['employee', 'team_lead', 'manager', 'owner', 'admin', 'kitchen_staff', 'hr']} fallbackPath="/">
-                  <EmployeeProfile />
+                  <EmployeeLayout><EmployeeProfile /></EmployeeLayout>
                 </RoleGuard>
               </ProtectedRoute>
             } 

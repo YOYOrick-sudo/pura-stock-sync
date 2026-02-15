@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { SidebarLayout } from '@/components/SidebarLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -142,7 +141,7 @@ const EmployeeSchedule = () => {
   const loading = schedulesLoading || leaveLoading;
 
   return (
-    <SidebarLayout>
+    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
@@ -458,7 +457,7 @@ const EmployeeSchedule = () => {
           </div>
         </div>
       )}
-    </SidebarLayout>
+    </div>
   );
 };
 
