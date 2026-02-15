@@ -1061,6 +1061,60 @@ export type Database = {
           },
         ]
       }
+      shift_swap_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          id: string
+          message: string | null
+          requester_id: string
+          schedule_id: string
+          status: string
+          target_schedule_id: string | null
+          target_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          message?: string | null
+          requester_id: string
+          schedule_id: string
+          status?: string
+          target_schedule_id?: string | null
+          target_user_id: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          message?: string | null
+          requester_id?: string
+          schedule_id?: string
+          status?: string
+          target_schedule_id?: string | null
+          target_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_swap_requests_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_swap_requests_target_schedule_id_fkey"
+            columns: ["target_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff_members: {
         Row: {
           active: boolean
