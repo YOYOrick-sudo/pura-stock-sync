@@ -5,3 +5,4 @@ export { default as ApplicantForm } from './ApplicantForm';
 export { default as HousingPlanner } from './HousingPlanner';
 export { default as HousingForm } from './HousingForm';
 export { default as LeavePage } from './LeavePage';
+export { default as EmployeesPage } from './EmployeesPage';
