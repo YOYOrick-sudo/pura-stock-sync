@@ -27,7 +27,7 @@ import EmployeeProfile from "./pages/mijn/EmployeeProfile";
 import EmployeeSchedule from "./pages/mijn/EmployeeSchedule";
 import RoosterPage from "./pages/RoosterPage";
 // HR Module
-import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm, LeavePage } from "./pages/hr";
+import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm, LeavePage, EmployeesPage } from "./pages/hr";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -218,7 +218,16 @@ const App = () => (
               </ProtectedRoute>
             } 
           />
-
+          <Route 
+            path="/hr/medewerkers" 
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['owner', 'manager', 'admin']}>
+                  <EmployeesPage />
+                </RoleGuard>
+              </ProtectedRoute>
+            } 
+          />
 
           <Route 
             path="/mijn/dashboard" 
