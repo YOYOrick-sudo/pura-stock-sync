@@ -24,6 +24,7 @@ import MijnDashboard from "./pages/mijn/MijnDashboard";
 import MijnPlaceholder from "./pages/mijn/MijnPlaceholder";
 import EmployeeProfile from "./pages/mijn/EmployeeProfile";
 import EmployeeSchedule from "./pages/mijn/EmployeeSchedule";
+import RoosterPage from "./pages/RoosterPage";
 // HR Module
 import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } from "./pages/hr";
 const queryClient = new QueryClient();
@@ -127,7 +128,17 @@ const App = () => (
             } 
           />
           <Route 
-            path="/style-guide" 
+            path="/rooster" 
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['owner', 'manager', 'admin']}>
+                  <RoosterPage />
+                </RoleGuard>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/style-guide"
             element={
               <ProtectedRoute>
                 <StyleGuide />
