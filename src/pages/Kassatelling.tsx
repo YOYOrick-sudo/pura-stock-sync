@@ -11,49 +11,45 @@ export default function Kassatelling() {
   return (
     <SidebarLayout>
       <div style={{
-        maxWidth: '1400px',
+        maxWidth: '1200px',
         margin: '0 auto',
         fontFamily: 'Inter, sans-serif',
       }}>
-        {/* Eén grote moonlight card die alles omvat */}
+        {/* Main card container */}
         <div style={{
-          backgroundColor: '#FFF7ED',
+          backgroundColor: '#FFFFFF',
           borderRadius: '20px',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
+          border: '1px solid #D5D8E0',
           padding: '24px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04)',
         }}>
-          {/* Tab buttons bovenaan */}
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', justifyContent: 'flex-start' }}>
+          {/* Segmented control */}
+          <div style={{
+            display: 'inline-flex',
+            backgroundColor: '#F8F9FA',
+            border: '1px solid #EAECF0',
+            borderRadius: '16px',
+            padding: '3px',
+            marginBottom: '24px',
+          }}>
             <button
               onClick={() => setActiveTab('overdag')}
-              onMouseEnter={(e) => {
-                if (activeTab !== 'overdag') {
-                  e.currentTarget.style.backgroundColor = '#FFF7ED';
-                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeTab !== 'overdag') {
-                  e.currentTarget.style.backgroundColor = '#FFFFFF';
-                  e.currentTarget.style.boxShadow = 'none';
-                }
-              }}
               style={{
                 minWidth: '120px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '14px',
-                fontWeight: 500,
-                padding: '10px 16px',
-                backgroundColor: activeTab === 'overdag' ? '#E27726' : '#FFFFFF',
-                color: activeTab === 'overdag' ? '#FFFFFF' : '#282E3A',
-                border: activeTab === 'overdag' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
-                borderRadius: '20px',
+                fontSize: '13px',
+                fontWeight: activeTab === 'overdag' ? 600 : 500,
+                padding: '8px 16px',
+                backgroundColor: activeTab === 'overdag' ? '#FFFFFF' : 'transparent',
+                color: activeTab === 'overdag' ? '#1A1F28' : '#4A4F5E',
+                border: 'none',
+                borderRadius: '13px',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
                 fontFamily: 'Inter, sans-serif',
+                boxShadow: activeTab === 'overdag' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
               }}
             >
               Open
@@ -61,33 +57,22 @@ export default function Kassatelling() {
             
             <button
               onClick={() => setActiveTab('avond')}
-              onMouseEnter={(e) => {
-                if (activeTab !== 'avond') {
-                  e.currentTarget.style.backgroundColor = '#FFF7ED';
-                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeTab !== 'avond') {
-                  e.currentTarget.style.backgroundColor = '#FFFFFF';
-                  e.currentTarget.style.boxShadow = 'none';
-                }
-              }}
               style={{
                 minWidth: '120px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '14px',
-                fontWeight: 500,
-                padding: '10px 16px',
-                backgroundColor: activeTab === 'avond' ? '#E27726' : '#FFFFFF',
-                color: activeTab === 'avond' ? '#FFFFFF' : '#282E3A',
-                border: activeTab === 'avond' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
-                borderRadius: '20px',
+                fontSize: '13px',
+                fontWeight: activeTab === 'avond' ? 600 : 500,
+                padding: '8px 16px',
+                backgroundColor: activeTab === 'avond' ? '#FFFFFF' : 'transparent',
+                color: activeTab === 'avond' ? '#1A1F28' : '#4A4F5E',
+                border: 'none',
+                borderRadius: '13px',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
                 fontFamily: 'Inter, sans-serif',
+                boxShadow: activeTab === 'avond' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
               }}
             >
               Sluit
