@@ -16,9 +16,7 @@ export default function Settings() {
   useEffect(() => {
     const fetchUserData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserEmail(user.email || '');
-      }
+      if (user) { setUserEmail(user.email || ''); }
     };
     fetchUserData();
   }, []);
@@ -36,34 +34,30 @@ export default function Settings() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-7xl mx-auto px-6 space-y-6">
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '28px 32px' }} className="space-y-6">
         <div>
-          <h1 className="text-3xl font-heading font-bold text-foreground">Instellingen</h1>
-          <p className="text-sm text-muted-foreground">{userLocation}</p>
+          <h1 style={{ fontFamily: "'Instrument Sans', sans-serif", fontSize: '24px', fontWeight: 700, color: '#1A1F28', letterSpacing: '-0.02em' }}>Instellingen</h1>
+          <p style={{ fontSize: '14px', color: '#636878' }}>{userLocation}</p>
         </div>
 
         <div className="grid gap-4 max-w-2xl">
-          <Card className="p-6">
-            <h3 className="font-semibold text-lg mb-4">Gebruikersinformatie</h3>
-            <div className="space-y-2">
+          <Card className="p-5" style={{ borderRadius: '20px', border: '1px solid #D5D8E0' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#303542', marginBottom: '16px' }}>Gebruikersinformatie</h3>
+            <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Email:</span>
-                <span className="font-medium">{userEmail}</span>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: '#636878' }}>Email:</span>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: '#303542' }}>{userEmail}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Locatie:</span>
-                <span className="font-medium">{userLocation}</span>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: '#636878' }}>Locatie:</span>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: '#303542' }}>{userLocation}</span>
               </div>
             </div>
           </Card>
 
-          <Card className="p-6">
-            <h3 className="font-semibold text-lg mb-4">Account</h3>
-            <Button 
-              onClick={handleLogout} 
-              variant="destructive"
-              className="w-full"
-            >
+          <Card className="p-5" style={{ borderRadius: '20px', border: '1px solid #D5D8E0' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#303542', marginBottom: '16px' }}>Account</h3>
+            <Button onClick={handleLogout} variant="destructive" className="w-full" style={{ borderRadius: '16px' }}>
               <LogOut className="mr-2 h-4 w-4" />
               Uitloggen
             </Button>
