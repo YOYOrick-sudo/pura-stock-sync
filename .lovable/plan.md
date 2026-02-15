@@ -1,139 +1,63 @@
 
 
-# Audit & Fix Plan: Pura Vida OS v6.0 Compliance
+# Legacy Kleur Cleanup — Pura Vida OS v6.0
 
-## Kritiek Probleem: App Werkt Niet
+## Overzicht
 
-De hele applicatie is momenteel **onbruikbaar** door een database fout. De `user_roles` tabel heeft RLS-policies die zichzelf aanroepen (oneindige recursie), waardoor elke query naar `user_roles` een 500 error geeft. Zonder deze tabel werkt inloggen, rolcontrole en navigatie niet.
-
-**Fout in database logs:** `infinite recursion detected in policy for relation "user_roles"`
-
-### Oorzaak
-1. De SELECT policy "Managers and owners can view roles in same location" doet een subquery op dezelfde `user_roles` tabel
-2. De `has_role()` functie doet ook een query op `user_roles`, waardoor INSERT/UPDATE/DELETE policies ook recursie veroorzaken
-
-### Fix (database migratie)
-- Verwijder de problematische policies
-- Maak de `has_role()` functie opnieuw aan met `SECURITY DEFINER` (omzeilt RLS)
-- Maak nieuwe policies die `auth.uid()` direct vergelijken zonder subqueries op dezelfde tabel, of die de `SECURITY DEFINER` functie gebruiken
+Er zijn **6 legacy kleuren** gevonden verspreid over **~15 bestanden**. Deze worden allemaal vervangen door de juiste v6.0 Midnight Slate equivalenten.
 
 ---
 
-## Visuele Audit: Bevindingen
+## Kleur Mapping
 
-### 1. Legacy kleur #73747B (188 voorkomens in 13 bestanden)
-De oude secondary text kleur `#73747B` moet worden vervangen door de v6.0 Midnight Slate equivalenten:
-- `#73747B` wordt `#636878` (gray-400) voor secondary text
-- Of `#8D93A0` (gray-300) voor tertiary/placeholder text
-
-**Bestanden met legacy kleuren:**
-- `src/components/polar/KPICard.tsx`
-- `src/components/polar/Dialog.tsx`
-- `src/components/polar/FormCard.tsx`
-- `src/components/polar/DatePicker.tsx`
-- `src/pages/StyleGuide.tsx`
-- `src/components/AppSidebar.tsx` (in de code dialog: `color: '#73747B'`)
-- Plus 7 andere bestanden
-
-### 2. ServiceTasks component (`src/components/service/ServiceTasks.tsx`)
-Dit component gebruikt Shadcn defaults in plaats van v6.0 inline styling:
-- Badge gebruikt `bg-green-100 text-green-600` (Tailwind generic) in plaats van v6.0 status kleuren
-- Geen Instrument Sans voor titels
-- Emoji `📅` gebruikt in plaats van Lucide icoon (Calendar)
-- Geen loading skeleton state (toont alleen "Laden..." tekst)
-- TabsList met `bg-white` class in plaats van v6.0 segmented control styling
-
-### 3. ServiceModule (`src/pages/service/ServiceModule.tsx`)
-- Gebruikt `KitchenLayout` in plaats van `SidebarLayout`
-- Staat niet in de router (`App.tsx`) - is een dood component
-- TabsList met generieke styling
-
-### 4. AppSidebar code dialog
-- Knop radius `20px` in plaats van `14px` (buttons = 14px per spec)
-- Border kleur `rgba(197, 197, 202, 0.5)` (legacy) in plaats van `#C1C5CF` of `#D5D8E0`
-
-### 5. Dashboard StatCard
-- `translateY(-1px)` hover op kaarten is correct per spec (klikbare cards mogen hover lift)
-- Verder v6.0 compliant
+| Legacy kleur | Gebruik | v6.0 vervanging | Token |
+|---|---|---|---|
+| `#17171C` | Label tekst (dark) | `#282E3A` | gray-800 |
+| `#36373A` | Secondary tekst, iconen | `#636878` (tekst) / `#8D93A0` (iconen) | gray-400 / gray-300 |
+| `#ECEDED` | Borders (default) | `#EAECF0` | gray-100 |
+| `#F4F5F6` | Disabled bg, surfaces | `#F1F3F5` | gray-75 |
+| `#E64D4D` | Error kleur | `#EF4444` | error |
+| `rgba(197, 197, 202, 0.5)` | Borders | `#D5D8E0` | gray-150 |
+| `rgba(197, 197, 202, 0.3)` | Lichte borders | `#EAECF0` | gray-100 |
+| `#C5C5CA` | Muted icoon | `#C1C5CF` | gray-200 |
 
 ---
 
-## Implementatieplan
+## Bestanden en wijzigingen
 
-### Stap 1: Database RLS Fix (kritiek)
-SQL migratie uitvoeren:
-- `has_role()` herschrijven als `SECURITY DEFINER` functie
-- Oude SELECT policy vervangen door twee simpele policies:
-  - "Users can view own role" (bestaand, correct)
-  - "Admins can view all roles" met `SECURITY DEFINER` functie
-- INSERT/UPDATE/DELETE policies opnieuw aanmaken met de nieuwe functie
+### Polar Design System componenten (7 bestanden)
 
-### Stap 2: Legacy kleur cleanup (#73747B)
-Vervang alle 188 voorkomens van `#73747B` door de juiste v6.0 equivalenten in alle 13 bestanden.
+1. **DatePicker.tsx** — `#17171C` -> `#282E3A`, `#36373A` -> `#636878`/`#8D93A0`, `#ECEDED` -> `#EAECF0`, `#F4F5F6` -> `#F1F3F5`, `#E64D4D` -> `#EF4444`
+2. **TimePicker.tsx** — zelfde set als DatePicker
+3. **Textarea.tsx** — zelfde set
+4. **Radio.tsx** — `#E64D4D` -> `#EF4444`, `rgba(197,197,202,0.5)` -> `#C1C5CF`
+5. **Avatar.tsx** — `#36373A` -> `#636878`, `#ECEDED` -> `#EAECF0`, `#F4F5F6` -> `#F1F3F5`
+6. **Tooltip.tsx** — `#17171C` -> `#1A1F28` (tooltip bg per spec)
+7. **KPICard.tsx** — `#36373A` -> `#636878`, `#ECEDED` -> `#EAECF0`
 
-### Stap 3: ServiceTasks v6.0 restyle
-- Badge: gebruik v6.0 status badge kleuren
-- Vervang emoji door Lucide Calendar icoon
-- Voeg skeleton loading state toe
-- Tabs: v6.0 segmented control styling
+### Pagina's en layout componenten (4 bestanden)
 
-### Stap 4: AppSidebar dialog fix
-- Button radius: `20px` naar `14px`
-- Border kleuren: legacy naar v6.0 Midnight Slate
+8. **NotificationsDropdown.tsx** — `#17171C` -> `#282E3A`, `#36373A` -> `#636878`, `#ECEDED` -> `#EAECF0`, `#F4F5F6` -> `#F1F3F5`
+9. **MidslandOrders.tsx** — `rgba(197,197,202,*)` -> `#D5D8E0`/`#EAECF0`, `#C5C5CA` -> `#C1C5CF`
+10. **AIWeatherAdvisor.tsx** — `rgba(197,197,202,*)` -> `#D5D8E0`/`#EAECF0`
+11. **ServiceTasks.tsx** — `#F4F5F6` -> `#F1F3F5`
 
-### Stap 5: Verificatie
-- Inloggen als pura mids
-- Alle pagina's doorlopen en screenshots maken
-- Controleren op resterende legacy elementen
+### Polar system-level (3 bestanden)
+
+12. **Dialog.tsx** — `rgba(197,197,202,0.5)` -> `#D5D8E0`
+13. **FormCard.tsx** — `rgba(197,197,202,0.5)` -> `#D5D8E0`
+14. **Table.tsx** — `rgba(197,197,202,0.5)` -> `#D5D8E0`/`#EAECF0`
+15. **Skeleton.tsx** — `rgba(197,197,202,0.3)` -> `#EAECF0` in wave animatie
 
 ---
 
-## Technische Details
+## Technische details
 
-### Database migratie SQL (Stap 1)
+Alle wijzigingen zijn find-and-replace binnen inline styles. Er worden geen componenten structureel gewijzigd, alleen kleurwaarden. De kleuren worden vervangen volgens het v6.0 Midnight Slate spectrum:
 
-```text
--- 1. Drop problematische policies
-DROP POLICY IF EXISTS "Managers and owners can view roles in same location" ON user_roles;
-DROP POLICY IF EXISTS "Owners can delete roles" ON user_roles;
-DROP POLICY IF EXISTS "Owners can insert roles" ON user_roles;
-DROP POLICY IF EXISTS "Owners can update roles" ON user_roles;
-
--- 2. Recreate has_role as SECURITY DEFINER
-CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role app_role)
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.user_roles
-    WHERE user_id = _user_id AND role = _role AND is_active = true
-  )
-$$;
-
--- 3. Admin/manager SELECT policy (no recursion)
-CREATE POLICY "Admins can view all roles"
-  ON user_roles FOR SELECT
-  USING (has_role(auth.uid(), 'owner') OR has_role(auth.uid(), 'admin') OR has_role(auth.uid(), 'manager'));
-
--- 4. Recreate mutation policies
-CREATE POLICY "Admins can insert roles"
-  ON user_roles FOR INSERT
-  WITH CHECK (has_role(auth.uid(), 'owner') OR has_role(auth.uid(), 'admin'));
-
-CREATE POLICY "Admins can update roles"
-  ON user_roles FOR UPDATE
-  USING (has_role(auth.uid(), 'owner') OR has_role(auth.uid(), 'admin'));
-
-CREATE POLICY "Admins can delete roles"
-  ON user_roles FOR DELETE
-  USING (has_role(auth.uid(), 'owner') OR has_role(auth.uid(), 'admin'));
-```
-
-### Kleur mapping (Stap 2)
-- `#73747B` (secondary text) wordt `#636878` (Midnight Slate 400)
-- `rgba(197, 197, 202, 0.5)` (legacy border) wordt `#D5D8E0` (gray-150)
-- `#17171C` (legacy dark) wordt `#282E3A` (gray-800)
+- **Tekst**: `#282E3A` (primary), `#636878` (secondary), `#8D93A0` (tertiary/iconen)
+- **Borders**: `#D5D8E0` (standaard), `#EAECF0` (licht), `#C1C5CF` (inputs)
+- **Surfaces**: `#F1F3F5` (muted/disabled), `#F8F9FA` (page bg)
+- **Error**: `#EF4444` (rood, per v6.0 semantic)
+- **Tooltip bg**: `#1A1F28` (gray-900, per spec)
 
