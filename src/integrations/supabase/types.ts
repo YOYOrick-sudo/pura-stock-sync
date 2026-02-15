@@ -694,6 +694,45 @@ export type Database = {
         }
         Relationships: []
       }
+      leave_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          end_date: string
+          id: string
+          reason: string | null
+          start_date: string
+          status: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          end_date: string
+          id?: string
+          reason?: string | null
+          start_date: string
+          status?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          end_date?: string
+          id?: string
+          reason?: string | null
+          start_date?: string
+          status?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mep_planning: {
         Row: {
           assigned_to: string | null
@@ -890,6 +929,54 @@ export type Database = {
         }
         Relationships: []
       }
+      schedules: {
+        Row: {
+          break_minutes: number | null
+          created_at: string
+          created_by: string | null
+          date: string
+          end_time: string
+          id: string
+          location: string
+          notes: string | null
+          shift_type: string | null
+          start_time: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          break_minutes?: number | null
+          created_at?: string
+          created_by?: string | null
+          date: string
+          end_time: string
+          id?: string
+          location: string
+          notes?: string | null
+          shift_type?: string | null
+          start_time: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          break_minutes?: number | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          end_time?: string
+          id?: string
+          location?: string
+          notes?: string | null
+          shift_type?: string | null
+          start_time?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       sent_documents: {
         Row: {
           acknowledged_at: string | null
@@ -970,6 +1057,53 @@ export type Database = {
           role?: string | null
         }
         Relationships: []
+      }
+      time_registrations: {
+        Row: {
+          approved_by: string | null
+          break_taken_minutes: number | null
+          clock_in: string
+          clock_out: string | null
+          created_at: string
+          id: string
+          location: string
+          schedule_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          approved_by?: string | null
+          break_taken_minutes?: number | null
+          clock_in: string
+          clock_out?: string | null
+          created_at?: string
+          id?: string
+          location: string
+          schedule_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          approved_by?: string | null
+          break_taken_minutes?: number | null
+          clock_in?: string
+          clock_out?: string | null
+          created_at?: string
+          id?: string
+          location?: string
+          schedule_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_registrations_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
