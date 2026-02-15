@@ -22,6 +22,8 @@ import DesignPreview from "./pages/DesignPreview";
 import DesignSystem from "./pages/DesignSystem";
 import MijnDashboard from "./pages/mijn/MijnDashboard";
 import MijnPlaceholder from "./pages/mijn/MijnPlaceholder";
+import EmployeeProfile from "./pages/mijn/EmployeeProfile";
+import EmployeeSchedule from "./pages/mijn/EmployeeSchedule";
 // HR Module
 import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } from "./pages/hr";
 const queryClient = new QueryClient();
@@ -211,7 +213,7 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <RoleGuard allowedRoles={['employee', 'team_lead', 'manager', 'owner', 'admin', 'kitchen_staff', 'hr']} fallbackPath="/">
-                  <MijnPlaceholder title="Mijn Rooster" description="Bekijk je werkrooster en diensten." />
+                  <EmployeeSchedule />
                 </RoleGuard>
               </ProtectedRoute>
             } 
@@ -231,7 +233,7 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <RoleGuard allowedRoles={['employee', 'team_lead', 'manager', 'owner', 'admin', 'kitchen_staff', 'hr']} fallbackPath="/">
-                  <MijnPlaceholder title="Mijn Profiel" description="Bekijk en bewerk je persoonlijke gegevens." />
+                  <EmployeeProfile />
                 </RoleGuard>
               </ProtectedRoute>
             } 
