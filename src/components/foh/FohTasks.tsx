@@ -35,22 +35,15 @@ const CATEGORY_ORDER = ['Deel 1', 'Deel 2', 'Deel 3', 'Bar', 'Keuken', 'Zaal', '
 
 // Get available categories based on location and phase
 const getAvailableCategoriesForPhase = (location: string, phase: string): string[] => {
-  // Midsland - open
   if (location === 'Midsland' && phase === 'open') {
     return ['Deel 1', 'Deel 2', 'Deel 3'];
   }
-  
-  // Midsland - tussen
   if (location === 'Midsland' && phase === 'tussen') {
     return ['Binnen', 'Deel 1 - Bar Prep Check', 'Deel 2 - Bijvullen', 'Hygiëne', 'Overdracht', 'Terras'];
   }
-  
-  // Midsland - sluit
   if (location === 'Midsland' && phase === 'sluit') {
     return ['BAR', 'BIJVULLEN (FIFO)', 'BINNEN', 'HYGIENE', 'LAATSTE LOODJES', 'TERRAS'];
   }
-  
-  // Fallback voor andere locaties/fases
   return [...CATEGORY_ORDER];
 };
 
@@ -81,7 +74,6 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState(task.description || '');
   
-  // Touch feedback state (tablet only)
   const isTablet = useIsTablet();
   const [ripple, setRipple] = useState<{ x: number; y: number } | null>(null);
 
@@ -91,14 +83,11 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
     opacity: isDragging ? 0.5 : (isDeleted ? 0.3 : 1),
   };
 
-  // Handle row click to toggle task (only when not in edit mode)
   const handleRowClick = (e: React.MouseEvent) => {
-    // Don't toggle if clicking on buttons or inputs
     if ((e.target as HTMLElement).closest('button, input, select, textarea')) {
       return;
     }
     if (!isEditMode && toggleTask && !isDeleted) {
-      // Trigger ripple effect on tablet
       if (isTablet) {
         const rect = e.currentTarget.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -117,7 +106,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         style={{
           padding: taskPadding,
           opacity: isDeleted ? 0.3 : (task.completed ? 0.7 : 1),
-          borderBottom: '1px solid rgba(197, 197, 202, 0.3)',
+          borderBottom: '1px solid #EAECF0',
           cursor: !isEditMode && toggleTask ? 'pointer' : 'default',
           transition: 'all 0.15s ease',
           position: 'relative',
@@ -127,13 +116,13 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         onMouseEnter={(e) => {
           if (!isEditMode && toggleTask) {
             e.currentTarget.style.backgroundColor = task.completed 
-              ? 'rgba(27, 120, 103, 0.06)' 
-              : 'rgba(27, 120, 103, 0.05)';
+              ? 'rgba(226, 119, 38, 0.06)' 
+              : 'rgba(226, 119, 38, 0.04)';
           }
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = task.completed 
-            ? 'rgba(27, 120, 103, 0.04)' 
+            ? 'rgba(226, 119, 38, 0.04)' 
             : 'transparent';
         }}
         onMouseDown={(e) => {
@@ -144,8 +133,8 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         onMouseUp={(e) => {
           if (!isEditMode && toggleTask) {
             e.currentTarget.style.backgroundColor = task.completed 
-              ? 'rgba(27, 120, 103, 0.06)' 
-              : 'rgba(27, 120, 103, 0.05)';
+              ? 'rgba(226, 119, 38, 0.06)' 
+              : 'rgba(226, 119, 38, 0.04)';
           }
         }}
       >
@@ -185,30 +174,30 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 minWidth: '24px',
               }}
             >
-              <GripVertical size={18} style={{ color: '#73747B', opacity: 0.5 }} />
+              <GripVertical size={18} style={{ color: '#636878', opacity: 0.5 }} />
             </div>
           )}
 
-          {/* Checkbox - compact, whole row is clickable */}
+          {/* Checkbox - v6.0: 16x16, radius 4px */}
           {!isEditMode && toggleTask && (
             <div style={{
-              width: '20px',
-              height: '20px',
-              minWidth: '20px',
-              borderRadius: '6px',
-              border: '2px solid rgba(197, 197, 202, 0.5)',
-              backgroundColor: task.completed ? 'hsl(var(--primary))' : 'hsl(var(--background))',
+              width: '16px',
+              height: '16px',
+              minWidth: '16px',
+              borderRadius: '4px',
+              border: '2px solid #C1C5CF',
+              backgroundColor: task.completed ? '#E27726' : '#FFFFFF',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'all 0.1s ease',
-              pointerEvents: 'none', // Row handles the click
+              pointerEvents: 'none',
             }}>
               {task.completed && (
-                <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
                   <path
-                    d="M1 5L4.5 8.5L11 1.5"
-                    stroke="hsl(var(--primary-foreground))"
+                    d="M1 4L3.5 6.5L9 1"
+                    stroke="#FFFFFF"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -218,7 +207,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
             </div>
           )}
 
-          {/* Title - editable in edit mode */}
+          {/* Title */}
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
@@ -232,9 +221,9 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 disabled={isDeleted}
                 style={{
                   flex: 1,
-                  borderRadius: '16px',
+                  borderRadius: '14px',
                   fontFamily: 'Inter, sans-serif',
-                  fontSize: '15px',
+                  fontSize: '13px',
                   fontWeight: 500,
                   height: '36px',
                   textDecoration: isDeleted ? 'line-through' : 'none',
@@ -244,9 +233,9 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
               <span style={{
                 flex: 1,
                 textDecoration: toggleTask && task.completed ? 'line-through' : 'none',
-                color: toggleTask && task.completed ? '#73747B' : '#282E3A',
+                color: toggleTask && task.completed ? '#636878' : '#282E3A',
                 fontWeight: 500,
-                fontSize: '15px',
+                fontSize: '13px',
                 fontFamily: 'Inter, sans-serif',
               }}>
                 {task.title}
@@ -260,7 +249,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
             alignItems: 'center',
             gap: '6px',
           }}>
-            {/* Time indicator - editable in edit mode */}
+            {/* Time indicator */}
             {isEditMode ? (
               <Select 
                 value={task.estimated_minutes?.toString() || 'null'}
@@ -296,10 +285,10 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 <span style={{
                   fontSize: '11px',
                   fontWeight: 500,
-                  color: '#73747B',
-                  backgroundColor: 'rgba(115, 116, 123, 0.08)',
+                  color: '#636878',
+                  backgroundColor: 'rgba(99, 104, 120, 0.08)',
                   padding: '2px 8px',
-                  borderRadius: '4px',
+                  borderRadius: '9999px',
                   fontFamily: 'Inter, sans-serif',
                 }}>
                   ~{task.estimated_minutes}min
@@ -307,7 +296,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
               )
             )}
 
-            {/* Info button - compact */}
+            {/* Info button */}
             {!isEditMode && task.description && (
               <button
                 onClick={(e) => {
@@ -319,7 +308,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   height: '24px',
                   minWidth: '24px',
                   borderRadius: '6px',
-                  border: '1px solid rgba(197,197,202,0.5)',
+                  border: '1px solid #D5D8E0',
                   backgroundColor: '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
@@ -334,7 +323,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
               </button>
             )}
 
-            {/* Edit description button - compact */}
+            {/* Edit description button */}
             {showAdminTools && !isDeleted && (
               <button
                 onClick={(e) => {
@@ -347,8 +336,8 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   height: '24px',
                   minWidth: '24px',
                   borderRadius: '6px',
-                  border: '1px solid rgba(197,197,202,0.5)',
-                  backgroundColor: '#FEFFF1',
+                  border: '1px solid #D5D8E0',
+                  backgroundColor: '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -358,11 +347,11 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 }}
                 title="Bewerk omschrijving"
               >
-                <Pencil size={14} style={{ color: '#73747B' }} />
+                <Pencil size={14} style={{ color: '#636878' }} />
               </button>
             )}
 
-            {/* Delete button - compact */}
+            {/* Delete button */}
             {isEditMode && !isDeleted && (
               <button
                 onClick={(e) => {
@@ -374,8 +363,8 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   height: '24px',
                   minWidth: '24px',
                   borderRadius: '6px',
-                  border: '1px solid rgba(197,197,202,0.5)',
-                  backgroundColor: '#FEFFF1',
+                  border: '1px solid #D5D8E0',
+                  backgroundColor: '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -389,8 +378,8 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   e.currentTarget.style.borderColor = '#EF4444';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#FEFFF1';
-                  e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
+                  e.currentTarget.style.backgroundColor = '#FFFFFF';
+                  e.currentTarget.style.borderColor = '#D5D8E0';
                 }}
               >
                 <Trash2 size={14} style={{ color: '#EF4444' }} />
@@ -403,13 +392,13 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         {isEditingDescription && (
           <Dialog open={isEditingDescription} onOpenChange={setIsEditingDescription}>
             <DialogContent style={{
-              backgroundColor: '#FEFFF1',
-              border: '1px solid rgba(197, 197, 202, 0.5)',
-              borderRadius: '20px',
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #D5D8E0',
+              borderRadius: '24px',
               fontFamily: 'Inter, sans-serif',
             }}>
               <DialogHeader>
-                <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#282E3A' }}>
+                <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#1A1F28' }}>
                   {showAdminTools ? 'Bewerk Omschrijving' : 'Taak Informatie'}
                 </DialogTitle>
               </DialogHeader>
@@ -421,7 +410,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                     placeholder="Omschrijving (optioneel)"
                     rows={6}
                     style={{
-                      borderRadius: '16px',
+                      borderRadius: '14px',
                       fontFamily: 'Inter, sans-serif',
                       whiteSpace: 'pre-wrap',
                     }}
@@ -429,8 +418,8 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 ) : (
                   <div style={{
                     fontFamily: 'Inter, sans-serif',
-                    fontSize: '15px',
-                    color: '#282E3A',
+                    fontSize: '13px',
+                    color: '#303542',
                     whiteSpace: 'pre-wrap',
                     lineHeight: 1.6,
                   }}>
@@ -443,7 +432,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   variant="outline"
                   onClick={() => setIsEditingDescription(false)}
                   style={{
-                    borderRadius: '20px',
+                    borderRadius: '16px',
                     fontFamily: 'Inter, sans-serif',
                   }}
                 >
@@ -457,9 +446,9 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                       toast.success('Omschrijving bijgewerkt');
                     }}
                     style={{
-                      backgroundColor: '#1B7867',
+                      backgroundColor: '#E27726',
                       color: '#FFFFFF',
-                      borderRadius: '20px',
+                      borderRadius: '16px',
                       fontFamily: 'Inter, sans-serif',
                     }}
                   >
@@ -482,27 +471,22 @@ const nowInAmsterdamMinutes = (): number => {
   const hours = nowInAmsterdam.getHours();
   const minutes = nowInAmsterdam.getMinutes();
   let totalMinutes = hours * 60 + minutes;
-  
   if (hours === 0) {
     totalMinutes += 24 * 60;
   }
-  
   return totalMinutes;
 };
 
 const getCurrentPhaseByTime = (): PhaseType => {
   const currentMinutes = nowInAmsterdamMinutes();
-  
   for (const window of PHASE_WINDOWS) {
     if (currentMinutes >= window.startMin && currentMinutes <= window.endMin) {
       return window.phase;
     }
   }
-  
   if (currentMinutes < PHASE_WINDOWS[0].startMin) return 'open';
   if (currentMinutes > PHASE_WINDOWS[0].endMin && currentMinutes < PHASE_WINDOWS[1].startMin) return 'tussen';
   if (currentMinutes > PHASE_WINDOWS[1].endMin && currentMinutes < PHASE_WINDOWS[2].startMin) return 'sluit';
-  
   return 'open';
 };
 
@@ -518,35 +502,29 @@ const groupTasksByPhase = (tasks: FohTaskWithEmployee[]) => {
     tussen: [],
     sluit: [],
   };
-  
   tasks.forEach(task => {
     if (task.phase && task.phase in grouped) {
       grouped[task.phase].push(task);
     }
   });
-  
   return grouped;
 };
 
 const getFirstPhaseWithOpenTasks = (tasks: FohTaskWithEmployee[]): PhaseType => {
   const grouped = groupTasksByPhase(tasks);
   const phaseOrder: PhaseType[] = ['open', 'tussen', 'sluit'];
-  
   for (const phase of phaseOrder) {
     const phaseTasks = grouped[phase];
     const hasOpenTasks = phaseTasks.some(task => !task.completed);
-    
     if (hasOpenTasks) {
       return phase;
     }
   }
-  
   return getCurrentPhaseByTime();
 };
 
 const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
   const grouped: Record<string, FohTaskWithEmployee[]> = {};
-  
   tasks.forEach(task => {
     const category = task.category || 'Algemeen';
     if (!grouped[category]) {
@@ -554,17 +532,13 @@ const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
     }
     grouped[category].push(task);
   });
-  
   const sortedGrouped: Record<string, FohTaskWithEmployee[]> = {};
   CATEGORY_ORDER.forEach(cat => {
     if (grouped[cat]) {
-      // Sort by sort_order first, then move completed tasks to bottom
       sortedGrouped[cat] = grouped[cat].sort((a, b) => {
-        // Completed tasks go to bottom
         if (a.completed !== b.completed) {
           return a.completed ? 1 : -1;
         }
-        // Within same completion status, sort by sort_order
         if (a.sort_order !== undefined && b.sort_order !== undefined) {
           return a.sort_order - b.sort_order;
         }
@@ -572,10 +546,8 @@ const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
       });
     }
   });
-  
   Object.keys(grouped).forEach(cat => {
     if (!sortedGrouped[cat]) {
-      // Also sort non-standard categories with completed at bottom
       sortedGrouped[cat] = grouped[cat].sort((a, b) => {
         if (a.completed !== b.completed) {
           return a.completed ? 1 : -1;
@@ -584,11 +556,9 @@ const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
       });
     }
   });
-  
   return sortedGrouped;
 };
 
-// Get category progress stats
 const getCategoryProgress = (tasks: FohTaskWithEmployee[]) => {
   const completed = tasks.filter(t => t.completed).length;
   const total = tasks.length;
@@ -616,18 +586,15 @@ const getDateLabel = (dateString: string): string => {
   const TIMEZONE = 'Europe/Amsterdam';
   const today = toZonedTime(new Date(), TIMEZONE);
   const todayDateStr = today.toISOString().split('T')[0];
-  
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowDateStr = tomorrow.toISOString().split('T')[0];
-  
   if (dateString === todayDateStr) return 'Vandaag';
   if (dateString === tomorrowDateStr) return 'Morgen';
   if (dateString < todayDateStr) return 'Overdag';
   return dateString;
 };
 
-// Group tasks by day for periodic tasks view
 const groupTasksByDay = (tasks: FohTaskWithEmployee[]) => {
   const grouped: Record<string, FohTaskWithEmployee[]> = {};
   tasks.forEach(task => {
@@ -635,25 +602,19 @@ const groupTasksByDay = (tasks: FohTaskWithEmployee[]) => {
     if (!grouped[dateKey]) grouped[dateKey] = [];
     grouped[dateKey].push(task);
   });
-  // Sort by date
   return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
 };
 
-// Format day header for periodic tasks
 const formatDayHeader = (dateString: string): string => {
   const TIMEZONE = 'Europe/Amsterdam';
   const today = toZonedTime(new Date(), TIMEZONE);
   const todayDateStr = today.toISOString().split('T')[0];
-  
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowDateStr = tomorrow.toISOString().split('T')[0];
-  
   if (dateString === todayDateStr) return 'Vandaag';
   if (dateString === tomorrowDateStr) return 'Morgen';
   if (dateString < todayDateStr) return 'Overdag';
-  
-  // Format as "Maandag 23 dec"
   const date = new Date(dateString + 'T12:00:00');
   const days = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
   const months = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
@@ -667,17 +628,16 @@ const getDateLabelColor = (dateString: string): string => {
   const TIMEZONE = 'Europe/Amsterdam';
   const today = toZonedTime(new Date(), TIMEZONE);
   const todayDateStr = today.toISOString().split('T')[0];
-  
   if (dateString < todayDateStr) return '#DC2626';
-  if (dateString === todayDateStr) return '#1B7867';
-  return '#73747B';
+  if (dateString === todayDateStr) return '#E27726';
+  return '#636878';
 };
 
 const getPriorityConfig = (priority: number) => {
   switch (priority) {
     case 1: return { color: '#DC2626', borderColor: '#DC2626' }; // High - Red
-    case 3: return { color: '#1B7867', borderColor: '#1B7867' }; // Low - Green
-    default: return { color: '#F59E0B', borderColor: '#F59E0B' }; // Normal - Orange/Yellow
+    case 3: return { color: '#22C55E', borderColor: '#22C55E' }; // Low - Success green
+    default: return { color: '#F59E0B', borderColor: '#F59E0B' }; // Normal - Warning
   }
 };
 
@@ -707,31 +667,26 @@ export function FohTasks() {
     estimated_minutes: null as number | null,
   });
   
-  // Task padding: slightly more on tablet
   const taskPadding = isTablet ? '18px 0' : '14px 0';
   const [employeeInput, setEmployeeInput] = useState('');
   const [employeeOpen, setEmployeeOpen] = useState(false);
   
-  // Swipe state for delete functionality
   const [swipedTaskId, setSwipedTaskId] = useState<string | null>(null);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const [swipeOffset, setSwipeOffset] = useState(0);
   
-  // Admin panel states
   const [adminPanelOpen, setAdminPanelOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [adminTab, setAdminTab] = useState<'edit' | 'templates'>('templates');
   
-  // Edit mode states (for Tab 1: Huidige Taken Bewerken)
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedTasks, setEditedTasks] = useState<FohTaskWithEmployee[]>([]);
   const [deletedTaskIds, setDeletedTaskIds] = useState<string[]>([]);
   const [newTasks, setNewTasks] = useState<Array<{tempId: string, title: string, category: string}>>([]);
   const [newTaskInput, setNewTaskInput] = useState('');
   
-  // Template management states (for Tab 2: Templates Beheren)
   const [selectedTemplateName, setSelectedTemplateName] = useState<string>('');
   const [templateEditorOpen, setTemplateEditorOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<any[]>([]);
@@ -741,7 +696,6 @@ export function FohTasks() {
   const [newTemplateName, setNewTemplateName] = useState('');
   const [newTemplateTaskInput, setNewTemplateTaskInput] = useState('');
   
-  // Get available categories for current location and phase
   const availableCategories = getAvailableCategoriesForPhase(userLocation, activePhase);
   const [newTemplateTaskCategory, setNewTemplateTaskCategory] = useState(availableCategories[0] || 'Algemeen');
   
@@ -757,23 +711,16 @@ export function FohTasks() {
         .eq('repeat_type', 'daily')
         .order('template_name')
         .order('sort_order', { ascending: true });
-      
       if (error) throw error;
       return data || [];
     },
     enabled: adminPanelOpen && adminTab === 'templates',
   });
 
-  // Group templates by name
   const groupedTemplates = templates?.reduce((acc, template) => {
     const name = template.template_name || 'Standaard';
     if (!acc[name]) {
-      acc[name] = {
-        name,
-        tasks: [],
-        isActive: false,
-        lastModified: template.created_at,
-      };
+      acc[name] = { name, tasks: [], isActive: false, lastModified: template.created_at };
     }
     acc[name].tasks.push(template);
     if (template.is_active) {
@@ -782,23 +729,18 @@ export function FohTasks() {
     return acc;
   }, {} as Record<string, { name: string; tasks: any[]; isActive: boolean; lastModified: string }>);
 
-  // ===== DATA FETCHING =====
+  // ===== DATA FETCHING (unchanged business logic) =====
   const generateDailyTasks = async () => {
     const todayDate = getAmsterdamDateString();
-    
-    // Fetch only active templates
     const { data: templates } = await supabase
       .from('foh_daily_templates')
       .select('*')
       .eq('location', userLocation)
       .eq('repeat_type', 'daily')
       .eq('is_active', true);
-    
     if (!templates || templates.length === 0) return;
-    
     const phases = ['open', 'tussen', 'sluit'] as const;
     const tasksToInsert: any[] = [];
-    
     for (const phase of phases) {
       const { data: existingPhaseTasks } = await supabase
         .from('foh_tasks')
@@ -807,7 +749,6 @@ export function FohTasks() {
         .eq('due_date', todayDate)
         .eq('phase', phase)
         .limit(1);
-      
       if (!existingPhaseTasks || existingPhaseTasks.length === 0) {
         const phaseTemplates = templates.filter(t => t.phase === phase);
         const phaseTasks = phaseTemplates.map(template => ({
@@ -829,7 +770,6 @@ export function FohTasks() {
         tasksToInsert.push(...phaseTasks);
       }
     }
-    
     if (tasksToInsert.length > 0) {
       await supabase.from('foh_tasks').insert(tasksToInsert);
     }
@@ -837,7 +777,6 @@ export function FohTasks() {
 
   const fetchDailyTasks = async () => {
     const todayDate = getAmsterdamDateString();
-    
     const { data, error } = await supabase
       .from('foh_tasks')
       .select('*, foh_employees(*)')
@@ -847,12 +786,10 @@ export function FohTasks() {
       .not('phase', 'is', null)
       .order('sort_order', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: true });
-    
     if (error) {
       console.error('Error fetching daily tasks:', error);
       return;
     }
-    
     setDailyTasks((data || []) as FohTaskWithEmployee[]);
     setLoading(false);
   };
@@ -866,12 +803,10 @@ export function FohTasks() {
       .is('phase', null)
       .order('due_date', { ascending: true })
       .order('priority', { ascending: true });
-    
     if (error) {
       console.error('Error fetching extra tasks:', error);
       return;
     }
-    
     setExtraTasks((data || []) as FohTaskWithEmployee[]);
   };
 
@@ -881,12 +816,10 @@ export function FohTasks() {
       .select('*')
       .eq('location', userLocation)
       .order('name', { ascending: true });
-    
     if (error) {
       console.error('Error fetching employees:', error);
       return;
     }
-    
     setEmployees(data || []);
   };
 
@@ -895,28 +828,18 @@ export function FohTasks() {
     const lastReset = localStorage.getItem(`lastTaskReset_${location}`);
     const now = new Date();
     const amsterdamTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' }));
-    
     if (!lastReset) return true;
-    
     const lastResetDate = new Date(lastReset);
     const lastResetAmsterdam = new Date(lastResetDate.toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' }));
-    
     const currentHour = amsterdamTime.getHours();
     const lastResetDay = lastResetAmsterdam.toDateString();
     const currentDay = amsterdamTime.toDateString();
-    
-    if (currentDay !== lastResetDay && currentHour >= 4) {
-      return true;
-    }
-    
+    if (currentDay !== lastResetDay && currentHour >= 4) return true;
     if (currentHour < 4) {
       const yesterday = new Date(amsterdamTime);
       yesterday.setDate(yesterday.getDate() - 1);
-      if (lastResetDay === yesterday.toDateString()) {
-        return false;
-      }
+      if (lastResetDay === yesterday.toDateString()) return false;
     }
-    
     return false;
   };
 
@@ -924,23 +847,18 @@ export function FohTasks() {
     const location = userLocation || 'West';
     try {
       console.log(`[${location}] Performing client-side task reset...`);
-      
       const todayDate = getAmsterdamDateString();
-      
       const { error: archiveError } = await supabase
         .from('foh_tasks')
         .update({ archived: true })
         .eq('location', location)
         .lt('due_date', todayDate)
         .eq('archived', false);
-      
       if (archiveError) {
         console.error('Error archiving old tasks:', archiveError);
         return;
       }
-      
       await generateDailyTasks();
-      
       localStorage.setItem(`lastTaskReset_${location}`, new Date().toISOString());
       console.log(`[${location}] Client-side reset completed`);
     } catch (error) {
@@ -953,17 +871,13 @@ export function FohTasks() {
       if (shouldResetTasks()) {
         await performClientSideReset();
       }
-      
       await generateDailyTasks();
       await fetchDailyTasks();
       fetchExtraTasks();
       fetchEmployees();
     };
-    
     initializeTasks();
   }, [userLocation]);
-  
-  // Auto phase-switching disabled to maintain task order consistency
 
   // ===== TASK ACTIONS =====
   const toggleTask = async (id: string, currentCompleted: boolean) => {
@@ -975,40 +889,34 @@ export function FohTasks() {
         completed_at: !currentCompleted ? now : null,
       })
       .eq('id', id);
-    
     if (error) {
       toast.error('Kon taak niet bijwerken');
       console.error(error);
       return;
     }
-    
     await fetchDailyTasks();
     await fetchExtraTasks();
   };
 
-  const filteredEmployees = employees.filter(e => 
-    e.name.toLowerCase().includes(employeeInput.toLowerCase())
+  const filteredEmployees = employees.filter((employee) =>
+    employee.name.toLowerCase().includes(employeeInput.toLowerCase())
   );
   
-  const exactMatch = employees.find(e => 
-    e.name.toLowerCase() === employeeInput.toLowerCase()
-  );
-  
-  const shouldShowAddNew = employeeInput.trim().length > 0 && !exactMatch;
-  
+  const shouldShowAddNew = employeeInput.trim().length > 0 && 
+    !filteredEmployees.some(e => e.name.toLowerCase() === employeeInput.toLowerCase());
+
   const createEmployeeInline = async (name: string) => {
+    if (!name.trim()) return null;
     const { data, error } = await supabase
       .from('foh_employees')
       .insert({ name, location: userLocation })
       .select()
       .single();
-    
     if (error) {
       toast.error('Kon medewerker niet aanmaken');
       console.error(error);
       return null;
     }
-    
     toast.success(`${name} toegevoegd!`);
     await fetchEmployees();
     return data;
@@ -1041,7 +949,6 @@ export function FohTasks() {
       toast.error('Titel mag maximaal 200 tekens zijn');
       return;
     }
-
     const { error } = await supabase
       .from('foh_tasks')
       .insert({
@@ -1057,13 +964,11 @@ export function FohTasks() {
         archived: false,
         estimated_minutes: newTask.estimated_minutes,
       });
-
     if (error) {
       toast.error('Kon taak niet aanmaken');
       console.error(error);
       return;
     }
-
     toast.success('Taak aangemaakt!');
     setDialogOpen(false);
     setNewTask({
@@ -1083,13 +988,11 @@ export function FohTasks() {
       .from('foh_tasks')
       .update({ archived: true })
       .eq('id', taskId);
-
     if (error) {
       console.error('Error deleting task:', error);
       toast.error('Fout bij verwijderen taak');
       return;
     }
-
     toast.success('Taak verwijderd');
     setSwipedTaskId(null);
     fetchExtraTasks();
@@ -1098,57 +1001,35 @@ export function FohTasks() {
   // ===== DRAG AND DROP =====
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
+      activationConstraint: { distance: 8 },
     })
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    
-    if (!over || active.id === over.id) {
-      return;
-    }
-    
+    if (!over || active.id === over.id) return;
     setEditedTasks((tasks) => {
       const oldIndex = tasks.findIndex((t) => t.id === active.id);
       const newIndex = tasks.findIndex((t) => t.id === over.id);
-      
       if (oldIndex === -1 || newIndex === -1) return tasks;
-      
       const newTasks = [...tasks];
       const [movedTask] = newTasks.splice(oldIndex, 1);
       newTasks.splice(newIndex, 0, movedTask);
-      
-      return newTasks.map((task, idx) => ({
-        ...task,
-        sort_order: (idx + 1) * 10,
-      }));
+      return newTasks.map((task, idx) => ({ ...task, sort_order: (idx + 1) * 10 }));
     });
   };
 
   const handleTemplateDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    
-    if (!over || active.id === over.id) {
-      return;
-    }
-    
+    if (!over || active.id === over.id) return;
     setEditingTemplate((tasks) => {
       const oldIndex = tasks.findIndex((t) => t.id === active.id);
       const newIndex = tasks.findIndex((t) => t.id === over.id);
-      
       if (oldIndex === -1 || newIndex === -1) return tasks;
-      
       const newTasks = [...tasks];
       const [movedTask] = newTasks.splice(oldIndex, 1);
       newTasks.splice(newIndex, 0, movedTask);
-      
-      return newTasks.map((task, idx) => ({
-        ...task,
-        sort_order: (idx + 1) * 10,
-      }));
+      return newTasks.map((task, idx) => ({ ...task, sort_order: (idx + 1) * 10 }));
     });
   };
 
@@ -1157,37 +1038,27 @@ export function FohTasks() {
     try {
       for (const task of editedTasks) {
         if (deletedTaskIds.includes(task.id)) continue;
-        
         const { error } = await supabase
           .from('foh_tasks')
-          .update({
-            title: task.title,
-            sort_order: task.sort_order,
-            category: task.category,
-            description: task.description,
-          })
+          .update({ title: task.title, sort_order: task.sort_order, category: task.category, description: task.description })
           .eq('id', task.id);
-        
         if (error) {
           console.error('Error updating task:', error);
           toast.error('Fout bij opslaan');
           return;
         }
       }
-      
       if (deletedTaskIds.length > 0) {
         const { error } = await supabase
           .from('foh_tasks')
           .update({ archived: true })
           .in('id', deletedTaskIds);
-        
         if (error) {
           console.error('Error deleting tasks:', error);
           toast.error('Fout bij verwijderen taken');
           return;
         }
       }
-      
       if (newTasks.length > 0) {
         const maxSortOrder = Math.max(...editedTasks.map(t => t.sort_order || 0), 0);
         const tasksToInsert = newTasks.map((task, idx) => ({
@@ -1201,18 +1072,13 @@ export function FohTasks() {
           completed: false,
           archived: false,
         }));
-        
-        const { error } = await supabase
-          .from('foh_tasks')
-          .insert(tasksToInsert);
-        
+        const { error } = await supabase.from('foh_tasks').insert(tasksToInsert);
         if (error) {
           console.error('Error inserting new tasks:', error);
           toast.error('Fout bij toevoegen taken');
           return;
         }
       }
-      
       await fetchDailyTasks();
       setIsEditMode(false);
       setEditedTasks([]);
@@ -1229,13 +1095,10 @@ export function FohTasks() {
   const handleSaveAsTemplate = async () => {
     try {
       const currentPhaseTasks = getCurrentTasks().filter(t => !t.archived);
-      
       if (currentPhaseTasks.length === 0) {
         toast.error('Geen taken om op te slaan als template');
         return;
       }
-      
-      // Get the current active template name
       const { data: activeTemplates } = await supabase
         .from('foh_daily_templates')
         .select('template_name')
@@ -1243,10 +1106,7 @@ export function FohTasks() {
         .eq('phase', activePhase)
         .eq('is_active', true)
         .limit(1);
-      
       const currentTemplateName = activeTemplates?.[0]?.template_name || `Standaard ${activePhase === 'open' ? 'Openlijst' : activePhase === 'tussen' ? 'Tussenlijst' : 'Sluitlijst'}`;
-      
-      // Delete old templates with this name
       const { error: deleteError } = await supabase
         .from('foh_daily_templates')
         .delete()
@@ -1254,13 +1114,11 @@ export function FohTasks() {
         .eq('phase', activePhase)
         .eq('template_name', currentTemplateName)
         .eq('repeat_type', 'daily');
-      
       if (deleteError) {
         console.error('Error deleting old templates:', deleteError);
         toast.error('Fout bij verwijderen oude template');
         return;
       }
-      
       const templatesToInsert = currentPhaseTasks.map(task => ({
         location: task.location,
         phase: task.phase,
@@ -1274,18 +1132,13 @@ export function FohTasks() {
         template_name: currentTemplateName,
         is_active: true,
       }));
-      
-      const { error: insertError } = await supabase
-        .from('foh_daily_templates')
-        .insert(templatesToInsert);
-      
+      const { error: insertError } = await supabase.from('foh_daily_templates').insert(templatesToInsert);
       if (insertError) {
         console.error('Error inserting templates:', insertError);
         toast.error('Fout bij opslaan template');
         return;
       }
-      
-      toast.success(`Template "${currentTemplateName}" bijgewerkt`);
+      toast.success(`Template \"${currentTemplateName}\" bijgewerkt`);
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
     } catch (error) {
       console.error('Error saving template:', error);
@@ -1296,27 +1149,21 @@ export function FohTasks() {
   // ===== TAB 2: TEMPLATE MANAGEMENT =====
   const handleMakeTemplateActive = async (templateName: string) => {
     try {
-      // Set all other templates for this phase to inactive
       const { error: deactivateError } = await supabase
         .from('foh_daily_templates')
         .update({ is_active: false })
         .eq('location', userLocation)
         .eq('phase', activePhase)
         .neq('template_name', templateName);
-      
       if (deactivateError) throw deactivateError;
-      
-      // Set selected template to active
       const { error: activateError } = await supabase
         .from('foh_daily_templates')
         .update({ is_active: true })
         .eq('location', userLocation)
         .eq('phase', activePhase)
         .eq('template_name', templateName);
-      
       if (activateError) throw activateError;
-      
-      toast.success(`Template "${templateName}" is nu actief`);
+      toast.success(`Template \"${templateName}\" is nu actief`);
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
       await generateDailyTasks();
       await fetchDailyTasks();
@@ -1331,9 +1178,7 @@ export function FohTasks() {
       toast.error('Template naam is verplicht');
       return;
     }
-    
     try {
-      // Check if name already exists
       const { data: existing } = await supabase
         .from('foh_daily_templates')
         .select('id')
@@ -1341,34 +1186,25 @@ export function FohTasks() {
         .eq('phase', activePhase)
         .eq('template_name', newTemplateName.trim())
         .limit(1);
-      
       if (existing && existing.length > 0) {
         toast.error('Template naam bestaat al');
         return;
       }
-      
-      // Create from current daily tasks
       const currentPhaseTasks = getCurrentTasks().filter(t => !t.archived);
-      
       if (currentPhaseTasks.length === 0) {
-        // Create empty template
-        const { error } = await supabase
-          .from('foh_daily_templates')
-          .insert({
-            location: userLocation,
-            phase: activePhase,
-            title: 'Nieuwe taak',
-            category: 'Algemeen',
-            priority: 2,
-            repeat_type: 'daily',
-            template_name: newTemplateName.trim(),
-            is_active: false,
-            sort_order: 10,
-          });
-        
+        const { error } = await supabase.from('foh_daily_templates').insert({
+          location: userLocation,
+          phase: activePhase,
+          title: 'Nieuwe taak',
+          category: 'Algemeen',
+          priority: 2,
+          repeat_type: 'daily',
+          template_name: newTemplateName.trim(),
+          is_active: false,
+          sort_order: 10,
+        });
         if (error) throw error;
       } else {
-        // Copy current tasks
         const templatesToInsert = currentPhaseTasks.map(task => ({
           location: task.location,
           phase: task.phase,
@@ -1382,15 +1218,10 @@ export function FohTasks() {
           template_name: newTemplateName.trim(),
           is_active: false,
         }));
-        
-        const { error } = await supabase
-          .from('foh_daily_templates')
-          .insert(templatesToInsert);
-        
+        const { error } = await supabase.from('foh_daily_templates').insert(templatesToInsert);
         if (error) throw error;
       }
-      
-      toast.success(`Template "${newTemplateName.trim()}" aangemaakt`);
+      toast.success(`Template \"${newTemplateName.trim()}\" aangemaakt`);
       setNewTemplateDialogOpen(false);
       setNewTemplateName('');
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
@@ -1401,13 +1232,11 @@ export function FohTasks() {
   };
 
   const handleDeleteTemplate = async (templateName: string) => {
-    // Check if it's the active template
     const template = groupedTemplates?.[templateName];
     if (template?.isActive) {
       toast.error('Kan actieve template niet verwijderen');
       return;
     }
-    
     try {
       const { error } = await supabase
         .from('foh_daily_templates')
@@ -1415,10 +1244,8 @@ export function FohTasks() {
         .eq('location', userLocation)
         .eq('phase', activePhase)
         .eq('template_name', templateName);
-      
       if (error) throw error;
-      
-      toast.success(`Template "${templateName}" verwijderd`);
+      toast.success(`Template \"${templateName}\" verwijderd`);
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
       setSelectedTemplateName('');
     } catch (error) {
@@ -1442,10 +1269,8 @@ export function FohTasks() {
       toast.error('Vul een taaknaam in');
       return;
     }
-    
     const maxSortOrder = Math.max(...editingTemplate.map(t => t.sort_order || 0), 0);
     const tempId = `temp-${Date.now()}`;
-    
     const newTask = {
       id: tempId,
       title: newTemplateTaskInput,
@@ -1461,7 +1286,6 @@ export function FohTasks() {
       is_active: true,
       isNew: true,
     };
-    
     setEditingTemplate(prev => [...prev, newTask]);
     setNewTemplateTaskInput('');
     toast.success('Taak toegevoegd');
@@ -1469,69 +1293,51 @@ export function FohTasks() {
 
   const handleSaveTemplateEdits = async () => {
     try {
-      // Update existing template tasks
       for (const task of editingTemplate) {
         if (deletedTemplateTaskIds.includes(task.id)) continue;
-        if (task.isNew) continue; // Skip new tasks in this loop
-        
+        if (task.isNew) continue;
         const { error } = await supabase
           .from('foh_daily_templates')
-          .update({
-            title: task.title,
-            sort_order: task.sort_order,
-            category: task.category,
-            description: task.description,
-            estimated_minutes: task.estimated_minutes,
-          })
+          .update({ title: task.title, sort_order: task.sort_order, category: task.category, description: task.description, estimated_minutes: task.estimated_minutes })
           .eq('id', task.id);
-        
         if (error) {
           console.error('Error updating template task:', error);
           toast.error('Fout bij opslaan');
           return;
         }
       }
-      
-      // Insert new template tasks
       const newTasks = editingTemplate.filter(t => t.isNew);
       for (const task of newTasks) {
-        const { error } = await supabase
-          .from('foh_daily_templates')
-          .insert({
-            location: task.location,
-            phase: task.phase,
-            title: task.title,
-            priority: task.priority,
-            category: task.category,
-            repeat_type: task.repeat_type,
-            template_name: task.template_name,
-            is_active: task.is_active,
-            estimated_minutes: task.estimated_minutes,
-            sort_order: task.sort_order,
-            description: task.description,
-          });
-        
+        const { error } = await supabase.from('foh_daily_templates').insert({
+          location: task.location,
+          phase: task.phase,
+          title: task.title,
+          priority: task.priority,
+          category: task.category,
+          repeat_type: task.repeat_type,
+          template_name: task.template_name,
+          is_active: task.is_active,
+          estimated_minutes: task.estimated_minutes,
+          sort_order: task.sort_order,
+          description: task.description,
+        });
         if (error) {
           console.error('Error inserting new template task:', error);
           toast.error('Fout bij toevoegen nieuwe taak');
           return;
         }
       }
-      
-      // Delete removed tasks
       if (deletedTemplateTaskIds.length > 0) {
         const { error } = await supabase
           .from('foh_daily_templates')
           .delete()
           .in('id', deletedTemplateTaskIds);
-        
         if (error) {
           console.error('Error deleting template tasks:', error);
           toast.error('Fout bij verwijderen taken');
           return;
         }
       }
-      
       toast.success('Template opgeslagen');
       setTemplateEditorOpen(false);
       setNewTemplateTaskInput('');
@@ -1551,13 +1357,8 @@ export function FohTasks() {
   const handleTouchMove = (e: React.TouchEvent, taskId: string) => {
     setTouchEnd(e.targetTouches[0].clientX);
     const diff = touchStart - e.targetTouches[0].clientX;
-    
-    if (Math.abs(diff) > 10) {
-      e.preventDefault();
-    }
-    
+    if (Math.abs(diff) > 10) e.preventDefault();
     setSwipeOffset(Math.min(Math.max(diff, 0), 80));
-    
     if (diff > 30) {
       setSwipedTaskId(taskId);
     } else if (diff < -10) {
@@ -1569,9 +1370,7 @@ export function FohTasks() {
   const handleTouchEnd = () => {
     setTouchStart(0);
     setTouchEnd(0);
-    if (!swipedTaskId) {
-      setSwipeOffset(0);
-    }
+    if (!swipedTaskId) setSwipeOffset(0);
   };
 
   // ===== PROCESS TASKS FOR DISPLAY =====
@@ -1595,18 +1394,15 @@ export function FohTasks() {
 
   const getCurrentSectionStats = () => {
     let tasks: FohTaskWithEmployee[] = [];
-    
     if (mainCategory === 'dagelijks') {
       tasks = groupedDailyTasks[activePhase];
     } else {
       tasks = sortedExtraTasks;
     }
-    
     const completed = tasks.filter(t => t.completed).length;
     const total = tasks.length;
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
     const isComplete = percentage === 100;
-    
     return { completed, total, percentage, isComplete };
   };
 
@@ -1623,7 +1419,7 @@ export function FohTasks() {
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-        <Loader2 style={{ width: '32px', height: '32px', color: '#1B7867' }} className="animate-spin" />
+        <Loader2 style={{ width: '32px', height: '32px', color: '#E27726' }} className="animate-spin" />
       </div>
     );
   }
@@ -1632,20 +1428,20 @@ export function FohTasks() {
   const groupedCurrentTasks = groupTasksByCategory(currentTasks);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#FEFFF1', fontFamily: 'Inter, sans-serif' }}>
-      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#F8F9FA', fontFamily: 'Inter, sans-serif' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{
-        backgroundColor: '#F6F7DD',
+        backgroundColor: '#FFFFFF',
         borderRadius: '20px',
-        border: '1px solid rgba(197, 197, 202, 0.5)',
+        border: '1px solid #D5D8E0',
         padding: '24px',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
         position: 'relative',
       }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
-          {/* Single row with all buttons */}
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          {/* Segmented control tabs */}
+          <div style={{ display: 'flex', gap: '4px', alignItems: 'center', backgroundColor: '#F8F9FA', border: '1px solid #EAECF0', borderRadius: '16px', padding: '3px' }}>
               
               {/* Dagelijks phase buttons */}
               {(['open', 'tussen', 'sluit'] as PhaseType[]).map((phase) => {
@@ -1663,14 +1459,12 @@ export function FohTasks() {
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive) {
-                    e.currentTarget.style.backgroundColor = '#F6F7DD';
-                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
+                    e.currentTarget.style.backgroundColor = '#F1F3F5';
                   }
                 }}
                     onMouseLeave={(e) => {
                       if (!isActive) {
-                        e.currentTarget.style.backgroundColor = '#FEFFF1';
-                        e.currentTarget.style.boxShadow = 'none';
+                        e.currentTarget.style.backgroundColor = 'transparent';
                       }
                     }}
                     style={{
@@ -1679,28 +1473,28 @@ export function FohTasks() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '8px',
-                      fontSize: '15px',
-                      fontWeight: 500,
-                  padding: '14px 20px',
-                  backgroundColor: isActive ? '#1B7867' : '#FEFFF1',
-                  color: isActive ? '#FFFFFF' : '#282E3A',
-                  border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
-                  borderRadius: '20px',
+                      fontSize: '13px',
+                      fontWeight: isActive ? 600 : 500,
+                  padding: '10px 16px',
+                  backgroundColor: isActive ? '#FFFFFF' : 'transparent',
+                  color: isActive ? '#1A1F28' : '#4A4F5E',
+                  border: 'none',
+                  borderRadius: '14px',
                   cursor: 'pointer',
-                  opacity: 1,
+                  boxShadow: isActive ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
                       transition: 'all 0.15s ease',
                       fontFamily: 'Inter, sans-serif',
                     }}
                   >
                     <span>{labels[phase]}</span>
                     <span style={{
-                      fontSize: '13px',
+                      fontSize: '11px',
                       fontWeight: 600,
-                      padding: '4px 10px',
-                      borderRadius: '6px',
-                      backgroundColor: isActive ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.04)',
-                      color: isActive ? '#FFFFFF' : '#73747B',
-                      minWidth: '40px',
+                      padding: '2px 8px',
+                      borderRadius: '9999px',
+                      backgroundColor: isActive ? '#E27726' : 'rgba(0, 0, 0, 0.04)',
+                      color: isActive ? '#FFFFFF' : '#636878',
+                      minWidth: '36px',
                     }}>
                       {stats.completed}/{stats.total}
                     </span>
@@ -1711,9 +1505,9 @@ export function FohTasks() {
             {/* Visual separator */}
             <div style={{
               width: '1px',
-              height: '32px',
-              backgroundColor: 'rgba(197, 197, 202, 0.5)',
-              margin: '0 20px',
+              height: '24px',
+              backgroundColor: '#D5D8E0',
+              margin: '0 4px',
             }} />
               
               {/* Periodiek button */}
@@ -1729,14 +1523,12 @@ export function FohTasks() {
                     }}
                     onMouseEnter={(e) => {
                       if (!isActive) {
-                        e.currentTarget.style.backgroundColor = '#F6F7DD';
-                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
+                        e.currentTarget.style.backgroundColor = '#F1F3F5';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive) {
-                        e.currentTarget.style.backgroundColor = '#FEFFF1';
-                        e.currentTarget.style.boxShadow = 'none';
+                        e.currentTarget.style.backgroundColor = 'transparent';
                       }
                     }}
                     style={{
@@ -1745,27 +1537,28 @@ export function FohTasks() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '8px',
-                      fontSize: '15px',
-                      fontWeight: 500,
-                    padding: '14px 20px',
-                    backgroundColor: isActive ? '#1B7867' : '#FEFFF1',
-                    color: isActive ? '#FFFFFF' : '#282E3A',
-                    border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
-                    borderRadius: '20px',
+                      fontSize: '13px',
+                      fontWeight: isActive ? 600 : 500,
+                    padding: '10px 16px',
+                    backgroundColor: isActive ? '#FFFFFF' : 'transparent',
+                    color: isActive ? '#1A1F28' : '#4A4F5E',
+                    border: 'none',
+                    borderRadius: '14px',
                     cursor: 'pointer',
+                    boxShadow: isActive ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
                       transition: 'all 0.15s ease',
                       fontFamily: 'Inter, sans-serif',
                     }}
                   >
                     <span>Periodiek</span>
                     <span style={{
-                      fontSize: '13px',
+                      fontSize: '11px',
                       fontWeight: 600,
-                      padding: '4px 10px',
-                      borderRadius: '6px',
-                      backgroundColor: isActive ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.04)',
-                      color: isActive ? '#FFFFFF' : '#73747B',
-                      minWidth: '40px',
+                      padding: '2px 8px',
+                      borderRadius: '9999px',
+                      backgroundColor: isActive ? '#E27726' : 'rgba(0, 0, 0, 0.04)',
+                      color: isActive ? '#FFFFFF' : '#636878',
+                      minWidth: '36px',
                     }}>
                       {completed}/{total}
                     </span>
@@ -1775,21 +1568,21 @@ export function FohTasks() {
 
             </div>
 
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(197, 197, 202, 0.5)', margin: 0 }} />
+            <hr style={{ border: 'none', borderTop: '1px solid #EAECF0', margin: 0 }} />
 
-            {/* Full-width progress bar */}
+            {/* Progress bar - v6.0: 4px height */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                  height: '8px',
-                  backgroundColor: '#FEFFF1',
-                  borderRadius: '4px',
+                  height: '4px',
+                  backgroundColor: '#EAECF0',
+                  borderRadius: '9999px',
                   overflow: 'hidden',
                 }}>
                   <div style={{
                     height: '100%',
                     width: `${progressPercentage}%`,
-                    backgroundColor: '#1B7867',
+                    backgroundColor: '#E27726',
                     transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                   }} />
                 </div>
@@ -1802,47 +1595,45 @@ export function FohTasks() {
                 flexShrink: 0,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '15px', color: '#73747B', fontFamily: 'Inter, sans-serif' }}>
+                  <span style={{ fontSize: '13px', color: '#636878', fontFamily: 'Inter, sans-serif' }}>
                     {completedCount}/{totalCount}
                   </span>
                   <span style={{
                     fontWeight: 600,
-                    color: isComplete ? '#1B7867' : '#282E3A',
-                    fontSize: '17px',
+                    color: isComplete ? '#22C55E' : '#1A1F28',
+                    fontSize: '14px',
                     fontFamily: 'Inter, sans-serif',
                   }}>
                     {progressPercentage}%
                   </span>
                 </div>
 
-                {/* Admin Button */}
+                {/* Admin Button - v6.0 secondary style */}
                 <button
                   onClick={() => setPasswordDialogOpen(true)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    padding: '12px 20px',
-                    backgroundColor: '#FEFFF1',
-                    color: '#1B7867',
-                    border: '1px solid rgba(197, 197, 202, 0.5)',
-                    borderRadius: '20px',
-                    fontSize: '15px',
+                    padding: '8px 16px',
+                    backgroundColor: '#FFFFFF',
+                    color: '#E27726',
+                    border: '1px solid #C1C5CF',
+                    borderRadius: '16px',
+                    fontSize: '13px',
                     fontWeight: 500,
                     cursor: 'pointer',
                     fontFamily: 'Inter, sans-serif',
-                    transition: 'all 0.2s ease',
+                    transition: 'all 0.15s ease',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#F6F7DD';
-                    e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.7)';
+                    e.currentTarget.style.backgroundColor = '#F8F9FA';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#FEFFF1';
-                    e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.5)';
+                    e.currentTarget.style.backgroundColor = '#FFFFFF';
                   }}
                 >
-                  <Settings size={18} />
+                  <Settings size={16} />
                   Admin
                 </button>
 
@@ -1852,79 +1643,67 @@ export function FohTasks() {
                     <DialogTrigger asChild>
                       <button
                         style={{
-                          width: '48px',
-                          height: '48px',
+                          width: '40px',
+                          height: '40px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: '#1B7867',
+                          backgroundColor: '#E27726',
                           color: '#FFFFFF',
-                          border: '1px solid rgba(255,255,255,0.2)',
-                          borderRadius: '12px',
+                          border: 'none',
+                          borderRadius: '16px',
                           cursor: 'pointer',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                          transition: 'all 0.2s ease',
+                          transition: 'all 0.15s ease',
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#229580';
-                          e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.15)';
+                          e.currentTarget.style.backgroundColor = '#C9630E';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#1B7867';
-                          e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                          e.currentTarget.style.backgroundColor = '#E27726';
                         }}
                         onMouseDown={(e) => {
-                          e.currentTarget.style.transform = 'scale(0.95)';
+                          e.currentTarget.style.transform = 'scale(0.97)';
                         }}
                         onMouseUp={(e) => {
                           e.currentTarget.style.transform = 'scale(1)';
                         }}
                       >
-                        <Plus size={24} />
+                        <Plus size={20} />
                       </button>
                     </DialogTrigger>
                     <DialogContent style={{
-                      backgroundColor: '#FEFFF1',
-                      border: '1px solid rgba(197, 197, 202, 0.5)',
-                      borderRadius: '20px',
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #D5D8E0',
+                      borderRadius: '24px',
                       fontFamily: 'Inter, sans-serif',
                     }}>
                       <DialogHeader>
-                        <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#282E3A' }}>
+                        <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#1A1F28' }}>
                           Nieuwe Periodieke Taak
                         </DialogTitle>
                       </DialogHeader>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 0' }}>
-                        {/* Essential fields - always visible */}
                         <div>
-                          <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+                          <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#303542' }}>
                             Titel *
                           </Label>
                           <Input
                             value={newTask.title}
                             onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                             placeholder="Bijv. Voorraad tellen"
-                            style={{
-                              marginTop: '6px',
-                              borderRadius: '16px',
-                              fontFamily: 'Inter, sans-serif',
-                            }}
+                            style={{ marginTop: '6px', borderRadius: '14px', fontFamily: 'Inter, sans-serif' }}
                           />
                         </div>
 
                         <div>
-                          <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+                          <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#303542' }}>
                             Vervaldatum *
                           </Label>
                           <Input
                             type="date"
                             value={newTask.due_date}
                             onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
-                            style={{
-                              marginTop: '6px',
-                              borderRadius: '16px',
-                              fontFamily: 'Inter, sans-serif',
-                            }}
+                            style={{ marginTop: '6px', borderRadius: '14px', fontFamily: 'Inter, sans-serif' }}
                           />
                         </div>
 
@@ -1935,76 +1714,48 @@ export function FohTasks() {
                           style={{
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '6px',
-                            padding: '10px',
-                            backgroundColor: 'transparent',
-                            border: '1px solid rgba(197, 197, 202, 0.5)',
-                            borderRadius: '12px',
+                            gap: '8px',
+                            padding: '8px 12px',
+                            backgroundColor: '#F8F9FA',
+                            border: '1px solid #EAECF0',
+                            borderRadius: '14px',
                             cursor: 'pointer',
-                            fontFamily: 'Inter, sans-serif',
                             fontSize: '13px',
+                            color: '#636878',
+                            fontFamily: 'Inter, sans-serif',
                             fontWeight: 500,
-                            color: '#73747B',
                             transition: 'all 0.15s ease',
                           }}
                         >
-                          {showAdvancedOptions ? (
-                            <>
-                              <ChevronUp size={16} />
-                              Minder opties
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown size={16} />
-                              Meer opties
-                            </>
-                          )}
+                          {showAdvancedOptions ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                          {showAdvancedOptions ? 'Verberg opties' : 'Meer opties'}
                         </button>
 
-                        {/* Advanced options - hidden by default */}
                         {showAdvancedOptions && (
                           <>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                               <div>
-                                <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+                                <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#303542' }}>
                                   Prioriteit
                                 </Label>
-                                <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
-                                  {[
-                                    { value: 1, label: 'Hoog', color: PolarColors.status.error },
-                                    { value: 2, label: 'Normaal', color: PolarColors.status.pending },
-                                    { value: 3, label: 'Laag', color: PolarColors.status.success },
-                                  ].map(({ value, label, color }) => (
-                                    <button
-                                      key={value}
-                                      onClick={() => setNewTask({ ...newTask, priority: value as 1 | 2 | 3 })}
-                                      style={{
-                                        flex: 1,
-                                        padding: '8px',
-                                        borderRadius: '8px',
-                                        border: newTask.priority === value ? `2px solid ${color}` : '1px solid rgba(197,197,202,0.5)',
-                                        backgroundColor: newTask.priority === value ? `${color}15` : '#FEFFF1',
-                                        color: '#282E3A',
-                                        cursor: 'pointer',
-                                        fontSize: '13px',
-                                        fontWeight: 500,
-                                        fontFamily: 'Inter, sans-serif',
-                                        transition: 'all 0.15s ease',
-                                      }}
-                                    >
-                                      {label}
-                                    </button>
-                                  ))}
-                                </div>
+                                <Select value={newTask.priority.toString()} onValueChange={(val) => setNewTask({ ...newTask, priority: parseInt(val) as 1 | 2 | 3 })}>
+                                  <SelectTrigger style={{ marginTop: '6px', borderRadius: '14px', fontFamily: 'Inter, sans-serif' }}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="1">Hoog</SelectItem>
+                                    <SelectItem value="2">Normaal</SelectItem>
+                                    <SelectItem value="3">Laag</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </div>
 
                               <div>
-                                <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+                                <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#303542' }}>
                                   Categorie
                                 </Label>
                                 <Select value={newTask.category} onValueChange={(val) => setNewTask({ ...newTask, category: val })}>
-                                  <SelectTrigger style={{ marginTop: '6px', borderRadius: '16px', fontFamily: 'Inter, sans-serif' }}>
+                                  <SelectTrigger style={{ marginTop: '6px', borderRadius: '14px', fontFamily: 'Inter, sans-serif' }}>
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -2017,14 +1768,14 @@ export function FohTasks() {
                             </div>
 
                             <div>
-                              <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+                              <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#303542' }}>
                                 Geschatte tijd
                               </Label>
                               <Select 
                                 value={newTask.estimated_minutes?.toString() || ''} 
                                 onValueChange={(val) => setNewTask({ ...newTask, estimated_minutes: val ? parseInt(val) : null })}
                               >
-                                <SelectTrigger style={{ marginTop: '6px', borderRadius: '16px', fontFamily: 'Inter, sans-serif' }}>
+                                <SelectTrigger style={{ marginTop: '6px', borderRadius: '14px', fontFamily: 'Inter, sans-serif' }}>
                                   <SelectValue placeholder="Selecteer..." />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -2040,7 +1791,7 @@ export function FohTasks() {
                             </div>
 
                             <div>
-                              <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+                              <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#303542' }}>
                                 Medewerker
                               </Label>
                               <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
@@ -2053,7 +1804,7 @@ export function FohTasks() {
                                       width: '100%',
                                       justifyContent: 'space-between',
                                       marginTop: '6px',
-                                      borderRadius: '16px',
+                                      borderRadius: '14px',
                                       fontFamily: 'Inter, sans-serif',
                                     }}
                                   >
@@ -2123,19 +1874,16 @@ export function FohTasks() {
                             });
                             setEmployeeInput('');
                           }}
-                          style={{
-                            borderRadius: '20px',
-                            fontFamily: 'Inter, sans-serif',
-                          }}
+                          style={{ borderRadius: '16px', fontFamily: 'Inter, sans-serif' }}
                         >
                           Annuleren
                         </Button>
                         <Button
                           onClick={createTask}
                           style={{
-                            backgroundColor: '#1B7867',
+                            backgroundColor: '#E27726',
                             color: '#FFFFFF',
-                            borderRadius: '20px',
+                            borderRadius: '16px',
                             fontFamily: 'Inter, sans-serif',
                           }}
                         >
@@ -2149,7 +1897,7 @@ export function FohTasks() {
               </div>
             </div>
 
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(197, 197, 202, 0.5)', margin: 0 }} />
+            <hr style={{ border: 'none', borderTop: '1px solid #EAECF0', margin: 0 }} />
 
             {/* Tasks display */}
             <div>
@@ -2163,13 +1911,20 @@ export function FohTasks() {
                     {Object.entries(groupedCurrentTasks).map(([category, categoryTasks]) => {
                       const progress = getCategoryProgress(categoryTasks);
                       return (
-                        <div key={category} style={{ marginBottom: '24px' }}>
+                        <div key={category} style={{ marginBottom: '16px' }}>
+                          {/* Category card container */}
+                          <div style={{
+                            backgroundColor: '#FFFFFF',
+                            border: '1px solid #D5D8E0',
+                            borderRadius: '20px',
+                            padding: '16px',
+                          }}>
                           <h3 style={{
-                            fontSize: '13px',
+                            fontSize: '11px',
                             fontWeight: 600,
                             textTransform: 'uppercase',
                             letterSpacing: '0.05em',
-                            color: progress.allDone ? '#1B7867' : '#73747B',
+                            color: progress.allDone ? '#22C55E' : '#636878',
                             marginBottom: '12px',
                             fontFamily: 'Inter, sans-serif',
                             display: 'flex',
@@ -2180,26 +1935,26 @@ export function FohTasks() {
                             <span style={{
                               fontSize: '11px',
                               fontWeight: 500,
-                              color: progress.allDone ? '#1B7867' : '#9CA3AF',
-                              backgroundColor: progress.allDone ? 'rgba(27, 120, 103, 0.1)' : 'rgba(156, 163, 175, 0.1)',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
+                              color: progress.allDone ? '#22C55E' : '#8D93A0',
+                              backgroundColor: progress.allDone ? 'rgba(34, 197, 94, 0.1)' : 'rgba(141, 147, 160, 0.1)',
+                              padding: '2px 8px',
+                              borderRadius: '9999px',
                             }}>
                               {progress.completed}/{progress.total}
                             </span>
                           </h3>
-                          <div style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.3)', paddingBottom: '16px' }}>
+                          <div>
                             {progress.allDone ? (
                               <div style={{
                                 padding: '20px',
                                 textAlign: 'center',
-                                color: '#1B7867',
-                                fontSize: '14px',
+                                color: '#22C55E',
+                                fontSize: '13px',
                                 fontWeight: 500,
                                 fontFamily: 'Inter, sans-serif',
                                 animation: 'fade-in 0.3s ease-out',
                               }}>
-                                🎉 Alle taken voltooid!
+                                Alle taken voltooid
                               </div>
                             ) : (
                               <SortableContext items={categoryTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
@@ -2229,6 +1984,7 @@ export function FohTasks() {
                               </SortableContext>
                             )}
                           </div>
+                          </div>
                         </div>
                       );
                     })}
@@ -2242,7 +1998,7 @@ export function FohTasks() {
                     <div key={dateKey} style={{ marginBottom: '20px' }}>
                       {/* Day header */}
                       <h3 style={{
-                        fontSize: '13px',
+                        fontSize: '11px',
                         fontWeight: 600,
                         textTransform: 'uppercase',
                         letterSpacing: '0.05em',
@@ -2271,8 +2027,8 @@ export function FohTasks() {
                               onClick={() => toggleTask(task.id, task.completed)}
                               style={{
                                 padding: taskPadding,
-                                backgroundColor: task.completed ? 'rgba(27, 120, 103, 0.04)' : 'transparent',
-                                borderBottom: '1px solid rgba(197, 197, 202, 0.3)',
+                                backgroundColor: task.completed ? 'rgba(226, 119, 38, 0.04)' : 'transparent',
+                                borderBottom: '1px solid #EAECF0',
                                 borderLeft: `4px solid ${getPriorityConfig(task.priority).borderColor}`,
                                 marginLeft: '-4px',
                                 paddingLeft: '12px',
@@ -2282,12 +2038,12 @@ export function FohTasks() {
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.backgroundColor = task.completed 
-                                  ? 'rgba(27, 120, 103, 0.06)' 
-                                  : 'rgba(27, 120, 103, 0.05)';
+                                  ? 'rgba(226, 119, 38, 0.06)' 
+                                  : 'rgba(226, 119, 38, 0.04)';
                               }}
                               onMouseLeave={(e) => {
                                 e.currentTarget.style.backgroundColor = task.completed 
-                                  ? 'rgba(27, 120, 103, 0.04)' 
+                                  ? 'rgba(226, 119, 38, 0.04)' 
                                   : 'transparent';
                               }}
                             >
@@ -2296,14 +2052,14 @@ export function FohTasks() {
                                 gap: '12px',
                                 alignItems: 'center',
                               }}>
-                                {/* Checkbox - compact, row is clickable */}
+                                {/* Checkbox - v6.0: 16x16, radius 4px */}
                                 <div style={{
-                                  width: '20px',
-                                  height: '20px',
-                                  minWidth: '20px',
-                                  borderRadius: '6px',
-                                  border: '2px solid rgba(197, 197, 202, 0.5)',
-                                  backgroundColor: task.completed ? '#1B7867' : '#FFFFFF',
+                                  width: '16px',
+                                  height: '16px',
+                                  minWidth: '16px',
+                                  borderRadius: '4px',
+                                  border: '2px solid #C1C5CF',
+                                  backgroundColor: task.completed ? '#E27726' : '#FFFFFF',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
@@ -2311,9 +2067,9 @@ export function FohTasks() {
                                   pointerEvents: 'none',
                                 }}>
                                   {task.completed && (
-                                    <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
                                       <path
-                                        d="M1 5L4.5 8.5L11 1.5"
+                                        d="M1 4L3.5 6.5L9 1"
                                         stroke="#FFFFFF"
                                         strokeWidth="2"
                                         strokeLinecap="round"
@@ -2332,85 +2088,73 @@ export function FohTasks() {
                                   <span style={{
                                     flex: 1,
                                     textDecoration: task.completed ? 'line-through' : 'none',
-                                    color: task.completed ? '#73747B' : '#282E3A',
+                                    color: task.completed ? '#636878' : '#282E3A',
                                     fontWeight: 500,
-                                    fontSize: '15px',
+                                    fontSize: '13px',
                                     fontFamily: 'Inter, sans-serif',
                                   }}>
                                     {task.title}
                                   </span>
                                 </div>
 
-                                <div style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '8px',
-                                }}>
+                                {task.estimated_minutes && (
+                                  <span style={{
+                                    fontSize: '11px',
+                                    fontWeight: 500,
+                                    color: '#636878',
+                                    backgroundColor: 'rgba(99, 104, 120, 0.08)',
+                                    padding: '2px 8px',
+                                    borderRadius: '9999px',
+                                    fontFamily: 'Inter, sans-serif',
+                                  }}>
+                                    ~{task.estimated_minutes}min
+                                  </span>
+                                )}
 
-                                  {/* Delete button - compact */}
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      deleteTask(task.id);
-                                    }}
-                                    style={{
-                                      width: '24px',
-                                      height: '24px',
-                                      minWidth: '24px',
-                                      borderRadius: '6px',
-                                      border: '1px solid rgba(197,197,202,0.5)',
-                                      backgroundColor: '#FEFFF1',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      padding: 0,
-                                      cursor: 'pointer',
-                                      transition: 'all 0.15s ease',
-                                    }}
-                                    title="Verwijder taak"
-                                    onMouseEnter={(e) => {
-                                      e.currentTarget.style.backgroundColor = '#FEE2E2';
-                                      e.currentTarget.style.borderColor = '#EF4444';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.currentTarget.style.backgroundColor = '#FEFFF1';
-                                      e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
-                                    }}
-                                  >
-                                    <Trash2 size={14} style={{ color: '#EF4444' }} />
-                                  </button>
-                                </div>
+                                {task.foh_employees && (
+                                  <span style={{
+                                    fontSize: '11px',
+                                    fontWeight: 500,
+                                    color: '#E27726',
+                                    backgroundColor: 'rgba(226, 119, 38, 0.08)',
+                                    padding: '2px 8px',
+                                    borderRadius: '9999px',
+                                    fontFamily: 'Inter, sans-serif',
+                                  }}>
+                                    {(task.foh_employees as any).name}
+                                  </span>
+                                )}
                               </div>
                             </div>
 
+                            {/* Swipe delete button */}
                             {swipedTaskId === task.id && (
                               <div style={{
                                 position: 'absolute',
                                 right: 0,
                                 top: 0,
-                                height: '100%',
+                                bottom: 0,
                                 width: '80px',
+                                backgroundColor: '#EF4444',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
+                                borderRadius: '0 12px 12px 0',
                               }}>
                                 <button
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     deleteTask(task.id);
                                   }}
                                   style={{
-                                    backgroundColor: '#EF4444',
                                     color: '#FFFFFF',
                                     border: 'none',
-                                    padding: '8px 16px',
-                                    borderRadius: '8px',
+                                    backgroundColor: 'transparent',
                                     cursor: 'pointer',
-                                    fontSize: '13px',
-                                    fontWeight: 500,
-                                    fontFamily: 'Inter, sans-serif',
+                                    padding: '12px',
                                   }}
                                 >
-                                  Verwijder
+                                  <Trash2 size={20} />
                                 </button>
                               </div>
                             )}
@@ -2419,32 +2163,72 @@ export function FohTasks() {
                       ))}
                     </div>
                   ))}
+
+                  {sortedExtraTasks.length === 0 && (
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '48px 20px',
+                      maxWidth: '320px',
+                      margin: '0 auto',
+                      textAlign: 'center',
+                    }}>
+                      <div style={{
+                        width: '52px',
+                        height: '52px',
+                        borderRadius: '20px',
+                        backgroundColor: '#F1F3F5',
+                        border: '1px solid #EAECF0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: '16px',
+                      }}>
+                        <Check size={22} style={{ color: '#8D93A0' }} />
+                      </div>
+                      <p style={{ fontSize: '14px', fontWeight: 500, color: '#303542', fontFamily: 'Inter, sans-serif', margin: '0 0 4px 0' }}>
+                        Geen periodieke taken
+                      </p>
+                      <p style={{ fontSize: '13px', color: '#636878', fontFamily: 'Inter, sans-serif', margin: 0 }}>
+                        Voeg een taak toe met de + knop
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Edit mode controls */}
               {isEditMode && mainCategory === 'dagelijks' && (
-                <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {/* Add new task */}
+                <div style={{
+                  padding: '20px',
+                  borderTop: '1px solid #EAECF0',
+                  marginTop: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '16px',
+                }}>
+                  {/* Add new task input */}
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <Input
                       value={newTaskInput}
                       onChange={(e) => setNewTaskInput(e.target.value)}
                       placeholder="Nieuwe taak toevoegen..."
-                      style={{
-                        flex: 1,
-                        borderRadius: '16px',
-                        fontFamily: 'Inter, sans-serif',
-                      }}
-                      onKeyDown={(e) => {
+                      onKeyPress={(e) => {
                         if (e.key === 'Enter' && newTaskInput.trim()) {
                           setNewTasks(prev => [...prev, {
                             tempId: `temp-${Date.now()}`,
                             title: newTaskInput.trim(),
-                            category: 'Algemeen',
+                            category: availableCategories[0] || 'Algemeen',
                           }]);
                           setNewTaskInput('');
                         }
+                      }}
+                      style={{
+                        flex: 1,
+                        borderRadius: '14px',
+                        fontFamily: 'Inter, sans-serif',
                       }}
                     />
                     <Button
@@ -2453,13 +2237,13 @@ export function FohTasks() {
                           setNewTasks(prev => [...prev, {
                             tempId: `temp-${Date.now()}`,
                             title: newTaskInput.trim(),
-                            category: 'Algemeen',
+                            category: availableCategories[0] || 'Algemeen',
                           }]);
                           setNewTaskInput('');
                         }
                       }}
                       style={{
-                        backgroundColor: '#1B7867',
+                        backgroundColor: '#E27726',
                         color: '#FFFFFF',
                         borderRadius: '16px',
                         fontFamily: 'Inter, sans-serif',
@@ -2469,31 +2253,33 @@ export function FohTasks() {
                     </Button>
                   </div>
 
-                  {/* New tasks preview */}
+                  {/* Preview of new tasks */}
                   {newTasks.length > 0 && (
                     <div style={{
                       padding: '12px',
-                      backgroundColor: '#F6F7DD',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(197,197,202,0.5)',
+                      backgroundColor: '#F1F3F5',
+                      borderRadius: '14px',
                     }}>
-                      <div style={{
-                        fontSize: '13px',
+                      <p style={{
+                        fontSize: '11px',
                         fontWeight: 600,
-                        color: '#73747B',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        color: '#636878',
                         marginBottom: '8px',
                         fontFamily: 'Inter, sans-serif',
                       }}>
-                        Nieuwe taken ({newTasks.length}):
-                      </div>
+                        Nieuwe taken ({newTasks.length})
+                      </p>
                       {newTasks.map(task => (
                         <div key={task.tempId} style={{
-                          padding: '8px',
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
+                          padding: '8px 0',
+                          borderBottom: '1px solid #EAECF0',
                         }}>
-                          <span style={{ fontSize: '14px', color: '#282E3A', fontFamily: 'Inter, sans-serif' }}>
+                          <span style={{ fontSize: '13px', fontFamily: 'Inter, sans-serif', color: '#303542' }}>
                             {task.title}
                           </span>
                           <button
@@ -2528,7 +2314,7 @@ export function FohTasks() {
                       }}
                       style={{
                         flex: 1,
-                        borderRadius: '20px',
+                        borderRadius: '16px',
                         fontFamily: 'Inter, sans-serif',
                       }}
                     >
@@ -2538,9 +2324,9 @@ export function FohTasks() {
                       onClick={handleSaveCurrentTasks}
                       style={{
                         flex: 1,
-                        backgroundColor: '#1B7867',
+                        backgroundColor: '#E27726',
                         color: '#FFFFFF',
-                        borderRadius: '20px',
+                        borderRadius: '16px',
                         fontFamily: 'Inter, sans-serif',
                       }}
                     >
@@ -2553,10 +2339,10 @@ export function FohTasks() {
                     onClick={handleSaveAsTemplate}
                     style={{
                       width: '100%',
-                      borderRadius: '20px',
+                      borderRadius: '16px',
                       fontFamily: 'Inter, sans-serif',
-                      borderColor: '#1B7867',
-                      color: '#1B7867',
+                      borderColor: '#E27726',
+                      color: '#E27726',
                     }}
                   >
                     <BookTemplate size={16} style={{ marginRight: '8px' }} />
@@ -2573,13 +2359,13 @@ export function FohTasks() {
       {/* Password Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
         <DialogContent style={{
-          backgroundColor: '#FEFFF1',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
-          borderRadius: '20px',
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #D5D8E0',
+          borderRadius: '24px',
           fontFamily: 'Inter, sans-serif',
         }}>
           <DialogHeader>
-            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#282E3A' }}>
+            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#1A1F28' }}>
               Admin Toegang
             </DialogTitle>
           </DialogHeader>
@@ -2589,10 +2375,7 @@ export function FohTasks() {
               placeholder="Voer wachtwoord in"
               value={passwordInput}
               onChange={(e) => setPasswordInput(e.target.value)}
-              style={{
-                borderRadius: '16px',
-                fontFamily: 'Inter, sans-serif',
-              }}
+              style={{ borderRadius: '14px', fontFamily: 'Inter, sans-serif' }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && passwordInput === '0000') {
                   setAdminPanelOpen(true);
@@ -2606,14 +2389,8 @@ export function FohTasks() {
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => {
-                setPasswordDialogOpen(false);
-                setPasswordInput('');
-              }}
-              style={{
-                borderRadius: '20px',
-                fontFamily: 'Inter, sans-serif',
-              }}
+              onClick={() => { setPasswordDialogOpen(false); setPasswordInput(''); }}
+              style={{ borderRadius: '16px', fontFamily: 'Inter, sans-serif' }}
             >
               Annuleren
             </Button>
@@ -2629,9 +2406,9 @@ export function FohTasks() {
                 }
               }}
               style={{
-                backgroundColor: '#1B7867',
+                backgroundColor: '#E27726',
                 color: '#FFFFFF',
-                borderRadius: '20px',
+                borderRadius: '16px',
                 fontFamily: 'Inter, sans-serif',
               }}
             >
@@ -2644,24 +2421,24 @@ export function FohTasks() {
       {/* Admin Panel Dialog */}
       <Dialog open={adminPanelOpen} onOpenChange={setAdminPanelOpen}>
         <DialogContent style={{
-          backgroundColor: '#FEFFF1',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
-          borderRadius: '20px',
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #D5D8E0',
+          borderRadius: '24px',
           fontFamily: 'Inter, sans-serif',
           maxWidth: '650px',
           maxHeight: '90vh',
           overflow: 'hidden',
         }}>
           <DialogHeader>
-            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#282E3A', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Shield size={20} style={{ color: '#1B7867' }} />
+            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#1A1F28', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Shield size={20} style={{ color: '#E27726' }} />
               Admin Panel
             </DialogTitle>
           </DialogHeader>
 
           <div style={{ padding: '16px 0', maxHeight: '60vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <p style={{ fontSize: '14px', color: '#73747B', fontFamily: 'Inter, sans-serif' }}>
+              <p style={{ fontSize: '13px', color: '#636878', fontFamily: 'Inter, sans-serif' }}>
                 Beheer templates voor {activePhase === 'open' ? 'Openlijst' : activePhase === 'tussen' ? 'Tussenlijst' : 'Sluitlijst'}.
               </p>
 
@@ -2669,9 +2446,9 @@ export function FohTasks() {
               <Button
                 onClick={() => setNewTemplateDialogOpen(true)}
                 style={{
-                  backgroundColor: '#1B7867',
+                  backgroundColor: '#E27726',
                   color: '#FFFFFF',
-                  borderRadius: '20px',
+                  borderRadius: '16px',
                   fontFamily: 'Inter, sans-serif',
                 }}
               >
@@ -2682,24 +2459,24 @@ export function FohTasks() {
               {/* Template list */}
               {templatesLoading ? (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '32px' }}>
-                  <Loader2 size={24} className="animate-spin" style={{ color: '#1B7867' }} />
+                  <Loader2 size={24} className="animate-spin" style={{ color: '#E27726' }} />
                 </div>
               ) : groupedTemplates && Object.keys(groupedTemplates).length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {Object.values(groupedTemplates).map(template => (
                     <div key={template.name} style={{
                       padding: '16px',
-                      backgroundColor: '#F6F7DD',
-                      borderRadius: '12px',
-                      border: template.isActive ? '2px solid #1B7867' : '1px solid rgba(197,197,202,0.5)',
+                      backgroundColor: '#F1F3F5',
+                      borderRadius: '16px',
+                      border: template.isActive ? '2px solid #E27726' : '1px solid #D5D8E0',
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <h4 style={{
-                              fontSize: '15px',
+                              fontSize: '14px',
                               fontWeight: 600,
-                              color: '#282E3A',
+                              color: '#1A1F28',
                               fontFamily: 'Inter, sans-serif',
                               margin: 0,
                             }}>
@@ -2710,8 +2487,8 @@ export function FohTasks() {
                                 fontSize: '11px',
                                 fontWeight: 600,
                                 padding: '2px 8px',
-                                borderRadius: '4px',
-                                backgroundColor: '#1B7867',
+                                borderRadius: '9999px',
+                                backgroundColor: '#E27726',
                                 color: '#FFFFFF',
                                 fontFamily: 'Inter, sans-serif',
                               }}>
@@ -2719,7 +2496,7 @@ export function FohTasks() {
                               </span>
                             )}
                           </div>
-                          <p style={{ fontSize: '13px', color: '#73747B', fontFamily: 'Inter, sans-serif', margin: '4px 0 0 0' }}>
+                          <p style={{ fontSize: '12px', color: '#636878', fontFamily: 'Inter, sans-serif', margin: '4px 0 0 0' }}>
                             {template.tasks.length} taken
                           </p>
                         </div>
@@ -2731,9 +2508,9 @@ export function FohTasks() {
                             size="sm"
                             onClick={() => handleMakeTemplateActive(template.name)}
                             style={{
-                              backgroundColor: '#1B7867',
+                              backgroundColor: '#E27726',
                               color: '#FFFFFF',
-                              borderRadius: '12px',
+                              borderRadius: '14px',
                               fontFamily: 'Inter, sans-serif',
                               fontSize: '13px',
                             }}
@@ -2748,7 +2525,7 @@ export function FohTasks() {
                           variant="outline"
                           onClick={() => handleOpenTemplateEditor(template.name)}
                           style={{
-                            borderRadius: '12px',
+                            borderRadius: '14px',
                             fontFamily: 'Inter, sans-serif',
                             fontSize: '13px',
                           }}
@@ -2762,12 +2539,12 @@ export function FohTasks() {
                             size="sm"
                             variant="outline"
                             onClick={() => {
-                              if (confirm(`Weet je zeker dat je template "${template.name}" wilt verwijderen?`)) {
+                              if (confirm(`Weet je zeker dat je template \"${template.name}\" wilt verwijderen?`)) {
                                 handleDeleteTemplate(template.name);
                               }
                             }}
                             style={{
-                              borderRadius: '12px',
+                              borderRadius: '14px',
                               fontFamily: 'Inter, sans-serif',
                               fontSize: '13px',
                               borderColor: '#EF4444',
@@ -2784,12 +2561,34 @@ export function FohTasks() {
                 </div>
               ) : (
                 <div style={{
-                  padding: '32px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '48px 20px',
+                  maxWidth: '320px',
+                  margin: '0 auto',
                   textAlign: 'center',
-                  color: '#73747B',
-                  fontFamily: 'Inter, sans-serif',
                 }}>
-                  Geen templates gevonden
+                  <div style={{
+                    width: '52px',
+                    height: '52px',
+                    borderRadius: '20px',
+                    backgroundColor: '#F1F3F5',
+                    border: '1px solid #EAECF0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '16px',
+                  }}>
+                    <BookTemplate size={22} style={{ color: '#8D93A0' }} />
+                  </div>
+                  <p style={{ fontSize: '14px', fontWeight: 500, color: '#303542', fontFamily: 'Inter, sans-serif', margin: '0 0 4px 0' }}>
+                    Geen templates gevonden
+                  </p>
+                  <p style={{ fontSize: '13px', color: '#636878', fontFamily: 'Inter, sans-serif', margin: 0 }}>
+                    Maak een template aan om te beginnen
+                  </p>
                 </div>
               )}
             </div>
@@ -2799,10 +2598,7 @@ export function FohTasks() {
             <Button
               variant="outline"
               onClick={() => setAdminPanelOpen(false)}
-              style={{
-                borderRadius: '20px',
-                fontFamily: 'Inter, sans-serif',
-              }}
+              style={{ borderRadius: '16px', fontFamily: 'Inter, sans-serif' }}
             >
               Sluiten
             </Button>
@@ -2813,54 +2609,44 @@ export function FohTasks() {
       {/* New Template Dialog */}
       <Dialog open={newTemplateDialogOpen} onOpenChange={setNewTemplateDialogOpen}>
         <DialogContent style={{
-          backgroundColor: '#FEFFF1',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
-          borderRadius: '20px',
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #D5D8E0',
+          borderRadius: '24px',
           fontFamily: 'Inter, sans-serif',
         }}>
           <DialogHeader>
-            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#282E3A' }}>
+            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#1A1F28' }}>
               Nieuwe Template Aanmaken
             </DialogTitle>
           </DialogHeader>
           <div style={{ padding: '16px 0' }}>
-            <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+            <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#303542' }}>
               Template Naam *
             </Label>
             <Input
               value={newTemplateName}
               onChange={(e) => setNewTemplateName(e.target.value)}
               placeholder="Bijv. Zomer Openlijst"
-              style={{
-                marginTop: '6px',
-                borderRadius: '16px',
-                fontFamily: 'Inter, sans-serif',
-              }}
+              style={{ marginTop: '6px', borderRadius: '14px', fontFamily: 'Inter, sans-serif' }}
             />
-            <p style={{ fontSize: '13px', color: '#73747B', fontFamily: 'Inter, sans-serif', marginTop: '8px' }}>
+            <p style={{ fontSize: '13px', color: '#636878', fontFamily: 'Inter, sans-serif', marginTop: '8px' }}>
               De template wordt aangemaakt op basis van de huidige taken voor {activePhase === 'open' ? 'Open' : activePhase === 'tussen' ? 'Tussen' : 'Sluit'}.
             </p>
           </div>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => {
-                setNewTemplateDialogOpen(false);
-                setNewTemplateName('');
-              }}
-              style={{
-                borderRadius: '20px',
-                fontFamily: 'Inter, sans-serif',
-              }}
+              onClick={() => { setNewTemplateDialogOpen(false); setNewTemplateName(''); }}
+              style={{ borderRadius: '16px', fontFamily: 'Inter, sans-serif' }}
             >
               Annuleren
             </Button>
             <Button
               onClick={handleCreateNewTemplate}
               style={{
-                backgroundColor: '#1B7867',
+                backgroundColor: '#E27726',
                 color: '#FFFFFF',
-                borderRadius: '20px',
+                borderRadius: '16px',
                 fontFamily: 'Inter, sans-serif',
               }}
             >
@@ -2873,15 +2659,15 @@ export function FohTasks() {
       {/* Template Editor Dialog */}
       <Dialog open={templateEditorOpen} onOpenChange={setTemplateEditorOpen}>
         <DialogContent style={{
-          backgroundColor: '#FEFFF1',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
-          borderRadius: '20px',
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #D5D8E0',
+          borderRadius: '24px',
           fontFamily: 'Inter, sans-serif',
           maxWidth: '650px',
           maxHeight: '90vh',
         }}>
           <DialogHeader>
-            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#282E3A' }}>
+            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#1A1F28' }}>
               Bewerk Template: {editingTemplateName}
             </DialogTitle>
           </DialogHeader>
@@ -2920,18 +2706,18 @@ export function FohTasks() {
             {/* Add task section */}
             <div style={{
               padding: '16px',
-              borderTop: '1px solid rgba(197, 197, 202, 0.3)',
+              borderTop: '1px solid #EAECF0',
               marginTop: '16px',
             }}>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{
                     display: 'block',
-                    fontSize: '12px',
+                    fontSize: '11px',
                     fontWeight: 600,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
-                    color: '#73747B',
+                    color: '#636878',
                     marginBottom: '6px',
                     fontFamily: 'Inter, sans-serif',
                   }}>
@@ -2944,27 +2730,24 @@ export function FohTasks() {
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') handleAddTemplateTask();
                     }}
-                    style={{
-                      borderRadius: '16px',
-                      fontFamily: 'Inter, sans-serif',
-                    }}
+                    style={{ borderRadius: '14px', fontFamily: 'Inter, sans-serif' }}
                   />
                 </div>
                 <div style={{ width: '160px' }}>
                   <label style={{
                     display: 'block',
-                    fontSize: '12px',
+                    fontSize: '11px',
                     fontWeight: 600,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
-                    color: '#73747B',
+                    color: '#636878',
                     marginBottom: '6px',
                     fontFamily: 'Inter, sans-serif',
                   }}>
                     Categorie
                   </label>
                   <Select value={newTemplateTaskCategory} onValueChange={setNewTemplateTaskCategory}>
-                    <SelectTrigger style={{ borderRadius: '16px' }}>
+                    <SelectTrigger style={{ borderRadius: '14px' }}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -2977,9 +2760,9 @@ export function FohTasks() {
                 <Button
                   onClick={handleAddTemplateTask}
                   style={{
-                    backgroundColor: '#1B7867',
+                    backgroundColor: '#E27726',
                     color: '#FFFFFF',
-                    borderRadius: '20px',
+                    borderRadius: '16px',
                     fontFamily: 'Inter, sans-serif',
                     minWidth: '100px',
                   }}
@@ -2999,19 +2782,16 @@ export function FohTasks() {
                 setEditingTemplate([]);
                 setDeletedTemplateTaskIds([]);
               }}
-              style={{
-                borderRadius: '20px',
-                fontFamily: 'Inter, sans-serif',
-              }}
+              style={{ borderRadius: '16px', fontFamily: 'Inter, sans-serif' }}
             >
               Annuleren
             </Button>
             <Button
               onClick={handleSaveTemplateEdits}
               style={{
-                backgroundColor: '#1B7867',
+                backgroundColor: '#E27726',
                 color: '#FFFFFF',
-                borderRadius: '20px',
+                borderRadius: '16px',
                 fontFamily: 'Inter, sans-serif',
               }}
             >
