@@ -68,7 +68,7 @@ export function PolarFormField({ label, description, children, required }: Polar
             fontFamily: 'Inter, sans-serif',
             fontSize: '14px',
             fontWeight: 400,
-            color: '#73747B',
+            color: '#636878',
             marginBottom: '12px',
           }}
         >
