@@ -28,9 +28,9 @@ serve(async (req) => {
       throw new Error('Location is required');
     }
 
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OPENAI_API_KEY not configured');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -191,15 +191,15 @@ GENEREER ${missingCount} concrete suggesties:
 
 Stijl: Kort, bondig, concreet, professioneel. Geen lange uitleg.`;
 
-    console.log('Calling OpenAI API...');
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    console.log('Calling Lovable AI Gateway...');
+    const openAIResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-mini-2025-08-07',
+        model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: 'Je bent een expert horeca-adviseur voor Pura Vida op Terschelling.' },
           { role: 'user', content: prompt }
@@ -240,14 +240,14 @@ Stijl: Kort, bondig, concreet, professioneel. Geen lange uitleg.`;
           }
         }],
         tool_choice: { type: "function", function: { name: "generate_suggestions" } },
-        max_completion_tokens: 2000,
+        max_tokens: 2000,
       }),
     });
 
     if (!openAIResponse.ok) {
       const errorText = await openAIResponse.text();
-      console.error('OpenAI API error:', openAIResponse.status, errorText);
-      throw new Error(`OpenAI API error: ${openAIResponse.status}`);
+      console.error('AI Gateway error:', openAIResponse.status, errorText);
+      throw new Error(`AI Gateway error: ${openAIResponse.status}`);
     }
 
     const openAIData = await openAIResponse.json();
