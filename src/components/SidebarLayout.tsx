@@ -34,7 +34,8 @@ export function SidebarLayout({
       '/voorraad': 'Voorraad',
       '/settings': 'Instellingen',
       '/taken-analyse': 'Statistieken',
-      '/rooster': 'Rooster'
+      '/rooster': 'Rooster',
+      '/hr/verlof': 'Verlofaanvragen'
     };
     return titles[pathname] || 'Pura Vida';
   };
