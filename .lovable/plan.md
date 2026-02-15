@@ -1,86 +1,152 @@
 
 
-# Plan: Restyle Dashboard volgens Pura Vida OS v6.0
+# Plan: Restyle Taken Bediening (FohTasks.tsx) naar Pura Vida OS v6.0
 
 ## Overzicht
 
-De Dashboard pagina wordt volledig hergestyled. De huidige cards gebruiken `PolarKPICard` met oranje achtergronden (#FFF7ED) en missen de v6.0 stat card specificaties (witte achtergrond, border, accent bar, icon container). De pagina mist ook een page header.
+Het `FohTasks.tsx` bestand (3025 regels) bevat ~60+ hardcoded verwijzingen naar de oude groene (#1B7867) en crème (#FEFFF1, #F6F7DD) kleuren. De volledige UI wordt hergestyled naar het v6.0 design system met oranje primary, grijze achtergronden en correcte radius/typografie.
 
 ---
 
-## Wijzigingen
+## Kleur Vervanging Overzicht
 
-### 1. `src/pages/Dashboard.tsx` - Volledig herschrijven render + card componenten
+| Oud | Nieuw | Context |
+|-----|-------|---------|
+| `#1B7867` (groen) | `#E27726` (primary-500) | Actieve buttons, checked states, spinner, progress |
+| `#229580` (groen hover) | `#C9630E` (primary-600) | Button hover states |
+| `#FEFFF1` (crème bg) | `#F8F9FA` (gray-50) | Page achtergrond, input/button backgrounds |
+| `#F6F7DD` (licht groen) | `#F1F3F5` (gray-75) | Card achtergronden, muted surfaces |
+| `rgba(27,120,103,...)` | `rgba(226,119,38,...)` | Hover/active states met opacity |
+| `#73747B` | `#636878` (gray-400) | Muted tekst |
 
-**Page Header toevoegen:**
-- Titel: "Dashboard" - 24px/700 Instrument Sans, kleur #1A1F28, letter-spacing -0.02em
-- Subtitel: locatie naam + huidige datum - 14px Inter, kleur #636878
-- Border-bottom 1px #D5D8E0, paddingBottom 20px
+---
 
-**Stat Cards vervangen (DashboardCard, VoorraadCard, DeliveryCard):**
-- Verwijder PolarKPICard dependency voor deze cards
-- Nieuwe inline stat card styling conform v6.0 spec:
-  - Container: bg white, border 1px #D5D8E0, radius 20px, shadow-sm
-  - 3px accent bar bovenaan (full-width, vlakke kleur per card)
-  - Icoon container: 36x36px, radius 12px, vlakke bg (12% opacity van accent), icoon 18px
-  - Label: 12px/500 Inter uppercase, kleur #636878, tracking 0.03em
-  - Waarde: 28px/700 Instrument Sans, kleur #1A1F28, tracking -0.03em
-  - Content tekst: 13px Inter #303542
-  - Hover: shadow-md + translateY(-1px), transition 0.15s (alleen klikbare cards)
-- Accent kleuren per card:
-  - Openstaande Taken: primary (#E27726)
-  - Weer: info (#3B82F6)
-  - Bestellingen/Telling/Levering: warning (#F59E0B)
+## Wijzigingen per Sectie
 
-**Layout aanpassen:**
-- max-w-7xl vervangen door max-width: 1200px, margin: 0 auto
-- Padding: 32px horizontaal, 28px verticaal
-- Grid gap: 14px (conform stat card grid spec)
-- Secties gap: 40px
+### 1. Loading State (regel ~1623-1628)
+- Spinner kleur: `#1B7867` wordt `#E27726`
 
-### 2. `src/components/dashboard/WeatherWidget.tsx` - Restyle
+### 2. Hoofdcontainer (regel ~1635-1636)
+- `backgroundColor: '#FEFFF1'` wordt `'#F8F9FA'`
+- `maxWidth: '1400px'` wordt `'1200px'`
 
-- Achtergrond: wit (#FFFFFF) ipv #FFF7ED
-- Border: 1px solid #D5D8E0
-- Radius: 20px
-- Shadow-sm
-- 3px accent bar bovenaan (kleur #3B82F6 - info)
-- Icoon container: 36x36px, radius 12px, bg rgba(59,130,246,0.12)
-- Label: 12px/500 uppercase Inter, tracking 0.03em, kleur #636878
-- Temperatuur waarde: 28px/700 Instrument Sans, kleur #1A1F28
-- Wind/neerslag tekst: 13px Inter #636878
-- Hover: shadow-md + translateY(-1px)
+### 3. Toolbar/Header Card (regel ~1638-1644)
+- `backgroundColor: '#F6F7DD'` wordt `'#FFFFFF'`
+- `border: '1px solid rgba(197,197,202,0.5)'` wordt `'1px solid #D5D8E0'`
 
-### 3. `src/components/HandoverCard.tsx` - Restyle
+### 4. Phase Tabs - Segmented Control (regels ~1651-1774)
+Volledig restyled naar segmented control patroon:
+- Container: `bg #F8F9FA`, `border 1px #EAECF0`, `radius 16px`, `padding 3px`
+- Inactief: `bg transparent`, `tekst #4A4F5E`
+- Actief: `bg white`, `shadow-sm`, `tekst #1A1F28`, `fontWeight 600`
+- Hover inactief: `bg #F1F3F5`
+- Alle `#1B7867` verwijzingen vervangen
+- Count badge: `pill radius 9999px`, actief `bg #E27726 tekst wit`, inactief `bg rgba(0,0,0,0.04)`
 
-- Achtergrond: wit (#FFFFFF) ipv #FFF7ED
-- Border: 1px solid #D5D8E0
-- Radius: 20px
-- Shadow-xs (lichter dan stat cards)
-- Padding: 20px
-- Titel: 14px/600 Inter #282E3A
-- Subtitel: 12px Inter #636878 (ipv #73747B)
-- Bericht tekst: 13px Inter #303542 (ipv 15px)
-- Timestamp: 12px Inter #636878
+### 5. Progress Bar (regels ~1780-1816)
+- Achtergrond track: `#FEFFF1` wordt `#EAECF0`
+- Fill: `#1B7867` wordt `#E27726`
+- Height: `8px` wordt `4px` (conform spec)
+- Complete kleur tekst: `#1B7867` wordt `#22C55E` (success)
+
+### 6. Admin Button (regels ~1819-1847)
+- Kleur: `#1B7867` wordt `#E27726`
+- Achtergrond: `#FEFFF1` wordt `white`
+- Border: `1px solid #C1C5CF`
+- Radius: `20px` wordt `16px` (buttons = 16px)
+- Hover: `bg #F8F9FA`
+
+### 7. Nieuw Taak Button (regels ~1853-1876)
+- `backgroundColor: '#1B7867'` wordt `'#E27726'`
+- Hover: `#229580` wordt `#C9630E`
+- Radius: `12px` wordt `16px`
+
+### 8. SortableTaskItem (regels ~71-476)
+- **Checkbox**: `width/height 20px` wordt `16px`, `borderRadius 6px` wordt `4px`, `border 2px #C1C5CF`, checked `bg #E27726`
+- **Hover states**: Alle `rgba(27,120,103,...)` worden `rgba(226,119,38,...)`
+- **Completed bg**: `rgba(226,119,38,0.04)` (al correct)
+- **Title font**: `15px` wordt `13px` (body spec)
+- **Time badge**: `#73747B` wordt `#636878`, `borderRadius 4px` wordt `9999px` (pill)
+- **Info button bg**: `#FEFFF1` wordt `#FFFFFF`
+- **Delete hover**: al correct (#EF4444)
+- **GripVertical kleur**: `#73747B` wordt `#636878`
+
+### 9. Categorie Headers (regels ~2167-2190)
+- Font: `13px` wordt `11px`
+- `textTransform: 'uppercase'` (al correct)
+- `letterSpacing: '0.05em'` (al correct)
+- Kleur: `#73747B` wordt `#636878`
+- Complete kleur: `#1B7867` wordt `#22C55E` (success)
+- Progress pill: `borderRadius 4px` wordt `9999px`, kleuren updaten
+
+### 10. "Alle taken voltooid" tekst (regels ~2193-2203)
+- Kleur: `#1B7867` wordt `#22C55E`
+- Verwijder emoji, gebruik alleen tekst
+
+### 11. Takenlijst container
+- Elke categorie groep in een card container: `bg white`, `border 1px #D5D8E0`, `radius 20px`, `padding 16px`
+
+### 12. Periodiek Taken Weergave (regels ~2229-2420)
+- Day header kleuren: `#1B7867` wordt `#E27726` (vandaag)
+- Extra task swipe delete: bg kleuren updaten
+- Priority config: `#1B7867` (low) wordt `#22C55E` (success)
+
+### 13. Edit Mode Controls (regels ~2426-2565)
+- Alle `#1B7867` buttons worden `#E27726`
+- New tasks preview bg: `#F6F7DD` wordt `#F1F3F5`
+- Button radii: `20px` wordt `16px`
+- "Opslaan als template" border: `#1B7867` wordt `#E27726`
+
+### 14. Alle Dialogen/Modals (Password, Admin Panel, New Template, Template Editor)
+- `backgroundColor: '#FEFFF1'` wordt `'#FFFFFF'`
+- `borderRadius: '20px'` wordt `'24px'` (modal spec)
+- Alle knoppen: `#1B7867` wordt `#E27726`, hover `#C9630E`
+- Border: `rgba(197,197,202,0.5)` wordt `#D5D8E0`
+- Shield icoon: `#1B7867` wordt `#E27726`
+- Actieve template badge: `#1B7867` wordt `#E27726`
+- Template card border actief: `2px solid #1B7867` wordt `2px solid #E27726`
+- Template card bg: `#F6F7DD` wordt `#F1F3F5`
+- Button radii in modals: `20px` wordt `16px`
+
+### 15. Empty State
+- Huidige "Geen templates gevonden" tekst: wrap in proper empty state met 52x52 icoon container
+
+### 16. Description Dialog
+- `backgroundColor: '#FEFFF1'` wordt `'#FFFFFF'`
+- Save button: `#1B7867` wordt `#E27726`
+
+---
+
+## Geen wijzigingen aan
+
+- Alle data queries, mutations en business logica
+- DnD sortable functionaliteit
+- Swipe handlers
+- Template management logica
+- Phase time windows
+- Category ordering
+- FohModule.tsx wrapper (blijft SidebarLayout + FohTasks)
 
 ---
 
 ## Technische details
 
-### Verwijderde dependencies
-- `PolarKPICard` import wordt verwijderd uit Dashboard.tsx (component blijft bestaan voor ander gebruik)
+### Aanpak
+Het bestand wordt in secties bijgewerkt via line-replace operaties:
+1. Container en toolbar kleuren
+2. Phase tabs naar segmented control
+3. Progress bar
+4. Buttons (admin, new task, edit mode)
+5. SortableTaskItem (checkbox, hover, typography)
+6. Categorie headers en progress pills
+7. Alle dialogen/modals
+8. Priority config functie
+9. Date label color functie
 
-### Kleur vervanging
-Alle oude kleuren worden vervangen:
-- #73747B wordt #636878 (gray-400)
-- #36373A wordt #303542 (gray-700)
-- #17171C wordt #1A1F28 (gray-900)
-- #ECEDED wordt #EAECF0 (gray-100)
-- Alle `bg: '#FFF7ED'` op cards wordt `bg: '#FFFFFF'` met border
-
-### Geen wijzigingen aan
-- Data queries en realtime subscriptions blijven ongewijzigd
-- Business logica (quotes, helpers) blijft ongewijzigd
-- PolarKPICard component zelf wordt niet gewijzigd (gebruikt elders)
-- SidebarLayout wrapper blijft
+### Totaal ~60 kleurverwijzingen worden vervangen
+- ~25x `#1B7867` (groen primary)
+- ~15x `#FEFFF1` (crème achtergrond)
+- ~10x `#F6F7DD` (licht groen)
+- ~5x `rgba(27,120,103,...)` (groen met opacity)
+- ~5x `#73747B` (oud grijs)
 
