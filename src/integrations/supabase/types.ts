@@ -777,6 +777,48 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          date_of_birth: string | null
+          emergency_contact: string | null
+          first_name: string
+          id: string
+          last_name: string
+          nationality: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          emergency_contact?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          nationality?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          emergency_contact?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          nationality?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       recipe_steps: {
         Row: {
           created_at: string | null
@@ -1011,9 +1053,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_manager_same_location: {
+        Args: { _profile_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      app_role: "admin" | "manager" | "kitchen_staff" | "hr"
+      app_role: "admin" | "manager" | "kitchen_staff" | "hr" | "owner"
       application_status:
         | "received"
         | "screening"
@@ -1150,7 +1196,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "manager", "kitchen_staff", "hr"],
+      app_role: ["admin", "manager", "kitchen_staff", "hr", "owner"],
       application_status: [
         "received",
         "screening",
