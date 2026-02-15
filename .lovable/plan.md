@@ -1,95 +1,78 @@
 
-# Plan: Bouw /hr/verlof (LeavePage.tsx) - Verlofaanvragen Management
+# Plan: EmployeeSidebar + EmployeeLayout voor /mijn/* routes
 
 ## Overzicht
 
-Een nieuwe pagina voor HR/managers om alle verlofaanvragen te beheren. Toont een tabel met filtermogelijkheden, segmented control voor status, en goedkeur/afwijs acties.
+Een aparte, compactere sidebar voor de personeelsapp (/mijn/* routes) met eigen navigatie-items, plus een EmployeeLayout wrapper die de huidige SidebarLayout vervangt voor alle /mijn/* routes.
 
 ---
 
-## Nieuw bestand: `src/pages/hr/LeavePage.tsx`
+## Nieuw bestand: `src/components/EmployeeSidebar.tsx`
 
-### Layout
-- SidebarLayout wrapper
-- Page header: "Verlofaanvragen" (24px/700 Instrument Sans) + beschrijving "Beheer verlofaanvragen van medewerkers." (14px Inter #636878)
+Compactere sidebar gebaseerd op het PolarSidebar patroon, maar met eigen navigatie:
 
-### Toolbar
-- Links: zoekbalk (max 320px, radius 16px, search icoon)
-- Rechts: segmented control met 4 opties: Alle / Openstaand / Goedgekeurd / Afgewezen
-  - Segmented: bg #F8F9FA, border 1px #EAECF0, radius 16px, padding 3px
-  - Actief segment: bg white + shadow, radius 14px
+### Navigatie items
+- Mijn Dashboard (`/mijn/dashboard`) - Home icoon
+- Mijn Rooster (`/mijn/rooster`) - Calendar icoon
+- Mijn Taken (`/mijn/taken`) - ListChecks icoon
+- Documenten (`/mijn/documenten`) - FileText icoon
+- Mijn Profiel (`/mijn/profiel`) - User icoon
 
-### Tabel
-- Container: card radius 20px, border 1px #D5D8E0, overflow hidden, bg white
-- Header: bg #F8F9FA, 11px uppercase #636878, weight 500, letter-spacing 0.05em
-- Kolommen:
-  - **Medewerker**: avatar (28px circle) + naam (13px Inter)
-  - **Type**: badge pill -- vakantie (#DBEAFE/#1D4ED8 info), ziek (#FEE2E2/#B91C1C error), bijzonder (#FEF3C7/#B45309 warning)
-  - **Van**: datum dd-mm-yyyy (Geist Mono 12px)
-  - **Tot**: datum dd-mm-yyyy (Geist Mono 12px)
-  - **Dagen**: berekend aantal (Geist Mono 12px)
-  - **Reden**: tekst 13px, truncated
-  - **Status**: badge pill -- pending=warning "Openstaand", approved=success "Goedgekeurd", denied=error "Afgewezen"
-  - **Acties**: Goedkeuren (soft button) + Afwijzen (ghost/danger) -- alleen bij pending status
-- Rij hover: bg #FCFCFD, 0.08s transition
-- Sorteerbaar op Van-datum
-- Paginatie: links "1-10 van X", rechts prev/next buttons
+### Design (identiek aan bestaande sidebar)
+- Breedte: 240px, bg white, border-right 1px #D5D8E0, sticky top, z-50
+- Pura Vida logo bovenaan (hergebruik `pura-vida-logo-dark.png`)
+- Search bar met Command+K shortcut
+- Nav items: height 36px, padding 8px 10px, radius 12px, 13px Inter font
+- Actief: bg #FFF7ED, icoon #E27726 stroke-2, tekst #A5500D weight-500
+- Inactief: icoon #636878 stroke-1.5, tekst #4A4F5E
+- Hover: bg #F8F9FA
+- Collapsed state: 64px breed, tooltips, icoon-only
+- Geen gradients, geen hover lift
+- Gebruikersinfo: ophalen uit profiles tabel (naam + rol) onderaan de sidebar met avatar
 
-### Empty State
-- Centered, max-width 320px
-- Icoon container: 48x48px, bg #F1F3F5, radius 12px, CalendarDays icoon 22px #8D93A0
-- Titel: "Geen verlofaanvragen" (14px/500 #303542)
-- Beschrijving: "Er zijn nog geen verlofaanvragen ingediend." (13px #636878)
+---
 
-### Loading State
-- Skeleton tabel: 5 rijen met avatar circle + text placeholders
+## Nieuw bestand: `src/components/EmployeeLayout.tsx`
 
-### Data
-- Query `leave_requests` via `is_manager_same_location(user_id)` policy (automatisch via RLS)
-- Join met `profiles` voor medewerker namen en initialen
-- Filter op status (client-side of query param)
-- Zoeken op medewerker naam (client-side)
-- Update status via supabase: `decided_by = auth.uid()`, `decided_at = now()`
-- Berekening aantal dagen: `differenceInCalendarDays(end_date, start_date) + 1`
+Layout wrapper die EmployeeSidebar + main content combineert:
+
+- Dezelfde structuur als SidebarLayout maar met EmployeeSidebar in plaats van AppSidebar
+- PolarHeader met juiste page titels voor /mijn/* routes
+- Mobile: hamburger menu met Sheet component
+- Main content area: bg #F8F9FA, flex-1, padding responsive
+- Titels mapping: `/mijn/dashboard` -> "Mijn Dashboard", `/mijn/rooster` -> "Mijn Rooster", etc.
 
 ---
 
 ## Wijzigingen in bestaande bestanden
 
-### `src/pages/hr/index.ts`
-- Export LeavePage component
-
 ### `src/App.tsx`
-- Import LeavePage
-- Nieuwe route `/hr/verlof` met RoleGuard voor `['owner', 'manager', 'admin', 'hr']`
+- Import EmployeeLayout
+- Vervang de individuele /mijn/* route elementen zodat ze EmployeeLayout gebruiken in plaats van SidebarLayout
+- De /mijn/* pagina-componenten (MijnDashboard, EmployeeProfile, EmployeeSchedule, MijnPlaceholder) worden gewrapped in EmployeeLayout in plaats van hun eigen SidebarLayout
+- Voeg route toe voor `/mijn/documenten` (MijnPlaceholder)
 
-### `src/components/SidebarLayout.tsx`
-- Voeg `'/hr/verlof': 'Verlofaanvragen'` toe aan de `titles` map
-
----
-
-## Geen database wijzigingen nodig
-
-De `leave_requests` tabel bestaat al met:
-- Correcte kolommen (user_id, type, start_date, end_date, status, reason, decided_by, decided_at)
-- RLS policies: managers kunnen via `is_manager_same_location` bekijken en updaten
-- Status waarden: pending, approved, denied
+### Pagina's die aangepast worden:
+- `src/pages/mijn/MijnDashboard.tsx` -- verwijder SidebarLayout wrapper (wordt door EmployeeLayout afgehandeld)
+- `src/pages/mijn/EmployeeProfile.tsx` -- verwijder SidebarLayout wrapper
+- `src/pages/mijn/EmployeeSchedule.tsx` -- verwijder SidebarLayout wrapper
+- `src/pages/mijn/MijnPlaceholder.tsx` -- verwijder SidebarLayout wrapper als aanwezig
 
 ---
 
 ## Technische details
 
-### Design compliance
-- Cards: radius 20px, border 1px #D5D8E0
-- Tabel header: bg #F8F9FA, 11px uppercase #636878, weight 500, letter-spacing 0.05em
-- Inputs/zoekbalk: radius 14px (zoekbalk 16px), border #C1C5CF
-- Buttons: primary #E27726, soft #FFF7ED, ghost transparent -- geen gradient, geen hover lift
-- Badges: radius 9999px, 12px font, vlakke kleuren per variant
-- Typography: Instrument Sans titels, Inter body, Geist Mono datums/getallen
-- Spacing: 4px grid
-- Segmented control: bg gray-50, border gray-100, radius 16px, actief=white+shadow
-- Focus ring: 0 0 0 2px rgba(226,119,38,0.2)
+### EmployeeSidebar implementatie
+- Hergebruikt het PolarSidebar component (dezelfde props interface)
+- Hardcoded navigatie items specifiek voor de personeelsapp
+- useLocation voor active state detectie
+- useNavigate voor navigatie
 
-### Responsief
-- Desktop: volledige tabel
-- Mobile: tabel scrollt horizontaal of wordt omgezet naar cards
+### EmployeeLayout implementatie
+- Vergelijkbaar met SidebarLayout maar met EmployeeSidebar
+- Eigen getPageTitle functie voor /mijn/* routes
+- Mobile responsive: Sheet met EmployeeSidebar voor hamburger menu
+- PolarHeader met titel + optionele menu click handler
+
+### Geen database wijzigingen nodig
+Alle benodigde tabellen en policies bestaan al.
