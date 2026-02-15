@@ -973,22 +973,31 @@ export type Database = {
       }
       user_roles: {
         Row: {
+          contract_type: string | null
           created_at: string | null
+          hired_date: string | null
           id: string
+          is_active: boolean
           location: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
+          contract_type?: string | null
           created_at?: string | null
+          hired_date?: string | null
           id?: string
+          is_active?: boolean
           location: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
+          contract_type?: string | null
           created_at?: string | null
+          hired_date?: string | null
           id?: string
+          is_active?: boolean
           location?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
@@ -1046,6 +1055,10 @@ export type Database = {
       current_user_location: { Args: never; Returns: string }
       generate_order_number: { Args: never; Returns: string }
       get_user_location: { Args: { _user_id: string }; Returns: string }
+      get_user_role: {
+        Args: { uid: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1059,7 +1072,14 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "manager" | "kitchen_staff" | "hr" | "owner"
+      app_role:
+        | "admin"
+        | "manager"
+        | "kitchen_staff"
+        | "hr"
+        | "owner"
+        | "team_lead"
+        | "employee"
       application_status:
         | "received"
         | "screening"
@@ -1196,7 +1216,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "manager", "kitchen_staff", "hr", "owner"],
+      app_role: [
+        "admin",
+        "manager",
+        "kitchen_staff",
+        "hr",
+        "owner",
+        "team_lead",
+        "employee",
+      ],
       application_status: [
         "received",
         "screening",
