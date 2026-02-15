@@ -1,31 +1,35 @@
 
 
-# Plan: Profiles Tabel Migration
+# Plan: Employee Documents Tabel Migration
 
-Alleen een database migration, geen frontend wijzigingen.
+## Huidige Situatie
 
-## SQL Migration
+De drie tabellen `schedules`, `time_registrations` en `leave_requests` bestaan al in de database met correcte kolommen en RLS policies. Alleen de vierde tabel `employee_documents` ontbreekt.
 
-De migration bevat:
+## Wat wordt aangemaakt
 
-1. **Profiles tabel** met alle gevraagde kolommen (user_id, first_name, last_name, phone, avatar_url, date_of_birth, nationality, emergency_contact, timestamps)
+### 1. Tabel: `employee_documents`
 
-2. **Trigger function `handle_new_user`** die bij nieuwe auth.users een profiel aanmaakt met first_name/last_name uit `raw_user_meta_data`
+| Kolom | Type | Details |
+|-------|------|---------|
+| id | uuid | PK, default gen_random_uuid() |
+| user_id | uuid | FK auth.users(id), NOT NULL |
+| type | text | NOT NULL, check in ('contract','id','certificate','other') |
+| file_url | text | NOT NULL |
+| file_name | text | NOT NULL |
+| uploaded_by | uuid | FK auth.users(id) |
+| expires_at | date | nullable |
+| created_at | timestamptz | default now() |
 
-3. **Trigger `on_auth_user_created`** op `auth.users` AFTER INSERT
+### 2. RLS Policies op `employee_documents`
 
-4. **RLS policies:**
-   - SELECT eigen profiel: `auth.uid() = user_id`
-   - UPDATE eigen profiel: `auth.uid() = user_id`
-   - SELECT voor managers: check via `user_roles` tabel of user role 'manager' of 'owner' heeft EN dezelfde locatie deelt
+- **SELECT eigen documenten**: medewerkers zien hun eigen documenten (`auth.uid() = user_id`)
+- **SELECT locatie**: managers/owners/admins zien documenten van medewerkers in hun locatie (via `is_manager_same_location`)
+- **INSERT**: managers/owners/admins kunnen documenten uploaden
+- **UPDATE**: managers/owners/admins kunnen documenten bewerken
+- **DELETE**: managers/owners/admins kunnen documenten verwijderen
 
-5. **updated_at trigger** voor automatische timestamp updates
+## Geen verdere wijzigingen
 
-## Technische Details
-
-- De manager/owner SELECT policy gebruikt een security definer function om recursie te voorkomen
-- Omdat `app_role` enum alleen `admin`, `moderator`, `user` bevat, worden 'manager' en 'owner' als text vergeleken via een aparte query op `user_roles.role::text`
-- Of: we voegen 'manager' en 'owner' toe aan de `app_role` enum als dat nog niet bestaat
-
-Aangezien de huidige `app_role` enum alleen `admin`, `moderator`, `user` bevat, en de user vraagt om 'manager' en 'owner' rollen, wordt de enum uitgebreid met deze waarden. De locatie-check voor managers gebruikt `user_roles.location` om te matchen.
+Er worden geen frontend wijzigingen doorgevoerd. De bestaande drie tabellen worden niet aangepast.
 
