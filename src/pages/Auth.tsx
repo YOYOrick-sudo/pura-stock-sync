@@ -7,53 +7,62 @@ import logoOfficial from '@/assets/pura-vida-logo-official.png';
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [location, setLocation] = useState<'West' | 'Midsland'>('West');
-  const [hoveredCard, setHoveredCard] = useState<'West' | 'Midsland' | null>(null);
-  
-  const getEmailForLocation = (loc: 'West' | 'Midsland') => {
-    return loc === 'West' 
-      ? 'purawestkeuken@puravidafoodbar.nl'
-      : 'puramidsland@puravidafoodbar.nl';
-  };
 
-  // Check if already logged in
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate('/dashboard');
+        await redirectByRole(session.user.id);
       }
     };
     checkSession();
   }, [navigate]);
 
+  const redirectByRole = async (userId: string) => {
+    const { data: userRole } = await supabase
+      .from('user_roles')
+      .select('role, location')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (userRole) {
+      const role = userRole.role as string;
+      if (role === 'owner' || role === 'manager' || role === 'admin') {
+        navigate('/dashboard');
+      } else {
+        navigate('/mijn/dashboard');
+      }
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!password.trim()) {
-      toast.error('Vul het wachtwoord in');
+    if (!email.trim() || !password.trim()) {
+      toast.error('Vul je e-mail en wachtwoord in');
       return;
     }
     setLoading(true);
     try {
-      // Check of er een oude session is en clear die alleen dan
       const { data: { session: existingSession } } = await supabase.auth.getSession();
       if (existingSession) {
         await supabase.auth.signOut();
-        // Wacht even zodat de auth state update volledig is
         await new Promise(resolve => setTimeout(resolve, 300));
       }
-      
+
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: getEmailForLocation(location),
+        email: email.trim(),
         password: password
       });
 
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
           toast.error('Onjuiste inloggegevens', {
-            description: 'Controleer je gebruikersnaam en wachtwoord'
+            description: 'Controleer je e-mail en wachtwoord'
           });
         } else {
           toast.error('Inloggen mislukt', {
@@ -64,23 +73,8 @@ const Auth = () => {
       }
 
       if (data.session) {
-        // Verificeer dat de user location correct is
-        const { data: userRole } = await supabase
-          .from('user_roles')
-          .select('location')
-          .eq('user_id', data.session.user.id)
-          .maybeSingle();
-        
-        if (userRole?.location !== location) {
-          toast.error('Verkeerde locatie detecteerd', {
-            description: `Deze account hoort bij ${userRole?.location}`
-          });
-          await supabase.auth.signOut();
-          return;
-        }
-        
-        toast.success(`Welkom bij ${location}!`);
-        navigate('/dashboard');
+        toast.success('Welkom!');
+        await redirectByRole(data.session.user.id);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -90,6 +84,30 @@ const Auth = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    height: '36px',
+    padding: '0 12px',
+    fontFamily: 'Inter, sans-serif',
+    fontSize: '13px',
+    color: '#282E3A',
+    backgroundColor: '#FFFFFF',
+    border: '1px solid #C1C5CF',
+    borderRadius: '14px',
+    outline: 'none',
+    transition: 'border-color 0.15s, box-shadow 0.15s',
+  };
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.borderColor = '#E27726';
+    e.currentTarget.style.boxShadow = '0 0 0 2px rgba(226,119,38,0.2)';
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.borderColor = '#C1C5CF';
+    e.currentTarget.style.boxShadow = 'none';
   };
 
   return (
@@ -103,141 +121,80 @@ const Auth = () => {
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '500px',
-        backgroundColor: '#FFF7ED',
-        border: '1px solid rgba(197, 197, 202, 0.5)',
+        maxWidth: '420px',
+        backgroundColor: '#FFFFFF',
+        border: '1px solid #D5D8E0',
         borderRadius: '20px',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1)',
         overflow: 'hidden'
       }}>
         {/* Header */}
         <div style={{
-          padding: '48px 32px 24px',
-          borderBottom: '1px solid rgba(197, 197, 202, 0.3)'
+          padding: '40px 32px 24px',
+          borderBottom: '1px solid #D5D8E0'
         }}>
-          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            <img 
-              src={logoOfficial} 
-              alt="Pura Vida Foodbar" 
-              style={{ height: '88px', width: 'auto', margin: '0 auto' }}
+          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+            <img
+              src={logoOfficial}
+              alt="Pura Vida Foodbar"
+              style={{ height: '80px', width: 'auto', margin: '0 auto' }}
             />
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{
               fontFamily: 'Inter, sans-serif',
-              fontSize: '13px',
-              color: '#73747B',
+              fontSize: '12px',
+              color: '#8D93A0',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '12px'
+              gap: '8px'
             }}>
               <span>Operationeel Systeem</span>
-              <span style={{ color: 'rgba(197, 197, 202, 0.5)' }}>•</span>
+              <span style={{ color: '#D5D8E0' }}>•</span>
               <span>Pura Vida Foodbar</span>
             </div>
           </div>
         </div>
 
         {/* Login Form */}
-        <div style={{ padding: '32px' }}>
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ padding: '28px 32px 32px' }}>
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
-              <label style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '11px',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                color: '#73747B',
-                display: 'block',
-                marginBottom: '12px'
-              }}>
-                Selecteer Locatie
+              <label
+                htmlFor="email"
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  color: '#8D93A0',
+                  display: 'block',
+                  marginBottom: '6px'
+                }}
+              >
+                E-mailadres
               </label>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '12px'
-              }}>
-                {/* West Card */}
-                <div
-                  onClick={() => !loading && setLocation('West')}
-                  onMouseEnter={() => !loading && setHoveredCard('West')}
-                  onMouseLeave={() => setHoveredCard(null)}
-                  style={{
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    padding: '16px',
-                    borderRadius: '20px',
-                    border: location === 'West' 
-                      ? '2px solid #E27726' 
-                      : hoveredCard === 'West'
-                        ? '1px solid rgba(197, 197, 202, 0.7)'
-                        : '1px solid rgba(197, 197, 202, 0.5)',
-                    backgroundColor: location === 'West' 
-                      ? '#FFFFFF' 
-                      : hoveredCard === 'West'
-                        ? '#FFFFFF'
-                        : '#FFF7ED',
-                    transition: 'all 200ms',
-                    opacity: loading ? 0.5 : 1,
-                    boxShadow: hoveredCard === 'West' && location !== 'West'
-                      ? '0 2px 4px rgba(0, 0, 0, 0.08)'
-                      : 'none'
-                  }}
-                >
-                  <div style={{
-                    textAlign: 'center',
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    color: '#282E3A'
-                  }}>
-                    West
-                  </div>
-                </div>
-
-                {/* Midsland Card */}
-                <div
-                  onClick={() => !loading && setLocation('Midsland')}
-                  onMouseEnter={() => !loading && setHoveredCard('Midsland')}
-                  onMouseLeave={() => setHoveredCard(null)}
-                  style={{
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    padding: '16px',
-                    borderRadius: '20px',
-                    border: location === 'Midsland' 
-                      ? '2px solid #E27726' 
-                      : hoveredCard === 'Midsland'
-                        ? '1px solid rgba(197, 197, 202, 0.7)'
-                        : '1px solid rgba(197, 197, 202, 0.5)',
-                    backgroundColor: location === 'Midsland' 
-                      ? '#FFFFFF' 
-                      : hoveredCard === 'Midsland'
-                        ? '#FFFFFF'
-                        : '#FFF7ED',
-                    transition: 'all 200ms',
-                    opacity: loading ? 0.5 : 1,
-                    boxShadow: hoveredCard === 'Midsland' && location !== 'Midsland'
-                      ? '0 2px 4px rgba(0, 0, 0, 0.08)'
-                      : 'none'
-                  }}
-                >
-                  <div style={{
-                    textAlign: 'center',
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '16px',
-                    fontWeight: 600,
-                    color: '#282E3A'
-                  }}>
-                    Midsland
-                  </div>
-                </div>
-              </div>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="naam@puravidafoodbar.nl"
+                disabled={loading}
+                autoComplete="email"
+                autoFocus
+                style={{
+                  ...inputStyle,
+                  opacity: loading ? 0.5 : 1,
+                }}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+              />
             </div>
 
             <div>
-              <label 
+              <label
                 htmlFor="password"
                 style={{
                   fontFamily: 'Inter, sans-serif',
@@ -245,9 +202,9 @@ const Auth = () => {
                   fontWeight: 600,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
-                  color: '#73747B',
+                  color: '#8D93A0',
                   display: 'block',
-                  marginBottom: '8px'
+                  marginBottom: '6px'
                 }}
               >
                 Wachtwoord
@@ -260,22 +217,12 @@ const Auth = () => {
                 placeholder="Vul je wachtwoord in"
                 disabled={loading}
                 autoComplete="current-password"
-                autoFocus
                 style={{
-                  width: '100%',
-                  height: '44px',
-                  padding: '0 16px',
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '15px',
-                  color: '#282E3A',
-                  backgroundColor: '#FFFFFF',
-                  border: '1px solid rgba(197, 197, 202, 0.5)',
-                  borderRadius: '16px',
-                  outline: 'none',
-                  transition: 'border-color 200ms',
+                  ...inputStyle,
+                  opacity: loading ? 0.5 : 1,
                 }}
-                onFocus={(e) => e.currentTarget.style.borderColor = '#E27726'}
-                onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.5)'}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
               />
             </div>
 
@@ -284,44 +231,44 @@ const Auth = () => {
               disabled={loading}
               style={{
                 width: '100%',
-                height: '48px',
-                padding: '0 24px',
+                height: '40px',
+                padding: '0 18px',
                 fontFamily: 'Inter, sans-serif',
-                fontSize: '15px',
+                fontSize: '14px',
                 fontWeight: 600,
                 color: '#FFFFFF',
-                backgroundColor: loading ? '#D1D5DB' : '#E27726',
+                backgroundColor: loading ? 'rgba(226,119,38,0.45)' : '#E27726',
                 border: 'none',
-                borderRadius: '20px',
+                borderRadius: '16px',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                boxShadow: loading ? 'none' : '0 2px 4px rgba(226, 119, 38, 0.15)',
-                transition: 'all 200ms',
+                transition: 'background-color 0.15s',
+                marginTop: '4px',
               }}
               onMouseEnter={(e) => {
-                if (!loading) {
-                  e.currentTarget.style.backgroundColor = '#C9630E';
-                  e.currentTarget.style.boxShadow = '0 4px 6px rgba(226, 119, 38, 0.2)';
-                }
+                if (!loading) e.currentTarget.style.backgroundColor = '#C9630E';
               }}
               onMouseLeave={(e) => {
-                if (!loading) {
-                  e.currentTarget.style.backgroundColor = '#E27726';
-                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(226, 119, 38, 0.15)';
-                }
+                if (!loading) e.currentTarget.style.backgroundColor = '#E27726';
+              }}
+              onMouseDown={(e) => {
+                if (!loading) e.currentTarget.style.transform = 'scale(0.97)';
+              }}
+              onMouseUp={(e) => {
+                if (!loading) e.currentTarget.style.transform = 'scale(1)';
               }}
             >
               {loading ? (
                 <>
-                  <Loader2 style={{ width: '20px', height: '20px' }} className="animate-spin" />
+                  <Loader2 style={{ width: '18px', height: '18px' }} className="animate-spin" />
                   <span>Bezig met inloggen...</span>
                 </>
               ) : (
                 <>
-                  <LogIn style={{ width: '20px', height: '20px' }} />
+                  <LogIn style={{ width: '18px', height: '18px' }} />
                   <span>Inloggen</span>
                 </>
               )}
