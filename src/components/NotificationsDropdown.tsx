@@ -126,7 +126,7 @@ export function NotificationsDropdown() {
             border: 'none',
           }}
         >
-          <Bell className="h-6 w-6" style={{ color: '#36373A' }} />
+          <Bell className="h-6 w-6" style={{ color: '#636878' }} />
           {unreadCount > 0 && (
             <span 
               className="absolute top-0.5 right-0.5 rounded-full" 
@@ -145,20 +145,20 @@ export function NotificationsDropdown() {
         sideOffset={8}
         style={{
           borderRadius: '16px',
-          border: '1px solid #ECEDED',
+          border: '1px solid #EAECF0',
           boxShadow: '0 2px 4px 0 rgb(0 0 0 / 0.05)',
         }}
       >
         <div 
           className="flex items-center justify-between px-3 py-2"
-          style={{ borderBottom: '1px solid #ECEDED' }}
+          style={{ borderBottom: '1px solid #EAECF0' }}
         >
           <h3 
             style={{
               fontFamily: 'Inter, sans-serif',
               fontSize: '15px',
               fontWeight: 600,
-              color: '#17171C',
+              color: '#282E3A',
             }}
           >
             Meldingen
@@ -206,15 +206,15 @@ export function NotificationsDropdown() {
                   className="cursor-pointer"
                   style={{
                     padding: '12px 16px',
-                    backgroundColor: !notification.read ? '#F4F5F6' : '#FFFFFF',
-                    borderBottom: index < notifications.length - 1 ? '1px solid #ECEDED' : 'none',
+                    backgroundColor: !notification.read ? '#F1F3F5' : '#FFFFFF',
+                    borderBottom: index < notifications.length - 1 ? '1px solid #EAECF0' : 'none',
                     transition: 'background-color 150ms',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = 'rgba(226, 119, 38, 0.04)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = !notification.read ? '#F4F5F6' : '#FFFFFF';
+                    e.currentTarget.style.backgroundColor = !notification.read ? '#F1F3F5' : '#FFFFFF';
                   }}
                 >
                   <div className="flex justify-between items-start mb-1">
@@ -223,7 +223,7 @@ export function NotificationsDropdown() {
                         fontFamily: 'Inter, sans-serif',
                         fontSize: '15px',
                         fontWeight: 500,
-                        color: '#17171C',
+                        color: '#282E3A',
                       }}
                     >
                       {notification.title}
@@ -242,7 +242,7 @@ export function NotificationsDropdown() {
                     style={{
                       fontFamily: 'Inter, sans-serif',
                       fontSize: '14px',
-                      color: '#36373A',
+                      color: '#636878',
                     }}
                   >
                     {notification.message}

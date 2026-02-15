@@ -230,7 +230,7 @@ export function PolarKPICard({
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '13px',
                   fontWeight: 400,
-                  color: '#36373A',
+                 color: '#636878',
                 }}
               >
                 {range}
@@ -262,7 +262,7 @@ export function PolarKPICard({
                 fontFamily: 'Inter, sans-serif',
                 fontSize: '13px',
                 fontWeight: 400,
-                color: '#36373A',
+                color: '#636878',
               }}
             >
               {contentText.secondary}
@@ -291,7 +291,7 @@ export function PolarKPICard({
             >
               <line 
                 x1="0" y1="100" x2="100" y2="100" 
-                stroke="#ECEDED" strokeWidth="1" vectorEffect="non-scaling-stroke"
+                stroke="#EAECF0" strokeWidth="1" vectorEffect="non-scaling-stroke"
               />
               {chartData.length > 1 && (
                 <polyline
@@ -308,7 +308,7 @@ export function PolarKPICard({
           {xAxisLabels.length > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               {xAxisLabels.map((label, index) => (
-                <span key={index} style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 400, color: '#36373A' }}>
+                <span key={index} style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 400, color: '#636878' }}>
                   {label}
                 </span>
               ))}
@@ -327,7 +327,7 @@ export function PolarKPICard({
                 width: '8px',
                 height: '8px',
                 borderRadius: '50%',
-                backgroundColor: index === activeDot ? '#E27726' : '#ECEDED',
+                backgroundColor: index === activeDot ? '#E27726' : '#EAECF0',
                 transition: 'background-color 0.2s ease',
               }}
             />

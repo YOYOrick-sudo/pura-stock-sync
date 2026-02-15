@@ -374,7 +374,7 @@ export function ServiceTasks() {
           style={{
             display: 'inline-flex',
             padding: '4px',
-            backgroundColor: '#F4F5F6',
+            backgroundColor: '#F1F3F5',
             borderRadius: '14px',
             gap: '4px',
           }}

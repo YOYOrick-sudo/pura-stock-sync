@@ -42,7 +42,7 @@ export function PolarTooltip({
       position: 'absolute' as const,
       zIndex: 9999,
       padding: '6px 10px',
-      backgroundColor: '#17171C',
+      backgroundColor: '#1A1F28',
       color: '#FFFFFF',
       fontSize: '13px',
       fontFamily: 'Inter, sans-serif',
