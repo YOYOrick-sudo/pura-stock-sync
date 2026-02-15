@@ -17,7 +17,7 @@ import type { FohTask, FohEmployee, FohTaskWithEmployee, PhaseType } from '@/typ
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useIsTablet } from '@/hooks/use-mobile';
 
-import { PolarColors } from '@/components/polar/colors';
+
 import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -111,30 +111,30 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
           transition: 'all 0.15s ease',
           position: 'relative',
           overflow: 'hidden',
-          backgroundColor: task.completed ? 'rgba(226, 119, 38, 0.04)' : 'transparent',
+          backgroundColor: task.completed ? '#FCFCFD' : 'transparent',
         }}
         onMouseEnter={(e) => {
           if (!isEditMode && toggleTask) {
             e.currentTarget.style.backgroundColor = task.completed 
-              ? 'rgba(226, 119, 38, 0.06)' 
-              : 'rgba(226, 119, 38, 0.04)';
+              ? '#F8F9FA' 
+              : '#FCFCFD';
           }
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = task.completed 
-            ? 'rgba(226, 119, 38, 0.04)' 
+            ? '#FCFCFD' 
             : 'transparent';
         }}
         onMouseDown={(e) => {
           if (!isEditMode && toggleTask) {
-            e.currentTarget.style.backgroundColor = 'rgba(226, 119, 38, 0.08)';
+            e.currentTarget.style.backgroundColor = '#F1F3F5';
           }
         }}
         onMouseUp={(e) => {
           if (!isEditMode && toggleTask) {
             e.currentTarget.style.backgroundColor = task.completed 
-              ? 'rgba(226, 119, 38, 0.06)' 
-              : 'rgba(226, 119, 38, 0.04)';
+              ? '#F8F9FA' 
+              : '#FCFCFD';
           }
         }}
       >
@@ -1492,7 +1492,7 @@ export function FohTasks() {
                       fontWeight: 600,
                       padding: '2px 8px',
                       borderRadius: '9999px',
-                      backgroundColor: isActive ? '#E27726' : 'rgba(0, 0, 0, 0.04)',
+                      backgroundColor: isActive ? '#E27726' : 'rgba(141, 147, 160, 0.1)',
                       color: isActive ? '#FFFFFF' : '#636878',
                       minWidth: '36px',
                     }}>
@@ -1556,7 +1556,7 @@ export function FohTasks() {
                       fontWeight: 600,
                       padding: '2px 8px',
                       borderRadius: '9999px',
-                      backgroundColor: isActive ? '#E27726' : 'rgba(0, 0, 0, 0.04)',
+                      backgroundColor: isActive ? '#E27726' : 'rgba(141, 147, 160, 0.1)',
                       color: isActive ? '#FFFFFF' : '#636878',
                       minWidth: '36px',
                     }}>
@@ -1616,9 +1616,9 @@ export function FohTasks() {
                     alignItems: 'center',
                     gap: '8px',
                     padding: '8px 16px',
-                    backgroundColor: '#FFFFFF',
-                    color: '#E27726',
-                    border: '1px solid #C1C5CF',
+                    backgroundColor: '#FFF7ED',
+                    color: '#A5500D',
+                    border: 'none',
                     borderRadius: '16px',
                     fontSize: '13px',
                     fontWeight: 500,
@@ -1627,10 +1627,10 @@ export function FohTasks() {
                     transition: 'all 0.15s ease',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#F8F9FA';
+                    e.currentTarget.style.backgroundColor = '#FFEDD5';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#FFFFFF';
+                    e.currentTarget.style.backgroundColor = '#FFF7ED';
                   }}
                 >
                   <Settings size={16} />
@@ -2027,7 +2027,7 @@ export function FohTasks() {
                               onClick={() => toggleTask(task.id, task.completed)}
                               style={{
                                 padding: taskPadding,
-                                backgroundColor: task.completed ? 'rgba(226, 119, 38, 0.04)' : 'transparent',
+                                backgroundColor: task.completed ? '#FCFCFD' : 'transparent',
                                 borderBottom: '1px solid #EAECF0',
                                 borderLeft: `4px solid ${getPriorityConfig(task.priority).borderColor}`,
                                 marginLeft: '-4px',
@@ -2038,12 +2038,12 @@ export function FohTasks() {
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.backgroundColor = task.completed 
-                                  ? 'rgba(226, 119, 38, 0.06)' 
-                                  : 'rgba(226, 119, 38, 0.04)';
+                                  ? '#F8F9FA' 
+                                  : '#FCFCFD';
                               }}
                               onMouseLeave={(e) => {
                                 e.currentTarget.style.backgroundColor = task.completed 
-                                  ? 'rgba(226, 119, 38, 0.04)' 
+                                  ? '#FCFCFD' 
                                   : 'transparent';
                               }}
                             >
