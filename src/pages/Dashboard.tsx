@@ -4,11 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUserLocation } from '@/contexts/UserLocationContext';
-import { PolarKPICard } from '@/components/polar';
-import { CheckCircle, AlertCircle, Clock, ListTodo, Bell, Package, RefreshCw } from 'lucide-react';
+import { CheckCircle, AlertCircle, Clock, ListTodo, Package } from 'lucide-react';
 import { HandoverCard } from '@/components/HandoverCard';
 import { WeatherWidget } from '@/components/dashboard/WeatherWidget';
-import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 const puraVidaQuotesWest = [
@@ -159,9 +157,6 @@ const getVoorraadStatus = () => {
   if (isFridayToday && !isToday) {
     return {
       status: 'urgent',
-      color: 'text-red-600',
-      bgColor: 'bg-red-50',
-      borderColor: 'border-l-red-600',
       message: 'Voorraad telling verwacht!',
       subtitle: 'Nog niet ingediend vandaag'
     };
@@ -170,9 +165,6 @@ const getVoorraadStatus = () => {
   if (daysUntil <= 1) {
     return {
       status: 'warning',
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      borderColor: 'border-l-orange-600',
       message: `Over ${daysUntil} dag${daysUntil === 1 ? '' : 'en'}`,
       subtitle: lastSubmitted ? `Laatst: ${lastSubmitted.split(',')[0]}` : 'Nog niet ingediend'
     };
@@ -180,9 +172,6 @@ const getVoorraadStatus = () => {
   
   return {
     status: 'ok',
-    color: 'text-[#E27726]',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-l-[#E27726]',
     message: `Over ${daysUntil} dagen`,
     subtitle: lastSubmitted ? `Laatst: ${lastSubmitted.split(',')[0]}` : 'Nog niet ingediend'
   };
@@ -200,74 +189,142 @@ const getNextWednesday = (): Date => {
 const getStartOfWeek = (): Date => {
   const today = new Date();
   const dayOfWeek = today.getDay();
-  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Monday as start
+  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
   const monday = new Date(today);
   monday.setDate(today.getDate() + diff);
   monday.setHours(0, 0, 0, 0);
   return monday;
 };
 
-const getWeekNumber = (date: Date = new Date()): number => {
-  const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-  const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
-  return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-};
+/* ─── Stat Card Component ─── */
 
-interface DashboardCardProps {
-  title: string;
-  count: number;
-  onClick: () => void;
+interface StatCardProps {
+  label: string;
+  value: string;
+  icon: React.ReactNode;
+  accentColor: string;
+  onClick?: () => void;
+  children?: React.ReactNode;
   isLoading?: boolean;
-  icon?: React.ReactNode;
 }
 
-const DashboardCard = ({ title, count, onClick, isLoading, icon }: DashboardCardProps) => {
-  return (
-    <div onClick={onClick} style={{ cursor: 'pointer' }}>
-      <PolarKPICard
-        compact
-        title={title}
-        value={isLoading ? "..." : String(count)}
-        statusColor={{ bg: '#FFF7ED', icon }}
-      />
+const StatCard = ({ label, value, icon, accentColor, onClick, children, isLoading }: StatCardProps) => (
+  <div
+    onClick={onClick}
+    style={{
+      background: '#FFFFFF',
+      border: '1px solid #D5D8E0',
+      borderRadius: '20px',
+      boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+      overflow: 'hidden',
+      cursor: onClick ? 'pointer' : 'default',
+      transition: 'box-shadow 0.15s ease, transform 0.15s ease',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+    }}
+    onMouseEnter={e => {
+      if (!onClick) return;
+      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+      e.currentTarget.style.transform = 'translateY(-1px)';
+    }}
+    onMouseLeave={e => {
+      if (!onClick) return;
+      e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.05)';
+      e.currentTarget.style.transform = 'translateY(0)';
+    }}
+  >
+    {/* 3px accent bar */}
+    <div style={{ height: '3px', background: accentColor, width: '100%' }} />
+
+    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
+      {/* Icon + Label row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div
+          style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '12px',
+            background: `${accentColor}1F`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {icon}
+        </div>
+        <span
+          style={{
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '12px',
+            fontWeight: 500,
+            color: '#636878',
+            textTransform: 'uppercase',
+            letterSpacing: '0.03em',
+          }}
+        >
+          {label}
+        </span>
+      </div>
+
+      {/* Value */}
+      <span
+        style={{
+          fontFamily: '"Instrument Sans", sans-serif',
+          fontSize: '28px',
+          fontWeight: 700,
+          color: '#1A1F28',
+          letterSpacing: '-0.03em',
+          lineHeight: 1.1,
+        }}
+      >
+        {isLoading ? '...' : value}
+      </span>
+
+      {/* Optional children (subtitle text) */}
+      {children && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          {children}
+        </div>
+      )}
     </div>
-  );
-};
+  </div>
+);
+
+/* ─── Voorraad Card ─── */
 
 const VoorraadCard = () => {
   const navigate = useNavigate();
   const status = getVoorraadStatus();
   const nextFriday = getNextFriday();
-  
-  // Map status naar Pura Vida colors
-  const getStatusColors = (status: any) => {
-    switch(status.status) {
-      case 'urgent':
-        return { bg: '#FFF7ED', text: '#DC2626', icon: <AlertCircle size={16} /> };
-      case 'warning':
-        return { bg: '#FFF7ED', text: '#D97706', icon: <Clock size={16} /> };
-      case 'ok':
-        return { bg: '#FFF7ED', text: '#E27726', icon: <CheckCircle size={16} /> };
-      default:
-        return undefined;
-    }
+
+  const accentMap: Record<string, string> = {
+    urgent: '#EF4444',
+    warning: '#F59E0B',
+    ok: '#F59E0B',
   };
-  
+
+  const iconMap: Record<string, React.ReactNode> = {
+    urgent: <AlertCircle size={18} color={accentMap.urgent} />,
+    warning: <Clock size={18} color={accentMap.warning} />,
+    ok: <CheckCircle size={18} color={accentMap.ok} />,
+  };
+
   return (
-    <div onClick={() => navigate('/internal-orders')} style={{ cursor: 'pointer' }}>
-      <PolarKPICard
-        compact
-        title="Telling & Bestelling"
-        value={nextFriday.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
-        contentText={{
-          primary: status.message,
-          secondary: status.subtitle
-        }}
-        statusColor={getStatusColors(status)}
-      />
-    </div>
+    <StatCard
+      label="Telling & Bestelling"
+      value={nextFriday.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
+      icon={iconMap[status.status]}
+      accentColor={accentMap[status.status]}
+      onClick={() => navigate('/internal-orders')}
+    >
+      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#303542' }}>{status.message}</span>
+      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#636878' }}>{status.subtitle}</span>
+    </StatCard>
   );
 };
+
+/* ─── Delivery Card ─── */
 
 interface DeliveryCardProps {
   hasOrderThisWeek: boolean;
@@ -277,36 +334,30 @@ interface DeliveryCardProps {
 
 const DeliveryCard = ({ hasOrderThisWeek, isLoading, onClick }: DeliveryCardProps) => {
   const nextWednesday = getNextWednesday();
-  
-  // Pura Vida Sea voor geplaatste orders
-  const statusColor = hasOrderThisWeek 
-    ? { bg: '#FFF7ED', text: '#E27726', icon: <CheckCircle size={16} color="#E27726" /> }
-    : { bg: '#FFF7ED', text: '#73747B', icon: <Package size={16} color="#E27726" /> };
-  
+
   return (
-    <div onClick={onClick} style={{ cursor: 'pointer' }}>
-      <PolarKPICard
-        compact
-        title="Levering van West"
-        value={isLoading 
-          ? "..." 
-          : nextWednesday.toLocaleDateString('nl-NL', { 
-              weekday: 'short', 
-              day: 'numeric', 
-              month: 'short' 
-            })
-        }
-        contentText={{
-          primary: hasOrderThisWeek ? "Bestelling geplaatst" : "Nog geen bestelling",
-          secondary: hasOrderThisWeek 
-            ? "Levering woensdag" 
-            : "Plaats bestelling"
-        }}
-        statusColor={statusColor}
-      />
-    </div>
+    <StatCard
+      label="Levering van West"
+      value={isLoading ? '...' : nextWednesday.toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' })}
+      icon={hasOrderThisWeek
+        ? <CheckCircle size={18} color="#F59E0B" />
+        : <Package size={18} color="#F59E0B" />
+      }
+      accentColor="#F59E0B"
+      onClick={onClick}
+      isLoading={isLoading}
+    >
+      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#303542' }}>
+        {hasOrderThisWeek ? 'Bestelling geplaatst' : 'Nog geen bestelling'}
+      </span>
+      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#636878' }}>
+        {hasOrderThisWeek ? 'Levering woensdag' : 'Plaats bestelling'}
+      </span>
+    </StatCard>
   );
 };
+
+/* ─── Main Dashboard ─── */
 
 export default function Dashboard() {
   const { userLocation } = useUserLocation();
@@ -328,26 +379,13 @@ export default function Dashboard() {
   // Realtime subscription voor FOH Tasks
   useEffect(() => {
     if (!userLocation) return;
-    
     const channel = supabase
       .channel('dashboard-foh-tasks')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'foh_tasks',
-          filter: `location=eq.${userLocation}`
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['dashboard-pending-tasks', userLocation] });
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'foh_tasks', filter: `location=eq.${userLocation}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['dashboard-pending-tasks', userLocation] });
+      })
       .subscribe();
-      
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [userLocation, queryClient]);
 
   // Realtime subscription voor Notifications
@@ -355,77 +393,40 @@ export default function Dashboard() {
     const setupNotificationsSub = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      
       const channel = supabase
         .channel('dashboard-notifications')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${user.id}`
-          },
-          () => {
-            queryClient.invalidateQueries({ queryKey: ['dashboard-notifications'] });
-          }
-        )
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, () => {
+          queryClient.invalidateQueries({ queryKey: ['dashboard-notifications'] });
+        })
         .subscribe();
-        
-      return () => {
-        supabase.removeChannel(channel);
-      };
+      return () => { supabase.removeChannel(channel); };
     };
-    
     setupNotificationsSub();
   }, [queryClient]);
 
   // Realtime subscription voor Internal Orders (alleen Oost)
   useEffect(() => {
     if (!userLocation || userLocation === 'West') return;
-    
     const channel = supabase
       .channel('dashboard-internal-orders')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'internal_orders'
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['dashboard-pending-orders', userLocation] });
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'internal_orders' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['dashboard-pending-orders', userLocation] });
+      })
       .subscribe();
-      
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [userLocation, queryClient]);
 
   // Fetch weather and AI suggestions
   const fetchWeatherAndSuggestions = async () => {
-    // More robust check: ensure location exists and is not just whitespace
-    if (!userLocation?.trim()) {
-      console.log('Skipping weather fetch: no location available');
-      return;
-    }
-    
+    if (!userLocation?.trim()) return;
     setLoadingWeather(true);
     try {
       const { data, error } = await supabase.functions.invoke('weather-ai-advisor', {
         body: { location: userLocation.trim() }
       });
-
       if (error) throw error;
-
-      if (data.weather) {
-        setWeatherData(data.weather);
-      }
-      if (data.suggestions) {
-        setAiSuggestions(data.suggestions);
-      }
+      if (data.weather) setWeatherData(data.weather);
+      if (data.suggestions) setAiSuggestions(data.suggestions);
     } catch (error) {
       console.error('Error fetching weather:', error);
       toast.error('Kon weer niet ophalen');
@@ -434,11 +435,8 @@ export default function Dashboard() {
     }
   };
 
-  // Fetch weather only when location is available
   useEffect(() => {
-    if (userLocation?.trim()) {
-      fetchWeatherAndSuggestions();
-    }
+    if (userLocation?.trim()) fetchWeatherAndSuggestions();
   }, [userLocation]);
 
   // Query 1: Openstaande FOH Taken
@@ -476,7 +474,6 @@ export default function Dashboard() {
     queryKey: ['dashboard-pending-orders', userLocation],
     queryFn: async () => {
       if (userLocation === 'Midsland') {
-        // Voor Midsland: check of er deze week een bestelling is
         const startOfWeek = getStartOfWeek();
         const { data } = await supabase
           .from('internal_orders')
@@ -485,10 +482,8 @@ export default function Dashboard() {
           .eq('to_location', 'Midsland')
           .eq('status', 'approved')
           .gte('created_at', startOfWeek.toISOString());
-        return data && data.length > 0; // Returns boolean
+        return data && data.length > 0;
       }
-      
-      // Voor Oost: bestaande logica (count)
       const { data } = await supabase
         .from('internal_orders')
         .select('*')
@@ -499,18 +494,44 @@ export default function Dashboard() {
     enabled: !!userLocation,
   });
 
+  const today = new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
   return (
     <SidebarLayout>
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <DashboardCard
-            title="Openstaande Taken"
-            count={pendingTasks || 0}
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '40px' }}>
+        {/* Page Header */}
+        <div style={{ borderBottom: '1px solid #D5D8E0', paddingBottom: '20px' }}>
+          <h1 style={{
+            fontFamily: '"Instrument Sans", sans-serif',
+            fontSize: '24px',
+            fontWeight: 700,
+            color: '#1A1F28',
+            letterSpacing: '-0.02em',
+            margin: 0,
+          }}>
+            Dashboard
+          </h1>
+          <p style={{
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '14px',
+            color: '#636878',
+            marginTop: '4px',
+          }}>
+            {userLocation || 'Locatie'} · {today}
+          </p>
+        </div>
+
+        {/* Stat Cards Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+          <StatCard
+            label="Openstaande Taken"
+            value={String(pendingTasks || 0)}
+            icon={<ListTodo size={18} color="#E27726" />}
+            accentColor="#E27726"
             onClick={() => navigate('/taken-bediening')}
             isLoading={loadingTasks}
-            icon={<ListTodo size={16} color="#E27726" />}
           />
-          
+
           <WeatherWidget
             condition={weatherData?.condition}
             temperature={weatherData?.temperature}
@@ -518,33 +539,31 @@ export default function Dashboard() {
             precipitation={weatherData?.precipitation}
             isLoading={loadingWeather || !weatherData}
           />
-          
+
           {userLocation === 'Oost' && (
-            <DashboardCard
-              title="Wachtende Bestellingen"
-              count={(typeof pendingOrders === 'number' ? pendingOrders : 0)}
+            <StatCard
+              label="Wachtende Bestellingen"
+              value={String(typeof pendingOrders === 'number' ? pendingOrders : 0)}
+              icon={<Package size={18} color="#F59E0B" />}
+              accentColor="#F59E0B"
               onClick={() => navigate('/internal-orders')}
               isLoading={loadingOrders}
-              icon={<Package size={16} color="#E27726" />}
             />
           )}
 
           {userLocation === 'Midsland' && (
             <DeliveryCard
-              hasOrderThisWeek={(typeof pendingOrders === 'boolean' ? pendingOrders : false)}
+              hasOrderThisWeek={typeof pendingOrders === 'boolean' ? pendingOrders : false}
               isLoading={loadingOrders}
               onClick={() => navigate('/midsland-bestellingen')}
             />
           )}
-          
+
           {userLocation === 'West' && <VoorraadCard />}
         </div>
 
-        {/* Handover Card - full width below the grid */}
-        <div className="max-w-[1200px]">
-          <HandoverCard />
-        </div>
-
+        {/* Handover Card */}
+        <HandoverCard />
       </div>
     </SidebarLayout>
   );
