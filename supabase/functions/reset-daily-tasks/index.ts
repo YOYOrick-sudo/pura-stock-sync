@@ -52,17 +52,32 @@ Deno.serve(async (req) => {
     console.log(`Archived ${archivedCount || 0} old tasks`);
 
     // Step 2: Get all daily templates
-    const { data: templates, error: templatesError } = await supabase
+    const { data: dailyTemplates, error: dailyError } = await supabase
       .from('foh_daily_templates')
       .select('*')
-      .eq('repeat_type', 'daily');
+      .eq('repeat_type', 'daily')
+      .eq('is_active', true);
 
-    if (templatesError) {
-      console.error('Error fetching templates:', templatesError);
-      throw templatesError;
+    if (dailyError) {
+      console.error('Error fetching daily templates:', dailyError);
+      throw dailyError;
     }
 
-    console.log(`Found ${templates?.length || 0} daily templates`);
+    // Step 2b: Get weekly templates for today's day of week
+    const { data: weeklyTemplates, error: weeklyError } = await supabase
+      .from('foh_daily_templates')
+      .select('*')
+      .eq('repeat_type', 'weekly')
+      .eq('day_of_week', dayOfWeek)
+      .eq('is_active', true);
+
+    if (weeklyError) {
+      console.error('Error fetching weekly templates:', weeklyError);
+      throw weeklyError;
+    }
+
+    const templates = [...(dailyTemplates || []), ...(weeklyTemplates || [])];
+    console.log(`Found ${dailyTemplates?.length || 0} daily + ${weeklyTemplates?.length || 0} weekly templates`);
 
     const locations = ['Midsland', 'West'];
     let totalGenerated = 0;

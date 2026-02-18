@@ -426,6 +426,7 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          day_of_week: number | null
           description: string | null
           estimated_minutes: number | null
           id: string
@@ -441,6 +442,7 @@ export type Database = {
         Insert: {
           category?: string
           created_at?: string
+          day_of_week?: number | null
           description?: string | null
           estimated_minutes?: number | null
           id?: string
@@ -456,6 +458,7 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          day_of_week?: number | null
           description?: string | null
           estimated_minutes?: number | null
           id?: string
@@ -500,6 +503,7 @@ export type Database = {
           completed_at: string | null
           completed_by: string | null
           created_at: string
+          day_of_week: number | null
           description: string | null
           due_date: string
           estimated_minutes: number | null
@@ -520,6 +524,7 @@ export type Database = {
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string
+          day_of_week?: number | null
           description?: string | null
           due_date: string
           estimated_minutes?: number | null
@@ -540,6 +545,7 @@ export type Database = {
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string
+          day_of_week?: number | null
           description?: string | null
           due_date?: string
           estimated_minutes?: number | null
