@@ -1,40 +1,79 @@
 
 
-# Plan: Info-icoon verbeteren + Aquafabe herordenen
+# Enterprise Upgrade: Takenlijst FOH
 
-## 1. Info-icoon vloeiender maken (geen verspringen)
+## Overzicht
 
-Het info-icoon opent nu een `Dialog` (modal). Het "verspringen" komt waarschijnlijk doordat de Dialog-animatie abrupt is. Aanpassing:
+De takenlijst upgraden van "nette checklist" naar enterprise task management met 5 gerichte verbeteringen. Geen functionele wijzigingen, puur visuele kwaliteit.
 
-- Voeg een vloeiende `scale + fade` CSS-transitie toe aan de DialogContent wanneer deze wordt geopend vanuit het info-icoon
-- Gebruik `animate-in fade-in-0 zoom-in-95` met een langzamere duration (200ms in plaats van de standaard snelle animatie)
+## Wijzigingen
 
-**Bestand:** `src/components/foh/FohTasks.tsx` (regels 410-416, DialogContent styling)
+### 1. Sticky header (tabs + progress bar)
 
-## 2. Info-icoon zichtbaarder maken
+De fase-tabs en progress bar pinnen aan de bovenkant zodat ze altijd zichtbaar blijven, ook bij 63+ taken in de sluitlijst.
 
-Het huidige icoon is 14px op een 24x24 button met een subtiele border. Aanpassingen:
+- De header-container (`#F6F7DD` card) krijgt `position: sticky; top: 0; z-index: 10`
+- Subtiele shadow toevoegen wanneer er gescrolld wordt (via een scroll-detection state)
 
-- Icoon grootte van 14px naar 16px
-- Border iets sterker: van `rgba(197,197,202,0.5)` naar `rgba(27,120,103,0.3)` (groen tint)
-- Achtergrondkleur iets meer opvallend: van `#FEFFF1` naar `#E6F4F1` (licht groen, past bij het design system)
-- Icoonkleur blijft `#1B7867` (primary green)
+### 2. Sterkere categorie-koppen
 
-**Bestand:** `src/components/foh/FohTasks.tsx` (regels 323-340, info button styling)
+De huidige koppen (13px, grijs, uppercase) worden vervangen door opvallende section headers:
 
-## 3. Aquafabe boven bar-garnering plaatsen
+- Achtergrondkleur: `#F1F5F9` (muted slate) met licht groene border-left accent
+- Padding: `12px 16px` in plaats van alleen tekst
+- Border-radius: `8px`
+- Sticky binnen de scroll (onder de header)
+- Progress badge duidelijker: groter, met meer contrast
 
-De aquafabe-taak staat nu op sort_order **370** (na bar-garnering op 320). De taak moet **boven** bar-garnering komen.
+### 3. Rijcontrast (zebra striping)
 
-- Update sort_order van de aquafabe-template van 370 naar **315** (net voor bar-garnering op 320)
-- Update ook eventueel bestaande taken voor vandaag
+Elke even rij krijgt een subtiele achtergrondkleur voor betere leesbaarheid:
 
-**Wijziging:** Database-update via migratie
+- Oneven rijen: transparant (zoals nu)
+- Even rijen: `rgba(0, 0, 0, 0.02)` -- net genoeg contrast
+- Hover state: iets sterker (`rgba(27, 120, 103, 0.04)`)
+
+### 4. Moderne achtergrondkleur
+
+De crème achtergrond (#FEFFF1) vervangen door de design system standaard:
+
+- Page background: `#F8FAFC` (modern slate)
+- Header card: `#FFFFFF` met subtiele border (in plaats van #F6F7DD)
+- Dit brengt de takenlijst in lijn met de rest van het design system
+
+### 5. Card-separatie per categorie
+
+Elke categorie-groep (DEEL 1, DEEL 2, BAR, etc.) wordt gewrapt in een eigen card:
+
+- Witte achtergrond met subtiele border en shadow-soft
+- `border-radius: 12px`
+- `margin-bottom: 16px` tussen categorieën
+- Dit geeft visuele structuur en maakt de lijst scanbaar
 
 ## Technische details
 
-| Bestand | Wijziging |
-|---------|-----------|
-| `src/components/foh/FohTasks.tsx` | Info button styling (groter, zichtbaarder) + Dialog animatie vloeiender |
-| Database migratie | `UPDATE foh_daily_templates SET sort_order = 315 WHERE title LIKE 'Aquafabe%' AND phase = 'open'` |
+### Bestand
+
+Alleen `src/components/foh/FohTasks.tsx` wordt aangepast.
+
+### Specifieke wijzigingen
+
+| Locatie (ca. regels) | Wat | Aanpassing |
+|---|---|---|
+| 1665 | Outer container | `backgroundColor: '#F8FAFC'` i.p.v. `'#FEFFF1'` |
+| 1667-1674 | Header card | `backgroundColor: '#FFFFFF'`, `position: 'sticky'`, `top: 0`, `zIndex: 10`, scroll-shadow |
+| 1715, 1781, 1857 | Button inactive backgrounds | `'#F8FAFC'` i.p.v. `'#FEFFF1'` |
+| 1815 | Progress bar track | `'#F1F5F9'` i.p.v. `'#FEFFF1'` |
+| 2196-2220 | Category headers | Toevoegen achtergrond, padding, border-left accent, sticky positioning |
+| 2221-2262 | Task rows | Zebra striping via `index % 2` check |
+| 2237 | SortableTaskItem | `taskIndex` prop doorgeven voor zebra |
+| ~230-400 | SortableTaskItem component | Achtergrondkleur op basis van even/oneven index |
+
+### Scroll-detectie voor sticky shadow
+
+Een `useState` + `useEffect` met een scroll event listener op de task container. Als `scrollTop > 0`, krijgt de header een `boxShadow: '0 2px 8px rgba(0,0,0,0.08)'`.
+
+### Consistentie
+
+Alle hardcoded `#FEFFF1` referenties in de UI (buttons, dialogs, checkboxes) worden vervangen door `#F8FAFC` of `#FFFFFF` waar passend. Dit raakt ca. 15-20 plekken in het bestand.
 
