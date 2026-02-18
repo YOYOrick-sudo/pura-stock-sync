@@ -8,6 +8,16 @@ export interface PolarHeaderProps {
   onMenuClick?: () => void;
 }
 
+/**
+ * PolarHeader - EXACT header from PolarBaseUI
+ * 
+ * Specifications:
+ * - Height: 72px
+ * - Background: #FFFFFF
+ * - Padding: 0 48px
+ * - Font: Inter, 24px, 600 weight
+ * - Color: #17171C
+ */
 export function PolarHeader({ 
   title = 'Dashboard', 
   showStatusIndicator = true,
@@ -18,17 +28,16 @@ export function PolarHeader({
     <div 
       className="h-[60px] md:h-[72px] flex items-center justify-between px-4 md:px-12"
       style={{
-        backgroundColor: '#F8F9FA',
-        borderBottom: '1px solid #D5D8E0',
+        backgroundColor: '#FEFFF1',
       }}
     >
       <div className="flex items-center gap-3">
         {onMenuClick && (
           <button
             onClick={onMenuClick}
-            className="flex items-center justify-center w-10 h-10 rounded-xl transition-colors hover:bg-[#F1F3F5]"
+            className="flex items-center justify-center w-10 h-10 rounded-lg transition-colors hover:bg-[#F6F7DD]"
             style={{
-              border: '1px solid #D5D8E0',
+              border: '1px solid rgba(197, 197, 202, 0.3)',
             }}
             aria-label="Open menu"
           >
@@ -38,9 +47,10 @@ export function PolarHeader({
         <h1 
           className="text-lg md:text-2xl"
           style={{
-            fontFamily: "'Instrument Sans', 'Inter', sans-serif",
-            fontWeight: 700,
-            color: '#1A1F28',
+            fontFamily: 'Inter, sans-serif',
+            fontWeight: 600,
+            color: '#282E3A',
+            marginTop: '14px',
           }}
         >
           {title}
@@ -52,7 +62,8 @@ export function PolarHeader({
           style={{
             fontFamily: 'Inter, sans-serif',
             fontWeight: 500,
-            color: '#636878',
+            color: '#73747B',
+            marginTop: '14px',
           }}
         >
           Locatie: {location}

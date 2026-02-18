@@ -116,8 +116,8 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
   if (loading) {
     return (
       <Card style={{ 
-        backgroundColor: '#FFF7ED',
-        border: '1px solid #D5D8E0',
+        backgroundColor: '#F6F7DD',
+        border: '1px solid rgba(197, 197, 202, 0.5)',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)'
       }}>
         <CardHeader className="pb-4">
@@ -142,7 +142,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <p className="text-sm" style={{ color: '#636878' }}>Advies wordt gegenereerd...</p>
+          <p className="text-sm" style={{ color: '#73747B' }}>Advies wordt gegenereerd...</p>
         </CardContent>
       </Card>
     );
@@ -150,8 +150,8 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
 
   return (
     <Card style={{ 
-      backgroundColor: '#FFF7ED',
-      border: '1px solid #D5D8E0',
+      backgroundColor: '#F6F7DD',
+      border: '1px solid rgba(197, 197, 202, 0.5)',
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)'
     }}>
       <CardHeader className="pb-4">
@@ -183,14 +183,14 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
               className="p-4 rounded-polar-md"
               style={{ 
                 backgroundColor: '#FFFFFF',
-                border: '1px solid #EAECF0'
+                border: '1px solid rgba(197, 197, 202, 0.3)'
               }}
             >
               <h4 className="font-semibold text-base mb-2" style={{ color: '#282E3A' }}>
                 {suggestion.text}
               </h4>
               
-              <p className="text-sm mb-3" style={{ color: '#636878' }}>
+              <p className="text-sm mb-3" style={{ color: '#73747B' }}>
                 {suggestion.reasoning}
               </p>
               
@@ -210,7 +210,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
                 <Button
                   size="sm"
                   onClick={() => handleCreateTask(suggestion.id, suggestion.text, suggestion.reasoning)}
-                  style={{ backgroundColor: '#E27726', color: '#FFFFFF' }}
+                  style={{ backgroundColor: '#1B7867', color: '#FFFFFF' }}
                   className="rounded-polar-md"
                 >
                   <CheckCircle2 className="h-4 w-4 mr-1" />

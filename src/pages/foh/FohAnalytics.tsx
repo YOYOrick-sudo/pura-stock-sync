@@ -3,21 +3,22 @@ import { SidebarLayout } from '@/components/SidebarLayout';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useStatisticsTimeout } from '@/hooks/useStatisticsTimeout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { FohTaskWithEmployee, PhaseType } from '@/types/foh';
-import { format, subDays } from 'date-fns';
+import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Cell } from 'recharts';
 import { Download, TrendingUp, CheckCircle2, AlertCircle, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function FohAnalytics() {
   const { userLocation } = useUserLocation();
-  const [dateRange, setDateRange] = useState(30);
+  const [dateRange, setDateRange] = useState(30); // Last 30 days
   
   useStatisticsTimeout();
 
@@ -28,10 +29,14 @@ export default function FohAnalytics() {
       const startDate = format(subDays(new Date(), dateRange), 'yyyy-MM-dd');
       const { data, error } = await supabase
         .from('foh_tasks')
-        .select(`*, foh_employees(*)`)
+        .select(`
+          *,
+          foh_employees(*)
+        `)
         .eq('location', userLocation)
         .gte('due_date', startDate)
         .order('due_date', { ascending: false });
+
       if (error) throw error;
       return data as FohTaskWithEmployee[];
     },
@@ -41,25 +46,44 @@ export default function FohAnalytics() {
   // Group tasks by date to identify active days (days with at least 1 completed task)
   const activeDays = useMemo(() => {
     const daysWithActivity = new Set<string>();
-    tasks.forEach(t => { if (t.completed) daysWithActivity.add(t.due_date); });
+    tasks.forEach(t => {
+      if (t.completed) {
+        daysWithActivity.add(t.due_date);
+      }
+    });
     return daysWithActivity;
   }, [tasks]);
 
   // Calculate statistics - only count tasks from active days
   const stats = useMemo(() => {
+    // Filter tasks to only include those from active days
     const activeDayTasks = tasks.filter(t => activeDays.has(t.due_date));
+    
     const total = activeDayTasks.length;
     const completed = activeDayTasks.filter(t => t.completed).length;
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
-    const problematic = activeDayTasks.filter(t => !t.completed && new Date(t.due_date) < new Date()).length;
-    const employeeStats = tasks.filter(t => t.completed && t.completed_by).reduce((acc, task) => {
-      const empId = task.completed_by!;
-      const empName = task.foh_employees?.name || 'Onbekend';
-      if (!acc[empId]) acc[empId] = { name: empName, count: 0 };
-      acc[empId].count++;
-      return acc;
-    }, {} as Record<string, { name: string; count: number }>);
+
+    // Tasks that are incomplete and past due date (only from active days)
+    const problematic = activeDayTasks.filter(t => 
+      !t.completed && 
+      new Date(t.due_date) < new Date()
+    ).length;
+
+    // Find employee with most completions
+    const employeeStats = tasks
+      .filter(t => t.completed && t.completed_by)
+      .reduce((acc, task) => {
+        const empId = task.completed_by!;
+        const empName = task.foh_employees?.name || 'Onbekend';
+        if (!acc[empId]) {
+          acc[empId] = { name: empName, count: 0 };
+        }
+        acc[empId].count++;
+        return acc;
+      }, {} as Record<string, { name: string; count: number }>);
+
     const topPerformer = Object.values(employeeStats).sort((a, b) => b.count - a.count)[0];
+
     return { total, completed, completionRate, problematic, topPerformer, activeDaysCount: activeDays.size };
   }, [tasks, activeDays]);
 
@@ -68,6 +92,7 @@ export default function FohAnalytics() {
     const phases: PhaseType[] = ['open', 'tussen', 'sluit'];
     return phases.map(phase => ({
       phase: phase.toUpperCase(),
+      Totaal: tasks.filter(t => t.phase === phase).length,
       Voltooid: tasks.filter(t => t.phase === phase && t.completed).length,
       'Niet voltooid': tasks.filter(t => t.phase === phase && !t.completed).length,
     }));
@@ -77,36 +102,64 @@ export default function FohAnalytics() {
   const timelineData = useMemo(() => {
     const weeks = Math.ceil(dateRange / 7);
     const data = [];
+
     for (let i = weeks - 1; i >= 0; i--) {
       const weekEnd = subDays(new Date(), i * 7);
       const weekStart = subDays(weekEnd, 7);
-      const weekTasks = tasks.filter(t => { const d = new Date(t.due_date); return d >= weekStart && d < weekEnd; });
+      
+      const weekTasks = tasks.filter(t => {
+        const dueDate = new Date(t.due_date);
+        return dueDate >= weekStart && dueDate < weekEnd;
+      });
+
       const completed = weekTasks.filter(t => t.completed).length;
       const total = weekTasks.length;
-      if (completed > 0) data.push({ week: format(weekStart, 'dd MMM', { locale: nl }), rate: Math.round((completed / total) * 100) });
+      
+      // Only include weeks with at least 1 completed task (active week)
+      if (completed > 0) {
+        const rate = Math.round((completed / total) * 100);
+        data.push({
+          week: format(weekStart, 'dd MMM', { locale: nl }),
+          rate,
+        });
+      }
     }
+
     return data;
   }, [tasks, dateRange]);
 
   // Most problematic tasks - only count from active days
   const problematicTasks = useMemo(() => {
-    const taskStats = tasks.filter(t => !t.completed && activeDays.has(t.due_date)).reduce((acc, task) => {
-      const title = task.title;
-      if (!acc[title]) acc[title] = { title, count: 0, phase: task.phase, priority: task.priority };
-      acc[title].count++;
-      return acc;
-    }, {} as Record<string, { title: string; count: number; phase: string | null; priority: number }>);
-    return Object.values(taskStats).sort((a, b) => b.count - a.count).slice(0, 10);
+    const taskStats = tasks
+      .filter(t => !t.completed && activeDays.has(t.due_date)) // Only from active days
+      .reduce((acc, task) => {
+        const title = task.title;
+        if (!acc[title]) {
+          acc[title] = { title, count: 0, phase: task.phase, priority: task.priority };
+        }
+        acc[title].count++;
+        return acc;
+      }, {} as Record<string, { title: string; count: number; phase: string | null; priority: number }>);
+
+    return Object.values(taskStats)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
   }, [tasks, activeDays]);
 
   // Export to CSV
   const exportToCSV = () => {
     const headers = ['Datum', 'Fase', 'Taak', 'Prioriteit', 'Status', 'Toegewezen aan', 'Voltooid door', 'Voltooid op'];
     const rows = tasks.map(task => [
-      format(new Date(task.due_date), 'dd-MM-yyyy'), task.phase?.toUpperCase() || '-', task.title, task.priority,
-      task.completed ? 'Voltooid' : 'Open', task.foh_employees?.name || '-', task.completed_by || '-',
+      format(new Date(task.due_date), 'dd-MM-yyyy'),
+      task.phase?.toUpperCase() || '-',
+      task.title,
+      task.priority,
+      task.completed ? 'Voltooid' : 'Open',
+      task.foh_employees?.name || '-',
+      task.completed_by || '-',
       task.completed_at ? format(new Date(task.completed_at), 'dd-MM-yyyy HH:mm') : '-',
     ]);
+
     const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -120,8 +173,8 @@ export default function FohAnalytics() {
   if (isLoading) {
     return (
       <SidebarLayout>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '28px 32px' }}>
-          <h1 style={{ fontFamily: "'Instrument Sans', sans-serif", fontSize: '24px', fontWeight: 700, color: '#1A1F28' }}>Laden...</h1>
+        <div className="max-w-7xl mx-auto px-6 space-y-10 pt-12">
+          <h1 className="text-3xl font-heading font-bold text-foreground">Laden...</h1>
         </div>
       </SidebarLayout>
     );
@@ -129,12 +182,12 @@ export default function FohAnalytics() {
 
   return (
     <SidebarLayout>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '28px 32px' }} className="space-y-6">
+      <div className="max-w-7xl mx-auto px-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 style={{ fontFamily: "'Instrument Sans', sans-serif", fontSize: '24px', fontWeight: 700, color: '#1A1F28', letterSpacing: '-0.02em' }}>Taken Analyse</h1>
-            <p style={{ fontSize: '14px', color: '#636878' }}>{userLocation}</p>
+            <h1 className="text-3xl font-heading font-bold text-foreground">Taken Analyse</h1>
+            <p className="text-sm text-muted-foreground">{userLocation}</p>
           </div>
           <Button onClick={exportToCSV} variant="outline">
             <Download className="h-4 w-4 mr-2" />
@@ -142,114 +195,172 @@ export default function FohAnalytics() {
           </Button>
         </div>
 
-        {/* Date Range - Pill buttons */}
+        {/* Date Range Filter */}
         <div className="flex gap-2">
-          {[7, 30, 90].map(d => (
-            <button key={d} onClick={() => setDateRange(d)} style={{
-              padding: '4px 12px', borderRadius: '9999px', fontSize: '13px', fontWeight: 500, border: 'none', cursor: 'pointer', transition: 'all 0.15s',
-              backgroundColor: dateRange === d ? '#FFF7ED' : 'transparent',
-              color: dateRange === d ? '#A5500D' : '#4A4F5E',
-            }}>
-              {d}D
-            </button>
-          ))}
+          <Button
+            variant={dateRange === 7 ? 'default' : 'outline'}
+            onClick={() => setDateRange(7)}
+            size="sm"
+          >
+            7 dagen
+          </Button>
+          <Button
+            variant={dateRange === 30 ? 'default' : 'outline'}
+            onClick={() => setDateRange(30)}
+            size="sm"
+          >
+            30 dagen
+          </Button>
+          <Button
+            variant={dateRange === 90 ? 'default' : 'outline'}
+            onClick={() => setDateRange(90)}
+            size="sm"
+          >
+            90 dagen
+          </Button>
         </div>
 
-        {/* Stat Cards */}
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-          {[
-            { label: 'Totaal Taken', value: stats.total, sub: `Laatste ${dateRange} dagen`, icon: CheckCircle2, accent: '#E27726' },
-            { label: 'Voltooiingspercentage', value: `${stats.completionRate}%`, sub: `${stats.completed} van ${stats.total}`, icon: TrendingUp, accent: '#22C55E' },
-            { label: 'Achterstallig', value: stats.problematic, sub: 'Niet voltooid & verlopen', icon: AlertCircle, accent: '#EF4444' },
-            { label: 'Top Performer', value: stats.topPerformer?.name || '-', sub: `${stats.topPerformer?.count || 0} taken`, icon: Trophy, accent: '#3B82F6' },
-          ].map((card, i) => (
-            <Card key={i} style={{ borderRadius: '20px', border: '1px solid #D5D8E0', overflow: 'hidden', position: 'relative' }}>
-              <div style={{ height: '3px', backgroundColor: card.accent, width: '100%' }} />
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span style={{ fontSize: '12px', fontWeight: 500, color: '#636878', textTransform: 'uppercase', letterSpacing: '0.03em' }}>{card.label}</span>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '12px', backgroundColor: `${card.accent}1F`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <card.icon style={{ width: '18px', height: '18px', color: card.accent }} />
-                  </div>
-                </div>
-                <div style={{ fontSize: '28px', fontWeight: 700, color: '#1A1F28', fontFamily: "'Instrument Sans', sans-serif", letterSpacing: '-0.03em' }}>{card.value}</div>
-                <p style={{ fontSize: '12px', color: '#636878' }}>{card.sub}</p>
+        {/* Overview Cards */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Totaal Taken</CardTitle>
+              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.total}</div>
+              <p className="text-xs text-muted-foreground">
+                Laatste {dateRange} dagen
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Voltooiingspercentage</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.completionRate}%</div>
+              <p className="text-xs text-muted-foreground">
+                {stats.completed} van {stats.total} voltooid
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Achterstallig</CardTitle>
+              <AlertCircle className="h-4 w-4 text-destructive" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-destructive">{stats.problematic}</div>
+              <p className="text-xs text-muted-foreground">
+                Niet voltooid & verlopen
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Top Performer</CardTitle>
+              <Trophy className="h-4 w-4 text-secondary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold truncate">
+                {stats.topPerformer?.name || '-'}
               </div>
-            </Card>
-          ))}
+              <p className="text-xs text-muted-foreground">
+                {stats.topPerformer?.count || 0} taken voltooid
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Charts */}
         <div className="grid gap-6 md:grid-cols-2">
-          <Card style={{ borderRadius: '20px', border: '1px solid #D5D8E0' }}>
-            <CardHeader style={{ borderBottom: '1px solid #EAECF0' }}>
-              <CardTitle style={{ fontSize: '14px', fontWeight: 600, color: '#1A1F28' }}>Taken per Fase</CardTitle>
-              <CardDescription style={{ fontSize: '12px', color: '#636878' }}>Verdeling over de fases</CardDescription>
+          <Card>
+            <CardHeader>
+              <CardTitle>Taken per Fase</CardTitle>
+              <CardDescription>Verdeling van taken over de verschillende fases</CardDescription>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={phaseData}>
-                  <CartesianGrid strokeDasharray="4 4" stroke="#EAECF0" />
-                  <XAxis dataKey="phase" tick={{ fontSize: 11, fill: '#636878' }} />
-                  <YAxis tick={{ fontSize: 11, fill: '#636878' }} />
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="phase" />
+                  <YAxis />
                   <Tooltip />
-                  <Bar dataKey="Voltooid" fill="#E27726" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="Niet voltooid" fill="#8D93A0" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="Voltooid" fill="hsl(var(--primary))" />
+                  <Bar dataKey="Niet voltooid" fill="hsl(var(--destructive))" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          <Card style={{ borderRadius: '20px', border: '1px solid #D5D8E0' }}>
-            <CardHeader style={{ borderBottom: '1px solid #EAECF0' }}>
-              <CardTitle style={{ fontSize: '14px', fontWeight: 600, color: '#1A1F28' }}>Voltooiing over Tijd</CardTitle>
-              <CardDescription style={{ fontSize: '12px', color: '#636878' }}>Trend per week</CardDescription>
+          <Card>
+            <CardHeader>
+              <CardTitle>Voltooiingspercentage over Tijd</CardTitle>
+              <CardDescription>Trend van voltooide taken per week</CardDescription>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={timelineData}>
-                  <CartesianGrid strokeDasharray="4 4" stroke="#EAECF0" />
-                  <XAxis dataKey="week" tick={{ fontSize: 11, fill: '#636878' }} />
-                  <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: '#636878' }} />
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="week" />
+                  <YAxis domain={[0, 100]} />
                   <Tooltip formatter={(value) => `${value}%`} />
-                  <Line type="monotone" dataKey="rate" stroke="#E27726" strokeWidth={2} dot={{ fill: '#E27726', r: 3 }} />
+                  <Line 
+                    type="monotone" 
+                    dataKey="rate" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={2}
+                    dot={{ fill: 'hsl(var(--primary))' }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </div>
 
-        {/* Problematic Tasks Table */}
-        <Card style={{ borderRadius: '20px', border: '1px solid #D5D8E0', overflow: 'hidden' }}>
-          <CardHeader style={{ borderBottom: '1px solid #EAECF0' }}>
-            <CardTitle style={{ fontSize: '14px', fontWeight: 600, color: '#1A1F28' }}>Probleemtaken</CardTitle>
-            <CardDescription style={{ fontSize: '12px', color: '#636878' }}>Taken die vaak onvoltooid blijven</CardDescription>
+        {/* Problematic Tasks */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Probleemtaken</CardTitle>
+            <CardDescription>Taken die vaak onvoltooid blijven</CardDescription>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent>
             <Table>
               <TableHeader>
-                <TableRow style={{ backgroundColor: '#F8F9FA' }}>
-                  <TableHead style={{ fontSize: '11px', fontWeight: 500, color: '#636878', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Taak</TableHead>
-                  <TableHead style={{ fontSize: '11px', fontWeight: 500, color: '#636878', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fase</TableHead>
-                  <TableHead style={{ fontSize: '11px', fontWeight: 500, color: '#636878', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Prioriteit</TableHead>
-                  <TableHead className="text-right" style={{ fontSize: '11px', fontWeight: 500, color: '#636878', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Onvoltooid</TableHead>
+                <TableRow>
+                  <TableHead>Taak</TableHead>
+                  <TableHead>Fase</TableHead>
+                  <TableHead>Prioriteit</TableHead>
+                  <TableHead className="text-right">Aantal keer onvoltooid</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {problematicTasks.map((task, idx) => (
                   <TableRow key={idx}>
-                    <TableCell style={{ fontSize: '13px', fontWeight: 500, color: '#303542' }}>{task.title}</TableCell>
-                    <TableCell><Badge variant="outline" style={{ borderRadius: '9999px' }}>{task.phase?.toUpperCase() || '-'}</Badge></TableCell>
+                    <TableCell className="font-medium">{task.title}</TableCell>
                     <TableCell>
-                      <Badge variant={task.priority === 1 ? 'destructive' : 'secondary'} style={{ borderRadius: '9999px' }}>P{task.priority}</Badge>
+                      <Badge variant="outline">{task.phase?.toUpperCase() || '-'}</Badge>
                     </TableCell>
-                    <TableCell className="text-right" style={{ fontFamily: "'Geist Mono', monospace", fontSize: '12px', fontWeight: 500 }}>{task.count}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={task.priority === 1 ? 'destructive' : task.priority === 2 ? 'default' : 'secondary'}
+                      >
+                        P{task.priority}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-bold">{task.count}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
+
       </div>
     </SidebarLayout>
   );

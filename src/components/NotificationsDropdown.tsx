@@ -126,14 +126,14 @@ export function NotificationsDropdown() {
             border: 'none',
           }}
         >
-          <Bell className="h-6 w-6" style={{ color: '#636878' }} />
+          <Bell className="h-6 w-6" style={{ color: '#36373A' }} />
           {unreadCount > 0 && (
             <span 
               className="absolute top-0.5 right-0.5 rounded-full" 
               style={{
                 width: '6px',
                 height: '6px',
-                backgroundColor: '#E27726',
+                backgroundColor: '#1B7867',
               }}
             />
           )}
@@ -145,20 +145,20 @@ export function NotificationsDropdown() {
         sideOffset={8}
         style={{
           borderRadius: '16px',
-          border: '1px solid #EAECF0',
+          border: '1px solid #ECEDED',
           boxShadow: '0 2px 4px 0 rgb(0 0 0 / 0.05)',
         }}
       >
         <div 
           className="flex items-center justify-between px-3 py-2"
-          style={{ borderBottom: '1px solid #EAECF0' }}
+          style={{ borderBottom: '1px solid #ECEDED' }}
         >
           <h3 
             style={{
               fontFamily: 'Inter, sans-serif',
               fontSize: '15px',
               fontWeight: 600,
-              color: '#282E3A',
+              color: '#17171C',
             }}
           >
             Meldingen
@@ -169,7 +169,7 @@ export function NotificationsDropdown() {
               style={{
                 fontFamily: 'Inter, sans-serif',
                 fontSize: '13px',
-                color: '#E27726',
+                color: '#1B7867',
                 fontWeight: 500,
                 transition: 'opacity 150ms',
               }}
@@ -192,7 +192,7 @@ export function NotificationsDropdown() {
               style={{
                 fontFamily: 'Inter, sans-serif',
                 fontSize: '14px',
-                color: '#636878',
+                color: '#73747B',
               }}
             >
               Geen meldingen
@@ -206,15 +206,15 @@ export function NotificationsDropdown() {
                   className="cursor-pointer"
                   style={{
                     padding: '12px 16px',
-                    backgroundColor: !notification.read ? '#F1F3F5' : '#FFFFFF',
-                    borderBottom: index < notifications.length - 1 ? '1px solid #EAECF0' : 'none',
+                    backgroundColor: !notification.read ? '#F4F5F6' : '#FFFFFF',
+                    borderBottom: index < notifications.length - 1 ? '1px solid #ECEDED' : 'none',
                     transition: 'background-color 150ms',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(226, 119, 38, 0.04)';
+                    e.currentTarget.style.backgroundColor = 'rgba(27, 120, 103, 0.04)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = !notification.read ? '#F1F3F5' : '#FFFFFF';
+                    e.currentTarget.style.backgroundColor = !notification.read ? '#F4F5F6' : '#FFFFFF';
                   }}
                 >
                   <div className="flex justify-between items-start mb-1">
@@ -223,7 +223,7 @@ export function NotificationsDropdown() {
                         fontFamily: 'Inter, sans-serif',
                         fontSize: '15px',
                         fontWeight: 500,
-                        color: '#282E3A',
+                        color: '#17171C',
                       }}
                     >
                       {notification.title}
@@ -232,7 +232,7 @@ export function NotificationsDropdown() {
                       style={{
                         fontFamily: 'Inter, sans-serif',
                         fontSize: '13px',
-                        color: '#636878',
+                        color: '#73747B',
                       }}
                     >
                       {formatDate(notification.created_at)}
@@ -242,7 +242,7 @@ export function NotificationsDropdown() {
                     style={{
                       fontFamily: 'Inter, sans-serif',
                       fontSize: '14px',
-                      color: '#636878',
+                      color: '#36373A',
                     }}
                   >
                     {notification.message}

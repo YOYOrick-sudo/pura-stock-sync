@@ -22,9 +22,9 @@ export function PolarDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
         style={{
-          backgroundColor: '#FFFFFF',
+          backgroundColor: '#FEFFF1',
           borderRadius: '20px',
-          border: '1px solid #D5D8E0',
+          border: '1px solid rgba(197, 197, 202, 0.5)',
           padding: '32px',
           maxWidth,
           boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
@@ -51,7 +51,7 @@ export function PolarDialog({
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '14px',
                   fontWeight: 400,
-                  color: '#636878',
+                  color: '#73747B',
                   marginBottom: '24px',
                 }}
               >
@@ -70,7 +70,7 @@ export function PolarDialog({
 export const polarDialogInputStyle: React.CSSProperties = {
   backgroundColor: '#FFFFFF',
   borderRadius: '16px',
-  border: '1px solid #D5D8E0',
+  border: '1px solid rgba(197, 197, 202, 0.5)',
   padding: '12px 16px',
   fontFamily: 'Inter, sans-serif',
   fontSize: '14px',
@@ -88,7 +88,7 @@ export const polarDialogLabelStyle: React.CSSProperties = {
 };
 
 export const polarDialogButtonPrimaryStyle: React.CSSProperties = {
-  backgroundColor: '#E27726',
+  backgroundColor: '#1B7867',
   color: '#FFFFFF',
   borderRadius: '20px',
   padding: '12px 24px',
@@ -108,7 +108,7 @@ export const polarDialogButtonSecondaryStyle: React.CSSProperties = {
   fontFamily: 'Inter, sans-serif',
   fontSize: '14px',
   fontWeight: 500,
-  border: '1px solid #D5D8E0',
+  border: '1px solid rgba(197, 197, 202, 0.5)',
   cursor: 'pointer',
   transition: 'all 0.15s ease',
 };

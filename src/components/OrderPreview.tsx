@@ -33,29 +33,29 @@ export const OrderPreview = ({ open, onClose, orderData }: OrderPreviewProps) =>
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" style={{
-        backgroundColor: '#FFFFFF',
-        borderRadius: '24px',
-        border: '1px solid #D5D8E0',
+        backgroundColor: '#FEFFF1',
+        borderRadius: '20px',
+        border: '1px solid rgba(197, 197, 202, 0.5)',
         padding: '32px',
         boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
       }}>
         <DialogHeader>
-          <DialogTitle className="text-2xl text-[#1A1F28]" style={{ fontFamily: "'Instrument Sans', sans-serif", fontWeight: 700, letterSpacing: '-0.02em' }}>Bestelvoorbeeld</DialogTitle>
-          <DialogDescription className="text-[#636878]">
+          <DialogTitle className="text-2xl text-[#282E3A]">Bestelvoorbeeld</DialogTitle>
+          <DialogDescription className="text-[#282E3A]/60">
             Controleer je bestelling voordat je verstuurt
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 mt-4">
           {/* Order Info */}
-          <div style={{ backgroundColor: '#F8F9FA', borderRadius: '14px', padding: '16px' }} className="space-y-2">
+          <div className="bg-[#F5F7DD] rounded-lg p-4 space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-[#636878]">Locatie:</span>
-              <span className="font-semibold text-[#303542]">{orderData.locatie}</span>
+              <span className="text-[#282E3A]/60">Locatie:</span>
+              <span className="font-semibold text-[#282E3A]">{orderData.locatie}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-[#636878]">Datum:</span>
-              <span className="font-semibold text-[#303542]">
+              <span className="text-[#282E3A]/60">Datum:</span>
+              <span className="font-semibold text-[#282E3A]">
                 {new Date(orderData.datum).toLocaleDateString('nl-NL', {
                   day: 'numeric',
                   month: 'long',
@@ -66,23 +66,23 @@ export const OrderPreview = ({ open, onClose, orderData }: OrderPreviewProps) =>
           </div>
 
           {/* Products Table */}
-          <div style={{ border: '1px solid #D5D8E0', borderRadius: '20px', overflow: 'hidden' }}>
+          <div className="border border-[#1B7867]/10 rounded-lg overflow-hidden">
             <table className="w-full">
-              <thead style={{ backgroundColor: '#F8F9FA' }}>
+              <thead className="bg-[#1B7867]/5">
                 <tr>
-                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11px', fontWeight: 500, color: '#636878', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #D5D8E0' }}>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-[#282E3A]/80 uppercase tracking-wider">
                     Product
                   </th>
-                  <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '11px', fontWeight: 500, color: '#636878', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #D5D8E0' }}>
+                  <th className="px-4 py-3 text-center text-xs font-bold text-[#282E3A]/80 uppercase tracking-wider">
                     Voorraad
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-[#1B7867]/5">
                 {orderData.producten.map((product, index) => (
-                  <tr key={index} style={{ borderBottom: '1px solid #EAECF0' }}>
-                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#303542' }}>{product.naam}</td>
-                    <td style={{ padding: '12px 16px', fontSize: '12px', textAlign: 'center', fontFamily: "'Geist Mono', monospace", fontWeight: 500, color: '#282E3A' }}>
+                  <tr key={index} className="even:bg-[#1B7867]/[0.02]">
+                    <td className="px-4 py-3 text-sm text-[#282E3A]/90">{product.naam}</td>
+                    <td className="px-4 py-3 text-sm text-center font-mono text-[#282E3A]/80">
                       {product.voorraad}
                     </td>
                   </tr>
@@ -92,10 +92,10 @@ export const OrderPreview = ({ open, onClose, orderData }: OrderPreviewProps) =>
           </div>
 
           {/* Total */}
-          <div style={{ backgroundColor: 'rgba(226,119,38,0.06)', borderRadius: '14px', padding: '16px', border: '1px solid rgba(226,119,38,0.15)' }}>
+          <div className="bg-gradient-to-br from-[#1B7867]/5 to-[#1B7867]/10 rounded-lg p-4 border-2 border-[#1B7867]/30">
             <div className="flex justify-between items-center">
-              <span style={{ fontSize: '13px', fontWeight: 600, color: '#303542' }}>Totaal producten</span>
-              <span style={{ fontSize: '28px', fontWeight: 700, color: '#E27726', fontFamily: "'Geist Mono', monospace", letterSpacing: '-0.03em' }}>{totalProducts}</span>
+              <span className="text-sm font-semibold text-[#282E3A]">Totaal producten</span>
+              <span className="text-3xl font-bold text-[#1B7867]">{totalProducts}</span>
             </div>
           </div>
 
@@ -104,14 +104,14 @@ export const OrderPreview = ({ open, onClose, orderData }: OrderPreviewProps) =>
             <Button
               variant="outline"
               onClick={handlePrint}
-              className="flex-1"
+              className="flex-1 border-2 border-[#1B7867] text-[#1B7867] hover:bg-[#1B7867]/5"
             >
               <Printer className="mr-2 h-4 w-4" />
               Printen
             </Button>
             <Button
               onClick={onClose}
-              className="flex-1"
+              className="flex-1 bg-[#1B7867] hover:bg-[#0d5a4c] text-white"
             >
               Sluiten
             </Button>

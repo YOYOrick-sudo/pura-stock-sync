@@ -5,6 +5,3 @@ verify_jwt = false
 
 [functions.reset-daily-tasks]
 verify_jwt = false
-
-[functions.invite-employee]
-verify_jwt = false

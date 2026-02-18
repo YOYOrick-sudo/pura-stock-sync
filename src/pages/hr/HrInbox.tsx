@@ -24,8 +24,12 @@ export default function HrInbox() {
   return (
     <SidebarLayout>
       <div className="p-6 space-y-6">
-        {/* Action Row */}
-        <div className="flex justify-end">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-heading font-bold text-foreground">HR Inbox</h1>
+            <p className="text-muted-foreground">Beheer sollicitaties en opvolging</p>
+          </div>
           <Button onClick={() => navigate('/hr/applicants/new')}>
             <Plus className="h-4 w-4 mr-2" />
             Nieuwe Kandidaat

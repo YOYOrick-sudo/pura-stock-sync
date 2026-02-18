@@ -1,6 +1,6 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Menu, PanelLeft, Search } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Menu, PanelLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,7 +17,6 @@ export interface PolarSidebarItem {
   active: boolean;
   requiresCode?: boolean;
   onClick?: (e: React.MouseEvent) => void;
-  badge?: number;
 }
 
 export interface PolarSidebarProps {
@@ -28,6 +27,20 @@ export interface PolarSidebarProps {
   headerSlot?: React.ReactNode;
 }
 
+/**
+ * PolarSidebar - Exact sidebar from PolarBaseUI
+ * 
+ * Specifications:
+ * - Width: 280px (expanded), 64px (collapsed)
+ * - Background: #FFFFFF
+ * - Border: 1px solid #ECEDED (right)
+ * - Header: 72px height
+ * - Navigation items: 48px height, 12px gap
+ * - Active state: rgba(27, 120, 103, 0.08) + 3px solid #1B7867 left border
+ * - Hover state: #F4F5F6
+ * - Font: Inter, 15px, 500 weight
+ * - Transitions: 200ms ease
+ */
 export function PolarSidebar({
   logo,
   items,
@@ -41,28 +54,29 @@ export function PolarSidebar({
     <aside
       className="polar-sidebar flex flex-col"
       style={{
-        width: collapsed ? '64px' : '240px',
+        width: collapsed ? '64px' : '280px',
         height: '100vh',
-        backgroundColor: '#FFFFFF',
-        borderRight: '1px solid #D5D8E0',
+        backgroundColor: '#F6F7DD',
+        borderRight: '1px solid rgba(197, 197, 202, 0.5)',
         position: 'sticky',
         top: 0,
         transition: 'width 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-        zIndex: 50,
       }}
     >
-      {/* Header */}
+      {/* Header - 84px */}
       <div
         style={{
-          height: '72px',
+          height: '84px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: collapsed ? '0 12px' : '0 16px',
-          borderBottom: '1px solid #D5D8E0',
+          padding: collapsed ? '0 12px' : '0 24px',
+          borderBottom: '1px solid rgba(197, 197, 202, 0.5)',
         }}
       >
+        {/* Logo */}
         <div
+          className="polar-sidebar-logo"
           style={{
             transition: 'opacity 200ms ease',
             opacity: collapsed ? 0 : 1,
@@ -72,84 +86,53 @@ export function PolarSidebar({
           {!collapsed && logo}
         </div>
 
+        {/* Compact logo when collapsed */}
         {collapsed && (
           <div
             style={{
-              fontSize: '18px',
-              fontWeight: 700,
-              color: '#E27726',
-              fontFamily: "'Instrument Sans', 'Inter', sans-serif",
+              fontSize: '20px',
+              fontWeight: 600,
+              color: '#1B7867',
+              fontFamily: 'Inter, sans-serif',
             }}
           >
             PV
           </div>
         )}
 
+        {/* Header actions (notifications, toggle) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {!collapsed && headerSlot}
           <Button
             variant="ghost"
             size="icon"
             onClick={onToggle}
-            className="h-8 w-8"
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '8px',
+              transition: 'background-color 150ms',
+              border: 'none',
+            }}
           >
             {collapsed ? (
-              <Menu className="h-4 w-4" style={{ color: '#636878' }} />
+              <Menu className="h-5 w-5" style={{ color: '#36373A' }} />
             ) : (
-              <PanelLeft className="h-4 w-4" style={{ color: '#636878' }} />
+              <PanelLeft className="h-5 w-5" style={{ color: '#36373A' }} />
             )}
           </Button>
         </div>
       </div>
 
-      {/* Search bar */}
-      {!collapsed && (
-        <div style={{ padding: '12px 16px' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 12px',
-              backgroundColor: '#F8F9FA',
-              border: '1px solid #D5D8E0',
-              borderRadius: '12px',
-              cursor: 'pointer',
-            }}
-          >
-            <Search size={14} style={{ color: '#8D93A0' }} />
-            <span style={{
-              fontSize: '13px',
-              color: '#8D93A0',
-              fontFamily: 'Inter, sans-serif',
-              flex: 1,
-            }}>
-              Zoeken...
-            </span>
-            <span style={{
-              fontSize: '11px',
-              fontFamily: "'Geist Mono', monospace",
-              color: '#8D93A0',
-              backgroundColor: '#F1F3F5',
-              border: '1px solid #D5D8E0',
-              borderRadius: '6px',
-              padding: '1px 6px',
-            }}>
-              ⌘K
-            </span>
-          </div>
-        </div>
-      )}
-
       {/* Navigation Items */}
       <nav
         style={{
           flex: 1,
-          padding: collapsed ? '12px 8px' : '4px 12px',
+          padding: collapsed ? '28px 8px' : '28px 16px',
           overflowY: 'auto',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {items.map((item) => {
             const Icon = item.icon;
             
@@ -164,25 +147,31 @@ export function PolarSidebar({
                   }
                 }}
                 className={cn(
+                  'polar-sidebar-item',
+                  item.active && 'polar-sidebar-item-active',
                   !item.requiresCode && 'cursor-pointer'
                 )}
                 style={{
-                  height: '36px',
+                  height: '48px',
                   display: 'flex',
                   alignItems: 'center',
-                  padding: collapsed ? '0 12px' : '8px 10px',
-                  borderRadius: '12px',
-                  backgroundColor: item.active ? '#FFF7ED' : 'transparent',
-                  transition: 'background-color 150ms ease',
+                  padding: collapsed ? '0 12px' : '0 16px',
+                  borderRadius: '8px',
+                  backgroundColor: item.active
+                    ? '#FEFFF1'
+                    : 'transparent',
+                  border: item.active ? '1px solid rgba(197, 197, 202, 0.5)' : '1px solid transparent',
+                  boxShadow: item.active ? '0 1px 3px rgba(0, 0, 0, 0.05)' : 'none',
+                  transition: 'background-color 150ms ease, box-shadow 150ms ease',
                   fontFamily: 'Inter, sans-serif',
-                  fontSize: '13px',
+                  fontSize: '17px',
                   fontWeight: item.active ? 500 : 400,
-                  color: item.active ? '#A5500D' : '#4A4F5E',
+                  color: item.active ? '#282E3A' : '#73747B',
                   justifyContent: collapsed ? 'center' : 'flex-start',
                 }}
                 onMouseEnter={(e) => {
                   if (!item.active) {
-                    e.currentTarget.style.backgroundColor = '#F8F9FA';
+                    e.currentTarget.style.backgroundColor = '#FEFFF1';
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -194,34 +183,19 @@ export function PolarSidebar({
                 <Icon
                   className="shrink-0"
                   style={{
-                    width: collapsed ? '20px' : '18px',
-                    height: collapsed ? '20px' : '18px',
-                    marginRight: collapsed ? '0' : '10px',
-                    color: item.active ? '#E27726' : '#636878',
-                    strokeWidth: item.active ? 2 : 1.5,
-                    transition: 'color 150ms ease',
+                    width: collapsed ? '22px' : '20px',
+                    height: collapsed ? '22px' : '20px',
+                    marginRight: collapsed ? '0' : '14px',
+                    color: item.active ? '#1B7867' : '#9CA3AF',
+                    strokeWidth: 1.5,
+                    transition: 'color 150ms ease, transform 150ms ease',
                   }}
                 />
-                {!collapsed && (
-                  <span style={{ flex: 1 }}>{item.title}</span>
-                )}
-                {!collapsed && item.badge !== undefined && item.badge > 0 && (
-                  <span style={{
-                    fontSize: '10px',
-                    fontWeight: 600,
-                    backgroundColor: '#E27726',
-                    color: '#FFFFFF',
-                    borderRadius: '9999px',
-                    padding: '1px 6px',
-                    minWidth: '18px',
-                    textAlign: 'center',
-                  }}>
-                    {item.badge}
-                  </span>
-                )}
+                {!collapsed && <span>{item.title}</span>}
               </div>
             );
 
+            // Wrap with tooltip when collapsed
             if (collapsed) {
               return (
                 <TooltipProvider key={item.url}>
@@ -233,11 +207,11 @@ export function PolarSidebar({
                       side="right"
                       style={{
                         fontFamily: 'Inter, sans-serif',
-                        fontSize: '13px',
-                        backgroundColor: '#1A1F28',
+                        fontSize: '14px',
+                        backgroundColor: '#17171C',
                         color: '#FFFFFF',
-                        borderRadius: '12px',
-                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        padding: '8px 12px',
                       }}
                     >
                       {item.title}

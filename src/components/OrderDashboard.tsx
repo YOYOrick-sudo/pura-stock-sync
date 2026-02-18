@@ -28,7 +28,6 @@ import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useSendInternalOrder } from '@/hooks/useInternalOrders';
-
 interface Product {
   name: string;
   targetStock: number;
@@ -80,6 +79,7 @@ export default function OrderDashboard() {
   const [newProductAmount, setNewProductAmount] = useState('');
   const currentWeek = getCurrentWeek();
 
+  // Load saved data from localStorage
   useEffect(() => {
     const savedProducts = localStorage.getItem('pura-vida-products');
     const savedTempProducts = localStorage.getItem('pura-vida-temp-products');
@@ -88,14 +88,20 @@ export default function OrderDashboard() {
     if (savedProducts) {
       try {
         const parsed = JSON.parse(savedProducts);
+        // Merge saved stock levels with initial products
         allProducts = INITIAL_PRODUCTS.map(initial => {
           const saved = parsed.find((p: Product) => p.name === initial.name);
-          return saved ? { ...initial, currentStock: saved.currentStock } : initial;
+          return saved ? {
+            ...initial,
+            currentStock: saved.currentStock
+          } : initial;
         });
       } catch (e) {
         console.error('Failed to parse saved products', e);
       }
     }
+
+    // Add back temporary products if they exist
     if (savedTempProducts) {
       try {
         const tempProducts = JSON.parse(savedTempProducts);
@@ -110,8 +116,11 @@ export default function OrderDashboard() {
     }
   }, []);
 
+  // Save to localStorage when products change (excluding temporary products)
   useEffect(() => {
+    // Only save permanent products to localStorage
     const permanentProducts = products.filter(p => !p.isTemporary);
+    // If we have temporary products, save them separately for recovery
     const temporaryProducts = products.filter(p => p.isTemporary);
     localStorage.setItem('pura-vida-products', JSON.stringify(permanentProducts));
     if (temporaryProducts.length > 0) {
@@ -120,13 +129,11 @@ export default function OrderDashboard() {
       localStorage.removeItem('pura-vida-temp-products');
     }
   }, [products]);
-
   const updateProductStock = (index: number, value: number) => {
     const newProducts = [...products];
     newProducts[index].currentStock = value;
     setProducts(newProducts);
   };
-
   const addTemporaryProduct = () => {
     if (!newProductName.trim() || !newProductAmount || parseInt(newProductAmount) <= 0) {
       toast.error('Vul alle velden correct in');
@@ -145,25 +152,24 @@ export default function OrderDashboard() {
     setNewProductAmount('');
     toast.success('✅ Extra product toegevoegd');
   };
-
   const removeTemporaryProduct = (index: number) => {
     const newProducts = products.filter((_, i) => i !== index);
     setProducts(newProducts);
     toast.success('Product verwijderd');
   };
-
   const focusNextInput = (currentIndex: number) => {
+    // Focus next input field when Enter is pressed
     const nextIndex = currentIndex + 1;
     if (nextIndex < products.length) {
       const nextInput = document.querySelector(`input[data-index="${nextIndex}"]`) as HTMLInputElement;
-      if (nextInput) nextInput.focus();
+      if (nextInput) {
+        nextInput.focus();
+      }
     }
   };
-
   const calculateRefill = (targetStock: number, currentStock: number): number => {
     return Math.max(targetStock - currentStock, 0);
   };
-
   const getOrderData = () => ({
     locatie: 'Pura Vida West',
     datum: new Date().toISOString().split('T')[0],
@@ -172,34 +178,54 @@ export default function OrderDashboard() {
       voorraad: p.currentStock
     }))
   });
-
   const handleSubmit = async () => {
     setIsSubmitting(true);
     const orderData = getOrderData();
+
+    // Save order locally
     const timestamp = new Date().toLocaleString('nl-NL', {
-      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
     if (demoMode) {
+      // Demo mode - simulate success without calling webhook
       setTimeout(async () => {
         setLastSubmitted(timestamp);
         localStorage.setItem('pura-vida-last-submitted', timestamp);
         localStorage.setItem('pura-vida-last-order', JSON.stringify(orderData));
-        const resetProducts = products.filter(p => !p.isTemporary).map(p => ({ ...p, currentStock: 0 }));
+
+        // Reset all products to 0 and remove temporary products
+        const resetProducts = products.filter(p => !p.isTemporary).map(p => ({
+          ...p,
+          currentStock: 0
+        }));
         setProducts(resetProducts);
         localStorage.setItem('pura-vida-products', JSON.stringify(resetProducts));
         localStorage.removeItem('pura-vida-temp-products');
+
+        // Show success dialog
         setShowSuccessDialog(true);
         setIsSubmitting(false);
-        setTimeout(() => { navigate('/dashboard'); }, 1500);
+        
+        // Redirect to dashboard after 1.5 seconds
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
       }, 1500);
       return;
     }
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
       const response = await fetch('https://jaapies.app.n8n.cloud/webhook/inventory-restock', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(products.map(product => ({
           product: product.name,
           ijzer: product.targetStock,
@@ -210,56 +236,85 @@ export default function OrderDashboard() {
       });
       clearTimeout(timeoutId);
       if (response.ok) {
+        // Create internal order in database
         if (userLocation) {
           const orderItems = products
-            .map(p => ({ product_name: p.name, quantity: calculateRefill(p.targetStock, p.currentStock), unit: 'stuks' }))
+            .map(p => ({
+              product_name: p.name,
+              quantity: calculateRefill(p.targetStock, p.currentStock),
+              unit: 'stuks'
+            }))
             .filter(item => item.quantity > 0);
+
           if (orderItems.length > 0) {
             try {
               await sendOrderMutation.mutateAsync({
                 from_location: userLocation,
                 to_location: 'Midsland',
-                delivery_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                delivery_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Next day
                 items: orderItems,
               });
-            } catch (error) { console.error('Error creating internal order:', error); }
+            } catch (error) {
+              console.error('Error creating internal order:', error);
+            }
           }
         }
+
         setLastSubmitted(timestamp);
         localStorage.setItem('pura-vida-last-submitted', timestamp);
         localStorage.setItem('pura-vida-last-order', JSON.stringify(orderData));
-        const resetProducts = products.filter(p => !p.isTemporary).map(p => ({ ...p, currentStock: 0 }));
+
+        // Reset all products to 0 and remove temporary products
+        const resetProducts = products.filter(p => !p.isTemporary).map(p => ({
+          ...p,
+          currentStock: 0
+        }));
         setProducts(resetProducts);
         localStorage.setItem('pura-vida-products', JSON.stringify(resetProducts));
         localStorage.removeItem('pura-vida-temp-products');
+
+        // Show success dialog
         setShowSuccessDialog(true);
-        setTimeout(() => { navigate('/dashboard'); }, 1500);
+        
+        // Redirect to dashboard after 1.5 seconds
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
       } else {
         throw new Error(`Server responded with ${response.status}`);
       }
     } catch (error) {
       console.error('Error submitting order:', error);
+
+      // Save failed order for later retry
       localStorage.setItem('pura-vida-failed-order', JSON.stringify({
-        data: orderData, timestamp: timestamp, error: error instanceof Error ? error.message : 'Unknown error'
+        data: orderData,
+        timestamp: timestamp,
+        error: error instanceof Error ? error.message : 'Unknown error'
       }));
       if (error instanceof Error && error.name === 'AbortError') {
         toast.error('⏱️ Verbinding verbroken', {
           description: 'De webhook reageert niet. Schakel over naar demo-modus?',
           duration: 6000,
-          action: { label: 'Demo-modus', onClick: () => setDemoMode(true) }
+          action: {
+            label: 'Demo-modus',
+            onClick: () => setDemoMode(true)
+          }
         });
       } else {
         toast.error('🔌 Kan webhook niet bereiken', {
           description: 'Controleer of de n8n webhook actief is, of gebruik demo-modus.',
           duration: 6000,
-          action: { label: 'Demo-modus', onClick: () => setDemoMode(true) }
+          action: {
+            label: 'Demo-modus',
+            onClick: () => setDemoMode(true)
+          }
         });
       }
     } finally {
       setIsSubmitting(false);
     }
   };
-
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -270,22 +325,20 @@ export default function OrderDashboard() {
       toast.error('Uitloggen mislukt');
     }
   };
-
   const hasAnyStock = products.some(p => p.currentStock > 0);
   const totalRefill = products.reduce((sum, p) => sum + calculateRefill(p.targetStock, p.currentStock), 0);
-
   return (
     <>
-        {/* Products Table */}
-        <Card className="overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.06)] border-[#D5D8E0] bg-white hover:shadow-md transition-shadow duration-200 mb-4">
+        {/* Products Table - All Screen Sizes */}
+        <Card className="overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.06)] border-[#1B7867]/8 bg-[#FEFFF1] hover:shadow-md transition-shadow duration-200 mb-4">
           <div>
             <table className="w-full table-fixed">
               <thead>
-                <tr className="border-b border-[#D5D8E0] bg-[#F8F9FA]">
-                  <th className="px-3 py-3 sm:px-4 sm:py-3 text-left font-heading font-bold text-[#636878] text-xs sm:text-sm uppercase tracking-wide">Product</th>
-                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-[#636878] text-xs sm:text-sm uppercase tracking-wide">Ijzer</th>
-                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-[#636878] text-xs sm:text-sm uppercase tracking-wide">Huidig</th>
-                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-[#636878] text-xs sm:text-sm uppercase tracking-wide">Vullen</th>
+                <tr className="border-b border-[#1B7867]/10 bg-[#FEFFF1]">
+                  <th className="px-3 py-3 sm:px-4 sm:py-3 text-left font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Product</th>
+                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Ijzer</th>
+                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Huidig</th>
+                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Vullen</th>
                 </tr>
               </thead>
               <tbody>
@@ -294,8 +347,8 @@ export default function OrderDashboard() {
                   return (
                     <>
                       {showCategoryHeader && product.category && (
-                        <tr key={`category-${product.category}-${index}`} className="bg-[#E27726]/10 border-t border-b border-[#E27726]/20">
-                          <td colSpan={4} className="px-3 py-2 sm:px-4 font-heading font-bold text-[#E27726] text-sm uppercase tracking-wide">
+                        <tr key={`category-${product.category}-${index}`} className="bg-[#1B7867]/20 border-t border-b border-[#1B7867]/20">
+                          <td colSpan={4} className="px-3 py-2 sm:px-4 font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide">
                             <div className="flex items-center gap-2">
                               <Layers className="w-3 h-3 sm:w-4 sm:h-4" />
                               {product.category}
@@ -321,23 +374,23 @@ export default function OrderDashboard() {
           </div>
         </Card>
 
-        {/* Add Extra Product */}
-        <Card className="p-4 sm:p-5 mb-6 bg-white border-[#D5D8E0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:shadow-md transition-shadow duration-200">
+        {/* Add Extra Product - Inline Form */}
+        <Card className="p-4 sm:p-5 mb-6 bg-[#FEFFF1] border-[#E27726]/20 shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:shadow-md transition-shadow duration-200">
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
             <div className="flex-1 w-full">
-              <label className="font-heading font-bold text-[#636878] text-xs sm:text-sm mb-1 block uppercase tracking-wide">Extra product</label>
-              <Input placeholder="Bijv. Smoothie basis (bak)" value={newProductName} onChange={e => setNewProductName(e.target.value)} className="border-[#C1C5CF] focus:border-[#E27726] bg-white h-9" />
+              <label className="font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Extra product</label>
+              <Input placeholder="Bijv. Smoothie basis (bak)" value={newProductName} onChange={e => setNewProductName(e.target.value)} className="border-[#E27726]/20 focus:border-[#E27726] bg-white h-11" />
             </div>
             <div className="w-full sm:w-32">
-              <label className="font-heading font-bold text-[#636878] text-xs sm:text-sm mb-1 block uppercase tracking-wide">Aantal</label>
+              <label className="font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Aantal</label>
               <Input type="number" min="1" placeholder="3" value={newProductAmount} onChange={e => setNewProductAmount(e.target.value)} onKeyDown={e => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 addTemporaryProduct();
               }
-            }} className="border-[#C1C5CF] focus:border-[#E27726] bg-white h-9" />
+            }} className="border-[#E27726]/20 focus:border-[#E27726] bg-white h-11" />
             </div>
-            <Button onClick={addTemporaryProduct} className="w-full sm:w-auto h-9 px-6 rounded-[14px] touch-manipulation">
+            <Button onClick={addTemporaryProduct} className="w-full sm:w-auto bg-[#E27726] hover:bg-[#E27726]/90 text-white h-11 px-6 rounded-xl touch-manipulation">
               <Plus className="mr-2 h-4 w-4" />
               Toevoegen
             </Button>
@@ -353,21 +406,21 @@ export default function OrderDashboard() {
                   <span className="font-semibold">Demo-modus</span> – Bestellingen worden gesimuleerd
                 </p>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => setDemoMode(false)} className="text-[#636878] hover:text-[#E27726] hover:bg-[#FFF7ED] self-end sm:self-auto">
+              <Button variant="ghost" size="sm" onClick={() => setDemoMode(false)} className="text-[#282E3A]/70 hover:text-[#1B7867] hover:bg-white/80 self-end sm:self-auto">
                 Uitschakelen
               </Button>
             </div>}
 
           {/* Summary Badge */}
-          {hasAnyStock && <div className="bg-[#FFF7ED] rounded-2xl p-5 border-2 border-[#E27726]/30 shadow-sm">
+          {hasAnyStock && <div className="bg-gradient-to-br from-[#1B7867]/5 to-[#1B7867]/10 rounded-2xl p-5 border-2 border-[#1B7867]/30 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-[#E27726] rounded-lg">
+                  <div className="p-2 bg-[#1B7867] rounded-lg">
                     <Package className="w-5 h-5 text-white" />
                   </div>
                   <span className="text-sm sm:text-base text-[#282E3A] font-semibold">Totaal aan te vullen</span>
                 </div>
-                <span className="text-3xl sm:text-4xl font-bold text-[#E27726]">
+                <span className="text-3xl sm:text-4xl font-bold text-[#1B7867]">
                   {totalRefill}
                 </span>
               </div>
@@ -375,12 +428,12 @@ export default function OrderDashboard() {
 
           <div className="space-y-3">
             <div className="flex flex-col sm:flex-row gap-3">
-              <Button onClick={() => setShowPreview(true)} disabled={!hasAnyStock} variant="outline" className="w-full sm:flex-1 h-12 sm:h-auto sm:py-5 border-2 border-[#E27726] text-[#E27726] hover:bg-[#FFF7ED] rounded-2xl font-semibold transition-all touch-manipulation">
+              <Button onClick={() => setShowPreview(true)} disabled={!hasAnyStock} variant="outline" className="w-full sm:flex-1 h-12 sm:h-auto sm:py-5 border-2 border-[#1B7867] text-[#1B7867] hover:bg-[#1B7867]/5 rounded-2xl font-semibold transition-all touch-manipulation">
                 <Eye className="mr-2 h-5 w-5" />
                 Voorbeeld
               </Button>
 
-              <Button onClick={handleSubmit} disabled={isSubmitting || !hasAnyStock} className="w-full sm:flex-[2] h-12 sm:h-auto sm:py-5 bg-[#E27726] hover:bg-[#C9630E] text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl font-semibold touch-manipulation active:scale-[0.97]">
+              <Button onClick={handleSubmit} disabled={isSubmitting || !hasAnyStock} className="w-full sm:flex-[2] h-12 sm:h-auto sm:py-5 bg-gradient-to-r from-[#1B7867] to-[#0d5a4c] hover:from-[#0d5a4c] hover:to-[#1B7867] text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl font-semibold touch-manipulation active:scale-[0.98]">
                 {isSubmitting ? <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                     Bezig met verzenden...
@@ -394,7 +447,7 @@ export default function OrderDashboard() {
             <Button
               variant="outline"
               onClick={() => setShowInstructionsDialog(true)}
-              className="w-full border-[#E27726]/30 text-[#E27726] hover:bg-[#FFF7ED] font-heading font-medium flex items-center gap-2 justify-center h-12 sm:h-auto rounded-2xl"
+              className="w-full border-[#1B7867]/30 text-[#1B7867] hover:bg-[#1B7867]/5 font-heading font-medium flex items-center gap-2 justify-center h-12 sm:h-auto rounded-2xl"
             >
               <Info className="h-4 w-4" />
               Instructies
@@ -403,9 +456,9 @@ export default function OrderDashboard() {
 
           <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-[#282E3A]/50 py-2 min-h-[2rem]">
             {lastSubmitted ? <>
-                <div className="w-1 h-1 rounded-full bg-[#E27726]/30"></div>
+                <div className="w-1 h-1 rounded-full bg-[#1B7867]/30"></div>
                 <p>Laatst verzonden op {lastSubmitted}</p>
-                <div className="w-1 h-1 rounded-full bg-[#E27726]/30"></div>
+                <div className="w-1 h-1 rounded-full bg-[#1B7867]/30"></div>
               </> : <p className="text-[#282E3A]/30">Nog niet verzonden</p>}
           </div>
         </div>
@@ -413,9 +466,9 @@ export default function OrderDashboard() {
         {/* Instructies Dialog */}
         <Dialog open={showInstructionsDialog} onOpenChange={setShowInstructionsDialog}>
           <DialogContent className="max-w-2xl" style={{
-            backgroundColor: '#FFFFFF',
+            backgroundColor: '#FEFFF1',
             borderRadius: '20px',
-            border: '1px solid #D5D8E0',
+            border: '1px solid rgba(197, 197, 202, 0.5)',
             padding: '32px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
           }}>
@@ -427,24 +480,48 @@ export default function OrderDashboard() {
             
             <div className="mt-4">
               <ol className="space-y-4">
-                {[
-                  { title: 'Check de voorraad', desc: 'Loop alle producten na en tel de huidige voorraad.' },
-                  { title: 'Vul de aantallen in', desc: 'Noteer het aantal van elk product bij "Huidig".' },
-                  { title: 'Extra producten toevoegen', desc: 'Heb je extra producten? Voeg ze toe via "Extra product".' },
-                  { title: 'Controleer het overzicht', desc: 'Bekijk "Totaal aan te vullen" en klik op "Voorbeeld" voor een overzicht.' },
-                  { title: 'Verstuur naar Midsland', desc: 'Klik op "Verstuur naar Midsland" om de bestelling door te geven.' },
-                ].map((step, i) => (
-                  <li key={i} className="flex gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#E27726] text-white text-sm font-heading font-bold flex items-center justify-center">{i + 1}</span>
-                    <div>
-                      <span className="font-heading font-medium text-[#282E3A]">{step.title}</span>
-                      <p className="text-sm text-[#282E3A]/70 mt-1">{step.desc}</p>
-                    </div>
-                  </li>
-                ))}
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
+                  <div>
+                    <span className="font-heading font-medium text-[#282E3A]">Check de voorraad</span>
+                    <p className="text-sm text-[#282E3A]/70 mt-1">Loop alle producten na en tel de huidige voorraad.</p>
+                  </div>
+                </li>
+
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
+                  <div>
+                    <span className="font-heading font-medium text-[#282E3A]">Vul de aantallen in</span>
+                    <p className="text-sm text-[#282E3A]/70 mt-1">Noteer het aantal van elk product bij "Huidig".</p>
+                  </div>
+                </li>
+
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
+                  <div>
+                    <span className="font-heading font-medium text-[#282E3A]">Extra producten toevoegen</span>
+                    <p className="text-sm text-[#282E3A]/70 mt-1">Heb je extra producten? Voeg ze toe via "Extra product".</p>
+                  </div>
+                </li>
+
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
+                  <div>
+                    <span className="font-heading font-medium text-[#282E3A]">Controleer het overzicht</span>
+                    <p className="text-sm text-[#282E3A]/70 mt-1">Bekijk "Totaal aan te vullen" en klik op "Voorbeeld" voor een overzicht.</p>
+                  </div>
+                </li>
+
+                <li className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
+                  <div>
+                    <span className="font-heading font-medium text-[#282E3A]">Verstuur naar Midsland</span>
+                    <p className="text-sm text-[#282E3A]/70 mt-1">Klik op "Verstuur naar Midsland" om de bestelling door te geven.</p>
+                  </div>
+                </li>
               </ol>
 
-              <div className="mt-6 p-4 bg-[#FFF7ED] rounded-xl">
+              <div className="mt-6 p-4 bg-[#F5F7DD] rounded-xl">
                 <p className="text-sm text-[#282E3A] leading-relaxed">
                   <span className="font-semibold">Let op:</span> Het systeem berekent automatisch hoeveel producten er aangevuld moeten worden op basis van het ijzer (streefvoorraad) en de huidige voorraad.
                 </p>
@@ -459,14 +536,14 @@ export default function OrderDashboard() {
         {/* Success Dialog */}
         <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
           <AlertDialogContent className="max-w-[90vw] sm:max-w-md mx-4" style={{
-            backgroundColor: '#FFFFFF',
+            backgroundColor: '#FEFFF1',
             borderRadius: '20px',
-            border: '1px solid #D5D8E0',
+            border: '1px solid rgba(197, 197, 202, 0.5)',
             padding: '32px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
           }}>
             <AlertDialogHeader className="space-y-3 sm:space-y-4 pt-2">
-              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-[#E27726] rounded-full flex items-center justify-center animate-scale-in shadow-lg">
+              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#1B7867] to-[#0d5a4c] rounded-full flex items-center justify-center animate-scale-in shadow-lg">
                 <CheckCircle2 className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
               </div>
               <AlertDialogTitle className="text-xl sm:text-2xl font-heading text-center text-[#282E3A] px-2">
@@ -474,15 +551,15 @@ export default function OrderDashboard() {
               </AlertDialogTitle>
               <AlertDialogDescription className="text-center text-[#282E3A]/70 text-sm sm:text-base space-y-2 px-2">
                 <p className="font-medium leading-relaxed">Je bestelling is succesvol naar Midsland gestuurd.</p>
-                {totalRefill > 0 && <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-[#FFF7ED] rounded-xl">
+                {totalRefill > 0 && <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-[#F5F7DD] rounded-xl">
                     <p className="text-sm sm:text-base">
-                      <span className="font-semibold text-[#E27726]">{totalRefill} {totalRefill === 1 ? 'product' : 'producten'}</span> worden aangevuld
+                      <span className="font-semibold text-[#1B7867]">{totalRefill} {totalRefill === 1 ? 'product' : 'producten'}</span> worden aangevuld
                     </p>
                   </div>}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="mt-2">
-              <Button onClick={() => setShowSuccessDialog(false)} className="w-full bg-[#E27726] hover:bg-[#C9630E] text-white h-11 sm:h-12 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.97] touch-manipulation">
+              <Button onClick={() => setShowSuccessDialog(false)} className="w-full bg-gradient-to-r from-[#1B7867] to-[#0d5a4c] hover:from-[#0d5a4c] hover:to-[#1B7867] text-white h-11 sm:h-12 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.98] touch-manipulation">
                 Sluiten
               </Button>
             </AlertDialogFooter>
@@ -492,14 +569,14 @@ export default function OrderDashboard() {
         {/* Logout Confirmation Dialog */}
         <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
           <AlertDialogContent className="max-w-[90vw] sm:max-w-md mx-4" style={{
-            backgroundColor: '#FFFFFF',
+            backgroundColor: '#FEFFF1',
             borderRadius: '20px',
-            border: '1px solid #D5D8E0',
+            border: '1px solid rgba(197, 197, 202, 0.5)',
             padding: '32px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
           }}>
             <AlertDialogHeader className="space-y-3 sm:space-y-4 pt-2">
-              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-[#E27726] rounded-full flex items-center justify-center shadow-lg">
+              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#E27726] to-[#d16615] rounded-full flex items-center justify-center shadow-lg">
                 <LogOut className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
               </div>
               <AlertDialogTitle className="text-xl sm:text-2xl font-heading text-center text-[#282E3A] px-2">
@@ -510,10 +587,10 @@ export default function OrderDashboard() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="mt-2 flex-col sm:flex-row gap-2">
-              <AlertDialogCancel className="w-full sm:w-auto border-2 border-[#E27726]/20 hover:bg-[#FFF7ED] rounded-xl">
+              <AlertDialogCancel className="w-full sm:w-auto border-2 border-[#1B7867]/20 hover:bg-[#1B7867]/5 rounded-xl">
                 Annuleren
               </AlertDialogCancel>
-              <AlertDialogAction onClick={handleLogout} className="w-full sm:w-auto bg-[#E27726] hover:bg-[#C9630E] text-white rounded-xl">
+              <AlertDialogAction onClick={handleLogout} className="w-full sm:w-auto bg-gradient-to-r from-[#E27726] to-[#d16615] hover:from-[#d16615] hover:to-[#E27726] text-white rounded-xl">
                 Uitloggen
               </AlertDialogAction>
             </AlertDialogFooter>

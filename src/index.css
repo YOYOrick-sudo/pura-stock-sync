@@ -1,165 +1,94 @@
-/* PURA VIDA OS — Design Tokens v6.0 */
-/* Orange + Midnight — Full Design System */
-
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* === PURA VIDA MODERN DESIGN SYSTEM === */
+
 @layer base {
   :root {
-    /* === PURA VIDA v6.0 DESIGN TOKENS === */
-
-    /* Primary — Sunset Orange */
-    --pv-primary-50: #FFF7ED;  --pv-primary-100: #FFEDD5;
-    --pv-primary-200: #FED7AA; --pv-primary-300: #FDBA74;
-    --pv-primary-400: #FB923C; --pv-primary-500: #E27726;
-    --pv-primary-600: #C9630E; --pv-primary-700: #A5500D;
-    --pv-primary-800: #854110; --pv-primary-900: #6D3612;
-
-    /* Neutral — Midnight Slate */
-    --pv-gray-0: #FFFFFF;   --pv-gray-25: #FCFCFD;
-    --pv-gray-50: #F8F9FA;  --pv-gray-75: #F1F3F5;
-    --pv-gray-100: #EAECF0; --pv-gray-150: #D5D8E0;
-    --pv-gray-200: #C1C5CF; --pv-gray-300: #8D93A0;
-    --pv-gray-400: #636878; --pv-gray-500: #4A4F5E;
-    --pv-gray-600: #3A3F4E; --pv-gray-700: #303542;
-    --pv-gray-800: #282E3A; --pv-gray-900: #1A1F28;
-
-    /* Semantic */
-    --pv-success: #22C55E; --pv-success-light: #DCFCE8;
-    --pv-warning: #F59E0B; --pv-warning-light: #FEF3C7;
-    --pv-error: #EF4444;   --pv-error-light: #FEE2E2;
-    --pv-info: #3B82F6;    --pv-info-light: #DBEAFE;
-
-    /* Typography */
-    --pv-font-sans: 'Inter', -apple-system, sans-serif;
-    --pv-font-display: 'Instrument Sans', 'Inter', sans-serif;
-    --pv-font-mono: 'Geist Mono', 'SF Mono', monospace;
-
-    /* Radius */
-    --pv-radius-sm: 12px;  --pv-radius-md: 14px;
-    --pv-radius-lg: 16px;  --pv-radius-xl: 20px;
-    --pv-radius-2xl: 24px; --pv-radius-full: 9999px;
-
-    /* Shadows */
-    --pv-shadow-xs: 0 1px 2px rgba(0,0,0,0.03);
-    --pv-shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-    --pv-shadow-md: 0 4px 6px rgba(0,0,0,0.05);
-    --pv-shadow-lg: 0 10px 15px rgba(0,0,0,0.06);
-    --pv-shadow-xl: 0 20px 25px rgba(0,0,0,0.08);
-    --pv-ring: 0 0 0 2px rgba(226,119,38,0.2);
-
-    /* Sidebar */
-    --pv-sidebar-bg: #FFFFFF;
-    --pv-sidebar-border: var(--pv-gray-150);
-    --pv-sidebar-width: 240px;
-    --pv-sidebar-active-bg: var(--pv-primary-50);
-    --pv-sidebar-active-text: var(--pv-primary-700);
-    --pv-sidebar-active-icon: var(--pv-primary-500);
-
-    /* === SHADCN HSL VARIABLES (compatibiliteit) === */
-
-    /* Backgrounds */
-    --background: 210 17% 98%;
-    --foreground: 218 33% 18%;
-
-    /* Card */
+    /* === MODERN COLOR PALETTE (HSL Values) === */
+    
+    /* Backgrounds - Modern Slate (NO MORE CRÈME!) */
+    --background: 210 40% 98%;           /* #F8FAFC - Slate-50 */
+    --foreground: 222 47% 11%;           /* #0F172A - Slate-900 */
+    
+    /* Card surfaces - Pure white */
     --card: 0 0% 100%;
-    --card-foreground: 218 33% 18%;
-
+    --card-foreground: 222 47% 11%;
+    
     --popover: 0 0% 100%;
-    --popover-foreground: 218 33% 18%;
-
-    /* Primary — Sunset Orange */
-    --primary: 25 76% 52%;
+    --popover-foreground: 222 47% 11%;
+    
+    /* Primary - Pura Vida Sea Green */
+    --primary: 163 65% 26%;              /* #1B7867 */
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 25 88% 42%;
-
-    /* Secondary */
-    --secondary: 25 100% 97%;
-    --secondary-foreground: 25 76% 52%;
-
-    /* Muted */
-    --muted: 210 20% 96%;
-    --muted-foreground: 222 10% 44%;
-
-    /* Accent */
-    --accent: 25 76% 52%;
+    --primary-hover: 163 65% 21%;        /* #156556 */
+    
+    /* Secondary - Light green tint */
+    --secondary: 163 35% 93%;            /* #E6F4F1 */
+    --secondary-foreground: 163 65% 26%;
+    
+    /* Muted - Slate grays */
+    --muted: 210 40% 96%;                /* #F1F5F9 */
+    --muted-foreground: 215 16% 47%;     /* #64748B */
+    
+    /* Accent - Warm sunset (for CTAs) */
+    --accent: 25 95% 53%;                /* #F97316 */
     --accent-foreground: 0 0% 100%;
-
+    
     /* Destructive */
-    --destructive: 0 84% 60%;
+    --destructive: 0 84% 60%;            /* #EF4444 */
     --destructive-foreground: 0 0% 100%;
-
-    /* Notification */
+    
+    /* Notification badge */
     --notification-badge: 0 70% 60%;
-
-    /* Borders */
-    --border: 220 13% 91%;
-    --border-state: 220 10% 80%;
-    --input: 220 13% 91%;
-    --ring: 25 76% 52%;
-
+    
+    /* Borders - Neutral slate (clean & modern) */
+    --border: 214 32% 91%;               /* #E2E8F0 */
+    --border-state: 214 25% 80%;         /* #C5CED8 - State containers (empty/error/loading) */
+    --input: 214 32% 91%;                /* #E2E8F0 */
+    --ring: 163 65% 26%;                 /* Primary green */
+    
     /* Radius */
-    --radius: 0.875rem;
+    --radius: 0.75rem;
   }
 
-  .dark,
-  [data-theme="dark"] {
-    /* Shadcn dark */
-    --background: 220 25% 8%;
-    --foreground: 210 17% 98%;
-
-    --card: 220 22% 13%;
-    --card-foreground: 210 17% 98%;
-
-    --popover: 220 22% 13%;
-    --popover-foreground: 210 17% 98%;
-
-    --primary: 25 76% 55%;
+  .dark {
+    /* Dark mode - Midnight palette */
+    --background: 222 47% 11%;           /* Slate-900 */
+    --foreground: 210 40% 98%;           /* Slate-50 */
+    
+    --card: 217 33% 17%;                 /* Slate-800 */
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 98%;
+    
+    /* Primary stays vibrant in dark */
+    --primary: 163 65% 35%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 25 76% 60%;
-
-    --secondary: 220 22% 18%;
-    --secondary-foreground: 210 17% 98%;
-
-    --muted: 220 22% 18%;
-    --muted-foreground: 220 10% 60%;
-
-    --accent: 25 76% 55%;
+    --primary-hover: 163 65% 40%;
+    
+    --secondary: 217 33% 25%;
+    --secondary-foreground: 210 40% 98%;
+    
+    --muted: 217 33% 25%;
+    --muted-foreground: 215 20% 65%;
+    
+    --accent: 25 95% 53%;
     --accent-foreground: 0 0% 100%;
-
+    
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
-
+    
     --notification-badge: 0 70% 65%;
-
-    --border: 220 22% 22%;
-    --border-state: 220 22% 35%;
-    --input: 220 22% 18%;
-    --ring: 25 76% 55%;
-
-    /* PV dark tokens */
-    --pv-page-bg: #0F1318;
-    --pv-card-bg: #1A1F28;
-    --pv-card-border: rgba(255,255,255,0.08);
-    --pv-text-primary: #F1F3F5;
-    --pv-text-secondary: #8D93A0;
-    --pv-text-tertiary: #636878;
-    --pv-input-bg: #1A1F28;
-    --pv-input-border: rgba(255,255,255,0.12);
-    --pv-sidebar-bg: #1A1F28;
-    --pv-sidebar-border: none;
-    --pv-sidebar-active-bg: rgba(255,255,255,0.1);
-    --pv-table-header: #1A1F28;
-    --pv-row-hover: rgba(255,255,255,0.04);
-    --pv-divider: rgba(255,255,255,0.06);
-    --pv-dropdown-bg: #282E3A;
-    --pv-toast-bg: #FFFFFF;
-    --pv-toast-text: #1A1F28;
-    --pv-skeleton-bg: rgba(255,255,255,0.08);
+    
+    --border: 217 33% 30%;
+    --border-state: 217 33% 45%;         /* State containers in dark mode */
+    --input: 217 33% 20%;
+    --ring: 163 65% 35%;
   }
 }
 
@@ -170,7 +99,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: var(--pv-font-sans);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     font-size: 15px;
     font-weight: 400;
     line-height: 1.6;
@@ -181,88 +110,75 @@
 @layer components {
   .text-display {
     @apply text-4xl font-bold tracking-tight;
-    font-family: var(--pv-font-display);
-    color: var(--pv-gray-800);
+    color: hsl(222 47% 11%);
   }
-
+  
   .text-h1 {
     @apply text-2xl font-bold;
-    font-family: var(--pv-font-display);
-    color: var(--pv-gray-800);
+    color: hsl(222 47% 11%);
   }
-
+  
   .text-h2 {
     @apply text-xl font-semibold;
-    font-family: var(--pv-font-display);
-    color: var(--pv-gray-800);
+    color: hsl(222 47% 11%);
   }
-
+  
   .text-h3 {
     @apply text-lg font-semibold;
-    font-family: var(--pv-font-display);
-    color: var(--pv-gray-800);
+    color: hsl(222 47% 11%);
   }
-
+  
   .text-body {
     @apply text-base font-normal;
-    color: var(--pv-gray-800);
+    color: hsl(222 47% 11%);
   }
-
+  
   .text-body-sm {
     @apply text-sm font-normal;
-    color: var(--pv-gray-400);
+    color: hsl(215 16% 47%);
   }
-
+  
   .text-caption {
     @apply text-xs font-medium;
-    color: var(--pv-gray-300);
+    color: hsl(215 20% 65%);
   }
-
+  
   .text-label {
     @apply text-sm font-medium;
-    color: var(--pv-gray-800);
+    color: hsl(222 47% 11%);
   }
-}
-
-/* === PURA VIDA ANIMATIES === */
-@keyframes pv-pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
-}
-@keyframes pv-spin {
-  to { transform: rotate(360deg); }
-}
-@keyframes pv-slide-up {
-  from { transform: translateY(12px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-@keyframes pv-progress {
-  from { width: 100%; }
-  to { width: 0%; }
 }
 
 /* === ANIMATION UTILITIES === */
 @layer utilities {
   .animate-in {
-    animation: pv-slide-up 0.3s ease-out;
+    animation: fade-in 0.3s ease-out;
   }
-
+  
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
   .skeleton-pulse {
-    animation: pv-pulse 2s ease-in-out infinite;
+    animation: skeleton-pulse 2s ease-in-out infinite;
+  }
+  
+  @keyframes skeleton-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
   }
 }
 
 /* === INTERACTIVE FOCUS STATES === */
 @layer components {
   .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2;
   }
-}
-
-/* === RESPONSIVE SIDEBAR === */
-@media (max-width: 640px) {
-  :root { --pv-sidebar-width: 0px; }
-}
-@media (min-width: 641px) and (max-width: 1024px) {
-  :root { --pv-sidebar-width: 64px; }
 }

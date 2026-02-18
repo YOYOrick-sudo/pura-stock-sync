@@ -20,6 +20,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
     checkAuth();
 
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session);
     });
@@ -29,10 +30,10 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F5F7DD] flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#E27726] mx-auto mb-4" />
-          <p className="text-[#636878]">Laden...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-[#1B7867] mx-auto mb-4" />
+          <p className="text-[#282E3A]/60">Laden...</p>
         </div>
       </div>
     );

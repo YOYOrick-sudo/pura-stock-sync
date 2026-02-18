@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Plus, CheckSquare, Calendar } from 'lucide-react';
+import { Plus, CheckSquare } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -26,7 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface Task {
   id: string;
@@ -149,27 +148,12 @@ export function ServiceTasks() {
     }
   };
 
+  const getCategoryColor = (category: string) => {
+    return 'bg-green-100 text-green-600';
+  };
+
   if (loading) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} style={{
-            backgroundColor: '#FFFFFF',
-            border: '1.5px solid #D5D8E0',
-            borderRadius: '20px',
-            padding: '20px',
-          }}>
-            <div className="flex items-start gap-3">
-              <Skeleton className="h-5 w-5 mt-1 rounded" />
-              <div className="flex-1 space-y-2">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
+    return <div className="text-center py-8">Laden...</div>;
   }
 
   const todayTasks = tasks.filter(
@@ -178,150 +162,50 @@ export function ServiceTasks() {
 
   const allTasks = tasks;
 
-  const TaskCard = ({ task }: { task: Task }) => (
-    <div
-      style={{
-        backgroundColor: task.completed ? '#FCFCFD' : '#FFFFFF',
-        border: '1.5px solid #D5D8E0',
-        borderRadius: '20px',
-        padding: '20px',
-        opacity: task.completed ? 0.6 : 1,
-        transition: 'background-color 0.15s',
-      }}
-    >
-      <div className="flex items-start gap-3">
-        <Checkbox
-          checked={task.completed}
-          className="mt-1"
-          onCheckedChange={() => toggleTask(task.id, task.completed)}
-        />
-        <div className="flex-1">
-          <div className="flex items-start justify-between mb-2">
-            <h3
-              style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '14px',
-                fontWeight: 600,
-                color: '#282E3A',
-                textDecoration: task.completed ? 'line-through' : 'none',
-              }}
-            >
-              {task.title}
-            </h3>
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                padding: '2px 10px',
-                borderRadius: '20px',
-                fontSize: '12px',
-                fontWeight: 500,
-                fontFamily: 'Inter, sans-serif',
-                backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                color: '#16A34A',
-              }}
-            >
-              Bediening
-            </span>
-          </div>
-          {task.description && (
-            <p style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '13px',
-              color: '#636878',
-              marginBottom: '8px',
-            }}>
-              {task.description}
-            </p>
-          )}
-          <div className="flex items-center gap-4" style={{ fontSize: '12px', color: '#8D93A0' }}>
-            {task.due_date && (
-              <span className="flex items-center gap-1">
-                <Calendar size={12} />
-                {new Date(task.due_date).toLocaleDateString('nl-NL')}
-              </span>
-            )}
-            <span className="capitalize">{task.frequency}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <button
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '0 18px',
-                height: '40px',
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '14px',
-                fontWeight: 600,
-                color: '#FFFFFF',
-                backgroundColor: '#E27726',
-                border: 'none',
-                borderRadius: '14px',
-                cursor: 'pointer',
-                transition: 'background-color 0.15s',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#C9630E'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#E27726'}
-            >
-              <Plus className="h-4 w-4" />
+            <Button className="bg-primary hover:bg-primary-hover">
+              <Plus className="h-4 w-4 mr-2" />
               Nieuwe taak
-            </button>
+            </Button>
           </DialogTrigger>
-          <DialogContent style={{
-            backgroundColor: '#FFFFFF',
-            borderRadius: '24px',
-            border: '1px solid #D5D8E0',
-            padding: '32px',
-            maxWidth: '480px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-          }}>
+          <DialogContent>
             <DialogHeader>
-              <DialogTitle style={{
-                fontFamily: 'Instrument Sans, Inter, sans-serif',
-                fontSize: '18px',
-                fontWeight: 600,
-                color: '#282E3A',
-                letterSpacing: '-0.02em',
-              }}>
-                Nieuwe taak aanmaken
-              </DialogTitle>
+              <DialogTitle>Nieuwe taak aanmaken</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="title" style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>Titel</Label>
+                <Label htmlFor="title">Titel</Label>
                 <Input
                   id="title"
                   value={newTask.title}
-                  onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                  onChange={(e) =>
+                    setNewTask({ ...newTask, title: e.target.value })
+                  }
                   placeholder="Bijv. Tafels dekken"
-                  style={{ borderRadius: '14px', border: '1px solid #C1C5CF' }}
                 />
               </div>
               <div>
-                <Label htmlFor="description" style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>Beschrijving</Label>
+                <Label htmlFor="description">Beschrijving</Label>
                 <Textarea
                   id="description"
                   value={newTask.description}
-                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                  onChange={(e) =>
+                    setNewTask({ ...newTask, description: e.target.value })
+                  }
                   placeholder="Extra details..."
-                  style={{ borderRadius: '14px', border: '1px solid #C1C5CF' }}
                 />
               </div>
               <div>
-                <Label htmlFor="frequency" style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>Frequentie</Label>
+                <Label htmlFor="frequency">Frequentie</Label>
                 <Select
                   value={newTask.frequency}
-                  onValueChange={(value) => setNewTask({ ...newTask, frequency: value })}
+                  onValueChange={(value) =>
+                    setNewTask({ ...newTask, frequency: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -335,65 +219,29 @@ export function ServiceTasks() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="due_date" style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>Datum</Label>
+                <Label htmlFor="due_date">Datum</Label>
                 <Input
                   id="due_date"
                   type="date"
                   value={newTask.due_date}
-                  onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
-                  style={{ borderRadius: '14px', border: '1px solid #C1C5CF' }}
+                  onChange={(e) =>
+                    setNewTask({ ...newTask, due_date: e.target.value })
+                  }
                 />
               </div>
-              <button
-                onClick={createTask}
-                style={{
-                  width: '100%',
-                  height: '40px',
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  color: '#FFFFFF',
-                  backgroundColor: '#E27726',
-                  border: 'none',
-                  borderRadius: '14px',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.15s',
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#C9630E'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#E27726'}
-              >
+              <Button onClick={createTask} className="w-full">
                 Taak aanmaken
-              </button>
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
       <Tabs defaultValue="today" className="space-y-6">
-        <div
-          style={{
-            display: 'inline-flex',
-            padding: '4px',
-            backgroundColor: '#F1F3F5',
-            borderRadius: '14px',
-            gap: '4px',
-          }}
-        >
-          <TabsList className="bg-transparent p-0 h-auto gap-1">
-            <TabsTrigger
-              value="today"
-              style={{ borderRadius: '10px', fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500 }}
-            >
-              Vandaag
-            </TabsTrigger>
-            <TabsTrigger
-              value="all"
-              style={{ borderRadius: '10px', fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500 }}
-            >
-              Alle taken
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        <TabsList className="grid w-full grid-cols-2 bg-white">
+          <TabsTrigger value="today">Vandaag</TabsTrigger>
+          <TabsTrigger value="all">Alle taken</TabsTrigger>
+        </TabsList>
 
         <TabsContent value="today">
           {todayTasks.length === 0 ? (
@@ -405,7 +253,42 @@ export function ServiceTasks() {
           ) : (
             <div className="space-y-3">
               {todayTasks.map((task) => (
-                <TaskCard key={task.id} task={task} />
+                <Card
+                  key={task.id}
+                  className={`p-4 bg-white shadow-sm ${
+                    task.completed ? 'opacity-50' : ''
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      checked={task.completed}
+                      className="mt-1"
+                      onCheckedChange={() => toggleTask(task.id, task.completed)}
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3
+                          className={`font-semibold text-foreground ${
+                            task.completed ? 'line-through' : ''
+                          }`}
+                        >
+                          {task.title}
+                        </h3>
+                        <Badge className={getCategoryColor(task.category)}>
+                          Bediening
+                        </Badge>
+                      </div>
+                      {task.description && (
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {task.description}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <span className="capitalize">{task.frequency}</span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
               ))}
             </div>
           )}
@@ -421,7 +304,47 @@ export function ServiceTasks() {
           ) : (
             <div className="space-y-3">
               {allTasks.map((task) => (
-                <TaskCard key={task.id} task={task} />
+                <Card
+                  key={task.id}
+                  className={`p-4 bg-white shadow-sm ${
+                    task.completed ? 'opacity-50' : ''
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      checked={task.completed}
+                      className="mt-1"
+                      onCheckedChange={() => toggleTask(task.id, task.completed)}
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3
+                          className={`font-semibold text-foreground ${
+                            task.completed ? 'line-through' : ''
+                          }`}
+                        >
+                          {task.title}
+                        </h3>
+                        <Badge className={getCategoryColor(task.category)}>
+                          Bediening
+                        </Badge>
+                      </div>
+                      {task.description && (
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {task.description}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        {task.due_date && (
+                          <span>
+                            📅 {new Date(task.due_date).toLocaleDateString('nl-NL')}
+                          </span>
+                        )}
+                        <span className="capitalize">{task.frequency}</span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
               ))}
             </div>
           )}

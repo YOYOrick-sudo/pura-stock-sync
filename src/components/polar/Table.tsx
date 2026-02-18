@@ -20,7 +20,7 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
     <div
       style={{
         backgroundColor: '#FFFFFF',
-        border: '1px solid #D5D8E0',
+        border: '1px solid rgba(197, 197, 202, 0.5)',
         borderRadius: '16px',
         overflow: 'hidden',
       }}
@@ -32,8 +32,8 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
           gridTemplateColumns: `repeat(${columns.length}, 1fr)`,
           gap: '24px',
           padding: '12px 24px',
-          borderBottom: '1px solid #EAECF0',
-          backgroundColor: '#F8F9FA',
+          borderBottom: '1px solid rgba(197, 197, 202, 0.5)',
+          backgroundColor: '#F6F7DD',
         }}
       >
         {columns.map((column) => (
@@ -87,7 +87,7 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
                 gridTemplateColumns: `repeat(${columns.length}, 1fr)`,
                 gap: '24px',
                 padding: '16px 24px',
-                borderBottom: rowIndex < data.length - 1 ? '1px solid #EAECF0' : 'none',
+                borderBottom: rowIndex < data.length - 1 ? '1px solid rgba(197, 197, 202, 0.5)' : 'none',
                 backgroundColor: '#FFFFFF',
               }}
             >

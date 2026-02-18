@@ -1,4 +1,4 @@
-import { Home, ListChecks, Wallet, Package, Settings, BarChart3, Palette, Users, CalendarDays } from 'lucide-react';
+import { Home, ListChecks, Wallet, Package, Settings, BarChart3, Palette, Users } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useState } from 'react';
@@ -47,6 +47,12 @@ const allNavigationItems = [
     url: '/midsland-bestellingen',
     icon: Package,
     locations: ['Midsland'],
+  },
+  {
+    title: 'HR Inbox',
+    url: '/hr',
+    icon: Users,
+    locations: ['West', 'Midsland'],
   },
   {
     title: 'Settings',
@@ -149,9 +155,9 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
 
       <AlertDialog open={showCodeDialog} onOpenChange={setShowCodeDialog}>
         <AlertDialogContent style={{
-          backgroundColor: '#FFFFFF',
-          borderRadius: '24px',
-          border: '1px solid #D5D8E0',
+          backgroundColor: '#FEFFF1',
+          borderRadius: '20px',
+          border: '1px solid rgba(197, 197, 202, 0.5)',
           padding: '32px',
           maxWidth: '480px',
           boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
@@ -170,7 +176,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
               fontFamily: 'Inter, sans-serif',
               fontSize: '14px',
               fontWeight: 400,
-              color: '#636878',
+              color: '#73747B',
               marginBottom: '24px',
             }}>
               Voer de toegangscode in om toegang te krijgen tot Statistieken.
@@ -187,7 +193,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
               style={{
                 backgroundColor: '#FFFFFF',
                 borderRadius: '16px',
-                border: `1px solid ${codeError ? '#EF4444' : '#C1C5CF'}`,
+                border: `1px solid ${codeError ? '#EF4444' : 'rgba(197, 197, 202, 0.5)'}`,
                 padding: '12px 16px',
                 fontFamily: 'Inter, sans-serif',
                 fontSize: '14px',
@@ -214,8 +220,8 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
               style={{
                 backgroundColor: 'transparent',
                 color: '#282E3A',
-                borderRadius: '14px',
-                border: '1px solid #C1C5CF',
+                borderRadius: '20px',
+                border: '1px solid rgba(197, 197, 202, 0.5)',
                 fontFamily: 'Inter, sans-serif',
                 fontSize: '14px',
                 fontWeight: 500,
@@ -226,9 +232,9 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
             <AlertDialogAction 
               onClick={handleCodeSubmit}
               style={{
-                backgroundColor: '#E27726',
+                backgroundColor: '#1B7867',
                 color: '#FFFFFF',
-                borderRadius: '14px',
+                borderRadius: '20px',
                 fontFamily: 'Inter, sans-serif',
                 fontSize: '14px',
                 fontWeight: 500,

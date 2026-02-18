@@ -4,8 +4,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { EmployeeLayout } from "@/components/EmployeeLayout";
-import { RoleGuard } from "@/components/RoleGuard";
 import { LocationGuard } from "@/components/LocationGuard";
 import { UserLocationProvider } from "@/contexts/UserLocationContext";
 import Auth from "./pages/Auth";
@@ -21,13 +19,8 @@ import MidslandOrders from "./pages/MidslandOrders";
 import StyleGuide from "./pages/StyleGuide";
 import DesignPreview from "./pages/DesignPreview";
 import DesignSystem from "./pages/DesignSystem";
-import MijnDashboard from "./pages/mijn/MijnDashboard";
-import MijnPlaceholder from "./pages/mijn/MijnPlaceholder";
-import EmployeeProfile from "./pages/mijn/EmployeeProfile";
-import EmployeeSchedule from "./pages/mijn/EmployeeSchedule";
-import RoosterPage from "./pages/RoosterPage";
 // HR Module
-import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm, LeavePage, EmployeesPage } from "./pages/hr";
+import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } from "./pages/hr";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -41,14 +34,12 @@ const App = () => (
           {/* Auth routes */}
           <Route path="/" element={<Auth />} />
           
-          {/* Management routes - owner/manager/admin only */}
+          {/* Main module routes - all with sidebar */}
           <Route 
             path="/dashboard" 
             element={
               <ProtectedRoute>
-                <RoleGuard allowedRoles={['owner', 'manager', 'admin']}>
-                  <Dashboard />
-                </RoleGuard>
+                <Dashboard />
               </ProtectedRoute>
             } 
           /> 
@@ -56,9 +47,7 @@ const App = () => (
             path="/taken-bediening" 
             element={
               <ProtectedRoute>
-                <RoleGuard allowedRoles={['owner', 'manager', 'admin']}>
-                  <FohModule />
-                </RoleGuard>
+                <FohModule />
               </ProtectedRoute>
             } 
           />
@@ -66,9 +55,7 @@ const App = () => (
             path="/taken-analyse" 
             element={
               <ProtectedRoute>
-                <RoleGuard allowedRoles={['owner', 'manager', 'admin']}>
-                  <FohAnalytics />
-                </RoleGuard>
+                <FohAnalytics />
               </ProtectedRoute>
             } 
           />
@@ -76,9 +63,7 @@ const App = () => (
             path="/kassatelling"
             element={
               <ProtectedRoute>
-                <RoleGuard allowedRoles={['owner', 'manager', 'admin']}>
-                  <Kassatelling />
-                </RoleGuard>
+                <Kassatelling />
               </ProtectedRoute>
             } 
           />
@@ -86,11 +71,9 @@ const App = () => (
             path="/voorraad" 
             element={
               <ProtectedRoute>
-                <RoleGuard allowedRoles={['owner', 'manager', 'admin']}>
-                  <LocationGuard allowedLocations={['West']}>
-                    <Voorraad />
-                  </LocationGuard>
-                </RoleGuard>
+                <LocationGuard allowedLocations={['West']}>
+                  <Voorraad />
+                </LocationGuard>
               </ProtectedRoute>
             } 
           />
@@ -98,9 +81,7 @@ const App = () => (
             path="/settings" 
             element={
               <ProtectedRoute>
-                <RoleGuard allowedRoles={['owner', 'manager', 'admin']}>
-                  <Settings />
-                </RoleGuard>
+                <Settings />
               </ProtectedRoute>
             } 
           />
@@ -108,11 +89,9 @@ const App = () => (
             path="/internal-orders" 
             element={
               <ProtectedRoute>
-                <RoleGuard allowedRoles={['owner', 'manager', 'admin']}>
-                  <LocationGuard allowedLocations={['West']}>
-                    <InternalOrders />
-                  </LocationGuard>
-                </RoleGuard>
+                <LocationGuard allowedLocations={['West']}>
+                  <InternalOrders />
+                </LocationGuard>
               </ProtectedRoute>
             } 
           />
@@ -120,26 +99,14 @@ const App = () => (
             path="/midsland-bestellingen" 
             element={
               <ProtectedRoute>
-                <RoleGuard allowedRoles={['owner', 'manager', 'admin']}>
-                  <LocationGuard allowedLocations={['Midsland']}>
-                    <MidslandOrders />
-                  </LocationGuard>
-                </RoleGuard>
+                <LocationGuard allowedLocations={['Midsland']}>
+                  <MidslandOrders />
+                </LocationGuard>
               </ProtectedRoute>
             } 
           />
           <Route 
-            path="/rooster" 
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['owner', 'manager', 'admin']}>
-                  <RoosterPage />
-                </RoleGuard>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/style-guide"
+            path="/style-guide" 
             element={
               <ProtectedRoute>
                 <StyleGuide />
@@ -154,17 +121,15 @@ const App = () => (
               </ProtectedRoute>
             } 
           />
-          {/* Public Design System route */}
+          {/* Public Design System route - no login needed */}
           <Route path="/design-system" element={<DesignSystem />} />
           
-          {/* HR Module Routes - owner/manager/admin/hr */}
+          {/* HR Module Routes */}
           <Route 
             path="/hr" 
             element={
               <ProtectedRoute>
-                <RoleGuard allowedRoles={['owner', 'manager', 'admin', 'hr']}>
-                  <HrInbox />
-                </RoleGuard>
+                <HrInbox />
               </ProtectedRoute>
             } 
           />
@@ -172,9 +137,7 @@ const App = () => (
             path="/hr/applicants/new" 
             element={
               <ProtectedRoute>
-                <RoleGuard allowedRoles={['owner', 'manager', 'admin', 'hr']}>
-                  <ApplicantForm />
-                </RoleGuard>
+                <ApplicantForm />
               </ProtectedRoute>
             } 
           />
@@ -182,9 +145,7 @@ const App = () => (
             path="/hr/applicants/:id" 
             element={
               <ProtectedRoute>
-                <RoleGuard allowedRoles={['owner', 'manager', 'admin', 'hr']}>
-                  <ApplicantDetail />
-                </RoleGuard>
+                <ApplicantDetail />
               </ProtectedRoute>
             } 
           />
@@ -192,9 +153,7 @@ const App = () => (
             path="/hr/housing" 
             element={
               <ProtectedRoute>
-                <RoleGuard allowedRoles={['owner', 'manager', 'admin', 'hr']}>
-                  <HousingPlanner />
-                </RoleGuard>
+                <HousingPlanner />
               </ProtectedRoute>
             } 
           />
@@ -202,80 +161,7 @@ const App = () => (
             path="/hr/housing/new" 
             element={
               <ProtectedRoute>
-                <RoleGuard allowedRoles={['owner', 'manager', 'admin', 'hr']}>
-                  <HousingForm />
-                </RoleGuard>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/hr/verlof" 
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['owner', 'manager', 'admin', 'hr']}>
-                  <LeavePage />
-                </RoleGuard>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/hr/medewerkers" 
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['owner', 'manager', 'admin']}>
-                  <EmployeesPage />
-                </RoleGuard>
-              </ProtectedRoute>
-            } 
-          />
-
-          <Route 
-            path="/mijn/dashboard" 
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['employee', 'team_lead', 'manager', 'owner', 'admin', 'kitchen_staff', 'hr']} fallbackPath="/">
-                  <EmployeeLayout><MijnDashboard /></EmployeeLayout>
-                </RoleGuard>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/mijn/rooster" 
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['employee', 'team_lead', 'manager', 'owner', 'admin', 'kitchen_staff', 'hr']} fallbackPath="/">
-                  <EmployeeLayout><EmployeeSchedule /></EmployeeLayout>
-                </RoleGuard>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/mijn/taken" 
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['employee', 'team_lead', 'manager', 'owner', 'admin', 'kitchen_staff', 'hr']} fallbackPath="/">
-                  <EmployeeLayout><MijnPlaceholder title="Mijn Taken" description="Bekijk en beheer je toegewezen taken." /></EmployeeLayout>
-                </RoleGuard>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/mijn/documenten" 
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['employee', 'team_lead', 'manager', 'owner', 'admin', 'kitchen_staff', 'hr']} fallbackPath="/">
-                  <EmployeeLayout><MijnPlaceholder title="Documenten" description="Bekijk en beheer je documenten." /></EmployeeLayout>
-                </RoleGuard>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/mijn/profiel" 
-            element={
-              <ProtectedRoute>
-                <RoleGuard allowedRoles={['employee', 'team_lead', 'manager', 'owner', 'admin', 'kitchen_staff', 'hr']} fallbackPath="/">
-                  <EmployeeLayout><EmployeeProfile /></EmployeeLayout>
-                </RoleGuard>
+                <HousingForm />
               </ProtectedRoute>
             } 
           />

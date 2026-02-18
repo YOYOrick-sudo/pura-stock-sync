@@ -26,7 +26,7 @@ export function PolarFormCard({ title, children }: PolarFormCardProps) {
         className="rounded-polar-lg"
         style={{
           backgroundColor: '#FFFFFF',
-          border: '1px solid #D5D8E0',
+          border: '1px solid rgba(197, 197, 202, 0.5)',
           padding: '32px',
         }}
       >
@@ -68,7 +68,7 @@ export function PolarFormField({ label, description, children, required }: Polar
             fontFamily: 'Inter, sans-serif',
             fontSize: '14px',
             fontWeight: 400,
-            color: '#636878',
+            color: '#73747B',
             marginBottom: '12px',
           }}
         >

@@ -36,7 +36,7 @@ export function PolarTimePicker({
             fontFamily: 'Inter, sans-serif',
             fontSize: '14px',
             fontWeight: 500,
-            color: error ? '#EF4444' : '#282E3A',
+            color: error ? '#E64D4D' : '#17171C',
           }}
         >
           {label}
@@ -51,7 +51,7 @@ export function PolarTimePicker({
             left: '12px',
             top: '50%',
             transform: 'translateY(-50%)',
-            color: '#8D93A0',
+            color: '#36373A',
             pointerEvents: 'none',
           }}
         />
@@ -71,13 +71,13 @@ export function PolarTimePicker({
             padding: '10px 12px 10px 36px',
             paddingRight: clearable && value ? '40px' : '12px',
             border: error
-              ? '1px solid #EF4444'
+              ? '1px solid #E64D4D'
               : isFocused
-              ? '1px solid #E27726'
-              : '1px solid #EAECF0',
+              ? '1px solid #1B7867'
+              : '1px solid #ECEDED',
             borderRadius: '16px',
-            backgroundColor: disabled ? '#F1F3F5' : '#FFFFFF',
-            color: disabled ? '#8D93A0' : '#282E3A',
+            backgroundColor: disabled ? '#F4F5F6' : '#FFFFFF',
+            color: disabled ? '#73747B' : '#17171C',
             outline: 'none',
             transition: 'border-color 200ms',
             width: '100%',
@@ -105,10 +105,10 @@ export function PolarTimePicker({
               cursor: 'pointer',
               transition: 'background-color 0.15s ease',
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F1F3F5'}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F4F5F6'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
-            <X size={14} color="#8D93A0" />
+            <X size={14} color="#36373A" />
           </button>
         )}
       </div>
@@ -118,7 +118,7 @@ export function PolarTimePicker({
           style={{
             fontFamily: 'Inter, sans-serif',
             fontSize: '14px',
-            color: error ? '#EF4444' : '#636878',
+            color: error ? '#E64D4D' : '#36373A',
           }}
         >
           {helperText}
