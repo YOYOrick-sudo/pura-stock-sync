@@ -245,6 +245,8 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
             ) : (
               <span style={{
                 flex: 1,
+                display: 'flex',
+                alignItems: 'center',
                 textDecoration: toggleTask && task.completed ? 'line-through' : 'none',
                 color: toggleTask && task.completed ? '#73747B' : '#282E3A',
                 fontWeight: 500,
@@ -256,7 +258,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                     {taskNumber}.
                   </span>
                 )}
-                {task.title}
+                <span style={{ flex: 1 }}>{task.title}</span>
                 {isNew && !isEditMode && (
                   <Sparkles size={14} style={{ color: '#E27726', marginLeft: '6px', flexShrink: 0 }} />
                 )}
