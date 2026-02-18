@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
@@ -67,9 +67,10 @@ interface SortableTaskItemProps {
   showAdminTools?: boolean;
   taskPadding?: string;
   taskNumber?: number;
+  isEvenRow?: boolean;
 }
 
-function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0', taskNumber }: SortableTaskItemProps) {
+function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0', taskNumber, isEvenRow = false }: SortableTaskItemProps) {
   const {
     attributes,
     listeners,
@@ -123,7 +124,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
           transition: 'all 0.15s ease',
           position: 'relative',
           overflow: 'hidden',
-          backgroundColor: task.completed ? 'rgba(27, 120, 103, 0.04)' : 'transparent',
+          backgroundColor: task.completed ? 'rgba(27, 120, 103, 0.04)' : (isEvenRow ? 'rgba(0, 0, 0, 0.02)' : 'transparent'),
         }}
         onMouseEnter={(e) => {
           if (!isEditMode && toggleTask) {
@@ -135,7 +136,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = task.completed 
             ? 'rgba(27, 120, 103, 0.04)' 
-            : 'transparent';
+            : (isEvenRow ? 'rgba(0, 0, 0, 0.02)' : 'transparent');
         }}
         onMouseDown={(e) => {
           if (!isEditMode && toggleTask) {
@@ -354,15 +355,15 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   minWidth: '24px',
                   borderRadius: '6px',
                   border: '1px solid rgba(197,197,202,0.5)',
-                  backgroundColor: '#FEFFF1',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 0,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-                title="Bewerk omschrijving"
+                   backgroundColor: '#F8FAFC',
+                   display: 'flex',
+                   alignItems: 'center',
+                   justifyContent: 'center',
+                   padding: 0,
+                   cursor: 'pointer',
+                   transition: 'all 0.15s ease',
+                 }}
+                 title="Bewerk omschrijving"
               >
                 <Pencil size={14} style={{ color: '#73747B' }} />
               </button>
@@ -381,21 +382,21 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   minWidth: '24px',
                   borderRadius: '6px',
                   border: '1px solid rgba(197,197,202,0.5)',
-                  backgroundColor: '#FEFFF1',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 0,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-                title="Verwijder taak"
+                   backgroundColor: '#F8FAFC',
+                   display: 'flex',
+                   alignItems: 'center',
+                   justifyContent: 'center',
+                   padding: 0,
+                   cursor: 'pointer',
+                   transition: 'all 0.15s ease',
+                 }}
+                 title="Verwijder taak"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = '#FEE2E2';
                   e.currentTarget.style.borderColor = '#EF4444';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#FEFFF1';
+                  e.currentTarget.style.backgroundColor = '#F8FAFC';
                   e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
                 }}
               >
@@ -411,7 +412,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
             <DialogContent 
               className="data-[state=open]:duration-300 data-[state=open]:ease-out data-[state=closed]:duration-200"
               style={{
-                backgroundColor: '#FEFFF1',
+                backgroundColor: '#FFFFFF',
                 border: '1px solid rgba(197, 197, 202, 0.5)',
                 borderRadius: '20px',
                 fontFamily: 'Inter, sans-serif',
@@ -706,6 +707,8 @@ export function FohTasks() {
   const [mainCategory, setMainCategory] = useState<'dagelijks' | 'periodiek'>('dagelijks');
   const [activePhase, setActivePhase] = useState<PhaseType>('open');
   const [isPhaseManuallySelected, setIsPhaseManuallySelected] = useState(false);
+  const [headerScrolled, setHeaderScrolled] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const [dailyTasks, setDailyTasks] = useState<FohTaskWithEmployee[]>([]);
   const [extraTasks, setExtraTasks] = useState<FohTaskWithEmployee[]>([]);
@@ -977,6 +980,15 @@ export function FohTasks() {
       console.error('Error in client-side reset:', error);
     }
   };
+
+  // Scroll detection for sticky header shadow
+  useEffect(() => {
+    const handleScroll = () => {
+      setHeaderScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const initializeTasks = async () => {
@@ -1662,15 +1674,18 @@ export function FohTasks() {
   const groupedCurrentTasks = groupTasksByCategory(currentTasks);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#FEFFF1', fontFamily: 'Inter, sans-serif' }}>
-      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#F8FAFC', fontFamily: 'Inter, sans-serif' }}>
+      <div ref={scrollContainerRef} style={{ maxWidth: '1400px', margin: '0 auto' }}>
       <div style={{
-        backgroundColor: '#F6F7DD',
+        backgroundColor: '#FFFFFF',
         borderRadius: '20px',
-        border: '1px solid rgba(197, 197, 202, 0.5)',
+        border: '1px solid #E2E8F0',
         padding: '24px',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
-        position: 'relative',
+        boxShadow: headerScrolled ? '0 4px 12px rgba(0, 0, 0, 0.08)' : '0 1px 3px rgba(0, 0, 0, 0.06)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
+        transition: 'box-shadow 0.2s ease',
       }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
@@ -1693,13 +1708,13 @@ export function FohTasks() {
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive) {
-                    e.currentTarget.style.backgroundColor = '#F6F7DD';
+                    e.currentTarget.style.backgroundColor = '#F1F5F9';
                     e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
                   }
                 }}
                     onMouseLeave={(e) => {
                       if (!isActive) {
-                        e.currentTarget.style.backgroundColor = '#FEFFF1';
+                        e.currentTarget.style.backgroundColor = '#F8FAFC';
                         e.currentTarget.style.boxShadow = 'none';
                       }
                     }}
@@ -1712,9 +1727,9 @@ export function FohTasks() {
                       fontSize: '15px',
                       fontWeight: 500,
                   padding: '14px 20px',
-                  backgroundColor: isActive ? '#1B7867' : '#FEFFF1',
+                  backgroundColor: isActive ? '#1B7867' : '#F8FAFC',
                   color: isActive ? '#FFFFFF' : '#282E3A',
-                  border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+                  border: isActive ? 'none' : '1px solid #E2E8F0',
                   borderRadius: '20px',
                   cursor: 'pointer',
                   opacity: 1,
@@ -1759,13 +1774,13 @@ export function FohTasks() {
                     }}
                     onMouseEnter={(e) => {
                       if (!isActive) {
-                        e.currentTarget.style.backgroundColor = '#F6F7DD';
+                        e.currentTarget.style.backgroundColor = '#F1F5F9';
                         e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive) {
-                        e.currentTarget.style.backgroundColor = '#FEFFF1';
+                        e.currentTarget.style.backgroundColor = '#F8FAFC';
                         e.currentTarget.style.boxShadow = 'none';
                       }
                     }}
@@ -1778,9 +1793,9 @@ export function FohTasks() {
                       fontSize: '15px',
                       fontWeight: 500,
                     padding: '14px 20px',
-                    backgroundColor: isActive ? '#1B7867' : '#FEFFF1',
+                    backgroundColor: isActive ? '#1B7867' : '#F8FAFC',
                     color: isActive ? '#FFFFFF' : '#282E3A',
-                    border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+                    border: isActive ? 'none' : '1px solid #E2E8F0',
                     borderRadius: '20px',
                     cursor: 'pointer',
                       transition: 'all 0.15s ease',
@@ -1812,7 +1827,7 @@ export function FohTasks() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                   height: '8px',
-                  backgroundColor: '#FEFFF1',
+                  backgroundColor: '#F1F5F9',
                   borderRadius: '4px',
                   overflow: 'hidden',
                 }}>
@@ -1853,9 +1868,9 @@ export function FohTasks() {
                     alignItems: 'center',
                     gap: '8px',
                     padding: '12px 20px',
-                    backgroundColor: '#FEFFF1',
+                    backgroundColor: '#F8FAFC',
                     color: '#1B7867',
-                    border: '1px solid rgba(197, 197, 202, 0.5)',
+                    border: '1px solid #E2E8F0',
                     borderRadius: '20px',
                     fontSize: '15px',
                     fontWeight: 500,
@@ -1864,12 +1879,12 @@ export function FohTasks() {
                     transition: 'all 0.2s ease',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#F6F7DD';
-                    e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.7)';
+                    e.currentTarget.style.backgroundColor = '#F1F5F9';
+                    e.currentTarget.style.borderColor = '#CBD5E1';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#FEFFF1';
-                    e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.5)';
+                    e.currentTarget.style.backgroundColor = '#F8FAFC';
+                    e.currentTarget.style.borderColor = '#E2E8F0';
                   }}
                 >
                   <Settings size={18} />
@@ -1914,7 +1929,7 @@ export function FohTasks() {
                       </button>
                     </DialogTrigger>
                     <DialogContent style={{
-                      backgroundColor: '#FEFFF1',
+                      backgroundColor: '#FFFFFF',
                       border: '1px solid rgba(197, 197, 202, 0.5)',
                       borderRadius: '20px',
                       fontFamily: 'Inter, sans-serif',
@@ -2014,7 +2029,7 @@ export function FohTasks() {
                                         padding: '8px',
                                         borderRadius: '8px',
                                         border: newTask.priority === value ? `2px solid ${color}` : '1px solid rgba(197,197,202,0.5)',
-                                        backgroundColor: newTask.priority === value ? `${color}15` : '#FEFFF1',
+                                        backgroundColor: newTask.priority === value ? `${color}15` : '#F8FAFC',
                                         color: '#282E3A',
                                         cursor: 'pointer',
                                         fontSize: '13px',
@@ -2189,36 +2204,53 @@ export function FohTasks() {
                   collisionDetection={closestCenter}
                   onDragEnd={handleDragEnd}
                 >
-                  <div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {Object.entries(groupedCurrentTasks).map(([category, categoryTasks]) => {
                       const progress = getCategoryProgress(categoryTasks);
                       return (
-                        <div key={category} style={{ marginBottom: '24px' }}>
-                          <h3 style={{
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em',
-                            color: progress.allDone ? '#1B7867' : '#73747B',
-                            marginBottom: '12px',
-                            fontFamily: 'Inter, sans-serif',
+                        <div key={category} style={{
+                          backgroundColor: '#FFFFFF',
+                          borderRadius: '12px',
+                          border: '1px solid #E2E8F0',
+                          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px 0 rgb(0 0 0 / 0.02)',
+                          overflow: 'hidden',
+                        }}>
+                          {/* Category header */}
+                          <div style={{
+                            padding: '12px 16px',
+                            backgroundColor: '#F1F5F9',
+                            borderLeft: '4px solid #1B7867',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '8px',
+                            justifyContent: 'space-between',
+                            position: 'sticky',
+                            top: 0,
+                            zIndex: 5,
                           }}>
-                            {category}
+                            <h3 style={{
+                              fontSize: '13px',
+                              fontWeight: 700,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.05em',
+                              color: progress.allDone ? '#1B7867' : '#334155',
+                              fontFamily: 'Inter, sans-serif',
+                              margin: 0,
+                            }}>
+                              {category}
+                            </h3>
                             <span style={{
-                              fontSize: '11px',
-                              fontWeight: 500,
-                              color: progress.allDone ? '#1B7867' : '#9CA3AF',
-                              backgroundColor: progress.allDone ? 'rgba(27, 120, 103, 0.1)' : 'rgba(156, 163, 175, 0.1)',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              color: progress.allDone ? '#FFFFFF' : '#64748B',
+                              backgroundColor: progress.allDone ? '#1B7867' : '#E2E8F0',
+                              padding: '3px 10px',
+                              borderRadius: '6px',
                             }}>
                               {progress.completed}/{progress.total}
                             </span>
-                          </h3>
-                          <div style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.3)', paddingBottom: '16px' }}>
+                          </div>
+                          {/* Category tasks */}
+                          <div style={{ padding: '0 16px' }}>
                             {progress.allDone ? (
                               <div style={{
                                 padding: '20px',
@@ -2238,6 +2270,7 @@ export function FohTasks() {
                                     key={task.id}
                                     task={task}
                                     taskNumber={index + 1}
+                                    isEvenRow={index % 2 === 1}
                                     isEditMode={isEditMode}
                                     onTitleChange={(id, title) => {
                                       setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, title } : t));
@@ -2390,7 +2423,7 @@ export function FohTasks() {
                                       minWidth: '24px',
                                       borderRadius: '6px',
                                       border: '1px solid rgba(197,197,202,0.5)',
-                                      backgroundColor: '#FEFFF1',
+                                      backgroundColor: '#F8FAFC',
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'center',
@@ -2404,7 +2437,7 @@ export function FohTasks() {
                                       e.currentTarget.style.borderColor = '#EF4444';
                                     }}
                                     onMouseLeave={(e) => {
-                                      e.currentTarget.style.backgroundColor = '#FEFFF1';
+                                      e.currentTarget.style.backgroundColor = '#F8FAFC';
                                       e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
                                     }}
                                   >
@@ -2504,9 +2537,9 @@ export function FohTasks() {
                   {newTasks.length > 0 && (
                     <div style={{
                       padding: '12px',
-                      backgroundColor: '#F6F7DD',
+                      backgroundColor: '#F1F5F9',
                       borderRadius: '12px',
-                      border: '1px solid rgba(197,197,202,0.5)',
+                      border: '1px solid #E2E8F0',
                     }}>
                       <div style={{
                         fontSize: '13px',
@@ -2604,7 +2637,7 @@ export function FohTasks() {
       {/* Password Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
         <DialogContent style={{
-          backgroundColor: '#FEFFF1',
+          backgroundColor: '#FFFFFF',
           border: '1px solid rgba(197, 197, 202, 0.5)',
           borderRadius: '20px',
           fontFamily: 'Inter, sans-serif',
@@ -2675,7 +2708,7 @@ export function FohTasks() {
       {/* Admin Panel Dialog */}
       <Dialog open={adminPanelOpen} onOpenChange={setAdminPanelOpen}>
         <DialogContent style={{
-          backgroundColor: '#FEFFF1',
+          backgroundColor: '#FFFFFF',
           border: '1px solid rgba(197, 197, 202, 0.5)',
           borderRadius: '20px',
           fontFamily: 'Inter, sans-serif',
@@ -2720,7 +2753,7 @@ export function FohTasks() {
                   {Object.values(groupedTemplates).map(template => (
                     <div key={template.name} style={{
                       padding: '16px',
-                      backgroundColor: '#F6F7DD',
+                      backgroundColor: '#F1F5F9',
                       borderRadius: '12px',
                       border: template.isActive ? '2px solid #1B7867' : '1px solid rgba(197,197,202,0.5)',
                     }}>
@@ -2844,7 +2877,7 @@ export function FohTasks() {
       {/* New Template Dialog */}
       <Dialog open={newTemplateDialogOpen} onOpenChange={setNewTemplateDialogOpen}>
         <DialogContent style={{
-          backgroundColor: '#FEFFF1',
+          backgroundColor: '#FFFFFF',
           border: '1px solid rgba(197, 197, 202, 0.5)',
           borderRadius: '20px',
           fontFamily: 'Inter, sans-serif',
@@ -2904,7 +2937,7 @@ export function FohTasks() {
       {/* Template Editor Dialog */}
       <Dialog open={templateEditorOpen} onOpenChange={setTemplateEditorOpen}>
         <DialogContent style={{
-          backgroundColor: '#FEFFF1',
+          backgroundColor: '#FFFFFF',
           border: '1px solid rgba(197, 197, 202, 0.5)',
           borderRadius: '20px',
           fontFamily: 'Inter, sans-serif',
