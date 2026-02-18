@@ -2222,7 +2222,7 @@ export function FohTasks() {
                                   <SortableTaskItem
                                     key={task.id}
                                     task={task}
-                                    taskNumber={index + 1}
+                                    taskNumber={task.sort_order != null ? task.sort_order + 1 : index + 1}
                                     isEditMode={isEditMode}
                                     onTitleChange={(id, title) => {
                                       setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, title } : t));
