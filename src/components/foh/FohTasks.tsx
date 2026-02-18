@@ -66,9 +66,10 @@ interface SortableTaskItemProps {
   isDeleted: boolean;
   showAdminTools?: boolean;
   taskPadding?: string;
+  taskNumber?: number;
 }
 
-function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0' }: SortableTaskItemProps) {
+function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0', taskNumber }: SortableTaskItemProps) {
   const {
     attributes,
     listeners,
@@ -249,6 +250,11 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 fontSize: '15px',
                 fontFamily: 'Inter, sans-serif',
               }}>
+                {taskNumber != null && (
+                  <span style={{ color: '#9CA3AF', fontWeight: 600, marginRight: '6px', fontSize: '13px' }}>
+                    {taskNumber}.
+                  </span>
+                )}
                 {task.title}
               </span>
             )}
@@ -651,7 +657,15 @@ const formatDayHeader = (dateString: string): string => {
   
   if (dateString === todayDateStr) return 'Vandaag';
   if (dateString === tomorrowDateStr) return 'Morgen';
-  if (dateString < todayDateStr) return 'Overdag';
+  
+  if (dateString < todayDateStr) {
+    // Calculate days overdue
+    const dueDate = new Date(dateString + 'T12:00:00');
+    const todayDate = new Date(todayDateStr + 'T12:00:00');
+    const diffDays = Math.round((todayDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays === 1) return 'Gisteren — 1 dag overtijd';
+    return `${diffDays} dagen overtijd`;
+  }
   
   // Format as "Maandag 23 dec"
   const date = new Date(dateString + 'T12:00:00');
@@ -932,7 +946,8 @@ export function FohTasks() {
         .update({ archived: true })
         .eq('location', location)
         .lt('due_date', todayDate)
-        .eq('archived', false);
+        .eq('archived', false)
+        .not('phase', 'is', null);
       
       if (archiveError) {
         console.error('Error archiving old tasks:', archiveError);
@@ -2203,10 +2218,11 @@ export function FohTasks() {
                               </div>
                             ) : (
                               <SortableContext items={categoryTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-                                {categoryTasks.map(task => (
+                                {categoryTasks.map((task, index) => (
                                   <SortableTaskItem
                                     key={task.id}
                                     task={task}
+                                    taskNumber={index + 1}
                                     isEditMode={isEditMode}
                                     onTitleChange={(id, title) => {
                                       setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, title } : t));

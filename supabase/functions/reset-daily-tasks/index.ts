@@ -36,12 +36,13 @@ Deno.serve(async (req) => {
 
     console.log('Today:', todayDate, 'Day of week:', dayOfWeek);
 
-    // Step 1: Archive old tasks (due_date < today)
+    // Step 1: Archive old tasks (due_date < today), but NOT periodic tasks (phase = null)
     const { error: archiveError, count: archivedCount } = await supabase
       .from('foh_tasks')
       .update({ archived: true })
       .lt('due_date', todayDate)
-      .eq('archived', false);
+      .eq('archived', false)
+      .not('phase', 'is', null);
 
     if (archiveError) {
       console.error('Error archiving old tasks:', archiveError);
