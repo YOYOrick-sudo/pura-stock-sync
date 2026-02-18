@@ -389,6 +389,39 @@ export type Database = {
           },
         ]
       }
+      employee_documents: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          file_name: string
+          file_url: string
+          id: string
+          type: string
+          uploaded_by: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          file_name: string
+          file_url: string
+          id?: string
+          type: string
+          uploaded_by?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          file_name?: string
+          file_url?: string
+          id?: string
+          type?: string
+          uploaded_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       foh_daily_templates: {
         Row: {
           category: string
@@ -694,6 +727,45 @@ export type Database = {
         }
         Relationships: []
       }
+      leave_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          end_date: string
+          id: string
+          reason: string | null
+          start_date: string
+          status: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          end_date: string
+          id?: string
+          reason?: string | null
+          start_date: string
+          status?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          end_date?: string
+          id?: string
+          reason?: string | null
+          start_date?: string
+          status?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mep_planning: {
         Row: {
           assigned_to: string | null
@@ -777,6 +849,48 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          date_of_birth: string | null
+          emergency_contact: string | null
+          first_name: string
+          id: string
+          last_name: string
+          nationality: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          emergency_contact?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          nationality?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          emergency_contact?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          nationality?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       recipe_steps: {
         Row: {
           created_at: string | null
@@ -848,6 +962,54 @@ export type Database = {
         }
         Relationships: []
       }
+      schedules: {
+        Row: {
+          break_minutes: number | null
+          created_at: string
+          created_by: string | null
+          date: string
+          end_time: string
+          id: string
+          location: string
+          notes: string | null
+          shift_type: string | null
+          start_time: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          break_minutes?: number | null
+          created_at?: string
+          created_by?: string | null
+          date: string
+          end_time: string
+          id?: string
+          location: string
+          notes?: string | null
+          shift_type?: string | null
+          start_time: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          break_minutes?: number | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          end_time?: string
+          id?: string
+          location?: string
+          notes?: string | null
+          shift_type?: string | null
+          start_time?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       sent_documents: {
         Row: {
           acknowledged_at: string | null
@@ -899,6 +1061,60 @@ export type Database = {
           },
         ]
       }
+      shift_swap_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          id: string
+          message: string | null
+          requester_id: string
+          schedule_id: string
+          status: string
+          target_schedule_id: string | null
+          target_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          message?: string | null
+          requester_id: string
+          schedule_id: string
+          status?: string
+          target_schedule_id?: string | null
+          target_user_id: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          message?: string | null
+          requester_id?: string
+          schedule_id?: string
+          status?: string
+          target_schedule_id?: string | null
+          target_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_swap_requests_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_swap_requests_target_schedule_id_fkey"
+            columns: ["target_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff_members: {
         Row: {
           active: boolean
@@ -929,24 +1145,80 @@ export type Database = {
         }
         Relationships: []
       }
+      time_registrations: {
+        Row: {
+          approved_by: string | null
+          break_taken_minutes: number | null
+          clock_in: string
+          clock_out: string | null
+          created_at: string
+          id: string
+          location: string
+          schedule_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          approved_by?: string | null
+          break_taken_minutes?: number | null
+          clock_in: string
+          clock_out?: string | null
+          created_at?: string
+          id?: string
+          location: string
+          schedule_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          approved_by?: string | null
+          break_taken_minutes?: number | null
+          clock_in?: string
+          clock_out?: string | null
+          created_at?: string
+          id?: string
+          location?: string
+          schedule_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_registrations_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
+          contract_type: string | null
           created_at: string | null
+          hired_date: string | null
           id: string
+          is_active: boolean
           location: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
+          contract_type?: string | null
           created_at?: string | null
+          hired_date?: string | null
           id?: string
+          is_active?: boolean
           location: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
+          contract_type?: string | null
           created_at?: string | null
+          hired_date?: string | null
           id?: string
+          is_active?: boolean
           location?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
@@ -1004,6 +1276,10 @@ export type Database = {
       current_user_location: { Args: never; Returns: string }
       generate_order_number: { Args: never; Returns: string }
       get_user_location: { Args: { _user_id: string }; Returns: string }
+      get_user_role: {
+        Args: { uid: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1011,9 +1287,20 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_manager_same_location: {
+        Args: { _profile_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      app_role: "admin" | "manager" | "kitchen_staff" | "hr"
+      app_role:
+        | "admin"
+        | "manager"
+        | "kitchen_staff"
+        | "hr"
+        | "owner"
+        | "team_lead"
+        | "employee"
       application_status:
         | "received"
         | "screening"
@@ -1150,7 +1437,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "manager", "kitchen_staff", "hr"],
+      app_role: [
+        "admin",
+        "manager",
+        "kitchen_staff",
+        "hr",
+        "owner",
+        "team_lead",
+        "employee",
+      ],
       application_status: [
         "received",
         "screening",
