@@ -49,18 +49,6 @@ const allNavigationItems = [
     locations: ['Midsland'],
   },
   {
-    title: 'Rooster',
-    url: '/rooster',
-    icon: CalendarDays,
-    locations: ['West', 'Midsland'],
-  },
-  {
-    title: 'HR Inbox',
-    url: '/hr',
-    icon: Users,
-    locations: ['West', 'Midsland'],
-  },
-  {
     title: 'Settings',
     url: '/settings',
     icon: Settings,
