@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Loader2, Plus, Check, ChevronsUpDown, Trash2, Info, Pencil, Settings, Shield, X, GripVertical, BookTemplate, ChevronDown, ChevronUp } from 'lucide-react';
+import { Loader2, Plus, Check, ChevronsUpDown, Trash2, Info, Pencil, Settings, Shield, X, GripVertical, BookTemplate, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { toZonedTime } from 'date-fns-tz';
@@ -67,9 +67,10 @@ interface SortableTaskItemProps {
   showAdminTools?: boolean;
   taskPadding?: string;
   taskNumber?: number;
+  isNew?: boolean;
 }
 
-function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0', taskNumber }: SortableTaskItemProps) {
+function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0', taskNumber, isNew = false }: SortableTaskItemProps) {
   const {
     attributes,
     listeners,
@@ -256,6 +257,9 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   </span>
                 )}
                 {task.title}
+                {isNew && !isEditMode && (
+                  <Sparkles size={14} style={{ color: '#E27726', marginLeft: '6px', flexShrink: 0 }} />
+                )}
               </span>
             )}
           </div>
@@ -779,6 +783,33 @@ export function FohTasks() {
     },
     enabled: adminPanelOpen && adminTab === 'templates',
   });
+
+  // Fetch template created_at dates for "new" indicator
+  const { data: templateDates } = useQuery({
+    queryKey: ['foh-template-dates', userLocation],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('foh_daily_templates')
+        .select('id, created_at')
+        .eq('location', userLocation)
+        .eq('is_active', true);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!userLocation,
+  });
+
+  // Map template_id → isNew (created less than 7 days ago)
+  const newTemplateIds = new Set<string>();
+  if (templateDates) {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    for (const t of templateDates) {
+      if (new Date(t.created_at) > sevenDaysAgo) {
+        newTemplateIds.add(t.id);
+      }
+    }
+  }
 
   // Group templates by name
   const groupedTemplates = templates?.reduce((acc, template) => {
@@ -2255,6 +2286,7 @@ export function FohTasks() {
                                     isDeleted={deletedTaskIds.includes(task.id)}
                                     showAdminTools={false}
                                     taskPadding={taskPadding}
+                                    isNew={!!task.template_id && newTemplateIds.has(task.template_id)}
                                   />
                                 ))}
                               </SortableContext>
