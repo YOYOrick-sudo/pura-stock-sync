@@ -768,7 +768,7 @@ export function FohTasks() {
         .select('*')
         .eq('location', userLocation)
         .eq('phase', activePhase)
-        .eq('repeat_type', 'daily')
+        .in('repeat_type', ['daily', 'weekly'])
         .order('template_name')
         .order('sort_order', { ascending: true });
       
@@ -800,15 +800,28 @@ export function FohTasks() {
   const generateDailyTasks = async () => {
     const todayDate = getAmsterdamDateString();
     
-    // Fetch only active templates
-    const { data: templates } = await supabase
+    // Fetch active daily templates
+    const { data: dailyTemplates } = await supabase
       .from('foh_daily_templates')
       .select('*')
       .eq('location', userLocation)
       .eq('repeat_type', 'daily')
       .eq('is_active', true);
     
-    if (!templates || templates.length === 0) return;
+    // Fetch active weekly templates for today's day of week
+    const amsterdamNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' }));
+    const currentDayOfWeek = amsterdamNow.getDay(); // 0=Sun, 3=Wed, etc.
+    
+    const { data: weeklyTemplates } = await supabase
+      .from('foh_daily_templates')
+      .select('*')
+      .eq('location', userLocation)
+      .eq('repeat_type', 'weekly')
+      .eq('day_of_week', currentDayOfWeek)
+      .eq('is_active', true);
+    
+    const templates = [...(dailyTemplates || []), ...(weeklyTemplates || [])];
+    if (templates.length === 0) return;
     
     const phases = ['open', 'tussen', 'sluit'] as const;
     const tasksToInsert: any[] = [];
