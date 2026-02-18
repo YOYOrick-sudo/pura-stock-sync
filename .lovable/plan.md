@@ -1,113 +1,52 @@
 
 
-# Plan: Design System Migratie naar Pura Vida OS v6.0
+# Plan: Drie Aanpassingen aan Taken Bediening
 
-Dit plan vervangt het huidige groene "Polar/Sea" design system door het oranje "Sunset Orange" Pura Vida OS design system uit de geuploadde documentatie.
+## 1. Sidebar opschonen
 
----
+Design System en HR Inbox worden verwijderd uit de navigatie in `AppSidebar.tsx`.
 
-## Wat verandert er
+## 2. Nummering toevoegen aan dagelijkse taken (Open, Tussen, Sluit)
 
-### Kleuren
-- **Primary**: Groen (#1B7867) wordt Sunset Orange (#E27726)
-- **Gray scale**: Slate wordt Midnight Slate (nieuwe hex waarden: 0:#FFFFFF tot 950:#0F1318)
-- **Semantic kleuren**: Blijven grotendeels gelijk (success, warning, error, info)
-- **Sidebar**: Witte achtergrond met oranje active states (was: groen)
+Elke taak in de dagelijkse lijsten krijgt een volgnummer (1, 2, 3...) voor de titel, zodat medewerkers de volgorde weten. Het nummer wordt gebaseerd op de positie binnen de categorie (Deel 1, Deel 2, etc.) en volgt de bestaande `sort_order`.
 
-### Typografie
-- **Display font**: Instrument Sans toevoegen (voor titels, headings)
-- **Mono font**: Geist Mono toevoegen (voor bedragen, data, IDs)
-- **Body font**: Inter blijft (al aanwezig)
+Dit wordt toegevoegd in het `SortableTaskItem` component of bij de render van de dagelijkse taken, als een subtiel grijs nummer voor de taaknaam.
 
-### Border Radius
-- sm: 12px, md: 14px (buttons/inputs), lg: 16px, xl: 20px (cards), 2xl: 24px (modals)
-- Minimaal 12px overal (behalve checkbox 4px)
+## 3. Periodieke taken blijven altijd staan (niet archiveren)
 
-### Shadows
-- Lichtere, subtielere shadows conform het nieuwe systeem
-- Focus ring: oranje (rgba(226,119,38,0.2))
+**Probleem nu:** De client-side reset en de edge function archiveren alle taken waarvan `due_date < vandaag`. Periodieke taken (phase = null) worden daardoor ook verwijderd de dag erna.
 
----
+**Oplossing:**
 
-## Bestanden die worden aangepast
+Periodieke taken moeten alleen verdwijnen als ze:
+- Handmatig worden verwijderd (trash/swipe)
+- Worden afgevinkt (completed)
 
-### 1. index.html
-- Google Fonts link uitbreiden met Instrument Sans en Geist Mono
+Als de `due_date` verstreken is en de taak niet is afgevinkt, moet deze blijven staan met een subtiel "overtijd" visueel signaal (bijv. een oranje/rode datum-indicator).
 
-### 2. src/index.css
-- Alle CSS custom properties (--primary, --accent, --background, etc.) updaten naar oranje palette
-- HSL waarden herberekenen voor het nieuwe kleurenschema
-- Dark mode variabelen updaten
+### Technische wijzigingen
 
-### 3. tailwind.config.ts
-- `pv` namespace kleuren vervangen door nieuwe orange/midnight-slate tokens
-- Font families uitbreiden: `display` (Instrument Sans), `mono` (Geist Mono)
-- Border radius waarden updaten
-- Shadow waarden updaten
+**A. `performClientSideReset()` in FohTasks.tsx (regel 930-935)**
+- Archiveer alleen taken die een `phase` hebben (dagelijkse taken), niet periodieke taken (phase = null)
+- Wijziging: voeg `.not('phase', 'is', null)` toe aan de archiveer-query
 
-### 4. src/components/polar/colors.ts
-- Alle kleurconstanten updaten naar het nieuwe palette
-- Brand primary: #E27726 (was #1B7867)
-- Gray scale naar midnight slate waarden
+**B. Edge function `reset-daily-tasks/index.ts` (regel 42-49)**
+- Zelfde aanpassing: archiveer alleen taken met een phase, niet periodieke taken
+- Wijziging: voeg `.not('phase', 'is', null)` toe
 
----
+**C. `fetchExtraTasks()` in FohTasks.tsx (regel 860-876)**
+- Haal nu ook taken op met `due_date` in het verleden (verwijder geen filter op datum, alleen `archived: false`)
+- Dit is al zo: de query filtert alleen op `archived: false` en `phase: null`, geen datum-filter. Dus dit is al correct.
 
-## Wat NIET verandert
-- Bestaande component structuur (shadcn/ui, Polar components)
-- Routing, hooks, pagina's
-- Database en backend
-- Functionele logica
+**D. Visuele overtijd-indicator in periodieke taken-weergave (regel 2237+)**
+- Als `due_date < vandaag` en `completed = false`: toon een subtiel overtijd-label (bijv. "2 dagen over" in een zachte rode/oranje kleur)
+- De `formatDayHeader` functie en `getDateLabelColor` worden aangepast om verleden datums duidelijk te markeren
 
----
+### Bestanden die worden aangepast
 
-## Technische Details
-
-### Nieuwe CSS Root Variables (Light Mode)
-
-```text
---primary:        25 76% 52%    (was: 163 65% 26%)     -> #E27726
---primary-hover:  25 88% 42%    (was: 163 65% 21%)     -> #C9630E  
---accent:         25 76% 52%    (wordt zelfde als primary)
---background:     210 17% 98%   -> #F8F9FA (Midnight Slate 50)
---foreground:     218 33% 18%   -> #282E3A (Midnight Slate 800)
---muted:          210 20% 96%   -> #F1F3F5 (Midnight Slate 75)
---border:         220 13% 91%   -> #EAECF0 (Midnight Slate 100)
---ring:           25 76% 52%    -> orange focus ring
-```
-
-### Nieuwe Tailwind pv Namespace
-
-```text
-pv-primary-50:  #FFF7ED    pv-primary-500: #E27726
-pv-primary-600: #C9630E    pv-primary-700: #A5500D
-pv-gray-50:     #F8F9FA    pv-gray-100: #EAECF0
-pv-gray-200:    #C1C5CF    pv-gray-400: #636878
-pv-gray-800:    #282E3A    pv-gray-900: #1A1F28
-```
-
-### Font Families
-
-```text
-font-sans:    'Inter', system-ui, sans-serif
-font-display: 'Instrument Sans', 'Inter', sans-serif
-font-mono:    'Geist Mono', 'SF Mono', monospace
-```
-
-### Border Radius
-
-```text
-polar-sm:  12px (was 8px)
-polar-md:  14px (was 12px)  -> buttons, inputs
-polar-lg:  16px (was 16px)  -> cards
-polar-xl:  20px (was 20px)  -> dropdowns
-polar-2xl: 24px (was 24px)  -> modals
-```
-
----
-
-## Opmerking over het DOCX bestand
-
-Het DOCX bestand bevat een ouder groen design system (DM Sans, JetBrains Mono, groene primary). Het JSX v2 bestand is nieuwer (v6.0) en completer. Dit plan volgt het JSX v2 bestand als de autoritatieve bron.
-
-Het kleurpaletten-bestand (teal/sage/emerald vergelijker) is een exploratief document en wordt niet overgenomen - het oranje systeem uit het JSX v2 bestand is de keuze.
+| Bestand | Wijziging |
+|---------|-----------|
+| `src/components/AppSidebar.tsx` | Design System en HR Inbox verwijderen |
+| `src/components/foh/FohTasks.tsx` | Nummering toevoegen, archivering periodieke taken uitsluiten, overtijd-indicator |
+| `supabase/functions/reset-daily-tasks/index.ts` | Archivering periodieke taken uitsluiten |
 
