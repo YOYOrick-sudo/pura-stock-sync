@@ -321,12 +321,12 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   setIsEditingDescription(true);
                 }}
                 style={{
-                  width: '24px',
-                  height: '24px',
-                  minWidth: '24px',
-                  borderRadius: '6px',
-                  border: '1px solid rgba(197,197,202,0.5)',
-                  backgroundColor: '#FEFFF1',
+                  width: '26px',
+                  height: '26px',
+                  minWidth: '26px',
+                  borderRadius: '8px',
+                  border: '1.5px solid rgba(27,120,103,0.3)',
+                  backgroundColor: '#E6F4F1',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -336,7 +336,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 }}
                 title="Bekijk info"
               >
-                <Info size={14} style={{ color: '#1B7867' }} />
+                <Info size={16} style={{ color: '#1B7867' }} />
               </button>
             )}
 
@@ -408,12 +408,14 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         {/* Description edit dialog */}
         {isEditingDescription && (
           <Dialog open={isEditingDescription} onOpenChange={setIsEditingDescription}>
-            <DialogContent style={{
-              backgroundColor: '#FEFFF1',
-              border: '1px solid rgba(197, 197, 202, 0.5)',
-              borderRadius: '20px',
-              fontFamily: 'Inter, sans-serif',
-            }}>
+            <DialogContent 
+              className="data-[state=open]:duration-300 data-[state=open]:ease-out data-[state=closed]:duration-200"
+              style={{
+                backgroundColor: '#FEFFF1',
+                border: '1px solid rgba(197, 197, 202, 0.5)',
+                borderRadius: '20px',
+                fontFamily: 'Inter, sans-serif',
+              }}>
               <DialogHeader>
                 <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#282E3A' }}>
                   {showAdminTools ? 'Bewerk Omschrijving' : 'Taak Informatie'}
