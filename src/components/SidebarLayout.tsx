@@ -35,6 +35,7 @@ export function SidebarLayout({
       '/settings': 'Instellingen',
       '/taken-analyse': 'Statistieken',
       '/rooster': 'Rooster',
+      '/hr': 'HR Inbox',
       '/hr/verlof': 'Verlofaanvragen'
     };
     return titles[pathname] || 'Pura Vida';
