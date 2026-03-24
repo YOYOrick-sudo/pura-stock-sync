@@ -208,15 +208,15 @@ GENEREER ${missingCount} concrete suggesties:
 
 Stijl: Kort, bondig, concreet, professioneel. Geen lange uitleg.`;
 
-    console.log('Calling OpenAI API...');
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    console.log('Calling Lovable AI Gateway...');
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-mini-2025-08-07',
+        model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: 'Je bent een expert horeca-adviseur voor Pura Vida op Terschelling.' },
           { role: 'user', content: prompt }
@@ -257,7 +257,6 @@ Stijl: Kort, bondig, concreet, professioneel. Geen lange uitleg.`;
           }
         }],
         tool_choice: { type: "function", function: { name: "generate_suggestions" } },
-        max_completion_tokens: 2000,
       }),
     });
 
