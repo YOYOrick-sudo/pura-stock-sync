@@ -267,9 +267,9 @@ Stijl: Kort, bondig, concreet, professioneel. Geen lange uitleg.`;
     }
 
     const aiData = await aiResponse.json();
-    console.log('OpenAI full response:', JSON.stringify(openAIData, null, 2));
+    console.log('AI Gateway full response:', JSON.stringify(aiData, null, 2));
 
-    const message = openAIData.choices[0].message;
+    const message = aiData.choices[0].message;
     console.log('Message object:', JSON.stringify(message, null, 2));
 
     if (!message.tool_calls || message.tool_calls.length === 0) {
