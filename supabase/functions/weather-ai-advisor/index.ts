@@ -260,13 +260,13 @@ Stijl: Kort, bondig, concreet, professioneel. Geen lange uitleg.`;
       }),
     });
 
-    if (!openAIResponse.ok) {
-      const errorText = await openAIResponse.text();
-      console.error('OpenAI API error:', openAIResponse.status, errorText);
-      throw new Error(`OpenAI API error: ${openAIResponse.status}`);
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error('AI Gateway error:', aiResponse.status, errorText);
+      throw new Error(`AI Gateway error: ${aiResponse.status}`);
     }
 
-    const openAIData = await openAIResponse.json();
+    const aiData = await aiResponse.json();
     console.log('OpenAI full response:', JSON.stringify(openAIData, null, 2));
 
     const message = openAIData.choices[0].message;
