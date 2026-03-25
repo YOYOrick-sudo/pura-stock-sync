@@ -33,7 +33,8 @@ export function SidebarLayout({
       '/mep-planning': 'MEP Planning',
       '/voorraad': 'Voorraad',
       '/settings': 'Instellingen',
-      '/taken-analyse': 'Statistieken'
+      '/taken-analyse': 'Statistieken',
+      '/onderhoud': 'Onderhoud'
     };
     return titles[pathname] || 'Pura Vida';
   };

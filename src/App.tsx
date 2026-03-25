@@ -21,6 +21,8 @@ import DesignPreview from "./pages/DesignPreview";
 import DesignSystem from "./pages/DesignSystem";
 // HR Module
 import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } from "./pages/hr";
+// Maintenance Module
+import Onderhoud from "./pages/maintenance/Onderhoud";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -124,6 +126,16 @@ const App = () => (
           {/* Public Design System route - no login needed */}
           <Route path="/design-system" element={<DesignSystem />} />
           
+          {/* Maintenance Module */}
+          <Route
+            path="/onderhoud"
+            element={
+              <ProtectedRoute>
+                <Onderhoud />
+              </ProtectedRoute>
+            }
+          />
+
           {/* HR Module Routes */}
           <Route 
             path="/hr" 
