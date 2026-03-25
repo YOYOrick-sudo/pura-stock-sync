@@ -772,6 +772,39 @@ export type Database = {
         }
         Relationships: []
       }
+      maintenance_users: {
+        Row: {
+          actief: boolean
+          created_at: string
+          id: string
+          naam: string
+          pincode_hash: string
+          rol: string
+          updated_at: string
+          vestiging: string
+        }
+        Insert: {
+          actief?: boolean
+          created_at?: string
+          id?: string
+          naam: string
+          pincode_hash: string
+          rol?: string
+          updated_at?: string
+          vestiging?: string
+        }
+        Update: {
+          actief?: boolean
+          created_at?: string
+          id?: string
+          naam?: string
+          pincode_hash?: string
+          rol?: string
+          updated_at?: string
+          vestiging?: string
+        }
+        Relationships: []
+      }
       mep_planning: {
         Row: {
           assigned_to: string | null
