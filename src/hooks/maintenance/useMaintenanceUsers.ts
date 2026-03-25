@@ -30,7 +30,7 @@ export function useCreateMaintenanceUser() {
       pincode: string;
     }) => {
       const pincode_hash = await hashPin(user.pincode);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('maintenance_users')
         .insert({
           naam: user.naam,
