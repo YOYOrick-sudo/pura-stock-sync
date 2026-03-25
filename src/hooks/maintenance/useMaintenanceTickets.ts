@@ -52,7 +52,7 @@ export function useCreateTicket() {
       prioriteit: Prioriteit;
       melder_id: string;
     }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('maintenance_tickets')
         .insert(ticket)
         .select()
