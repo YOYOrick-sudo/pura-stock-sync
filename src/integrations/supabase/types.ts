@@ -772,6 +772,104 @@ export type Database = {
         }
         Relationships: []
       }
+      maintenance_settings: {
+        Row: {
+          id: string
+          key: string
+          value: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          value: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          value?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      maintenance_tickets: {
+        Row: {
+          id: string
+          vestiging: string
+          titel: string
+          toelichting: string | null
+          prioriteit: string
+          status: string
+          melder_id: string
+          aangemaakt_op: string
+          bijgewerkt_op: string
+        }
+        Insert: {
+          id?: string
+          vestiging: string
+          titel: string
+          toelichting?: string | null
+          prioriteit: string
+          status?: string
+          melder_id: string
+          aangemaakt_op?: string
+          bijgewerkt_op?: string
+        }
+        Update: {
+          id?: string
+          vestiging?: string
+          titel?: string
+          toelichting?: string | null
+          prioriteit?: string
+          status?: string
+          melder_id?: string
+          aangemaakt_op?: string
+          bijgewerkt_op?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_tickets_melder_id_fkey"
+            columns: ["melder_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_users: {
+        Row: {
+          id: string
+          naam: string
+          rol: string
+          vestiging: string
+          pincode_hash: string
+          actief: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          naam: string
+          rol: string
+          vestiging: string
+          pincode_hash: string
+          actief?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          naam?: string
+          rol?: string
+          vestiging?: string
+          pincode_hash?: string
+          actief?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mep_planning: {
         Row: {
           assigned_to: string | null
@@ -1150,6 +1248,45 @@ export type Database = {
           role?: string | null
         }
         Relationships: []
+      }
+      ticket_comments: {
+        Row: {
+          id: string
+          ticket_id: string
+          auteur_id: string
+          tekst: string
+          aangemaakt_op: string
+        }
+        Insert: {
+          id?: string
+          ticket_id: string
+          auteur_id: string
+          tekst: string
+          aangemaakt_op?: string
+        }
+        Update: {
+          id?: string
+          ticket_id?: string
+          auteur_id?: string
+          tekst?: string
+          aangemaakt_op?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_comments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_comments_auteur_id_fkey"
+            columns: ["auteur_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       time_registrations: {
         Row: {
