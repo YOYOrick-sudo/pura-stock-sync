@@ -8,7 +8,7 @@ export function useMaintenanceTickets(vestiging?: Vestiging | 'alles') {
   return useQuery({
     queryKey: [TICKETS_KEY, vestiging],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from('maintenance_tickets')
         .select('*, melder:maintenance_users!melder_id(*)')
         .order('aangemaakt_op', { ascending: false });
@@ -29,7 +29,7 @@ export function useMaintenanceTicket(id: string | null) {
     queryKey: [TICKETS_KEY, 'detail', id],
     queryFn: async () => {
       if (!id) return null;
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('maintenance_tickets')
         .select('*, melder:maintenance_users!melder_id(*)')
         .eq('id', id)
@@ -52,7 +52,7 @@ export function useCreateTicket() {
       prioriteit: Prioriteit;
       melder_id: string;
     }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('maintenance_tickets')
         .insert(ticket)
         .select()
@@ -71,7 +71,7 @@ export function useUpdateTicketStatus() {
 
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: TicketStatus }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('maintenance_tickets')
         .update({ status })
         .eq('id', id)

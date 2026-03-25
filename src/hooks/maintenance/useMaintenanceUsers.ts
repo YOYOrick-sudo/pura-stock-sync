@@ -9,7 +9,7 @@ export function useMaintenanceUsers() {
   return useQuery({
     queryKey: [USERS_KEY],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('maintenance_users')
         .select('*')
         .order('naam');
@@ -30,7 +30,7 @@ export function useCreateMaintenanceUser() {
       pincode: string;
     }) => {
       const pincode_hash = await hashPin(user.pincode);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('maintenance_users')
         .insert({
           naam: user.naam,
@@ -70,7 +70,7 @@ export function useUpdateMaintenanceUser() {
         updateData.pincode_hash = await hashPin(updates.pincode);
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('maintenance_users')
         .update(updateData)
         .eq('id', id)

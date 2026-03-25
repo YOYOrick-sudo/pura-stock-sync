@@ -95,7 +95,7 @@ export function useMaintenanceAuth() {
       const pinHash = await hashPin(pin);
       console.log('[Maintenance Auth] Attempting login with hash:', pinHash.substring(0, 8) + '...');
 
-      const { data: users, error: dbError } = await supabase
+      const { data: users, error: dbError } = await (supabase as any)
         .from('maintenance_users')
         .select('*')
         .eq('pincode_hash', pinHash)

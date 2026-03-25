@@ -776,56 +776,56 @@ export type Database = {
         Row: {
           id: string
           key: string
-          value: string
           updated_at: string
+          value: string
         }
         Insert: {
           id?: string
           key: string
-          value: string
           updated_at?: string
+          value: string
         }
         Update: {
           id?: string
           key?: string
-          value?: string
           updated_at?: string
+          value?: string
         }
         Relationships: []
       }
       maintenance_tickets: {
         Row: {
-          id: string
-          vestiging: string
-          titel: string
-          toelichting: string | null
-          prioriteit: string
-          status: string
-          melder_id: string
           aangemaakt_op: string
           bijgewerkt_op: string
+          id: string
+          melder_id: string
+          prioriteit: string
+          status: string
+          titel: string
+          toelichting: string | null
+          vestiging: string
         }
         Insert: {
-          id?: string
-          vestiging: string
-          titel: string
-          toelichting?: string | null
-          prioriteit: string
-          status?: string
-          melder_id: string
           aangemaakt_op?: string
           bijgewerkt_op?: string
-        }
-        Update: {
           id?: string
-          vestiging?: string
-          titel?: string
-          toelichting?: string | null
+          melder_id: string
           prioriteit?: string
           status?: string
-          melder_id?: string
+          titel: string
+          toelichting?: string | null
+          vestiging: string
+        }
+        Update: {
           aangemaakt_op?: string
           bijgewerkt_op?: string
+          id?: string
+          melder_id?: string
+          prioriteit?: string
+          status?: string
+          titel?: string
+          toelichting?: string | null
+          vestiging?: string
         }
         Relationships: [
           {
@@ -839,34 +839,34 @@ export type Database = {
       }
       maintenance_users: {
         Row: {
-          id: string
-          naam: string
-          rol: string
-          vestiging: string
-          pincode_hash: string
           actief: boolean
           created_at: string
+          id: string
+          naam: string
+          pincode_hash: string
+          rol: string
           updated_at: string
+          vestiging: string
         }
         Insert: {
+          actief?: boolean
+          created_at?: string
           id?: string
           naam: string
-          rol: string
-          vestiging: string
           pincode_hash: string
-          actief?: boolean
-          created_at?: string
+          rol?: string
           updated_at?: string
+          vestiging?: string
         }
         Update: {
-          id?: string
-          naam?: string
-          rol?: string
-          vestiging?: string
-          pincode_hash?: string
           actief?: boolean
           created_at?: string
+          id?: string
+          naam?: string
+          pincode_hash?: string
+          rol?: string
           updated_at?: string
+          vestiging?: string
         }
         Relationships: []
       }
@@ -1251,39 +1251,39 @@ export type Database = {
       }
       ticket_comments: {
         Row: {
-          id: string
-          ticket_id: string
-          auteur_id: string
-          tekst: string
           aangemaakt_op: string
+          auteur_id: string
+          id: string
+          tekst: string
+          ticket_id: string
         }
         Insert: {
-          id?: string
-          ticket_id: string
-          auteur_id: string
-          tekst: string
           aangemaakt_op?: string
+          auteur_id: string
+          id?: string
+          tekst: string
+          ticket_id: string
         }
         Update: {
-          id?: string
-          ticket_id?: string
-          auteur_id?: string
-          tekst?: string
           aangemaakt_op?: string
+          auteur_id?: string
+          id?: string
+          tekst?: string
+          ticket_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "ticket_comments_ticket_id_fkey"
-            columns: ["ticket_id"]
-            isOneToOne: false
-            referencedRelation: "maintenance_tickets"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "ticket_comments_auteur_id_fkey"
             columns: ["auteur_id"]
             isOneToOne: false
             referencedRelation: "maintenance_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_comments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_tickets"
             referencedColumns: ["id"]
           },
         ]
