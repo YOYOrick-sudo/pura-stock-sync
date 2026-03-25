@@ -29,7 +29,7 @@ export function useMaintenanceTicket(id: string | null) {
     queryKey: [TICKETS_KEY, 'detail', id],
     queryFn: async () => {
       if (!id) return null;
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('maintenance_tickets')
         .select('*, melder:maintenance_users!melder_id(*)')
         .eq('id', id)
