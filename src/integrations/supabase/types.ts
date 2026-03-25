@@ -772,6 +772,71 @@ export type Database = {
         }
         Relationships: []
       }
+      maintenance_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      maintenance_tickets: {
+        Row: {
+          aangemaakt_op: string
+          bijgewerkt_op: string
+          id: string
+          melder_id: string
+          prioriteit: string
+          status: string
+          titel: string
+          toelichting: string | null
+          vestiging: string
+        }
+        Insert: {
+          aangemaakt_op?: string
+          bijgewerkt_op?: string
+          id?: string
+          melder_id: string
+          prioriteit?: string
+          status?: string
+          titel: string
+          toelichting?: string | null
+          vestiging: string
+        }
+        Update: {
+          aangemaakt_op?: string
+          bijgewerkt_op?: string
+          id?: string
+          melder_id?: string
+          prioriteit?: string
+          status?: string
+          titel?: string
+          toelichting?: string | null
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_tickets_melder_id_fkey"
+            columns: ["melder_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_users: {
         Row: {
           actief: boolean
@@ -1183,6 +1248,45 @@ export type Database = {
           role?: string | null
         }
         Relationships: []
+      }
+      ticket_comments: {
+        Row: {
+          aangemaakt_op: string
+          auteur_id: string
+          id: string
+          tekst: string
+          ticket_id: string
+        }
+        Insert: {
+          aangemaakt_op?: string
+          auteur_id: string
+          id?: string
+          tekst: string
+          ticket_id: string
+        }
+        Update: {
+          aangemaakt_op?: string
+          auteur_id?: string
+          id?: string
+          tekst?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_comments_auteur_id_fkey"
+            columns: ["auteur_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_comments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       time_registrations: {
         Row: {
