@@ -30,7 +30,7 @@ export function useCreateComment() {
       auteur_id: string;
       tekst: string;
     }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('ticket_comments')
         .insert(comment)
         .select()

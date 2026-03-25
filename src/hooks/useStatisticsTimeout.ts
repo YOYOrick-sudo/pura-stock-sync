@@ -5,8 +5,8 @@ const STATISTICS_TIMEOUT = 2 * 60 * 1000; // 2 minutes
 
 export const useStatisticsTimeout = () => {
   const location = useLocation();
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearStatsAccess = () => {
     sessionStorage.removeItem('stats_unlocked');

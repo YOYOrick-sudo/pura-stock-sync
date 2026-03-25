@@ -71,7 +71,7 @@ export function useUpdateTicketStatus() {
 
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: TicketStatus }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('maintenance_tickets')
         .update({ status })
         .eq('id', id)
