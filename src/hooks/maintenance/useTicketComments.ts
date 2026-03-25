@@ -9,7 +9,7 @@ export function useTicketComments(ticketId: string | null) {
     queryKey: [COMMENTS_KEY, ticketId],
     queryFn: async () => {
       if (!ticketId) return [];
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('ticket_comments')
         .select('*, auteur:maintenance_users!auteur_id(*)')
         .eq('ticket_id', ticketId)
