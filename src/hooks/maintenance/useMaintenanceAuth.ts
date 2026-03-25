@@ -104,7 +104,10 @@ export function useMaintenanceAuth() {
 
       console.log('[Maintenance Auth] Query result:', { users, dbError });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('[Maintenance Auth] DB error:', dbError.message, dbError.code, dbError.details);
+        throw dbError;
+      }
 
       if (!users || users.length === 0) {
         const lockedOut = recordFailedAttempt();
@@ -125,6 +128,7 @@ export function useMaintenanceAuth() {
       setLoading(false);
       return true;
     } catch (err) {
+      console.error('[Maintenance Auth] Login error:', err);
       setError('Er ging iets mis. Probeer opnieuw.');
       setLoading(false);
       return false;
