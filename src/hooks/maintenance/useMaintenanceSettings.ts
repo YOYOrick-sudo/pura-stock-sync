@@ -8,7 +8,7 @@ export function useMaintenanceSettings() {
   return useQuery({
     queryKey: [SETTINGS_KEY],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('maintenance_settings')
         .select('*');
       if (error) throw error;
