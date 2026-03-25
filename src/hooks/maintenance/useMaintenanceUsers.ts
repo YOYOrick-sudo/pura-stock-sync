@@ -9,7 +9,7 @@ export function useMaintenanceUsers() {
   return useQuery({
     queryKey: [USERS_KEY],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('maintenance_users')
         .select('*')
         .order('naam');
