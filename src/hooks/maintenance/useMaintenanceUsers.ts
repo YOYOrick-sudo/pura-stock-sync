@@ -70,7 +70,7 @@ export function useUpdateMaintenanceUser() {
         updateData.pincode_hash = await hashPin(updates.pincode);
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('maintenance_users')
         .update(updateData)
         .eq('id', id)
