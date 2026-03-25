@@ -8,7 +8,7 @@ export function useMaintenanceTickets(vestiging?: Vestiging | 'alles') {
   return useQuery({
     queryKey: [TICKETS_KEY, vestiging],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from('maintenance_tickets')
         .select('*, melder:maintenance_users!melder_id(*)')
         .order('aangemaakt_op', { ascending: false });
