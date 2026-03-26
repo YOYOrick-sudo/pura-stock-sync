@@ -259,7 +259,7 @@ const VoorraadCard = () => {
   };
   
   return (
-    <div onClick={() => navigate('/internal-orders')} style={{ cursor: 'pointer' }}>
+    <div onClick={() => navigate('/internal-orders')} className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md" style={{ borderRadius: '20px' }}>
       <PolarKPICard
         compact
         title="Telling & Bestelling"
