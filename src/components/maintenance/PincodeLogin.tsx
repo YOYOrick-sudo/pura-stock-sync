@@ -32,24 +32,31 @@ export function PincodeLogin({ onLogin, loading, error }: PincodeLoginProps) {
 
   const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
+  const numpadButtonStyle: React.CSSProperties = {
+    width: '100%',
+    height: '72px',
+    borderRadius: '20px',
+    border: '1.5px solid hsl(var(--border))',
+    backgroundColor: 'hsl(var(--card))',
+    fontFamily: 'Inter, sans-serif',
+    fontSize: '28px',
+    fontWeight: 500,
+    color: 'hsl(var(--foreground))',
+    cursor: 'pointer',
+    transition: 'all 150ms ease',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] px-4">
       {/* Title */}
       <div className="text-center mb-8">
-        <h1 style={{
-          fontFamily: 'Inter, sans-serif',
-          fontSize: '24px',
-          fontWeight: 600,
-          color: '#282E3A',
-          marginBottom: '8px',
-        }}>
+        <h1 className="text-2xl font-semibold text-foreground mb-2">
           Onderhoud
         </h1>
-        <p style={{
-          fontFamily: 'Inter, sans-serif',
-          fontSize: '15px',
-          color: '#73747B',
-        }}>
+        <p className="text-[15px] text-muted-foreground">
           Voer je pincode in
         </p>
       </div>
@@ -59,13 +66,13 @@ export function PincodeLogin({ onLogin, loading, error }: PincodeLoginProps) {
         {[0, 1, 2, 3].map(i => (
           <div
             key={i}
+            className="transition-all duration-200"
             style={{
               width: '20px',
               height: '20px',
               borderRadius: '50%',
-              backgroundColor: i < pin.length ? '#1B7867' : 'transparent',
-              border: `2px solid ${i < pin.length ? '#1B7867' : 'rgba(197, 197, 202, 0.5)'}`,
-              transition: 'all 200ms ease',
+              backgroundColor: i < pin.length ? 'hsl(var(--primary))' : 'transparent',
+              border: `2px solid ${i < pin.length ? 'hsl(var(--primary))' : 'hsl(var(--border))'}`,
             }}
           />
         ))}
@@ -73,13 +80,7 @@ export function PincodeLogin({ onLogin, loading, error }: PincodeLoginProps) {
 
       {/* Error message */}
       {error && (
-        <p style={{
-          fontFamily: 'Inter, sans-serif',
-          fontSize: '14px',
-          color: '#EF4444',
-          marginBottom: '16px',
-          textAlign: 'center',
-        }}>
+        <p className="text-sm text-destructive mb-4 text-center">
           {error}
         </p>
       )}
@@ -91,23 +92,8 @@ export function PincodeLogin({ onLogin, loading, error }: PincodeLoginProps) {
             key={digit}
             onClick={() => handleDigit(digit)}
             disabled={loading || pin.length >= 4}
-            style={{
-              width: '100%',
-              height: '72px',
-              borderRadius: '16px',
-              border: '1px solid rgba(197, 197, 202, 0.3)',
-              backgroundColor: '#FFFFFF',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '28px',
-              fontWeight: 500,
-              color: '#282E3A',
-              cursor: 'pointer',
-              transition: 'all 150ms ease',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            className="hover:bg-gray-50 active:bg-gray-100 active:scale-95"
+            style={numpadButtonStyle}
+            className="hover:bg-muted active:bg-accent active:scale-95"
           >
             {digit}
           </button>
@@ -117,45 +103,19 @@ export function PincodeLogin({ onLogin, loading, error }: PincodeLoginProps) {
           onClick={handleClear}
           disabled={loading}
           style={{
-            width: '100%',
-            height: '72px',
-            borderRadius: '16px',
-            border: '1px solid rgba(197, 197, 202, 0.3)',
-            backgroundColor: '#FFFFFF',
-            fontFamily: 'Inter, sans-serif',
+            ...numpadButtonStyle,
             fontSize: '14px',
-            fontWeight: 500,
-            color: '#73747B',
-            cursor: 'pointer',
-            transition: 'all 150ms ease',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            color: 'hsl(var(--muted-foreground))',
           }}
-          className="hover:bg-gray-50 active:bg-gray-100 active:scale-95"
+          className="hover:bg-muted active:bg-accent active:scale-95"
         >
           Wis
         </button>
         <button
           onClick={() => handleDigit('0')}
           disabled={loading || pin.length >= 4}
-          style={{
-            width: '100%',
-            height: '72px',
-            borderRadius: '16px',
-            border: '1px solid rgba(197, 197, 202, 0.3)',
-            backgroundColor: '#FFFFFF',
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '28px',
-            fontWeight: 500,
-            color: '#282E3A',
-            cursor: 'pointer',
-            transition: 'all 150ms ease',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          className="hover:bg-gray-50 active:bg-gray-100 active:scale-95"
+          style={numpadButtonStyle}
+          className="hover:bg-muted active:bg-accent active:scale-95"
         >
           0
         </button>
@@ -163,28 +123,19 @@ export function PincodeLogin({ onLogin, loading, error }: PincodeLoginProps) {
           onClick={handleDelete}
           disabled={loading || pin.length === 0}
           style={{
-            width: '100%',
-            height: '72px',
-            borderRadius: '16px',
-            border: '1px solid rgba(197, 197, 202, 0.3)',
-            backgroundColor: '#FFFFFF',
-            cursor: 'pointer',
-            transition: 'all 150ms ease',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            ...numpadButtonStyle,
           }}
-          className="hover:bg-gray-50 active:bg-gray-100 active:scale-95"
+          className="hover:bg-muted active:bg-accent active:scale-95"
         >
-          <Delete className="h-6 w-6" style={{ color: '#73747B' }} />
+          <Delete className="h-6 w-6 text-muted-foreground" />
         </button>
       </div>
 
       {/* Loading indicator */}
       {loading && (
-        <div className="mt-6 flex items-center gap-2" style={{ color: '#73747B' }}>
+        <div className="mt-6 flex items-center gap-2 text-muted-foreground">
           <LogIn className="h-4 w-4 animate-spin" />
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px' }}>Inloggen...</span>
+          <span className="text-sm">Inloggen...</span>
         </div>
       )}
     </div>
