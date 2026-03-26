@@ -68,7 +68,7 @@ export function IdeaBox() {
             {submitting ? 'Versturen...' : 'Verstuur'}
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
