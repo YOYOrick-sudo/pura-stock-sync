@@ -138,11 +138,12 @@ export const HandoverCard = () => {
   if (isLoading) {
     return (
       <div
-        className="rounded-polar-lg"
         style={{
           backgroundColor: '#F6F7DD',
+          border: '1px solid rgba(27, 120, 103, 0.12)',
+          borderRadius: '20px',
           padding: '20px 24px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03)',
           minHeight: '100px',
         }}
       >
