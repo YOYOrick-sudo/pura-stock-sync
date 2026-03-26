@@ -1,51 +1,36 @@
 
 
-# Ideeënbus met e-mail op het Dashboard
+# Dashboard cards upgraden en gelijktrekken
 
-## Wat wordt er gebouwd
+## Probleem
 
-Een simpele, anonieme "Ideeënbus" widget op het dashboard waar teamleden een idee kunnen typen en versturen. Het idee wordt per e-mail verstuurd naar het MT-team (josefien@puravidafoodbar.nl, jorian@puravidafoodbar.nl, yorick@puravidafoodbar.nl).
+De cards op het dashboard hebben nu inconsistente styling:
+- KPI cards: `rounded-polar-lg`, geen border, inline shadow
+- Weather widget: eigen inline styles met border
+- Handover card: `rounded-polar-lg`, geen border
+- Ideeënbus: `rounded-[20px]`, geen border
 
 ## Aanpak
 
-Omdat er nog geen e-mail infrastructuur is opgezet in dit project, moet die eerst worden aangemaakt. Daarna wordt een edge function gebruikt om de e-mails te versturen.
+Eén uniforme card-stijl voor alle dashboard widgets:
 
-### Stap 1: E-mail domein en infrastructuur
+| Eigenschap | Nieuw |
+|-----------|-------|
+| Background | `#F6F7DD` |
+| Border | `1px solid rgba(27, 120, 103, 0.12)` (subtiel groen) |
+| Border-radius | `20px` (consistent) |
+| Shadow | `0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03)` |
+| Hover (klikbare cards) | `shadow-md`, `-translate-y-0.5`, border naar `rgba(27,120,103,0.22)` |
+| Padding | `20px` uniform |
+| Transition | `all 200ms ease` |
 
-- E-mail domein instellen (puravidafoodbar.nl) via het setup-dialoog
-- E-mail infrastructuur aanmaken (queue, tabellen, cron job)
-- Transactional e-mail scaffold uitvoeren
+## Bestanden
 
-### Stap 2: E-mail template
+1. **`src/components/polar/KPICard.tsx`** — Compact variant: border + hover transition toevoegen, radius naar 20px
+2. **`src/components/dashboard/WeatherWidget.tsx`** — Zelfde card-stijl, border unificeren
+3. **`src/components/HandoverCard.tsx`** — Border toevoegen, radius consistent
+4. **`src/components/dashboard/IdeaBox.tsx`** — Border toevoegen, radius consistent
+5. **`src/pages/Dashboard.tsx`** — Eventueel wrapper div cleanup
 
-- Template: "idea-box" in `_shared/transactional-email-templates/`
-- Onderwerp: "Nieuw idee via Ideeënbus"
-- Inhoud: het idee-tekst, vestiging, datum/tijd
-- Ontvangers: de 3 MT-adressen (hardcoded in template)
-- Anoniem: geen naam of gebruikersinfo
-
-### Stap 3: Database tabel
-
-- `idea_box_submissions` tabel met: `id`, `idea_text`, `location`, `created_at`
-- RLS: iedereen (authenticated) mag inserten, niemand mag lezen (privacy)
-- Dient als audit log
-
-### Stap 4: Dashboard widget
-
-- Compact kaartje onder de KPI-grid, naast of onder de HandoverCard
-- Textarea (max 500 tekens) + "Verstuur" knop
-- Na versturen: idee opslaan in DB + edge function aanroepen voor e-mail
-- Succesmelding: "Bedankt! Je idee is anoniem verstuurd naar het MT."
-- Styling past bij het Pura Vida design (cream achtergrond, groene accenten)
-
-## Technisch
-
-| Onderdeel | Detail |
-|-----------|--------|
-| E-mail setup | `setup_email_infra` + `scaffold_transactional_email` |
-| Template | `idea-box.tsx` - React Email component |
-| Database | `idea_box_submissions` tabel + RLS |
-| Edge function | `send-transactional-email` (bestaand na scaffold) |
-| Frontend | `IdeaBox` component in Dashboard.tsx |
-| Ontvangers | josefien@, jorian@, yorick@ puravidafoodbar.nl |
+Geen functionele wijzigingen, puur visuele consistentie.
 
