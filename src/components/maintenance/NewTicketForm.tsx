@@ -16,8 +16,15 @@ interface NewTicketFormProps {
 const prioriteitOptions: { value: Prioriteit; label: string; color: string; bg: string }[] = [
   { value: 'hoog', label: 'Hoog', color: '#FFFFFF', bg: '#EF4444' },
   { value: 'midden', label: 'Midden', color: '#FFFFFF', bg: '#F59E0B' },
-  { value: 'laag', label: 'Laag', color: '#FFFFFF', bg: '#22C55E' },
+  { value: 'laag', label: 'Laag', color: '#FFFFFF', bg: '#2D8E6F' },
 ];
+
+const backButtonStyle: React.CSSProperties = {
+  width: '44px', height: '44px', borderRadius: '14px',
+  border: '1.5px solid hsl(var(--border))', backgroundColor: 'hsl(var(--card))',
+  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+  transition: 'all 150ms ease',
+};
 
 export function NewTicketForm({ user, onBack, onSuccess }: NewTicketFormProps) {
   const [titel, setTitel] = useState('');
@@ -49,29 +56,10 @@ export function NewTicketForm({ user, onBack, onSuccess }: NewTicketFormProps) {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button
-          onClick={onBack}
-          style={{
-            width: '44px',
-            height: '44px',
-            borderRadius: '12px',
-            border: '1px solid rgba(197, 197, 202, 0.3)',
-            backgroundColor: '#FFFFFF',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-          }}
-          className="hover:bg-gray-50"
-        >
-          <ArrowLeft className="h-5 w-5" style={{ color: '#282E3A' }} />
+        <button onClick={onBack} style={backButtonStyle} className="hover:bg-muted">
+          <ArrowLeft className="h-5 w-5 text-foreground" />
         </button>
-        <h1 style={{
-          fontFamily: 'Inter, sans-serif',
-          fontSize: '24px',
-          fontWeight: 600,
-          color: '#282E3A',
-        }}>
+        <h1 className="text-2xl font-semibold text-foreground">
           Nieuwe melding
         </h1>
       </div>
@@ -80,14 +68,7 @@ export function NewTicketForm({ user, onBack, onSuccess }: NewTicketFormProps) {
       <div className="space-y-6" style={{ maxWidth: '600px' }}>
         {/* Titel */}
         <div className="space-y-2">
-          <label style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '13px',
-            fontWeight: 600,
-            color: '#282E3A',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-          }}>
+          <label className="text-[13px] font-semibold text-foreground uppercase tracking-wide">
             Wat is er aan de hand? *
           </label>
           <Input
@@ -95,28 +76,13 @@ export function NewTicketForm({ user, onBack, onSuccess }: NewTicketFormProps) {
             onChange={(e) => setTitel(e.target.value)}
             placeholder="bijv. Lekkage spoelbak, deur klemt, lamp kapot"
             autoFocus
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: '12px',
-              border: '1px solid rgba(197, 197, 202, 0.5)',
-              padding: '14px 16px',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '16px',
-              height: '52px',
-            }}
+            className="rounded-[14px] border-1.5 text-base h-[52px] px-4"
           />
         </div>
 
         {/* Prioriteit */}
         <div className="space-y-2">
-          <label style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '13px',
-            fontWeight: 600,
-            color: '#282E3A',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-          }}>
+          <label className="text-[13px] font-semibold text-foreground uppercase tracking-wide">
             Hoe urgent? *
           </label>
           <div className="grid grid-cols-3 gap-3">
@@ -124,15 +90,15 @@ export function NewTicketForm({ user, onBack, onSuccess }: NewTicketFormProps) {
               <button
                 key={opt.value}
                 onClick={() => setPrioriteit(opt.value)}
+                className="active:scale-95"
                 style={{
                   height: '64px',
-                  borderRadius: '16px',
+                  borderRadius: '20px',
                   border: prioriteit === opt.value
                     ? `3px solid ${opt.bg}`
-                    : '2px solid rgba(197, 197, 202, 0.3)',
-                  backgroundColor: prioriteit === opt.value ? opt.bg : '#FFFFFF',
+                    : '1.5px solid hsl(var(--border))',
+                  backgroundColor: prioriteit === opt.value ? opt.bg : 'hsl(var(--card))',
                   color: prioriteit === opt.value ? opt.color : opt.bg,
-                  fontFamily: 'Inter, sans-serif',
                   fontSize: '16px',
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -141,7 +107,6 @@ export function NewTicketForm({ user, onBack, onSuccess }: NewTicketFormProps) {
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
-                className="active:scale-95"
               >
                 {opt.label}
               </button>
@@ -149,65 +114,37 @@ export function NewTicketForm({ user, onBack, onSuccess }: NewTicketFormProps) {
           </div>
         </div>
 
-        {/* Toelichting (optioneel) */}
+        {/* Toelichting */}
         <div className="space-y-2">
-          <label style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '13px',
-            fontWeight: 600,
-            color: '#282E3A',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-          }}>
-            Toelichting <span style={{ fontWeight: 400, color: '#94A3B8', textTransform: 'none' }}>(optioneel)</span>
+          <label className="text-[13px] font-semibold text-foreground uppercase tracking-wide">
+            Toelichting <span className="font-normal text-muted-foreground normal-case">(optioneel)</span>
           </label>
           <Textarea
             value={toelichting}
             onChange={(e) => setToelichting(e.target.value)}
             placeholder="Extra details die je kwijt wilt..."
             rows={3}
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: '12px',
-              border: '1px solid rgba(197, 197, 202, 0.5)',
-              padding: '14px 16px',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '16px',
-              resize: 'none',
-            }}
+            className="rounded-[14px] border-1.5 text-base resize-none p-4"
           />
         </div>
 
         {/* Auto-filled info */}
-        <div style={{
-          padding: '12px 16px',
-          borderRadius: '12px',
-          backgroundColor: '#F1F5F9',
-          fontFamily: 'Inter, sans-serif',
-          fontSize: '13px',
-          color: '#73747B',
-        }}>
-          Vestiging: <strong style={{ color: '#282E3A', textTransform: 'capitalize' }}>{user.vestiging}</strong> &middot; Melder: <strong style={{ color: '#282E3A' }}>{user.naam}</strong>
+        <div className="rounded-[14px] bg-muted p-3 px-4 text-[13px] text-muted-foreground">
+          Vestiging: <strong className="text-foreground capitalize">{user.vestiging}</strong> &middot; Melder: <strong className="text-foreground">{user.naam}</strong>
         </div>
 
         {/* Submit */}
         <Button
           onClick={handleSubmit}
           disabled={!canSubmit || createTicket.isPending}
+          className={`w-full h-14 rounded-[20px] text-base font-semibold ${canSubmit ? 'hover:opacity-90 active:scale-[0.98]' : ''}`}
           style={{
-            width: '100%',
-            height: '56px',
-            borderRadius: '16px',
-            backgroundColor: canSubmit ? '#1B7867' : '#94A3B8',
-            color: '#FFFFFF',
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '16px',
-            fontWeight: 600,
+            backgroundColor: canSubmit ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+            color: 'hsl(var(--primary-foreground))',
             border: 'none',
             cursor: canSubmit ? 'pointer' : 'not-allowed',
             transition: 'all 200ms ease',
           }}
-          className={canSubmit ? 'hover:opacity-90 active:scale-[0.98]' : ''}
         >
           {createTicket.isPending ? 'Versturen...' : 'Verstuur melding'}
         </Button>

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { ArrowLeft, Plus, UserCog, Mail, Eye, EyeOff } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -22,6 +21,21 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface MaintenanceSettingsProps {
   onBack: () => void;
 }
+
+const cardStyle: React.CSSProperties = {
+  borderRadius: '20px',
+  border: '1px solid rgba(27, 120, 103, 0.12)',
+  backgroundColor: 'hsl(var(--card))',
+  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03)',
+  padding: '24px',
+};
+
+const backButtonStyle: React.CSSProperties = {
+  width: '44px', height: '44px', borderRadius: '14px',
+  border: '1.5px solid hsl(var(--border))', backgroundColor: 'hsl(var(--card))',
+  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+  transition: 'all 150ms ease',
+};
 
 export function MaintenanceSettings({ onBack }: MaintenanceSettingsProps) {
   const { data: users, isLoading: usersLoading } = useMaintenanceUsers();
@@ -86,34 +100,19 @@ export function MaintenanceSettings({ onBack }: MaintenanceSettingsProps) {
     <div className="space-y-6" style={{ maxWidth: '700px' }}>
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button
-          onClick={onBack}
-          style={{
-            width: '44px', height: '44px', borderRadius: '12px',
-            border: '1px solid rgba(197, 197, 202, 0.3)', backgroundColor: '#FFFFFF',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-          }}
-          className="hover:bg-gray-50"
-        >
-          <ArrowLeft className="h-5 w-5" style={{ color: '#282E3A' }} />
+        <button onClick={onBack} style={backButtonStyle} className="hover:bg-muted">
+          <ArrowLeft className="h-5 w-5 text-foreground" />
         </button>
-        <h1 style={{
-          fontFamily: 'Inter, sans-serif', fontSize: '24px', fontWeight: 600, color: '#282E3A',
-        }}>
+        <h1 className="text-2xl font-semibold text-foreground">
           Instellingen
         </h1>
       </div>
 
       {/* E-mail instellingen */}
-      <Card style={{
-        padding: '24px', borderRadius: '16px',
-        border: '1px solid rgba(197, 197, 202, 0.3)', backgroundColor: '#FFFFFF',
-      }}>
+      <div style={cardStyle}>
         <div className="flex items-center gap-2 mb-4">
-          <Mail className="h-5 w-5" style={{ color: '#1B7867' }} />
-          <h2 style={{
-            fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: 600, color: '#282E3A',
-          }}>
+          <Mail className="h-5 w-5 text-primary" />
+          <h2 className="text-base font-semibold text-foreground">
             E-mailmeldingen
           </h2>
         </div>
@@ -125,64 +124,43 @@ export function MaintenanceSettings({ onBack }: MaintenanceSettingsProps) {
               onChange={(e) => setEmailValue(e.target.value)}
               placeholder="E-mailadres voor meldingen"
               type="email"
-              style={{
-                flex: 1, backgroundColor: '#FFFFFF', borderRadius: '12px',
-                border: '1px solid rgba(197, 197, 202, 0.5)', padding: '12px 16px',
-                fontFamily: 'Inter, sans-serif', fontSize: '14px',
-              }}
+              className="flex-1 rounded-[14px] border-1.5 text-sm"
             />
-            <Button onClick={handleSaveEmail} style={{
-              borderRadius: '12px', backgroundColor: '#1B7867', color: '#FFFFFF',
-              fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500,
-            }}>
+            <Button onClick={handleSaveEmail} className="rounded-[14px]">
               Opslaan
             </Button>
-            <Button variant="outline" onClick={() => setEditEmail(false)} style={{
-              borderRadius: '12px', fontFamily: 'Inter, sans-serif', fontSize: '14px',
-            }}>
+            <Button variant="outline" onClick={() => setEditEmail(false)} className="rounded-[14px] border-1.5">
               Annuleren
             </Button>
           </div>
         ) : (
           <div className="flex items-center justify-between">
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '15px', color: '#282E3A' }}>
+            <p className="text-[15px] text-foreground">
               {notificationEmail}
             </p>
             <Button
               variant="outline"
               onClick={() => { setEmailValue(notificationEmail); setEditEmail(true); }}
-              style={{
-                borderRadius: '12px', fontFamily: 'Inter, sans-serif', fontSize: '14px',
-                border: '1px solid rgba(197, 197, 202, 0.5)',
-              }}
+              className="rounded-[14px] border-1.5 text-sm"
             >
               Wijzigen
             </Button>
           </div>
         )}
-      </Card>
+      </div>
 
       {/* Gebruikersbeheer */}
-      <Card style={{
-        padding: '24px', borderRadius: '16px',
-        border: '1px solid rgba(197, 197, 202, 0.3)', backgroundColor: '#FFFFFF',
-      }}>
+      <div style={cardStyle}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <UserCog className="h-5 w-5" style={{ color: '#1B7867' }} />
-            <h2 style={{
-              fontFamily: 'Inter, sans-serif', fontSize: '16px', fontWeight: 600, color: '#282E3A',
-            }}>
+            <UserCog className="h-5 w-5 text-primary" />
+            <h2 className="text-base font-semibold text-foreground">
               Pincodes beheren
             </h2>
           </div>
           <Button
             onClick={() => setShowAddUser(true)}
-            style={{
-              borderRadius: '12px', backgroundColor: '#1B7867', color: '#FFFFFF',
-              fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500,
-              display: 'flex', alignItems: 'center', gap: '6px',
-            }}
+            className="rounded-[14px] text-sm"
           >
             <Plus className="h-4 w-4" />
             Toevoegen
@@ -192,7 +170,7 @@ export function MaintenanceSettings({ onBack }: MaintenanceSettingsProps) {
         {usersLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-16 w-full rounded-xl" />
+              <Skeleton key={i} className="h-16 w-full rounded-[14px]" />
             ))}
           </div>
         ) : (
@@ -200,28 +178,17 @@ export function MaintenanceSettings({ onBack }: MaintenanceSettingsProps) {
             {users?.map(u => (
               <div
                 key={u.id}
+                className="rounded-[14px] p-3 px-4 flex items-center justify-between transition-all duration-200"
                 style={{
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  backgroundColor: u.actief ? '#F8FAFC' : '#FEF2F2',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  transition: 'all 200ms ease',
+                  backgroundColor: u.actief ? 'hsl(var(--muted))' : 'hsl(var(--destructive) / 0.08)',
                 }}
               >
                 <div>
-                  <p style={{
-                    fontFamily: 'Inter, sans-serif', fontSize: '15px', fontWeight: 500,
-                    color: u.actief ? '#282E3A' : '#94A3B8',
-                  }}>
+                  <p className="text-[15px] font-medium" style={{ color: u.actief ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))' }}>
                     {u.naam}
-                    {!u.actief && <span style={{ fontSize: '12px', marginLeft: '8px', color: '#EF4444' }}>Inactief</span>}
+                    {!u.actief && <span className="text-xs ml-2 text-destructive">Inactief</span>}
                   </p>
-                  <p style={{
-                    fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#94A3B8',
-                    textTransform: 'capitalize',
-                  }}>
+                  <p className="text-xs text-muted-foreground capitalize">
                     {u.rol} &middot; {u.vestiging}
                   </p>
                 </div>
@@ -229,10 +196,7 @@ export function MaintenanceSettings({ onBack }: MaintenanceSettingsProps) {
                   variant="outline"
                   size="sm"
                   onClick={() => handleToggleActive(u.id, u.actief, u.naam)}
-                  style={{
-                    borderRadius: '8px', fontFamily: 'Inter, sans-serif', fontSize: '12px',
-                    border: '1px solid rgba(197, 197, 202, 0.5)',
-                  }}
+                  className="rounded-[10px] border-1.5 text-xs"
                 >
                   {u.actief ? (
                     <><EyeOff className="h-3.5 w-3.5 mr-1" /> Deactiveren</>
@@ -244,49 +208,33 @@ export function MaintenanceSettings({ onBack }: MaintenanceSettingsProps) {
             ))}
           </div>
         )}
-      </Card>
+      </div>
 
       {/* Add user dialog */}
       <AlertDialog open={showAddUser} onOpenChange={setShowAddUser}>
-        <AlertDialogContent style={{
-          backgroundColor: '#FEFFF1', borderRadius: '20px',
-          border: '1px solid rgba(197, 197, 202, 0.5)', padding: '32px',
-          maxWidth: '480px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-        }}>
+        <AlertDialogContent className="rounded-[24px] border border-border p-8 max-w-[480px] shadow-lg bg-card">
           <AlertDialogHeader>
-            <AlertDialogTitle style={{
-              fontFamily: 'Inter, sans-serif', fontSize: '18px', fontWeight: 600, color: '#282E3A',
-            }}>
+            <AlertDialogTitle className="text-lg font-semibold text-foreground">
               Nieuwe gebruiker
             </AlertDialogTitle>
-            <AlertDialogDescription style={{
-              fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#73747B',
-            }}>
+            <AlertDialogDescription className="text-sm text-muted-foreground">
               Maak een pincode aan voor een teamleider of eigenaar.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <div className="space-y-4 py-4">
             <div>
-              <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 600, color: '#282E3A' }}>
-                Naam
-              </label>
+              <label className="text-[13px] font-semibold text-foreground">Naam</label>
               <Input
                 value={newNaam}
                 onChange={(e) => setNewNaam(e.target.value)}
                 placeholder="Naam"
-                style={{
-                  marginTop: '4px', backgroundColor: '#FFFFFF', borderRadius: '12px',
-                  border: '1px solid rgba(197, 197, 202, 0.5)', padding: '12px 16px',
-                  fontFamily: 'Inter, sans-serif', fontSize: '14px',
-                }}
+                className="mt-1 rounded-[14px] border-1.5 text-sm"
               />
             </div>
 
             <div>
-              <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 600, color: '#282E3A' }}>
-                Pincode (4 cijfers)
-              </label>
+              <label className="text-[13px] font-semibold text-foreground">Pincode (4 cijfers)</label>
               <Input
                 value={newPin}
                 onChange={(e) => {
@@ -296,30 +244,25 @@ export function MaintenanceSettings({ onBack }: MaintenanceSettingsProps) {
                 placeholder="0000"
                 inputMode="numeric"
                 maxLength={4}
-                style={{
-                  marginTop: '4px', backgroundColor: '#FFFFFF', borderRadius: '12px',
-                  border: '1px solid rgba(197, 197, 202, 0.5)', padding: '12px 16px',
-                  fontFamily: 'Inter, sans-serif', fontSize: '14px', letterSpacing: '4px',
-                }}
+                className="mt-1 rounded-[14px] border-1.5 text-sm tracking-[4px]"
               />
             </div>
 
             <div>
-              <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 600, color: '#282E3A' }}>
-                Rol
-              </label>
+              <label className="text-[13px] font-semibold text-foreground">Rol</label>
               <div className="flex gap-2 mt-1">
                 {(['teamleider', 'eigenaar'] as MaintenanceRol[]).map(r => (
                   <button
                     key={r}
                     onClick={() => setNewRol(r)}
+                    className="capitalize"
                     style={{
-                      flex: 1, padding: '10px', borderRadius: '12px',
-                      border: newRol === r ? '2px solid #1B7867' : '1px solid rgba(197, 197, 202, 0.5)',
-                      backgroundColor: newRol === r ? '#E6F4F1' : '#FFFFFF',
-                      color: newRol === r ? '#1B7867' : '#73747B',
-                      fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500,
-                      cursor: 'pointer', textTransform: 'capitalize',
+                      flex: 1, padding: '10px', borderRadius: '14px',
+                      border: newRol === r ? '2px solid hsl(var(--primary))' : '1.5px solid hsl(var(--border))',
+                      backgroundColor: newRol === r ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--card))',
+                      color: newRol === r ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                      fontSize: '14px', fontWeight: 500,
+                      cursor: 'pointer', transition: 'all 200ms ease',
                     }}
                   >
                     {r}
@@ -329,21 +272,20 @@ export function MaintenanceSettings({ onBack }: MaintenanceSettingsProps) {
             </div>
 
             <div>
-              <label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 600, color: '#282E3A' }}>
-                Vestiging
-              </label>
+              <label className="text-[13px] font-semibold text-foreground">Vestiging</label>
               <div className="flex gap-2 mt-1">
                 {(['west', 'midsland'] as Vestiging[]).map(v => (
                   <button
                     key={v}
                     onClick={() => setNewVestiging(v)}
+                    className="capitalize"
                     style={{
-                      flex: 1, padding: '10px', borderRadius: '12px',
-                      border: newVestiging === v ? '2px solid #1B7867' : '1px solid rgba(197, 197, 202, 0.5)',
-                      backgroundColor: newVestiging === v ? '#E6F4F1' : '#FFFFFF',
-                      color: newVestiging === v ? '#1B7867' : '#73747B',
-                      fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500,
-                      cursor: 'pointer', textTransform: 'capitalize',
+                      flex: 1, padding: '10px', borderRadius: '14px',
+                      border: newVestiging === v ? '2px solid hsl(var(--primary))' : '1.5px solid hsl(var(--border))',
+                      backgroundColor: newVestiging === v ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--card))',
+                      color: newVestiging === v ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                      fontSize: '14px', fontWeight: 500,
+                      cursor: 'pointer', transition: 'all 200ms ease',
                     }}
                   >
                     {v}
@@ -356,21 +298,14 @@ export function MaintenanceSettings({ onBack }: MaintenanceSettingsProps) {
           <AlertDialogFooter>
             <AlertDialogCancel
               onClick={() => { setNewNaam(''); setNewPin(''); }}
-              style={{
-                backgroundColor: 'transparent', color: '#282E3A', borderRadius: '16px',
-                border: '1px solid rgba(197, 197, 202, 0.5)', fontFamily: 'Inter, sans-serif',
-                fontSize: '14px', fontWeight: 500,
-              }}
+              className="rounded-[14px] border-1.5"
             >
               Annuleren
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleAddUser}
               disabled={!newNaam.trim() || newPin.length !== 4}
-              style={{
-                backgroundColor: '#1B7867', color: '#FFFFFF', borderRadius: '16px',
-                fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500,
-              }}
+              className="rounded-[14px]"
             >
               Toevoegen
             </AlertDialogAction>
