@@ -8,6 +8,7 @@ import { PolarKPICard } from '@/components/polar';
 import { CheckCircle, AlertCircle, Clock, ListTodo, Bell, Package, RefreshCw } from 'lucide-react';
 import { HandoverCard } from '@/components/HandoverCard';
 import { WeatherWidget } from '@/components/dashboard/WeatherWidget';
+import { IdeaBox } from '@/components/dashboard/IdeaBox';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
