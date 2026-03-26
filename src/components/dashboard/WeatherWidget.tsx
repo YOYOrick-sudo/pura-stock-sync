@@ -52,12 +52,12 @@ export function WeatherWidget({
     <div
       style={{
         backgroundColor: '#F6F7DD',
-        border: '1px solid rgba(197, 197, 202, 0.5)',
-        borderRadius: '16px',
+        border: '1px solid rgba(27, 120, 103, 0.12)',
+        borderRadius: '20px',
         padding: '20px',
         cursor: 'default',
-        transition: 'all 0.2s ease-in-out',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
+        transition: 'all 200ms ease',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03)',
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',

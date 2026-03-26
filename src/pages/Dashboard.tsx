@@ -289,7 +289,7 @@ const DeliveryCard = ({ hasOrderThisWeek, isLoading, onClick }: DeliveryCardProp
     : { bg: '#F6F7DD', text: '#73747B', icon: <Package size={16} color="#1B7867" /> };
   
   return (
-    <div onClick={onClick} style={{ cursor: 'pointer' }}>
+    <div onClick={onClick} className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md" style={{ borderRadius: '20px' }}>
       <PolarKPICard
         compact
         title="Levering van West"
