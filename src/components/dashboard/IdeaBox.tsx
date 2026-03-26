@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Lightbulb, Send } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,8 +37,7 @@ export function IdeaBox() {
   };
 
   return (
-    <Card className="border-border">
-      <CardContent className="p-5">
+    <div className="rounded-[20px] p-5" style={{ backgroundColor: '#F6F7DD' }}>
         <div className="flex items-center gap-2 mb-3">
           <div className="p-1.5 rounded-md bg-secondary">
             <Lightbulb size={16} className="text-primary" />
@@ -69,7 +68,6 @@ export function IdeaBox() {
             {submitting ? 'Versturen...' : 'Verstuur'}
           </Button>
         </div>
-      </CardContent>
-    </Card>
+    </div>
   );
 }
