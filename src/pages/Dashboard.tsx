@@ -8,6 +8,7 @@ import { PolarKPICard } from '@/components/polar';
 import { CheckCircle, AlertCircle, Clock, ListTodo, Bell, Package, RefreshCw } from 'lucide-react';
 import { HandoverCard } from '@/components/HandoverCard';
 import { WeatherWidget } from '@/components/dashboard/WeatherWidget';
+import { IdeaBox } from '@/components/dashboard/IdeaBox';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -540,9 +541,12 @@ export default function Dashboard() {
           {userLocation === 'West' && <VoorraadCard />}
         </div>
 
-        {/* Handover Card - full width below the grid */}
-        <div className="max-w-[1200px]">
-          <HandoverCard />
+        {/* Handover Card + Ideeënbus */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-[1200px]">
+          <div className="lg:col-span-2">
+            <HandoverCard />
+          </div>
+          <IdeaBox />
         </div>
 
       </div>

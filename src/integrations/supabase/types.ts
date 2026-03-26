@@ -602,6 +602,27 @@ export type Database = {
         }
         Relationships: []
       }
+      idea_box_submissions: {
+        Row: {
+          created_at: string
+          id: string
+          idea_text: string
+          location: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idea_text: string
+          location: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idea_text?: string
+          location?: string
+        }
+        Relationships: []
+      }
       internal_order_items: {
         Row: {
           created_at: string | null
