@@ -1,37 +1,51 @@
 
 
-# "Nieuw" indicator en beschrijving toevoegen
+# Ideeënbus met e-mail op het Dashboard
 
-## 1. Beschrijving toevoegen aan "Rode wijn vacuüm trekken"
+## Wat wordt er gebouwd
 
-De template in de database krijgt een beschrijving:
+Een simpele, anonieme "Ideeënbus" widget op het dashboard waar teamleden een idee kunnen typen en versturen. Het idee wordt per e-mail verstuurd naar het MT-team (josefien@puravidafoodbar.nl, jorian@puravidafoodbar.nl, yorick@puravidafoodbar.nl).
 
-> "Doe de zwarte dop op de fles en pak het pompje. Zet het pompje op de dop en trek de hendel naar boven. Pomp totdat je een klik hoort."
+## Aanpak
 
-Dit wordt direct zichtbaar via het bestaande info-icoontje (i) naast de taak.
+Omdat er nog geen e-mail infrastructuur is opgezet in dit project, moet die eerst worden aangemaakt. Daarna wordt een edge function gebruikt om de e-mails te versturen.
 
-## 2. "Nieuw" indicator op recent toegevoegde taken
+### Stap 1: E-mail domein en infrastructuur
 
-Een klein sterretje-icoontje (Sparkles) naast taken die recent zijn toegevoegd aan de takenlijst. Dit helpt het team om te zien wat er nieuw is.
+- E-mail domein instellen (puravidafoodbar.nl) via het setup-dialoog
+- E-mail infrastructuur aanmaken (queue, tabellen, cron job)
+- Transactional e-mail scaffold uitvoeren
 
-**Hoe het werkt:**
-- Templates die minder dan 7 dagen oud zijn krijgen het icoontje
-- Klein oranje sterretje, past bij het Pura Vida kleurenschema
-- Verschijnt naast de taaknaam, voor de tijd-indicator
-- Na 7 dagen verdwijnt het automatisch -- geen extra onderhoud nodig
+### Stap 2: E-mail template
 
-**Welke taken krijgen het nu:**
-- Amuse checken evt aanpassen en communiceren met team
-- Keukenraam schoonmaken met Glassex (binnen- en buitenzijde)
-- Terrastafels afnemen
-- Rode wijn vacuüm trekken met dop en vacuümpomp
-- Schrobben achter bar (zondag)
-- Alles FIFO: Melk, bieren en fris (zondag)
-- Aquafabe verversen (woensdag)
+- Template: "idea-box" in `_shared/transactional-email-templates/`
+- Onderwerp: "Nieuw idee via Ideeënbus"
+- Inhoud: het idee-tekst, vestiging, datum/tijd
+- Ontvangers: de 3 MT-adressen (hardcoded in template)
+- Anoniem: geen naam of gebruikersinfo
+
+### Stap 3: Database tabel
+
+- `idea_box_submissions` tabel met: `id`, `idea_text`, `location`, `created_at`
+- RLS: iedereen (authenticated) mag inserten, niemand mag lezen (privacy)
+- Dient als audit log
+
+### Stap 4: Dashboard widget
+
+- Compact kaartje onder de KPI-grid, naast of onder de HandoverCard
+- Textarea (max 500 tekens) + "Verstuur" knop
+- Na versturen: idee opslaan in DB + edge function aanroepen voor e-mail
+- Succesmelding: "Bedankt! Je idee is anoniem verstuurd naar het MT."
+- Styling past bij het Pura Vida design (cream achtergrond, groene accenten)
 
 ## Technisch
 
-1. **Database update**: `UPDATE foh_daily_templates SET description = '...' WHERE title ILIKE '%rode wijn%'`
-2. **FohTasks.tsx**: Bij het ophalen van taken, ook de `created_at` van de template meenemen. In de `SortableTaskItem` component een `Sparkles` icoontje tonen als de template minder dan 7 dagen oud is.
-3. Styling: 14px Sparkles icon, kleur `#E27726` (Pura Vida oranje), naast de taaknaam.
+| Onderdeel | Detail |
+|-----------|--------|
+| E-mail setup | `setup_email_infra` + `scaffold_transactional_email` |
+| Template | `idea-box.tsx` - React Email component |
+| Database | `idea_box_submissions` tabel + RLS |
+| Edge function | `send-transactional-email` (bestaand na scaffold) |
+| Frontend | `IdeaBox` component in Dashboard.tsx |
+| Ontvangers | josefien@, jorian@, yorick@ puravidafoodbar.nl |
 
