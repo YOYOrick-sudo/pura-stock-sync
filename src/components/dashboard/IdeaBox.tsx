@@ -37,7 +37,7 @@ export function IdeaBox() {
   };
 
   return (
-    <div className="rounded-[20px] p-5" style={{ backgroundColor: '#F6F7DD' }}>
+    <div className="p-5" style={{ backgroundColor: '#F6F7DD', border: '1px solid rgba(27, 120, 103, 0.12)', borderRadius: '20px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03)' }}>
         <div className="flex items-center gap-2 mb-3">
           <div className="p-1.5 rounded-md bg-secondary">
             <Lightbulb size={16} className="text-primary" />
