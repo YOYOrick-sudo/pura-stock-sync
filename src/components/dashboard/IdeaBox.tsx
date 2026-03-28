@@ -17,14 +17,39 @@ export function IdeaBox() {
 
     setSubmitting(true);
     try {
+      const submissionId = crypto.randomUUID();
       const { error } = await supabase
         .from('idea_box_submissions')
         .insert({
+          id: submissionId,
           idea_text: idea.trim(),
           location: userLocation,
         });
 
       if (error) throw error;
+
+      // Send email to MT team
+      const recipients = [
+        'josefien@puravidafoodbar.nl',
+        'jorian@puravidafoodbar.nl',
+        'yorick@puravidafoodbar.nl',
+      ];
+
+      await Promise.all(
+        recipients.map((email) =>
+          supabase.functions.invoke('send-transactional-email', {
+            body: {
+              templateName: 'idea-box-notification',
+              recipientEmail: email,
+              idempotencyKey: `idea-${submissionId}-${email}`,
+              templateData: {
+                ideaText: idea.trim(),
+                location: userLocation,
+              },
+            },
+          })
+        )
+      );
 
       toast.success('Bedankt! Je idee is anoniem verstuurd naar het MT.');
       setIdea('');
