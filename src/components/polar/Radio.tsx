@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 export interface PolarRadioOption {
   value: string;
@@ -17,7 +18,7 @@ export interface PolarRadioGroupProps {
   orientation?: 'vertical' | 'horizontal';
 }
 
-export function PolarRadioGroup({ 
+export function PolarRadioGroup({
   name,
   options,
   value,
@@ -28,78 +29,60 @@ export function PolarRadioGroup({
   orientation = 'vertical',
 }: PolarRadioGroupProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div className="flex flex-col gap-3">
       {label && (
         <label
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            fontWeight: 500,
-            color: error ? 'hsl(var(--destructive))' : 'hsl(var(--foreground))',
-          }}
+          className={cn(
+            'text-sm font-medium',
+            error ? 'text-destructive' : 'text-foreground',
+          )}
         >
           {label}
         </label>
       )}
-      
-      <div 
-        style={{ 
-          display: 'flex', 
-          flexDirection: orientation === 'vertical' ? 'column' : 'row',
-          gap: orientation === 'vertical' ? '12px' : '24px',
-        }}
+
+      <div
+        className={cn(
+          'flex',
+          orientation === 'vertical' ? 'flex-col gap-3' : 'flex-row gap-6',
+        )}
       >
         {options.map((option) => {
           const isChecked = value === option.value;
           const isDisabled = option.disabled || false;
-          
+
           return (
             <label
               key={option.value}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                cursor: isDisabled ? 'not-allowed' : 'pointer',
-                opacity: isDisabled ? 0.5 : 1,
-              }}
+              className={cn(
+                'flex items-center gap-2',
+                isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+              )}
             >
               <button
                 type="button"
                 onClick={() => !isDisabled && onChange(option.value)}
                 disabled={isDisabled}
-                style={{
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '50%',
-                  border: error ? '2px solid hsl(var(--destructive))' : isChecked ? '2px solid hsl(var(--primary))' : '2px solid rgba(197, 197, 202, 0.5)',
-                  backgroundColor: 'hsl(var(--background))',
-                  cursor: isDisabled ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.15s ease',
-                  padding: 0,
-                }}
+                className={cn(
+                  'w-5 h-5 rounded-full flex items-center justify-center p-0 transition-all duration-fast bg-background',
+                  'focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2',
+                  isDisabled ? 'cursor-not-allowed' : 'cursor-pointer',
+                  error
+                    ? 'border-2 border-destructive'
+                    : isChecked
+                      ? 'border-2 border-primary'
+                      : 'border-2 border-border',
+                )}
               >
                 {isChecked && (
-                  <div
-                    style={{
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '50%',
-                      backgroundColor: 'hsl(var(--primary))',
-                    }}
-                  />
+                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
                 )}
               </button>
               <span
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '15px',
-                  color: error ? 'hsl(var(--destructive))' : 'hsl(var(--foreground))',
-                  userSelect: 'none',
-                }}
+                className={cn(
+                  'text-[15px] select-none',
+                  error ? 'text-destructive' : 'text-foreground',
+                )}
               >
                 {option.label}
               </span>
@@ -107,14 +90,13 @@ export function PolarRadioGroup({
           );
         })}
       </div>
-      
+
       {helperText && (
         <span
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            color: error ? 'hsl(var(--destructive))' : 'hsl(var(--text-secondary))',
-          }}
+          className={cn(
+            'text-sm',
+            error ? 'text-destructive' : 'text-muted-foreground',
+          )}
         >
           {helperText}
         </span>

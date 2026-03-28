@@ -40,32 +40,21 @@ export function PolarSidebar({
 
   return (
     <aside
-      className="polar-sidebar flex flex-col bg-[hsl(var(--sidebar-bg))] border-r border-border"
-      style={{
-        width: collapsed ? '64px' : '280px',
-        height: '100vh',
-        position: 'sticky',
-        top: 0,
-        transition: 'width 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-      }}
+      className="polar-sidebar flex flex-col bg-[hsl(var(--sidebar-bg))] border-r border-border h-screen sticky top-0 transition-[width] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]"
+      style={{ width: collapsed ? '64px' : '280px' }}
     >
       {/* Header - 84px */}
       <div
-        className="border-b border-border"
-        style={{
-          height: '84px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: collapsed ? '0 12px' : '0 24px',
-        }}
+        className={cn(
+          'border-b border-border h-[84px] flex items-center justify-between',
+          collapsed ? 'px-3' : 'px-6'
+        )}
       >
         <div
-          style={{
-            transition: 'opacity 200ms ease',
-            opacity: collapsed ? 0 : 1,
-            overflow: 'hidden',
-          }}
+          className={cn(
+            'transition-opacity duration-200 overflow-hidden',
+            collapsed ? 'opacity-0' : 'opacity-100'
+          )}
         >
           {!collapsed && logo}
         </div>
@@ -76,7 +65,7 @@ export function PolarSidebar({
           </div>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="flex items-center gap-2">
           {!collapsed && headerSlot}
           <Button
             variant="ghost"
@@ -95,15 +84,15 @@ export function PolarSidebar({
 
       {/* Navigation Items */}
       <nav
-        className="flex-1 overflow-y-auto"
-        style={{
-          padding: collapsed ? '28px 8px' : '28px 16px',
-        }}
+        className={cn(
+          'flex-1 overflow-y-auto pt-7',
+          collapsed ? 'px-2' : 'px-4'
+        )}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className="flex flex-col gap-2">
           {items.map((item) => {
             const Icon = item.icon;
-            
+
             const itemContent = (
               <div
                 key={item.url}
@@ -115,32 +104,20 @@ export function PolarSidebar({
                   }
                 }}
                 className={cn(
-                  'polar-sidebar-item rounded-lg transition-colors',
-                  item.active && 'bg-[hsl(var(--sidebar-active))] border border-border shadow-soft',
-                  !item.active && 'border border-transparent hover:bg-[hsl(var(--sidebar-hover))]',
+                  'polar-sidebar-item rounded-lg transition-colors h-12 flex items-center text-[17px]',
+                  collapsed ? 'px-3 justify-center' : 'px-4 justify-start',
+                  item.active && 'bg-[hsl(var(--sidebar-active))] border border-border shadow-soft font-medium',
+                  !item.active && 'border border-transparent hover:bg-[hsl(var(--sidebar-hover))] font-normal',
                   !item.requiresCode && 'cursor-pointer'
                 )}
-                style={{
-                  height: '48px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: collapsed ? '0 12px' : '0 16px',
-                  fontSize: '17px',
-                  fontWeight: item.active ? 500 : 400,
-                  justifyContent: collapsed ? 'center' : 'flex-start',
-                }}
               >
                 <Icon
                   className={cn(
                     'shrink-0 transition-colors',
+                    collapsed ? 'w-[22px] h-[22px]' : 'w-5 h-5 mr-3.5',
                     item.active ? 'text-primary' : 'text-muted-foreground'
                   )}
-                  style={{
-                    width: collapsed ? '22px' : '20px',
-                    height: collapsed ? '22px' : '20px',
-                    marginRight: collapsed ? '0' : '14px',
-                    strokeWidth: 1.5,
-                  }}
+                  style={{ strokeWidth: 1.5 }}
                 />
                 {!collapsed && (
                   <span className={item.active ? 'text-foreground' : 'text-muted-foreground'}>

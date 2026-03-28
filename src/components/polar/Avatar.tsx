@@ -1,6 +1,6 @@
 import React from 'react';
 import { User } from 'lucide-react';
-import { PolarColors } from './colors';
+import { cn } from '@/lib/utils';
 
 export interface PolarAvatarProps {
   src?: string;
@@ -10,6 +10,12 @@ export interface PolarAvatarProps {
   fallbackIcon?: React.ReactNode;
   online?: boolean;
 }
+
+const sizeConfig = {
+  small: { container: 'w-8 h-8 text-[13px]', iconSize: 16, indicator: 'w-2 h-2' },
+  default: { container: 'w-10 h-10 text-[15px]', iconSize: 20, indicator: 'w-2.5 h-2.5' },
+  large: { container: 'w-14 h-14 text-xl', iconSize: 28, indicator: 'w-3.5 h-3.5' },
+} as const;
 
 export function PolarAvatar({
   src,
@@ -21,65 +27,40 @@ export function PolarAvatar({
 }: PolarAvatarProps) {
   const [imageError, setImageError] = React.useState(false);
 
-  const sizeMap = {
-    small: { size: 32, fontSize: '13px', iconSize: 16 },
-    default: { size: 40, fontSize: '15px', iconSize: 20 },
-    large: { size: 56, fontSize: '20px', iconSize: 28 },
-  };
-
-  const { size: avatarSize, fontSize, iconSize } = sizeMap[size];
+  const config = sizeConfig[size];
 
   const showImage = src && !imageError;
   const showInitials = !showImage && initials;
   const showIcon = !showImage && !showInitials;
 
   return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
+    <div className="relative inline-block">
       <div
-        style={{
-          width: `${avatarSize}px`,
-          height: `${avatarSize}px`,
-          borderRadius: '50%',
-          backgroundColor: showImage ? 'transparent' : 'hsl(var(--background))',
-          border: '1px solid hsl(var(--border))',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          fontFamily: 'Inter, sans-serif',
-          fontSize: fontSize,
-          fontWeight: 600,
-          color: 'hsl(var(--foreground))',
-        }}
+        className={cn(
+          'rounded-full border border-border flex items-center justify-center overflow-hidden font-semibold text-foreground',
+          showImage ? 'bg-transparent' : 'bg-background',
+          config.container,
+        )}
       >
         {showImage && (
           <img
             src={src}
             alt={alt}
             onError={() => setImageError(true)}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
+            className="w-full h-full object-cover"
           />
         )}
         {showInitials && initials}
-        {showIcon && (fallbackIcon || <User size={iconSize} color="hsl(var(--foreground))" />)}
+        {showIcon && (fallbackIcon || <User size={config.iconSize} className="text-foreground" />)}
       </div>
-      
+
       {online !== undefined && (
         <div
-          style={{
-            position: 'absolute',
-            bottom: '0',
-            right: '0',
-            width: `${avatarSize * 0.25}px`,
-            height: `${avatarSize * 0.25}px`,
-            borderRadius: '50%',
-            backgroundColor: online ? PolarColors.avatar.online : PolarColors.avatar.offline,
-            border: '2px solid hsl(var(--card))',
-          }}
+          className={cn(
+            'absolute bottom-0 right-0 rounded-full border-2 border-card',
+            online ? 'bg-success' : 'bg-muted-foreground',
+            config.indicator,
+          )}
         />
       )}
     </div>
@@ -97,6 +78,12 @@ export interface PolarAvatarGroupProps {
   size?: 'small' | 'default' | 'large';
 }
 
+const groupSizeConfig = {
+  small: { px: 32, overlapClass: '-ml-2', container: 'w-8 h-8 text-[13px]' },
+  default: { px: 40, overlapClass: '-ml-2.5', container: 'w-10 h-10 text-[15px]' },
+  large: { px: 56, overlapClass: '-ml-3.5', container: 'w-14 h-14 text-lg' },
+} as const;
+
 export function PolarAvatarGroup({
   avatars,
   max = 3,
@@ -104,29 +91,15 @@ export function PolarAvatarGroup({
 }: PolarAvatarGroupProps) {
   const visibleAvatars = avatars.slice(0, max);
   const remainingCount = avatars.length - max;
-
-  const sizeMap = {
-    small: 32,
-    default: 40,
-    large: 56,
-  };
-
-  const avatarSize = sizeMap[size];
+  const config = groupSizeConfig[size];
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-      }}
-    >
+    <div className="flex items-center">
       {visibleAvatars.map((avatar, index) => (
         <div
           key={index}
-          style={{
-            marginLeft: index > 0 ? `-${avatarSize * 0.25}px` : '0',
-            zIndex: visibleAvatars.length - index,
-          }}
+          className={cn(index > 0 && config.overlapClass)}
+          style={{ zIndex: visibleAvatars.length - index }}
         >
           <PolarAvatar
             src={avatar.src}
@@ -136,25 +109,14 @@ export function PolarAvatarGroup({
           />
         </div>
       ))}
-      
+
       {remainingCount > 0 && (
         <div
-          style={{
-            width: `${avatarSize}px`,
-            height: `${avatarSize}px`,
-            borderRadius: '50%',
-            backgroundColor: 'hsl(var(--background))',
-            border: '1px solid hsl(var(--border))',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontFamily: 'Inter, sans-serif',
-            fontSize: size === 'small' ? '13px' : size === 'large' ? '18px' : '15px',
-            fontWeight: 600,
-            color: 'hsl(var(--foreground))',
-            marginLeft: `-${avatarSize * 0.25}px`,
-            zIndex: 0,
-          }}
+          className={cn(
+            'rounded-full bg-background border border-border flex items-center justify-center font-semibold text-foreground z-0',
+            config.overlapClass,
+            config.container,
+          )}
         >
           +{remainingCount}
         </div>

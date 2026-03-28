@@ -8,38 +8,32 @@ export interface PolarHeaderProps {
   onMenuClick?: () => void;
 }
 
-export function PolarHeader({ 
-  title = 'Dashboard', 
+export function PolarHeader({
+  title = 'Dashboard',
   showStatusIndicator = true,
   location,
   onMenuClick
 }: PolarHeaderProps) {
   return (
-    <div 
+    <div
       className="h-[60px] md:h-[72px] flex items-center justify-between px-4 md:px-12 bg-[hsl(var(--sidebar-bg))]"
     >
       <div className="flex items-center gap-3">
         {onMenuClick && (
           <button
             onClick={onMenuClick}
-            className="flex items-center justify-center w-10 h-10 rounded-lg transition-colors border border-border hover:bg-[hsl(var(--sidebar-hover))]"
+            className="flex items-center justify-center w-10 h-10 rounded-lg transition-colors border border-border hover:bg-[hsl(var(--sidebar-hover))] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
             aria-label="Open menu"
           >
             <Menu size={20} className="text-foreground" />
           </button>
         )}
-        <h1 
-          className="text-lg md:text-2xl font-semibold text-foreground"
-          style={{ marginTop: '14px' }}
-        >
+        <h1 className="text-lg md:text-2xl font-semibold text-foreground mt-3.5">
           {title}
         </h1>
       </div>
       {location && (
-        <div
-          className="hidden sm:block text-sm font-medium text-muted-foreground"
-          style={{ marginTop: '14px' }}
-        >
+        <div className="hidden sm:block text-sm font-medium text-muted-foreground mt-3.5">
           Locatie: {location}
         </div>
       )}
