@@ -245,9 +245,9 @@ const VoorraadCard = () => {
   const getStatusColors = (status: any) => {
     switch(status.status) {
       case 'urgent':
-        return { bg: 'transparent', text: '#DC2626', icon: <AlertCircle size={16} /> };
+        return { bg: 'transparent', text: 'hsl(var(--destructive))', icon: <AlertCircle size={16} /> };
       case 'warning':
-        return { bg: 'transparent', text: '#D97706', icon: <Clock size={16} /> };
+        return { bg: 'transparent', text: 'hsl(var(--warning))', icon: <Clock size={16} /> };
       case 'ok':
         return { bg: 'transparent', text: 'hsl(var(--primary))', icon: <CheckCircle size={16} /> };
       default:
