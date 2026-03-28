@@ -465,13 +465,7 @@ export default function OrderDashboard() {
 
         {/* Instructies Dialog */}
         <Dialog open={showInstructionsDialog} onOpenChange={setShowInstructionsDialog}>
-          <DialogContent className="max-w-2xl" style={{
-            backgroundColor: 'hsl(var(--card))',
-            borderRadius: '20px',
-            border: '1px solid rgba(197, 197, 202, 0.5)',
-            padding: '32px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-          }}>
+          <DialogContent className="max-w-2xl bg-card rounded-lg border border-border p-8 shadow-lg">
             <DialogHeader>
               <DialogTitle className="text-xl font-heading font-bold text-foreground">
                 Instructies Voorraadregistratie
@@ -535,13 +529,7 @@ export default function OrderDashboard() {
 
         {/* Success Dialog */}
         <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-          <AlertDialogContent className="max-w-[90vw] sm:max-w-md mx-4" style={{
-            backgroundColor: 'hsl(var(--card))',
-            borderRadius: '20px',
-            border: '1px solid rgba(197, 197, 202, 0.5)',
-            padding: '32px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-          }}>
+          <AlertDialogContent className="max-w-[90vw] sm:max-w-md mx-4 bg-card rounded-lg border border-border p-8 shadow-lg">
             <AlertDialogHeader className="space-y-3 sm:space-y-4 pt-2">
               <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-primary to-primary-hover rounded-full flex items-center justify-center animate-scale-in shadow-lg">
                 <CheckCircle2 className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
@@ -568,13 +556,7 @@ export default function OrderDashboard() {
 
         {/* Logout Confirmation Dialog */}
         <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-          <AlertDialogContent className="max-w-[90vw] sm:max-w-md mx-4" style={{
-            backgroundColor: 'hsl(var(--card))',
-            borderRadius: '20px',
-            border: '1px solid rgba(197, 197, 202, 0.5)',
-            padding: '32px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-          }}>
+          <AlertDialogContent className="max-w-[90vw] sm:max-w-md mx-4 bg-card rounded-lg border border-border p-8 shadow-lg">
             <AlertDialogHeader className="space-y-3 sm:space-y-4 pt-2">
               <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-warning to-warning/80 rounded-full flex items-center justify-center shadow-lg">
                 <LogOut className="w-7 h-7 sm:w-8 sm:h-8 text-white" />

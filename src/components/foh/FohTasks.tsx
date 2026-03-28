@@ -82,7 +82,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
 
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState(task.description || '');
-  
+
   // Touch feedback state (tablet only)
   const isTablet = useIsTablet();
   const [ripple, setRipple] = useState<{ x: number; y: number } | null>(null);
@@ -114,28 +114,25 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
 
   return (
     <div ref={setNodeRef} style={style}>
-      <div 
+      <div
         onClick={handleRowClick}
-        style={{
-          padding: taskPadding,
-          opacity: isDeleted ? 0.3 : (task.completed ? 0.7 : 1),
-          borderBottom: '1px solid rgba(197, 197, 202, 0.3)',
-          cursor: !isEditMode && toggleTask ? 'pointer' : 'default',
-          transition: 'all 0.15s ease',
-          position: 'relative',
-          overflow: 'hidden',
-          backgroundColor: task.completed ? 'rgba(27, 120, 103, 0.04)' : 'transparent',
-        }}
+        className={cn(
+          'border-b border-border/30 relative overflow-hidden transition-all duration-fast',
+          task.completed ? 'bg-primary/[0.04]' : 'bg-transparent',
+          isDeleted ? 'opacity-30' : (task.completed ? 'opacity-70' : 'opacity-100'),
+          !isEditMode && toggleTask ? 'cursor-pointer hover:bg-primary/5' : 'cursor-default',
+        )}
+        style={{ padding: taskPadding }}
         onMouseEnter={(e) => {
           if (!isEditMode && toggleTask) {
-            e.currentTarget.style.backgroundColor = task.completed 
-              ? 'rgba(27, 120, 103, 0.06)' 
+            e.currentTarget.style.backgroundColor = task.completed
+              ? 'rgba(27, 120, 103, 0.06)'
               : 'rgba(27, 120, 103, 0.05)';
           }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = task.completed 
-            ? 'rgba(27, 120, 103, 0.04)' 
+          e.currentTarget.style.backgroundColor = task.completed
+            ? 'rgba(27, 120, 103, 0.04)'
             : 'transparent';
         }}
         onMouseDown={(e) => {
@@ -145,8 +142,8 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         }}
         onMouseUp={(e) => {
           if (!isEditMode && toggleTask) {
-            e.currentTarget.style.backgroundColor = task.completed 
-              ? 'rgba(27, 120, 103, 0.06)' 
+            e.currentTarget.style.backgroundColor = task.completed
+              ? 'rgba(27, 120, 103, 0.06)'
               : 'rgba(27, 120, 103, 0.05)';
           }
         }}
@@ -154,58 +151,33 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         {/* Ripple effect for tablet */}
         {isTablet && ripple && (
           <span
-            className="animate-ripple"
+            className="animate-ripple absolute rounded-full bg-primary/25 pointer-events-none"
             style={{
-              position: 'absolute',
               left: ripple.x - 25,
               top: ripple.y - 25,
               width: 50,
               height: 50,
-              borderRadius: '50%',
-              backgroundColor: 'hsl(var(--primary) / 0.25)',
-              pointerEvents: 'none',
             }}
           />
         )}
-        <div style={{
-          display: 'flex',
-          gap: '12px',
-          alignItems: 'center',
-        }}>
+        <div className="flex gap-3 items-center">
           {/* Drag Handle */}
           {isEditMode && !isDeleted && (
-            <div 
-              {...attributes} 
+            <div
+              {...attributes}
               {...listeners}
-              style={{
-                cursor: 'grab',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '24px',
-                height: '24px',
-                minWidth: '24px',
-              }}
+              className="cursor-grab flex items-center justify-center w-6 h-6 min-w-[24px]"
             >
-              <GripVertical size={18} style={{ color: 'hsl(var(--text-secondary))', opacity: 0.5 }} />
+              <GripVertical size={18} className="text-muted-foreground opacity-50" />
             </div>
           )}
 
           {/* Checkbox - compact, whole row is clickable */}
           {!isEditMode && toggleTask && (
-            <div style={{
-              width: '20px',
-              height: '20px',
-              minWidth: '20px',
-              borderRadius: '6px',
-              border: '2px solid rgba(197, 197, 202, 0.5)',
-              backgroundColor: task.completed ? 'hsl(var(--primary))' : 'hsl(var(--background))',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.1s ease',
-              pointerEvents: 'none', // Row handles the click
-            }}>
+            <div className={cn(
+              'w-5 h-5 min-w-[20px] rounded-md border-2 border-border/50 flex items-center justify-center transition-all duration-100 pointer-events-none',
+              task.completed ? 'bg-primary' : 'bg-background',
+            )}>
               {task.completed && (
                 <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
                   <path
@@ -221,60 +193,40 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
           )}
 
           {/* Title - editable in edit mode */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px',
-            flex: 1 
-          }}>
+          <div className="flex items-center gap-2 flex-1">
             {isEditMode ? (
               <Input
                 value={task.title}
                 onChange={(e) => onTitleChange(task.id, e.target.value)}
                 disabled={isDeleted}
-                style={{
-                  flex: 1,
-                  borderRadius: '16px',
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '15px',
-                  fontWeight: 500,
-                  height: '36px',
-                  textDecoration: isDeleted ? 'line-through' : 'none',
-                }}
+                className={cn(
+                  'flex-1 rounded-lg text-[15px] font-medium h-9',
+                  isDeleted && 'line-through',
+                )}
               />
             ) : (
-              <span style={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                textDecoration: toggleTask && task.completed ? 'line-through' : 'none',
-                color: toggleTask && task.completed ? 'hsl(var(--text-secondary))' : 'hsl(var(--foreground))',
-                fontWeight: 500,
-                fontSize: '15px',
-                fontFamily: 'Inter, sans-serif',
-              }}>
+              <span className={cn(
+                'flex-1 flex items-center font-medium text-[15px]',
+                toggleTask && task.completed ? 'line-through text-muted-foreground' : 'text-foreground',
+              )}>
                 {taskNumber != null && (
-                  <span style={{ color: 'hsl(var(--text-muted))', fontWeight: 600, marginRight: '6px', fontSize: '13px' }}>
+                  <span className="text-[hsl(var(--text-muted))] font-semibold mr-1.5 text-xs">
                     {taskNumber}.
                   </span>
                 )}
-                <span style={{ flex: 1 }}>{task.title}</span>
+                <span className="flex-1">{task.title}</span>
                 {isNew && !isEditMode && (
-                  <Sparkles size={14} style={{ color: 'hsl(var(--warning))', marginLeft: '6px', flexShrink: 0 }} />
+                  <Sparkles size={14} className="text-warning ml-1.5 shrink-0" />
                 )}
               </span>
             )}
           </div>
 
           {/* Time indicator & Action buttons */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}>
+          <div className="flex items-center gap-1.5">
             {/* Time indicator - editable in edit mode */}
             {isEditMode ? (
-              <Select 
+              <Select
                 value={task.estimated_minutes?.toString() || 'null'}
                 onValueChange={(value) => {
                   if (onEstimatedMinutesChange) {
@@ -283,13 +235,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 }}
                 disabled={isDeleted}
               >
-                <SelectTrigger style={{
-                  width: '80px',
-                  height: '28px',
-                  fontSize: '12px',
-                  borderRadius: '12px',
-                  fontFamily: 'Inter, sans-serif',
-                }}>
+                <SelectTrigger className="w-20 h-7 text-xs rounded-md">
                   <SelectValue placeholder="Tijd" />
                 </SelectTrigger>
                 <SelectContent>
@@ -305,15 +251,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
               </Select>
             ) : (
               task.estimated_minutes && (
-                <span style={{
-                  fontSize: '11px',
-                  fontWeight: 500,
-                  color: 'hsl(var(--text-secondary))',
-                  backgroundColor: 'hsl(var(--text-secondary) / 0.08)',
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  fontFamily: 'Inter, sans-serif',
-                }}>
+                <span className="text-[11px] font-medium text-muted-foreground bg-muted-foreground/[0.08] px-2 py-0.5 rounded">
                   ~{task.estimated_minutes}min
                 </span>
               )
@@ -326,23 +264,10 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   e.stopPropagation();
                   setIsEditingDescription(true);
                 }}
-                style={{
-                  width: '26px',
-                  height: '26px',
-                  minWidth: '26px',
-                  borderRadius: '8px',
-                  border: '1.5px solid rgba(27,120,103,0.3)',
-                  backgroundColor: 'hsl(var(--secondary))',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 0,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
+                className="w-[26px] h-[26px] min-w-[26px] rounded-sm border-1.5 border-primary/30 bg-secondary flex items-center justify-center p-0 cursor-pointer transition-all duration-fast"
                 title="Bekijk info"
               >
-                <Info size={16} style={{ color: 'hsl(var(--primary))' }} />
+                <Info size={16} className="text-primary" />
               </button>
             )}
 
@@ -354,23 +279,10 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   setDescriptionValue(task.description || '');
                   setIsEditingDescription(true);
                 }}
-                style={{
-                  width: '24px',
-                  height: '24px',
-                  minWidth: '24px',
-                  borderRadius: '6px',
-                  border: '1px solid rgba(197,197,202,0.5)',
-                  backgroundColor: 'hsl(var(--card))',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 0,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
+                className="w-6 h-6 min-w-[24px] rounded-md border border-border/50 bg-card flex items-center justify-center p-0 cursor-pointer transition-all duration-fast"
                 title="Bewerk omschrijving"
               >
-                <Pencil size={14} style={{ color: 'hsl(var(--text-secondary))' }} />
+                <Pencil size={14} className="text-muted-foreground" />
               </button>
             )}
 
@@ -381,31 +293,10 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   e.stopPropagation();
                   onDelete(task.id);
                 }}
-                style={{
-                  width: '24px',
-                  height: '24px',
-                  minWidth: '24px',
-                  borderRadius: '6px',
-                  border: '1px solid rgba(197,197,202,0.5)',
-                  backgroundColor: 'hsl(var(--card))',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 0,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
+                className="w-6 h-6 min-w-[24px] rounded-md border border-border/50 bg-card flex items-center justify-center p-0 cursor-pointer transition-all duration-fast hover:bg-destructive/10 hover:border-destructive"
                 title="Verwijder taak"
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'hsl(var(--destructive) / 0.1)';
-                  e.currentTarget.style.borderColor = 'hsl(var(--destructive))';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
-                  e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
-                }}
               >
-                <Trash2 size={14} style={{ color: 'hsl(var(--destructive))' }} />
+                <Trash2 size={14} className="text-destructive" />
               </button>
             )}
           </div>
@@ -414,40 +305,25 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         {/* Description edit dialog */}
         {isEditingDescription && (
           <Dialog open={isEditingDescription} onOpenChange={setIsEditingDescription}>
-            <DialogContent 
-              className="data-[state=open]:duration-300 data-[state=open]:ease-out data-[state=closed]:duration-200"
-              style={{
-                backgroundColor: 'hsl(var(--card))',
-                border: '1px solid rgba(197, 197, 202, 0.5)',
-                borderRadius: '20px',
-                fontFamily: 'Inter, sans-serif',
-              }}>
+            <DialogContent
+              className="data-[state=open]:duration-300 data-[state=open]:ease-out data-[state=closed]:duration-200 bg-card border border-border/50 rounded-lg"
+            >
               <DialogHeader>
-                <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: 'hsl(var(--foreground))' }}>
+                <DialogTitle className="text-foreground">
                   {showAdminTools ? 'Bewerk Omschrijving' : 'Taak Informatie'}
                 </DialogTitle>
               </DialogHeader>
-              <div style={{ padding: '16px 0' }}>
+              <div className="py-4">
                 {showAdminTools && onDescriptionChange ? (
                   <Textarea
                     value={descriptionValue}
                     onChange={(e) => setDescriptionValue(e.target.value)}
                     placeholder="Omschrijving (optioneel)"
                     rows={6}
-                    style={{
-                      borderRadius: '16px',
-                      fontFamily: 'Inter, sans-serif',
-                      whiteSpace: 'pre-wrap',
-                    }}
+                    className="rounded-lg whitespace-pre-wrap"
                   />
                 ) : (
-                  <div style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '15px',
-                    color: 'hsl(var(--foreground))',
-                    whiteSpace: 'pre-wrap',
-                    lineHeight: 1.6,
-                  }}>
+                  <div className="text-[15px] text-foreground whitespace-pre-wrap leading-relaxed">
                     {task.description || 'Geen omschrijving beschikbaar'}
                   </div>
                 )}
@@ -456,10 +332,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 <Button
                   variant="outline"
                   onClick={() => setIsEditingDescription(false)}
-                  style={{
-                    borderRadius: '20px',
-                    fontFamily: 'Inter, sans-serif',
-                  }}
+                  className="rounded-lg"
                 >
                   {showAdminTools ? 'Annuleren' : 'Sluiten'}
                 </Button>
@@ -470,12 +343,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                       setIsEditingDescription(false);
                       toast.success('Omschrijving bijgewerkt');
                     }}
-                    style={{
-                      backgroundColor: 'hsl(var(--primary))',
-                      color: 'hsl(var(--primary-foreground))',
-                      borderRadius: '20px',
-                      fontFamily: 'Inter, sans-serif',
-                    }}
+                    className="bg-primary text-primary-foreground rounded-lg"
                   >
                     Opslaan
                   </Button>
@@ -1685,8 +1553,8 @@ export function FohTasks() {
   // ===== RENDER =====
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-        <Loader2 style={{ width: '32px', height: '32px', color: 'hsl(var(--primary))' }} className="animate-spin" />
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -1695,20 +1563,13 @@ export function FohTasks() {
   const groupedCurrentTasks = groupTasksByCategory(currentTasks);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--card))', fontFamily: 'Inter, sans-serif' }}>
-      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-      <div style={{
-        backgroundColor: 'hsl(var(--muted))',
-        borderRadius: '20px',
-        border: '1px solid rgba(197, 197, 202, 0.5)',
-        padding: '24px',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
-        position: 'relative',
-      }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            
+    <div className="min-h-screen bg-card">
+      <div className="max-w-[1400px] mx-auto">
+      <div className="bg-muted rounded-lg border border-border/50 p-6 shadow-sm relative">
+          <div className="flex flex-col gap-5">
+
           {/* Single row with all buttons */}
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div className="flex gap-3 items-center">
               
               {/* Dagelijks phase buttons */}
               {(['open', 'tussen', 'sluit'] as PhaseType[]).map((phase) => {
@@ -1724,47 +1585,20 @@ export function FohTasks() {
                   setActivePhase(phase);
                   setIsPhaseManuallySelected(true);
                 }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
-                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
-                  }
-                }}
-                    onMouseLeave={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }
-                    }}
-                    style={{
-                      flex: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      fontSize: '15px',
-                      fontWeight: 500,
-                  padding: '14px 20px',
-                  backgroundColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--card))',
-                  color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
-                  border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
-                  borderRadius: '20px',
-                  cursor: 'pointer',
-                  opacity: 1,
-                      transition: 'all 0.15s ease',
-                      fontFamily: 'Inter, sans-serif',
-                    }}
+                    className={cn(
+                      'flex-1 flex items-center justify-center gap-2 text-[15px] font-medium py-3.5 px-5 rounded-lg cursor-pointer transition-all duration-fast',
+                      isActive
+                        ? 'bg-primary text-primary-foreground border-none'
+                        : 'bg-card text-foreground border border-border/50 hover:bg-muted hover:shadow-sm',
+                    )}
                   >
                     <span>{labels[phase]}</span>
-                    <span style={{
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      padding: '4px 10px',
-                      borderRadius: '6px',
-                      backgroundColor: isActive ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.04)',
-                      color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--text-secondary))',
-                      minWidth: '40px',
-                    }}>
+                    <span className={cn(
+                      'text-xs font-semibold py-1 px-2.5 rounded-md min-w-[40px]',
+                      isActive
+                        ? 'bg-white/25 text-primary-foreground'
+                        : 'bg-black/[0.04] text-muted-foreground',
+                    )}>
                       {stats.completed}/{stats.total}
                     </span>
                   </button>
@@ -1772,12 +1606,7 @@ export function FohTasks() {
               })}
               
             {/* Visual separator */}
-            <div style={{
-              width: '1px',
-              height: '32px',
-              backgroundColor: 'rgba(197, 197, 202, 0.5)',
-              margin: '0 20px',
-            }} />
+            <div className="w-px h-8 bg-border/50 mx-5" />
               
               {/* Periodiek button */}
               {(() => {
@@ -1790,46 +1619,20 @@ export function FohTasks() {
                     onClick={() => {
                       setMainCategory('periodiek');
                     }}
-                    onMouseEnter={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
-                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }
-                    }}
-                    style={{
-                      flex: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      fontSize: '15px',
-                      fontWeight: 500,
-                    padding: '14px 20px',
-                    backgroundColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--card))',
-                    color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
-                    border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
-                    borderRadius: '20px',
-                    cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                      fontFamily: 'Inter, sans-serif',
-                    }}
+                    className={cn(
+                      'flex-1 flex items-center justify-center gap-2 text-[15px] font-medium py-3.5 px-5 rounded-lg cursor-pointer transition-all duration-fast',
+                      isActive
+                        ? 'bg-primary text-primary-foreground border-none'
+                        : 'bg-card text-foreground border border-border/50 hover:bg-muted hover:shadow-sm',
+                    )}
                   >
                     <span>Periodiek</span>
-                    <span style={{
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      padding: '4px 10px',
-                      borderRadius: '6px',
-                      backgroundColor: isActive ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.04)',
-                      color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--text-secondary))',
-                      minWidth: '40px',
-                    }}>
+                    <span className={cn(
+                      'text-xs font-semibold py-1 px-2.5 rounded-md min-w-[40px]',
+                      isActive
+                        ? 'bg-white/25 text-primary-foreground'
+                        : 'bg-black/[0.04] text-muted-foreground',
+                    )}>
                       {completed}/{total}
                     </span>
                   </button>
@@ -1838,42 +1641,28 @@ export function FohTasks() {
 
             </div>
 
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(197, 197, 202, 0.5)', margin: 0 }} />
+            <hr className="border-none border-t border-border/50 m-0" />
 
             {/* Full-width progress bar */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  height: '8px',
-                  backgroundColor: 'hsl(var(--card))',
-                  borderRadius: '4px',
-                  overflow: 'hidden',
-                }}>
-                  <div style={{
-                    height: '100%',
-                    width: `${progressPercentage}%`,
-                    backgroundColor: 'hsl(var(--primary))',
-                    transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                  }} />
+            <div className="flex items-center gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="h-2 bg-card rounded overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-[width] duration-[400ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
+                    style={{ width: `${progressPercentage}%` }}
+                  />
                 </div>
               </div>
-              
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-                flexShrink: 0,
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '15px', color: 'hsl(var(--text-secondary))', fontFamily: 'Inter, sans-serif' }}>
+
+              <div className="flex items-center gap-4 shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-[15px] text-muted-foreground">
                     {completedCount}/{totalCount}
                   </span>
-                  <span style={{
-                    fontWeight: 600,
-                    color: isComplete ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
-                    fontSize: '17px',
-                    fontFamily: 'Inter, sans-serif',
-                  }}>
+                  <span className={cn(
+                    'font-semibold text-[17px]',
+                    isComplete ? 'text-primary' : 'text-foreground',
+                  )}>
                     {progressPercentage}%
                   </span>
                 </div>
@@ -1881,29 +1670,7 @@ export function FohTasks() {
                 {/* Admin Button */}
                 <button
                   onClick={() => setPasswordDialogOpen(true)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '12px 20px',
-                    backgroundColor: 'hsl(var(--card))',
-                    color: 'hsl(var(--primary))',
-                    border: '1px solid rgba(197, 197, 202, 0.5)',
-                    borderRadius: '20px',
-                    fontSize: '15px',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    fontFamily: 'Inter, sans-serif',
-                    transition: 'all 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
-                    e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.7)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
-                    e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.5)';
-                  }}
+                  className="flex items-center gap-2 py-3 px-5 bg-card text-primary border border-border/50 rounded-lg text-[15px] font-medium cursor-pointer transition-all duration-200 hover:bg-muted hover:border-border/70"
                 >
                   <Settings size={18} />
                   Admin
@@ -1914,80 +1681,40 @@ export function FohTasks() {
                   <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                     <DialogTrigger asChild>
                       <button
-                        style={{
-                          width: '48px',
-                          height: '48px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          backgroundColor: 'hsl(var(--primary))',
-                          color: 'hsl(var(--primary-foreground))',
-                          border: '1px solid rgba(255,255,255,0.2)',
-                          borderRadius: '12px',
-                          cursor: 'pointer',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                          transition: 'all 0.2s ease',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'hsl(var(--primary-hover))';
-                          e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.15)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'hsl(var(--primary))';
-                          e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-                        }}
-                        onMouseDown={(e) => {
-                          e.currentTarget.style.transform = 'scale(0.95)';
-                        }}
-                        onMouseUp={(e) => {
-                          e.currentTarget.style.transform = 'scale(1)';
-                        }}
+                        className="w-12 h-12 flex items-center justify-center bg-primary text-primary-foreground border border-white/20 rounded-md cursor-pointer shadow-sm transition-all duration-200 hover:bg-primary-hover hover:shadow-md active:scale-95"
                       >
                         <Plus size={24} />
                       </button>
                     </DialogTrigger>
-                    <DialogContent style={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid rgba(197, 197, 202, 0.5)',
-                      borderRadius: '20px',
-                      fontFamily: 'Inter, sans-serif',
-                    }}>
+                    <DialogContent className="bg-card border border-border/50 rounded-lg">
                       <DialogHeader>
-                        <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: 'hsl(var(--foreground))' }}>
+                        <DialogTitle className="text-foreground">
                           Nieuwe Periodieke Taak
                         </DialogTitle>
                       </DialogHeader>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 0' }}>
+                      <div className="flex flex-col gap-4 py-4">
                         {/* Essential fields - always visible */}
                         <div>
-                          <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+                          <Label className="text-xs font-medium text-foreground">
                             Titel *
                           </Label>
                           <Input
                             value={newTask.title}
                             onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                             placeholder="Bijv. Voorraad tellen"
-                            style={{
-                              marginTop: '6px',
-                              borderRadius: '16px',
-                              fontFamily: 'Inter, sans-serif',
-                            }}
+                            className="mt-1.5 rounded-lg"
                           />
                         </div>
 
                         <div>
-                          <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+                          <Label className="text-xs font-medium text-foreground">
                             Vervaldatum *
                           </Label>
                           <Input
                             type="date"
                             value={newTask.due_date}
                             onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
-                            style={{
-                              marginTop: '6px',
-                              borderRadius: '16px',
-                              fontFamily: 'Inter, sans-serif',
-                            }}
+                            className="mt-1.5 rounded-lg"
                           />
                         </div>
 
@@ -1995,22 +1722,7 @@ export function FohTasks() {
                         <button
                           type="button"
                           onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '6px',
-                            padding: '10px',
-                            backgroundColor: 'transparent',
-                            border: '1px solid rgba(197, 197, 202, 0.5)',
-                            borderRadius: '12px',
-                            cursor: 'pointer',
-                            fontFamily: 'Inter, sans-serif',
-                            fontSize: '13px',
-                            fontWeight: 500,
-                            color: 'hsl(var(--text-secondary))',
-                            transition: 'all 0.15s ease',
-                          }}
+                          className="flex items-center justify-center gap-1.5 p-2.5 bg-transparent border border-border/50 rounded-md cursor-pointer text-xs font-medium text-muted-foreground transition-all duration-fast"
                         >
                           {showAdvancedOptions ? (
                             <>
@@ -2028,12 +1740,12 @@ export function FohTasks() {
                         {/* Advanced options - hidden by default */}
                         {showAdvancedOptions && (
                           <>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            <div className="grid grid-cols-2 gap-3">
                               <div>
-                                <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+                                <Label className="text-xs font-medium text-foreground">
                                   Prioriteit
                                 </Label>
-                                <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                                <div className="flex gap-2 mt-1.5">
                                   {[
                                     { value: 1, label: 'Hoog', color: PolarColors.status.error },
                                     { value: 2, label: 'Normaal', color: PolarColors.status.pending },
@@ -2042,18 +1754,10 @@ export function FohTasks() {
                                     <button
                                       key={value}
                                       onClick={() => setNewTask({ ...newTask, priority: value as 1 | 2 | 3 })}
+                                      className="flex-1 p-2 rounded-sm text-xs font-medium text-foreground cursor-pointer transition-all duration-fast"
                                       style={{
-                                        flex: 1,
-                                        padding: '8px',
-                                        borderRadius: '8px',
                                         border: newTask.priority === value ? `2px solid ${color}` : '1px solid rgba(197,197,202,0.5)',
                                         backgroundColor: newTask.priority === value ? `${color}15` : 'hsl(var(--card))',
-                                        color: 'hsl(var(--foreground))',
-                                        cursor: 'pointer',
-                                        fontSize: '13px',
-                                        fontWeight: 500,
-                                        fontFamily: 'Inter, sans-serif',
-                                        transition: 'all 0.15s ease',
                                       }}
                                     >
                                       {label}
@@ -2063,11 +1767,11 @@ export function FohTasks() {
                               </div>
 
                               <div>
-                                <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+                                <Label className="text-xs font-medium text-foreground">
                                   Categorie
                                 </Label>
                                 <Select value={newTask.category} onValueChange={(val) => setNewTask({ ...newTask, category: val })}>
-                                  <SelectTrigger style={{ marginTop: '6px', borderRadius: '16px', fontFamily: 'Inter, sans-serif' }}>
+                                  <SelectTrigger className="mt-1.5 rounded-lg">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -2080,14 +1784,14 @@ export function FohTasks() {
                             </div>
 
                             <div>
-                              <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+                              <Label className="text-xs font-medium text-foreground">
                                 Geschatte tijd
                               </Label>
-                              <Select 
-                                value={newTask.estimated_minutes?.toString() || ''} 
+                              <Select
+                                value={newTask.estimated_minutes?.toString() || ''}
                                 onValueChange={(val) => setNewTask({ ...newTask, estimated_minutes: val ? parseInt(val) : null })}
                               >
-                                <SelectTrigger style={{ marginTop: '6px', borderRadius: '16px', fontFamily: 'Inter, sans-serif' }}>
+                                <SelectTrigger className="mt-1.5 rounded-lg">
                                   <SelectValue placeholder="Selecteer..." />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -2103,7 +1807,7 @@ export function FohTasks() {
                             </div>
 
                             <div>
-                              <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+                              <Label className="text-xs font-medium text-foreground">
                                 Medewerker
                               </Label>
                               <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
@@ -2112,24 +1816,18 @@ export function FohTasks() {
                                     variant="outline"
                                     role="combobox"
                                     aria-expanded={employeeOpen}
-                                    style={{
-                                      width: '100%',
-                                      justifyContent: 'space-between',
-                                      marginTop: '6px',
-                                      borderRadius: '16px',
-                                      fontFamily: 'Inter, sans-serif',
-                                    }}
+                                    className="w-full justify-between mt-1.5 rounded-lg"
                                   >
                                     {newTask.assigned_employee_id
                                       ? employees.find((e) => e.id === newTask.assigned_employee_id)?.name
                                       : "Selecteer medewerker..."}
-                                    <ChevronsUpDown style={{ marginLeft: '8px', height: '16px', width: '16px', opacity: 0.5 }} />
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
                                   </Button>
                                 </PopoverTrigger>
-                                <PopoverContent style={{ width: '100%', padding: 0, fontFamily: 'Inter, sans-serif' }}>
+                                <PopoverContent className="w-full p-0">
                                   <Command>
-                                    <CommandInput 
-                                      placeholder="Zoek medewerker..." 
+                                    <CommandInput
+                                      placeholder="Zoek medewerker..."
                                       value={employeeInput}
                                       onValueChange={setEmployeeInput}
                                     />
@@ -2157,7 +1855,7 @@ export function FohTasks() {
                                           <CommandSeparator />
                                           <CommandGroup>
                                             <CommandItem onSelect={handleAddNewEmployee}>
-                                              <Plus style={{ marginRight: '8px', height: '16px', width: '16px' }} />
+                                              <Plus className="mr-2 h-4 w-4" />
                                               Voeg "{employeeInput}" toe
                                             </CommandItem>
                                           </CommandGroup>
@@ -2186,21 +1884,13 @@ export function FohTasks() {
                             });
                             setEmployeeInput('');
                           }}
-                          style={{
-                            borderRadius: '20px',
-                            fontFamily: 'Inter, sans-serif',
-                          }}
+                          className="rounded-lg"
                         >
                           Annuleren
                         </Button>
                         <Button
                           onClick={createTask}
-                          style={{
-                            backgroundColor: 'hsl(var(--primary))',
-                            color: 'hsl(var(--primary-foreground))',
-                            borderRadius: '20px',
-                            fontFamily: 'Inter, sans-serif',
-                          }}
+                          className="bg-primary text-primary-foreground rounded-lg"
                         >
                           Toevoegen
                         </Button>
@@ -2212,7 +1902,7 @@ export function FohTasks() {
               </div>
             </div>
 
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(197, 197, 202, 0.5)', margin: 0 }} />
+            <hr className="border-none border-t border-border/50 m-0" />
 
             {/* Tasks display */}
             <div>
@@ -2226,42 +1916,24 @@ export function FohTasks() {
                     {Object.entries(groupedCurrentTasks).map(([category, categoryTasks]) => {
                       const progress = getCategoryProgress(categoryTasks);
                       return (
-                        <div key={category} style={{ marginBottom: '24px' }}>
-                          <h3 style={{
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em',
-                            color: progress.allDone ? 'hsl(var(--primary))' : 'hsl(var(--text-secondary))',
-                            marginBottom: '12px',
-                            fontFamily: 'Inter, sans-serif',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                          }}>
+                        <div key={category} className="mb-6">
+                          <h3 className={cn(
+                            'text-xs font-semibold uppercase tracking-wide mb-3 flex items-center gap-2',
+                            progress.allDone ? 'text-primary' : 'text-muted-foreground',
+                          )}>
                             {category}
-                            <span style={{
-                              fontSize: '11px',
-                              fontWeight: 500,
-                              color: progress.allDone ? 'hsl(var(--primary))' : 'hsl(var(--text-muted))',
-                              backgroundColor: progress.allDone ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--text-muted) / 0.1)',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                            }}>
+                            <span className={cn(
+                              'text-[11px] font-medium py-0.5 px-1.5 rounded',
+                              progress.allDone
+                                ? 'text-primary bg-primary/10'
+                                : 'text-[hsl(var(--text-muted))] bg-[hsl(var(--text-muted)/0.1)]',
+                            )}>
                               {progress.completed}/{progress.total}
                             </span>
                           </h3>
-                          <div style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.3)', paddingBottom: '16px' }}>
+                          <div className="border-b border-border/30 pb-4">
                             {progress.allDone ? (
-                              <div style={{
-                                padding: '20px',
-                                textAlign: 'center',
-                                color: 'hsl(var(--primary))',
-                                fontSize: '14px',
-                                fontWeight: 500,
-                                fontFamily: 'Inter, sans-serif',
-                                animation: 'fade-in 0.3s ease-out',
-                              }}>
+                              <div className="p-5 text-center text-primary text-sm font-medium animate-[fade-in_0.3s_ease-out]">
                                 🎉 Alle taken voltooid!
                               </div>
                             ) : (
@@ -2304,18 +1976,12 @@ export function FohTasks() {
               {mainCategory === 'periodiek' && (
                 <div>
                   {groupTasksByDay(sortedExtraTasks).map(([dateKey, tasksForDay]) => (
-                    <div key={dateKey} style={{ marginBottom: '20px' }}>
+                    <div key={dateKey} className="mb-5">
                       {/* Day header */}
-                      <h3 style={{
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        color: getDateLabelColor(dateKey),
-                        marginBottom: '8px',
-                        marginTop: '16px',
-                        fontFamily: 'Inter, sans-serif',
-                      }}>
+                      <h3
+                        className="text-xs font-semibold uppercase tracking-wide mb-2 mt-4"
+                        style={{ color: getDateLabelColor(dateKey) }}
+                      >
                         {formatDayHeader(dateKey)}
                       </h3>
                       
@@ -2323,8 +1989,8 @@ export function FohTasks() {
                       {tasksForDay.map(task => (
                         <div key={task.id}>
                           <div
+                            className="relative"
                             style={{
-                              position: 'relative',
                               transform: swipedTaskId === task.id ? `translateX(-${swipeOffset}px)` : 'none',
                               transition: touchStart === 0 ? 'transform 0.3s ease' : 'none',
                             }}
@@ -2332,49 +1998,34 @@ export function FohTasks() {
                             onTouchMove={(e) => handleTouchMove(e, task.id)}
                             onTouchEnd={handleTouchEnd}
                           >
-                            <div 
+                            <div
                               onClick={() => toggleTask(task.id, task.completed)}
+                              className={cn(
+                                'border-b border-border/30 -ml-1 pl-3 cursor-pointer transition-all duration-fast',
+                                task.completed ? 'bg-primary/[0.04] opacity-70' : 'bg-transparent opacity-100',
+                              )}
                               style={{
                                 padding: taskPadding,
-                                backgroundColor: task.completed ? 'rgba(27, 120, 103, 0.04)' : 'transparent',
-                                borderBottom: '1px solid rgba(197, 197, 202, 0.3)',
                                 borderLeft: `4px solid ${getPriorityConfig(task.priority).borderColor}`,
-                                marginLeft: '-4px',
                                 paddingLeft: '12px',
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                                opacity: task.completed ? 0.7 : 1,
                               }}
                               onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = task.completed 
-                                  ? 'rgba(27, 120, 103, 0.06)' 
+                                e.currentTarget.style.backgroundColor = task.completed
+                                  ? 'rgba(27, 120, 103, 0.06)'
                                   : 'rgba(27, 120, 103, 0.05)';
                               }}
                               onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = task.completed 
-                                  ? 'rgba(27, 120, 103, 0.04)' 
+                                e.currentTarget.style.backgroundColor = task.completed
+                                  ? 'rgba(27, 120, 103, 0.04)'
                                   : 'transparent';
                               }}
                             >
-                              <div style={{
-                                display: 'flex',
-                                gap: '12px',
-                                alignItems: 'center',
-                              }}>
+                              <div className="flex gap-3 items-center">
                                 {/* Checkbox - compact, row is clickable */}
-                                <div style={{
-                                  width: '20px',
-                                  height: '20px',
-                                  minWidth: '20px',
-                                  borderRadius: '6px',
-                                  border: '2px solid rgba(197, 197, 202, 0.5)',
-                                  backgroundColor: task.completed ? 'hsl(var(--primary))' : 'hsl(var(--background))',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  transition: 'all 0.1s ease',
-                                  pointerEvents: 'none',
-                                }}>
+                                <div className={cn(
+                                  'w-5 h-5 min-w-[20px] rounded-md border-2 border-border/50 flex items-center justify-center transition-all duration-100 pointer-events-none',
+                                  task.completed ? 'bg-primary' : 'bg-background',
+                                )}>
                                   {task.completed && (
                                     <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
                                       <path
@@ -2388,92 +2039,38 @@ export function FohTasks() {
                                   )}
                                 </div>
 
-                                <div style={{ 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
-                                  gap: '8px',
-                                  flex: 1 
-                                }}>
-                                  <span style={{
-                                    flex: 1,
-                                    textDecoration: task.completed ? 'line-through' : 'none',
-                                    color: task.completed ? 'hsl(var(--text-secondary))' : 'hsl(var(--foreground))',
-                                    fontWeight: 500,
-                                    fontSize: '15px',
-                                    fontFamily: 'Inter, sans-serif',
-                                  }}>
+                                <div className="flex items-center gap-2 flex-1">
+                                  <span className={cn(
+                                    'flex-1 font-medium text-[15px]',
+                                    task.completed ? 'line-through text-muted-foreground' : 'text-foreground',
+                                  )}>
                                     {task.title}
                                   </span>
                                 </div>
 
-                                <div style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '8px',
-                                }}>
-
+                                <div className="flex items-center gap-2">
                                   {/* Delete button - compact */}
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       deleteTask(task.id);
                                     }}
-                                    style={{
-                                      width: '24px',
-                                      height: '24px',
-                                      minWidth: '24px',
-                                      borderRadius: '6px',
-                                      border: '1px solid rgba(197,197,202,0.5)',
-                                      backgroundColor: 'hsl(var(--card))',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      padding: 0,
-                                      cursor: 'pointer',
-                                      transition: 'all 0.15s ease',
-                                    }}
+                                    className="w-6 h-6 min-w-[24px] rounded-md border border-border/50 bg-card flex items-center justify-center p-0 cursor-pointer transition-all duration-fast hover:bg-destructive/15 hover:border-destructive"
                                     title="Verwijder taak"
-                                    onMouseEnter={(e) => {
-                                      e.currentTarget.style.backgroundColor = 'hsl(var(--destructive) / 0.15)';
-                                      e.currentTarget.style.borderColor = 'hsl(var(--destructive))';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
-                                      e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
-                                    }}
                                   >
-                                    <Trash2 size={14} style={{ color: 'hsl(var(--destructive))' }} />
+                                    <Trash2 size={14} className="text-destructive" />
                                   </button>
                                 </div>
                               </div>
                             </div>
 
                             {swipedTaskId === task.id && (
-                              <div style={{
-                                position: 'absolute',
-                                right: 0,
-                                top: 0,
-                                height: '100%',
-                                width: '80px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}>
+                              <div className="absolute right-0 top-0 h-full w-20 flex items-center justify-center">
                                 <button
                                   onClick={() => {
                                     deleteTask(task.id);
                                   }}
-                                  style={{
-                                    backgroundColor: 'hsl(var(--destructive))',
-                                    color: 'hsl(var(--primary-foreground))',
-                                    border: 'none',
-                                    padding: '8px 16px',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
-                                    fontSize: '13px',
-                                    fontWeight: 500,
-                                    fontFamily: 'Inter, sans-serif',
-                                  }}
+                                  className="bg-destructive text-primary-foreground border-none py-2 px-4 rounded-sm cursor-pointer text-xs font-medium"
                                 >
                                   Verwijder
                                 </button>
@@ -2489,18 +2086,14 @@ export function FohTasks() {
 
               {/* Edit mode controls */}
               {isEditMode && mainCategory === 'dagelijks' && (
-                <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="mt-6 flex flex-col gap-4">
                   {/* Add new task */}
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div className="flex gap-2">
                     <Input
                       value={newTaskInput}
                       onChange={(e) => setNewTaskInput(e.target.value)}
                       placeholder="Nieuwe taak toevoegen..."
-                      style={{
-                        flex: 1,
-                        borderRadius: '16px',
-                        fontFamily: 'Inter, sans-serif',
-                      }}
+                      className="flex-1 rounded-lg"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && newTaskInput.trim()) {
                           setNewTasks(prev => [...prev, {
@@ -2523,12 +2116,7 @@ export function FohTasks() {
                           setNewTaskInput('');
                         }
                       }}
-                      style={{
-                        backgroundColor: 'hsl(var(--primary))',
-                        color: 'hsl(var(--primary-foreground))',
-                        borderRadius: '16px',
-                        fontFamily: 'Inter, sans-serif',
-                      }}
+                      className="bg-primary text-primary-foreground rounded-lg"
                     >
                       <Plus size={16} />
                     </Button>
@@ -2536,42 +2124,20 @@ export function FohTasks() {
 
                   {/* New tasks preview */}
                   {newTasks.length > 0 && (
-                    <div style={{
-                      padding: '12px',
-                      backgroundColor: 'hsl(var(--muted))',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(197,197,202,0.5)',
-                    }}>
-                      <div style={{
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        color: 'hsl(var(--text-secondary))',
-                        marginBottom: '8px',
-                        fontFamily: 'Inter, sans-serif',
-                      }}>
+                    <div className="p-3 bg-muted rounded-md border border-border/50">
+                      <div className="text-xs font-semibold text-muted-foreground mb-2">
                         Nieuwe taken ({newTasks.length}):
                       </div>
                       {newTasks.map(task => (
-                        <div key={task.tempId} style={{
-                          padding: '8px',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}>
-                          <span style={{ fontSize: '14px', color: 'hsl(var(--foreground))', fontFamily: 'Inter, sans-serif' }}>
+                        <div key={task.tempId} className="p-2 flex justify-between items-center">
+                          <span className="text-sm text-foreground">
                             {task.title}
                           </span>
                           <button
                             onClick={() => {
                               setNewTasks(prev => prev.filter(t => t.tempId !== task.tempId));
                             }}
-                            style={{
-                              padding: '4px',
-                              backgroundColor: 'transparent',
-                              border: 'none',
-                              cursor: 'pointer',
-                              color: 'hsl(var(--destructive))',
-                            }}
+                            className="p-1 bg-transparent border-none cursor-pointer text-destructive"
                           >
                             <X size={16} />
                           </button>
@@ -2581,7 +2147,7 @@ export function FohTasks() {
                   )}
 
                   {/* Action buttons */}
-                  <div style={{ display: 'flex', gap: '12px' }}>
+                  <div className="flex gap-3">
                     <Button
                       variant="outline"
                       onClick={() => {
@@ -2591,23 +2157,13 @@ export function FohTasks() {
                         setNewTasks([]);
                         setNewTaskInput('');
                       }}
-                      style={{
-                        flex: 1,
-                        borderRadius: '20px',
-                        fontFamily: 'Inter, sans-serif',
-                      }}
+                      className="flex-1 rounded-lg"
                     >
                       Annuleren
                     </Button>
                     <Button
                       onClick={handleSaveCurrentTasks}
-                      style={{
-                        flex: 1,
-                        backgroundColor: 'hsl(var(--primary))',
-                        color: 'hsl(var(--primary-foreground))',
-                        borderRadius: '20px',
-                        fontFamily: 'Inter, sans-serif',
-                      }}
+                      className="flex-1 bg-primary text-primary-foreground rounded-lg"
                     >
                       Opslaan
                     </Button>
@@ -2616,15 +2172,9 @@ export function FohTasks() {
                   <Button
                     variant="outline"
                     onClick={handleSaveAsTemplate}
-                    style={{
-                      width: '100%',
-                      borderRadius: '20px',
-                      fontFamily: 'Inter, sans-serif',
-                      borderColor: 'hsl(var(--primary))',
-                      color: 'hsl(var(--primary))',
-                    }}
+                    className="w-full rounded-lg border-primary text-primary"
                   >
-                    <BookTemplate size={16} style={{ marginRight: '8px' }} />
+                    <BookTemplate size={16} className="mr-2" />
                     Opslaan als template
                   </Button>
                 </div>
@@ -2637,27 +2187,19 @@ export function FohTasks() {
 
       {/* Password Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
-        <DialogContent style={{
-          backgroundColor: 'hsl(var(--card))',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
-          borderRadius: '20px',
-          fontFamily: 'Inter, sans-serif',
-        }}>
+        <DialogContent className="bg-card border border-border/50 rounded-lg">
           <DialogHeader>
-            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: 'hsl(var(--foreground))' }}>
+            <DialogTitle className="text-foreground">
               Admin Toegang
             </DialogTitle>
           </DialogHeader>
-          <div style={{ padding: '16px 0' }}>
+          <div className="py-4">
             <Input
               type="password"
               placeholder="Voer wachtwoord in"
               value={passwordInput}
               onChange={(e) => setPasswordInput(e.target.value)}
-              style={{
-                borderRadius: '16px',
-                fontFamily: 'Inter, sans-serif',
-              }}
+              className="rounded-lg"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && passwordInput === '0000') {
                   setAdminPanelOpen(true);
@@ -2675,10 +2217,7 @@ export function FohTasks() {
                 setPasswordDialogOpen(false);
                 setPasswordInput('');
               }}
-              style={{
-                borderRadius: '20px',
-                fontFamily: 'Inter, sans-serif',
-              }}
+              className="rounded-lg"
             >
               Annuleren
             </Button>
@@ -2693,12 +2232,7 @@ export function FohTasks() {
                   toast.error('Onjuist wachtwoord');
                 }
               }}
-              style={{
-                backgroundColor: 'hsl(var(--primary))',
-                color: 'hsl(var(--primary-foreground))',
-                borderRadius: '20px',
-                fontFamily: 'Inter, sans-serif',
-              }}
+              className="bg-primary text-primary-foreground rounded-lg"
             >
               Bevestigen
             </Button>
@@ -2708,102 +2242,70 @@ export function FohTasks() {
 
       {/* Admin Panel Dialog */}
       <Dialog open={adminPanelOpen} onOpenChange={setAdminPanelOpen}>
-        <DialogContent style={{
-          backgroundColor: 'hsl(var(--card))',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
-          borderRadius: '20px',
-          fontFamily: 'Inter, sans-serif',
-          maxWidth: '650px',
-          maxHeight: '90vh',
-          overflow: 'hidden',
-        }}>
+        <DialogContent className="bg-card border border-border/50 rounded-lg max-w-[650px] max-h-[90vh] overflow-hidden">
           <DialogHeader>
-            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: 'hsl(var(--foreground))', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Shield size={20} style={{ color: 'hsl(var(--primary))' }} />
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <Shield size={20} className="text-primary" />
               Admin Panel
             </DialogTitle>
           </DialogHeader>
 
-          <div style={{ padding: '16px 0', maxHeight: '60vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <p style={{ fontSize: '14px', color: 'hsl(var(--text-secondary))', fontFamily: 'Inter, sans-serif' }}>
+          <div className="py-4 max-h-[60vh] overflow-y-auto">
+            <div className="flex flex-col gap-5">
+              <p className="text-sm text-muted-foreground">
                 Beheer templates voor {activePhase === 'open' ? 'Openlijst' : activePhase === 'tussen' ? 'Tussenlijst' : 'Sluitlijst'}.
               </p>
 
               {/* Create new template button */}
               <Button
                 onClick={() => setNewTemplateDialogOpen(true)}
-                style={{
-                  backgroundColor: 'hsl(var(--primary))',
-                  color: 'hsl(var(--primary-foreground))',
-                  borderRadius: '20px',
-                  fontFamily: 'Inter, sans-serif',
-                }}
+                className="bg-primary text-primary-foreground rounded-lg"
               >
-                <Plus size={16} style={{ marginRight: '8px' }} />
+                <Plus size={16} className="mr-2" />
                 Nieuwe Template
               </Button>
 
               {/* Template list */}
               {templatesLoading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '32px' }}>
-                  <Loader2 size={24} className="animate-spin" style={{ color: 'hsl(var(--primary))' }} />
+                <div className="flex justify-center p-8">
+                  <Loader2 size={24} className="animate-spin text-primary" />
                 </div>
               ) : groupedTemplates && Object.keys(groupedTemplates).length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div className="flex flex-col gap-3">
                   {Object.values(groupedTemplates).map(template => (
-                    <div key={template.name} style={{
-                      padding: '16px',
-                      backgroundColor: 'hsl(var(--muted))',
-                      borderRadius: '12px',
-                      border: template.isActive ? '2px solid hsl(var(--primary))' : '1px solid rgba(197,197,202,0.5)',
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
+                    <div
+                      key={template.name}
+                      className={cn(
+                        'p-4 bg-muted rounded-md',
+                        template.isActive ? 'border-2 border-primary' : 'border border-border/50',
+                      )}
+                    >
+                      <div className="flex justify-between items-start mb-3">
                         <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <h4 style={{
-                              fontSize: '15px',
-                              fontWeight: 600,
-                              color: 'hsl(var(--foreground))',
-                              fontFamily: 'Inter, sans-serif',
-                              margin: 0,
-                            }}>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-[15px] font-semibold text-foreground m-0">
                               {template.name}
                             </h4>
                             {template.isActive && (
-                              <span style={{
-                                fontSize: '11px',
-                                fontWeight: 600,
-                                padding: '2px 8px',
-                                borderRadius: '4px',
-                                backgroundColor: 'hsl(var(--primary))',
-                                color: 'hsl(var(--primary-foreground))',
-                                fontFamily: 'Inter, sans-serif',
-                              }}>
+                              <span className="text-[11px] font-semibold py-0.5 px-2 rounded bg-primary text-primary-foreground">
                                 ACTIEF
                               </span>
                             )}
                           </div>
-                          <p style={{ fontSize: '13px', color: 'hsl(var(--text-secondary))', fontFamily: 'Inter, sans-serif', margin: '4px 0 0 0' }}>
+                          <p className="text-xs text-muted-foreground mt-1 mb-0">
                             {template.tasks.length} taken
                           </p>
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <div className="flex gap-2 flex-wrap">
                         {!template.isActive && (
                           <Button
                             size="sm"
                             onClick={() => handleMakeTemplateActive(template.name)}
-                            style={{
-                              backgroundColor: 'hsl(var(--primary))',
-                              color: 'hsl(var(--primary-foreground))',
-                              borderRadius: '12px',
-                              fontFamily: 'Inter, sans-serif',
-                              fontSize: '13px',
-                            }}
+                            className="bg-primary text-primary-foreground rounded-md text-xs"
                           >
-                            <Check size={14} style={{ marginRight: '4px' }} />
+                            <Check size={14} className="mr-1" />
                             Maak Actief
                           </Button>
                         )}
@@ -2812,13 +2314,9 @@ export function FohTasks() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleOpenTemplateEditor(template.name)}
-                          style={{
-                            borderRadius: '12px',
-                            fontFamily: 'Inter, sans-serif',
-                            fontSize: '13px',
-                          }}
+                          className="rounded-md text-xs"
                         >
-                          <Pencil size={14} style={{ marginRight: '4px' }} />
+                          <Pencil size={14} className="mr-1" />
                           Bewerk Template
                         </Button>
 
@@ -2831,15 +2329,9 @@ export function FohTasks() {
                                 handleDeleteTemplate(template.name);
                               }
                             }}
-                            style={{
-                              borderRadius: '12px',
-                              fontFamily: 'Inter, sans-serif',
-                              fontSize: '13px',
-                              borderColor: 'hsl(var(--destructive))',
-                              color: 'hsl(var(--destructive))',
-                            }}
+                            className="rounded-md text-xs border-destructive text-destructive"
                           >
-                            <Trash2 size={14} style={{ marginRight: '4px' }} />
+                            <Trash2 size={14} className="mr-1" />
                             Verwijder
                           </Button>
                         )}
@@ -2848,12 +2340,7 @@ export function FohTasks() {
                   ))}
                 </div>
               ) : (
-                <div style={{
-                  padding: '32px',
-                  textAlign: 'center',
-                  color: 'hsl(var(--text-secondary))',
-                  fontFamily: 'Inter, sans-serif',
-                }}>
+                <div className="p-8 text-center text-muted-foreground">
                   Geen templates gevonden
                 </div>
               )}
@@ -2864,10 +2351,7 @@ export function FohTasks() {
             <Button
               variant="outline"
               onClick={() => setAdminPanelOpen(false)}
-              style={{
-                borderRadius: '20px',
-                fontFamily: 'Inter, sans-serif',
-              }}
+              className="rounded-lg"
             >
               Sluiten
             </Button>
@@ -2877,32 +2361,23 @@ export function FohTasks() {
 
       {/* New Template Dialog */}
       <Dialog open={newTemplateDialogOpen} onOpenChange={setNewTemplateDialogOpen}>
-        <DialogContent style={{
-          backgroundColor: 'hsl(var(--card))',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
-          borderRadius: '20px',
-          fontFamily: 'Inter, sans-serif',
-        }}>
+        <DialogContent className="bg-card border border-border/50 rounded-lg">
           <DialogHeader>
-            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: 'hsl(var(--foreground))' }}>
+            <DialogTitle className="text-foreground">
               Nieuwe Template Aanmaken
             </DialogTitle>
           </DialogHeader>
-          <div style={{ padding: '16px 0' }}>
-            <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+          <div className="py-4">
+            <Label className="text-xs font-medium text-foreground">
               Template Naam *
             </Label>
             <Input
               value={newTemplateName}
               onChange={(e) => setNewTemplateName(e.target.value)}
               placeholder="Bijv. Zomer Openlijst"
-              style={{
-                marginTop: '6px',
-                borderRadius: '16px',
-                fontFamily: 'Inter, sans-serif',
-              }}
+              className="mt-1.5 rounded-lg"
             />
-            <p style={{ fontSize: '13px', color: 'hsl(var(--text-secondary))', fontFamily: 'Inter, sans-serif', marginTop: '8px' }}>
+            <p className="text-xs text-muted-foreground mt-2">
               De template wordt aangemaakt op basis van de huidige taken voor {activePhase === 'open' ? 'Open' : activePhase === 'tussen' ? 'Tussen' : 'Sluit'}.
             </p>
           </div>
@@ -2913,21 +2388,13 @@ export function FohTasks() {
                 setNewTemplateDialogOpen(false);
                 setNewTemplateName('');
               }}
-              style={{
-                borderRadius: '20px',
-                fontFamily: 'Inter, sans-serif',
-              }}
+              className="rounded-lg"
             >
               Annuleren
             </Button>
             <Button
               onClick={handleCreateNewTemplate}
-              style={{
-                backgroundColor: 'hsl(var(--primary))',
-                color: 'hsl(var(--primary-foreground))',
-                borderRadius: '20px',
-                fontFamily: 'Inter, sans-serif',
-              }}
+              className="bg-primary text-primary-foreground rounded-lg"
             >
               Aanmaken
             </Button>
@@ -2937,21 +2404,14 @@ export function FohTasks() {
 
       {/* Template Editor Dialog */}
       <Dialog open={templateEditorOpen} onOpenChange={setTemplateEditorOpen}>
-        <DialogContent style={{
-          backgroundColor: 'hsl(var(--card))',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
-          borderRadius: '20px',
-          fontFamily: 'Inter, sans-serif',
-          maxWidth: '650px',
-          maxHeight: '90vh',
-        }}>
+        <DialogContent className="bg-card border border-border/50 rounded-lg max-w-[650px] max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: 'hsl(var(--foreground))' }}>
+            <DialogTitle className="text-foreground">
               Bewerk Template: {editingTemplateName}
             </DialogTitle>
           </DialogHeader>
 
-          <div style={{ padding: '16px 0', maxHeight: '60vh', overflowY: 'auto' }}>
+          <div className="py-4 max-h-[60vh] overflow-y-auto">
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -2983,23 +2443,10 @@ export function FohTasks() {
             </DndContext>
 
             {/* Add task section */}
-            <div style={{
-              padding: '16px',
-              borderTop: '1px solid rgba(197, 197, 202, 0.3)',
-              marginTop: '16px',
-            }}>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    color: 'hsl(var(--text-secondary))',
-                    marginBottom: '6px',
-                    fontFamily: 'Inter, sans-serif',
-                  }}>
+            <div className="p-4 border-t border-border/30 mt-4">
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                     Nieuwe taak toevoegen
                   </label>
                   <Input
@@ -3009,27 +2456,15 @@ export function FohTasks() {
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') handleAddTemplateTask();
                     }}
-                    style={{
-                      borderRadius: '16px',
-                      fontFamily: 'Inter, sans-serif',
-                    }}
+                    className="rounded-lg"
                   />
                 </div>
-                <div style={{ width: '160px' }}>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    color: 'hsl(var(--text-secondary))',
-                    marginBottom: '6px',
-                    fontFamily: 'Inter, sans-serif',
-                  }}>
+                <div className="w-40">
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                     Categorie
                   </label>
                   <Select value={newTemplateTaskCategory} onValueChange={setNewTemplateTaskCategory}>
-                    <SelectTrigger style={{ borderRadius: '16px' }}>
+                    <SelectTrigger className="rounded-lg">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -3041,15 +2476,9 @@ export function FohTasks() {
                 </div>
                 <Button
                   onClick={handleAddTemplateTask}
-                  style={{
-                    backgroundColor: 'hsl(var(--primary))',
-                    color: 'hsl(var(--primary-foreground))',
-                    borderRadius: '20px',
-                    fontFamily: 'Inter, sans-serif',
-                    minWidth: '100px',
-                  }}
+                  className="bg-primary text-primary-foreground rounded-lg min-w-[100px]"
                 >
-                  <Plus size={16} style={{ marginRight: '4px' }} />
+                  <Plus size={16} className="mr-1" />
                   Toevoegen
                 </Button>
               </div>
@@ -3064,21 +2493,13 @@ export function FohTasks() {
                 setEditingTemplate([]);
                 setDeletedTemplateTaskIds([]);
               }}
-              style={{
-                borderRadius: '20px',
-                fontFamily: 'Inter, sans-serif',
-              }}
+              className="rounded-lg"
             >
               Annuleren
             </Button>
             <Button
               onClick={handleSaveTemplateEdits}
-              style={{
-                backgroundColor: 'hsl(var(--primary))',
-                color: 'hsl(var(--primary-foreground))',
-                borderRadius: '20px',
-                fontFamily: 'Inter, sans-serif',
-              }}
+              className="bg-primary text-primary-foreground rounded-lg"
             >
               Opslaan
             </Button>

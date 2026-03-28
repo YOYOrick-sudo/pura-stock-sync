@@ -30,20 +30,6 @@ const statusConfig = {
 
 const statusFlow: TicketStatus[] = ['nieuw', 'in_behandeling', 'afgehandeld'];
 
-const cardStyle: React.CSSProperties = {
-  borderRadius: '20px',
-  border: '1px solid hsl(var(--border))',
-  backgroundColor: 'hsl(var(--card))',
-  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03)',
-};
-
-const backButtonStyle: React.CSSProperties = {
-  width: '44px', height: '44px', borderRadius: '14px',
-  border: '1.5px solid hsl(var(--border))', backgroundColor: 'hsl(var(--card))',
-  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-  transition: 'all 150ms ease',
-};
-
 export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
   const { data: ticket, isLoading } = useMaintenanceTicket(ticketId);
   const { data: comments } = useTicketComments(ticketId);
@@ -57,7 +43,7 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} style={backButtonStyle} className="hover:bg-muted">
+          <button onClick={onBack} className="w-11 h-11 rounded-[14px] border-[1.5px] border-border bg-card flex items-center justify-center cursor-pointer transition-all hover:bg-muted">
             <ArrowLeft className="h-5 w-5 text-foreground" />
           </button>
           <Skeleton className="h-8 w-48" />
@@ -96,10 +82,10 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
   };
 
   return (
-    <div className="space-y-6" style={{ maxWidth: '700px' }}>
+    <div className="space-y-6 max-w-[700px]">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button onClick={onBack} style={backButtonStyle} className="hover:bg-muted">
+        <button onClick={onBack} className="w-11 h-11 rounded-[14px] border-[1.5px] border-border bg-card flex items-center justify-center cursor-pointer transition-all hover:bg-muted">
           <ArrowLeft className="h-5 w-5 text-foreground" />
         </button>
         <h1 className="text-2xl font-semibold text-foreground">
@@ -108,24 +94,19 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
       </div>
 
       {/* Ticket info card */}
-      <div style={{ ...cardStyle, padding: '24px' }}>
+      <div className="rounded-lg border border-border bg-card shadow-sm p-6">
         {/* Badges */}
         <div className="flex items-center gap-2 mb-4">
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '4px',
-            padding: '4px 10px', borderRadius: '8px',
-            backgroundColor: prio.bg, color: prio.color,
-            fontSize: '12px', fontWeight: 600,
-            textTransform: 'uppercase', letterSpacing: '0.5px',
-          }}>
+          <span
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-sm text-xs font-semibold uppercase tracking-wide"
+            style={{ backgroundColor: prio.bg, color: prio.color }}
+          >
             {prio.label}
           </span>
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '4px',
-            padding: '4px 10px', borderRadius: '8px',
-            backgroundColor: status.bg, color: status.color,
-            fontSize: '12px', fontWeight: 600,
-          }}>
+          <span
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-sm text-xs font-semibold"
+            style={{ backgroundColor: status.bg, color: status.color }}
+          >
             <StatusIcon className="h-3.5 w-3.5" />
             {status.label}
           </span>
@@ -155,7 +136,7 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
 
       {/* Status wijzigen (alleen eigenaar) */}
       {isEigenaar && ticket.status !== 'afgehandeld' && (
-        <div style={{ ...cardStyle, padding: '20px 24px' }}>
+        <div className="rounded-lg border border-border bg-card shadow-sm py-5 px-6">
           <p className="text-[13px] font-semibold text-foreground uppercase tracking-wide mb-3">
             Status wijzigen
           </p>
@@ -169,22 +150,12 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
                   key={s}
                   onClick={() => !isActive && handleStatusChange(s)}
                   disabled={isActive || updateStatus.isPending}
-                  className={!isActive ? 'hover:opacity-100' : ''}
+                  className={`flex-1 h-[52px] rounded-[14px] text-[13px] font-semibold flex items-center justify-center gap-1.5 transition-all ${!isActive ? 'hover:opacity-100' : ''}`}
                   style={{
-                    flex: 1,
-                    height: '52px',
-                    borderRadius: '14px',
                     border: isActive ? `2px solid ${cfg.color}` : '1.5px solid hsl(var(--border))',
                     backgroundColor: isActive ? cfg.bg : 'hsl(var(--card))',
                     color: isActive ? cfg.color : 'hsl(var(--muted-foreground))',
-                    fontSize: '13px',
-                    fontWeight: 600,
                     cursor: isActive ? 'default' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px',
-                    transition: 'all 200ms ease',
                     opacity: isActive ? 1 : 0.7,
                   }}
                 >
@@ -198,7 +169,7 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
       )}
 
       {/* Notities / comments */}
-      <div style={{ ...cardStyle, padding: '20px 24px' }}>
+      <div className="rounded-lg border border-border bg-card shadow-sm py-5 px-6">
         <p className="text-[13px] font-semibold text-foreground uppercase tracking-wide mb-4">
           Notities
         </p>
@@ -235,15 +206,9 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
           <Button
             onClick={handleComment}
             disabled={!commentText.trim() || createComment.isPending}
-            className="rounded-[14px] self-end"
-            style={{
-              width: '52px',
-              height: '52px',
-              backgroundColor: commentText.trim() ? 'hsl(var(--primary))' : 'hsl(var(--muted))',
-              border: 'none',
-            }}
+            className={`rounded-[14px] self-end w-[52px] h-[52px] border-none ${commentText.trim() ? 'bg-primary' : 'bg-muted'}`}
           >
-            <Send className="h-5 w-5" style={{ color: 'hsl(var(--primary-foreground))' }} />
+            <Send className="h-5 w-5 text-primary-foreground" />
           </Button>
         </div>
       </div>

@@ -28,14 +28,6 @@ const statusConfig = {
   afgehandeld: { color: 'hsl(var(--primary))', bg: 'hsl(160 40% 95%)', label: 'Afgehandeld', icon: CheckCircle2 },
 };
 
-const cardStyle: React.CSSProperties = {
-  borderRadius: '20px',
-  border: '1px solid hsl(var(--border))',
-  backgroundColor: 'hsl(var(--card))',
-  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03)',
-  transition: 'all 200ms ease',
-};
-
 export function TicketList({ user, onNewTicket, onTicketClick, onSettings, onLogout }: TicketListProps) {
   const isEigenaar = user.rol === 'eigenaar';
   const [activeTab, setActiveTab] = useState<Vestiging | 'alles'>(
@@ -101,12 +93,11 @@ export function TicketList({ user, onNewTicket, onTicketClick, onSettings, onLog
         ].map(kpi => {
           const Icon = kpi.icon;
           return (
-            <div key={kpi.label} style={{ ...cardStyle, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
-                width: '44px', height: '44px', borderRadius: '14px',
-                backgroundColor: kpi.bg,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
+            <div key={kpi.label} className="rounded-lg border border-border bg-card shadow-sm transition-all px-5 py-4 flex items-center gap-3">
+              <div
+                className="w-11 h-11 rounded-[14px] flex items-center justify-center"
+                style={{ backgroundColor: kpi.bg }}
+              >
                 <Icon className="h-5 w-5" style={{ color: kpi.color }} />
               </div>
               <div>
@@ -153,25 +144,7 @@ export function TicketList({ user, onNewTicket, onTicketClick, onSettings, onLog
       {/* FAB - New ticket button */}
       <button
         onClick={onNewTicket}
-        className="hover:scale-105 active:scale-95"
-        style={{
-          position: 'fixed',
-          bottom: '32px',
-          right: '32px',
-          width: '64px',
-          height: '64px',
-          borderRadius: '20px',
-          backgroundColor: 'hsl(var(--primary))',
-          color: 'hsl(var(--primary-foreground))',
-          border: 'none',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 4px 12px hsl(var(--primary) / 0.3)',
-          transition: 'all 200ms ease',
-          zIndex: 50,
-        }}
+        className="fixed bottom-8 right-8 w-16 h-16 rounded-lg bg-primary text-primary-foreground border-none cursor-pointer flex items-center justify-center shadow-[0_4px_12px_hsl(var(--primary)/0.3)] transition-all z-50 hover:scale-105 active:scale-95"
       >
         <Plus className="h-7 w-7" />
       </button>
@@ -187,27 +160,21 @@ function TicketCard({ ticket, onClick }: { ticket: MaintenanceTicket; onClick: (
   return (
     <div
       onClick={onClick}
-      style={{ ...cardStyle, padding: '16px 20px', cursor: 'pointer' }}
-      className="hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99]"
+      className="rounded-lg border border-border bg-card shadow-sm transition-all px-5 py-4 cursor-pointer hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99]"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: '4px',
-              padding: '2px 8px', borderRadius: '6px',
-              backgroundColor: prio.bg, color: prio.color,
-              fontSize: '11px', fontWeight: 600,
-              textTransform: 'uppercase', letterSpacing: '0.5px',
-            }}>
+            <span
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold uppercase tracking-wide"
+              style={{ backgroundColor: prio.bg, color: prio.color }}
+            >
               {prio.label}
             </span>
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: '4px',
-              padding: '2px 8px', borderRadius: '6px',
-              backgroundColor: status.bg, color: status.color,
-              fontSize: '11px', fontWeight: 600,
-            }}>
+            <span
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold"
+              style={{ backgroundColor: status.bg, color: status.color }}
+            >
               <StatusIcon className="h-3 w-3" />
               {status.label}
             </span>
