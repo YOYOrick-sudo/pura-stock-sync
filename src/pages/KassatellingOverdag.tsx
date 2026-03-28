@@ -381,7 +381,7 @@ const KassatellingOverdag = () => {
 
       {/* Success Dialog */}
       <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-          <AlertDialogContent className="bg-white">
+          <AlertDialogContent className="bg-card">
             <div className="text-center">
               <CheckCircle2 className="w-16 h-16 text-primary mx-auto mb-4" />
 

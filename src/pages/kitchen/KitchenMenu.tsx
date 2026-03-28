@@ -23,7 +23,7 @@ const MenuCard = ({ to, icon: Icon, title, description, color }: MenuCardProps) 
 
   return (
     <Link to={to}>
-      <Card className={`p-6 bg-white border-l-4 ${colorClasses[color as keyof typeof colorClasses].split(' ')[0]} shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] group`}>
+      <Card className={`p-6 bg-card border-l-4 ${colorClasses[color as keyof typeof colorClasses].split(' ')[0]} shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] group`}>
         <div className="flex items-start gap-4">
           <div className={`p-3 rounded-xl bg-gradient-to-br from-background/50 to-background/30 ${colorClasses[color as keyof typeof colorClasses].split(' ')[1]}`}>
             <Icon className="w-8 h-8" />

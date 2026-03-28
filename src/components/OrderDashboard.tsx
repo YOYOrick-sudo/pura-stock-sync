@@ -379,7 +379,7 @@ export default function OrderDashboard() {
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
             <div className="flex-1 w-full">
               <label className="font-heading font-bold text-foreground/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Extra product</label>
-              <Input placeholder="Bijv. Smoothie basis (bak)" value={newProductName} onChange={e => setNewProductName(e.target.value)} className="border-warning/20 focus:border-warning bg-white h-11" />
+              <Input placeholder="Bijv. Smoothie basis (bak)" value={newProductName} onChange={e => setNewProductName(e.target.value)} className="border-warning/20 focus:border-warning bg-card h-11" />
             </div>
             <div className="w-full sm:w-32">
               <label className="font-heading font-bold text-foreground/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Aantal</label>
@@ -388,7 +388,7 @@ export default function OrderDashboard() {
                 e.preventDefault();
                 addTemporaryProduct();
               }
-            }} className="border-warning/20 focus:border-warning bg-white h-11" />
+            }} className="border-warning/20 focus:border-warning bg-card h-11" />
             </div>
             <Button onClick={addTemporaryProduct} className="w-full sm:w-auto bg-warning hover:bg-warning/90 text-white h-11 px-6 rounded-xl touch-manipulation">
               <Plus className="mr-2 h-4 w-4" />
@@ -399,7 +399,7 @@ export default function OrderDashboard() {
 
         {/* Submit Section */}
         <div className="space-y-4">
-          {demoMode && <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-white border-l-4 border-warning rounded-2xl shadow-sm">
+          {demoMode && <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-card border-l-4 border-warning rounded-2xl shadow-sm">
               <AlertCircle className="w-5 h-5 text-warning flex-shrink-0" />
               <div className="flex-1">
                 <p className="text-sm text-foreground">

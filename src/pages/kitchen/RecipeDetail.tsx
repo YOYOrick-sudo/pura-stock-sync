@@ -28,7 +28,7 @@ export default function RecipeDetail() {
     <KitchenLayout title={recipe.name} subtitle={recipe.category} backTo="/kitchen/recipes" backLabel="Recepten">
       <div className="space-y-6">
         {/* Header Card */}
-        <Card className="p-6 bg-white shadow-sm">
+        <Card className="p-6 bg-card shadow-sm">
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
@@ -52,7 +52,7 @@ export default function RecipeDetail() {
         </Card>
 
         {/* Steps Card */}
-        <Card className="p-6 bg-white shadow-sm">
+        <Card className="p-6 bg-card shadow-sm">
           <h2 className="font-heading font-bold text-lg mb-4 text-foreground">Stappenplan</h2>
           <div className="space-y-3">
             {recipe.steps.map((step) => (
