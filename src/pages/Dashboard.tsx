@@ -233,7 +233,7 @@ const DashboardCard = ({ title, count, onClick, isLoading, icon }: DashboardCard
         compact
         title={title}
         value={isLoading ? "..." : String(count)}
-        statusColor={{ bg: '#F6F7DD', icon }}
+        statusColor={{ bg: 'transparent', icon }}
       />
     </div>
   );
