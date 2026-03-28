@@ -57,24 +57,24 @@
 
   .dark {
     /* Dark mode - Midnight palette */
-    --background: 222 47% 11%;           /* Slate-900 */
-    --foreground: 210 40% 98%;           /* Slate-50 */
+    --background: 222 47% 11%;           /* #0F172A - Slate-900 */
+    --foreground: 210 40% 98%;           /* #F8FAFC - Slate-50 */
     
-    --card: 217 33% 17%;                 /* Slate-800 */
+    --card: 217 33% 17%;                 /* #1E293B - Slate-800 */
     --card-foreground: 210 40% 98%;
     
     --popover: 217 33% 17%;
     --popover-foreground: 210 40% 98%;
     
-    /* Primary stays vibrant in dark */
-    --primary: 163 65% 35%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 163 65% 40%;
+    /* Primary - brighter green for dark */
+    --primary: 160 65% 45%;              /* #2DD4A8 */
+    --primary-foreground: 222 47% 11%;
+    --primary-hover: 160 65% 50%;
     
-    --secondary: 217 33% 25%;
+    --secondary: 217 33% 22%;
     --secondary-foreground: 210 40% 98%;
     
-    --muted: 217 33% 25%;
+    --muted: 217 33% 20%;
     --muted-foreground: 215 20% 65%;
     
     --accent: 25 95% 53%;
@@ -85,10 +85,29 @@
     
     --notification-badge: 0 70% 65%;
     
-    --border: 217 33% 30%;
-    --border-state: 217 33% 45%;         /* State containers in dark mode */
-    --input: 217 33% 20%;
-    --ring: 163 65% 35%;
+    --border: 217 33% 28%;
+    --border-state: 217 33% 40%;
+    --input: 217 33% 22%;
+    --ring: 160 65% 45%;
+    
+    /* Extended dark tokens */
+    --sidebar-bg: 215 35% 14%;           /* #1A2332 */
+    --sidebar-active: 217 33% 20%;
+    --sidebar-hover: 217 33% 18%;
+    --text-heading: 210 40% 98%;
+    --text-secondary: 215 20% 65%;
+    --text-muted: 215 16% 50%;
+    --card-border: 217 33% 28%;
+  }
+
+  :root {
+    --sidebar-bg: 58 60% 92%;            /* #F6F7DD */
+    --sidebar-active: 59 90% 97%;        /* #FEFFF1 */
+    --sidebar-hover: 59 90% 97%;         /* #FEFFF1 */
+    --text-heading: 222 47% 11%;         /* #0F172A */
+    --text-secondary: 215 16% 47%;       /* #73747B */
+    --text-muted: 215 20% 65%;           /* #94A3B8 */
+    --card-border: 163 40% 80%;          /* rgba(27,120,103,0.12) equivalent */
   }
 }
 
