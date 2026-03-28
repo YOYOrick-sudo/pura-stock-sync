@@ -1,36 +1,21 @@
 
 
-# Dashboard cards upgraden en gelijktrekken
+# Ideeënbus e-mail activeren
 
-## Probleem
+## Huidige status
 
-De cards op het dashboard hebben nu inconsistente styling:
-- KPI cards: `rounded-polar-lg`, geen border, inline shadow
-- Weather widget: eigen inline styles met border
-- Handover card: `rounded-polar-lg`, geen border
-- Ideeënbus: `rounded-[20px]`, geen border
+Alles is al gebouwd en gekoppeld:
+- **IdeaBox.tsx** stuurt al e-mails naar josefien@, jorian@ en yorick@puravidafoodbar.nl
+- **Email template** (`idea-box-notification.tsx`) bestaat met Pura Vida branding
+- **Registry** heeft de template geregistreerd
+- **Edge functions** (`send-transactional-email`, `process-email-queue`, etc.) bestaan
 
-## Aanpak
+## Wat er nog moet gebeuren
 
-Eén uniforme card-stijl voor alle dashboard widgets:
+Nu het e-maildomein is ingesteld, hoeven alleen de edge functions opnieuw gedeployed te worden zodat ze actief draaien met de juiste configuratie:
 
-| Eigenschap | Nieuw |
-|-----------|-------|
-| Background | `#F6F7DD` |
-| Border | `1px solid rgba(27, 120, 103, 0.12)` (subtiel groen) |
-| Border-radius | `20px` (consistent) |
-| Shadow | `0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03)` |
-| Hover (klikbare cards) | `shadow-md`, `-translate-y-0.5`, border naar `rgba(27,120,103,0.22)` |
-| Padding | `20px` uniform |
-| Transition | `all 200ms ease` |
+1. **Deploy alle e-mail edge functions**: `send-transactional-email`, `process-email-queue`, `handle-email-unsubscribe`, `handle-email-suppression`, `preview-transactional-email`
+2. **Verificatie**: Een test-idee insturen om te bevestigen dat de e-mails aankomen
 
-## Bestanden
-
-1. **`src/components/polar/KPICard.tsx`** — Compact variant: border + hover transition toevoegen, radius naar 20px
-2. **`src/components/dashboard/WeatherWidget.tsx`** — Zelfde card-stijl, border unificeren
-3. **`src/components/HandoverCard.tsx`** — Border toevoegen, radius consistent
-4. **`src/components/dashboard/IdeaBox.tsx`** — Border toevoegen, radius consistent
-5. **`src/pages/Dashboard.tsx`** — Eventueel wrapper div cleanup
-
-Geen functionele wijzigingen, puur visuele consistentie.
+Geen code-wijzigingen nodig — alleen deployment.
 
