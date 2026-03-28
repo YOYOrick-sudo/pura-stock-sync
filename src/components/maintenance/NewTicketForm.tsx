@@ -14,17 +14,10 @@ interface NewTicketFormProps {
 }
 
 const prioriteitOptions: { value: Prioriteit; label: string; color: string; bg: string }[] = [
-  { value: 'hoog', label: 'Hoog', color: '#FFFFFF', bg: '#EF4444' },
-  { value: 'midden', label: 'Midden', color: '#FFFFFF', bg: '#F59E0B' },
-  { value: 'laag', label: 'Laag', color: '#FFFFFF', bg: '#2D8E6F' },
+  { value: 'hoog', label: 'Hoog', color: 'hsl(var(--primary-foreground))', bg: 'hsl(var(--destructive))' },
+  { value: 'midden', label: 'Midden', color: 'hsl(var(--primary-foreground))', bg: 'hsl(var(--warning))' },
+  { value: 'laag', label: 'Laag', color: 'hsl(var(--primary-foreground))', bg: 'hsl(var(--primary))' },
 ];
-
-const backButtonStyle: React.CSSProperties = {
-  width: '44px', height: '44px', borderRadius: '14px',
-  border: '1.5px solid hsl(var(--border))', backgroundColor: 'hsl(var(--card))',
-  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-  transition: 'all 150ms ease',
-};
 
 export function NewTicketForm({ user, onBack, onSuccess }: NewTicketFormProps) {
   const [titel, setTitel] = useState('');
@@ -56,7 +49,7 @@ export function NewTicketForm({ user, onBack, onSuccess }: NewTicketFormProps) {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button onClick={onBack} style={backButtonStyle} className="hover:bg-muted">
+        <button onClick={onBack} className="w-11 h-11 rounded-[14px] border-[1.5px] border-border bg-card flex items-center justify-center cursor-pointer transition-all hover:bg-muted">
           <ArrowLeft className="h-5 w-5 text-foreground" />
         </button>
         <h1 className="text-2xl font-semibold text-foreground">
@@ -65,7 +58,7 @@ export function NewTicketForm({ user, onBack, onSuccess }: NewTicketFormProps) {
       </div>
 
       {/* Form */}
-      <div className="space-y-6" style={{ maxWidth: '600px' }}>
+      <div className="space-y-6 max-w-[600px]">
         {/* Titel */}
         <div className="space-y-2">
           <label className="text-[13px] font-semibold text-foreground uppercase tracking-wide">
@@ -90,22 +83,13 @@ export function NewTicketForm({ user, onBack, onSuccess }: NewTicketFormProps) {
               <button
                 key={opt.value}
                 onClick={() => setPrioriteit(opt.value)}
-                className="active:scale-95"
+                className="h-16 rounded-lg text-base font-semibold cursor-pointer transition-all flex items-center justify-center active:scale-95"
                 style={{
-                  height: '64px',
-                  borderRadius: '20px',
                   border: prioriteit === opt.value
                     ? `3px solid ${opt.bg}`
                     : '1.5px solid hsl(var(--border))',
                   backgroundColor: prioriteit === opt.value ? opt.bg : 'hsl(var(--card))',
                   color: prioriteit === opt.value ? opt.color : opt.bg,
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 200ms ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
                 }}
               >
                 {opt.label}
@@ -137,14 +121,7 @@ export function NewTicketForm({ user, onBack, onSuccess }: NewTicketFormProps) {
         <Button
           onClick={handleSubmit}
           disabled={!canSubmit || createTicket.isPending}
-          className={`w-full h-14 rounded-[20px] text-base font-semibold ${canSubmit ? 'hover:opacity-90 active:scale-[0.98]' : ''}`}
-          style={{
-            backgroundColor: canSubmit ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-            color: 'hsl(var(--primary-foreground))',
-            border: 'none',
-            cursor: canSubmit ? 'pointer' : 'not-allowed',
-            transition: 'all 200ms ease',
-          }}
+          className={`w-full h-14 rounded-lg text-base font-semibold border-none transition-all ${canSubmit ? 'bg-primary hover:opacity-90 active:scale-[0.98] cursor-pointer' : 'bg-muted-foreground cursor-not-allowed'} text-primary-foreground`}
         >
           {createTicket.isPending ? 'Versturen...' : 'Verstuur melding'}
         </Button>

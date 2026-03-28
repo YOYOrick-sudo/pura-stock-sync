@@ -22,8 +22,8 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
   const { userLocation } = useUserLocation();
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [feedbackStates, setFeedbackStates] = useState<Record<string, { 
-    showNote: boolean; 
+  const [feedbackStates, setFeedbackStates] = useState<Record<string, {
+    showNote: boolean;
     note: string;
   }>>({});
 
@@ -37,9 +37,9 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
       const { data, error } = await supabase.functions.invoke('weather-ai-advisor', {
         body: { location: userLocation }
       });
-      
+
       if (error) throw error;
-      
+
       setSuggestions(data.suggestions || []);
       setFeedbackStates({});
     } catch (error) {
@@ -84,7 +84,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
         .from('ai_suggestions')
         .update({ user_feedback: 'accepted' })
         .eq('id', suggestionId);
-      
+
       toast.success('Feedback opgeslagen');
       setSuggestions(prev => prev.filter(s => s.id !== suggestionId));
     } catch (error) {
@@ -96,15 +96,15 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
   const handleRejectSuggestion = async (suggestionId: string) => {
     try {
       const note = feedbackStates[suggestionId]?.note || null;
-      
+
       await supabase
         .from('ai_suggestions')
-        .update({ 
+        .update({
           user_feedback: 'rejected',
           feedback_note: note
         })
         .eq('id', suggestionId);
-      
+
       toast.success('Feedback opgeslagen');
       setSuggestions(prev => prev.filter(s => s.id !== suggestionId));
     } catch (error) {
@@ -115,19 +115,10 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
 
   if (loading) {
     return (
-      <Card style={{ 
-        backgroundColor: '#F6F7DD',
-        border: '1px solid rgba(197, 197, 202, 0.5)',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)'
-      }}>
+      <Card className="bg-muted border border-border shadow-sm">
         <CardHeader className="pb-4">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <CardTitle style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '18px',
-              fontWeight: 600,
-              color: '#282E3A'
-            }}>
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-lg font-semibold text-foreground">
               AI Dagadvies
             </CardTitle>
             <Button
@@ -142,26 +133,17 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <p className="text-sm" style={{ color: '#73747B' }}>Advies wordt gegenereerd...</p>
+          <p className="text-sm text-muted-foreground">Advies wordt gegenereerd...</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card style={{ 
-      backgroundColor: '#F6F7DD',
-      border: '1px solid rgba(197, 197, 202, 0.5)',
-      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)'
-    }}>
+    <Card className="bg-muted border border-border shadow-sm">
       <CardHeader className="pb-4">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <CardTitle style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '18px',
-            fontWeight: 600,
-            color: '#282E3A'
-          }}>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg font-semibold text-foreground">
             AI Dagadvies
           </CardTitle>
           <Button
@@ -178,22 +160,18 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
       <CardContent className="pt-0">
         <div className="space-y-3">
           {suggestions.map((suggestion) => (
-            <div 
+            <div
               key={suggestion.id}
-              className="p-4 rounded-polar-md"
-              style={{ 
-                backgroundColor: '#FFFFFF',
-                border: '1px solid rgba(197, 197, 202, 0.3)'
-              }}
+              className="p-4 rounded-polar-md bg-card border border-border/30"
             >
-              <h4 className="font-semibold text-base mb-2" style={{ color: '#282E3A' }}>
+              <h4 className="font-semibold text-base mb-2 text-foreground">
                 {suggestion.text}
               </h4>
-              
-              <p className="text-sm mb-3" style={{ color: '#73747B' }}>
+
+              <p className="text-sm mb-3 text-muted-foreground">
                 {suggestion.reasoning}
               </p>
-              
+
               {feedbackStates[suggestion.id]?.showNote && (
                 <Textarea
                   placeholder="Waarom niet relevant? (optioneel)"
@@ -205,18 +183,17 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
                   className="mb-3 min-h-[60px]"
                 />
               )}
-              
+
               <div className="flex items-center gap-2">
                 <Button
                   size="sm"
                   onClick={() => handleCreateTask(suggestion.id, suggestion.text, suggestion.reasoning)}
-                  style={{ backgroundColor: '#1B7867', color: '#FFFFFF' }}
-                  className="rounded-polar-md"
+                  className="rounded-polar-md bg-primary text-primary-foreground"
                 >
                   <CheckCircle2 className="h-4 w-4 mr-1" />
                   Maak Taak
                 </Button>
-                
+
                 <Button
                   size="sm"
                   variant="outline"
@@ -226,7 +203,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
                   <ThumbsUp className="h-4 w-4 mr-1" />
                   Nuttig
                 </Button>
-                
+
                 <Button
                   size="sm"
                   variant="outline"

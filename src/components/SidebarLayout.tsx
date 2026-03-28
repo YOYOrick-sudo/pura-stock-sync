@@ -40,15 +40,10 @@ export function SidebarLayout({
   };
 
   return (
-    <div className="flex min-h-screen w-full" style={{
-      backgroundColor: '#FEFFF1'
-    }}>
+    <div className="flex min-h-screen w-full bg-background">
       {/* Desktop Sidebar - hidden on mobile */}
       {!isMobile && (
-        <div style={{ 
-          backgroundColor: '#F6F7DD',
-          paddingTop: '16px',
-        }}>
+        <div className="bg-sidebar-bg pt-4">
           <AppSidebar />
         </div>
       )}
@@ -56,25 +51,23 @@ export function SidebarLayout({
       {/* Mobile Menu Sheet */}
       {isMobile && (
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetContent side="left" className="w-[280px] p-0" style={{ backgroundColor: '#F6F7DD' }}>
-            <div style={{ paddingTop: '16px' }}>
+          <SheetContent side="left" className="w-[280px] p-0 bg-sidebar-bg">
+            <div className="pt-4">
               <AppSidebar onNavigate={() => setMobileMenuOpen(false)} />
             </div>
           </SheetContent>
         </Sheet>
       )}
-      
+
       <div className="flex flex-col flex-1">
         <PolarHeader
-          title={getPageTitle(location.pathname)} 
-          showStatusIndicator={false} 
+          title={getPageTitle(location.pathname)}
+          showStatusIndicator={false}
           location={userLocation}
           onMenuClick={isMobile ? () => setMobileMenuOpen(true) : undefined}
         />
-        
-        <main className="p-4 md:p-6 lg:px-12 lg:py-8" style={{
-          backgroundColor: '#FEFFF1'
-        }}>
+
+        <main className="p-4 md:p-6 lg:px-12 lg:py-8 bg-background">
           {children}
         </main>
       </div>

@@ -64,7 +64,7 @@ const KassatellingOverdag = () => {
   const [opmerkingen, setOpmerkingen] = useState('');
   const [showInstructionsDialog, setShowInstructionsDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  
+
   // Validation states
   const [errors, setErrors] = useState({
     naam: '',
@@ -74,15 +74,15 @@ const KassatellingOverdag = () => {
   // Check throttling status
   useEffect(() => {
     if (!userLocation) return;
-    
+
     const checkSubmitAvailability = () => {
       const key = `kassatelling_last_submit_${userLocation}_open`;
       const lastSubmit = localStorage.getItem(key);
-      
+
       if (lastSubmit) {
         const elapsed = Date.now() - parseInt(lastSubmit);
         const remaining = (10 * 60 * 1000) - elapsed;
-        
+
         if (remaining > 0) {
           setCanSubmit(false);
           setTimeRemaining(Math.ceil(remaining / 1000));
@@ -92,10 +92,10 @@ const KassatellingOverdag = () => {
         }
       }
     };
-    
+
     checkSubmitAvailability();
     const interval = setInterval(checkSubmitAvailability, 1000);
-    
+
     return () => clearInterval(interval);
   }, [userLocation]);
   const updateKassaLade = (denomination: string, value: number | '') => {
@@ -129,7 +129,7 @@ const KassatellingOverdag = () => {
       toast.error('Uitloggen mislukt');
     }
   };
-  
+
   const validateForm = () => {
     const newErrors = { naam: '', opmerkingen: '', total: '' };
     let isValid = true;
@@ -152,7 +152,7 @@ const KassatellingOverdag = () => {
     setErrors(newErrors);
     return isValid;
   };
-  
+
   const handleSubmit = async () => {
     if (!validateForm()) {
       toast.error('Vul alle verplichte velden in');
@@ -197,7 +197,7 @@ const KassatellingOverdag = () => {
       localStorage.setItem(key, Date.now().toString());
       setCanSubmit(false);
       setTimeRemaining(10 * 60);
-      
+
       setShowSuccessDialog(true);
     } catch (error) {
       console.error('Fout bij verzenden:', error);
@@ -205,286 +205,171 @@ const KassatellingOverdag = () => {
     }
   };
   return (
-    <div style={{ fontFamily: 'Inter, sans-serif' }}>
+    <div>
       {/* Main Content */}
-      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 400px', gap: '24px', alignItems: 'start' }}>
+      <div className="max-w-[1400px] mx-auto">
+
+        <div className="grid grid-cols-[1fr_1fr_400px] gap-6 items-start">
           {/* Kassa Lade */}
-          <div style={{
-            backgroundColor: '#FEFFF1',
-            borderRadius: '20px',
-            border: '1px solid rgba(197, 197, 202, 0.5)',
-            overflow: 'hidden',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
-          }}>
-            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderBottom: '1px solid rgba(197, 197, 202, 0.5)' }}>
-              <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div className="bg-card rounded-lg border border-border overflow-hidden shadow-sm">
+            <div className="bg-card px-4 py-3 border-b border-border">
+              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
                 Kassa Lade
               </h2>
             </div>
-            <div style={{ overflowX: 'auto', backgroundColor: '#FEFFF1', padding: '16px' }}>
-              <table style={{ width: '100%', fontFamily: 'Inter, sans-serif' }}>
+            <div className="overflow-x-auto bg-card p-4">
+              <table className="w-full">
                 <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.3)' }}>
-                    <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#73747B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bedrag</th>
-                    <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#73747B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Aantal</th>
+                  <tr className="border-b border-border">
+                    <th className="px-3 py-2 text-left font-semibold text-muted-foreground text-xs uppercase tracking-wide">Bedrag</th>
+                    <th className="px-3 py-2 text-center font-semibold text-muted-foreground text-xs uppercase tracking-wide">Aantal</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom) => <tr key={denom} style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
-                      <td style={{ padding: '6px 12px', color: '#282E3A', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid rgba(197, 197, 202, 0.3)' }}>€{denom.replace('.', ',')}</td>
-                      <td style={{ padding: '6px 12px', textAlign: 'center' }}>
-                        <input type="number" value={kassaLade[denom as keyof typeof kassaLade]} onChange={e => updateKassaLade(denom, e.target.value === '' ? '' : parseInt(e.target.value))} min={0} style={{
-                          width: '80px',
-                          padding: '6px 8px',
-                          textAlign: 'center',
-                          border: '1px solid rgba(197, 197, 202, 0.5)',
-                          borderRadius: '16px',
-                          backgroundColor: '#FEFFF1',
-                          fontFamily: 'monospace',
-                          fontSize: '14px',
-                          color: '#282E3A',
-                          outline: 'none',
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#1B7867'}
-                        onBlur={(e) => e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)'}
+                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom) => <tr key={denom} className="border-b border-border/20">
+                      <td className="px-3 py-1.5 text-foreground font-mono text-sm border-r border-border/30">{'\u20AC'}{denom.replace('.', ',')}</td>
+                      <td className="px-3 py-1.5 text-center">
+                        <input type="number" value={kassaLade[denom as keyof typeof kassaLade]} onChange={e => updateKassaLade(denom, e.target.value === '' ? '' : parseInt(e.target.value))} min={0}
+                        className="w-20 px-2 py-1.5 text-center border border-border rounded-md bg-card font-mono text-sm text-foreground outline-none focus:border-primary"
                         />
                       </td>
                     </tr>)}
                 </tbody>
               </table>
             </div>
-            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
-                <span style={{ fontSize: '24px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>€{kassaLadeTotal.toFixed(2).replace('.', ',')}</span>
+            <div className="bg-card px-4 py-3 border-t border-border">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-foreground text-xs uppercase tracking-wide">Totaal</span>
+                <span className="text-2xl font-bold text-primary">{'\u20AC'}{kassaLadeTotal.toFixed(2).replace('.', ',')}</span>
               </div>
             </div>
           </div>
 
           {/* Wisselkas */}
-          <div style={{
-            backgroundColor: '#FEFFF1',
-            borderRadius: '20px',
-            border: '1px solid rgba(197, 197, 202, 0.5)',
-            overflow: 'hidden',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
-          }}>
-            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderBottom: '1px solid rgba(197, 197, 202, 0.5)' }}>
-              <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div className="bg-card rounded-lg border border-border overflow-hidden shadow-sm">
+            <div className="bg-card px-4 py-3 border-b border-border">
+              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
                 Wisselkas
               </h2>
             </div>
-            <div style={{ overflowX: 'auto', backgroundColor: '#FEFFF1', padding: '16px' }}>
-              <table style={{ width: '100%', fontFamily: 'Inter, sans-serif' }}>
+            <div className="overflow-x-auto bg-card p-4">
+              <table className="w-full">
                 <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.3)' }}>
-                    <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#73747B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bedrag</th>
-                    <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#73747B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Aantal</th>
+                  <tr className="border-b border-border">
+                    <th className="px-3 py-2 text-left font-semibold text-muted-foreground text-xs uppercase tracking-wide">Bedrag</th>
+                    <th className="px-3 py-2 text-center font-semibold text-muted-foreground text-xs uppercase tracking-wide">Aantal</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom) => <tr key={denom} style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
-                      <td style={{ padding: '6px 12px', color: '#282E3A', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid rgba(197, 197, 202, 0.3)' }}>€{denom.replace('.', ',')}</td>
-                      <td style={{ padding: '6px 12px', textAlign: 'center' }}>
-                        <input type="number" value={wisselkas[denom as keyof typeof wisselkas]} onChange={e => updateWisselkas(denom, e.target.value === '' ? '' : parseInt(e.target.value))} min={0} style={{
-                          width: '80px',
-                          padding: '6px 8px',
-                          textAlign: 'center',
-                          border: '1px solid rgba(197, 197, 202, 0.5)',
-                          borderRadius: '16px',
-                          backgroundColor: '#FEFFF1',
-                          fontFamily: 'monospace',
-                          fontSize: '14px',
-                          color: '#282E3A',
-                          outline: 'none',
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#1B7867'}
-                        onBlur={(e) => e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)'}
+                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom) => <tr key={denom} className="border-b border-border/20">
+                      <td className="px-3 py-1.5 text-foreground font-mono text-sm border-r border-border/30">{'\u20AC'}{denom.replace('.', ',')}</td>
+                      <td className="px-3 py-1.5 text-center">
+                        <input type="number" value={wisselkas[denom as keyof typeof wisselkas]} onChange={e => updateWisselkas(denom, e.target.value === '' ? '' : parseInt(e.target.value))} min={0}
+                        className="w-20 px-2 py-1.5 text-center border border-border rounded-md bg-card font-mono text-sm text-foreground outline-none focus:border-primary"
                         />
                       </td>
                     </tr>)}
                 </tbody>
               </table>
             </div>
-            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
-                <span style={{ fontSize: '24px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>€{wisselkasTotal.toFixed(2).replace('.', ',')}</span>
+            <div className="bg-card px-4 py-3 border-t border-border">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-foreground text-xs uppercase tracking-wide">Totaal</span>
+                <span className="text-2xl font-bold text-primary">{'\u20AC'}{wisselkasTotal.toFixed(2).replace('.', ',')}</span>
               </div>
             </div>
           </div>
 
           {/* Right side: Summary card */}
-          <div style={{ position: 'sticky', top: '24px' }}>
-            <div style={{
-              backgroundColor: '#FEFFF1',
-              borderRadius: '20px',
-              border: '1px solid rgba(197, 197, 202, 0.5)',
-              padding: '20px',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
-            }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: '#FEFFF1', borderRadius: '16px', padding: '16px' }}>
+          <div className="sticky top-6">
+            <div className="bg-card rounded-lg border border-border p-5 shadow-sm">
+              <div className="flex flex-col gap-4 bg-card rounded-md p-4">
                 {/* Totaal */}
-                <div style={{ padding: '6px 0' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+                <div className="py-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-muted-foreground">
                       Totaal
                     </span>
-                    <span style={{ fontSize: '30px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: errors.total ? '#EF4444' : '#1B7867' }}>
-                      €{total.toFixed(2).replace('.', ',')}
+                    <span className={`text-3xl font-bold ${errors.total ? 'text-destructive' : 'text-primary'}`}>
+                      {'\u20AC'}{total.toFixed(2).replace('.', ',')}
                     </span>
                   </div>
                   {errors.total && (
-                    <p style={{ fontSize: '12px', color: '#EF4444', fontFamily: 'Inter, sans-serif', marginTop: '4px', textAlign: 'right' }}>{errors.total}</p>
+                    <p className="text-xs text-destructive mt-1 text-right">{errors.total}</p>
                   )}
                 </div>
 
-                <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '12px 0' }}></div>
+                <div className="border-t border-border/30 my-3"></div>
 
                 {/* Naam medewerker */}
-                <div style={{ padding: '6px 0' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-                    <label style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#73747B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div className="py-1.5">
+                  <div className="flex items-center justify-between gap-4">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                       Naam *
                     </label>
-                    <input 
-                      type="text" 
-                      value={naam} 
+                    <input
+                      type="text"
+                      value={naam}
                       onChange={e => {
                         setNaam(e.target.value);
                         if (errors.naam) setErrors(prev => ({ ...prev, naam: '' }));
                       }}
-                      placeholder="Naam" 
-                      style={{
-                        flex: 1,
-                        padding: '8px 12px',
-                        border: errors.naam ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
-                        borderRadius: '16px',
-                        backgroundColor: '#FEFFF1',
-                        fontFamily: 'Inter, sans-serif',
-                        fontSize: '14px',
-                        color: '#282E3A',
-                        outline: 'none',
-                      }}
-                      onFocus={(e) => !errors.naam && (e.target.style.borderColor = '#1B7867')}
-                      onBlur={(e) => !errors.naam && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
+                      placeholder="Naam"
+                      className={`flex-1 px-3 py-2 border rounded-md bg-card text-sm text-foreground outline-none focus:border-primary ${errors.naam ? 'border-destructive' : 'border-border'}`}
                     />
                   </div>
                   {errors.naam && (
-                    <p style={{ fontSize: '12px', color: '#EF4444', fontFamily: 'Inter, sans-serif', marginTop: '4px' }}>{errors.naam}</p>
+                    <p className="text-xs text-destructive mt-1">{errors.naam}</p>
                   )}
                 </div>
 
-                <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '12px 0' }}></div>
+                <div className="border-t border-border/30 my-3"></div>
 
                 {/* Opmerkingen */}
-                <div style={{ padding: '6px 0' }}>
-                  <label style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#73747B', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>
+                <div className="py-1.5">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-2">
                     Opmerkingen *
                   </label>
-                  <textarea 
-                    value={opmerkingen} 
+                  <textarea
+                    value={opmerkingen}
                     onChange={e => {
                       setOpmerkingen(e.target.value);
                       if (errors.opmerkingen) setErrors(prev => ({ ...prev, opmerkingen: '' }));
                     }}
-                    placeholder="Belangrijke opmerkingen..." 
-                    style={{
-                      minHeight: '60px',
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: errors.opmerkingen ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
-                      borderRadius: '16px',
-                      backgroundColor: '#FEFFF1',
-                      fontFamily: 'Inter, sans-serif',
-                      fontSize: '14px',
-                      color: '#282E3A',
-                      outline: 'none',
-                      resize: 'vertical',
-                      whiteSpace: 'pre-wrap'
-                    }}
-                    onFocus={(e) => !errors.opmerkingen && (e.target.style.borderColor = '#1B7867')}
-                    onBlur={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
+                    placeholder="Belangrijke opmerkingen..."
+                    className={`min-h-[60px] w-full px-3 py-2 border rounded-md bg-card text-sm text-foreground outline-none resize-y whitespace-pre-wrap focus:border-primary ${errors.opmerkingen ? 'border-destructive' : 'border-border'}`}
                   />
                   {errors.opmerkingen && (
-                    <p style={{ fontSize: '12px', color: '#EF4444', fontFamily: 'Inter, sans-serif', marginTop: '4px' }}>{errors.opmerkingen}</p>
+                    <p className="text-xs text-destructive mt-1">{errors.opmerkingen}</p>
                   )}
                 </div>
 
-                <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '12px 0' }}></div>
+                <div className="border-t border-border/30 my-3"></div>
 
                 {/* Verzenden button */}
                 <div>
                   {!canSubmit && timeRemaining > 0 && (
-                    <p style={{ fontSize: '12px', color: '#73747B', fontFamily: 'Inter, sans-serif', textAlign: 'center', marginBottom: '12px' }}>
+                    <p className="text-xs text-muted-foreground text-center mb-3">
                       Je kunt over {Math.floor(timeRemaining / 60)}m {timeRemaining % 60}s opnieuw indienen
                     </p>
                   )}
-                  <button 
+                  <button
                     onClick={handleSubmit}
                     disabled={!canSubmit || !naam || naam.length < 2}
-                    style={{
-                      width: '100%',
-                      padding: '14px 20px',
-                      backgroundColor: (!canSubmit || !naam || naam.length < 2) ? '#D1D5DB' : '#1B7867',
-                      color: '#FFFFFF',
-                      fontFamily: 'Inter, sans-serif',
-                      fontWeight: 600,
-                      fontSize: '14px',
-                      borderRadius: '20px',
-                      border: 'none',
-                      cursor: (!canSubmit || !naam || naam.length < 2) ? 'not-allowed' : 'pointer',
-                      transition: 'all 0.15s',
-                      boxShadow: (!canSubmit || !naam || naam.length < 2) ? 'none' : '0 1px 2px rgba(0, 0, 0, 0.05)',
-                      marginBottom: '12px',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (canSubmit && naam && naam.length >= 2) {
-                        e.currentTarget.style.backgroundColor = '#156B5A';
-                        e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (canSubmit && naam && naam.length >= 2) {
-                        e.currentTarget.style.backgroundColor = '#1B7867';
-                        e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
-                      } else {
-                        e.currentTarget.style.backgroundColor = '#D1D5DB';
-                      }
-                    }}
+                    className={`w-full py-3.5 px-5 text-white font-semibold text-sm rounded-lg border-none transition-all mb-3 ${
+                      (!canSubmit || !naam || naam.length < 2)
+                        ? 'bg-input cursor-not-allowed'
+                        : 'bg-primary cursor-pointer shadow-sm hover:bg-primary/90 hover:shadow-md'
+                    }`}
                   >
                     {!canSubmit ? 'Wacht alsjeblieft...' : 'Verzenden'}
                   </button>
-                  
-                  <button 
-                    onClick={() => setShowInstructionsDialog(true)} 
-                    style={{
-                      width: '100%',
-                      padding: '10px 20px',
-                      backgroundColor: '#FEFFF1',
-                      color: '#1B7867',
-                      fontFamily: 'Inter, sans-serif',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      borderRadius: '20px',
-                      border: '1px solid rgba(27, 120, 103, 0.3)',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(27, 120, 103, 0.05)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#FEFFF1';
-                    }}
+
+                  <button
+                    onClick={() => setShowInstructionsDialog(true)}
+                    className="w-full py-2.5 px-5 bg-card text-primary font-medium text-sm rounded-lg border border-primary/30 cursor-pointer transition-all flex items-center justify-center gap-2 hover:bg-primary/5"
                   >
-                    <Info style={{ width: '16px', height: '16px' }} />
+                    <Info className="w-4 h-4" />
                     Instructies
                   </button>
                 </div>
@@ -496,25 +381,25 @@ const KassatellingOverdag = () => {
 
       {/* Success Dialog */}
       <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-          <AlertDialogContent className="bg-white">
+          <AlertDialogContent className="bg-card">
             <div className="text-center">
-              <CheckCircle2 className="w-16 h-16 text-[#1B7867] mx-auto mb-4" />
-              
-              <AlertDialogTitle className="text-2xl font-heading font-bold text-[#282E3A]">
+              <CheckCircle2 className="w-16 h-16 text-primary mx-auto mb-4" />
+
+              <AlertDialogTitle className="text-2xl font-heading font-bold text-foreground">
                 Kassatelling Verzonden!
               </AlertDialogTitle>
-              
-              <AlertDialogDescription className="text-[#282E3A]/70 mt-4">
+
+              <AlertDialogDescription className="text-foreground/70 mt-4">
                 Verzonden door {naam}<br/>
                 {new Date().toLocaleString('nl-NL')}
               </AlertDialogDescription>
-              
-              <AlertDialogAction 
+
+              <AlertDialogAction
                 onClick={() => {
                   setShowSuccessDialog(false);
                   navigate('/dashboard');
                 }}
-                className="mt-6 bg-[#1B7867] hover:bg-[#1B7867]/90"
+                className="mt-6 bg-primary hover:bg-primary/90"
               >
                 Terug naar Dashboard
               </AlertDialogAction>
@@ -526,60 +411,60 @@ const KassatellingOverdag = () => {
         <Dialog open={showInstructionsDialog} onOpenChange={setShowInstructionsDialog}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle className="text-xl font-heading font-bold text-[#282E3A]">
+              <DialogTitle className="text-xl font-heading font-bold text-foreground">
                 Instructies Kassatelling
               </DialogTitle>
             </DialogHeader>
-            
+
             <div className="mt-4">
               <ol className="space-y-3">
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Tel de kassa lade</span>
-                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Vul alle aantallen in</p>
+                    <span className="font-heading font-medium text-foreground">Tel de kassa lade</span>
+                    <p className="text-xs text-foreground/60 mt-0.5">Vul alle aantallen in</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Tel de wisselkas</span>
-                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Vul alle aantallen in</p>
+                    <span className="font-heading font-medium text-foreground">Tel de wisselkas</span>
+                    <p className="text-xs text-foreground/60 mt-0.5">Vul alle aantallen in</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Controleer het totaal</span>
-                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Moet €157,00 zijn</p>
+                    <span className="font-heading font-medium text-foreground">Controleer het totaal</span>
+                    <p className="text-xs text-foreground/60 mt-0.5">Moet {'\u20AC'}157,00 zijn</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Bij tekort/overschot</span>
-                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Meld dit in de opmerkingen</p>
+                    <span className="font-heading font-medium text-foreground">Bij tekort/overschot</span>
+                    <p className="text-xs text-foreground/60 mt-0.5">Meld dit in de opmerkingen</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Aanvullen indien nodig</span>
-                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Als totaal &lt; €157, vul aan vanuit wisselkassa tot €157</p>
+                    <span className="font-heading font-medium text-foreground">Aanvullen indien nodig</span>
+                    <p className="text-xs text-foreground/60 mt-0.5">Als totaal &lt; {'\u20AC'}157, vul aan vanuit wisselkassa tot {'\u20AC'}157</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">6</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">6</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Geen wijzigingen meer</span>
-                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Na aanvullen niets meer wijzigen in de telling</p>
+                    <span className="font-heading font-medium text-foreground">Geen wijzigingen meer</span>
+                    <p className="text-xs text-foreground/60 mt-0.5">Na aanvullen niets meer wijzigen in de telling</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">7</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">7</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Verzenden</span>
-                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Druk op de verzenden knop</p>
+                    <span className="font-heading font-medium text-foreground">Verzenden</span>
+                    <p className="text-xs text-foreground/60 mt-0.5">Druk op de verzenden knop</p>
                   </div>
                 </li>
               </ol>

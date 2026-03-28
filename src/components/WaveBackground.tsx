@@ -11,12 +11,12 @@ const WaveBackground = () => {
         {/* Multiple layered waves */}
         <path
           d="M0,150 C360,200 720,100 1080,150 C1260,175 1380,150 1440,160 L1440,0 L0,0 Z"
-          className="fill-[#1B7867]"
+          className="fill-primary"
           opacity="0.1"
         />
         <path
           d="M0,100 C360,160 720,60 1080,120 C1260,150 1380,100 1440,120 L1440,0 L0,0 Z"
-          className="fill-[#1B7867]"
+          className="fill-primary"
           opacity="0.15"
         />
       </svg>
@@ -29,7 +29,7 @@ const WaveBackground = () => {
       >
         <path
           d="M0,100 C360,160 720,60 1080,120 C1260,150 1380,100 1440,120 L1440,0 L0,0 Z"
-          className="fill-[#1B7867]"
+          className="fill-primary"
           opacity="0.08"
         />
       </svg>

@@ -19,7 +19,7 @@ export default function Recipes() {
     <KitchenLayout title="Recepten" subtitle="Stappenplannen & bereidingen">
       <div className="space-y-6">
         {/* Search & Filter */}
-        <Card className="p-4 bg-white shadow-sm">
+        <Card className="p-4 bg-card shadow-sm">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -27,7 +27,7 @@ export default function Recipes() {
                 placeholder="Zoek recepten..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 bg-white"
+                className="pl-10 bg-card"
               />
             </div>
             <Button className="bg-primary hover:bg-primary-hover">
@@ -53,7 +53,7 @@ export default function Recipes() {
             {recipes.map((recipe) => (
               <Card
                 key={recipe.id}
-                className="p-4 bg-white shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+                className="p-4 bg-card shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
                 onClick={() => navigate(`/kitchen/recipes/${recipe.id}`)}
               >
                 <div className="flex items-start justify-between mb-3">

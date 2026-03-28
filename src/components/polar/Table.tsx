@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface PolarTableColumn {
   key: string;
@@ -14,46 +15,31 @@ export interface PolarTableProps {
   emptyMessage?: string;
 }
 
+const alignClasses = {
+  left: 'text-left justify-start',
+  center: 'text-center justify-center',
+  right: 'text-right justify-end',
+} as const;
+
 export function PolarTable({ columns, data, emptyMessage = 'No Results' }: PolarTableProps) {
-  
   return (
-    <div
-      style={{
-        backgroundColor: '#FFFFFF',
-        border: '1px solid rgba(197, 197, 202, 0.5)',
-        borderRadius: '16px',
-        overflow: 'hidden',
-      }}
-    >
+    <div className="bg-card border border-border rounded-lg overflow-hidden">
       {/* Table Header */}
       <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${columns.length}, 1fr)`,
-          gap: '24px',
-          padding: '12px 24px',
-          borderBottom: '1px solid rgba(197, 197, 202, 0.5)',
-          backgroundColor: '#F6F7DD',
-        }}
+        className="gap-6 px-6 py-3 border-b border-border bg-muted"
+        style={{ display: 'grid', gridTemplateColumns: `repeat(${columns.length}, 1fr)` }}
       >
         {columns.map((column) => (
           <div
             key={column.key}
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '14px',
-              fontWeight: 400,
-              color: '#282E3A',
-              textAlign: column.align || 'left',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: column.align === 'right' ? 'flex-end' : column.align === 'center' ? 'center' : 'flex-start',
-              gap: '4px',
-            }}
+            className={cn(
+              'flex items-center gap-1 text-sm font-normal text-foreground',
+              alignClasses[column.align || 'left'],
+            )}
           >
             {column.label}
             {column.sortable && (
-              <ChevronDown size={14} style={{ color: '#282E3A' }} />
+              <ChevronDown size={14} className="text-foreground" />
             )}
           </div>
         ))}
@@ -61,17 +47,7 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
 
       {/* Table Body - Empty State */}
       {data.length === 0 && (
-        <div
-          style={{
-            padding: '64px 24px',
-            textAlign: 'center',
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            fontWeight: 400,
-            color: '#282E3A',
-            backgroundColor: '#FFFFFF',
-          }}
-        >
+        <div className="py-16 px-6 text-center text-sm font-normal text-foreground bg-card">
           {emptyMessage}
         </div>
       )}
@@ -82,25 +58,20 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
           {data.map((row, rowIndex) => (
             <div
               key={rowIndex}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: `repeat(${columns.length}, 1fr)`,
-                gap: '24px',
-                padding: '16px 24px',
-                borderBottom: rowIndex < data.length - 1 ? '1px solid rgba(197, 197, 202, 0.5)' : 'none',
-                backgroundColor: '#FFFFFF',
-              }}
+              className={cn(
+                'gap-6 px-6 py-4 bg-card',
+                rowIndex < data.length - 1 && 'border-b border-border',
+              )}
+              style={{ display: 'grid', gridTemplateColumns: `repeat(${columns.length}, 1fr)` }}
             >
               {columns.map((column) => (
                 <div
                   key={column.key}
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    color: '#282E3A',
-                    textAlign: column.align || 'left',
-                  }}
+                  className={cn(
+                    'text-sm font-normal text-foreground',
+                    column.align === 'right' && 'text-right',
+                    column.align === 'center' && 'text-center',
+                  )}
                 >
                   {row[column.key]}
                 </div>

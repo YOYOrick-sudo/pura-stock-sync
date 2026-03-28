@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 export interface PolarCheckboxProps {
   checked: boolean;
@@ -9,53 +10,45 @@ export interface PolarCheckboxProps {
   helperText?: string;
 }
 
-export function PolarCheckbox({ 
-  checked, 
-  onChange, 
+export function PolarCheckbox({
+  checked,
+  onChange,
   label,
   disabled = false,
   error = false,
   helperText,
 }: PolarCheckboxProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-      <label 
-        style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '8px',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.5 : 1,
-        }}
+    <div className="flex flex-col gap-1">
+      <label
+        className={cn(
+          'flex items-center gap-2',
+          disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+        )}
       >
         <button
           type="button"
           onClick={() => !disabled && onChange(!checked)}
           disabled={disabled}
-          style={{
-            width: '20px',
-            height: '20px',
-            borderRadius: '50%',
-            border: error ? '2px solid hsl(var(--destructive))' : checked ? '2px solid hsl(var(--primary))' : '2px solid hsl(var(--input))',
-            backgroundColor: checked ? 'hsl(var(--primary))' : 'hsl(var(--background))',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.15s ease',
-            padding: 0,
-          }}
+          className={cn(
+            'w-5 h-5 rounded-full flex items-center justify-center p-0 transition-all duration-fast',
+            'focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2',
+            disabled ? 'cursor-not-allowed' : 'cursor-pointer',
+            error
+              ? 'border-2 border-destructive'
+              : checked
+                ? 'border-2 border-primary bg-primary'
+                : 'border-2 border-input bg-background',
+          )}
         >
           {/* Volledig gevuld - geen binnenste cirkel nodig */}
         </button>
         {label && (
           <span
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '15px',
-              color: error ? 'hsl(var(--destructive))' : 'hsl(var(--foreground))',
-              userSelect: 'none',
-            }}
+            className={cn(
+              'text-[15px] select-none',
+              error ? 'text-destructive' : 'text-foreground',
+            )}
           >
             {label}
           </span>
@@ -63,12 +56,10 @@ export function PolarCheckbox({
       </label>
       {helperText && (
         <span
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            color: error ? 'hsl(var(--destructive))' : 'hsl(var(--muted-foreground))',
-            paddingLeft: '28px',
-          }}
+          className={cn(
+            'text-sm pl-7',
+            error ? 'text-destructive' : 'text-muted-foreground',
+          )}
         >
           {helperText}
         </span>

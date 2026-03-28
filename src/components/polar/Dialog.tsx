@@ -1,5 +1,6 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 export interface PolarDialogProps {
   open: boolean;
@@ -10,51 +11,34 @@ export interface PolarDialogProps {
   maxWidth?: string;
 }
 
-export function PolarDialog({ 
-  open, 
-  onOpenChange, 
-  title, 
-  description, 
+export function PolarDialog({
+  open,
+  onOpenChange,
+  title,
+  description,
   children,
-  maxWidth = '480px' 
+  maxWidth = '480px',
 }: PolarDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
-        style={{
-          backgroundColor: '#FEFFF1',
-          borderRadius: '20px',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
-          padding: '32px',
-          maxWidth,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-        }}
+      <DialogContent
+        className="bg-card rounded-[20px] border border-border p-8 shadow-lg"
+        style={{ maxWidth }}
       >
         {(title || description) && (
           <DialogHeader>
             {title && (
-              <DialogTitle 
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '18px',
-                  fontWeight: 600,
-                  color: '#282E3A',
-                  marginBottom: description ? '8px' : '24px',
-                }}
+              <DialogTitle
+                className={cn(
+                  'text-lg font-semibold text-foreground',
+                  description ? 'mb-2' : 'mb-6',
+                )}
               >
                 {title}
               </DialogTitle>
             )}
             {description && (
-              <DialogDescription 
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '14px',
-                  fontWeight: 400,
-                  color: '#73747B',
-                  marginBottom: '24px',
-                }}
-              >
+              <DialogDescription className="text-sm font-normal text-muted-foreground mb-6">
                 {description}
               </DialogDescription>
             )}
@@ -68,31 +52,28 @@ export function PolarDialog({
 
 // Helper styles for consistent form fields within dialogs
 export const polarDialogInputStyle: React.CSSProperties = {
-  backgroundColor: '#FFFFFF',
+  backgroundColor: 'hsl(var(--background))',
   borderRadius: '16px',
-  border: '1px solid rgba(197, 197, 202, 0.5)',
+  border: '1px solid hsl(var(--border))',
   padding: '12px 16px',
-  fontFamily: 'Inter, sans-serif',
   fontSize: '14px',
-  color: '#282E3A',
+  color: 'hsl(var(--foreground))',
   width: '100%',
 };
 
 export const polarDialogLabelStyle: React.CSSProperties = {
-  fontFamily: 'Inter, sans-serif',
   fontSize: '13px',
   fontWeight: 500,
-  color: '#282E3A',
+  color: 'hsl(var(--foreground))',
   marginBottom: '8px',
   display: 'block',
 };
 
 export const polarDialogButtonPrimaryStyle: React.CSSProperties = {
-  backgroundColor: '#1B7867',
-  color: '#FFFFFF',
-  borderRadius: '20px',
+  backgroundColor: 'hsl(var(--primary))',
+  color: 'hsl(var(--primary-foreground))',
+  borderRadius: '16px',
   padding: '12px 24px',
-  fontFamily: 'Inter, sans-serif',
   fontSize: '14px',
   fontWeight: 500,
   border: 'none',
@@ -102,13 +83,12 @@ export const polarDialogButtonPrimaryStyle: React.CSSProperties = {
 
 export const polarDialogButtonSecondaryStyle: React.CSSProperties = {
   backgroundColor: 'transparent',
-  color: '#282E3A',
-  borderRadius: '20px',
+  color: 'hsl(var(--foreground))',
+  borderRadius: '16px',
   padding: '12px 24px',
-  fontFamily: 'Inter, sans-serif',
   fontSize: '14px',
   fontWeight: 500,
-  border: '1px solid rgba(197, 197, 202, 0.5)',
+  border: '1px solid hsl(var(--border))',
   cursor: 'pointer',
   transition: 'all 0.15s ease',
 };

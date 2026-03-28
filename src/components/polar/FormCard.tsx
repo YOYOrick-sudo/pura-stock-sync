@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 export interface PolarFormCardProps {
   title?: string;
@@ -9,27 +10,12 @@ export function PolarFormCard({ title, children }: PolarFormCardProps) {
   return (
     <div>
       {title && (
-        <h2
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '18px',
-            fontWeight: 500,
-            color: '#282E3A',
-            marginBottom: '24px',
-          }}
-        >
+        <h2 className="text-lg font-medium text-foreground mb-6">
           {title}
         </h2>
       )}
-      
-      <div
-        className="rounded-polar-lg"
-        style={{
-          backgroundColor: '#FFFFFF',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
-          padding: '32px',
-        }}
-      >
+
+      <div className="bg-card border border-border rounded-lg p-8">
         {children}
       </div>
     </div>
@@ -45,37 +31,25 @@ export interface PolarFormFieldProps {
 
 export function PolarFormField({ label, description, children, required }: PolarFormFieldProps) {
   return (
-    <div style={{ marginBottom: '32px' }}>
+    <div className="mb-8">
       <label
-        style={{
-          fontFamily: 'Inter, sans-serif',
-          fontSize: '14px',
-          fontWeight: 500,
-          color: '#282E3A',
-          display: 'block',
-          marginBottom: description ? '4px' : '12px',
-        }}
+        className={cn(
+          'text-sm font-medium text-foreground block',
+          description ? 'mb-1' : 'mb-3',
+        )}
       >
         {label}
         {required && (
-          <span style={{ color: '#282E3A', marginLeft: '2px' }}>*</span>
+          <span className="text-foreground ml-0.5">*</span>
         )}
       </label>
-      
+
       {description && (
-        <p
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            fontWeight: 400,
-            color: '#73747B',
-            marginBottom: '12px',
-          }}
-        >
+        <p className="text-sm font-normal text-muted-foreground mb-3">
           {description}
         </p>
       )}
-      
+
       {children}
     </div>
   );

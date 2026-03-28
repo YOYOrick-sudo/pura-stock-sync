@@ -20,30 +20,30 @@ export default {
         sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "system-ui", "sans-serif"],
       },
       colors: {
-        // === PURA VIDA MODERN DESIGN SYSTEM ===
+        // === PURA VIDA ENTERPRISE DESIGN SYSTEM ===
         'pv': {
-          // Backgrounds (Modern Slate)
+          // Backgrounds (Slate)
           'bg': {
-            'page': 'hsl(210 40% 98%)',      // #F8FAFC - Main page background
-            'card': 'hsl(0 0% 100%)',         // #FFFFFF - Cards & surfaces
-            'muted': 'hsl(210 40% 96%)',      // #F1F5F9 - Secondary areas
-            'hover': 'hsl(210 31% 91%)',      // #E2E8F0 - Hover states
+            'page': 'hsl(210 20% 98%)',      // #F9FAFB - Gray-50
+            'card': 'hsl(0 0% 100%)',         // #FFFFFF
+            'muted': 'hsl(210 40% 96%)',      // #F1F5F9 - Slate-100
+            'hover': 'hsl(214 32% 91%)',      // #E2E8F0 - Slate-200
           },
-          // Brand Green (Pura Vida Sea)
-          'sea': 'hsl(163 65% 26%)',           // #1B7867 - Primary
-          'sea-dark': 'hsl(163 65% 21%)',      // #156556 - Hover/active
-          'sea-light': 'hsl(163 35% 93%)',     // #E6F4F1 - Subtle backgrounds
-          'sea-border': 'hsl(169 35% 77%)',    // #B3D9D4 - Subtle borders
-          // Text Colors
+          // Brand Teal (Pura Vida)
+          'sea': 'hsl(163 65% 26%)',           // #1B7867
+          'sea-dark': 'hsl(163 65% 22%)',      // #156556
+          'sea-light': 'hsl(166 35% 96%)',     // #EFFAF7
+          'sea-border': 'hsl(163 40% 80%)',    // #B3D9D4
+          // Text Colors (Slate)
           'text': {
-            'primary': 'hsl(222 47% 11%)',    // #0F172A - Slate-900
+            'primary': 'hsl(221 39% 11%)',    // #111827
             'secondary': 'hsl(215 16% 47%)',  // #64748B - Slate-500
             'muted': 'hsl(215 20% 65%)',      // #94A3B8 - Slate-400
           },
           // Status Colors
-          'success': 'hsl(156 60% 35%)',       // Teal-groen mix, dichter bij brand
+          'success': 'hsl(160 84% 39%)',       // #0D9488 - Teal-600
           'warning': 'hsl(38 92% 50%)',        // #F59E0B
-          'error': 'hsl(0 84% 60%)',           // #EF4444
+          'error': 'hsl(0 72% 51%)',           // #DC2626
           'info': 'hsl(217 91% 60%)',          // #3B82F6
         },
         
@@ -72,6 +72,8 @@ export default {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
+          bg: "hsl(var(--status-error-bg))",
+          border: "hsl(var(--status-error-border))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -89,6 +91,24 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+          bg: "hsl(var(--status-warning-bg))",
+          border: "hsl(var(--status-warning-border))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+          bg: "hsl(var(--status-success-bg))",
+          border: "hsl(var(--status-success-border))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
+          bg: "hsl(var(--status-info-bg))",
+          border: "hsl(var(--status-info-border))",
+        },
         notification: {
           badge: "hsl(var(--notification-badge))",
         },
@@ -99,24 +119,22 @@ export default {
         },
       },
       boxShadow: {
-        'soft': '0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px 0 rgb(0 0 0 / 0.02)',
-        'card': '0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05)',
-        'elevated': '0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05)',
-        'hover': '0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05)',
+        /* Premium layered shadow system — depth through light, not darkness */
+        'sm': '0 1px 2px rgb(0 0 0 / 0.03), 0 1px 3px rgb(0 0 0 / 0.02)',
+        'DEFAULT': '0 1px 3px rgb(0 0 0 / 0.04), 0 4px 12px rgb(0 0 0 / 0.03)',
+        'md': '0 2px 4px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04)',
+        'lg': '0 4px 8px rgb(0 0 0 / 0.04), 0 12px 40px rgb(0 0 0 / 0.06)',
+        'soft': '0 1px 2px rgb(0 0 0 / 0.03), 0 1px 3px rgb(0 0 0 / 0.02)',
       },
       borderRadius: {
-        // Polar UI radius system
+        // 3-tier system: sm (8px), md (12px), lg (16px)
+        lg: '16px',
+        md: 'var(--radius)',              /* 12px */
+        sm: 'calc(var(--radius) - 4px)',  /* 8px */
+        // Keep polar aliases during migration
         'polar-sm': '8px',
         'polar-md': '12px',
         'polar-lg': '16px',
-        'polar-xl': '20px',
-        'polar-2xl': '24px',
-        // Shadcn defaults (mapped to polar)
-        'xl': '16px',
-        '2xl': '20px',
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
       },
       // Transition duration standards
       transitionDuration: {

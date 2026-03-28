@@ -238,7 +238,7 @@ export function ServiceTasks() {
       </div>
 
       <Tabs defaultValue="today" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 bg-white">
+        <TabsList className="grid w-full grid-cols-2 bg-card">
           <TabsTrigger value="today">Vandaag</TabsTrigger>
           <TabsTrigger value="all">Alle taken</TabsTrigger>
         </TabsList>
@@ -255,7 +255,7 @@ export function ServiceTasks() {
               {todayTasks.map((task) => (
                 <Card
                   key={task.id}
-                  className={`p-4 bg-white shadow-sm ${
+                  className={`p-4 bg-card shadow-sm ${
                     task.completed ? 'opacity-50' : ''
                   }`}
                 >
@@ -306,7 +306,7 @@ export function ServiceTasks() {
               {allTasks.map((task) => (
                 <Card
                   key={task.id}
-                  className={`p-4 bg-white shadow-sm ${
+                  className={`p-4 bg-card shadow-sm ${
                     task.completed ? 'opacity-50' : ''
                   }`}
                 >

@@ -35,10 +35,9 @@ export function PincodeLogin({ onLogin, loading, error }: PincodeLoginProps) {
   const numpadButtonStyle: React.CSSProperties = {
     width: '100%',
     height: '72px',
-    borderRadius: '20px',
+    borderRadius: '16px',
     border: '1.5px solid hsl(var(--border))',
     backgroundColor: 'hsl(var(--card))',
-    fontFamily: 'Inter, sans-serif',
     fontSize: '28px',
     fontWeight: 500,
     color: 'hsl(var(--foreground))',

@@ -10,88 +10,24 @@ export default function Kassatelling() {
 
   return (
     <SidebarLayout>
-      <div style={{
-        maxWidth: '1400px',
-        margin: '0 auto',
-        fontFamily: 'Inter, sans-serif',
-      }}>
-        {/* Eén grote moonlight card die alles omvat */}
-        <div style={{
-          backgroundColor: '#F6F7DD',
-          borderRadius: '20px',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
-          padding: '24px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
-        }}>
+      <div className="max-w-[1400px] mx-auto">
+        {/* Eén grote card die alles omvat */}
+        <div className="bg-muted rounded-lg border border-border p-6 shadow-sm">
           {/* Tab buttons bovenaan */}
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', justifyContent: 'flex-start' }}>
-            <button
-              onClick={() => setActiveTab('overdag')}
-              onMouseEnter={(e) => {
-                if (activeTab !== 'overdag') {
-                  e.currentTarget.style.backgroundColor = '#F6F7DD';
-                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeTab !== 'overdag') {
-                  e.currentTarget.style.backgroundColor = '#FEFFF1';
-                  e.currentTarget.style.boxShadow = 'none';
-                }
-              }}
-              style={{
-                minWidth: '120px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '14px',
-                fontWeight: 500,
-                padding: '10px 16px',
-                backgroundColor: activeTab === 'overdag' ? '#1B7867' : '#FEFFF1',
-                color: activeTab === 'overdag' ? '#FFFFFF' : '#282E3A',
-                border: activeTab === 'overdag' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                fontFamily: 'Inter, sans-serif',
-              }}
-            >
-              Open
-            </button>
-            
-            <button
-              onClick={() => setActiveTab('avond')}
-              onMouseEnter={(e) => {
-                if (activeTab !== 'avond') {
-                  e.currentTarget.style.backgroundColor = '#F6F7DD';
-                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeTab !== 'avond') {
-                  e.currentTarget.style.backgroundColor = '#FEFFF1';
-                  e.currentTarget.style.boxShadow = 'none';
-                }
-              }}
-              style={{
-                minWidth: '120px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '14px',
-                fontWeight: 500,
-                padding: '10px 16px',
-                backgroundColor: activeTab === 'avond' ? '#1B7867' : '#FEFFF1',
-                color: activeTab === 'avond' ? '#FFFFFF' : '#282E3A',
-                border: activeTab === 'avond' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                fontFamily: 'Inter, sans-serif',
-              }}
-            >
-              Sluit
-            </button>
+          <div className="flex gap-3 mb-6">
+            {(['overdag', 'avond'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`min-w-[120px] flex items-center justify-center text-sm font-medium px-4 py-2.5 rounded-lg cursor-pointer transition-all duration-150 ${
+                  activeTab === tab
+                    ? 'bg-primary text-primary-foreground border-transparent'
+                    : 'bg-card text-foreground border border-border hover:bg-muted hover:shadow-sm'
+                }`}
+              >
+                {tab === 'overdag' ? 'Open' : 'Sluit'}
+              </button>
+            ))}
           </div>
 
           {/* Content */}

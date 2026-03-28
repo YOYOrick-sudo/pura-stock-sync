@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 export interface PolarSkeletonProps {
   width?: string | number;
@@ -39,16 +40,17 @@ export function PolarSkeleton({
     }
   };
 
-  const getAnimationStyles = () => {
-    if (animation === 'pulse') {
+  const getAnimationClass = () => {
+    if (animation === 'pulse') return 'animate-[polar-skeleton-pulse_1.5s_ease-in-out_infinite]';
+    if (animation === 'wave') return 'animate-[polar-skeleton-wave_1.5s_ease-in-out_infinite]';
+    return '';
+  };
+
+  const getWaveStyle = () => {
+    if (animation === 'wave') {
       return {
-        animation: 'polar-skeleton-pulse 1.5s ease-in-out infinite',
-      };
-    } else if (animation === 'wave') {
-      return {
-        background: 'linear-gradient(90deg, rgba(197, 197, 202, 0.3) 25%, #FEFFF1 50%, rgba(197, 197, 202, 0.3) 75%)',
+        background: 'linear-gradient(90deg, hsl(var(--border)) 25%, hsl(var(--card)) 50%, hsl(var(--border)) 75%)',
         backgroundSize: '200% 100%',
-        animation: 'polar-skeleton-wave 1.5s ease-in-out infinite',
       };
     }
     return {};
@@ -56,10 +58,10 @@ export function PolarSkeleton({
 
   return (
     <div
+      className={cn('bg-card', getAnimationClass())}
       style={{
-        backgroundColor: '#FEFFF1',
         ...getVariantStyles(),
-        ...getAnimationStyles(),
+        ...getWaveStyle(),
       }}
     />
   );
@@ -79,14 +81,14 @@ export function PolarSkeletonGroup({
 }: PolarSkeletonGroupProps) {
   if (children) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: `${spacing}px` }}>
+      <div className="flex flex-col" style={{ gap: `${spacing}px` }}>
         {children}
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: `${spacing}px` }}>
+    <div className="flex flex-col" style={{ gap: `${spacing}px` }}>
       {Array.from({ length: count }).map((_, index) => (
         <PolarSkeleton key={index} />
       ))}

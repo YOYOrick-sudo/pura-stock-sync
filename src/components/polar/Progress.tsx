@@ -1,5 +1,5 @@
 import React from 'react';
-import { PolarColors } from './colors';
+import { cn } from '@/lib/utils';
 
 export interface PolarProgressProps {
   value: number; // 0-100
@@ -9,6 +9,19 @@ export interface PolarProgressProps {
   size?: 'small' | 'default' | 'large';
   variant?: 'default' | 'success' | 'warning' | 'error';
 }
+
+const variantColorClasses = {
+  default: 'bg-primary',
+  success: 'bg-success',
+  warning: 'bg-warning',
+  error: 'bg-destructive',
+} as const;
+
+const sizeHeightClasses = {
+  small: 'h-1',
+  default: 'h-2',
+  large: 'h-3',
+} as const;
 
 export function PolarProgress({
   value,
@@ -20,71 +33,35 @@ export function PolarProgress({
 }: PolarProgressProps) {
   const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
 
-  const sizeMap = {
-    small: 4,
-    default: 8,
-    large: 12,
-  };
-
-  const variantColors = {
-    default: PolarColors.brand.primary,
-    success: PolarColors.status.success,
-    warning: PolarColors.status.warning,
-    error: PolarColors.status.error,
-  };
-
-  const height = sizeMap[size];
-  const color = variantColors[variant];
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+    <div className="flex flex-col gap-2 w-full">
       {(label || showPercentage) && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="flex justify-between items-center">
           {label && (
-            <span
-              style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '14px',
-                fontWeight: 500,
-                color: PolarColors.text.primary,
-              }}
-            >
+            <span className="text-sm font-medium text-foreground">
               {label}
             </span>
           )}
           {showPercentage && (
-            <span
-              style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '14px',
-                fontWeight: 600,
-                color: PolarColors.text.secondary,
-              }}
-            >
+            <span className="text-sm font-semibold text-muted-foreground">
               {Math.round(percentage)}%
             </span>
           )}
         </div>
       )}
-      
+
       <div
-        style={{
-          width: '100%',
-          height: `${height}px`,
-          backgroundColor: PolarColors.background,
-          borderRadius: '999px',
-          overflow: 'hidden',
-          border: `1px solid ${PolarColors.border.default}`,
-        }}
+        className={cn(
+          'w-full rounded-full overflow-hidden border border-border bg-background',
+          sizeHeightClasses[size],
+        )}
       >
         <div
-          style={{
-            width: `${percentage}%`,
-            height: '100%',
-            backgroundColor: color,
-            transition: 'width 0.3s ease',
-            borderRadius: '999px',
-          }}
+          className={cn(
+            'h-full rounded-full transition-[width] duration-slow',
+            variantColorClasses[variant],
+          )}
+          style={{ width: `${percentage}%` }}
         />
       </div>
     </div>
@@ -100,6 +77,14 @@ export interface PolarCircularProgressProps {
   showLabel?: boolean;
 }
 
+// SVG stroke colors need to be inline or use CSS variables
+const variantStrokeColors = {
+  default: 'hsl(var(--primary))',
+  success: 'hsl(var(--success))',
+  warning: 'hsl(var(--warning))',
+  error: 'hsl(var(--destructive))',
+} as const;
+
 export function PolarCircularProgress({
   value,
   size = 80,
@@ -112,21 +97,14 @@ export function PolarCircularProgress({
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percentage / 100) * circumference;
 
-  const variantColors = {
-    default: PolarColors.brand.primary,
-    success: PolarColors.status.success,
-    warning: PolarColors.status.warning,
-    error: PolarColors.status.error,
-  };
-
-  const color = variantColors[variant];
+  const strokeColor = variantStrokeColors[variant];
 
   return (
-    <div style={{ position: 'relative', display: 'inline-flex' }}>
+    <div className="relative inline-flex">
       <svg
         width={size}
         height={size}
-        style={{ transform: 'rotate(-90deg)' }}
+        className="-rotate-90"
       >
         {/* Background circle */}
         <circle
@@ -134,7 +112,7 @@ export function PolarCircularProgress({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke={PolarColors.background}
+          stroke="hsl(var(--background))"
           strokeWidth={strokeWidth}
         />
         {/* Progress circle */}
@@ -143,29 +121,19 @@ export function PolarCircularProgress({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke={color}
+          stroke={strokeColor}
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          style={{
-            transition: 'stroke-dashoffset 0.3s ease',
-          }}
+          className="transition-[stroke-dashoffset] duration-slow"
         />
       </svg>
-      
+
       {showLabel && (
         <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            fontFamily: 'Inter, sans-serif',
-            fontSize: `${size / 4}px`,
-            fontWeight: 600,
-            color: PolarColors.text.primary,
-          }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-semibold text-foreground"
+          style={{ fontSize: `${size / 4}px` }}
         >
           {Math.round(percentage)}%
         </div>

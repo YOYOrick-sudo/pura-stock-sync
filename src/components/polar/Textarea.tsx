@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 export interface PolarTextareaProps {
   label?: string;
@@ -25,23 +26,19 @@ export function PolarTextarea({
   maxLength,
   showCharacterCount = false,
 }: PolarTextareaProps) {
-  const [isFocused, setIsFocused] = React.useState(false);
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div className="flex flex-col gap-2">
       {label && (
         <label
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            fontWeight: 500,
-            color: error ? '#E64D4D' : '#17171C',
-          }}
+          className={cn(
+            'text-sm font-medium',
+            error ? 'text-destructive' : 'text-foreground'
+          )}
         >
           {label}
         </label>
       )}
-      
+
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -49,48 +46,33 @@ export function PolarTextarea({
         disabled={disabled}
         rows={rows}
         maxLength={maxLength}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        style={{
-          fontFamily: 'Inter, sans-serif',
-          fontSize: '15px',
-          padding: '12px',
-          border: error 
-            ? '1px solid #E64D4D' 
-            : isFocused 
-            ? '1px solid #1B7867' 
-            : '1px solid #ECEDED',
-          borderRadius: '16px',
-          backgroundColor: disabled ? '#F4F5F6' : '#FFFFFF',
-          color: disabled ? '#73747B' : '#17171C',
-          outline: 'none',
-          transition: 'border-color 200ms',
-          resize: 'vertical',
-          minHeight: '80px',
-          cursor: disabled ? 'not-allowed' : 'text',
-        }}
+        className={cn(
+          'text-[15px] p-3 rounded-lg bg-card text-foreground outline-none transition-colors duration-200 resize-vertical min-h-[80px] border',
+          error
+            ? 'border-destructive'
+            : 'border-border focus:border-primary',
+          disabled && 'bg-background text-muted-foreground cursor-not-allowed',
+          !disabled && 'cursor-text'
+        )}
       />
-      
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+
+      <div className="flex justify-between items-center">
         {helperText && (
           <span
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '14px',
-              color: error ? '#E64D4D' : '#36373A',
-            }}
+            className={cn(
+              'text-sm',
+              error ? 'text-destructive' : 'text-foreground'
+            )}
           >
             {helperText}
           </span>
         )}
         {showCharacterCount && maxLength && (
           <span
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '14px',
-              color: value.length >= maxLength ? '#E64D4D' : '#73747B',
-              marginLeft: 'auto',
-            }}
+            className={cn(
+              'text-sm ml-auto',
+              value.length >= maxLength ? 'text-destructive' : 'text-muted-foreground'
+            )}
           >
             {value.length}/{maxLength}
           </span>

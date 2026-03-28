@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface PolarDatePickerProps {
   label?: string;
@@ -26,36 +27,25 @@ export function PolarDatePicker({
   maxDate,
   clearable = false,
 }: PolarDatePickerProps) {
-  const [isFocused, setIsFocused] = useState(false);
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div className="flex flex-col gap-2">
       {label && (
         <label
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            fontWeight: 500,
-            color: error ? '#E64D4D' : '#17171C',
-          }}
+          className={cn(
+            'text-sm font-medium',
+            error ? 'text-destructive' : 'text-foreground'
+          )}
         >
           {label}
         </label>
       )}
 
-      <div style={{ position: 'relative' }}>
+      <div className="relative">
         <CalendarIcon
           size={16}
-          style={{
-            position: 'absolute',
-            left: '12px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: '#36373A',
-            pointerEvents: 'none',
-          }}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground pointer-events-none"
         />
-        
+
         <input
           type="date"
           value={value}
@@ -63,63 +53,34 @@ export function PolarDatePicker({
           disabled={disabled}
           min={minDate}
           max={maxDate}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '15px',
-            padding: '10px 12px 10px 36px',
-            paddingRight: clearable && value ? '40px' : '12px',
-            border: error
-              ? '1px solid #E64D4D'
-              : isFocused
-              ? '1px solid #1B7867'
-              : '1px solid #ECEDED',
-            borderRadius: '16px',
-            backgroundColor: disabled ? '#F4F5F6' : '#FFFFFF',
-            color: disabled ? '#73747B' : '#17171C',
-            outline: 'none',
-            transition: 'border-color 200ms',
-            width: '100%',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-          }}
+          className={cn(
+            'text-[15px] py-2.5 pl-9 w-full rounded-lg bg-card text-foreground outline-none transition-colors duration-200 border',
+            clearable && value ? 'pr-10' : 'pr-3',
+            error
+              ? 'border-destructive'
+              : 'border-border focus:border-primary',
+            disabled && 'bg-background text-muted-foreground cursor-not-allowed',
+            !disabled && 'cursor-pointer'
+          )}
         />
 
         {clearable && value && !disabled && (
           <button
             type="button"
             onClick={() => onChange('')}
-            style={{
-              position: 'absolute',
-              right: '8px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: '24px',
-              height: '24px',
-              borderRadius: '6px',
-              backgroundColor: 'transparent',
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'background-color 0.15s ease',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F4F5F6'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md bg-transparent border-none flex items-center justify-center cursor-pointer transition-colors duration-150 hover:bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
           >
-            <X size={14} color="#36373A" />
+            <X size={14} className="text-foreground" />
           </button>
         )}
       </div>
 
       {helperText && (
         <span
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            color: error ? '#E64D4D' : '#36373A',
-          }}
+          className={cn(
+            'text-sm',
+            error ? 'text-destructive' : 'text-foreground'
+          )}
         >
           {helperText}
         </span>

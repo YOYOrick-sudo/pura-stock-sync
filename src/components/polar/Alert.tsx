@@ -1,6 +1,6 @@
 import React from 'react';
 import { AlertCircle, CheckCircle, Info, XCircle } from 'lucide-react';
-import { PolarColors } from './colors';
+import { cn } from '@/lib/utils';
 
 export interface PolarAlertProps {
   variant?: 'warning' | 'error' | 'success' | 'info';
@@ -9,40 +9,32 @@ export interface PolarAlertProps {
   onDismiss?: () => void;
 }
 
-export function PolarAlert({ 
-  variant = 'info', 
-  children, 
-  action,
-  onDismiss 
-}: PolarAlertProps) {
-  const colors = {
-    warning: {
-      icon: PolarColors.status.error,
-      bg: PolarColors.status.errorLight,
-      border: PolarColors.status.errorBorder,
-      text: PolarColors.text.primary,
-    },
-    error: {
-      icon: PolarColors.status.error,
-      bg: PolarColors.status.errorLight,
-      border: PolarColors.status.errorBorder,
-      text: PolarColors.text.primary,
-    },
-    success: {
-      icon: PolarColors.status.success,
-      bg: PolarColors.status.successLight,
-      border: PolarColors.status.successBorder,
-      text: PolarColors.text.primary,
-    },
-    info: {
-      icon: PolarColors.status.info,
-      bg: PolarColors.status.infoLight,
-      border: PolarColors.status.infoBorder,
-      text: PolarColors.text.primary,
-    },
-  };
+const variantClasses = {
+  warning: {
+    container: 'bg-warning-bg border-warning-border',
+    icon: 'text-warning',
+  },
+  error: {
+    container: 'bg-destructive-bg border-destructive-border',
+    icon: 'text-destructive',
+  },
+  success: {
+    container: 'bg-success-bg border-success-border',
+    icon: 'text-success',
+  },
+  info: {
+    container: 'bg-info-bg border-info-border',
+    icon: 'text-info',
+  },
+} as const;
 
-  const style = colors[variant];
+export function PolarAlert({
+  variant = 'info',
+  children,
+  action,
+  onDismiss,
+}: PolarAlertProps) {
+  const classes = variantClasses[variant];
 
   const icons = {
     warning: <AlertCircle size={20} />,
@@ -53,32 +45,18 @@ export function PolarAlert({
 
   return (
     <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        padding: '12px 16px',
-        backgroundColor: style.bg,
-        border: `1px solid ${style.border}`,
-        borderRadius: '16px',
-        fontFamily: 'Inter, sans-serif',
-      }}
+      className={cn(
+        'flex items-center gap-3 px-4 py-3 border rounded-lg',
+        classes.container,
+      )}
     >
-      <div style={{ color: style.icon, display: 'flex', flexShrink: 0 }}>
+      <div className={cn('flex shrink-0', classes.icon)}>
         {icons[variant]}
       </div>
-      <div
-        style={{
-          flex: 1,
-          fontSize: '15px',
-          fontWeight: 400,
-          color: style.text,
-          lineHeight: '22px',
-        }}
-      >
+      <div className="flex-1 text-[15px] font-normal text-foreground leading-[22px]">
         {children}
       </div>
-      {action && <div style={{ flexShrink: 0 }}>{action}</div>}
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   );
 }

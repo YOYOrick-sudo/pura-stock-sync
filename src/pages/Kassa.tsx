@@ -28,15 +28,15 @@ const getWeekNumber = (date: Date): number => {
 
 // Fixed starting balance that should always remain in the register
 const BEGINSALDO_VERDELING = {
-  '20': 2,    // 2 × €20 = €40
-  '10': 5,    // 5 × €10 = €50
-  '5': 5,     // 5 × €5 = €25
-  '2': 10,    // 10 × €2 = €20
-  '1': 10,    // 10 × €1 = €10
-  '0.50': 10, // 10 × €0,50 = €5
-  '0.20': 20, // 20 × €0,20 = €4
-  '0.10': 20, // 20 × €0,10 = €2
-  '0.05': 20, // 20 × €0,05 = €1
+  '20': 2,    // 2 x €20 = €40
+  '10': 5,    // 5 x €10 = €50
+  '5': 5,     // 5 x €5 = €25
+  '2': 10,    // 10 x €2 = €20
+  '1': 10,    // 10 x €1 = €10
+  '0.50': 10, // 10 x €0,50 = €5
+  '0.20': 20, // 20 x €0,20 = €4
+  '0.10': 20, // 20 x €0,10 = €2
+  '0.05': 20, // 20 x €0,05 = €1
 };
 
 const Kassa = () => {
@@ -69,7 +69,7 @@ const Kassa = () => {
 
   const [cashOmzet, setCashOmzet] = useState<number | ''>('');
   const [opmerkingen, setOpmerkingen] = useState('');
-  
+
   // Validation states
   const [errors, setErrors] = useState({
     naam: '',
@@ -80,15 +80,15 @@ const Kassa = () => {
   // Check throttling status
   useEffect(() => {
     if (!userLocation) return;
-    
+
     const checkSubmitAvailability = () => {
       const key = `kassatelling_last_submit_${userLocation}_sluit`;
       const lastSubmit = localStorage.getItem(key);
-      
+
       if (lastSubmit) {
         const elapsed = Date.now() - parseInt(lastSubmit);
         const remaining = (10 * 60 * 1000) - elapsed;
-        
+
         if (remaining > 0) {
           setCanSubmit(false);
           setTimeRemaining(Math.ceil(remaining / 1000));
@@ -98,10 +98,10 @@ const Kassa = () => {
         }
       }
     };
-    
+
     checkSubmitAvailability();
     const interval = setInterval(checkSubmitAvailability, 1000);
-    
+
     return () => clearInterval(interval);
   }, [userLocation]);
 
@@ -185,7 +185,7 @@ const Kassa = () => {
       kasverschil: kasverschil,
       opmerkingen: opmerkingen
     };
-    
+
     try {
       await fetch('https://jaapies.app.n8n.cloud/webhook/kassa-afdracht', {
         method: 'POST',
@@ -198,7 +198,7 @@ const Kassa = () => {
       localStorage.setItem(key, Date.now().toString());
       setCanSubmit(false);
       setTimeRemaining(10 * 60);
-      
+
       setShowSuccessDialog(true);
     } catch (error) {
       console.error('Fout bij verzenden:', error);
@@ -206,56 +206,39 @@ const Kassa = () => {
     }
   };
 
+  const isDisabled = !canSubmit || !naam || naam.length < 2 || cashOmzet === '';
+
   return (
-    <div style={{ fontFamily: 'Inter, sans-serif' }}>
+    <div>
       {/* Main Content */}
-      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px', alignItems: 'start' }}>
+      <div className="max-w-[1400px] mx-auto">
+        <div className="grid grid-cols-[1fr_400px] gap-6 items-start">
           {/* Denomination table */}
-          <div style={{
-            backgroundColor: '#FEFFF1',
-            borderRadius: '20px',
-            border: '1px solid rgba(197, 197, 202, 0.5)',
-            overflow: 'hidden',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
-          }}>
-            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderBottom: '1px solid rgba(197, 197, 202, 0.5)' }}>
-              <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <div className="bg-card rounded-lg border border-border overflow-hidden shadow-sm">
+            <div className="bg-card px-4 py-3 border-b border-border">
+              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">
                 Kassa Lade
               </h2>
             </div>
-            <div style={{ overflowX: 'auto', backgroundColor: '#FEFFF1', padding: '16px' }}>
-              <table style={{ width: '100%', fontFamily: 'Inter, sans-serif' }}>
+            <div className="overflow-x-auto bg-card p-4">
+              <table className="w-full">
                 <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.3)' }}>
-                    <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#73747B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bedrag</th>
-                    <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#73747B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Aantal</th>
+                  <tr className="border-b border-border">
+                    <th className="px-3 py-2 text-left font-semibold text-muted-foreground text-xs uppercase tracking-wide">Bedrag</th>
+                    <th className="px-3 py-2 text-center font-semibold text-muted-foreground text-xs uppercase tracking-wide">Aantal</th>
                   </tr>
                 </thead>
                 <tbody>
                   {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom, index) => (
-                    <tr key={denom} style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
-                      <td style={{ padding: '6px 12px', color: '#282E3A', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid rgba(197, 197, 202, 0.3)' }}>€{denom.replace('.', ',')}</td>
-                      <td style={{ padding: '6px 12px', textAlign: 'center' }}>
-                        <input 
-                          type="number" 
-                          value={counts[denom as keyof typeof counts]} 
+                    <tr key={denom} className="border-b border-border/20">
+                      <td className="px-3 py-1.5 text-foreground font-mono text-sm border-r border-border/30">{'\u20AC'}{denom.replace('.', ',')}</td>
+                      <td className="px-3 py-1.5 text-center">
+                        <input
+                          type="number"
+                          value={counts[denom as keyof typeof counts]}
                           onChange={(e) => updateCount(denom, e.target.value === '' ? '' : parseInt(e.target.value))}
-                          min={0} 
-                          style={{
-                            width: '80px',
-                            padding: '6px 8px',
-                            textAlign: 'center',
-                            border: '1px solid rgba(197, 197, 202, 0.5)',
-                            borderRadius: '16px',
-                            backgroundColor: '#FEFFF1',
-                            fontFamily: 'monospace',
-                            fontSize: '14px',
-                            color: '#282E3A',
-                            outline: 'none',
-                          }}
-                          onFocus={(e) => e.target.style.borderColor = '#1B7867'}
-                          onBlur={(e) => e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)'}
+                          min={0}
+                          className="w-20 px-2 py-1.5 text-center border border-border rounded-md bg-card font-mono text-sm text-foreground outline-none focus:border-primary"
                         />
                       </td>
                     </tr>
@@ -263,66 +246,57 @@ const Kassa = () => {
                 </tbody>
               </table>
             </div>
-            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
-                <span style={{ fontSize: '24px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>€{calculateTotal().toFixed(2).replace('.', ',')}</span>
+            <div className="bg-card px-4 py-3 border-t border-border">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-foreground text-xs uppercase tracking-wide">Totaal</span>
+                <span className="text-2xl font-bold text-primary">{'\u20AC'}{calculateTotal().toFixed(2).replace('.', ',')}</span>
               </div>
             </div>
           </div>
 
           {/* Right side: Summary card */}
-          <div style={{ position: 'sticky', top: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="sticky top-6 flex flex-col gap-4">
             {/* Beginsaldo Reference - Collapsible */}
             <Collapsible open={beginsaldoExpanded} onOpenChange={setBeginsaldoExpanded}>
-              <div style={{
-                backgroundColor: '#FEFFF1',
-                borderRadius: '20px',
-                border: '1px solid rgba(197, 197, 202, 0.5)',
-                overflow: 'hidden',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
-              }}>
-                
+              <div className="bg-card rounded-lg border border-border overflow-hidden shadow-sm">
+
                 {/* Clickable header met icon en pijltje */}
-                <CollapsibleTrigger style={{ width: '100%', padding: '12px 16px', backgroundColor: '#FEFFF1', cursor: 'pointer', border: 'none', transition: 'background-color 0.15s' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F6F7DD'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FEFFF1'}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Wallet style={{ width: '16px', height: '16px', color: '#1B7867' }} />
-                      <span style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <CollapsibleTrigger className="w-full px-4 py-3 bg-card cursor-pointer border-none transition-colors hover:bg-muted">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Wallet className="w-4 h-4 text-primary" />
+                      <span className="text-xs font-semibold text-foreground uppercase tracking-wide">
                         Beginsaldo (blijft in kassa)
                       </span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '18px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>
-                        €{Object.entries(BEGINSALDO_VERDELING).reduce((sum, [denom, count]) => sum + (parseFloat(denom) * count), 0).toFixed(2).replace('.', ',')}
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-bold text-primary">
+                        {'\u20AC'}{Object.entries(BEGINSALDO_VERDELING).reduce((sum, [denom, count]) => sum + (parseFloat(denom) * count), 0).toFixed(2).replace('.', ',')}
                       </span>
-                      <ChevronDown 
-                        style={{ width: '16px', height: '16px', color: '#1B7867', transition: 'transform 0.2s', transform: beginsaldoExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} 
+                      <ChevronDown
+                        className={`w-4 h-4 text-primary transition-transform duration-200 ${beginsaldoExpanded ? 'rotate-180' : ''}`}
                       />
                     </div>
                   </div>
                 </CollapsibleTrigger>
-                
+
                 {/* Uitklapbare content met denominaties */}
                 <CollapsibleContent>
-                  <div style={{ padding: '12px 16px', backgroundColor: '#FEFFF1', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
+                  <div className="px-4 py-3 bg-card border-t border-border">
                     {Object.entries(BEGINSALDO_VERDELING)
                       .sort((a, b) => parseFloat(b[0]) - parseFloat(a[0]))
                       .map(([denom, count]) => (
-                      <div key={denom} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
-                        <span style={{ fontFamily: 'monospace', fontSize: '13px', color: '#282E3A' }}>€{denom.replace('.', ',')} × {count}</span>
-                        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#73747B' }}>
-                          €{(parseFloat(denom) * count).toFixed(2).replace('.', ',')}
+                      <div key={denom} className="flex justify-between py-1.5 border-b border-border/20">
+                        <span className="font-mono text-[13px] text-foreground">{'\u20AC'}{denom.replace('.', ',')} x {count}</span>
+                        <span className="text-[13px] text-muted-foreground">
+                          {'\u20AC'}{(parseFloat(denom) * count).toFixed(2).replace('.', ',')}
                         </span>
                       </div>
                     ))}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', marginTop: '8px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
-                      <span style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
-                      <span style={{ fontSize: '18px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>
-                        €{Object.entries(BEGINSALDO_VERDELING).reduce((sum, [denom, count]) => sum + (parseFloat(denom) * count), 0).toFixed(2).replace('.', ',')}
+                    <div className="flex justify-between py-2 mt-2 border-t border-border">
+                      <span className="text-xs font-semibold text-foreground uppercase tracking-wide">Totaal</span>
+                      <span className="text-lg font-bold text-primary">
+                        {'\u20AC'}{Object.entries(BEGINSALDO_VERDELING).reduce((sum, [denom, count]) => sum + (parseFloat(denom) * count), 0).toFixed(2).replace('.', ',')}
                       </span>
                     </div>
                   </div>
@@ -331,147 +305,102 @@ const Kassa = () => {
             </Collapsible>
 
             {/* Summary card */}
-            <div style={{
-              backgroundColor: '#FEFFF1',
-              borderRadius: '20px',
-              border: '1px solid rgba(197, 197, 202, 0.5)',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
-              padding: '16px'
-            }}>
+            <div className="bg-card rounded-lg border border-border shadow-sm p-4">
               {/* Totaal - meest prominent */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
-                <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm font-medium text-muted-foreground">
                   Totaal
                 </span>
-                <span style={{ fontSize: '30px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>
-                  €{total.toFixed(2).replace('.', ',')}
+                <span className="text-3xl font-bold text-primary">
+                  {'\u20AC'}{total.toFixed(2).replace('.', ',')}
                 </span>
               </div>
 
-              <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '8px 0' }}></div>
+              <div className="border-t border-border/30 my-2"></div>
 
               {/* Cash omzet - compacter */}
-              <div style={{ padding: '4px 0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-                  <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+              <div className="py-1">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-sm font-medium text-muted-foreground">
                     Cash omzet (Lightspeed)
                   </span>
-                  <input 
-                    type="number" 
-                    value={cashOmzet} 
+                  <input
+                    type="number"
+                    value={cashOmzet}
                     onChange={(e) => {
                       setCashOmzet(e.target.value === '' ? '' : parseFloat(e.target.value));
                       if (errors.cashOmzet) setErrors(prev => ({ ...prev, cashOmzet: '' }));
                     }}
                     min={0}
-                    style={{
-                      width: '96px',
-                      padding: '6px 8px',
-                      textAlign: 'right',
-                      fontSize: '18px',
-                      fontFamily: 'Inter, sans-serif',
-                      fontWeight: 700,
-                      color: '#282E3A',
-                      border: errors.cashOmzet ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
-                      borderRadius: '16px',
-                      backgroundColor: '#FEFFF1',
-                      outline: 'none',
-                      transition: 'border-color 0.15s'
-                    }}
-                    onFocus={(e) => !errors.cashOmzet && (e.target.style.borderColor = '#1B7867')}
-                    onBlur={(e) => !errors.cashOmzet && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
+                    className={`w-24 px-2 py-1.5 text-right text-lg font-bold text-foreground border rounded-md bg-card outline-none transition-colors focus:border-primary ${errors.cashOmzet ? 'border-destructive' : 'border-border'}`}
                   />
                 </div>
                 {errors.cashOmzet && (
-                  <p style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px', textAlign: 'right', fontFamily: 'Inter, sans-serif' }}>{errors.cashOmzet}</p>
+                  <p className="text-xs text-destructive mt-1 text-right">{errors.cashOmzet}</p>
                 )}
               </div>
 
-              <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '8px 0' }}></div>
+              <div className="border-t border-border/30 my-2"></div>
 
               {/* Naam medewerker */}
-              <div style={{ padding: '4px 0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-                  <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+              <div className="py-1">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-sm font-medium text-muted-foreground">
                     Naam medewerker
                   </span>
-                  <input 
-                    type="text" 
-                    value={naam} 
+                  <input
+                    type="text"
+                    value={naam}
                     onChange={(e) => {
                       setNaam(e.target.value);
                       if (errors.naam) setErrors(prev => ({ ...prev, naam: '' }));
                     }}
                     placeholder="Vul je naam in"
-                    style={{
-                      width: '192px',
-                      padding: '6px 8px',
-                      textAlign: 'right',
-                      fontSize: '14px',
-                      fontFamily: 'Inter, sans-serif',
-                      color: '#282E3A',
-                      border: errors.naam ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
-                      borderRadius: '16px',
-                      backgroundColor: '#FEFFF1',
-                      outline: 'none',
-                      transition: 'border-color 0.15s'
-                    }}
-                    onFocus={(e) => !errors.naam && (e.target.style.borderColor = '#1B7867')}
-                    onBlur={(e) => !errors.naam && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
+                    className={`w-48 px-2 py-1.5 text-right text-sm text-foreground border rounded-md bg-card outline-none transition-colors focus:border-primary ${errors.naam ? 'border-destructive' : 'border-border'}`}
                   />
                 </div>
                 {errors.naam && (
-                  <p style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px', textAlign: 'right', fontFamily: 'Inter, sans-serif' }}>{errors.naam}</p>
+                  <p className="text-xs text-destructive mt-1 text-right">{errors.naam}</p>
                 )}
               </div>
 
-              <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '8px 0' }}></div>
+              <div className="border-t border-border/30 my-2"></div>
 
               {/* Afdracht - compacter met kleinere uitleg */}
-              <div style={{ padding: '4px 0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+              <div className="py-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">
                     Afdracht / Envelop
                   </span>
-                  <span style={{
-                    fontSize: '24px',
-                    fontFamily: 'Inter, sans-serif',
-                    fontWeight: 700,
-                    color: afdracht > 0 ? '#1B7867' : '#9CA3AF'
-                  }}>
-                    €{afdracht.toFixed(2).replace('.', ',')}
+                  <span className={`text-2xl font-bold ${afdracht > 0 ? 'text-primary' : 'text-muted-foreground'}`}>
+                    {'\u20AC'}{afdracht.toFixed(2).replace('.', ',')}
                   </span>
                 </div>
-                <p style={{ fontSize: '12px', color: '#73747B', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>
-                  {total >= DOELSALDO 
-                    ? `Leg €${afdracht.toFixed(2).replace('.', ',')} in de envelop, laat €${DOELSALDO.toFixed(2).replace('.', ',')} in de lade.`
-                    : `Aanvullen uit wisselkassa: €${(DOELSALDO - total).toFixed(2).replace('.', ',')} om de lade op €${DOELSALDO.toFixed(2).replace('.', ',')} te brengen.`
+                <p className="text-xs text-muted-foreground mt-1">
+                  {total >= DOELSALDO
+                    ? `Leg \u20AC${afdracht.toFixed(2).replace('.', ',')} in de envelop, laat \u20AC${DOELSALDO.toFixed(2).replace('.', ',')} in de lade.`
+                    : `Aanvullen uit wisselkassa: \u20AC${(DOELSALDO - total).toFixed(2).replace('.', ',')} om de lade op \u20AC${DOELSALDO.toFixed(2).replace('.', ',')} te brengen.`
                   }
                 </p>
               </div>
 
-              <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '8px 0' }}></div>
+              <div className="border-t border-border/30 my-2"></div>
 
               {/* Kasverschil - prominente kleurcodering */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
-                <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm font-medium text-muted-foreground">
                   Kasverschil
                 </span>
-                <span style={{
-                  fontSize: '24px',
-                  fontFamily: 'Inter, sans-serif',
-                  fontWeight: 700,
-                  color: kasverschil > 0 ? '#16A34A' : kasverschil < 0 ? '#DC2626' : '#282E3A'
-                }}>
-                  €{kasverschil.toFixed(2).replace('.', ',')}
+                <span className={`text-2xl font-bold ${kasverschil > 0 ? 'text-green-600' : kasverschil < 0 ? 'text-destructive' : 'text-foreground'}`}>
+                  {'\u20AC'}{kasverschil.toFixed(2).replace('.', ',')}
                 </span>
               </div>
 
-              <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '8px 0' }}></div>
+              <div className="border-t border-border/30 my-2"></div>
 
               {/* Opmerkingen - compacter label */}
-              <div style={{ padding: '4px 0' }}>
-                <label htmlFor="opmerkingen" style={{ display: 'block', fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B', marginBottom: '6px' }}>
+              <div className="py-1">
+                <label htmlFor="opmerkingen" className="block text-sm font-medium text-muted-foreground mb-1.5">
                   Opmerkingen
                 </label>
                 <textarea
@@ -482,101 +411,37 @@ const Kassa = () => {
                     if (errors.opmerkingen) setErrors(prev => ({ ...prev, opmerkingen: '' }));
                   }}
                   placeholder="Voeg hier eventuele opmerkingen toe..."
-                  style={{
-                    width: '100%',
-                    minHeight: '80px',
-                    padding: '8px 12px',
-                    fontFamily: 'monospace',
-                    fontSize: '14px',
-                    color: '#282E3A',
-                    border: errors.opmerkingen ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
-                    borderRadius: '16px',
-                    backgroundColor: '#FEFFF1',
-                    outline: 'none',
-                    resize: 'vertical',
-                    transition: 'border-color 0.15s',
-                    whiteSpace: 'pre-wrap'
-                  }}
-                  onFocus={(e) => !errors.opmerkingen && (e.target.style.borderColor = '#1B7867')}
-                  onBlur={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
+                  className={`w-full min-h-[80px] px-3 py-2 font-mono text-sm text-foreground border rounded-md bg-card outline-none resize-y transition-colors whitespace-pre-wrap focus:border-primary ${errors.opmerkingen ? 'border-destructive' : 'border-border'}`}
                 />
                 {errors.opmerkingen && (
-                  <p style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>{errors.opmerkingen}</p>
+                  <p className="text-xs text-destructive mt-1">{errors.opmerkingen}</p>
                 )}
               </div>
 
               {/* Verzenden button */}
-              <div style={{ marginTop: '16px' }}>
+              <div className="mt-4">
                 {!canSubmit && timeRemaining > 0 && (
-                  <p style={{ fontSize: '12px', color: '#73747B', marginBottom: '8px', textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>
+                  <p className="text-xs text-muted-foreground mb-2 text-center">
                     Je kunt over {Math.floor(timeRemaining / 60)}m {timeRemaining % 60}s opnieuw indienen
                   </p>
                 )}
-                <button 
+                <button
                   onClick={handleSubmit}
-                  disabled={!canSubmit || !naam || naam.length < 2 || cashOmzet === ''}
-                  style={{
-                    width: '100%',
-                    padding: '20px',
-                    fontFamily: 'Inter, sans-serif',
-                    fontWeight: 600,
-                    fontSize: '18px',
-                    backgroundColor: (!canSubmit || !naam || naam.length < 2 || cashOmzet === '') ? '#D1D5DB' : '#1B7867',
-                    color: '#FEFFF1',
-                    border: 'none',
-                    borderRadius: '20px',
-                    cursor: (!canSubmit || !naam || naam.length < 2 || cashOmzet === '') ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.15s',
-                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!(!canSubmit || !naam || naam.length < 2 || cashOmzet === '')) {
-                      e.currentTarget.style.backgroundColor = '#145f55';
-                      e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.15)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!(!canSubmit || !naam || naam.length < 2 || cashOmzet === '')) {
-                      e.currentTarget.style.backgroundColor = '#1B7867';
-                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
-                    } else {
-                      e.currentTarget.style.backgroundColor = '#D1D5DB';
-                    }
-                  }}
+                  disabled={isDisabled}
+                  className={`w-full p-5 font-semibold text-lg text-white border-none rounded-lg transition-all shadow-sm ${
+                    isDisabled
+                      ? 'bg-input cursor-not-allowed'
+                      : 'bg-primary cursor-pointer hover:bg-primary/90 hover:shadow-md'
+                  }`}
                 >
                   {!canSubmit ? 'Wacht alsjeblieft...' : 'Verzenden'}
                 </button>
-                
+
                 <button
                   onClick={() => setShowInstructionsDialog(true)}
-                  style={{
-                    width: '100%',
-                    marginTop: '8px',
-                    padding: '10px 20px',
-                    fontFamily: 'Inter, sans-serif',
-                    fontWeight: 500,
-                    fontSize: '14px',
-                    backgroundColor: '#FEFFF1',
-                    color: '#1B7867',
-                    border: '1px solid rgba(197, 197, 202, 0.5)',
-                    borderRadius: '20px',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#F6F7DD';
-                    e.currentTarget.style.borderColor = '#1B7867';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#FEFFF1';
-                    e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.5)';
-                  }}
+                  className="w-full mt-2 py-2.5 px-5 font-medium text-sm bg-card text-primary border border-border rounded-lg cursor-pointer transition-all flex items-center justify-center gap-2 hover:bg-muted hover:border-primary"
                 >
-                  <Info style={{ width: '16px', height: '16px' }} />
+                  <Info className="w-4 h-4" />
                   Instructies
                 </button>
               </div>
@@ -587,25 +452,25 @@ const Kassa = () => {
 
       {/* Success Dialog */}
       <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <AlertDialogContent className="bg-white">
+        <AlertDialogContent className="bg-card">
           <div className="text-center">
-            <CheckCircle2 className="w-16 h-16 text-[#1B7867] mx-auto mb-4" />
-            
-            <AlertDialogTitle className="text-2xl font-heading font-bold text-[#282E3A]">
+            <CheckCircle2 className="w-16 h-16 text-primary mx-auto mb-4" />
+
+            <AlertDialogTitle className="text-2xl font-heading font-bold text-foreground">
               Kassatelling Verzonden!
             </AlertDialogTitle>
-            
-            <AlertDialogDescription className="text-[#282E3A]/70 mt-4">
+
+            <AlertDialogDescription className="text-foreground/70 mt-4">
               Verzonden door {naam}<br/>
               {new Date().toLocaleString('nl-NL')}
             </AlertDialogDescription>
-            
-            <AlertDialogAction 
+
+            <AlertDialogAction
               onClick={() => {
                 setShowSuccessDialog(false);
                 navigate('/dashboard');
               }}
-              className="mt-6 bg-[#1B7867] hover:bg-[#1B7867]/90"
+              className="mt-6 bg-primary hover:bg-primary/90"
             >
               Terug naar Dashboard
             </AlertDialogAction>
@@ -617,76 +482,76 @@ const Kassa = () => {
       <Dialog open={showInstructionsDialog} onOpenChange={setShowInstructionsDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-heading font-bold text-[#282E3A]">
+            <DialogTitle className="text-xl font-heading font-bold text-foreground">
               Instructies Kassatelling Avond
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="mt-4">
             <ol className="space-y-4">
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
                 <div>
-                  <span className="font-heading font-medium text-[#282E3A]">Print dagomzet</span>
-                  <p className="text-sm text-[#282E3A]/70 mt-1">Print omzet uit in Lightspeed. Check open en niet-gefinancierde tafels → verplaats naar tafel 100 of 101.</p>
+                  <span className="font-heading font-medium text-foreground">Print dagomzet</span>
+                  <p className="text-sm text-foreground/70 mt-1">Print omzet uit in Lightspeed. Check open en niet-gefinancierde tafels {'\u2192'} verplaats naar tafel 100 of 101.</p>
                 </div>
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
                 <div>
-                  <span className="font-heading font-medium text-[#282E3A]">Finaliseer betalingen</span>
-                  <p className="text-sm text-[#282E3A]/70 mt-1">Betaalde maar niet-gefinaliseerde tafels handmatig afronden.</p>
+                  <span className="font-heading font-medium text-foreground">Finaliseer betalingen</span>
+                  <p className="text-sm text-foreground/70 mt-1">Betaalde maar niet-gefinaliseerde tafels handmatig afronden.</p>
                 </div>
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
                 <div>
-                  <span className="font-heading font-medium text-[#282E3A]">Vul naam in</span>
-                  <p className="text-sm text-[#282E3A]/70 mt-1">Vul je naam in bij "Naam medewerker".</p>
+                  <span className="font-heading font-medium text-foreground">Vul naam in</span>
+                  <p className="text-sm text-foreground/70 mt-1">Vul je naam in bij "Naam medewerker".</p>
                 </div>
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
                 <div>
-                  <span className="font-heading font-medium text-[#282E3A]">Noteer cash omzet</span>
-                  <p className="text-sm text-[#282E3A]/70 mt-1">Voer het cash bedrag uit Lightspeed in.</p>
+                  <span className="font-heading font-medium text-foreground">Noteer cash omzet</span>
+                  <p className="text-sm text-foreground/70 mt-1">Voer het cash bedrag uit Lightspeed in.</p>
                 </div>
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
                 <div>
-                  <span className="font-heading font-medium text-[#282E3A]">Tel de kassa</span>
-                  <p className="text-sm text-[#282E3A]/70 mt-1">Vul alle denominaties in de velden in.</p>
+                  <span className="font-heading font-medium text-foreground">Tel de kassa</span>
+                  <p className="text-sm text-foreground/70 mt-1">Vul alle denominaties in de velden in.</p>
                 </div>
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">6</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">6</span>
                 <div>
-                  <span className="font-heading font-medium text-[#282E3A]">Controleer kassalade</span>
-                  <p className="text-sm text-[#282E3A]/70 mt-1">De kassalade moet altijd €157 bevatten. Vul indien nodig aan vanuit de wisselkassa.</p>
-                  <p className="text-xs text-amber-600/80 mt-1 font-medium">💡 Belangrijk voor zowel Midsland als West</p>
+                  <span className="font-heading font-medium text-foreground">Controleer kassalade</span>
+                  <p className="text-sm text-foreground/70 mt-1">De kassalade moet altijd {'\u20AC'}157 bevatten. Vul indien nodig aan vanuit de wisselkassa.</p>
+                  <p className="text-xs text-amber-600/80 mt-1 font-medium">Belangrijk voor zowel Midsland als West</p>
                 </div>
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">7</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">7</span>
                 <div>
-                  <span className="font-heading font-medium text-[#282E3A]">Noteer bijzonderheden</span>
-                  <p className="text-sm text-[#282E3A]/70 mt-1">Vermeld tekorten, plussen of andere afwijkingen.</p>
-                  <p className="text-xs text-red-600/80 mt-1 font-medium">⚠️ Altijd melden bij verschillen!</p>
+                  <span className="font-heading font-medium text-foreground">Noteer bijzonderheden</span>
+                  <p className="text-sm text-foreground/70 mt-1">Vermeld tekorten, plussen of andere afwijkingen.</p>
+                  <p className="text-xs text-red-600/80 mt-1 font-medium">Altijd melden bij verschillen!</p>
                 </div>
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">8</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">8</span>
                 <div>
-                  <span className="font-heading font-medium text-[#282E3A]">Verzend</span>
-                  <p className="text-sm text-[#282E3A]/70 mt-1">Klik op "Verzenden" om de kassatelling te versturen.</p>
+                  <span className="font-heading font-medium text-foreground">Verzend</span>
+                  <p className="text-sm text-foreground/70 mt-1">Klik op "Verzenden" om de kassatelling te versturen.</p>
                 </div>
               </li>
             </ol>
