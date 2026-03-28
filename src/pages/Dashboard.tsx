@@ -8,8 +8,6 @@ import { PolarKPICard } from '@/components/polar';
 import { CheckCircle, AlertCircle, Clock, ListTodo, Package } from 'lucide-react';
 import { HandoverCard } from '@/components/HandoverCard';
 import { IdeaBox } from '@/components/dashboard/IdeaBox';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
 
 const puraVidaQuotesWest = [
   "Geniet van de kleine dingen vandaag",
