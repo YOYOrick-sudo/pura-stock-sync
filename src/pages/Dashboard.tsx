@@ -513,7 +513,7 @@ export default function Dashboard() {
             count={pendingTasks || 0}
             onClick={() => navigate('/taken-bediening')}
             isLoading={loadingTasks}
-            icon={<ListTodo size={16} color="#1B7867" />}
+            icon={<ListTodo size={16} className="text-primary" />}
           />
           
           <WeatherWidget
