@@ -183,7 +183,7 @@ const getVoorraadStatus = () => {
     status: 'ok',
     color: 'text-primary',
     bgColor: 'bg-green-50',
-    borderColor: 'border-l-[#1B7867]',
+    borderColor: 'border-l-primary',
     message: `Over ${daysUntil} dagen`,
     subtitle: lastSubmitted ? `Laatst: ${lastSubmitted.split(',')[0]}` : 'Nog niet ingediend'
   };
