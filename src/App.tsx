@@ -23,6 +23,7 @@ import DesignSystem from "./pages/DesignSystem";
 import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } from "./pages/hr";
 // Maintenance Module
 import Onderhoud from "./pages/maintenance/Onderhoud";
+import Unsubscribe from "./pages/Unsubscribe";
 const queryClient = new QueryClient();
 
 const App = () => (
