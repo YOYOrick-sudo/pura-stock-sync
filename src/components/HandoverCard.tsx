@@ -76,7 +76,7 @@ export const HandoverCard = () => {
     queryClient.invalidateQueries({ queryKey: ['handover-memo', userLocation] });
   };
 
-  const cardClasses = "bg-card border border-border rounded-lg shadow-sm";
+  const cardClasses = "bg-card border border-border/60 rounded-md shadow";
 
   if (isLoading) {
     return (

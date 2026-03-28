@@ -119,9 +119,12 @@ export default {
         },
       },
       boxShadow: {
-        // Use Tailwind defaults (shadow-sm, shadow-md, shadow-lg) for most cases
-        // Only keep soft for backward compat during migration
-        'soft': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+        /* Premium layered shadow system — depth through light, not darkness */
+        'sm': '0 1px 2px rgb(0 0 0 / 0.03), 0 1px 3px rgb(0 0 0 / 0.02)',
+        'DEFAULT': '0 1px 3px rgb(0 0 0 / 0.04), 0 4px 12px rgb(0 0 0 / 0.03)',
+        'md': '0 2px 4px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04)',
+        'lg': '0 4px 8px rgb(0 0 0 / 0.04), 0 12px 40px rgb(0 0 0 / 0.06)',
+        'soft': '0 1px 2px rgb(0 0 0 / 0.03), 0 1px 3px rgb(0 0 0 / 0.02)',
       },
       borderRadius: {
         // 3-tier system: sm (8px), md (12px), lg (16px)

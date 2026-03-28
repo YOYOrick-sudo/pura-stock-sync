@@ -223,7 +223,7 @@ const DashboardCard = ({ title, count, onClick, isLoading, icon }: DashboardCard
   return (
     <div
       onClick={onClick}
-      className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md rounded-lg"
+      className="cursor-pointer rounded-md"
     >
       <PolarKPICard
         compact
@@ -255,7 +255,7 @@ const VoorraadCard = () => {
   };
   
   return (
-    <div onClick={() => navigate('/internal-orders')} className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md rounded-lg">
+    <div onClick={() => navigate('/internal-orders')} className="cursor-pointer rounded-md">
       <PolarKPICard
         compact
         title="Telling & Bestelling"
@@ -285,7 +285,7 @@ const DeliveryCard = ({ hasOrderThisWeek, isLoading, onClick }: DeliveryCardProp
     : { bg: 'transparent', text: 'hsl(var(--muted-foreground))', icon: <Package size={16} className="text-primary" /> };
   
   return (
-    <div onClick={onClick} className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md rounded-lg">
+    <div onClick={onClick} className="cursor-pointer rounded-md">
       <PolarKPICard
         compact
         title="Levering van West"
@@ -473,18 +473,18 @@ export default function Dashboard() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto space-y-8">
         {/* Greeting */}
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">
+        <div className="flex flex-col gap-1.5 pb-2">
+          <h1 className="text-xl font-medium text-foreground tracking-[-0.015em]">
             {greeting}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            {todayFormatted} — <span className="italic">{dailyQuote}</span>
+          <p className="text-[13px] text-muted-foreground">
+            {todayFormatted} &middot; <span className="italic">{dailyQuote}</span>
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <DashboardCard
             title="Openstaande Taken"
             count={pendingTasks || 0}

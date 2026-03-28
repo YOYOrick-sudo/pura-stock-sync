@@ -57,9 +57,9 @@ export function PolarKPICard({
   if (compact) {
     return (
       <div
-        className="bg-card border border-border rounded-lg p-5 flex flex-col gap-2 h-full min-h-[140px] shadow-sm transition-all duration-200"
+        className="bg-card border border-border/60 rounded-md p-6 flex flex-col gap-1.5 h-full min-h-[148px] shadow hover:shadow-md transition-all duration-300"
       >
-        <div className="text-[13px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+        <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-[0.06em] flex items-center gap-2">
           {statusColor?.icon && (
             <span style={{ color: statusColor.text }} className="flex items-center">
               {statusColor.icon}
@@ -67,26 +67,28 @@ export function PolarKPICard({
           )}
           {title}
         </div>
-        <div className="text-[32px] font-semibold text-foreground tracking-tight leading-none mt-1">
+        <div className="text-[28px] font-semibold text-foreground tracking-tight leading-none mt-2">
           {value}
         </div>
-        {contentText?.primary && (
-          <div className="text-[13px] font-medium text-foreground mt-1">
-            {contentText.primary}
-          </div>
-        )}
-        {contentText?.secondary && (
-          <div className="text-xs text-muted-foreground">
-            {contentText.secondary}
-          </div>
-        )}
+        <div className="mt-auto pt-2">
+          {contentText?.primary && (
+            <div className="text-[13px] font-medium text-foreground">
+              {contentText.primary}
+            </div>
+          )}
+          {contentText?.secondary && (
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {contentText.secondary}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
     <div
-      className="rounded-lg bg-card border border-border p-6 flex flex-col min-h-[320px] shadow-sm"
+      className="rounded-md bg-card border border-border/60 p-6 flex flex-col min-h-[320px] shadow"
     >
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
