@@ -490,13 +490,7 @@ export default function Dashboard() {
           {userLocation === 'West' && <VoorraadCard />}
         </div>
 
-        {/* Handover Card + Ideeënbus */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-[1200px]">
-          <div className="lg:col-span-2">
-            <HandoverCard />
-          </div>
-          <IdeaBox />
-        </div>
+        <HandoverCard />
 
       </div>
     </SidebarLayout>
