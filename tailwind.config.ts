@@ -20,30 +20,30 @@ export default {
         sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "system-ui", "sans-serif"],
       },
       colors: {
-        // === CLEAN SAAS DESIGN SYSTEM ===
+        // === PURA VIDA ENTERPRISE DESIGN SYSTEM ===
         'pv': {
-          // Backgrounds (Gray)
+          // Backgrounds (Slate)
           'bg': {
-            'page': 'hsl(220 14% 96%)',      // #F3F4F6 - Gray-100
-            'card': 'hsl(0 0% 100%)',         // #FFFFFF - Cards & surfaces
-            'muted': 'hsl(220 14% 96%)',      // #F3F4F6 - Gray-100
-            'hover': 'hsl(220 13% 91%)',      // #E5E7EB - Gray-200
+            'page': 'hsl(210 20% 98%)',      // #F9FAFB - Gray-50
+            'card': 'hsl(0 0% 100%)',         // #FFFFFF
+            'muted': 'hsl(210 40% 96%)',      // #F1F5F9 - Slate-100
+            'hover': 'hsl(214 32% 91%)',      // #E2E8F0 - Slate-200
           },
-          // Brand Green
-          'sea': 'hsl(142 72% 29%)',           // #16A34A - Green-600
-          'sea-dark': 'hsl(142 72% 24%)',      // #15803D - Green-700
-          'sea-light': 'hsl(138 76% 97%)',     // #F0FDF4 - Green-50
-          'sea-border': 'hsl(142 69% 58%)',    // #4ADE80 - Green-400
-          // Text Colors
+          // Brand Teal (Pura Vida)
+          'sea': 'hsl(163 65% 26%)',           // #1B7867
+          'sea-dark': 'hsl(163 65% 22%)',      // #156556
+          'sea-light': 'hsl(166 35% 96%)',     // #EFFAF7
+          'sea-border': 'hsl(163 40% 80%)',    // #B3D9D4
+          // Text Colors (Slate)
           'text': {
-            'primary': 'hsl(221 39% 11%)',    // #111827 - Gray-900
-            'secondary': 'hsl(220 9% 46%)',   // #6B7280 - Gray-500
-            'muted': 'hsl(218 11% 65%)',      // #9CA3AF - Gray-400
+            'primary': 'hsl(221 39% 11%)',    // #111827
+            'secondary': 'hsl(215 16% 47%)',  // #64748B - Slate-500
+            'muted': 'hsl(215 20% 65%)',      // #94A3B8 - Slate-400
           },
           // Status Colors
-          'success': 'hsl(142 71% 45%)',       // #22C55E - Green-500
+          'success': 'hsl(160 84% 39%)',       // #0D9488 - Teal-600
           'warning': 'hsl(38 92% 50%)',        // #F59E0B
-          'error': 'hsl(0 84% 60%)',           // #EF4444
+          'error': 'hsl(0 72% 51%)',           // #DC2626
           'info': 'hsl(217 91% 60%)',          // #3B82F6
         },
         

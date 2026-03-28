@@ -4,136 +4,126 @@
 @tailwind components;
 @tailwind utilities;
 
-/* === PURA VIDA MODERN DESIGN SYSTEM === */
+/* === PURA VIDA — Enterprise SaaS Design System === */
+/* Brand teal used sparingly on calm neutral canvas  */
 
 @layer base {
   :root {
-    /* === CLEAN SAAS COLOR PALETTE === */
-    /* One accent color (green), rest neutral gray/white */
-
-    /* Page background - light gray */
-    --background: 220 14% 96%;           /* #F3F4F6 - Gray-100 */
-    --page-bg: 220 14% 96%;             /* #F3F4F6 - alias */
-
-    /* Text */
+    /* Page — near-white, barely visible gray */
+    --background: 210 20% 98%;           /* #F9FAFB - Gray-50 */
+    --page-bg: 210 20% 98%;
     --foreground: 221 39% 11%;           /* #111827 - Gray-900 */
 
-    /* Card surfaces - Pure white */
+    /* Surfaces */
     --card: 0 0% 100%;                   /* #FFFFFF */
     --card-foreground: 221 39% 11%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 221 39% 11%;
 
-    /* Primary - Green-600 */
-    --primary: 142 72% 29%;              /* #16A34A */
+    /* Primary — Pura Vida brand teal */
+    --primary: 163 65% 26%;              /* #1B7867 */
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 142 72% 24%;        /* #15803D - Green-700 */
+    --primary-hover: 163 65% 22%;        /* #156556 */
 
-    /* Secondary - subtle green tint */
-    --secondary: 138 76% 97%;            /* #F0FDF4 - Green-50 */
-    --secondary-foreground: 142 72% 29%;
+    /* Secondary — faint teal tint */
+    --secondary: 166 35% 96%;            /* #EFFAF7 */
+    --secondary-foreground: 163 65% 26%;
 
-    /* Muted - Gray */
-    --muted: 220 14% 96%;               /* #F3F4F6 - Gray-100 */
-    --muted-foreground: 220 9% 46%;      /* #6B7280 - Gray-500 */
+    /* Muted — Slate-100 */
+    --muted: 210 40% 96%;               /* #F1F5F9 */
+    --muted-foreground: 215 16% 47%;     /* #64748B - Slate-500 */
 
-    /* Accent - same as primary for clean SaaS */
-    --accent: 138 76% 97%;              /* #F0FDF4 - Green-50 */
-    --accent-foreground: 142 72% 29%;
+    /* Accent — same as secondary */
+    --accent: 166 35% 96%;
+    --accent-foreground: 163 65% 26%;
 
     /* Destructive */
-    --destructive: 0 84% 60%;            /* #EF4444 */
+    --destructive: 0 72% 51%;            /* #DC2626 - Red-600, muted */
     --destructive-foreground: 0 0% 100%;
 
-    /* Status colors */
+    /* Status */
     --warning: 38 92% 50%;              /* #F59E0B */
     --warning-foreground: 0 0% 100%;
-    --success: 142 71% 45%;             /* #22C55E */
+    --success: 160 84% 39%;             /* #0D9488 - Teal-600, on-brand */
     --success-foreground: 0 0% 100%;
     --info: 217 91% 60%;               /* #3B82F6 */
     --info-foreground: 0 0% 100%;
 
-    /* Notification badge */
     --notification-badge: 0 70% 60%;
 
-    /* Borders - Gray */
-    --border: 220 13% 91%;               /* #E5E7EB - Gray-200 */
-    --border-state: 220 13% 91%;
-    --input: 218 11% 83%;                /* #D1D5DB - Gray-300 */
-    --ring: 142 72% 29%;                 /* Primary green */
+    /* Borders — subtle Slate-200 */
+    --border: 214 32% 91%;               /* #E2E8F0 */
+    --border-state: 214 32% 91%;
+    --input: 214 20% 84%;                /* #CBD5E1 - Slate-300 */
+    --ring: 163 65% 26%;
 
-    /* Sidebar - white */
-    --sidebar-bg: 0 0% 100%;            /* #FFFFFF */
-    --sidebar-active: 138 76% 97%;       /* #F0FDF4 - Green-50 */
-    --sidebar-hover: 220 14% 96%;        /* #F3F4F6 - Gray-100 */
+    /* Sidebar — clean white */
+    --sidebar-bg: 0 0% 100%;
+    --sidebar-active: 166 35% 96%;       /* faint teal tint */
+    --sidebar-hover: 210 40% 96%;        /* Slate-100 */
 
-    /* Text tokens */
-    --text-heading: 221 39% 11%;         /* #111827 - Gray-900 */
-    --text-secondary: 220 9% 46%;        /* #6B7280 - Gray-500 */
-    --text-muted: 218 11% 65%;           /* #9CA3AF - Gray-400 */
+    /* Text hierarchy */
+    --text-heading: 221 39% 11%;         /* #111827 */
+    --text-secondary: 215 16% 47%;       /* #64748B - Slate-500 */
+    --text-muted: 215 20% 65%;           /* #94A3B8 - Slate-400 */
 
-    /* Card border */
-    --card-border: 220 13% 91%;          /* #E5E7EB - Gray-200 */
-
-    /* Radius */
+    --card-border: 214 32% 91%;
     --radius: 0.75rem;
   }
 
   .dark {
-    /* Dark mode */
-    --background: 221 39% 11%;           /* #111827 - Gray-900 */
-    --page-bg: 221 39% 11%;
-    --foreground: 220 14% 96%;           /* #F3F4F6 - Gray-100 */
+    /* Deep Slate foundation — professional, easy on the eyes */
+    --background: 222 47% 11%;           /* #0F172A - Slate-900 */
+    --page-bg: 222 47% 11%;
+    --foreground: 210 40% 96%;           /* #F1F5F9 - Slate-100 */
 
-    --card: 217 19% 17%;                 /* #1F2937 - Gray-800 */
-    --card-foreground: 220 14% 96%;
+    --card: 217 33% 17%;                 /* #1E293B - Slate-800 */
+    --card-foreground: 210 40% 98%;
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 98%;
 
-    --popover: 217 19% 17%;
-    --popover-foreground: 220 14% 96%;
+    /* Primary — brighter teal for dark contrast */
+    --primary: 174 60% 51%;              /* #2DD4BF - Teal-400 */
+    --primary-foreground: 222 47% 11%;
+    --primary-hover: 168 64% 42%;        /* #14B8A6 - Teal-500 */
 
-    /* Primary - Green-400 for dark */
-    --primary: 142 69% 58%;              /* #4ADE80 */
-    --primary-foreground: 221 39% 11%;
-    --primary-hover: 142 71% 45%;        /* #22C55E - Green-500 */
+    --secondary: 217 33% 20%;
+    --secondary-foreground: 210 40% 96%;
 
-    --secondary: 217 19% 17%;
-    --secondary-foreground: 220 14% 96%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;     /* #94A3B8 */
 
-    --muted: 217 19% 14%;
-    --muted-foreground: 218 11% 65%;     /* #9CA3AF - Gray-400 */
+    --accent: 217 33% 20%;
+    --accent-foreground: 210 40% 96%;
 
-    --accent: 217 19% 17%;
-    --accent-foreground: 220 14% 96%;
-
-    --destructive: 0 62% 50%;
+    --destructive: 0 63% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
+    --warning: 38 92% 55%;
     --warning-foreground: 0 0% 100%;
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
-    --info: 217 91% 60%;
+    --success: 174 60% 51%;             /* teal — consistent with primary */
+    --success-foreground: 222 47% 11%;
+    --info: 217 91% 65%;
     --info-foreground: 0 0% 100%;
 
     --notification-badge: 0 70% 65%;
 
-    --border: 217 19% 27%;               /* #374151 - Gray-700 */
-    --border-state: 217 19% 27%;
-    --input: 218 11% 35%;                /* #4B5563 - Gray-600 */
-    --ring: 142 69% 58%;
+    --border: 217 33% 25%;               /* #334155 - Slate-700 */
+    --border-state: 217 33% 25%;
+    --input: 217 19% 30%;                /* #3F4E63 */
+    --ring: 174 60% 51%;
 
-    /* Sidebar - same as background */
-    --sidebar-bg: 221 39% 11%;           /* #111827 - Gray-900 */
-    --sidebar-active: 217 19% 17%;       /* #1F2937 - Gray-800 */
-    --sidebar-hover: 217 19% 14%;
+    /* Sidebar — blends with page */
+    --sidebar-bg: 222 47% 11%;
+    --sidebar-active: 217 33% 17%;       /* Slate-800 */
+    --sidebar-hover: 217 33% 15%;
 
-    /* Text tokens */
-    --text-heading: 220 14% 96%;
-    --text-secondary: 218 11% 65%;       /* #9CA3AF - Gray-400 */
-    --text-muted: 220 9% 46%;            /* #6B7280 - Gray-500 */
+    /* Text hierarchy */
+    --text-heading: 210 40% 98%;         /* #F8FAFC */
+    --text-secondary: 215 20% 65%;       /* #94A3B8 */
+    --text-muted: 215 16% 47%;           /* #64748B */
 
-    --card-border: 217 19% 27%;
+    --card-border: 217 33% 25%;
   }
 }
 

@@ -1,74 +1,74 @@
 /**
- * Polar Design System - Color Presets (Clean SaaS Edition)
+ * Polar Design System — Color Presets (Pura Vida Enterprise Edition)
  *
- * Green as sole accent, everything else neutral gray/white.
+ * Brand teal as sole accent, Slate neutrals for everything else.
  * Prefer CSS variables (hsl(var(--token))) in components.
- * This file is for cases where raw hex values are needed (canvas, charts, etc).
+ * This file is for raw hex values needed in canvas, charts, etc.
  */
 
 export const PolarColors = {
-  // Base Colors (Gray)
+  // Base Colors (Slate)
   white: '#FFFFFF',
-  background: '#F3F4F6',              // Gray-100
-  surface: '#FFFFFF',                  // White for cards
+  background: '#F9FAFB',              // Gray-50
+  surface: '#FFFFFF',
 
-  // Text Colors
+  // Text Colors (Slate)
   text: {
     primary: '#111827',               // Gray-900
-    secondary: '#6B7280',             // Gray-500
-    tertiary: '#9CA3AF',              // Gray-400
-    disabled: '#D1D5DB',              // Gray-300
+    secondary: '#64748B',             // Slate-500
+    tertiary: '#94A3B8',              // Slate-400
+    disabled: '#CBD5E1',              // Slate-300
   },
 
-  // Border Colors
+  // Border Colors (Slate)
   border: {
-    default: '#E5E7EB',               // Gray-200
-    light: '#F3F4F6',                 // Gray-100
-    dark: '#374151',                  // Gray-700
+    default: '#E2E8F0',               // Slate-200
+    light: '#F1F5F9',                 // Slate-100
+    dark: '#334155',                  // Slate-700
   },
 
-  // Brand Colors (Green)
+  // Brand Colors (Pura Vida Teal)
   brand: {
-    primary: '#16A34A',               // Green-600
-    primaryHover: '#15803D',          // Green-700
-    primaryLight: '#F0FDF4',          // Green-50
-    primaryBorder: '#4ADE80',         // Green-400
+    primary: '#1B7867',               // Pura Vida teal
+    primaryHover: '#156556',
+    primaryLight: '#EFFAF7',           // Faint teal tint
+    primaryBorder: '#B3D9D4',
   },
 
   // Status Colors
   status: {
-    success: '#22C55E',               // Green-500
-    successLight: '#F0FDF4',          // Green-50
-    successBorder: '#BBF7D0',         // Green-200
+    success: '#0D9488',               // Teal-600 (on-brand)
+    successLight: '#F0FDFA',          // Teal-50
+    successBorder: '#99F6E4',         // Teal-200
 
     pending: '#F59E0B',               // Amber-500
-    pendingLight: '#FFFBEB',          // Amber-50
-    pendingBorder: '#FDE68A',         // Amber-200
+    pendingLight: '#FFFBEB',
+    pendingBorder: '#FDE68A',
 
-    warning: '#F59E0B',               // Amber-500
-    warningLight: '#FFFBEB',          // Amber-50
-    warningBorder: '#FDE68A',         // Amber-200
+    warning: '#F59E0B',
+    warningLight: '#FFFBEB',
+    warningBorder: '#FDE68A',
 
-    error: '#EF4444',                 // Red-500
-    errorLight: '#FEF2F2',            // Red-50
-    errorBorder: '#FECACA',           // Red-200
+    error: '#DC2626',                 // Red-600
+    errorLight: '#FEF2F2',
+    errorBorder: '#FECACA',
 
-    info: '#3B82F6',                  // Blue-500
-    infoLight: '#EFF6FF',             // Blue-50
-    infoBorder: '#BFDBFE',            // Blue-200
+    info: '#3B82F6',
+    infoLight: '#EFF6FF',
+    infoBorder: '#BFDBFE',
   },
 
-  // Component-specific colors
+  // Component-specific
   badge: {
     default: {
-      bg: '#F3F4F6',                  // Gray-100
-      text: '#374151',                // Gray-700
-      border: '#E5E7EB',              // Gray-200
+      bg: '#F1F5F9',                  // Slate-100
+      text: '#334155',                // Slate-700
+      border: '#E2E8F0',
     },
     success: {
-      bg: '#F0FDF4',
-      text: '#16A34A',
-      border: '#BBF7D0',
+      bg: '#F0FDFA',
+      text: '#0D9488',
+      border: '#99F6E4',
     },
     pending: {
       bg: '#FFFBEB',
@@ -82,7 +82,7 @@ export const PolarColors = {
     },
     error: {
       bg: '#FEF2F2',
-      text: '#EF4444',
+      text: '#DC2626',
       border: '#FECACA',
     },
     info: {
@@ -92,24 +92,20 @@ export const PolarColors = {
     },
   },
 
-  // Avatar
   avatar: {
-    online: '#22C55E',
-    offline: '#9CA3AF',
-    background: '#F3F4F6',
+    online: '#0D9488',
+    offline: '#94A3B8',
+    background: '#F1F5F9',
   },
 
-  // Muted/Secondary surfaces
   muted: {
-    bg: '#F3F4F6',                    // Gray-100
-    hover: '#E5E7EB',                 // Gray-200
+    bg: '#F1F5F9',                    // Slate-100
+    hover: '#E2E8F0',                 // Slate-200
   },
 } as const;
 
-// Export individual color groups for convenience
 export const { white, background, surface, text, border, brand, status, badge, avatar, muted } = PolarColors;
 
-// Helper function to get color with opacity
 export function withOpacity(color: string, opacity: number): string {
   const hex = color.replace('#', '');
   const r = parseInt(hex.substring(0, 2), 16);
