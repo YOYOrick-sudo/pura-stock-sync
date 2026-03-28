@@ -316,18 +316,6 @@ export default function Dashboard() {
   const { userLocation } = useUserLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [weatherData, setWeatherData] = useState<{
-    condition: string;
-    temperature: number;
-    windSpeed: number;
-    precipitation: number;
-  } | null>(null);
-  const [aiSuggestions, setAiSuggestions] = useState<Array<{
-    type: string;
-    text: string;
-    reasoning: string;
-  }>>([]);
-  const [loadingWeather, setLoadingWeather] = useState(false);
 
   // Realtime subscription voor FOH Tasks
   useEffect(() => {
