@@ -224,7 +224,7 @@ const DashboardCard = ({ title, count, onClick, isLoading, icon }: DashboardCard
     <div 
       onClick={onClick} 
       className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-      style={{ borderRadius: '20px' }}
+      style={{ borderRadius: '16px' }}
     >
       <PolarKPICard
         compact
@@ -256,7 +256,7 @@ const VoorraadCard = () => {
   };
   
   return (
-    <div onClick={() => navigate('/internal-orders')} className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md" style={{ borderRadius: '20px' }}>
+    <div onClick={() => navigate('/internal-orders')} className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md" style={{ borderRadius: '16px' }}>
       <PolarKPICard
         compact
         title="Telling & Bestelling"
@@ -286,7 +286,7 @@ const DeliveryCard = ({ hasOrderThisWeek, isLoading, onClick }: DeliveryCardProp
     : { bg: 'transparent', text: 'hsl(var(--muted-foreground))', icon: <Package size={16} className="text-primary" /> };
   
   return (
-    <div onClick={onClick} className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md" style={{ borderRadius: '20px' }}>
+    <div onClick={onClick} className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md" style={{ borderRadius: '16px' }}>
       <PolarKPICard
         compact
         title="Levering van West"

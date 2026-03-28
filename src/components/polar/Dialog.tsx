@@ -72,7 +72,7 @@ export const polarDialogLabelStyle: React.CSSProperties = {
 export const polarDialogButtonPrimaryStyle: React.CSSProperties = {
   backgroundColor: 'hsl(var(--primary))',
   color: 'hsl(var(--primary-foreground))',
-  borderRadius: '20px',
+  borderRadius: '16px',
   padding: '12px 24px',
   fontSize: '14px',
   fontWeight: 500,
@@ -84,7 +84,7 @@ export const polarDialogButtonPrimaryStyle: React.CSSProperties = {
 export const polarDialogButtonSecondaryStyle: React.CSSProperties = {
   backgroundColor: 'transparent',
   color: 'hsl(var(--foreground))',
-  borderRadius: '20px',
+  borderRadius: '16px',
   padding: '12px 24px',
   fontSize: '14px',
   fontWeight: 500,
