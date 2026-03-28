@@ -8,106 +8,132 @@
 
 @layer base {
   :root {
-    /* === MODERN COLOR PALETTE (HSL Values) === */
-    
-    /* Backgrounds - Modern Slate (NO MORE CRÈME!) */
-    --background: 210 40% 98%;           /* #F8FAFC - Slate-50 */
-    --foreground: 222 47% 11%;           /* #0F172A - Slate-900 */
-    
+    /* === CLEAN SAAS COLOR PALETTE === */
+    /* One accent color (green), rest neutral gray/white */
+
+    /* Page background - light gray */
+    --background: 220 14% 96%;           /* #F3F4F6 - Gray-100 */
+    --page-bg: 220 14% 96%;             /* #F3F4F6 - alias */
+
+    /* Text */
+    --foreground: 221 39% 11%;           /* #111827 - Gray-900 */
+
     /* Card surfaces - Pure white */
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    
+    --card: 0 0% 100%;                   /* #FFFFFF */
+    --card-foreground: 221 39% 11%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    
-    /* Primary - Pura Vida Sea Green */
-    --primary: 163 65% 26%;              /* #1B7867 */
+    --popover-foreground: 221 39% 11%;
+
+    /* Primary - Green-600 */
+    --primary: 142 72% 29%;              /* #16A34A */
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 163 65% 21%;        /* #156556 */
-    
-    /* Secondary - Light green tint */
-    --secondary: 163 35% 93%;            /* #E6F4F1 */
-    --secondary-foreground: 163 65% 26%;
-    
-    /* Muted - Slate grays */
-    --muted: 210 40% 96%;                /* #F1F5F9 */
-    --muted-foreground: 215 16% 47%;     /* #64748B */
-    
-    /* Accent - Warm sunset (for CTAs) */
-    --accent: 25 95% 53%;                /* #F97316 */
-    --accent-foreground: 0 0% 100%;
-    
+    --primary-hover: 142 72% 24%;        /* #15803D - Green-700 */
+
+    /* Secondary - subtle green tint */
+    --secondary: 138 76% 97%;            /* #F0FDF4 - Green-50 */
+    --secondary-foreground: 142 72% 29%;
+
+    /* Muted - Gray */
+    --muted: 220 14% 96%;               /* #F3F4F6 - Gray-100 */
+    --muted-foreground: 220 9% 46%;      /* #6B7280 - Gray-500 */
+
+    /* Accent - same as primary for clean SaaS */
+    --accent: 138 76% 97%;              /* #F0FDF4 - Green-50 */
+    --accent-foreground: 142 72% 29%;
+
     /* Destructive */
     --destructive: 0 84% 60%;            /* #EF4444 */
     --destructive-foreground: 0 0% 100%;
-    
+
+    /* Status colors */
+    --warning: 38 92% 50%;              /* #F59E0B */
+    --warning-foreground: 0 0% 100%;
+    --success: 142 71% 45%;             /* #22C55E */
+    --success-foreground: 0 0% 100%;
+    --info: 217 91% 60%;               /* #3B82F6 */
+    --info-foreground: 0 0% 100%;
+
     /* Notification badge */
     --notification-badge: 0 70% 60%;
-    
-    /* Borders - Neutral slate (clean & modern) */
-    --border: 214 32% 91%;               /* #E2E8F0 */
-    --border-state: 214 25% 80%;         /* #C5CED8 - State containers (empty/error/loading) */
-    --input: 214 32% 91%;                /* #E2E8F0 */
-    --ring: 163 65% 26%;                 /* Primary green */
-    
+
+    /* Borders - Gray */
+    --border: 220 13% 91%;               /* #E5E7EB - Gray-200 */
+    --border-state: 220 13% 91%;
+    --input: 218 11% 83%;                /* #D1D5DB - Gray-300 */
+    --ring: 142 72% 29%;                 /* Primary green */
+
+    /* Sidebar - white */
+    --sidebar-bg: 0 0% 100%;            /* #FFFFFF */
+    --sidebar-active: 138 76% 97%;       /* #F0FDF4 - Green-50 */
+    --sidebar-hover: 220 14% 96%;        /* #F3F4F6 - Gray-100 */
+
+    /* Text tokens */
+    --text-heading: 221 39% 11%;         /* #111827 - Gray-900 */
+    --text-secondary: 220 9% 46%;        /* #6B7280 - Gray-500 */
+    --text-muted: 218 11% 65%;           /* #9CA3AF - Gray-400 */
+
+    /* Card border */
+    --card-border: 220 13% 91%;          /* #E5E7EB - Gray-200 */
+
     /* Radius */
     --radius: 0.75rem;
   }
 
   .dark {
-    /* Dark mode - Midnight palette */
-    --background: 222 47% 11%;           /* #0F172A - Slate-900 */
-    --foreground: 210 40% 98%;           /* #F8FAFC - Slate-50 */
-    
-    --card: 217 33% 17%;                 /* #1E293B - Slate-800 */
-    --card-foreground: 210 40% 98%;
-    
-    --popover: 217 33% 17%;
-    --popover-foreground: 210 40% 98%;
-    
-    /* Primary - brighter green for dark */
-    --primary: 160 65% 45%;              /* #2DD4A8 */
-    --primary-foreground: 222 47% 11%;
-    --primary-hover: 160 65% 50%;
-    
-    --secondary: 217 33% 22%;
-    --secondary-foreground: 210 40% 98%;
-    
-    --muted: 217 33% 20%;
-    --muted-foreground: 215 20% 65%;
-    
-    --accent: 25 95% 53%;
-    --accent-foreground: 0 0% 100%;
-    
+    /* Dark mode */
+    --background: 221 39% 11%;           /* #111827 - Gray-900 */
+    --page-bg: 221 39% 11%;
+    --foreground: 220 14% 96%;           /* #F3F4F6 - Gray-100 */
+
+    --card: 217 19% 17%;                 /* #1F2937 - Gray-800 */
+    --card-foreground: 220 14% 96%;
+
+    --popover: 217 19% 17%;
+    --popover-foreground: 220 14% 96%;
+
+    /* Primary - Green-400 for dark */
+    --primary: 142 69% 58%;              /* #4ADE80 */
+    --primary-foreground: 221 39% 11%;
+    --primary-hover: 142 71% 45%;        /* #22C55E - Green-500 */
+
+    --secondary: 217 19% 17%;
+    --secondary-foreground: 220 14% 96%;
+
+    --muted: 217 19% 14%;
+    --muted-foreground: 218 11% 65%;     /* #9CA3AF - Gray-400 */
+
+    --accent: 217 19% 17%;
+    --accent-foreground: 220 14% 96%;
+
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
-    
-    --notification-badge: 0 70% 65%;
-    
-    --border: 217 33% 28%;
-    --border-state: 217 33% 40%;
-    --input: 217 33% 22%;
-    --ring: 160 65% 45%;
-    
-    /* Extended dark tokens */
-    --sidebar-bg: 215 35% 14%;           /* #1A2332 */
-    --sidebar-active: 217 33% 20%;
-    --sidebar-hover: 217 33% 18%;
-    --text-heading: 210 40% 98%;
-    --text-secondary: 215 20% 65%;
-    --text-muted: 215 16% 50%;
-    --card-border: 217 33% 28%;
-  }
 
-  :root {
-    --sidebar-bg: 58 60% 92%;            /* #F6F7DD */
-    --sidebar-active: 59 90% 97%;        /* #FEFFF1 */
-    --sidebar-hover: 59 90% 97%;         /* #FEFFF1 */
-    --text-heading: 222 47% 11%;         /* #0F172A */
-    --text-secondary: 215 16% 47%;       /* #73747B */
-    --text-muted: 215 20% 65%;           /* #94A3B8 */
-    --card-border: 163 40% 80%;          /* rgba(27,120,103,0.12) equivalent */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+
+    --notification-badge: 0 70% 65%;
+
+    --border: 217 19% 27%;               /* #374151 - Gray-700 */
+    --border-state: 217 19% 27%;
+    --input: 218 11% 35%;                /* #4B5563 - Gray-600 */
+    --ring: 142 69% 58%;
+
+    /* Sidebar - same as background */
+    --sidebar-bg: 221 39% 11%;           /* #111827 - Gray-900 */
+    --sidebar-active: 217 19% 17%;       /* #1F2937 - Gray-800 */
+    --sidebar-hover: 217 19% 14%;
+
+    /* Text tokens */
+    --text-heading: 220 14% 96%;
+    --text-secondary: 218 11% 65%;       /* #9CA3AF - Gray-400 */
+    --text-muted: 220 9% 46%;            /* #6B7280 - Gray-500 */
+
+    --card-border: 217 19% 27%;
   }
 }
 
@@ -129,42 +155,42 @@
 @layer components {
   .text-display {
     @apply text-4xl font-bold tracking-tight;
-    color: hsl(222 47% 11%);
+    color: hsl(var(--foreground));
   }
-  
+
   .text-h1 {
     @apply text-2xl font-bold;
-    color: hsl(222 47% 11%);
+    color: hsl(var(--foreground));
   }
-  
+
   .text-h2 {
     @apply text-xl font-semibold;
-    color: hsl(222 47% 11%);
+    color: hsl(var(--foreground));
   }
-  
+
   .text-h3 {
     @apply text-lg font-semibold;
-    color: hsl(222 47% 11%);
+    color: hsl(var(--foreground));
   }
-  
+
   .text-body {
     @apply text-base font-normal;
-    color: hsl(222 47% 11%);
+    color: hsl(var(--foreground));
   }
-  
+
   .text-body-sm {
     @apply text-sm font-normal;
-    color: hsl(215 16% 47%);
+    color: hsl(var(--text-secondary));
   }
-  
+
   .text-caption {
     @apply text-xs font-medium;
-    color: hsl(215 20% 65%);
+    color: hsl(var(--text-muted));
   }
-  
+
   .text-label {
     @apply text-sm font-medium;
-    color: hsl(222 47% 11%);
+    color: hsl(var(--foreground));
   }
 }
 

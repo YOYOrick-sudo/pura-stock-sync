@@ -22,7 +22,7 @@ export function PolarDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
         style={{
-          backgroundColor: '#FEFFF1',
+          backgroundColor: 'hsl(var(--card))',
           borderRadius: '20px',
           border: '1px solid rgba(197, 197, 202, 0.5)',
           padding: '32px',
@@ -38,7 +38,7 @@ export function PolarDialog({
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '18px',
                   fontWeight: 600,
-                  color: '#282E3A',
+                  color: 'hsl(var(--foreground))',
                   marginBottom: description ? '8px' : '24px',
                 }}
               >
@@ -51,7 +51,7 @@ export function PolarDialog({
                   fontFamily: 'Inter, sans-serif',
                   fontSize: '14px',
                   fontWeight: 400,
-                  color: '#73747B',
+                  color: 'hsl(var(--text-secondary))',
                   marginBottom: '24px',
                 }}
               >
@@ -74,7 +74,7 @@ export const polarDialogInputStyle: React.CSSProperties = {
   padding: '12px 16px',
   fontFamily: 'Inter, sans-serif',
   fontSize: '14px',
-  color: '#282E3A',
+  color: 'hsl(var(--foreground))',
   width: '100%',
 };
 
@@ -82,13 +82,13 @@ export const polarDialogLabelStyle: React.CSSProperties = {
   fontFamily: 'Inter, sans-serif',
   fontSize: '13px',
   fontWeight: 500,
-  color: '#282E3A',
+  color: 'hsl(var(--foreground))',
   marginBottom: '8px',
   display: 'block',
 };
 
 export const polarDialogButtonPrimaryStyle: React.CSSProperties = {
-  backgroundColor: '#1B7867',
+  backgroundColor: 'hsl(var(--primary))',
   color: '#FFFFFF',
   borderRadius: '20px',
   padding: '12px 24px',
@@ -102,7 +102,7 @@ export const polarDialogButtonPrimaryStyle: React.CSSProperties = {
 
 export const polarDialogButtonSecondaryStyle: React.CSSProperties = {
   backgroundColor: 'transparent',
-  color: '#282E3A',
+  color: 'hsl(var(--foreground))',
   borderRadius: '20px',
   padding: '12px 24px',
   fontFamily: 'Inter, sans-serif',

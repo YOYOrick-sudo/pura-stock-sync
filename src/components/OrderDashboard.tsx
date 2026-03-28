@@ -330,15 +330,15 @@ export default function OrderDashboard() {
   return (
     <>
         {/* Products Table - All Screen Sizes */}
-        <Card className="overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.06)] border-[#1B7867]/8 bg-[#FEFFF1] hover:shadow-md transition-shadow duration-200 mb-4">
+        <Card className="overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.06)] border-primary/8 bg-card hover:shadow-md transition-shadow duration-200 mb-4">
           <div>
             <table className="w-full table-fixed">
               <thead>
-                <tr className="border-b border-[#1B7867]/10 bg-[#FEFFF1]">
-                  <th className="px-3 py-3 sm:px-4 sm:py-3 text-left font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Product</th>
-                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Ijzer</th>
-                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Huidig</th>
-                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Vullen</th>
+                <tr className="border-b border-primary/10 bg-card">
+                  <th className="px-3 py-3 sm:px-4 sm:py-3 text-left font-heading font-bold text-foreground/70 text-xs sm:text-sm uppercase tracking-wide">Product</th>
+                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-foreground/70 text-xs sm:text-sm uppercase tracking-wide">Ijzer</th>
+                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-foreground/70 text-xs sm:text-sm uppercase tracking-wide">Huidig</th>
+                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-foreground/70 text-xs sm:text-sm uppercase tracking-wide">Vullen</th>
                 </tr>
               </thead>
               <tbody>
@@ -347,8 +347,8 @@ export default function OrderDashboard() {
                   return (
                     <>
                       {showCategoryHeader && product.category && (
-                        <tr key={`category-${product.category}-${index}`} className="bg-[#1B7867]/20 border-t border-b border-[#1B7867]/20">
-                          <td colSpan={4} className="px-3 py-2 sm:px-4 font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide">
+                        <tr key={`category-${product.category}-${index}`} className="bg-primary/20 border-t border-b border-primary/20">
+                          <td colSpan={4} className="px-3 py-2 sm:px-4 font-heading font-bold text-primary text-sm uppercase tracking-wide">
                             <div className="flex items-center gap-2">
                               <Layers className="w-3 h-3 sm:w-4 sm:h-4" />
                               {product.category}
@@ -375,22 +375,22 @@ export default function OrderDashboard() {
         </Card>
 
         {/* Add Extra Product - Inline Form */}
-        <Card className="p-4 sm:p-5 mb-6 bg-[#FEFFF1] border-[#E27726]/20 shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:shadow-md transition-shadow duration-200">
+        <Card className="p-4 sm:p-5 mb-6 bg-card border-warning/20 shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:shadow-md transition-shadow duration-200">
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
             <div className="flex-1 w-full">
-              <label className="font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Extra product</label>
-              <Input placeholder="Bijv. Smoothie basis (bak)" value={newProductName} onChange={e => setNewProductName(e.target.value)} className="border-[#E27726]/20 focus:border-[#E27726] bg-white h-11" />
+              <label className="font-heading font-bold text-foreground/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Extra product</label>
+              <Input placeholder="Bijv. Smoothie basis (bak)" value={newProductName} onChange={e => setNewProductName(e.target.value)} className="border-warning/20 focus:border-warning bg-white h-11" />
             </div>
             <div className="w-full sm:w-32">
-              <label className="font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Aantal</label>
+              <label className="font-heading font-bold text-foreground/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Aantal</label>
               <Input type="number" min="1" placeholder="3" value={newProductAmount} onChange={e => setNewProductAmount(e.target.value)} onKeyDown={e => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 addTemporaryProduct();
               }
-            }} className="border-[#E27726]/20 focus:border-[#E27726] bg-white h-11" />
+            }} className="border-warning/20 focus:border-warning bg-white h-11" />
             </div>
-            <Button onClick={addTemporaryProduct} className="w-full sm:w-auto bg-[#E27726] hover:bg-[#E27726]/90 text-white h-11 px-6 rounded-xl touch-manipulation">
+            <Button onClick={addTemporaryProduct} className="w-full sm:w-auto bg-warning hover:bg-warning/90 text-white h-11 px-6 rounded-xl touch-manipulation">
               <Plus className="mr-2 h-4 w-4" />
               Toevoegen
             </Button>
@@ -399,28 +399,28 @@ export default function OrderDashboard() {
 
         {/* Submit Section */}
         <div className="space-y-4">
-          {demoMode && <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-white border-l-4 border-[#E27726] rounded-2xl shadow-sm">
-              <AlertCircle className="w-5 h-5 text-[#E27726] flex-shrink-0" />
+          {demoMode && <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-white border-l-4 border-warning rounded-2xl shadow-sm">
+              <AlertCircle className="w-5 h-5 text-warning flex-shrink-0" />
               <div className="flex-1">
-                <p className="text-sm text-[#282E3A]">
+                <p className="text-sm text-foreground">
                   <span className="font-semibold">Demo-modus</span> – Bestellingen worden gesimuleerd
                 </p>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => setDemoMode(false)} className="text-[#282E3A]/70 hover:text-[#1B7867] hover:bg-white/80 self-end sm:self-auto">
+              <Button variant="ghost" size="sm" onClick={() => setDemoMode(false)} className="text-foreground/70 hover:text-primary hover:bg-white/80 self-end sm:self-auto">
                 Uitschakelen
               </Button>
             </div>}
 
           {/* Summary Badge */}
-          {hasAnyStock && <div className="bg-gradient-to-br from-[#1B7867]/5 to-[#1B7867]/10 rounded-2xl p-5 border-2 border-[#1B7867]/30 shadow-sm">
+          {hasAnyStock && <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-5 border-2 border-primary/30 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-[#1B7867] rounded-lg">
+                  <div className="p-2 bg-primary rounded-lg">
                     <Package className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-sm sm:text-base text-[#282E3A] font-semibold">Totaal aan te vullen</span>
+                  <span className="text-sm sm:text-base text-foreground font-semibold">Totaal aan te vullen</span>
                 </div>
-                <span className="text-3xl sm:text-4xl font-bold text-[#1B7867]">
+                <span className="text-3xl sm:text-4xl font-bold text-primary">
                   {totalRefill}
                 </span>
               </div>
@@ -428,12 +428,12 @@ export default function OrderDashboard() {
 
           <div className="space-y-3">
             <div className="flex flex-col sm:flex-row gap-3">
-              <Button onClick={() => setShowPreview(true)} disabled={!hasAnyStock} variant="outline" className="w-full sm:flex-1 h-12 sm:h-auto sm:py-5 border-2 border-[#1B7867] text-[#1B7867] hover:bg-[#1B7867]/5 rounded-2xl font-semibold transition-all touch-manipulation">
+              <Button onClick={() => setShowPreview(true)} disabled={!hasAnyStock} variant="outline" className="w-full sm:flex-1 h-12 sm:h-auto sm:py-5 border-2 border-primary text-primary hover:bg-primary/5 rounded-2xl font-semibold transition-all touch-manipulation">
                 <Eye className="mr-2 h-5 w-5" />
                 Voorbeeld
               </Button>
 
-              <Button onClick={handleSubmit} disabled={isSubmitting || !hasAnyStock} className="w-full sm:flex-[2] h-12 sm:h-auto sm:py-5 bg-gradient-to-r from-[#1B7867] to-[#0d5a4c] hover:from-[#0d5a4c] hover:to-[#1B7867] text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl font-semibold touch-manipulation active:scale-[0.98]">
+              <Button onClick={handleSubmit} disabled={isSubmitting || !hasAnyStock} className="w-full sm:flex-[2] h-12 sm:h-auto sm:py-5 bg-gradient-to-r from-primary to-primary-hover hover:from-primary-hover hover:to-primary text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl font-semibold touch-manipulation active:scale-[0.98]">
                 {isSubmitting ? <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                     Bezig met verzenden...
@@ -447,33 +447,33 @@ export default function OrderDashboard() {
             <Button
               variant="outline"
               onClick={() => setShowInstructionsDialog(true)}
-              className="w-full border-[#1B7867]/30 text-[#1B7867] hover:bg-[#1B7867]/5 font-heading font-medium flex items-center gap-2 justify-center h-12 sm:h-auto rounded-2xl"
+              className="w-full border-primary/30 text-primary hover:bg-primary/5 font-heading font-medium flex items-center gap-2 justify-center h-12 sm:h-auto rounded-2xl"
             >
               <Info className="h-4 w-4" />
               Instructies
             </Button>
           </div>
 
-          <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-[#282E3A]/50 py-2 min-h-[2rem]">
+          <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-foreground/50 py-2 min-h-[2rem]">
             {lastSubmitted ? <>
-                <div className="w-1 h-1 rounded-full bg-[#1B7867]/30"></div>
+                <div className="w-1 h-1 rounded-full bg-primary/30"></div>
                 <p>Laatst verzonden op {lastSubmitted}</p>
-                <div className="w-1 h-1 rounded-full bg-[#1B7867]/30"></div>
-              </> : <p className="text-[#282E3A]/30">Nog niet verzonden</p>}
+                <div className="w-1 h-1 rounded-full bg-primary/30"></div>
+              </> : <p className="text-foreground/30">Nog niet verzonden</p>}
           </div>
         </div>
 
         {/* Instructies Dialog */}
         <Dialog open={showInstructionsDialog} onOpenChange={setShowInstructionsDialog}>
           <DialogContent className="max-w-2xl" style={{
-            backgroundColor: '#FEFFF1',
+            backgroundColor: 'hsl(var(--card))',
             borderRadius: '20px',
             border: '1px solid rgba(197, 197, 202, 0.5)',
             padding: '32px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
           }}>
             <DialogHeader>
-              <DialogTitle className="text-xl font-heading font-bold text-[#282E3A]">
+              <DialogTitle className="text-xl font-heading font-bold text-foreground">
                 Instructies Voorraadregistratie
               </DialogTitle>
             </DialogHeader>
@@ -481,48 +481,48 @@ export default function OrderDashboard() {
             <div className="mt-4">
               <ol className="space-y-4">
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Check de voorraad</span>
-                    <p className="text-sm text-[#282E3A]/70 mt-1">Loop alle producten na en tel de huidige voorraad.</p>
+                    <span className="font-heading font-medium text-foreground">Check de voorraad</span>
+                    <p className="text-sm text-foreground/70 mt-1">Loop alle producten na en tel de huidige voorraad.</p>
                   </div>
                 </li>
 
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Vul de aantallen in</span>
-                    <p className="text-sm text-[#282E3A]/70 mt-1">Noteer het aantal van elk product bij "Huidig".</p>
+                    <span className="font-heading font-medium text-foreground">Vul de aantallen in</span>
+                    <p className="text-sm text-foreground/70 mt-1">Noteer het aantal van elk product bij "Huidig".</p>
                   </div>
                 </li>
 
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Extra producten toevoegen</span>
-                    <p className="text-sm text-[#282E3A]/70 mt-1">Heb je extra producten? Voeg ze toe via "Extra product".</p>
+                    <span className="font-heading font-medium text-foreground">Extra producten toevoegen</span>
+                    <p className="text-sm text-foreground/70 mt-1">Heb je extra producten? Voeg ze toe via "Extra product".</p>
                   </div>
                 </li>
 
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Controleer het overzicht</span>
-                    <p className="text-sm text-[#282E3A]/70 mt-1">Bekijk "Totaal aan te vullen" en klik op "Voorbeeld" voor een overzicht.</p>
+                    <span className="font-heading font-medium text-foreground">Controleer het overzicht</span>
+                    <p className="text-sm text-foreground/70 mt-1">Bekijk "Totaal aan te vullen" en klik op "Voorbeeld" voor een overzicht.</p>
                   </div>
                 </li>
 
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Verstuur naar Midsland</span>
-                    <p className="text-sm text-[#282E3A]/70 mt-1">Klik op "Verstuur naar Midsland" om de bestelling door te geven.</p>
+                    <span className="font-heading font-medium text-foreground">Verstuur naar Midsland</span>
+                    <p className="text-sm text-foreground/70 mt-1">Klik op "Verstuur naar Midsland" om de bestelling door te geven.</p>
                   </div>
                 </li>
               </ol>
 
-              <div className="mt-6 p-4 bg-[#F5F7DD] rounded-xl">
-                <p className="text-sm text-[#282E3A] leading-relaxed">
+              <div className="mt-6 p-4 bg-muted rounded-xl">
+                <p className="text-sm text-foreground leading-relaxed">
                   <span className="font-semibold">Let op:</span> Het systeem berekent automatisch hoeveel producten er aangevuld moeten worden op basis van het ijzer (streefvoorraad) en de huidige voorraad.
                 </p>
               </div>
@@ -536,30 +536,30 @@ export default function OrderDashboard() {
         {/* Success Dialog */}
         <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
           <AlertDialogContent className="max-w-[90vw] sm:max-w-md mx-4" style={{
-            backgroundColor: '#FEFFF1',
+            backgroundColor: 'hsl(var(--card))',
             borderRadius: '20px',
             border: '1px solid rgba(197, 197, 202, 0.5)',
             padding: '32px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
           }}>
             <AlertDialogHeader className="space-y-3 sm:space-y-4 pt-2">
-              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#1B7867] to-[#0d5a4c] rounded-full flex items-center justify-center animate-scale-in shadow-lg">
+              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-primary to-primary-hover rounded-full flex items-center justify-center animate-scale-in shadow-lg">
                 <CheckCircle2 className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
               </div>
-              <AlertDialogTitle className="text-xl sm:text-2xl font-heading text-center text-[#282E3A] px-2">
+              <AlertDialogTitle className="text-xl sm:text-2xl font-heading text-center text-foreground px-2">
                 Bestelling verzonden!
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-center text-[#282E3A]/70 text-sm sm:text-base space-y-2 px-2">
+              <AlertDialogDescription className="text-center text-foreground/70 text-sm sm:text-base space-y-2 px-2">
                 <p className="font-medium leading-relaxed">Je bestelling is succesvol naar Midsland gestuurd.</p>
-                {totalRefill > 0 && <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-[#F5F7DD] rounded-xl">
+                {totalRefill > 0 && <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-muted rounded-xl">
                     <p className="text-sm sm:text-base">
-                      <span className="font-semibold text-[#1B7867]">{totalRefill} {totalRefill === 1 ? 'product' : 'producten'}</span> worden aangevuld
+                      <span className="font-semibold text-primary">{totalRefill} {totalRefill === 1 ? 'product' : 'producten'}</span> worden aangevuld
                     </p>
                   </div>}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="mt-2">
-              <Button onClick={() => setShowSuccessDialog(false)} className="w-full bg-gradient-to-r from-[#1B7867] to-[#0d5a4c] hover:from-[#0d5a4c] hover:to-[#1B7867] text-white h-11 sm:h-12 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.98] touch-manipulation">
+              <Button onClick={() => setShowSuccessDialog(false)} className="w-full bg-gradient-to-r from-primary to-primary-hover hover:from-primary-hover hover:to-primary text-white h-11 sm:h-12 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.98] touch-manipulation">
                 Sluiten
               </Button>
             </AlertDialogFooter>
@@ -569,28 +569,28 @@ export default function OrderDashboard() {
         {/* Logout Confirmation Dialog */}
         <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
           <AlertDialogContent className="max-w-[90vw] sm:max-w-md mx-4" style={{
-            backgroundColor: '#FEFFF1',
+            backgroundColor: 'hsl(var(--card))',
             borderRadius: '20px',
             border: '1px solid rgba(197, 197, 202, 0.5)',
             padding: '32px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
           }}>
             <AlertDialogHeader className="space-y-3 sm:space-y-4 pt-2">
-              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#E27726] to-[#d16615] rounded-full flex items-center justify-center shadow-lg">
+              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-warning to-warning/80 rounded-full flex items-center justify-center shadow-lg">
                 <LogOut className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
               </div>
-              <AlertDialogTitle className="text-xl sm:text-2xl font-heading text-center text-[#282E3A] px-2">
+              <AlertDialogTitle className="text-xl sm:text-2xl font-heading text-center text-foreground px-2">
                 Uitloggen?
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-center text-[#282E3A]/70 text-sm sm:text-base px-2">
+              <AlertDialogDescription className="text-center text-foreground/70 text-sm sm:text-base px-2">
                 Weet je zeker dat je wilt uitloggen?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="mt-2 flex-col sm:flex-row gap-2">
-              <AlertDialogCancel className="w-full sm:w-auto border-2 border-[#1B7867]/20 hover:bg-[#1B7867]/5 rounded-xl">
+              <AlertDialogCancel className="w-full sm:w-auto border-2 border-primary/20 hover:bg-primary/5 rounded-xl">
                 Annuleren
               </AlertDialogCancel>
-              <AlertDialogAction onClick={handleLogout} className="w-full sm:w-auto bg-gradient-to-r from-[#E27726] to-[#d16615] hover:from-[#d16615] hover:to-[#E27726] text-white rounded-xl">
+              <AlertDialogAction onClick={handleLogout} className="w-full sm:w-auto bg-gradient-to-r from-warning to-warning/80 hover:from-warning/80 hover:to-warning text-white rounded-xl">
                 Uitloggen
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -599,7 +599,7 @@ export default function OrderDashboard() {
 
         {/* Footer */}
         <div className="mt-8 pb-20 text-center">
-          <p className="text-sm text-[#282E3A]/60 italic max-w-md mx-auto px-4">
+          <p className="text-sm text-foreground/60 italic max-w-md mx-auto px-4">
             *Pro tip: Alles netjes invullen = happy Midsland, happy gasten, happy jullie 🎉
           </p>
         </div>

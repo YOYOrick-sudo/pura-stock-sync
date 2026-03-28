@@ -36,7 +36,7 @@ export default function Voorraad() {
 
   return (
     <SidebarLayout>
-      <div className="min-h-screen bg-gradient-to-b from-[#F5F7DD] to-[#F5F7DD]/50">
+      <div className="min-h-screen bg-background">
         <div className="max-w-4xl mx-auto space-y-6 pb-20">
           {/* Header */}
           <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
@@ -62,18 +62,18 @@ export default function Voorraad() {
                 {/* Locatie + info */}
                 <div className="flex items-center gap-2 mt-1">
                   {userLocation && (
-                    <Badge variant="secondary" className="bg-[#1B7867]/10 text-[#1B7867] border-[#1B7867]/20">
+                    <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
                       {userLocation}
                     </Badge>
                   )}
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <button className="text-[#1B7867] hover:text-[#0d5a4c] transition-colors">
+                        <button className="text-primary hover:text-primary-hover transition-colors">
                           <Info className="h-4 w-4" />
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs bg-white border-[#1B7867]/20 text-[#282E3A]">
+                      <TooltipContent className="max-w-xs bg-white border-primary/20 text-foreground">
                         <p className="text-sm">Noteer de huidige voorraad. Het systeem rekent uit wat Midsland aanvult.</p>
                       </TooltipContent>
                     </Tooltip>

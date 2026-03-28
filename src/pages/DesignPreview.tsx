@@ -46,52 +46,52 @@ const DesignPreview = () => {
             {/* Simulated current background */}
             <div 
               className="rounded-2xl p-5 space-y-3"
-              style={{ backgroundColor: '#F6F7DD' }}
+              style={{ backgroundColor: 'hsl(var(--background))' }}
             >
-              <div 
+              <div
                 style={{
-                  backgroundColor: '#FEFFF1',
+                  backgroundColor: 'hsl(var(--card))',
                   borderRadius: '16px',
                   padding: '20px',
                 }}
               >
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#7A7B6D', marginBottom: '6px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'hsl(var(--text-secondary))', marginBottom: '6px' }}>
                   Omzet vandaag
                 </div>
-                <div style={{ fontSize: '40px', fontWeight: 600, color: '#282E3A', lineHeight: 1 }}>
+                <div style={{ fontSize: '40px', fontWeight: 600, color: 'hsl(var(--foreground))', lineHeight: 1 }}>
                   €2.847
                 </div>
-                <div style={{ fontSize: '12px', color: '#7A7B6D', marginTop: '6px' }}>
+                <div style={{ fontSize: '12px', color: 'hsl(var(--text-secondary))', marginTop: '6px' }}>
                   +12% vs vorige week
                 </div>
               </div>
 
-              <div 
+              <div
                 style={{
-                  backgroundColor: '#FEFFF1',
+                  backgroundColor: 'hsl(var(--card))',
                   borderRadius: '16px',
                   padding: '20px',
                 }}
               >
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#7A7B6D', marginBottom: '6px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'hsl(var(--text-secondary))', marginBottom: '6px' }}>
                   Bestellingen
                 </div>
-                <div style={{ fontSize: '40px', fontWeight: 600, color: '#282E3A', lineHeight: 1 }}>
+                <div style={{ fontSize: '40px', fontWeight: 600, color: 'hsl(var(--foreground))', lineHeight: 1 }}>
                   47
                 </div>
               </div>
 
-              <div 
+              <div
                 style={{
-                  backgroundColor: '#FEFFF1',
+                  backgroundColor: 'hsl(var(--card))',
                   borderRadius: '16px',
                   padding: '20px',
                 }}
               >
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#7A7B6D', marginBottom: '6px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'hsl(var(--text-secondary))', marginBottom: '6px' }}>
                   Taken voltooid
                 </div>
-                <div style={{ fontSize: '40px', fontWeight: 600, color: '#282E3A', lineHeight: 1 }}>
+                <div style={{ fontSize: '40px', fontWeight: 600, color: 'hsl(var(--foreground))', lineHeight: 1 }}>
                   12/15
                 </div>
               </div>
@@ -150,7 +150,7 @@ const DesignPreview = () => {
           {/* RIGHT: Modern Pura Vida (Hybride) */}
           <div>
             <div className="mb-4 flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#1B7867' }}></div>
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'hsl(var(--primary))' }}></div>
               <h2 className="text-lg font-semibold text-slate-700">Modern Pura Vida</h2>
             </div>
             
@@ -177,9 +177,9 @@ const DesignPreview = () => {
             </div>
 
             {/* Style notes */}
-            <div className="mt-4 p-3 rounded-xl border" style={{ backgroundColor: '#E6F4F1', borderColor: '#B3D9D4' }}>
-              <h3 className="text-xs font-semibold mb-2" style={{ color: '#1B7867' }}>Kenmerken:</h3>
-              <ul className="text-xs space-y-1" style={{ color: '#2D8B7A' }}>
+            <div className="mt-4 p-3 rounded-xl border" style={{ backgroundColor: 'hsl(var(--secondary))', borderColor: 'hsl(var(--border))' }}>
+              <h3 className="text-xs font-semibold mb-2" style={{ color: 'hsl(var(--primary))' }}>Kenmerken:</h3>
+              <ul className="text-xs space-y-1" style={{ color: 'hsl(var(--primary))' }}>
                 <li>• Grijze achtergrond (slate-100)</li>
                 <li>• Groene border accent</li>
                 <li>• Best of both worlds</li>
@@ -227,16 +227,16 @@ const DesignPreview = () => {
               <h3 className="font-semibold text-slate-700 mb-4">Huidige Kleuren</h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg" style={{ backgroundColor: '#F6F7DD' }}></div>
+                  <div className="w-10 h-10 rounded-lg" style={{ backgroundColor: 'hsl(var(--background))' }}></div>
                   <div>
-                    <div className="text-sm font-medium text-slate-900">#F6F7DD</div>
+                    <div className="text-sm font-medium text-slate-900">background</div>
                     <div className="text-xs text-slate-500">Achtergrond</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg" style={{ backgroundColor: '#FEFFF1' }}></div>
+                  <div className="w-10 h-10 rounded-lg" style={{ backgroundColor: 'hsl(var(--card))' }}></div>
                   <div>
-                    <div className="text-sm font-medium text-slate-900">#FEFFF1</div>
+                    <div className="text-sm font-medium text-slate-900">card</div>
                     <div className="text-xs text-slate-500">Cards</div>
                   </div>
                 </div>
@@ -266,7 +266,7 @@ const DesignPreview = () => {
 
             {/* Pura Vida colors */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-              <h3 className="font-semibold mb-4" style={{ color: '#1B7867' }}>Pura Vida (Hybride)</h3>
+              <h3 className="font-semibold mb-4" style={{ color: 'hsl(var(--primary))' }}>Pura Vida (Hybride)</h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200"></div>
@@ -276,16 +276,16 @@ const DesignPreview = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-white border-2" style={{ borderColor: '#B3D9D4' }}></div>
+                  <div className="w-10 h-10 rounded-lg bg-white border-2" style={{ borderColor: 'hsl(var(--border))' }}></div>
                   <div>
-                    <div className="text-sm font-medium text-slate-900">#B3D9D4</div>
+                    <div className="text-sm font-medium text-slate-900">border</div>
                     <div className="text-xs text-slate-500">Border accent (on-brand)</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg" style={{ backgroundColor: '#1B7867' }}></div>
+                  <div className="w-10 h-10 rounded-lg" style={{ backgroundColor: 'hsl(var(--primary))' }}></div>
                   <div>
-                    <div className="text-sm font-medium text-slate-900">#1B7867</div>
+                    <div className="text-sm font-medium text-slate-900">primary</div>
                     <div className="text-xs text-slate-500">Pura Vida Sea</div>
                   </div>
                 </div>

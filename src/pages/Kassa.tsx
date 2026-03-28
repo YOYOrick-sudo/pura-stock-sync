@@ -213,29 +213,29 @@ const Kassa = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px', alignItems: 'start' }}>
           {/* Denomination table */}
           <div style={{
-            backgroundColor: '#FEFFF1',
+            backgroundColor: 'hsl(var(--card))',
             borderRadius: '20px',
             border: '1px solid rgba(197, 197, 202, 0.5)',
             overflow: 'hidden',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
           }}>
-            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderBottom: '1px solid rgba(197, 197, 202, 0.5)' }}>
-              <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ backgroundColor: 'hsl(var(--card))', padding: '12px 16px', borderBottom: '1px solid rgba(197, 197, 202, 0.5)' }}>
+              <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: 'hsl(var(--foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Kassa Lade
               </h2>
             </div>
-            <div style={{ overflowX: 'auto', backgroundColor: '#FEFFF1', padding: '16px' }}>
+            <div style={{ overflowX: 'auto', backgroundColor: 'hsl(var(--card))', padding: '16px' }}>
               <table style={{ width: '100%', fontFamily: 'Inter, sans-serif' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.3)' }}>
-                    <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#73747B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bedrag</th>
-                    <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#73747B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Aantal</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: 'hsl(var(--text-secondary))', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bedrag</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: 'hsl(var(--text-secondary))', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Aantal</th>
                   </tr>
                 </thead>
                 <tbody>
                   {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom, index) => (
                     <tr key={denom} style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
-                      <td style={{ padding: '6px 12px', color: '#282E3A', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid rgba(197, 197, 202, 0.3)' }}>€{denom.replace('.', ',')}</td>
+                      <td style={{ padding: '6px 12px', color: 'hsl(var(--foreground))', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid rgba(197, 197, 202, 0.3)' }}>€{denom.replace('.', ',')}</td>
                       <td style={{ padding: '6px 12px', textAlign: 'center' }}>
                         <input 
                           type="number" 
@@ -248,13 +248,13 @@ const Kassa = () => {
                             textAlign: 'center',
                             border: '1px solid rgba(197, 197, 202, 0.5)',
                             borderRadius: '16px',
-                            backgroundColor: '#FEFFF1',
+                            backgroundColor: 'hsl(var(--card))',
                             fontFamily: 'monospace',
                             fontSize: '14px',
-                            color: '#282E3A',
+                            color: 'hsl(var(--foreground))',
                             outline: 'none',
                           }}
-                          onFocus={(e) => e.target.style.borderColor = '#1B7867'}
+                          onFocus={(e) => e.target.style.borderColor = 'hsl(var(--primary))'}
                           onBlur={(e) => e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)'}
                         />
                       </td>
@@ -263,10 +263,10 @@ const Kassa = () => {
                 </tbody>
               </table>
             </div>
-            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
+            <div style={{ backgroundColor: 'hsl(var(--card))', padding: '12px 16px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
-                <span style={{ fontSize: '24px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>€{calculateTotal().toFixed(2).replace('.', ',')}</span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, color: 'hsl(var(--foreground))', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
+                <span style={{ fontSize: '24px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'hsl(var(--primary))' }}>€{calculateTotal().toFixed(2).replace('.', ',')}</span>
               </div>
             </div>
           </div>
@@ -276,31 +276,31 @@ const Kassa = () => {
             {/* Beginsaldo Reference - Collapsible */}
             <Collapsible open={beginsaldoExpanded} onOpenChange={setBeginsaldoExpanded}>
               <div style={{
-                backgroundColor: '#FEFFF1',
+                backgroundColor: 'hsl(var(--card))',
                 borderRadius: '20px',
                 border: '1px solid rgba(197, 197, 202, 0.5)',
                 overflow: 'hidden',
                 boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
               }}>
-                
+
                 {/* Clickable header met icon en pijltje */}
-                <CollapsibleTrigger style={{ width: '100%', padding: '12px 16px', backgroundColor: '#FEFFF1', cursor: 'pointer', border: 'none', transition: 'background-color 0.15s' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F6F7DD'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FEFFF1'}
+                <CollapsibleTrigger style={{ width: '100%', padding: '12px 16px', backgroundColor: 'hsl(var(--card))', cursor: 'pointer', border: 'none', transition: 'background-color 0.15s' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'hsl(var(--muted))'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'hsl(var(--card))'}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Wallet style={{ width: '16px', height: '16px', color: '#1B7867' }} />
-                      <span style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <Wallet style={{ width: '16px', height: '16px', color: 'hsl(var(--primary))' }} />
+                      <span style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: 'hsl(var(--foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Beginsaldo (blijft in kassa)
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '18px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>
+                      <span style={{ fontSize: '18px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'hsl(var(--primary))' }}>
                         €{Object.entries(BEGINSALDO_VERDELING).reduce((sum, [denom, count]) => sum + (parseFloat(denom) * count), 0).toFixed(2).replace('.', ',')}
                       </span>
-                      <ChevronDown 
-                        style={{ width: '16px', height: '16px', color: '#1B7867', transition: 'transform 0.2s', transform: beginsaldoExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} 
+                      <ChevronDown
+                        style={{ width: '16px', height: '16px', color: 'hsl(var(--primary))', transition: 'transform 0.2s', transform: beginsaldoExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} 
                       />
                     </div>
                   </div>
@@ -308,20 +308,20 @@ const Kassa = () => {
                 
                 {/* Uitklapbare content met denominaties */}
                 <CollapsibleContent>
-                  <div style={{ padding: '12px 16px', backgroundColor: '#FEFFF1', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
+                  <div style={{ padding: '12px 16px', backgroundColor: 'hsl(var(--card))', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
                     {Object.entries(BEGINSALDO_VERDELING)
                       .sort((a, b) => parseFloat(b[0]) - parseFloat(a[0]))
                       .map(([denom, count]) => (
                       <div key={denom} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
-                        <span style={{ fontFamily: 'monospace', fontSize: '13px', color: '#282E3A' }}>€{denom.replace('.', ',')} × {count}</span>
-                        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#73747B' }}>
+                        <span style={{ fontFamily: 'monospace', fontSize: '13px', color: 'hsl(var(--foreground))' }}>€{denom.replace('.', ',')} × {count}</span>
+                        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'hsl(var(--text-secondary))' }}>
                           €{(parseFloat(denom) * count).toFixed(2).replace('.', ',')}
                         </span>
                       </div>
                     ))}
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', marginTop: '8px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
-                      <span style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
-                      <span style={{ fontSize: '18px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>
+                      <span style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: 'hsl(var(--foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
+                      <span style={{ fontSize: '18px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'hsl(var(--primary))' }}>
                         €{Object.entries(BEGINSALDO_VERDELING).reduce((sum, [denom, count]) => sum + (parseFloat(denom) * count), 0).toFixed(2).replace('.', ',')}
                       </span>
                     </div>
@@ -332,7 +332,7 @@ const Kassa = () => {
 
             {/* Summary card */}
             <div style={{
-              backgroundColor: '#FEFFF1',
+              backgroundColor: 'hsl(var(--card))',
               borderRadius: '20px',
               border: '1px solid rgba(197, 197, 202, 0.5)',
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
@@ -340,10 +340,10 @@ const Kassa = () => {
             }}>
               {/* Totaal - meest prominent */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
-                <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+                <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: 'hsl(var(--text-secondary))' }}>
                   Totaal
                 </span>
-                <span style={{ fontSize: '30px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>
+                <span style={{ fontSize: '30px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'hsl(var(--primary))' }}>
                   €{total.toFixed(2).replace('.', ',')}
                 </span>
               </div>
@@ -353,7 +353,7 @@ const Kassa = () => {
               {/* Cash omzet - compacter */}
               <div style={{ padding: '4px 0' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-                  <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+                  <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: 'hsl(var(--text-secondary))' }}>
                     Cash omzet (Lightspeed)
                   </span>
                   <input 
@@ -371,19 +371,19 @@ const Kassa = () => {
                       fontSize: '18px',
                       fontFamily: 'Inter, sans-serif',
                       fontWeight: 700,
-                      color: '#282E3A',
-                      border: errors.cashOmzet ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
+                      color: 'hsl(var(--foreground))',
+                      border: errors.cashOmzet ? '1px solid hsl(var(--destructive))' : '1px solid rgba(197, 197, 202, 0.5)',
                       borderRadius: '16px',
-                      backgroundColor: '#FEFFF1',
+                      backgroundColor: 'hsl(var(--card))',
                       outline: 'none',
                       transition: 'border-color 0.15s'
                     }}
-                    onFocus={(e) => !errors.cashOmzet && (e.target.style.borderColor = '#1B7867')}
+                    onFocus={(e) => !errors.cashOmzet && (e.target.style.borderColor = 'hsl(var(--primary))')}
                     onBlur={(e) => !errors.cashOmzet && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
                   />
                 </div>
                 {errors.cashOmzet && (
-                  <p style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px', textAlign: 'right', fontFamily: 'Inter, sans-serif' }}>{errors.cashOmzet}</p>
+                  <p style={{ fontSize: '12px', color: 'hsl(var(--destructive))', marginTop: '4px', textAlign: 'right', fontFamily: 'Inter, sans-serif' }}>{errors.cashOmzet}</p>
                 )}
               </div>
 
@@ -392,7 +392,7 @@ const Kassa = () => {
               {/* Naam medewerker */}
               <div style={{ padding: '4px 0' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-                  <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+                  <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: 'hsl(var(--text-secondary))' }}>
                     Naam medewerker
                   </span>
                   <input 
@@ -409,19 +409,19 @@ const Kassa = () => {
                       textAlign: 'right',
                       fontSize: '14px',
                       fontFamily: 'Inter, sans-serif',
-                      color: '#282E3A',
-                      border: errors.naam ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
+                      color: 'hsl(var(--foreground))',
+                      border: errors.naam ? '1px solid hsl(var(--destructive))' : '1px solid rgba(197, 197, 202, 0.5)',
                       borderRadius: '16px',
-                      backgroundColor: '#FEFFF1',
+                      backgroundColor: 'hsl(var(--card))',
                       outline: 'none',
                       transition: 'border-color 0.15s'
                     }}
-                    onFocus={(e) => !errors.naam && (e.target.style.borderColor = '#1B7867')}
+                    onFocus={(e) => !errors.naam && (e.target.style.borderColor = 'hsl(var(--primary))')}
                     onBlur={(e) => !errors.naam && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
                   />
                 </div>
                 {errors.naam && (
-                  <p style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px', textAlign: 'right', fontFamily: 'Inter, sans-serif' }}>{errors.naam}</p>
+                  <p style={{ fontSize: '12px', color: 'hsl(var(--destructive))', marginTop: '4px', textAlign: 'right', fontFamily: 'Inter, sans-serif' }}>{errors.naam}</p>
                 )}
               </div>
 
@@ -430,19 +430,19 @@ const Kassa = () => {
               {/* Afdracht - compacter met kleinere uitleg */}
               <div style={{ padding: '4px 0' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+                  <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: 'hsl(var(--text-secondary))' }}>
                     Afdracht / Envelop
                   </span>
                   <span style={{
                     fontSize: '24px',
                     fontFamily: 'Inter, sans-serif',
                     fontWeight: 700,
-                    color: afdracht > 0 ? '#1B7867' : '#9CA3AF'
+                    color: afdracht > 0 ? 'hsl(var(--primary))' : 'hsl(var(--text-muted))'
                   }}>
                     €{afdracht.toFixed(2).replace('.', ',')}
                   </span>
                 </div>
-                <p style={{ fontSize: '12px', color: '#73747B', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>
+                <p style={{ fontSize: '12px', color: 'hsl(var(--text-secondary))', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>
                   {total >= DOELSALDO 
                     ? `Leg €${afdracht.toFixed(2).replace('.', ',')} in de envelop, laat €${DOELSALDO.toFixed(2).replace('.', ',')} in de lade.`
                     : `Aanvullen uit wisselkassa: €${(DOELSALDO - total).toFixed(2).replace('.', ',')} om de lade op €${DOELSALDO.toFixed(2).replace('.', ',')} te brengen.`
@@ -454,14 +454,14 @@ const Kassa = () => {
 
               {/* Kasverschil - prominente kleurcodering */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
-                <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+                <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: 'hsl(var(--text-secondary))' }}>
                   Kasverschil
                 </span>
                 <span style={{
                   fontSize: '24px',
                   fontFamily: 'Inter, sans-serif',
                   fontWeight: 700,
-                  color: kasverschil > 0 ? '#16A34A' : kasverschil < 0 ? '#DC2626' : '#282E3A'
+                  color: kasverschil > 0 ? 'hsl(var(--success))' : kasverschil < 0 ? 'hsl(var(--destructive))' : 'hsl(var(--foreground))'
                 }}>
                   €{kasverschil.toFixed(2).replace('.', ',')}
                 </span>
@@ -471,7 +471,7 @@ const Kassa = () => {
 
               {/* Opmerkingen - compacter label */}
               <div style={{ padding: '4px 0' }}>
-                <label htmlFor="opmerkingen" style={{ display: 'block', fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B', marginBottom: '6px' }}>
+                <label htmlFor="opmerkingen" style={{ display: 'block', fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: 'hsl(var(--text-secondary))', marginBottom: '6px' }}>
                   Opmerkingen
                 </label>
                 <textarea
@@ -488,27 +488,27 @@ const Kassa = () => {
                     padding: '8px 12px',
                     fontFamily: 'monospace',
                     fontSize: '14px',
-                    color: '#282E3A',
-                    border: errors.opmerkingen ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
+                    color: 'hsl(var(--foreground))',
+                    border: errors.opmerkingen ? '1px solid hsl(var(--destructive))' : '1px solid rgba(197, 197, 202, 0.5)',
                     borderRadius: '16px',
-                    backgroundColor: '#FEFFF1',
+                    backgroundColor: 'hsl(var(--card))',
                     outline: 'none',
                     resize: 'vertical',
                     transition: 'border-color 0.15s',
                     whiteSpace: 'pre-wrap'
                   }}
-                  onFocus={(e) => !errors.opmerkingen && (e.target.style.borderColor = '#1B7867')}
+                  onFocus={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'hsl(var(--primary))')}
                   onBlur={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
                 />
                 {errors.opmerkingen && (
-                  <p style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>{errors.opmerkingen}</p>
+                  <p style={{ fontSize: '12px', color: 'hsl(var(--destructive))', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>{errors.opmerkingen}</p>
                 )}
               </div>
 
               {/* Verzenden button */}
               <div style={{ marginTop: '16px' }}>
                 {!canSubmit && timeRemaining > 0 && (
-                  <p style={{ fontSize: '12px', color: '#73747B', marginBottom: '8px', textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>
+                  <p style={{ fontSize: '12px', color: 'hsl(var(--text-secondary))', marginBottom: '8px', textAlign: 'center', fontFamily: 'Inter, sans-serif' }}>
                     Je kunt over {Math.floor(timeRemaining / 60)}m {timeRemaining % 60}s opnieuw indienen
                   </p>
                 )}
@@ -521,8 +521,8 @@ const Kassa = () => {
                     fontFamily: 'Inter, sans-serif',
                     fontWeight: 600,
                     fontSize: '18px',
-                    backgroundColor: (!canSubmit || !naam || naam.length < 2 || cashOmzet === '') ? '#D1D5DB' : '#1B7867',
-                    color: '#FEFFF1',
+                    backgroundColor: (!canSubmit || !naam || naam.length < 2 || cashOmzet === '') ? 'hsl(var(--input))' : 'hsl(var(--primary))',
+                    color: '#FFFFFF',
                     border: 'none',
                     borderRadius: '20px',
                     cursor: (!canSubmit || !naam || naam.length < 2 || cashOmzet === '') ? 'not-allowed' : 'pointer',
@@ -531,16 +531,16 @@ const Kassa = () => {
                   }}
                   onMouseEnter={(e) => {
                     if (!(!canSubmit || !naam || naam.length < 2 || cashOmzet === '')) {
-                      e.currentTarget.style.backgroundColor = '#145f55';
+                      e.currentTarget.style.backgroundColor = 'hsl(var(--primary-hover))';
                       e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.15)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!(!canSubmit || !naam || naam.length < 2 || cashOmzet === '')) {
-                      e.currentTarget.style.backgroundColor = '#1B7867';
+                      e.currentTarget.style.backgroundColor = 'hsl(var(--primary))';
                       e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
                     } else {
-                      e.currentTarget.style.backgroundColor = '#D1D5DB';
+                      e.currentTarget.style.backgroundColor = 'hsl(var(--input))';
                     }
                   }}
                 >
@@ -556,8 +556,8 @@ const Kassa = () => {
                     fontFamily: 'Inter, sans-serif',
                     fontWeight: 500,
                     fontSize: '14px',
-                    backgroundColor: '#FEFFF1',
-                    color: '#1B7867',
+                    backgroundColor: 'hsl(var(--card))',
+                    color: 'hsl(var(--primary))',
                     border: '1px solid rgba(197, 197, 202, 0.5)',
                     borderRadius: '20px',
                     cursor: 'pointer',
@@ -568,11 +568,11 @@ const Kassa = () => {
                     gap: '8px'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#F6F7DD';
-                    e.currentTarget.style.borderColor = '#1B7867';
+                    e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
+                    e.currentTarget.style.borderColor = 'hsl(var(--primary))';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#FEFFF1';
+                    e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
                     e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.5)';
                   }}
                 >
@@ -589,13 +589,13 @@ const Kassa = () => {
       <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
         <AlertDialogContent className="bg-white">
           <div className="text-center">
-            <CheckCircle2 className="w-16 h-16 text-[#1B7867] mx-auto mb-4" />
+            <CheckCircle2 className="w-16 h-16 text-primary mx-auto mb-4" />
             
-            <AlertDialogTitle className="text-2xl font-heading font-bold text-[#282E3A]">
+            <AlertDialogTitle className="text-2xl font-heading font-bold text-foreground">
               Kassatelling Verzonden!
             </AlertDialogTitle>
             
-            <AlertDialogDescription className="text-[#282E3A]/70 mt-4">
+            <AlertDialogDescription className="text-foreground/70 mt-4">
               Verzonden door {naam}<br/>
               {new Date().toLocaleString('nl-NL')}
             </AlertDialogDescription>
@@ -605,7 +605,7 @@ const Kassa = () => {
                 setShowSuccessDialog(false);
                 navigate('/dashboard');
               }}
-              className="mt-6 bg-[#1B7867] hover:bg-[#1B7867]/90"
+              className="mt-6 bg-primary hover:bg-primary/90"
             >
               Terug naar Dashboard
             </AlertDialogAction>
@@ -617,7 +617,7 @@ const Kassa = () => {
       <Dialog open={showInstructionsDialog} onOpenChange={setShowInstructionsDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-heading font-bold text-[#282E3A]">
+            <DialogTitle className="text-xl font-heading font-bold text-foreground">
               Instructies Kassatelling Avond
             </DialogTitle>
           </DialogHeader>
@@ -625,68 +625,68 @@ const Kassa = () => {
           <div className="mt-4">
             <ol className="space-y-4">
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
                 <div>
-                  <span className="font-heading font-medium text-[#282E3A]">Print dagomzet</span>
-                  <p className="text-sm text-[#282E3A]/70 mt-1">Print omzet uit in Lightspeed. Check open en niet-gefinancierde tafels → verplaats naar tafel 100 of 101.</p>
+                  <span className="font-heading font-medium text-foreground">Print dagomzet</span>
+                  <p className="text-sm text-foreground/70 mt-1">Print omzet uit in Lightspeed. Check open en niet-gefinancierde tafels → verplaats naar tafel 100 of 101.</p>
                 </div>
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
                 <div>
-                  <span className="font-heading font-medium text-[#282E3A]">Finaliseer betalingen</span>
-                  <p className="text-sm text-[#282E3A]/70 mt-1">Betaalde maar niet-gefinaliseerde tafels handmatig afronden.</p>
+                  <span className="font-heading font-medium text-foreground">Finaliseer betalingen</span>
+                  <p className="text-sm text-foreground/70 mt-1">Betaalde maar niet-gefinaliseerde tafels handmatig afronden.</p>
                 </div>
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
                 <div>
-                  <span className="font-heading font-medium text-[#282E3A]">Vul naam in</span>
-                  <p className="text-sm text-[#282E3A]/70 mt-1">Vul je naam in bij "Naam medewerker".</p>
+                  <span className="font-heading font-medium text-foreground">Vul naam in</span>
+                  <p className="text-sm text-foreground/70 mt-1">Vul je naam in bij "Naam medewerker".</p>
                 </div>
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
                 <div>
-                  <span className="font-heading font-medium text-[#282E3A]">Noteer cash omzet</span>
-                  <p className="text-sm text-[#282E3A]/70 mt-1">Voer het cash bedrag uit Lightspeed in.</p>
+                  <span className="font-heading font-medium text-foreground">Noteer cash omzet</span>
+                  <p className="text-sm text-foreground/70 mt-1">Voer het cash bedrag uit Lightspeed in.</p>
                 </div>
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
                 <div>
-                  <span className="font-heading font-medium text-[#282E3A]">Tel de kassa</span>
-                  <p className="text-sm text-[#282E3A]/70 mt-1">Vul alle denominaties in de velden in.</p>
+                  <span className="font-heading font-medium text-foreground">Tel de kassa</span>
+                  <p className="text-sm text-foreground/70 mt-1">Vul alle denominaties in de velden in.</p>
                 </div>
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">6</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">6</span>
                 <div>
-                  <span className="font-heading font-medium text-[#282E3A]">Controleer kassalade</span>
-                  <p className="text-sm text-[#282E3A]/70 mt-1">De kassalade moet altijd €157 bevatten. Vul indien nodig aan vanuit de wisselkassa.</p>
+                  <span className="font-heading font-medium text-foreground">Controleer kassalade</span>
+                  <p className="text-sm text-foreground/70 mt-1">De kassalade moet altijd €157 bevatten. Vul indien nodig aan vanuit de wisselkassa.</p>
                   <p className="text-xs text-amber-600/80 mt-1 font-medium">💡 Belangrijk voor zowel Midsland als West</p>
                 </div>
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">7</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">7</span>
                 <div>
-                  <span className="font-heading font-medium text-[#282E3A]">Noteer bijzonderheden</span>
-                  <p className="text-sm text-[#282E3A]/70 mt-1">Vermeld tekorten, plussen of andere afwijkingen.</p>
+                  <span className="font-heading font-medium text-foreground">Noteer bijzonderheden</span>
+                  <p className="text-sm text-foreground/70 mt-1">Vermeld tekorten, plussen of andere afwijkingen.</p>
                   <p className="text-xs text-red-600/80 mt-1 font-medium">⚠️ Altijd melden bij verschillen!</p>
                 </div>
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">8</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">8</span>
                 <div>
-                  <span className="font-heading font-medium text-[#282E3A]">Verzend</span>
-                  <p className="text-sm text-[#282E3A]/70 mt-1">Klik op "Verzenden" om de kassatelling te versturen.</p>
+                  <span className="font-heading font-medium text-foreground">Verzend</span>
+                  <p className="text-sm text-foreground/70 mt-1">Klik op "Verzenden" om de kassatelling te versturen.</p>
                 </div>
               </li>
             </ol>

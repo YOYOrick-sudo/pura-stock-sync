@@ -28,23 +28,23 @@ export default function StyleGuide() {
   const ColorBlock = ({ color, name, hex }: { color: string; name: string; hex: string }) => (
     <div style={{ marginBottom: '16px' }}>
       <div style={{ width: '100%', height: '80px', backgroundColor: color, borderRadius: '16px', border: '1px solid rgba(197, 197, 202, 0.5)', marginBottom: '8px' }} />
-      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A' }}>{name}</div>
-      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#73747B' }}>{hex}</div>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>{name}</div>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'hsl(var(--text-secondary))' }}>{hex}</div>
     </div>
   );
 
   const CodeBlock = ({ code, id }: { code: string; id: string }) => (
     <div style={{ position: 'relative', marginTop: '12px' }}>
-      <pre style={{ fontFamily: 'monospace', fontSize: '13px', backgroundColor: '#282E3A', color: '#FEFFF1', padding: '16px', borderRadius: '16px', overflowX: 'auto' }}>{code}</pre>
-      <button onClick={() => copyToClipboard(code, id)} style={{ position: 'absolute', top: '12px', right: '12px', backgroundColor: 'rgba(255, 255, 255, 0.1)', border: 'none', borderRadius: '8px', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: '#FEFFF1' }}>
+      <pre style={{ fontFamily: 'monospace', fontSize: '13px', backgroundColor: 'hsl(var(--foreground))', color: 'hsl(var(--card))', padding: '16px', borderRadius: '16px', overflowX: 'auto' }}>{code}</pre>
+      <button onClick={() => copyToClipboard(code, id)} style={{ position: 'absolute', top: '12px', right: '12px', backgroundColor: 'rgba(255, 255, 255, 0.1)', border: 'none', borderRadius: '8px', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: 'hsl(var(--card))' }}>
         {copiedCode === id ? <Check size={16} /> : <Copy size={16} />}
       </button>
     </div>
   );
 
   const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div style={{ backgroundColor: '#FEFFF1', border: '1px solid rgba(197, 197, 202, 0.5)', borderRadius: '16px', padding: '32px', marginBottom: '24px' }}>
-      <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '24px', fontWeight: 600, color: '#282E3A', marginBottom: '24px' }}>{title}</h2>
+    <div style={{ backgroundColor: 'hsl(var(--card))', border: '1px solid rgba(197, 197, 202, 0.5)', borderRadius: '16px', padding: '32px', marginBottom: '24px' }}>
+      <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '24px', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: '24px' }}>{title}</h2>
       {children}
     </div>
   );
@@ -52,19 +52,19 @@ export default function StyleGuide() {
   return (
     <SidebarLayout>
       <div style={{ maxWidth: '1200px' }}>
-        <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: '32px', fontWeight: 600, color: '#282E3A', marginBottom: '8px' }}>Pura Vida Design System</h1>
-        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', color: '#73747B', marginBottom: '32px' }}>Complete styling guide voor consistente UI ontwikkeling</p>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: '32px', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: '8px' }}>Pura Vida Design System</h1>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', color: 'hsl(var(--text-secondary))', marginBottom: '32px' }}>Complete styling guide voor consistente UI ontwikkeling</p>
 
         <Section title="Kleuren Palet">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '24px' }}>
-            <ColorBlock color="#FEFFF1" name="Cream" hex="#FEFFF1" />
-            <ColorBlock color="#F6F7DD" name="Moonlight" hex="#F6F7DD" />
-            <ColorBlock color="#282E3A" name="Midnight" hex="#282E3A" />
-            <ColorBlock color="#73747B" name="Secondary Text" hex="#73747B" />
-            <ColorBlock color="#1B7867" name="Pura Vida Sea" hex="#1B7867" />
-            <ColorBlock color="#22C55E" name="Success" hex="#22C55E" />
-            <ColorBlock color="#F59E0B" name="Warning" hex="#F59E0B" />
-            <ColorBlock color="#EF4444" name="Error" hex="#EF4444" />
+            <ColorBlock color="#FFFFFF" name="Card" hex="hsl(var(--card))" />
+            <ColorBlock color="#F3F4F6" name="Background" hex="hsl(var(--background))" />
+            <ColorBlock color="#111827" name="Foreground" hex="hsl(var(--foreground))" />
+            <ColorBlock color="#6B7280" name="Secondary Text" hex="hsl(var(--text-secondary))" />
+            <ColorBlock color="#16A34A" name="Primary" hex="hsl(var(--primary))" />
+            <ColorBlock color="#22C55E" name="Success" hex="hsl(var(--success))" />
+            <ColorBlock color="#F59E0B" name="Warning" hex="hsl(var(--warning))" />
+            <ColorBlock color="#EF4444" name="Error" hex="hsl(var(--destructive))" />
           </div>
           <CodeBlock
             id="colors"
@@ -78,18 +78,18 @@ className="border-polar-border"`}
         <Section title="Border Radius Hiërarchie">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', marginBottom: '12px' }}>8px - Kleine elementen</div>
-              <div style={{ width: '200px', height: '40px', backgroundColor: '#F6F7DD', borderRadius: '8px', border: '1px solid rgba(197, 197, 202, 0.5)' }} />
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '12px' }}>8px - Kleine elementen</div>
+              <div style={{ width: '200px', height: '40px', backgroundColor: 'hsl(var(--muted))', borderRadius: '8px', border: '1px solid rgba(197, 197, 202, 0.5)' }} />
               <CodeBlock id="radius-8" code={`className="rounded-polar-sm" // 8px`} />
             </div>
             <div>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', marginBottom: '12px' }}>16px - Buttons, cards, inputs</div>
-              <div style={{ width: '200px', height: '40px', backgroundColor: '#1B7867', borderRadius: '16px' }} />
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '12px' }}>16px - Buttons, cards, inputs</div>
+              <div style={{ width: '200px', height: '40px', backgroundColor: 'hsl(var(--primary))', borderRadius: '16px' }} />
               <CodeBlock id="radius-16" code={`className="rounded-polar-lg" // 16px`} />
             </div>
             <div>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', marginBottom: '12px' }}>20px - Extra grote containers</div>
-              <div style={{ width: '200px', height: '60px', backgroundColor: '#FEFFF1', borderRadius: '20px', border: '1px solid rgba(197, 197, 202, 0.5)' }} />
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '12px' }}>20px - Extra grote containers</div>
+              <div style={{ width: '200px', height: '60px', backgroundColor: 'hsl(var(--card))', borderRadius: '20px', border: '1px solid rgba(197, 197, 202, 0.5)' }} />
               <CodeBlock id="radius-20" code={`className="rounded-polar-xl" // 20px`} />
             </div>
           </div>
@@ -110,7 +110,7 @@ className="border-polar-border"`}
               <CodeBlock id="typo-body" code={`className="polar-body"`} />
             </div>
             <div>
-              <p className="polar-secondary">Secondary text - 14px / 400 (#73747B)</p>
+              <p className="polar-secondary">Secondary text - 14px / 400 (hsl(var(--text-secondary)))</p>
               <CodeBlock id="typo-secondary" code={`className="polar-secondary"`} />
             </div>
           </div>
@@ -119,7 +119,7 @@ className="border-polar-border"`}
         <Section title="Buttons (16px radius)">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', marginBottom: '12px' }}>Sizes</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '12px' }}>Sizes</div>
               <div style={{ display: 'flex', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
                 <Button size="sm">Small</Button>
                 <Button>Medium (default)</Button>
@@ -133,7 +133,7 @@ className="border-polar-border"`}
               />
             </div>
             <div>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', marginBottom: '12px' }}>Variants</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '12px' }}>Variants</div>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <Button>Primary</Button>
                 <Button variant="secondary">Secondary</Button>
@@ -153,7 +153,7 @@ className="border-polar-border"`}
               />
             </div>
             <div>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', marginBottom: '12px' }}>Disabled State</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '12px' }}>Disabled State</div>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <Button disabled>Primary Disabled</Button>
                 <Button variant="secondary" disabled>Secondary Disabled</Button>
@@ -169,8 +169,8 @@ className="border-polar-border"`}
         <Section title="Cards">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', marginBottom: '12px' }}>Standard Card</div>
-              <div style={{ backgroundColor: '#FEFFF1', border: '1px solid rgba(197, 197, 202, 0.5)', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '12px' }}>Standard Card</div>
+              <div style={{ backgroundColor: 'hsl(var(--card))', border: '1px solid rgba(197, 197, 202, 0.5)', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)' }}>
                 <h3 className="polar-title" style={{ marginBottom: '8px' }}>Card Title</h3>
                 <p className="polar-secondary">Card content goes here</p>
               </div>
@@ -185,8 +185,8 @@ className="border-polar-border"`}
               />
             </div>
             <div>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', marginBottom: '12px' }}>Dashboard Card (Moonlight background)</div>
-              <div style={{ backgroundColor: '#F6F7DD', border: '1px solid rgba(197, 197, 202, 0.5)', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '12px' }}>Dashboard Card (Moonlight background)</div>
+              <div style={{ backgroundColor: 'hsl(var(--muted))', border: '1px solid rgba(197, 197, 202, 0.5)', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)' }}>
                 <h3 className="polar-title" style={{ marginBottom: '8px' }}>Dashboard Card</h3>
                 <p className="polar-secondary">Used for dashboard KPIs</p>
               </div>
@@ -262,31 +262,31 @@ className="border-polar-border"`}
             </div>
             <div>
               <Label>Toggle (Switch)</Label>
-              <div style={{ fontSize: '14px', color: '#73747B', marginTop: '8px', marginBottom: '16px' }}>
+              <div style={{ fontSize: '14px', color: 'hsl(var(--text-secondary))', marginTop: '8px', marginBottom: '16px' }}>
                 Toggles (switches) are used for binary on/off settings. They provide immediate visual feedback and trigger instant changes.
               </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontWeight: 500, color: '#282E3A', marginBottom: '4px' }}>Email Notifications</div>
-                    <div style={{ fontSize: '14px', color: '#73747B' }}>Receive email updates for new reservations</div>
+                    <div style={{ fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '4px' }}>Email Notifications</div>
+                    <div style={{ fontSize: '14px', color: 'hsl(var(--text-secondary))' }}>Receive email updates for new reservations</div>
                   </div>
                   <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} />
                 </div>
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontWeight: 500, color: '#282E3A', marginBottom: '4px' }}>Auto-confirm</div>
-                    <div style={{ fontSize: '14px', color: '#73747B' }}>Automatically confirm new reservations</div>
+                    <div style={{ fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '4px' }}>Auto-confirm</div>
+                    <div style={{ fontSize: '14px', color: 'hsl(var(--text-secondary))' }}>Automatically confirm new reservations</div>
                   </div>
                   <Switch checked={autoConfirm} onCheckedChange={setAutoConfirm} />
                 </div>
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontWeight: 500, color: '#282E3A', marginBottom: '4px' }}>SMS Reminders</div>
-                    <div style={{ fontSize: '14px', color: '#73747B' }}>Send SMS reminders 2 hours before reservation</div>
+                    <div style={{ fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '4px' }}>SMS Reminders</div>
+                    <div style={{ fontSize: '14px', color: 'hsl(var(--text-secondary))' }}>Send SMS reminders 2 hours before reservation</div>
                   </div>
                   <Switch checked={smsReminders} onCheckedChange={setSmsReminders} />
                 </div>
@@ -296,19 +296,19 @@ className="border-polar-border"`}
                 <div style={{ fontWeight: 600, fontSize: '18px', marginBottom: '16px' }}>Toggle States</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
                   <div>
-                    <div style={{ fontWeight: 500, color: '#282E3A', marginBottom: '8px' }}>Off</div>
+                    <div style={{ fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '8px' }}>Off</div>
                     <Switch checked={false} />
                   </div>
                   <div>
-                    <div style={{ fontWeight: 500, color: '#282E3A', marginBottom: '8px' }}>On</div>
+                    <div style={{ fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '8px' }}>On</div>
                     <Switch checked={true} />
                   </div>
                   <div>
-                    <div style={{ fontWeight: 500, color: '#282E3A', marginBottom: '8px' }}>Disabled (Off)</div>
+                    <div style={{ fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '8px' }}>Disabled (Off)</div>
                     <Switch checked={false} disabled />
                   </div>
                   <div>
-                    <div style={{ fontWeight: 500, color: '#282E3A', marginBottom: '8px' }}>Disabled (On)</div>
+                    <div style={{ fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '8px' }}>Disabled (On)</div>
                     <Switch checked={true} disabled />
                   </div>
                 </div>
@@ -332,7 +332,7 @@ className="border-polar-border"`}
         <Section title="Status Indicators">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', marginBottom: '12px' }}>Badges</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '12px' }}>Badges</div>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <Badge>Default</Badge>
                 <Badge variant="secondary">Secondary</Badge>
@@ -348,18 +348,18 @@ className="border-polar-border"`}
               />
             </div>
             <div>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', marginBottom: '12px' }}>Status Dots</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '12px' }}>Status Dots</div>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22C55E' }} />
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'hsl(var(--success))' }} />
                   <span className="polar-body">Success</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#F59E0B' }} />
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'hsl(var(--warning))' }} />
                   <span className="polar-body">Warning</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#EF4444' }} />
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'hsl(var(--destructive))' }} />
                   <span className="polar-body">Error</span>
                 </div>
               </div>
@@ -376,7 +376,7 @@ className="border-polar-border"`}
         <Section title="Live Polar Components">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', marginBottom: '12px' }}>PolarAlert</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '12px' }}>PolarAlert</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <PolarAlert variant="info">Dit is een informatieve melding</PolarAlert>
                 <PolarAlert variant="success">Actie succesvol voltooid</PolarAlert>
@@ -392,15 +392,15 @@ className="border-polar-border"`}
               />
             </div>
             <div>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', marginBottom: '12px' }}>PolarKPICard</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '12px' }}>PolarKPICard</div>
               <div style={{ maxWidth: '300px' }}>
                 <PolarKPICard
                   title="Totaal Verkoop"
                   value="€12,345"
                   compact
                   statusColor={{
-                    bg: '#F6F7DD',
-                    text: '#1B7867',
+                    bg: 'hsl(var(--muted))',
+                    text: 'hsl(var(--primary))',
                     icon: <CheckCircle2 size={16} />
                   }}
                   contentText={{
@@ -416,8 +416,8 @@ className="border-polar-border"`}
   value="€12,345"
   compact
   statusColor={{
-    bg: '#F6F7DD',
-    text: '#1B7867',
+    bg: 'hsl(var(--muted))',
+    text: 'hsl(var(--primary))',
     icon: <CheckCircle2 size={16} />
   }}
   contentText={{
@@ -427,7 +427,7 @@ className="border-polar-border"`}
               />
             </div>
             <div>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: '#282E3A', marginBottom: '12px' }}>PolarFormCard</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '12px' }}>PolarFormCard</div>
               <PolarFormCard title="Voorbeeld Formulier">
                 <PolarFormField label="Naam" description="Invullen van gegevens" required>
                   <Input placeholder="Voer naam in..." />
@@ -449,13 +449,13 @@ className="border-polar-border"`}
         </Section>
 
         <Section title="Spacing & Layout">
-          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#282E3A' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'hsl(var(--foreground))' }}>
             <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <li>• Card padding: <code style={{ backgroundColor: '#F6F7DD', padding: '2px 8px', borderRadius: '4px' }}>32px</code></li>
-              <li>• Section spacing: <code style={{ backgroundColor: '#F6F7DD', padding: '2px 8px', borderRadius: '4px' }}>24px</code></li>
-              <li>• Element spacing: <code style={{ backgroundColor: '#F6F7DD', padding: '2px 8px', borderRadius: '4px' }}>16px</code></li>
-              <li>• Small spacing: <code style={{ backgroundColor: '#F6F7DD', padding: '2px 8px', borderRadius: '4px' }}>8px</code></li>
-              <li>• Page padding: <code style={{ backgroundColor: '#F6F7DD', padding: '2px 8px', borderRadius: '4px' }}>32px 48px</code></li>
+              <li>• Card padding: <code style={{ backgroundColor: 'hsl(var(--muted))', padding: '2px 8px', borderRadius: '4px' }}>32px</code></li>
+              <li>• Section spacing: <code style={{ backgroundColor: 'hsl(var(--muted))', padding: '2px 8px', borderRadius: '4px' }}>24px</code></li>
+              <li>• Element spacing: <code style={{ backgroundColor: 'hsl(var(--muted))', padding: '2px 8px', borderRadius: '4px' }}>16px</code></li>
+              <li>• Small spacing: <code style={{ backgroundColor: 'hsl(var(--muted))', padding: '2px 8px', borderRadius: '4px' }}>8px</code></li>
+              <li>• Page padding: <code style={{ backgroundColor: 'hsl(var(--muted))', padding: '2px 8px', borderRadius: '4px' }}>32px 48px</code></li>
             </ul>
             <CodeBlock
               id="spacing"
@@ -468,7 +468,7 @@ className="space-x-2"   // 8px horizontal spacing`}
         </Section>
 
         <Section title="Dialogs & Modals">
-          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#73747B', marginBottom: '16px' }}>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'hsl(var(--text-secondary))', marginBottom: '16px' }}>
             Alle dialogs en modals volgen dezelfde Polar styling voor consistentie
           </p>
           
@@ -481,7 +481,7 @@ className="space-x-2"   // 8px horizontal spacing`}
                   <Button>Open Voorbeeld Dialog</Button>
                 </DialogTrigger>
                 <DialogContent style={{
-                  backgroundColor: '#FEFFF1',
+                  backgroundColor: 'hsl(var(--card))',
                   borderRadius: '20px',
                   border: '1px solid rgba(197, 197, 202, 0.5)',
                   padding: '32px',
@@ -493,7 +493,7 @@ className="space-x-2"   // 8px horizontal spacing`}
                       fontFamily: 'Inter, sans-serif',
                       fontSize: '18px',
                       fontWeight: 600,
-                      color: '#282E3A',
+                      color: 'hsl(var(--foreground))',
                       marginBottom: '8px',
                     }}>
                       Dialog Titel
@@ -502,7 +502,7 @@ className="space-x-2"   // 8px horizontal spacing`}
                       fontFamily: 'Inter, sans-serif',
                       fontSize: '14px',
                       fontWeight: 400,
-                      color: '#73747B',
+                      color: 'hsl(var(--text-secondary))',
                       marginBottom: '24px',
                     }}>
                       Dit is een beschrijving van de dialog, uitleggen wat de gebruiker kan doen.
@@ -514,7 +514,7 @@ className="space-x-2"   // 8px horizontal spacing`}
                         fontFamily: 'Inter, sans-serif',
                         fontSize: '13px',
                         fontWeight: 500,
-                        color: '#282E3A',
+                        color: 'hsl(var(--foreground))',
                         marginBottom: '8px',
                         display: 'block',
                       }}>
@@ -544,8 +544,8 @@ className="space-x-2"   // 8px horizontal spacing`}
                       </Button>
                       <Button
                         style={{
-                          backgroundColor: '#1B7867',
-                          color: '#FFFFFF',
+                          backgroundColor: 'hsl(var(--primary))',
+                          color: 'hsl(var(--primary-foreground))',
                           borderRadius: '20px',
                           fontFamily: 'Inter, sans-serif',
                         }}
@@ -565,7 +565,7 @@ className="space-x-2"   // 8px horizontal spacing`}
                 id="dialog-styling"
                 code={`<Dialog open={open} onOpenChange={setOpen}>
   <DialogContent style={{
-    backgroundColor: '#FEFFF1',
+    backgroundColor: 'hsl(var(--card))',
     borderRadius: '20px',
     border: '1px solid rgba(197, 197, 202, 0.5)',
     padding: '32px',
@@ -577,7 +577,7 @@ className="space-x-2"   // 8px horizontal spacing`}
         fontFamily: 'Inter, sans-serif',
         fontSize: '18px',
         fontWeight: 600,
-        color: '#282E3A',
+        color: 'hsl(var(--foreground))',
         marginBottom: '8px',
       }}>
         Titel
@@ -586,7 +586,7 @@ className="space-x-2"   // 8px horizontal spacing`}
         fontFamily: 'Inter, sans-serif',
         fontSize: '14px',
         fontWeight: 400,
-        color: '#73747B',
+        color: 'hsl(var(--text-secondary))',
         marginBottom: '24px',
       }}>
         Beschrijving
@@ -601,8 +601,8 @@ className="space-x-2"   // 8px horizontal spacing`}
             {/* Specificaties */}
             <div>
               <h3 className="polar-title" style={{ marginBottom: '12px' }}>Styling Specificaties</h3>
-              <ul style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#282E3A', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <li><strong>Container:</strong> Cream background (#FEFFF1), 20px border-radius, subtle border, box-shadow</li>
+              <ul style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'hsl(var(--foreground))', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <li><strong>Container:</strong> Cream background (#FFFFFF), 20px border-radius, subtle border, box-shadow</li>
                 <li><strong>Title:</strong> 18px, weight 600, Midnight color</li>
                 <li><strong>Description:</strong> 14px, weight 400, Secondary text color</li>
                 <li><strong>Inputs:</strong> White background (contrast!), 16px border-radius, subtle border</li>
@@ -616,8 +616,8 @@ className="space-x-2"   // 8px horizontal spacing`}
         <Section title="Usage Guidelines">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div>
-              <h3 className="polar-title" style={{ marginBottom: '12px', color: '#22C55E' }}>✅ DO</h3>
-              <ul style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#282E3A', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <h3 className="polar-title" style={{ marginBottom: '12px', color: 'hsl(var(--success))' }}>✅ DO</h3>
+              <ul style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'hsl(var(--foreground))', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <li>Gebruik Tailwind classes voor styling waar mogelijk</li>
                 <li>Gebruik design system tokens (polar-*, bg-background, etc.)</li>
                 <li>Volg de border-radius hiërarchie (8px, 16px, 20px)</li>
@@ -634,8 +634,8 @@ className="space-x-2"   // 8px horizontal spacing`}
               />
             </div>
             <div>
-              <h3 className="polar-title" style={{ marginBottom: '12px', color: '#EF4444' }}>❌ DON'T</h3>
-              <ul style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#282E3A', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <h3 className="polar-title" style={{ marginBottom: '12px', color: 'hsl(var(--destructive))' }}>❌ DON'T</h3>
+              <ul style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: 'hsl(var(--foreground))', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <li>Gebruik geen random border-radius waardes</li>
                 <li>Gebruik geen directe hex colors in componenten</li>
                 <li>Gebruik geen inline styles zonder goede reden</li>
@@ -650,7 +650,7 @@ className="space-x-2"   // 8px horizontal spacing`}
 </button>
 
 // ❌ FOUT
-<div className="rounded-[15px] bg-[#F6F7DD]">
+<div className="rounded-[15px] bg-[#F3F4F6]">
   Non-standard values
 </div>`}
               />

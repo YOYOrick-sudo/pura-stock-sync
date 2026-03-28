@@ -628,7 +628,7 @@ const DesignSystem = () => {
 
                 <SubSection title="Brand (Pura Vida Sea)">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <ColorSwatch name="Sea Primary" value="#1B7867" cssVar="hsl(163 65% 26%)" textDark={false} />
+                    <ColorSwatch name="Sea Primary" value="#16A34A" cssVar="hsl(163 65% 26%)" textDark={false} />
                     <ColorSwatch name="Sea Dark" value="#156556" cssVar="hsl(163 65% 21%)" textDark={false} />
                     <ColorSwatch name="Sea Light" value="#E6F4F1" cssVar="hsl(163 35% 93%)" />
                     <ColorSwatch name="Sea Border" value="#B3D9D4" cssVar="hsl(169 35% 77%)" />
@@ -637,7 +637,7 @@ const DesignSystem = () => {
 
                 <SubSection title="Tekst">
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <ColorSwatch name="Primary" value="#0F172A" cssVar="hsl(222 47% 11%)" textDark={false} />
+                    <ColorSwatch name="Primary" value="#111827" cssVar="hsl(222 47% 11%)" textDark={false} />
                     <ColorSwatch name="Secondary" value="#64748B" cssVar="hsl(215 16% 47%)" />
                     <ColorSwatch name="Muted" value="#94A3B8" cssVar="hsl(215 20% 65%)" />
                   </div>

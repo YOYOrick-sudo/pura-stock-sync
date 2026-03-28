@@ -20,7 +20,7 @@ export function PolarSetupCard({
     <div
       className="rounded-polar-lg"
       style={{
-        backgroundColor: '#FEFFF1',
+        backgroundColor: 'hsl(var(--card))',
         padding: '24px',
         width: '380px',
       }}
@@ -29,7 +29,7 @@ export function PolarSetupCard({
       <div
         className="flex flex-col rounded-polar-lg"
         style={{
-          backgroundColor: '#FFFFFF',
+          backgroundColor: 'hsl(var(--card))',
           padding: '24px',
         }}
       >
@@ -44,10 +44,10 @@ export function PolarSetupCard({
               justifyContent: 'center',
               width: '48px',
               height: '48px',
-              backgroundColor: '#F6F7DD',
+              backgroundColor: 'hsl(var(--muted))',
             }}
           >
-            <Icon size={24} style={{ color: '#282E3A' }} />
+            <Icon size={24} style={{ color: 'hsl(var(--foreground))' }} />
           </div>
         )}
 
@@ -57,7 +57,7 @@ export function PolarSetupCard({
             fontFamily: 'Inter, sans-serif',
             fontSize: '18px',
             fontWeight: 500,
-            color: '#282E3A',
+            color: 'hsl(var(--foreground))',
             marginBottom: '8px',
           }}
         >
@@ -70,7 +70,7 @@ export function PolarSetupCard({
             fontFamily: 'Inter, sans-serif',
             fontSize: '14px',
             fontWeight: 400,
-            color: '#73747B',
+            color: 'hsl(var(--text-secondary))',
             marginBottom: '24px',
             lineHeight: '20px',
           }}
@@ -86,7 +86,7 @@ export function PolarSetupCard({
             fontSize: '15px',
             fontWeight: 500,
             color: '#FFFFFF',
-            backgroundColor: '#1B7867',
+            backgroundColor: 'hsl(var(--primary))',
             border: 'none',
             borderRadius: '8px',
             padding: '10px 16px',

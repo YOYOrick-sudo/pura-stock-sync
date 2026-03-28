@@ -20,28 +20,28 @@ export default {
         sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "system-ui", "sans-serif"],
       },
       colors: {
-        // === PURA VIDA MODERN DESIGN SYSTEM ===
+        // === CLEAN SAAS DESIGN SYSTEM ===
         'pv': {
-          // Backgrounds (Modern Slate)
+          // Backgrounds (Gray)
           'bg': {
-            'page': 'hsl(210 40% 98%)',      // #F8FAFC - Main page background
+            'page': 'hsl(220 14% 96%)',      // #F3F4F6 - Gray-100
             'card': 'hsl(0 0% 100%)',         // #FFFFFF - Cards & surfaces
-            'muted': 'hsl(210 40% 96%)',      // #F1F5F9 - Secondary areas
-            'hover': 'hsl(210 31% 91%)',      // #E2E8F0 - Hover states
+            'muted': 'hsl(220 14% 96%)',      // #F3F4F6 - Gray-100
+            'hover': 'hsl(220 13% 91%)',      // #E5E7EB - Gray-200
           },
-          // Brand Green (Pura Vida Sea)
-          'sea': 'hsl(163 65% 26%)',           // #1B7867 - Primary
-          'sea-dark': 'hsl(163 65% 21%)',      // #156556 - Hover/active
-          'sea-light': 'hsl(163 35% 93%)',     // #E6F4F1 - Subtle backgrounds
-          'sea-border': 'hsl(169 35% 77%)',    // #B3D9D4 - Subtle borders
+          // Brand Green
+          'sea': 'hsl(142 72% 29%)',           // #16A34A - Green-600
+          'sea-dark': 'hsl(142 72% 24%)',      // #15803D - Green-700
+          'sea-light': 'hsl(138 76% 97%)',     // #F0FDF4 - Green-50
+          'sea-border': 'hsl(142 69% 58%)',    // #4ADE80 - Green-400
           // Text Colors
           'text': {
-            'primary': 'hsl(222 47% 11%)',    // #0F172A - Slate-900
-            'secondary': 'hsl(215 16% 47%)',  // #64748B - Slate-500
-            'muted': 'hsl(215 20% 65%)',      // #94A3B8 - Slate-400
+            'primary': 'hsl(221 39% 11%)',    // #111827 - Gray-900
+            'secondary': 'hsl(220 9% 46%)',   // #6B7280 - Gray-500
+            'muted': 'hsl(218 11% 65%)',      // #9CA3AF - Gray-400
           },
           // Status Colors
-          'success': 'hsl(156 60% 35%)',       // Teal-groen mix, dichter bij brand
+          'success': 'hsl(142 71% 45%)',       // #22C55E - Green-500
           'warning': 'hsl(38 92% 50%)',        // #F59E0B
           'error': 'hsl(0 84% 60%)',           // #EF4444
           'info': 'hsl(217 91% 60%)',          // #3B82F6
@@ -88,6 +88,18 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
         },
         notification: {
           badge: "hsl(var(--notification-badge))",

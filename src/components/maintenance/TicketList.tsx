@@ -17,15 +17,15 @@ interface TicketListProps {
 }
 
 const prioriteitConfig = {
-  hoog: { color: '#EF4444', bg: 'hsl(var(--destructive) / 0.1)', label: 'Hoog' },
-  midden: { color: '#F59E0B', bg: 'hsl(45 100% 95%)', label: 'Midden' },
-  laag: { color: '#2D8E6F', bg: 'hsl(160 40% 95%)', label: 'Laag' },
+  hoog: { color: 'hsl(var(--destructive))', bg: 'hsl(var(--destructive) / 0.1)', label: 'Hoog' },
+  midden: { color: 'hsl(var(--warning))', bg: 'hsl(45 100% 95%)', label: 'Midden' },
+  laag: { color: 'hsl(var(--primary))', bg: 'hsl(160 40% 95%)', label: 'Laag' },
 };
 
 const statusConfig = {
-  nieuw: { color: '#EF4444', bg: 'hsl(var(--destructive) / 0.1)', label: 'Nieuw', icon: AlertTriangle },
-  in_behandeling: { color: '#F59E0B', bg: 'hsl(45 100% 95%)', label: 'In behandeling', icon: Clock },
-  afgehandeld: { color: '#2D8E6F', bg: 'hsl(160 40% 95%)', label: 'Afgehandeld', icon: CheckCircle2 },
+  nieuw: { color: 'hsl(var(--destructive))', bg: 'hsl(var(--destructive) / 0.1)', label: 'Nieuw', icon: AlertTriangle },
+  in_behandeling: { color: 'hsl(var(--warning))', bg: 'hsl(45 100% 95%)', label: 'In behandeling', icon: Clock },
+  afgehandeld: { color: 'hsl(var(--primary))', bg: 'hsl(160 40% 95%)', label: 'Afgehandeld', icon: CheckCircle2 },
 };
 
 const cardStyle: React.CSSProperties = {
@@ -95,9 +95,9 @@ export function TicketList({ user, onNewTicket, onTicketClick, onSettings, onLog
       {/* KPI Tellers */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Hoog', value: counts.hoog, icon: AlertTriangle, color: '#EF4444', bg: 'hsl(var(--destructive) / 0.1)' },
-          { label: 'Openstaand', value: counts.openstaand, icon: Clock, color: '#F59E0B', bg: 'hsl(45 100% 95%)' },
-          { label: 'Afgehandeld', value: counts.afgehandeld, icon: CheckCircle2, color: '#2D8E6F', bg: 'hsl(160 40% 95%)' },
+          { label: 'Hoog', value: counts.hoog, icon: AlertTriangle, color: 'hsl(var(--destructive))', bg: 'hsl(var(--destructive) / 0.1)' },
+          { label: 'Openstaand', value: counts.openstaand, icon: Clock, color: 'hsl(var(--warning))', bg: 'hsl(45 100% 95%)' },
+          { label: 'Afgehandeld', value: counts.afgehandeld, icon: CheckCircle2, color: 'hsl(var(--primary))', bg: 'hsl(160 40% 95%)' },
         ].map(kpi => {
           const Icon = kpi.icon;
           return (

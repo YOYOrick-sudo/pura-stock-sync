@@ -19,7 +19,7 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
   return (
     <div
       style={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: 'hsl(var(--card))',
         border: '1px solid rgba(197, 197, 202, 0.5)',
         borderRadius: '16px',
         overflow: 'hidden',
@@ -33,7 +33,7 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
           gap: '24px',
           padding: '12px 24px',
           borderBottom: '1px solid rgba(197, 197, 202, 0.5)',
-          backgroundColor: '#F6F7DD',
+          backgroundColor: 'hsl(var(--muted))',
         }}
       >
         {columns.map((column) => (
@@ -43,7 +43,7 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
               fontFamily: 'Inter, sans-serif',
               fontSize: '14px',
               fontWeight: 400,
-              color: '#282E3A',
+              color: 'hsl(var(--foreground))',
               textAlign: column.align || 'left',
               display: 'flex',
               alignItems: 'center',
@@ -53,7 +53,7 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
           >
             {column.label}
             {column.sortable && (
-              <ChevronDown size={14} style={{ color: '#282E3A' }} />
+              <ChevronDown size={14} style={{ color: 'hsl(var(--foreground))' }} />
             )}
           </div>
         ))}
@@ -68,8 +68,8 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
             fontFamily: 'Inter, sans-serif',
             fontSize: '14px',
             fontWeight: 400,
-            color: '#282E3A',
-            backgroundColor: '#FFFFFF',
+            color: 'hsl(var(--foreground))',
+            backgroundColor: 'hsl(var(--card))',
           }}
         >
           {emptyMessage}
@@ -88,7 +88,7 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
                 gap: '24px',
                 padding: '16px 24px',
                 borderBottom: rowIndex < data.length - 1 ? '1px solid rgba(197, 197, 202, 0.5)' : 'none',
-                backgroundColor: '#FFFFFF',
+                backgroundColor: 'hsl(var(--card))',
               }}
             >
               {columns.map((column) => (
@@ -98,7 +98,7 @@ export function PolarTable({ columns, data, emptyMessage = 'No Results' }: Polar
                     fontFamily: 'Inter, sans-serif',
                     fontSize: '14px',
                     fontWeight: 400,
-                    color: '#282E3A',
+                    color: 'hsl(var(--foreground))',
                     textAlign: column.align || 'left',
                   }}
                 >

@@ -35,7 +35,7 @@ export function PolarTextarea({
             fontFamily: 'Inter, sans-serif',
             fontSize: '14px',
             fontWeight: 500,
-            color: error ? '#E64D4D' : '#17171C',
+            color: error ? 'hsl(var(--destructive))' : 'hsl(var(--foreground))',
           }}
         >
           {label}
@@ -56,13 +56,13 @@ export function PolarTextarea({
           fontSize: '15px',
           padding: '12px',
           border: error 
-            ? '1px solid #E64D4D' 
+            ? '1px solid hsl(var(--destructive))' 
             : isFocused 
-            ? '1px solid #1B7867' 
-            : '1px solid #ECEDED',
+            ? '1px solid hsl(var(--primary))' 
+            : '1px solid hsl(var(--border))',
           borderRadius: '16px',
-          backgroundColor: disabled ? '#F4F5F6' : '#FFFFFF',
-          color: disabled ? '#73747B' : '#17171C',
+          backgroundColor: disabled ? 'hsl(var(--background))' : 'hsl(var(--card))',
+          color: disabled ? 'hsl(var(--text-secondary))' : 'hsl(var(--foreground))',
           outline: 'none',
           transition: 'border-color 200ms',
           resize: 'vertical',
@@ -77,7 +77,7 @@ export function PolarTextarea({
             style={{
               fontFamily: 'Inter, sans-serif',
               fontSize: '14px',
-              color: error ? '#E64D4D' : '#36373A',
+              color: error ? 'hsl(var(--destructive))' : 'hsl(var(--foreground))',
             }}
           >
             {helperText}
@@ -88,7 +88,7 @@ export function PolarTextarea({
             style={{
               fontFamily: 'Inter, sans-serif',
               fontSize: '14px',
-              color: value.length >= maxLength ? '#E64D4D' : '#73747B',
+              color: value.length >= maxLength ? 'hsl(var(--destructive))' : 'hsl(var(--text-secondary))',
               marginLeft: 'auto',
             }}
           >

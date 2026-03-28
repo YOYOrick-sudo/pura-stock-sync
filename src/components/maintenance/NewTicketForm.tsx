@@ -14,9 +14,9 @@ interface NewTicketFormProps {
 }
 
 const prioriteitOptions: { value: Prioriteit; label: string; color: string; bg: string }[] = [
-  { value: 'hoog', label: 'Hoog', color: '#FFFFFF', bg: '#EF4444' },
-  { value: 'midden', label: 'Midden', color: '#FFFFFF', bg: '#F59E0B' },
-  { value: 'laag', label: 'Laag', color: '#FFFFFF', bg: '#2D8E6F' },
+  { value: 'hoog', label: 'Hoog', color: 'hsl(var(--primary-foreground))', bg: 'hsl(var(--destructive))' },
+  { value: 'midden', label: 'Midden', color: 'hsl(var(--primary-foreground))', bg: 'hsl(var(--warning))' },
+  { value: 'laag', label: 'Laag', color: 'hsl(var(--primary-foreground))', bg: 'hsl(var(--primary))' },
 ];
 
 const backButtonStyle: React.CSSProperties = {
