@@ -14,22 +14,16 @@ export const HandoverCard = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const queryClient = useQueryClient();
 
-  // Check if user is admin
   useEffect(() => {
     const checkAdmin = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-
-      const { data } = await supabase.rpc('has_role', {
-        _user_id: user.id,
-        _role: 'admin'
-      });
+      const { data } = await supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' });
       setIsAdmin(data === true);
     };
     checkAdmin();
   }, []);
 
-  // Fetch latest memo
   const { data: latestMemo, isLoading } = useQuery({
     queryKey: ['handover-memo', userLocation],
     queryFn: async () => {
@@ -40,72 +34,32 @@ export const HandoverCard = () => {
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
-      
       if (error) throw error;
       return data;
     },
     enabled: !!userLocation,
   });
 
-  // Realtime subscription
   useEffect(() => {
     if (!userLocation) return;
-
     const channel = supabase
       .channel('handover-memos-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'handover_memos',
-          filter: `location=eq.${userLocation}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['handover-memo', userLocation] });
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'handover_memos', filter: `location=eq.${userLocation}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['handover-memo', userLocation] });
+      })
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [userLocation, queryClient]);
 
-  const handleEdit = () => {
-    setMemoText(latestMemo?.message || '');
-    setIsEditing(true);
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    setMemoText('');
-  };
+  const handleEdit = () => { setMemoText(latestMemo?.message || ''); setIsEditing(true); };
+  const handleCancel = () => { setIsEditing(false); setMemoText(''); };
 
   const handleSave = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-
-    const { error } = await supabase
-      .from('handover_memos')
-      .insert({
-        location: userLocation,
-        message: memoText.trim(),
-        created_by: user.id,
-      });
-
-    if (error) {
-      toast.error('Kon overdracht niet opslaan');
-      console.error(error);
-      return;
-    }
-
-    if (!memoText.trim()) {
-      toast.success('Overdracht gewist');
-    } else {
-      toast.success('Overdracht opgeslagen');
-    }
-    
+    const { error } = await supabase.from('handover_memos').insert({ location: userLocation, message: memoText.trim(), created_by: user.id });
+    if (error) { toast.error('Kon overdracht niet opslaan'); return; }
+    toast.success(memoText.trim() ? 'Overdracht opgeslagen' : 'Overdracht gewist');
     setIsEditing(false);
     setMemoText('');
     queryClient.invalidateQueries({ queryKey: ['handover-memo', userLocation] });
@@ -114,106 +68,41 @@ export const HandoverCard = () => {
   const handleClear = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-
-    const { error } = await supabase
-      .from('handover_memos')
-      .insert({
-        location: userLocation,
-        message: '',
-        created_by: user.id,
-      });
-
-    if (error) {
-      toast.error('Kon overdracht niet wissen');
-      console.error(error);
-      return;
-    }
-
+    const { error } = await supabase.from('handover_memos').insert({ location: userLocation, message: '', created_by: user.id });
+    if (error) { toast.error('Kon overdracht niet wissen'); return; }
     toast.success('Overdracht gewist');
     setIsEditing(false);
     setMemoText('');
     queryClient.invalidateQueries({ queryKey: ['handover-memo', userLocation] });
   };
 
+  const cardClasses = "bg-card border border-border rounded-[20px] shadow-soft";
+
   if (isLoading) {
     return (
-      <div
-        style={{
-          backgroundColor: '#F6F7DD',
-          border: '1px solid rgba(27, 120, 103, 0.12)',
-          borderRadius: '20px',
-          padding: '20px 24px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03)',
-          minHeight: '100px',
-        }}
-      >
+      <div className={`${cardClasses} p-5 min-h-[100px]`}>
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-          <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+          <div className="h-4 bg-muted rounded w-1/4 mb-2"></div>
+          <div className="h-6 bg-muted rounded w-3/4"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div
-      style={{
-        backgroundColor: '#F6F7DD',
-        border: '1px solid rgba(27, 120, 103, 0.12)',
-        borderRadius: '20px',
-        padding: '20px 24px',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-        minHeight: '100px',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
-            <ClipboardList size={18} color="#1B7867" />
-            <h3
-              style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '14px',
-                fontWeight: 600,
-                color: '#282E3A',
-              }}
-            >
+    <div className={`${cardClasses} p-5 flex flex-col gap-3 min-h-[100px]`}>
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <ClipboardList size={18} className="text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">
               Overdracht - Bijzonderheden
             </h3>
           </div>
-          <p
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '12px',
-              color: '#73747B',
-              paddingLeft: '26px',
-            }}
-          >
+          <p className="text-xs text-muted-foreground pl-[26px]">
             Voor de volgende dienst
           </p>
         </div>
-
         {isAdmin && !isEditing && (
           <Button variant="outline" size="sm" onClick={handleEdit}>
             <Edit2 size={14} />
@@ -232,61 +121,30 @@ export const HandoverCard = () => {
             style={{ whiteSpace: 'pre-wrap' }}
             autoFocus
           />
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'space-between' }}>
+          <div className="flex gap-2 justify-between">
             <Button variant="ghost" size="sm" onClick={handleClear}>
-              <Trash2 size={14} />
-              Wis overdracht
+              <Trash2 size={14} /> Wis overdracht
             </Button>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handleCancel}>
-                <X size={14} />
-                Annuleren
+                <X size={14} /> Annuleren
               </Button>
               <Button size="sm" onClick={handleSave}>
-                <Check size={14} />
-                Opslaan
+                <Check size={14} /> Opslaan
               </Button>
             </div>
           </div>
         </>
       ) : (
         <>
-          <p
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '15px',
-              fontWeight: 400,
-              color: latestMemo?.message ? '#282E3A' : '#73747B',
-              fontStyle: latestMemo?.message ? 'normal' : 'italic',
-              lineHeight: 1.5,
-              whiteSpace: 'pre-wrap',
-            }}
-          >
+          <p className={`text-[15px] leading-relaxed whitespace-pre-wrap ${latestMemo?.message ? 'text-foreground' : 'text-muted-foreground italic'}`}>
             {latestMemo?.message || 'Geen overdracht voor vandaag'}
           </p>
-
           {latestMemo && latestMemo.message && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-              }}
-            >
-              <Clock size={14} color="#73747B" />
-              <p
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '12px',
-                  color: '#73747B',
-                }}
-              >
-                Laatst bijgewerkt: {new Date(latestMemo.updated_at).toLocaleString('nl-NL', {
-                  day: 'numeric',
-                  month: 'short',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
+            <div className="flex items-center gap-1.5">
+              <Clock size={14} className="text-muted-foreground" />
+              <p className="text-xs text-muted-foreground">
+                Laatst bijgewerkt: {new Date(latestMemo.updated_at).toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
           )}

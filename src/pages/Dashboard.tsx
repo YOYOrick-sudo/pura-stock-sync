@@ -181,9 +181,9 @@ const getVoorraadStatus = () => {
   
   return {
     status: 'ok',
-    color: 'text-[#1B7867]',
+    color: 'text-primary',
     bgColor: 'bg-green-50',
-    borderColor: 'border-l-[#1B7867]',
+    borderColor: 'border-l-primary',
     message: `Over ${daysUntil} dagen`,
     subtitle: lastSubmitted ? `Laatst: ${lastSubmitted.split(',')[0]}` : 'Nog niet ingediend'
   };
@@ -233,7 +233,7 @@ const DashboardCard = ({ title, count, onClick, isLoading, icon }: DashboardCard
         compact
         title={title}
         value={isLoading ? "..." : String(count)}
-        statusColor={{ bg: '#F6F7DD', icon }}
+        statusColor={{ bg: 'transparent', icon }}
       />
     </div>
   );
@@ -248,11 +248,11 @@ const VoorraadCard = () => {
   const getStatusColors = (status: any) => {
     switch(status.status) {
       case 'urgent':
-        return { bg: '#F6F7DD', text: '#DC2626', icon: <AlertCircle size={16} /> };
+        return { bg: 'transparent', text: '#DC2626', icon: <AlertCircle size={16} /> };
       case 'warning':
-        return { bg: '#F6F7DD', text: '#D97706', icon: <Clock size={16} /> };
+        return { bg: 'transparent', text: '#D97706', icon: <Clock size={16} /> };
       case 'ok':
-        return { bg: '#F6F7DD', text: '#1B7867', icon: <CheckCircle size={16} /> };
+        return { bg: 'transparent', text: 'hsl(var(--primary))', icon: <CheckCircle size={16} /> };
       default:
         return undefined;
     }
@@ -285,8 +285,8 @@ const DeliveryCard = ({ hasOrderThisWeek, isLoading, onClick }: DeliveryCardProp
   
   // Pura Vida Sea voor geplaatste orders
   const statusColor = hasOrderThisWeek 
-    ? { bg: '#F6F7DD', text: '#1B7867', icon: <CheckCircle size={16} color="#1B7867" /> }
-    : { bg: '#F6F7DD', text: '#73747B', icon: <Package size={16} color="#1B7867" /> };
+    ? { bg: 'transparent', text: 'hsl(var(--primary))', icon: <CheckCircle size={16} className="text-primary" /> }
+    : { bg: 'transparent', text: 'hsl(var(--muted-foreground))', icon: <Package size={16} className="text-primary" /> };
   
   return (
     <div onClick={onClick} className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md" style={{ borderRadius: '20px' }}>
@@ -513,7 +513,7 @@ export default function Dashboard() {
             count={pendingTasks || 0}
             onClick={() => navigate('/taken-bediening')}
             isLoading={loadingTasks}
-            icon={<ListTodo size={16} color="#1B7867" />}
+            icon={<ListTodo size={16} className="text-primary" />}
           />
           
           <WeatherWidget
@@ -530,7 +530,7 @@ export default function Dashboard() {
               count={(typeof pendingOrders === 'number' ? pendingOrders : 0)}
               onClick={() => navigate('/internal-orders')}
               isLoading={loadingOrders}
-              icon={<Package size={16} color="#1B7867" />}
+              icon={<Package size={16} className="text-primary" />}
             />
           )}
 

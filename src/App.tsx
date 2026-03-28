@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { LocationGuard } from "@/components/LocationGuard";
 import { UserLocationProvider } from "@/contexts/UserLocationContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
@@ -28,164 +29,166 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <UserLocationProvider>
-          <Routes>
-          {/* Auth routes */}
-          <Route path="/" element={<Auth />} />
-          
-          {/* Main module routes - all with sidebar */}
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } 
-          /> 
-          <Route
-            path="/taken-bediening" 
-            element={
-              <ProtectedRoute>
-                <FohModule />
-              </ProtectedRoute>
-            } 
-          />
-          <Route
-            path="/taken-analyse" 
-            element={
-              <ProtectedRoute>
-                <FohAnalytics />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/kassatelling"
-            element={
-              <ProtectedRoute>
-                <Kassatelling />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/voorraad" 
-            element={
-              <ProtectedRoute>
-                <LocationGuard allowedLocations={['West']}>
-                  <Voorraad />
-                </LocationGuard>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/settings" 
-            element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/internal-orders" 
-            element={
-              <ProtectedRoute>
-                <LocationGuard allowedLocations={['West']}>
-                  <InternalOrders />
-                </LocationGuard>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/midsland-bestellingen" 
-            element={
-              <ProtectedRoute>
-                <LocationGuard allowedLocations={['Midsland']}>
-                  <MidslandOrders />
-                </LocationGuard>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/style-guide" 
-            element={
-              <ProtectedRoute>
-                <StyleGuide />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/design-preview" 
-            element={
-              <ProtectedRoute>
-                <DesignPreview />
-              </ProtectedRoute>
-            } 
-          />
-          {/* Public Design System route - no login needed */}
-          <Route path="/design-system" element={<DesignSystem />} />
-          <Route path="/unsubscribe" element={<Unsubscribe />} />
-          
-          {/* Maintenance Module */}
-          <Route
-            path="/onderhoud"
-            element={
-              <ProtectedRoute>
-                <Onderhoud />
-              </ProtectedRoute>
-            }
-          />
+    <ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <UserLocationProvider>
+            <Routes>
+            {/* Auth routes */}
+            <Route path="/" element={<Auth />} />
+            
+            {/* Main module routes - all with sidebar */}
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            /> 
+            <Route
+              path="/taken-bediening" 
+              element={
+                <ProtectedRoute>
+                  <FohModule />
+                </ProtectedRoute>
+              } 
+            />
+            <Route
+              path="/taken-analyse" 
+              element={
+                <ProtectedRoute>
+                  <FohAnalytics />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/kassatelling"
+              element={
+                <ProtectedRoute>
+                  <Kassatelling />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/voorraad" 
+              element={
+                <ProtectedRoute>
+                  <LocationGuard allowedLocations={['West']}>
+                    <Voorraad />
+                  </LocationGuard>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/internal-orders" 
+              element={
+                <ProtectedRoute>
+                  <LocationGuard allowedLocations={['West']}>
+                    <InternalOrders />
+                  </LocationGuard>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/midsland-bestellingen" 
+              element={
+                <ProtectedRoute>
+                  <LocationGuard allowedLocations={['Midsland']}>
+                    <MidslandOrders />
+                  </LocationGuard>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/style-guide" 
+              element={
+                <ProtectedRoute>
+                  <StyleGuide />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/design-preview" 
+              element={
+                <ProtectedRoute>
+                  <DesignPreview />
+                </ProtectedRoute>
+              } 
+            />
+            {/* Public Design System route - no login needed */}
+            <Route path="/design-system" element={<DesignSystem />} />
+            <Route path="/unsubscribe" element={<Unsubscribe />} />
+            
+            {/* Maintenance Module */}
+            <Route
+              path="/onderhoud"
+              element={
+                <ProtectedRoute>
+                  <Onderhoud />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* HR Module Routes */}
-          <Route 
-            path="/hr" 
-            element={
-              <ProtectedRoute>
-                <HrInbox />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/hr/applicants/new" 
-            element={
-              <ProtectedRoute>
-                <ApplicantForm />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/hr/applicants/:id" 
-            element={
-              <ProtectedRoute>
-                <ApplicantDetail />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/hr/housing" 
-            element={
-              <ProtectedRoute>
-                <HousingPlanner />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/hr/housing/new" 
-            element={
-              <ProtectedRoute>
-                <HousingForm />
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Catch-all route */}
-          <Route path="*" element={<NotFound />} />
-          </Routes>
-        </UserLocationProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+            {/* HR Module Routes */}
+            <Route 
+              path="/hr" 
+              element={
+                <ProtectedRoute>
+                  <HrInbox />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/hr/applicants/new" 
+              element={
+                <ProtectedRoute>
+                  <ApplicantForm />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/hr/applicants/:id" 
+              element={
+                <ProtectedRoute>
+                  <ApplicantDetail />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/hr/housing" 
+              element={
+                <ProtectedRoute>
+                  <HousingPlanner />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/hr/housing/new" 
+              element={
+                <ProtectedRoute>
+                  <HousingForm />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Catch-all route */}
+            <Route path="*" element={<NotFound />} />
+            </Routes>
+          </UserLocationProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

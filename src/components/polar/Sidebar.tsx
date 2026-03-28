@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, PanelLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -25,39 +25,25 @@ export interface PolarSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
   headerSlot?: React.ReactNode;
+  footerSlot?: React.ReactNode;
 }
 
-/**
- * PolarSidebar - Exact sidebar from PolarBaseUI
- * 
- * Specifications:
- * - Width: 280px (expanded), 64px (collapsed)
- * - Background: #FFFFFF
- * - Border: 1px solid #ECEDED (right)
- * - Header: 72px height
- * - Navigation items: 48px height, 12px gap
- * - Active state: rgba(27, 120, 103, 0.08) + 3px solid #1B7867 left border
- * - Hover state: #F4F5F6
- * - Font: Inter, 15px, 500 weight
- * - Transitions: 200ms ease
- */
 export function PolarSidebar({
   logo,
   items,
   collapsed,
   onToggle,
   headerSlot,
+  footerSlot,
 }: PolarSidebarProps) {
   const navigate = useNavigate();
 
   return (
     <aside
-      className="polar-sidebar flex flex-col"
+      className="polar-sidebar flex flex-col bg-[hsl(var(--sidebar-bg))] border-r border-border"
       style={{
         width: collapsed ? '64px' : '280px',
         height: '100vh',
-        backgroundColor: '#F6F7DD',
-        borderRight: '1px solid rgba(197, 197, 202, 0.5)',
         position: 'sticky',
         top: 0,
         transition: 'width 200ms cubic-bezier(0.4, 0, 0.2, 1)',
@@ -65,18 +51,16 @@ export function PolarSidebar({
     >
       {/* Header - 84px */}
       <div
+        className="border-b border-border"
         style={{
           height: '84px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: collapsed ? '0 12px' : '0 24px',
-          borderBottom: '1px solid rgba(197, 197, 202, 0.5)',
         }}
       >
-        {/* Logo */}
         <div
-          className="polar-sidebar-logo"
           style={{
             transition: 'opacity 200ms ease',
             opacity: collapsed ? 0 : 1,
@@ -86,39 +70,24 @@ export function PolarSidebar({
           {!collapsed && logo}
         </div>
 
-        {/* Compact logo when collapsed */}
         {collapsed && (
-          <div
-            style={{
-              fontSize: '20px',
-              fontWeight: 600,
-              color: '#1B7867',
-              fontFamily: 'Inter, sans-serif',
-            }}
-          >
+          <div className="text-xl font-semibold text-primary">
             PV
           </div>
         )}
 
-        {/* Header actions (notifications, toggle) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {!collapsed && headerSlot}
           <Button
             variant="ghost"
             size="icon"
             onClick={onToggle}
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '8px',
-              transition: 'background-color 150ms',
-              border: 'none',
-            }}
+            className="w-10 h-10 rounded-lg"
           >
             {collapsed ? (
-              <Menu className="h-5 w-5" style={{ color: '#36373A' }} />
+              <Menu className="h-5 w-5 text-foreground" />
             ) : (
-              <PanelLeft className="h-5 w-5" style={{ color: '#36373A' }} />
+              <PanelLeft className="h-5 w-5 text-foreground" />
             )}
           </Button>
         </div>
@@ -126,10 +95,9 @@ export function PolarSidebar({
 
       {/* Navigation Items */}
       <nav
+        className="flex-1 overflow-y-auto"
         style={{
-          flex: 1,
           padding: collapsed ? '28px 8px' : '28px 16px',
-          overflowY: 'auto',
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -147,8 +115,9 @@ export function PolarSidebar({
                   }
                 }}
                 className={cn(
-                  'polar-sidebar-item',
-                  item.active && 'polar-sidebar-item-active',
+                  'polar-sidebar-item rounded-lg transition-colors',
+                  item.active && 'bg-[hsl(var(--sidebar-active))] border border-border shadow-soft',
+                  !item.active && 'border border-transparent hover:bg-[hsl(var(--sidebar-hover))]',
                   !item.requiresCode && 'cursor-pointer'
                 )}
                 style={{
@@ -156,46 +125,31 @@ export function PolarSidebar({
                   display: 'flex',
                   alignItems: 'center',
                   padding: collapsed ? '0 12px' : '0 16px',
-                  borderRadius: '8px',
-                  backgroundColor: item.active
-                    ? '#FEFFF1'
-                    : 'transparent',
-                  border: item.active ? '1px solid rgba(197, 197, 202, 0.5)' : '1px solid transparent',
-                  boxShadow: item.active ? '0 1px 3px rgba(0, 0, 0, 0.05)' : 'none',
-                  transition: 'background-color 150ms ease, box-shadow 150ms ease',
-                  fontFamily: 'Inter, sans-serif',
                   fontSize: '17px',
                   fontWeight: item.active ? 500 : 400,
-                  color: item.active ? '#282E3A' : '#73747B',
                   justifyContent: collapsed ? 'center' : 'flex-start',
-                }}
-                onMouseEnter={(e) => {
-                  if (!item.active) {
-                    e.currentTarget.style.backgroundColor = '#FEFFF1';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!item.active) {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }
                 }}
               >
                 <Icon
-                  className="shrink-0"
+                  className={cn(
+                    'shrink-0 transition-colors',
+                    item.active ? 'text-primary' : 'text-muted-foreground'
+                  )}
                   style={{
                     width: collapsed ? '22px' : '20px',
                     height: collapsed ? '22px' : '20px',
                     marginRight: collapsed ? '0' : '14px',
-                    color: item.active ? '#1B7867' : '#9CA3AF',
                     strokeWidth: 1.5,
-                    transition: 'color 150ms ease, transform 150ms ease',
                   }}
                 />
-                {!collapsed && <span>{item.title}</span>}
+                {!collapsed && (
+                  <span className={item.active ? 'text-foreground' : 'text-muted-foreground'}>
+                    {item.title}
+                  </span>
+                )}
               </div>
             );
 
-            // Wrap with tooltip when collapsed
             if (collapsed) {
               return (
                 <TooltipProvider key={item.url}>
@@ -205,14 +159,7 @@ export function PolarSidebar({
                     </TooltipTrigger>
                     <TooltipContent
                       side="right"
-                      style={{
-                        fontFamily: 'Inter, sans-serif',
-                        fontSize: '14px',
-                        backgroundColor: '#17171C',
-                        color: '#FFFFFF',
-                        borderRadius: '8px',
-                        padding: '8px 12px',
-                      }}
+                      className="bg-foreground text-background rounded-lg px-3 py-2 text-sm"
                     >
                       {item.title}
                     </TooltipContent>
@@ -225,6 +172,13 @@ export function PolarSidebar({
           })}
         </div>
       </nav>
+
+      {/* Footer slot for theme toggle */}
+      {footerSlot && (
+        <div className="border-t border-border p-3">
+          {footerSlot}
+        </div>
+      )}
     </aside>
   );
 }

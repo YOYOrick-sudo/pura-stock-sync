@@ -92,6 +92,11 @@ export default {
         notification: {
           badge: "hsl(var(--notification-badge))",
         },
+        sidebar: {
+          bg: "hsl(var(--sidebar-bg))",
+          active: "hsl(var(--sidebar-active))",
+          hover: "hsl(var(--sidebar-hover))",
+        },
       },
       boxShadow: {
         'soft': '0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px 0 rgb(0 0 0 / 0.02)',

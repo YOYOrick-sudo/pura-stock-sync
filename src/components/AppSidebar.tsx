@@ -15,58 +15,18 @@ import {
 import { Input } from '@/components/ui/input';
 import { NotificationsDropdown } from '@/components/NotificationsDropdown';
 import { PolarSidebar } from '@/components/polar/Sidebar';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import puraVidaLogo from '@/assets/pura-vida-logo-dark.png';
 
 const allNavigationItems = [
-  {
-    title: 'Dashboard',
-    url: '/dashboard',
-    icon: Home,
-    locations: ['West', 'Midsland'],
-  },
-  {
-    title: 'Taken Bediening',
-    url: '/taken-bediening',
-    icon: ListChecks,
-    locations: ['West', 'Midsland'],
-  },
-  {
-    title: 'Kassatelling',
-    url: '/kassatelling',
-    icon: Wallet,
-    locations: ['West', 'Midsland'],
-  },
-  {
-    title: 'Interne Bestellingen',
-    url: '/internal-orders',
-    icon: Package,
-    locations: ['West'],
-  },
-  {
-    title: 'Bestellingen van West',
-    url: '/midsland-bestellingen',
-    icon: Package,
-    locations: ['Midsland'],
-  },
-  {
-    title: 'Onderhoud',
-    url: '/onderhoud',
-    icon: Wrench,
-    locations: ['West', 'Midsland'],
-  },
-  {
-    title: 'Settings',
-    url: '/settings',
-    icon: Settings,
-    locations: ['West', 'Midsland'],
-  },
-  {
-    title: 'Statistieken',
-    url: '/taken-analyse',
-    icon: BarChart3,
-    locations: ['West', 'Midsland'],
-    requiresCode: true,
-  },
+  { title: 'Dashboard', url: '/dashboard', icon: Home, locations: ['West', 'Midsland'] },
+  { title: 'Taken Bediening', url: '/taken-bediening', icon: ListChecks, locations: ['West', 'Midsland'] },
+  { title: 'Kassatelling', url: '/kassatelling', icon: Wallet, locations: ['West', 'Midsland'] },
+  { title: 'Interne Bestellingen', url: '/internal-orders', icon: Package, locations: ['West'] },
+  { title: 'Bestellingen van West', url: '/midsland-bestellingen', icon: Package, locations: ['Midsland'] },
+  { title: 'Onderhoud', url: '/onderhoud', icon: Wrench, locations: ['West', 'Midsland'] },
+  { title: 'Settings', url: '/settings', icon: Settings, locations: ['West', 'Midsland'] },
+  { title: 'Statistieken', url: '/taken-analyse', icon: BarChart3, locations: ['West', 'Midsland'], requiresCode: true },
 ];
 
 interface AppSidebarProps {
@@ -91,15 +51,12 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
 
   const handleNavigation = (url: string) => {
     navigate(url);
-    if (onNavigate) {
-      onNavigate();
-    }
+    if (onNavigate) onNavigate();
   };
 
   const handleProtectedClick = (e: React.MouseEvent, url: string) => {
     e.preventDefault();
     const isUnlocked = sessionStorage.getItem('stats_unlocked') === 'true';
-    
     if (isUnlocked) {
       navigate(url);
     } else {
@@ -145,34 +102,16 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
         headerSlot={<NotificationsDropdown />}
+        footerSlot={!collapsed ? <ThemeToggle /> : undefined}
       />
 
       <AlertDialog open={showCodeDialog} onOpenChange={setShowCodeDialog}>
-        <AlertDialogContent style={{
-          backgroundColor: '#FEFFF1',
-          borderRadius: '20px',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
-          padding: '32px',
-          maxWidth: '480px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-        }}>
+        <AlertDialogContent className="bg-card rounded-[20px] border border-border p-8 max-w-[480px] shadow-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '18px',
-              fontWeight: 600,
-              color: '#282E3A',
-              marginBottom: '8px',
-            }}>
+            <AlertDialogTitle className="text-lg font-semibold text-foreground mb-2">
               Toegangscode vereist
             </AlertDialogTitle>
-            <AlertDialogDescription style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '14px',
-              fontWeight: 400,
-              color: '#73747B',
-              marginBottom: '24px',
-            }}>
+            <AlertDialogDescription className="text-sm text-muted-foreground mb-6">
               Voer de toegangscode in om toegang te krijgen tot Statistieken.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -183,56 +122,22 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
               value={codeInput}
               onChange={(e) => setCodeInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCodeSubmit()}
-              className="w-full"
-              style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: '16px',
-                border: `1px solid ${codeError ? '#EF4444' : 'rgba(197, 197, 202, 0.5)'}`,
-                padding: '12px 16px',
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '14px',
-                color: '#282E3A',
-              }}
+              className={`w-full rounded-2xl border-1.5 p-3 px-4 text-sm ${codeError ? 'border-destructive' : ''}`}
             />
             {codeError && (
-              <p style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '13px',
-                color: '#EF4444',
-                marginTop: '8px',
-              }}>
-                {codeError}
-              </p>
+              <p className="text-[13px] text-destructive mt-2">{codeError}</p>
             )}
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel 
-              onClick={() => {
-                setCodeInput('');
-                setCodeError('');
-              }}
-              style={{
-                backgroundColor: 'transparent',
-                color: '#282E3A',
-                borderRadius: '20px',
-                border: '1px solid rgba(197, 197, 202, 0.5)',
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '14px',
-                fontWeight: 500,
-              }}
+            <AlertDialogCancel
+              onClick={() => { setCodeInput(''); setCodeError(''); }}
+              className="rounded-[20px] border-1.5"
             >
               Annuleren
             </AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleCodeSubmit}
-              style={{
-                backgroundColor: '#1B7867',
-                color: '#FFFFFF',
-                borderRadius: '20px',
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '14px',
-                fontWeight: 500,
-              }}
+              className="rounded-[20px] bg-primary text-primary-foreground"
             >
               Bevestigen
             </AlertDialogAction>

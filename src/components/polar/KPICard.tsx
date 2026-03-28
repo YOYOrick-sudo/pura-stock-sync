@@ -41,7 +41,6 @@ export function PolarKPICard({
   statusColor,
 }: PolarKPICardProps) {
   
-  // Calculate chart line points
   const chartHeight = 140;
   const maxValue = Math.max(...chartData, 1);
   const minValue = Math.min(...chartData, 0);
@@ -55,79 +54,29 @@ export function PolarKPICard({
 
   const linePoints = points.map(p => `${p.x},${p.y}`).join(' ');
 
-  // Compact variant - small card with optional status
   if (compact) {
     return (
       <div
-        style={{
-          backgroundColor: statusColor?.bg || '#F6F7DD',
-          border: '1px solid rgba(27, 120, 103, 0.12)',
-          borderRadius: '20px',
-          padding: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          height: '100%',
-          minHeight: '140px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03)',
-          transition: 'all 200ms ease',
-        }}
+        className="bg-card border border-border rounded-[20px] p-5 flex flex-col gap-2 h-full min-h-[140px] shadow-soft transition-all duration-200"
       >
-        <div
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '13px',
-            fontWeight: 500,
-            color: '#73747B',
-            textTransform: 'uppercase',
-            letterSpacing: '0.02em',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-        >
+        <div className="text-[13px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
           {statusColor?.icon && (
-            <span style={{ color: statusColor.text, display: 'flex', alignItems: 'center' }}>
+            <span style={{ color: statusColor.text }} className="flex items-center">
               {statusColor.icon}
             </span>
           )}
           {title}
         </div>
-        <div
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '32px',
-            fontWeight: 600,
-            color: '#282E3A',
-            letterSpacing: '-0.01em',
-            lineHeight: '1',
-            marginTop: '4px',
-          }}
-        >
+        <div className="text-[32px] font-semibold text-foreground tracking-tight leading-none mt-1">
           {value}
         </div>
         {contentText?.primary && (
-          <div
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '13px',
-              fontWeight: 500,
-              color: '#282E3A',
-              marginTop: '4px',
-            }}
-          >
+          <div className="text-[13px] font-medium text-foreground mt-1">
             {contentText.primary}
           </div>
         )}
         {contentText?.secondary && (
-          <div
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '12px',
-              fontWeight: 400,
-              color: '#73747B',
-            }}
-          >
+          <div className="text-xs text-muted-foreground">
             {contentText.secondary}
           </div>
         )}
@@ -137,209 +86,76 @@ export function PolarKPICard({
 
   return (
     <div
-      className="rounded-polar-lg"
-      style={{
-        backgroundColor: statusColor?.bg || '#FEFFF1',
-        padding: '24px',
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '320px',
-      }}
+      className="rounded-polar-lg bg-card border border-border p-6 flex flex-col min-h-[320px]"
     >
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '24px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '15px',
-              fontWeight: 400,
-              color: '#282E3A',
-            }}
-          >
-            {title}
-          </span>
-          {hasDropdown && (
-            <ChevronDown size={16} style={{ color: '#73747B' }} />
-          )}
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[15px] text-foreground">{title}</span>
+          {hasDropdown && <ChevronDown size={16} className="text-muted-foreground" />}
         </div>
         {actionLink && (
-          <button
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '15px',
-              fontWeight: 400,
-              color: '#282E3A',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0,
-            }}
-          >
+          <button className="text-[15px] text-foreground bg-transparent border-none cursor-pointer p-0">
             {actionLink}
           </button>
         )}
       </div>
 
-      {/* Value - on grey background */}
-      <div
-        style={{
-          fontFamily: 'Inter, sans-serif',
-          fontSize: '56px',
-          fontWeight: 600,
-          color: '#17171C',
-          letterSpacing: '-0.02em',
-          lineHeight: '1',
-          marginBottom: dateRanges.length > 0 ? '20px' : '24px',
-        }}
-      >
+      {/* Value */}
+      <div className="text-[56px] font-semibold text-foreground tracking-tight leading-none mb-6">
         {value}
       </div>
 
-      {/* Date Ranges - on grey background */}
+      {/* Date Ranges */}
       {dateRanges.length > 0 && (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            marginBottom: '32px',
-          }}
-        >
+        <div className="flex flex-col gap-2 mb-8">
           {dateRanges.map((range, index) => (
-            <div
-              key={index}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
-            >
-              <Circle
-                size={8}
-                fill="#1B7867"
-                stroke="none"
-              />
-              <span
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '13px',
-                  fontWeight: 400,
-                  color: '#36373A',
-                }}
-              >
-                {range}
-              </span>
+            <div key={index} className="flex items-center gap-2">
+              <Circle size={8} className="fill-primary text-primary" />
+              <span className="text-[13px] text-muted-foreground">{range}</span>
             </div>
           ))}
         </div>
       )}
 
-      {/* Content Text - on grey background (for non-chart cards) */}
+      {/* Content Text */}
       {contentText && !showChart && (
-        <div style={{ marginTop: 'auto' }}>
+        <div className="mt-auto">
           {contentText.primary && (
-            <div
-              style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '15px',
-                fontWeight: 400,
-                color: statusColor?.text || '#17171C',
-                marginBottom: contentText.secondary ? '4px' : '0',
-              }}
-            >
+            <div className="text-[15px] text-foreground mb-1">
               {contentText.primary}
             </div>
           )}
           {contentText.secondary && (
-            <div
-              style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '13px',
-                fontWeight: 400,
-                color: '#36373A',
-              }}
-            >
+            <div className="text-[13px] text-muted-foreground">
               {contentText.secondary}
             </div>
           )}
         </div>
       )}
 
-      {/* Chart - WHITE background layer inside grey card */}
+      {/* Chart */}
       {showChart && chartData.length > 0 && (
-        <div
-          className="rounded-polar-lg"
-          style={{
-            marginTop: 'auto',
-            backgroundColor: '#FFFFFF',
-            padding: '24px',
-          }}
-        >
-          {/* Chart SVG */}
-          <div style={{ height: `${chartHeight}px`, width: '100%', marginBottom: '12px' }}>
-            <svg
-              width="100%"
-              height="100%"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              style={{ display: 'block' }}
-            >
-              {/* Bottom border line */}
-              <line 
-                x1="0" 
-                y1="100" 
-                x2="100" 
-                y2="100" 
-                stroke="#ECEDED" 
-                strokeWidth="1" 
-                vectorEffect="non-scaling-stroke"
-              />
-
-              {/* Line */}
+        <div className="rounded-polar-lg mt-auto bg-card p-6">
+          <div style={{ height: `${chartHeight}px` }} className="w-full mb-3">
+            <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" className="block">
+              <line x1="0" y1="100" x2="100" y2="100" className="stroke-border" strokeWidth="1" vectorEffect="non-scaling-stroke" />
               {chartData.length > 1 && (
                 <polyline
                   points={linePoints}
                   fill="none"
-                  stroke="#1B7867"
+                  className="stroke-primary"
                   strokeWidth="1.5"
                   vectorEffect="non-scaling-stroke"
-                  style={{
-                    strokeLinecap: 'round',
-                    strokeLinejoin: 'round',
-                  }}
+                  style={{ strokeLinecap: 'round', strokeLinejoin: 'round' }}
                 />
               )}
             </svg>
           </div>
-
-          {/* X-Axis Labels */}
           {xAxisLabels.length > 0 && (
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-              }}
-            >
+            <div className="flex justify-between">
               {xAxisLabels.map((label, index) => (
-                <span
-                  key={index}
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '13px',
-                    fontWeight: 400,
-                    color: '#36373A',
-                  }}
-                >
-                  {label}
-                </span>
+                <span key={index} className="text-[13px] text-muted-foreground">{label}</span>
               ))}
             </div>
           )}
@@ -348,24 +164,11 @@ export function PolarKPICard({
 
       {/* Dot indicators */}
       {showDots && (
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '8px',
-            marginTop: '16px',
-          }}
-        >
+        <div className="flex justify-center gap-2 mt-4">
           {Array.from({ length: 3 }).map((_, index) => (
             <div
               key={index}
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: index === activeDot ? '#1B7867' : '#ECEDED',
-                transition: 'background-color 0.2s ease',
-              }}
+              className={`w-2 h-2 rounded-full transition-colors ${index === activeDot ? 'bg-primary' : 'bg-border'}`}
             />
           ))}
         </div>
