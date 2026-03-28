@@ -72,6 +72,8 @@ export default {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
+          bg: "hsl(var(--status-error-bg))",
+          border: "hsl(var(--status-error-border))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -92,14 +94,20 @@ export default {
         warning: {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
+          bg: "hsl(var(--status-warning-bg))",
+          border: "hsl(var(--status-warning-border))",
         },
         success: {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
+          bg: "hsl(var(--status-success-bg))",
+          border: "hsl(var(--status-success-border))",
         },
         info: {
           DEFAULT: "hsl(var(--info))",
           foreground: "hsl(var(--info-foreground))",
+          bg: "hsl(var(--status-info-bg))",
+          border: "hsl(var(--status-info-border))",
         },
         notification: {
           badge: "hsl(var(--notification-badge))",
@@ -111,24 +119,19 @@ export default {
         },
       },
       boxShadow: {
-        'soft': '0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px 0 rgb(0 0 0 / 0.02)',
-        'card': '0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05)',
-        'elevated': '0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05)',
-        'hover': '0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05)',
+        // Use Tailwind defaults (shadow-sm, shadow-md, shadow-lg) for most cases
+        // Only keep soft for backward compat during migration
+        'soft': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
       },
       borderRadius: {
-        // Polar UI radius system
+        // 3-tier system: sm (8px), md (12px), lg (16px)
+        lg: '16px',
+        md: 'var(--radius)',              /* 12px */
+        sm: 'calc(var(--radius) - 4px)',  /* 8px */
+        // Keep polar aliases during migration
         'polar-sm': '8px',
         'polar-md': '12px',
         'polar-lg': '16px',
-        'polar-xl': '20px',
-        'polar-2xl': '24px',
-        // Shadcn defaults (mapped to polar)
-        'xl': '16px',
-        '2xl': '20px',
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
       },
       // Transition duration standards
       transitionDuration: {
