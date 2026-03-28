@@ -1,5 +1,5 @@
 import { SidebarLayout } from '@/components/SidebarLayout';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -221,10 +221,9 @@ interface DashboardCardProps {
 
 const DashboardCard = ({ title, count, onClick, isLoading, icon }: DashboardCardProps) => {
   return (
-    <div 
-      onClick={onClick} 
-      className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-      style={{ borderRadius: '16px' }}
+    <div
+      onClick={onClick}
+      className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md rounded-lg"
     >
       <PolarKPICard
         compact
@@ -256,7 +255,7 @@ const VoorraadCard = () => {
   };
   
   return (
-    <div onClick={() => navigate('/internal-orders')} className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md" style={{ borderRadius: '16px' }}>
+    <div onClick={() => navigate('/internal-orders')} className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md rounded-lg">
       <PolarKPICard
         compact
         title="Telling & Bestelling"
@@ -286,7 +285,7 @@ const DeliveryCard = ({ hasOrderThisWeek, isLoading, onClick }: DeliveryCardProp
     : { bg: 'transparent', text: 'hsl(var(--muted-foreground))', icon: <Package size={16} className="text-primary" /> };
   
   return (
-    <div onClick={onClick} className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md" style={{ borderRadius: '16px' }}>
+    <div onClick={onClick} className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md rounded-lg">
       <PolarKPICard
         compact
         title="Levering van West"
@@ -453,9 +452,38 @@ export default function Dashboard() {
     enabled: !!userLocation,
   });
 
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Goedemorgen';
+    if (hour < 17) return 'Goedemiddag';
+    return 'Goedenavond';
+  }, []);
+
+  const dailyQuote = useMemo(() => {
+    const quotes = userLocation === 'West' ? puraVidaQuotesWest : puraVidaQuotesOost;
+    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+    return quotes[dayOfYear % quotes.length];
+  }, [userLocation]);
+
+  const todayFormatted = new Date().toLocaleDateString('nl-NL', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+
   return (
     <SidebarLayout>
       <div className="max-w-7xl mx-auto space-y-6">
+        {/* Greeting */}
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-semibold text-foreground tracking-tight">
+            {greeting}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {todayFormatted} — <span className="italic">{dailyQuote}</span>
+          </p>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <DashboardCard
             title="Openstaande Taken"

@@ -57,7 +57,7 @@ export function PolarKPICard({
   if (compact) {
     return (
       <div
-        className="bg-card border border-border rounded-[20px] p-5 flex flex-col gap-2 h-full min-h-[140px] shadow-soft transition-all duration-200"
+        className="bg-card border border-border rounded-lg p-5 flex flex-col gap-2 h-full min-h-[140px] shadow-sm transition-all duration-200"
       >
         <div className="text-[13px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
           {statusColor?.icon && (
@@ -86,7 +86,7 @@ export function PolarKPICard({
 
   return (
     <div
-      className="rounded-polar-lg bg-card border border-border p-6 flex flex-col min-h-[320px]"
+      className="rounded-lg bg-card border border-border p-6 flex flex-col min-h-[320px] shadow-sm"
     >
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
