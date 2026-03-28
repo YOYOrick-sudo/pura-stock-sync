@@ -1,5 +1,4 @@
 import { Cloud, CloudRain, Sun, Wind, Droplets } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 
 interface WeatherWidgetProps {
   condition?: string;
@@ -50,62 +49,36 @@ export function WeatherWidget({
   
   return (
     <div
-      style={{
-        backgroundColor: '#F6F7DD',
-        border: '1px solid rgba(27, 120, 103, 0.12)',
-        borderRadius: '20px',
-        padding: '20px',
-        cursor: 'default',
-        transition: 'all 200ms ease',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-        height: '100%'
-      }}
+      className="bg-card border border-border rounded-[20px] p-5 transition-all duration-200 shadow-soft flex flex-col gap-3 h-full"
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Sun size={16} style={{ color: '#1B7867' }} />
-          <p style={{ 
-            fontSize: '13px', 
-            fontWeight: 500,
-            color: '#73747B',
-            textTransform: 'uppercase',
-            letterSpacing: '0.02em'
-          }}>
+      <div className="flex justify-between items-start">
+        <div className="flex items-center gap-2">
+          <Sun size={16} className="text-primary" />
+          <p className="text-[13px] font-medium text-muted-foreground uppercase tracking-wide">
             Weer Vandaag
           </p>
         </div>
       </div>
       
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-        <span style={{ 
-          fontSize: '28px', 
-          fontWeight: 600,
-          color: '#282E3A'
-        }}>
+      <div className="flex items-baseline gap-1">
+        <span className="text-[28px] font-semibold text-foreground">
           {isFallback ? '...' : `${temperature}°C`}
         </span>
-        <span style={{ 
-          fontSize: '14px',
-          fontWeight: 400,
-          color: '#73747B'
-        }}>
+        <span className="text-sm text-muted-foreground">
           {isFallback ? 'Laden...' : getWeatherLabel(condition || 'cloudy')}
         </span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Wind size={14} style={{ color: '#73747B', opacity: isFallback ? 0.5 : 1 }} />
-          <span style={{ fontSize: '13px', color: '#73747B' }}>
+      <div className="flex flex-col gap-1.5 mt-1">
+        <div className="flex items-center gap-1.5">
+          <Wind size={14} className="text-muted-foreground" style={{ opacity: isFallback ? 0.5 : 1 }} />
+          <span className="text-[13px] text-muted-foreground">
             {isFallback ? '... km/h' : `${windSpeed} km/h`}
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Droplets size={14} style={{ color: '#73747B', opacity: isFallback ? 0.5 : 1 }} />
-          <span style={{ fontSize: '13px', color: '#73747B' }}>
+        <div className="flex items-center gap-1.5">
+          <Droplets size={14} className="text-muted-foreground" style={{ opacity: isFallback ? 0.5 : 1 }} />
+          <span className="text-[13px] text-muted-foreground">
             {isFallback ? '... mm' : `${precipitation}mm`}
           </span>
         </div>
