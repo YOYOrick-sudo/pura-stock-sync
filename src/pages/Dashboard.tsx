@@ -396,42 +396,6 @@ export default function Dashboard() {
     };
   }, [userLocation, queryClient]);
 
-  // Fetch weather and AI suggestions
-  const fetchWeatherAndSuggestions = async () => {
-    // More robust check: ensure location exists and is not just whitespace
-    if (!userLocation?.trim()) {
-      console.log('Skipping weather fetch: no location available');
-      return;
-    }
-    
-    setLoadingWeather(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('weather-ai-advisor', {
-        body: { location: userLocation.trim() }
-      });
-
-      if (error) throw error;
-
-      if (data.weather) {
-        setWeatherData(data.weather);
-      }
-      if (data.suggestions) {
-        setAiSuggestions(data.suggestions);
-      }
-    } catch (error) {
-      console.error('Error fetching weather:', error);
-      toast.error('Kon weer niet ophalen');
-    } finally {
-      setLoadingWeather(false);
-    }
-  };
-
-  // Fetch weather only when location is available
-  useEffect(() => {
-    if (userLocation?.trim()) {
-      fetchWeatherAndSuggestions();
-    }
-  }, [userLocation]);
 
   // Query 1: Openstaande FOH Taken
   const { data: pendingTasks, isLoading: loadingTasks } = useQuery({
