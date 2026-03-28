@@ -619,35 +619,35 @@ const DesignSystem = () => {
               <div className="space-y-8">
                 <SubSection title="Achtergronden">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <ColorSwatch name="Page" value="#F8FAFC" cssVar="hsl(210 40% 98%)" />
-                    <ColorSwatch name="Card" value="#FFFFFF" cssVar="hsl(0 0% 100%)" />
-                    <ColorSwatch name="Muted" value="#F1F5F9" cssVar="hsl(210 40% 96%)" />
-                    <ColorSwatch name="Hover" value="#E2E8F0" cssVar="hsl(210 31% 91%)" />
+                    <ColorSwatch name="Page" value="#F3F4F6" cssVar="hsl(var(--background))" />
+                    <ColorSwatch name="Card" value="#FFFFFF" cssVar="hsl(var(--card))" />
+                    <ColorSwatch name="Muted" value="#F3F4F6" cssVar="hsl(var(--muted))" />
+                    <ColorSwatch name="Hover" value="#E5E7EB" cssVar="hsl(var(--border))" />
                   </div>
                 </SubSection>
 
-                <SubSection title="Brand (Pura Vida Sea)">
+                <SubSection title="Brand (Primary)">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <ColorSwatch name="Sea Primary" value="#16A34A" cssVar="hsl(163 65% 26%)" textDark={false} />
-                    <ColorSwatch name="Sea Dark" value="#156556" cssVar="hsl(163 65% 21%)" textDark={false} />
-                    <ColorSwatch name="Sea Light" value="#E6F4F1" cssVar="hsl(163 35% 93%)" />
-                    <ColorSwatch name="Sea Border" value="#B3D9D4" cssVar="hsl(169 35% 77%)" />
+                    <ColorSwatch name="Primary" value="#16A34A" cssVar="hsl(var(--primary))" textDark={false} />
+                    <ColorSwatch name="Primary Hover" value="#15803D" cssVar="hsl(var(--primary-hover))" textDark={false} />
+                    <ColorSwatch name="Secondary" value="#E6F4F1" cssVar="hsl(var(--secondary))" />
+                    <ColorSwatch name="Border" value="#E5E7EB" cssVar="hsl(var(--border))" />
                   </div>
                 </SubSection>
 
                 <SubSection title="Tekst">
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <ColorSwatch name="Primary" value="#111827" cssVar="hsl(222 47% 11%)" textDark={false} />
-                    <ColorSwatch name="Secondary" value="#64748B" cssVar="hsl(215 16% 47%)" />
-                    <ColorSwatch name="Muted" value="#94A3B8" cssVar="hsl(215 20% 65%)" />
+                    <ColorSwatch name="Foreground" value="#111827" cssVar="hsl(var(--foreground))" textDark={false} />
+                    <ColorSwatch name="Secondary" value="#6B7280" cssVar="hsl(var(--text-secondary))" />
+                    <ColorSwatch name="Muted" value="#9CA3AF" cssVar="hsl(var(--text-muted))" />
                   </div>
                 </SubSection>
 
                 <SubSection title="Status">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <ColorSwatch name="Success" value="#2D8E6F" cssVar="hsl(156 60% 35%)" textDark={false} />
-                    <ColorSwatch name="Warning" value="#F59E0B" cssVar="hsl(38 92% 50%)" textDark={false} />
-                    <ColorSwatch name="Error" value="#EF4444" cssVar="hsl(0 84% 60%)" textDark={false} />
+                    <ColorSwatch name="Success" value="#22C55E" cssVar="hsl(var(--success))" textDark={false} />
+                    <ColorSwatch name="Warning" value="#F59E0B" cssVar="hsl(var(--warning))" textDark={false} />
+                    <ColorSwatch name="Error" value="#EF4444" cssVar="hsl(var(--destructive))" textDark={false} />
                     <ColorSwatch name="Info" value="#3B82F6" cssVar="hsl(217 91% 60%)" textDark={false} />
                   </div>
                 </SubSection>

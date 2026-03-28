@@ -200,7 +200,7 @@ export default function MidslandOrders() {
                 <div
                   key={order.id}
                   style={{
-                    backgroundColor: '#FFFFFF',
+                    backgroundColor: 'hsl(var(--card))',
                     border: '1px solid rgba(197, 197, 202, 0.5)',
                     borderRadius: '20px',
                     padding: '24px',
@@ -329,7 +329,7 @@ export default function MidslandOrders() {
                             fontSize: '14px',
                             color: 'hsl(var(--text-secondary))',
                             padding: '16px',
-                            backgroundColor: '#FFFFFF',
+                            backgroundColor: 'hsl(var(--card))',
                             border: '1px solid rgba(197, 197, 202, 0.3)',
                             borderRadius: '16px',
                             whiteSpace: 'pre-wrap'
@@ -354,8 +354,8 @@ export default function MidslandOrders() {
                           <Package className="h-4 w-4" style={{ color: 'hsl(var(--primary))' }} />
                           Producten
                         </h4>
-                        <div style={{ 
-                          backgroundColor: '#FFFFFF',
+                        <div style={{
+                          backgroundColor: 'hsl(var(--card))',
                           border: '1px solid rgba(197, 197, 202, 0.5)',
                           borderRadius: '16px',
                           overflow: 'hidden'
@@ -426,7 +426,7 @@ export default function MidslandOrders() {
                             alignItems: 'center',
                             gap: '8px'
                           }}>
-                            <AlertCircle className="h-4 w-4" style={{ color: '#D97706' }} />
+                            <AlertCircle className="h-4 w-4" style={{ color: 'hsl(var(--warning))' }} />
                             Ontvangst feedback
                           </h4>
                           <p style={{ 
@@ -435,7 +435,7 @@ export default function MidslandOrders() {
                             color: 'hsl(var(--text-secondary))',
                             padding: '16px',
                             backgroundColor: '#FEF3C7',
-                            border: '1px solid rgba(217, 119, 6, 0.3)',
+                            border: '1px solid hsla(var(--warning), 0.3)',
                             borderRadius: '16px',
                             whiteSpace: 'pre-wrap'
                           }}>
@@ -463,7 +463,7 @@ export default function MidslandOrders() {
                                   padding: '12px',
                                   borderRadius: '16px',
                                   border: '1px solid rgba(197, 197, 202, 0.5)',
-                                  backgroundColor: '#FFFFFF',
+                                  backgroundColor: 'hsl(var(--card))',
                                   color: 'hsl(var(--foreground))',
                                   minHeight: '80px',
                                   resize: 'vertical',
@@ -480,7 +480,7 @@ export default function MidslandOrders() {
                                     fontWeight: 500,
                                     padding: '12px 20px',
                                     borderRadius: '20px',
-                                    backgroundColor: '#D97706',
+                                    backgroundColor: 'hsl(var(--warning))',
                                     color: '#FFFFFF',
                                     border: 'none',
                                     cursor: updateOrderMutation.isPending ? 'not-allowed' : 'pointer',
