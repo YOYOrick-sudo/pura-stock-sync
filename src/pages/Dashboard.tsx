@@ -467,13 +467,7 @@ export default function Dashboard() {
             icon={<ListTodo size={16} className="text-primary" />}
           />
           
-          <WeatherWidget
-            condition={weatherData?.condition}
-            temperature={weatherData?.temperature}
-            windSpeed={weatherData?.windSpeed}
-            precipitation={weatherData?.precipitation}
-            isLoading={loadingWeather || !weatherData}
-          />
+          <IdeaBox />
           
           {userLocation === 'Oost' && (
             <DashboardCard
