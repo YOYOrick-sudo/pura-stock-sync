@@ -630,7 +630,7 @@ const DesignSystem = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <ColorSwatch name="Primary" value="#16A34A" cssVar="hsl(var(--primary))" textDark={false} />
                     <ColorSwatch name="Primary Hover" value="#15803D" cssVar="hsl(var(--primary-hover))" textDark={false} />
-                    <ColorSwatch name="Secondary" value="#E6F4F1" cssVar="hsl(var(--secondary))" />
+                    <ColorSwatch name="Secondary" value="#DCFCE7" cssVar="hsl(var(--secondary))" />
                     <ColorSwatch name="Border" value="#E5E7EB" cssVar="hsl(var(--border))" />
                   </div>
                 </SubSection>

@@ -562,20 +562,20 @@ export default function MidslandOrders() {
                                   fontWeight: 500,
                                   padding: '12px 20px',
                                   borderRadius: '20px',
-                                  backgroundColor: '#FFFFFF',
-                                  color: '#D97706',
-                                  border: '1px solid #D97706',
+                                  backgroundColor: 'hsl(var(--card))',
+                                  color: 'hsl(var(--warning))',
+                                  border: '1px solid hsl(var(--warning))',
                                   cursor: updateOrderMutation.isPending ? 'not-allowed' : 'pointer',
                                   opacity: updateOrderMutation.isPending ? 0.5 : 1,
                                   transition: 'background-color 0.2s',
                                 }}
                                 onMouseEnter={(e) => {
                                   if (!updateOrderMutation.isPending) {
-                                    e.currentTarget.style.backgroundColor = '#FEF3C7';
+                                    e.currentTarget.style.backgroundColor = '#FEF3C7'; /* warning bg */
                                   }
                                 }}
                                 onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#FFFFFF';
+                                  e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
                                 }}
                               >
                                 <AlertCircle className="h-4 w-4" />
