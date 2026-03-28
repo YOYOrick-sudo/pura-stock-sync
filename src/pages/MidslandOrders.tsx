@@ -497,7 +497,7 @@ export default function MidslandOrders() {
                                     fontWeight: 500,
                                     padding: '12px 20px',
                                     borderRadius: '20px',
-                                    backgroundColor: '#FFFFFF',
+                                    backgroundColor: 'hsl(var(--card))',
                                     color: 'hsl(var(--text-secondary))',
                                     border: '1px solid rgba(197, 197, 202, 0.5)',
                                     cursor: 'pointer',
@@ -535,7 +535,7 @@ export default function MidslandOrders() {
                                 }}
                                 onMouseEnter={(e) => {
                                   if (!updateOrderMutation.isPending) {
-                                    e.currentTarget.style.backgroundColor = '#156B5A';
+                                    e.currentTarget.style.backgroundColor = 'hsl(var(--primary-hover))';
                                   }
                                 }}
                                 onMouseLeave={(e) => {
