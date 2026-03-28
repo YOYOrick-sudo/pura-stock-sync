@@ -1,16 +1,13 @@
 import { SidebarLayout } from '@/components/SidebarLayout';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { PolarKPICard } from '@/components/polar';
-import { CheckCircle, AlertCircle, Clock, ListTodo, Bell, Package, RefreshCw } from 'lucide-react';
+import { CheckCircle, AlertCircle, Clock, ListTodo, Package } from 'lucide-react';
 import { HandoverCard } from '@/components/HandoverCard';
-import { WeatherWidget } from '@/components/dashboard/WeatherWidget';
 import { IdeaBox } from '@/components/dashboard/IdeaBox';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
 
 const puraVidaQuotesWest = [
   "Geniet van de kleine dingen vandaag",
@@ -317,18 +314,6 @@ export default function Dashboard() {
   const { userLocation } = useUserLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [weatherData, setWeatherData] = useState<{
-    condition: string;
-    temperature: number;
-    windSpeed: number;
-    precipitation: number;
-  } | null>(null);
-  const [aiSuggestions, setAiSuggestions] = useState<Array<{
-    type: string;
-    text: string;
-    reasoning: string;
-  }>>([]);
-  const [loadingWeather, setLoadingWeather] = useState(false);
 
   // Realtime subscription voor FOH Tasks
   useEffect(() => {
@@ -409,42 +394,6 @@ export default function Dashboard() {
     };
   }, [userLocation, queryClient]);
 
-  // Fetch weather and AI suggestions
-  const fetchWeatherAndSuggestions = async () => {
-    // More robust check: ensure location exists and is not just whitespace
-    if (!userLocation?.trim()) {
-      console.log('Skipping weather fetch: no location available');
-      return;
-    }
-    
-    setLoadingWeather(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('weather-ai-advisor', {
-        body: { location: userLocation.trim() }
-      });
-
-      if (error) throw error;
-
-      if (data.weather) {
-        setWeatherData(data.weather);
-      }
-      if (data.suggestions) {
-        setAiSuggestions(data.suggestions);
-      }
-    } catch (error) {
-      console.error('Error fetching weather:', error);
-      toast.error('Kon weer niet ophalen');
-    } finally {
-      setLoadingWeather(false);
-    }
-  };
-
-  // Fetch weather only when location is available
-  useEffect(() => {
-    if (userLocation?.trim()) {
-      fetchWeatherAndSuggestions();
-    }
-  }, [userLocation]);
 
   // Query 1: Openstaande FOH Taken
   const { data: pendingTasks, isLoading: loadingTasks } = useQuery({
@@ -516,13 +465,7 @@ export default function Dashboard() {
             icon={<ListTodo size={16} className="text-primary" />}
           />
           
-          <WeatherWidget
-            condition={weatherData?.condition}
-            temperature={weatherData?.temperature}
-            windSpeed={weatherData?.windSpeed}
-            precipitation={weatherData?.precipitation}
-            isLoading={loadingWeather || !weatherData}
-          />
+          <IdeaBox />
           
           {userLocation === 'Oost' && (
             <DashboardCard
@@ -545,13 +488,7 @@ export default function Dashboard() {
           {userLocation === 'West' && <VoorraadCard />}
         </div>
 
-        {/* Handover Card + Ideeënbus */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-[1200px]">
-          <div className="lg:col-span-2">
-            <HandoverCard />
-          </div>
-          <IdeaBox />
-        </div>
+        <HandoverCard />
 
       </div>
     </SidebarLayout>
