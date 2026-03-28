@@ -1,13 +1,12 @@
 import { SidebarLayout } from '@/components/SidebarLayout';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { PolarKPICard } from '@/components/polar';
-import { CheckCircle, AlertCircle, Clock, ListTodo, Bell, Package, RefreshCw } from 'lucide-react';
+import { CheckCircle, AlertCircle, Clock, ListTodo, Package } from 'lucide-react';
 import { HandoverCard } from '@/components/HandoverCard';
-import { WeatherWidget } from '@/components/dashboard/WeatherWidget';
 import { IdeaBox } from '@/components/dashboard/IdeaBox';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
