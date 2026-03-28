@@ -530,7 +530,7 @@ export default function Dashboard() {
               count={(typeof pendingOrders === 'number' ? pendingOrders : 0)}
               onClick={() => navigate('/internal-orders')}
               isLoading={loadingOrders}
-              icon={<Package size={16} color="#1B7867" />}
+              icon={<Package size={16} className="text-primary" />}
             />
           )}
 
