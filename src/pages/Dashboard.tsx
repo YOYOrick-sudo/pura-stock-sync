@@ -181,7 +181,7 @@ const getVoorraadStatus = () => {
   
   return {
     status: 'ok',
-    color: 'text-[#1B7867]',
+    color: 'text-primary',
     bgColor: 'bg-green-50',
     borderColor: 'border-l-[#1B7867]',
     message: `Over ${daysUntil} dagen`,
