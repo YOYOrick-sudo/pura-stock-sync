@@ -3,7 +3,7 @@ import { Clock, X } from 'lucide-react';
 
 export interface PolarTimePickerProps {
   label?: string;
-  value: string; // HH:mm format
+  value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
@@ -29,31 +29,17 @@ export function PolarTimePicker({
   const [isFocused, setIsFocused] = useState(false);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div className="flex flex-col gap-2">
       {label && (
-        <label
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            fontWeight: 500,
-            color: error ? '#E64D4D' : '#17171C',
-          }}
-        >
+        <label className={`text-sm font-medium ${error ? 'text-destructive' : 'text-foreground'}`}>
           {label}
         </label>
       )}
 
-      <div style={{ position: 'relative' }}>
+      <div className="relative">
         <Clock
           size={16}
-          style={{
-            position: 'absolute',
-            left: '12px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: '#36373A',
-            pointerEvents: 'none',
-          }}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
         />
         
         <input
@@ -65,62 +51,25 @@ export function PolarTimePicker({
           max={maxTime}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '15px',
-            padding: '10px 12px 10px 36px',
-            paddingRight: clearable && value ? '40px' : '12px',
-            border: error
-              ? '1px solid #E64D4D'
-              : isFocused
-              ? '1px solid #1B7867'
-              : '1px solid #ECEDED',
-            borderRadius: '16px',
-            backgroundColor: disabled ? '#F4F5F6' : '#FFFFFF',
-            color: disabled ? '#73747B' : '#17171C',
-            outline: 'none',
-            transition: 'border-color 200ms',
-            width: '100%',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-          }}
+          className={`w-full text-[15px] py-2.5 pl-9 rounded-2xl border outline-none transition-colors
+            ${error ? 'border-destructive' : isFocused ? 'border-primary' : 'border-input'}
+            ${disabled ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-card text-foreground cursor-pointer'}
+            ${clearable && value ? 'pr-10' : 'pr-3'}`}
         />
 
         {clearable && value && !disabled && (
           <button
             type="button"
             onClick={() => onChange('')}
-            style={{
-              position: 'absolute',
-              right: '8px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: '24px',
-              height: '24px',
-              borderRadius: '6px',
-              backgroundColor: 'transparent',
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'background-color 0.15s ease',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F4F5F6'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md flex items-center justify-center hover:bg-muted transition-colors"
           >
-            <X size={14} color="#36373A" />
+            <X size={14} className="text-muted-foreground" />
           </button>
         )}
       </div>
 
       {helperText && (
-        <span
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            color: error ? '#E64D4D' : '#36373A',
-          }}
-        >
+        <span className={`text-sm ${error ? 'text-destructive' : 'text-muted-foreground'}`}>
           {helperText}
         </span>
       )}
