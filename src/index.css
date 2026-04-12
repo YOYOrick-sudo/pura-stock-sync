@@ -11,7 +11,7 @@
     /* === CLEAN SaaS PALETTE — Green primary, neutral grays === */
     
     /* Page background - light gray */
-    --background: 220 14% 96%;              /* #F3F4F6 - Gray-100, zachter */
+    --background: 40 6% 96%;                /* #F5F5F4 - Stone-100, Warm Gray */
     --foreground: 220 26% 14%;              /* #1F2937 - Gray-800 */
     
     /* Card surfaces - white */
@@ -31,7 +31,7 @@
     --secondary-foreground: 163 65% 26%;
     
     /* Muted - Gray */
-    --muted: 220 14% 96%;                   /* #F3F4F6 - Gray-100 */
+    --muted: 40 6% 93%;                     /* #EDECEB - Warm Gray muted */
     --muted-foreground: 220 9% 46%;         /* #6B7280 - Gray-500 */
     
     /* Accent - keep green as accent too */
@@ -65,7 +65,7 @@
     /* Sidebar - white bg */
     --sidebar-bg: 0 0% 100%;               /* White */
     --sidebar-active: 163 30% 95%;          /* Light green tint */
-    --sidebar-hover: 220 14% 96%;           /* Gray-100 */
+    --sidebar-hover: 40 6% 96%;             /* Warm Gray hover */
   }
 
   .dark {

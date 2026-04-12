@@ -88,7 +88,6 @@ export default function OrderDashboard() {
     if (savedProducts) {
       try {
         const parsed = JSON.parse(savedProducts);
-        // Merge saved stock levels with initial products
         allProducts = INITIAL_PRODUCTS.map(initial => {
           const saved = parsed.find((p: Product) => p.name === initial.name);
           return saved ? {
@@ -100,8 +99,6 @@ export default function OrderDashboard() {
         console.error('Failed to parse saved products', e);
       }
     }
-
-    // Add back temporary products if they exist
     if (savedTempProducts) {
       try {
         const tempProducts = JSON.parse(savedTempProducts);
@@ -116,11 +113,8 @@ export default function OrderDashboard() {
     }
   }, []);
 
-  // Save to localStorage when products change (excluding temporary products)
   useEffect(() => {
-    // Only save permanent products to localStorage
     const permanentProducts = products.filter(p => !p.isTemporary);
-    // If we have temporary products, save them separately for recovery
     const temporaryProducts = products.filter(p => p.isTemporary);
     localStorage.setItem('pura-vida-products', JSON.stringify(permanentProducts));
     if (temporaryProducts.length > 0) {
@@ -129,11 +123,13 @@ export default function OrderDashboard() {
       localStorage.removeItem('pura-vida-temp-products');
     }
   }, [products]);
+
   const updateProductStock = (index: number, value: number) => {
     const newProducts = [...products];
     newProducts[index].currentStock = value;
     setProducts(newProducts);
   };
+
   const addTemporaryProduct = () => {
     if (!newProductName.trim() || !newProductAmount || parseInt(newProductAmount) <= 0) {
       toast.error('Vul alle velden correct in');
@@ -152,13 +148,14 @@ export default function OrderDashboard() {
     setNewProductAmount('');
     toast.success('✅ Extra product toegevoegd');
   };
+
   const removeTemporaryProduct = (index: number) => {
     const newProducts = products.filter((_, i) => i !== index);
     setProducts(newProducts);
     toast.success('Product verwijderd');
   };
+
   const focusNextInput = (currentIndex: number) => {
-    // Focus next input field when Enter is pressed
     const nextIndex = currentIndex + 1;
     if (nextIndex < products.length) {
       const nextInput = document.querySelector(`input[data-index="${nextIndex}"]`) as HTMLInputElement;
@@ -167,9 +164,11 @@ export default function OrderDashboard() {
       }
     }
   };
+
   const calculateRefill = (targetStock: number, currentStock: number): number => {
     return Math.max(targetStock - currentStock, 0);
   };
+
   const getOrderData = () => ({
     locatie: 'Pura Vida West',
     datum: new Date().toISOString().split('T')[0],
@@ -178,11 +177,10 @@ export default function OrderDashboard() {
       voorraad: p.currentStock
     }))
   });
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     const orderData = getOrderData();
-
-    // Save order locally
     const timestamp = new Date().toLocaleString('nl-NL', {
       day: '2-digit',
       month: '2-digit',
@@ -191,13 +189,10 @@ export default function OrderDashboard() {
       minute: '2-digit'
     });
     if (demoMode) {
-      // Demo mode - simulate success without calling webhook
       setTimeout(async () => {
         setLastSubmitted(timestamp);
         localStorage.setItem('pura-vida-last-submitted', timestamp);
         localStorage.setItem('pura-vida-last-order', JSON.stringify(orderData));
-
-        // Reset all products to 0 and remove temporary products
         const resetProducts = products.filter(p => !p.isTemporary).map(p => ({
           ...p,
           currentStock: 0
@@ -205,12 +200,8 @@ export default function OrderDashboard() {
         setProducts(resetProducts);
         localStorage.setItem('pura-vida-products', JSON.stringify(resetProducts));
         localStorage.removeItem('pura-vida-temp-products');
-
-        // Show success dialog
         setShowSuccessDialog(true);
         setIsSubmitting(false);
-        
-        // Redirect to dashboard after 1.5 seconds
         setTimeout(() => {
           navigate('/dashboard');
         }, 1500);
@@ -219,13 +210,10 @@ export default function OrderDashboard() {
     }
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       const response = await fetch('https://jaapies.app.n8n.cloud/webhook/inventory-restock', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(products.map(product => ({
           product: product.name,
           ijzer: product.targetStock,
@@ -236,7 +224,6 @@ export default function OrderDashboard() {
       });
       clearTimeout(timeoutId);
       if (response.ok) {
-        // Create internal order in database
         if (userLocation) {
           const orderItems = products
             .map(p => ({
@@ -245,13 +232,12 @@ export default function OrderDashboard() {
               unit: 'stuks'
             }))
             .filter(item => item.quantity > 0);
-
           if (orderItems.length > 0) {
             try {
               await sendOrderMutation.mutateAsync({
                 from_location: userLocation,
                 to_location: 'Midsland',
-                delivery_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Next day
+                delivery_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
                 items: orderItems,
               });
             } catch (error) {
@@ -259,12 +245,9 @@ export default function OrderDashboard() {
             }
           }
         }
-
         setLastSubmitted(timestamp);
         localStorage.setItem('pura-vida-last-submitted', timestamp);
         localStorage.setItem('pura-vida-last-order', JSON.stringify(orderData));
-
-        // Reset all products to 0 and remove temporary products
         const resetProducts = products.filter(p => !p.isTemporary).map(p => ({
           ...p,
           currentStock: 0
@@ -272,11 +255,7 @@ export default function OrderDashboard() {
         setProducts(resetProducts);
         localStorage.setItem('pura-vida-products', JSON.stringify(resetProducts));
         localStorage.removeItem('pura-vida-temp-products');
-
-        // Show success dialog
         setShowSuccessDialog(true);
-        
-        // Redirect to dashboard after 1.5 seconds
         setTimeout(() => {
           navigate('/dashboard');
         }, 1500);
@@ -285,8 +264,6 @@ export default function OrderDashboard() {
       }
     } catch (error) {
       console.error('Error submitting order:', error);
-
-      // Save failed order for later retry
       localStorage.setItem('pura-vida-failed-order', JSON.stringify({
         data: orderData,
         timestamp: timestamp,
@@ -296,25 +273,20 @@ export default function OrderDashboard() {
         toast.error('⏱️ Verbinding verbroken', {
           description: 'De webhook reageert niet. Schakel over naar demo-modus?',
           duration: 6000,
-          action: {
-            label: 'Demo-modus',
-            onClick: () => setDemoMode(true)
-          }
+          action: { label: 'Demo-modus', onClick: () => setDemoMode(true) }
         });
       } else {
         toast.error('🔌 Kan webhook niet bereiken', {
           description: 'Controleer of de n8n webhook actief is, of gebruik demo-modus.',
           duration: 6000,
-          action: {
-            label: 'Demo-modus',
-            onClick: () => setDemoMode(true)
-          }
+          action: { label: 'Demo-modus', onClick: () => setDemoMode(true) }
         });
       }
     } finally {
       setIsSubmitting(false);
     }
   };
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -325,20 +297,22 @@ export default function OrderDashboard() {
       toast.error('Uitloggen mislukt');
     }
   };
+
   const hasAnyStock = products.some(p => p.currentStock > 0);
   const totalRefill = products.reduce((sum, p) => sum + calculateRefill(p.targetStock, p.currentStock), 0);
+
   return (
     <>
-        {/* Products Table - All Screen Sizes */}
-        <Card className="overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.06)] border-[#1B7867]/8 bg-[#FEFFF1] hover:shadow-md transition-shadow duration-200 mb-4">
+        {/* Products Table */}
+        <Card className="overflow-hidden shadow-sm border-primary/8 bg-card hover:shadow-md transition-shadow duration-200 mb-4">
           <div>
             <table className="w-full table-fixed">
               <thead>
-                <tr className="border-b border-[#1B7867]/10 bg-[#FEFFF1]">
-                  <th className="px-3 py-3 sm:px-4 sm:py-3 text-left font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Product</th>
-                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Ijzer</th>
-                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Huidig</th>
-                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm uppercase tracking-wide">Vullen</th>
+                <tr className="border-b border-primary/10 bg-card">
+                  <th className="px-3 py-3 sm:px-4 sm:py-3 text-left font-heading font-bold text-foreground/70 text-xs sm:text-sm uppercase tracking-wide">Product</th>
+                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-foreground/70 text-xs sm:text-sm uppercase tracking-wide">Ijzer</th>
+                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-foreground/70 text-xs sm:text-sm uppercase tracking-wide">Huidig</th>
+                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-foreground/70 text-xs sm:text-sm uppercase tracking-wide">Vullen</th>
                 </tr>
               </thead>
               <tbody>
@@ -347,8 +321,8 @@ export default function OrderDashboard() {
                   return (
                     <>
                       {showCategoryHeader && product.category && (
-                        <tr key={`category-${product.category}-${index}`} className="bg-[#1B7867]/20 border-t border-b border-[#1B7867]/20">
-                          <td colSpan={4} className="px-3 py-2 sm:px-4 font-heading font-bold text-[#1B7867] text-sm uppercase tracking-wide">
+                        <tr key={`category-${product.category}-${index}`} className="bg-primary/20 border-t border-b border-primary/20">
+                          <td colSpan={4} className="px-3 py-2 sm:px-4 font-heading font-bold text-primary text-sm uppercase tracking-wide">
                             <div className="flex items-center gap-2">
                               <Layers className="w-3 h-3 sm:w-4 sm:h-4" />
                               {product.category}
@@ -374,23 +348,23 @@ export default function OrderDashboard() {
           </div>
         </Card>
 
-        {/* Add Extra Product - Inline Form */}
-        <Card className="p-4 sm:p-5 mb-6 bg-[#FEFFF1] border-[#E27726]/20 shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:shadow-md transition-shadow duration-200">
+        {/* Add Extra Product */}
+        <Card className="p-4 sm:p-5 mb-6 bg-card border-warning/20 shadow-sm hover:shadow-md transition-shadow duration-200">
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
             <div className="flex-1 w-full">
-              <label className="font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Extra product</label>
-              <Input placeholder="Bijv. Smoothie basis (bak)" value={newProductName} onChange={e => setNewProductName(e.target.value)} className="border-[#E27726]/20 focus:border-[#E27726] bg-white h-11" />
+              <label className="font-heading font-bold text-foreground/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Extra product</label>
+              <Input placeholder="Bijv. Smoothie basis (bak)" value={newProductName} onChange={e => setNewProductName(e.target.value)} className="border-warning/20 focus:border-warning bg-card h-11" />
             </div>
             <div className="w-full sm:w-32">
-              <label className="font-heading font-bold text-[#282E3A]/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Aantal</label>
+              <label className="font-heading font-bold text-foreground/70 text-xs sm:text-sm mb-1 block uppercase tracking-wide">Aantal</label>
               <Input type="number" min="1" placeholder="3" value={newProductAmount} onChange={e => setNewProductAmount(e.target.value)} onKeyDown={e => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 addTemporaryProduct();
               }
-            }} className="border-[#E27726]/20 focus:border-[#E27726] bg-white h-11" />
+            }} className="border-warning/20 focus:border-warning bg-card h-11" />
             </div>
-            <Button onClick={addTemporaryProduct} className="w-full sm:w-auto bg-[#E27726] hover:bg-[#E27726]/90 text-white h-11 px-6 rounded-xl touch-manipulation">
+            <Button onClick={addTemporaryProduct} className="w-full sm:w-auto bg-warning hover:bg-warning/90 text-white h-11 px-6 rounded-xl touch-manipulation">
               <Plus className="mr-2 h-4 w-4" />
               Toevoegen
             </Button>
@@ -399,28 +373,28 @@ export default function OrderDashboard() {
 
         {/* Submit Section */}
         <div className="space-y-4">
-          {demoMode && <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-white border-l-4 border-[#E27726] rounded-2xl shadow-sm">
-              <AlertCircle className="w-5 h-5 text-[#E27726] flex-shrink-0" />
+          {demoMode && <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-white border-l-4 border-warning rounded-2xl shadow-sm">
+              <AlertCircle className="w-5 h-5 text-warning flex-shrink-0" />
               <div className="flex-1">
-                <p className="text-sm text-[#282E3A]">
+                <p className="text-sm text-foreground">
                   <span className="font-semibold">Demo-modus</span> – Bestellingen worden gesimuleerd
                 </p>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => setDemoMode(false)} className="text-[#282E3A]/70 hover:text-[#1B7867] hover:bg-white/80 self-end sm:self-auto">
+              <Button variant="ghost" size="sm" onClick={() => setDemoMode(false)} className="text-foreground/70 hover:text-primary hover:bg-white/80 self-end sm:self-auto">
                 Uitschakelen
               </Button>
             </div>}
 
           {/* Summary Badge */}
-          {hasAnyStock && <div className="bg-gradient-to-br from-[#1B7867]/5 to-[#1B7867]/10 rounded-2xl p-5 border-2 border-[#1B7867]/30 shadow-sm">
+          {hasAnyStock && <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-5 border-2 border-primary/30 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-[#1B7867] rounded-lg">
+                  <div className="p-2 bg-primary rounded-lg">
                     <Package className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-sm sm:text-base text-[#282E3A] font-semibold">Totaal aan te vullen</span>
+                  <span className="text-sm sm:text-base text-foreground font-semibold">Totaal aan te vullen</span>
                 </div>
-                <span className="text-3xl sm:text-4xl font-bold text-[#1B7867]">
+                <span className="text-3xl sm:text-4xl font-bold text-primary">
                   {totalRefill}
                 </span>
               </div>
@@ -428,12 +402,12 @@ export default function OrderDashboard() {
 
           <div className="space-y-3">
             <div className="flex flex-col sm:flex-row gap-3">
-              <Button onClick={() => setShowPreview(true)} disabled={!hasAnyStock} variant="outline" className="w-full sm:flex-1 h-12 sm:h-auto sm:py-5 border-2 border-[#1B7867] text-[#1B7867] hover:bg-[#1B7867]/5 rounded-2xl font-semibold transition-all touch-manipulation">
+              <Button onClick={() => setShowPreview(true)} disabled={!hasAnyStock} variant="outline" className="w-full sm:flex-1 h-12 sm:h-auto sm:py-5 border-2 border-primary text-primary hover:bg-primary/5 rounded-2xl font-semibold transition-all touch-manipulation">
                 <Eye className="mr-2 h-5 w-5" />
                 Voorbeeld
               </Button>
 
-              <Button onClick={handleSubmit} disabled={isSubmitting || !hasAnyStock} className="w-full sm:flex-[2] h-12 sm:h-auto sm:py-5 bg-gradient-to-r from-[#1B7867] to-[#0d5a4c] hover:from-[#0d5a4c] hover:to-[#1B7867] text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl font-semibold touch-manipulation active:scale-[0.98]">
+              <Button onClick={handleSubmit} disabled={isSubmitting || !hasAnyStock} className="w-full sm:flex-[2] h-12 sm:h-auto sm:py-5 bg-gradient-to-r from-primary to-primary-hover hover:from-primary-hover hover:to-primary text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl font-semibold touch-manipulation active:scale-[0.98]">
                 {isSubmitting ? <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                     Bezig met verzenden...
@@ -447,19 +421,19 @@ export default function OrderDashboard() {
             <Button
               variant="outline"
               onClick={() => setShowInstructionsDialog(true)}
-              className="w-full border-[#1B7867]/30 text-[#1B7867] hover:bg-[#1B7867]/5 font-heading font-medium flex items-center gap-2 justify-center h-12 sm:h-auto rounded-2xl"
+              className="w-full border-primary/30 text-primary hover:bg-primary/5 font-heading font-medium flex items-center gap-2 justify-center h-12 sm:h-auto rounded-2xl"
             >
               <Info className="h-4 w-4" />
               Instructies
             </Button>
           </div>
 
-          <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-[#282E3A]/50 py-2 min-h-[2rem]">
+          <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-foreground/50 py-2 min-h-[2rem]">
             {lastSubmitted ? <>
-                <div className="w-1 h-1 rounded-full bg-[#1B7867]/30"></div>
+                <div className="w-1 h-1 rounded-full bg-primary/30"></div>
                 <p>Laatst verzonden op {lastSubmitted}</p>
-                <div className="w-1 h-1 rounded-full bg-[#1B7867]/30"></div>
-              </> : <p className="text-[#282E3A]/30">Nog niet verzonden</p>}
+                <div className="w-1 h-1 rounded-full bg-primary/30"></div>
+              </> : <p className="text-foreground/30">Nog niet verzonden</p>}
           </div>
         </div>
 
@@ -473,7 +447,7 @@ export default function OrderDashboard() {
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
           }}>
             <DialogHeader>
-              <DialogTitle className="text-xl font-heading font-bold text-[#282E3A]">
+              <DialogTitle className="text-xl font-heading font-bold text-foreground">
                 Instructies Voorraadregistratie
               </DialogTitle>
             </DialogHeader>
@@ -481,48 +455,44 @@ export default function OrderDashboard() {
             <div className="mt-4">
               <ol className="space-y-4">
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Check de voorraad</span>
-                    <p className="text-sm text-[#282E3A]/70 mt-1">Loop alle producten na en tel de huidige voorraad.</p>
+                    <span className="font-heading font-medium text-foreground">Check de voorraad</span>
+                    <p className="text-sm text-foreground/70 mt-1">Loop alle producten na en tel de huidige voorraad.</p>
                   </div>
                 </li>
-
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Vul de aantallen in</span>
-                    <p className="text-sm text-[#282E3A]/70 mt-1">Noteer het aantal van elk product bij "Huidig".</p>
+                    <span className="font-heading font-medium text-foreground">Vul de aantallen in</span>
+                    <p className="text-sm text-foreground/70 mt-1">Noteer het aantal van elk product bij "Huidig".</p>
                   </div>
                 </li>
-
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Extra producten toevoegen</span>
-                    <p className="text-sm text-[#282E3A]/70 mt-1">Heb je extra producten? Voeg ze toe via "Extra product".</p>
+                    <span className="font-heading font-medium text-foreground">Extra producten toevoegen</span>
+                    <p className="text-sm text-foreground/70 mt-1">Heb je extra producten? Voeg ze toe via "Extra product".</p>
                   </div>
                 </li>
-
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Controleer het overzicht</span>
-                    <p className="text-sm text-[#282E3A]/70 mt-1">Bekijk "Totaal aan te vullen" en klik op "Voorbeeld" voor een overzicht.</p>
+                    <span className="font-heading font-medium text-foreground">Controleer het overzicht</span>
+                    <p className="text-sm text-foreground/70 mt-1">Bekijk "Totaal aan te vullen" en klik op "Voorbeeld" voor een overzicht.</p>
                   </div>
                 </li>
-
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Verstuur naar Midsland</span>
-                    <p className="text-sm text-[#282E3A]/70 mt-1">Klik op "Verstuur naar Midsland" om de bestelling door te geven.</p>
+                    <span className="font-heading font-medium text-foreground">Verstuur naar Midsland</span>
+                    <p className="text-sm text-foreground/70 mt-1">Klik op "Verstuur naar Midsland" om de bestelling door te geven.</p>
                   </div>
                 </li>
               </ol>
 
-              <div className="mt-6 p-4 bg-[#F5F7DD] rounded-xl">
-                <p className="text-sm text-[#282E3A] leading-relaxed">
+              <div className="mt-6 p-4 bg-secondary rounded-xl">
+                <p className="text-sm text-foreground leading-relaxed">
                   <span className="font-semibold">Let op:</span> Het systeem berekent automatisch hoeveel producten er aangevuld moeten worden op basis van het ijzer (streefvoorraad) en de huidige voorraad.
                 </p>
               </div>
@@ -543,23 +513,23 @@ export default function OrderDashboard() {
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
           }}>
             <AlertDialogHeader className="space-y-3 sm:space-y-4 pt-2">
-              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#1B7867] to-[#0d5a4c] rounded-full flex items-center justify-center animate-scale-in shadow-lg">
+              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-primary to-primary-hover rounded-full flex items-center justify-center animate-scale-in shadow-lg">
                 <CheckCircle2 className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
               </div>
-              <AlertDialogTitle className="text-xl sm:text-2xl font-heading text-center text-[#282E3A] px-2">
+              <AlertDialogTitle className="text-xl sm:text-2xl font-heading text-center text-foreground px-2">
                 Bestelling verzonden!
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-center text-[#282E3A]/70 text-sm sm:text-base space-y-2 px-2">
+              <AlertDialogDescription className="text-center text-foreground/70 text-sm sm:text-base space-y-2 px-2">
                 <p className="font-medium leading-relaxed">Je bestelling is succesvol naar Midsland gestuurd.</p>
-                {totalRefill > 0 && <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-[#F5F7DD] rounded-xl">
+                {totalRefill > 0 && <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-secondary rounded-xl">
                     <p className="text-sm sm:text-base">
-                      <span className="font-semibold text-[#1B7867]">{totalRefill} {totalRefill === 1 ? 'product' : 'producten'}</span> worden aangevuld
+                      <span className="font-semibold text-primary">{totalRefill} {totalRefill === 1 ? 'product' : 'producten'}</span> worden aangevuld
                     </p>
                   </div>}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="mt-2">
-              <Button onClick={() => setShowSuccessDialog(false)} className="w-full bg-gradient-to-r from-[#1B7867] to-[#0d5a4c] hover:from-[#0d5a4c] hover:to-[#1B7867] text-white h-11 sm:h-12 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.98] touch-manipulation">
+              <Button onClick={() => setShowSuccessDialog(false)} className="w-full bg-gradient-to-r from-primary to-primary-hover hover:from-primary-hover hover:to-primary text-white h-11 sm:h-12 rounded-2xl font-semibold transition-all duration-200 active:scale-[0.98] touch-manipulation">
                 Sluiten
               </Button>
             </AlertDialogFooter>
@@ -576,21 +546,21 @@ export default function OrderDashboard() {
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
           }}>
             <AlertDialogHeader className="space-y-3 sm:space-y-4 pt-2">
-              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#E27726] to-[#d16615] rounded-full flex items-center justify-center shadow-lg">
+              <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-warning to-warning/80 rounded-full flex items-center justify-center shadow-lg">
                 <LogOut className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
               </div>
-              <AlertDialogTitle className="text-xl sm:text-2xl font-heading text-center text-[#282E3A] px-2">
+              <AlertDialogTitle className="text-xl sm:text-2xl font-heading text-center text-foreground px-2">
                 Uitloggen?
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-center text-[#282E3A]/70 text-sm sm:text-base px-2">
+              <AlertDialogDescription className="text-center text-foreground/70 text-sm sm:text-base px-2">
                 Weet je zeker dat je wilt uitloggen?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="mt-2 flex-col sm:flex-row gap-2">
-              <AlertDialogCancel className="w-full sm:w-auto border-2 border-[#1B7867]/20 hover:bg-[#1B7867]/5 rounded-xl">
+              <AlertDialogCancel className="w-full sm:w-auto border-2 border-primary/20 hover:bg-primary/5 rounded-xl">
                 Annuleren
               </AlertDialogCancel>
-              <AlertDialogAction onClick={handleLogout} className="w-full sm:w-auto bg-gradient-to-r from-[#E27726] to-[#d16615] hover:from-[#d16615] hover:to-[#E27726] text-white rounded-xl">
+              <AlertDialogAction onClick={handleLogout} className="w-full sm:w-auto bg-gradient-to-r from-warning to-warning/80 hover:from-warning/80 hover:to-warning text-white rounded-xl">
                 Uitloggen
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -599,7 +569,7 @@ export default function OrderDashboard() {
 
         {/* Footer */}
         <div className="mt-8 pb-20 text-center">
-          <p className="text-sm text-[#282E3A]/60 italic max-w-md mx-auto px-4">
+          <p className="text-sm text-foreground/60 italic max-w-md mx-auto px-4">
             *Pro tip: Alles netjes invullen = happy Midsland, happy gasten, happy jullie 🎉
           </p>
         </div>

@@ -9,15 +9,12 @@ export function PolarFormCard({ title, children }: PolarFormCardProps) {
   return (
     <div>
       {title && (
-        <h2
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '18px',
-            fontWeight: 500,
-            color: '#282E3A',
-            marginBottom: '24px',
-          }}
-        >
+        <h2 className="text-foreground" style={{
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '18px',
+          fontWeight: 500,
+          marginBottom: '24px',
+        }}>
           {title}
         </h2>
       )}
@@ -26,7 +23,7 @@ export function PolarFormCard({ title, children }: PolarFormCardProps) {
         className="rounded-polar-lg"
         style={{
           backgroundColor: '#FFFFFF',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
+          border: '1px solid hsl(var(--border))',
           padding: '32px',
         }}
       >
@@ -46,32 +43,26 @@ export interface PolarFormFieldProps {
 export function PolarFormField({ label, description, children, required }: PolarFormFieldProps) {
   return (
     <div style={{ marginBottom: '32px' }}>
-      <label
-        style={{
-          fontFamily: 'Inter, sans-serif',
-          fontSize: '14px',
-          fontWeight: 500,
-          color: '#282E3A',
-          display: 'block',
-          marginBottom: description ? '4px' : '12px',
-        }}
-      >
+      <label className="text-foreground" style={{
+        fontFamily: 'Inter, sans-serif',
+        fontSize: '14px',
+        fontWeight: 500,
+        display: 'block',
+        marginBottom: description ? '4px' : '12px',
+      }}>
         {label}
         {required && (
-          <span style={{ color: '#282E3A', marginLeft: '2px' }}>*</span>
+          <span className="text-foreground" style={{ marginLeft: '2px' }}>*</span>
         )}
       </label>
       
       {description && (
-        <p
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            fontWeight: 400,
-            color: '#73747B',
-            marginBottom: '12px',
-          }}
-        >
+        <p className="text-muted-foreground" style={{
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '14px',
+          fontWeight: 400,
+          marginBottom: '12px',
+        }}>
           {description}
         </p>
       )}

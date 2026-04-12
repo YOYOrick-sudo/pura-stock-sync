@@ -28,17 +28,17 @@ export default function InternalOrders() {
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'delivered':
-        return { bg: '#F0FDF4', color: '#10B981', label: 'Afgeleverd' };
+        return { bg: 'hsl(var(--success) / 0.1)', color: 'hsl(var(--success))', label: 'Afgeleverd' };
       case 'partially_delivered':
-        return { bg: '#FEF3C7', color: '#D97706', label: 'Deels geleverd' };
+        return { bg: 'hsl(var(--warning) / 0.1)', color: 'hsl(var(--warning))', label: 'Deels geleverd' };
       case 'in_transit':
-        return { bg: '#E6F4F1', color: '#1B7867', label: 'Onderweg' };
+        return { bg: 'hsl(var(--primary) / 0.1)', color: 'hsl(var(--primary))', label: 'Onderweg' };
       case 'approved':
-        return { bg: '#E6F4F1', color: '#1B7867', label: 'Goedgekeurd' };
+        return { bg: 'hsl(var(--primary) / 0.1)', color: 'hsl(var(--primary))', label: 'Goedgekeurd' };
       case 'cancelled':
-        return { bg: '#FEF5F5', color: '#E64D4D', label: 'Geannuleerd' };
+        return { bg: 'hsl(var(--destructive) / 0.1)', color: 'hsl(var(--destructive))', label: 'Geannuleerd' };
       default:
-        return { bg: '#FFF8F0', color: '#FF9800', label: 'In afwachting' };
+        return { bg: 'hsl(var(--warning) / 0.1)', color: 'hsl(var(--warning))', label: 'In afwachting' };
     }
   };
 
@@ -51,9 +51,9 @@ export default function InternalOrders() {
       <div
         key={order.id}
         style={{
-          backgroundColor: '#FEFFF1',
+          backgroundColor: 'hsl(var(--card))',
           borderRadius: '20px',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
+          border: '1px solid hsl(var(--border))',
           overflow: 'hidden',
           transition: 'all 0.2s ease',
         }}
@@ -79,8 +79,8 @@ export default function InternalOrders() {
                       width: '10px',
                       height: '10px',
                       borderRadius: '50%',
-                      backgroundColor: '#1B7867',
-                      boxShadow: '0 0 0 2px rgba(27, 120, 103, 0.1)',
+                      backgroundColor: 'hsl(var(--primary))',
+                      boxShadow: '0 0 0 2px hsl(var(--primary) / 0.1)',
                       flexShrink: 0
                     }} />
                   )}
@@ -88,7 +88,7 @@ export default function InternalOrders() {
                     fontFamily: 'Inter, sans-serif',
                     fontSize: '14px',
                     fontWeight: 600,
-                    color: '#282E3A',
+                    color: 'hsl(var(--foreground))',
                     letterSpacing: '0.5px',
                   }}>
                     {order.order_number}
@@ -111,7 +111,7 @@ export default function InternalOrders() {
               
               <p style={{
                 fontSize: '13px',
-                color: '#73747B',
+                color: 'hsl(var(--muted-foreground))',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
@@ -125,7 +125,7 @@ export default function InternalOrders() {
                 display: 'flex',
                 gap: '12px',
                 fontSize: '12px',
-                color: '#73747B',
+                color: 'hsl(var(--muted-foreground))',
                 fontFamily: 'Inter, sans-serif',
               }}>
                 <span>📅 {new Date(order.delivery_date).toLocaleDateString('nl-NL')}</span>
@@ -136,7 +136,7 @@ export default function InternalOrders() {
             <ChevronDown
               size={20}
               style={{
-                color: '#73747B',
+                color: 'hsl(var(--muted-foreground))',
                 transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
                 transition: 'transform 0.2s ease',
                 marginLeft: '12px',
@@ -148,14 +148,14 @@ export default function InternalOrders() {
         {isExpanded && (
           <div style={{
             padding: '0 20px 20px 20px',
-            borderTop: '1px solid rgba(197, 197, 202, 0.3)',
+            borderTop: '1px solid hsl(var(--border))',
             fontFamily: 'Inter, sans-serif',
           }}>
             <div style={{ marginTop: '16px' }}>
               <h4 style={{
                 fontSize: '13px',
                 fontWeight: 600,
-                color: '#282E3A',
+                color: 'hsl(var(--foreground))',
                 marginBottom: '12px',
                 fontFamily: 'Inter, sans-serif',
               }}>
@@ -170,15 +170,15 @@ export default function InternalOrders() {
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       padding: '10px 12px',
-                      backgroundColor: '#FEFFF1',
+                      backgroundColor: 'hsl(var(--card))',
                       borderRadius: '8px',
-                      border: '1px solid rgba(197, 197, 202, 0.3)',
+                      border: '1px solid hsl(var(--border))',
                       fontSize: '13px',
                       fontFamily: 'Inter, sans-serif',
                     }}
                   >
-                    <span style={{ color: '#282E3A', fontWeight: 500 }}>{item.product_name}</span>
-                    <span style={{ color: '#1B7867', fontWeight: 600 }}>
+                    <span style={{ color: 'hsl(var(--foreground))', fontWeight: 500 }}>{item.product_name}</span>
+                    <span style={{ color: 'hsl(var(--primary))', fontWeight: 600 }}>
                       {item.quantity} {item.unit}
                     </span>
                   </div>
@@ -190,7 +190,7 @@ export default function InternalOrders() {
                   <h4 style={{
                     fontSize: '13px',
                     fontWeight: 600,
-                    color: '#282E3A',
+                    color: 'hsl(var(--foreground))',
                     marginBottom: '8px',
                     fontFamily: 'Inter, sans-serif',
                   }}>
@@ -198,11 +198,11 @@ export default function InternalOrders() {
                   </h4>
                   <p style={{
                     fontSize: '13px',
-                    color: '#73747B',
+                    color: 'hsl(var(--muted-foreground))',
                     padding: '10px 12px',
-                    backgroundColor: '#FEFFF1',
+                    backgroundColor: 'hsl(var(--card))',
                     borderRadius: '8px',
-                    border: '1px solid rgba(197, 197, 202, 0.3)',
+                    border: '1px solid hsl(var(--border))',
                     fontFamily: 'Inter, sans-serif',
                   }}>
                     {order.notes}
@@ -216,23 +216,23 @@ export default function InternalOrders() {
                   <h4 style={{
                     fontSize: '13px',
                     fontWeight: 600,
-                    color: '#282E3A',
+                    color: 'hsl(var(--foreground))',
                     marginBottom: '8px',
                     fontFamily: 'Inter, sans-serif',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
                   }}>
-                    <AlertCircle size={14} style={{ color: '#D97706' }} />
+                    <AlertCircle size={14} style={{ color: 'hsl(var(--warning))' }} />
                     Ontvangst feedback:
                   </h4>
                   <p style={{
                     fontSize: '13px',
-                    color: '#73747B',
+                    color: 'hsl(var(--muted-foreground))',
                     padding: '10px 12px',
-                    backgroundColor: '#FEF3C7',
+                    backgroundColor: 'hsl(var(--warning) / 0.1)',
                     borderRadius: '8px',
-                    border: '1px solid rgba(217, 119, 6, 0.3)',
+                    border: '1px solid hsl(var(--warning) / 0.3)',
                     fontFamily: 'Inter, sans-serif',
                     whiteSpace: 'pre-wrap',
                   }}>
@@ -252,9 +252,9 @@ export default function InternalOrders() {
       <SidebarLayout>
         <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
           <div style={{
-            backgroundColor: '#F6F7DD',
+            backgroundColor: 'hsl(var(--muted))',
             borderRadius: '20px',
-            border: '1px solid rgba(197, 197, 202, 0.5)',
+            border: '1px solid hsl(var(--border))',
             padding: '24px',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
           }}>
@@ -266,10 +266,10 @@ export default function InternalOrders() {
               padding: '48px 24px',
               fontFamily: 'Inter, sans-serif',
             }}>
-              <Loader2 size={48} className="animate-spin" style={{ color: '#1B7867', marginBottom: '16px' }} />
+              <Loader2 size={48} className="animate-spin" style={{ color: 'hsl(var(--primary))', marginBottom: '16px' }} />
               <p style={{
                 fontSize: '16px',
-                color: '#73747B',
+                color: 'hsl(var(--muted-foreground))',
                 fontFamily: 'Inter, sans-serif',
               }}>
                 Locatie wordt geladen...
@@ -285,9 +285,9 @@ export default function InternalOrders() {
     <SidebarLayout>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         <div style={{
-          backgroundColor: '#F6F7DD',
+          backgroundColor: 'hsl(var(--muted))',
           borderRadius: '20px',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
+          border: '1px solid hsl(var(--border))',
           padding: '24px',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
         }}>
@@ -308,9 +308,9 @@ export default function InternalOrders() {
                 fontSize: '14px',
                 fontWeight: 500,
                 padding: '10px 20px',
-                backgroundColor: activeTab === 'new' ? '#1B7867' : '#FEFFF1',
-                color: activeTab === 'new' ? '#FFFFFF' : '#282E3A',
-                border: activeTab === 'new' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+                backgroundColor: activeTab === 'new' ? 'hsl(var(--primary))' : 'hsl(var(--card))',
+                color: activeTab === 'new' ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
+                border: activeTab === 'new' ? 'none' : '1px solid hsl(var(--border))',
                 borderRadius: '20px',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
@@ -318,13 +318,13 @@ export default function InternalOrders() {
               }}
               onMouseEnter={(e) => {
                 if (activeTab !== 'new') {
-                  e.currentTarget.style.backgroundColor = '#F6F7DD';
+                  e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
                   e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (activeTab !== 'new') {
-                  e.currentTarget.style.backgroundColor = '#FEFFF1';
+                  e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
                   e.currentTarget.style.boxShadow = 'none';
                 }
               }}
@@ -342,9 +342,9 @@ export default function InternalOrders() {
                 fontSize: '14px',
                 fontWeight: 500,
                 padding: '10px 20px',
-                backgroundColor: activeTab === 'sent' ? '#1B7867' : '#FEFFF1',
-                color: activeTab === 'sent' ? '#FFFFFF' : '#282E3A',
-                border: activeTab === 'sent' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+                backgroundColor: activeTab === 'sent' ? 'hsl(var(--primary))' : 'hsl(var(--card))',
+                color: activeTab === 'sent' ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
+                border: activeTab === 'sent' ? 'none' : '1px solid hsl(var(--border))',
                 borderRadius: '20px',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
@@ -353,13 +353,13 @@ export default function InternalOrders() {
               }}
               onMouseEnter={(e) => {
                 if (activeTab !== 'sent') {
-                  e.currentTarget.style.backgroundColor = '#F6F7DD';
+                  e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
                   e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (activeTab !== 'sent') {
-                  e.currentTarget.style.backgroundColor = '#FEFFF1';
+                  e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
                   e.currentTarget.style.boxShadow = 'none';
                 }
               }}
@@ -375,8 +375,8 @@ export default function InternalOrders() {
                 borderRadius: '8px',
                 fontSize: '12px',
                 fontWeight: 600,
-                backgroundColor: activeTab === 'sent' ? 'rgba(255, 255, 255, 0.2)' : '#F6F7DD',
-                color: activeTab === 'sent' ? '#FFFFFF' : '#1B7867',
+                backgroundColor: activeTab === 'sent' ? 'hsl(var(--primary-foreground) / 0.2)' : 'hsl(var(--secondary))',
+                color: activeTab === 'sent' ? 'hsl(var(--primary-foreground))' : 'hsl(var(--primary))',
               }}>
                 {sentOrders.length}
               </span>
@@ -392,9 +392,9 @@ export default function InternalOrders() {
                 fontSize: '14px',
                 fontWeight: 500,
                 padding: '10px 20px',
-                backgroundColor: activeTab === 'received' ? '#1B7867' : '#FEFFF1',
-                color: activeTab === 'received' ? '#FFFFFF' : '#282E3A',
-                border: activeTab === 'received' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+                backgroundColor: activeTab === 'received' ? 'hsl(var(--primary))' : 'hsl(var(--card))',
+                color: activeTab === 'received' ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
+                border: activeTab === 'received' ? 'none' : '1px solid hsl(var(--border))',
                 borderRadius: '20px',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
@@ -403,13 +403,13 @@ export default function InternalOrders() {
               }}
               onMouseEnter={(e) => {
                 if (activeTab !== 'received') {
-                  e.currentTarget.style.backgroundColor = '#F6F7DD';
+                  e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
                   e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (activeTab !== 'received') {
-                  e.currentTarget.style.backgroundColor = '#FEFFF1';
+                  e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
                   e.currentTarget.style.boxShadow = 'none';
                 }
               }}
@@ -425,8 +425,8 @@ export default function InternalOrders() {
                 borderRadius: '8px',
                 fontSize: '12px',
                 fontWeight: 600,
-                backgroundColor: activeTab === 'received' ? 'rgba(255, 255, 255, 0.2)' : '#F6F7DD',
-                color: activeTab === 'received' ? '#FFFFFF' : '#1B7867',
+                backgroundColor: activeTab === 'received' ? 'hsl(var(--primary-foreground) / 0.2)' : 'hsl(var(--secondary))',
+                color: activeTab === 'received' ? 'hsl(var(--primary-foreground))' : 'hsl(var(--primary))',
               }}>
                 {receivedOrders.length}
               </span>
@@ -448,7 +448,7 @@ export default function InternalOrders() {
                   padding: '48px 24px',
                   fontFamily: 'Inter, sans-serif',
                 }}>
-                  <Loader2 size={32} className="animate-spin" style={{ color: '#1B7867' }} />
+                  <Loader2 size={32} className="animate-spin" style={{ color: 'hsl(var(--primary))' }} />
                 </div>
               ) : sentOrders.length === 0 ? (
                 <EmptyState 
@@ -477,7 +477,7 @@ export default function InternalOrders() {
                   padding: '48px 24px',
                   fontFamily: 'Inter, sans-serif',
                 }}>
-                  <Loader2 size={32} className="animate-spin" style={{ color: '#1B7867' }} />
+                  <Loader2 size={32} className="animate-spin" style={{ color: 'hsl(var(--primary))' }} />
                 </div>
               ) : receivedOrders.length === 0 ? (
                 <EmptyState 
