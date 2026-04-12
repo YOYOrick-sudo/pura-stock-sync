@@ -360,7 +360,7 @@ const KassatellingOverdag = () => {
                       style={{
                         flex: 1,
                         padding: '8px 12px',
-                        border: errors.naam ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
+                        border: errors.naam ? '1px solid hsl(var(--destructive))' : '1px solid rgba(197, 197, 202, 0.5)',
                         borderRadius: '16px',
                         backgroundColor: 'hsl(var(--card))',
                         fontFamily: 'Inter, sans-serif',
@@ -395,7 +395,7 @@ const KassatellingOverdag = () => {
                       minHeight: '60px',
                       width: '100%',
                       padding: '8px 12px',
-                      border: errors.opmerkingen ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
+                      border: errors.opmerkingen ? '1px solid hsl(var(--destructive))' : '1px solid rgba(197, 197, 202, 0.5)',
                       borderRadius: '16px',
                       backgroundColor: 'hsl(var(--card))',
                       fontFamily: 'Inter, sans-serif',
