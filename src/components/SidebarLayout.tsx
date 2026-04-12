@@ -40,15 +40,10 @@ export function SidebarLayout({
   };
 
   return (
-    <div className="flex min-h-screen w-full" style={{
-      backgroundColor: '#FEFFF1'
-    }}>
+    <div className="flex min-h-screen w-full bg-background">
       {/* Desktop Sidebar - hidden on mobile */}
       {!isMobile && (
-        <div style={{ 
-          backgroundColor: '#F6F7DD',
-          paddingTop: '16px',
-        }}>
+        <div className="bg-card border-r border-border" style={{ paddingTop: '16px' }}>
           <AppSidebar />
         </div>
       )}
@@ -56,7 +51,7 @@ export function SidebarLayout({
       {/* Mobile Menu Sheet */}
       {isMobile && (
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetContent side="left" className="w-[280px] p-0" style={{ backgroundColor: '#F6F7DD' }}>
+          <SheetContent side="left" className="w-[280px] p-0 bg-card">
             <div style={{ paddingTop: '16px' }}>
               <AppSidebar onNavigate={() => setMobileMenuOpen(false)} />
             </div>
@@ -72,9 +67,7 @@ export function SidebarLayout({
           onMenuClick={isMobile ? () => setMobileMenuOpen(true) : undefined}
         />
         
-        <main className="p-4 md:p-6 lg:px-12 lg:py-8" style={{
-          backgroundColor: '#FEFFF1'
-        }}>
+        <main className="p-4 md:p-6 lg:px-12 lg:py-8 bg-background">
           {children}
         </main>
       </div>

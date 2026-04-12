@@ -16,13 +16,13 @@ export function PolarHeader({
 }: PolarHeaderProps) {
   return (
     <div 
-      className="h-[60px] md:h-[72px] flex items-center justify-between px-4 md:px-12 bg-[hsl(var(--sidebar-bg))]"
+      className="h-[60px] md:h-[72px] flex items-center justify-between px-4 md:px-12 bg-card border-b border-border"
     >
       <div className="flex items-center gap-3">
         {onMenuClick && (
           <button
             onClick={onMenuClick}
-            className="flex items-center justify-center w-10 h-10 rounded-lg transition-colors border border-border hover:bg-[hsl(var(--sidebar-hover))]"
+            className="flex items-center justify-center w-10 h-10 rounded-lg transition-colors border border-border hover:bg-muted"
             aria-label="Open menu"
           >
             <Menu size={20} className="text-foreground" />

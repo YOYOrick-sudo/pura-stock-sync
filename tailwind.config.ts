@@ -21,30 +21,18 @@ export default {
       },
       colors: {
         // === PURA VIDA MODERN DESIGN SYSTEM ===
-        'pv': {
-          // Backgrounds (Modern Slate)
-          'bg': {
-            'page': 'hsl(210 40% 98%)',      // #F8FAFC - Main page background
-            'card': 'hsl(0 0% 100%)',         // #FFFFFF - Cards & surfaces
-            'muted': 'hsl(210 40% 96%)',      // #F1F5F9 - Secondary areas
-            'hover': 'hsl(210 31% 91%)',      // #E2E8F0 - Hover states
-          },
-          // Brand Green (Pura Vida Sea)
-          'sea': 'hsl(163 65% 26%)',           // #1B7867 - Primary
-          'sea-dark': 'hsl(163 65% 21%)',      // #156556 - Hover/active
-          'sea-light': 'hsl(163 35% 93%)',     // #E6F4F1 - Subtle backgrounds
-          'sea-border': 'hsl(169 35% 77%)',    // #B3D9D4 - Subtle borders
-          // Text Colors
-          'text': {
-            'primary': 'hsl(222 47% 11%)',    // #0F172A - Slate-900
-            'secondary': 'hsl(215 16% 47%)',  // #64748B - Slate-500
-            'muted': 'hsl(215 20% 65%)',      // #94A3B8 - Slate-400
-          },
-          // Status Colors
-          'success': 'hsl(156 60% 35%)',       // Teal-groen mix, dichter bij brand
-          'warning': 'hsl(38 92% 50%)',        // #F59E0B
-          'error': 'hsl(0 84% 60%)',           // #EF4444
-          'info': 'hsl(217 91% 60%)',          // #3B82F6
+        // Status semantic tokens
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
         },
         
         // Shadcn semantic tokens
