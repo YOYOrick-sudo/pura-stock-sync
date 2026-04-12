@@ -124,7 +124,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
           transition: 'all 0.15s ease',
           position: 'relative',
           overflow: 'hidden',
-          backgroundColor: task.completed ? 'rgba(27, 120, 103, 0.04)' : 'transparent',
+          backgroundColor: task.completed ? 'hsl(var(--primary) / 0.04)' : 'transparent',
         }}
         onMouseEnter={(e) => {
           if (!isEditMode && toggleTask) {
@@ -135,7 +135,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = task.completed 
-            ? 'rgba(27, 120, 103, 0.04)' 
+            ? 'hsl(var(--primary) / 0.04)' 
             : 'transparent';
         }}
         onMouseDown={(e) => {
@@ -198,7 +198,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
               height: '20px',
               minWidth: '20px',
               borderRadius: '6px',
-              border: '2px solid rgba(197, 197, 202, 0.5)',
+              border: '2px solid hsl(var(--border))',
               backgroundColor: task.completed ? 'hsl(var(--primary))' : 'hsl(var(--background))',
               display: 'flex',
               alignItems: 'center',
@@ -331,7 +331,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   height: '26px',
                   minWidth: '26px',
                   borderRadius: '8px',
-                  border: '1.5px solid rgba(27,120,103,0.3)',
+                  border: '1.5px solid hsl(var(--primary) / 0.3)',
                   backgroundColor: 'hsl(var(--secondary))',
                   display: 'flex',
                   alignItems: 'center',
@@ -1747,7 +1747,7 @@ export function FohTasks() {
                   padding: '14px 20px',
                   backgroundColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--card))',
                   color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
-                  border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+                  border: isActive ? 'none' : '1px solid hsl(var(--border))',
                   borderRadius: '20px',
                   cursor: 'pointer',
                   opacity: 1,
@@ -1775,7 +1775,7 @@ export function FohTasks() {
             <div style={{
               width: '1px',
               height: '32px',
-              backgroundColor: 'rgba(197, 197, 202, 0.5)',
+              backgroundColor: 'hsl(var(--border))',
               margin: '0 20px',
             }} />
               
@@ -1813,7 +1813,7 @@ export function FohTasks() {
                     padding: '14px 20px',
                     backgroundColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--card))',
                     color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
-                    border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
+                    border: isActive ? 'none' : '1px solid hsl(var(--border))',
                     borderRadius: '20px',
                     cursor: 'pointer',
                       transition: 'all 0.15s ease',
@@ -1902,7 +1902,7 @@ export function FohTasks() {
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
-                    e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.5)';
+                    e.currentTarget.style.borderColor = 'hsl(var(--border))';
                   }}
                 >
                   <Settings size={18} />
@@ -2244,7 +2244,7 @@ export function FohTasks() {
                               fontSize: '11px',
                               fontWeight: 500,
                               color: progress.allDone ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-                              backgroundColor: progress.allDone ? 'rgba(27, 120, 103, 0.1)' : 'rgba(156, 163, 175, 0.1)',
+                              backgroundColor: progress.allDone ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--muted-foreground) / 0.1)',
                               padding: '2px 6px',
                               borderRadius: '4px',
                             }}>
@@ -2336,7 +2336,7 @@ export function FohTasks() {
                               onClick={() => toggleTask(task.id, task.completed)}
                               style={{
                                 padding: taskPadding,
-                                backgroundColor: task.completed ? 'rgba(27, 120, 103, 0.04)' : 'transparent',
+                                backgroundColor: task.completed ? 'hsl(var(--primary) / 0.04)' : 'transparent',
                                 borderBottom: '1px solid hsl(var(--border))',
                                 borderLeft: `4px solid ${getPriorityConfig(task.priority).borderColor}`,
                                 marginLeft: '-4px',
@@ -2352,7 +2352,7 @@ export function FohTasks() {
                               }}
                               onMouseLeave={(e) => {
                                 e.currentTarget.style.backgroundColor = task.completed 
-                                  ? 'rgba(27, 120, 103, 0.04)' 
+                                  ? 'hsl(var(--primary) / 0.04)' 
                                   : 'transparent';
                               }}
                             >
@@ -2367,7 +2367,7 @@ export function FohTasks() {
                                   height: '20px',
                                   minWidth: '20px',
                                   borderRadius: '6px',
-                                  border: '2px solid rgba(197, 197, 202, 0.5)',
+                                  border: '2px solid hsl(var(--border))',
                                   backgroundColor: task.completed ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground))',
                                   display: 'flex',
                                   alignItems: 'center',

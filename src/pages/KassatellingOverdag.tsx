@@ -248,7 +248,7 @@ const KassatellingOverdag = () => {
                           outline: 'none',
                         }}
                         onFocus={(e) => e.target.style.borderColor = 'hsl(var(--primary))'}
-                        onBlur={(e) => e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)'}
+                        onBlur={(e) => e.target.style.borderColor = 'hsl(var(--border))'}
                         />
                       </td>
                     </tr>)}
@@ -301,7 +301,7 @@ const KassatellingOverdag = () => {
                           outline: 'none',
                         }}
                         onFocus={(e) => e.target.style.borderColor = 'hsl(var(--primary))'}
-                        onBlur={(e) => e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)'}
+                        onBlur={(e) => e.target.style.borderColor = 'hsl(var(--border))'}
                         />
                       </td>
                     </tr>)}
@@ -360,7 +360,7 @@ const KassatellingOverdag = () => {
                       style={{
                         flex: 1,
                         padding: '8px 12px',
-                        border: errors.naam ? '1px solid hsl(var(--destructive))' : '1px solid rgba(197, 197, 202, 0.5)',
+                        border: errors.naam ? '1px solid hsl(var(--destructive))' : '1px solid hsl(var(--border))',
                         borderRadius: '16px',
                         backgroundColor: 'hsl(var(--card))',
                         fontFamily: 'Inter, sans-serif',
@@ -369,7 +369,7 @@ const KassatellingOverdag = () => {
                         outline: 'none',
                       }}
                       onFocus={(e) => !errors.naam && (e.target.style.borderColor = 'hsl(var(--primary))')}
-                      onBlur={(e) => !errors.naam && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
+                      onBlur={(e) => !errors.naam && (e.target.style.borderColor = 'hsl(var(--border))')}
                     />
                   </div>
                   {errors.naam && (
@@ -395,7 +395,7 @@ const KassatellingOverdag = () => {
                       minHeight: '60px',
                       width: '100%',
                       padding: '8px 12px',
-                      border: errors.opmerkingen ? '1px solid hsl(var(--destructive))' : '1px solid rgba(197, 197, 202, 0.5)',
+                      border: errors.opmerkingen ? '1px solid hsl(var(--destructive))' : '1px solid hsl(var(--border))',
                       borderRadius: '16px',
                       backgroundColor: 'hsl(var(--card))',
                       fontFamily: 'Inter, sans-serif',
@@ -406,7 +406,7 @@ const KassatellingOverdag = () => {
                       whiteSpace: 'pre-wrap'
                     }}
                     onFocus={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'hsl(var(--primary))')}
-                    onBlur={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
+                    onBlur={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'hsl(var(--border))')}
                   />
                   {errors.opmerkingen && (
                     <p style={{ fontSize: '12px', color: hsl(var(--destructive)), fontFamily: 'Inter, sans-serif', marginTop: '4px' }}>{errors.opmerkingen}</p>

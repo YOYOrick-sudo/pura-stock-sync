@@ -255,7 +255,7 @@ const Kassa = () => {
                             outline: 'none',
                           }}
                           onFocus={(e) => e.target.style.borderColor = 'hsl(var(--primary))'}
-                          onBlur={(e) => e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)'}
+                          onBlur={(e) => e.target.style.borderColor = 'hsl(var(--border))'}
                         />
                       </td>
                     </tr>
@@ -372,14 +372,14 @@ const Kassa = () => {
                       fontFamily: 'Inter, sans-serif',
                       fontWeight: 700,
                       color: 'hsl(var(--foreground))',
-                      border: errors.cashOmzet ? '1px solid hsl(var(--destructive))' : '1px solid rgba(197, 197, 202, 0.5)',
+                      border: errors.cashOmzet ? '1px solid hsl(var(--destructive))' : '1px solid hsl(var(--border))',
                       borderRadius: '16px',
                       backgroundColor: 'hsl(var(--card))',
                       outline: 'none',
                       transition: 'border-color 0.15s'
                     }}
                     onFocus={(e) => !errors.cashOmzet && (e.target.style.borderColor = 'hsl(var(--primary))')}
-                    onBlur={(e) => !errors.cashOmzet && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
+                    onBlur={(e) => !errors.cashOmzet && (e.target.style.borderColor = 'hsl(var(--border))')}
                   />
                 </div>
                 {errors.cashOmzet && (
@@ -410,14 +410,14 @@ const Kassa = () => {
                       fontSize: '14px',
                       fontFamily: 'Inter, sans-serif',
                       color: 'hsl(var(--foreground))',
-                      border: errors.naam ? '1px solid hsl(var(--destructive))' : '1px solid rgba(197, 197, 202, 0.5)',
+                      border: errors.naam ? '1px solid hsl(var(--destructive))' : '1px solid hsl(var(--border))',
                       borderRadius: '16px',
                       backgroundColor: 'hsl(var(--card))',
                       outline: 'none',
                       transition: 'border-color 0.15s'
                     }}
                     onFocus={(e) => !errors.naam && (e.target.style.borderColor = 'hsl(var(--primary))')}
-                    onBlur={(e) => !errors.naam && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
+                    onBlur={(e) => !errors.naam && (e.target.style.borderColor = 'hsl(var(--border))')}
                   />
                 </div>
                 {errors.naam && (
@@ -489,7 +489,7 @@ const Kassa = () => {
                     fontFamily: 'monospace',
                     fontSize: '14px',
                     color: 'hsl(var(--foreground))',
-                    border: errors.opmerkingen ? '1px solid hsl(var(--destructive))' : '1px solid rgba(197, 197, 202, 0.5)',
+                    border: errors.opmerkingen ? '1px solid hsl(var(--destructive))' : '1px solid hsl(var(--border))',
                     borderRadius: '16px',
                     backgroundColor: 'hsl(var(--card))',
                     outline: 'none',
@@ -498,7 +498,7 @@ const Kassa = () => {
                     whiteSpace: 'pre-wrap'
                   }}
                   onFocus={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'hsl(var(--primary))')}
-                  onBlur={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
+                  onBlur={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'hsl(var(--border))')}
                 />
                 {errors.opmerkingen && (
                   <p style={{ fontSize: '12px', color: hsl(var(--destructive)), marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>{errors.opmerkingen}</p>
@@ -573,7 +573,7 @@ const Kassa = () => {
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
-                    e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.5)';
+                    e.currentTarget.style.borderColor = 'hsl(var(--border))';
                   }}
                 >
                   <Info style={{ width: '16px', height: '16px' }} />
