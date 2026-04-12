@@ -1695,10 +1695,10 @@ export function FohTasks() {
   const groupedCurrentTasks = groupTasksByCategory(currentTasks);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--card))', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
       <div style={{
-        backgroundColor: 'hsl(var(--muted))',
+        backgroundColor: 'hsl(var(--card))',
         borderRadius: '20px',
         border: '1px solid hsl(var(--border))',
         padding: '24px',
