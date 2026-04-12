@@ -248,7 +248,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 display: 'flex',
                 alignItems: 'center',
                 textDecoration: toggleTask && task.completed ? 'line-through' : 'none',
-                color: toggleTask && task.completed ? 'hsl(var(--muted-foreground))' : hsl(var(--foreground)),
+                color: toggleTask && task.completed ? 'hsl(var(--muted-foreground))' : 'hsl(var(--foreground))',
                 fontWeight: 500,
                 fontSize: '15px',
                 fontFamily: 'Inter, sans-serif',
@@ -1746,7 +1746,7 @@ export function FohTasks() {
                       fontWeight: 500,
                   padding: '14px 20px',
                   backgroundColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--card))',
-                  color: isActive ? 'hsl(var(--primary-foreground))' : hsl(var(--foreground)),
+                  color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
                   border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
                   borderRadius: '20px',
                   cursor: 'pointer',
@@ -1812,7 +1812,7 @@ export function FohTasks() {
                       fontWeight: 500,
                     padding: '14px 20px',
                     backgroundColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--card))',
-                    color: isActive ? 'hsl(var(--primary-foreground))' : hsl(var(--foreground)),
+                    color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
                     border: isActive ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
                     borderRadius: '20px',
                     cursor: 'pointer',
@@ -1870,7 +1870,7 @@ export function FohTasks() {
                   </span>
                   <span style={{
                     fontWeight: 600,
-                    color: isComplete ? 'hsl(var(--primary))' : hsl(var(--foreground)),
+                    color: isComplete ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
                     fontSize: '17px',
                     fontFamily: 'Inter, sans-serif',
                   }}>
@@ -2397,7 +2397,7 @@ export function FohTasks() {
                                   <span style={{
                                     flex: 1,
                                     textDecoration: task.completed ? 'line-through' : 'none',
-                                    color: task.completed ? 'hsl(var(--muted-foreground))' : hsl(var(--foreground)),
+                                    color: task.completed ? 'hsl(var(--muted-foreground))' : 'hsl(var(--foreground))',
                                     fontWeight: 500,
                                     fontSize: '15px',
                                     fontFamily: 'Inter, sans-serif',
