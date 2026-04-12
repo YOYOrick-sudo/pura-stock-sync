@@ -25,6 +25,7 @@ import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } 
 // Maintenance Module
 import Onderhoud from "./pages/maintenance/Onderhoud";
 import Unsubscribe from "./pages/Unsubscribe";
+import ColorPreview from "./pages/ColorPreview";
 const queryClient = new QueryClient();
 
 const App = () => (
