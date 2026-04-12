@@ -1,115 +1,112 @@
 /**
- * Polar Design System - Color Presets (Modern Slate Edition)
+ * Polar Design System - Color Tokens
  * 
- * Complete color palette using modern slate tones.
- * All legacy crème/moonlight colors removed.
+ * IMPORTANT: These map to CSS variables from index.css.
+ * For inline styles that MUST use hex, use these constants.
+ * Prefer Tailwind classes (bg-primary, text-foreground, etc.) whenever possible.
  */
 
 export const PolarColors = {
-  // Base Colors (Modern Slate)
+  // Use CSS vars via hsl(var(--*)) in inline styles
   white: '#FFFFFF',
-  background: '#F8FAFC',              // Slate-50 (modern, no yellow)
-  surface: '#FFFFFF',                  // White for cards
+  background: 'hsl(var(--background))',
+  surface: 'hsl(var(--card))',
   
-  // Text Colors
   text: {
-    primary: '#0F172A',               // Slate-900
-    secondary: '#64748B',             // Slate-500
-    tertiary: '#94A3B8',              // Slate-400
-    disabled: '#CBD5E1',              // Slate-300
+    primary: 'hsl(var(--foreground))',
+    secondary: 'hsl(var(--muted-foreground))',
+    tertiary: 'hsl(var(--muted-foreground))',
+    disabled: 'hsl(var(--border))',
   },
 
-  // Border Colors
   border: {
-    default: '#E2E8F0',               // Slate-200
-    light: '#F1F5F9',                 // Slate-100
-    dark: '#334155',                  // Slate-700
+    default: 'hsl(var(--border))',
+    light: 'hsl(var(--muted))',
+    dark: 'hsl(var(--foreground))',
   },
 
-  // Brand Colors (Pura Vida Sea)
   brand: {
-    primary: '#1B7867',               // Pura Vida Sea
-    primaryHover: '#156556',          // Darker Sea
-    primaryLight: '#E6F4F1',          // Light Sea
-    primaryBorder: '#B3D9D4',         // Sea border
+    primary: 'hsl(var(--primary))',
+    primaryHover: 'hsl(var(--primary-hover))',
+    primaryLight: 'hsl(var(--secondary))',
+    primaryBorder: 'hsl(var(--border))',
   },
 
-  // Status Colors
   status: {
-    success: '#22C55E',               // Green-500
-    successLight: '#F0FDF4',          // Green-50
-    successBorder: '#BBF7D0',         // Green-200
+    success: 'hsl(var(--success))',
+    successLight: 'hsl(var(--success) / 0.1)',
+    successBorder: 'hsl(var(--success) / 0.2)',
     
-    pending: '#F59E0B',               // Amber-500
-    pendingLight: '#FFFBEB',          // Amber-50
-    pendingBorder: '#FDE68A',         // Amber-200
+    pending: 'hsl(var(--warning))',
+    pendingLight: 'hsl(var(--warning) / 0.1)',
+    pendingBorder: 'hsl(var(--warning) / 0.2)',
     
-    warning: '#F59E0B',               // Amber-500
-    warningLight: '#FFFBEB',          // Amber-50
-    warningBorder: '#FDE68A',         // Amber-200
+    warning: 'hsl(var(--warning))',
+    warningLight: 'hsl(var(--warning) / 0.1)',
+    warningBorder: 'hsl(var(--warning) / 0.2)',
     
-    error: '#EF4444',                 // Red-500
-    errorLight: '#FEF2F2',            // Red-50
-    errorBorder: '#FECACA',           // Red-200
+    error: 'hsl(var(--destructive))',
+    errorLight: 'hsl(var(--destructive) / 0.1)',
+    errorBorder: 'hsl(var(--destructive) / 0.2)',
     
-    info: '#3B82F6',                  // Blue-500
-    infoLight: '#EFF6FF',             // Blue-50
-    infoBorder: '#BFDBFE',            // Blue-200
+    info: 'hsl(var(--info))',
+    infoLight: 'hsl(var(--info) / 0.1)',
+    infoBorder: 'hsl(var(--info) / 0.2)',
   },
 
-  // Component-specific colors
   badge: {
     default: {
-      bg: '#F1F5F9',                  // Slate-100
-      text: '#334155',                // Slate-700
-      border: '#E2E8F0',              // Slate-200
+      bg: 'hsl(var(--muted))',
+      text: 'hsl(var(--foreground))',
+      border: 'hsl(var(--border))',
     },
     success: {
-      bg: '#F0FDF4',
-      text: '#22C55E',
-      border: '#BBF7D0',
+      bg: 'hsl(var(--success) / 0.1)',
+      text: 'hsl(var(--success))',
+      border: 'hsl(var(--success) / 0.2)',
     },
     pending: {
-      bg: '#FFFBEB',
-      text: '#F59E0B',
-      border: '#FDE68A',
+      bg: 'hsl(var(--warning) / 0.1)',
+      text: 'hsl(var(--warning))',
+      border: 'hsl(var(--warning) / 0.2)',
     },
     warning: {
-      bg: '#FFFBEB',
-      text: '#F59E0B',
-      border: '#FDE68A',
+      bg: 'hsl(var(--warning) / 0.1)',
+      text: 'hsl(var(--warning))',
+      border: 'hsl(var(--warning) / 0.2)',
     },
     error: {
-      bg: '#FEF2F2',
-      text: '#EF4444',
-      border: '#FECACA',
+      bg: 'hsl(var(--destructive) / 0.1)',
+      text: 'hsl(var(--destructive))',
+      border: 'hsl(var(--destructive) / 0.2)',
     },
     info: {
-      bg: '#EFF6FF',
-      text: '#3B82F6',
-      border: '#BFDBFE',
+      bg: 'hsl(var(--info) / 0.1)',
+      text: 'hsl(var(--info))',
+      border: 'hsl(var(--info) / 0.2)',
     },
   },
 
-  // Avatar
   avatar: {
-    online: '#22C55E',
-    offline: '#94A3B8',
-    background: '#F1F5F9',
+    online: 'hsl(var(--success))',
+    offline: 'hsl(var(--muted-foreground))',
+    background: 'hsl(var(--muted))',
   },
 
-  // Muted/Secondary surfaces
   muted: {
-    bg: '#F1F5F9',                    // Slate-100
-    hover: '#E2E8F0',                 // Slate-200
+    bg: 'hsl(var(--muted))',
+    hover: 'hsl(var(--border))',
   },
 } as const;
 
-// Export individual color groups for convenience
 export const { white, background, surface, text, border, brand, status, badge, avatar, muted } = PolarColors;
 
-// Helper function to get color with opacity
+// Helper function to get color with opacity - use hsl(var(--token) / alpha) instead
 export function withOpacity(color: string, opacity: number): string {
+  // For CSS var based colors, return them with opacity
+  if (color.startsWith('hsl(var(')) {
+    return color.replace(')', ` / ${opacity})`);
+  }
   const hex = color.replace('#', '');
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
