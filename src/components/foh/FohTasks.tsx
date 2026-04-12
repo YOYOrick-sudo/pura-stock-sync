@@ -129,8 +129,8 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         onMouseEnter={(e) => {
           if (!isEditMode && toggleTask) {
             e.currentTarget.style.backgroundColor = task.completed 
-              ? 'rgba(27, 120, 103, 0.06)' 
-              : 'rgba(27, 120, 103, 0.05)';
+              ? 'hsl(var(--primary) / 0.06)' 
+              : 'hsl(var(--primary) / 0.05)';
           }
         }}
         onMouseLeave={(e) => {
@@ -140,14 +140,14 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         }}
         onMouseDown={(e) => {
           if (!isEditMode && toggleTask) {
-            e.currentTarget.style.backgroundColor = 'rgba(27, 120, 103, 0.08)';
+            e.currentTarget.style.backgroundColor = 'hsl(var(--primary) / 0.08)';
           }
         }}
         onMouseUp={(e) => {
           if (!isEditMode && toggleTask) {
             e.currentTarget.style.backgroundColor = task.completed 
-              ? 'rgba(27, 120, 103, 0.06)' 
-              : 'rgba(27, 120, 103, 0.05)';
+              ? 'hsl(var(--primary) / 0.06)' 
+              : 'hsl(var(--primary) / 0.05)';
           }
         }}
       >
@@ -309,7 +309,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   fontSize: '11px',
                   fontWeight: 500,
                   color: 'hsl(var(--muted-foreground))',
-                  backgroundColor: 'rgba(115, 116, 123, 0.08)',
+                  backgroundColor: 'hsl(var(--muted-foreground) / 0.08)',
                   padding: '2px 8px',
                   borderRadius: '4px',
                   fontFamily: 'Inter, sans-serif',
@@ -1702,7 +1702,7 @@ export function FohTasks() {
         borderRadius: '20px',
         border: '1px solid hsl(var(--border))',
         padding: '24px',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
+        boxShadow: '0 1px 3px hsl(var(--foreground) / 0.06)',
         position: 'relative',
       }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -1727,7 +1727,7 @@ export function FohTasks() {
                 onMouseEnter={(e) => {
                   if (!isActive) {
                     e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
-                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
+                    e.currentTarget.style.boxShadow = '0 2px 4px hsl(var(--foreground) / 0.08)';
                   }
                 }}
                     onMouseLeave={(e) => {
@@ -1761,7 +1761,7 @@ export function FohTasks() {
                       fontWeight: 600,
                       padding: '4px 10px',
                       borderRadius: '6px',
-                      backgroundColor: isActive ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.04)',
+                      backgroundColor: isActive ? 'hsl(var(--primary-foreground) / 0.25)' : 'hsl(var(--foreground) / 0.04)',
                       color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--muted-foreground))',
                       minWidth: '40px',
                     }}>
@@ -1793,7 +1793,7 @@ export function FohTasks() {
                     onMouseEnter={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
-                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
+                        e.currentTarget.style.boxShadow = '0 2px 4px hsl(var(--foreground) / 0.08)';
                       }
                     }}
                     onMouseLeave={(e) => {
@@ -1826,7 +1826,7 @@ export function FohTasks() {
                       fontWeight: 600,
                       padding: '4px 10px',
                       borderRadius: '6px',
-                      backgroundColor: isActive ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.04)',
+                      backgroundColor: isActive ? 'hsl(var(--primary-foreground) / 0.25)' : 'hsl(var(--foreground) / 0.04)',
                       color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--muted-foreground))',
                       minWidth: '40px',
                     }}>
@@ -1898,7 +1898,7 @@ export function FohTasks() {
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
-                    e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.7)';
+                    e.currentTarget.style.borderColor = 'hsl(var(--border))';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
@@ -1922,19 +1922,19 @@ export function FohTasks() {
                           justifyContent: 'center',
                           backgroundColor: 'hsl(var(--primary))',
                           color: 'hsl(var(--primary-foreground))',
-                          border: '1px solid rgba(255,255,255,0.2)',
+                          border: '1px solid hsl(var(--primary-foreground) / 0.2)',
                           borderRadius: '12px',
                           cursor: 'pointer',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                          boxShadow: '0 1px 3px hsl(var(--foreground) / 0.1)',
                           transition: 'all 0.2s ease',
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = 'hsl(var(--primary-hover))';
-                          e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.15)';
+                          e.currentTarget.style.boxShadow = '0 2px 4px hsl(var(--foreground) / 0.15)';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.backgroundColor = 'hsl(var(--primary))';
-                          e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                          e.currentTarget.style.boxShadow = '0 1px 3px hsl(var(--foreground) / 0.1)';
                         }}
                         onMouseDown={(e) => {
                           e.currentTarget.style.transform = 'scale(0.95)';
@@ -2046,7 +2046,7 @@ export function FohTasks() {
                                         flex: 1,
                                         padding: '8px',
                                         borderRadius: '8px',
-                                        border: newTask.priority === value ? `2px solid ${color}` : '1px solid rgba(197,197,202,0.5)',
+                                        border: newTask.priority === value ? `2px solid ${color}` : '1px solid hsl(var(--border))',
                                         backgroundColor: newTask.priority === value ? `${color}15` : 'hsl(var(--card))',
                                         color: 'hsl(var(--foreground))',
                                         cursor: 'pointer',
@@ -2347,8 +2347,8 @@ export function FohTasks() {
                               }}
                               onMouseEnter={(e) => {
                                 e.currentTarget.style.backgroundColor = task.completed 
-                                  ? 'rgba(27, 120, 103, 0.06)' 
-                                  : 'rgba(27, 120, 103, 0.05)';
+                                  ? 'hsl(var(--primary) / 0.06)' 
+                                  : 'hsl(var(--primary) / 0.05)';
                               }}
                               onMouseLeave={(e) => {
                                 e.currentTarget.style.backgroundColor = task.completed 
@@ -2756,7 +2756,7 @@ export function FohTasks() {
                       padding: '16px',
                       backgroundColor: 'hsl(var(--muted))',
                       borderRadius: '12px',
-                      border: template.isActive ? '2px solid hsl(var(--primary))' : '1px solid rgba(197,197,202,0.5)',
+                      border: template.isActive ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
                         <div>
@@ -2985,7 +2985,7 @@ export function FohTasks() {
             {/* Add task section */}
             <div style={{
               padding: '16px',
-              borderTop: '1px solid rgba(197, 197, 202, 0.3)',
+              borderTop: '1px solid hsl(var(--border) / 0.5)',
               marginTop: '16px',
             }}>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
