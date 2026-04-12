@@ -130,6 +130,7 @@ const App = () => (
             {/* Public Design System route - no login needed */}
             <Route path="/design-system" element={<DesignSystem />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
+            <Route path="/kleur-preview" element={<ColorPreview />} />
             
             {/* Maintenance Module */}
             <Route
