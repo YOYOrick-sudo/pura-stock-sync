@@ -16,7 +16,9 @@ import { Input } from '@/components/ui/input';
 import { NotificationsDropdown } from '@/components/NotificationsDropdown';
 import { PolarSidebar } from '@/components/polar/Sidebar';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import puraVidaLogo from '@/assets/pura-vida-logo-dark.png';
+import { useTheme } from '@/contexts/ThemeContext';
+import puraVidaLogoDark from '@/assets/pura-vida-logo-dark.png';
+import puraVidaLogoLight from '@/assets/pura-vida-logo.png';
 
 const allNavigationItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home, locations: ['West', 'Midsland'] },
@@ -37,6 +39,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
   const location = useLocation();
   const navigate = useNavigate();
   const { userLocation } = useUserLocation();
+  const { isDark } = useTheme();
   const [showCodeDialog, setShowCodeDialog] = useState(false);
   const [codeInput, setCodeInput] = useState('');
   const [codeError, setCodeError] = useState('');
@@ -84,7 +87,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
       <PolarSidebar
         logo={
           <img 
-            src={puraVidaLogo} 
+            src={isDark ? puraVidaLogoLight : puraVidaLogoDark} 
             alt="Pura Vida" 
             className="h-[92px] w-auto"
           />
