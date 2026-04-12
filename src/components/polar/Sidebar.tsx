@@ -40,7 +40,7 @@ export function PolarSidebar({
 
   return (
     <aside
-      className="polar-sidebar flex flex-col bg-[hsl(var(--sidebar-bg))] border-r border-border"
+      className="polar-sidebar flex flex-col bg-card border-r border-border"
       style={{
         width: collapsed ? '64px' : '280px',
         height: '100vh',
@@ -116,8 +116,8 @@ export function PolarSidebar({
                 }}
                 className={cn(
                   'polar-sidebar-item rounded-lg transition-colors',
-                  item.active && 'bg-[hsl(var(--sidebar-active))] border border-border shadow-soft',
-                  !item.active && 'border border-transparent hover:bg-[hsl(var(--sidebar-hover))]',
+                  item.active && 'bg-secondary border border-border shadow-soft',
+                  !item.active && 'border border-transparent hover:bg-muted',
                   !item.requiresCode && 'cursor-pointer'
                 )}
                 style={{

@@ -119,7 +119,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         style={{
           padding: taskPadding,
           opacity: isDeleted ? 0.3 : (task.completed ? 0.7 : 1),
-          borderBottom: '1px solid rgba(197, 197, 202, 0.3)',
+          borderBottom: '1px solid hsl(var(--border))',
           cursor: !isEditMode && toggleTask ? 'pointer' : 'default',
           transition: 'all 0.15s ease',
           position: 'relative',
@@ -187,7 +187,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 minWidth: '24px',
               }}
             >
-              <GripVertical size={18} style={{ color: '#73747B', opacity: 0.5 }} />
+              <GripVertical size={18} style={{ color: 'hsl(var(--muted-foreground))', opacity: 0.5 }} />
             </div>
           )}
 
@@ -308,7 +308,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 <span style={{
                   fontSize: '11px',
                   fontWeight: 500,
-                  color: '#73747B',
+                  color: 'hsl(var(--muted-foreground))',
                   backgroundColor: 'rgba(115, 116, 123, 0.08)',
                   padding: '2px 8px',
                   borderRadius: '4px',
@@ -342,7 +342,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 }}
                 title="Bekijk info"
               >
-                <Info size={16} style={{ color: '#1B7867' }} />
+                <Info size={16} style={{ color: 'hsl(var(--primary))' }} />
               </button>
             )}
 
@@ -359,8 +359,8 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   height: '24px',
                   minWidth: '24px',
                   borderRadius: '6px',
-                  border: '1px solid rgba(197,197,202,0.5)',
-                  backgroundColor: '#FEFFF1',
+                  border: '1px solid hsl(var(--border))',
+                  backgroundColor: 'hsl(var(--card))',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -370,7 +370,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 }}
                 title="Bewerk omschrijving"
               >
-                <Pencil size={14} style={{ color: '#73747B' }} />
+                <Pencil size={14} style={{ color: 'hsl(var(--muted-foreground))' }} />
               </button>
             )}
 
@@ -386,8 +386,8 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   height: '24px',
                   minWidth: '24px',
                   borderRadius: '6px',
-                  border: '1px solid rgba(197,197,202,0.5)',
-                  backgroundColor: '#FEFFF1',
+                  border: '1px solid hsl(var(--border))',
+                  backgroundColor: 'hsl(var(--card))',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -401,8 +401,8 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   e.currentTarget.style.borderColor = '#EF4444';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#FEFFF1';
-                  e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
+                  e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
+                  e.currentTarget.style.borderColor = 'hsl(var(--border))';
                 }}
               >
                 <Trash2 size={14} style={{ color: '#EF4444' }} />
@@ -417,13 +417,13 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
             <DialogContent 
               className="data-[state=open]:duration-300 data-[state=open]:ease-out data-[state=closed]:duration-200"
               style={{
-                backgroundColor: '#FEFFF1',
-                border: '1px solid rgba(197, 197, 202, 0.5)',
+                backgroundColor: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))',
                 borderRadius: '20px',
                 fontFamily: 'Inter, sans-serif',
               }}>
               <DialogHeader>
-                <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#282E3A' }}>
+                <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: 'hsl(var(--foreground))' }}>
                   {showAdminTools ? 'Bewerk Omschrijving' : 'Taak Informatie'}
                 </DialogTitle>
               </DialogHeader>
@@ -444,7 +444,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   <div style={{
                     fontFamily: 'Inter, sans-serif',
                     fontSize: '15px',
-                    color: '#282E3A',
+                    color: 'hsl(var(--foreground))',
                     whiteSpace: 'pre-wrap',
                     lineHeight: 1.6,
                   }}>
@@ -471,8 +471,8 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                       toast.success('Omschrijving bijgewerkt');
                     }}
                     style={{
-                      backgroundColor: '#1B7867',
-                      color: '#FFFFFF',
+                      backgroundColor: 'hsl(var(--primary))',
+                      color: 'hsl(var(--primary-foreground))',
                       borderRadius: '20px',
                       fontFamily: 'Inter, sans-serif',
                     }}
@@ -698,7 +698,7 @@ const getDateLabelColor = (dateString: string): string => {
 const getPriorityConfig = (priority: number) => {
   switch (priority) {
     case 1: return { color: '#DC2626', borderColor: '#DC2626' }; // High - Red
-    case 3: return { color: '#1B7867', borderColor: '#1B7867' }; // Low - Green
+    case 3: return { color: 'hsl(var(--primary))', borderColor: '#1B7867' }; // Low - Green
     default: return { color: '#F59E0B', borderColor: '#F59E0B' }; // Normal - Orange/Yellow
   }
 };
@@ -1686,7 +1686,7 @@ export function FohTasks() {
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-        <Loader2 style={{ width: '32px', height: '32px', color: '#1B7867' }} className="animate-spin" />
+        <Loader2 style={{ width: '32px', height: '32px', color: 'hsl(var(--primary))' }} className="animate-spin" />
       </div>
     );
   }
@@ -1695,12 +1695,12 @@ export function FohTasks() {
   const groupedCurrentTasks = groupTasksByCategory(currentTasks);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#FEFFF1', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--card))', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
       <div style={{
-        backgroundColor: '#F6F7DD',
+        backgroundColor: 'hsl(var(--muted))',
         borderRadius: '20px',
-        border: '1px solid rgba(197, 197, 202, 0.5)',
+        border: '1px solid hsl(var(--border))',
         padding: '24px',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
         position: 'relative',
@@ -1726,13 +1726,13 @@ export function FohTasks() {
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive) {
-                    e.currentTarget.style.backgroundColor = '#F6F7DD';
+                    e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
                     e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
                   }
                 }}
                     onMouseLeave={(e) => {
                       if (!isActive) {
-                        e.currentTarget.style.backgroundColor = '#FEFFF1';
+                        e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
                         e.currentTarget.style.boxShadow = 'none';
                       }
                     }}
@@ -1792,13 +1792,13 @@ export function FohTasks() {
                     }}
                     onMouseEnter={(e) => {
                       if (!isActive) {
-                        e.currentTarget.style.backgroundColor = '#F6F7DD';
+                        e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
                         e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive) {
-                        e.currentTarget.style.backgroundColor = '#FEFFF1';
+                        e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
                         e.currentTarget.style.boxShadow = 'none';
                       }
                     }}
@@ -1838,21 +1838,21 @@ export function FohTasks() {
 
             </div>
 
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(197, 197, 202, 0.5)', margin: 0 }} />
+            <hr style={{ border: 'none', borderTop: '1px solid hsl(var(--border))', margin: 0 }} />
 
             {/* Full-width progress bar */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                   height: '8px',
-                  backgroundColor: '#FEFFF1',
+                  backgroundColor: 'hsl(var(--card))',
                   borderRadius: '4px',
                   overflow: 'hidden',
                 }}>
                   <div style={{
                     height: '100%',
                     width: `${progressPercentage}%`,
-                    backgroundColor: '#1B7867',
+                    backgroundColor: 'hsl(var(--primary))',
                     transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                   }} />
                 </div>
@@ -1865,7 +1865,7 @@ export function FohTasks() {
                 flexShrink: 0,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '15px', color: '#73747B', fontFamily: 'Inter, sans-serif' }}>
+                  <span style={{ fontSize: '15px', color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif' }}>
                     {completedCount}/{totalCount}
                   </span>
                   <span style={{
@@ -1886,9 +1886,9 @@ export function FohTasks() {
                     alignItems: 'center',
                     gap: '8px',
                     padding: '12px 20px',
-                    backgroundColor: '#FEFFF1',
-                    color: '#1B7867',
-                    border: '1px solid rgba(197, 197, 202, 0.5)',
+                    backgroundColor: 'hsl(var(--card))',
+                    color: 'hsl(var(--primary))',
+                    border: '1px solid hsl(var(--border))',
                     borderRadius: '20px',
                     fontSize: '15px',
                     fontWeight: 500,
@@ -1897,11 +1897,11 @@ export function FohTasks() {
                     transition: 'all 0.2s ease',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#F6F7DD';
+                    e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
                     e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.7)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#FEFFF1';
+                    e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
                     e.currentTarget.style.borderColor = 'rgba(197, 197, 202, 0.5)';
                   }}
                 >
@@ -1920,8 +1920,8 @@ export function FohTasks() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: '#1B7867',
-                          color: '#FFFFFF',
+                          backgroundColor: 'hsl(var(--primary))',
+                          color: 'hsl(var(--primary-foreground))',
                           border: '1px solid rgba(255,255,255,0.2)',
                           borderRadius: '12px',
                           cursor: 'pointer',
@@ -1933,7 +1933,7 @@ export function FohTasks() {
                           e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.15)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#1B7867';
+                          e.currentTarget.style.backgroundColor = 'hsl(var(--primary))';
                           e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
                         }}
                         onMouseDown={(e) => {
@@ -1947,20 +1947,20 @@ export function FohTasks() {
                       </button>
                     </DialogTrigger>
                     <DialogContent style={{
-                      backgroundColor: '#FEFFF1',
-                      border: '1px solid rgba(197, 197, 202, 0.5)',
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
                       borderRadius: '20px',
                       fontFamily: 'Inter, sans-serif',
                     }}>
                       <DialogHeader>
-                        <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#282E3A' }}>
+                        <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: 'hsl(var(--foreground))' }}>
                           Nieuwe Periodieke Taak
                         </DialogTitle>
                       </DialogHeader>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 0' }}>
                         {/* Essential fields - always visible */}
                         <div>
-                          <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+                          <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
                             Titel *
                           </Label>
                           <Input
@@ -1976,7 +1976,7 @@ export function FohTasks() {
                         </div>
 
                         <div>
-                          <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+                          <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
                             Vervaldatum *
                           </Label>
                           <Input
@@ -2002,13 +2002,13 @@ export function FohTasks() {
                             gap: '6px',
                             padding: '10px',
                             backgroundColor: 'transparent',
-                            border: '1px solid rgba(197, 197, 202, 0.5)',
+                            border: '1px solid hsl(var(--border))',
                             borderRadius: '12px',
                             cursor: 'pointer',
                             fontFamily: 'Inter, sans-serif',
                             fontSize: '13px',
                             fontWeight: 500,
-                            color: '#73747B',
+                            color: 'hsl(var(--muted-foreground))',
                             transition: 'all 0.15s ease',
                           }}
                         >
@@ -2030,7 +2030,7 @@ export function FohTasks() {
                           <>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                               <div>
-                                <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+                                <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
                                   Prioriteit
                                 </Label>
                                 <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
@@ -2048,7 +2048,7 @@ export function FohTasks() {
                                         borderRadius: '8px',
                                         border: newTask.priority === value ? `2px solid ${color}` : '1px solid rgba(197,197,202,0.5)',
                                         backgroundColor: newTask.priority === value ? `${color}15` : '#FEFFF1',
-                                        color: '#282E3A',
+                                        color: 'hsl(var(--foreground))',
                                         cursor: 'pointer',
                                         fontSize: '13px',
                                         fontWeight: 500,
@@ -2063,7 +2063,7 @@ export function FohTasks() {
                               </div>
 
                               <div>
-                                <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+                                <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
                                   Categorie
                                 </Label>
                                 <Select value={newTask.category} onValueChange={(val) => setNewTask({ ...newTask, category: val })}>
@@ -2080,7 +2080,7 @@ export function FohTasks() {
                             </div>
 
                             <div>
-                              <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+                              <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
                                 Geschatte tijd
                               </Label>
                               <Select 
@@ -2103,7 +2103,7 @@ export function FohTasks() {
                             </div>
 
                             <div>
-                              <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+                              <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
                                 Medewerker
                               </Label>
                               <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
@@ -2196,8 +2196,8 @@ export function FohTasks() {
                         <Button
                           onClick={createTask}
                           style={{
-                            backgroundColor: '#1B7867',
-                            color: '#FFFFFF',
+                            backgroundColor: 'hsl(var(--primary))',
+                            color: 'hsl(var(--primary-foreground))',
                             borderRadius: '20px',
                             fontFamily: 'Inter, sans-serif',
                           }}
@@ -2212,7 +2212,7 @@ export function FohTasks() {
               </div>
             </div>
 
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(197, 197, 202, 0.5)', margin: 0 }} />
+            <hr style={{ border: 'none', borderTop: '1px solid hsl(var(--border))', margin: 0 }} />
 
             {/* Tasks display */}
             <div>
@@ -2251,12 +2251,12 @@ export function FohTasks() {
                               {progress.completed}/{progress.total}
                             </span>
                           </h3>
-                          <div style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.3)', paddingBottom: '16px' }}>
+                          <div style={{ borderBottom: '1px solid hsl(var(--border))', paddingBottom: '16px' }}>
                             {progress.allDone ? (
                               <div style={{
                                 padding: '20px',
                                 textAlign: 'center',
-                                color: '#1B7867',
+                                color: 'hsl(var(--primary))',
                                 fontSize: '14px',
                                 fontWeight: 500,
                                 fontFamily: 'Inter, sans-serif',
@@ -2337,7 +2337,7 @@ export function FohTasks() {
                               style={{
                                 padding: taskPadding,
                                 backgroundColor: task.completed ? 'rgba(27, 120, 103, 0.04)' : 'transparent',
-                                borderBottom: '1px solid rgba(197, 197, 202, 0.3)',
+                                borderBottom: '1px solid hsl(var(--border))',
                                 borderLeft: `4px solid ${getPriorityConfig(task.priority).borderColor}`,
                                 marginLeft: '-4px',
                                 paddingLeft: '12px',
@@ -2423,8 +2423,8 @@ export function FohTasks() {
                                       height: '24px',
                                       minWidth: '24px',
                                       borderRadius: '6px',
-                                      border: '1px solid rgba(197,197,202,0.5)',
-                                      backgroundColor: '#FEFFF1',
+                                      border: '1px solid hsl(var(--border))',
+                                      backgroundColor: 'hsl(var(--card))',
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'center',
@@ -2438,8 +2438,8 @@ export function FohTasks() {
                                       e.currentTarget.style.borderColor = '#EF4444';
                                     }}
                                     onMouseLeave={(e) => {
-                                      e.currentTarget.style.backgroundColor = '#FEFFF1';
-                                      e.currentTarget.style.borderColor = 'rgba(197,197,202,0.5)';
+                                      e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
+                                      e.currentTarget.style.borderColor = 'hsl(var(--border))';
                                     }}
                                   >
                                     <Trash2 size={14} style={{ color: '#EF4444' }} />
@@ -2465,7 +2465,7 @@ export function FohTasks() {
                                   }}
                                   style={{
                                     backgroundColor: '#EF4444',
-                                    color: '#FFFFFF',
+                                    color: 'hsl(var(--primary-foreground))',
                                     border: 'none',
                                     padding: '8px 16px',
                                     borderRadius: '8px',
@@ -2524,8 +2524,8 @@ export function FohTasks() {
                         }
                       }}
                       style={{
-                        backgroundColor: '#1B7867',
-                        color: '#FFFFFF',
+                        backgroundColor: 'hsl(var(--primary))',
+                        color: 'hsl(var(--primary-foreground))',
                         borderRadius: '16px',
                         fontFamily: 'Inter, sans-serif',
                       }}
@@ -2538,14 +2538,14 @@ export function FohTasks() {
                   {newTasks.length > 0 && (
                     <div style={{
                       padding: '12px',
-                      backgroundColor: '#F6F7DD',
+                      backgroundColor: 'hsl(var(--muted))',
                       borderRadius: '12px',
-                      border: '1px solid rgba(197,197,202,0.5)',
+                      border: '1px solid hsl(var(--border))',
                     }}>
                       <div style={{
                         fontSize: '13px',
                         fontWeight: 600,
-                        color: '#73747B',
+                        color: 'hsl(var(--muted-foreground))',
                         marginBottom: '8px',
                         fontFamily: 'Inter, sans-serif',
                       }}>
@@ -2558,7 +2558,7 @@ export function FohTasks() {
                           justifyContent: 'space-between',
                           alignItems: 'center',
                         }}>
-                          <span style={{ fontSize: '14px', color: '#282E3A', fontFamily: 'Inter, sans-serif' }}>
+                          <span style={{ fontSize: '14px', color: 'hsl(var(--foreground))', fontFamily: 'Inter, sans-serif' }}>
                             {task.title}
                           </span>
                           <button
@@ -2603,8 +2603,8 @@ export function FohTasks() {
                       onClick={handleSaveCurrentTasks}
                       style={{
                         flex: 1,
-                        backgroundColor: '#1B7867',
-                        color: '#FFFFFF',
+                        backgroundColor: 'hsl(var(--primary))',
+                        color: 'hsl(var(--primary-foreground))',
                         borderRadius: '20px',
                         fontFamily: 'Inter, sans-serif',
                       }}
@@ -2621,7 +2621,7 @@ export function FohTasks() {
                       borderRadius: '20px',
                       fontFamily: 'Inter, sans-serif',
                       borderColor: '#1B7867',
-                      color: '#1B7867',
+                      color: 'hsl(var(--primary))',
                     }}
                   >
                     <BookTemplate size={16} style={{ marginRight: '8px' }} />
@@ -2638,13 +2638,13 @@ export function FohTasks() {
       {/* Password Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
         <DialogContent style={{
-          backgroundColor: '#FEFFF1',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
+          backgroundColor: 'hsl(var(--card))',
+          border: '1px solid hsl(var(--border))',
           borderRadius: '20px',
           fontFamily: 'Inter, sans-serif',
         }}>
           <DialogHeader>
-            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#282E3A' }}>
+            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: 'hsl(var(--foreground))' }}>
               Admin Toegang
             </DialogTitle>
           </DialogHeader>
@@ -2694,8 +2694,8 @@ export function FohTasks() {
                 }
               }}
               style={{
-                backgroundColor: '#1B7867',
-                color: '#FFFFFF',
+                backgroundColor: 'hsl(var(--primary))',
+                color: 'hsl(var(--primary-foreground))',
                 borderRadius: '20px',
                 fontFamily: 'Inter, sans-serif',
               }}
@@ -2709,8 +2709,8 @@ export function FohTasks() {
       {/* Admin Panel Dialog */}
       <Dialog open={adminPanelOpen} onOpenChange={setAdminPanelOpen}>
         <DialogContent style={{
-          backgroundColor: '#FEFFF1',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
+          backgroundColor: 'hsl(var(--card))',
+          border: '1px solid hsl(var(--border))',
           borderRadius: '20px',
           fontFamily: 'Inter, sans-serif',
           maxWidth: '650px',
@@ -2718,15 +2718,15 @@ export function FohTasks() {
           overflow: 'hidden',
         }}>
           <DialogHeader>
-            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#282E3A', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Shield size={20} style={{ color: '#1B7867' }} />
+            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: 'hsl(var(--foreground))', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Shield size={20} style={{ color: 'hsl(var(--primary))' }} />
               Admin Panel
             </DialogTitle>
           </DialogHeader>
 
           <div style={{ padding: '16px 0', maxHeight: '60vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <p style={{ fontSize: '14px', color: '#73747B', fontFamily: 'Inter, sans-serif' }}>
+              <p style={{ fontSize: '14px', color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif' }}>
                 Beheer templates voor {activePhase === 'open' ? 'Openlijst' : activePhase === 'tussen' ? 'Tussenlijst' : 'Sluitlijst'}.
               </p>
 
@@ -2734,8 +2734,8 @@ export function FohTasks() {
               <Button
                 onClick={() => setNewTemplateDialogOpen(true)}
                 style={{
-                  backgroundColor: '#1B7867',
-                  color: '#FFFFFF',
+                  backgroundColor: 'hsl(var(--primary))',
+                  color: 'hsl(var(--primary-foreground))',
                   borderRadius: '20px',
                   fontFamily: 'Inter, sans-serif',
                 }}
@@ -2747,14 +2747,14 @@ export function FohTasks() {
               {/* Template list */}
               {templatesLoading ? (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '32px' }}>
-                  <Loader2 size={24} className="animate-spin" style={{ color: '#1B7867' }} />
+                  <Loader2 size={24} className="animate-spin" style={{ color: 'hsl(var(--primary))' }} />
                 </div>
               ) : groupedTemplates && Object.keys(groupedTemplates).length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {Object.values(groupedTemplates).map(template => (
                     <div key={template.name} style={{
                       padding: '16px',
-                      backgroundColor: '#F6F7DD',
+                      backgroundColor: 'hsl(var(--muted))',
                       borderRadius: '12px',
                       border: template.isActive ? '2px solid #1B7867' : '1px solid rgba(197,197,202,0.5)',
                     }}>
@@ -2764,7 +2764,7 @@ export function FohTasks() {
                             <h4 style={{
                               fontSize: '15px',
                               fontWeight: 600,
-                              color: '#282E3A',
+                              color: 'hsl(var(--foreground))',
                               fontFamily: 'Inter, sans-serif',
                               margin: 0,
                             }}>
@@ -2776,15 +2776,15 @@ export function FohTasks() {
                                 fontWeight: 600,
                                 padding: '2px 8px',
                                 borderRadius: '4px',
-                                backgroundColor: '#1B7867',
-                                color: '#FFFFFF',
+                                backgroundColor: 'hsl(var(--primary))',
+                                color: 'hsl(var(--primary-foreground))',
                                 fontFamily: 'Inter, sans-serif',
                               }}>
                                 ACTIEF
                               </span>
                             )}
                           </div>
-                          <p style={{ fontSize: '13px', color: '#73747B', fontFamily: 'Inter, sans-serif', margin: '4px 0 0 0' }}>
+                          <p style={{ fontSize: '13px', color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif', margin: '4px 0 0 0' }}>
                             {template.tasks.length} taken
                           </p>
                         </div>
@@ -2796,8 +2796,8 @@ export function FohTasks() {
                             size="sm"
                             onClick={() => handleMakeTemplateActive(template.name)}
                             style={{
-                              backgroundColor: '#1B7867',
-                              color: '#FFFFFF',
+                              backgroundColor: 'hsl(var(--primary))',
+                              color: 'hsl(var(--primary-foreground))',
                               borderRadius: '12px',
                               fontFamily: 'Inter, sans-serif',
                               fontSize: '13px',
@@ -2851,7 +2851,7 @@ export function FohTasks() {
                 <div style={{
                   padding: '32px',
                   textAlign: 'center',
-                  color: '#73747B',
+                  color: 'hsl(var(--muted-foreground))',
                   fontFamily: 'Inter, sans-serif',
                 }}>
                   Geen templates gevonden
@@ -2878,18 +2878,18 @@ export function FohTasks() {
       {/* New Template Dialog */}
       <Dialog open={newTemplateDialogOpen} onOpenChange={setNewTemplateDialogOpen}>
         <DialogContent style={{
-          backgroundColor: '#FEFFF1',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
+          backgroundColor: 'hsl(var(--card))',
+          border: '1px solid hsl(var(--border))',
           borderRadius: '20px',
           fontFamily: 'Inter, sans-serif',
         }}>
           <DialogHeader>
-            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#282E3A' }}>
+            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: 'hsl(var(--foreground))' }}>
               Nieuwe Template Aanmaken
             </DialogTitle>
           </DialogHeader>
           <div style={{ padding: '16px 0' }}>
-            <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: '#282E3A' }}>
+            <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
               Template Naam *
             </Label>
             <Input
@@ -2902,7 +2902,7 @@ export function FohTasks() {
                 fontFamily: 'Inter, sans-serif',
               }}
             />
-            <p style={{ fontSize: '13px', color: '#73747B', fontFamily: 'Inter, sans-serif', marginTop: '8px' }}>
+            <p style={{ fontSize: '13px', color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif', marginTop: '8px' }}>
               De template wordt aangemaakt op basis van de huidige taken voor {activePhase === 'open' ? 'Open' : activePhase === 'tussen' ? 'Tussen' : 'Sluit'}.
             </p>
           </div>
@@ -2923,8 +2923,8 @@ export function FohTasks() {
             <Button
               onClick={handleCreateNewTemplate}
               style={{
-                backgroundColor: '#1B7867',
-                color: '#FFFFFF',
+                backgroundColor: 'hsl(var(--primary))',
+                color: 'hsl(var(--primary-foreground))',
                 borderRadius: '20px',
                 fontFamily: 'Inter, sans-serif',
               }}
@@ -2938,15 +2938,15 @@ export function FohTasks() {
       {/* Template Editor Dialog */}
       <Dialog open={templateEditorOpen} onOpenChange={setTemplateEditorOpen}>
         <DialogContent style={{
-          backgroundColor: '#FEFFF1',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
+          backgroundColor: 'hsl(var(--card))',
+          border: '1px solid hsl(var(--border))',
           borderRadius: '20px',
           fontFamily: 'Inter, sans-serif',
           maxWidth: '650px',
           maxHeight: '90vh',
         }}>
           <DialogHeader>
-            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: '#282E3A' }}>
+            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: 'hsl(var(--foreground))' }}>
               Bewerk Template: {editingTemplateName}
             </DialogTitle>
           </DialogHeader>
@@ -2996,7 +2996,7 @@ export function FohTasks() {
                     fontWeight: 600,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
-                    color: '#73747B',
+                    color: 'hsl(var(--muted-foreground))',
                     marginBottom: '6px',
                     fontFamily: 'Inter, sans-serif',
                   }}>
@@ -3022,7 +3022,7 @@ export function FohTasks() {
                     fontWeight: 600,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
-                    color: '#73747B',
+                    color: 'hsl(var(--muted-foreground))',
                     marginBottom: '6px',
                     fontFamily: 'Inter, sans-serif',
                   }}>
@@ -3042,8 +3042,8 @@ export function FohTasks() {
                 <Button
                   onClick={handleAddTemplateTask}
                   style={{
-                    backgroundColor: '#1B7867',
-                    color: '#FFFFFF',
+                    backgroundColor: 'hsl(var(--primary))',
+                    color: 'hsl(var(--primary-foreground))',
                     borderRadius: '20px',
                     fontFamily: 'Inter, sans-serif',
                     minWidth: '100px',
@@ -3074,8 +3074,8 @@ export function FohTasks() {
             <Button
               onClick={handleSaveTemplateEdits}
               style={{
-                backgroundColor: '#1B7867',
-                color: '#FFFFFF',
+                backgroundColor: 'hsl(var(--primary))',
+                color: 'hsl(var(--primary-foreground))',
                 borderRadius: '20px',
                 fontFamily: 'Inter, sans-serif',
               }}

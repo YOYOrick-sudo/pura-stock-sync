@@ -116,8 +116,8 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
   if (loading) {
     return (
       <Card style={{ 
-        backgroundColor: '#F6F7DD',
-        border: '1px solid rgba(197, 197, 202, 0.5)',
+        backgroundColor: 'hsl(var(--muted))',
+        border: '1px solid hsl(var(--border))',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)'
       }}>
         <CardHeader className="pb-4">
@@ -126,7 +126,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
               fontFamily: 'Inter, sans-serif',
               fontSize: '18px',
               fontWeight: 600,
-              color: '#282E3A'
+              color: 'hsl(var(--foreground))'
             }}>
               AI Dagadvies
             </CardTitle>
@@ -142,7 +142,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <p className="text-sm" style={{ color: '#73747B' }}>Advies wordt gegenereerd...</p>
+          <p className="text-sm" style={{ color: 'hsl(var(--muted-foreground))' }}>Advies wordt gegenereerd...</p>
         </CardContent>
       </Card>
     );
@@ -150,8 +150,8 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
 
   return (
     <Card style={{ 
-      backgroundColor: '#F6F7DD',
-      border: '1px solid rgba(197, 197, 202, 0.5)',
+      backgroundColor: 'hsl(var(--muted))',
+      border: '1px solid hsl(var(--border))',
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)'
     }}>
       <CardHeader className="pb-4">
@@ -160,7 +160,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
             fontFamily: 'Inter, sans-serif',
             fontSize: '18px',
             fontWeight: 600,
-            color: '#282E3A'
+            color: 'hsl(var(--foreground))'
           }}>
             AI Dagadvies
           </CardTitle>
@@ -182,15 +182,15 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
               key={suggestion.id}
               className="p-4 rounded-polar-md"
               style={{ 
-                backgroundColor: '#FFFFFF',
-                border: '1px solid rgba(197, 197, 202, 0.3)'
+                backgroundColor: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))'
               }}
             >
-              <h4 className="font-semibold text-base mb-2" style={{ color: '#282E3A' }}>
+              <h4 className="font-semibold text-base mb-2" style={{ color: 'hsl(var(--foreground))' }}>
                 {suggestion.text}
               </h4>
               
-              <p className="text-sm mb-3" style={{ color: '#73747B' }}>
+              <p className="text-sm mb-3" style={{ color: 'hsl(var(--muted-foreground))' }}>
                 {suggestion.reasoning}
               </p>
               
@@ -210,7 +210,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
                 <Button
                   size="sm"
                   onClick={() => handleCreateTask(suggestion.id, suggestion.text, suggestion.reasoning)}
-                  style={{ backgroundColor: '#1B7867', color: '#FFFFFF' }}
+                  style={{ backgroundColor: 'hsl(var(--primary))', color: '#FFFFFF' }}
                   className="rounded-polar-md"
                 >
                   <CheckCircle2 className="h-4 w-4 mr-1" />

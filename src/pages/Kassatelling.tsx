@@ -10,85 +10,29 @@ export default function Kassatelling() {
 
   return (
     <SidebarLayout>
-      <div style={{
-        maxWidth: '1400px',
-        margin: '0 auto',
-        fontFamily: 'Inter, sans-serif',
-      }}>
-        {/* Eén grote moonlight card die alles omvat */}
-        <div style={{
-          backgroundColor: '#F6F7DD',
-          borderRadius: '20px',
-          border: '1px solid rgba(197, 197, 202, 0.5)',
-          padding: '24px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
-        }}>
-          {/* Tab buttons bovenaan */}
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', justifyContent: 'flex-start' }}>
+      <div className="max-w-[1400px] mx-auto">
+        {/* Card container */}
+        <div className="bg-card rounded-[20px] border border-border p-6 shadow-soft">
+          {/* Tab buttons */}
+          <div className="flex gap-3 mb-6">
             <button
               onClick={() => setActiveTab('overdag')}
-              onMouseEnter={(e) => {
-                if (activeTab !== 'overdag') {
-                  e.currentTarget.style.backgroundColor = '#F6F7DD';
-                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeTab !== 'overdag') {
-                  e.currentTarget.style.backgroundColor = '#FEFFF1';
-                  e.currentTarget.style.boxShadow = 'none';
-                }
-              }}
-              style={{
-                minWidth: '120px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '14px',
-                fontWeight: 500,
-                padding: '10px 16px',
-                backgroundColor: activeTab === 'overdag' ? '#1B7867' : '#FEFFF1',
-                color: activeTab === 'overdag' ? '#FFFFFF' : '#282E3A',
-                border: activeTab === 'overdag' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                fontFamily: 'Inter, sans-serif',
-              }}
+              className={`min-w-[120px] flex items-center justify-center text-sm font-medium px-4 py-2.5 rounded-[20px] transition-all cursor-pointer
+                ${activeTab === 'overdag' 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-card text-foreground border border-border hover:bg-muted'
+                }`}
             >
               Open
             </button>
             
             <button
               onClick={() => setActiveTab('avond')}
-              onMouseEnter={(e) => {
-                if (activeTab !== 'avond') {
-                  e.currentTarget.style.backgroundColor = '#F6F7DD';
-                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.08)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeTab !== 'avond') {
-                  e.currentTarget.style.backgroundColor = '#FEFFF1';
-                  e.currentTarget.style.boxShadow = 'none';
-                }
-              }}
-              style={{
-                minWidth: '120px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '14px',
-                fontWeight: 500,
-                padding: '10px 16px',
-                backgroundColor: activeTab === 'avond' ? '#1B7867' : '#FEFFF1',
-                color: activeTab === 'avond' ? '#FFFFFF' : '#282E3A',
-                border: activeTab === 'avond' ? 'none' : '1px solid rgba(197, 197, 202, 0.5)',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                fontFamily: 'Inter, sans-serif',
-              }}
+              className={`min-w-[120px] flex items-center justify-center text-sm font-medium px-4 py-2.5 rounded-[20px] transition-all cursor-pointer
+                ${activeTab === 'avond' 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-card text-foreground border border-border hover:bg-muted'
+                }`}
             >
               Sluit
             </button>

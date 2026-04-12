@@ -18,24 +18,19 @@ export const ModernKPICard: React.FC<ModernKPICardProps> = ({
   trend,
   variant = 'default'
 }) => {
-  const variantStyles = {
-    default: 'bg-white border-slate-100',
-    puravida: 'bg-white border-[#B3D9D4]'
-  };
-
   return (
-    <div className={`rounded-polar-lg p-6 shadow-sm border transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 cursor-pointer ${variantStyles[variant]}`}>
-      <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wide">
+    <div className={`rounded-polar-lg p-6 shadow-sm border border-border bg-card transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 cursor-pointer`}>
+      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
         {title}
       </h3>
-      <p className="text-5xl font-bold text-slate-900 mt-2">
+      <p className="text-5xl font-bold text-foreground mt-2">
         {value}
       </p>
       {subtitle && (
-        <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
+        <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
       )}
       {trend && (
-        <div className={`mt-3 text-sm font-medium ${trend.positive ? 'text-emerald-600' : 'text-red-500'}`}>
+        <div className={`mt-3 text-sm font-medium ${trend.positive ? 'text-success' : 'text-destructive'}`}>
           {trend.positive ? '↑' : '↓'} {trend.value}
         </div>
       )}

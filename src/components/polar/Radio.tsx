@@ -28,27 +28,14 @@ export function PolarRadioGroup({
   orientation = 'vertical',
 }: PolarRadioGroupProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div className="flex flex-col gap-3">
       {label && (
-        <label
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            fontWeight: 500,
-            color: error ? '#E64D4D' : '#282E3A',
-          }}
-        >
+        <label className={`text-sm font-medium ${error ? 'text-destructive' : 'text-foreground'}`}>
           {label}
         </label>
       )}
       
-      <div 
-        style={{ 
-          display: 'flex', 
-          flexDirection: orientation === 'vertical' ? 'column' : 'row',
-          gap: orientation === 'vertical' ? '12px' : '24px',
-        }}
-      >
+      <div className={`flex ${orientation === 'vertical' ? 'flex-col gap-3' : 'flex-row gap-6'}`}>
         {options.map((option) => {
           const isChecked = value === option.value;
           const isDisabled = option.disabled || false;
@@ -56,51 +43,21 @@ export function PolarRadioGroup({
           return (
             <label
               key={option.value}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                cursor: isDisabled ? 'not-allowed' : 'pointer',
-                opacity: isDisabled ? 0.5 : 1,
-              }}
+              className={`flex items-center gap-2 ${isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
             >
               <button
                 type="button"
                 onClick={() => !isDisabled && onChange(option.value)}
                 disabled={isDisabled}
-                style={{
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '50%',
-                  border: error ? '2px solid #E64D4D' : isChecked ? '2px solid #1B7867' : '2px solid rgba(197, 197, 202, 0.5)',
-                  backgroundColor: '#FFFFFF',
-                  cursor: isDisabled ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.15s ease',
-                  padding: 0,
-                }}
+                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all p-0 ${
+                  error ? 'border-destructive' : isChecked ? 'border-primary' : 'border-input'
+                } bg-card ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 {isChecked && (
-                  <div
-                    style={{
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '50%',
-                      backgroundColor: '#1B7867',
-                    }}
-                  />
+                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
                 )}
               </button>
-              <span
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '15px',
-                  color: error ? '#E64D4D' : '#282E3A',
-                  userSelect: 'none',
-                }}
-              >
+              <span className={`text-[15px] select-none ${error ? 'text-destructive' : 'text-foreground'}`}>
                 {option.label}
               </span>
             </label>
@@ -109,13 +66,7 @@ export function PolarRadioGroup({
       </div>
       
       {helperText && (
-        <span
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            color: error ? '#E64D4D' : '#73747B',
-          }}
-        >
+        <span className={`text-sm ${error ? 'text-destructive' : 'text-muted-foreground'}`}>
           {helperText}
         </span>
       )}

@@ -18,54 +18,25 @@ export function PolarSkeleton({
   const getVariantStyles = () => {
     switch (variant) {
       case 'text':
-        return {
-          height: '1em',
-          borderRadius: '4px',
-          width: width,
-        };
+        return { height: '1em', borderRadius: '4px', width };
       case 'circular':
-        return {
-          borderRadius: '50%',
-          width: width,
-          height: height,
-        };
+        return { borderRadius: '50%', width, height };
       case 'rectangular':
       default:
-        return {
-          borderRadius: borderRadius,
-          width: width,
-          height: height,
-        };
+        return { borderRadius, width, height };
     }
   };
 
-  const getAnimationStyles = () => {
-    if (animation === 'pulse') {
-      return {
-        animation: 'polar-skeleton-pulse 1.5s ease-in-out infinite',
-      };
-    } else if (animation === 'wave') {
-      return {
-        background: 'linear-gradient(90deg, rgba(197, 197, 202, 0.3) 25%, #FEFFF1 50%, rgba(197, 197, 202, 0.3) 75%)',
-        backgroundSize: '200% 100%',
-        animation: 'polar-skeleton-wave 1.5s ease-in-out infinite',
-      };
-    }
-    return {};
-  };
+  const animationClass = animation === 'pulse' ? 'animate-pulse' : '';
 
   return (
     <div
-      style={{
-        backgroundColor: '#FEFFF1',
-        ...getVariantStyles(),
-        ...getAnimationStyles(),
-      }}
+      className={`bg-muted ${animationClass}`}
+      style={getVariantStyles()}
     />
   );
 }
 
-// Skeleton Group for multiple skeletons
 export interface PolarSkeletonGroupProps {
   count?: number;
   spacing?: number;

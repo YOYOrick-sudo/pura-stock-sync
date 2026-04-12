@@ -466,9 +466,9 @@ export default function OrderDashboard() {
         {/* Instructies Dialog */}
         <Dialog open={showInstructionsDialog} onOpenChange={setShowInstructionsDialog}>
           <DialogContent className="max-w-2xl" style={{
-            backgroundColor: '#FEFFF1',
+            backgroundColor: 'hsl(var(--card))',
             borderRadius: '20px',
-            border: '1px solid rgba(197, 197, 202, 0.5)',
+            border: '1px solid hsl(var(--border))',
             padding: '32px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
           }}>
@@ -536,9 +536,9 @@ export default function OrderDashboard() {
         {/* Success Dialog */}
         <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
           <AlertDialogContent className="max-w-[90vw] sm:max-w-md mx-4" style={{
-            backgroundColor: '#FEFFF1',
+            backgroundColor: 'hsl(var(--card))',
             borderRadius: '20px',
-            border: '1px solid rgba(197, 197, 202, 0.5)',
+            border: '1px solid hsl(var(--border))',
             padding: '32px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
           }}>
@@ -569,9 +569,9 @@ export default function OrderDashboard() {
         {/* Logout Confirmation Dialog */}
         <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
           <AlertDialogContent className="max-w-[90vw] sm:max-w-md mx-4" style={{
-            backgroundColor: '#FEFFF1',
+            backgroundColor: 'hsl(var(--card))',
             borderRadius: '20px',
-            border: '1px solid rgba(197, 197, 202, 0.5)',
+            border: '1px solid hsl(var(--border))',
             padding: '32px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
           }}>
