@@ -369,7 +369,7 @@ export default function MidslandOrders() {
                                   gridTemplateColumns: '1fr auto',
                                   alignItems: 'center',
                                   padding: '16px 20px',
-                                  borderBottom: index < order.internal_order_items.length - 1 ? '1px solid rgba(197, 197, 202, 0.3)' : 'none',
+                                  borderBottom: index < order.internal_order_items.length - 1 ? '1px solid hsl(var(--border) / 0.7)' : 'none',
                                   transition: 'background-color 0.2s'
                                 }}
                                 onMouseEnter={(e) => {
@@ -435,7 +435,7 @@ export default function MidslandOrders() {
                             color: 'hsl(var(--muted-foreground))',
                             padding: '16px',
                             backgroundColor: '#FEF3C7',
-                            border: '1px solid rgba(217, 119, 6, 0.3)',
+                            border: '1px solid hsl(var(--warning) / 0.3)',
                             borderRadius: '16px',
                             whiteSpace: 'pre-wrap'
                           }}>
@@ -535,7 +535,7 @@ export default function MidslandOrders() {
                                 }}
                                 onMouseEnter={(e) => {
                                   if (!updateOrderMutation.isPending) {
-                                    e.currentTarget.style.backgroundColor = '#156B5A';
+                                    e.currentTarget.style.backgroundColor = 'hsl(var(--primary-hover))';
                                   }
                                 }}
                                 onMouseLeave={(e) => {

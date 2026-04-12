@@ -18,9 +18,8 @@ export function PolarSetupCard({
 }: PolarSetupCardProps) {
   return (
     <div
-      className="rounded-polar-lg"
+      className="rounded-polar-lg bg-card"
       style={{
-        backgroundColor: '#FEFFF1',
         padding: '24px',
         width: '380px',
       }}
@@ -36,7 +35,7 @@ export function PolarSetupCard({
         {/* Icon */}
         {Icon && (
           <div
-            className="rounded-polar-md"
+            className="rounded-polar-md bg-secondary"
             style={{
               marginBottom: '16px',
               display: 'flex',
@@ -44,49 +43,41 @@ export function PolarSetupCard({
               justifyContent: 'center',
               width: '48px',
               height: '48px',
-              backgroundColor: '#F6F7DD',
             }}
           >
-            <Icon size={24} style={{ color: '#282E3A' }} />
+            <Icon size={24} className="text-foreground" />
           </div>
         )}
 
         {/* Title */}
-        <h3
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '18px',
-            fontWeight: 500,
-            color: '#282E3A',
-            marginBottom: '8px',
-          }}
-        >
+        <h3 className="text-foreground" style={{
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '18px',
+          fontWeight: 500,
+          marginBottom: '8px',
+        }}>
           {title}
         </h3>
 
         {/* Body Text */}
-        <p
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            fontWeight: 400,
-            color: '#73747B',
-            marginBottom: '24px',
-            lineHeight: '20px',
-          }}
-        >
+        <p className="text-muted-foreground" style={{
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '14px',
+          fontWeight: 400,
+          marginBottom: '24px',
+          lineHeight: '20px',
+        }}>
           {bodyText}
         </p>
 
         {/* CTA Button */}
         <button
           onClick={onButtonClick}
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
           style={{
             fontFamily: 'Inter, sans-serif',
             fontSize: '15px',
             fontWeight: 500,
-            color: '#FFFFFF',
-            backgroundColor: '#1B7867',
             border: 'none',
             borderRadius: '8px',
             padding: '10px 16px',

@@ -234,7 +234,7 @@ const Kassa = () => {
                 </thead>
                 <tbody>
                   {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom, index) => (
-                    <tr key={denom} style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
+                    <tr key={denom} style={{ borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
                       <td style={{ padding: '6px 12px', color: 'hsl(var(--foreground))', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid hsl(var(--border))' }}>€{denom.replace('.', ',')}</td>
                       <td style={{ padding: '6px 12px', textAlign: 'center' }}>
                         <input 
@@ -312,7 +312,7 @@ const Kassa = () => {
                     {Object.entries(BEGINSALDO_VERDELING)
                       .sort((a, b) => parseFloat(b[0]) - parseFloat(a[0]))
                       .map(([denom, count]) => (
-                      <div key={denom} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
+                      <div key={denom} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
                         <span style={{ fontFamily: 'monospace', fontSize: '13px', color: 'hsl(var(--foreground))' }}>€{denom.replace('.', ',')} × {count}</span>
                         <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: 'hsl(var(--muted-foreground))' }}>
                           €{(parseFloat(denom) * count).toFixed(2).replace('.', ',')}
@@ -348,7 +348,7 @@ const Kassa = () => {
                 </span>
               </div>
 
-              <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '8px 0' }}></div>
+              <div style={{ borderTop: '1px solid hsl(var(--border) / 0.7)', margin: '8px 0' }}></div>
 
               {/* Cash omzet - compacter */}
               <div style={{ padding: '4px 0' }}>
@@ -387,7 +387,7 @@ const Kassa = () => {
                 )}
               </div>
 
-              <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '8px 0' }}></div>
+              <div style={{ borderTop: '1px solid hsl(var(--border) / 0.7)', margin: '8px 0' }}></div>
 
               {/* Naam medewerker */}
               <div style={{ padding: '4px 0' }}>
@@ -425,7 +425,7 @@ const Kassa = () => {
                 )}
               </div>
 
-              <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '8px 0' }}></div>
+              <div style={{ borderTop: '1px solid hsl(var(--border) / 0.7)', margin: '8px 0' }}></div>
 
               {/* Afdracht - compacter met kleinere uitleg */}
               <div style={{ padding: '4px 0' }}>
@@ -450,7 +450,7 @@ const Kassa = () => {
                 </p>
               </div>
 
-              <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '8px 0' }}></div>
+              <div style={{ borderTop: '1px solid hsl(var(--border) / 0.7)', margin: '8px 0' }}></div>
 
               {/* Kasverschil - prominente kleurcodering */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
@@ -467,7 +467,7 @@ const Kassa = () => {
                 </span>
               </div>
 
-              <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '8px 0' }}></div>
+              <div style={{ borderTop: '1px solid hsl(var(--border) / 0.7)', margin: '8px 0' }}></div>
 
               {/* Opmerkingen - compacter label */}
               <div style={{ padding: '4px 0' }}>

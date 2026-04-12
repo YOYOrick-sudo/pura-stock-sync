@@ -232,7 +232,7 @@ const KassatellingOverdag = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom) => <tr key={denom} style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
+                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom) => <tr key={denom} style={{ borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
                       <td style={{ padding: '6px 12px', color: 'hsl(var(--foreground))', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid hsl(var(--border))' }}>€{denom.replace('.', ',')}</td>
                       <td style={{ padding: '6px 12px', textAlign: 'center' }}>
                         <input type="number" value={kassaLade[denom as keyof typeof kassaLade]} onChange={e => updateKassaLade(denom, e.target.value === '' ? '' : parseInt(e.target.value))} min={0} style={{
@@ -285,7 +285,7 @@ const KassatellingOverdag = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom) => <tr key={denom} style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
+                  {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom) => <tr key={denom} style={{ borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
                       <td style={{ padding: '6px 12px', color: 'hsl(var(--foreground))', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid hsl(var(--border))' }}>€{denom.replace('.', ',')}</td>
                       <td style={{ padding: '6px 12px', textAlign: 'center' }}>
                         <input type="number" value={wisselkas[denom as keyof typeof wisselkas]} onChange={e => updateWisselkas(denom, e.target.value === '' ? '' : parseInt(e.target.value))} min={0} style={{
@@ -341,7 +341,7 @@ const KassatellingOverdag = () => {
                   )}
                 </div>
 
-                <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '12px 0' }}></div>
+                <div style={{ borderTop: '1px solid hsl(var(--border) / 0.7)', margin: '12px 0' }}></div>
 
                 {/* Naam medewerker */}
                 <div style={{ padding: '6px 0' }}>
@@ -377,7 +377,7 @@ const KassatellingOverdag = () => {
                   )}
                 </div>
 
-                <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '12px 0' }}></div>
+                <div style={{ borderTop: '1px solid hsl(var(--border) / 0.7)', margin: '12px 0' }}></div>
 
                 {/* Opmerkingen */}
                 <div style={{ padding: '6px 0' }}>
@@ -413,7 +413,7 @@ const KassatellingOverdag = () => {
                   )}
                 </div>
 
-                <div style={{ borderTop: '1px solid rgba(197, 197, 202, 0.3)', margin: '12px 0' }}></div>
+                <div style={{ borderTop: '1px solid hsl(var(--border) / 0.7)', margin: '12px 0' }}></div>
 
                 {/* Verzenden button */}
                 <div>
@@ -469,7 +469,7 @@ const KassatellingOverdag = () => {
                       fontWeight: 500,
                       fontSize: '14px',
                       borderRadius: '20px',
-                      border: '1px solid rgba(27, 120, 103, 0.3)',
+                      border: '1px solid hsl(var(--primary) / 0.3)',
                       cursor: 'pointer',
                       transition: 'all 0.15s',
                       display: 'flex',
@@ -478,7 +478,7 @@ const KassatellingOverdag = () => {
                       gap: '8px',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(27, 120, 103, 0.05)';
+                      e.currentTarget.style.backgroundColor = 'hsl(var(--primary) / 0.05)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
