@@ -383,7 +383,7 @@ const Kassa = () => {
                   />
                 </div>
                 {errors.cashOmzet && (
-                  <p style={{ fontSize: '12px', color: hsl(var(--destructive)), marginTop: '4px', textAlign: 'right', fontFamily: 'Inter, sans-serif' }}>{errors.cashOmzet}</p>
+                  <p style={{ fontSize: '12px', color: 'hsl(var(--destructive))', marginTop: '4px', textAlign: 'right', fontFamily: 'Inter, sans-serif' }}>{errors.cashOmzet}</p>
                 )}
               </div>
 
@@ -421,7 +421,7 @@ const Kassa = () => {
                   />
                 </div>
                 {errors.naam && (
-                  <p style={{ fontSize: '12px', color: hsl(var(--destructive)), marginTop: '4px', textAlign: 'right', fontFamily: 'Inter, sans-serif' }}>{errors.naam}</p>
+                  <p style={{ fontSize: '12px', color: 'hsl(var(--destructive))', marginTop: '4px', textAlign: 'right', fontFamily: 'Inter, sans-serif' }}>{errors.naam}</p>
                 )}
               </div>
 
@@ -437,7 +437,7 @@ const Kassa = () => {
                     fontSize: '24px',
                     fontFamily: 'Inter, sans-serif',
                     fontWeight: 700,
-                    color: afdracht > 0 ? hsl(var(--primary)) : hsl(var(--muted-foreground))
+                    color: afdracht > 0 ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'
                   }}>
                     €{afdracht.toFixed(2).replace('.', ',')}
                   </span>
@@ -461,7 +461,7 @@ const Kassa = () => {
                   fontSize: '24px',
                   fontFamily: 'Inter, sans-serif',
                   fontWeight: 700,
-                  color: kasverschil > 0 ? hsl(var(--success)) : kasverschil < 0 ? hsl(var(--destructive)) : hsl(var(--foreground))
+                  color: kasverschil > 0 ? 'hsl(var(--success))' : kasverschil < 0 ? 'hsl(var(--destructive))' : 'hsl(var(--foreground))'
                 }}>
                   €{kasverschil.toFixed(2).replace('.', ',')}
                 </span>
@@ -501,7 +501,7 @@ const Kassa = () => {
                   onBlur={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'hsl(var(--border))')}
                 />
                 {errors.opmerkingen && (
-                  <p style={{ fontSize: '12px', color: hsl(var(--destructive)), marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>{errors.opmerkingen}</p>
+                  <p style={{ fontSize: '12px', color: 'hsl(var(--destructive))', marginTop: '4px', fontFamily: 'Inter, sans-serif' }}>{errors.opmerkingen}</p>
                 )}
               </div>
 
@@ -521,8 +521,8 @@ const Kassa = () => {
                     fontFamily: 'Inter, sans-serif',
                     fontWeight: 600,
                     fontSize: '18px',
-                    backgroundColor: (!canSubmit || !naam || naam.length < 2 || cashOmzet === '') ? hsl(var(--muted-foreground)) : hsl(var(--primary)),
-                    color: hsl(var(--primary-foreground)),
+                    backgroundColor: (!canSubmit || !naam || naam.length < 2 || cashOmzet === '') ? 'hsl(var(--muted-foreground))' : 'hsl(var(--primary))',
+                    color: 'hsl(var(--primary-foreground))',
                     border: 'none',
                     borderRadius: '20px',
                     cursor: (!canSubmit || !naam || naam.length < 2 || cashOmzet === '') ? 'not-allowed' : 'pointer',
@@ -531,7 +531,7 @@ const Kassa = () => {
                   }}
                   onMouseEnter={(e) => {
                     if (!(!canSubmit || !naam || naam.length < 2 || cashOmzet === '')) {
-                      e.currentTarget.style.backgroundColor = hsl(var(--primary-hover));
+                      e.currentTarget.style.backgroundColor = 'hsl(var(--primary-hover))';
                       e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.15)';
                     }
                   }}
@@ -540,7 +540,7 @@ const Kassa = () => {
                       e.currentTarget.style.backgroundColor = 'hsl(var(--primary))';
                       e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
                     } else {
-                      e.currentTarget.style.backgroundColor = hsl(var(--muted-foreground));
+                      e.currentTarget.style.backgroundColor = 'hsl(var(--muted-foreground))';
                     }
                   }}
                 >

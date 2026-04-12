@@ -332,12 +332,12 @@ const KassatellingOverdag = () => {
                     <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: 'hsl(var(--muted-foreground))' }}>
                       Totaal
                     </span>
-                    <span style={{ fontSize: '30px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: errors.total ? hsl(var(--destructive)) : hsl(var(--primary)) }}>
+                    <span style={{ fontSize: '30px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: errors.total ? 'hsl(var(--destructive))' : 'hsl(var(--primary))' }}>
                       €{total.toFixed(2).replace('.', ',')}
                     </span>
                   </div>
                   {errors.total && (
-                    <p style={{ fontSize: '12px', color: hsl(var(--destructive)), fontFamily: 'Inter, sans-serif', marginTop: '4px', textAlign: 'right' }}>{errors.total}</p>
+                    <p style={{ fontSize: '12px', color: 'hsl(var(--destructive))', fontFamily: 'Inter, sans-serif', marginTop: '4px', textAlign: 'right' }}>{errors.total}</p>
                   )}
                 </div>
 
@@ -373,7 +373,7 @@ const KassatellingOverdag = () => {
                     />
                   </div>
                   {errors.naam && (
-                    <p style={{ fontSize: '12px', color: hsl(var(--destructive)), fontFamily: 'Inter, sans-serif', marginTop: '4px' }}>{errors.naam}</p>
+                    <p style={{ fontSize: '12px', color: 'hsl(var(--destructive))', fontFamily: 'Inter, sans-serif', marginTop: '4px' }}>{errors.naam}</p>
                   )}
                 </div>
 
@@ -409,7 +409,7 @@ const KassatellingOverdag = () => {
                     onBlur={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'hsl(var(--border))')}
                   />
                   {errors.opmerkingen && (
-                    <p style={{ fontSize: '12px', color: hsl(var(--destructive)), fontFamily: 'Inter, sans-serif', marginTop: '4px' }}>{errors.opmerkingen}</p>
+                    <p style={{ fontSize: '12px', color: 'hsl(var(--destructive))', fontFamily: 'Inter, sans-serif', marginTop: '4px' }}>{errors.opmerkingen}</p>
                   )}
                 </div>
 
@@ -428,8 +428,8 @@ const KassatellingOverdag = () => {
                     style={{
                       width: '100%',
                       padding: '14px 20px',
-                      backgroundColor: (!canSubmit || !naam || naam.length < 2) ? hsl(var(--muted-foreground)) : hsl(var(--primary)),
-                      color: hsl(var(--primary-foreground)),
+                      backgroundColor: (!canSubmit || !naam || naam.length < 2) ? 'hsl(var(--muted-foreground))' : 'hsl(var(--primary))',
+                      color: 'hsl(var(--primary-foreground))',
                       fontFamily: 'Inter, sans-serif',
                       fontWeight: 600,
                       fontSize: '14px',
@@ -442,7 +442,7 @@ const KassatellingOverdag = () => {
                     }}
                     onMouseEnter={(e) => {
                       if (canSubmit && naam && naam.length >= 2) {
-                        e.currentTarget.style.backgroundColor = hsl(var(--primary-hover));
+                        e.currentTarget.style.backgroundColor = 'hsl(var(--primary-hover))';
                         e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
                       }
                     }}
@@ -451,7 +451,7 @@ const KassatellingOverdag = () => {
                         e.currentTarget.style.backgroundColor = 'hsl(var(--primary))';
                         e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
                       } else {
-                        e.currentTarget.style.backgroundColor = hsl(var(--muted-foreground));
+                        e.currentTarget.style.backgroundColor = 'hsl(var(--muted-foreground))';
                       }
                     }}
                   >
