@@ -332,12 +332,12 @@ const KassatellingOverdag = () => {
                     <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: 'hsl(var(--muted-foreground))' }}>
                       Totaal
                     </span>
-                    <span style={{ fontSize: '30px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: errors.total ? '#EF4444' : '#1B7867' }}>
+                    <span style={{ fontSize: '30px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: errors.total ? hsl(var(--destructive)) : hsl(var(--primary)) }}>
                       €{total.toFixed(2).replace('.', ',')}
                     </span>
                   </div>
                   {errors.total && (
-                    <p style={{ fontSize: '12px', color: '#EF4444', fontFamily: 'Inter, sans-serif', marginTop: '4px', textAlign: 'right' }}>{errors.total}</p>
+                    <p style={{ fontSize: '12px', color: hsl(var(--destructive)), fontFamily: 'Inter, sans-serif', marginTop: '4px', textAlign: 'right' }}>{errors.total}</p>
                   )}
                 </div>
 
@@ -373,7 +373,7 @@ const KassatellingOverdag = () => {
                     />
                   </div>
                   {errors.naam && (
-                    <p style={{ fontSize: '12px', color: '#EF4444', fontFamily: 'Inter, sans-serif', marginTop: '4px' }}>{errors.naam}</p>
+                    <p style={{ fontSize: '12px', color: hsl(var(--destructive)), fontFamily: 'Inter, sans-serif', marginTop: '4px' }}>{errors.naam}</p>
                   )}
                 </div>
 
@@ -409,7 +409,7 @@ const KassatellingOverdag = () => {
                     onBlur={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
                   />
                   {errors.opmerkingen && (
-                    <p style={{ fontSize: '12px', color: '#EF4444', fontFamily: 'Inter, sans-serif', marginTop: '4px' }}>{errors.opmerkingen}</p>
+                    <p style={{ fontSize: '12px', color: hsl(var(--destructive)), fontFamily: 'Inter, sans-serif', marginTop: '4px' }}>{errors.opmerkingen}</p>
                   )}
                 </div>
 
@@ -428,8 +428,8 @@ const KassatellingOverdag = () => {
                     style={{
                       width: '100%',
                       padding: '14px 20px',
-                      backgroundColor: (!canSubmit || !naam || naam.length < 2) ? '#D1D5DB' : '#1B7867',
-                      color: '#FFFFFF',
+                      backgroundColor: (!canSubmit || !naam || naam.length < 2) ? hsl(var(--muted-foreground)) : hsl(var(--primary)),
+                      color: hsl(var(--primary-foreground)),
                       fontFamily: 'Inter, sans-serif',
                       fontWeight: 600,
                       fontSize: '14px',
@@ -442,7 +442,7 @@ const KassatellingOverdag = () => {
                     }}
                     onMouseEnter={(e) => {
                       if (canSubmit && naam && naam.length >= 2) {
-                        e.currentTarget.style.backgroundColor = '#156B5A';
+                        e.currentTarget.style.backgroundColor = hsl(var(--primary-hover));
                         e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
                       }
                     }}
@@ -451,7 +451,7 @@ const KassatellingOverdag = () => {
                         e.currentTarget.style.backgroundColor = 'hsl(var(--primary))';
                         e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
                       } else {
-                        e.currentTarget.style.backgroundColor = '#D1D5DB';
+                        e.currentTarget.style.backgroundColor = hsl(var(--muted-foreground));
                       }
                     }}
                   >
@@ -498,13 +498,13 @@ const KassatellingOverdag = () => {
       <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
           <AlertDialogContent className="bg-white">
             <div className="text-center">
-              <CheckCircle2 className="w-16 h-16 text-[#1B7867] mx-auto mb-4" />
+              <CheckCircle2 className="w-16 h-16 text-primary mx-auto mb-4" />
               
-              <AlertDialogTitle className="text-2xl font-heading font-bold text-[#282E3A]">
+              <AlertDialogTitle className="text-2xl font-heading font-bold text-foreground">
                 Kassatelling Verzonden!
               </AlertDialogTitle>
               
-              <AlertDialogDescription className="text-[#282E3A]/70 mt-4">
+              <AlertDialogDescription className="text-foreground/70 mt-4">
                 Verzonden door {naam}<br/>
                 {new Date().toLocaleString('nl-NL')}
               </AlertDialogDescription>
@@ -514,7 +514,7 @@ const KassatellingOverdag = () => {
                   setShowSuccessDialog(false);
                   navigate('/dashboard');
                 }}
-                className="mt-6 bg-[#1B7867] hover:bg-[#1B7867]/90"
+                className="mt-6 bg-primary hover:bg-primary/90"
               >
                 Terug naar Dashboard
               </AlertDialogAction>
@@ -526,7 +526,7 @@ const KassatellingOverdag = () => {
         <Dialog open={showInstructionsDialog} onOpenChange={setShowInstructionsDialog}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle className="text-xl font-heading font-bold text-[#282E3A]">
+              <DialogTitle className="text-xl font-heading font-bold text-foreground">
                 Instructies Kassatelling
               </DialogTitle>
             </DialogHeader>
@@ -534,52 +534,52 @@ const KassatellingOverdag = () => {
             <div className="mt-4">
               <ol className="space-y-3">
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Tel de kassa lade</span>
-                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Vul alle aantallen in</p>
+                    <span className="font-heading font-medium text-foreground">Tel de kassa lade</span>
+                    <p className="text-xs text-foreground/60 mt-0.5">Vul alle aantallen in</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Tel de wisselkas</span>
-                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Vul alle aantallen in</p>
+                    <span className="font-heading font-medium text-foreground">Tel de wisselkas</span>
+                    <p className="text-xs text-foreground/60 mt-0.5">Vul alle aantallen in</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Controleer het totaal</span>
-                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Moet €157,00 zijn</p>
+                    <span className="font-heading font-medium text-foreground">Controleer het totaal</span>
+                    <p className="text-xs text-foreground/60 mt-0.5">Moet €157,00 zijn</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Bij tekort/overschot</span>
-                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Meld dit in de opmerkingen</p>
+                    <span className="font-heading font-medium text-foreground">Bij tekort/overschot</span>
+                    <p className="text-xs text-foreground/60 mt-0.5">Meld dit in de opmerkingen</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Aanvullen indien nodig</span>
-                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Als totaal &lt; €157, vul aan vanuit wisselkassa tot €157</p>
+                    <span className="font-heading font-medium text-foreground">Aanvullen indien nodig</span>
+                    <p className="text-xs text-foreground/60 mt-0.5">Als totaal &lt; €157, vul aan vanuit wisselkassa tot €157</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">6</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">6</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Geen wijzigingen meer</span>
-                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Na aanvullen niets meer wijzigen in de telling</p>
+                    <span className="font-heading font-medium text-foreground">Geen wijzigingen meer</span>
+                    <p className="text-xs text-foreground/60 mt-0.5">Na aanvullen niets meer wijzigen in de telling</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#1B7867] text-white text-sm font-heading font-bold flex items-center justify-center">7</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">7</span>
                   <div>
-                    <span className="font-heading font-medium text-[#282E3A]">Verzenden</span>
-                    <p className="text-xs text-[#282E3A]/60 mt-0.5">Druk op de verzenden knop</p>
+                    <span className="font-heading font-medium text-foreground">Verzenden</span>
+                    <p className="text-xs text-foreground/60 mt-0.5">Druk op de verzenden knop</p>
                   </div>
                 </li>
               </ol>
