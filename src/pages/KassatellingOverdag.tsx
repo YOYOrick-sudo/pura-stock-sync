@@ -212,42 +212,42 @@ const KassatellingOverdag = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 400px', gap: '24px', alignItems: 'start' }}>
           {/* Kassa Lade */}
           <div style={{
-            backgroundColor: '#FEFFF1',
+            backgroundColor: 'hsl(var(--card))',
             borderRadius: '20px',
-            border: '1px solid rgba(197, 197, 202, 0.5)',
+            border: '1px solid hsl(var(--border))',
             overflow: 'hidden',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
           }}>
-            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderBottom: '1px solid rgba(197, 197, 202, 0.5)' }}>
-              <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ backgroundColor: 'hsl(var(--card))', padding: '12px 16px', borderBottom: '1px solid hsl(var(--border))' }}>
+              <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: 'hsl(var(--foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Kassa Lade
               </h2>
             </div>
-            <div style={{ overflowX: 'auto', backgroundColor: '#FEFFF1', padding: '16px' }}>
+            <div style={{ overflowX: 'auto', backgroundColor: 'hsl(var(--card))', padding: '16px' }}>
               <table style={{ width: '100%', fontFamily: 'Inter, sans-serif' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.3)' }}>
-                    <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#73747B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bedrag</th>
-                    <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#73747B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Aantal</th>
+                  <tr style={{ borderBottom: '1px solid hsl(var(--border))' }}>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: 'hsl(var(--muted-foreground))', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bedrag</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: 'hsl(var(--muted-foreground))', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Aantal</th>
                   </tr>
                 </thead>
                 <tbody>
                   {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom) => <tr key={denom} style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
-                      <td style={{ padding: '6px 12px', color: '#282E3A', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid rgba(197, 197, 202, 0.3)' }}>€{denom.replace('.', ',')}</td>
+                      <td style={{ padding: '6px 12px', color: 'hsl(var(--foreground))', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid hsl(var(--border))' }}>€{denom.replace('.', ',')}</td>
                       <td style={{ padding: '6px 12px', textAlign: 'center' }}>
                         <input type="number" value={kassaLade[denom as keyof typeof kassaLade]} onChange={e => updateKassaLade(denom, e.target.value === '' ? '' : parseInt(e.target.value))} min={0} style={{
                           width: '80px',
                           padding: '6px 8px',
                           textAlign: 'center',
-                          border: '1px solid rgba(197, 197, 202, 0.5)',
+                          border: '1px solid hsl(var(--border))',
                           borderRadius: '16px',
-                          backgroundColor: '#FEFFF1',
+                          backgroundColor: 'hsl(var(--card))',
                           fontFamily: 'monospace',
                           fontSize: '14px',
-                          color: '#282E3A',
+                          color: 'hsl(var(--foreground))',
                           outline: 'none',
                         }}
-                        onFocus={(e) => e.target.style.borderColor = '#1B7867'}
+                        onFocus={(e) => e.target.style.borderColor = 'hsl(var(--primary))'}
                         onBlur={(e) => e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)'}
                         />
                       </td>
@@ -255,52 +255,52 @@ const KassatellingOverdag = () => {
                 </tbody>
               </table>
             </div>
-            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
+            <div style={{ backgroundColor: 'hsl(var(--card))', padding: '12px 16px', borderTop: '1px solid hsl(var(--border))' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
-                <span style={{ fontSize: '24px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>€{kassaLadeTotal.toFixed(2).replace('.', ',')}</span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, color: 'hsl(var(--foreground))', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
+                <span style={{ fontSize: '24px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'hsl(var(--primary))' }}>€{kassaLadeTotal.toFixed(2).replace('.', ',')}</span>
               </div>
             </div>
           </div>
 
           {/* Wisselkas */}
           <div style={{
-            backgroundColor: '#FEFFF1',
+            backgroundColor: 'hsl(var(--card))',
             borderRadius: '20px',
-            border: '1px solid rgba(197, 197, 202, 0.5)',
+            border: '1px solid hsl(var(--border))',
             overflow: 'hidden',
             boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
           }}>
-            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderBottom: '1px solid rgba(197, 197, 202, 0.5)' }}>
-              <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: '#282E3A', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ backgroundColor: 'hsl(var(--card))', padding: '12px 16px', borderBottom: '1px solid hsl(var(--border))' }}>
+              <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 600, color: 'hsl(var(--foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Wisselkas
               </h2>
             </div>
-            <div style={{ overflowX: 'auto', backgroundColor: '#FEFFF1', padding: '16px' }}>
+            <div style={{ overflowX: 'auto', backgroundColor: 'hsl(var(--card))', padding: '16px' }}>
               <table style={{ width: '100%', fontFamily: 'Inter, sans-serif' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.3)' }}>
-                    <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#73747B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bedrag</th>
-                    <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: '#73747B', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Aantal</th>
+                  <tr style={{ borderBottom: '1px solid hsl(var(--border))' }}>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: 'hsl(var(--muted-foreground))', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bedrag</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 600, color: 'hsl(var(--muted-foreground))', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Aantal</th>
                   </tr>
                 </thead>
                 <tbody>
                   {['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'].map((denom) => <tr key={denom} style={{ borderBottom: '1px solid rgba(197, 197, 202, 0.2)' }}>
-                      <td style={{ padding: '6px 12px', color: '#282E3A', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid rgba(197, 197, 202, 0.3)' }}>€{denom.replace('.', ',')}</td>
+                      <td style={{ padding: '6px 12px', color: 'hsl(var(--foreground))', fontFamily: 'monospace', fontSize: '14px', borderRight: '1px solid hsl(var(--border))' }}>€{denom.replace('.', ',')}</td>
                       <td style={{ padding: '6px 12px', textAlign: 'center' }}>
                         <input type="number" value={wisselkas[denom as keyof typeof wisselkas]} onChange={e => updateWisselkas(denom, e.target.value === '' ? '' : parseInt(e.target.value))} min={0} style={{
                           width: '80px',
                           padding: '6px 8px',
                           textAlign: 'center',
-                          border: '1px solid rgba(197, 197, 202, 0.5)',
+                          border: '1px solid hsl(var(--border))',
                           borderRadius: '16px',
-                          backgroundColor: '#FEFFF1',
+                          backgroundColor: 'hsl(var(--card))',
                           fontFamily: 'monospace',
                           fontSize: '14px',
-                          color: '#282E3A',
+                          color: 'hsl(var(--foreground))',
                           outline: 'none',
                         }}
-                        onFocus={(e) => e.target.style.borderColor = '#1B7867'}
+                        onFocus={(e) => e.target.style.borderColor = 'hsl(var(--primary))'}
                         onBlur={(e) => e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)'}
                         />
                       </td>
@@ -308,10 +308,10 @@ const KassatellingOverdag = () => {
                 </tbody>
               </table>
             </div>
-            <div style={{ backgroundColor: '#FEFFF1', padding: '12px 16px', borderTop: '1px solid rgba(197, 197, 202, 0.5)' }}>
+            <div style={{ backgroundColor: 'hsl(var(--card))', padding: '12px 16px', borderTop: '1px solid hsl(var(--border))' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#282E3A', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
-                <span style={{ fontSize: '24px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: '#1B7867' }}>€{wisselkasTotal.toFixed(2).replace('.', ',')}</span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, color: 'hsl(var(--foreground))', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Totaal</span>
+                <span style={{ fontSize: '24px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'hsl(var(--primary))' }}>€{wisselkasTotal.toFixed(2).replace('.', ',')}</span>
               </div>
             </div>
           </div>
@@ -319,17 +319,17 @@ const KassatellingOverdag = () => {
           {/* Right side: Summary card */}
           <div style={{ position: 'sticky', top: '24px' }}>
             <div style={{
-              backgroundColor: '#FEFFF1',
+              backgroundColor: 'hsl(var(--card))',
               borderRadius: '20px',
-              border: '1px solid rgba(197, 197, 202, 0.5)',
+              border: '1px solid hsl(var(--border))',
               padding: '20px',
               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
             }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: '#FEFFF1', borderRadius: '16px', padding: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: 'hsl(var(--card))', borderRadius: '16px', padding: '16px' }}>
                 {/* Totaal */}
                 <div style={{ padding: '6px 0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: '#73747B' }}>
+                    <span style={{ fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: 'hsl(var(--muted-foreground))' }}>
                       Totaal
                     </span>
                     <span style={{ fontSize: '30px', fontFamily: 'Inter, sans-serif', fontWeight: 700, color: errors.total ? '#EF4444' : '#1B7867' }}>
@@ -346,7 +346,7 @@ const KassatellingOverdag = () => {
                 {/* Naam medewerker */}
                 <div style={{ padding: '6px 0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-                    <label style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#73747B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <label style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                       Naam *
                     </label>
                     <input 
@@ -362,13 +362,13 @@ const KassatellingOverdag = () => {
                         padding: '8px 12px',
                         border: errors.naam ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
                         borderRadius: '16px',
-                        backgroundColor: '#FEFFF1',
+                        backgroundColor: 'hsl(var(--card))',
                         fontFamily: 'Inter, sans-serif',
                         fontSize: '14px',
-                        color: '#282E3A',
+                        color: 'hsl(var(--foreground))',
                         outline: 'none',
                       }}
-                      onFocus={(e) => !errors.naam && (e.target.style.borderColor = '#1B7867')}
+                      onFocus={(e) => !errors.naam && (e.target.style.borderColor = 'hsl(var(--primary))')}
                       onBlur={(e) => !errors.naam && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
                     />
                   </div>
@@ -381,7 +381,7 @@ const KassatellingOverdag = () => {
 
                 {/* Opmerkingen */}
                 <div style={{ padding: '6px 0' }}>
-                  <label style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: '#73747B', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>
+                  <label style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>
                     Opmerkingen *
                   </label>
                   <textarea 
@@ -397,15 +397,15 @@ const KassatellingOverdag = () => {
                       padding: '8px 12px',
                       border: errors.opmerkingen ? '1px solid #EF4444' : '1px solid rgba(197, 197, 202, 0.5)',
                       borderRadius: '16px',
-                      backgroundColor: '#FEFFF1',
+                      backgroundColor: 'hsl(var(--card))',
                       fontFamily: 'Inter, sans-serif',
                       fontSize: '14px',
-                      color: '#282E3A',
+                      color: 'hsl(var(--foreground))',
                       outline: 'none',
                       resize: 'vertical',
                       whiteSpace: 'pre-wrap'
                     }}
-                    onFocus={(e) => !errors.opmerkingen && (e.target.style.borderColor = '#1B7867')}
+                    onFocus={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'hsl(var(--primary))')}
                     onBlur={(e) => !errors.opmerkingen && (e.target.style.borderColor = 'rgba(197, 197, 202, 0.5)')}
                   />
                   {errors.opmerkingen && (
@@ -418,7 +418,7 @@ const KassatellingOverdag = () => {
                 {/* Verzenden button */}
                 <div>
                   {!canSubmit && timeRemaining > 0 && (
-                    <p style={{ fontSize: '12px', color: '#73747B', fontFamily: 'Inter, sans-serif', textAlign: 'center', marginBottom: '12px' }}>
+                    <p style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif', textAlign: 'center', marginBottom: '12px' }}>
                       Je kunt over {Math.floor(timeRemaining / 60)}m {timeRemaining % 60}s opnieuw indienen
                     </p>
                   )}
@@ -448,7 +448,7 @@ const KassatellingOverdag = () => {
                     }}
                     onMouseLeave={(e) => {
                       if (canSubmit && naam && naam.length >= 2) {
-                        e.currentTarget.style.backgroundColor = '#1B7867';
+                        e.currentTarget.style.backgroundColor = 'hsl(var(--primary))';
                         e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
                       } else {
                         e.currentTarget.style.backgroundColor = '#D1D5DB';
@@ -463,8 +463,8 @@ const KassatellingOverdag = () => {
                     style={{
                       width: '100%',
                       padding: '10px 20px',
-                      backgroundColor: '#FEFFF1',
-                      color: '#1B7867',
+                      backgroundColor: 'hsl(var(--card))',
+                      color: 'hsl(var(--primary))',
                       fontFamily: 'Inter, sans-serif',
                       fontWeight: 500,
                       fontSize: '14px',
@@ -481,7 +481,7 @@ const KassatellingOverdag = () => {
                       e.currentTarget.style.backgroundColor = 'rgba(27, 120, 103, 0.05)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#FEFFF1';
+                      e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
                     }}
                   >
                     <Info style={{ width: '16px', height: '16px' }} />
