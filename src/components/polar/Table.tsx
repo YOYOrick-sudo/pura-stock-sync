@@ -15,92 +15,59 @@ export interface PolarTableProps {
 }
 
 export function PolarTable({ columns, data, emptyMessage = 'No Results' }: PolarTableProps) {
-  
   return (
-    <div
-      style={{
-        backgroundColor: '#FFFFFF',
-        border: '1px solid rgba(197, 197, 202, 0.5)',
-        borderRadius: '16px',
-        overflow: 'hidden',
-      }}
-    >
+    <div className="bg-card border border-border rounded-2xl overflow-hidden">
       {/* Table Header */}
       <div
+        className="bg-muted border-b border-border"
         style={{
           display: 'grid',
           gridTemplateColumns: `repeat(${columns.length}, 1fr)`,
           gap: '24px',
           padding: '12px 24px',
-          borderBottom: '1px solid rgba(197, 197, 202, 0.5)',
-          backgroundColor: '#F6F7DD',
         }}
       >
         {columns.map((column) => (
           <div
             key={column.key}
+            className="text-sm text-foreground flex items-center gap-1"
             style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '14px',
-              fontWeight: 400,
-              color: '#282E3A',
               textAlign: column.align || 'left',
-              display: 'flex',
-              alignItems: 'center',
               justifyContent: column.align === 'right' ? 'flex-end' : column.align === 'center' ? 'center' : 'flex-start',
-              gap: '4px',
             }}
           >
             {column.label}
             {column.sortable && (
-              <ChevronDown size={14} style={{ color: '#282E3A' }} />
+              <ChevronDown size={14} className="text-foreground" />
             )}
           </div>
         ))}
       </div>
 
-      {/* Table Body - Empty State */}
       {data.length === 0 && (
-        <div
-          style={{
-            padding: '64px 24px',
-            textAlign: 'center',
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            fontWeight: 400,
-            color: '#282E3A',
-            backgroundColor: '#FFFFFF',
-          }}
-        >
+        <div className="p-16 text-center text-sm text-muted-foreground bg-card">
           {emptyMessage}
         </div>
       )}
 
-      {/* Table Body - With Data */}
       {data.length > 0 && (
         <div>
           {data.map((row, rowIndex) => (
             <div
               key={rowIndex}
+              className="bg-card border-b border-border last:border-b-0"
               style={{
                 display: 'grid',
                 gridTemplateColumns: `repeat(${columns.length}, 1fr)`,
                 gap: '24px',
                 padding: '16px 24px',
-                borderBottom: rowIndex < data.length - 1 ? '1px solid rgba(197, 197, 202, 0.5)' : 'none',
-                backgroundColor: '#FFFFFF',
               }}
             >
               {columns.map((column) => (
                 <div
                   key={column.key}
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    color: '#282E3A',
-                    textAlign: column.align || 'left',
-                  }}
+                  className="text-sm text-foreground"
+                  style={{ textAlign: column.align || 'left' }}
                 >
                   {row[column.key]}
                 </div>

@@ -28,16 +28,9 @@ export function PolarTextarea({
   const [isFocused, setIsFocused] = React.useState(false);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div className="flex flex-col gap-2">
       {label && (
-        <label
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '14px',
-            fontWeight: 500,
-            color: error ? '#E64D4D' : '#17171C',
-          }}
-        >
+        <label className={`text-sm font-medium ${error ? 'text-destructive' : 'text-foreground'}`}>
           {label}
         </label>
       )}
@@ -51,47 +44,19 @@ export function PolarTextarea({
         maxLength={maxLength}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        style={{
-          fontFamily: 'Inter, sans-serif',
-          fontSize: '15px',
-          padding: '12px',
-          border: error 
-            ? '1px solid #E64D4D' 
-            : isFocused 
-            ? '1px solid #1B7867' 
-            : '1px solid #ECEDED',
-          borderRadius: '16px',
-          backgroundColor: disabled ? '#F4F5F6' : '#FFFFFF',
-          color: disabled ? '#73747B' : '#17171C',
-          outline: 'none',
-          transition: 'border-color 200ms',
-          resize: 'vertical',
-          minHeight: '80px',
-          cursor: disabled ? 'not-allowed' : 'text',
-        }}
+        className={`text-[15px] p-3 rounded-2xl border outline-none transition-colors resize-y min-h-[80px]
+          ${error ? 'border-destructive' : isFocused ? 'border-primary' : 'border-input'}
+          ${disabled ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-card text-foreground cursor-text'}`}
       />
       
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="flex justify-between items-center">
         {helperText && (
-          <span
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '14px',
-              color: error ? '#E64D4D' : '#36373A',
-            }}
-          >
+          <span className={`text-sm ${error ? 'text-destructive' : 'text-muted-foreground'}`}>
             {helperText}
           </span>
         )}
         {showCharacterCount && maxLength && (
-          <span
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '14px',
-              color: value.length >= maxLength ? '#E64D4D' : '#73747B',
-              marginLeft: 'auto',
-            }}
-          >
+          <span className={`text-sm ml-auto ${value.length >= maxLength ? 'text-destructive' : 'text-muted-foreground'}`}>
             {value.length}/{maxLength}
           </span>
         )}

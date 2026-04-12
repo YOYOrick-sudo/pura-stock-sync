@@ -1,6 +1,5 @@
 import React from 'react';
 import { User } from 'lucide-react';
-import { PolarColors } from './colors';
 
 export interface PolarAvatarProps {
   src?: string;
@@ -36,20 +35,11 @@ export function PolarAvatar({
   return (
     <div style={{ position: 'relative', display: 'inline-block' }}>
       <div
+        className={`rounded-full flex items-center justify-center overflow-hidden font-semibold ${showImage ? '' : 'bg-muted border border-border text-muted-foreground'}`}
         style={{
           width: `${avatarSize}px`,
           height: `${avatarSize}px`,
-          borderRadius: '50%',
-          backgroundColor: showImage ? 'transparent' : '#F4F5F6',
-          border: '1px solid #ECEDED',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          fontFamily: 'Inter, sans-serif',
           fontSize: fontSize,
-          fontWeight: 600,
-          color: '#36373A',
         }}
       >
         {showImage && (
@@ -57,28 +47,19 @@ export function PolarAvatar({
             src={src}
             alt={alt}
             onError={() => setImageError(true)}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
+            className="w-full h-full object-cover"
           />
         )}
         {showInitials && initials}
-        {showIcon && (fallbackIcon || <User size={iconSize} color="#36373A" />)}
+        {showIcon && (fallbackIcon || <User size={iconSize} className="text-muted-foreground" />)}
       </div>
       
       {online !== undefined && (
         <div
+          className={`absolute bottom-0 right-0 rounded-full border-2 border-card ${online ? 'bg-success' : 'bg-muted-foreground'}`}
           style={{
-            position: 'absolute',
-            bottom: '0',
-            right: '0',
             width: `${avatarSize * 0.25}px`,
             height: `${avatarSize * 0.25}px`,
-            borderRadius: '50%',
-            backgroundColor: online ? PolarColors.avatar.online : PolarColors.avatar.offline,
-            border: '2px solid #FFFFFF',
           }}
         />
       )}
@@ -86,7 +67,6 @@ export function PolarAvatar({
   );
 }
 
-// Avatar Group for stacked avatars
 export interface PolarAvatarGroupProps {
   avatars: Array<{
     src?: string;
@@ -105,21 +85,11 @@ export function PolarAvatarGroup({
   const visibleAvatars = avatars.slice(0, max);
   const remainingCount = avatars.length - max;
 
-  const sizeMap = {
-    small: 32,
-    default: 40,
-    large: 56,
-  };
-
+  const sizeMap = { small: 32, default: 40, large: 56 };
   const avatarSize = sizeMap[size];
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-      }}
-    >
+    <div className="flex items-center">
       {visibleAvatars.map((avatar, index) => (
         <div
           key={index}
@@ -139,19 +109,11 @@ export function PolarAvatarGroup({
       
       {remainingCount > 0 && (
         <div
+          className="rounded-full bg-muted border border-border flex items-center justify-center font-semibold text-muted-foreground"
           style={{
             width: `${avatarSize}px`,
             height: `${avatarSize}px`,
-            borderRadius: '50%',
-            backgroundColor: '#F4F5F6',
-            border: '1px solid #ECEDED',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontFamily: 'Inter, sans-serif',
             fontSize: size === 'small' ? '13px' : size === 'large' ? '18px' : '15px',
-            fontWeight: 600,
-            color: '#36373A',
             marginLeft: `-${avatarSize * 0.25}px`,
             zIndex: 0,
           }}
