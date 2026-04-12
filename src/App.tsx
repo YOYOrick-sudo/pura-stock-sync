@@ -25,6 +25,7 @@ import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } 
 // Maintenance Module
 import Onderhoud from "./pages/maintenance/Onderhoud";
 import Unsubscribe from "./pages/Unsubscribe";
+import ColorPreview from "./pages/ColorPreview";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -129,6 +130,7 @@ const App = () => (
             {/* Public Design System route - no login needed */}
             <Route path="/design-system" element={<DesignSystem />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
+            <Route path="/kleur-preview" element={<ColorPreview />} />
             
             {/* Maintenance Module */}
             <Route
