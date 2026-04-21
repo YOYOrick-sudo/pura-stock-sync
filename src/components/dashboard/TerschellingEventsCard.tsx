@@ -22,7 +22,7 @@ export function TerschellingEventsCard() {
       >
         <PolarKPICard
           compact
-          title="Terschelling Evenementen"
+          title="Volgend event op Terschelling"
           value="—"
           contentText={{
             primary: 'Geen aankomende events',
