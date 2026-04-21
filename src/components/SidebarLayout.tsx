@@ -8,10 +8,12 @@ import { useState } from 'react';
 
 interface SidebarLayoutProps {
   children: React.ReactNode;
+  hideHeader?: boolean;
 }
 
 export function SidebarLayout({
-  children
+  children,
+  hideHeader = false
 }: SidebarLayoutProps) {
   const location = useLocation();
   const { userLocation } = useUserLocation();
@@ -60,12 +62,14 @@ export function SidebarLayout({
       )}
       
       <div className="flex flex-col flex-1 min-w-0 overflow-x-hidden">
-        <PolarHeader
-          title={getPageTitle(location.pathname)} 
-          showStatusIndicator={false} 
-          location={userLocation}
-          onMenuClick={isMobile ? () => setMobileMenuOpen(true) : undefined}
-        />
+        {!hideHeader && (
+          <PolarHeader
+            title={getPageTitle(location.pathname)} 
+            showStatusIndicator={false} 
+            location={userLocation}
+            onMenuClick={isMobile ? () => setMobileMenuOpen(true) : undefined}
+          />
+        )}
         
         <main className="p-4 md:p-6 lg:px-12 lg:py-8 bg-background min-w-0">
           {children}

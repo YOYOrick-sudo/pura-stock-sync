@@ -17,7 +17,7 @@ export default function PersoneelLayout() {
   const [showNewModal, setShowNewModal] = useState(false);
 
   return (
-    <SidebarLayout>
+    <SidebarLayout hideHeader>
       <div className="min-h-full bg-background -m-4 md:-m-6 lg:-mx-12 lg:-my-8 min-w-0 overflow-hidden">
         <div className="border-b border-border bg-card">
           <div className="px-4 md:px-6 pt-4">
