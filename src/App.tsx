@@ -28,8 +28,6 @@ import Onderhoud from "./pages/maintenance/Onderhoud";
 import Unsubscribe from "./pages/Unsubscribe";
 // Personeel Module
 import PersoneelLayout from "./pages/personeel/PersoneelLayout";
-import MijnPlanning from "./pages/personeel/MijnPlanning";
-import Vandaag from "./pages/personeel/Vandaag";
 import Tijdlijn from "./pages/personeel/Tijdlijn";
 import Wonen from "./pages/personeel/Wonen";
 import Collegas from "./pages/personeel/Collegas";
@@ -204,8 +202,6 @@ const App = () => (
               }
             >
               <Route index element={<Tijdlijn />} />
-              <Route path="vandaag" element={<Vandaag />} />
-              <Route path="mijn" element={<MijnPlanning />} />
               <Route path="wonen" element={<Wonen />} />
               <Route path="collegas" element={<Collegas />} />
               <Route path="settings" element={<PersoneelSettings />} />

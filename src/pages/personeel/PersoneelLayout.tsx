@@ -1,21 +1,35 @@
+import { useState } from "react";
 import { Outlet, NavLink } from "react-router-dom";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { PersonModal } from "@/components/personeel/PersonModal";
 import { copy } from "@/lib/personeel-copy";
 
 const TABS = [
   { to: "/personeel", label: copy.tijdlijn, end: true },
-  { to: "/personeel/vandaag", label: copy.vandaag },
-  { to: "/personeel/mijn", label: copy.mijnPlanning },
   { to: "/personeel/wonen", label: copy.wonen },
   { to: "/personeel/collegas", label: copy.collegas },
   { to: "/personeel/settings", label: copy.settings },
 ];
 
 export default function PersoneelLayout() {
+  const [showNewModal, setShowNewModal] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="border-b border-border bg-card">
         <div className="px-4 md:px-6 pt-4">
-          <h1 className="text-2xl font-semibold mb-3">{copy.module}</h1>
+          <div className="flex items-center justify-between mb-3 gap-3">
+            <h1 className="text-2xl font-semibold">{copy.module}</h1>
+            <Button
+              size="sm"
+              onClick={() => setShowNewModal(true)}
+              className="rounded-[14px]"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {copy.nieuweCollega}
+            </Button>
+          </div>
           <nav className="flex gap-1 overflow-x-auto">
             {TABS.map(t => (
               <NavLink
@@ -39,6 +53,10 @@ export default function PersoneelLayout() {
       <div className="p-4 md:p-6">
         <Outlet />
       </div>
+
+      {showNewModal && (
+        <PersonModal open={showNewModal} onClose={() => setShowNewModal(false)} />
+      )}
     </div>
   );
 }
