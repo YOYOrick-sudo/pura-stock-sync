@@ -6,10 +6,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { PlanningBlock } from "@/components/personeel/PlanningBlock";
 import { DensityBar } from "@/components/personeel/DensityBar";
+import type { Person } from "@/types/personeel";
 
 const DAYS_BEFORE = 182;
 const DAYS_AFTER = 182;
 const TOTAL_DAYS = DAYS_BEFORE + DAYS_AFTER + 1;
+
+type Row =
+  | { kind: "header"; locId: string; locName: string }
+  | { kind: "person"; person: Person };
 
 export default function Tijdlijn() {
   const { data: people = [], isLoading } = usePeople();
@@ -24,6 +29,7 @@ export default function Tijdlijn() {
   }, []);
   const cellWidth = isLg ? 28 : 32;
   const rowHeight = isLg ? 36 : 40;
+  const headerHeight = Math.round(rowHeight * 0.8);
 
   const today = useMemo(() => startOfDay(new Date()), []);
   const windowStart = useMemo(() => subDays(today, DAYS_BEFORE), [today]);
@@ -74,21 +80,35 @@ export default function Tijdlijn() {
     };
   }, [cellWidth]);
 
-  // Group people by location for tracks
-  const locById = useMemo(() => {
-    const m = new Map(locations.map(l => [l.id, l.name]));
-    return m;
-  }, [locations]);
+  // Build flattened rows: [header, person, person, header, person, ...]
+  const rows: Row[] = useMemo(() => {
+    const byLoc = new Map<string, Person[]>();
+    people.forEach(p => {
+      const arr = byLoc.get(p.location_id) ?? [];
+      arr.push(p);
+      byLoc.set(p.location_id, arr);
+    });
+    const sortedLocs = [...locations].sort((a, b) => a.sort_order - b.sort_order);
+    const out: Row[] = [];
+    sortedLocs.forEach(loc => {
+      const ppl = (byLoc.get(loc.id) ?? []).sort((a, b) => a.name.localeCompare(b.name));
+      if (ppl.length === 0) return;
+      out.push({ kind: "header", locId: loc.id, locName: loc.name });
+      ppl.forEach(p => out.push({ kind: "person", person: p }));
+    });
+    return out;
+  }, [people, locations]);
 
-  const sortedPeople = useMemo(
-    () => [...people].sort((a, b) => {
-      const la = locById.get(a.location_id) ?? "";
-      const lb = locById.get(b.location_id) ?? "";
-      if (la !== lb) return la.localeCompare(lb);
-      return a.name.localeCompare(b.name);
-    }),
-    [people, locById]
-  );
+  // Pre-compute Y offsets per row so name-col and tracks-col stay in sync
+  const { offsets, totalRowsHeight } = useMemo(() => {
+    const offs: number[] = [];
+    let acc = 0;
+    rows.forEach(r => {
+      offs.push(acc);
+      acc += r.kind === "header" ? headerHeight : rowHeight;
+    });
+    return { offsets: offs, totalRowsHeight: acc };
+  }, [rows, headerHeight, rowHeight]);
 
   // Compute month segments for sticky labels
   const monthSegments = useMemo(() => {
@@ -119,7 +139,10 @@ export default function Tijdlijn() {
 
   const todayOffset = DAYS_BEFORE * cellWidth;
 
-  const NAME_COL_WIDTH = 180;
+  // Responsive: laptop = name 160 + slaapplek 120 = 280; tablet/mobile: name 140 + slaapplek 40 (dot only) = 180
+  const NAME_WIDTH = isLg ? 160 : 140;
+  const HOUSING_WIDTH = isLg ? 120 : 40;
+  const NAME_COL_WIDTH = NAME_WIDTH + HOUSING_WIDTH;
 
   if (isLoading) return <Skeleton className="h-[600px] w-full" />;
 
@@ -140,22 +163,62 @@ export default function Tijdlijn() {
       </div>
 
       <div className="flex" style={{ maxHeight: "70vh" }}>
-        {/* Names column */}
+        {/* Names + slaapplek column */}
         <div
           className="sticky left-0 z-30 bg-card border-r border-border overflow-y-auto"
           style={{ width: NAME_COL_WIDTH, maxHeight: "70vh" }}
         >
           <div style={{ height: "var(--timeline-header-h)" }} className="border-b border-border bg-card sticky top-0 z-10" />
-          {sortedPeople.map(p => (
-            <div
-              key={p.id}
-              className="px-3 flex items-center text-sm border-b border-border/50 truncate"
-              style={{ height: rowHeight }}
-              title={p.name}
-            >
-              {p.name}
-            </div>
-          ))}
+          <div className="relative" style={{ height: totalRowsHeight }}>
+            {rows.map((r, i) => {
+              const top = offsets[i];
+              if (r.kind === "header") {
+                return (
+                  <div
+                    key={`h-${r.locId}`}
+                    className="absolute left-0 right-0 px-3 flex items-center bg-muted/60 font-semibold text-sm text-foreground border-b border-border/50"
+                    style={{ top, height: headerHeight }}
+                  >
+                    {r.locName}
+                  </div>
+                );
+              }
+              const p = r.person;
+              const h = housing.find(x => x.id === p.housing_id);
+              return (
+                <div
+                  key={p.id}
+                  className="absolute left-0 right-0 flex items-center border-b border-border/50"
+                  style={{ top, height: rowHeight }}
+                >
+                  <div
+                    className="px-3 text-sm truncate"
+                    style={{ width: NAME_WIDTH }}
+                    title={p.name}
+                  >
+                    {p.name}
+                  </div>
+                  <div
+                    className="px-2 text-sm flex items-center gap-2 truncate"
+                    style={{ width: HOUSING_WIDTH }}
+                    title={h?.name ?? ""}
+                  >
+                    {h ? (
+                      <>
+                        <span
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: h.color }}
+                        />
+                        <span className="truncate hidden md:inline">{h.name}</span>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground text-xs hidden md:inline">—</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Scrollable timeline */}
@@ -219,9 +282,9 @@ export default function Tijdlijn() {
               />
             </div>
 
-            {/* Tracks */}
-            <div className="relative" style={{ width: totalWidth }}>
-              {/* Weekend stripes */}
+            {/* Tracks area — same height as left column rows for sync */}
+            <div className="relative" style={{ width: totalWidth, height: totalRowsHeight }}>
+              {/* Weekend stripes (full tracks height) */}
               {weekendOffsets.map(i => (
                 <div
                   key={`w-${i}`}
@@ -234,31 +297,45 @@ export default function Tijdlijn() {
                 className="absolute top-0 bottom-0 w-[2px] bg-destructive z-10 pointer-events-none"
                 style={{ left: todayOffset }}
               />
-              {/* Person rows */}
-              {sortedPeople.map((p, idx) => {
+              {/* Per-row content: header rows render a subtle band; person rows render the planning block */}
+              {rows.map((r, i) => {
+                const top = offsets[i];
+                if (r.kind === "header") {
+                  return (
+                    <div
+                      key={`th-${r.locId}`}
+                      className="absolute left-0 right-0 bg-muted/30 border-b border-border/50 pointer-events-none"
+                      style={{ top, height: headerHeight }}
+                    />
+                  );
+                }
+                const p = r.person;
                 const h = housing.find(x => x.id === p.housing_id);
+                const startIdx = differenceInCalendarDays(new Date(p.start_date), windowStart);
+                const endIdx = differenceInCalendarDays(new Date(p.end_date), windowStart);
+                if (endIdx < 0 || startIdx >= TOTAL_DAYS) {
+                  return (
+                    <div
+                      key={p.id}
+                      className="absolute left-0 right-0 border-b border-border/50"
+                      style={{ top, height: rowHeight }}
+                    />
+                  );
+                }
                 return (
                   <div
                     key={p.id}
-                    className="relative border-b border-border/50"
-                    style={{ height: rowHeight }}
+                    className="absolute left-0 right-0 border-b border-border/50"
+                    style={{ top, height: rowHeight }}
                   >
-                    {/* Only render block if it intersects window */}
-                    {(() => {
-                      const startIdx = differenceInCalendarDays(new Date(p.start_date), windowStart);
-                      const endIdx = differenceInCalendarDays(new Date(p.end_date), windowStart);
-                      if (endIdx < 0 || startIdx >= TOTAL_DAYS) return null;
-                      return (
-                        <PlanningBlock
-                          person={p}
-                          housing={h}
-                          windowStart={windowStart}
-                          cellWidth={cellWidth}
-                          rowHeight={rowHeight}
-                          locationName={locById.get(p.location_id)}
-                        />
-                      );
-                    })()}
+                    <PlanningBlock
+                      person={p}
+                      housing={h}
+                      windowStart={windowStart}
+                      cellWidth={cellWidth}
+                      rowHeight={rowHeight}
+                      locationName={locations.find(l => l.id === p.location_id)?.name}
+                    />
                   </div>
                 );
               })}
