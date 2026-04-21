@@ -50,24 +50,25 @@ export function TerschellingEventsCard() {
   return (
     <div
       onClick={() => window.open(VVV_URL, '_blank', 'noopener,noreferrer')}
-      className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md group relative"
+      className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md group relative h-full"
       style={{ borderRadius: '20px' }}
       title={`Bekijk alle ${upcomingCount} aankomende evenementen`}
     >
-      <PolarKPICard
-        compact
-        title="Eerstvolgend op Terschelling"
-        value={next.name}
-        contentText={{
-          primary: dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1),
-          secondary: `${dayBadge} · +${upcomingCount - 1} meer`,
-        }}
-        statusColor={{
-          bg: 'transparent',
-          text: 'hsl(var(--primary))',
-          icon: <Calendar size={16} className="text-primary" />,
-        }}
-      />
+      <div className="bg-card border border-border rounded-[20px] p-5 flex flex-col gap-2 h-full min-h-[140px] shadow-soft transition-all duration-200">
+        <div className="text-[13px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+          <Calendar size={16} className="text-primary" />
+          Eerstvolgend op Terschelling
+        </div>
+        <div className="text-[18px] font-semibold text-foreground tracking-tight leading-tight mt-1">
+          {next.name}
+        </div>
+        <div className="text-[13px] font-medium text-foreground mt-auto">
+          {dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1)}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {dayBadge} · +{upcomingCount - 1} meer
+        </div>
+      </div>
       <ExternalLink
         size={14}
         className="absolute top-4 right-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
