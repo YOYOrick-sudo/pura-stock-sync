@@ -251,13 +251,7 @@ export default function InternalOrders() {
     return (
       <SidebarLayout>
         <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-          <div style={{
-            backgroundColor: 'hsl(var(--muted))',
-            borderRadius: '20px',
-            border: '1px solid hsl(var(--border))',
-            padding: '24px',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
-          }}>
+          <div>
             <div style={{
               display: 'flex',
               flexDirection: 'column',
@@ -284,13 +278,7 @@ export default function InternalOrders() {
   return (
     <SidebarLayout>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        <div style={{
-          backgroundColor: 'hsl(var(--muted))',
-          borderRadius: '20px',
-          border: '1px solid hsl(var(--border))',
-          padding: '24px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
-        }}>
+        <div>
           {/* Tab buttons */}
           <div style={{
             display: 'flex',
