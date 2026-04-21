@@ -1,4 +1,4 @@
-import { Home, ListChecks, Wallet, Package, Settings, BarChart3, Wrench, Users } from 'lucide-react';
+import { Home, ListChecks, Wallet, Settings, BarChart3, Wrench, Users } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useEffect, useState } from 'react';
@@ -25,8 +25,6 @@ const allNavigationItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home, locations: ['West', 'Midsland'] },
   { title: 'Taken Bediening', url: '/taken-bediening', icon: ListChecks, locations: ['West', 'Midsland'] },
   { title: 'Kassatelling', url: '/kassatelling', icon: Wallet, locations: ['West', 'Midsland'] },
-  { title: 'Interne Bestellingen', url: '/internal-orders', icon: Package, locations: ['West'] },
-  { title: 'Bestellingen van West', url: '/midsland-bestellingen', icon: Package, locations: ['Midsland'] },
   { title: 'Onderhoud', url: '/onderhoud', icon: Wrench, locations: ['West', 'Midsland'] },
   { title: 'Planning', url: '/personeel', icon: Users, locations: ['West', 'Midsland'], requiresCode: true, codeKey: 'personeel', expectedCode: '0000' },
   { title: 'Settings', url: '/settings', icon: Settings, locations: ['West', 'Midsland'] },
