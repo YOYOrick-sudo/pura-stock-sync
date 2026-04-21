@@ -1061,6 +1061,163 @@ export type Database = {
         }
         Relationships: []
       }
+      personeel_housing: {
+        Row: {
+          capacity: number | null
+          color: string
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number | null
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number | null
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      personeel_locations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      personeel_people: {
+        Row: {
+          competence: string | null
+          created_at: string
+          days_per_week: number | null
+          deleted_at: string | null
+          end_date: string
+          housing_id: string | null
+          id: string
+          location_id: string
+          name: string
+          notes: string | null
+          pay: string | null
+          start_date: string
+          team_id: string
+          updated_at: string
+          updated_by: string | null
+          user_id: string | null
+        }
+        Insert: {
+          competence?: string | null
+          created_at?: string
+          days_per_week?: number | null
+          deleted_at?: string | null
+          end_date: string
+          housing_id?: string | null
+          id?: string
+          location_id: string
+          name: string
+          notes?: string | null
+          pay?: string | null
+          start_date: string
+          team_id: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          competence?: string | null
+          created_at?: string
+          days_per_week?: number | null
+          deleted_at?: string | null
+          end_date?: string
+          housing_id?: string | null
+          id?: string
+          location_id?: string
+          name?: string
+          notes?: string | null
+          pay?: string | null
+          start_date?: string
+          team_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personeel_people_housing_id_fkey"
+            columns: ["housing_id"]
+            isOneToOne: false
+            referencedRelation: "personeel_housing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personeel_people_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "personeel_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personeel_people_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "personeel_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      personeel_teams: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1546,6 +1703,85 @@ export type Database = {
         }
         Relationships: []
       }
+      personeel_people_full: {
+        Row: {
+          competence: string | null
+          created_at: string | null
+          days_per_week: number | null
+          deleted_at: string | null
+          end_date: string | null
+          housing_id: string | null
+          id: string | null
+          location_id: string | null
+          name: string | null
+          notes: string | null
+          pay: string | null
+          start_date: string | null
+          team_id: string | null
+          updated_at: string | null
+          updated_by: string | null
+          user_id: string | null
+        }
+        Insert: {
+          competence?: never
+          created_at?: string | null
+          days_per_week?: number | null
+          deleted_at?: string | null
+          end_date?: string | null
+          housing_id?: string | null
+          id?: string | null
+          location_id?: string | null
+          name?: string | null
+          notes?: string | null
+          pay?: never
+          start_date?: string | null
+          team_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          competence?: never
+          created_at?: string | null
+          days_per_week?: number | null
+          deleted_at?: string | null
+          end_date?: string | null
+          housing_id?: string | null
+          id?: string | null
+          location_id?: string | null
+          name?: string | null
+          notes?: string | null
+          pay?: never
+          start_date?: string | null
+          team_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personeel_people_housing_id_fkey"
+            columns: ["housing_id"]
+            isOneToOne: false
+            referencedRelation: "personeel_housing"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personeel_people_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "personeel_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personeel_people_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "personeel_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       current_user_location: { Args: never; Returns: string }
@@ -1574,6 +1810,7 @@ export type Database = {
         Args: { _profile_user_id: string }
         Returns: boolean
       }
+      is_personeel_manager: { Args: never; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string

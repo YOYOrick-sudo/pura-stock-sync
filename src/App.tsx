@@ -25,6 +25,14 @@ import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } 
 // Maintenance Module
 import Onderhoud from "./pages/maintenance/Onderhoud";
 import Unsubscribe from "./pages/Unsubscribe";
+// Personeel Module
+import PersoneelLayout from "./pages/personeel/PersoneelLayout";
+import MijnPlanning from "./pages/personeel/MijnPlanning";
+import Vandaag from "./pages/personeel/Vandaag";
+import Tijdlijn from "./pages/personeel/Tijdlijn";
+import Wonen from "./pages/personeel/Wonen";
+import Collegas from "./pages/personeel/Collegas";
+import PersoneelSettings from "./pages/personeel/PersoneelSettings";
 const queryClient = new QueryClient();
 
 const App = () => (
