@@ -28,9 +28,9 @@ const allNavigationItems = [
   { title: 'Interne Bestellingen', url: '/internal-orders', icon: Package, locations: ['West'] },
   { title: 'Bestellingen van West', url: '/midsland-bestellingen', icon: Package, locations: ['Midsland'] },
   { title: 'Onderhoud', url: '/onderhoud', icon: Wrench, locations: ['West', 'Midsland'] },
-  { title: 'Personeel', url: '/personeel', icon: Users, locations: ['West', 'Midsland'] },
+  { title: 'Planning', url: '/personeel', icon: Users, locations: ['West', 'Midsland'], requiresCode: true, codeKey: 'personeel', expectedCode: '0000' },
   { title: 'Settings', url: '/settings', icon: Settings, locations: ['West', 'Midsland'] },
-  { title: 'Statistieken', url: '/taken-analyse', icon: BarChart3, locations: ['West', 'Midsland'], requiresCode: true },
+  { title: 'Statistieken', url: '/taken-analyse', icon: BarChart3, locations: ['West', 'Midsland'], requiresCode: true, codeKey: 'stats', expectedCode: 'boom' },
 ];
 
 interface AppSidebarProps {
@@ -59,11 +59,12 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
     if (onNavigate) onNavigate();
   };
 
-  const handleProtectedClick = (e: React.MouseEvent, url: string) => {
+  const handleProtectedClick = (e: React.MouseEvent, url: string, codeKey: string) => {
     e.preventDefault();
-    const isUnlocked = sessionStorage.getItem('stats_unlocked') === 'true';
+    const isUnlocked = sessionStorage.getItem(`${codeKey}_unlocked`) === 'true';
     if (isUnlocked) {
       navigate(url);
+      if (onNavigate) onNavigate();
     } else {
       setPendingUrl(url);
       setShowCodeDialog(true);
@@ -73,10 +74,17 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
   };
 
   const handleCodeSubmit = () => {
-    if (codeInput.toLowerCase() === 'boom') {
-      sessionStorage.setItem('stats_unlocked', 'true');
+    const item = allNavigationItems.find(i => i.url === pendingUrl);
+    const expected = item?.expectedCode ?? '';
+    const codeKey = item?.codeKey ?? '';
+    const matches = codeKey === 'stats'
+      ? codeInput.toLowerCase() === expected
+      : codeInput === expected;
+    if (matches) {
+      sessionStorage.setItem(`${codeKey}_unlocked`, 'true');
       setShowCodeDialog(false);
       navigate(pendingUrl);
+      if (onNavigate) onNavigate();
       setCodeInput('');
       setCodeError('');
     } else {
@@ -101,7 +109,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
           active: isActive(item.url),
           requiresCode: item.requiresCode,
           onClick: item.requiresCode 
-            ? (e) => handleProtectedClick(e, item.url)
+            ? (e) => handleProtectedClick(e, item.url, item.codeKey!)
             : () => handleNavigation(item.url),
         }))}
         collapsed={collapsed}
