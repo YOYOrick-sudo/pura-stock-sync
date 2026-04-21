@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon, ChevronDown } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
-import { useLocations, useTeams, useHousing, useCreatePerson, useUpdatePerson, useIsManager } from "@/hooks/personeel";
+import { useLocations, useTeams, useHousing, useCreatePerson, useUpdatePerson } from "@/hooks/personeel";
 import type { Person } from "@/types/personeel";
 
 interface PersonModalProps {
@@ -23,7 +23,6 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
   const { data: locations = [] } = useLocations();
   const { data: teams = [] } = useTeams();
   const { data: housing = [] } = useHousing();
-  const { data: isManager } = useIsManager();
   const createMut = useCreatePerson();
   const updateMut = useUpdatePerson();
 
@@ -72,10 +71,8 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
       end_date: format(end, "yyyy-MM-dd"),
       days_per_week: daysPerWeek ? parseInt(daysPerWeek, 10) : null,
       notes: notes.trim() || null,
-      ...(isManager ? {
-        competence: (competence || null) as "sterk" | "gemiddeld" | "zwak" | null,
-        pay: pay.trim() || null,
-      } : {}),
+      competence: (competence || null) as "sterk" | "gemiddeld" | "zwak" | null,
+      pay: pay.trim() || null,
     };
 
     try {
@@ -193,26 +190,22 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
                     </SelectContent>
                   </Select>
                 </div>
-                {isManager && (
-                  <div className="space-y-2">
-                    <Label>Competentie</Label>
-                    <Select value={competence} onValueChange={setCompetence}>
-                      <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sterk">Sterk</SelectItem>
-                        <SelectItem value="gemiddeld">Gemiddeld</SelectItem>
-                        <SelectItem value="zwak">Zwak</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-              {isManager && (
                 <div className="space-y-2">
-                  <Label>Betaling</Label>
-                  <Input value={pay} onChange={(e) => setPay(e.target.value)} placeholder="bv. €14/uur" />
+                  <Label>Competentie</Label>
+                  <Select value={competence} onValueChange={setCompetence}>
+                    <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sterk">Sterk</SelectItem>
+                      <SelectItem value="gemiddeld">Gemiddeld</SelectItem>
+                      <SelectItem value="zwak">Zwak</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              )}
+              </div>
+              <div className="space-y-2">
+                <Label>Betaling</Label>
+                <Input value={pay} onChange={(e) => setPay(e.target.value)} placeholder="bv. €14/uur" />
+              </div>
               <div className="space-y-2">
                 <Label>Notities</Label>
                 <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
