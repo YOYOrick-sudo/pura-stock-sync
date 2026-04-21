@@ -1,5 +1,5 @@
 export const copy = {
-  module: "Personeel",
+  module: "Planning",
   collega: "Collega",
   collegas: "Collega's",
   zoekCollega: "Zoek collega…",
