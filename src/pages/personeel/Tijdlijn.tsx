@@ -148,7 +148,7 @@ export default function Tijdlijn() {
 
   return (
     <div
-      className="relative rounded-[20px] border border-border bg-card overflow-hidden"
+      className="relative rounded-[20px] border border-border bg-card overflow-hidden w-full max-w-full min-w-0"
       style={{
         ["--timeline-date-h" as string]: "40px",
         ["--timeline-density-h" as string]: "32px",
