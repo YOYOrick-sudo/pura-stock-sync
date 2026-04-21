@@ -28,7 +28,7 @@ const allNavigationItems = [
   { title: 'Interne Bestellingen', url: '/internal-orders', icon: Package, locations: ['West'] },
   { title: 'Bestellingen van West', url: '/midsland-bestellingen', icon: Package, locations: ['Midsland'] },
   { title: 'Onderhoud', url: '/onderhoud', icon: Wrench, locations: ['West', 'Midsland'] },
-  { title: 'Personeel', url: '/personeel', icon: Users, locations: ['West', 'Midsland'], requiresManager: true },
+  { title: 'Personeel', url: '/personeel', icon: Users, locations: ['West', 'Midsland'] },
   { title: 'Settings', url: '/settings', icon: Settings, locations: ['West', 'Midsland'] },
   { title: 'Statistieken', url: '/taken-analyse', icon: BarChart3, locations: ['West', 'Midsland'], requiresCode: true },
 ];
@@ -47,39 +47,10 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
   const [codeError, setCodeError] = useState('');
   const [pendingUrl, setPendingUrl] = useState('');
   const [collapsed, setCollapsed] = useState(false);
-  const [isManager, setIsManager] = useState(false);
-  const [roleLoaded, setRoleLoaded] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        if (!cancelled) { setIsManager(false); setRoleLoaded(true); }
-        return;
-      }
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('is_active', true);
-      const allowed = (data ?? []).some(r =>
-        ['owner', 'manager', 'admin'].includes(r.role as string)
-      );
-      if (!cancelled) { setIsManager(allowed); setRoleLoaded(true); }
-    })();
-    return () => { cancelled = true; };
-  }, []);
-
-  const navigationItems = (userLocation
+  const navigationItems = userLocation
     ? allNavigationItems.filter(item => item.locations.includes(userLocation))
-    : allNavigationItems
-  ).filter(item => {
-    if ('requiresManager' in item && item.requiresManager) {
-      return roleLoaded && isManager;
-    }
-    return true;
-  });
+    : allNavigationItems;
 
   const isActive = (url: string) => location.pathname === url;
 
