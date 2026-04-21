@@ -11,7 +11,8 @@ export default function Kassatelling() {
   return (
     <SidebarLayout>
       <div className="max-w-[1400px] mx-auto">
-        <div>
+        {/* Card container */}
+        <div className="bg-card rounded-[20px] border border-border p-6 shadow-soft">
           {/* Tab buttons */}
           <div className="flex gap-3 mb-6">
             <button

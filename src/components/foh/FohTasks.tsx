@@ -1697,7 +1697,14 @@ export function FohTasks() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-      <div style={{ position: 'relative' }}>
+      <div style={{
+        backgroundColor: 'hsl(var(--card))',
+        borderRadius: '20px',
+        border: '1px solid hsl(var(--border))',
+        padding: '24px',
+        boxShadow: '0 1px 3px hsl(var(--foreground) / 0.06)',
+        position: 'relative',
+      }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
           {/* Single row with all buttons */}
