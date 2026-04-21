@@ -1,34 +1,103 @@
 
 
-# Fix: Ideeënbus emails worden niet verzonden
+# Personeel & Slaapplek module — definitief bouwplan
 
-## Diagnose
-1. **Hoofdoorzaak**: Lovable Emails staat **uitgeschakeld** voor dit project. Alle email-pogingen eindigen in de DLQ met `"Emails disabled for this project"`.
-2. **Domein is OK**: `notify.puravidafoodbar.nl` is geverifieerd en klaar voor gebruik.
-3. **Recente inzendingen worden niet eens gequeued**: De idee van 4 april staat in `idea_box_submissions` maar heeft géén bijbehorende rij in `email_send_log`. De laatste log-entries zijn van 28 maart (toen de feature voor het laatst werkte). Dit suggereert dat de `supabase.functions.invoke('send-transactional-email')` aanroep silent faalt (waarschijnlijk 403 emails_disabled) en de error wordt niet aan de gebruiker getoond.
+Groen licht ontvangen. Drie correcties verwerkt. Geen verdere review nodig — na akkoord direct bouwen.
 
-## Oplossing — 2 stappen
+## Drie laatste correcties verwerkt
 
-### Stap 1: Lovable Emails weer aanzetten
-Het project heeft een verified email domein, maar de email-functionaliteit staat uit. Ik schakel deze opnieuw in zodat:
-- De `send-transactional-email` edge function emails accepteert i.p.v. 403 te gooien
-- Auth emails (login, password reset) blijven ook gewoon werken
-- Bestaande transactionele templates (zoals `idea-box-notification`) direct werken
+**A. Persisted scroll-positie geschrapt** — bij elke mount auto-scroll naar vandaag, geen `sessionStorage`. Eigen aanvulling #3 uit v4 vervalt.
 
-### Stap 2: Foutafhandeling verbeteren in `IdeaBox.tsx`
-Het huidige `handleSubmit` in `src/components/dashboard/IdeaBox.tsx` toont `toast.success` ook als de email-invocaties falen, omdat de errors in `Promise.all` niet worden gecontroleerd op het response-veld (`error` van `functions.invoke`). Ik pas dit aan zodat:
-- We per `invoke()` ook `response.error` checken (niet alleen exceptions)
-- Bij gedeeltelijke fouten een waarschuwende toast tonen i.p.v. valse success
-- Errors gelogd worden naar de console voor debugging
+**B. Beide andere optimistic hooks volledig uitgewerkt:**
 
-### Verificatie na de fix
-Na het inschakelen test ik door:
-- Een test-idee in te sturen en te checken of er 3 nieuwe rijen in `email_send_log` komen met status `pending` → `sent`
-- Eventueel een rij in DLQ wijst op een ander probleem (dan kijken we naar specifieke error)
+```ts
+export function useUpdatePerson() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: PersonUpdate & { id: string }) => {
+      const { id, ...patch } = input;
+      const { data, error } = await supabase
+        .from("personeel_people").update(patch).eq("id", id).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onMutate: async (input) => {
+      await qc.cancelQueries({ queryKey: ["personeel", "people"] });
+      const previous = qc.getQueryData<Person[]>(["personeel", "people"]);
+      // Geen updated_by/updated_at in optimistic patch — trigger zet die server-side
+      const { id, ...patch } = input;
+      qc.setQueryData<Person[]>(["personeel", "people"], (old = []) =>
+        old.map(p => p.id === id ? { ...p, ...patch } : p)
+      );
+      return { previous };
+    },
+    onError: (_e, _i, ctx) => {
+      if (ctx?.previous) qc.setQueryData(["personeel", "people"], ctx.previous);
+      toast.error("Wijziging niet opgeslagen — probeer opnieuw");
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["personeel", "people"] }),
+  });
+}
+
+export function useSoftDeletePerson() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("personeel_people")
+        .update({ deleted_at: new Date().toISOString() }).eq("id", id);
+      if (error) throw error;
+    },
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ["personeel", "people"] });
+      const previous = qc.getQueryData<Person[]>(["personeel", "people"]);
+      // View filtert deleted_at al weg → uit lijst halen
+      qc.setQueryData<Person[]>(["personeel", "people"], (old = []) =>
+        old.filter(p => p.id !== id)
+      );
+      return { previous };
+    },
+    onError: (_e, _i, ctx) => {
+      if (ctx?.previous) qc.setQueryData(["personeel", "people"], ctx.previous);
+      toast.error("Verwijderen mislukt — collega is teruggezet");
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["personeel", "people"] }),
+  });
+}
+```
+
+**C. Sticky-kolom hoogte-sync via één CSS-variabele:**
+
+In `Tijdlijn.tsx` op de root-container:
+```tsx
+<div
+  className="relative"
+  style={{
+    "--timeline-date-h": "40px",
+    "--timeline-density-h": "32px",
+    "--timeline-header-h": "calc(var(--timeline-date-h) + var(--timeline-density-h))",
+  } as React.CSSProperties}
+>
+```
+Spacer in namen-kolom: `<div style={{ height: "var(--timeline-header-h)" }} />`. Date-header: `style={{ height: "var(--timeline-date-h)" }}`. Density-bar: `style={{ height: "var(--timeline-density-h)" }}`. Eén bron van waarheid — wijzigt density-bar dan schuift spacer automatisch mee.
+
+## Bouwvolgorde
+
+1. **Migratie** — 4 tabellen, view zonder `security_invoker`, `is_personeel_manager()` helper, 3 triggers (`a_protect_delete`, `b_protect_sensitive`, `z_audit`), column-grants, RLS, realtime publication, seed met de 8 originele Excel-slaapplekken
+2. **Types & lib** — `types/personeel.ts`, `lib/personeel-copy.ts`, `lib/personeel-utils.ts` (`formatPeriod`, `getContrastColor`, `getDensityPerDay`)
+3. **Hooks** — `useIsManager`, `useLocations`, `useTeams`, `useHousing`, `usePeople` (incl. 3 mutaties hierboven), `useMyPlanning`, `usePersoneelFilters`. Alle realtime-subscriptions als invalidation-trigger met 300ms debounce per tabel — payloads worden nooit gelezen
+4. **Routes & navigatie** — 6 routes onder `/personeel`, sidebar-item, manager-redirect met loading-guard
+5. **Componenten** in volgorde van impact:
+   - `PersoneelLayout` (top-tabs, manager-only filtering, redirect-guard)
+   - `MijnPlanning` (huidig/toekomstig/verleden secties)
+   - `Vandaag` (lijst per locatie)
+   - `Tijdlijn` (rolling 365 dagen, geen zoom, auto-scroll naar vandaag bij mount, sticky maand/dag-headers, synced density-bar binnen één scroll-container, vandaag-lijn, weekend-pattern, CSS-var hoogte-sync)
+   - `Wonen` (cards met capaciteits-overage indicator)
+   - `Collegas` (tabel met drie-puntjes-menu, manager-only kolommen)
+   - `PersoneelSettings` (manager-only, 3 dnd-secties + import/export)
+   - `PersonModal` (progressive disclosure, shadcn Calendar+Popover)
+   - `DensityBar`, `PlanningBlock`, `HousingCard`, `ColorPickerModal`, `ManagerOnly`
 
 ## Omvang
-- 1 toggle (Lovable Emails inschakelen — geen code)
-- 1 bestand aangepast (`IdeaBox.tsx` — betere error handling, ~10 regels)
-- Geen database wijzigingen, geen template wijzigingen
-- Geen impact op andere modules
+1 migratie · ~14 componenten · 7 hooks · 3 lib-bestanden · 2 file-edits (`App.tsx`, `AppSidebar.tsx`)
 
