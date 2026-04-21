@@ -35,7 +35,7 @@ export function IdeaBox() {
         'yorick@puravidafoodbar.nl',
       ];
 
-      await Promise.all(
+      const results = await Promise.all(
         recipients.map((email) =>
           supabase.functions.invoke('send-transactional-email', {
             body: {
@@ -51,7 +51,17 @@ export function IdeaBox() {
         )
       );
 
-      toast.success('Bedankt! Je idee is anoniem verstuurd naar het MT.');
+      const failures = results.filter((r) => r.error);
+      if (failures.length > 0) {
+        console.error('Email send failures:', failures.map((f) => f.error));
+        if (failures.length === recipients.length) {
+          toast.error('Idee opgeslagen, maar versturen van mail naar MT is mislukt.');
+        } else {
+          toast.warning(`Idee verstuurd, maar ${failures.length} van ${recipients.length} mails faalden.`);
+        }
+      } else {
+        toast.success('Bedankt! Je idee is anoniem verstuurd naar het MT.');
+      }
       setIdea('');
     } catch (error) {
       console.error('Error submitting idea:', error);
