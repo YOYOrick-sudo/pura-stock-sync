@@ -22,7 +22,7 @@ export function TerschellingEventsCard() {
       >
         <PolarKPICard
           compact
-          title="Terschelling Evenementen"
+          title="Volgend event op Terschelling"
           value="—"
           contentText={{
             primary: 'Geen aankomende events',
@@ -57,7 +57,7 @@ export function TerschellingEventsCard() {
       <div className="bg-card border border-border rounded-[20px] p-5 flex flex-col gap-2 h-full min-h-[140px] shadow-soft transition-all duration-200">
         <div className="text-[13px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
           <Calendar size={16} className="text-primary" />
-          Eerstvolgend op Terschelling
+          Volgend event op Terschelling
         </div>
         <div className="text-[18px] font-semibold text-foreground tracking-tight leading-tight mt-1">
           {next.name}
