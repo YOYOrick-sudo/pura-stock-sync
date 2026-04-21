@@ -59,7 +59,7 @@ export function SidebarLayout({
         </Sheet>
       )}
       
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 min-w-0 overflow-x-hidden">
         <PolarHeader
           title={getPageTitle(location.pathname)} 
           showStatusIndicator={false} 
@@ -67,7 +67,7 @@ export function SidebarLayout({
           onMenuClick={isMobile ? () => setMobileMenuOpen(true) : undefined}
         />
         
-        <main className="p-4 md:p-6 lg:px-12 lg:py-8 bg-background">
+        <main className="p-4 md:p-6 lg:px-12 lg:py-8 bg-background min-w-0">
           {children}
         </main>
       </div>
