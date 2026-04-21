@@ -1,25 +1,32 @@
 
 
-# Fix: Personeel pagina te breed / horizontaal scrollend
+# Drie kleine fixes Personeel-module
 
-## Probleem
-De Tijdlijn rendert intern een ~10.000px brede track-area. Die zou alleen binnen de Tijdlijn-card moeten scrollen, maar nu duwt hij de hele pagina breder. Oorzaak: flex-children krijgen default `min-width: auto`, waardoor de scroll-container van de Tijdlijn zijn parents (main, wrapper-div, layout-flex) laat uitdijen in plaats van zelf te scrollen.
+## 1. "Pura Vida" header weghalen
+De `SidebarLayout` rendert bovenaan een `PolarHeader` met "Pura Vida". Op de Personeel-pagina staat dat dubbel met de eigen module-header. Fix: in `PersoneelLayout.tsx` de `SidebarLayout` aanroepen met een prop/optie die de header verbergt, óf de `PolarHeader` skippen voor deze route.
 
-## Oplossing — 3 kleine fixes
+Concreet: voeg `hideHeader` prop toe aan `SidebarLayout` (default false), en gebruik `<SidebarLayout hideHeader>` in `PersoneelLayout`. Andere pagina's blijven onveranderd.
 
-**1. `src/components/SidebarLayout.tsx`** — main-content kolom moet kunnen krimpen en mag zelf niet horizontaal scrollen:
-- Op de wrapper `<div className="flex flex-col flex-1">` toevoegen: `min-w-0 overflow-x-hidden`
-- Op `<main>` toevoegen: `min-w-0`
+## 2. Pincode-gate "0000" voor /personeel
+Voor de hele Personeel-module een pincode-prompt toevoegen, identiek aan het patroon van Statistieken (`requiresCode` in `AppSidebar`). Code = `0000`, opgeslagen in `sessionStorage` onder key `personeel_unlocked`.
 
-**2. `src/pages/personeel/PersoneelLayout.tsx`** — outer wrapper en outlet-container clampen:
-- Buitenste div: `min-w-0 overflow-hidden` toevoegen
-- Outlet wrapper: `min-w-0` toevoegen
+Implementatie:
+- In `allNavigationItems` (`AppSidebar.tsx`) het Personeel-item krijgt `requiresCode: true`
+- `handleProtectedClick` uitbreiden zodat het werkt voor meerdere keys: check `sessionStorage[<key>_unlocked]`, anders dialoog openen
+- Per item een `codeKey` ('stats' | 'personeel') en juiste verwachte code (`boom` voor stats, `0000` voor personeel)
+- `handleCodeSubmit` valideert tegen de juiste code op basis van `pendingUrl`
+- Extra: `RequireManager` (of een nieuwe `RequirePersoneelPin`) checkt bij directe URL-toegang ook `sessionStorage['personeel_unlocked']` — anders redirect naar `/dashboard`
 
-**3. `src/pages/personeel/Tijdlijn.tsx`** — root van de timeline-card moet de beschikbare breedte respecteren:
-- Root: `w-full max-w-full min-w-0` toevoegen aan de bestaande classes
+## 3. Hernoemen "Personeel" → "Planning"
+Alleen de zichtbare label, NIET de routes/bestandsnamen/database (te risicovol, breekt te veel).
 
-Resultaat: de hele pagina is exact even breed als het content-gebied (geen page-level horizontale scroll). De Tijdlijn-tracks scrollen netjes intern binnen hun eigen card, zoals bedoeld.
+Aanpassen:
+- `src/lib/personeel-copy.ts` → `module: "Planning"` (was "Personeel")
+- `src/components/AppSidebar.tsx` → sidebar-item title: `"Planning"`
+- `src/pages/personeel/PersoneelLayout.tsx` → gebruikt `copy.module`, dus automatisch goed via stap 1 hierboven
+
+Routes blijven `/personeel/*`, codebase-namen blijven hetzelfde.
 
 ## Omvang
-3 bestanden, alleen className-aanpassingen. Geen logica-wijzigingen.
+3 bestanden gewijzigd (`SidebarLayout.tsx`, `PersoneelLayout.tsx`, `AppSidebar.tsx`, `personeel-copy.ts`), 0 migraties, 0 nieuwe bestanden.
 
