@@ -17,7 +17,6 @@ import { Input } from '@/components/ui/input';
 import { NotificationsDropdown } from '@/components/NotificationsDropdown';
 import { PolarSidebar } from '@/components/polar/Sidebar';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { useTheme } from '@/contexts/ThemeContext';
 import puraVidaLogo from '@/assets/pura-vida-logo-sea-cropped.png';
 
 const allNavigationItems = [
@@ -38,7 +37,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
   const location = useLocation();
   const navigate = useNavigate();
   const { userLocation } = useUserLocation();
-  const { isDark } = useTheme();
+  
   const [showCodeDialog, setShowCodeDialog] = useState(false);
   const [codeInput, setCodeInput] = useState('');
   const [codeError, setCodeError] = useState('');
