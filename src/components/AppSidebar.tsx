@@ -99,7 +99,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
           <img 
             src={isDark ? puraVidaLogoLight : puraVidaLogoDark} 
             alt="Pura Vida" 
-            className="h-[92px] w-auto"
+            className="h-12 w-[140px] object-contain"
           />
         }
         items={navigationItems.map(item => ({
