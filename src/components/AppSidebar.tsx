@@ -48,12 +48,16 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
   const [pendingUrl, setPendingUrl] = useState('');
   const [collapsed, setCollapsed] = useState(false);
   const [isManager, setIsManager] = useState(false);
+  const [roleLoaded, setRoleLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        if (!cancelled) { setIsManager(false); setRoleLoaded(true); }
+        return;
+      }
       const { data } = await supabase
         .from('user_roles')
         .select('role')
@@ -62,7 +66,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
       const allowed = (data ?? []).some(r =>
         ['owner', 'manager', 'admin'].includes(r.role as string)
       );
-      if (!cancelled) setIsManager(allowed);
+      if (!cancelled) { setIsManager(allowed); setRoleLoaded(true); }
     })();
     return () => { cancelled = true; };
   }, []);
@@ -70,7 +74,12 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
   const navigationItems = (userLocation
     ? allNavigationItems.filter(item => item.locations.includes(userLocation))
     : allNavigationItems
-  ).filter(item => !('requiresManager' in item && item.requiresManager) || isManager);
+  ).filter(item => {
+    if ('requiresManager' in item && item.requiresManager) {
+      return roleLoaded && isManager;
+    }
+    return true;
+  });
 
   const isActive = (url: string) => location.pathname === url;
 
