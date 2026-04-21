@@ -3,17 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2 } from "lucide-react";
-import { useLocations, useUpsertLocation, useDeleteLocation, useTeams, useUpsertTeam, useDeleteTeam, useHousing, useUpsertHousing, useDeleteHousing, useIsManager } from "@/hooks/personeel";
+import { useLocations, useUpsertLocation, useDeleteLocation, useTeams, useUpsertTeam, useDeleteTeam, useHousing, useUpsertHousing, useDeleteHousing } from "@/hooks/personeel";
 import { ColorPickerModal } from "@/components/personeel/ColorPickerModal";
-import { Navigate } from "react-router-dom";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PersoneelSettings() {
-  const { data: isManager, isLoading: loadingMgr } = useIsManager();
-
-  if (loadingMgr) return <Skeleton className="h-64 w-full" />;
-  if (!isManager) return <Navigate to="/personeel" replace />;
-
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <LocationsSection />

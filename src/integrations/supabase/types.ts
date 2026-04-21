@@ -1723,7 +1723,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          competence?: never
+          competence?: string | null
           created_at?: string | null
           days_per_week?: number | null
           deleted_at?: string | null
@@ -1733,7 +1733,7 @@ export type Database = {
           location_id?: string | null
           name?: string | null
           notes?: string | null
-          pay?: never
+          pay?: string | null
           start_date?: string | null
           team_id?: string | null
           updated_at?: string | null
@@ -1741,7 +1741,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          competence?: never
+          competence?: string | null
           created_at?: string | null
           days_per_week?: number | null
           deleted_at?: string | null
@@ -1751,7 +1751,7 @@ export type Database = {
           location_id?: string | null
           name?: string | null
           notes?: string | null
-          pay?: never
+          pay?: string | null
           start_date?: string | null
           team_id?: string | null
           updated_at?: string | null
@@ -1810,7 +1810,6 @@ export type Database = {
         Args: { _profile_user_id: string }
         Returns: boolean
       }
-      is_personeel_manager: { Args: never; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string

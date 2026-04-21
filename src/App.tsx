@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { RequireManager } from "@/components/RequireManager";
 import { LocationGuard } from "@/components/LocationGuard";
 import { UserLocationProvider } from "@/contexts/UserLocationContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -191,6 +192,25 @@ const App = () => (
               } 
             />
             
+            {/* Personeel Module — manager-only */}
+            <Route
+              path="/personeel"
+              element={
+                <ProtectedRoute>
+                  <RequireManager>
+                    <PersoneelLayout />
+                  </RequireManager>
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Tijdlijn />} />
+              <Route path="vandaag" element={<Vandaag />} />
+              <Route path="mijn" element={<MijnPlanning />} />
+              <Route path="wonen" element={<Wonen />} />
+              <Route path="collegas" element={<Collegas />} />
+              <Route path="settings" element={<PersoneelSettings />} />
+            </Route>
+
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
             </Routes>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { usePeople, useLocations, useTeams, useHousing, useIsManager, useSoftDeletePerson, usePersoneelFilters } from "@/hooks/personeel";
+import { usePeople, useLocations, useTeams, useHousing, useSoftDeletePerson, usePersoneelFilters } from "@/hooks/personeel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +19,6 @@ export default function Collegas() {
   const { data: locations = [] } = useLocations();
   const { data: teams = [] } = useTeams();
   const { data: housing = [] } = useHousing();
-  const { data: isManager } = useIsManager();
   const softDelete = useSoftDeletePerson();
   const { filters, hasAny, toggleLocation, toggleTeam, toggleHousing, setQ, clear } = usePersoneelFilters();
 
@@ -105,15 +104,15 @@ export default function Collegas() {
               <TableHead>Team</TableHead>
               <TableHead>Periode</TableHead>
               <TableHead>Slaapplek</TableHead>
-              {isManager && <TableHead>Competentie</TableHead>}
-              {isManager && <TableHead>Betaling</TableHead>}
+              <TableHead>Competentie</TableHead>
+              <TableHead>Betaling</TableHead>
               <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={isManager ? 8 : 6} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                   Geen collega's gevonden
                 </TableCell>
               </TableRow>
@@ -133,8 +132,8 @@ export default function Collegas() {
                       </span>
                     ) : <span className="text-muted-foreground">—</span>}
                   </TableCell>
-                  {isManager && <TableCell className="text-sm">{p.competence ?? "—"}</TableCell>}
-                  {isManager && <TableCell className="text-sm">{p.pay ?? "—"}</TableCell>}
+                  <TableCell className="text-sm">{p.competence ?? "—"}</TableCell>
+                  <TableCell className="text-sm">{p.pay ?? "—"}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -144,11 +143,9 @@ export default function Collegas() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => setEditing(p)}>{copy.bewerken}</DropdownMenuItem>
-                        {isManager && (
-                          <DropdownMenuItem className="text-destructive" onClick={() => setConfirmDelete(p)}>
-                            {copy.verwijderen}
-                          </DropdownMenuItem>
-                        )}
+                        <DropdownMenuItem className="text-destructive" onClick={() => setConfirmDelete(p)}>
+                          {copy.verwijderen}
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
