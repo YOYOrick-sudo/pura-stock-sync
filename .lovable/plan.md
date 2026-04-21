@@ -1,32 +1,23 @@
 
 
-# Drie kleine fixes Personeel-module
+# Fix: dark mode logo formaat gelijktrekken
 
-## 1. "Pura Vida" header weghalen
-De `SidebarLayout` rendert bovenaan een `PolarHeader` met "Pura Vida". Op de Personeel-pagina staat dat dubbel met de eigen module-header. Fix: in `PersoneelLayout.tsx` de `SidebarLayout` aanroepen met een prop/optie die de header verbergt, óf de `PolarHeader` skippen voor deze route.
+## Probleem
+In de sidebar wordt het logo verschillend getoond in light vs dark mode. Twee oorzaken:
+1. De twee PNG-bestanden (`pura-vida-logo.png` en `pura-vida-logo-dark.png`) hebben verschillende intrinsieke afmetingen / aspect-ratio's. Bij alleen `h-[92px]` schaalt de breedte automatisch mee, dus de visuele grootte verschilt per logo.
+2. `h-[92px]` is groter dan de header zelf (84px) — overflow wordt afgekapt.
 
-Concreet: voeg `hideHeader` prop toe aan `SidebarLayout` (default false), en gebruik `<SidebarLayout hideHeader>` in `PersoneelLayout`. Andere pagina's blijven onveranderd.
+## Oplossing
+In `src/components/AppSidebar.tsx` het `<img>` voor het sidebar-logo:
 
-## 2. Pincode-gate "0000" voor /personeel
-Voor de hele Personeel-module een pincode-prompt toevoegen, identiek aan het patroon van Statistieken (`requiresCode` in `AppSidebar`). Code = `0000`, opgeslagen in `sessionStorage` onder key `personeel_unlocked`.
+- Hoogte verlagen naar `h-12` (48px) zodat het comfortabel past binnen de 84px header (met padding-ruimte boven/onder).
+- Vaste breedte toevoegen: `w-[140px]` met `object-contain`, zodat beide logo-bestanden in exact hetzelfde bounding box worden gerendered en visueel even groot lijken — ongeacht hun intrinsieke afmetingen.
 
-Implementatie:
-- In `allNavigationItems` (`AppSidebar.tsx`) het Personeel-item krijgt `requiresCode: true`
-- `handleProtectedClick` uitbreiden zodat het werkt voor meerdere keys: check `sessionStorage[<key>_unlocked]`, anders dialoog openen
-- Per item een `codeKey` ('stats' | 'personeel') en juiste verwachte code (`boom` voor stats, `0000` voor personeel)
-- `handleCodeSubmit` valideert tegen de juiste code op basis van `pendingUrl`
-- Extra: `RequireManager` (of een nieuwe `RequirePersoneelPin`) checkt bij directe URL-toegang ook `sessionStorage['personeel_unlocked']` — anders redirect naar `/dashboard`
-
-## 3. Hernoemen "Personeel" → "Planning"
-Alleen de zichtbare label, NIET de routes/bestandsnamen/database (te risicovol, breekt te veel).
-
-Aanpassen:
-- `src/lib/personeel-copy.ts` → `module: "Planning"` (was "Personeel")
-- `src/components/AppSidebar.tsx` → sidebar-item title: `"Planning"`
-- `src/pages/personeel/PersoneelLayout.tsx` → gebruikt `copy.module`, dus automatisch goed via stap 1 hierboven
-
-Routes blijven `/personeel/*`, codebase-namen blijven hetzelfde.
+Resulterende className:
+```
+h-12 w-[140px] object-contain
+```
 
 ## Omvang
-3 bestanden gewijzigd (`SidebarLayout.tsx`, `PersoneelLayout.tsx`, `AppSidebar.tsx`, `personeel-copy.ts`), 0 migraties, 0 nieuwe bestanden.
+1 bestand, 1 className-aanpassing. Geen logica, geen nieuwe assets.
 
