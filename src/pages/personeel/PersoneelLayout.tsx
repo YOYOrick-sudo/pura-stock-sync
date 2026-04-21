@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Outlet, NavLink } from "react-router-dom";
 import { Plus } from "lucide-react";
+import { SidebarLayout } from "@/components/SidebarLayout";
 import { Button } from "@/components/ui/button";
 import { PersonModal } from "@/components/personeel/PersonModal";
 import { copy } from "@/lib/personeel-copy";
@@ -16,47 +17,49 @@ export default function PersoneelLayout() {
   const [showNewModal, setShowNewModal] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b border-border bg-card">
-        <div className="px-4 md:px-6 pt-4">
-          <div className="flex items-center justify-between mb-3 gap-3">
-            <h1 className="text-2xl font-semibold">{copy.module}</h1>
-            <Button
-              size="sm"
-              onClick={() => setShowNewModal(true)}
-              className="rounded-[14px]"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              {copy.nieuweCollega}
-            </Button>
-          </div>
-          <nav className="flex gap-1 overflow-x-auto">
-            {TABS.map(t => (
-              <NavLink
-                key={t.to}
-                to={t.to}
-                end={t.end}
-                className={({ isActive }) =>
-                  `px-4 py-2 rounded-t-[12px] text-sm font-medium whitespace-nowrap transition ${
-                    isActive
-                      ? "bg-background text-foreground border-b-2 border-primary"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`
-                }
+    <SidebarLayout>
+      <div className="min-h-full bg-background -m-4 md:-m-6 lg:-mx-12 lg:-my-8">
+        <div className="border-b border-border bg-card">
+          <div className="px-4 md:px-6 pt-4">
+            <div className="flex items-center justify-between mb-3 gap-3">
+              <h1 className="text-2xl font-semibold">{copy.module}</h1>
+              <Button
+                size="sm"
+                onClick={() => setShowNewModal(true)}
+                className="rounded-[14px]"
               >
-                {t.label}
-              </NavLink>
-            ))}
-          </nav>
+                <Plus className="h-4 w-4 mr-2" />
+                {copy.nieuweCollega}
+              </Button>
+            </div>
+            <nav className="flex gap-1 overflow-x-auto">
+              {TABS.map(t => (
+                <NavLink
+                  key={t.to}
+                  to={t.to}
+                  end={t.end}
+                  className={({ isActive }) =>
+                    `px-4 py-2 rounded-t-[12px] text-sm font-medium whitespace-nowrap transition ${
+                      isActive
+                        ? "bg-background text-foreground border-b-2 border-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`
+                  }
+                >
+                  {t.label}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
         </div>
-      </div>
-      <div className="p-4 md:p-6">
-        <Outlet />
-      </div>
+        <div className="p-4 md:p-6 lg:px-12 lg:py-8">
+          <Outlet />
+        </div>
 
-      {showNewModal && (
-        <PersonModal open={showNewModal} onClose={() => setShowNewModal(false)} />
-      )}
-    </div>
+        {showNewModal && (
+          <PersonModal open={showNewModal} onClose={() => setShowNewModal(false)} />
+        )}
+      </div>
+    </SidebarLayout>
   );
 }
