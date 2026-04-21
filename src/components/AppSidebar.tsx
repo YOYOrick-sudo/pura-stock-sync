@@ -1,7 +1,8 @@
-import { Home, ListChecks, Wallet, Package, Settings, BarChart3, Wrench } from 'lucide-react';
+import { Home, ListChecks, Wallet, Package, Settings, BarChart3, Wrench, Users } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +28,7 @@ const allNavigationItems = [
   { title: 'Interne Bestellingen', url: '/internal-orders', icon: Package, locations: ['West'] },
   { title: 'Bestellingen van West', url: '/midsland-bestellingen', icon: Package, locations: ['Midsland'] },
   { title: 'Onderhoud', url: '/onderhoud', icon: Wrench, locations: ['West', 'Midsland'] },
+  { title: 'Personeel', url: '/personeel', icon: Users, locations: ['West', 'Midsland'], requiresManager: true },
   { title: 'Settings', url: '/settings', icon: Settings, locations: ['West', 'Midsland'] },
   { title: 'Statistieken', url: '/taken-analyse', icon: BarChart3, locations: ['West', 'Midsland'], requiresCode: true },
 ];
@@ -45,10 +47,30 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
   const [codeError, setCodeError] = useState('');
   const [pendingUrl, setPendingUrl] = useState('');
   const [collapsed, setCollapsed] = useState(false);
+  const [isManager, setIsManager] = useState(false);
 
-  const navigationItems = userLocation 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
+      const allowed = (data ?? []).some(r =>
+        ['owner', 'manager', 'admin'].includes(r.role as string)
+      );
+      if (!cancelled) setIsManager(allowed);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const navigationItems = (userLocation
     ? allNavigationItems.filter(item => item.locations.includes(userLocation))
-    : allNavigationItems;
+    : allNavigationItems
+  ).filter(item => !('requiresManager' in item && item.requiresManager) || isManager);
 
   const isActive = (url: string) => location.pathname === url;
 
