@@ -1061,6 +1061,41 @@ export type Database = {
         }
         Relationships: []
       }
+      personeel_history: {
+        Row: {
+          count: number
+          created_at: string
+          date: string
+          id: string
+          location_id: string | null
+          team_name: string
+        }
+        Insert: {
+          count: number
+          created_at?: string
+          date: string
+          id?: string
+          location_id?: string | null
+          team_name: string
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          date?: string
+          id?: string
+          location_id?: string | null
+          team_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personeel_history_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "personeel_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       personeel_housing: {
         Row: {
           address: string | null

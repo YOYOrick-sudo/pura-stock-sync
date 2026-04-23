@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { addDays, format, getDay, isSameMonth, startOfDay, differenceInCalendarDays } from "date-fns";
+import { addDays, format, getDay, isSameMonth, startOfDay, differenceInCalendarDays, subYears } from "date-fns";
 import { nl } from "date-fns/locale";
-import { usePeople, useHousing, useLocations } from "@/hooks/personeel";
+import { usePeople, useHousing, useLocations, useHistory, usePersoneelFilters } from "@/hooks/personeel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PlanningBlock } from "@/components/personeel/PlanningBlock";
 import { DensityBar } from "@/components/personeel/DensityBar";
 import type { Person } from "@/types/personeel";
@@ -19,11 +22,14 @@ type Row =
   | { kind: "person"; person: Person };
 
 const SUBHEADER_HEIGHT = 24;
+const HISTORY_ROW_HEIGHT = 24;
 
 export default function Tijdlijn() {
   const { data: people = [], isLoading } = usePeople();
   const { data: housing = [] } = useHousing();
   const { data: locations = [] } = useLocations();
+  const { data: history = [] } = useHistory();
+  const { filters } = usePersoneelFilters();
 
   const [isLg, setIsLg] = useState(typeof window !== "undefined" ? window.innerWidth >= 1024 : true);
   useEffect(() => {
@@ -35,8 +41,9 @@ export default function Tijdlijn() {
   const rowHeight = isLg ? 36 : 40;
   const headerHeight = Math.round(rowHeight * 0.8);
 
+  const [showHistory, setShowHistory] = useState(true);
+
   const today = useMemo(() => startOfDay(new Date()), []);
-  // Window starts today (DAYS_BEFORE = 0)
   const windowStart = today;
   const days = useMemo(
     () => Array.from({ length: TOTAL_DAYS }, (_, i) => addDays(windowStart, i)),
@@ -54,13 +61,11 @@ export default function Tijdlijn() {
     c.scrollTo({ left: 0, behavior: smooth ? "smooth" : "auto" });
   }, []);
 
-  // Auto-scroll to today on mount
   useEffect(() => {
     if (!scrollRef.current) return;
     requestAnimationFrame(() => scrollToToday(false));
   }, [scrollToToday]);
 
-  // Track visible range for density bar recalibration
   useEffect(() => {
     const c = scrollRef.current;
     if (!c) return;
@@ -84,7 +89,7 @@ export default function Tijdlijn() {
     };
   }, [cellWidth]);
 
-  // Build flattened rows: [header, person, person, header, person, ...]
+  // Build flattened rows
   const rows: Row[] = useMemo(() => {
     const byLoc = new Map<string, Person[]>();
     people.forEach(p => {
@@ -104,7 +109,6 @@ export default function Tijdlijn() {
     return out;
   }, [people, locations]);
 
-  // Pre-compute Y offsets per row so name-col and tracks-col stay in sync
   const { offsets, totalRowsHeight } = useMemo(() => {
     const offs: number[] = [];
     let acc = 0;
@@ -117,7 +121,6 @@ export default function Tijdlijn() {
     return { offsets: offs, totalRowsHeight: acc };
   }, [rows, headerHeight, rowHeight]);
 
-  // Compute month segments for sticky labels
   const monthSegments = useMemo(() => {
     const segments: { startIdx: number; endIdx: number; label: string }[] = [];
     let currentStart = 0;
@@ -134,7 +137,6 @@ export default function Tijdlijn() {
     return segments;
   }, [days]);
 
-  // Weekend stripe offsets
   const weekendOffsets = useMemo(() => {
     const offs: number[] = [];
     days.forEach((d, i) => {
@@ -146,10 +148,68 @@ export default function Tijdlijn() {
 
   const todayOffset = 0;
 
-  // Responsive: laptop = name 160 + slaapplek 120 = 280; tablet/mobile: name 140 + slaapplek 40 (dot only) = 180
+  // ============ HISTORY DATA ============
+  // Filter history by selected locations (empty filter = all locations)
+  const filteredHistory = useMemo(() => {
+    if (filters.locations.length === 0) return history;
+    const locSet = new Set(filters.locations);
+    return history.filter(h => h.location_id && locSet.has(h.location_id));
+  }, [history, filters.locations]);
+
+  // Index by date for fast lookup: date -> [{team_name, count, location_id}]
+  const historyByDate = useMemo(() => {
+    const m = new Map<string, HistoryRow[]>();
+    for (const h of filteredHistory) {
+      const arr = m.get(h.date) ?? [];
+      arr.push(h);
+      m.set(h.date, arr);
+    }
+    return m;
+  }, [filteredHistory]);
+
+  // Min/max date in history (raw, before filter — to determine "in-range" universally)
+  const historyDateRange = useMemo(() => {
+    if (history.length === 0) return null;
+    let min = history[0].date;
+    let max = history[0].date;
+    for (const h of history) {
+      if (h.date < min) min = h.date;
+      if (h.date > max) max = h.date;
+    }
+    return { min, max };
+  }, [history]);
+
+  // Pre-compute totals per current-day index for the visible window
+  const historyTotalsPerDay = useMemo(() => {
+    const totals = new Array<number>(TOTAL_DAYS).fill(0);
+    if (!historyDateRange) return totals;
+    for (let i = 0; i < TOTAL_DAYS; i++) {
+      const target = subYears(days[i], 1);
+      const targetStr = format(target, "yyyy-MM-dd");
+      if (targetStr < historyDateRange.min || targetStr > historyDateRange.max) continue;
+      const rows = historyByDate.get(targetStr);
+      if (!rows) continue;
+      let sum = 0;
+      for (const r of rows) sum += r.count;
+      totals[i] = sum;
+    }
+    return totals;
+  }, [days, historyByDate, historyDateRange]);
+
+  // Max in visible window for opacity scaling
+  const maxInWindow = useMemo(() => {
+    let mx = 0;
+    for (let i = visibleRange[0]; i <= visibleRange[1]; i++) {
+      if (historyTotalsPerDay[i] > mx) mx = historyTotalsPerDay[i];
+    }
+    return mx || 1;
+  }, [historyTotalsPerDay, visibleRange]);
+
   const NAME_WIDTH = isLg ? 160 : 140;
   const HOUSING_WIDTH = isLg ? 120 : 40;
   const NAME_COL_WIDTH = NAME_WIDTH + HOUSING_WIDTH;
+
+  const historyRowH = showHistory ? HISTORY_ROW_HEIGHT : 0;
 
   if (isLoading) return <Skeleton className="h-[600px] w-full" />;
 
@@ -158,15 +218,22 @@ export default function Tijdlijn() {
       className="relative rounded-[20px] border border-border bg-card overflow-hidden w-full max-w-full min-w-0"
       style={{
         ["--timeline-date-h" as string]: "40px",
+        ["--timeline-history-h" as string]: `${historyRowH}px`,
         ["--timeline-density-h" as string]: "32px",
-        ["--timeline-header-h" as string]: "calc(var(--timeline-date-h) + var(--timeline-density-h))",
+        ["--timeline-header-h" as string]: "calc(var(--timeline-date-h) + var(--timeline-history-h) + var(--timeline-density-h))",
       } as React.CSSProperties}
     >
-      <div className="flex items-center justify-between p-3 border-b border-border bg-card">
-        <div className="text-sm text-muted-foreground">
+      <div className="flex items-center justify-between p-3 border-b border-border bg-card gap-3">
+        <div className="text-sm text-muted-foreground truncate">
           {format(windowStart, "d MMM yyyy", { locale: nl })} – {format(addDays(windowStart, TOTAL_DAYS - 1), "d MMM yyyy", { locale: nl })}
         </div>
-        <Button size="sm" onClick={() => scrollToToday(true)}>Vandaag</Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Switch id="show-history" checked={showHistory} onCheckedChange={setShowHistory} />
+            <Label htmlFor="show-history" className="text-xs cursor-pointer select-none">Vorig jaar</Label>
+          </div>
+          <Button size="sm" onClick={() => scrollToToday(true)}>Vandaag</Button>
+        </div>
       </div>
 
       <div className="flex" style={{ maxHeight: "70vh" }}>
@@ -175,7 +242,21 @@ export default function Tijdlijn() {
           className="sticky left-0 z-30 bg-card border-r border-border overflow-y-auto"
           style={{ width: NAME_COL_WIDTH, maxHeight: "70vh" }}
         >
-          <div style={{ height: "var(--timeline-header-h)" }} className="border-b border-border bg-card sticky top-0 z-10" />
+          <div style={{ height: "var(--timeline-header-h)" }} className="border-b border-border bg-card sticky top-0 z-10 flex flex-col">
+            {/* Date-header spacer */}
+            <div style={{ height: "var(--timeline-date-h)" }} />
+            {/* Vorig jaar label */}
+            {showHistory && (
+              <div
+                className="text-xs text-muted-foreground font-medium px-3 flex items-center border-t border-border/50"
+                style={{ height: HISTORY_ROW_HEIGHT }}
+              >
+                Vorig jaar
+              </div>
+            )}
+            {/* Density-bar spacer */}
+            <div style={{ height: "var(--timeline-density-h)" }} />
+          </div>
           <div className="relative" style={{ height: totalRowsHeight }}>
             {rows.map((r, i) => {
               const top = offsets[i];
@@ -212,27 +293,16 @@ export default function Tijdlijn() {
                   className="absolute left-0 right-0 flex items-center border-b border-border/50"
                   style={{ top, height: rowHeight }}
                 >
-                  <div
-                    className="px-3 text-sm truncate"
-                    style={{ width: NAME_WIDTH }}
-                    title={p.name}
-                  >
+                  <div className="px-3 text-sm truncate" style={{ width: NAME_WIDTH }} title={p.name}>
                     {p.name}
                   </div>
-                  <div
-                    className="px-2 text-sm"
-                    style={{ width: HOUSING_WIDTH }}
-                    title={h?.name ?? ""}
-                  >
+                  <div className="px-2 text-sm" style={{ width: HOUSING_WIDTH }} title={h?.name ?? ""}>
                     {h ? (
                       <Link
                         to={`/personeel/wonen/${h.id}`}
                         className="flex items-center gap-2 truncate min-h-[40px] hover:underline underline-offset-2"
                       >
-                        <span
-                          className="w-2.5 h-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: h.color }}
-                        />
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: h.color }} />
                         <span className="truncate hidden md:inline">{h.name}</span>
                       </Link>
                     ) : (
@@ -254,24 +324,17 @@ export default function Tijdlijn() {
           <div className="relative" style={{ width: totalWidth, minWidth: totalWidth }}>
             {/* Sticky header (months + days) */}
             <div className="sticky top-0 z-20 bg-card border-b border-border" style={{ height: "var(--timeline-date-h)", width: totalWidth }}>
-              {/* Month labels row */}
               <div className="relative h-5 border-b border-border/50" style={{ width: totalWidth }}>
                 {monthSegments.map(seg => (
                   <div
                     key={seg.startIdx}
                     className="absolute top-0 h-full text-xs font-medium text-muted-foreground flex items-center"
-                    style={{
-                      left: seg.startIdx * cellWidth,
-                      width: (seg.endIdx - seg.startIdx + 1) * cellWidth,
-                    }}
+                    style={{ left: seg.startIdx * cellWidth, width: (seg.endIdx - seg.startIdx + 1) * cellWidth }}
                   >
-                    <span className="sticky left-2 px-1 bg-card whitespace-nowrap">
-                      {seg.label}
-                    </span>
+                    <span className="sticky left-2 px-1 bg-card whitespace-nowrap">{seg.label}</span>
                   </div>
                 ))}
               </div>
-              {/* Day numbers row */}
               <div className="relative h-5" style={{ width: totalWidth }}>
                 {days.map((d, i) => {
                   const dow = getDay(d);
@@ -290,10 +353,76 @@ export default function Tijdlijn() {
               </div>
             </div>
 
+            {/* History row — between date-header and density-bar */}
+            {showHistory && (
+              <div
+                className="sticky z-10 bg-muted/10 border-b border-border/50"
+                style={{ top: "var(--timeline-date-h)", height: HISTORY_ROW_HEIGHT, width: totalWidth }}
+              >
+                {days.map((d, i) => {
+                  const total = historyTotalsPerDay[i];
+                  if (total === 0) return null;
+                  const target = subYears(d, 1);
+                  const targetStr = format(target, "yyyy-MM-dd");
+                  const teamRows = (historyByDate.get(targetStr) ?? [])
+                    .slice()
+                    .sort((a, b) => a.team_name.localeCompare(b.team_name));
+                  // Group by team_name when multiple locations contribute
+                  const teamMap = new Map<string, number>();
+                  for (const r of teamRows) {
+                    teamMap.set(r.team_name, (teamMap.get(r.team_name) ?? 0) + r.count);
+                  }
+                  const teamList = Array.from(teamMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+                  const opacity = Math.min(1, total / maxInWindow);
+                  return (
+                    <Popover key={`hist-${i}`}>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className="absolute top-0 h-full flex items-center justify-center hover:bg-accent/40 transition-colors cursor-pointer"
+                          style={{ left: i * cellWidth, width: cellWidth }}
+                        >
+                          <span
+                            className="text-[10px] text-muted-foreground tabular-nums font-medium"
+                            style={{ opacity: 0.4 + opacity * 0.6 }}
+                          >
+                            {total}
+                          </span>
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-3" align="center">
+                        <div className="text-sm font-semibold mb-2">
+                          {format(target, "d MMMM yyyy", { locale: nl })}
+                        </div>
+                        <div className="border-t border-border/50 pt-2 space-y-1">
+                          {teamList.map(([team, cnt]) => (
+                            <div key={team} className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">{team}</span>
+                              <span className="tabular-nums font-medium">{cnt}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="border-t border-border mt-2 pt-2 flex justify-between text-xs font-semibold">
+                          <span>Totaal</span>
+                          <span className="tabular-nums">{total}</span>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Density bar */}
             <div
               className="sticky z-10 border-b border-border"
-              style={{ top: "var(--timeline-date-h)", height: "var(--timeline-density-h)", width: totalWidth }}
+              style={{
+                top: showHistory
+                  ? `calc(var(--timeline-date-h) + var(--timeline-history-h))`
+                  : "var(--timeline-date-h)",
+                height: "var(--timeline-density-h)",
+                width: totalWidth,
+              }}
             >
               <DensityBar
                 people={people}
@@ -306,9 +435,8 @@ export default function Tijdlijn() {
               />
             </div>
 
-            {/* Tracks area — same height as left column rows for sync */}
+            {/* Tracks area */}
             <div className="relative" style={{ width: totalWidth, height: totalRowsHeight }}>
-              {/* Weekend stripes (full tracks height) */}
               {weekendOffsets.map(i => (
                 <div
                   key={`w-${i}`}
@@ -316,12 +444,10 @@ export default function Tijdlijn() {
                   style={{ left: i * cellWidth, width: cellWidth }}
                 />
               ))}
-              {/* Today line */}
               <div
                 className="absolute top-0 bottom-0 w-[2px] bg-destructive z-10 pointer-events-none"
                 style={{ left: todayOffset }}
               />
-              {/* Per-row content: header rows render a subtle band; person rows render the planning block */}
               {rows.map((r, i) => {
                 const top = offsets[i];
                 if (r.kind === "header") {
@@ -379,3 +505,6 @@ export default function Tijdlijn() {
     </div>
   );
 }
+
+// Local type re-import for the historyByDate generic
+type HistoryRow = import("@/hooks/personeel/useHistory").HistoryRow;
