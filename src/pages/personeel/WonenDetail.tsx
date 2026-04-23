@@ -298,9 +298,10 @@ interface RoomCardProps {
   room: PersoneelRoom;
   people: Person[]; // alle personen in deze housing
   today: Date;
+  onEdit: () => void;
 }
 
-function RoomCard({ room, people, today }: RoomCardProps) {
+function RoomCard({ room, people, today, onEdit }: RoomCardProps) {
   const occupants = useMemo(
     () => people.filter(p => p.room_id === room.id),
     [people, room.id],
