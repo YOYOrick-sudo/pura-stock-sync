@@ -109,7 +109,7 @@ export default function Tijdlijn() {
       ppl.forEach(p => out.push({ kind: "person", person: p }));
     });
     return out;
-  }, [people, locations]);
+  }, [people, locations, showHistory]);
 
   const { offsets, totalRowsHeight } = useMemo(() => {
     const offs: number[] = [];
