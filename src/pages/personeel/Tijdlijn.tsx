@@ -190,6 +190,20 @@ export default function Tijdlijn() {
                   </div>
                 );
               }
+              if (r.kind === "subheader") {
+                return (
+                  <div
+                    key={`sh-${r.locId}`}
+                    className="absolute left-0 right-0 flex items-center bg-muted/20 border-b border-border text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+                    style={{ top, height: SUBHEADER_HEIGHT }}
+                  >
+                    <div className="px-3 truncate" style={{ width: NAME_WIDTH }}>Naam</div>
+                    <div className="px-2 truncate" style={{ width: HOUSING_WIDTH }}>
+                      <span className="hidden md:inline">Woonruimte</span>
+                    </div>
+                  </div>
+                );
+              }
               const p = r.person;
               const h = housing.find(x => x.id === p.housing_id);
               return (
