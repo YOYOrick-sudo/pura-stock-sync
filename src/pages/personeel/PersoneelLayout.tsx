@@ -35,7 +35,7 @@ export default function PersoneelLayout() {
   if (!unlocked) {
     return (
       <SidebarLayout hideHeader>
-        <div className="min-h-[70vh] flex items-center justify-center p-4">
+        <div className="min-h-[70vh] flex items-center justify-center p-4 animate-fade-in">
           <PincodeNumpad title="Planning" onSubmit={handlePin} />
         </div>
       </SidebarLayout>
