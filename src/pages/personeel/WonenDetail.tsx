@@ -141,9 +141,18 @@ export default function WonenDetail() {
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             {[...rooms].sort((a, b) => a.sort_order - b.sort_order).map(room => (
-              <RoomCard key={room.id} room={room} people={peopleInHousing} today={today} />
+              <RoomCard
+                key={room.id}
+                room={room}
+                people={peopleInHousing}
+                today={today}
+                onEdit={() => setRoomModal({ open: true, room })}
+              />
             ))}
           </div>
+
+          {/* Bewoners zonder specifieke kamer */}
+          <ResidentsWithoutRoom people={peopleInHousing} today={today} horizon={horizon} />
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
@@ -289,9 +298,10 @@ interface RoomCardProps {
   room: PersoneelRoom;
   people: Person[]; // alle personen in deze housing
   today: Date;
+  onEdit: () => void;
 }
 
-function RoomCard({ room, people, today }: RoomCardProps) {
+function RoomCard({ room, people, today, onEdit }: RoomCardProps) {
   const occupants = useMemo(
     () => people.filter(p => p.room_id === room.id),
     [people, room.id],
@@ -341,9 +351,17 @@ function RoomCard({ room, people, today }: RoomCardProps) {
   }
 
   return (
-    <Card className={`rounded-[20px] ${isOverbooked ? "border-destructive border-2" : ""}`}>
+    <Card className={`rounded-[20px] relative group ${isOverbooked ? "border-destructive border-2" : ""}`}>
+      <button
+        type="button"
+        onClick={onEdit}
+        className="absolute top-3 right-3 p-1.5 rounded-md hover:bg-muted opacity-60 hover:opacity-100 transition z-10"
+        aria-label="Kamer bewerken"
+      >
+        <Pencil className="h-4 w-4" />
+      </button>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center justify-between gap-2">
+        <CardTitle className="text-base flex items-center justify-between gap-2 pr-8">
           <span className="truncate">{room.name}</span>
           {isOverbooked && (
             <Badge variant="destructive" className="text-[10px] uppercase tracking-wide">Overboekt</Badge>
@@ -402,6 +420,86 @@ function RoomCard({ room, people, today }: RoomCardProps) {
             {freeSlots} {freeSlots === 1 ? "plek" : "plekken"} vrij
           </p>
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+interface ResidentsWithoutRoomProps {
+  people: Person[];
+  today: Date;
+  horizon: Date;
+}
+
+function ResidentsWithoutRoom({ people, today, horizon }: ResidentsWithoutRoomProps) {
+  const withoutRoom = useMemo(
+    () => people.filter(p => p.room_id === null),
+    [people],
+  );
+
+  const currentNow = useMemo(
+    () => withoutRoom
+      .filter(p => isActiveOn(p, today))
+      .sort((a, b) => a.end_date.localeCompare(b.end_date)),
+    [withoutRoom, today],
+  );
+
+  const future = useMemo(
+    () => withoutRoom
+      .filter(p => {
+        const s = parseISO(p.start_date);
+        return isAfter(s, today) && isBefore(s, horizon);
+      })
+      .sort((a, b) => a.start_date.localeCompare(b.start_date)),
+    [withoutRoom, today, horizon],
+  );
+
+  if (withoutRoom.length === 0) return null;
+
+  return (
+    <Card className="rounded-[20px] border-dashed">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">Bewoners zonder specifieke kamer</CardTitle>
+        <p className="text-xs text-muted-foreground">
+          Deze collega's horen bij deze woonruimte maar hebben geen kamer toegewezen
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        <div>
+          <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Nu</div>
+          {currentNow.length === 0 ? (
+            <p className="text-muted-foreground italic text-xs">Leeg</p>
+          ) : (
+            <ul className="space-y-1">
+              {currentNow.map(p => (
+                <li key={p.id} className="flex items-center justify-between">
+                  <span className="font-medium truncate">{p.name}</span>
+                  <span className="text-xs text-muted-foreground shrink-0 ml-2">
+                    tot {format(parseISO(p.end_date), "d MMM yyyy", { locale: nl })}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div>
+          <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Daarna</div>
+          {future.length === 0 ? (
+            <p className="text-muted-foreground italic text-xs">Geen aankomende bewoners (komende 90 dagen)</p>
+          ) : (
+            <ul className="space-y-1">
+              {future.map(p => (
+                <li key={p.id} className="flex items-center justify-between">
+                  <span className="font-medium truncate">{p.name}</span>
+                  <span className="text-xs text-muted-foreground shrink-0 ml-2">
+                    vanaf {format(parseISO(p.start_date), "d MMM yyyy", { locale: nl })}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
