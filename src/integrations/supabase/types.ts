@@ -1152,6 +1152,7 @@ export type Database = {
           name: string
           notes: string | null
           pay: string | null
+          room_id: string | null
           start_date: string
           team_id: string
           updated_at: string
@@ -1170,6 +1171,7 @@ export type Database = {
           name: string
           notes?: string | null
           pay?: string | null
+          room_id?: string | null
           start_date: string
           team_id: string
           updated_at?: string
@@ -1188,6 +1190,7 @@ export type Database = {
           name?: string
           notes?: string | null
           pay?: string | null
+          room_id?: string | null
           start_date?: string
           team_id?: string
           updated_at?: string
@@ -1210,10 +1213,61 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "personeel_people_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "personeel_rooms"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "personeel_people_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "personeel_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      personeel_rooms: {
+        Row: {
+          capacity: number
+          created_at: string
+          housing_id: string
+          id: string
+          name: string
+          notes: string | null
+          size_m2: number | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          housing_id: string
+          id?: string
+          name: string
+          notes?: string | null
+          size_m2?: number | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          housing_id?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          size_m2?: number | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personeel_rooms_housing_id_fkey"
+            columns: ["housing_id"]
+            isOneToOne: false
+            referencedRelation: "personeel_housing"
             referencedColumns: ["id"]
           },
         ]

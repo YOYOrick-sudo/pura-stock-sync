@@ -36,6 +36,18 @@ export interface PersoneelHousing {
   updated_at: string;
 }
 
+export interface PersoneelRoom {
+  id: string;
+  housing_id: string;
+  name: string;
+  size_m2: number | null;
+  capacity: number;
+  sort_order: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Person {
   id: string;
   name: string;
@@ -43,6 +55,7 @@ export interface Person {
   location_id: string;
   team_id: string;
   housing_id: string | null;
+  room_id: string | null;
   start_date: string; // ISO date
   end_date: string;
   days_per_week: number | null;
@@ -61,6 +74,7 @@ export interface PersonInput {
   location_id: string;
   team_id: string;
   housing_id?: string | null;
+  room_id?: string | null;
   start_date: string;
   end_date: string;
   days_per_week?: number | null;

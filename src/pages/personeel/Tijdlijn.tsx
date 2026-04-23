@@ -15,7 +15,10 @@ const TOTAL_DAYS = DAYS_BEFORE + DAYS_AFTER + 1;
 
 type Row =
   | { kind: "header"; locId: string; locName: string }
+  | { kind: "subheader"; locId: string }
   | { kind: "person"; person: Person };
+
+const SUBHEADER_HEIGHT = 24;
 
 export default function Tijdlijn() {
   const { data: people = [], isLoading } = usePeople();
@@ -95,6 +98,7 @@ export default function Tijdlijn() {
       const ppl = (byLoc.get(loc.id) ?? []).sort((a, b) => a.name.localeCompare(b.name));
       if (ppl.length === 0) return;
       out.push({ kind: "header", locId: loc.id, locName: loc.name });
+      out.push({ kind: "subheader", locId: loc.id });
       ppl.forEach(p => out.push({ kind: "person", person: p }));
     });
     return out;
@@ -106,7 +110,9 @@ export default function Tijdlijn() {
     let acc = 0;
     rows.forEach(r => {
       offs.push(acc);
-      acc += r.kind === "header" ? headerHeight : rowHeight;
+      if (r.kind === "header") acc += headerHeight;
+      else if (r.kind === "subheader") acc += SUBHEADER_HEIGHT;
+      else acc += rowHeight;
     });
     return { offsets: offs, totalRowsHeight: acc };
   }, [rows, headerHeight, rowHeight]);
@@ -181,6 +187,20 @@ export default function Tijdlijn() {
                     style={{ top, height: headerHeight }}
                   >
                     {r.locName}
+                  </div>
+                );
+              }
+              if (r.kind === "subheader") {
+                return (
+                  <div
+                    key={`sh-${r.locId}`}
+                    className="absolute left-0 right-0 flex items-center bg-muted/20 border-b border-border text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+                    style={{ top, height: SUBHEADER_HEIGHT }}
+                  >
+                    <div className="px-3 truncate" style={{ width: NAME_WIDTH }}>Naam</div>
+                    <div className="px-2 truncate" style={{ width: HOUSING_WIDTH }}>
+                      <span className="hidden md:inline">Woonruimte</span>
+                    </div>
                   </div>
                 );
               }
@@ -310,6 +330,15 @@ export default function Tijdlijn() {
                       key={`th-${r.locId}`}
                       className="absolute left-0 right-0 bg-muted/30 border-b border-border/50 pointer-events-none"
                       style={{ top, height: headerHeight }}
+                    />
+                  );
+                }
+                if (r.kind === "subheader") {
+                  return (
+                    <div
+                      key={`tsh-${r.locId}`}
+                      className="absolute left-0 right-0 bg-muted/20 border-b border-border pointer-events-none"
+                      style={{ top, height: SUBHEADER_HEIGHT }}
                     />
                   );
                 }

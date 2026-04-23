@@ -58,6 +58,7 @@ export function useCreatePerson() {
         location_id: input.location_id,
         team_id: input.team_id,
         housing_id: input.housing_id ?? null,
+        room_id: input.room_id ?? null,
         start_date: input.start_date,
         end_date: input.end_date,
         days_per_week: input.days_per_week ?? null,

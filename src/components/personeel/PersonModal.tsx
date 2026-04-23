@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon, ChevronDown } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
-import { useLocations, useTeamsByLocation, useHousing, useCreatePerson, useUpdatePerson } from "@/hooks/personeel";
+import { useLocations, useTeamsByLocation, useHousing, useRoomsByHousing, useCreatePerson, useUpdatePerson } from "@/hooks/personeel";
 import type { Person } from "@/types/personeel";
 
 interface PersonModalProps {
@@ -29,6 +29,7 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
   const [locationId, setLocationId] = useState("");
   const [teamId, setTeamId] = useState("");
   const [housingId, setHousingId] = useState<string>("");
+  const [roomId, setRoomId] = useState<string>("");
   const [start, setStart] = useState<Date | undefined>();
   const [end, setEnd] = useState<Date | undefined>();
   const [showDetails, setShowDetails] = useState(false);
@@ -38,6 +39,7 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
   const [pay, setPay] = useState("");
 
   const { data: teams = [] } = useTeamsByLocation(locationId || null);
+  const { data: rooms = [] } = useRoomsByHousing(housingId || null);
 
   useEffect(() => {
     if (person) {
@@ -45,6 +47,7 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
       setLocationId(person.location_id);
       setTeamId(person.team_id);
       setHousingId(person.housing_id ?? "");
+      setRoomId(person.room_id ?? "");
       setStart(parseISO(person.start_date));
       setEnd(parseISO(person.end_date));
       setDaysPerWeek(person.days_per_week?.toString() ?? "");
@@ -52,7 +55,7 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
       setCompetence(person.competence ?? "");
       setPay(person.pay ?? "");
     } else {
-      setName(""); setLocationId(""); setTeamId(""); setHousingId("");
+      setName(""); setLocationId(""); setTeamId(""); setHousingId(""); setRoomId("");
       setStart(undefined); setEnd(undefined); setDaysPerWeek("");
       setNotes(""); setCompetence(""); setPay("");
     }
@@ -74,6 +77,7 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
       location_id: locationId,
       team_id: teamId,
       housing_id: housingId || null,
+      room_id: housingId && roomId ? roomId : null,
       start_date: format(start, "yyyy-MM-dd"),
       end_date: format(end, "yyyy-MM-dd"),
       days_per_week: daysPerWeek ? parseInt(daysPerWeek, 10) : null,
@@ -134,7 +138,11 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
 
           <div className="space-y-2">
             <Label>Slaapplek</Label>
-            <Select value={housingId || "__none"} onValueChange={(v) => setHousingId(v === "__none" ? "" : v)}>
+            <Select value={housingId || "__none"} onValueChange={(v) => {
+              const next = v === "__none" ? "" : v;
+              setHousingId(next);
+              setRoomId(""); // reset room bij wijziging slaapplek
+            }}>
               <SelectTrigger><SelectValue placeholder="Kies slaapplek" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="__none">Geen slaapplek</SelectItem>
@@ -149,6 +157,29 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
               </SelectContent>
             </Select>
           </div>
+
+          {housingId && rooms.length > 0 && (
+            <div className="space-y-2">
+              <Label>Kamer</Label>
+              <Select value={roomId || "__none"} onValueChange={(v) => setRoomId(v === "__none" ? "" : v)}>
+                <SelectTrigger><SelectValue placeholder="Kies kamer" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none">Geen specifieke kamer</SelectItem>
+                  {rooms.map(r => (
+                    <SelectItem key={r.id} value={r.id}>
+                      {r.name}
+                      {r.capacity > 1 && ` · ${r.capacity} bedden`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {housingId && rooms.length === 0 && (
+            <p className="text-xs text-muted-foreground -mt-2">
+              Deze slaapplek heeft geen kamers gedefinieerd.
+            </p>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
