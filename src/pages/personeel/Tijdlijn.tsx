@@ -264,15 +264,6 @@ export default function Tijdlijn() {
           <div style={{ height: "var(--timeline-header-h)" }} className="border-b border-border bg-card sticky top-0 z-10 flex flex-col">
             {/* Date-header spacer */}
             <div style={{ height: "var(--timeline-date-h)" }} />
-            {/* Vorig jaar label */}
-            {showHistory && (
-              <div
-                className="text-xs text-muted-foreground font-medium px-3 flex items-center border-t border-border/50"
-                style={{ height: HISTORY_ROW_HEIGHT }}
-              >
-                Vorig jaar
-              </div>
-            )}
             {/* Density-bar spacer */}
             <div style={{ height: "var(--timeline-density-h)" }} />
           </div>
