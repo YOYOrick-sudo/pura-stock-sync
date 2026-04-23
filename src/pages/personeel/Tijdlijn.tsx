@@ -231,8 +231,6 @@ export default function Tijdlijn() {
   const HOUSING_WIDTH = isLg ? 120 : 40;
   const NAME_COL_WIDTH = NAME_WIDTH + HOUSING_WIDTH;
 
-  const historyRowH = showHistory ? HISTORY_ROW_HEIGHT : 0;
-
   if (isLoading) return <Skeleton className="h-[600px] w-full" />;
 
   return (
@@ -240,9 +238,8 @@ export default function Tijdlijn() {
       className="relative rounded-[20px] border border-border bg-card overflow-hidden w-full max-w-full min-w-0"
       style={{
         ["--timeline-date-h" as string]: "40px",
-        ["--timeline-history-h" as string]: `${historyRowH}px`,
         ["--timeline-density-h" as string]: "32px",
-        ["--timeline-header-h" as string]: "calc(var(--timeline-date-h) + var(--timeline-history-h) + var(--timeline-density-h))",
+        ["--timeline-header-h" as string]: "calc(var(--timeline-date-h) + var(--timeline-density-h))",
       } as React.CSSProperties}
     >
       <div className="flex items-center justify-between p-3 border-b border-border bg-card gap-3">
