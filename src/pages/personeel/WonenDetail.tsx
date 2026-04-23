@@ -141,9 +141,18 @@ export default function WonenDetail() {
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             {[...rooms].sort((a, b) => a.sort_order - b.sort_order).map(room => (
-              <RoomCard key={room.id} room={room} people={peopleInHousing} today={today} />
+              <RoomCard
+                key={room.id}
+                room={room}
+                people={peopleInHousing}
+                today={today}
+                onEdit={() => setRoomModal({ open: true, room })}
+              />
             ))}
           </div>
+
+          {/* Bewoners zonder specifieke kamer */}
+          <ResidentsWithoutRoom people={peopleInHousing} today={today} horizon={horizon} />
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
