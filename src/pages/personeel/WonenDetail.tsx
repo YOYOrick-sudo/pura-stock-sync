@@ -351,9 +351,17 @@ function RoomCard({ room, people, today, onEdit }: RoomCardProps) {
   }
 
   return (
-    <Card className={`rounded-[20px] ${isOverbooked ? "border-destructive border-2" : ""}`}>
+    <Card className={`rounded-[20px] relative group ${isOverbooked ? "border-destructive border-2" : ""}`}>
+      <button
+        type="button"
+        onClick={onEdit}
+        className="absolute top-3 right-3 p-1.5 rounded-md hover:bg-muted opacity-60 hover:opacity-100 transition z-10"
+        aria-label="Kamer bewerken"
+      >
+        <Pencil className="h-4 w-4" />
+      </button>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center justify-between gap-2">
+        <CardTitle className="text-base flex items-center justify-between gap-2 pr-8">
           <span className="truncate">{room.name}</span>
           {isOverbooked && (
             <Badge variant="destructive" className="text-[10px] uppercase tracking-wide">Overboekt</Badge>
