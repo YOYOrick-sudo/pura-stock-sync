@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon, ChevronDown } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
-import { useLocations, useTeams, useHousing, useCreatePerson, useUpdatePerson } from "@/hooks/personeel";
+import { useLocations, useTeamsByLocation, useHousing, useCreatePerson, useUpdatePerson } from "@/hooks/personeel";
 import type { Person } from "@/types/personeel";
 
 interface PersonModalProps {
@@ -21,7 +21,6 @@ interface PersonModalProps {
 
 export function PersonModal({ open, onClose, person }: PersonModalProps) {
   const { data: locations = [] } = useLocations();
-  const { data: teams = [] } = useTeams();
   const { data: housing = [] } = useHousing();
   const createMut = useCreatePerson();
   const updateMut = useUpdatePerson();
@@ -37,6 +36,8 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
   const [notes, setNotes] = useState("");
   const [competence, setCompetence] = useState<string>("");
   const [pay, setPay] = useState("");
+
+  const { data: teams = [] } = useTeamsByLocation(locationId || null);
 
   useEffect(() => {
     if (person) {
@@ -57,6 +58,12 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
     }
     setShowDetails(false);
   }, [person, open]);
+
+  // Wanneer vestiging wijzigt en het gekozen team niet meer past → reset team
+  const handleLocationChange = (newLoc: string) => {
+    setLocationId(newLoc);
+    setTeamId("");
+  };
 
   const canSubmit = name.trim().length > 1 && locationId && teamId && start && end;
 
@@ -102,7 +109,7 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Vestiging</Label>
-              <Select value={locationId} onValueChange={setLocationId}>
+              <Select value={locationId} onValueChange={handleLocationChange}>
                 <SelectTrigger><SelectValue placeholder="Kies vestiging" /></SelectTrigger>
                 <SelectContent>
                   {locations.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
@@ -111,9 +118,14 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
             </div>
             <div className="space-y-2">
               <Label>Team</Label>
-              <Select value={teamId} onValueChange={setTeamId}>
-                <SelectTrigger><SelectValue placeholder="Kies team" /></SelectTrigger>
+              <Select value={teamId} onValueChange={setTeamId} disabled={!locationId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={locationId ? "Kies team" : "Kies eerst vestiging"} />
+                </SelectTrigger>
                 <SelectContent>
+                  {teams.length === 0 && locationId && (
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">Geen teams in deze vestiging</div>
+                  )}
                   {teams.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
                 </SelectContent>
               </Select>

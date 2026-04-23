@@ -30,6 +30,7 @@ import Unsubscribe from "./pages/Unsubscribe";
 import PersoneelLayout from "./pages/personeel/PersoneelLayout";
 import Tijdlijn from "./pages/personeel/Tijdlijn";
 import Wonen from "./pages/personeel/Wonen";
+import WonenDetail from "./pages/personeel/WonenDetail";
 import Collegas from "./pages/personeel/Collegas";
 import PersoneelSettings from "./pages/personeel/PersoneelSettings";
 const queryClient = new QueryClient();
@@ -203,6 +204,7 @@ const App = () => (
             >
               <Route index element={<Tijdlijn />} />
               <Route path="wonen" element={<Wonen />} />
+              <Route path="wonen/:id" element={<WonenDetail />} />
               <Route path="collegas" element={<Collegas />} />
               <Route path="settings" element={<PersoneelSettings />} />
             </Route>

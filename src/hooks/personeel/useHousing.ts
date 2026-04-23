@@ -6,6 +6,22 @@ import { toast } from "sonner";
 
 const KEY = ["personeel", "housing"] as const;
 
+export interface HousingUpsertInput {
+  id?: string;
+  name: string;
+  color: string;
+  capacity: number | null;
+  sort_order?: number;
+  address?: string | null;
+  cost_per_month?: number | null;
+  rooms?: number | null;
+  room_size_m2?: number | null;
+  contact_name?: string | null;
+  facilities?: string[];
+  description?: string | null;
+  notes?: string | null;
+}
+
 export function useHousing() {
   const qc = useQueryClient();
   useEffect(() => {
@@ -36,18 +52,27 @@ export function useHousing() {
 export function useUpsertHousing() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { id?: string; name: string; color: string; capacity: number | null; sort_order?: number }) => {
-      const payload = {
+    mutationFn: async (input: HousingUpsertInput) => {
+      const payload: Record<string, unknown> = {
         name: input.name,
         color: input.color,
         capacity: input.capacity,
         sort_order: input.sort_order ?? 0,
       };
+      if (input.address !== undefined) payload.address = input.address;
+      if (input.cost_per_month !== undefined) payload.cost_per_month = input.cost_per_month;
+      if (input.rooms !== undefined) payload.rooms = input.rooms;
+      if (input.room_size_m2 !== undefined) payload.room_size_m2 = input.room_size_m2;
+      if (input.contact_name !== undefined) payload.contact_name = input.contact_name;
+      if (input.facilities !== undefined) payload.facilities = input.facilities;
+      if (input.description !== undefined) payload.description = input.description;
+      if (input.notes !== undefined) payload.notes = input.notes;
+
       if (input.id) {
-        const { error } = await supabase.from("personeel_housing").update(payload).eq("id", input.id);
+        const { error } = await supabase.from("personeel_housing").update(payload as never).eq("id", input.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("personeel_housing").insert(payload);
+        const { error } = await supabase.from("personeel_housing").insert(payload as never);
         if (error) throw error;
       }
     },

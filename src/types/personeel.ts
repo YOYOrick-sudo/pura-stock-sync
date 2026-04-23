@@ -11,6 +11,7 @@ export interface PersoneelLocation {
 export interface PersoneelTeam {
   id: string;
   name: string;
+  location_id: string;
   sort_order: number;
   created_at: string;
   updated_at: string;
@@ -22,6 +23,15 @@ export interface PersoneelHousing {
   color: string;
   capacity: number | null;
   sort_order: number;
+  // Uitgebreide velden (allemaal optioneel)
+  address: string | null;
+  cost_per_month: number | null;
+  rooms: number | null;
+  room_size_m2: number | null;
+  contact_name: string | null;
+  facilities: string[];
+  description: string | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -60,3 +70,12 @@ export interface PersonInput {
 }
 
 export type PersonUpdate = Partial<PersonInput>;
+
+export const HOUSING_FACILITY_PRESETS = [
+  "wifi",
+  "wasmachine",
+  "parkeerplek",
+  "eigen badkamer",
+  "tuin",
+  "fiets",
+] as const;
