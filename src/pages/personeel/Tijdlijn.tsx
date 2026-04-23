@@ -333,6 +333,15 @@ export default function Tijdlijn() {
                     />
                   );
                 }
+                if (r.kind === "subheader") {
+                  return (
+                    <div
+                      key={`tsh-${r.locId}`}
+                      className="absolute left-0 right-0 bg-muted/20 border-b border-border pointer-events-none"
+                      style={{ top, height: SUBHEADER_HEIGHT }}
+                    />
+                  );
+                }
                 const p = r.person;
                 const h = housing.find(x => x.id === p.housing_id);
                 const startIdx = differenceInCalendarDays(new Date(p.start_date), windowStart);
