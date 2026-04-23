@@ -424,3 +424,83 @@ function RoomCard({ room, people, today, onEdit }: RoomCardProps) {
     </Card>
   );
 }
+
+interface ResidentsWithoutRoomProps {
+  people: Person[];
+  today: Date;
+  horizon: Date;
+}
+
+function ResidentsWithoutRoom({ people, today, horizon }: ResidentsWithoutRoomProps) {
+  const withoutRoom = useMemo(
+    () => people.filter(p => p.room_id === null),
+    [people],
+  );
+
+  const currentNow = useMemo(
+    () => withoutRoom
+      .filter(p => isActiveOn(p, today))
+      .sort((a, b) => a.end_date.localeCompare(b.end_date)),
+    [withoutRoom, today],
+  );
+
+  const future = useMemo(
+    () => withoutRoom
+      .filter(p => {
+        const s = parseISO(p.start_date);
+        return isAfter(s, today) && isBefore(s, horizon);
+      })
+      .sort((a, b) => a.start_date.localeCompare(b.start_date)),
+    [withoutRoom, today, horizon],
+  );
+
+  if (withoutRoom.length === 0) return null;
+
+  return (
+    <Card className="rounded-[20px] border-dashed">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">Bewoners zonder specifieke kamer</CardTitle>
+        <p className="text-xs text-muted-foreground">
+          Deze collega's horen bij deze woonruimte maar hebben geen kamer toegewezen
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        <div>
+          <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Nu</div>
+          {currentNow.length === 0 ? (
+            <p className="text-muted-foreground italic text-xs">Leeg</p>
+          ) : (
+            <ul className="space-y-1">
+              {currentNow.map(p => (
+                <li key={p.id} className="flex items-center justify-between">
+                  <span className="font-medium truncate">{p.name}</span>
+                  <span className="text-xs text-muted-foreground shrink-0 ml-2">
+                    tot {format(parseISO(p.end_date), "d MMM yyyy", { locale: nl })}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div>
+          <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Daarna</div>
+          {future.length === 0 ? (
+            <p className="text-muted-foreground italic text-xs">Geen aankomende bewoners (komende 90 dagen)</p>
+          ) : (
+            <ul className="space-y-1">
+              {future.map(p => (
+                <li key={p.id} className="flex items-center justify-between">
+                  <span className="font-medium truncate">{p.name}</span>
+                  <span className="text-xs text-muted-foreground shrink-0 ml-2">
+                    vanaf {format(parseISO(p.start_date), "d MMM yyyy", { locale: nl })}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
