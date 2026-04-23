@@ -104,6 +104,7 @@ export default function Tijdlijn() {
       const ppl = (byLoc.get(loc.id) ?? []).sort((a, b) => a.name.localeCompare(b.name));
       if (ppl.length === 0) return;
       out.push({ kind: "header", locId: loc.id, locName: loc.name });
+      if (showHistory) out.push({ kind: "history", locId: loc.id });
       out.push({ kind: "subheader", locId: loc.id });
       ppl.forEach(p => out.push({ kind: "person", person: p }));
     });
