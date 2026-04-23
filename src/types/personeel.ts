@@ -44,6 +44,8 @@ export interface PersoneelRoom {
   capacity: number;
   sort_order: number;
   notes: string | null;
+  cost_per_person: number | null;
+  cost_private: number | null;
   created_at: string;
   updated_at: string;
 }

@@ -14,6 +14,8 @@ export interface RoomUpsertInput {
   capacity?: number;
   sort_order?: number;
   notes?: string | null;
+  cost_per_person?: number | null;
+  cost_private?: number | null;
 }
 
 export function useRooms() {
@@ -67,6 +69,8 @@ export function useUpsertRoom() {
       if (input.capacity !== undefined) payload.capacity = input.capacity;
       if (input.sort_order !== undefined) payload.sort_order = input.sort_order;
       if (input.notes !== undefined) payload.notes = input.notes;
+      if (input.cost_per_person !== undefined) payload.cost_per_person = input.cost_per_person;
+      if (input.cost_private !== undefined) payload.cost_private = input.cost_private;
 
       if (input.id) {
         const { error } = await supabase.from("personeel_rooms").update(payload as never).eq("id", input.id);
