@@ -117,6 +117,7 @@ export default function Tijdlijn() {
     rows.forEach(r => {
       offs.push(acc);
       if (r.kind === "header") acc += headerHeight;
+      else if (r.kind === "history") acc += HISTORY_ROW_HEIGHT;
       else if (r.kind === "subheader") acc += SUBHEADER_HEIGHT;
       else acc += rowHeight;
     });
