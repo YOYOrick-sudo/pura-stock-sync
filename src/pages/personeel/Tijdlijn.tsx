@@ -374,65 +374,7 @@ export default function Tijdlijn() {
               </div>
             </div>
 
-            {/* History row — between date-header and density-bar */}
-            {showHistory && (
-              <div
-                className="sticky z-10 bg-muted/10 border-b border-border/50"
-                style={{ top: "var(--timeline-date-h)", height: HISTORY_ROW_HEIGHT, width: totalWidth }}
-              >
-                {days.map((d, i) => {
-                  const total = historyTotalsPerDay[i];
-                  if (total === 0) return null;
-                  const target = subYears(d, 1);
-                  const targetStr = format(target, "yyyy-MM-dd");
-                  const teamRows = (historyByDate.get(targetStr) ?? [])
-                    .slice()
-                    .sort((a, b) => a.team_name.localeCompare(b.team_name));
-                  // Group by team_name when multiple locations contribute
-                  const teamMap = new Map<string, number>();
-                  for (const r of teamRows) {
-                    teamMap.set(r.team_name, (teamMap.get(r.team_name) ?? 0) + r.count);
-                  }
-                  const teamList = Array.from(teamMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-                  const opacity = Math.min(1, total / maxInWindow);
-                  return (
-                    <Popover key={`hist-${i}`}>
-                      <PopoverTrigger asChild>
-                        <button
-                          type="button"
-                          className="absolute top-0 h-full flex items-center justify-center hover:bg-accent/40 transition-colors cursor-pointer"
-                          style={{ left: i * cellWidth, width: cellWidth }}
-                        >
-                          <span
-                            className="text-[10px] text-muted-foreground tabular-nums font-medium"
-                            style={{ opacity: 0.4 + opacity * 0.6 }}
-                          >
-                            {total}
-                          </span>
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-56 p-3" align="center">
-                        <div className="text-sm font-semibold mb-2">
-                          {format(target, "d MMMM yyyy", { locale: nl })}
-                        </div>
-                        <div className="border-t border-border/50 pt-2 space-y-1">
-                          {teamList.map(([team, cnt]) => (
-                            <div key={team} className="flex justify-between text-xs">
-                              <span className="text-muted-foreground">{team}</span>
-                              <span className="tabular-nums font-medium">{cnt}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="border-t border-border mt-2 pt-2 flex justify-between text-xs font-semibold">
-                          <span>Totaal</span>
-                          <span className="tabular-nums">{total}</span>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  );
-                })}
-              </div>
-            )}
+            {/* (Globale "Vorig jaar"-rij verwijderd — nu per vestiging-groep, zie tracks-area) */}
 
             {/* Density bar */}
             <div
