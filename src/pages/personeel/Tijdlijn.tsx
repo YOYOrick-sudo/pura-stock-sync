@@ -15,7 +15,10 @@ const TOTAL_DAYS = DAYS_BEFORE + DAYS_AFTER + 1;
 
 type Row =
   | { kind: "header"; locId: string; locName: string }
+  | { kind: "subheader"; locId: string }
   | { kind: "person"; person: Person };
+
+const SUBHEADER_HEIGHT = 24;
 
 export default function Tijdlijn() {
   const { data: people = [], isLoading } = usePeople();
@@ -95,6 +98,7 @@ export default function Tijdlijn() {
       const ppl = (byLoc.get(loc.id) ?? []).sort((a, b) => a.name.localeCompare(b.name));
       if (ppl.length === 0) return;
       out.push({ kind: "header", locId: loc.id, locName: loc.name });
+      out.push({ kind: "subheader", locId: loc.id });
       ppl.forEach(p => out.push({ kind: "person", person: p }));
     });
     return out;
@@ -106,7 +110,9 @@ export default function Tijdlijn() {
     let acc = 0;
     rows.forEach(r => {
       offs.push(acc);
-      acc += r.kind === "header" ? headerHeight : rowHeight;
+      if (r.kind === "header") acc += headerHeight;
+      else if (r.kind === "subheader") acc += SUBHEADER_HEIGHT;
+      else acc += rowHeight;
     });
     return { offsets: offs, totalRowsHeight: acc };
   }, [rows, headerHeight, rowHeight]);
