@@ -13,10 +13,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { NotificationsDropdown } from '@/components/NotificationsDropdown';
 import { PolarSidebar } from '@/components/polar/Sidebar';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { PincodeNumpad } from '@/components/PincodeNumpad';
 import puraVidaLogo from '@/assets/pura-vida-logo-sea-cropped.png';
 
 const allNavigationItems = [
