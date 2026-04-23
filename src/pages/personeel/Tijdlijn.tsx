@@ -380,9 +380,7 @@ export default function Tijdlijn() {
             <div
               className="sticky z-10 border-b border-border"
               style={{
-                top: showHistory
-                  ? `calc(var(--timeline-date-h) + var(--timeline-history-h))`
-                  : "var(--timeline-date-h)",
+                top: "var(--timeline-date-h)",
                 height: "var(--timeline-density-h)",
                 width: totalWidth,
               }}
