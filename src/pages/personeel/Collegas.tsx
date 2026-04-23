@@ -1,18 +1,22 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { usePeople, useLocations, useTeams, useHousing, useSoftDeletePerson, usePersoneelFilters } from "@/hooks/personeel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { MoreVertical, Plus, X } from "lucide-react";
 import { PersonModal } from "@/components/personeel/PersonModal";
-import { formatPeriod } from "@/lib/personeel-utils";
+import { categorizeByDate, formatPeriod } from "@/lib/personeel-utils";
 import type { Person } from "@/types/personeel";
 import { copy } from "@/lib/personeel-copy";
+
+type ViewKey = "actief" | "toekomstig" | "afgelopen";
 
 export default function Collegas() {
   const { data: people = [], isLoading } = usePeople();
@@ -21,6 +25,14 @@ export default function Collegas() {
   const { data: housing = [] } = useHousing();
   const softDelete = useSoftDeletePerson();
   const { filters, hasAny, toggleLocation, toggleTeam, toggleHousing, setQ, clear } = usePersoneelFilters();
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const view = (searchParams.get("view") as ViewKey) || "actief";
+  const setView = (v: ViewKey) => {
+    const sp = new URLSearchParams(searchParams);
+    sp.set("view", v);
+    setSearchParams(sp, { replace: true });
+  };
 
   const [editing, setEditing] = useState<Person | null>(null);
   const [showNew, setShowNew] = useState(false);
@@ -36,9 +48,96 @@ export default function Collegas() {
     });
   }, [people, filters]);
 
+  const { current, future, past } = useMemo(() => categorizeByDate(filtered), [filtered]);
+
   const locName = (id: string) => locations.find(l => l.id === id)?.name ?? "—";
   const teamName = (id: string) => teams.find(t => t.id === id)?.name ?? "—";
   const housingObj = (id: string | null) => housing.find(h => h.id === id);
+
+  // Group people by location_id, sort within group by start_date asc
+  const groupByLocation = (list: Person[]) => {
+    const sortedLocs = [...locations].sort((a, b) => a.sort_order - b.sort_order);
+    return sortedLocs
+      .map(loc => ({
+        loc,
+        people: list
+          .filter(p => p.location_id === loc.id)
+          .sort((a, b) => a.start_date.localeCompare(b.start_date)),
+      }))
+      .filter(g => g.people.length > 0);
+  };
+
+  const renderGrouped = (list: Person[]) => {
+    const groups = groupByLocation(list);
+    if (groups.length === 0) {
+      return (
+        <div className="p-8 text-center text-muted-foreground text-sm">Geen collega's in deze categorie</div>
+      );
+    }
+    return (
+      <Card className="rounded-[20px] overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Naam</TableHead>
+              <TableHead>Team</TableHead>
+              <TableHead>Periode</TableHead>
+              <TableHead>Slaapplek</TableHead>
+              <TableHead>Competentie</TableHead>
+              <TableHead>Betaling</TableHead>
+              <TableHead className="w-10" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {groups.map(g => (
+              <>
+                <TableRow key={`g-${g.loc.id}`} className="bg-muted/60 hover:bg-muted/60">
+                  <TableCell colSpan={7} className="font-semibold text-sm py-2">
+                    {g.loc.name} <span className="text-muted-foreground font-normal">({g.people.length})</span>
+                  </TableCell>
+                </TableRow>
+                {g.people.map(p => {
+                  const h = housingObj(p.housing_id);
+                  return (
+                    <TableRow key={p.id}>
+                      <TableCell className="font-medium">{p.name}</TableCell>
+                      <TableCell>{teamName(p.team_id)}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{formatPeriod(p.start_date, p.end_date)}</TableCell>
+                      <TableCell>
+                        {h ? (
+                          <span className="flex items-center gap-2 text-sm">
+                            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: h.color }} />
+                            {h.name}
+                          </span>
+                        ) : <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="text-sm">{p.competence ?? "—"}</TableCell>
+                      <TableCell className="text-sm">{p.pay ?? "—"}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setEditing(p)}>{copy.bewerken}</DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive" onClick={() => setConfirmDelete(p)}>
+                              {copy.verwijderen}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
+    );
+  };
 
   if (isLoading) return <Skeleton className="h-64 w-full" />;
 
@@ -74,7 +173,7 @@ export default function Collegas() {
             className="cursor-pointer"
             onClick={() => toggleTeam(t.id)}
           >
-            {t.name}
+            {t.name} <span className="text-muted-foreground ml-1">({locName(t.location_id)})</span>
           </Badge>
         ))}
         {housing.map(h => (
@@ -95,66 +194,16 @@ export default function Collegas() {
         )}
       </div>
 
-      <Card className="rounded-[20px] overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Naam</TableHead>
-              <TableHead>Vestiging</TableHead>
-              <TableHead>Team</TableHead>
-              <TableHead>Periode</TableHead>
-              <TableHead>Slaapplek</TableHead>
-              <TableHead>Competentie</TableHead>
-              <TableHead>Betaling</TableHead>
-              <TableHead className="w-10" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                  Geen collega's gevonden
-                </TableCell>
-              </TableRow>
-            ) : filtered.map(p => {
-              const h = housingObj(p.housing_id);
-              return (
-                <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.name}</TableCell>
-                  <TableCell>{locName(p.location_id)}</TableCell>
-                  <TableCell>{teamName(p.team_id)}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{formatPeriod(p.start_date, p.end_date)}</TableCell>
-                  <TableCell>
-                    {h ? (
-                      <span className="flex items-center gap-2 text-sm">
-                        <span className="w-3 h-3 rounded-full" style={{ backgroundColor: h.color }} />
-                        {h.name}
-                      </span>
-                    ) : <span className="text-muted-foreground">—</span>}
-                  </TableCell>
-                  <TableCell className="text-sm">{p.competence ?? "—"}</TableCell>
-                  <TableCell className="text-sm">{p.pay ?? "—"}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setEditing(p)}>{copy.bewerken}</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive" onClick={() => setConfirmDelete(p)}>
-                          {copy.verwijderen}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </Card>
+      <Tabs value={view} onValueChange={(v) => setView(v as ViewKey)}>
+        <TabsList>
+          <TabsTrigger value="actief">Actief nu ({current.length})</TabsTrigger>
+          <TabsTrigger value="toekomstig">Toekomstig ({future.length})</TabsTrigger>
+          <TabsTrigger value="afgelopen">Afgelopen ({past.length})</TabsTrigger>
+        </TabsList>
+        <TabsContent value="actief" className="mt-4">{renderGrouped(current)}</TabsContent>
+        <TabsContent value="toekomstig" className="mt-4">{renderGrouped(future)}</TabsContent>
+        <TabsContent value="afgelopen" className="mt-4">{renderGrouped(past)}</TabsContent>
+      </Tabs>
 
       {showNew && <PersonModal open={showNew} onClose={() => setShowNew(false)} />}
       {editing && <PersonModal open={!!editing} onClose={() => setEditing(null)} person={editing} />}

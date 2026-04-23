@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { addDays, format, getDay, isSameMonth, startOfDay, subDays, differenceInCalendarDays } from "date-fns";
+import { Link } from "react-router-dom";
+import { addDays, format, getDay, isSameMonth, startOfDay, differenceInCalendarDays } from "date-fns";
 import { nl } from "date-fns/locale";
 import { usePeople, useHousing, useLocations } from "@/hooks/personeel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,8 +9,8 @@ import { PlanningBlock } from "@/components/personeel/PlanningBlock";
 import { DensityBar } from "@/components/personeel/DensityBar";
 import type { Person } from "@/types/personeel";
 
-const DAYS_BEFORE = 182;
-const DAYS_AFTER = 182;
+const DAYS_BEFORE = 0;
+const DAYS_AFTER = 365;
 const TOTAL_DAYS = DAYS_BEFORE + DAYS_AFTER + 1;
 
 type Row =
@@ -32,7 +33,8 @@ export default function Tijdlijn() {
   const headerHeight = Math.round(rowHeight * 0.8);
 
   const today = useMemo(() => startOfDay(new Date()), []);
-  const windowStart = useMemo(() => subDays(today, DAYS_BEFORE), [today]);
+  // Window starts today (DAYS_BEFORE = 0)
+  const windowStart = today;
   const days = useMemo(
     () => Array.from({ length: TOTAL_DAYS }, (_, i) => addDays(windowStart, i)),
     [windowStart]
@@ -46,9 +48,8 @@ export default function Tijdlijn() {
   const scrollToToday = useCallback((smooth: boolean) => {
     const c = scrollRef.current;
     if (!c) return;
-    const target = Math.max(0, DAYS_BEFORE * cellWidth - c.clientWidth * 0.4);
-    c.scrollTo({ left: target, behavior: smooth ? "smooth" : "auto" });
-  }, [cellWidth]);
+    c.scrollTo({ left: 0, behavior: smooth ? "smooth" : "auto" });
+  }, []);
 
   // Auto-scroll to today on mount
   useEffect(() => {
@@ -137,7 +138,7 @@ export default function Tijdlijn() {
     return offs;
   }, [days]);
 
-  const todayOffset = DAYS_BEFORE * cellWidth;
+  const todayOffset = 0;
 
   // Responsive: laptop = name 160 + slaapplek 120 = 280; tablet/mobile: name 140 + slaapplek 40 (dot only) = 180
   const NAME_WIDTH = isLg ? 160 : 140;
@@ -199,18 +200,21 @@ export default function Tijdlijn() {
                     {p.name}
                   </div>
                   <div
-                    className="px-2 text-sm flex items-center gap-2 truncate"
+                    className="px-2 text-sm"
                     style={{ width: HOUSING_WIDTH }}
                     title={h?.name ?? ""}
                   >
                     {h ? (
-                      <>
+                      <Link
+                        to={`/personeel/wonen/${h.id}`}
+                        className="flex items-center gap-2 truncate min-h-[40px] hover:underline underline-offset-2"
+                      >
                         <span
                           className="w-2.5 h-2.5 rounded-full shrink-0"
                           style={{ backgroundColor: h.color }}
                         />
                         <span className="truncate hidden md:inline">{h.name}</span>
-                      </>
+                      </Link>
                     ) : (
                       <span className="text-muted-foreground text-xs hidden md:inline">—</span>
                     )}
@@ -252,7 +256,7 @@ export default function Tijdlijn() {
                 {days.map((d, i) => {
                   const dow = getDay(d);
                   const isWeekend = dow === 0 || dow === 6;
-                  const isToday = i === DAYS_BEFORE;
+                  const isToday = i === 0;
                   return (
                     <div
                       key={i}

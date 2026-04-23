@@ -1,17 +1,59 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSearchParams } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2 } from "lucide-react";
-import { useLocations, useUpsertLocation, useDeleteLocation, useTeams, useUpsertTeam, useDeleteTeam, useHousing, useUpsertHousing, useDeleteHousing } from "@/hooks/personeel";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash2, Settings as SettingsIcon } from "lucide-react";
+import {
+  useLocations, useUpsertLocation, useDeleteLocation,
+  useTeams, useUpsertTeam, useDeleteTeam,
+  useHousing, useUpsertHousing, useDeleteHousing,
+} from "@/hooks/personeel";
 import { ColorPickerModal } from "@/components/personeel/ColorPickerModal";
+import { HousingEditModal } from "@/components/personeel/HousingEditModal";
+import type { PersoneelHousing } from "@/types/personeel";
+
+type TabKey = "vestigingen" | "teams" | "slaapplekken";
 
 export default function PersoneelSettings() {
+  const { data: locations = [] } = useLocations();
+  const { data: teams = [] } = useTeams();
+  const { data: housing = [] } = useHousing();
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = (searchParams.get("tab") as TabKey) || "vestigingen";
+  const setTab = (t: TabKey) => {
+    const sp = new URLSearchParams(searchParams);
+    sp.set("tab", t);
+    setSearchParams(sp, { replace: true });
+  };
+
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
-      <LocationsSection />
-      <TeamsSection />
-      <HousingSection />
+    <div className="space-y-4 max-w-3xl mx-auto">
+      <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)}>
+        <TabsList>
+          <TabsTrigger value="vestigingen">Vestigingen ({locations.length})</TabsTrigger>
+          <TabsTrigger value="teams">Teams ({teams.length})</TabsTrigger>
+          <TabsTrigger value="slaapplekken">Slaapplekken ({housing.length})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="vestigingen" className="mt-4 space-y-3">
+          <p className="text-sm text-muted-foreground">De fysieke locaties waar collega's werken.</p>
+          <LocationsSection />
+        </TabsContent>
+
+        <TabsContent value="teams" className="mt-4 space-y-3">
+          <p className="text-sm text-muted-foreground">Functiegroepen per vestiging.</p>
+          <TeamsSection />
+        </TabsContent>
+
+        <TabsContent value="slaapplekken" className="mt-4 space-y-3">
+          <p className="text-sm text-muted-foreground">Waar collega's verblijven tijdens hun werkperiode.</p>
+          <HousingSection />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
@@ -24,8 +66,7 @@ function LocationsSection() {
 
   return (
     <Card className="rounded-[20px]">
-      <CardHeader><CardTitle>Vestigingen</CardTitle></CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="p-4 space-y-2">
         {locations.map((l, i) => (
           <div key={l.id} className="flex items-center gap-2">
             <Input
@@ -50,30 +91,64 @@ function LocationsSection() {
 
 function TeamsSection() {
   const { data: teams = [] } = useTeams();
+  const { data: locations = [] } = useLocations();
   const upsert = useUpsertTeam();
   const remove = useDeleteTeam();
   const [newName, setNewName] = useState("");
+  const [newLocationId, setNewLocationId] = useState<string>("");
+
+  const sortedLocs = [...locations].sort((a, b) => a.sort_order - b.sort_order);
 
   return (
     <Card className="rounded-[20px]">
-      <CardHeader><CardTitle>Teams</CardTitle></CardHeader>
-      <CardContent className="space-y-2">
-        {teams.map((t, i) => (
-          <div key={t.id} className="flex items-center gap-2">
-            <Input
-              defaultValue={t.name}
-              onBlur={(e) => e.target.value !== t.name && upsert.mutate({ id: t.id, name: e.target.value, sort_order: t.sort_order ?? i })}
-            />
-            <Button variant="ghost" size="icon" onClick={() => remove.mutate(t.id)}>
-              <Trash2 className="h-4 w-4 text-destructive" />
+      <CardContent className="p-4 space-y-4">
+        {sortedLocs.map(loc => {
+          const locTeams = teams.filter(t => t.location_id === loc.id).sort((a, b) => a.sort_order - b.sort_order);
+          return (
+            <div key={loc.id} className="space-y-2">
+              <div className="text-sm font-semibold text-foreground border-b pb-1">{loc.name}</div>
+              {locTeams.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic px-1">Geen teams</p>
+              ) : (
+                locTeams.map((t, i) => (
+                  <div key={t.id} className="flex items-center gap-2">
+                    <Input
+                      defaultValue={t.name}
+                      onBlur={(e) => e.target.value !== t.name && upsert.mutate({ id: t.id, name: e.target.value, location_id: t.location_id, sort_order: t.sort_order ?? i })}
+                    />
+                    <Button variant="ghost" size="icon" onClick={() => remove.mutate(t.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))
+              )}
+            </div>
+          );
+        })}
+
+        <div className="pt-3 border-t space-y-2">
+          <div className="text-xs text-muted-foreground">Nieuw team toevoegen</div>
+          <div className="flex gap-2">
+            <Select value={newLocationId} onValueChange={setNewLocationId}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Vestiging" />
+              </SelectTrigger>
+              <SelectContent>
+                {sortedLocs.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Input placeholder="Teamnaam" value={newName} onChange={(e) => setNewName(e.target.value)} />
+            <Button
+              disabled={!newName.trim() || !newLocationId}
+              onClick={() => {
+                const sortOrder = teams.filter(t => t.location_id === newLocationId).length;
+                upsert.mutate({ name: newName.trim(), location_id: newLocationId, sort_order: sortOrder });
+                setNewName("");
+              }}
+            >
+              <Plus className="h-4 w-4" />
             </Button>
           </div>
-        ))}
-        <div className="flex gap-2 pt-2 border-t">
-          <Input placeholder="Nieuw team" value={newName} onChange={(e) => setNewName(e.target.value)} />
-          <Button onClick={() => { if (newName.trim()) { upsert.mutate({ name: newName.trim(), sort_order: teams.length }); setNewName(""); } }}>
-            <Plus className="h-4 w-4" />
-          </Button>
         </div>
       </CardContent>
     </Card>
@@ -87,11 +162,11 @@ function HousingSection() {
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState("#9CA3AF");
   const [pickerFor, setPickerFor] = useState<string | null>(null);
+  const [editing, setEditing] = useState<PersoneelHousing | null>(null);
 
   return (
     <Card className="rounded-[20px]">
-      <CardHeader><CardTitle>Slaapplekken</CardTitle></CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="p-4 space-y-2">
         {housing.map((h, i) => (
           <div key={h.id} className="flex items-center gap-2">
             <button
@@ -116,6 +191,9 @@ function HousingSection() {
                 if (v !== h.capacity) upsert.mutate({ id: h.id, name: h.name, color: h.color, capacity: v, sort_order: h.sort_order ?? i });
               }}
             />
+            <Button variant="ghost" size="icon" onClick={() => setEditing(h)} title="Meer details">
+              <SettingsIcon className="h-4 w-4" />
+            </Button>
             <Button variant="ghost" size="icon" onClick={() => remove.mutate(h.id)}>
               <Trash2 className="h-4 w-4 text-destructive" />
             </Button>
@@ -155,6 +233,7 @@ function HousingSection() {
           )}
         </div>
       </CardContent>
+      {editing && <HousingEditModal open={!!editing} onClose={() => setEditing(null)} housing={editing} />}
     </Card>
   );
 }
