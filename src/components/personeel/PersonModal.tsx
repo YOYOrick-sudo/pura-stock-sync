@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon, ChevronDown } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
-import { useLocations, useTeamsByLocation, useHousing, useCreatePerson, useUpdatePerson } from "@/hooks/personeel";
+import { useLocations, useTeamsByLocation, useHousing, useRoomsByHousing, useCreatePerson, useUpdatePerson } from "@/hooks/personeel";
 import type { Person } from "@/types/personeel";
 
 interface PersonModalProps {
