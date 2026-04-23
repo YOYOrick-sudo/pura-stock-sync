@@ -1063,29 +1063,53 @@ export type Database = {
       }
       personeel_housing: {
         Row: {
+          address: string | null
           capacity: number | null
           color: string
+          contact_name: string | null
+          cost_per_month: number | null
           created_at: string
+          description: string | null
+          facilities: string[]
           id: string
           name: string
+          notes: string | null
+          room_size_m2: number | null
+          rooms: number | null
           sort_order: number
           updated_at: string
         }
         Insert: {
+          address?: string | null
           capacity?: number | null
           color?: string
+          contact_name?: string | null
+          cost_per_month?: number | null
           created_at?: string
+          description?: string | null
+          facilities?: string[]
           id?: string
           name: string
+          notes?: string | null
+          room_size_m2?: number | null
+          rooms?: number | null
           sort_order?: number
           updated_at?: string
         }
         Update: {
+          address?: string | null
           capacity?: number | null
           color?: string
+          contact_name?: string | null
+          cost_per_month?: number | null
           created_at?: string
+          description?: string | null
+          facilities?: string[]
           id?: string
           name?: string
+          notes?: string | null
+          room_size_m2?: number | null
+          rooms?: number | null
           sort_order?: number
           updated_at?: string
         }
@@ -1198,6 +1222,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          location_id: string
           name: string
           sort_order: number
           updated_at: string
@@ -1205,6 +1230,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          location_id: string
           name: string
           sort_order?: number
           updated_at?: string
@@ -1212,11 +1238,20 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          location_id?: string
           name?: string
           sort_order?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "personeel_teams_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "personeel_locations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
