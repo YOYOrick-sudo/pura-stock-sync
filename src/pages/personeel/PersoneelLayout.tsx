@@ -3,8 +3,8 @@ import { Outlet, NavLink } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { PersonModal } from "@/components/personeel/PersonModal";
+import { PincodeNumpad } from "@/components/PincodeNumpad";
 import { copy } from "@/lib/personeel-copy";
 
 const TABS = [
@@ -22,53 +22,21 @@ export default function PersoneelLayout() {
   const [unlocked, setUnlocked] = useState(
     () => typeof window !== "undefined" && sessionStorage.getItem(PIN_KEY) === "true"
   );
-  const [codeInput, setCodeInput] = useState("");
-  const [codeError, setCodeError] = useState("");
 
-  const handleUnlock = () => {
-    if (codeInput === PIN_CODE) {
+  const handlePin = (pin: string): boolean => {
+    if (pin === PIN_CODE) {
       sessionStorage.setItem(PIN_KEY, "true");
       setUnlocked(true);
-      setCodeError("");
-      setCodeInput("");
-    } else {
-      setCodeError("Onjuiste code");
+      return true;
     }
+    return false;
   };
 
   if (!unlocked) {
     return (
       <SidebarLayout hideHeader>
-        <div className="min-h-[60vh] flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-[20px] p-8 max-w-[420px] w-full shadow-lg">
-            <h2 className="text-lg font-semibold text-foreground mb-2">
-              Toegangscode vereist
-            </h2>
-            <p className="text-sm text-muted-foreground mb-6">
-              Voer de toegangscode in om Planning te openen.
-            </p>
-            <Input
-              type="password"
-              inputMode="numeric"
-              placeholder="Voer code in"
-              value={codeInput}
-              onChange={(e) => setCodeInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleUnlock()}
-              className={`w-full rounded-2xl border-1.5 p-3 px-4 text-sm ${
-                codeError ? "border-destructive" : ""
-              }`}
-              autoFocus
-            />
-            {codeError && (
-              <p className="text-[13px] text-destructive mt-2">{codeError}</p>
-            )}
-            <Button
-              onClick={handleUnlock}
-              className="w-full mt-4 rounded-[14px]"
-            >
-              Bevestigen
-            </Button>
-          </div>
+        <div className="min-h-[70vh] flex items-center justify-center p-4">
+          <PincodeNumpad title="Planning" onSubmit={handlePin} />
         </div>
       </SidebarLayout>
     );
