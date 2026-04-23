@@ -13,10 +13,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { NotificationsDropdown } from '@/components/NotificationsDropdown';
 import { PolarSidebar } from '@/components/polar/Sidebar';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { PincodeNumpad } from '@/components/PincodeNumpad';
 import puraVidaLogo from '@/assets/pura-vida-logo-sea-cropped.png';
 
 const allNavigationItems = [
@@ -114,7 +116,42 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
         footerSlot={!collapsed ? <ThemeToggle /> : undefined}
       />
 
-      <AlertDialog open={showCodeDialog} onOpenChange={setShowCodeDialog}>
+      {/* Numpad dialog for Planning (numeric pin) */}
+      <Dialog
+        open={showCodeDialog && allNavigationItems.find(i => i.url === pendingUrl)?.codeKey === 'personeel'}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowCodeDialog(false);
+            setCodeInput('');
+            setCodeError('');
+          }
+        }}
+      >
+        <DialogContent className="bg-card rounded-[24px] border border-border p-8 max-w-[420px] shadow-lg">
+          <PincodeNumpad
+            title="Planning"
+            onSubmit={(pin) => {
+              const item = allNavigationItems.find(i => i.url === pendingUrl);
+              const expected = item?.expectedCode ?? '';
+              const codeKey = item?.codeKey ?? '';
+              if (pin === expected) {
+                sessionStorage.setItem(`${codeKey}_unlocked`, 'true');
+                setShowCodeDialog(false);
+                navigate(pendingUrl);
+                if (onNavigate) onNavigate();
+                return true;
+              }
+              return false;
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Text-input dialog for other protected items (e.g. Statistieken) */}
+      <AlertDialog
+        open={showCodeDialog && allNavigationItems.find(i => i.url === pendingUrl)?.codeKey !== 'personeel'}
+        onOpenChange={setShowCodeDialog}
+      >
         <AlertDialogContent className="bg-card rounded-[20px] border border-border p-8 max-w-[480px] shadow-lg">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-semibold text-foreground mb-2">
