@@ -182,7 +182,8 @@ export default function Tijdlijn() {
     return { min, max };
   }, [history]);
 
-  // Pre-compute totals per current-day index for the visible window
+  // Pre-compute totals per current-day index for the visible window (GLOBAL — all locations together)
+  // Used only for opacity-scaling normalization so that Midsland/West remain visually comparable.
   const historyTotalsPerDay = useMemo(() => {
     const totals = new Array<number>(TOTAL_DAYS).fill(0);
     if (!historyDateRange) return totals;
@@ -199,7 +200,7 @@ export default function Tijdlijn() {
     return totals;
   }, [days, historyByDate, historyDateRange]);
 
-  // Max in visible window for opacity scaling
+  // Max in visible window for opacity scaling (global)
   const maxInWindow = useMemo(() => {
     let mx = 0;
     for (let i = visibleRange[0]; i <= visibleRange[1]; i++) {
@@ -207,6 +208,24 @@ export default function Tijdlijn() {
     }
     return mx || 1;
   }, [historyTotalsPerDay, visibleRange]);
+
+  // Per-location, per-day helper. Returns total + sorted teams for popover content.
+  const getHistoryForLocationAndDay = useCallback(
+    (locId: string, dayIdx: number) => {
+      const target = subYears(days[dayIdx], 1);
+      const targetStr = format(target, "yyyy-MM-dd");
+      if (!historyDateRange || targetStr < historyDateRange.min || targetStr > historyDateRange.max) {
+        return { total: 0, teams: [] as [string, number][], target };
+      }
+      const rows = (historyByDate.get(targetStr) ?? []).filter(r => r.location_id === locId);
+      const teamMap = new Map<string, number>();
+      for (const r of rows) teamMap.set(r.team_name, (teamMap.get(r.team_name) ?? 0) + r.count);
+      const total = [...teamMap.values()].reduce((a, b) => a + b, 0);
+      const teams = [...teamMap.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+      return { total, teams, target };
+    },
+    [days, historyByDate, historyDateRange]
+  );
 
   const NAME_WIDTH = isLg ? 160 : 140;
   const HOUSING_WIDTH = isLg ? 120 : 40;
