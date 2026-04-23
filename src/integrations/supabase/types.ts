@@ -1231,6 +1231,8 @@ export type Database = {
       personeel_rooms: {
         Row: {
           capacity: number
+          cost_per_person: number | null
+          cost_private: number | null
           created_at: string
           housing_id: string
           id: string
@@ -1242,6 +1244,8 @@ export type Database = {
         }
         Insert: {
           capacity?: number
+          cost_per_person?: number | null
+          cost_private?: number | null
           created_at?: string
           housing_id: string
           id?: string
@@ -1253,6 +1257,8 @@ export type Database = {
         }
         Update: {
           capacity?: number
+          cost_per_person?: number | null
+          cost_private?: number | null
           created_at?: string
           housing_id?: string
           id?: string
