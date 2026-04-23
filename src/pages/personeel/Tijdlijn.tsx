@@ -429,6 +429,56 @@ export default function Tijdlijn() {
                     />
                   );
                 }
+                if (r.kind === "history") {
+                  return (
+                    <div
+                      key={`thist-${r.locId}`}
+                      className="absolute left-0 right-0 bg-muted/10 border-b border-border/50"
+                      style={{ top, height: HISTORY_ROW_HEIGHT }}
+                    >
+                      {days.map((_, dayIdx) => {
+                        const { total, teams, target } = getHistoryForLocationAndDay(r.locId, dayIdx);
+                        if (total === 0) return null;
+                        const opacity = Math.min(1, total / maxInWindow);
+                        return (
+                          <Popover key={`hist-${r.locId}-${dayIdx}`}>
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                className="absolute top-0 h-full flex items-center justify-center hover:bg-accent/40 transition-colors cursor-pointer"
+                                style={{ left: dayIdx * cellWidth, width: cellWidth }}
+                              >
+                                <span
+                                  className="text-[10px] text-muted-foreground tabular-nums font-medium"
+                                  style={{ opacity: 0.4 + opacity * 0.6 }}
+                                >
+                                  {total}
+                                </span>
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-56 p-3" align="center">
+                              <div className="text-sm font-semibold mb-2">
+                                {format(target, "d MMMM yyyy", { locale: nl })}
+                              </div>
+                              <div className="border-t border-border/50 pt-2 space-y-1">
+                                {teams.map(([team, cnt]) => (
+                                  <div key={team} className="flex justify-between text-xs">
+                                    <span className="text-muted-foreground">{team}</span>
+                                    <span className="tabular-nums font-medium">{cnt}</span>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="border-t border-border mt-2 pt-2 flex justify-between text-xs font-semibold">
+                                <span>Totaal</span>
+                                <span className="tabular-nums">{total}</span>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        );
+                      })}
+                    </div>
+                  );
+                }
                 const p = r.person;
                 const h = housing.find(x => x.id === p.housing_id);
                 const startIdx = differenceInCalendarDays(new Date(p.start_date), windowStart);
