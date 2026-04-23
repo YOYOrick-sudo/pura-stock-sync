@@ -18,6 +18,7 @@ const TOTAL_DAYS = DAYS_BEFORE + DAYS_AFTER + 1;
 
 type Row =
   | { kind: "header"; locId: string; locName: string }
+  | { kind: "history"; locId: string }
   | { kind: "subheader"; locId: string }
   | { kind: "person"; person: Person };
 
@@ -103,11 +104,12 @@ export default function Tijdlijn() {
       const ppl = (byLoc.get(loc.id) ?? []).sort((a, b) => a.name.localeCompare(b.name));
       if (ppl.length === 0) return;
       out.push({ kind: "header", locId: loc.id, locName: loc.name });
+      if (showHistory) out.push({ kind: "history", locId: loc.id });
       out.push({ kind: "subheader", locId: loc.id });
       ppl.forEach(p => out.push({ kind: "person", person: p }));
     });
     return out;
-  }, [people, locations]);
+  }, [people, locations, showHistory]);
 
   const { offsets, totalRowsHeight } = useMemo(() => {
     const offs: number[] = [];
@@ -115,6 +117,7 @@ export default function Tijdlijn() {
     rows.forEach(r => {
       offs.push(acc);
       if (r.kind === "header") acc += headerHeight;
+      else if (r.kind === "history") acc += HISTORY_ROW_HEIGHT;
       else if (r.kind === "subheader") acc += SUBHEADER_HEIGHT;
       else acc += rowHeight;
     });
@@ -179,7 +182,8 @@ export default function Tijdlijn() {
     return { min, max };
   }, [history]);
 
-  // Pre-compute totals per current-day index for the visible window
+  // Pre-compute totals per current-day index for the visible window (GLOBAL — all locations together)
+  // Used only for opacity-scaling normalization so that Midsland/West remain visually comparable.
   const historyTotalsPerDay = useMemo(() => {
     const totals = new Array<number>(TOTAL_DAYS).fill(0);
     if (!historyDateRange) return totals;
@@ -196,7 +200,7 @@ export default function Tijdlijn() {
     return totals;
   }, [days, historyByDate, historyDateRange]);
 
-  // Max in visible window for opacity scaling
+  // Max in visible window for opacity scaling (global)
   const maxInWindow = useMemo(() => {
     let mx = 0;
     for (let i = visibleRange[0]; i <= visibleRange[1]; i++) {
@@ -205,11 +209,27 @@ export default function Tijdlijn() {
     return mx || 1;
   }, [historyTotalsPerDay, visibleRange]);
 
+  // Per-location, per-day helper. Returns total + sorted teams for popover content.
+  const getHistoryForLocationAndDay = useCallback(
+    (locId: string, dayIdx: number) => {
+      const target = subYears(days[dayIdx], 1);
+      const targetStr = format(target, "yyyy-MM-dd");
+      if (!historyDateRange || targetStr < historyDateRange.min || targetStr > historyDateRange.max) {
+        return { total: 0, teams: [] as [string, number][], target };
+      }
+      const rows = (historyByDate.get(targetStr) ?? []).filter(r => r.location_id === locId);
+      const teamMap = new Map<string, number>();
+      for (const r of rows) teamMap.set(r.team_name, (teamMap.get(r.team_name) ?? 0) + r.count);
+      const total = [...teamMap.values()].reduce((a, b) => a + b, 0);
+      const teams = [...teamMap.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+      return { total, teams, target };
+    },
+    [days, historyByDate, historyDateRange]
+  );
+
   const NAME_WIDTH = isLg ? 160 : 140;
   const HOUSING_WIDTH = isLg ? 120 : 40;
   const NAME_COL_WIDTH = NAME_WIDTH + HOUSING_WIDTH;
-
-  const historyRowH = showHistory ? HISTORY_ROW_HEIGHT : 0;
 
   if (isLoading) return <Skeleton className="h-[600px] w-full" />;
 
@@ -218,9 +238,8 @@ export default function Tijdlijn() {
       className="relative rounded-[20px] border border-border bg-card overflow-hidden w-full max-w-full min-w-0"
       style={{
         ["--timeline-date-h" as string]: "40px",
-        ["--timeline-history-h" as string]: `${historyRowH}px`,
         ["--timeline-density-h" as string]: "32px",
-        ["--timeline-header-h" as string]: "calc(var(--timeline-date-h) + var(--timeline-history-h) + var(--timeline-density-h))",
+        ["--timeline-header-h" as string]: "calc(var(--timeline-date-h) + var(--timeline-density-h))",
       } as React.CSSProperties}
     >
       <div className="flex items-center justify-between p-3 border-b border-border bg-card gap-3">
@@ -245,15 +264,6 @@ export default function Tijdlijn() {
           <div style={{ height: "var(--timeline-header-h)" }} className="border-b border-border bg-card sticky top-0 z-10 flex flex-col">
             {/* Date-header spacer */}
             <div style={{ height: "var(--timeline-date-h)" }} />
-            {/* Vorig jaar label */}
-            {showHistory && (
-              <div
-                className="text-xs text-muted-foreground font-medium px-3 flex items-center border-t border-border/50"
-                style={{ height: HISTORY_ROW_HEIGHT }}
-              >
-                Vorig jaar
-              </div>
-            )}
             {/* Density-bar spacer */}
             <div style={{ height: "var(--timeline-density-h)" }} />
           </div>
@@ -282,6 +292,17 @@ export default function Tijdlijn() {
                     <div className="px-2 truncate" style={{ width: HOUSING_WIDTH }}>
                       <span className="hidden md:inline">Woonruimte</span>
                     </div>
+                  </div>
+                );
+              }
+              if (r.kind === "history") {
+                return (
+                  <div
+                    key={`hist-name-${r.locId}`}
+                    className="absolute left-0 right-0 px-3 flex items-center text-xs text-muted-foreground bg-muted/10 border-b border-border/50"
+                    style={{ top, height: HISTORY_ROW_HEIGHT }}
+                  >
+                    Vorig jaar
                   </div>
                 );
               }
@@ -353,73 +374,13 @@ export default function Tijdlijn() {
               </div>
             </div>
 
-            {/* History row — between date-header and density-bar */}
-            {showHistory && (
-              <div
-                className="sticky z-10 bg-muted/10 border-b border-border/50"
-                style={{ top: "var(--timeline-date-h)", height: HISTORY_ROW_HEIGHT, width: totalWidth }}
-              >
-                {days.map((d, i) => {
-                  const total = historyTotalsPerDay[i];
-                  if (total === 0) return null;
-                  const target = subYears(d, 1);
-                  const targetStr = format(target, "yyyy-MM-dd");
-                  const teamRows = (historyByDate.get(targetStr) ?? [])
-                    .slice()
-                    .sort((a, b) => a.team_name.localeCompare(b.team_name));
-                  // Group by team_name when multiple locations contribute
-                  const teamMap = new Map<string, number>();
-                  for (const r of teamRows) {
-                    teamMap.set(r.team_name, (teamMap.get(r.team_name) ?? 0) + r.count);
-                  }
-                  const teamList = Array.from(teamMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-                  const opacity = Math.min(1, total / maxInWindow);
-                  return (
-                    <Popover key={`hist-${i}`}>
-                      <PopoverTrigger asChild>
-                        <button
-                          type="button"
-                          className="absolute top-0 h-full flex items-center justify-center hover:bg-accent/40 transition-colors cursor-pointer"
-                          style={{ left: i * cellWidth, width: cellWidth }}
-                        >
-                          <span
-                            className="text-[10px] text-muted-foreground tabular-nums font-medium"
-                            style={{ opacity: 0.4 + opacity * 0.6 }}
-                          >
-                            {total}
-                          </span>
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-56 p-3" align="center">
-                        <div className="text-sm font-semibold mb-2">
-                          {format(target, "d MMMM yyyy", { locale: nl })}
-                        </div>
-                        <div className="border-t border-border/50 pt-2 space-y-1">
-                          {teamList.map(([team, cnt]) => (
-                            <div key={team} className="flex justify-between text-xs">
-                              <span className="text-muted-foreground">{team}</span>
-                              <span className="tabular-nums font-medium">{cnt}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="border-t border-border mt-2 pt-2 flex justify-between text-xs font-semibold">
-                          <span>Totaal</span>
-                          <span className="tabular-nums">{total}</span>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  );
-                })}
-              </div>
-            )}
+            {/* (Globale "Vorig jaar"-rij verwijderd — nu per vestiging-groep, zie tracks-area) */}
 
             {/* Density bar */}
             <div
               className="sticky z-10 border-b border-border"
               style={{
-                top: showHistory
-                  ? `calc(var(--timeline-date-h) + var(--timeline-history-h))`
-                  : "var(--timeline-date-h)",
+                top: "var(--timeline-date-h)",
                 height: "var(--timeline-density-h)",
                 width: totalWidth,
               }}
@@ -466,6 +427,56 @@ export default function Tijdlijn() {
                       className="absolute left-0 right-0 bg-muted/20 border-b border-border pointer-events-none"
                       style={{ top, height: SUBHEADER_HEIGHT }}
                     />
+                  );
+                }
+                if (r.kind === "history") {
+                  return (
+                    <div
+                      key={`thist-${r.locId}`}
+                      className="absolute left-0 right-0 bg-muted/10 border-b border-border/50"
+                      style={{ top, height: HISTORY_ROW_HEIGHT }}
+                    >
+                      {days.map((_, dayIdx) => {
+                        const { total, teams, target } = getHistoryForLocationAndDay(r.locId, dayIdx);
+                        if (total === 0) return null;
+                        const opacity = Math.min(1, total / maxInWindow);
+                        return (
+                          <Popover key={`hist-${r.locId}-${dayIdx}`}>
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                className="absolute top-0 h-full flex items-center justify-center hover:bg-accent/40 transition-colors cursor-pointer"
+                                style={{ left: dayIdx * cellWidth, width: cellWidth }}
+                              >
+                                <span
+                                  className="text-[10px] text-muted-foreground tabular-nums font-medium"
+                                  style={{ opacity: 0.4 + opacity * 0.6 }}
+                                >
+                                  {total}
+                                </span>
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-56 p-3" align="center">
+                              <div className="text-sm font-semibold mb-2">
+                                {format(target, "d MMMM yyyy", { locale: nl })}
+                              </div>
+                              <div className="border-t border-border/50 pt-2 space-y-1">
+                                {teams.map(([team, cnt]) => (
+                                  <div key={team} className="flex justify-between text-xs">
+                                    <span className="text-muted-foreground">{team}</span>
+                                    <span className="tabular-nums font-medium">{cnt}</span>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="border-t border-border mt-2 pt-2 flex justify-between text-xs font-semibold">
+                                <span>Totaal</span>
+                                <span className="tabular-nums">{total}</span>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        );
+                      })}
+                    </div>
                   );
                 }
                 const p = r.person;
