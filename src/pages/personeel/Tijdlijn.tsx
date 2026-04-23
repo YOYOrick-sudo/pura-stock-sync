@@ -18,6 +18,7 @@ const TOTAL_DAYS = DAYS_BEFORE + DAYS_AFTER + 1;
 
 type Row =
   | { kind: "header"; locId: string; locName: string }
+  | { kind: "history"; locId: string }
   | { kind: "subheader"; locId: string }
   | { kind: "person"; person: Person };
 
