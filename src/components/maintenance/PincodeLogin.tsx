@@ -50,7 +50,7 @@ export function PincodeLogin({ onLogin, loading, error }: PincodeLoginProps) {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] px-4">
+    <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 animate-fade-in">
       {/* Title */}
       <div className="text-center mb-8">
         <h1 className="text-2xl font-semibold text-foreground mb-2">
