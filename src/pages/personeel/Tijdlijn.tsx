@@ -295,6 +295,17 @@ export default function Tijdlijn() {
                   </div>
                 );
               }
+              if (r.kind === "history") {
+                return (
+                  <div
+                    key={`hist-name-${r.locId}`}
+                    className="absolute left-0 right-0 px-3 flex items-center text-xs text-muted-foreground bg-muted/10 border-b border-border/50"
+                    style={{ top, height: HISTORY_ROW_HEIGHT }}
+                  >
+                    Vorig jaar
+                  </div>
+                );
+              }
               const p = r.person;
               const h = housing.find(x => x.id === p.housing_id);
               return (
