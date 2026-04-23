@@ -330,6 +330,16 @@ function RoomCard({ room, people, today }: RoomCardProps) {
   const extraFuture = future.length - visibleFuture.length;
   const freeSlots = room.capacity - currentNow.length;
 
+  const fmtPrice = (n: number) =>
+    new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
+
+  let priceLine: string | null = null;
+  if (room.cost_per_person != null && room.cost_private != null) {
+    priceLine = `${fmtPrice(room.cost_per_person)}/p.p. gedeeld · ${fmtPrice(room.cost_private)} privé`;
+  } else if (room.cost_per_person != null) {
+    priceLine = `${fmtPrice(room.cost_per_person)} per maand`;
+  }
+
   return (
     <Card className={`rounded-[20px] ${isOverbooked ? "border-destructive border-2" : ""}`}>
       <CardHeader className="pb-3">
@@ -343,6 +353,9 @@ function RoomCard({ room, people, today }: RoomCardProps) {
           {room.size_m2 != null && <>{room.size_m2} m² · </>}
           {room.capacity} {room.capacity === 1 ? "bed" : "bedden"}
         </p>
+        {priceLine && (
+          <p className="text-xs font-medium text-foreground/80">{priceLine}</p>
+        )}
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         <div>

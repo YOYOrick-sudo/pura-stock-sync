@@ -21,6 +21,8 @@ export function RoomEditModal({ open, onClose, housingId, room, defaultSortOrder
   const [name, setName] = useState("");
   const [sizeM2, setSizeM2] = useState("");
   const [capacity, setCapacity] = useState("1");
+  const [costPerPerson, setCostPerPerson] = useState("");
+  const [costPrivate, setCostPrivate] = useState("");
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
@@ -28,11 +30,20 @@ export function RoomEditModal({ open, onClose, housingId, room, defaultSortOrder
       setName(room?.name ?? "");
       setSizeM2(room?.size_m2 != null ? String(room.size_m2) : "");
       setCapacity(room?.capacity != null ? String(room.capacity) : "1");
+      setCostPerPerson(room?.cost_per_person != null ? String(room.cost_per_person) : "");
+      setCostPrivate(room?.cost_private != null ? String(room.cost_private) : "");
       setNotes(room?.notes ?? "");
     }
   }, [open, room]);
 
   const canSubmit = name.trim().length > 0 && parseInt(capacity || "0", 10) > 0;
+
+  const parseNumOrNull = (v: string): number | null => {
+    const t = v.trim();
+    if (!t) return null;
+    const n = Number(t.replace(",", "."));
+    return Number.isFinite(n) ? n : null;
+  };
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -41,8 +52,10 @@ export function RoomEditModal({ open, onClose, housingId, room, defaultSortOrder
         id: room?.id,
         housing_id: housingId,
         name: name.trim(),
-        size_m2: sizeM2.trim() ? Number(sizeM2.replace(",", ".")) : null,
+        size_m2: parseNumOrNull(sizeM2),
         capacity: parseInt(capacity, 10),
+        cost_per_person: parseNumOrNull(costPerPerson),
+        cost_private: parseNumOrNull(costPrivate),
         notes: notes.trim() || null,
         sort_order: room?.sort_order ?? defaultSortOrder,
       });
@@ -93,6 +106,36 @@ export function RoomEditModal({ open, onClose, housingId, room, defaultSortOrder
                 value={capacity}
                 onChange={(e) => setCapacity(e.target.value)}
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="r-cpp">Prijs per persoon / maand (€)</Label>
+              <Input
+                id="r-cpp"
+                type="number"
+                step="1"
+                min="0"
+                value={costPerPerson}
+                onChange={(e) => setCostPerPerson(e.target.value)}
+                placeholder="—"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="r-cpr">Prijs bij privégebruik / maand (€)</Label>
+              <Input
+                id="r-cpr"
+                type="number"
+                step="1"
+                min="0"
+                value={costPrivate}
+                onChange={(e) => setCostPrivate(e.target.value)}
+                placeholder="—"
+              />
+              <p className="text-xs text-muted-foreground">
+                Alleen voor 2-persoonskamers die ook solo verhuurd kunnen worden
+              </p>
             </div>
           </div>
 
