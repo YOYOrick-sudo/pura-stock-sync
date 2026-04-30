@@ -44,6 +44,7 @@ export default function Tijdlijn() {
   const headerHeight = Math.round(rowHeight * 0.8);
 
   const [showHistory, setShowHistory] = useState(true);
+  const [editing, setEditing] = useState<Person | null>(null);
 
   const today = useMemo(() => startOfDay(new Date()), []);
   const windowStart = today;
