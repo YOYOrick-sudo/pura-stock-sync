@@ -319,14 +319,22 @@ export default function Tijdlijn() {
               }
               const p = r.person;
               const h = housing.find(x => x.id === p.housing_id);
+              const multi = (p.assignments?.length ?? 0) > 1;
               return (
                 <div
-                  key={p.id}
+                  key={`${p.id}-${r.locId}`}
                   className="absolute left-0 right-0 flex items-center border-b border-border/50"
                   style={{ top, height: rowHeight }}
                 >
-                  <div className="px-3 text-sm truncate" style={{ width: NAME_WIDTH }} title={p.name}>
-                    {p.name}
+                  <div className="px-3 text-sm truncate flex items-center gap-1.5" style={{ width: NAME_WIDTH }} title={multi ? `${p.name} · actief op meerdere vestigingen` : p.name}>
+                    <span className="truncate">{p.name}</span>
+                    {multi && (
+                      <span
+                        className="shrink-0 w-1.5 h-1.5 rounded-full bg-primary"
+                        title="Actief op meerdere vestigingen"
+                        aria-label="Multi-locatie"
+                      />
+                    )}
                   </div>
                   <div className="px-2 text-sm" style={{ width: HOUSING_WIDTH }} title={h?.name ?? ""}>
                     {h ? (
