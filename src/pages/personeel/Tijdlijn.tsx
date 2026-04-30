@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { PlanningBlock } from "@/components/personeel/PlanningBlock";
 import { DensityBar } from "@/components/personeel/DensityBar";
 import { PersonModal } from "@/components/personeel/PersonModal";
+import { HousingOccupancyStrip } from "@/components/personeel/HousingOccupancyStrip";
 import type { Person } from "@/types/personeel";
 
 const DAYS_BEFORE = 0;
