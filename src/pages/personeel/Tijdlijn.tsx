@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PlanningBlock } from "@/components/personeel/PlanningBlock";
 import { DensityBar } from "@/components/personeel/DensityBar";
+import { PersonModal } from "@/components/personeel/PersonModal";
 import type { Person } from "@/types/personeel";
 
 const DAYS_BEFORE = 0;
