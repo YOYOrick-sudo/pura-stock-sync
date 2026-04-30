@@ -505,7 +505,7 @@ export default function Tijdlijn() {
                 if (endIdx < 0 || startIdx >= TOTAL_DAYS) {
                   return (
                     <div
-                      key={p.id}
+                      key={`${p.id}-${r.locId}`}
                       className="absolute left-0 right-0 border-b border-border/50"
                       style={{ top, height: rowHeight }}
                     />
@@ -513,7 +513,7 @@ export default function Tijdlijn() {
                 }
                 return (
                   <div
-                    key={p.id}
+                    key={`${p.id}-${r.locId}`}
                     className="absolute left-0 right-0 border-b border-border/50"
                     style={{ top, height: rowHeight }}
                   >
@@ -523,7 +523,7 @@ export default function Tijdlijn() {
                       windowStart={windowStart}
                       cellWidth={cellWidth}
                       rowHeight={rowHeight}
-                      locationName={locations.find(l => l.id === p.location_id)?.name}
+                      locationName={locations.find(l => l.id === r.locId)?.name}
                       onEdit={setEditing}
                     />
                   </div>
