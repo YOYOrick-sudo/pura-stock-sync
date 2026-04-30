@@ -22,7 +22,7 @@ type Row =
   | { kind: "header"; locId: string; locName: string }
   | { kind: "history"; locId: string }
   | { kind: "subheader"; locId: string }
-  | { kind: "person"; person: Person };
+  | { kind: "person"; person: Person; locId: string };
 
 const SUBHEADER_HEIGHT = 24;
 const HISTORY_ROW_HEIGHT = 24;
