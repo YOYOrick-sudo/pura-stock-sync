@@ -1,64 +1,95 @@
-## Probleem met "vandaag"-snapshot
+## Probleem met huidige strook
 
-Eén momentopname klopt niet: bewoners lossen elkaar af. Een woonruimte kan vandaag 2/4 zijn, half mei 4/4, en eind juni 0/4. Een vaste teller verbergt die dynamiek.
+`2 → 6 / 8` + sparkline is te abstract. Een HRM-medewerker moet eerst nadenken: "wat is dat pijltje, wat zijn die staafjes". Dat is niet "in één blik duidelijk".
 
-## Oplossing: piek-bezetting in het zichtbare tijdlijn-venster
+## Versimpelde aanpak
 
-Onder de tijdlijn een minimalistische strook met **één tegel per slaapplek**, die de bezetting toont over precies hetzelfde venster dat de gebruiker boven ziet (de zichtbare maanden, niet "vandaag").
-
-Per tegel drie informatie-lagen, oplopend in detail:
+Eén tegel per slaapplek met **drie heldere onderdelen** in mensentaal, en een hover/info-icoon voor wie meer wil weten.
 
 ```text
-┌───────────────────────────────────────────────────────┐
-│  ● Midsland                              2 → 6 / 8    │   ← nu → piek / capaciteit
-│  ▓▓░▓▓▓▓▓▓░░▓▓▓▓▓░░░░░░  jun                          │   ← mini sparkline van bezetting
-│  Piek: 6 op 12 juni · 3 dagen overboekt               │   ← samenvatting (rood = waarschuwing)
-└───────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│  ● Midsland                          [Vol]  ⓘ   │
+│                                                 │
+│  Nu:    5 van 8 plekken bezet                   │
+│  Druk:  juni en juli (volledig vol)             │
+│  Vrij:  vanaf 15 augustus                       │
+└─────────────────────────────────────────────────┘
 ```
 
-### Wat er per tegel staat
+### Drie regels in plain Dutch
 
-1. **Naam + bolletje** in housing-color (consistent met tijdlijn-blokjes).
-2. **Teller `nu → piek / capaciteit`** — bv. `2 → 6 / 8`. De `→` maakt direct duidelijk dat dit verandert door het venster heen. Bij geen capaciteit: `2 → 6`.
-3. **Sparkline (mini-grafiek)**: één smal staafje per dag in het zichtbare venster, hoogte = aantal bewoners op die dag. Gebruik `getDensityPerDay` (filtert op die housing). Kleur: housing-color op normale dagen, rood op overboekte dagen. Geeft direct visueel ritme van afwisseling.
-4. **Statusregel**:
-   - Geen capaciteit ingesteld: regel weggelaten.
-   - Geen overboeking: `Piek: 6 op 12 juni` (alleen de regel als de piek > de huidige bezetting, anders weglaten — ruis vermijden).
-   - Wel overboeking: `Piek: 6 op 12 juni · 3 dagen overboekt` in `text-destructive`.
+1. **Nu**: `5 van 8 plekken bezet` — direct duidelijk wat er vandaag is.
+2. **Druk**: maand(en) waarin het vol of overboekt is, bv. `juni en juli (volledig vol)` of `eind juni (overboekt)`. Weglaten als er geen drukke periode in het venster is.
+3. **Vrij**: eerste datum waarop er weer ruimte komt, bv. `vanaf 15 augustus`. Weglaten als er nu al ruimte is.
 
-### Afwisseling visualiseren
+### Status-badge rechtsboven (één woord)
 
-De sparkline lost precies jouw zorg op: als persoon A van 1–4 april in kamer X zit en B van 5–7 mei, zie je twee korte verhogingen met een dal ertussen. De teller `nu → piek` benadrukt het verschil.
+- `Ruimte` (groen) — onder 80% bezet nu
+- `Bijna vol` (amber) — 80–100%
+- `Vol` (amber) — exact op capaciteit
+- `Overboekt` (rood) — boven capaciteit nu of in venster
+
+### Info-tooltip (ⓘ rechtsboven)
+
+Hover/tap toont uitleg:
+> "Bezetting in de zichtbare periode van de tijdlijn. Bewoners lossen elkaar af, dus het kan tijdelijk vol zijn en daarna weer ruimte hebben."
+
+### Sparkline blijft — maar subtieler en optioneel
+
+Onderaan de tegel een dunne (16px hoge) tijdlijn-balk in housing-color, rood op overboekte dagen. Géén legenda, géén nadruk — puur visuele aanvulling op de tekstregels. Wie het niet snapt, leest gewoon de tekst.
 
 ## Implementatie
 
-**Nieuw component**: `src/components/personeel/HousingOccupancyStrip.tsx`
-- Props: `housing: PersoneelHousing[]`, `people: Person[]`, `windowStart: Date`, `windowEnd: Date`
-- Per housing:
-  - `residents = people.filter(p => p.housing_id === h.id)`
-  - `densityMap = getDensityPerDay(residents, windowStart, windowEnd)` (helper bestaat al)
-  - `current = isActiveOn`-tellen op vandaag
-  - `peak = Math.max(...densityMap.values())`, `peakDate = dag met max`
-  - `overbookedDays = getOverbookedDays(h, residents, windowStart, windowEnd)` (helper bestaat al)
-- Layout: `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3`
-- Tegel: `rounded-[14px] bg-card border px-3 py-2.5`, sparkline 24px hoog met `flex items-end gap-[1px]`, elk staafje `flex-1`
+**Vervangen**: `src/components/personeel/HousingOccupancyStrip.tsx`
+- Bereken per housing:
+  - `current` (vandaag bezet)
+  - `cap` (capaciteit, kan null zijn)
+  - `peakRanges`: aaneengesloten dag-ranges waarin `count >= cap` (drukke periodes), gegroepeerd per maand voor leesbaarheid
+  - `firstFreeAfterToday`: eerste dag ≥ vandaag waarop `count < cap`, alleen tonen als nu vol
+  - `overbookedRanges`: aaneengesloten ranges waarin `count > cap`
+  - `status`: `'free' | 'almost' | 'full' | 'overbooked'`
+- Format helpers:
+  - `formatPeriodInWords([rangeStart, rangeEnd])` → "juni en juli", "eind juni", "15 t/m 22 juli"
+  - Gebruik `date-fns` met `nl` locale
 
-**Wijziging**: `src/pages/personeel/Tijdlijn.tsx`
-- Bereken eenmalig `windowEnd = addDays(windowStart, TOTAL_DAYS - 1)` (al impliciet aanwezig).
-- Render `<HousingOccupancyStrip ...>` direct boven de modal-render aan het einde van de pagina.
-- Sectiekop: `Woonruimte in zichtbaar venster` (klein, `text-xs uppercase tracking-wide text-muted-foreground`).
+**Tegel-layout**:
+```tsx
+<div className="rounded-[14px] bg-card border px-4 py-3 space-y-2">
+  <div className="flex items-center justify-between">
+    <div className="flex items-center gap-2">
+      <span className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: h.color}} />
+      <span className="text-sm font-medium">{h.name}</span>
+    </div>
+    <div className="flex items-center gap-1.5">
+      <Badge variant={statusVariant}>{statusLabel}</Badge>
+      <Tooltip>...ⓘ...</Tooltip>
+    </div>
+  </div>
+  <div className="space-y-1 text-sm">
+    <div><span className="text-muted-foreground w-12 inline-block">Nu</span> {current} van {cap} plekken bezet</div>
+    {peakLabel && <div><span className="text-muted-foreground w-12 inline-block">Druk</span> {peakLabel}</div>}
+    {freeLabel && <div><span className="text-muted-foreground w-12 inline-block">Vrij</span> {freeLabel}</div>}
+  </div>
+  <div className="flex items-end gap-[1px] h-4 opacity-70">
+    {/* dunne sparkline */}
+  </div>
+</div>
+```
 
-## Waarom dit goed werkt
+**Geen wijzigingen aan**:
+- `Tijdlijn.tsx` — gebruikt het component al, props blijven hetzelfde.
+- Hooks, database.
 
-- **Eerlijk over afwisseling**: nu/piek/capaciteit + sparkline tonen het gehele verhaal van het seizoen, niet één moment.
-- **Consistent venster**: dezelfde periode als de tijdlijn erboven — ogen volgen logisch van blok naar bezetting.
-- **Geen extra queries**: hergebruikt `people` en `housing` uit Tijdlijn, gebruikt bestaande helpers.
-- **Minimalistisch**: één tegel, drie informatie-lagen, alleen waarschuwing als er iets te melden is. Geen knoppen, geen dropdowns.
+## Waarom dit beter werkt
 
-## Geen wijzigingen aan
-- Database, hooks, types.
-- Bestaande DensityBar (toont totaal aantal mensen, niet per slaapplek — vult elkaar aan).
-- HousingCard (Wonen-pagina blijft de detailweergave).
+- **Plain Dutch**: "5 van 8 plekken bezet" leest zoals iemand het zou zeggen. Geen pijltjes te ontcijferen.
+- **Drie vragen beantwoord**: hoeveel nu, wanneer druk, wanneer vrij — dat is wat HRM altijd wil weten.
+- **Status in één woord**: badge rechtsboven geeft directe scan-waarde voordat je gaat lezen.
+- **Tooltip voor uitleg**: wie zich afvraagt wat het betekent krijgt context, zonder de tegel druk te maken.
+- **Sparkline blijft als bonus**: voor wie patronen wil zien, maar verstoort de tekst niet.
 
-## Optioneel later (niet nu)
-Hover op een sparkline-staaf zou de exacte bewoners op die dag kunnen tonen. Voor nu eerst de strook zelf.
+## Test (door jou)
+1. Tegel toont badge die overeenkomt met situatie (Ruimte/Bijna vol/Vol/Overboekt).
+2. Drie regels lezen natuurlijk in het Nederlands.
+3. Tooltip op ⓘ legt uit wat de strook toont.
+4. Bij slaapplek zonder capaciteit: alleen `Nu: 3 bewoners` zonder badge.
