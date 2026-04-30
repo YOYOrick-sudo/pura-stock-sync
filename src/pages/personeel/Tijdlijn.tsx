@@ -507,6 +507,7 @@ export default function Tijdlijn() {
                       cellWidth={cellWidth}
                       rowHeight={rowHeight}
                       locationName={locations.find(l => l.id === p.location_id)?.name}
+                      onEdit={setEditing}
                     />
                   </div>
                 );
@@ -515,6 +516,13 @@ export default function Tijdlijn() {
           </div>
         </div>
       </div>
+      {editing && (
+        <PersonModal
+          open={!!editing}
+          onClose={() => setEditing(null)}
+          person={editing}
+        />
+      )}
     </div>
   );
 }
