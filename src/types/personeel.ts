@@ -50,12 +50,22 @@ export interface PersoneelRoom {
   updated_at: string;
 }
 
+export interface PersonAssignment {
+  id?: string;
+  location_id: string;
+  team_id: string;
+}
+
 export interface Person {
   id: string;
   name: string;
   user_id: string | null;
+  /** Primaire/legacy locatie — eerste assignment. Behouden voor compat. */
   location_id: string;
+  /** Primaire/legacy team — eerste assignment. */
   team_id: string;
+  /** Alle locatie-toewijzingen voor deze persoon. */
+  assignments?: PersonAssignment[];
   housing_id: string | null;
   room_id: string | null;
   start_date: string; // ISO date
@@ -73,8 +83,8 @@ export interface Person {
 export interface PersonInput {
   name: string;
   user_id?: string | null;
-  location_id: string;
-  team_id: string;
+  /** Tenminste 1 assignment vereist. */
+  assignments: PersonAssignment[];
   housing_id?: string | null;
   room_id?: string | null;
   start_date: string;
