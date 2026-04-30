@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { PlanningBlock } from "@/components/personeel/PlanningBlock";
 import { DensityBar } from "@/components/personeel/DensityBar";
 import { PersonModal } from "@/components/personeel/PersonModal";
+import { HousingOccupancyStrip } from "@/components/personeel/HousingOccupancyStrip";
 import type { Person } from "@/types/personeel";
 
 const DAYS_BEFORE = 0;
@@ -516,6 +517,21 @@ export default function Tijdlijn() {
           </div>
         </div>
       </div>
+
+      {/* Woonruimte-bezetting in het zichtbare venster */}
+      {housing.length > 0 && (
+        <div className="mt-6 space-y-2">
+          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-1">
+            Woonruimte in zichtbaar venster
+          </div>
+          <HousingOccupancyStrip
+            housing={housing}
+            people={people}
+            windowStart={windowStart}
+            windowEnd={days[days.length - 1]}
+          />
+        </div>
+      )}
       {editing && (
         <PersonModal
           open={!!editing}
