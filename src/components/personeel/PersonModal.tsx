@@ -7,11 +7,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, ChevronDown } from "lucide-react";
+import { CalendarIcon, ChevronDown, Plus, Trash2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { nl } from "date-fns/locale";
-import { useLocations, useTeamsByLocation, useHousing, useRoomsByHousing, useCreatePerson, useUpdatePerson } from "@/hooks/personeel";
-import type { Person } from "@/types/personeel";
+import { useLocations, useTeams, useHousing, useRoomsByHousing, useCreatePerson, useUpdatePerson } from "@/hooks/personeel";
+import type { Person, PersonAssignment } from "@/types/personeel";
 
 interface PersonModalProps {
   open: boolean;
@@ -19,15 +19,20 @@ interface PersonModalProps {
   person?: Person | null;
 }
 
+interface AssignmentDraft {
+  location_id: string;
+  team_id: string;
+}
+
 export function PersonModal({ open, onClose, person }: PersonModalProps) {
   const { data: locations = [] } = useLocations();
+  const { data: teams = [] } = useTeams();
   const { data: housing = [] } = useHousing();
   const createMut = useCreatePerson();
   const updateMut = useUpdatePerson();
 
   const [name, setName] = useState("");
-  const [locationId, setLocationId] = useState("");
-  const [teamId, setTeamId] = useState("");
+  const [assignments, setAssignments] = useState<AssignmentDraft[]>([{ location_id: "", team_id: "" }]);
   const [housingId, setHousingId] = useState<string>("");
   const [roomId, setRoomId] = useState<string>("");
   const [start, setStart] = useState<Date | undefined>();
@@ -38,14 +43,16 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
   const [competence, setCompetence] = useState<string>("");
   const [pay, setPay] = useState("");
 
-  const { data: teams = [] } = useTeamsByLocation(locationId || null);
   const { data: rooms = [] } = useRoomsByHousing(housingId || null);
 
   useEffect(() => {
     if (person) {
       setName(person.name);
-      setLocationId(person.location_id);
-      setTeamId(person.team_id);
+      const initialAssignments: AssignmentDraft[] =
+        person.assignments && person.assignments.length > 0
+          ? person.assignments.map((a) => ({ location_id: a.location_id, team_id: a.team_id }))
+          : [{ location_id: person.location_id, team_id: person.team_id }];
+      setAssignments(initialAssignments);
       setHousingId(person.housing_id ?? "");
       setRoomId(person.room_id ?? "");
       setStart(parseISO(person.start_date));
@@ -55,27 +62,49 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
       setCompetence(person.competence ?? "");
       setPay(person.pay ?? "");
     } else {
-      setName(""); setLocationId(""); setTeamId(""); setHousingId(""); setRoomId("");
-      setStart(undefined); setEnd(undefined); setDaysPerWeek("");
-      setNotes(""); setCompetence(""); setPay("");
+      setName("");
+      setAssignments([{ location_id: "", team_id: "" }]);
+      setHousingId("");
+      setRoomId("");
+      setStart(undefined);
+      setEnd(undefined);
+      setDaysPerWeek("");
+      setNotes("");
+      setCompetence("");
+      setPay("");
     }
     setShowDetails(false);
   }, [person, open]);
 
-  // Wanneer vestiging wijzigt en het gekozen team niet meer past → reset team
-  const handleLocationChange = (newLoc: string) => {
-    setLocationId(newLoc);
-    setTeamId("");
+  const updateAssignment = (idx: number, patch: Partial<AssignmentDraft>) => {
+    setAssignments((prev) => prev.map((a, i) => (i === idx ? { ...a, ...patch } : a)));
   };
 
-  const canSubmit = name.trim().length > 1 && locationId && teamId && start && end;
+  const handleLocationChange = (idx: number, locId: string) => {
+    updateAssignment(idx, { location_id: locId, team_id: "" });
+  };
+
+  const addAssignment = () => {
+    setAssignments((prev) => [...prev, { location_id: "", team_id: "" }]);
+  };
+
+  const removeAssignment = (idx: number) => {
+    setAssignments((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== idx) : prev));
+  };
+
+  // Locations already used (om dubbel toewijzen te voorkomen)
+  const usedLocationIds = (currentIdx: number) =>
+    new Set(assignments.filter((_, i) => i !== currentIdx).map((a) => a.location_id).filter(Boolean));
+
+  const validAssignments = assignments.filter((a) => a.location_id && a.team_id);
+  const canSubmit =
+    name.trim().length > 1 && validAssignments.length === assignments.length && validAssignments.length > 0 && start && end;
 
   const handleSubmit = async () => {
     if (!canSubmit || !start || !end) return;
     const payload = {
       name: name.trim(),
-      location_id: locationId,
-      team_id: teamId,
+      assignments: validAssignments as PersonAssignment[],
       housing_id: housingId || null,
       room_id: housingId && roomId ? roomId : null,
       start_date: format(start, "yyyy-MM-dd"),
@@ -100,7 +129,7 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-[650px]">
+      <DialogContent className="max-w-[650px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{person ? "Collega bewerken" : "Nieuwe collega"}</DialogTitle>
         </DialogHeader>
@@ -110,43 +139,90 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
             <Input id="p-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Voornaam Achternaam" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Vestiging</Label>
-              <Select value={locationId} onValueChange={handleLocationChange}>
-                <SelectTrigger><SelectValue placeholder="Kies vestiging" /></SelectTrigger>
-                <SelectContent>
-                  {locations.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+          {/* Assignments — multi-locatie */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Vestiging & team</Label>
+              {assignments.length < locations.length && (
+                <Button type="button" variant="ghost" size="sm" onClick={addAssignment} className="h-7 text-xs">
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Locatie toevoegen
+                </Button>
+              )}
             </div>
+            <p className="text-xs text-muted-foreground -mt-1">
+              Eén persoon kan op meerdere vestigingen actief zijn. Per vestiging kies je een team.
+            </p>
+
             <div className="space-y-2">
-              <Label>Team</Label>
-              <Select value={teamId} onValueChange={setTeamId} disabled={!locationId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={locationId ? "Kies team" : "Kies eerst vestiging"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {teams.length === 0 && locationId && (
-                    <div className="px-2 py-1.5 text-sm text-muted-foreground">Geen teams in deze vestiging</div>
-                  )}
-                  {teams.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              {assignments.map((a, idx) => {
+                const used = usedLocationIds(idx);
+                const teamsForLoc = teams.filter((t) => t.location_id === a.location_id);
+                return (
+                  <div key={idx} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-start">
+                    <Select value={a.location_id} onValueChange={(v) => handleLocationChange(idx, v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Kies vestiging" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {locations.map((l) => (
+                          <SelectItem key={l.id} value={l.id} disabled={used.has(l.id)}>
+                            {l.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      value={a.team_id}
+                      onValueChange={(v) => updateAssignment(idx, { team_id: v })}
+                      disabled={!a.location_id}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={a.location_id ? "Kies team" : "Kies eerst vestiging"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teamsForLoc.length === 0 && a.location_id && (
+                          <div className="px-2 py-1.5 text-sm text-muted-foreground">Geen teams</div>
+                        )}
+                        {teamsForLoc.map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeAssignment(idx)}
+                      disabled={assignments.length === 1}
+                      className="h-10 w-10 text-muted-foreground hover:text-destructive"
+                      aria-label="Locatie verwijderen"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
           <div className="space-y-2">
             <Label>Slaapplek</Label>
-            <Select value={housingId || "__none"} onValueChange={(v) => {
-              const next = v === "__none" ? "" : v;
-              setHousingId(next);
-              setRoomId(""); // reset room bij wijziging slaapplek
-            }}>
-              <SelectTrigger><SelectValue placeholder="Kies slaapplek" /></SelectTrigger>
+            <Select
+              value={housingId || "__none"}
+              onValueChange={(v) => {
+                const next = v === "__none" ? "" : v;
+                setHousingId(next);
+                setRoomId("");
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Kies slaapplek" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__none">Geen slaapplek</SelectItem>
-                {housing.map(h => (
+                {housing.map((h) => (
                   <SelectItem key={h.id} value={h.id}>
                     <span className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full" style={{ backgroundColor: h.color }} />
@@ -162,10 +238,12 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
             <div className="space-y-2">
               <Label>Kamer</Label>
               <Select value={roomId || "__none"} onValueChange={(v) => setRoomId(v === "__none" ? "" : v)}>
-                <SelectTrigger><SelectValue placeholder="Kies kamer" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Kies kamer" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none">Geen specifieke kamer</SelectItem>
-                  {rooms.map(r => (
+                  {rooms.map((r) => (
                     <SelectItem key={r.id} value={r.id}>
                       {r.name}
                       {r.capacity > 1 && ` · ${r.capacity} bedden`}
@@ -176,9 +254,7 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
             </div>
           )}
           {housingId && rooms.length === 0 && (
-            <p className="text-xs text-muted-foreground -mt-2">
-              Deze slaapplek heeft geen kamers gedefinieerd.
-            </p>
+            <p className="text-xs text-muted-foreground -mt-2">Deze slaapplek heeft geen kamers gedefinieerd.</p>
           )}
 
           <div className="grid grid-cols-2 gap-3">
@@ -214,7 +290,7 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
 
           <button
             type="button"
-            onClick={() => setShowDetails(s => !s)}
+            onClick={() => setShowDetails((s) => !s)}
             className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition"
           >
             <ChevronDown className={`h-4 w-4 transition-transform ${showDetails ? "rotate-180" : ""}`} />
@@ -227,16 +303,24 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
                 <div className="space-y-2">
                   <Label>Dagen per week</Label>
                   <Select value={daysPerWeek} onValueChange={setDaysPerWeek}>
-                    <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue placeholder="—" />
+                    </SelectTrigger>
                     <SelectContent>
-                      {[1, 2, 3, 4, 5, 6, 7].map(n => <SelectItem key={n} value={n.toString()}>{n}</SelectItem>)}
+                      {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                        <SelectItem key={n} value={n.toString()}>
+                          {n}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Competentie</Label>
                   <Select value={competence} onValueChange={setCompetence}>
-                    <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue placeholder="—" />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="sterk">Sterk</SelectItem>
                       <SelectItem value="gemiddeld">Gemiddeld</SelectItem>
@@ -257,7 +341,9 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Annuleren</Button>
+          <Button variant="outline" onClick={onClose}>
+            Annuleren
+          </Button>
           <Button disabled={!canSubmit || createMut.isPending || updateMut.isPending} onClick={handleSubmit}>
             {person ? "Opslaan" : "Toevoegen"}
           </Button>
