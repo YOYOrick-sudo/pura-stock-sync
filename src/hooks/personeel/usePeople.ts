@@ -1,23 +1,41 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { Person, PersonInput, PersonUpdate } from "@/types/personeel";
+import type { Person, PersonInput, PersonUpdate, PersonAssignment } from "@/types/personeel";
 import { toast } from "sonner";
 
 const KEY = ["personeel", "people"] as const;
 
+/** Normalize: ensure assignments[] exists; primary = first assignment or legacy fallback. */
+function normalize(p: Person): Person {
+  const assignments: PersonAssignment[] =
+    Array.isArray(p.assignments) && p.assignments.length > 0
+      ? p.assignments
+      : p.location_id && p.team_id
+      ? [{ location_id: p.location_id, team_id: p.team_id }]
+      : [];
+  const primary = assignments[0];
+  return {
+    ...p,
+    assignments,
+    location_id: primary?.location_id ?? p.location_id,
+    team_id: primary?.team_id ?? p.team_id,
+  };
+}
+
 export function usePeople() {
   const qc = useQueryClient();
 
-  // Realtime invalidation — payload is NEVER read (avoids column-leakage on competence/pay)
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null;
+    const refetch = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => qc.invalidateQueries({ queryKey: KEY }), 300);
+    };
     const ch = supabase
       .channel("personeel-people")
-      .on("postgres_changes", { event: "*", schema: "public", table: "personeel_people" }, () => {
-        if (timer) clearTimeout(timer);
-        timer = setTimeout(() => qc.invalidateQueries({ queryKey: KEY }), 300);
-      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "personeel_people" }, refetch)
+      .on("postgres_changes", { event: "*", schema: "public", table: "personeel_people_locations" }, refetch)
       .subscribe();
     return () => { supabase.removeChannel(ch); if (timer) clearTimeout(timer); };
   }, [qc]);
@@ -30,53 +48,81 @@ export function usePeople() {
         .select("*")
         .order("start_date", { ascending: true });
       if (error) throw error;
-      return (data ?? []) as Person[];
+      return ((data ?? []) as Person[]).map(normalize);
     },
   });
+}
+
+/** Sync assignments table to match desired list for a person. */
+async function syncAssignments(personId: string, assignments: PersonAssignment[]) {
+  // Fetch current
+  const { data: current, error: selErr } = await supabase
+    .from("personeel_people_locations")
+    .select("id,location_id,team_id")
+    .eq("person_id", personId);
+  if (selErr) throw selErr;
+
+  const currentMap = new Map((current ?? []).map((r) => [r.location_id, r]));
+  const desiredMap = new Map(assignments.map((a) => [a.location_id, a]));
+
+  // Delete removed
+  const toDelete = (current ?? []).filter((r) => !desiredMap.has(r.location_id)).map((r) => r.id);
+  if (toDelete.length > 0) {
+    const { error } = await supabase.from("personeel_people_locations").delete().in("id", toDelete);
+    if (error) throw error;
+  }
+
+  // Insert new + update changed team
+  for (const a of assignments) {
+    const existing = currentMap.get(a.location_id);
+    if (!existing) {
+      const { error } = await supabase
+        .from("personeel_people_locations")
+        .insert({ person_id: personId, location_id: a.location_id, team_id: a.team_id });
+      if (error) throw error;
+    } else if (existing.team_id !== a.team_id) {
+      const { error } = await supabase
+        .from("personeel_people_locations")
+        .update({ team_id: a.team_id })
+        .eq("id", existing.id);
+      if (error) throw error;
+    }
+  }
 }
 
 export function useCreatePerson() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: PersonInput): Promise<Person> => {
-      const { data, error } = await supabase
+      if (!input.assignments || input.assignments.length === 0) {
+        throw new Error("Minimaal één locatie/team is vereist");
+      }
+      const primary = input.assignments[0];
+      // Insert person row with primary as legacy values
+      const { data: created, error } = await supabase
         .from("personeel_people")
-        .insert(input as never)
+        .insert({
+          name: input.name,
+          user_id: input.user_id ?? null,
+          location_id: primary.location_id,
+          team_id: primary.team_id,
+          housing_id: input.housing_id ?? null,
+          room_id: input.room_id ?? null,
+          start_date: input.start_date,
+          end_date: input.end_date,
+          days_per_week: input.days_per_week ?? null,
+          competence: input.competence ?? null,
+          pay: input.pay ?? null,
+          notes: input.notes ?? null,
+        } as never)
         .select()
         .single();
       if (error) throw error;
-      return data as Person;
+      const person = created as Person;
+      await syncAssignments(person.id, input.assignments);
+      return normalize({ ...person, assignments: input.assignments });
     },
-    onMutate: async (input) => {
-      await qc.cancelQueries({ queryKey: KEY });
-      const previous = qc.getQueryData<Person[]>(KEY);
-      const tempId = `temp-${crypto.randomUUID()}`;
-      const optimistic: Person = {
-        id: tempId,
-        name: input.name,
-        user_id: input.user_id ?? null,
-        location_id: input.location_id,
-        team_id: input.team_id,
-        housing_id: input.housing_id ?? null,
-        room_id: input.room_id ?? null,
-        start_date: input.start_date,
-        end_date: input.end_date,
-        days_per_week: input.days_per_week ?? null,
-        competence: input.competence ?? null,
-        pay: input.pay ?? null,
-        notes: input.notes ?? null,
-        deleted_at: null,
-        updated_by: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      qc.setQueryData<Person[]>(KEY, (old = []) => [...old, optimistic]);
-      return { previous };
-    },
-    onError: (_e, _input, ctx) => {
-      if (ctx?.previous) qc.setQueryData(KEY, ctx.previous);
-      toast.error("Opslaan mislukt — probeer opnieuw");
-    },
+    onError: () => toast.error("Opslaan mislukt — probeer opnieuw"),
     onSuccess: () => toast.success("Collega opgeslagen"),
     onSettled: () => qc.invalidateQueries({ queryKey: KEY }),
   });
@@ -86,7 +132,15 @@ export function useUpdatePerson() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: PersonUpdate & { id: string }): Promise<Person> => {
-      const { id, ...patch } = input;
+      const { id, assignments, ...rest } = input;
+      const patch: Record<string, unknown> = { ...rest };
+
+      // If assignments provided, sync primary fields too
+      if (assignments && assignments.length > 0) {
+        patch.location_id = assignments[0].location_id;
+        patch.team_id = assignments[0].team_id;
+      }
+
       const { data, error } = await supabase
         .from("personeel_people")
         .update(patch as never)
@@ -94,21 +148,14 @@ export function useUpdatePerson() {
         .select()
         .single();
       if (error) throw error;
-      return data as Person;
+
+      if (assignments) {
+        await syncAssignments(id, assignments);
+      }
+
+      return normalize({ ...(data as Person), assignments: assignments ?? (data as Person).assignments });
     },
-    onMutate: async (input) => {
-      await qc.cancelQueries({ queryKey: KEY });
-      const previous = qc.getQueryData<Person[]>(KEY);
-      const { id, ...patch } = input;
-      qc.setQueryData<Person[]>(KEY, (old = []) =>
-        old.map(p => (p.id === id ? { ...p, ...patch } : p))
-      );
-      return { previous };
-    },
-    onError: (_e, _i, ctx) => {
-      if (ctx?.previous) qc.setQueryData(KEY, ctx.previous);
-      toast.error("Wijziging niet opgeslagen — probeer opnieuw");
-    },
+    onError: () => toast.error("Wijziging niet opgeslagen — probeer opnieuw"),
     onSuccess: () => toast.success("Wijziging opgeslagen"),
     onSettled: () => qc.invalidateQueries({ queryKey: KEY }),
   });
@@ -127,7 +174,7 @@ export function useSoftDeletePerson() {
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: KEY });
       const previous = qc.getQueryData<Person[]>(KEY);
-      qc.setQueryData<Person[]>(KEY, (old = []) => old.filter(p => p.id !== id));
+      qc.setQueryData<Person[]>(KEY, (old = []) => old.filter((p) => p.id !== id));
       return { previous };
     },
     onError: (_e, _i, ctx) => {

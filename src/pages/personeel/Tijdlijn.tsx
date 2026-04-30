@@ -22,7 +22,7 @@ type Row =
   | { kind: "header"; locId: string; locName: string }
   | { kind: "history"; locId: string }
   | { kind: "subheader"; locId: string }
-  | { kind: "person"; person: Person };
+  | { kind: "person"; person: Person; locId: string };
 
 const SUBHEADER_HEIGHT = 24;
 const HISTORY_ROW_HEIGHT = 24;
@@ -93,13 +93,21 @@ export default function Tijdlijn() {
     };
   }, [cellWidth]);
 
-  // Build flattened rows
+  // Build flattened rows — een persoon verschijnt in elke locatie waarin hij/zij actief is
   const rows: Row[] = useMemo(() => {
     const byLoc = new Map<string, Person[]>();
     people.forEach(p => {
-      const arr = byLoc.get(p.location_id) ?? [];
-      arr.push(p);
-      byLoc.set(p.location_id, arr);
+      const locs = (p.assignments && p.assignments.length > 0)
+        ? p.assignments.map(a => a.location_id)
+        : [p.location_id];
+      const seen = new Set<string>();
+      locs.forEach(locId => {
+        if (!locId || seen.has(locId)) return;
+        seen.add(locId);
+        const arr = byLoc.get(locId) ?? [];
+        arr.push(p);
+        byLoc.set(locId, arr);
+      });
     });
     const sortedLocs = [...locations].sort((a, b) => a.sort_order - b.sort_order);
     const out: Row[] = [];
@@ -109,7 +117,7 @@ export default function Tijdlijn() {
       out.push({ kind: "header", locId: loc.id, locName: loc.name });
       if (showHistory) out.push({ kind: "history", locId: loc.id });
       out.push({ kind: "subheader", locId: loc.id });
-      ppl.forEach(p => out.push({ kind: "person", person: p }));
+      ppl.forEach(p => out.push({ kind: "person", person: p, locId: loc.id }));
     });
     return out;
   }, [people, locations, showHistory]);
@@ -311,14 +319,22 @@ export default function Tijdlijn() {
               }
               const p = r.person;
               const h = housing.find(x => x.id === p.housing_id);
+              const multi = (p.assignments?.length ?? 0) > 1;
               return (
                 <div
-                  key={p.id}
+                  key={`${p.id}-${r.locId}`}
                   className="absolute left-0 right-0 flex items-center border-b border-border/50"
                   style={{ top, height: rowHeight }}
                 >
-                  <div className="px-3 text-sm truncate" style={{ width: NAME_WIDTH }} title={p.name}>
-                    {p.name}
+                  <div className="px-3 text-sm truncate flex items-center gap-1.5" style={{ width: NAME_WIDTH }} title={multi ? `${p.name} · actief op meerdere vestigingen` : p.name}>
+                    <span className="truncate">{p.name}</span>
+                    {multi && (
+                      <span
+                        className="shrink-0 w-1.5 h-1.5 rounded-full bg-primary"
+                        title="Actief op meerdere vestigingen"
+                        aria-label="Multi-locatie"
+                      />
+                    )}
                   </div>
                   <div className="px-2 text-sm" style={{ width: HOUSING_WIDTH }} title={h?.name ?? ""}>
                     {h ? (
@@ -489,7 +505,7 @@ export default function Tijdlijn() {
                 if (endIdx < 0 || startIdx >= TOTAL_DAYS) {
                   return (
                     <div
-                      key={p.id}
+                      key={`${p.id}-${r.locId}`}
                       className="absolute left-0 right-0 border-b border-border/50"
                       style={{ top, height: rowHeight }}
                     />
@@ -497,7 +513,7 @@ export default function Tijdlijn() {
                 }
                 return (
                   <div
-                    key={p.id}
+                    key={`${p.id}-${r.locId}`}
                     className="absolute left-0 right-0 border-b border-border/50"
                     style={{ top, height: rowHeight }}
                   >
@@ -507,7 +523,7 @@ export default function Tijdlijn() {
                       windowStart={windowStart}
                       cellWidth={cellWidth}
                       rowHeight={rowHeight}
-                      locationName={locations.find(l => l.id === p.location_id)?.name}
+                      locationName={locations.find(l => l.id === r.locId)?.name}
                       onEdit={setEditing}
                     />
                   </div>
