@@ -105,10 +105,25 @@ export default function Collegas() {
                 </TableRow>
                 {g.people.map(p => {
                   const h = housingObj(p.housing_id);
+                  const aList = personAssignments(p);
+                  const teamForThisLoc = aList.find(a => a.location_id === g.loc.id)?.team_id ?? p.team_id;
+                  const multi = aList.length > 1;
                   return (
-                    <TableRow key={p.id}>
-                      <TableCell className="font-medium">{p.name}</TableCell>
-                      <TableCell>{teamName(p.team_id)}</TableCell>
+                    <TableRow key={`${p.id}-${g.loc.id}`}>
+                      <TableCell className="font-medium">
+                        <span className="inline-flex items-center gap-1.5">
+                          {p.name}
+                          {multi && (
+                            <span
+                              className="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium"
+                              title={`Ook actief op: ${aList.filter(a => a.location_id !== g.loc.id).map(a => locName(a.location_id)).join(", ")}`}
+                            >
+                              multi
+                            </span>
+                          )}
+                        </span>
+                      </TableCell>
+                      <TableCell>{teamName(teamForThisLoc)}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{formatPeriod(p.start_date, p.end_date)}</TableCell>
                       <TableCell>
                         {h ? (
