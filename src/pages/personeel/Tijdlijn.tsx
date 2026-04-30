@@ -93,13 +93,21 @@ export default function Tijdlijn() {
     };
   }, [cellWidth]);
 
-  // Build flattened rows
+  // Build flattened rows — een persoon verschijnt in elke locatie waarin hij/zij actief is
   const rows: Row[] = useMemo(() => {
     const byLoc = new Map<string, Person[]>();
     people.forEach(p => {
-      const arr = byLoc.get(p.location_id) ?? [];
-      arr.push(p);
-      byLoc.set(p.location_id, arr);
+      const locs = (p.assignments && p.assignments.length > 0)
+        ? p.assignments.map(a => a.location_id)
+        : [p.location_id];
+      const seen = new Set<string>();
+      locs.forEach(locId => {
+        if (!locId || seen.has(locId)) return;
+        seen.add(locId);
+        const arr = byLoc.get(locId) ?? [];
+        arr.push(p);
+        byLoc.set(locId, arr);
+      });
     });
     const sortedLocs = [...locations].sort((a, b) => a.sort_order - b.sort_order);
     const out: Row[] = [];
