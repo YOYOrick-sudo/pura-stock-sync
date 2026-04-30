@@ -1183,13 +1183,13 @@ export type Database = {
           end_date: string
           housing_id: string | null
           id: string
-          location_id: string
+          location_id: string | null
           name: string
           notes: string | null
           pay: string | null
           room_id: string | null
           start_date: string
-          team_id: string
+          team_id: string | null
           updated_at: string
           updated_by: string | null
           user_id: string | null
@@ -1202,13 +1202,13 @@ export type Database = {
           end_date: string
           housing_id?: string | null
           id?: string
-          location_id: string
+          location_id?: string | null
           name: string
           notes?: string | null
           pay?: string | null
           room_id?: string | null
           start_date: string
-          team_id: string
+          team_id?: string | null
           updated_at?: string
           updated_by?: string | null
           user_id?: string | null
@@ -1221,13 +1221,13 @@ export type Database = {
           end_date?: string
           housing_id?: string | null
           id?: string
-          location_id?: string
+          location_id?: string | null
           name?: string
           notes?: string | null
           pay?: string | null
           room_id?: string | null
           start_date?: string
-          team_id?: string
+          team_id?: string | null
           updated_at?: string
           updated_by?: string | null
           user_id?: string | null
@@ -1256,6 +1256,62 @@ export type Database = {
           },
           {
             foreignKeyName: "personeel_people_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "personeel_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      personeel_people_locations: {
+        Row: {
+          created_at: string
+          id: string
+          location_id: string
+          person_id: string
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location_id: string
+          person_id: string
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location_id?: string
+          person_id?: string
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personeel_people_locations_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "personeel_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personeel_people_locations_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "personeel_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personeel_people_locations_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "personeel_people_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personeel_people_locations_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "personeel_teams"
@@ -1835,6 +1891,7 @@ export type Database = {
       }
       personeel_people_full: {
         Row: {
+          assignments: Json | null
           competence: string | null
           created_at: string | null
           days_per_week: number | null
@@ -1846,6 +1903,7 @@ export type Database = {
           name: string | null
           notes: string | null
           pay: string | null
+          room_id: string | null
           start_date: string | null
           team_id: string | null
           updated_at: string | null
@@ -1853,6 +1911,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          assignments?: never
           competence?: string | null
           created_at?: string | null
           days_per_week?: number | null
@@ -1864,6 +1923,7 @@ export type Database = {
           name?: string | null
           notes?: string | null
           pay?: string | null
+          room_id?: string | null
           start_date?: string | null
           team_id?: string | null
           updated_at?: string | null
@@ -1871,6 +1931,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          assignments?: never
           competence?: string | null
           created_at?: string | null
           days_per_week?: number | null
@@ -1882,6 +1943,7 @@ export type Database = {
           name?: string | null
           notes?: string | null
           pay?: string | null
+          room_id?: string | null
           start_date?: string | null
           team_id?: string | null
           updated_at?: string | null
@@ -1901,6 +1963,13 @@ export type Database = {
             columns: ["location_id"]
             isOneToOne: false
             referencedRelation: "personeel_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personeel_people_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "personeel_rooms"
             referencedColumns: ["id"]
           },
           {
