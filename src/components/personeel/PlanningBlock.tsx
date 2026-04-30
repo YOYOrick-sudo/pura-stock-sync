@@ -59,6 +59,19 @@ export function PlanningBlock({ person, housing, windowStart, cellWidth, rowHeig
           {person.notes && (
             <div className="text-sm text-muted-foreground border-t pt-2 mt-2">{person.notes}</div>
           )}
+          {onEdit && (
+            <div className="pt-2 border-t">
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full"
+                onClick={() => onEdit(person)}
+              >
+                <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                Bewerken
+              </Button>
+            </div>
+          )}
         </div>
       </PopoverContent>
     </Popover>
