@@ -1,147 +1,41 @@
+## Probleem
 
-# Plan — Personeelsmodule uitbreiding (definitief, met fixes)
+Op de Tijdlijn (`/personeel/tijdlijn`) klik je op een collega-blokje (bv. Fee) en opent er alleen een **Popover** met info. Er is geen Bewerken-knop en geen koppeling naar de bestaande `PersonModal`. Daarom kun je vestiging/team/slaapplek/data niet wijzigen vanaf de Tijdlijn.
 
-Verwerkt feedback: data-reconciliatie in #6, `SECURITY DEFINER` weg bij validatie-trigger, sticky headers waar haalbaar.
+De `PersonModal` (die wél vestiging, team, slaapplek én kamer kan wijzigen) wordt nu alleen op de **Collega's**-pagina aangeroepen. Daar werkt bewerken al wel — maar vanaf de Tijdlijn niet.
 
-## 1. Tijdlijn — start vandaag
-`src/pages/personeel/Tijdlijn.tsx`:
-- `DAYS_BEFORE = 0`, `DAYS_AFTER = 365`, `TOTAL_DAYS = 366`
-- `todayOffset = 0` → vandaag-lijn helemaal links
-- "Vandaag"-knop scrollt naar `left: 0`
-- Date-label past zich automatisch aan via bestaande `windowStart`
+Korte semantiek-check: **Vestiging** = `location_id` (West / Midsland / Pea). **Slaapplek** = `housing_id`. Twee aparte velden — beide aanpasbaar in de modal. De DB-trigger blokkeert alleen kamer-vs-slaapplek mismatches, dus een wijziging West→Midsland werkt prima zolang je niet een kamer uit de oude slaapplek vasthoudt (modal reset `roomId` automatisch bij wijziging slaapplek; team wordt ook gereset bij vestiging-wijziging — al goed geregeld).
 
-## 2. Slaapplek klikbaar in Tijdlijn
-Slaapplek-cel in namen-kolom: wikkel "dot + naam" in `<Link to="/personeel/wonen/:id">` met `hover:underline underline-offset-2` en `min-h-[40px]` flex-wrapper voor tap-target. Geen slaapplek → blijft `—`, geen link.
+## Oplossing
 
-## 3. Wonen detail-view voor HR
+Voeg een **"Bewerken"** knop toe aan de Popover van `PlanningBlock`, en open daarmee de bestaande `PersonModal` met `person={p}` voorgevuld.
 
-### 3A. Migratie (housing kolommen)
-```sql
-ALTER TABLE public.personeel_housing
-  ADD COLUMN address text,
-  ADD COLUMN cost_per_month numeric(10,2),
-  ADD COLUMN rooms integer,
-  ADD COLUMN room_size_m2 numeric(5,1),
-  ADD COLUMN contact_name text,
-  ADD COLUMN facilities text[] NOT NULL DEFAULT '{}'::text[],
-  ADD COLUMN description text,
-  ADD COLUMN notes text;
-```
+### Wijzigingen
 
-### 3B. Nieuwe pagina + route
-- Route in `App.tsx`: `<Route path="wonen/:id" element={<WonenDetail />} />` binnen `/personeel`
-- `src/pages/personeel/WonenDetail.tsx`:
-  - Header: titel + gekleurde bol + "Bewerken"-knop + back-link
-  - Card "Basisinfo": adres, contactpersoon, kosten p/m (EUR), kamers, m², capaciteit
-  - Facilities als `<Badge variant="secondary">` chips
-  - Beschrijving (`prose text-sm`)
-  - Notities (Card met `bg-muted/40`)
-  - "Huidige bewoners" + "Komende bewoners" (volgende 90 dagen)
+**1. `src/components/personeel/PlanningBlock.tsx`**
+- Optionele prop `onEdit?: (person: Person) => void`.
+- In de Popover-content onderaan een `<Button size="sm" variant="outline">Bewerken</Button>` die `onEdit(person)` aanroept (alleen renderen als prop meegegeven).
 
-### 3C. HousingCard klikbaar
-Wrap Card in `<Link>` met `hover:shadow-md transition`. Bestaande content blijft.
+**2. `src/pages/personeel/Tijdlijn.tsx`**
+- Lokale state `const [editing, setEditing] = useState<Person | null>(null)`.
+- Import `PersonModal`.
+- `<PlanningBlock ... onEdit={setEditing} />` doorgeven.
+- Onderaan de pagina renderen:
+  ```tsx
+  {editing && <PersonModal open={!!editing} onClose={() => setEditing(null)} person={editing} />}
+  ```
 
-### 3D. HousingEditModal
-`src/components/personeel/HousingEditModal.tsx` — Dialog max-w 650px met alle velden. Facilities als multi-select (presets: `wifi`, `wasmachine`, `parkeerplek`, `eigen badkamer`, `tuin`, `fiets`) + "andere" tekst-input. Opgeroepen vanuit WonenDetail én PersoneelSettings ("Meer details"-knop).
+### Waarom dit werkt
+- `PersonModal` + `useUpdatePerson` zijn al volledig functioneel (zie Collega's-pagina). De update-mutation roept `supabase.update().eq('id', ...)` aan op `personeel_people` met de nieuwe `location_id`, `team_id`, `housing_id`, `room_id`. Bij wijzigen van vestiging wordt `team_id` automatisch leeggemaakt zodat je een team uit de nieuwe vestiging moet kiezen — anders blokt de `personeel_validate_team_location` trigger het opslaan (terecht).
+- Realtime invalidation in `usePeople` zorgt dat de Tijdlijn direct de nieuwe positie/kleur toont na opslaan.
 
-## 4. Collega's gegroepeerde tabs
-`src/pages/personeel/Collegas.tsx`:
-- `<Tabs>` met `Actief nu (N)` / `Toekomstig (N)` / `Afgelopen (N)` via `categorizeByDate`
-- Tab-state in URL: `?view=actief|toekomstig|afgelopen`, default `actief`
-- Per tab: groepeer per `location_id`, sorteer op `start_date asc`
-- Group-header: probeer `sticky top-0` met `bg-muted/60` binnen een dedicated scroll-container. Als visueel rommelig (page-scroll i.p.v. table-scroll): fallback naar statische dividers tussen groepen.
+### Geen wijzigingen nodig aan
+- `usePeople` / `useUpdatePerson` — werken al.
+- DB-triggers — `personeel_validate_team_location` en `personeel_people_d_validate_room` blijven beschermend, modal voldoet aan beide.
+- Collega's-pagina — bewerken werkt daar al.
 
-## 5. PersoneelSettings — tabs
-`<Tabs>` met `Vestigingen (N)` / `Teams (N)` / `Slaapplekken (N)`. Korte uitleg-regel onder elke tab. URL-state: `?tab=vestigingen|teams|slaapplekken`, default `vestigingen`. Bestaande sections worden tab-content.
-
-## 6. Teams per vestiging (met data-reconciliatie)
-
-### 6A. Migratie — definitieve volgorde
-```sql
--- 1. Kolom nullable
-ALTER TABLE public.personeel_teams
-  ADD COLUMN location_id uuid REFERENCES public.personeel_locations(id) ON DELETE CASCADE;
-
--- 2. Backfill teams naar eerste vestiging
-UPDATE public.personeel_teams
-SET location_id = (SELECT id FROM public.personeel_locations ORDER BY sort_order LIMIT 1)
-WHERE location_id IS NULL;
-
--- 3. NOT NULL
-ALTER TABLE public.personeel_teams ALTER COLUMN location_id SET NOT NULL;
-
--- 4. Unique per vestiging (case-insensitive)
-CREATE UNIQUE INDEX idx_personeel_teams_name_per_location
-  ON public.personeel_teams (location_id, lower(name));
-
--- 5. Seed "Allround" voor Pura West (no-op als naam afwijkt)
-INSERT INTO public.personeel_teams (name, location_id, sort_order)
-SELECT 'Allround', id, 1 FROM public.personeel_locations
-WHERE name = 'Pura West';
-
--- 5b. RECONCILIATIE: people.location_id volgt team.location_id
-UPDATE public.personeel_people p
-SET location_id = t.location_id
-FROM public.personeel_teams t
-WHERE p.team_id = t.id
-  AND p.location_id != t.location_id;
-
--- 6. Validatie-functie (geen SECURITY DEFINER nodig)
-CREATE OR REPLACE FUNCTION public.personeel_validate_team_location()
-RETURNS trigger LANGUAGE plpgsql AS $$
-DECLARE team_loc uuid;
-BEGIN
-  SELECT location_id INTO team_loc FROM public.personeel_teams WHERE id = NEW.team_id;
-  IF team_loc IS NULL OR team_loc != NEW.location_id THEN
-    RAISE EXCEPTION 'Team hoort niet bij deze vestiging';
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-CREATE TRIGGER personeel_people_c_validate_team
-  BEFORE INSERT OR UPDATE ON public.personeel_people
-  FOR EACH ROW EXECUTE FUNCTION public.personeel_validate_team_location();
-```
-
-### 6B. Types + hooks
-- `src/types/personeel.ts`: `PersoneelTeam.location_id: string`; `PersoneelHousing` krijgt nieuwe optionele velden
-- `src/hooks/personeel/useTeams.ts`: voeg `useTeamsByLocation(locationId: string | null)` toe (filter `useMemo` op cached teams). `useUpsertTeam` payload uitgebreid met `location_id`.
-- `src/hooks/personeel/useHousing.ts`: payload uitgebreid met nieuwe velden
-- `src/hooks/personeel/index.ts`: export `useTeamsByLocation`
-
-### 6C. UI
-- `PersonModal.tsx`: bij wijziging `locationId` → `setTeamId("")`. Team `<Select>` `disabled={!locationId}`, opties via `useTeamsByLocation(locationId)`. Placeholder: "Kies eerst vestiging".
-- `PersoneelSettings.tsx` Teams-tab: groepeer per vestiging met sub-headers. "+ Nieuw team"-form: vestiging-picker + naam-input.
-- `Collegas.tsx` filter-pills: team-labels `{team.name} ({locationName})` voor disambiguatie.
-
-## Bestanden
-
-**Nieuw:**
-- `src/pages/personeel/WonenDetail.tsx`
-- `src/components/personeel/HousingEditModal.tsx`
-- 1 migratie-file (combineert #3A + #6A)
-
-**Gewijzigd:**
-- `src/App.tsx`
-- `src/pages/personeel/Tijdlijn.tsx` (#1 + #2)
-- `src/pages/personeel/Collegas.tsx` (#4 + #6)
-- `src/pages/personeel/PersoneelSettings.tsx` (#5 + #6)
-- `src/components/personeel/HousingCard.tsx` (#3C)
-- `src/components/personeel/PersonModal.tsx` (#6)
-- `src/types/personeel.ts`
-- `src/hooks/personeel/useTeams.ts`
-- `src/hooks/personeel/useHousing.ts`
-- `src/hooks/personeel/index.ts`
-
-## Volgorde van uitvoering
-1. Migratie draaien (alle stappen #3A + #6A in één file)
-2. Types updaten (na regenerate van `types.ts`)
-3. Hooks aanpassen
-4. UI-componenten + nieuwe pagina + modal
-5. Routes registreren
-
-## Aandachtspunten
-- **Reconciliatie #5b** lost mismatch op vóór de trigger ervoor terugkomt
-- **Sticky group-headers (#4)**: visueel testen, fallback naar statisch indien nodig
-- **"Pura West" seed**: exact-match — als naam anders is, geen seed (handmatig aanvullen via UI)
+## Test (door jou, na bouw)
+1. Tijdlijn → klik op Fee → Popover opent → klik **Bewerken** → modal opent met Fee's data.
+2. Vestiging Midsland → West, kies een West-team, sla op → blokje verspringt naar West-rij in Tijdlijn.
+3. Slaapplek wijzigen → kleur van het blokje verandert.
+4. Annuleren-knop sluit modal zonder opslaan.
