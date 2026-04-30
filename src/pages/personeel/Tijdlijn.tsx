@@ -517,6 +517,21 @@ export default function Tijdlijn() {
           </div>
         </div>
       </div>
+
+      {/* Woonruimte-bezetting in het zichtbare venster */}
+      {housing.length > 0 && (
+        <div className="mt-6 space-y-2">
+          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide px-1">
+            Woonruimte in zichtbaar venster
+          </div>
+          <HousingOccupancyStrip
+            housing={housing}
+            people={people}
+            windowStart={windowStart}
+            windowEnd={days[days.length - 1]}
+          />
+        </div>
+      )}
       {editing && (
         <PersonModal
           open={!!editing}
