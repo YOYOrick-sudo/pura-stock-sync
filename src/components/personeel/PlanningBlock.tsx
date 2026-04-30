@@ -3,6 +3,8 @@ import type { Person, PersoneelHousing } from "@/types/personeel";
 import { getTextColorForBg } from "@/lib/personeel-utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { formatPeriod } from "@/lib/personeel-utils";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
 
 interface PlanningBlockProps {
   person: Person;
@@ -11,9 +13,10 @@ interface PlanningBlockProps {
   cellWidth: number;
   rowHeight: number;
   locationName?: string;
+  onEdit?: (person: Person) => void;
 }
 
-export function PlanningBlock({ person, housing, windowStart, cellWidth, rowHeight, locationName }: PlanningBlockProps) {
+export function PlanningBlock({ person, housing, windowStart, cellWidth, rowHeight, locationName, onEdit }: PlanningBlockProps) {
   const start = parseISO(person.start_date);
   const end = parseISO(person.end_date);
   const offsetDays = Math.max(0, differenceInCalendarDays(start, windowStart));
@@ -55,6 +58,19 @@ export function PlanningBlock({ person, housing, windowStart, cellWidth, rowHeig
           )}
           {person.notes && (
             <div className="text-sm text-muted-foreground border-t pt-2 mt-2">{person.notes}</div>
+          )}
+          {onEdit && (
+            <div className="pt-2 border-t">
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full"
+                onClick={() => onEdit(person)}
+              >
+                <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                Bewerken
+              </Button>
+            </div>
           )}
         </div>
       </PopoverContent>
