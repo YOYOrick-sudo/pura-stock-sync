@@ -38,10 +38,17 @@ export default function Collegas() {
   const [showNew, setShowNew] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<Person | null>(null);
 
+  // Geef alle (location_id, team_id) paren van een persoon terug — uit assignments, of fallback naar legacy
+  const personAssignments = (p: Person): { location_id: string; team_id: string }[] => {
+    if (p.assignments && p.assignments.length > 0) return p.assignments;
+    return [{ location_id: p.location_id, team_id: p.team_id }];
+  };
+
   const filtered = useMemo(() => {
     return people.filter(p => {
-      if (filters.locations.length && !filters.locations.includes(p.location_id)) return false;
-      if (filters.teams.length && !filters.teams.includes(p.team_id)) return false;
+      const aList = personAssignments(p);
+      if (filters.locations.length && !aList.some(a => filters.locations.includes(a.location_id))) return false;
+      if (filters.teams.length && !aList.some(a => filters.teams.includes(a.team_id))) return false;
       if (filters.housing.length && !filters.housing.includes(p.housing_id ?? "")) return false;
       if (filters.q && !p.name.toLowerCase().includes(filters.q.toLowerCase())) return false;
       return true;
@@ -54,14 +61,14 @@ export default function Collegas() {
   const teamName = (id: string) => teams.find(t => t.id === id)?.name ?? "—";
   const housingObj = (id: string | null) => housing.find(h => h.id === id);
 
-  // Group people by location_id, sort within group by start_date asc
+  // Group people by location_id (een persoon met meerdere locaties verschijnt in elke groep)
   const groupByLocation = (list: Person[]) => {
     const sortedLocs = [...locations].sort((a, b) => a.sort_order - b.sort_order);
     return sortedLocs
       .map(loc => ({
         loc,
         people: list
-          .filter(p => p.location_id === loc.id)
+          .filter(p => personAssignments(p).some(a => a.location_id === loc.id))
           .sort((a, b) => a.start_date.localeCompare(b.start_date)),
       }))
       .filter(g => g.people.length > 0);
