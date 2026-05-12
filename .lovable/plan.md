@@ -1,95 +1,79 @@
-## Probleem met huidige strook
+## Problemen op de tijdlijn
 
-`2 → 6 / 8` + sparkline is te abstract. Een HRM-medewerker moet eerst nadenken: "wat is dat pijltje, wat zijn die staafjes". Dat is niet "in één blik duidelijk".
+1. Namen-kolom en tijdlijn-kolom hebben elk een eigen verticale scrollbar — regels lopen uit de pas.
+2. Alle balkjes hebben de slaapplek-kleur, dus personen met dezelfde slaapplek (of zonder) zijn niet uit elkaar te houden.
+3. Pura Vida West en Pura Vida Midsland sluiten visueel direct op elkaar aan.
+4. Personen zonder slaapplek tonen alleen een grijs streepje "—" — onduidelijk of dat "onbekend" of "niet nodig" is.
+5. Per vestiging staan keuken en bediening door elkaar; binnen een functie staat de volgorde alfabetisch i.p.v. op aankomstdatum, dus je ziet niet wie als eerste begint.
 
-## Versimpelde aanpak
+## Oplossing
 
-Eén tegel per slaapplek met **drie heldere onderdelen** in mensentaal, en een hover/info-icoon voor wie meer wil weten.
+### 1. Verticale scroll synchroniseren
 
-```text
-┌─────────────────────────────────────────────────┐
-│  ● Midsland                          [Vol]  ⓘ   │
-│                                                 │
-│  Nu:    5 van 8 plekken bezet                   │
-│  Druk:  juni en juli (volledig vol)             │
-│  Vrij:  vanaf 15 augustus                       │
-└─────────────────────────────────────────────────┘
-```
+In `src/pages/personeel/Tijdlijn.tsx`:
+- De buitenste flex-container (`<div className="flex" style={{ maxHeight: "70vh" }}>`) wordt zélf de enige verticale scroll-container (`overflow-y-auto`).
+- Namen-kolom verliest eigen `overflow-y-auto` maar blijft `sticky left-0` (horizontaal vastgepind, verticaal scrolt mee).
+- Tijdlijn-container verliest `overflow-y-auto`, behoudt `overflow-x-auto`.
+- Sticky maand-/dagheader en density-bar blijven werken via `sticky top-0 z-…` binnen de gedeelde scroll-container.
+- Namen-kolom-header krijgt ook `sticky top-0 z-30`.
 
-### Drie regels in plain Dutch
+Resultaat: namen en balkjes scrollen verticaal altijd samen.
 
-1. **Nu**: `5 van 8 plekken bezet` — direct duidelijk wat er vandaag is.
-2. **Druk**: maand(en) waarin het vol of overboekt is, bv. `juni en juli (volledig vol)` of `eind juni (overboekt)`. Weglaten als er geen drukke periode in het venster is.
-3. **Vrij**: eerste datum waarop er weer ruimte komt, bv. `vanaf 15 augustus`. Weglaten als er nu al ruimte is.
+### 2. Unieke kleur per persoon
 
-### Status-badge rechtsboven (één woord)
+Nieuwe util `getPersonColor(personId: string): string` in `src/lib/personeel-utils.ts`:
+- Hash van `person.id` → vaste hue 0-360°, vaste S/L (`hsl(h, 65%, 55%)`).
+- Deterministisch — zelfde persoon krijgt altijd dezelfde kleur.
+- `getTextColorForBg` blijft tekstcontrast bepalen.
 
-- `Ruimte` (groen) — onder 80% bezet nu
-- `Bijna vol` (amber) — 80–100%
-- `Vol` (amber) — exact op capaciteit
-- `Overboekt` (rood) — boven capaciteit nu of in venster
+In `PlanningBlock.tsx` wordt `bg = getPersonColor(person.id)` i.p.v. `housing?.color`. Slaapplek-info blijft 100% behouden via het bolletje in de popover en in de woonruimte-kolom links.
 
-### Info-tooltip (ⓘ rechtsboven)
+### 3. Vestigingen visueel scheiden
 
-Hover/tap toont uitleg:
-> "Bezetting in de zichtbare periode van de tijdlijn. Bewoners lossen elkaar af, dus het kan tijdelijk vol zijn en daarna weer ruimte hebben."
+In `src/pages/personeel/Tijdlijn.tsx`:
+- Vestigings-headers krijgen sterker contrast: `bg-primary/10 text-primary font-bold text-base`, dikke linker-accentbalk (`border-l-4 border-primary`), hoogte verhoogd (~44px).
+- Nieuw `Row`-type `{ kind: "spacer"; locId: string }` vóór elke vestiging vanaf de tweede; lege rij van 20px met dubbele top-border. Meegenomen in `offsets` en `totalRowsHeight`.
+- Behandeling identiek in namen-kolom en tracks-area zodat alles in lijn blijft.
 
-### Sparkline blijft — maar subtieler en optioneel
+### 4. Intuïtieve woonruimte-status (geen streepje meer)
 
-Onderaan de tegel een dunne (16px hoge) tijdlijn-balk in housing-color, rood op overboekte dagen. Géén legenda, géén nadruk — puur visuele aanvulling op de tekstregels. Wie het niet snapt, leest gewoon de tekst.
+Drie staten, snel scanbaar via icoon + kleur:
+- **Heeft slaapplek**: bestaande gekleurde bolletje + naam.
+- **Geen woonruimte nodig**: lucide `House` met `Slash`-overlay (16px, grijs) + label "woont thuis" (md+). Tooltip: "Geen woonruimte nodig".
+- **Onbekend / nog niet toegewezen** (`housing_id` NULL én niet "not needed"): `AlertCircle` 14px in `text-amber-600` + label "toewijzen" (md+). Tooltip: "Nog geen slaapplek toegewezen". Klikbaar → opent `PersonModal`.
 
-## Implementatie
+Schema: nieuwe kolom `housing_not_needed boolean not null default false` op `personeel_people`. `Person`/`PersonInput`-types uitgebreid; `useCreatePerson`/`useUpdatePerson` nemen het veld mee. `PersonModal` krijgt een checkbox "Heeft geen woonruimte nodig" die het `housing_id`-veld disabled maakt zodra aangevinkt.
 
-**Vervangen**: `src/components/personeel/HousingOccupancyStrip.tsx`
-- Bereken per housing:
-  - `current` (vandaag bezet)
-  - `cap` (capaciteit, kan null zijn)
-  - `peakRanges`: aaneengesloten dag-ranges waarin `count >= cap` (drukke periodes), gegroepeerd per maand voor leesbaarheid
-  - `firstFreeAfterToday`: eerste dag ≥ vandaag waarop `count < cap`, alleen tonen als nu vol
-  - `overbookedRanges`: aaneengesloten ranges waarin `count > cap`
-  - `status`: `'free' | 'almost' | 'full' | 'overbooked'`
-- Format helpers:
-  - `formatPeriodInWords([rangeStart, rangeEnd])` → "juni en juli", "eind juni", "15 t/m 22 juli"
-  - Gebruik `date-fns` met `nl` locale
+### 5. Splitsing in Keuken & Bediening + sortering op aankomstdatum
 
-**Tegel-layout**:
-```tsx
-<div className="rounded-[14px] bg-card border px-4 py-3 space-y-2">
-  <div className="flex items-center justify-between">
-    <div className="flex items-center gap-2">
-      <span className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: h.color}} />
-      <span className="text-sm font-medium">{h.name}</span>
-    </div>
-    <div className="flex items-center gap-1.5">
-      <Badge variant={statusVariant}>{statusLabel}</Badge>
-      <Tooltip>...ⓘ...</Tooltip>
-    </div>
-  </div>
-  <div className="space-y-1 text-sm">
-    <div><span className="text-muted-foreground w-12 inline-block">Nu</span> {current} van {cap} plekken bezet</div>
-    {peakLabel && <div><span className="text-muted-foreground w-12 inline-block">Druk</span> {peakLabel}</div>}
-    {freeLabel && <div><span className="text-muted-foreground w-12 inline-block">Vrij</span> {freeLabel}</div>}
-  </div>
-  <div className="flex items-end gap-[1px] h-4 opacity-70">
-    {/* dunne sparkline */}
-  </div>
-</div>
-```
+De bestaande tabel `personeel_teams` is al per-locatie en heeft een `name` (bv. "Keuken", "Bediening"). Daar bovenop introduceren we een **functie-categorie** die teams groepeert binnen elke vestiging.
 
-**Geen wijzigingen aan**:
-- `Tijdlijn.tsx` — gebruikt het component al, props blijven hetzelfde.
-- Hooks, database.
+- Nieuwe kolom `function_group text` op `personeel_teams` met toegestane waarden `'keuken'` en `'bediening'` (CHECK-constraint, nullable voor backwards-compat). Een data-migratie vult bestaande teams in: teamnaam bevat "keuken"/"chef"/"kok" → `keuken`, anders → `bediening`. Beheerder kan dit later overrulen via team-instellingen (geen UI-werk in deze iteratie nodig — we vullen via heuristiek).
+- Een persoon erft zijn functie-categorie van het team in zijn (per-vestiging) assignment. Multi-locatie blijft werken: per vestiging kan iemand in een ander team zitten en dus een andere functie hebben.
 
-## Waarom dit beter werkt
+In `Tijdlijn.tsx` wordt de `rows`-build (nu regel 97-123) uitgebreid:
+1. Per vestiging: groepeer mensen op `function_group` van hun team in die vestiging (`keuken` eerst, `bediening` daarna; `null` valt onder `bediening` als fallback).
+2. **Binnen elke functie-groep** sortering op `start_date` oplopend (vroegste boven), bij gelijke datum alfabetisch op naam als tiebreaker. Dat geeft de gevraagde "wie komt het eerst aan"-volgorde gerekend vanaf vandaag.
+3. Tussen de twee functie-groepen komt een sub-header-rij (nieuw `Row`-type `{ kind: "function"; locId: string; group: 'keuken' | 'bediening' }`): hoogte ~28px, `bg-muted/40`, klein icoon (lucide `ChefHat` voor keuken, `Coffee` of `Utensils` voor bediening) + label "KEUKEN" / "BEDIENING" in caps, tracking-wide. Wordt zowel in de namen-kolom als in de tracks-area gerenderd, met een dunne `border-t border-border/50`.
+4. De bestaande "Naam / Woonruimte"-subheader verschijnt onder elke functie-header (in plaats van één keer per vestiging), zodat ook na scrollen de kolomtitels duidelijk blijven.
 
-- **Plain Dutch**: "5 van 8 plekken bezet" leest zoals iemand het zou zeggen. Geen pijltjes te ontcijferen.
-- **Drie vragen beantwoord**: hoeveel nu, wanneer druk, wanneer vrij — dat is wat HRM altijd wil weten.
-- **Status in één woord**: badge rechtsboven geeft directe scan-waarde voordat je gaat lezen.
-- **Tooltip voor uitleg**: wie zich afvraagt wat het betekent krijgt context, zonder de tegel druk te maken.
-- **Sparkline blijft als bonus**: voor wie patronen wil zien, maar verstoort de tekst niet.
+Geen functie-groep voor een vestiging zonder mensen → die vestiging wordt nog steeds overgeslagen (huidige gedrag).
 
-## Test (door jou)
-1. Tegel toont badge die overeenkomt met situatie (Ruimte/Bijna vol/Vol/Overboekt).
-2. Drie regels lezen natuurlijk in het Nederlands.
-3. Tooltip op ⓘ legt uit wat de strook toont.
-4. Bij slaapplek zonder capaciteit: alleen `Nu: 3 bewoners` zonder badge.
+## Te wijzigen bestanden
+
+- `src/pages/personeel/Tijdlijn.tsx` — scroll-structuur, vestigings-styling, spacer-rij, functie-headers, nieuwe sortering, woonruimte-status.
+- `src/lib/personeel-utils.ts` — `getPersonColor`.
+- `src/components/personeel/PlanningBlock.tsx` — kleur per persoon.
+- `src/components/personeel/PersonModal.tsx` — checkbox "Geen woonruimte nodig".
+- `src/types/personeel.ts` — `housing_not_needed: boolean` op `Person`/`PersonInput`; `function_group: 'keuken' | 'bediening' | null` op `PersoneelTeam`.
+- `src/hooks/personeel/usePeople.ts` — nieuw veld meenemen in insert/update.
+- `src/hooks/personeel/useTeams.ts` — `function_group` in select.
+- Supabase-migraties:
+  1. `alter table personeel_people add column housing_not_needed boolean not null default false;`
+  2. `alter table personeel_teams add column function_group text check (function_group in ('keuken','bediening'));` + UPDATE-statement dat bestaande teams classificeert op basis van naam (case-insensitive match op "keuken|chef|kok" → `keuken`, rest → `bediening`).
+
+## Wat blijft hetzelfde
+
+- Bestaande logica voor history, density, multi-locatie, popovers, rijhoogtes.
+- Slaapplek-info blijft volledig zichtbaar.
+- Geen kolommen of data verwijderd; alle wijzigingen zijn additief en backwards-compatible.

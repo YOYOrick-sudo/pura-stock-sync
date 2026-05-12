@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { addDays, format, getDay, isSameMonth, startOfDay, differenceInCalendarDays, subYears } from "date-fns";
 import { nl } from "date-fns/locale";
-import { usePeople, useHousing, useLocations, useHistory, usePersoneelFilters } from "@/hooks/personeel";
+import { usePeople, useHousing, useLocations, useHistory, usePersoneelFilters, useTeams } from "@/hooks/personeel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -12,19 +12,24 @@ import { PlanningBlock } from "@/components/personeel/PlanningBlock";
 import { DensityBar } from "@/components/personeel/DensityBar";
 import { PersonModal } from "@/components/personeel/PersonModal";
 import { HousingOccupancyStrip } from "@/components/personeel/HousingOccupancyStrip";
-import type { Person } from "@/types/personeel";
+import { ChefHat, Utensils, Home, AlertCircle } from "lucide-react";
+import type { Person, FunctionGroup } from "@/types/personeel";
 
 const DAYS_BEFORE = 0;
 const DAYS_AFTER = 365;
 const TOTAL_DAYS = DAYS_BEFORE + DAYS_AFTER + 1;
 
 type Row =
+  | { kind: "spacer"; locId: string }
   | { kind: "header"; locId: string; locName: string }
   | { kind: "history"; locId: string }
-  | { kind: "subheader"; locId: string }
-  | { kind: "person"; person: Person; locId: string };
+  | { kind: "function"; locId: string; group: FunctionGroup }
+  | { kind: "subheader"; locId: string; group: FunctionGroup }
+  | { kind: "person"; person: Person; locId: string; group: FunctionGroup };
 
+const SPACER_HEIGHT = 20;
 const SUBHEADER_HEIGHT = 24;
+const FUNCTION_HEIGHT = 30;
 const HISTORY_ROW_HEIGHT = 24;
 
 export default function Tijdlijn() {
@@ -93,42 +98,70 @@ export default function Tijdlijn() {
     };
   }, [cellWidth]);
 
-  // Build flattened rows — een persoon verschijnt in elke locatie waarin hij/zij actief is
+  const { data: teams = [] } = useTeams();
+  const teamGroupMap = useMemo(() => {
+    const m = new Map<string, FunctionGroup>();
+    teams.forEach(t => {
+      m.set(t.id, (t.function_group as FunctionGroup) ?? "bediening");
+    });
+    return m;
+  }, [teams]);
+
+  // Build flattened rows — per vestiging gesplitst in keuken / bediening, gesorteerd op startdatum
   const rows: Row[] = useMemo(() => {
-    const byLoc = new Map<string, Person[]>();
+    type Entry = { person: Person; group: FunctionGroup };
+    const byLoc = new Map<string, Entry[]>();
     people.forEach(p => {
-      const locs = (p.assignments && p.assignments.length > 0)
-        ? p.assignments.map(a => a.location_id)
-        : [p.location_id];
+      const assigns = (p.assignments && p.assignments.length > 0)
+        ? p.assignments
+        : [{ location_id: p.location_id, team_id: p.team_id }];
       const seen = new Set<string>();
-      locs.forEach(locId => {
-        if (!locId || seen.has(locId)) return;
-        seen.add(locId);
-        const arr = byLoc.get(locId) ?? [];
-        arr.push(p);
-        byLoc.set(locId, arr);
+      assigns.forEach(a => {
+        if (!a.location_id || seen.has(a.location_id)) return;
+        seen.add(a.location_id);
+        const group: FunctionGroup = teamGroupMap.get(a.team_id) ?? "bediening";
+        const arr = byLoc.get(a.location_id) ?? [];
+        arr.push({ person: p, group });
+        byLoc.set(a.location_id, arr);
       });
     });
     const sortedLocs = [...locations].sort((a, b) => a.sort_order - b.sort_order);
     const out: Row[] = [];
+    let firstLoc = true;
+    const sortByStart = (a: Entry, b: Entry) => {
+      if (a.person.start_date !== b.person.start_date) {
+        return a.person.start_date < b.person.start_date ? -1 : 1;
+      }
+      return a.person.name.localeCompare(b.person.name);
+    };
     sortedLocs.forEach(loc => {
-      const ppl = (byLoc.get(loc.id) ?? []).sort((a, b) => a.name.localeCompare(b.name));
-      if (ppl.length === 0) return;
+      const entries = byLoc.get(loc.id) ?? [];
+      if (entries.length === 0) return;
+      if (!firstLoc) out.push({ kind: "spacer", locId: loc.id });
+      firstLoc = false;
       out.push({ kind: "header", locId: loc.id, locName: loc.name });
       if (showHistory) out.push({ kind: "history", locId: loc.id });
-      out.push({ kind: "subheader", locId: loc.id });
-      ppl.forEach(p => out.push({ kind: "person", person: p, locId: loc.id }));
+      const groups: FunctionGroup[] = ["keuken", "bediening"];
+      groups.forEach(g => {
+        const inGroup = entries.filter(e => e.group === g).sort(sortByStart);
+        if (inGroup.length === 0) return;
+        out.push({ kind: "function", locId: loc.id, group: g });
+        out.push({ kind: "subheader", locId: loc.id, group: g });
+        inGroup.forEach(e => out.push({ kind: "person", person: e.person, locId: loc.id, group: g }));
+      });
     });
     return out;
-  }, [people, locations, showHistory]);
+  }, [people, locations, showHistory, teamGroupMap]);
 
   const { offsets, totalRowsHeight } = useMemo(() => {
     const offs: number[] = [];
     let acc = 0;
     rows.forEach(r => {
       offs.push(acc);
-      if (r.kind === "header") acc += headerHeight;
+      if (r.kind === "spacer") acc += SPACER_HEIGHT;
+      else if (r.kind === "header") acc += headerHeight;
       else if (r.kind === "history") acc += HISTORY_ROW_HEIGHT;
+      else if (r.kind === "function") acc += FUNCTION_HEIGHT;
       else if (r.kind === "subheader") acc += SUBHEADER_HEIGHT;
       else acc += rowHeight;
     });
@@ -266,36 +299,56 @@ export default function Tijdlijn() {
         </div>
       </div>
 
-      <div className="flex" style={{ maxHeight: "70vh" }}>
+      <div className="flex overflow-y-auto" style={{ maxHeight: "70vh" }}>
         {/* Names + slaapplek column */}
         <div
-          className="sticky left-0 z-30 bg-card border-r border-border overflow-y-auto"
-          style={{ width: NAME_COL_WIDTH, maxHeight: "70vh" }}
+          className="sticky left-0 z-30 bg-card border-r border-border"
+          style={{ width: NAME_COL_WIDTH }}
         >
-          <div style={{ height: "var(--timeline-header-h)" }} className="border-b border-border bg-card sticky top-0 z-10 flex flex-col">
-            {/* Date-header spacer */}
+          <div style={{ height: "var(--timeline-header-h)" }} className="border-b border-border bg-card sticky top-0 z-20 flex flex-col">
             <div style={{ height: "var(--timeline-date-h)" }} />
-            {/* Density-bar spacer */}
             <div style={{ height: "var(--timeline-density-h)" }} />
           </div>
           <div className="relative" style={{ height: totalRowsHeight }}>
             {rows.map((r, i) => {
               const top = offsets[i];
+              if (r.kind === "spacer") {
+                return (
+                  <div
+                    key={`sp-${r.locId}-${i}`}
+                    className="absolute left-0 right-0 bg-muted/10 border-t-2 border-border"
+                    style={{ top, height: SPACER_HEIGHT }}
+                  />
+                );
+              }
               if (r.kind === "header") {
                 return (
                   <div
                     key={`h-${r.locId}`}
-                    className="absolute left-0 right-0 px-3 flex items-center bg-muted/60 font-semibold text-sm text-foreground border-b border-border/50"
+                    className="absolute left-0 right-0 px-3 flex items-center bg-primary/10 font-bold text-base text-primary border-b border-border border-l-4 border-l-primary"
                     style={{ top, height: headerHeight }}
                   >
                     {r.locName}
                   </div>
                 );
               }
+              if (r.kind === "function") {
+                const Icon = r.group === "keuken" ? ChefHat : Utensils;
+                return (
+                  <div
+                    key={`fn-${r.locId}-${r.group}`}
+                    className="absolute left-0 right-0 flex items-center gap-1.5 px-3 bg-muted/40 border-b border-border/50 text-[11px] font-semibold uppercase tracking-wider text-foreground/80"
+                    style={{ top, height: FUNCTION_HEIGHT }}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {r.group === "keuken" ? "Keuken" : "Bediening"}
+                  </div>
+                );
+              }
               if (r.kind === "subheader") {
                 return (
                   <div
-                    key={`sh-${r.locId}`}
+                    key={`sh-${r.locId}-${r.group}`}
                     className="absolute left-0 right-0 flex items-center bg-muted/20 border-b border-border text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
                     style={{ top, height: SUBHEADER_HEIGHT }}
                   >
@@ -336,7 +389,7 @@ export default function Tijdlijn() {
                       />
                     )}
                   </div>
-                  <div className="px-2 text-sm" style={{ width: HOUSING_WIDTH }} title={h?.name ?? ""}>
+                  <div className="px-2 text-sm" style={{ width: HOUSING_WIDTH }} title={h?.name ?? (p.housing_not_needed ? "Geen woonruimte nodig" : "Nog geen slaapplek toegewezen")}>
                     {h ? (
                       <Link
                         to={`/personeel/wonen/${h.id}`}
@@ -345,8 +398,20 @@ export default function Tijdlijn() {
                         <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: h.color }} />
                         <span className="truncate hidden md:inline">{h.name}</span>
                       </Link>
+                    ) : p.housing_not_needed ? (
+                      <span className="flex items-center gap-1.5 text-muted-foreground text-xs">
+                        <Home className="h-3.5 w-3.5 opacity-60" />
+                        <span className="truncate hidden md:inline">woont thuis</span>
+                      </span>
                     ) : (
-                      <span className="text-muted-foreground text-xs hidden md:inline">—</span>
+                      <button
+                        type="button"
+                        onClick={() => setEditing(p)}
+                        className="flex items-center gap-1.5 text-amber-600 text-xs hover:underline"
+                      >
+                        <AlertCircle className="h-3.5 w-3.5" />
+                        <span className="truncate hidden md:inline">toewijzen</span>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -358,8 +423,8 @@ export default function Tijdlijn() {
         {/* Scrollable timeline */}
         <div
           ref={scrollRef}
-          className="flex-1 overflow-x-auto overflow-y-auto"
-          style={{ maxHeight: "70vh", WebkitOverflowScrolling: "touch" } as React.CSSProperties}
+          className="flex-1 overflow-x-auto"
+          style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
         >
           <div className="relative" style={{ width: totalWidth, minWidth: totalWidth }}>
             {/* Sticky header (months + days) */}
@@ -430,19 +495,37 @@ export default function Tijdlijn() {
               />
               {rows.map((r, i) => {
                 const top = offsets[i];
+                if (r.kind === "spacer") {
+                  return (
+                    <div
+                      key={`tsp-${r.locId}-${i}`}
+                      className="absolute left-0 right-0 bg-muted/10 border-t-2 border-border pointer-events-none"
+                      style={{ top, height: SPACER_HEIGHT }}
+                    />
+                  );
+                }
                 if (r.kind === "header") {
                   return (
                     <div
                       key={`th-${r.locId}`}
-                      className="absolute left-0 right-0 bg-muted/30 border-b border-border/50 pointer-events-none"
+                      className="absolute left-0 right-0 bg-primary/5 border-b border-border pointer-events-none"
                       style={{ top, height: headerHeight }}
+                    />
+                  );
+                }
+                if (r.kind === "function") {
+                  return (
+                    <div
+                      key={`tfn-${r.locId}-${r.group}`}
+                      className="absolute left-0 right-0 bg-muted/40 border-b border-border/50 pointer-events-none"
+                      style={{ top, height: FUNCTION_HEIGHT }}
                     />
                   );
                 }
                 if (r.kind === "subheader") {
                   return (
                     <div
-                      key={`tsh-${r.locId}`}
+                      key={`tsh-${r.locId}-${r.group}`}
                       className="absolute left-0 right-0 bg-muted/20 border-b border-border pointer-events-none"
                       style={{ top, height: SUBHEADER_HEIGHT }}
                     />

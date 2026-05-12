@@ -8,11 +8,14 @@ export interface PersoneelLocation {
   updated_at: string;
 }
 
+export type FunctionGroup = "keuken" | "bediening";
+
 export interface PersoneelTeam {
   id: string;
   name: string;
   location_id: string;
   sort_order: number;
+  function_group: FunctionGroup | null;
   created_at: string;
   updated_at: string;
 }
@@ -74,6 +77,7 @@ export interface Person {
   competence: Competence | null; // null voor non-managers
   pay: string | null; // null voor non-managers
   notes: string | null;
+  housing_not_needed: boolean;
   deleted_at: string | null;
   updated_by: string | null;
   created_at: string;
@@ -93,6 +97,7 @@ export interface PersonInput {
   competence?: Competence | null;
   pay?: string | null;
   notes?: string | null;
+  housing_not_needed?: boolean;
 }
 
 export type PersonUpdate = Partial<PersonInput>;

@@ -1,6 +1,6 @@
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import type { Person, PersoneelHousing } from "@/types/personeel";
-import { getTextColorForBg } from "@/lib/personeel-utils";
+import { getPersonColor } from "@/lib/personeel-utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { formatPeriod } from "@/lib/personeel-utils";
 import { Button } from "@/components/ui/button";
@@ -22,8 +22,7 @@ export function PlanningBlock({ person, housing, windowStart, cellWidth, rowHeig
   const offsetDays = Math.max(0, differenceInCalendarDays(start, windowStart));
   const lengthDays = differenceInCalendarDays(end, start) + 1;
 
-  const bg = housing?.color ?? "#9CA3AF";
-  const textColor = getTextColorForBg(bg);
+  const { bg, fg: textColor } = getPersonColor(person.id);
 
   return (
     <Popover>
@@ -49,7 +48,7 @@ export function PlanningBlock({ person, housing, windowStart, cellWidth, rowHeig
           <div className="font-semibold">{person.name}</div>
           <div className="text-sm text-muted-foreground">{formatPeriod(person.start_date, person.end_date)}</div>
           <div className="flex items-center gap-2 text-sm">
-            <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: bg }} />
+            <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: housing?.color ?? "#9CA3AF" }} />
             <span>{housing?.name ?? "Geen slaapplek"}</span>
           </div>
           {locationName && <div className="text-sm">{locationName}</div>}

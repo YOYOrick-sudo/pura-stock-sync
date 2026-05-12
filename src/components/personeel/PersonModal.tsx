@@ -42,6 +42,7 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
   const [notes, setNotes] = useState("");
   const [competence, setCompetence] = useState<string>("");
   const [pay, setPay] = useState("");
+  const [housingNotNeeded, setHousingNotNeeded] = useState(false);
 
   const { data: rooms = [] } = useRoomsByHousing(housingId || null);
 
@@ -61,6 +62,7 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
       setNotes(person.notes ?? "");
       setCompetence(person.competence ?? "");
       setPay(person.pay ?? "");
+      setHousingNotNeeded(person.housing_not_needed ?? false);
     } else {
       setName("");
       setAssignments([{ location_id: "", team_id: "" }]);
@@ -72,6 +74,7 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
       setNotes("");
       setCompetence("");
       setPay("");
+      setHousingNotNeeded(false);
     }
     setShowDetails(false);
   }, [person, open]);
@@ -105,14 +108,15 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
     const payload = {
       name: name.trim(),
       assignments: validAssignments as PersonAssignment[],
-      housing_id: housingId || null,
-      room_id: housingId && roomId ? roomId : null,
+      housing_id: housingNotNeeded ? null : (housingId || null),
+      room_id: !housingNotNeeded && housingId && roomId ? roomId : null,
       start_date: format(start, "yyyy-MM-dd"),
       end_date: format(end, "yyyy-MM-dd"),
       days_per_week: daysPerWeek ? parseInt(daysPerWeek, 10) : null,
       notes: notes.trim() || null,
       competence: (competence || null) as "sterk" | "gemiddeld" | "zwak" | null,
       pay: pay.trim() || null,
+      housing_not_needed: housingNotNeeded,
     };
 
     try {
@@ -209,6 +213,21 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
 
           <div className="space-y-2">
             <Label>Slaapplek</Label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={housingNotNeeded}
+                onChange={(e) => {
+                  setHousingNotNeeded(e.target.checked);
+                  if (e.target.checked) {
+                    setHousingId("");
+                    setRoomId("");
+                  }
+                }}
+                className="h-4 w-4 rounded border-input"
+              />
+              <span>Heeft geen woonruimte nodig (woont thuis)</span>
+            </label>
             <Select
               value={housingId || "__none"}
               onValueChange={(v) => {
@@ -216,6 +235,7 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
                 setHousingId(next);
                 setRoomId("");
               }}
+              disabled={housingNotNeeded}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Kies slaapplek" />

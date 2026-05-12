@@ -1182,6 +1182,7 @@ export type Database = {
           deleted_at: string | null
           end_date: string
           housing_id: string | null
+          housing_not_needed: boolean
           id: string
           location_id: string | null
           name: string
@@ -1201,6 +1202,7 @@ export type Database = {
           deleted_at?: string | null
           end_date: string
           housing_id?: string | null
+          housing_not_needed?: boolean
           id?: string
           location_id?: string | null
           name: string
@@ -1220,6 +1222,7 @@ export type Database = {
           deleted_at?: string | null
           end_date?: string
           housing_id?: string | null
+          housing_not_needed?: boolean
           id?: string
           location_id?: string | null
           name?: string
@@ -1372,6 +1375,7 @@ export type Database = {
       personeel_teams: {
         Row: {
           created_at: string
+          function_group: string | null
           id: string
           location_id: string
           name: string
@@ -1380,6 +1384,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          function_group?: string | null
           id?: string
           location_id: string
           name: string
@@ -1388,6 +1393,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          function_group?: string | null
           id?: string
           location_id?: string
           name?: string
@@ -1898,6 +1904,7 @@ export type Database = {
           deleted_at: string | null
           end_date: string | null
           housing_id: string | null
+          housing_not_needed: boolean | null
           id: string | null
           location_id: string | null
           name: string | null
@@ -1918,6 +1925,7 @@ export type Database = {
           deleted_at?: string | null
           end_date?: string | null
           housing_id?: string | null
+          housing_not_needed?: boolean | null
           id?: string | null
           location_id?: string | null
           name?: string | null
@@ -1938,6 +1946,7 @@ export type Database = {
           deleted_at?: string | null
           end_date?: string | null
           housing_id?: string | null
+          housing_not_needed?: boolean | null
           id?: string | null
           location_id?: string | null
           name?: string | null
