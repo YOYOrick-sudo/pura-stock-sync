@@ -299,36 +299,56 @@ export default function Tijdlijn() {
         </div>
       </div>
 
-      <div className="flex" style={{ maxHeight: "70vh" }}>
+      <div className="flex overflow-y-auto" style={{ maxHeight: "70vh" }}>
         {/* Names + slaapplek column */}
         <div
-          className="sticky left-0 z-30 bg-card border-r border-border overflow-y-auto"
-          style={{ width: NAME_COL_WIDTH, maxHeight: "70vh" }}
+          className="sticky left-0 z-30 bg-card border-r border-border"
+          style={{ width: NAME_COL_WIDTH }}
         >
-          <div style={{ height: "var(--timeline-header-h)" }} className="border-b border-border bg-card sticky top-0 z-10 flex flex-col">
-            {/* Date-header spacer */}
+          <div style={{ height: "var(--timeline-header-h)" }} className="border-b border-border bg-card sticky top-0 z-20 flex flex-col">
             <div style={{ height: "var(--timeline-date-h)" }} />
-            {/* Density-bar spacer */}
             <div style={{ height: "var(--timeline-density-h)" }} />
           </div>
           <div className="relative" style={{ height: totalRowsHeight }}>
             {rows.map((r, i) => {
               const top = offsets[i];
+              if (r.kind === "spacer") {
+                return (
+                  <div
+                    key={`sp-${r.locId}-${i}`}
+                    className="absolute left-0 right-0 bg-muted/10 border-t-2 border-border"
+                    style={{ top, height: SPACER_HEIGHT }}
+                  />
+                );
+              }
               if (r.kind === "header") {
                 return (
                   <div
                     key={`h-${r.locId}`}
-                    className="absolute left-0 right-0 px-3 flex items-center bg-muted/60 font-semibold text-sm text-foreground border-b border-border/50"
+                    className="absolute left-0 right-0 px-3 flex items-center bg-primary/10 font-bold text-base text-primary border-b border-border border-l-4 border-l-primary"
                     style={{ top, height: headerHeight }}
                   >
                     {r.locName}
                   </div>
                 );
               }
+              if (r.kind === "function") {
+                const Icon = r.group === "keuken" ? ChefHat : Utensils;
+                return (
+                  <div
+                    key={`fn-${r.locId}-${r.group}`}
+                    className="absolute left-0 right-0 flex items-center gap-1.5 px-3 bg-muted/40 border-b border-border/50 text-[11px] font-semibold uppercase tracking-wider text-foreground/80"
+                    style={{ top, height: FUNCTION_HEIGHT }}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {r.group === "keuken" ? "Keuken" : "Bediening"}
+                  </div>
+                );
+              }
               if (r.kind === "subheader") {
                 return (
                   <div
-                    key={`sh-${r.locId}`}
+                    key={`sh-${r.locId}-${r.group}`}
                     className="absolute left-0 right-0 flex items-center bg-muted/20 border-b border-border text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
                     style={{ top, height: SUBHEADER_HEIGHT }}
                   >
@@ -369,7 +389,7 @@ export default function Tijdlijn() {
                       />
                     )}
                   </div>
-                  <div className="px-2 text-sm" style={{ width: HOUSING_WIDTH }} title={h?.name ?? ""}>
+                  <div className="px-2 text-sm" style={{ width: HOUSING_WIDTH }} title={h?.name ?? (p.housing_not_needed ? "Geen woonruimte nodig" : "Nog geen slaapplek toegewezen")}>
                     {h ? (
                       <Link
                         to={`/personeel/wonen/${h.id}`}
@@ -378,8 +398,20 @@ export default function Tijdlijn() {
                         <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: h.color }} />
                         <span className="truncate hidden md:inline">{h.name}</span>
                       </Link>
+                    ) : p.housing_not_needed ? (
+                      <span className="flex items-center gap-1.5 text-muted-foreground text-xs">
+                        <Home className="h-3.5 w-3.5 opacity-60" />
+                        <span className="truncate hidden md:inline">woont thuis</span>
+                      </span>
                     ) : (
-                      <span className="text-muted-foreground text-xs hidden md:inline">—</span>
+                      <button
+                        type="button"
+                        onClick={() => setEditing(p)}
+                        className="flex items-center gap-1.5 text-amber-600 text-xs hover:underline"
+                      >
+                        <AlertCircle className="h-3.5 w-3.5" />
+                        <span className="truncate hidden md:inline">toewijzen</span>
+                      </button>
                     )}
                   </div>
                 </div>
