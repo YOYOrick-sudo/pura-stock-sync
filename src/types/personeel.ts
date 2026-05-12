@@ -3,6 +3,7 @@ export type Competence = "sterk" | "gemiddeld" | "zwak";
 export interface PersoneelLocation {
   id: string;
   name: string;
+  color: string;
   sort_order: number;
   created_at: string;
   updated_at: string;
