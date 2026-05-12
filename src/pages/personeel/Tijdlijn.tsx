@@ -20,12 +20,16 @@ const DAYS_AFTER = 365;
 const TOTAL_DAYS = DAYS_BEFORE + DAYS_AFTER + 1;
 
 type Row =
+  | { kind: "spacer"; locId: string }
   | { kind: "header"; locId: string; locName: string }
   | { kind: "history"; locId: string }
-  | { kind: "subheader"; locId: string }
-  | { kind: "person"; person: Person; locId: string };
+  | { kind: "function"; locId: string; group: FunctionGroup }
+  | { kind: "subheader"; locId: string; group: FunctionGroup }
+  | { kind: "person"; person: Person; locId: string; group: FunctionGroup };
 
+const SPACER_HEIGHT = 20;
 const SUBHEADER_HEIGHT = 24;
+const FUNCTION_HEIGHT = 30;
 const HISTORY_ROW_HEIGHT = 24;
 
 export default function Tijdlijn() {
