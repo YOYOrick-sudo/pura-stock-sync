@@ -446,7 +446,7 @@ export default function Tijdlijn() {
                           />
                         )}
                       </div>
-                      <div className="px-2 text-sm" style={{ width: HOUSING_WIDTH }} title={h?.name ?? (p.housing_not_needed ? "Geen woonruimte nodig" : "Nog geen slaapplek toegewezen")}>
+                      <div className="px-2 text-sm" style={{ width: HOUSING_WIDTH }} title={h?.name ?? (p.housing_not_needed ? "Eigen woonruimte – geen slaapplek nodig" : "Nog geen slaapplek toegewezen")}>
                         {h ? (
                           <Link
                             to={`/personeel/wonen/${h.id}`}
@@ -456,9 +456,9 @@ export default function Tijdlijn() {
                             <span className="truncate hidden md:inline">{h.name}</span>
                           </Link>
                         ) : p.housing_not_needed ? (
-                          <span className="flex items-center gap-1.5 text-muted-foreground text-xs">
-                            <Home className="h-3.5 w-3.5 opacity-60" />
-                            <span className="truncate hidden md:inline">woont thuis</span>
+                          <span className="flex items-center gap-1.5 text-primary/80 text-xs">
+                            <Home className="h-3.5 w-3.5" />
+                            <span className="truncate hidden md:inline">Eigen woonruimte</span>
                           </span>
                         ) : (
                           <button
