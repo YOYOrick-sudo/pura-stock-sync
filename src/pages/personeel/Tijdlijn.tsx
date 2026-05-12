@@ -98,42 +98,70 @@ export default function Tijdlijn() {
     };
   }, [cellWidth]);
 
-  // Build flattened rows — een persoon verschijnt in elke locatie waarin hij/zij actief is
+  const { data: teams = [] } = useTeams();
+  const teamGroupMap = useMemo(() => {
+    const m = new Map<string, FunctionGroup>();
+    teams.forEach(t => {
+      m.set(t.id, (t.function_group as FunctionGroup) ?? "bediening");
+    });
+    return m;
+  }, [teams]);
+
+  // Build flattened rows — per vestiging gesplitst in keuken / bediening, gesorteerd op startdatum
   const rows: Row[] = useMemo(() => {
-    const byLoc = new Map<string, Person[]>();
+    type Entry = { person: Person; group: FunctionGroup };
+    const byLoc = new Map<string, Entry[]>();
     people.forEach(p => {
-      const locs = (p.assignments && p.assignments.length > 0)
-        ? p.assignments.map(a => a.location_id)
-        : [p.location_id];
+      const assigns = (p.assignments && p.assignments.length > 0)
+        ? p.assignments
+        : [{ location_id: p.location_id, team_id: p.team_id }];
       const seen = new Set<string>();
-      locs.forEach(locId => {
-        if (!locId || seen.has(locId)) return;
-        seen.add(locId);
-        const arr = byLoc.get(locId) ?? [];
-        arr.push(p);
-        byLoc.set(locId, arr);
+      assigns.forEach(a => {
+        if (!a.location_id || seen.has(a.location_id)) return;
+        seen.add(a.location_id);
+        const group: FunctionGroup = teamGroupMap.get(a.team_id) ?? "bediening";
+        const arr = byLoc.get(a.location_id) ?? [];
+        arr.push({ person: p, group });
+        byLoc.set(a.location_id, arr);
       });
     });
     const sortedLocs = [...locations].sort((a, b) => a.sort_order - b.sort_order);
     const out: Row[] = [];
+    let firstLoc = true;
+    const sortByStart = (a: Entry, b: Entry) => {
+      if (a.person.start_date !== b.person.start_date) {
+        return a.person.start_date < b.person.start_date ? -1 : 1;
+      }
+      return a.person.name.localeCompare(b.person.name);
+    };
     sortedLocs.forEach(loc => {
-      const ppl = (byLoc.get(loc.id) ?? []).sort((a, b) => a.name.localeCompare(b.name));
-      if (ppl.length === 0) return;
+      const entries = byLoc.get(loc.id) ?? [];
+      if (entries.length === 0) return;
+      if (!firstLoc) out.push({ kind: "spacer", locId: loc.id });
+      firstLoc = false;
       out.push({ kind: "header", locId: loc.id, locName: loc.name });
       if (showHistory) out.push({ kind: "history", locId: loc.id });
-      out.push({ kind: "subheader", locId: loc.id });
-      ppl.forEach(p => out.push({ kind: "person", person: p, locId: loc.id }));
+      const groups: FunctionGroup[] = ["keuken", "bediening"];
+      groups.forEach(g => {
+        const inGroup = entries.filter(e => e.group === g).sort(sortByStart);
+        if (inGroup.length === 0) return;
+        out.push({ kind: "function", locId: loc.id, group: g });
+        out.push({ kind: "subheader", locId: loc.id, group: g });
+        inGroup.forEach(e => out.push({ kind: "person", person: e.person, locId: loc.id, group: g }));
+      });
     });
     return out;
-  }, [people, locations, showHistory]);
+  }, [people, locations, showHistory, teamGroupMap]);
 
   const { offsets, totalRowsHeight } = useMemo(() => {
     const offs: number[] = [];
     let acc = 0;
     rows.forEach(r => {
       offs.push(acc);
-      if (r.kind === "header") acc += headerHeight;
+      if (r.kind === "spacer") acc += SPACER_HEIGHT;
+      else if (r.kind === "header") acc += headerHeight;
       else if (r.kind === "history") acc += HISTORY_ROW_HEIGHT;
+      else if (r.kind === "function") acc += FUNCTION_HEIGHT;
       else if (r.kind === "subheader") acc += SUBHEADER_HEIGHT;
       else acc += rowHeight;
     });
