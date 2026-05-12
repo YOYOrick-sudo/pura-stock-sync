@@ -108,14 +108,15 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
     const payload = {
       name: name.trim(),
       assignments: validAssignments as PersonAssignment[],
-      housing_id: housingId || null,
-      room_id: housingId && roomId ? roomId : null,
+      housing_id: housingNotNeeded ? null : (housingId || null),
+      room_id: !housingNotNeeded && housingId && roomId ? roomId : null,
       start_date: format(start, "yyyy-MM-dd"),
       end_date: format(end, "yyyy-MM-dd"),
       days_per_week: daysPerWeek ? parseInt(daysPerWeek, 10) : null,
       notes: notes.trim() || null,
       competence: (competence || null) as "sterk" | "gemiddeld" | "zwak" | null,
       pay: pay.trim() || null,
+      housing_not_needed: housingNotNeeded,
     };
 
     try {
