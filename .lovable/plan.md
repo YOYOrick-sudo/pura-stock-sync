@@ -1,69 +1,41 @@
-## Plan: dubbele verticale scroll in de tijdlijn definitief oplossen
+Plan om het scrollen echt smooth te maken:
 
-Ja, ik snap precies wat je bedoelt: je wilt niet dat de namen links en de balkjes rechts los van elkaar verticaal kunnen scrollen. Er moet maar één verticale scroll zijn voor het hele rooster, zodat elke naam altijd exact naast zijn/haar balkje blijft staan.
+1. Eén verticale scroll-container maken
+- De huidige workaround met twee aparte verticale scrollgebieden blijft voelbaar stroef.
+- Ik haal de verticale scroll van de namen-kolom af.
+- De rechter tijdlijn blijft de enige verticale scroll-container én de enige zichtbare scrollbar.
+- De namenkolom wordt sticky links binnen dezelfde scrolllaag, zodat namen en balken fysiek samen bewegen in plaats van achteraf gesynchroniseerd worden.
 
-### Onderzoek / oorzaak
+2. Programmatic scroll-sync verwijderen
+- De huidige `scrollTop`-sync via scroll events + `requestAnimationFrame` veroorzaakt het “niet smooth” gevoel.
+- Die logica verwijder ik volledig.
+- Scrollen wordt dan weer native browser-scroll: vloeiender op muis, trackpad en touch.
 
-In de preview is zichtbaar dat er twee verticale scrollbars ontstaan:
+3. Horizontale scroll behouden zoals bedoeld
+- De tijdlijn blijft horizontaal scrollbaar voor de maanden/dagen.
+- De namenkolom blijft zichtbaar links tijdens horizontaal scrollen.
+- De onderste horizontale scrollbar blijft gekoppeld aan de tijdlijn, niet aan de hele pagina.
 
-```text
-[ Namenkolom ] [ Tijdlijn met balkjes + eigen verticale scrollbar ]
-              ^ deze rechter scrollbar veroorzaakt het probleem
-```
+4. Header en rijen blijven uitgelijnd
+- De sticky datum-header, dichtheidsbalk en linker header krijgen dezelfde scroll-context.
+- De totale hoogte blijft gebaseerd op `totalRowsHeight`, zodat keuken/bediening, vorig jaar, woonruimte en personeelsbalken exact op één lijn blijven.
 
-De oorzaak zit in `src/pages/personeel/Tijdlijn.tsx`:
+5. Extra page-scroll opruimen waar nodig
+- Ik controleer of de hoofd-layout nog onnodig pagina-scroll veroorzaakt rondom de planning.
+- De planningkaart krijgt een stabiele hoogte op basis van de viewport, zodat je niet én de pagina én de tijdlijn tegelijk voelt scrollen.
 
-- De buitenste container rond namen + tijdlijn heeft `overflow-y-auto`.
-- De rechter tijdlijnkolom heeft `overflow-x-auto`.
-- In CSS betekent `overflow-x-auto` in combinatie met hoge content vaak dat de browser óók verticale overflow op dat element afhandelt.
-- Daardoor kan de rechter tijdlijnkolom zelfstandig verticaal scrollen, terwijl de linker namenkolom op een andere scrollpositie blijft.
-
-### Juiste fix
-
-Ik ga de scroll-architectuur splitsen in:
-
-1. **Één verticale scroll-laag**
-   - De buitenste container blijft de enige `overflow-y-auto`.
-   - Deze container bevat zowel de namenkolom als de tijdlijnrijen.
-   - Scroll je op namen, balkjes of lege ruimte: alles beweegt samen.
-
-2. **Één horizontale scroll-laag alleen voor de datums/tijdlijn**
-   - De rechterkolom behoudt horizontaal scrollen voor de maanden/dagen.
-   - Verticaal scrollen wordt daar expliciet uitgezet.
-   - Dus rechts mag alleen links/rechts bewegen, niet omhoog/omlaag.
-
-3. **Timeline-inner krijgt vaste volledige hoogte**
-   - De rechter timeline-content krijgt expliciet hoogte:
-
-```text
-headerhoogte + alle rijen samen
-```
-
-   - Daardoor hoeft de rechter scrollcontainer geen eigen verticale overflow te maken.
-
-4. **Sticky headers blijven behouden**
-   - Maandrij, dagrij en density bar blijven bovenaan sticky.
-   - Linker header boven “Naam / Woonruimte” blijft ook sticky.
-   - Namenkolom blijft horizontaal vast staan met `sticky left-0`.
-
-5. **Extra veiligheidsfix tegen scroll chaining**
-   - Ik voeg `overscroll`/overflow-regels toe zodat muiswiel/touchpad-scroll niet per ongeluk door de rechterkolom wordt “gevangen”.
-   - Dit voorkomt dat het op desktop en iPad opnieuw apart gaat voelen.
-
-### Verwacht resultaat
-
-Na de fix:
-
-```text
-Verticaal scrollen:
-[ Namenkolom + balkjes samen ]  één beweging, altijd uitgelijnd
-
-Horizontaal scrollen:
-[ Alleen tijdlijn/dagen bewegen ]  namen blijven links vast
-```
-
-### Te wijzigen bestand
-
+Bestand om aan te passen:
 - `src/pages/personeel/Tijdlijn.tsx`
 
-Geen databasewijzigingen nodig.
+Waarschijnlijk niet nodig:
+- Geen databasewijzigingen.
+- Geen wijzigingen aan personeeldata.
+- De eerder toegevoegde `scrollbar-hide` utility kan blijven of verwijderd worden als hij niet meer gebruikt wordt.
+
+Verificatie na implementatie:
+- Scrollen op namen beweegt de tijdlijn direct mee.
+- Scrollen op balken beweegt namen direct mee.
+- Er is geen aparte verticale scrollbar meer in de namenkolom.
+- Verticale scroll voelt native/smooth zonder haperende sync.
+- Horizontaal scrollen door maanden blijft werken.
+- Sticky headers blijven vaststaan en rijen blijven aligned.
