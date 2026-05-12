@@ -62,7 +62,34 @@ export default function Tijdlijn() {
   const totalWidth = TOTAL_DAYS * cellWidth;
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const namesScrollRef = useRef<HTMLDivElement>(null);
+  const syncingRef = useRef(false);
   const [visibleRange, setVisibleRange] = useState<[number, number]>([0, TOTAL_DAYS - 1]);
+
+  // Sync vertical scroll between names column and timeline column
+  useEffect(() => {
+    const names = namesScrollRef.current;
+    const timeline = scrollRef.current;
+    if (!names || !timeline) return;
+    const onNames = () => {
+      if (syncingRef.current) return;
+      syncingRef.current = true;
+      timeline.scrollTop = names.scrollTop;
+      requestAnimationFrame(() => { syncingRef.current = false; });
+    };
+    const onTimeline = () => {
+      if (syncingRef.current) return;
+      syncingRef.current = true;
+      names.scrollTop = timeline.scrollTop;
+      requestAnimationFrame(() => { syncingRef.current = false; });
+    };
+    names.addEventListener("scroll", onNames, { passive: true });
+    timeline.addEventListener("scroll", onTimeline, { passive: true });
+    return () => {
+      names.removeEventListener("scroll", onNames);
+      timeline.removeEventListener("scroll", onTimeline);
+    };
+  }, []);
 
   const scrollToToday = useCallback((smooth: boolean) => {
     const c = scrollRef.current;
