@@ -77,6 +77,7 @@ export interface Person {
   competence: Competence | null; // null voor non-managers
   pay: string | null; // null voor non-managers
   notes: string | null;
+  housing_not_needed: boolean;
   deleted_at: string | null;
   updated_by: string | null;
   created_at: string;
