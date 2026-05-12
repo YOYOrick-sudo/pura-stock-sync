@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { addDays, format, getDay, isSameMonth, startOfDay, differenceInCalendarDays, subYears } from "date-fns";
 import { nl } from "date-fns/locale";
-import { usePeople, useHousing, useLocations, useHistory, usePersoneelFilters } from "@/hooks/personeel";
+import { usePeople, useHousing, useLocations, useHistory, usePersoneelFilters, useTeams } from "@/hooks/personeel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -12,7 +12,8 @@ import { PlanningBlock } from "@/components/personeel/PlanningBlock";
 import { DensityBar } from "@/components/personeel/DensityBar";
 import { PersonModal } from "@/components/personeel/PersonModal";
 import { HousingOccupancyStrip } from "@/components/personeel/HousingOccupancyStrip";
-import type { Person } from "@/types/personeel";
+import { ChefHat, Utensils, Home, AlertCircle } from "lucide-react";
+import type { Person, FunctionGroup } from "@/types/personeel";
 
 const DAYS_BEFORE = 0;
 const DAYS_AFTER = 365;
