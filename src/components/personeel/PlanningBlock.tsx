@@ -1,6 +1,6 @@
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import type { Person, PersoneelHousing } from "@/types/personeel";
-import { getTextColorForBg } from "@/lib/personeel-utils";
+import { getPersonColor } from "@/lib/personeel-utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { formatPeriod } from "@/lib/personeel-utils";
 import { Button } from "@/components/ui/button";
