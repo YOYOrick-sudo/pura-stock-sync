@@ -36,6 +36,20 @@ export function getTextColorForBg(hex: string): string {
   return getContrastColor(hex) === "light" ? "#FFFFFF" : "#0F172A";
 }
 
+/**
+ * Deterministische unieke kleur per persoon op basis van id-hash.
+ * Vaste S/L zodat tekstcontrast altijd voorspelbaar is (witte tekst).
+ */
+export function getPersonColor(personId: string): { bg: string; fg: string } {
+  let hash = 0;
+  for (let i = 0; i < personId.length; i++) {
+    hash = (hash * 31 + personId.charCodeAt(i)) >>> 0;
+  }
+  const hue = hash % 360;
+  // L 48% + S 62% → middel-donker, witte tekst altijd leesbaar
+  return { bg: `hsl(${hue}, 62%, 48%)`, fg: "#FFFFFF" };
+}
+
 /** Returns a Map<dateISO, count> of how many people are active per day in [from, to]. */
 export function getDensityPerDay(people: Person[], from: Date, to: Date): Map<string, number> {
   const map = new Map<string, number>();
