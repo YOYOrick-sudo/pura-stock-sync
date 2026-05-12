@@ -495,19 +495,37 @@ export default function Tijdlijn() {
               />
               {rows.map((r, i) => {
                 const top = offsets[i];
+                if (r.kind === "spacer") {
+                  return (
+                    <div
+                      key={`tsp-${r.locId}-${i}`}
+                      className="absolute left-0 right-0 bg-muted/10 border-t-2 border-border pointer-events-none"
+                      style={{ top, height: SPACER_HEIGHT }}
+                    />
+                  );
+                }
                 if (r.kind === "header") {
                   return (
                     <div
                       key={`th-${r.locId}`}
-                      className="absolute left-0 right-0 bg-muted/30 border-b border-border/50 pointer-events-none"
+                      className="absolute left-0 right-0 bg-primary/5 border-b border-border pointer-events-none"
                       style={{ top, height: headerHeight }}
+                    />
+                  );
+                }
+                if (r.kind === "function") {
+                  return (
+                    <div
+                      key={`tfn-${r.locId}-${r.group}`}
+                      className="absolute left-0 right-0 bg-muted/40 border-b border-border/50 pointer-events-none"
+                      style={{ top, height: FUNCTION_HEIGHT }}
                     />
                   );
                 }
                 if (r.kind === "subheader") {
                   return (
                     <div
-                      key={`tsh-${r.locId}`}
+                      key={`tsh-${r.locId}-${r.group}`}
                       className="absolute left-0 right-0 bg-muted/20 border-b border-border pointer-events-none"
                       style={{ top, height: SUBHEADER_HEIGHT }}
                     />
