@@ -22,8 +22,7 @@ export function PlanningBlock({ person, housing, windowStart, cellWidth, rowHeig
   const offsetDays = Math.max(0, differenceInCalendarDays(start, windowStart));
   const lengthDays = differenceInCalendarDays(end, start) + 1;
 
-  const bg = housing?.color ?? "#9CA3AF";
-  const textColor = getTextColorForBg(bg);
+  const { bg, fg: textColor } = getPersonColor(person.id);
 
   return (
     <Popover>
