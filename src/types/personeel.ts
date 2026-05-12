@@ -97,6 +97,7 @@ export interface PersonInput {
   competence?: Competence | null;
   pay?: string | null;
   notes?: string | null;
+  housing_not_needed?: boolean;
 }
 
 export type PersonUpdate = Partial<PersonInput>;
