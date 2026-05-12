@@ -48,7 +48,7 @@ export function PlanningBlock({ person, housing, windowStart, cellWidth, rowHeig
           <div className="font-semibold">{person.name}</div>
           <div className="text-sm text-muted-foreground">{formatPeriod(person.start_date, person.end_date)}</div>
           <div className="flex items-center gap-2 text-sm">
-            <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: bg }} />
+            <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: housing?.color ?? "#9CA3AF" }} />
             <span>{housing?.name ?? "Geen slaapplek"}</span>
           </div>
           {locationName && <div className="text-sm">{locationName}</div>}
