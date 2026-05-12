@@ -8,11 +8,14 @@ export interface PersoneelLocation {
   updated_at: string;
 }
 
+export type FunctionGroup = "keuken" | "bediening";
+
 export interface PersoneelTeam {
   id: string;
   name: string;
   location_id: string;
   sort_order: number;
+  function_group: FunctionGroup | null;
   created_at: string;
   updated_at: string;
 }
