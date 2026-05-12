@@ -213,6 +213,21 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
 
           <div className="space-y-2">
             <Label>Slaapplek</Label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={housingNotNeeded}
+                onChange={(e) => {
+                  setHousingNotNeeded(e.target.checked);
+                  if (e.target.checked) {
+                    setHousingId("");
+                    setRoomId("");
+                  }
+                }}
+                className="h-4 w-4 rounded border-input"
+              />
+              <span>Heeft geen woonruimte nodig (woont thuis)</span>
+            </label>
             <Select
               value={housingId || "__none"}
               onValueChange={(v) => {
@@ -220,6 +235,7 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
                 setHousingId(next);
                 setRoomId("");
               }}
+              disabled={housingNotNeeded}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Kies slaapplek" />
