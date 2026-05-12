@@ -62,7 +62,34 @@ export default function Tijdlijn() {
   const totalWidth = TOTAL_DAYS * cellWidth;
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const namesScrollRef = useRef<HTMLDivElement>(null);
+  const syncingRef = useRef(false);
   const [visibleRange, setVisibleRange] = useState<[number, number]>([0, TOTAL_DAYS - 1]);
+
+  // Sync vertical scroll between names column and timeline column
+  useEffect(() => {
+    const names = namesScrollRef.current;
+    const timeline = scrollRef.current;
+    if (!names || !timeline) return;
+    const onNames = () => {
+      if (syncingRef.current) return;
+      syncingRef.current = true;
+      timeline.scrollTop = names.scrollTop;
+      requestAnimationFrame(() => { syncingRef.current = false; });
+    };
+    const onTimeline = () => {
+      if (syncingRef.current) return;
+      syncingRef.current = true;
+      names.scrollTop = timeline.scrollTop;
+      requestAnimationFrame(() => { syncingRef.current = false; });
+    };
+    names.addEventListener("scroll", onNames, { passive: true });
+    timeline.addEventListener("scroll", onTimeline, { passive: true });
+    return () => {
+      names.removeEventListener("scroll", onNames);
+      timeline.removeEventListener("scroll", onTimeline);
+    };
+  }, []);
 
   const scrollToToday = useCallback((smooth: boolean) => {
     const c = scrollRef.current;
@@ -299,11 +326,12 @@ export default function Tijdlijn() {
         </div>
       </div>
 
-      <div className="flex overflow-y-auto" style={{ maxHeight: "70vh" }}>
+      <div className="flex" style={{ maxHeight: "70vh" }}>
         {/* Names + slaapplek column */}
         <div
-          className="sticky left-0 z-30 bg-card border-r border-border"
-          style={{ width: NAME_COL_WIDTH }}
+          ref={namesScrollRef}
+          className="bg-card border-r border-border overflow-y-auto overflow-x-hidden scrollbar-hide"
+          style={{ width: NAME_COL_WIDTH, maxHeight: "70vh", scrollbarWidth: "none" } as React.CSSProperties}
         >
           <div style={{ height: "var(--timeline-header-h)" }} className="border-b border-border bg-card sticky top-0 z-20 flex flex-col">
             <div style={{ height: "var(--timeline-date-h)" }} />
@@ -423,8 +451,8 @@ export default function Tijdlijn() {
         {/* Scrollable timeline */}
         <div
           ref={scrollRef}
-          className="flex-1 overflow-x-auto"
-          style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
+          className="flex-1 overflow-auto"
+          style={{ WebkitOverflowScrolling: "touch", maxHeight: "70vh" } as React.CSSProperties}
         >
           <div className="relative" style={{ width: totalWidth, minWidth: totalWidth }}>
             {/* Sticky header (months + days) */}
