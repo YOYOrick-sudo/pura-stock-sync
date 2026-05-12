@@ -62,6 +62,7 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
       setNotes(person.notes ?? "");
       setCompetence(person.competence ?? "");
       setPay(person.pay ?? "");
+      setHousingNotNeeded(person.housing_not_needed ?? false);
     } else {
       setName("");
       setAssignments([{ location_id: "", team_id: "" }]);
@@ -73,6 +74,7 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
       setNotes("");
       setCompetence("");
       setPay("");
+      setHousingNotNeeded(false);
     }
     setShowDetails(false);
   }, [person, open]);
