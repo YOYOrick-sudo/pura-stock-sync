@@ -604,6 +604,7 @@ export default function Tijdlijn() {
                       cellWidth={cellWidth}
                       rowHeight={rowHeight}
                       locationName={locations.find(l => l.id === r.locId)?.name}
+                      locationColor={locations.find(l => l.id === r.locId)?.color}
                       onEdit={setEditing}
                     />
                   </div>
