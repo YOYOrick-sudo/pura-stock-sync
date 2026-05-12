@@ -1,6 +1,6 @@
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import type { Person, PersoneelHousing } from "@/types/personeel";
-import { getPersonColor } from "@/lib/personeel-utils";
+import { getTextColorForBg } from "@/lib/personeel-utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { formatPeriod } from "@/lib/personeel-utils";
 import { Button } from "@/components/ui/button";
@@ -13,16 +13,20 @@ interface PlanningBlockProps {
   cellWidth: number;
   rowHeight: number;
   locationName?: string;
+  locationColor?: string;
   onEdit?: (person: Person) => void;
 }
 
-export function PlanningBlock({ person, housing, windowStart, cellWidth, rowHeight, locationName, onEdit }: PlanningBlockProps) {
+export function PlanningBlock({ person, housing, windowStart, cellWidth, rowHeight, locationName, locationColor, onEdit }: PlanningBlockProps) {
   const start = parseISO(person.start_date);
   const end = parseISO(person.end_date);
   const offsetDays = Math.max(0, differenceInCalendarDays(start, windowStart));
   const lengthDays = differenceInCalendarDays(end, start) + 1;
 
-  const { bg, fg: textColor } = getPersonColor(person.id);
+  // Kleur: woonruimte > vestigingskleur (bij "woont thuis") > neutraal grijs
+  const bg = housing?.color
+    ?? (person.housing_not_needed ? (locationColor ?? "#9CA3AF") : "#9CA3AF");
+  const textColor = getTextColorForBg(bg);
 
   return (
     <Popover>
