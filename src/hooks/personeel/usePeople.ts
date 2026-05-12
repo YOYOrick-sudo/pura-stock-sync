@@ -114,6 +114,7 @@ export function useCreatePerson() {
           competence: input.competence ?? null,
           pay: input.pay ?? null,
           notes: input.notes ?? null,
+          housing_not_needed: input.housing_not_needed ?? false,
         } as never)
         .select()
         .single();
