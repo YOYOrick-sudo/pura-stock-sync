@@ -451,8 +451,8 @@ export default function Tijdlijn() {
         {/* Scrollable timeline */}
         <div
           ref={scrollRef}
-          className="flex-1 overflow-x-auto"
-          style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
+          className="flex-1 overflow-auto"
+          style={{ WebkitOverflowScrolling: "touch", maxHeight: "70vh" } as React.CSSProperties}
         >
           <div className="relative" style={{ width: totalWidth, minWidth: totalWidth }}>
             {/* Sticky header (months + days) */}
