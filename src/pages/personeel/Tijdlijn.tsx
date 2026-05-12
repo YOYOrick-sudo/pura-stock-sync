@@ -62,34 +62,7 @@ export default function Tijdlijn() {
   const totalWidth = TOTAL_DAYS * cellWidth;
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const namesScrollRef = useRef<HTMLDivElement>(null);
-  const syncingRef = useRef(false);
   const [visibleRange, setVisibleRange] = useState<[number, number]>([0, TOTAL_DAYS - 1]);
-
-  // Sync vertical scroll between names column and timeline column
-  useEffect(() => {
-    const names = namesScrollRef.current;
-    const timeline = scrollRef.current;
-    if (!names || !timeline) return;
-    const onNames = () => {
-      if (syncingRef.current) return;
-      syncingRef.current = true;
-      timeline.scrollTop = names.scrollTop;
-      requestAnimationFrame(() => { syncingRef.current = false; });
-    };
-    const onTimeline = () => {
-      if (syncingRef.current) return;
-      syncingRef.current = true;
-      names.scrollTop = timeline.scrollTop;
-      requestAnimationFrame(() => { syncingRef.current = false; });
-    };
-    names.addEventListener("scroll", onNames, { passive: true });
-    timeline.addEventListener("scroll", onTimeline, { passive: true });
-    return () => {
-      names.removeEventListener("scroll", onNames);
-      timeline.removeEventListener("scroll", onTimeline);
-    };
-  }, []);
 
   const scrollToToday = useCallback((smooth: boolean) => {
     const c = scrollRef.current;
@@ -326,137 +299,25 @@ export default function Tijdlijn() {
         </div>
       </div>
 
-      <div className="flex" style={{ maxHeight: "70vh" }}>
-        {/* Names + slaapplek column */}
-        <div
-          ref={namesScrollRef}
-          className="bg-card border-r border-border overflow-y-auto overflow-x-hidden scrollbar-hide"
-          style={{ width: NAME_COL_WIDTH, maxHeight: "70vh", scrollbarWidth: "none" } as React.CSSProperties}
-        >
-          <div style={{ height: "var(--timeline-header-h)" }} className="border-b border-border bg-card sticky top-0 z-20 flex flex-col">
-            <div style={{ height: "var(--timeline-date-h)" }} />
-            <div style={{ height: "var(--timeline-density-h)" }} />
-          </div>
-          <div className="relative" style={{ height: totalRowsHeight }}>
-            {rows.map((r, i) => {
-              const top = offsets[i];
-              if (r.kind === "spacer") {
-                return (
-                  <div
-                    key={`sp-${r.locId}-${i}`}
-                    className="absolute left-0 right-0 bg-muted/10 border-t-2 border-border"
-                    style={{ top, height: SPACER_HEIGHT }}
-                  />
-                );
-              }
-              if (r.kind === "header") {
-                return (
-                  <div
-                    key={`h-${r.locId}`}
-                    className="absolute left-0 right-0 px-3 flex items-center bg-primary/10 font-bold text-base text-primary border-b border-border border-l-4 border-l-primary"
-                    style={{ top, height: headerHeight }}
-                  >
-                    {r.locName}
-                  </div>
-                );
-              }
-              if (r.kind === "function") {
-                const Icon = r.group === "keuken" ? ChefHat : Utensils;
-                return (
-                  <div
-                    key={`fn-${r.locId}-${r.group}`}
-                    className="absolute left-0 right-0 flex items-center gap-1.5 px-3 bg-muted/40 border-b border-border/50 text-[11px] font-semibold uppercase tracking-wider text-foreground/80"
-                    style={{ top, height: FUNCTION_HEIGHT }}
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                    {r.group === "keuken" ? "Keuken" : "Bediening"}
-                  </div>
-                );
-              }
-              if (r.kind === "subheader") {
-                return (
-                  <div
-                    key={`sh-${r.locId}-${r.group}`}
-                    className="absolute left-0 right-0 flex items-center bg-muted/20 border-b border-border text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
-                    style={{ top, height: SUBHEADER_HEIGHT }}
-                  >
-                    <div className="px-3 truncate" style={{ width: NAME_WIDTH }}>Naam</div>
-                    <div className="px-2 truncate" style={{ width: HOUSING_WIDTH }}>
-                      <span className="hidden md:inline">Woonruimte</span>
-                    </div>
-                  </div>
-                );
-              }
-              if (r.kind === "history") {
-                return (
-                  <div
-                    key={`hist-name-${r.locId}`}
-                    className="absolute left-0 right-0 px-3 flex items-center text-xs text-muted-foreground bg-muted/10 border-b border-border/50"
-                    style={{ top, height: HISTORY_ROW_HEIGHT }}
-                  >
-                    Vorig jaar
-                  </div>
-                );
-              }
-              const p = r.person;
-              const h = housing.find(x => x.id === p.housing_id);
-              const multi = (p.assignments?.length ?? 0) > 1;
-              return (
-                <div
-                  key={`${p.id}-${r.locId}`}
-                  className="absolute left-0 right-0 flex items-center border-b border-border/50"
-                  style={{ top, height: rowHeight }}
-                >
-                  <div className="px-3 text-sm truncate flex items-center gap-1.5" style={{ width: NAME_WIDTH }} title={multi ? `${p.name} · actief op meerdere vestigingen` : p.name}>
-                    <span className="truncate">{p.name}</span>
-                    {multi && (
-                      <span
-                        className="shrink-0 w-1.5 h-1.5 rounded-full bg-primary"
-                        title="Actief op meerdere vestigingen"
-                        aria-label="Multi-locatie"
-                      />
-                    )}
-                  </div>
-                  <div className="px-2 text-sm" style={{ width: HOUSING_WIDTH }} title={h?.name ?? (p.housing_not_needed ? "Geen woonruimte nodig" : "Nog geen slaapplek toegewezen")}>
-                    {h ? (
-                      <Link
-                        to={`/personeel/wonen/${h.id}`}
-                        className="flex items-center gap-2 truncate min-h-[40px] hover:underline underline-offset-2"
-                      >
-                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: h.color }} />
-                        <span className="truncate hidden md:inline">{h.name}</span>
-                      </Link>
-                    ) : p.housing_not_needed ? (
-                      <span className="flex items-center gap-1.5 text-muted-foreground text-xs">
-                        <Home className="h-3.5 w-3.5 opacity-60" />
-                        <span className="truncate hidden md:inline">woont thuis</span>
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setEditing(p)}
-                        className="flex items-center gap-1.5 text-amber-600 text-xs hover:underline"
-                      >
-                        <AlertCircle className="h-3.5 w-3.5" />
-                        <span className="truncate hidden md:inline">toewijzen</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Scrollable timeline */}
-        <div
-          ref={scrollRef}
-          className="flex-1 overflow-auto"
-          style={{ WebkitOverflowScrolling: "touch", maxHeight: "70vh" } as React.CSSProperties}
-        >
-          <div className="relative" style={{ width: totalWidth, minWidth: totalWidth }}>
-            {/* Sticky header (months + days) */}
-            <div className="sticky top-0 z-20 bg-card border-b border-border" style={{ height: "var(--timeline-date-h)", width: totalWidth }}>
+      {/* Single scroll container — both axes scroll natively together */}
+      <div
+        ref={scrollRef}
+        className="overflow-auto"
+        style={{ maxHeight: "70vh", WebkitOverflowScrolling: "touch" } as React.CSSProperties}
+      >
+        <div style={{ width: NAME_COL_WIDTH + totalWidth, minWidth: NAME_COL_WIDTH + totalWidth }}>
+          {/* Sticky header band: covers date row + density row */}
+          <div
+            className="sticky top-0 z-30 flex bg-card border-b border-border"
+            style={{ height: "var(--timeline-header-h)" }}
+          >
+            {/* Header corner — sticky left */}
+            <div
+              className="sticky left-0 z-40 bg-card border-r border-border"
+              style={{ width: NAME_COL_WIDTH, flexShrink: 0 }}
+            />
+            {/* Header right side: months + days + density */}
+            <div className="relative" style={{ width: totalWidth, flexShrink: 0 }}>
               <div className="relative h-5 border-b border-border/50" style={{ width: totalWidth }}>
                 {monthSegments.map(seg => (
                   <div
@@ -464,7 +325,7 @@ export default function Tijdlijn() {
                     className="absolute top-0 h-full text-xs font-medium text-muted-foreground flex items-center"
                     style={{ left: seg.startIdx * cellWidth, width: (seg.endIdx - seg.startIdx + 1) * cellWidth }}
                   >
-                    <span className="sticky left-2 px-1 bg-card whitespace-nowrap">{seg.label}</span>
+                    <span className="px-1 bg-card whitespace-nowrap">{seg.label}</span>
                   </div>
                 ))}
               </div>
@@ -484,32 +345,140 @@ export default function Tijdlijn() {
                   );
                 })}
               </div>
+              <div style={{ height: "var(--timeline-density-h)", width: totalWidth }}>
+                <DensityBar
+                  people={people}
+                  windowStart={windowStart}
+                  totalDays={TOTAL_DAYS}
+                  cellWidth={cellWidth}
+                  height={32}
+                  visibleStartIdx={visibleRange[0]}
+                  visibleEndIdx={visibleRange[1]}
+                />
+              </div>
             </div>
+          </div>
 
-            {/* (Globale "Vorig jaar"-rij verwijderd — nu per vestiging-groep, zie tracks-area) */}
-
-            {/* Density bar */}
+          {/* Body: names sticky-left + tracks, share one vertical scroll */}
+          <div className="flex" style={{ width: NAME_COL_WIDTH + totalWidth }}>
+            {/* Names column — sticky left */}
             <div
-              className="sticky z-10 border-b border-border"
-              style={{
-                top: "var(--timeline-date-h)",
-                height: "var(--timeline-density-h)",
-                width: totalWidth,
-              }}
+              className="sticky left-0 z-20 bg-card border-r border-border"
+              style={{ width: NAME_COL_WIDTH, flexShrink: 0 }}
             >
-              <DensityBar
-                people={people}
-                windowStart={windowStart}
-                totalDays={TOTAL_DAYS}
-                cellWidth={cellWidth}
-                height={32}
-                visibleStartIdx={visibleRange[0]}
-                visibleEndIdx={visibleRange[1]}
-              />
+              <div className="relative" style={{ height: totalRowsHeight, width: NAME_COL_WIDTH }}>
+                {rows.map((r, i) => {
+                  const top = offsets[i];
+                  if (r.kind === "spacer") {
+                    return (
+                      <div
+                        key={`sp-${r.locId}-${i}`}
+                        className="absolute left-0 right-0 bg-muted/10 border-t-2 border-border"
+                        style={{ top, height: SPACER_HEIGHT }}
+                      />
+                    );
+                  }
+                  if (r.kind === "header") {
+                    return (
+                      <div
+                        key={`h-${r.locId}`}
+                        className="absolute left-0 right-0 px-3 flex items-center bg-primary/10 font-bold text-base text-primary border-b border-border border-l-4 border-l-primary"
+                        style={{ top, height: headerHeight }}
+                      >
+                        {r.locName}
+                      </div>
+                    );
+                  }
+                  if (r.kind === "function") {
+                    const Icon = r.group === "keuken" ? ChefHat : Utensils;
+                    return (
+                      <div
+                        key={`fn-${r.locId}-${r.group}`}
+                        className="absolute left-0 right-0 flex items-center gap-1.5 px-3 bg-muted/40 border-b border-border/50 text-[11px] font-semibold uppercase tracking-wider text-foreground/80"
+                        style={{ top, height: FUNCTION_HEIGHT }}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                        {r.group === "keuken" ? "Keuken" : "Bediening"}
+                      </div>
+                    );
+                  }
+                  if (r.kind === "subheader") {
+                    return (
+                      <div
+                        key={`sh-${r.locId}-${r.group}`}
+                        className="absolute left-0 right-0 flex items-center bg-muted/20 border-b border-border text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
+                        style={{ top, height: SUBHEADER_HEIGHT }}
+                      >
+                        <div className="px-3 truncate" style={{ width: NAME_WIDTH }}>Naam</div>
+                        <div className="px-2 truncate" style={{ width: HOUSING_WIDTH }}>
+                          <span className="hidden md:inline">Woonruimte</span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  if (r.kind === "history") {
+                    return (
+                      <div
+                        key={`hist-name-${r.locId}`}
+                        className="absolute left-0 right-0 px-3 flex items-center text-xs text-muted-foreground bg-muted/10 border-b border-border/50"
+                        style={{ top, height: HISTORY_ROW_HEIGHT }}
+                      >
+                        Vorig jaar
+                      </div>
+                    );
+                  }
+                  const p = r.person;
+                  const h = housing.find(x => x.id === p.housing_id);
+                  const multi = (p.assignments?.length ?? 0) > 1;
+                  return (
+                    <div
+                      key={`${p.id}-${r.locId}`}
+                      className="absolute left-0 right-0 flex items-center border-b border-border/50"
+                      style={{ top, height: rowHeight }}
+                    >
+                      <div className="px-3 text-sm truncate flex items-center gap-1.5" style={{ width: NAME_WIDTH }} title={multi ? `${p.name} · actief op meerdere vestigingen` : p.name}>
+                        <span className="truncate">{p.name}</span>
+                        {multi && (
+                          <span
+                            className="shrink-0 w-1.5 h-1.5 rounded-full bg-primary"
+                            title="Actief op meerdere vestigingen"
+                            aria-label="Multi-locatie"
+                          />
+                        )}
+                      </div>
+                      <div className="px-2 text-sm" style={{ width: HOUSING_WIDTH }} title={h?.name ?? (p.housing_not_needed ? "Geen woonruimte nodig" : "Nog geen slaapplek toegewezen")}>
+                        {h ? (
+                          <Link
+                            to={`/personeel/wonen/${h.id}`}
+                            className="flex items-center gap-2 truncate min-h-[40px] hover:underline underline-offset-2"
+                          >
+                            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: h.color }} />
+                            <span className="truncate hidden md:inline">{h.name}</span>
+                          </Link>
+                        ) : p.housing_not_needed ? (
+                          <span className="flex items-center gap-1.5 text-muted-foreground text-xs">
+                            <Home className="h-3.5 w-3.5 opacity-60" />
+                            <span className="truncate hidden md:inline">woont thuis</span>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setEditing(p)}
+                            className="flex items-center gap-1.5 text-amber-600 text-xs hover:underline"
+                          >
+                            <AlertCircle className="h-3.5 w-3.5" />
+                            <span className="truncate hidden md:inline">toewijzen</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Tracks area */}
-            <div className="relative" style={{ width: totalWidth, height: totalRowsHeight }}>
+            <div className="relative" style={{ width: totalWidth, height: totalRowsHeight, flexShrink: 0 }}>
               {weekendOffsets.map(i => (
                 <div
                   key={`w-${i}`}
