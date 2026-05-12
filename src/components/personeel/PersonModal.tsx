@@ -42,6 +42,7 @@ export function PersonModal({ open, onClose, person }: PersonModalProps) {
   const [notes, setNotes] = useState("");
   const [competence, setCompetence] = useState<string>("");
   const [pay, setPay] = useState("");
+  const [housingNotNeeded, setHousingNotNeeded] = useState(false);
 
   const { data: rooms = [] } = useRoomsByHousing(housingId || null);
 
