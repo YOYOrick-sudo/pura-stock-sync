@@ -326,11 +326,12 @@ export default function Tijdlijn() {
         </div>
       </div>
 
-      <div className="flex overflow-y-auto" style={{ maxHeight: "70vh" }}>
+      <div className="flex" style={{ maxHeight: "70vh" }}>
         {/* Names + slaapplek column */}
         <div
-          className="sticky left-0 z-30 bg-card border-r border-border"
-          style={{ width: NAME_COL_WIDTH }}
+          ref={namesScrollRef}
+          className="bg-card border-r border-border overflow-y-auto overflow-x-hidden scrollbar-hide"
+          style={{ width: NAME_COL_WIDTH, maxHeight: "70vh", scrollbarWidth: "none" } as React.CSSProperties}
         >
           <div style={{ height: "var(--timeline-header-h)" }} className="border-b border-border bg-card sticky top-0 z-20 flex flex-col">
             <div style={{ height: "var(--timeline-date-h)" }} />
