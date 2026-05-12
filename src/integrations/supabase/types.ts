@@ -1904,6 +1904,7 @@ export type Database = {
           deleted_at: string | null
           end_date: string | null
           housing_id: string | null
+          housing_not_needed: boolean | null
           id: string | null
           location_id: string | null
           name: string | null
@@ -1924,6 +1925,7 @@ export type Database = {
           deleted_at?: string | null
           end_date?: string | null
           housing_id?: string | null
+          housing_not_needed?: boolean | null
           id?: string | null
           location_id?: string | null
           name?: string | null
@@ -1944,6 +1946,7 @@ export type Database = {
           deleted_at?: string | null
           end_date?: string | null
           housing_id?: string | null
+          housing_not_needed?: boolean | null
           id?: string | null
           location_id?: string | null
           name?: string | null
