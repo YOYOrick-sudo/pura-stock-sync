@@ -20,7 +20,7 @@ function nlHour() {
 
 export function WasteAlertBanner() {
   const { userLocation } = useUserLocation();
-  const { data: pickups } = useWastePickups(userLocation, 7);
+  const { data: pickups } = useWastePickups(userLocation);
   const [dialogId, setDialogId] = useState<string | null>(null);
 
   const alerts = useMemo<WastePickup[]>(() => {
