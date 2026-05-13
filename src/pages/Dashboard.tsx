@@ -130,6 +130,8 @@ export default function Dashboard() {
           <TerschellingEventsCard />
         </div>
 
+        <WasteCalendarCard />
+
         <HandoverCard />
       </div>
     </SidebarLayout>
