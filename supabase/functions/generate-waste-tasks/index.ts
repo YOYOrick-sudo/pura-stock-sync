@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
             title,
             due_date: today,
             phase: 'sluit',
-            category: 'Algemeen',
+            category: 'Afval',
             priority: 1,
             estimated_minutes: 5,
             description: `Container morgen ophaal: ${tomorrow}`,
