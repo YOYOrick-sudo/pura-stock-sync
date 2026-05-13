@@ -110,20 +110,29 @@ export const TERSCHELLING_EVENTS: TerschellingEvent[] = [
  */
 export function getNextEvent(now: Date = new Date()): TerschellingEvent | null {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const upcoming = TERSCHELLING_EVENTS
+  // Voorkeur: eerstvolgend event dat nog moet beginnen (startDate >= vandaag).
+  // Lange multi-day events die al lopen (zoals "Ringsteken" mei-okt) mogen
+  // niet de aandacht stelen van een echt aankomend event dit weekend.
+  const upcomingNotYetStarted = TERSCHELLING_EVENTS
+    .filter((e) => new Date(e.startDate) >= today)
+    .sort((a, b) => a.startDate.localeCompare(b.startDate));
+  if (upcomingNotYetStarted[0]) return upcomingNotYetStarted[0];
+
+  // Fallback: niets aankomends → toon eventueel een nog lopend event
+  const stillRunning = TERSCHELLING_EVENTS
     .filter((e) => {
       const end = new Date(e.endDate ?? e.startDate);
       return end >= today;
     })
     .sort((a, b) => a.startDate.localeCompare(b.startDate));
-  return upcoming[0] ?? null;
+  return stillRunning[0] ?? null;
 }
 
-/** Komende N events vanaf vandaag */
+/** Komende N events vanaf vandaag (alleen events die nog moeten starten) */
 export function getUpcomingEvents(n: number, now: Date = new Date()): TerschellingEvent[] {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   return TERSCHELLING_EVENTS
-    .filter((e) => new Date(e.endDate ?? e.startDate) >= today)
+    .filter((e) => new Date(e.startDate) >= today)
     .sort((a, b) => a.startDate.localeCompare(b.startDate))
     .slice(0, n);
 }
