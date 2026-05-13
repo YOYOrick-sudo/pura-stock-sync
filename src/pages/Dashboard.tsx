@@ -9,6 +9,8 @@ import { ListTodo } from 'lucide-react';
 import { HandoverCard } from '@/components/HandoverCard';
 import { IdeaBox } from '@/components/dashboard/IdeaBox';
 import { TerschellingEventsCard } from '@/components/dashboard/TerschellingEventsCard';
+import { WasteCalendarCard } from '@/components/dashboard/WasteCalendarCard';
+import { WasteAlertBanner } from '@/components/dashboard/WasteAlertBanner';
 
 interface DashboardCardProps {
   title: string;
