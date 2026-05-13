@@ -9,6 +9,8 @@ import { ListTodo } from 'lucide-react';
 import { HandoverCard } from '@/components/HandoverCard';
 import { IdeaBox } from '@/components/dashboard/IdeaBox';
 import { TerschellingEventsCard } from '@/components/dashboard/TerschellingEventsCard';
+import { WasteCalendarCard } from '@/components/dashboard/WasteCalendarCard';
+import { WasteAlertBanner } from '@/components/dashboard/WasteAlertBanner';
 
 interface DashboardCardProps {
   title: string;
@@ -113,6 +115,7 @@ export default function Dashboard() {
   return (
     <SidebarLayout>
       <div className="max-w-7xl mx-auto space-y-6">
+        <WasteAlertBanner />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <DashboardCard
             title="Openstaande Taken"
@@ -126,6 +129,8 @@ export default function Dashboard() {
 
           <TerschellingEventsCard />
         </div>
+
+        <WasteCalendarCard />
 
         <HandoverCard />
       </div>
