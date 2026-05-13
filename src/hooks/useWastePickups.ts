@@ -19,7 +19,11 @@ export interface WastePickup {
   sluit_completed?: boolean;
 }
 
-export function useWastePickups(location: string | null, days = 7) {
+// Wide window: 7 days back, 35 days forward → covers ±4 weeks navigation without refetch
+const RANGE_BACK_DAYS = 7;
+const RANGE_FORWARD_DAYS = 35;
+
+export function useWastePickups(location: string | null) {
   const qc = useQueryClient();
 
   useEffect(() => {
@@ -37,12 +41,12 @@ export function useWastePickups(location: string | null, days = 7) {
   }, [location, qc]);
 
   return useQuery({
-    queryKey: ['waste-pickups', location, days],
+    queryKey: ['waste-pickups', location],
     enabled: location === 'Midsland',
     queryFn: async () => {
       const today = new Date();
-      const start = new Date(today); start.setDate(start.getDate() - 2);
-      const end = new Date(today); end.setDate(end.getDate() + days);
+      const start = new Date(today); start.setDate(start.getDate() - RANGE_BACK_DAYS);
+      const end = new Date(today); end.setDate(end.getDate() + RANGE_FORWARD_DAYS);
       const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
       const { data: pickups, error } = await supabase
