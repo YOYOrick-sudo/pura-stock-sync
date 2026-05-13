@@ -1,17 +1,17 @@
-import { Calendar, ExternalLink } from 'lucide-react';
+import { Calendar, ExternalLink, Loader2 } from 'lucide-react';
 import { PolarKPICard } from '@/components/polar';
 import {
-  getNextEvent,
-  getUpcomingEvents,
+  useNextEvent,
+  useUpcomingEventsCount,
   getDaysUntil,
   formatEventDate,
-} from '@/lib/terschelling-events';
+} from '@/hooks/useTerschellingEvents';
 
 const VVV_URL = 'https://www.vvvterschelling.nl/evenementen/';
 
 export function TerschellingEventsCard() {
-  const next = getNextEvent();
-  const upcomingCount = getUpcomingEvents(999).length;
+  const next = useNextEvent();
+  const upcomingCount = useUpcomingEventsCount();
 
   if (!next) {
     return (
@@ -30,7 +30,6 @@ export function TerschellingEventsCard() {
           }}
           statusColor={{
             bg: 'transparent',
-            text: 'hsl(var(--muted-foreground))',
             icon: <Calendar size={16} className="text-primary" />,
           }}
         />
