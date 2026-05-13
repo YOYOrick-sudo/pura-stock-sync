@@ -153,14 +153,113 @@ export function WasteCalendarCard() {
         <TooltipProvider>
           <div className="grid grid-cols-7 gap-1.5">
             {days.map((d) => {
+              const isPast = d.date < today;
               const hasMissed = d.pickups.some(
-                (p) => !p.sluit_completed && !p.acknowledged_at && p.date_in_past_check_today_str_lt(),
+                (p) => !p.sluit_completed && !p.acknowledged_at && isPast,
               );
-              return null as any;
+              // Sort: TST first (large), then Gemeente
+              const sorted = [...d.pickups].sort((a, b) =>
+                a.source === b.source ? 0 : a.source === 'tst' ? -1 : 1,
+              );
+              return (
+                <div
+                  key={d.date}
+                  className={[
+                    'flex flex-col rounded-[14px] border min-h-[124px] p-1.5 transition-colors',
+                    d.isToday ? 'ring-2 ring-primary border-transparent bg-primary/[0.03]' : 'border-border',
+                    hasMissed ? 'border-destructive border-2' : '',
+                  ].join(' ')}
+                >
+                  {/* Day header */}
+                  <div className="flex items-baseline justify-between px-1 mb-1">
+                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+                      {d.dayName}
+                    </span>
+                    <span className={`text-xs font-bold ${d.isToday ? 'text-primary' : 'text-foreground'}`}>
+                      {d.dayNum}
+                    </span>
+                  </div>
+
+                  {/* Pickup chips */}
+                  <div className="flex flex-col gap-1 flex-1">
+                    {sorted.length === 0 && (
+                      <div className="flex items-center justify-center flex-1">
+                        <span className="text-[10px] text-muted-foreground">—</span>
+                      </div>
+                    )}
+                    {sorted.map((p) => {
+                      const meta = FRACTION_META[p.fraction];
+                      const Icon = meta.Icon;
+                      const isTst = p.source === 'tst';
+                      const missed = !p.sluit_completed && !p.acknowledged_at && isPast;
+                      return (
+                        <Tooltip key={p.id}>
+                          <TooltipTrigger asChild>
+                            <div
+                              className={[
+                                'relative rounded-[8px] border flex items-center gap-1 px-1.5 py-1',
+                                meta.bg, meta.border, meta.text,
+                                isTst ? 'font-semibold' : '',
+                              ].join(' ')}
+                              aria-label={`${SOURCE_LABEL[p.source]} ${meta.label}`}
+                            >
+                              <Icon size={isTst ? 14 : 11} className="shrink-0" />
+                              <div className="flex flex-col leading-tight min-w-0">
+                                <span className={`${isTst ? 'text-[10px]' : 'text-[9px]'} truncate`}>
+                                  {meta.label}
+                                </span>
+                                <span className={`text-[8px] opacity-70 ${isTst ? '' : 'hidden'}`}>
+                                  TST
+                                </span>
+                              </div>
+                              {missed && (
+                                <AlertTriangle
+                                  size={10}
+                                  className="absolute -top-1 -right-1 text-destructive bg-background rounded-full"
+                                />
+                              )}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs">
+                              <strong>{SOURCE_LABEL[p.source]}</strong> — {meta.label}
+                              <br />
+                              {isTst ? 'Grote container' : 'Kleine container'}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
             })}
+          </div>
+
+          {/* Legend */}
+          <div className="mt-4 pt-3 border-t border-border flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-[6px] bg-primary/15 border border-primary/50 text-primary">
+                <Leaf size={11} /><span className="text-[9px] font-semibold">GFT</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-[6px] bg-blue-500/15 border border-blue-500/50 text-blue-700 dark:text-blue-300">
+                <Newspaper size={11} /><span className="text-[9px] font-semibold">Papier</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-[6px] bg-muted-foreground/15 border border-muted-foreground/40">
+                <Trash2 size={11} /><span className="text-[9px] font-semibold">Restafval</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 ml-auto">
+              <span><strong className="text-foreground">TST</strong> = grote container · <strong className="text-foreground">Gemeente</strong> = kleine</span>
+            </div>
           </div>
         </TooltipProvider>
       )}
     </div>
   );
 }
+
