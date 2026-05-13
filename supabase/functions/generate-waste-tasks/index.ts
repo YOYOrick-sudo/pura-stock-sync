@@ -6,7 +6,7 @@ const corsHeaders = {
 };
 
 const SOURCE_LABEL = { tst: 'TST (grote)', gemeente: 'Gemeente' } as const;
-const FRACTION_LABEL = { restafval: 'Restafval', gft: 'GFT', papier: 'Papier' } as const;
+const FRACTION_LABEL = { restafval: 'Restafval', gft: 'GFT', papier: 'Papier', glas: 'Glas' } as const;
 
 // Returns YYYY-MM-DD in Europe/Amsterdam
 function nlDate(offsetDays = 0): string {
