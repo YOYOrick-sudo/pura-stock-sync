@@ -1733,6 +1733,48 @@ export type Database = {
         }
         Relationships: []
       }
+      terschelling_events: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          last_seen_at: string
+          location: string | null
+          name: string
+          source_url: string | null
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          last_seen_at?: string
+          location?: string | null
+          name: string
+          source_url?: string | null
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          last_seen_at?: string
+          location?: string | null
+          name?: string
+          source_url?: string | null
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ticket_comments: {
         Row: {
           aangemaakt_op: string
