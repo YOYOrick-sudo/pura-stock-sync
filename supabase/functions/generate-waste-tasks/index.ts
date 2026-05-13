@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
             title,
             due_date: today,
             phase: 'tussen',
-            category: 'Algemeen',
+            category: 'Afval',
             priority: 2,
             estimated_minutes: 5,
             description: 'Container terug van straat halen',
