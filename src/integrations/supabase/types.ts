@@ -1852,6 +1852,54 @@ export type Database = {
         }
         Relationships: []
       }
+      waste_pickups: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          acknowledged_reason: string | null
+          created_at: string
+          escalation_sent_at: string | null
+          fraction: string
+          id: string
+          location: string
+          pickup_date: string
+          sluit_task_id: string | null
+          source: string
+          tussen_task_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          acknowledged_reason?: string | null
+          created_at?: string
+          escalation_sent_at?: string | null
+          fraction: string
+          id?: string
+          location?: string
+          pickup_date: string
+          sluit_task_id?: string | null
+          source: string
+          tussen_task_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          acknowledged_reason?: string | null
+          created_at?: string
+          escalation_sent_at?: string | null
+          fraction?: string
+          id?: string
+          location?: string
+          pickup_date?: string
+          sluit_task_id?: string | null
+          source?: string
+          tussen_task_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       weather_data: {
         Row: {
           condition: string
