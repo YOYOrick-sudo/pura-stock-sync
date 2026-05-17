@@ -1,19 +1,15 @@
-## Aanpassingen dashboard
+# Afvalkalender Midsland — VOLTOOID 17-05-2026
 
-### 1. Afvalkalender: week start op Maandag
-De kalender toont nu `DAY_NAMES = ['Zon', 'Maa', 'Din', 'Woe', 'Don', 'Vri', 'Zat']` met Zondag als eerste dag. Wijzigen naar Maandag als eerste dag van de week: `['Maa', 'Din', 'Woe', 'Don', 'Vri', 'Zat', 'Zon']`.
+Alle 3 fixes uitgevoerd:
 
-Ook `startOfWeekMonday` functie behoudt de Monday-basis, maar de header-rij moet de dagen nu als Ma-Di-Wo-Do-Vr-Za-Zo tonen.
+1. ✅ **Dag-labels** in `WasteCalendarCard.tsx` — array nu zondag-eerst (`['Zon','Maa','Din','Woe','Don','Vri','Zat']`), past bij `getDay()` index.
 
-### 2. Onderste 3 kaarten kleiner maken
-De 3 KPI-kaarten (Openstaande Taken, Idee Box, Terschelling Events) domineren nu teveel. Maak ze compacter:
-- Compactere PolarKPICard variant: kleinere padding, kleinere font, minder hoogte
-- Of: vervang door subtiele "info strip" / badges in plaats van volwaardige kaarten
-- Het moet minder de aandacht trekken dan Overdracht + Afvalkalender
+2. ✅ **Sluit-taak op gesloten dagen** — `generate-waste-tasks` edge function gebruikt nu `previousOpenDayMidsland()` helper. Pickup op ma/di/wo → sluit-taak op zondag. Uitzonderingen 15+16 jun 2026 (wél open) ingebakken. Tussen-taak overgeslagen op gesloten dagen.
 
-### 3. Files
-- `src/components/dashboard/WasteCalendarCard.tsx` — dag-volgorde header
-- `src/pages/Dashboard.tsx` — kaarten kleiner maken
+3. ✅ **Gemeente pickup-data** vervangen voor heel 2026: 17 restafval + 26 gft + 8 papier = 51 records. TST-data ongewijzigd (was al correct).
 
-## Design-keuze nodig
-Wil je de 3 kaarten gewoon kleiner/compact (minder padding, kleinere tekst), of liever een subtielere vorm zoals een horizontale rij met kleine icon+label badges?
+Verificatie:
+- Sluit-taken voor 19 + 20 mei correct op vandaag (zo 17 mei) geplaatst.
+- DB telling klopt met officieel schema.
+
+Volgende sessie: dashboard cosmetics (kalender header + KPI-kaarten kleiner).
