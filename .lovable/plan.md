@@ -1,49 +1,36 @@
-# TST Restafval + Papier vereenvoudigen — wekelijkse losse taken
+## Plan: Wisselkassa aanvragen knop (Midsland)
 
-## Doel
-In plaats van losse taken voor elke TST-pickup (4× per week restafval + 1× papier), wordt er **één wekelijkse sluit-taak per fractie** gegenereerd. Restafval en papier blijven **gescheiden** zodat het team weet welke container welke is.
+Volledig automatisch via **Twilio SMS** — geen WhatsApp Business approval nodig, werkt direct, ~€0,07 per bericht (≈ €3-4 per jaar bij wekelijks gebruik).
 
-## Regels
+### Wat gaat er gebeuren
 
-**Papier TST**: hele jaar elke **donderdag** (bevestigd in DB).
+1. **Twilio koppelen** via de connector — je krijgt een prompt om een Twilio account aan te maken of bestaande te koppelen (gratis trial geeft je een nummer + credits)
+2. **Secret toevoegen**: `TWILIO_FROM_NUMBER` (jouw Twilio nummer, bv. `+316XXXXXXXX`)
+3. **Database tabel** `wisselkassa_requests` om aanvragen te loggen (locatie, aanvrager, tijdstip, status, Twilio message SID)
+4. **Edge function** `request-wisselkassa`:
+   - Valideert ingelogde gebruiker
+   - Check: alleen Midsland-users mogen aanvragen
+   - Rate limit: max 1 aanvraag per 4 uur per locatie
+   - Stuurt SMS via Twilio gateway naar `+31620608796`
+   - Logt resultaat in database
+5. **UI knop** in Kassatelling pagina (alleen zichtbaar voor Midsland):
+   - "Nieuwe wisselkassa aanvragen" knop
+   - Bevestigings-dialog: "Weet je zeker dat je een nieuwe wisselkassa wilt aanvragen bij Helga?"
+   - Loading state + toast feedback ("Aanvraag verstuurd ✓" of foutmelding)
 
-**Restafval TST**:
-- apr t/m dec → **donderdag** is pickup-dag
-- jan/feb/mrt → geen do; pickup verschuift naar **vrijdag**
+### SMS bericht naar Helga
+> Graag een nieuwe wisselkassa voor Pura Midsland. Aangevraagd door: {naam}. Datum: {datum + tijd}
 
-**Sluit-taken (laatste open dag vóór pickup):**
-| Periode | Restafval pickup | Restafval sluit-taak | Papier pickup | Papier sluit-taak |
-|---|---|---|---|---|
-| apr-dec | donderdag | woensdag | donderdag | woensdag |
-| jan-mrt | vrijdag | donderdag | donderdag | woensdag |
+### Wat jij moet doen
+- **Stap 1**: Bij het koppelen van Twilio → account aanmaken op twilio.com (gratis, ~€15 trial credit), Nederlands nummer kopen (~€1/maand) of trial nummer gebruiken
+- **Stap 2**: Twilio nummer invullen als secret wanneer ik erom vraag
 
-Apr–dec staan dus 2 losse taken op woensdag-avond (restafval + papier, ieder eigen taak). Jan–mrt staat restafval op do en papier op wo.
+### Volgorde van uitvoering
+1. Twilio connector koppelen (jouw actie)
+2. `TWILIO_FROM_NUMBER` secret toevoegen (jouw actie)
+3. Database migratie
+4. Edge function bouwen
+5. UI knop in Kassatelling
+6. Test versturen
 
-## Implementatie
-
-### 1. Data opschonen (`waste_pickups`, source='tst', location='Midsland')
-- **DELETE** alle huidige TST restafval + papier pickups vanaf vandaag
-- **INSERT** nieuwe set t/m 31-12-2026:
-  - Restafval: 1× per week, donderdag (apr-dec) of vrijdag (jan-mrt) → ~52 records
-  - Papier: 1× per week, donderdag → ~52 records (huidige data klopt al, opnieuw inserten voor consistentie)
-- Glas blijft ongewijzigd
-
-### 2. Edge function `generate-waste-tasks/index.ts`
-**Geen logica-wijziging nodig.** Bestaande code maakt al per pickup een losse sluit-taak via `previousOpenDayMidsland()`. Door de data-reductie krijgen we automatisch:
-- Apr-dec: woensdag = 2 sluit-taken (restafval + papier)
-- Jan-mrt: woensdag = papier-taak; donderdag = restafval-taak
-
-### 3. Verificatie
-- Counts: ~52 restafval + ~52 papier pickups (i.p.v. 171 + 52)
-- Trigger `generate-waste-tasks` mode=generate
-- Check eerstvolgende woensdag: 2 losse taken zichtbaar in FOH sluit-fase
-
-## Niet veranderen
-- TST glas, gemeente pickups (restafval/gft/papier)
-- Tussen-taak logica (container terughalen)
-- Edge function code, DAY_NAMES, kalender UI
-
-## Volgorde
-1. Data DELETE + INSERT (insert tool)
-2. Trigger generate-waste-tasks (geen redeploy nodig)
-3. Verify queries
+Klaar om te starten? Dan trigger ik als eerste de Twilio connector koppeling.
