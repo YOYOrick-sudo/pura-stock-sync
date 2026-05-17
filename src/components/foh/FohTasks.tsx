@@ -858,40 +858,39 @@ export function FohTasks() {
     const templates = [...(dailyTemplates || []), ...(weeklyTemplates || [])];
     if (templates.length === 0) return;
     
-    const phases = ['open', 'tussen', 'sluit'] as const;
-    const tasksToInsert: any[] = [];
-    
-    for (const phase of phases) {
-      const { data: existingPhaseTasks } = await supabase
-        .from('foh_tasks')
-        .select('id')
-        .eq('location', userLocation)
-        .eq('due_date', todayDate)
-        .eq('phase', phase)
-        .limit(1);
-      
-      if (!existingPhaseTasks || existingPhaseTasks.length === 0) {
-        const phaseTemplates = templates.filter(t => t.phase === phase);
-        const phaseTasks = phaseTemplates.map(template => ({
-          title: template.title,
-          due_date: todayDate,
-          priority: template.priority,
-          phase: template.phase,
-          location: userLocation,
-          category: template.category,
-          template_id: template.id,
-          repeat_type: 'daily',
-          completed: false,
-          archived: false,
-          assigned_employee_id: null,
-          estimated_minutes: template.estimated_minutes,
-          sort_order: template.sort_order,
-          description: template.description,
-        }));
-        tasksToInsert.push(...phaseTasks);
-      }
-    }
-    
+    // Per-template idempotente check: kijk alleen naar bestaande TEMPLATE-taken
+    // van vandaag. Losse taken (bv. afval, ad-hoc) hebben template_id = null en
+    // mogen de generatie van templates nooit blokkeren.
+    const { data: existingTemplateTasks } = await supabase
+      .from('foh_tasks')
+      .select('template_id')
+      .eq('location', userLocation)
+      .eq('due_date', todayDate)
+      .not('template_id', 'is', null);
+
+    const existingTemplateIds = new Set(
+      (existingTemplateTasks || []).map((t: any) => t.template_id)
+    );
+
+    const tasksToInsert = templates
+      .filter(template => !existingTemplateIds.has(template.id))
+      .map(template => ({
+        title: template.title,
+        due_date: todayDate,
+        priority: template.priority,
+        phase: template.phase,
+        location: userLocation,
+        category: template.category,
+        template_id: template.id,
+        repeat_type: 'daily',
+        completed: false,
+        archived: false,
+        assigned_employee_id: null,
+        estimated_minutes: template.estimated_minutes,
+        sort_order: template.sort_order,
+        description: template.description,
+      }));
+
     if (tasksToInsert.length > 0) {
       await supabase.from('foh_tasks').insert(tasksToInsert);
     }
