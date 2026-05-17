@@ -99,37 +99,45 @@ Deno.serve(async (req) => {
     let totalGenerated = 0;
 
     for (const location of locations) {
-      // Check if tasks already exist for this location and date
-      const { data: existingTasks } = await supabase
+      // Per-template idempotente check: kijk alleen naar bestaande TEMPLATE-taken
+      // van vandaag voor deze locatie. Losse taken (bv. afvalcontainer-taken,
+      // ad-hoc handmatige taken) hebben template_id = null en mogen de generatie
+      // van templates nooit blokkeren.
+      const { data: existingTemplateTasks } = await supabase
         .from('foh_tasks')
-        .select('id')
+        .select('template_id')
         .eq('location', location)
         .eq('due_date', todayDate)
         .eq('archived', false)
-        .limit(1);
+        .not('template_id', 'is', null);
 
-      if (existingTasks && existingTasks.length > 0) {
-        console.log(`Tasks already exist for ${location} on ${todayDate}, skipping generation`);
-        continue;
-      }
+      const existingTemplateIds = new Set(
+        (existingTemplateTasks || []).map((t: any) => t.template_id as string)
+      );
 
-      // Generate tasks for this location
-      const locationTemplates = (templates || []).filter((t: DailyTemplate) => t.location === location);
-      console.log(`Generating ${locationTemplates.length} tasks for ${location}`);
+      const locationTemplates = (templates || []).filter(
+        (t: DailyTemplate) => t.location === location
+      );
 
-      const tasksToInsert = locationTemplates.map((template: DailyTemplate) => ({
-        location: template.location,
-        title: template.title,
-        due_date: todayDate,
-        priority: template.priority,
-        category: template.category,
-        phase: template.phase,
-        completed: false,
-        archived: false,
-        template_id: template.id,
-        estimated_minutes: template.estimated_minutes,
-        sort_order: template.sort_order,
-      }));
+      const tasksToInsert = locationTemplates
+        .filter((t: DailyTemplate) => !existingTemplateIds.has(t.id))
+        .map((template: DailyTemplate) => ({
+          location: template.location,
+          title: template.title,
+          due_date: todayDate,
+          priority: template.priority,
+          category: template.category,
+          phase: template.phase,
+          completed: false,
+          archived: false,
+          template_id: template.id,
+          estimated_minutes: template.estimated_minutes,
+          sort_order: template.sort_order,
+        }));
+
+      console.log(
+        `[${location}] ${locationTemplates.length} templates, ${existingTemplateIds.size} reeds aanwezig, ${tasksToInsert.length} aan te maken`
+      );
 
       if (tasksToInsert.length > 0) {
         const { error: insertError, count } = await supabase
