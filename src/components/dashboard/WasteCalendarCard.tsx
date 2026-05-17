@@ -5,7 +5,8 @@ import { useUserLocation } from '@/contexts/UserLocationContext';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-const DAY_NAMES = ['Maa', 'Din', 'Woe', 'Don', 'Vri', 'Zat', 'Zon'];
+// Index = getDay() (0=zondag, 1=maandag, ...)
+const DAY_NAMES = ['Zon', 'Maa', 'Din', 'Woe', 'Don', 'Vri', 'Zat'];
 const MONTH_NAMES = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
 
 // SOURCE = blok-stijl (bron herken je aan kleur + rand)
