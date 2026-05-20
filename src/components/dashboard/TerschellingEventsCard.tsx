@@ -12,6 +12,7 @@ const VVV_URL = 'https://www.vvvterschelling.nl/evenementen/';
 
 export function TerschellingEventsCard() {
   const next = useNextEvent();
+  const second = useSecondNextEvent();
   const upcomingCount = useUpcomingEventsCount();
 
   if (!next) {
