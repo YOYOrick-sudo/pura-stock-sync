@@ -1,7 +1,8 @@
-import { Calendar, ExternalLink, Loader2 } from 'lucide-react';
+import { Calendar, ExternalLink } from 'lucide-react';
 import { PolarKPICard } from '@/components/polar';
 import {
   useNextEvent,
+  useSecondNextEvent,
   useUpcomingEventsCount,
   getDaysUntil,
   formatEventDate,
@@ -11,6 +12,7 @@ const VVV_URL = 'https://www.vvvterschelling.nl/evenementen/';
 
 export function TerschellingEventsCard() {
   const next = useNextEvent();
+  const second = useSecondNextEvent();
   const upcomingCount = useUpcomingEventsCount();
 
   if (!next) {
@@ -65,8 +67,15 @@ export function TerschellingEventsCard() {
           {dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1)}
         </div>
         <div className="text-xs text-muted-foreground">
-          {dayBadge} · +{upcomingCount - 1} meer
+          {dayBadge}
+          {upcomingCount > (second ? 2 : 1) && ` · +${upcomingCount - (second ? 2 : 1)} meer`}
         </div>
+        {second && (
+          <div className="mt-2 pt-2 border-t border-border/60 text-xs text-muted-foreground">
+            <span className="font-medium text-foreground/80">Daarna:</span>{' '}
+            {second.name} · {formatEventDate(second.startDate)}
+          </div>
+        )}
       </div>
       <ExternalLink
         size={14}

@@ -49,29 +49,42 @@ export function useTerschellingEvents() {
   });
 }
 
-/** Eerstvolgend event: DB voorrang, anders statisch */
-export function useNextEvent() {
-  const { data: dbEvents } = useTerschellingEvents();
-
+function pickEventAt(index: number, dbEvents: DbEvent[] | undefined) {
   if (dbEvents && dbEvents.length > 0) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const upcoming = dbEvents
       .filter((e) => new Date(e.start_date) >= today)
       .sort((a, b) => a.start_date.localeCompare(b.start_date));
-    if (upcoming[0]) {
+    const hit = upcoming[index];
+    if (hit) {
       return {
-        name: upcoming[0].name,
-        startDate: upcoming[0].start_date,
-        endDate: upcoming[0].end_date ?? undefined,
-        description: upcoming[0].description ?? undefined,
-        category: (upcoming[0].category as any) ?? undefined,
-        location: upcoming[0].location ?? undefined,
+        name: hit.name,
+        startDate: hit.start_date,
+        endDate: hit.end_date ?? undefined,
+        description: hit.description ?? undefined,
+        category: (hit.category as any) ?? undefined,
+        location: hit.location ?? undefined,
       };
     }
+    return null;
   }
+  // Fallback statisch
+  if (index === 0) return getStaticNextEvent();
+  const upcoming = getStaticUpcomingEvents(index + 1);
+  return upcoming[index] ?? null;
+}
 
-  return getStaticNextEvent();
+/** Eerstvolgend event: DB voorrang, anders statisch */
+export function useNextEvent() {
+  const { data: dbEvents } = useTerschellingEvents();
+  return pickEventAt(0, dbEvents);
+}
+
+/** Het event dáárna (2e in de rij) */
+export function useSecondNextEvent() {
+  const { data: dbEvents } = useTerschellingEvents();
+  return pickEventAt(1, dbEvents);
 }
 
 /** Aantal komende events */
