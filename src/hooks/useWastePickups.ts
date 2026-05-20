@@ -19,12 +19,16 @@ export interface WastePickup {
   sluit_completed?: boolean;
 }
 
-// Wide window: 7 days back, 35 days forward → covers ±4 weeks navigation without refetch
-const RANGE_BACK_DAYS = 7;
-const RANGE_FORWARD_DAYS = 35;
+// Window rond de zichtbare week: 30 dagen terug, 90 dagen vooruit.
+// Block-key groepeert weken in 8-weeks-blokken zodat we niet bij elke
+// week-klik refetchen, maar wel automatisch bij ver navigeren.
+const RANGE_BACK_DAYS = 30;
+const RANGE_FORWARD_DAYS = 90;
+const BLOCK_WEEKS = 8;
 
-export function useWastePickups(location: string | null) {
+export function useWastePickups(location: string | null, weekOffset: number = 0) {
   const qc = useQueryClient();
+  const blockKey = Math.floor(weekOffset / BLOCK_WEEKS);
 
   useEffect(() => {
     if (!location || location !== 'Midsland') return;
@@ -41,12 +45,14 @@ export function useWastePickups(location: string | null) {
   }, [location, qc]);
 
   return useQuery({
-    queryKey: ['waste-pickups', location],
+    queryKey: ['waste-pickups', location, blockKey],
     enabled: location === 'Midsland',
     queryFn: async () => {
-      const today = new Date();
-      const start = new Date(today); start.setDate(start.getDate() - RANGE_BACK_DAYS);
-      const end = new Date(today); end.setDate(end.getDate() + RANGE_FORWARD_DAYS);
+      // Center op de zichtbare week (maandag) in plaats van vandaag
+      const center = new Date();
+      center.setDate(center.getDate() + weekOffset * 7);
+      const start = new Date(center); start.setDate(start.getDate() - RANGE_BACK_DAYS);
+      const end = new Date(center); end.setDate(end.getDate() + RANGE_FORWARD_DAYS);
       const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
       const { data: pickups, error } = await supabase
