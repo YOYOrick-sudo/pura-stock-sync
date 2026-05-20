@@ -1,7 +1,8 @@
-import { Calendar, ExternalLink, Loader2 } from 'lucide-react';
+import { Calendar, ExternalLink } from 'lucide-react';
 import { PolarKPICard } from '@/components/polar';
 import {
   useNextEvent,
+  useSecondNextEvent,
   useUpcomingEventsCount,
   getDaysUntil,
   formatEventDate,
