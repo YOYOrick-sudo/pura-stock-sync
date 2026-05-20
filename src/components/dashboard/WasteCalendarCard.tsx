@@ -49,8 +49,8 @@ function startOfWeekMonday(d: Date) {
 
 export function WasteCalendarCard() {
   const { userLocation } = useUserLocation();
-  const { data: pickups, isLoading } = useWastePickups(userLocation);
   const [weekOffset, setWeekOffset] = useState(0);
+  const { data: pickups, isLoading } = useWastePickups(userLocation, weekOffset);
 
   const { days, weekLabel } = useMemo(() => {
     const today = todayNl();
