@@ -542,9 +542,16 @@ const groupTasksByPhase = (tasks: FohTaskWithEmployee[]) => {
   return grouped;
 };
 
-const getFirstPhaseWithOpenTasks = (tasks: FohTaskWithEmployee[]): PhaseType => {
+// Locatie-specifieke fases: West heeft geen tussenlijst
+const getPhasesForLocation = (loc: string | null | undefined): PhaseType[] =>
+  loc === 'West' ? ['open', 'sluit'] : ['open', 'tussen', 'sluit'];
+
+const getFirstPhaseWithOpenTasks = (
+  tasks: FohTaskWithEmployee[],
+  location?: string | null,
+): PhaseType => {
   const grouped = groupTasksByPhase(tasks);
-  const phaseOrder: PhaseType[] = ['open', 'tussen', 'sluit'];
+  const phaseOrder: PhaseType[] = getPhasesForLocation(location);
   
   for (const phase of phaseOrder) {
     const phaseTasks = grouped[phase];
@@ -555,7 +562,8 @@ const getFirstPhaseWithOpenTasks = (tasks: FohTaskWithEmployee[]): PhaseType => 
     }
   }
   
-  return getCurrentPhaseByTime();
+  const fallback = getCurrentPhaseByTime();
+  return phaseOrder.includes(fallback) ? fallback : 'open';
 };
 
 const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
