@@ -83,9 +83,10 @@ export function WasteCalendarCard() {
     return { days: arr, weekLabel: label };
   }, [pickups, weekOffset]);
 
-  if (userLocation !== 'Midsland') return null;
+  if (userLocation !== 'Midsland' && userLocation !== 'West') return null;
 
   const today = todayNl();
+  const cardTitle = `Afvalkalender ${userLocation}`;
 
   return (
     <div className="bg-card rounded-[20px] p-5 shadow-sm border border-border">
@@ -93,7 +94,7 @@ export function WasteCalendarCard() {
       <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <Trash2 size={20} className="text-primary" />
-          <h3 className="font-semibold text-foreground">Afvalkalender</h3>
+          <h3 className="font-semibold text-foreground">{cardTitle}</h3>
         </div>
         <div className="flex items-center gap-1">
           {weekOffset !== 0 && (
