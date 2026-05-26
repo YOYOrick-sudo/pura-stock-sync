@@ -3,7 +3,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export type WasteSource = 'tst' | 'gemeente';
-export type WasteFraction = 'restafval' | 'gft' | 'papier' | 'glas';
+export type WasteFraction = 'restafval' | 'gft' | 'papier' | 'glas' | 'klein_tuinafval';
+
+const SUPPORTED_LOCATIONS = ['Midsland', 'West'];
 
 export interface WastePickup {
   id: string;
