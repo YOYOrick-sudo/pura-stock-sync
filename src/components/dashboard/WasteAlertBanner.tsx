@@ -40,7 +40,7 @@ export function WasteAlertBanner() {
     });
   }, [pickups]);
 
-  if (userLocation !== 'Midsland' || alerts.length === 0) return null;
+  if ((userLocation !== 'Midsland' && userLocation !== 'West') || alerts.length === 0) return null;
 
   const markDone = async (taskId: string | null) => {
     if (!taskId) return;
