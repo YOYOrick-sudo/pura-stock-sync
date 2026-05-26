@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Trash2, AlertTriangle, Leaf, Newspaper, Wine, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Trash2, AlertTriangle, Leaf, Newspaper, Wine, ChevronLeft, ChevronRight, Sprout } from 'lucide-react';
 import { useWastePickups, type WastePickup, type WasteFraction, type WasteSource } from '@/hooks/useWastePickups';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { Button } from '@/components/ui/button';
