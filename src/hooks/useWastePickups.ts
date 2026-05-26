@@ -33,9 +33,9 @@ export function useWastePickups(location: string | null, weekOffset: number = 0)
   const blockKey = Math.floor(weekOffset / BLOCK_WEEKS);
 
   useEffect(() => {
-    if (!location || location !== 'Midsland') return;
+    if (!location || !SUPPORTED_LOCATIONS.includes(location)) return;
     const ch = supabase
-      .channel('waste-pickups-rt')
+      .channel(`waste-pickups-rt-${location}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'waste_pickups' }, () => {
         qc.invalidateQueries({ queryKey: ['waste-pickups', location] });
       })
@@ -48,7 +48,7 @@ export function useWastePickups(location: string | null, weekOffset: number = 0)
 
   return useQuery({
     queryKey: ['waste-pickups', location, blockKey],
-    enabled: location === 'Midsland',
+    enabled: !!location && SUPPORTED_LOCATIONS.includes(location),
     queryFn: async () => {
       // Center op de zichtbare week (maandag) in plaats van vandaag
       const center = new Date();
@@ -60,7 +60,7 @@ export function useWastePickups(location: string | null, weekOffset: number = 0)
       const { data: pickups, error } = await supabase
         .from('waste_pickups')
         .select('*')
-        .eq('location', 'Midsland')
+        .eq('location', location!)
         .gte('pickup_date', fmt(start))
         .lte('pickup_date', fmt(end))
         .order('pickup_date', { ascending: true });
