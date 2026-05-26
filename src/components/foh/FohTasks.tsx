@@ -720,6 +720,13 @@ export function FohTasks() {
   const [mainCategory, setMainCategory] = useState<'dagelijks' | 'periodiek'>('dagelijks');
   const [activePhase, setActivePhase] = useState<PhaseType>('open');
   const [isPhaseManuallySelected, setIsPhaseManuallySelected] = useState(false);
+
+  // West heeft geen tussenlijst — reset activePhase als die per ongeluk op 'tussen' staat
+  useEffect(() => {
+    if (userLocation === 'West' && activePhase === 'tussen') {
+      setActivePhase('open');
+    }
+  }, [userLocation, activePhase]);
   
   const [dailyTasks, setDailyTasks] = useState<FohTaskWithEmployee[]>([]);
   const [extraTasks, setExtraTasks] = useState<FohTaskWithEmployee[]>([]);
