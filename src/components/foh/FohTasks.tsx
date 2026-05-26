@@ -1725,7 +1725,7 @@ export function FohTasks() {
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
               
               {/* Dagelijks phase buttons */}
-              {(['open', 'tussen', 'sluit'] as PhaseType[]).map((phase) => {
+              {getPhasesForLocation(userLocation).map((phase) => {
                 const stats = getDailyListStats(phase);
                 const isActive = mainCategory === 'dagelijks' && activePhase === phase;
                 const labels = { open: 'Open', tussen: 'Tussen', sluit: 'Sluit' };
