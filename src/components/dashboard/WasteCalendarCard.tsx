@@ -29,6 +29,7 @@ const FRACTION_META: Record<WasteFraction, { label: string; Icon: typeof Trash2 
   gft: { label: 'GFT', Icon: Leaf },
   papier: { label: 'Papier', Icon: Newspaper },
   glas: { label: 'Glas', Icon: Wine },
+  klein_tuinafval: { label: 'Klein tuinafval', Icon: Sprout },
 };
 
 function fmtNl(d: Date) {
