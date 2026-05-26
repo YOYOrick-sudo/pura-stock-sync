@@ -542,9 +542,16 @@ const groupTasksByPhase = (tasks: FohTaskWithEmployee[]) => {
   return grouped;
 };
 
-const getFirstPhaseWithOpenTasks = (tasks: FohTaskWithEmployee[]): PhaseType => {
+// Locatie-specifieke fases: West heeft geen tussenlijst
+const getPhasesForLocation = (loc: string | null | undefined): PhaseType[] =>
+  loc === 'West' ? ['open', 'sluit'] : ['open', 'tussen', 'sluit'];
+
+const getFirstPhaseWithOpenTasks = (
+  tasks: FohTaskWithEmployee[],
+  location?: string | null,
+): PhaseType => {
   const grouped = groupTasksByPhase(tasks);
-  const phaseOrder: PhaseType[] = ['open', 'tussen', 'sluit'];
+  const phaseOrder: PhaseType[] = getPhasesForLocation(location);
   
   for (const phase of phaseOrder) {
     const phaseTasks = grouped[phase];
@@ -555,7 +562,8 @@ const getFirstPhaseWithOpenTasks = (tasks: FohTaskWithEmployee[]): PhaseType => 
     }
   }
   
-  return getCurrentPhaseByTime();
+  const fallback = getCurrentPhaseByTime();
+  return phaseOrder.includes(fallback) ? fallback : 'open';
 };
 
 const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
@@ -712,6 +720,13 @@ export function FohTasks() {
   const [mainCategory, setMainCategory] = useState<'dagelijks' | 'periodiek'>('dagelijks');
   const [activePhase, setActivePhase] = useState<PhaseType>('open');
   const [isPhaseManuallySelected, setIsPhaseManuallySelected] = useState(false);
+
+  // West heeft geen tussenlijst — reset activePhase als die per ongeluk op 'tussen' staat
+  useEffect(() => {
+    if (userLocation === 'West' && activePhase === 'tussen') {
+      setActivePhase('open');
+    }
+  }, [userLocation, activePhase]);
   
   const [dailyTasks, setDailyTasks] = useState<FohTaskWithEmployee[]>([]);
   const [extraTasks, setExtraTasks] = useState<FohTaskWithEmployee[]>([]);
@@ -1710,7 +1725,7 @@ export function FohTasks() {
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
               
               {/* Dagelijks phase buttons */}
-              {(['open', 'tussen', 'sluit'] as PhaseType[]).map((phase) => {
+              {getPhasesForLocation(userLocation).map((phase) => {
                 const stats = getDailyListStats(phase);
                 const isActive = mainCategory === 'dagelijks' && activePhase === phase;
                 const labels = { open: 'Open', tussen: 'Tussen', sluit: 'Sluit' };

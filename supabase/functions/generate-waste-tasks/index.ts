@@ -113,8 +113,8 @@ Deno.serve(async (req) => {
         }
         locResult.sluit_inserted = sluitInserted;
 
-        // b) Tussen-taak voor vandaag
-        if (!isClosed(loc, today)) {
+        // b) Tussen-taak voor vandaag — alleen Midsland (West heeft geen tussenlijst)
+        if (loc === 'Midsland' && !isClosed(loc, today)) {
           const { data: todayPickups } = await supabase
             .from('waste_pickups')
             .select('*')
@@ -145,9 +145,12 @@ Deno.serve(async (req) => {
             }
           }
           locResult.tussen_inserted = tussenInserted;
-        } else {
+        } else if (loc === 'Midsland') {
           locResult.tussen_inserted = [];
           locResult.tussen_skipped = `${loc} gesloten op ${today}`;
+        } else {
+          locResult.tussen_inserted = [];
+          locResult.tussen_skipped = `${loc} heeft geen tussenlijst`;
         }
       }
 
