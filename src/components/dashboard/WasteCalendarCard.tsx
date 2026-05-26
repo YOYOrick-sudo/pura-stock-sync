@@ -180,31 +180,42 @@ export function WasteCalendarCard() {
             })}
           </div>
 
-          {/* Legenda: bron-stijl */}
-          <div className="mt-4 pt-3 border-t border-border space-y-2">
-            <div className="flex flex-wrap items-center gap-2 text-[11px]">
-              <span className="text-muted-foreground font-medium mr-1">Bron:</span>
-              <div className={`flex items-center gap-1 px-2 py-0.5 rounded-[6px] ${SOURCE_META.tst.chip}`}>
-                <span className="text-[10px]">TST (grote container)</span>
-              </div>
-              <div className={`flex items-center gap-1 px-2 py-0.5 rounded-[6px] ${SOURCE_META.gemeente.chip}`}>
-                <span className="text-[10px]">Gemeente (kleine container)</span>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
-              <span className="font-medium">Fractie:</span>
-              {(Object.keys(FRACTION_META) as WasteFraction[]).map((k) => {
-                const m = FRACTION_META[k];
-                const I = m.Icon;
-                return (
-                  <div key={k} className="flex items-center gap-1">
-                    <I size={12} />
-                    <span className="text-[10px]">{m.label}</span>
+          {/* Legenda: bron + fractie — gefilterd op wat in deze locatie voorkomt */}
+          {(() => {
+            const sourcesInUse = Array.from(new Set((pickups ?? []).map((p) => p.source))) as WasteSource[];
+            const fractionsInUse = Array.from(new Set((pickups ?? []).map((p) => p.fraction))) as WasteFraction[];
+            const sourcesToShow = sourcesInUse.length ? sourcesInUse : (Object.keys(SOURCE_META) as WasteSource[]);
+            const fractionsToShow = fractionsInUse.length ? fractionsInUse : (Object.keys(FRACTION_META) as WasteFraction[]);
+            return (
+              <div className="mt-4 pt-3 border-t border-border space-y-2">
+                {sourcesToShow.length > 1 && (
+                  <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                    <span className="text-muted-foreground font-medium mr-1">Bron:</span>
+                    {sourcesToShow.map((s) => (
+                      <div key={s} className={`flex items-center gap-1 px-2 py-0.5 rounded-[6px] ${SOURCE_META[s].chip}`}>
+                        <span className="text-[10px]">
+                          {s === 'tst' ? 'TST (grote container)' : 'Gemeente (kleine container)'}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                )}
+                <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+                  <span className="font-medium">Fractie:</span>
+                  {fractionsToShow.map((k) => {
+                    const m = FRACTION_META[k];
+                    const I = m.Icon;
+                    return (
+                      <div key={k} className="flex items-center gap-1">
+                        <I size={12} />
+                        <span className="text-[10px]">{m.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
         </TooltipProvider>
       )}
     </div>
