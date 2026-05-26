@@ -8,7 +8,7 @@ import { WasteAcknowledgeDialog } from './WasteAcknowledgeDialog';
 import { toast } from 'sonner';
 
 const SOURCE = { tst: 'TST (grote)', gemeente: 'Gemeente' } as const;
-const FRACTION = { restafval: 'Restafval', gft: 'GFT', papier: 'Papier' } as const;
+const FRACTION = { restafval: 'Restafval', gft: 'GFT', papier: 'Papier', glas: 'Glas', klein_tuinafval: 'Klein tuinafval' } as const;
 
 function nlDate(offset = 0) {
   const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -40,7 +40,7 @@ export function WasteAlertBanner() {
     });
   }, [pickups]);
 
-  if (userLocation !== 'Midsland' || alerts.length === 0) return null;
+  if ((userLocation !== 'Midsland' && userLocation !== 'West') || alerts.length === 0) return null;
 
   const markDone = async (taskId: string | null) => {
     if (!taskId) return;

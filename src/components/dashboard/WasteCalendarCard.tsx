@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Trash2, AlertTriangle, Leaf, Newspaper, Wine, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Trash2, AlertTriangle, Leaf, Newspaper, Wine, ChevronLeft, ChevronRight, Sprout } from 'lucide-react';
 import { useWastePickups, type WastePickup, type WasteFraction, type WasteSource } from '@/hooks/useWastePickups';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,7 @@ const FRACTION_META: Record<WasteFraction, { label: string; Icon: typeof Trash2 
   gft: { label: 'GFT', Icon: Leaf },
   papier: { label: 'Papier', Icon: Newspaper },
   glas: { label: 'Glas', Icon: Wine },
+  klein_tuinafval: { label: 'Klein tuinafval', Icon: Sprout },
 };
 
 function fmtNl(d: Date) {
@@ -82,9 +83,10 @@ export function WasteCalendarCard() {
     return { days: arr, weekLabel: label };
   }, [pickups, weekOffset]);
 
-  if (userLocation !== 'Midsland') return null;
+  if (userLocation !== 'Midsland' && userLocation !== 'West') return null;
 
   const today = todayNl();
+  const cardTitle = `Afvalkalender ${userLocation}`;
 
   return (
     <div className="bg-card rounded-[20px] p-5 shadow-sm border border-border">
@@ -92,7 +94,7 @@ export function WasteCalendarCard() {
       <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <Trash2 size={20} className="text-primary" />
-          <h3 className="font-semibold text-foreground">Afvalkalender</h3>
+          <h3 className="font-semibold text-foreground">{cardTitle}</h3>
         </div>
         <div className="flex items-center gap-1">
           {weekOffset !== 0 && (
