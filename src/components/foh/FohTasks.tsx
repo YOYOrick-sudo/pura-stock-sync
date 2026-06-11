@@ -1809,155 +1809,102 @@ export function FohTasks() {
       }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-          {/* ===== DAY NAVIGATOR ===== */}
+          {/* ===== DAY NAVIGATOR (compact) ===== */}
           {(() => {
             const today = getAmsterdamDateString();
-            // 7 dagen terug + vandaag (totaal 8)
-            const chips: { date: string; label: string; isToday: boolean }[] = [];
-            const base = new Date(today + 'T12:00:00');
-            for (let i = 7; i >= 0; i--) {
-              const d = new Date(base);
-              d.setDate(d.getDate() - i);
-              const ds = d.toISOString().split('T')[0];
-              const dayNames = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
-              const label = i === 0 ? 'Vandaag' : `${dayNames[d.getDay()]} ${d.getDate()}`;
-              chips.push({ date: ds, label, isToday: i === 0 });
-            }
+            const dayNamesShort = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
+            const monthsShort = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
 
-            const goPrev = () => {
-              const idx = chips.findIndex(c => c.date === selectedDate);
-              if (idx > 0) setSelectedDate(chips[idx - 1].date);
+            const sel = new Date(selectedDate + 'T12:00:00');
+            const todayD = new Date(today + 'T12:00:00');
+            const diffDays = Math.round((todayD.getTime() - sel.getTime()) / 86400000);
+            const canPrev = diffDays < 7;
+            const canNext = diffDays > 0;
+
+            const shift = (delta: number) => {
+              const d = new Date(sel);
+              d.setDate(d.getDate() + delta);
+              setSelectedDate(d.toISOString().split('T')[0]);
             };
-            const goNext = () => {
-              const idx = chips.findIndex(c => c.date === selectedDate);
-              if (idx >= 0 && idx < chips.length - 1) setSelectedDate(chips[idx + 1].date);
-            };
-            const currentIdx = chips.findIndex(c => c.date === selectedDate);
-            const canPrev = currentIdx > 0;
-            const canNext = currentIdx >= 0 && currentIdx < chips.length - 1;
+
+            const dateLabel = `${dayNamesShort[sel.getDay()]} ${sel.getDate()} ${monthsShort[sel.getMonth()]}`;
+            const isToday = diffDays === 0;
+
+            const arrowBtn = (enabled: boolean, onClick: () => void, glyph: string, label: string) => (
+              <button
+                onClick={onClick}
+                disabled={!enabled}
+                aria-label={label}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'transparent',
+                  color: enabled ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '14px',
+                  cursor: enabled ? 'pointer' : 'not-allowed',
+                  opacity: enabled ? 1 : 0.35,
+                  fontSize: '18px',
+                  lineHeight: 1,
+                  fontFamily: 'Inter, sans-serif',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {glyph}
+              </button>
+            );
 
             return (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <button
-                    onClick={goPrev}
-                    disabled={!canPrev}
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: 'hsl(var(--card))',
-                      color: canPrev ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '14px',
-                      cursor: canPrev ? 'pointer' : 'not-allowed',
-                      opacity: canPrev ? 1 : 0.4,
-                      fontSize: '18px',
-                      fontFamily: 'Inter, sans-serif',
-                    }}
-                    aria-label="Vorige dag"
-                  >
-                    ‹
-                  </button>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                minHeight: '44px',
+              }}>
+                {arrowBtn(canPrev, () => canPrev && shift(-1), '‹', 'Vorige dag')}
 
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', flex: 1 }}>
-                    {chips.map(chip => {
-                      const isActive = chip.date === selectedDate;
-                      return (
-                        <button
-                          key={chip.date}
-                          onClick={() => setSelectedDate(chip.date)}
-                          style={{
-                            padding: '8px 14px',
-                            backgroundColor: isActive
-                              ? 'hsl(var(--primary))'
-                              : 'hsl(var(--card))',
-                            color: isActive
-                              ? 'hsl(var(--primary-foreground))'
-                              : chip.isToday
-                                ? 'hsl(var(--primary))'
-                                : 'hsl(var(--foreground))',
-                            border: isActive
-                              ? 'none'
-                              : `1px solid ${chip.isToday ? 'hsl(var(--primary))' : 'hsl(var(--border))'}`,
-                            borderRadius: '14px',
-                            fontSize: '14px',
-                            fontWeight: chip.isToday ? 600 : 500,
-                            cursor: 'pointer',
-                            fontFamily: 'Inter, sans-serif',
-                            transition: 'all 0.15s ease',
-                            minHeight: '36px',
-                          }}
-                        >
-                          {chip.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <button
-                    onClick={goNext}
-                    disabled={!canNext}
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: 'hsl(var(--card))',
-                      color: canNext ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '14px',
-                      cursor: canNext ? 'pointer' : 'not-allowed',
-                      opacity: canNext ? 1 : 0.4,
-                      fontSize: '18px',
-                      fontFamily: 'Inter, sans-serif',
-                    }}
-                    aria-label="Volgende dag"
-                  >
-                    ›
-                  </button>
-                </div>
-
-                {isReadOnly && (() => {
-                  const d = new Date(selectedDate + 'T12:00:00');
-                  const longDays = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
-                  const months = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
-                  const formatted = `${longDays[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
-                  return (
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '12px',
-                      padding: '12px 16px',
+                <button
+                  onClick={() => !isToday && setSelectedDate(today)}
+                  disabled={isToday}
+                  title={isToday ? '' : 'Terug naar vandaag'}
+                  style={{
+                    flex: 1,
+                    height: '40px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    padding: '0 12px',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    borderRadius: '14px',
+                    cursor: isToday ? 'default' : 'pointer',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '14px',
+                    color: isToday ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                    fontWeight: isToday ? 600 : 500,
+                  }}
+                >
+                  <span>{isToday ? `Vandaag · ${dateLabel}` : dateLabel}</span>
+                  {!isToday && (
+                    <span style={{
+                      padding: '2px 8px',
+                      fontSize: '11px',
+                      fontWeight: 500,
+                      color: 'hsl(var(--muted-foreground))',
                       backgroundColor: 'hsl(var(--muted))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '14px',
-                      fontSize: '14px',
-                      color: 'hsl(var(--foreground))',
+                      borderRadius: '999px',
+                      letterSpacing: '0.02em',
                     }}>
-                      <span>
-                        📅 Geschiedenis — <strong>{formatted}</strong> · alleen lezen
-                      </span>
-                      <button
-                        onClick={() => setSelectedDate(getAmsterdamDateString())}
-                        style={{
-                          padding: '6px 14px',
-                          backgroundColor: 'hsl(var(--primary))',
-                          color: 'hsl(var(--primary-foreground))',
-                          border: 'none',
-                          borderRadius: '12px',
-                          fontSize: '13px',
-                          fontWeight: 500,
-                          cursor: 'pointer',
-                          fontFamily: 'Inter, sans-serif',
-                        }}
-                      >
-                        Terug naar vandaag
-                      </button>
+                      alleen lezen
+                    </span>
+                  )}
+                </button>
+
+                {arrowBtn(canNext, () => canNext && shift(1), '›', 'Volgende dag')}
                     </div>
                   );
                 })()}
