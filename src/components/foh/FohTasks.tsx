@@ -773,7 +773,7 @@ export function FohTasks() {
   // Admin panel states
   const [adminPanelOpen, setAdminPanelOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
-  const [passwordInput, setPasswordInput] = useState('');
+  
   const [adminTab, setAdminTab] = useState<'edit' | 'templates'>('templates');
   
   // Edit mode states (for Tab 1: Huidige Taken Bewerken)
