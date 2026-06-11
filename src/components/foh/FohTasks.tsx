@@ -1581,7 +1581,8 @@ export function FohTasks() {
       priority: 2,
       repeat_type: 'daily',
       template_name: editingTemplateName,
-      is_active: true,
+      is_active: editingTemplate[0]?.is_active ?? false,
+
       isNew: true,
     };
     
