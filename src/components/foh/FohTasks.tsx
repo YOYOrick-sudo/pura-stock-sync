@@ -22,6 +22,7 @@ import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useS
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { AdminPasswordDialog } from './AdminPasswordDialog';
 
 // Phase time windows (minutes-based)
 const PHASE_WINDOWS = [
