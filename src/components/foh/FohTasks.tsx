@@ -1052,18 +1052,29 @@ export function FohTasks() {
 
   useEffect(() => {
     const initializeTasks = async () => {
-      if (shouldResetTasks()) {
-        await performClientSideReset();
+      const viewingToday = selectedDate === getAmsterdamDateString();
+
+      // Generatie/reset alleen draaien voor vandaag — verleden is read-only snapshot.
+      if (viewingToday) {
+        if (shouldResetTasks()) {
+          await performClientSideReset();
+        }
+        await generateDailyTasks();
       }
-      
-      await generateDailyTasks();
+
       await fetchDailyTasks();
-      fetchExtraTasks();
-      fetchEmployees();
+
+      // Periodieke + medewerkers altijd één keer per user/location laden
+      if (viewingToday) {
+        fetchExtraTasks();
+        fetchEmployees();
+      }
     };
-    
+
     initializeTasks();
-  }, [userLocation]);
+  }, [userLocation, selectedDate]);
+
+
   
   // Auto phase-switching disabled to maintain task order consistency
 
