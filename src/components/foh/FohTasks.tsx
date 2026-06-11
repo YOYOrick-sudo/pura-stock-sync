@@ -1905,9 +1905,6 @@ export function FohTasks() {
                 </button>
 
                 {arrowBtn(canNext, () => canNext && shift(1), '›', 'Volgende dag')}
-                    </div>
-                  );
-                })()}
               </div>
             );
           })()}
