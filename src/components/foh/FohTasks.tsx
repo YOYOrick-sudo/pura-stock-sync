@@ -22,6 +22,7 @@ import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useS
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { AdminPasswordDialog } from './AdminPasswordDialog';
 
 // Phase time windows (minutes-based)
 const PHASE_WINDOWS = [
@@ -773,7 +774,7 @@ export function FohTasks() {
   // Admin panel states
   const [adminPanelOpen, setAdminPanelOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
-  const [passwordInput, setPasswordInput] = useState('');
+  
   const [adminTab, setAdminTab] = useState<'edit' | 'templates'>('templates');
   
   // Edit mode states (for Tab 1: Huidige Taken Bewerken)
@@ -2845,75 +2846,11 @@ export function FohTasks() {
       </div>
 
       {/* Password Dialog */}
-      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
-        <DialogContent style={{
-          backgroundColor: 'hsl(var(--card))',
-          border: '1px solid hsl(var(--border))',
-          borderRadius: '20px',
-          fontFamily: 'Inter, sans-serif',
-        }}>
-          <DialogHeader>
-            <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: 'hsl(var(--foreground))' }}>
-              Admin Toegang
-            </DialogTitle>
-          </DialogHeader>
-          <div style={{ padding: '16px 0' }}>
-            <Input
-              type="password"
-              placeholder="Voer wachtwoord in"
-              value={passwordInput}
-              onChange={(e) => setPasswordInput(e.target.value)}
-              style={{
-                borderRadius: '16px',
-                fontFamily: 'Inter, sans-serif',
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && passwordInput === '0000') {
-                  setAdminPanelOpen(true);
-                  setPasswordDialogOpen(false);
-                  setPasswordInput('');
-                  toast.success('Admin panel geopend');
-                }
-              }}
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setPasswordDialogOpen(false);
-                setPasswordInput('');
-              }}
-              style={{
-                borderRadius: '20px',
-                fontFamily: 'Inter, sans-serif',
-              }}
-            >
-              Annuleren
-            </Button>
-            <Button
-              onClick={() => {
-                if (passwordInput === '0000') {
-                  setAdminPanelOpen(true);
-                  setPasswordDialogOpen(false);
-                  setPasswordInput('');
-                  toast.success('Admin panel geopend');
-                } else {
-                  toast.error('Onjuist wachtwoord');
-                }
-              }}
-              style={{
-                backgroundColor: 'hsl(var(--primary))',
-                color: 'hsl(var(--primary-foreground))',
-                borderRadius: '20px',
-                fontFamily: 'Inter, sans-serif',
-              }}
-            >
-              Bevestigen
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AdminPasswordDialog
+        open={passwordDialogOpen}
+        onOpenChange={setPasswordDialogOpen}
+        onSuccess={() => setAdminPanelOpen(true)}
+      />
 
       {/* Admin Panel Dialog */}
       <Dialog open={adminPanelOpen} onOpenChange={setAdminPanelOpen}>
