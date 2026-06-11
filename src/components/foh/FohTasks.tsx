@@ -732,6 +732,21 @@ export function FohTasks() {
   const [extraTasks, setExtraTasks] = useState<FohTaskWithEmployee[]>([]);
   const [employees, setEmployees] = useState<FohEmployee[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // ===== DAY NAVIGATOR (7 dagen terug + vandaag) =====
+  const todayStr = getAmsterdamDateString();
+  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
+  const isViewingToday = selectedDate === todayStr;
+  const isReadOnly = !isViewingToday;
+
+  // Bij wisselen naar verleden: forceer dagelijks (periodiek/extra heeft geen
+  // dag-context). Bij terug naar vandaag laat behouden state met rust.
+  useEffect(() => {
+    if (isReadOnly && mainCategory !== 'dagelijks') {
+      setMainCategory('dagelijks');
+    }
+  }, [isReadOnly]);
+
   
   const [dialogOpen, setDialogOpen] = useState(false);
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
