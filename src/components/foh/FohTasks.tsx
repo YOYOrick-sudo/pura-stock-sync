@@ -2030,16 +2030,19 @@ export function FohTasks() {
                 );
               })}
               
-            {/* Visual separator */}
-            <div style={{
-              width: '1px',
-              height: '32px',
-              backgroundColor: 'hsl(var(--border))',
-              margin: '0 20px',
-            }} />
-              
-              {/* Periodiek button */}
-              {(() => {
+            {/* Visual separator — verborgen in read-only verleden */}
+            {!isReadOnly && (
+              <div style={{
+                width: '1px',
+                height: '32px',
+                backgroundColor: 'hsl(var(--border))',
+                margin: '0 20px',
+              }} />
+            )}
+
+              {/* Periodiek button — verborgen in read-only verleden */}
+              {!isReadOnly && (() => {
+
                 const completed = extraTasks.filter(t => t.completed).length;
                 const total = extraTasks.length;
                 const isActive = mainCategory === 'periodiek';
