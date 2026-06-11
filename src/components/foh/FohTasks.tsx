@@ -1707,12 +1707,15 @@ export function FohTasks() {
 
   // ===== SWIPE HANDLERS =====
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (isReadOnly) return; // verleden is alleen-lezen
     setTouchStart(e.targetTouches[0].clientX);
   };
 
   const handleTouchMove = (e: React.TouchEvent, taskId: string) => {
+    if (isReadOnly) return;
     setTouchEnd(e.targetTouches[0].clientX);
     const diff = touchStart - e.targetTouches[0].clientX;
+
     
     if (Math.abs(diff) > 10) {
       e.preventDefault();
