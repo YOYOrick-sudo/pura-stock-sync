@@ -927,26 +927,36 @@ export function FohTasks() {
   };
 
   const fetchDailyTasks = async () => {
-    const todayDate = getAmsterdamDateString();
-    
-    const { data, error } = await supabase
+    const dateToFetch = selectedDate;
+    const isToday = dateToFetch === getAmsterdamDateString();
+
+    // Voor vandaag: alleen niet-gearchiveerde taken (huidig gedrag).
+    // Voor verleden: alle taken (de 04:00 reset archiveert oudere taken).
+    let query = supabase
       .from('foh_tasks')
       .select('*, foh_employees(*)')
       .eq('location', userLocation)
-      .eq('due_date', todayDate)
-      .eq('archived', false)
+      .eq('due_date', dateToFetch)
       .not('phase', 'is', null)
       .order('sort_order', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: true });
-    
+
+    if (isToday) {
+      query = query.eq('archived', false);
+    }
+
+    const { data, error } = await query;
+
     if (error) {
       console.error('Error fetching daily tasks:', error);
       return;
     }
-    
+
     setDailyTasks((data || []) as FohTaskWithEmployee[]);
     setLoading(false);
   };
+
+
 
   const fetchExtraTasks = async () => {
     const { data, error } = await supabase
