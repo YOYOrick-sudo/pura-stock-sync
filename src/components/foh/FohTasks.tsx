@@ -1323,7 +1323,22 @@ export function FohTasks() {
       
       const currentTemplateName = activeTemplates?.[0]?.template_name || `Standaard ${activePhase === 'open' ? 'Openlijst' : activePhase === 'tussen' ? 'Tussenlijst' : 'Sluitlijst'}`;
       
-      // Delete old templates with this name
+      // STAP 1: deactiveer ALLE andere lijsten voor deze (location, phase) zodat
+      // de DB-trigger (max 1 actief) niet faalt en er na de save exact 1 actieve lijst is.
+      const { error: deactivateOthersError } = await supabase
+        .from('foh_daily_templates')
+        .update({ is_active: false })
+        .eq('location', userLocation)
+        .eq('phase', activePhase)
+        .neq('template_name', currentTemplateName);
+      
+      if (deactivateOthersError) {
+        console.error('Error deactivating other templates:', deactivateOthersError);
+        toast.error('Fout bij voorbereiden template');
+        return;
+      }
+      
+      // STAP 2: verwijder de oude rijen van deze template-naam (we vervangen ze)
       const { error: deleteError } = await supabase
         .from('foh_daily_templates')
         .delete()
@@ -1373,7 +1388,9 @@ export function FohTasks() {
   // ===== TAB 2: TEMPLATE MANAGEMENT =====
   const handleMakeTemplateActive = async (templateName: string) => {
     try {
-      // Set all other templates for this phase to inactive
+      const todayDate = getAmsterdamDateString();
+
+      // STAP 1: deactiveer alle andere lijsten voor deze (location, phase)
       const { error: deactivateError } = await supabase
         .from('foh_daily_templates')
         .update({ is_active: false })
@@ -1383,7 +1400,7 @@ export function FohTasks() {
       
       if (deactivateError) throw deactivateError;
       
-      // Set selected template to active
+      // STAP 2: activeer de gekozen lijst
       const { error: activateError } = await supabase
         .from('foh_daily_templates')
         .update({ is_active: true })
@@ -1393,15 +1410,44 @@ export function FohTasks() {
       
       if (activateError) throw activateError;
       
-      toast.success(`Template "${templateName}" is nu actief`);
-      queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
+      // STAP 3: verwijder vandaag's onvoltooide TEMPLATE-taken die bij nu-inactieve
+      // templates horen (afvaltaken en handmatige taken met template_id IS NULL blijven).
+      const { data: inactiveTemplates } = await supabase
+        .from('foh_daily_templates')
+        .select('id')
+        .eq('location', userLocation)
+        .eq('phase', activePhase)
+        .eq('is_active', false);
+      
+      const inactiveIds = (inactiveTemplates || []).map(t => t.id);
+      if (inactiveIds.length > 0) {
+        const { error: deleteOrphansError } = await supabase
+          .from('foh_tasks')
+          .delete()
+          .eq('due_date', todayDate)
+          .eq('archived', false)
+          .eq('completed', false)
+          .in('template_id', inactiveIds);
+        
+        if (deleteOrphansError) {
+          console.error('Error removing orphan tasks:', deleteOrphansError);
+        }
+      }
+      
+      // STAP 4: genereer ontbrekende taken voor vandaag uit de nieuwe actieve lijst
       await generateDailyTasks();
       await fetchDailyTasks();
+      
+      toast.success(`Lijst "${templateName}" is nu actief en zichtbaar`);
+      queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-tasks'] });
     } catch (error) {
       console.error('Error activating template:', error);
       toast.error('Fout bij activeren template');
     }
   };
+
+
 
   const handleCreateNewTemplate = async () => {
     if (!newTemplateName.trim()) {
@@ -1535,7 +1581,8 @@ export function FohTasks() {
       priority: 2,
       repeat_type: 'daily',
       template_name: editingTemplateName,
-      is_active: true,
+      is_active: editingTemplate[0]?.is_active ?? false,
+
       isNew: true,
     };
     
