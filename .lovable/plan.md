@@ -1,76 +1,38 @@
 ## Doel
-Toevoegen van een dag-navigator boven de takenlijst zodat je 7 dagen terug door open/tussen/sluit kunt scrollen. Verleden is read-only. Vandaag-functionaliteit blijft 100% gelijk.
+De huidige 3 rijen bovenaan (fase-tabs, datumchips, geschiedenis-banner) terugbrengen naar een rustige, intuïtieve weergave die op iPad lekker werkt.
 
-## UX
+## Nieuwe weergave
 
-Boven de fasen-knoppen (Open / Tussen / Sluit) komt een datum-strip:
+Eén compacte rij **boven** de fase-tabs:
 
+```text
+‹  do 11 jun · Vandaag  ›        [alleen-lezen badge indien verleden]
 ```
-‹  za 5  zo 6  ma 7  di 8  wo 9  do 10  Vandaag (vr 11)  ›
-```
 
-- 8 chips: 7 dagen terug + vandaag. Geen toekomst.
-- Active chip = donkergroen (`bg-primary text-primary-foreground`), vandaag-chip = blauw rand-accent, overige = wit met grijze rand.
-- Pijltjes ‹ › verspringen 1 dag (links uitgeschakeld bij dag -7, rechts uitgeschakeld bij vandaag).
-- Klik op "Vandaag" snel-knop rechts om terug te springen.
-- Boven de fasen-knoppen verschijnt een banner als je in het verleden zit: `📅 Geschiedenis – vrijdag 4 juni · alleen lezen` met sluit-knop "Terug naar vandaag".
+- Klein, lichtgrijs, geen kader-balk — past op één regel.
+- Pijltje links = vorige dag (max 7 terug). Pijltje rechts = volgende dag (max vandaag).
+- In het midden de datum-label:
+  - Vandaag: `Vandaag · do 11 jun` (primary-kleur, semi-bold)
+  - Verleden: `ma 9 jun` (muted-foreground, normaal gewicht) + klein "Geschiedenis" pill
+- Klik op de datum-tekst zelf = direct terug naar vandaag (subtiele shortcut, geen aparte knop nodig).
+- iPad-touch: pijl-knoppen zijn 40×40px met 14px radius (binnen het v6-design system), datumtekst-target ≥44px hoog.
 
-### Gedrag per dag
-- **Vandaag**: alles werkt als nu (afvinken, swipe-delete, drag/drop, taak toevoegen, "Opslaan als template", generatie).
-- **Verleden**: 
-  - Checkboxes disabled, donkergrijs met vinkje-icoon (`Check`) of leeg vierkant.
-  - Geen swipe-delete, geen drag, geen "+ Taak toevoegen"-knop.
-  - "Opslaan als template" en "Templates Beheren" verborgen.
-  - Voltooide taken tonen `completed_by` naam + tijd.
-- **Periodieke taken + afvaltaken**: alleen tonen op vandaag-view (intuïtiefst — verleden is een dagelijkse momentopname per fase; periodiek/afval is geen "deze-dag" concept). In de verleden-view zie je dus uitsluitend de drie dagelijkse template-fases.
+## Wat eruit gaat
+- De rij met 8 datum-chips: weg.
+- De grote `📅 Geschiedenis — … · alleen lezen` banner: weg. Vervangen door één kleine inline pill rechts naast de datum (`Alleen lezen`, muted bg).
+- "Terug naar vandaag"-knop: weg — datumtekst aanklikken doet hetzelfde.
 
-## Technische aanpak
+## Layout-resultaat
+1 rij dagnav (compact, ~44px hoog) + 1 rij fase-tabs = van 3 rijen naar 2.
 
-### 1. State & data
-- Nieuwe state `selectedDate: string` in `FohTasks.tsx`, default `getAmsterdamDateString()`.
-- Helper `isViewingToday = selectedDate === getAmsterdamDateString()`.
-- `useQuery` (of bestaande `fetchDailyTasks`) parametrisch op `selectedDate`. Query include `archived` filter:
-  - Vandaag: `archived=false` (huidig gedrag).
-  - Verleden: `archived=true OR archived=false` (laat beide zien — voltooid werk wordt 's nachts gearchiveerd door `reset-daily-tasks`).
-- Periodieke taken (`phase IS NULL`) en afvaltaken (`template_id IS NULL`) niet meenemen in verleden-fetch — eenvoudige filter `template_id IS NOT NULL AND phase IS NOT NULL` bij historie.
-- Geen generatie/insert calls in verleden-view (read-only).
+## Technische scope
+Alleen `src/components/foh/FohTasks.tsx`, regels ~1812-1965 (huidige DAY NAVIGATOR + banner blok). Vervangen door één nieuwe compacte component-blok. Alle state/logica (`selectedDate`, `isReadOnly`, `goPrev`, `goNext`, max 7 dagen terug, periodieke/afval alleen op vandaag, read-only gating) blijft 1-op-1 hetzelfde — alleen de presentatie verandert.
 
-### 2. Component-aanpassingen `src/components/foh/FohTasks.tsx`
-- **Nieuwe component bovenin** (na `<Header>`, voor fase-knoppen): `<DaySelector selectedDate={...} onChange={...} />`. Lokale subcomponent in hetzelfde bestand om bundle-overhead te beperken.
-- **Disable-gating**: één boolean `readOnly = !isViewingToday` doorgegeven aan checkbox-render, swipe handlers, drag-handlers, add-knop, "Opslaan als template", "+ Taak toevoegen".
-- **Banner**: bovenaan render wanneer `readOnly`, met `Calendar` icon + datum + "Terug naar vandaag"-knop.
-- **Realtime subscription** alleen actief als `isViewingToday` (anders zou je gisteren's view per ongeluk verspringen).
-- **`generateDailyTasks` / `useEffect`-trigger**: alleen draaien als `isViewingToday`. Anders skip.
-- **Progress bar**: blijft per fase tonen op de geselecteerde dag (voltooid / totaal van die historische snapshot).
+Geen DB-wijzigingen. Geen wijzigingen aan templates, realtime, reset, of West-logica.
 
-### 3. Edge cases & bug-preventie
-- **04:00 reset**: archiveert taken met `due_date < today`. Verleden-view leest met `archived=true` filter, dus historie blijft zichtbaar.
-- **Lege historie-dag**: als er geen taken zijn voor die dag (bv. dag dat nog niemand de app had), toon empty state: "Geen taken geregistreerd op deze dag".
-- **Niet-actuele template**: historische taken horen bij een `template_id` dat misschien intussen inactief is. Geen probleem — we tonen de `foh_tasks` rij zelf, niet de template.
-- **Mutaties geblokkeerd op DB**: niet nodig — UI gating + RLS is voldoende, en `readOnly` voorkomt elke schrijfactie aan de client-kant.
-- **Categorie-filter / sort/groep**: blijven werken; werken alleen op de huidige `dailyTasks` array die nu per dag wordt gefetcht.
-- **Localstorage `activePhase`**: blijft per gebruiker, niet per dag.
-- **Templates Beheren tab**: ongewijzigd — toont altijd templates (geen dag-context).
-- **Optimistic updates** (`useToggleTaskCompletion` etc.): alleen aanroepbaar via UI; in `readOnly` worden handlers niet meer gerenderd → geen race.
-- **Sluiten-context bij dagwissel**: bij switch naar verleden zet `activePhase` op `'sluit'` als gisteren (intuïtief voor "wat is gisteravond gesloten"). Of: behoud huidige fase. → **Behoud huidige fase** (minder verrassing). Gebruiker klikt zelf op Sluit.
-
-### 4. Performance
-- Per-dag fetch is goedkoop (≤ 100 rijen).
-- Cache via `queryKey: ['foh-tasks', userLocation, selectedDate]` zodat heen-en-weer scrollen instant is.
-- Geen prefetch nodig.
-
-### 5. Verificatie
-1. **Vandaag-view**: alles werkt zoals voor de wijziging (afvinken, drag, add, save-template).
-2. **Verleden-view (-1 dag)**: zie Sluit-lijst van gisteren met voltooide checkboxen, naam en tijd. Checkbox is disabled, geen swipe.
-3. **Lege dag**: empty state zichtbaar.
-4. **Banner "Terug naar vandaag"** klik → terug op vandaag, alle interacties weer enabled.
-5. **Realtime**: open in 2 tabs op vandaag → wijziging direct zichtbaar. In gisteren-tab géén realtime updates (verwacht).
-6. **04:00 reset simulatie / dag-rollover**: vandaag wordt automatisch de nieuwe `getAmsterdamDateString()`.
-7. **Periodieke/afvaltaken**: alleen op vandaag-view.
-8. **Templates Beheren tab**: ongewijzigd functioneel.
-
-## Bug-preventie samenvatting
-- Single source of truth `selectedDate`; alle huidige logica wordt achter `isViewingToday` gegated.
-- Geen DB-schema wijzigingen, geen migrations.
-- Geen impact op `foh_daily_templates`, single-active-trigger, afval edge function, West-no-tussen logica.
-- Read-only UI = geen schrijfacties mogelijk in verleden.
+## Verificatie
+- Op vandaag: rij toont `‹ Vandaag · do 11 jun ›` (rechter pijl disabled).
+- Klik ‹ → toont `‹ wo 10 jun · Geschiedenis ›` + alleen-lezen werkt.
+- Klik op datumtekst in verleden → springt naar vandaag.
+- Max 7 dagen terug: linker pijl wordt disabled.
+- iPad/tablet (834×1194): geen wrap, knoppen comfortabel aan te tikken.
