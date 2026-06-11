@@ -2140,39 +2140,42 @@ export function FohTasks() {
                   </span>
                 </div>
 
-                {/* Admin Button */}
-                <button
-                  onClick={() => setPasswordDialogOpen(true)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '12px 20px',
-                    backgroundColor: 'hsl(var(--card))',
-                    color: 'hsl(var(--primary))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '20px',
-                    fontSize: '15px',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    fontFamily: 'Inter, sans-serif',
-                    transition: 'all 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
-                    e.currentTarget.style.borderColor = 'hsl(var(--border))';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
-                    e.currentTarget.style.borderColor = 'hsl(var(--border))';
-                  }}
-                >
-                  <Settings size={18} />
-                  Admin
-                </button>
+                {/* Admin Button — verborgen in read-only verleden */}
+                {!isReadOnly && (
+                  <button
+                    onClick={() => setPasswordDialogOpen(true)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '12px 20px',
+                      backgroundColor: 'hsl(var(--card))',
+                      color: 'hsl(var(--primary))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '20px',
+                      fontSize: '15px',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      fontFamily: 'Inter, sans-serif',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
+                      e.currentTarget.style.borderColor = 'hsl(var(--border))';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
+                      e.currentTarget.style.borderColor = 'hsl(var(--border))';
+                    }}
+                  >
+                    <Settings size={18} />
+                    Admin
+                  </button>
+                )}
 
-                {/* New Task Button - only for periodiek */}
-                {mainCategory === 'periodiek' && (
+                {/* New Task Button - only for periodiek (verleden heeft geen periodiek) */}
+                {!isReadOnly && mainCategory === 'periodiek' && (
+
                   <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                     <DialogTrigger asChild>
                       <button
