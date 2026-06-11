@@ -1080,7 +1080,9 @@ export function FohTasks() {
 
   // ===== TASK ACTIONS =====
   const toggleTask = async (id: string, currentCompleted: boolean) => {
+    if (isReadOnly) return; // verleden is alleen-lezen
     const now = new Date().toISOString();
+
     const { error } = await supabase
       .from('foh_tasks')
       .update({
