@@ -166,42 +166,50 @@ const KassatellingOverdag = () => {
       toast.error(`Je kunt pas over ${mins}m ${secs}s opnieuw indienen`);
       return;
     }
-    const data = {
-      type: 'open',
-      week: weekNumber,
-      date: new Date().toISOString(),
-      location: userLocation,
-      naam: naam,
-      kassaLade: {
-        denominations: kassaLade,
-        total: kassaLadeTotal
-      },
-      wisselkas: {
-        denominations: wisselkas,
-        total: wisselkasTotal
-      },
-      total: total,
-      opmerkingen: opmerkingen
-    };
     try {
-      await fetch('https://jaapies.app.n8n.cloud/webhook/kassa-afdracht', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Niet ingelogd — log opnieuw in');
+        return;
+      }
+
+      const { error } = await supabase.from('kassa_afdrachten').insert({
+        created_by: user.id,
+        location: userLocation,
+        type: 'open',
+        week_number: weekNumber,
+        date: new Date().toISOString().slice(0, 10),
+        naam: naam.trim(),
+        kassa_lade_denominations: kassaLade,
+        kassa_lade_total: kassaLadeTotal,
+        wisselkas_denominations: wisselkas,
+        wisselkas_total: wisselkasTotal,
+        total: total,
+        opmerkingen: opmerkingen.trim() || null,
       });
+
+      if (error) throw error;
 
       // Save timestamp and disable submit
       const key = `kassatelling_last_submit_${userLocation}_open`;
       localStorage.setItem(key, Date.now().toString());
       setCanSubmit(false);
       setTimeRemaining(10 * 60);
-      
+
+      // Clear backup
+      localStorage.removeItem(`kassatelling_backup_${userLocation}_open`);
+
       setShowSuccessDialog(true);
-    } catch (error) {
-      console.error('Fout bij verzenden:', error);
-      toast.error('Verzenden mislukt');
+    } catch (error: any) {
+      console.error('Fout bij opslaan kassa-afdracht:', error);
+      // Backup the count so user doesn't lose it
+      try {
+        localStorage.setItem(
+          `kassatelling_backup_${userLocation}_open`,
+          JSON.stringify({ kassaLade, wisselkas, naam, opmerkingen, ts: Date.now() })
+        );
+      } catch {}
+      toast.error(`Opslaan mislukt: ${error?.message ?? 'onbekende fout'}. Je telling is lokaal bewaard — probeer opnieuw.`);
     }
   };
   return (
