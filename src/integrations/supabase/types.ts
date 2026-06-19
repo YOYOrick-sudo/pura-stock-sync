@@ -798,6 +798,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           date: string
+          extra: Json
           id: string
           kassa_lade_denominations: Json
           kassa_lade_total: number
@@ -814,6 +815,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date?: string
+          extra?: Json
           id?: string
           kassa_lade_denominations?: Json
           kassa_lade_total?: number
@@ -830,6 +832,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date?: string
+          extra?: Json
           id?: string
           kassa_lade_denominations?: Json
           kassa_lade_total?: number
