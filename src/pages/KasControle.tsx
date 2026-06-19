@@ -373,9 +373,12 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
           </DialogContent>
         </Dialog>
       </div>
-    </SidebarLayout>
   );
+  return embedded ? inner : <SidebarLayout>{inner}</SidebarLayout>;
 };
+
+const KasControle = () => <KasControleContent />;
+
 
 const Row = ({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) => (
   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
