@@ -141,9 +141,9 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
     URL.revokeObjectURL(url);
   };
 
-  return (
-    <SidebarLayout>
-      <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'Inter, sans-serif' }}>
+  const inner = (
+      <div style={{ padding: embedded ? '0' : '24px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'Inter, sans-serif' }}>
+
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
