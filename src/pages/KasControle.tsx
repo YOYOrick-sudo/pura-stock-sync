@@ -54,7 +54,7 @@ const fmtTime = (iso: string) => {
   }
 };
 
-const KasControle = () => {
+export const KasControleContent = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<KassaAfdracht[]>([]);
   const [locationFilter, setLocationFilter] = useState<'all' | 'West' | 'Midsland'>('all');
@@ -141,9 +141,9 @@ const KasControle = () => {
     URL.revokeObjectURL(url);
   };
 
-  return (
-    <SidebarLayout>
-      <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'Inter, sans-serif' }}>
+  const inner = (
+      <div style={{ padding: embedded ? '0' : '24px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'Inter, sans-serif' }}>
+
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
@@ -373,9 +373,12 @@ const KasControle = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </SidebarLayout>
   );
+  return embedded ? inner : <SidebarLayout>{inner}</SidebarLayout>;
 };
+
+const KasControle = () => <KasControleContent />;
+
 
 const Row = ({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) => (
   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
