@@ -25,7 +25,7 @@ const allNavigationItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home, locations: ['West', 'Midsland'], managerOnly: false },
   { title: 'Taken Bediening', url: '/taken-bediening', icon: ListChecks, locations: ['West', 'Midsland'], managerOnly: false },
   { title: 'Kassatelling', url: '/kassatelling', icon: Wallet, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Kas-controle', url: '/kas-controle', icon: ShieldCheck, locations: ['West', 'Midsland'], managerOnly: true },
+
   { title: 'Onderhoud', url: '/onderhoud', icon: Wrench, locations: ['West', 'Midsland'], managerOnly: false },
   { title: 'Planning', url: '/personeel', icon: Users, locations: ['West', 'Midsland'], requiresCode: true, codeKey: 'personeel', expectedCode: '0000', managerOnly: false },
   { title: 'Settings', url: '/settings', icon: Settings, locations: ['West', 'Midsland'], managerOnly: false },
