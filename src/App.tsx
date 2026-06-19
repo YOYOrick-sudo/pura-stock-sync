@@ -21,6 +21,7 @@ import MidslandOrders from "./pages/MidslandOrders";
 import StyleGuide from "./pages/StyleGuide";
 import DesignPreview from "./pages/DesignPreview";
 import DesignSystem from "./pages/DesignSystem";
+import KasControle from "./pages/KasControle";
 // HR Module
 import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } from "./pages/hr";
 // Maintenance Module
@@ -137,6 +138,19 @@ const App = () => (
             {/* Public Design System route - no login needed */}
             <Route path="/design-system" element={<DesignSystem />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
+
+            {/* Kas-controle — alleen managers/owners/admins */}
+            <Route
+              path="/kas-controle"
+              element={
+                <ProtectedRoute>
+                  <RequireManager>
+                    <KasControle />
+                  </RequireManager>
+                </ProtectedRoute>
+              }
+            />
+
             
             
             {/* Maintenance Module */}

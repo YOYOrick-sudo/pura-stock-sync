@@ -171,38 +171,55 @@ const Kassa = () => {
       toast.error(`Je kunt pas over ${mins}m ${secs}s opnieuw indienen`);
       return;
     }
-    const data = {
-      type: 'sluit',
-      week: weekNumber,
-      date: new Date().toISOString(),
-      location: userLocation,
-      naam: naam,
-      denominations: counts,
-      cashOmzetLightspeed: numCashOmzet,
-      total: total,
-      doelsaldo: DOELSALDO,
-      afdracht: afdracht,
-      kasverschil: kasverschil,
-      opmerkingen: opmerkingen
-    };
-    
     try {
-      await fetch('https://jaapies.app.n8n.cloud/webhook/kassa-afdracht', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Niet ingelogd — log opnieuw in');
+        return;
+      }
+
+      const { error } = await supabase.from('kassa_afdrachten').insert({
+        created_by: user.id,
+        location: userLocation,
+        type: 'sluit',
+        week_number: weekNumber,
+        date: new Date().toISOString().slice(0, 10),
+        naam: naam.trim(),
+        kassa_lade_denominations: counts,
+        kassa_lade_total: total,
+        wisselkas_denominations: {},
+        wisselkas_total: 0,
+        total: total,
+        opmerkingen: opmerkingen.trim() || null,
+        extra: {
+          cashOmzetLightspeed: numCashOmzet,
+          doelsaldo: DOELSALDO,
+          afdracht: afdracht,
+          kasverschil: kasverschil,
+        },
       });
+
+      if (error) throw error;
 
       // Save timestamp and disable submit
       const key = `kassatelling_last_submit_${userLocation}_sluit`;
       localStorage.setItem(key, Date.now().toString());
       setCanSubmit(false);
       setTimeRemaining(10 * 60);
-      
+
+      // Clear backup
+      localStorage.removeItem(`kassatelling_backup_${userLocation}_sluit`);
+
       setShowSuccessDialog(true);
-    } catch (error) {
-      console.error('Fout bij verzenden:', error);
-      toast.error('Verzenden mislukt');
+    } catch (error: any) {
+      console.error('Fout bij opslaan kassa-afdracht:', error);
+      try {
+        localStorage.setItem(
+          `kassatelling_backup_${userLocation}_sluit`,
+          JSON.stringify({ counts, cashOmzet, naam, opmerkingen, ts: Date.now() })
+        );
+      } catch {}
+      toast.error(`Opslaan mislukt: ${error?.message ?? 'onbekende fout'}. Je telling is lokaal bewaard — probeer opnieuw.`);
     }
   };
 

@@ -793,6 +793,60 @@ export type Database = {
         }
         Relationships: []
       }
+      kassa_afdrachten: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date: string
+          extra: Json
+          id: string
+          kassa_lade_denominations: Json
+          kassa_lade_total: number
+          location: string
+          naam: string
+          opmerkingen: string | null
+          total: number
+          type: string
+          week_number: number
+          wisselkas_denominations: Json
+          wisselkas_total: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          extra?: Json
+          id?: string
+          kassa_lade_denominations?: Json
+          kassa_lade_total?: number
+          location: string
+          naam: string
+          opmerkingen?: string | null
+          total?: number
+          type: string
+          week_number: number
+          wisselkas_denominations?: Json
+          wisselkas_total?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          extra?: Json
+          id?: string
+          kassa_lade_denominations?: Json
+          kassa_lade_total?: number
+          location?: string
+          naam?: string
+          opmerkingen?: string | null
+          total?: number
+          type?: string
+          week_number?: number
+          wisselkas_denominations?: Json
+          wisselkas_total?: number
+        }
+        Relationships: []
+      }
       kitchen_tasks: {
         Row: {
           assigned_to: string | null

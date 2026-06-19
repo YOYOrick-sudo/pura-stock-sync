@@ -36,7 +36,8 @@ export function SidebarLayout({
       '/voorraad': 'Voorraad',
       '/settings': 'Instellingen',
       '/taken-analyse': 'Statistieken',
-      '/onderhoud': 'Onderhoud'
+      '/onderhoud': 'Onderhoud',
+      '/kas-controle': 'Kas-controle',
     };
     return titles[pathname] || 'Pura Vida';
   };
