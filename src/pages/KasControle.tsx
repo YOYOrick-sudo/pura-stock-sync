@@ -54,7 +54,7 @@ const fmtTime = (iso: string) => {
   }
 };
 
-const KasControle = () => {
+export const KasControleContent = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<KassaAfdracht[]>([]);
   const [locationFilter, setLocationFilter] = useState<'all' | 'West' | 'Midsland'>('all');
