@@ -1,45 +1,59 @@
-## Diagnose
+## Aanbeveling: intern bouwen, n8n loslaten
 
-De kassa-afdracht wordt verstuurd naar een externe **n8n webhook** (`https://jaapies.app.n8n.cloud/webhook/kassa-afdracht`), niet via onze eigen backend. Daarom staat er niets in onze logs.
+De n8n-webhook was een doorgeefluik naar Google Sheets. Door het intern te doen ben je niet meer afhankelijk van een externe service, en krijg je een betere audit-trail voor kas-controle.
 
-Live getest vanuit de sandbox:
+## Wat ik ga bouwen
 
-```
-POST  /webhook/kassa-afdracht        →  HTTP 404  "No workspace here"
-POST  /webhook/kassa-afdracht-sluit  →  HTTP 404
-OPTIONS (CORS preflight)             →  HTTP 405
-```
+### 1. Database — tabel `kassa_afdrachten`
 
-De hele n8n-workspace `jaapies.app.n8n.cloud` is **niet meer bereikbaar** (account verlopen, gepauzeerd, of verwijderd). De browser doet eerst een CORS-preflight; die faalt → `fetch()` gooit een netwerkfout → toast "Verzenden mislukt".
+Kolommen:
+- `id`, `created_at`, `created_by` (user_id)
+- `location` ('Midsland' / 'West')
+- `type` ('open' = overdag/dagafrekening, 'sluit' = avond)
+- `week_number`, `date`
+- `naam` (wie de telling deed — text)
+- `kassa_lade_denominations` (jsonb — alle coupures)
+- `kassa_lade_total` (numeric)
+- `wisselkas_denominations` (jsonb)
+- `wisselkas_total` (numeric)
+- `total` (numeric)
+- `opmerkingen` (text)
 
-Dit geldt voor **beide locaties** (Midsland én West) en voor **zowel "Open" als "Sluit"**. Dezelfde n8n-host wordt ook gebruikt door `OrderDashboard.tsx` (`/webhook/inventory-restock`) — dus die werkt waarschijnlijk óók niet meer.
+**RLS-policies:**
+- `authenticated` mag INSERT (eigen locatie, via `current_user_location()`)
+- Alleen `admin`, `owner`, `manager` mogen SELECT (kas-controle inzage)
+- Niemand mag UPDATE/DELETE (audit-integriteit; alleen service_role)
 
-Er is **niets mis met onze code of database**. De externe automation is offline.
+### 2. Pagina's aanpassen
 
-## Wat ik nodig heb van jou (buiten de code)
+- `src/pages/KassatellingOverdag.tsx` en `src/pages/Kassa.tsx`: `fetch()` naar n8n vervangen door `supabase.from('kassa_afdrachten').insert(...)`.
+- Nette error-handling: bij fout duidelijke toast + data blijft in `localStorage` als backup zodat opnieuw versturen kan zonder over te tellen.
+- Succes-dialog alleen bij echt succes.
 
-Eén van deze twee, anders blijft het kapot:
+### 3. Nieuwe pagina — Kas-controle overzicht
 
-1. **n8n workspace herstellen** — inloggen op n8n.cloud onder het `jaapies`-account, workspace reactiveren en de workflows `kassa-afdracht` en `kassa-afdracht-sluit` weer aanzetten (incl. "Available in MCP" / actief). De URL hoeft dan niet te veranderen.
-2. **Of**: de afhandeling intern doen via Lovable Cloud (eigen edge function die de telling in de database opslaat en eventueel mailt). Dan zijn we niet meer afhankelijk van n8n.
+`/kas-controle` (alleen admin/owner/manager):
+- Filter: locatie, datum-range, type (open/sluit).
+- Tabel: datum, week, locatie, type, naam, totaal kassa, totaal wisselkas, totaal, opmerkingen.
+- Detail-modal per rij: alle coupures uitgesplitst.
+- Knop "Exporteer CSV" (Excel-vriendelijk).
+- Toevoegen aan sidebar onder een nieuw kopje (bv. "Kas-controle") voor managers.
 
-## Wat ik wél in de code wil fixen (los van bovenstaande keuze)
+### 4. `OrderDashboard.tsx` — inventory-restock webhook
 
-Onafhankelijk van welke optie je kiest, fix ik nu de **stille-fout-bug**:
+Die n8n-webhook is ook offline. Voor nu: nette foutmelding + de actie direct in onze database loggen (`internal_orders`-flow gebruiken die er al is). Of, als je zegt dat we 'm later in detail bekijken, alleen de foutmelding netter maken en de rest in een aparte stap.
 
-- In `src/pages/KassatellingOverdag.tsx` en `src/pages/Kassa.tsx`: na `fetch(...)` controleren of `response.ok` is. Nu wordt een HTTP 404/500 niet als fout herkend → bij sommige browsers verschijnt zelfs het succes-dialog terwijl de telling nooit is aangekomen.
-- Bij een fout: duidelijke toast tonen mét reden (`"Versturen mislukt (404) — neem contact op met beheer"`) i.p.v. de generieke melding, en het succes-dialog **niet** openen.
-- De telling-data tijdelijk opslaan in `localStorage` als backup zodat een mislukte afdracht opnieuw verstuurd kan worden zonder alles over te tellen.
-- Idem voor `OrderDashboard.tsx` → `/webhook/inventory-restock`.
+## Wat ik nodig heb van jou
 
-## Stappen
-
-1. Bevestig welke route je wil (n8n herstellen óf intern via Lovable Cloud).
-2. Ik pas de drie fetch-aanroepen aan met nette error-handling + localStorage-backup.
-3. Bij keuze "intern": ik bouw een edge function `kassa-afdracht-submit`, tabel `kassa_afdrachten` met RLS, en wijzig de drie pagina's om die te gebruiken i.p.v. de n8n-webhook.
+- Akkoord op intern bouwen (geen n8n meer voor kassa-afdracht).
+- Wie mag de kas-controle pagina zien: alleen `owner` + `admin`, of ook `manager`? *Default: owner + admin + manager*.
+- Wil je later óók nog automatische export naar een Google Sheet (via de Sheets-connector) als backup? *Niet nodig nu — kan later, druk op de knop.*
+- `OrderDashboard.tsx` nu meenemen of in een aparte ronde?
 
 ## Verificatie
 
-- Sandbox-curl naar webhook → HTTP 200 (na n8n-herstel) of edge-function-test → 200.
-- In de UI: telling invullen, versturen, succes-dialog verschijnt alléén bij echt succes.
-- Bij geforceerde fout (offline): nette toast + data blijft in localStorage staan.
+- Telling indienen in UI → rij verschijnt in `kassa_afdrachten`.
+- Niet-manager kan niet bij de kas-controle pagina (RLS + UI-guard).
+- Manager opent overzicht, filtert op week, exporteert CSV → opent correct in Excel/Numbers.
+- Forceer fout (offline) → toast + localStorage-backup, geen valse succes-melding.
+- Geen verwijzingen meer naar `jaapies.app.n8n.cloud` in `Kassatelling*`.
