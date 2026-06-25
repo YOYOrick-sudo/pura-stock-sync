@@ -2710,8 +2710,8 @@ export function FohTasks() {
                     <div>
                       {userLocation === 'West' ? (
                         <>
-                          {renderDepartmentSection('Voorkant (bediening)', 'voorkant')}
-                          {renderDepartmentSection('Achterkant (keuken)', 'achterkant')}
+                          {renderDepartmentSection('Bediening', 'voorkant', true)}
+                          {renderDepartmentSection('Keuken', 'achterkant')}
                         </>
                       ) : (
                         renderCategoryGroups(currentTasks, 'all')
