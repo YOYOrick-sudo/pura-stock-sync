@@ -1,48 +1,38 @@
-## Wijziging
+# West Bediening: één platte lijst + heldere teksten
 
-De Voorkant/Achterkant-tabs verdwijnen in West. In plaats daarvan ziet West **één doorlopende takenlijst per fase (Open / Sluit)**, met de taken visueel gegroepeerd in twee secties onder elkaar:
+## Doel
+Voor West-bediening (Voorkant) één rustige, doorlopende takenlijst zonder categorie-koppen, met kortere/actiegerichte taaknamen en duidelijkere fase-knoppen.
 
-```text
-─── Voorkant (bediening) ───
- 1. Terras opzetten              ☐
- 2. Kassa openen                 ☐
- ...
+## Wijzigingen
 
-─── Achterkant (keuken) ───
- 8. Werkbank schoonmaken         ☐
- 9. Koeling controleren          ☐
- ...
-```
+### 1. Eén platte lijst (West, Voorkant)
+- In `src/components/foh/FohTasks.tsx` de render-loop voor West aanpassen: geen categorie-headers (Bar, Zaal, etc.) en geen categorie-groepering meer voor de Voorkant-sectie.
+- Taken worden gewoon op `sort_order` getoond als één doorlopende, genummerde lijst.
+- Achterkant (keuken) blijft een eigen sectie eronder met eigen header — daar verandert de groepering niet, tenzij je dat ook wilt (zie open vraag onderaan).
+- Midsland blijft ongewijzigd (categorieën zoals nu).
+- In het admin-paneel (Templates Beheren) blijft `category` gewoon bestaan en bewerkbaar, zodat data niet verloren gaat — alleen de werknemer-view toont ze niet als koppen voor West Voorkant.
 
-Zo zien medewerkers in één oogopslag álle openstaande taken voor die fase en kan er niets vergeten worden.
+### 2. Fase-knoppen korter en duidelijker
+- Huidige labels naar: **"Openen"** en **"Sluiten"** (werkwoorden, actiegericht).
+- Toegepast op de fase-tabs bovenin voor West (Midsland houdt huidige labels inclusief "Tussen").
 
-## Gedrag
+### 3. Taaknamen herschrijven (West Voorkant)
+- Bestaande Voorkant-taken in de database (templates + actieve daglijst) krijgen kortere, eenduidige formuleringen.
+- Principes:
+  - Begin met een werkwoord ("Vul…", "Zet…", "Controleer…", "Veeg…").
+  - Max ~6 woorden waar mogelijk.
+  - Geen dubbele info (locatie, fase) die al uit context blijkt.
+  - Consistente terminologie (bv. altijd "terras" i.p.v. afwisselend "buiten"/"terras").
+- Ik lever de hernoemingen aan als één migratie/lijst zodat je ze vooraf kunt nakijken voor we ze toepassen.
 
-- **Midsland**: ongewijzigd — geen secties, geen afdelingsbegrip in de UI.
-- **West**:
-  - Eén lijst per fase met twee secties (Voorkant boven, Achterkant onder), gescheiden door een nette sectiekop met badge en taakteller.
-  - Doorlopende nummering (1,2,3…) over beide secties, zodat de "niets overslaan"-flow blijft kloppen.
-  - Voortgangsbalk en fase-statistieken tellen beide secties bij elkaar op.
-  - Lege sectie: kop blijft zichtbaar met de tekst "Geen taken" zodat duidelijk is dát die afdeling geen taken heeft (niet per ongeluk verborgen).
+### 4. Geen nieuwe bugs
+- Geen schema-wijzigingen, alleen UI-rendering + tekstupdates op bestaande rijen via `UPDATE` (geen delete/insert, dus `id`s en `template_id`-koppelingen blijven intact).
+- Reset/generate edge functions blijven ongewijzigd.
 
-## Admin / templates
+## Technisch (kort)
+- `FohTasks.tsx`: voor `userLocation === 'West'` en `department === 'voorkant'` de `categoriesInDepartment.map(...)` vervangen door één enkele lijst-render zonder category-header. Achterkant blijft via huidige logica.
+- Fase-knop labels: kleine map `{ open: 'Openen', sluit: 'Sluiten', tussen: 'Tussen' }` op de bestaande knop-render.
+- Taak-rewrites: één SQL `UPDATE` per taak in `foh_daily_templates` (en optioneel matchende `foh_tasks` van vandaag) op basis van `id`.
 
-Templates blijven per afdeling beheerd (anders wordt template-beheer onoverzichtelijk en kun je geen aparte open-/sluitlijst per keuken hebben). In het admin-paneel komt bovenaan een kleine schakelaar **Voorkant | Achterkant** die alleen bepaalt wélke template-set je beheert. Dit raakt de medewerker-view niet — die blijft één gecombineerde lijst.
-
-## Technische details
-
-- `FohTasks.tsx`:
-  - `activeDepartment`-toggle + tab-UI uit de medewerker-view halen.
-  - `fetchDailyTasks` haalt voor West **beide** afdelingen op (filter op `department` vervalt voor West; voor Midsland blijft het impliciet 'voorkant').
-  - Render-laag groepeert `dailyTasks` op `department` met twee sectiekoppen wanneer `userLocation === 'West'`. Drag-and-drop blijft binnen één sectie (sort_order per afdeling).
-  - Nieuwe taak via "+ knop" in West vraagt aan welke kant (Voorkant/Achterkant) hij hoort — kleine segmented control in het taak-dialog.
-  - `activeDepartment` blijft bestaan, maar alleen scoped op het **admin-paneel** (template-beheer).
-- `generateDailyTasks` en de edge function blijven ongewijzigd: ze schrijven gewoon taken weg met het `department`-veld van de template.
-- Geen DB-wijzigingen.
-
-## Wat blijft hetzelfde
-
-- Open/Sluit fase-knoppen.
-- Day-navigator, read-only modus voor verleden, 04:00 reset.
-- Wachtwoorden (West: 2020).
-- Tussenlijst blijft uit voor West.
+## Open vraag voor je akkoord
+Wil je dat **ook de Achterkant (keuken) in West** dezelfde behandeling krijgt (één platte lijst, hernoemde taken), of laten we die voor nu zoals hij is en pakken we 'm later apart?
