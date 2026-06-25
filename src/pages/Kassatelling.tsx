@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { SidebarLayout } from '@/components/SidebarLayout';
-import { useUserLocation } from '@/contexts/UserLocationContext';
 import Kassa from './Kassa';
 import KassatellingOverdag from './KassatellingOverdag';
 import { KasControleContent } from './KasControle';
@@ -9,27 +8,35 @@ import { AdminPasswordDialog } from '@/components/foh/AdminPasswordDialog';
 type Tab = 'overdag' | 'avond' | 'controle';
 
 export default function Kassatelling() {
-  const { userLocation } = useUserLocation();
   const [activeTab, setActiveTab] = useState<Tab>('avond');
   const [pwOpen, setPwOpen] = useState(false);
   const [controleUnlocked, setControleUnlocked] = useState(
     () => sessionStorage.getItem('kas_controle_unlocked') === 'true'
   );
 
-  const handleTabClick = (tab: Tab) => {
+  const handleTabClick = useCallback((tab: Tab) => {
     if (tab === 'controle' && !controleUnlocked) {
       setPwOpen(true);
       return;
     }
     setActiveTab(tab);
-  };
+  }, [controleUnlocked]);
 
-  const tabs: { key: Tab; label: string }[] = [
+  const handleUnlockSuccess = useCallback(() => {
+    sessionStorage.setItem('kas_controle_unlocked', 'true');
+    setControleUnlocked(true);
+    setActiveTab('controle');
+  }, []);
+
+  const tabs: { key: Tab; label: string }[] = useMemo(() => ([
     { key: 'overdag', label: 'Open' },
     { key: 'avond', label: 'Sluit' },
     { key: 'controle', label: 'Kas-controle' },
-  ];
+  ]), []);
 
+  // Render alle tab-inhoud altijd, en verberg de inactieve. Dit voorkomt
+  // dat het openen van de wachtwoord-popup tegelijk een zware re-mount
+  // van de kassatelling triggert.
   return (
     <SidebarLayout>
       <div className="max-w-[1400px] mx-auto">
@@ -51,9 +58,17 @@ export default function Kassatelling() {
           </div>
 
           <div>
-            {activeTab === 'overdag' && <KassatellingOverdag />}
-            {activeTab === 'avond' && <Kassa />}
-            {activeTab === 'controle' && controleUnlocked && <KasControleContent embedded />}
+            <div style={{ display: activeTab === 'overdag' ? 'block' : 'none' }}>
+              <KassatellingOverdag />
+            </div>
+            <div style={{ display: activeTab === 'avond' ? 'block' : 'none' }}>
+              <Kassa />
+            </div>
+            {controleUnlocked && (
+              <div style={{ display: activeTab === 'controle' ? 'block' : 'none' }}>
+                <KasControleContent embedded />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -62,11 +77,7 @@ export default function Kassatelling() {
         open={pwOpen}
         onOpenChange={setPwOpen}
         password="2017"
-        onSuccess={() => {
-          sessionStorage.setItem('kas_controle_unlocked', 'true');
-          setControleUnlocked(true);
-          setActiveTab('controle');
-        }}
+        onSuccess={handleUnlockSuccess}
       />
     </SidebarLayout>
   );
