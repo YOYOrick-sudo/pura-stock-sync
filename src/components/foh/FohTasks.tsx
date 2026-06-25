@@ -2828,13 +2828,17 @@ export function FohTasks() {
                                   <span style={{
                                     flex: 1,
                                     textDecoration: task.completed ? 'line-through' : 'none',
+                                    textDecorationColor: task.completed ? 'hsl(var(--muted-foreground) / 0.5)' : undefined,
                                     color: task.completed ? 'hsl(var(--muted-foreground))' : 'hsl(var(--foreground))',
+                                    opacity: task.completed ? 0.55 : 1,
                                     fontWeight: 500,
                                     fontSize: '15px',
                                     fontFamily: 'Inter, sans-serif',
+                                    transition: 'opacity 0.15s ease, color 0.15s ease',
                                   }}>
                                     {task.title}
                                   </span>
+
                                 </div>
 
                                 <div style={{
