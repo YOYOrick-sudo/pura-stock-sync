@@ -2502,90 +2502,163 @@ export function FohTasks() {
 
             {/* Tasks display */}
             <div>
-              {mainCategory === 'dagelijks' && (
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                >
-                  <div>
-                    {Object.entries(groupedCurrentTasks).map(([category, categoryTasks]) => {
-                      const progress = getCategoryProgress(categoryTasks);
-                      return (
-                        <div key={category} style={{ marginBottom: '24px' }}>
-                          <h3 style={{
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em',
+              {mainCategory === 'dagelijks' && (() => {
+                const renderCategoryGroups = (tasksToRender: FohTaskWithEmployee[], keyPrefix: string) => {
+                  const groups = groupTasksByCategory(tasksToRender);
+                  const entries = Object.entries(groups);
+                  if (entries.length === 0) {
+                    return (
+                      <div style={{
+                        padding: '16px 4px 24px',
+                        color: 'hsl(var(--muted-foreground))',
+                        fontSize: '13px',
+                        fontStyle: 'italic',
+                        fontFamily: 'Inter, sans-serif',
+                      }}>
+                        Geen taken
+                      </div>
+                    );
+                  }
+                  return entries.map(([category, categoryTasks]) => {
+                    const progress = getCategoryProgress(categoryTasks);
+                    return (
+                      <div key={`${keyPrefix}-${category}`} style={{ marginBottom: '24px' }}>
+                        <h3 style={{
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em',
+                          color: progress.allDone ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                          marginBottom: '12px',
+                          fontFamily: 'Inter, sans-serif',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}>
+                          {category}
+                          <span style={{
+                            fontSize: '11px',
+                            fontWeight: 500,
                             color: progress.allDone ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-                            marginBottom: '12px',
-                            fontFamily: 'Inter, sans-serif',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
+                            backgroundColor: progress.allDone ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--muted-foreground) / 0.1)',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
                           }}>
-                            {category}
-                            <span style={{
-                              fontSize: '11px',
+                            {progress.completed}/{progress.total}
+                          </span>
+                        </h3>
+                        <div style={{ borderBottom: '1px solid hsl(var(--border))', paddingBottom: '16px' }}>
+                          {progress.allDone ? (
+                            <div style={{
+                              padding: '20px',
+                              textAlign: 'center',
+                              color: 'hsl(var(--primary))',
+                              fontSize: '14px',
                               fontWeight: 500,
-                              color: progress.allDone ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-                              backgroundColor: progress.allDone ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--muted-foreground) / 0.1)',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
+                              fontFamily: 'Inter, sans-serif',
+                              animation: 'fade-in 0.3s ease-out',
                             }}>
-                              {progress.completed}/{progress.total}
-                            </span>
-                          </h3>
-                          <div style={{ borderBottom: '1px solid hsl(var(--border))', paddingBottom: '16px' }}>
-                            {progress.allDone ? (
-                              <div style={{
-                                padding: '20px',
-                                textAlign: 'center',
-                                color: 'hsl(var(--primary))',
-                                fontSize: '14px',
-                                fontWeight: 500,
-                                fontFamily: 'Inter, sans-serif',
-                                animation: 'fade-in 0.3s ease-out',
-                              }}>
-                                🎉 Alle taken voltooid!
-                              </div>
-                            ) : (
-                              <SortableContext items={categoryTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-                                {categoryTasks.map((task, index) => (
-                                  <SortableTaskItem
-                                    key={task.id}
-                                    task={task}
-                                    taskNumber={index + 1}
-                                    isEditMode={isEditMode}
-                                    onTitleChange={(id, title) => {
-                                      setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, title } : t));
-                                    }}
-                                    onDescriptionChange={(id, description) => {
-                                      setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, description } : t));
-                                    }}
-                                    onEstimatedMinutesChange={(id, minutes) => {
-                                      setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, estimated_minutes: minutes } : t));
-                                    }}
-                                    onDelete={(id) => {
-                                      setDeletedTaskIds(prev => [...prev, id]);
-                                    }}
-                                    toggleTask={!isEditMode ? toggleTask : undefined}
-                                    isDeleted={deletedTaskIds.includes(task.id)}
-                                    showAdminTools={false}
-                                    taskPadding={taskPadding}
-                                    isNew={!!task.template_id && newTemplateIds.has(task.template_id)}
-                                  />
-                                ))}
-                              </SortableContext>
-                            )}
-                          </div>
+                              🎉 Alle taken voltooid!
+                            </div>
+                          ) : (
+                            <SortableContext items={categoryTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+                              {categoryTasks.map((task, index) => (
+                                <SortableTaskItem
+                                  key={task.id}
+                                  task={task}
+                                  taskNumber={index + 1}
+                                  isEditMode={isEditMode}
+                                  onTitleChange={(id, title) => {
+                                    setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, title } : t));
+                                  }}
+                                  onDescriptionChange={(id, description) => {
+                                    setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, description } : t));
+                                  }}
+                                  onEstimatedMinutesChange={(id, minutes) => {
+                                    setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, estimated_minutes: minutes } : t));
+                                  }}
+                                  onDelete={(id) => {
+                                    setDeletedTaskIds(prev => [...prev, id]);
+                                  }}
+                                  toggleTask={!isEditMode ? toggleTask : undefined}
+                                  isDeleted={deletedTaskIds.includes(task.id)}
+                                  showAdminTools={false}
+                                  taskPadding={taskPadding}
+                                  isNew={!!task.template_id && newTemplateIds.has(task.template_id)}
+                                />
+                              ))}
+                            </SortableContext>
+                          )}
                         </div>
-                      );
-                    })}
-                  </div>
-                </DndContext>
-              )}
+                      </div>
+                    );
+                  });
+                };
+
+                const renderDepartmentSection = (label: string, dept: 'voorkant' | 'achterkant') => {
+                  const deptTasks = currentTasks.filter(
+                    (t: any) => (t.department ?? 'voorkant') === dept
+                  );
+                  const completed = deptTasks.filter(t => t.completed).length;
+                  return (
+                    <div key={dept} style={{ marginBottom: '32px' }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '10px 14px',
+                        backgroundColor: 'hsl(var(--muted))',
+                        borderRadius: '12px',
+                        marginBottom: '16px',
+                        border: '1px solid hsl(var(--border))',
+                      }}>
+                        <span style={{
+                          fontSize: '15px',
+                          fontWeight: 700,
+                          color: 'hsl(var(--foreground))',
+                          fontFamily: 'Inter, sans-serif',
+                          letterSpacing: '0.01em',
+                        }}>
+                          {label}
+                        </span>
+                        <span style={{
+                          marginLeft: 'auto',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          color: 'hsl(var(--muted-foreground))',
+                          backgroundColor: 'hsl(var(--background))',
+                          padding: '3px 10px',
+                          borderRadius: '999px',
+                          fontFamily: 'Inter, sans-serif',
+                        }}>
+                          {completed}/{deptTasks.length}
+                        </span>
+                      </div>
+                      {renderCategoryGroups(deptTasks, dept)}
+                    </div>
+                  );
+                };
+
+                return (
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <div>
+                      {userLocation === 'West' ? (
+                        <>
+                          {renderDepartmentSection('Voorkant (bediening)', 'voorkant')}
+                          {renderDepartmentSection('Achterkant (keuken)', 'achterkant')}
+                        </>
+                      ) : (
+                        renderCategoryGroups(currentTasks, 'all')
+                      )}
+                    </div>
+                  </DndContext>
+                );
+              })()}
+
 
               {mainCategory === 'periodiek' && (
                 <div>
