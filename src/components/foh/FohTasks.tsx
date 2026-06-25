@@ -1211,6 +1211,7 @@ export function FohTasks() {
       assigned_employee_id: null,
       category: 'Algemeen',
       estimated_minutes: null,
+      department: 'voorkant',
     });
     setEmployeeInput('');
     fetchExtraTasks();
@@ -2428,6 +2429,7 @@ export function FohTasks() {
                               assigned_employee_id: null,
                               category: 'Algemeen',
                               estimated_minutes: null,
+                              department: 'voorkant',
                             });
                             setEmployeeInput('');
                           }}
