@@ -58,17 +58,9 @@ export default function Kassatelling() {
           </div>
 
           <div>
-            <div style={{ display: activeTab === 'overdag' ? 'block' : 'none' }}>
-              <KassatellingOverdag />
-            </div>
-            <div style={{ display: activeTab === 'avond' ? 'block' : 'none' }}>
-              <Kassa />
-            </div>
-            {controleUnlocked && (
-              <div style={{ display: activeTab === 'controle' ? 'block' : 'none' }}>
-                <KasControleContent embedded />
-              </div>
-            )}
+            {activeTab === 'overdag' && <KassatellingOverdag />}
+            {activeTab === 'avond' && <Kassa />}
+            {activeTab === 'controle' && controleUnlocked && <KasControleContent embedded />}
           </div>
         </div>
       </div>
