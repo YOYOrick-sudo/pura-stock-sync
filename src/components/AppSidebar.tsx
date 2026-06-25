@@ -27,7 +27,7 @@ const allNavigationItems = [
   { title: 'Kassatelling', url: '/kassatelling', icon: Wallet, locations: ['West', 'Midsland'], managerOnly: false },
 
   { title: 'Onderhoud', url: '/onderhoud', icon: Wrench, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Planning', url: '/personeel', icon: Users, locations: ['West', 'Midsland'], requiresCode: true, codeKey: 'personeel', expectedCode: '0000', managerOnly: false },
+  
   { title: 'Settings', url: '/settings', icon: Settings, locations: ['West', 'Midsland'], managerOnly: false },
   { title: 'Statistieken', url: '/taken-analyse', icon: BarChart3, locations: ['West', 'Midsland'], requiresCode: true, codeKey: 'stats', expectedCode: 'boom', managerOnly: false },
 ];
