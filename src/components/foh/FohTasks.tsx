@@ -2849,6 +2849,7 @@ export function FohTasks() {
       <AdminPasswordDialog
         open={passwordDialogOpen}
         onOpenChange={setPasswordDialogOpen}
+        password={userLocation === 'West' ? '2020' : '2017'}
         onSuccess={() => setAdminPanelOpen(true)}
       />
 
