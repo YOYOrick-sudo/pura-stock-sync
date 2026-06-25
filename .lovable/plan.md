@@ -1,59 +1,33 @@
-## Aanbeveling: intern bouwen, n8n loslaten
+## Onderzoek
 
-De n8n-webhook was een doorgeefluik naar Google Sheets. Door het intern te doen ben je niet meer afhankelijk van een externe service, en krijg je een betere audit-trail voor kas-controle.
+Het probleem is een **houterige, niet-vloeiende popup-animatie** die zich voordoet bij **meerdere dialogs** in de app (kas-controle wachtwoord, detail-modal, admin dialogs, etc.). De gebruiker meldt dat de popups "vastlopen" bij het openen, niet soepel in beeld komen.
 
-## Wat ik ga bouwen
+Oorzaak gevonden in `src/components/ui/dialog.tsx`:
+- De `DialogContent` combineert **fade + zoom-95 + slide-from-top-48%** tegelijk met `duration-200`.
+- De `slide-from-top-[48%]` in combinatie met `translate-y-[-50%]` (centreer-truc) zorgt voor een onnatuurlijke "sprong" — het element komt van boven en schuift tegelijk naar het midden, wat het hapjerige gevoel geeft.
+- Dit is de **centrale shadcn Dialog component**; álle popups in de app erven dit gedrag.
 
-### 1. Database — tabel `kassa_afdrachten`
+## Aanpassing
 
-Kolommen:
-- `id`, `created_at`, `created_by` (user_id)
-- `location` ('Midsland' / 'West')
-- `type` ('open' = overdag/dagafrekening, 'sluit' = avond)
-- `week_number`, `date`
-- `naam` (wie de telling deed — text)
-- `kassa_lade_denominations` (jsonb — alle coupures)
-- `kassa_lade_total` (numeric)
-- `wisselkas_denominations` (jsonb)
-- `wisselkas_total` (numeric)
-- `total` (numeric)
-- `opmerkingen` (text)
+Alleen `src/components/ui/dialog.tsx` aanpassen:
 
-**RLS-policies:**
-- `authenticated` mag INSERT (eigen locatie, via `current_user_location()`)
-- Alleen `admin`, `owner`, `manager` mogen SELECT (kas-controle inzage)
-- Niemand mag UPDATE/DELETE (audit-integriteit; alleen service_role)
+1. **Slide-animaties verwijderen** uit `DialogContent` (`slide-in-from-top-[48%]`, `slide-out-to-top-[48%]` etc.). Alleen fade + subtiele zoom behouden.
+2. **Zoom subtieler**: `zoom-in-95` → `zoom-in-97` (rustiger schaal van 97% → 100%).
+3. **Duration verhogen**: `duration-200` → `duration-300` voor een vloeiendere beweging.
+4. **Overlay meeliften**: `DialogOverlay` krijgt ook `duration-300` zodat achtergrond en content synchroon faden.
 
-### 2. Pagina's aanpassen
+## Resultaat
 
-- `src/pages/KassatellingOverdag.tsx` en `src/pages/Kassa.tsx`: `fetch()` naar n8n vervangen door `supabase.from('kassa_afdrachten').insert(...)`.
-- Nette error-handling: bij fout duidelijke toast + data blijft in `localStorage` als backup zodat opnieuw versturen kan zonder over te tellen.
-- Succes-dialog alleen bij echt succes.
+- Popup verschijnt met een rustige **fade + lichte zoom vanuit het centrum** (geen sprong meer van bovenaf).
+- Werkt automatisch voor **alle dialogs** in de app — geen losse fixes per scherm nodig.
+- Geen functionele wijzigingen, alleen visueel/animatie.
 
-### 3. Nieuwe pagina — Kas-controle overzicht
+## Wijzigingen
 
-`/kas-controle` (alleen admin/owner/manager):
-- Filter: locatie, datum-range, type (open/sluit).
-- Tabel: datum, week, locatie, type, naam, totaal kassa, totaal wisselkas, totaal, opmerkingen.
-- Detail-modal per rij: alle coupures uitgesplitst.
-- Knop "Exporteer CSV" (Excel-vriendelijk).
-- Toevoegen aan sidebar onder een nieuw kopje (bv. "Kas-controle") voor managers.
-
-### 4. `OrderDashboard.tsx` — inventory-restock webhook
-
-Die n8n-webhook is ook offline. Voor nu: nette foutmelding + de actie direct in onze database loggen (`internal_orders`-flow gebruiken die er al is). Of, als je zegt dat we 'm later in detail bekijken, alleen de foutmelding netter maken en de rest in een aparte stap.
-
-## Wat ik nodig heb van jou
-
-- Akkoord op intern bouwen (geen n8n meer voor kassa-afdracht).
-- Wie mag de kas-controle pagina zien: alleen `owner` + `admin`, of ook `manager`? *Default: owner + admin + manager*.
-- Wil je later óók nog automatische export naar een Google Sheet (via de Sheets-connector) als backup? *Niet nodig nu — kan later, druk op de knop.*
-- `OrderDashboard.tsx` nu meenemen of in een aparte ronde?
+- `src/components/ui/dialog.tsx` — CSS classes op `DialogOverlay` en `DialogContent` aanpassen.
 
 ## Verificatie
 
-- Telling indienen in UI → rij verschijnt in `kassa_afdrachten`.
-- Niet-manager kan niet bij de kas-controle pagina (RLS + UI-guard).
-- Manager opent overzicht, filtert op week, exporteert CSV → opent correct in Excel/Numbers.
-- Forceer fout (offline) → toast + localStorage-backup, geen valse succes-melding.
-- Geen verwijzingen meer naar `jaapies.app.n8n.cloud` in `Kassatelling*`.
+- Kas-controle wachtwoord-popup opent vloeiend.
+- Detail-modal in kas-controle opent vloeiend.
+- Overige dialogs (admin, templates, etc.) blijven werken en zien er rustiger uit.
