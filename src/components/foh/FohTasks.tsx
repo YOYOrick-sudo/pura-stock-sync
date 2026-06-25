@@ -630,6 +630,10 @@ const getCategoryProgress = (tasks: FohTaskWithEmployee[]) => {
 
 const sortTasksInPhase = (tasks: FohTaskWithEmployee[]) => {
   return [...tasks].sort((a, b) => {
+    // Completed tasks go to bottom
+    if (a.completed !== b.completed) {
+      return a.completed ? 1 : -1;
+    }
     if (a.sort_order !== undefined && b.sort_order !== undefined) {
       return a.sort_order - b.sort_order;
     }
