@@ -814,13 +814,14 @@ export function FohTasks() {
   
   // Fetch templates query
   const { data: templates, isLoading: templatesLoading } = useQuery({
-    queryKey: ['foh-templates', userLocation, activePhase],
+    queryKey: ['foh-templates', userLocation, activePhase, effectiveDept],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('foh_daily_templates')
         .select('*')
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .in('repeat_type', ['daily', 'weekly'])
         .order('template_name')
         .order('sort_order', { ascending: true });
@@ -880,7 +881,7 @@ export function FohTasks() {
   const generateDailyTasks = async () => {
     const todayDate = getAmsterdamDateString();
     
-    // Fetch active daily templates
+    // Fetch active daily templates (alle afdelingen — generatie voor de hele dag)
     const { data: dailyTemplates } = await supabase
       .from('foh_daily_templates')
       .select('*')
@@ -903,9 +904,7 @@ export function FohTasks() {
     const templates = [...(dailyTemplates || []), ...(weeklyTemplates || [])];
     if (templates.length === 0) return;
     
-    // Per-template idempotente check: kijk alleen naar bestaande TEMPLATE-taken
-    // van vandaag. Losse taken (bv. afval, ad-hoc) hebben template_id = null en
-    // mogen de generatie van templates nooit blokkeren.
+    // Per-template idempotente check
     const { data: existingTemplateTasks } = await supabase
       .from('foh_tasks')
       .select('template_id')
@@ -934,6 +933,7 @@ export function FohTasks() {
         estimated_minutes: template.estimated_minutes,
         sort_order: template.sort_order,
         description: template.description,
+        department: (template as any).department ?? 'voorkant',
       }));
 
     if (tasksToInsert.length > 0) {
