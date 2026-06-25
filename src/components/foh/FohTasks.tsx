@@ -772,6 +772,7 @@ export function FohTasks() {
     assigned_employee_id: null as string | null,
     category: 'Algemeen' as string,
     estimated_minutes: null as number | null,
+    department: 'voorkant' as 'voorkant' | 'achterkant',
   });
   
   // Task padding: slightly more on tablet
