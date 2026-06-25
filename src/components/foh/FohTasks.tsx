@@ -2714,7 +2714,7 @@ export function FohTasks() {
                           {renderDepartmentSection('Keuken', 'achterkant')}
                         </>
                       ) : (
-                        renderFlatList(currentTasks, 'all')
+                        renderCategoryGroups(currentTasks, 'all')
                       )}
                     </div>
                   </DndContext>
