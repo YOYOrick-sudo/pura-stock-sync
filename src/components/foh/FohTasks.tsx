@@ -591,7 +591,13 @@ const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
   const sortedGrouped: Record<string, FohTaskWithEmployee[]> = {};
   CATEGORY_ORDER.forEach(cat => {
     if (grouped[cat]) {
+      // Sort by sort_order first, then move completed tasks to bottom
       sortedGrouped[cat] = grouped[cat].sort((a, b) => {
+        // Completed tasks go to bottom
+        if (a.completed !== b.completed) {
+          return a.completed ? 1 : -1;
+        }
+        // Within same completion status, sort by sort_order
         if (a.sort_order !== undefined && b.sort_order !== undefined) {
           return a.sort_order - b.sort_order;
         }
@@ -602,7 +608,13 @@ const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
   
   Object.keys(grouped).forEach(cat => {
     if (!sortedGrouped[cat]) {
-      sortedGrouped[cat] = grouped[cat];
+      // Also sort non-standard categories with completed at bottom
+      sortedGrouped[cat] = grouped[cat].sort((a, b) => {
+        if (a.completed !== b.completed) {
+          return a.completed ? 1 : -1;
+        }
+        return 0;
+      });
     }
   });
   
