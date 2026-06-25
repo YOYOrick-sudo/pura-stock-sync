@@ -119,38 +119,39 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         onClick={handleRowClick}
         style={{
           padding: taskPadding,
-          opacity: isDeleted ? 0.3 : (task.completed ? 0.7 : 1),
+          opacity: isDeleted ? 0.3 : 1,
           borderBottom: '1px solid hsl(var(--border))',
           cursor: !isEditMode && toggleTask ? 'pointer' : 'default',
-          transition: 'all 0.15s ease',
+          transition: 'background-color 0.15s ease',
           position: 'relative',
           overflow: 'hidden',
-          backgroundColor: task.completed ? 'hsl(var(--primary) / 0.04)' : 'transparent',
+          backgroundColor: task.completed ? 'hsl(var(--muted) / 0.4)' : 'transparent',
         }}
         onMouseEnter={(e) => {
           if (!isEditMode && toggleTask) {
-            e.currentTarget.style.backgroundColor = task.completed 
-              ? 'hsl(var(--primary) / 0.06)' 
-              : 'hsl(var(--primary) / 0.05)';
+            e.currentTarget.style.backgroundColor = task.completed
+              ? 'hsl(var(--muted) / 0.55)'
+              : 'hsl(var(--muted) / 0.4)';
           }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = task.completed 
-            ? 'hsl(var(--primary) / 0.04)' 
+          e.currentTarget.style.backgroundColor = task.completed
+            ? 'hsl(var(--muted) / 0.4)'
             : 'transparent';
         }}
         onMouseDown={(e) => {
           if (!isEditMode && toggleTask) {
-            e.currentTarget.style.backgroundColor = 'hsl(var(--primary) / 0.08)';
+            e.currentTarget.style.backgroundColor = 'hsl(var(--muted) / 0.7)';
           }
         }}
         onMouseUp={(e) => {
           if (!isEditMode && toggleTask) {
-            e.currentTarget.style.backgroundColor = task.completed 
-              ? 'hsl(var(--primary) / 0.06)' 
-              : 'hsl(var(--primary) / 0.05)';
+            e.currentTarget.style.backgroundColor = task.completed
+              ? 'hsl(var(--muted) / 0.55)'
+              : 'hsl(var(--muted) / 0.4)';
           }
         }}
+
       >
         {/* Ripple effect for tablet */}
         {isTablet && ripple && (
@@ -199,19 +200,19 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
               height: '20px',
               minWidth: '20px',
               borderRadius: '6px',
-              border: '2px solid hsl(var(--border))',
-              backgroundColor: task.completed ? 'hsl(var(--primary))' : 'hsl(var(--background))',
+              border: task.completed ? '2px solid hsl(var(--muted-foreground) / 0.3)' : '2px solid hsl(var(--border))',
+              backgroundColor: task.completed ? 'hsl(var(--muted-foreground) / 0.15)' : 'hsl(var(--background))',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'all 0.1s ease',
-              pointerEvents: 'none', // Row handles the click
+              pointerEvents: 'none',
             }}>
               {task.completed && (
                 <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
                   <path
                     d="M1 5L4.5 8.5L11 1.5"
-                    stroke="hsl(var(--primary-foreground))"
+                    stroke="hsl(var(--muted-foreground))"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -220,6 +221,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
               )}
             </div>
           )}
+
 
           {/* Title - editable in edit mode */}
           <div style={{ 
@@ -249,13 +251,16 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 display: 'flex',
                 alignItems: 'center',
                 textDecoration: toggleTask && task.completed ? 'line-through' : 'none',
+                textDecorationColor: toggleTask && task.completed ? 'hsl(var(--muted-foreground) / 0.5)' : undefined,
                 color: toggleTask && task.completed ? 'hsl(var(--muted-foreground))' : 'hsl(var(--foreground))',
+                opacity: toggleTask && task.completed ? 0.55 : 1,
                 fontWeight: 500,
                 fontSize: '15px',
                 fontFamily: 'Inter, sans-serif',
+                transition: 'opacity 0.15s ease, color 0.15s ease',
               }}>
                 {taskNumber != null && (
-                  <span style={{ color: 'hsl(var(--muted-foreground))', fontWeight: 600, marginRight: '6px', fontSize: '13px' }}>
+                  <span style={{ color: 'hsl(var(--muted-foreground))', fontWeight: 600, marginRight: '6px', fontSize: '13px', opacity: toggleTask && task.completed ? 0.7 : 1 }}>
                     {taskNumber}.
                   </span>
                 )}
@@ -264,6 +269,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   <Sparkles size={14} style={{ color: 'hsl(var(--warning))', marginLeft: '6px', flexShrink: 0 }} />
                 )}
               </span>
+
             )}
           </div>
 
@@ -2667,12 +2673,14 @@ export function FohTasks() {
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '10px',
-                        padding: '10px 14px',
-                        backgroundColor: 'hsl(var(--muted))',
+                        gap: '12px',
+                        padding: '12px 14px',
+                        backgroundColor: 'hsl(var(--card))',
                         borderRadius: '12px',
-                        marginBottom: '16px',
+                        marginBottom: '12px',
                         border: '1px solid hsl(var(--border))',
+                        borderLeft: '4px solid hsl(var(--primary))',
+                        boxShadow: '0 1px 2px hsl(var(--foreground) / 0.03)',
                       }}>
                         <span style={{
                           fontSize: '15px',
@@ -2688,7 +2696,7 @@ export function FohTasks() {
                           fontSize: '12px',
                           fontWeight: 600,
                           color: 'hsl(var(--muted-foreground))',
-                          backgroundColor: 'hsl(var(--background))',
+                          backgroundColor: 'hsl(var(--muted) / 0.6)',
                           padding: '3px 10px',
                           borderRadius: '999px',
                           fontFamily: 'Inter, sans-serif',
@@ -2698,6 +2706,7 @@ export function FohTasks() {
                       </div>
                       {flat ? renderFlatList(deptTasks, dept) : renderCategoryGroups(deptTasks, dept)}
                     </div>
+
                   );
                 };
 
@@ -2757,23 +2766,22 @@ export function FohTasks() {
                               onClick={() => toggleTask(task.id, task.completed)}
                               style={{
                                 padding: taskPadding,
-                                backgroundColor: task.completed ? 'hsl(var(--primary) / 0.04)' : 'transparent',
+                                backgroundColor: task.completed ? 'hsl(var(--muted) / 0.4)' : 'transparent',
                                 borderBottom: '1px solid hsl(var(--border))',
                                 borderLeft: `4px solid ${getPriorityConfig(task.priority).borderColor}`,
                                 marginLeft: '-4px',
                                 paddingLeft: '12px',
                                 cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                                opacity: task.completed ? 0.7 : 1,
+                                transition: 'background-color 0.15s ease',
                               }}
                               onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = task.completed 
-                                  ? 'hsl(var(--primary) / 0.06)' 
-                                  : 'hsl(var(--primary) / 0.05)';
+                                e.currentTarget.style.backgroundColor = task.completed
+                                  ? 'hsl(var(--muted) / 0.55)'
+                                  : 'hsl(var(--muted) / 0.4)';
                               }}
                               onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = task.completed 
-                                  ? 'hsl(var(--primary) / 0.04)' 
+                                e.currentTarget.style.backgroundColor = task.completed
+                                  ? 'hsl(var(--muted) / 0.4)'
                                   : 'transparent';
                               }}
                             >
@@ -2788,8 +2796,8 @@ export function FohTasks() {
                                   height: '20px',
                                   minWidth: '20px',
                                   borderRadius: '6px',
-                                  border: '2px solid hsl(var(--border))',
-                                  backgroundColor: task.completed ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground))',
+                                  border: task.completed ? '2px solid hsl(var(--muted-foreground) / 0.3)' : '2px solid hsl(var(--border))',
+                                  backgroundColor: task.completed ? 'hsl(var(--muted-foreground) / 0.15)' : 'hsl(var(--background))',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
@@ -2800,7 +2808,7 @@ export function FohTasks() {
                                     <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
                                       <path
                                         d="M1 5L4.5 8.5L11 1.5"
-                                        stroke="hsl(var(--primary-foreground))"
+                                        stroke="hsl(var(--muted-foreground))"
                                         strokeWidth="2"
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
@@ -2808,6 +2816,8 @@ export function FohTasks() {
                                     </svg>
                                   )}
                                 </div>
+
+
 
                                 <div style={{ 
                                   display: 'flex', 
@@ -2818,13 +2828,17 @@ export function FohTasks() {
                                   <span style={{
                                     flex: 1,
                                     textDecoration: task.completed ? 'line-through' : 'none',
+                                    textDecorationColor: task.completed ? 'hsl(var(--muted-foreground) / 0.5)' : undefined,
                                     color: task.completed ? 'hsl(var(--muted-foreground))' : 'hsl(var(--foreground))',
+                                    opacity: task.completed ? 0.55 : 1,
                                     fontWeight: 500,
                                     fontSize: '15px',
                                     fontFamily: 'Inter, sans-serif',
+                                    transition: 'opacity 0.15s ease, color 0.15s ease',
                                   }}>
                                     {task.title}
                                   </span>
+
                                 </div>
 
                                 <div style={{

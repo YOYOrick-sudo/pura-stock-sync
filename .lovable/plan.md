@@ -1,38 +1,23 @@
-# West Bediening: één platte lijst + heldere teksten
-
 ## Doel
-Voor West-bediening (Voorkant) één rustige, doorlopende takenlijst zonder categorie-koppen, met kortere/actiegerichte taaknamen en duidelijkere fase-knoppen.
+De takenlijst voelt visueel iets intuitiever aan. Afgestudeerde taken worden subtieler weergegeven (minder groen/afleidend) en de lijst krijgt een lichte hiërarchie-boost.
 
-## Wijzigingen
+## Wijzigingen (West als voorbeeld, Midsland blijft onaangeroerd qua structuur)
 
-### 1. Eén platte lijst (West, Voorkant)
-- In `src/components/foh/FohTasks.tsx` de render-loop voor West aanpassen: geen categorie-headers (Bar, Zaal, etc.) en geen categorie-groepering meer voor de Voorkant-sectie.
-- Taken worden gewoon op `sort_order` getoond als één doorlopende, genummerde lijst.
-- Achterkant (keuken) blijft een eigen sectie eronder met eigen header — daar verandert de groepering niet, tenzij je dat ook wilt (zie open vraag onderaan).
-- Midsland blijft ongewijzigd (categorieën zoals nu).
-- In het admin-paneel (Templates Beheren) blijft `category` gewoon bestaan en bewerkbaar, zodat data niet verloren gaat — alleen de werknemer-view toont ze niet als koppen voor West Voorkant.
+### 1. Afgestudeerde taken — subtiel & neutraal
+- **Achtergrond**: Groene tint (`--primary / 0.04`) vervangen door neutrale grijze tint (`--muted / 0.5` of `--border / 0.3`) zodat het niet meer opvalt als een "kleurstatus".
+- **Checkbox**: Groene vulling vervangen door subtiele grijze vulling (`--muted-foreground / 0.2`) met een grijs check-icoon, of een simpel leeg kader met grijze check.
+- **Tekst**: Lichtere opacity (0.45 i.p.v. 0.7) zodat voltooide taken echt naar de achtergrond zakken. Line-through blijft.
+- **Hover**: Geen groene hover-tint meer op afgestudeerde rijen.
 
-### 2. Fase-knoppen korter en duidelijker
-- Huidige labels naar: **"Openen"** en **"Sluiten"** (werkwoorden, actiegericht).
-- Toegepast op de fase-tabs bovenin voor West (Midsland houdt huidige labels inclusief "Tussen").
+### 2. Lijst-hiërarchie verfijnen (West flat-list)
+- **Sectie-header "Bediening" / "Keuken"**: Iets meer visueel gewicht — bijv. een dunne linkerbalk (`4px` primary) of een iets donkerder achtergrond (`--card`) zodat de scheiding tussen voorkant/achterkant meteen duidelijk is.
+- **Ruimte tussen taken**: Padding/lichte separator blijft, maar de "voltooid"-status is nu visueel een aparte "laag" wat de open taken meer laat spreken.
+- **Taaknummering**: Behouden, maar afgestudeerde nummers krijgen dezelfde grijze muted-styling.
 
-### 3. Taaknamen herschrijven (West Voorkant)
-- Bestaande Voorkant-taken in de database (templates + actieve daglijst) krijgen kortere, eenduidige formuleringen.
-- Principes:
-  - Begin met een werkwoord ("Vul…", "Zet…", "Controleer…", "Veeg…").
-  - Max ~6 woorden waar mogelijk.
-  - Geen dubbele info (locatie, fase) die al uit context blijkt.
-  - Consistente terminologie (bv. altijd "terras" i.p.v. afwisselend "buiten"/"terras").
-- Ik lever de hernoemingen aan als één migratie/lijst zodat je ze vooraf kunt nakijken voor we ze toepassen.
+### 3. Technisch
+- Alleen de styling-properties in `SortableTaskItem` en de periodieke taak-rendering aanpassen.
+- Geen gedragswijzigingen: volgorde, drag-and-drop, checkbox-klick, reset-tijden, templates — alles blijft identiek.
+- West ziet het resultaat direct; Midsland gebruikt dezelfde component dus ook direct de nieuwe completed-styling.
 
-### 4. Geen nieuwe bugs
-- Geen schema-wijzigingen, alleen UI-rendering + tekstupdates op bestaande rijen via `UPDATE` (geen delete/insert, dus `id`s en `template_id`-koppelingen blijven intact).
-- Reset/generate edge functions blijven ongewijzigd.
-
-## Technisch (kort)
-- `FohTasks.tsx`: voor `userLocation === 'West'` en `department === 'voorkant'` de `categoriesInDepartment.map(...)` vervangen door één enkele lijst-render zonder category-header. Achterkant blijft via huidige logica.
-- Fase-knop labels: kleine map `{ open: 'Openen', sluit: 'Sluiten', tussen: 'Tussen' }` op de bestaande knop-render.
-- Taak-rewrites: één SQL `UPDATE` per taak in `foh_daily_templates` (en optioneel matchende `foh_tasks` van vandaag) op basis van `id`.
-
-## Open vraag voor je akkoord
-Wil je dat **ook de Achterkant (keuken) in West** dezelfde behandeling krijgt (één platte lijst, hernoemde taken), of laten we die voor nu zoals hij is en pakken we 'm later apart?
+### Voorbeeld in West
+West toont een flat-list met twee secties (Bediening + Keuken). Na de wijziging zien afgestudeerde taken er uit als "uitgegrijze" rijen die visueel duidelijk achter de open taken staan, in plaats van half-groen. De sectie-headers krijgen een subtiele extra accentuering zodat de lijst in 1 oogopslag leesbaar is.
