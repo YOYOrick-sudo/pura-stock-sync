@@ -2679,7 +2679,7 @@ export function FohTasks() {
                         borderRadius: '12px',
                         marginBottom: '12px',
                         border: '1px solid hsl(var(--border))',
-                        borderLeft: '4px solid hsl(var(--primary))',
+                        
                         boxShadow: '0 1px 2px hsl(var(--foreground) / 0.03)',
                       }}>
                         <span style={{
