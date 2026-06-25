@@ -1938,38 +1938,6 @@ export function FohTasks() {
             );
           })()}
 
-          {/* Voorkant / Achterkant tabs — alleen West */}
-          {userLocation === 'West' && (
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '4px' }}>
-              {([
-                { key: 'voorkant', label: 'Voorkant' },
-                { key: 'achterkant', label: 'Achterkant' },
-              ] as { key: Department; label: string }[]).map(({ key, label }) => {
-                const isActive = activeDepartment === key;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => setActiveDepartment(key)}
-                    style={{
-                      flex: 1,
-                      padding: '10px 16px',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      borderRadius: '14px',
-                      cursor: 'pointer',
-                      backgroundColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--card))',
-                      color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
-                      border: isActive ? 'none' : '1px solid hsl(var(--border))',
-                      transition: 'all 0.15s ease',
-                      fontFamily: 'Inter, sans-serif',
-                    }}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          )}
 
           {/* Single row with all buttons */}
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
