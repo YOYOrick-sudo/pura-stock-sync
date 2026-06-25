@@ -118,7 +118,11 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
       <div 
         onClick={handleRowClick}
         style={{
-          padding: taskPadding,
+          padding: task.completed
+            ? `${taskPadding.split(' ')[0]} 24px`
+            : taskPadding,
+          marginLeft: task.completed ? '-24px' : undefined,
+          marginRight: task.completed ? '-24px' : undefined,
           opacity: isDeleted ? 0.3 : 1,
           borderBottom: '1px solid hsl(var(--border))',
           cursor: !isEditMode && toggleTask ? 'pointer' : 'default',
