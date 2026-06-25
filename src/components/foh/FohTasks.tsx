@@ -1193,7 +1193,7 @@ export function FohTasks() {
         completed: false,
         archived: false,
         estimated_minutes: newTask.estimated_minutes,
-        department: effectiveDept,
+        department: userLocation === 'West' ? newTask.department : 'voorkant',
       });
 
     if (error) {
