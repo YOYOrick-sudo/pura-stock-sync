@@ -200,19 +200,19 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
               height: '20px',
               minWidth: '20px',
               borderRadius: '6px',
-              border: '2px solid hsl(var(--border))',
-              backgroundColor: task.completed ? 'hsl(var(--primary))' : 'hsl(var(--background))',
+              border: task.completed ? '2px solid hsl(var(--muted-foreground) / 0.3)' : '2px solid hsl(var(--border))',
+              backgroundColor: task.completed ? 'hsl(var(--muted-foreground) / 0.15)' : 'hsl(var(--background))',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'all 0.1s ease',
-              pointerEvents: 'none', // Row handles the click
+              pointerEvents: 'none',
             }}>
               {task.completed && (
                 <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
                   <path
                     d="M1 5L4.5 8.5L11 1.5"
-                    stroke="hsl(var(--primary-foreground))"
+                    stroke="hsl(var(--muted-foreground))"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -221,6 +221,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
               )}
             </div>
           )}
+
 
           {/* Title - editable in edit mode */}
           <div style={{ 
