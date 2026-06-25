@@ -1,22 +1,38 @@
-Ik heb de echte oorzaak gevonden: de dialog staat op `left: 50%` / `top: 50%`, maar de vaste `translate(-50%, -50%)` ontbreekt in de normale CSS-state. Die translate zit nu alleen tijdelijk in de keyframe-animatie. Zodra de animatie klaar is, valt `transform` weg en maakt de popup een zichtbare sprong. Dat verklaart waarom het ondanks eerdere animatie-aanpassingen nog steeds “spact”.
+## Wat er verandert (alleen West)
 
-Plan:
-1. **Dialog-positionering structureel fixen**
-   - Zet de centrering permanent op `DialogContent` en `AlertDialogContent`.
-   - De animatie mag daarna alleen nog opacity/scale animeren, zonder de basispositie kwijt te raken.
+1. **Hernoemen naar "Taken"**
+   - Sidebar-label voor West: "Taken" (Midsland blijft "Taken Bediening").
+   - Pagina-titel op `/taken-bediening` wordt voor West "Taken", voor Midsland blijft "Taken Bediening".
+   - Route URL blijft `/taken-bediening` (geen broken links, geen redirect nodig).
 
-2. **Animatie robuust maken**
-   - Gebruik één compositor-vriendelijke transform-stack via CSS-variabelen of een permanente `translate3d(-50%, -50%, 0)`.
-   - Voeg waar nodig `animation-fill-mode: both` toe, zodat er geen eind-frame jump ontstaat.
+2. **Nieuwe afdeling-tabs Voorkant / Achterkant**
+   - Boven de Open/Sluit fase-knoppen komt voor West een tweede rij tabs: **Voorkant** (bediening) | **Achterkant** (keuken).
+   - Selectie wordt onthouden in `localStorage` per gebruiker, default = Voorkant.
+   - Open/Sluit fasen blijven gewoon werken; periodiek blijft 1 gedeelde lijst.
+   - Midsland ziet deze schakelaar niet (alles werkt zoals nu).
 
-3. **AdminPasswordDialog lichter maken bij openen**
-   - Laat focus pas ná de open-transition gebeuren, zoals nu bedoeld, maar zonder layout-jump.
-   - Behoud de geïsoleerde password-state zodat typen niet de zware kassatelling opnieuw rendert.
+3. **Datamodel — minimale aanpassing**
+   - Nieuwe kolom `department` op `foh_task_templates` en `foh_daily_tasks` (`voorkant` | `achterkant`, default `voorkant`).
+   - Alle bestaande West-templates en -taken worden `voorkant` (zoals afgesproken).
+   - Midsland-rijen krijgen `voorkant` als waarde maar de UI gebruikt dit veld daar niet.
 
-4. **Controle op andere popups**
-   - Pas dezelfde fix toe op `AlertDialog`, zodat bevestigingspopups niet hetzelfde probleem houden.
-   - Laat popovers/tooltips ongemoeid, behalve als ze dezelfde jump veroorzaken.
+4. **Achterkant-lijst begint leeg**
+   - Geen automatische taken; jij bouwt hem op via "Templates Beheren" of "Lijst opslaan als template" terwijl je in de Achterkant-tab staat.
+   - Bij toevoegen/opslaan van templates en taken in West wordt automatisch de huidige `department` meegegeven.
 
-5. **Verifiëren in de preview**
-   - Test specifiek `/kassatelling` → `Kas-controle` → wachtwoordpopup openen/sluiten.
-   - Controleer dat de popup niet meer springt na het openen en dat de sluitanimatie normaal blijft.
+5. **Admin & dagelijkse generatie**
+   - Templates-beheer-popup toont in West een Voorkant/Achterkant-selector per template.
+   - Edge function `generate-waste-tasks` en de bestaande dagelijkse FOH-generatie nemen `department` mee over van template → daily task.
+   - Single-active-template trigger blijft werken, maar wordt per (location, phase, department) uniek — zo kan Voorkant én Achterkant elk hun eigen actieve lijst hebben in dezelfde fase.
+
+## Technische details
+
+- `src/components/AppSidebar.tsx`: label voor West dynamisch.
+- `src/components/SidebarLayout.tsx`: paginatitel-mapping locatie-afhankelijk.
+- `src/components/foh/FohTasks.tsx`:
+  - Nieuwe state `activeDepartment` (West only).
+  - Filter daily tasks op `department` wanneer West.
+  - Tabs renderen alleen voor West, boven fase-knoppen.
+  - Insert/save-paden vullen `department` in.
+- DB-migratie: kolom toevoegen, default `'voorkant'`, backfill, en de bestaande "single active per (location, phase)" trigger updaten naar (location, phase, department).
+- Geen wijziging aan periodieke taken (department blijft `voorkant`, UI toont ze ongeacht tab).

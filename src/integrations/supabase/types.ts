@@ -514,6 +514,7 @@ export type Database = {
           category: string
           created_at: string
           day_of_week: number | null
+          department: string
           description: string | null
           estimated_minutes: number | null
           id: string
@@ -530,6 +531,7 @@ export type Database = {
           category?: string
           created_at?: string
           day_of_week?: number | null
+          department?: string
           description?: string | null
           estimated_minutes?: number | null
           id?: string
@@ -546,6 +548,7 @@ export type Database = {
           category?: string
           created_at?: string
           day_of_week?: number | null
+          department?: string
           description?: string | null
           estimated_minutes?: number | null
           id?: string
@@ -591,6 +594,7 @@ export type Database = {
           completed_by: string | null
           created_at: string
           day_of_week: number | null
+          department: string
           description: string | null
           due_date: string
           estimated_minutes: number | null
@@ -612,6 +616,7 @@ export type Database = {
           completed_by?: string | null
           created_at?: string
           day_of_week?: number | null
+          department?: string
           description?: string | null
           due_date: string
           estimated_minutes?: number | null
@@ -633,6 +638,7 @@ export type Database = {
           completed_by?: string | null
           created_at?: string
           day_of_week?: number | null
+          department?: string
           description?: string | null
           due_date?: string
           estimated_minutes?: number | null

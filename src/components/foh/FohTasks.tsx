@@ -722,6 +722,20 @@ export function FohTasks() {
   const [activePhase, setActivePhase] = useState<PhaseType>('open');
   const [isPhaseManuallySelected, setIsPhaseManuallySelected] = useState(false);
 
+  // West heeft afdelingen: Voorkant (bediening) / Achterkant (keuken).
+  // Voor andere locaties altijd 'voorkant' zodat bestaande data zichtbaar blijft.
+  type Department = 'voorkant' | 'achterkant';
+  const [activeDepartment, setActiveDepartment] = useState<Department>(() => {
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('foh_active_department_west') : null;
+    return stored === 'achterkant' ? 'achterkant' : 'voorkant';
+  });
+  const effectiveDept: Department = userLocation === 'West' ? activeDepartment : 'voorkant';
+  useEffect(() => {
+    if (userLocation === 'West') {
+      localStorage.setItem('foh_active_department_west', activeDepartment);
+    }
+  }, [activeDepartment, userLocation]);
+
   // West heeft geen tussenlijst — reset activePhase als die per ongeluk op 'tussen' staat
   useEffect(() => {
     if (userLocation === 'West' && activePhase === 'tussen') {
@@ -800,13 +814,14 @@ export function FohTasks() {
   
   // Fetch templates query
   const { data: templates, isLoading: templatesLoading } = useQuery({
-    queryKey: ['foh-templates', userLocation, activePhase],
+    queryKey: ['foh-templates', userLocation, activePhase, effectiveDept],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('foh_daily_templates')
         .select('*')
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .in('repeat_type', ['daily', 'weekly'])
         .order('template_name')
         .order('sort_order', { ascending: true });
@@ -866,7 +881,7 @@ export function FohTasks() {
   const generateDailyTasks = async () => {
     const todayDate = getAmsterdamDateString();
     
-    // Fetch active daily templates
+    // Fetch active daily templates (alle afdelingen — generatie voor de hele dag)
     const { data: dailyTemplates } = await supabase
       .from('foh_daily_templates')
       .select('*')
@@ -889,9 +904,7 @@ export function FohTasks() {
     const templates = [...(dailyTemplates || []), ...(weeklyTemplates || [])];
     if (templates.length === 0) return;
     
-    // Per-template idempotente check: kijk alleen naar bestaande TEMPLATE-taken
-    // van vandaag. Losse taken (bv. afval, ad-hoc) hebben template_id = null en
-    // mogen de generatie van templates nooit blokkeren.
+    // Per-template idempotente check
     const { data: existingTemplateTasks } = await supabase
       .from('foh_tasks')
       .select('template_id')
@@ -920,6 +933,7 @@ export function FohTasks() {
         estimated_minutes: template.estimated_minutes,
         sort_order: template.sort_order,
         description: template.description,
+        department: (template as any).department ?? 'voorkant',
       }));
 
     if (tasksToInsert.length > 0) {
@@ -938,6 +952,7 @@ export function FohTasks() {
       .select('*, foh_employees(*)')
       .eq('location', userLocation)
       .eq('due_date', dateToFetch)
+      .eq('department', effectiveDept)
       .not('phase', 'is', null)
       .order('sort_order', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: true });
@@ -1073,7 +1088,7 @@ export function FohTasks() {
     };
 
     initializeTasks();
-  }, [userLocation, selectedDate]);
+  }, [userLocation, selectedDate, effectiveDept]);
 
 
   
@@ -1172,6 +1187,7 @@ export function FohTasks() {
         completed: false,
         archived: false,
         estimated_minutes: newTask.estimated_minutes,
+        department: effectiveDept,
       });
 
     if (error) {
@@ -1316,6 +1332,7 @@ export function FohTasks() {
           sort_order: maxSortOrder + (idx + 1) * 10,
           completed: false,
           archived: false,
+          department: effectiveDept,
         }));
         
         const { error } = await supabase
@@ -1357,18 +1374,19 @@ export function FohTasks() {
         .select('template_name')
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .eq('is_active', true)
         .limit(1);
       
       const currentTemplateName = activeTemplates?.[0]?.template_name || `Standaard ${activePhase === 'open' ? 'Openlijst' : activePhase === 'tussen' ? 'Tussenlijst' : 'Sluitlijst'}`;
       
-      // STAP 1: deactiveer ALLE andere lijsten voor deze (location, phase) zodat
-      // de DB-trigger (max 1 actief) niet faalt en er na de save exact 1 actieve lijst is.
+      // STAP 1: deactiveer ALLE andere lijsten voor deze (location, phase, department)
       const { error: deactivateOthersError } = await supabase
         .from('foh_daily_templates')
         .update({ is_active: false })
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .neq('template_name', currentTemplateName);
       
       if (deactivateOthersError) {
@@ -1383,6 +1401,7 @@ export function FohTasks() {
         .delete()
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .eq('template_name', currentTemplateName)
         .eq('repeat_type', 'daily');
       
@@ -1404,6 +1423,7 @@ export function FohTasks() {
         repeat_type: 'daily',
         template_name: currentTemplateName,
         is_active: true,
+        department: effectiveDept,
       }));
       
       const { error: insertError } = await supabase
@@ -1429,12 +1449,13 @@ export function FohTasks() {
     try {
       const todayDate = getAmsterdamDateString();
 
-      // STAP 1: deactiveer alle andere lijsten voor deze (location, phase)
+      // STAP 1: deactiveer alle andere lijsten voor deze (location, phase, department)
       const { error: deactivateError } = await supabase
         .from('foh_daily_templates')
         .update({ is_active: false })
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .neq('template_name', templateName);
       
       if (deactivateError) throw deactivateError;
@@ -1445,17 +1466,18 @@ export function FohTasks() {
         .update({ is_active: true })
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .eq('template_name', templateName);
       
       if (activateError) throw activateError;
       
-      // STAP 3: verwijder vandaag's onvoltooide TEMPLATE-taken die bij nu-inactieve
-      // templates horen (afvaltaken en handmatige taken met template_id IS NULL blijven).
+      // STAP 3: verwijder vandaag's onvoltooide TEMPLATE-taken die bij nu-inactieve templates horen
       const { data: inactiveTemplates } = await supabase
         .from('foh_daily_templates')
         .select('id')
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .eq('is_active', false);
       
       const inactiveIds = (inactiveTemplates || []).map(t => t.id);
@@ -1501,6 +1523,7 @@ export function FohTasks() {
         .select('id')
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .eq('template_name', newTemplateName.trim())
         .limit(1);
       
@@ -1526,6 +1549,7 @@ export function FohTasks() {
             template_name: newTemplateName.trim(),
             is_active: false,
             sort_order: 10,
+            department: effectiveDept,
           });
         
         if (error) throw error;
@@ -1543,6 +1567,7 @@ export function FohTasks() {
           repeat_type: 'daily',
           template_name: newTemplateName.trim(),
           is_active: false,
+          department: effectiveDept,
         }));
         
         const { error } = await supabase
@@ -1576,6 +1601,7 @@ export function FohTasks() {
         .delete()
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .eq('template_name', templateName);
       
       if (error) throw error;
@@ -1621,6 +1647,7 @@ export function FohTasks() {
       repeat_type: 'daily',
       template_name: editingTemplateName,
       is_active: editingTemplate[0]?.is_active ?? false,
+      department: (editingTemplate[0] as any)?.department ?? effectiveDept,
 
       isNew: true,
     };
@@ -1672,6 +1699,7 @@ export function FohTasks() {
             estimated_minutes: task.estimated_minutes,
             sort_order: task.sort_order,
             description: task.description,
+            department: task.department ?? effectiveDept,
           });
         
         if (error) {
@@ -1909,6 +1937,39 @@ export function FohTasks() {
               </div>
             );
           })()}
+
+          {/* Voorkant / Achterkant tabs — alleen West */}
+          {userLocation === 'West' && (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '4px' }}>
+              {([
+                { key: 'voorkant', label: 'Voorkant' },
+                { key: 'achterkant', label: 'Achterkant' },
+              ] as { key: Department; label: string }[]).map(({ key, label }) => {
+                const isActive = activeDepartment === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setActiveDepartment(key)}
+                    style={{
+                      flex: 1,
+                      padding: '10px 16px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      borderRadius: '14px',
+                      cursor: 'pointer',
+                      backgroundColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--card))',
+                      color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
+                      border: isActive ? 'none' : '1px solid hsl(var(--border))',
+                      transition: 'all 0.15s ease',
+                      fontFamily: 'Inter, sans-serif',
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Single row with all buttons */}
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
