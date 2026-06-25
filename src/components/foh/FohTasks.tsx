@@ -119,38 +119,39 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         onClick={handleRowClick}
         style={{
           padding: taskPadding,
-          opacity: isDeleted ? 0.3 : (task.completed ? 0.7 : 1),
+          opacity: isDeleted ? 0.3 : 1,
           borderBottom: '1px solid hsl(var(--border))',
           cursor: !isEditMode && toggleTask ? 'pointer' : 'default',
-          transition: 'all 0.15s ease',
+          transition: 'background-color 0.15s ease',
           position: 'relative',
           overflow: 'hidden',
-          backgroundColor: task.completed ? 'hsl(var(--primary) / 0.04)' : 'transparent',
+          backgroundColor: task.completed ? 'hsl(var(--muted) / 0.4)' : 'transparent',
         }}
         onMouseEnter={(e) => {
           if (!isEditMode && toggleTask) {
-            e.currentTarget.style.backgroundColor = task.completed 
-              ? 'hsl(var(--primary) / 0.06)' 
-              : 'hsl(var(--primary) / 0.05)';
+            e.currentTarget.style.backgroundColor = task.completed
+              ? 'hsl(var(--muted) / 0.55)'
+              : 'hsl(var(--muted) / 0.4)';
           }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = task.completed 
-            ? 'hsl(var(--primary) / 0.04)' 
+          e.currentTarget.style.backgroundColor = task.completed
+            ? 'hsl(var(--muted) / 0.4)'
             : 'transparent';
         }}
         onMouseDown={(e) => {
           if (!isEditMode && toggleTask) {
-            e.currentTarget.style.backgroundColor = 'hsl(var(--primary) / 0.08)';
+            e.currentTarget.style.backgroundColor = 'hsl(var(--muted) / 0.7)';
           }
         }}
         onMouseUp={(e) => {
           if (!isEditMode && toggleTask) {
-            e.currentTarget.style.backgroundColor = task.completed 
-              ? 'hsl(var(--primary) / 0.06)' 
-              : 'hsl(var(--primary) / 0.05)';
+            e.currentTarget.style.backgroundColor = task.completed
+              ? 'hsl(var(--muted) / 0.55)'
+              : 'hsl(var(--muted) / 0.4)';
           }
         }}
+
       >
         {/* Ripple effect for tablet */}
         {isTablet && ripple && (
