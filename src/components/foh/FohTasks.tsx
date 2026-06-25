@@ -1187,6 +1187,7 @@ export function FohTasks() {
         completed: false,
         archived: false,
         estimated_minutes: newTask.estimated_minutes,
+        department: effectiveDept,
       });
 
     if (error) {
@@ -1331,6 +1332,7 @@ export function FohTasks() {
           sort_order: maxSortOrder + (idx + 1) * 10,
           completed: false,
           archived: false,
+          department: effectiveDept,
         }));
         
         const { error } = await supabase
@@ -1372,18 +1374,19 @@ export function FohTasks() {
         .select('template_name')
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .eq('is_active', true)
         .limit(1);
       
       const currentTemplateName = activeTemplates?.[0]?.template_name || `Standaard ${activePhase === 'open' ? 'Openlijst' : activePhase === 'tussen' ? 'Tussenlijst' : 'Sluitlijst'}`;
       
-      // STAP 1: deactiveer ALLE andere lijsten voor deze (location, phase) zodat
-      // de DB-trigger (max 1 actief) niet faalt en er na de save exact 1 actieve lijst is.
+      // STAP 1: deactiveer ALLE andere lijsten voor deze (location, phase, department)
       const { error: deactivateOthersError } = await supabase
         .from('foh_daily_templates')
         .update({ is_active: false })
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .neq('template_name', currentTemplateName);
       
       if (deactivateOthersError) {
@@ -1398,6 +1401,7 @@ export function FohTasks() {
         .delete()
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .eq('template_name', currentTemplateName)
         .eq('repeat_type', 'daily');
       
@@ -1419,6 +1423,7 @@ export function FohTasks() {
         repeat_type: 'daily',
         template_name: currentTemplateName,
         is_active: true,
+        department: effectiveDept,
       }));
       
       const { error: insertError } = await supabase
@@ -1444,12 +1449,13 @@ export function FohTasks() {
     try {
       const todayDate = getAmsterdamDateString();
 
-      // STAP 1: deactiveer alle andere lijsten voor deze (location, phase)
+      // STAP 1: deactiveer alle andere lijsten voor deze (location, phase, department)
       const { error: deactivateError } = await supabase
         .from('foh_daily_templates')
         .update({ is_active: false })
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .neq('template_name', templateName);
       
       if (deactivateError) throw deactivateError;
@@ -1460,17 +1466,18 @@ export function FohTasks() {
         .update({ is_active: true })
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .eq('template_name', templateName);
       
       if (activateError) throw activateError;
       
-      // STAP 3: verwijder vandaag's onvoltooide TEMPLATE-taken die bij nu-inactieve
-      // templates horen (afvaltaken en handmatige taken met template_id IS NULL blijven).
+      // STAP 3: verwijder vandaag's onvoltooide TEMPLATE-taken die bij nu-inactieve templates horen
       const { data: inactiveTemplates } = await supabase
         .from('foh_daily_templates')
         .select('id')
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .eq('is_active', false);
       
       const inactiveIds = (inactiveTemplates || []).map(t => t.id);
@@ -1516,6 +1523,7 @@ export function FohTasks() {
         .select('id')
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .eq('template_name', newTemplateName.trim())
         .limit(1);
       
@@ -1541,6 +1549,7 @@ export function FohTasks() {
             template_name: newTemplateName.trim(),
             is_active: false,
             sort_order: 10,
+            department: effectiveDept,
           });
         
         if (error) throw error;
@@ -1558,6 +1567,7 @@ export function FohTasks() {
           repeat_type: 'daily',
           template_name: newTemplateName.trim(),
           is_active: false,
+          department: effectiveDept,
         }));
         
         const { error } = await supabase
@@ -1591,6 +1601,7 @@ export function FohTasks() {
         .delete()
         .eq('location', userLocation)
         .eq('phase', activePhase)
+        .eq('department', effectiveDept)
         .eq('template_name', templateName);
       
       if (error) throw error;
@@ -1636,6 +1647,7 @@ export function FohTasks() {
       repeat_type: 'daily',
       template_name: editingTemplateName,
       is_active: editingTemplate[0]?.is_active ?? false,
+      department: (editingTemplate[0] as any)?.department ?? effectiveDept,
 
       isNew: true,
     };
@@ -1687,6 +1699,7 @@ export function FohTasks() {
             estimated_minutes: task.estimated_minutes,
             sort_order: task.sort_order,
             description: task.description,
+            department: task.department ?? effectiveDept,
           });
         
         if (error) {
