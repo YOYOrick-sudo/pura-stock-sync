@@ -722,6 +722,20 @@ export function FohTasks() {
   const [activePhase, setActivePhase] = useState<PhaseType>('open');
   const [isPhaseManuallySelected, setIsPhaseManuallySelected] = useState(false);
 
+  // West heeft afdelingen: Voorkant (bediening) / Achterkant (keuken).
+  // Voor andere locaties altijd 'voorkant' zodat bestaande data zichtbaar blijft.
+  type Department = 'voorkant' | 'achterkant';
+  const [activeDepartment, setActiveDepartment] = useState<Department>(() => {
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('foh_active_department_west') : null;
+    return stored === 'achterkant' ? 'achterkant' : 'voorkant';
+  });
+  const effectiveDept: Department = userLocation === 'West' ? activeDepartment : 'voorkant';
+  useEffect(() => {
+    if (userLocation === 'West') {
+      localStorage.setItem('foh_active_department_west', activeDepartment);
+    }
+  }, [activeDepartment, userLocation]);
+
   // West heeft geen tussenlijst — reset activePhase als die per ongeluk op 'tussen' staat
   useEffect(() => {
     if (userLocation === 'West' && activePhase === 'tussen') {
