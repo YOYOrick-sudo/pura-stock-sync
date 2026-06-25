@@ -1954,7 +1954,7 @@ export function FohTasks() {
               {getPhasesForLocation(userLocation).map((phase) => {
                 const stats = getDailyListStats(phase);
                 const isActive = mainCategory === 'dagelijks' && activePhase === phase;
-                const labels = { open: 'Open', tussen: 'Tussen', sluit: 'Sluit' };
+                const labels = { open: 'Openen', tussen: 'Tussen', sluit: 'Sluiten' };
                 
                 return (
                   <button
