@@ -952,6 +952,7 @@ export function FohTasks() {
       .select('*, foh_employees(*)')
       .eq('location', userLocation)
       .eq('due_date', dateToFetch)
+      .eq('department', effectiveDept)
       .not('phase', 'is', null)
       .order('sort_order', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: true });
