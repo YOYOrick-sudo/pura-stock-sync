@@ -2595,7 +2595,69 @@ export function FohTasks() {
                   });
                 };
 
-                const renderDepartmentSection = (label: string, dept: 'voorkant' | 'achterkant') => {
+                const renderFlatList = (tasksToRender: FohTaskWithEmployee[], keyPrefix: string) => {
+                  if (tasksToRender.length === 0) {
+                    return (
+                      <div style={{
+                        padding: '16px 4px 24px',
+                        color: 'hsl(var(--muted-foreground))',
+                        fontSize: '13px',
+                        fontStyle: 'italic',
+                        fontFamily: 'Inter, sans-serif',
+                      }}>
+                        Geen taken
+                      </div>
+                    );
+                  }
+                  const allDone = tasksToRender.every(t => t.completed);
+                  return (
+                    <div style={{ borderBottom: '1px solid hsl(var(--border))', paddingBottom: '16px' }}>
+                      {allDone ? (
+                        <div style={{
+                          padding: '20px',
+                          textAlign: 'center',
+                          color: 'hsl(var(--primary))',
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          fontFamily: 'Inter, sans-serif',
+                          animation: 'fade-in 0.3s ease-out',
+                        }}>
+                          🎉 Alle taken voltooid!
+                        </div>
+                      ) : (
+                        <SortableContext items={tasksToRender.map(t => t.id)} strategy={verticalListSortingStrategy}>
+                          {tasksToRender.map((task, index) => (
+                            <SortableTaskItem
+                              key={task.id}
+                              task={task}
+                              taskNumber={index + 1}
+                              isEditMode={isEditMode}
+                              onTitleChange={(id, title) => {
+                                setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, title } : t));
+                              }}
+                              onDescriptionChange={(id, description) => {
+                                setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, description } : t));
+                              }}
+                              onEstimatedMinutesChange={(id, minutes) => {
+                                setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, estimated_minutes: minutes } : t));
+                              }}
+                              onDelete={(id) => {
+                                setDeletedTaskIds(prev => [...prev, id]);
+                              }}
+                              toggleTask={!isEditMode ? toggleTask : undefined}
+                              isDeleted={deletedTaskIds.includes(task.id)}
+                              showAdminTools={false}
+                              taskPadding={taskPadding}
+                              isNew={!!task.template_id && newTemplateIds.has(task.template_id)}
+                            />
+                          ))}
+                        </SortableContext>
+                      )}
+                    </div>
+                  );
+                };
+
+                const renderDepartmentSection = (label: string, dept: 'voorkant' | 'achterkant', flat = false) => {
                   const deptTasks = currentTasks.filter(
                     (t: any) => (t.department ?? 'voorkant') === dept
                   );
@@ -2634,7 +2696,7 @@ export function FohTasks() {
                           {completed}/{deptTasks.length}
                         </span>
                       </div>
-                      {renderCategoryGroups(deptTasks, dept)}
+                      {flat ? renderFlatList(deptTasks, dept) : renderCategoryGroups(deptTasks, dept)}
                     </div>
                   );
                 };
