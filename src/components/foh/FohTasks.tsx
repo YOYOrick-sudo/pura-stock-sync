@@ -2673,12 +2673,14 @@ export function FohTasks() {
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '10px',
-                        padding: '10px 14px',
-                        backgroundColor: 'hsl(var(--muted))',
+                        gap: '12px',
+                        padding: '12px 14px',
+                        backgroundColor: 'hsl(var(--card))',
                         borderRadius: '12px',
-                        marginBottom: '16px',
+                        marginBottom: '12px',
                         border: '1px solid hsl(var(--border))',
+                        borderLeft: '4px solid hsl(var(--primary))',
+                        boxShadow: '0 1px 2px hsl(var(--foreground) / 0.03)',
                       }}>
                         <span style={{
                           fontSize: '15px',
@@ -2694,7 +2696,7 @@ export function FohTasks() {
                           fontSize: '12px',
                           fontWeight: 600,
                           color: 'hsl(var(--muted-foreground))',
-                          backgroundColor: 'hsl(var(--background))',
+                          backgroundColor: 'hsl(var(--muted) / 0.6)',
                           padding: '3px 10px',
                           borderRadius: '999px',
                           fontFamily: 'Inter, sans-serif',
@@ -2704,6 +2706,7 @@ export function FohTasks() {
                       </div>
                       {flat ? renderFlatList(deptTasks, dept) : renderCategoryGroups(deptTasks, dept)}
                     </div>
+
                   );
                 };
 
