@@ -952,10 +952,15 @@ export function FohTasks() {
       .select('*, foh_employees(*)')
       .eq('location', userLocation)
       .eq('due_date', dateToFetch)
-      .eq('department', effectiveDept)
       .not('phase', 'is', null)
       .order('sort_order', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: true });
+
+    // Alleen West heeft afdelingen — voor Midsland blijft 'voorkant' impliciet.
+    // Voor West halen we BEIDE afdelingen op en groeperen we in de UI.
+    if (userLocation !== 'West') {
+      query = query.eq('department', 'voorkant');
+    }
 
     if (isToday) {
       query = query.eq('archived', false);
