@@ -120,7 +120,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
           />
         }
         items={navigationItems.map(item => ({
-          title: item.title,
+          title: item.url === '/taken-bediening' && userLocation === 'West' ? 'Taken' : item.title,
           icon: item.icon,
           url: item.url,
           active: isActive(item.url),

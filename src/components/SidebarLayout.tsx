@@ -39,6 +39,7 @@ export function SidebarLayout({
       '/onderhoud': 'Onderhoud',
       '/kas-controle': 'Kas-controle',
     };
+    if (pathname === '/taken-bediening' && userLocation === 'West') return 'Taken';
     return titles[pathname] || 'Pura Vida';
   };
 
