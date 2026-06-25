@@ -2675,7 +2675,7 @@ export function FohTasks() {
                         alignItems: 'center',
                         gap: '12px',
                         padding: '12px 14px',
-                        backgroundColor: 'hsl(var(--card))',
+                        backgroundColor: 'hsl(var(--muted))',
                         borderRadius: '12px',
                         marginBottom: '12px',
                         border: '1px solid hsl(var(--border))',
