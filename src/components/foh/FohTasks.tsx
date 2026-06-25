@@ -2348,6 +2348,45 @@ export function FohTasks() {
                               </Select>
                             </div>
 
+                            {userLocation === 'West' && (
+                              <div>
+                                <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
+                                  Afdeling
+                                </Label>
+                                <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                                  {([
+                                    { key: 'voorkant', label: 'Voorkant' },
+                                    { key: 'achterkant', label: 'Achterkant' },
+                                  ] as { key: 'voorkant' | 'achterkant'; label: string }[]).map(({ key, label }) => {
+                                    const isActive = newTask.department === key;
+                                    return (
+                                      <button
+                                        key={key}
+                                        type="button"
+                                        onClick={() => setNewTask({ ...newTask, department: key })}
+                                        style={{
+                                          flex: 1,
+                                          padding: '10px 12px',
+                                          fontSize: '14px',
+                                          fontWeight: 600,
+                                          borderRadius: '14px',
+                                          cursor: 'pointer',
+                                          backgroundColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--card))',
+                                          color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
+                                          border: isActive ? 'none' : '1px solid hsl(var(--border))',
+                                          fontFamily: 'Inter, sans-serif',
+                                          transition: 'all 0.15s ease',
+                                        }}
+                                      >
+                                        {label}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
+
                             <div>
                               <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
                                 Medewerker
