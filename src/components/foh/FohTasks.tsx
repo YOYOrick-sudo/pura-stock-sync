@@ -2766,23 +2766,22 @@ export function FohTasks() {
                               onClick={() => toggleTask(task.id, task.completed)}
                               style={{
                                 padding: taskPadding,
-                                backgroundColor: task.completed ? 'hsl(var(--primary) / 0.04)' : 'transparent',
+                                backgroundColor: task.completed ? 'hsl(var(--muted) / 0.4)' : 'transparent',
                                 borderBottom: '1px solid hsl(var(--border))',
                                 borderLeft: `4px solid ${getPriorityConfig(task.priority).borderColor}`,
                                 marginLeft: '-4px',
                                 paddingLeft: '12px',
                                 cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                                opacity: task.completed ? 0.7 : 1,
+                                transition: 'background-color 0.15s ease',
                               }}
                               onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = task.completed 
-                                  ? 'hsl(var(--primary) / 0.06)' 
-                                  : 'hsl(var(--primary) / 0.05)';
+                                e.currentTarget.style.backgroundColor = task.completed
+                                  ? 'hsl(var(--muted) / 0.55)'
+                                  : 'hsl(var(--muted) / 0.4)';
                               }}
                               onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = task.completed 
-                                  ? 'hsl(var(--primary) / 0.04)' 
+                                e.currentTarget.style.backgroundColor = task.completed
+                                  ? 'hsl(var(--muted) / 0.4)'
                                   : 'transparent';
                               }}
                             >
@@ -2797,8 +2796,8 @@ export function FohTasks() {
                                   height: '20px',
                                   minWidth: '20px',
                                   borderRadius: '6px',
-                                  border: '2px solid hsl(var(--border))',
-                                  backgroundColor: task.completed ? 'hsl(var(--primary))' : 'hsl(var(--primary-foreground))',
+                                  border: task.completed ? '2px solid hsl(var(--muted-foreground) / 0.3)' : '2px solid hsl(var(--border))',
+                                  backgroundColor: task.completed ? 'hsl(var(--muted-foreground) / 0.15)' : 'hsl(var(--background))',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
@@ -2809,7 +2808,7 @@ export function FohTasks() {
                                     <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
                                       <path
                                         d="M1 5L4.5 8.5L11 1.5"
-                                        stroke="hsl(var(--primary-foreground))"
+                                        stroke="hsl(var(--muted-foreground))"
                                         strokeWidth="2"
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
@@ -2817,6 +2816,8 @@ export function FohTasks() {
                                     </svg>
                                   )}
                                 </div>
+
+
 
                                 <div style={{ 
                                   display: 'flex', 
