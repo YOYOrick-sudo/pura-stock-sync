@@ -1,5 +1,5 @@
-import { memo, useEffect, useRef, useState } from 'react';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { memo, useEffect, useRef, useState, useCallback } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -15,12 +15,17 @@ function AdminPasswordDialogBase({ open, onOpenChange, onSuccess, password = '00
   const [value, setValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Reset bij sluiten
   useEffect(() => {
-    if (!open) setValue('');
+    if (!open) {
+      setValue('');
+      return;
+    }
+    // Defer focus tot na opening-animatie zodat opening soepel blijft
+    const t = setTimeout(() => inputRef.current?.focus(), 250);
+    return () => clearTimeout(t);
   }, [open]);
 
-  const submit = () => {
+  const submit = useCallback(() => {
     if (value === password) {
       onOpenChange(false);
       setValue('');
@@ -29,7 +34,7 @@ function AdminPasswordDialogBase({ open, onOpenChange, onSuccess, password = '00
     } else {
       toast.error('Onjuist wachtwoord');
     }
-  };
+  }, [value, password, onOpenChange, onSuccess]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -43,11 +48,13 @@ function AdminPasswordDialogBase({ open, onOpenChange, onSuccess, password = '00
           <DialogTitle style={{ fontFamily: 'Inter, sans-serif', color: 'hsl(var(--foreground))' }}>
             Admin Toegang
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Voer het wachtwoord in om toegang te krijgen.
+          </DialogDescription>
         </DialogHeader>
         <div style={{ padding: '16px 0' }}>
           <Input
             ref={inputRef}
-            autoFocus
             type="password"
             placeholder="Voer wachtwoord in"
             value={value}
