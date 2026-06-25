@@ -178,22 +178,30 @@
     50% { opacity: 0.5; }
   }
 
+  /* Permanent centering: translate is set as a CSS var so keyframes never lose it. */
+  .dialog-centered {
+    --dlg-tx: -50%;
+    --dlg-ty: -50%;
+    --dlg-scale: 1;
+    transform: translate3d(var(--dlg-tx), var(--dlg-ty), 0) scale(var(--dlg-scale));
+  }
+
   /* Smooth, compositor-only dialog animations. No conflict with tailwindcss-animate. */
   .dialog-overlay-smooth {
-    animation: dialog-overlay-in 200ms ease-out;
+    animation: dialog-overlay-in 200ms ease-out both;
     will-change: opacity;
   }
   .dialog-overlay-smooth[data-state="closed"] {
-    animation: dialog-overlay-out 160ms ease-in;
+    animation: dialog-overlay-out 160ms ease-in both;
   }
 
   .dialog-content-smooth {
-    animation: dialog-content-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
+    animation: dialog-content-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
     will-change: transform, opacity;
     backface-visibility: hidden;
   }
   .dialog-content-smooth[data-state="closed"] {
-    animation: dialog-content-out 160ms ease-in;
+    animation: dialog-content-out 160ms ease-in both;
   }
 
   @keyframes dialog-overlay-in {
