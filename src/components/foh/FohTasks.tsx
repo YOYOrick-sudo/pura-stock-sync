@@ -251,13 +251,16 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 display: 'flex',
                 alignItems: 'center',
                 textDecoration: toggleTask && task.completed ? 'line-through' : 'none',
+                textDecorationColor: toggleTask && task.completed ? 'hsl(var(--muted-foreground) / 0.5)' : undefined,
                 color: toggleTask && task.completed ? 'hsl(var(--muted-foreground))' : 'hsl(var(--foreground))',
+                opacity: toggleTask && task.completed ? 0.55 : 1,
                 fontWeight: 500,
                 fontSize: '15px',
                 fontFamily: 'Inter, sans-serif',
+                transition: 'opacity 0.15s ease, color 0.15s ease',
               }}>
                 {taskNumber != null && (
-                  <span style={{ color: 'hsl(var(--muted-foreground))', fontWeight: 600, marginRight: '6px', fontSize: '13px' }}>
+                  <span style={{ color: 'hsl(var(--muted-foreground))', fontWeight: 600, marginRight: '6px', fontSize: '13px', opacity: toggleTask && task.completed ? 0.7 : 1 }}>
                     {taskNumber}.
                   </span>
                 )}
@@ -266,6 +269,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   <Sparkles size={14} style={{ color: 'hsl(var(--warning))', marginLeft: '6px', flexShrink: 0 }} />
                 )}
               </span>
+
             )}
           </div>
 
