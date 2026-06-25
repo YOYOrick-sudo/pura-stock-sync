@@ -1088,7 +1088,7 @@ export function FohTasks() {
     };
 
     initializeTasks();
-  }, [userLocation, selectedDate]);
+  }, [userLocation, selectedDate, effectiveDept]);
 
 
   
