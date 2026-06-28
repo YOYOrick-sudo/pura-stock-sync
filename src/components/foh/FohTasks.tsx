@@ -2087,7 +2087,8 @@ export function FohTasks() {
           return;
         }
 
-        // Sync naar actieve, niet-afgevinkte taak van vandaag
+        // Sync direct naar de actieve taak van vandaag, zodat de lijst meteen klopt.
+        // Ook afgevinkte taken krijgen alleen tekst/categorie/volgorde updates; de check-status blijft staan.
         const { error: syncError } = await supabase
           .from('foh_tasks')
           .update({
@@ -2098,9 +2099,11 @@ export function FohTasks() {
             estimated_minutes: task.estimated_minutes,
           })
           .eq('template_id', task.id)
+          .eq('location', task.location || userLocation)
+          .eq('phase', task.phase || activePhase)
+          .eq('department', task.department ?? effectiveDept)
           .eq('due_date', todayNL)
-          .eq('archived', false)
-          .is('completed_at', null);
+          .eq('archived', false);
 
         if (syncError) {
           console.error('Error syncing task to today:', syncError);
@@ -2160,13 +2163,13 @@ export function FohTasks() {
       
       // Delete removed tasks
       if (deletedTemplateTaskIds.length > 0) {
-        // Eerst open taken van vandaag archiveren (afgevinkte blijven voor historie)
+        // Vandaag ook direct uit de zichtbare lijst halen; historie blijft via gisteren/archief bewaard.
         const { error: archiveError } = await supabase
           .from('foh_tasks')
           .update({ archived: true })
           .in('template_id', deletedTemplateTaskIds)
           .eq('due_date', todayNL)
-          .is('completed_at', null);
+          .eq('archived', false);
 
         if (archiveError) {
           console.error('Error archiving tasks for today:', archiveError);
@@ -2204,6 +2207,7 @@ export function FohTasks() {
       setTemplateEditorOpen(false);
       setNewTemplateTaskInput('');
       setNewTemplateTaskCategory('Algemeen');
+      await fetchDailyTasks();
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
       queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
       queryClient.invalidateQueries({ queryKey: ['foh-category-order'] });
