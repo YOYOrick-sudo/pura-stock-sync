@@ -72,8 +72,10 @@ export function UserLocationProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const displayLocation = useMemo(() => getLocationDisplayName(userLocation), [userLocation]);
+
   return (
-    <UserLocationContext.Provider value={{ userLocation, loading }}>
+    <UserLocationContext.Provider value={{ userLocation, displayLocation, loading }}>
       {children}
     </UserLocationContext.Provider>
   );
