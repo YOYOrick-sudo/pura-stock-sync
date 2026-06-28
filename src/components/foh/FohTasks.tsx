@@ -3669,18 +3669,6 @@ export function FohTasks() {
                 <Plus size={16} style={{ marginRight: '8px' }} />
                 Nieuwe Template
               </Button>
-              <Button
-                onClick={() => setNewTemplateDialogOpen(true)}
-                style={{
-                  backgroundColor: 'hsl(var(--primary))',
-                  color: 'hsl(var(--primary-foreground))',
-                  borderRadius: '20px',
-                  fontFamily: 'Inter, sans-serif',
-                }}
-              >
-                <Plus size={16} style={{ marginRight: '8px' }} />
-                Nieuwe Template
-              </Button>
 
               {/* West: Subcategorieën beheren */}
               {userLocation === 'West' && (
