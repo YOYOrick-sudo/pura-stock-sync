@@ -1,13 +1,36 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import logoOfficial from '@/assets/pura-vida-logo-official.png';
 import { getLocationDisplayName } from '@/lib/utils';
+import { PWAInstallHint } from '@/components/PWAInstallHint';
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [cooldown, setCooldown] = useState(0);
+  const cooldownTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (cooldownTimer.current) window.clearInterval(cooldownTimer.current);
+    };
+  }, []);
+
+  const startCooldown = (seconds: number) => {
+    setCooldown(seconds);
+    if (cooldownTimer.current) window.clearInterval(cooldownTimer.current);
+    cooldownTimer.current = window.setInterval(() => {
+      setCooldown((c) => {
+        if (c <= 1) {
+          if (cooldownTimer.current) window.clearInterval(cooldownTimer.current);
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+  };
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState<'West' | 'Midsland'>('West');
