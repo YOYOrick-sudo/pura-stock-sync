@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getLocationDisplayName(location: string): string {
-  if (location === 'West') return 'West Daily';
+  if (location === 'West') return 'Dailt';
   if (location === 'Midsland') return 'Foodbar';
   return location;
 }
