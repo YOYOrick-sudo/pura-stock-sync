@@ -68,7 +68,7 @@ export function SidebarLayout({
           <PolarHeader
             title={getPageTitle(location.pathname)} 
             showStatusIndicator={false} 
-            location={userLocation}
+            location={displayLocation}
             onMenuClick={isMobile ? () => setMobileMenuOpen(true) : undefined}
           />
         )}
