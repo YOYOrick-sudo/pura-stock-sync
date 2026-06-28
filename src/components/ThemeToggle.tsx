@@ -16,7 +16,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={cycleMode}
-      className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
+      className="flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
       style={{ fontSize: '13px', fontWeight: 500 }}
       title={`Thema: ${label}`}
     >
