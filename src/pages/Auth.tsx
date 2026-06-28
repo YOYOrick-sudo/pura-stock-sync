@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, LogIn } from 'lucide-react';
+import { Loader2, LogIn, Building2, Store } from 'lucide-react';
 import { toast } from 'sonner';
 import logoOfficial from '@/assets/pura-vida-logo-official.png';
 import { getLocationDisplayName } from '@/lib/utils';
