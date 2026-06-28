@@ -132,20 +132,24 @@ const Auth = () => {
               <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 block mb-2">
                 Locatie
               </label>
-              <div className="grid grid-cols-2 gap-1 p-1 bg-muted/40 rounded-[14px]">
-                {(['West', 'Midsland'] as const).map((loc) => (
+              <div className="grid grid-cols-2 gap-3">
+                {([
+                  { loc: 'West' as const, icon: Building2 },
+                  { loc: 'Midsland' as const, icon: Store },
+                ]).map(({ loc, icon: Icon }) => (
                   <button
                     type="button"
                     key={loc}
                     onClick={() => !loading && setLocation(loc)}
                     disabled={loading}
-                    className={`py-2.5 rounded-[10px] text-[14px] font-medium transition-all
-                      ${location === loc 
-                        ? 'bg-card text-foreground shadow-sm border border-border/60' 
-                        : 'text-muted-foreground hover:text-foreground'
+                    className={`flex flex-col items-center justify-center gap-2 py-5 px-4 rounded-[16px] transition-all duration-200
+                      ${location === loc
+                        ? 'bg-primary/10 text-primary border-2 border-primary'
+                        : 'bg-muted/40 text-muted-foreground border-2 border-transparent hover:text-foreground hover:bg-muted/60'
                       } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                   >
-                    {getLocationDisplayName(loc)}
+                    <Icon className="w-6 h-6" />
+                    <span className="text-[15px] font-semibold">{getLocationDisplayName(loc)}</span>
                   </button>
                 ))}
               </div>
