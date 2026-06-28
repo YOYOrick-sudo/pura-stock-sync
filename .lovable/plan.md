@@ -1,15 +1,41 @@
-Toevoegen van 6 nieuwe taken aan de "Sanitair"-categorie in de West sluitlijst (voorkant).
+## Doel
+Eén lijst-gevoel in West: geen "Voorkant / Achterkant" headers en geen aparte progress per afdeling meer. Categorieën (Bijvullen, Schoonmaak Bar, Shop, Sanitair, Keuken, etc.) blijven als lichte groepering, maar voelen als één werkstroom voor het hele team.
 
-Dit omvat:
-1. **Deurhendel schoonmaken**
-2. **Spoelbakje schoonmaken**
-3. **Wanden rondom toilet schoonmaken**
-4. **Toiletpot schoonmaken (boven, onder zeikant)**
-5. **Toiletpapier Bijvullen**
-6. **Papieren handoekjes Bijvullen**
+## Wijzigingen in `src/components/foh/FohTasks.tsx` (alleen West)
 
-Technische aanpak:
-- Insert de 6 taken in `foh_daily_templates` (location='West', phase='sluit', department='voorkant', category='Sanitair', template_name='Sluit', is_active=true), met sort_orders na de bestaande "Toilet schoonmaken" (290) en de laatste taak in de lijst (300). Nieuwe sort_orders: 310, 320, 330, 340, 350, 360.
-- Insert dezelfde 6 taken in `foh_tasks` voor **vandaag** (28 juni 2026), zodat ze direct zichtbaar zijn in de actieve lijst.
-- De "Sanitair"-categorie bestaat al in `foh_category_order` (sort_order 50), dus geen wijzigingen nodig aan de categorievolgorde.
-- Geen code-wijzigingen nodig; puur data-aanvulling.
+1. **Department-headers verwijderen**
+   - De twee grote kaarten/koppen "Voorkant (Bediening)" en "Achterkant (Keuken)" met elk hun eigen progress-balk en teller verdwijnen.
+   - In plaats daarvan: één progress-balk bovenaan met totaal (X / Y taken voltooid) voor de actieve fase (Openen / Sluiten).
+
+2. **Eén doorlopende lijst, gegroepeerd op sub-categorie**
+   - Alle taken (ongeacht `department`) komen in één lijst.
+   - Groepering uitsluitend op `category` (Bijvullen, Schoonmaak Bar, Shop, Terras, Sanitair, Magazijn, Keuken, …) met dezelfde subtiele grijze categorie-header die we al gebruiken.
+   - Doorlopende nummering 1, 2, 3 … over de hele lijst (niet per afdeling resetten).
+
+3. **Volgorde-logica via Apparaat-modus**
+   - De bestaande "Apparaat-modus" (Bediening eerst / Keuken eerst / Standaard) blijft bestaan, maar bepaalt nu alleen welke categorieën bovenaan staan:
+     - *Bediening eerst*: categorieën met overwegend bedienings-taken sorteren bovenaan (volgens `foh_category_order`), keuken-categorie naar onder.
+     - *Keuken eerst*: omgekeerd.
+     - *Standaard*: pure `foh_category_order` volgorde.
+   - Geen tweede sectie, geen tweede progress — alleen volgorde verandert.
+
+4. **Admin Panel (template editor, password 2020)**
+   - `department` veld blijft bestaan in de database (geen migratie), maar verdwijnt als zichtbare filter/tab in de admin UI. Bestaande taken houden hun `department`-waarde voor de sorteerlogica hierboven.
+   - Categorie-beheer (volgorde, hernoemen, verwijderen) blijft zoals het is.
+
+5. **Midsland blijft ongewijzigd.** Midsland heeft al geen afdelingen — daar verandert niets aan UI of data.
+
+## Wat NIET verandert
+- Geen databasewijzigingen, geen migraties, geen wijziging aan `foh_daily_templates` of `foh_tasks` rijen.
+- Categorieën en hun volgorde blijven.
+- Repeat-badges, Day Navigator, archivering, alles blijft werken.
+- Apparaat-modus selector blijft op dezelfde plek in het admin paneel.
+
+## Technische details
+- In `FohTasks.tsx`: de huidige `groupBy(department)`-render-laag eruit halen; render direct `groupBy(category)` over `tasks.filter(t => t.phase === activePhase)`.
+- Eén `useMemo` voor totaal-progress (`completed / total`) ter vervanging van twee aparte tellingen.
+- Sorteerfunctie: `tasks.sort((a,b) => categoryOrder(a) - categoryOrder(b) || a.sort_order - b.sort_order)`, waarbij `categoryOrder` afhangt van Apparaat-modus.
+- Volledig frontend-only; geen edge functions, geen SQL.
+
+## Rollback
+Pure UI-refactor. Bij problemen revert van één file (`FohTasks.tsx`) volstaat — data blijft intact.
