@@ -680,9 +680,12 @@ const getFirstPhaseWithOpenTasks = (
   return phaseOrder.includes(fallback) ? fallback : 'open';
 };
 
-const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
+const groupTasksByCategory = (
+  tasks: FohTaskWithEmployee[],
+  orderedCats?: string[],
+) => {
   const grouped: Record<string, FohTaskWithEmployee[]> = {};
-  
+
   tasks.forEach(task => {
     const category = task.category || 'Algemeen';
     if (!grouped[category]) {
@@ -690,40 +693,30 @@ const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
     }
     grouped[category].push(task);
   });
-  
+
+  const sortFn = (a: FohTaskWithEmployee, b: FohTaskWithEmployee) => {
+    if (a.completed !== b.completed) return a.completed ? 1 : -1;
+    if (a.sort_order !== undefined && b.sort_order !== undefined) {
+      return a.sort_order - b.sort_order;
+    }
+    return 0;
+  };
+
+  const order = orderedCats && orderedCats.length > 0 ? orderedCats : [...CATEGORY_ORDER];
   const sortedGrouped: Record<string, FohTaskWithEmployee[]> = {};
-  CATEGORY_ORDER.forEach(cat => {
-    if (grouped[cat]) {
-      // Sort by sort_order first, then move completed tasks to bottom
-      sortedGrouped[cat] = grouped[cat].sort((a, b) => {
-        // Completed tasks go to bottom
-        if (a.completed !== b.completed) {
-          return a.completed ? 1 : -1;
-        }
-        // Within same completion status, sort by sort_order
-        if (a.sort_order !== undefined && b.sort_order !== undefined) {
-          return a.sort_order - b.sort_order;
-        }
-        return 0;
-      });
-    }
+
+  order.forEach(cat => {
+    if (grouped[cat]) sortedGrouped[cat] = grouped[cat].sort(sortFn);
   });
-  
-  Object.keys(grouped).forEach(cat => {
-    if (!sortedGrouped[cat]) {
-      // Also sort non-standard categories with completed at bottom
-      sortedGrouped[cat] = grouped[cat].sort((a, b) => {
-        if (a.completed !== b.completed) {
-          return a.completed ? 1 : -1;
-        }
-        if (a.sort_order !== undefined && b.sort_order !== undefined) {
-          return a.sort_order - b.sort_order;
-        }
-        return 0;
-      });
-    }
-  });
-  
+
+  // Append any leftover categories (alphabetical) so nothing disappears
+  Object.keys(grouped)
+    .filter(cat => !sortedGrouped[cat])
+    .sort()
+    .forEach(cat => {
+      sortedGrouped[cat] = grouped[cat].sort(sortFn);
+    });
+
   return sortedGrouped;
 };
 
@@ -993,8 +986,31 @@ export function FohTasks() {
     enabled: userLocation === 'West',
   });
 
+  // ===== WEST CATEGORY ORDER — uit foh_category_order tabel =====
+  const { data: westCategoryOrder } = useQuery({
+    queryKey: ['foh-category-order', userLocation],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('foh_category_order')
+        .select('department, category, sort_order')
+        .eq('location', userLocation)
+        .order('sort_order', { ascending: true });
+      if (error) throw error;
+      const out: Record<'voorkant' | 'achterkant', { category: string; sort_order: number }[]> = {
+        voorkant: [],
+        achterkant: [],
+      };
+      for (const r of (data as any[]) || []) {
+        const dept = r.department === 'achterkant' ? 'achterkant' : 'voorkant';
+        out[dept].push({ category: r.category, sort_order: r.sort_order });
+      }
+      return out;
+    },
+    enabled: userLocation === 'West',
+  });
+
   // Categorieën beschikbaar voor een (location, dept, phase) combinatie.
-  // West: dynamisch op basis van bestaande templates/taken per afdeling, plus 'Algemeen' als fallback.
+  // West: gebruikt foh_category_order voor de volgorde, vult aan met (nieuwe) categorieën uit templates/taken.
   // Midsland: bestaande vaste lijst per fase.
   const getCategoriesForContext = (
     loc: string,
@@ -1002,12 +1018,179 @@ export function FohTasks() {
     phase: string,
   ): string[] => {
     if (loc === 'West') {
-      const base = westSubcatsData?.[dept] ?? [];
-      if (base.length === 0) return ['Algemeen'];
-      return base.includes('Algemeen') ? base : ['Algemeen', ...base];
+      const orderedList = (westCategoryOrder?.[dept] ?? []).map(r => r.category);
+      const used = westSubcatsData?.[dept] ?? [];
+      const seen = new Set<string>();
+      const result: string[] = [];
+      for (const c of orderedList) {
+        if (!seen.has(c)) { seen.add(c); result.push(c); }
+      }
+      // Append unknown categories (alphabetical) so nothing is lost
+      for (const c of used.slice().sort()) {
+        if (!seen.has(c)) { seen.add(c); result.push(c); }
+      }
+      if (result.length === 0) return ['Algemeen'];
+      if (!result.includes('Algemeen')) result.unshift('Algemeen');
+      return result;
     }
     return getAvailableCategoriesForPhase(loc, phase);
   };
+
+  // Zorg dat een (nieuwe) subcategorie in foh_category_order staat — anders heeft hij geen volgorde.
+  const ensureCategoryOrderRow = async (
+    loc: string,
+    dept: 'voorkant' | 'achterkant',
+    category: string,
+  ) => {
+    if (loc !== 'West') return;
+    const c = (category || '').trim();
+    if (!c) return;
+    const existing = westCategoryOrder?.[dept] ?? [];
+    if (existing.some(r => r.category === c)) return;
+    const nextSort = (existing.length > 0 ? Math.max(...existing.map(r => r.sort_order)) : 0) + 10;
+    await supabase
+      .from('foh_category_order')
+      .upsert(
+        { location: loc, department: dept, category: c, sort_order: nextSort },
+        { onConflict: 'location,department,category' },
+      );
+  };
+
+  // ===== WEST SUBCATEGORIE BEHEER =====
+  const invalidateAfterCategoryChange = () => {
+    queryClient.invalidateQueries({ queryKey: ['foh-category-order'] });
+    queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+    queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
+    queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
+  };
+
+  // Combinatie van geordende rijen + niet-geordende categorieën, in dezelfde volgorde
+  // als getCategoriesForContext zodat de UI 1-op-1 klopt met de live lijst.
+  const getOrderedCategoryRows = (
+    dept: 'voorkant' | 'achterkant',
+  ): { category: string; sort_order: number | null }[] => {
+    const ordered = (westCategoryOrder?.[dept] ?? []).map(r => ({
+      category: r.category,
+      sort_order: r.sort_order as number | null,
+    }));
+    const seen = new Set(ordered.map(r => r.category));
+    const used = westSubcatsData?.[dept] ?? [];
+    for (const c of used.slice().sort()) {
+      if (!seen.has(c)) ordered.push({ category: c, sort_order: null });
+    }
+    return ordered;
+  };
+
+  // Herschrijf alle sort_order waarden naar veelvouden van 10 op basis van array-volgorde.
+  const persistCategoryOrder = async (
+    dept: 'voorkant' | 'achterkant',
+    orderedCategories: string[],
+  ) => {
+    for (let i = 0; i < orderedCategories.length; i++) {
+      const cat = orderedCategories[i];
+      const sort_order = (i + 1) * 10;
+      const { error } = await supabase
+        .from('foh_category_order')
+        .upsert(
+          { location: userLocation, department: dept, category: cat, sort_order },
+          { onConflict: 'location,department,category' },
+        );
+      if (error) {
+        console.error('persistCategoryOrder error', error);
+        toast.error('Fout bij opslaan volgorde');
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleMoveCategory = async (
+    dept: 'voorkant' | 'achterkant',
+    category: string,
+    direction: -1 | 1,
+  ) => {
+    const rows = getOrderedCategoryRows(dept);
+    const idx = rows.findIndex(r => r.category === category);
+    if (idx < 0) return;
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= rows.length) return;
+    const list = rows.map(r => r.category);
+    [list[idx], list[newIdx]] = [list[newIdx], list[idx]];
+    const ok = await persistCategoryOrder(dept, list);
+    if (ok) {
+      invalidateAfterCategoryChange();
+    }
+  };
+
+  const handleRenameCategory = async (
+    dept: 'voorkant' | 'achterkant',
+    oldName: string,
+  ) => {
+    const next = window.prompt(`Nieuwe naam voor "${oldName}":`, oldName);
+    if (!next) return;
+    const trimmed = next.trim();
+    if (!trimmed || trimmed === oldName) return;
+    const { error } = await supabase.rpc('foh_rename_category', {
+      _location: userLocation,
+      _department: dept,
+      _old: oldName,
+      _new: trimmed,
+    });
+    if (error) {
+      console.error('rename category', error);
+      toast.error('Hernoemen mislukt');
+      return;
+    }
+    toast.success('Subcategorie hernoemd');
+    invalidateAfterCategoryChange();
+  };
+
+  const handleDeleteCategory = async (
+    dept: 'voorkant' | 'achterkant',
+    category: string,
+  ) => {
+    // Veiligheid: alleen verwijderen als er geen taken/templates meer in zitten
+    const [tpl, tsk] = await Promise.all([
+      supabase
+        .from('foh_daily_templates')
+        .select('id', { count: 'exact', head: true })
+        .eq('location', userLocation)
+        .eq('department', dept)
+        .eq('category', category),
+      supabase
+        .from('foh_tasks')
+        .select('id', { count: 'exact', head: true })
+        .eq('location', userLocation)
+        .eq('department', dept)
+        .eq('category', category)
+        .eq('archived', false),
+    ]);
+    const tplCount = tpl.count ?? 0;
+    const tskCount = tsk.count ?? 0;
+    if (tplCount + tskCount > 0) {
+      toast.error(
+        `Kan niet verwijderen: nog ${tplCount} template-taak(jes) en ${tskCount} actieve taak/taken in "${category}".`,
+      );
+      return;
+    }
+    if (!window.confirm(`Subcategorie "${category}" verwijderen?`)) return;
+    const { error } = await supabase
+      .from('foh_category_order')
+      .delete()
+      .eq('location', userLocation)
+      .eq('department', dept)
+      .eq('category', category);
+    if (error) {
+      console.error('delete category', error);
+      toast.error('Verwijderen mislukt');
+      return;
+    }
+    toast.success('Subcategorie verwijderd');
+    invalidateAfterCategoryChange();
+  };
+
+
+
 
 
   // Map template_id → isNew (created less than 7 days ago)
@@ -1514,7 +1697,24 @@ export function FohTasks() {
           return;
         }
       }
-      
+
+      // West: registreer nieuwe categorieën in foh_category_order
+      if (userLocation === 'West') {
+        const cats = new Set<string>();
+        for (const t of editedTasks) {
+          if (deletedTaskIds.includes(t.id)) continue;
+          if (t.category) cats.add(t.category);
+        }
+        for (const t of newTasks) {
+          if (t.category) cats.add(t.category);
+        }
+        for (const c of cats) {
+          await ensureCategoryOrderRow('West', effectiveDept, c);
+        }
+        queryClient.invalidateQueries({ queryKey: ['foh-category-order'] });
+        queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+      }
+
       await fetchDailyTasks();
       setIsEditMode(false);
       setEditedTasks([]);
@@ -1899,13 +2099,29 @@ export function FohTasks() {
           return;
         }
       }
-      
+
+      // Zorg dat alle gebruikte categorieën een volgorde-rij hebben (West).
+      const loc = (editingTemplate[0]?.location || userLocation) as string;
+      if (loc === 'West') {
+        const seen = new Set<string>();
+        for (const t of editingTemplate) {
+          if (deletedTemplateTaskIds.includes(t.id)) continue;
+          const dept = ((t as any).department || effectiveDept) as 'voorkant' | 'achterkant';
+          const cat = (t.category || '').trim();
+          const key = `${dept}::${cat}`;
+          if (!cat || seen.has(key)) continue;
+          seen.add(key);
+          await ensureCategoryOrderRow(loc, dept, cat);
+        }
+      }
+
       toast.success('Template opgeslagen');
       setTemplateEditorOpen(false);
       setNewTemplateTaskInput('');
       setNewTemplateTaskCategory('Algemeen');
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
       queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-category-order'] });
       queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
     } catch (error) {
       console.error('Error saving template edits:', error);
@@ -2678,8 +2894,16 @@ export function FohTasks() {
             {/* Tasks display */}
             <div>
               {mainCategory === 'dagelijks' && (() => {
-                const renderCategoryGroups = (tasksToRender: FohTaskWithEmployee[], keyPrefix: string) => {
-                  const groups = groupTasksByCategory(tasksToRender);
+                const renderCategoryGroups = (
+                  tasksToRender: FohTaskWithEmployee[],
+                  keyPrefix: string,
+                  dept: 'voorkant' | 'achterkant' = 'voorkant',
+                ) => {
+                  const orderedCats =
+                    userLocation === 'West'
+                      ? getCategoriesForContext('West', dept, activePhase)
+                      : undefined;
+                  const groups = groupTasksByCategory(tasksToRender, orderedCats);
                   const entries = Object.entries(groups);
                   if (entries.length === 0) {
                     return (
@@ -2873,7 +3097,7 @@ export function FohTasks() {
                           {completed}/{deptTasks.length}
                         </span>
                       </div>
-                      {flat ? renderFlatList(deptTasks, dept) : renderCategoryGroups(deptTasks, dept)}
+                      {flat ? renderFlatList(deptTasks, dept) : renderCategoryGroups(deptTasks, dept, dept)}
                     </div>
 
                   );
@@ -3284,6 +3508,133 @@ export function FohTasks() {
                 <Plus size={16} style={{ marginRight: '8px' }} />
                 Nieuwe Template
               </Button>
+
+              {/* West: Subcategorieën beheren */}
+              {userLocation === 'West' && (
+                <div style={{
+                  padding: '14px',
+                  backgroundColor: 'hsl(var(--muted) / 0.4)',
+                  borderRadius: '12px',
+                  border: '1px solid hsl(var(--border))',
+                }}>
+                  <div style={{
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: 'hsl(var(--muted-foreground))',
+                    marginBottom: '10px',
+                  }}>
+                    Subcategorieën beheren
+                  </div>
+                  {(['voorkant', 'achterkant'] as const).map(dept => {
+                    const rows = getOrderedCategoryRows(dept);
+                    return (
+                      <div key={dept} style={{ marginBottom: '12px' }}>
+                        <div style={{
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          color: 'hsl(var(--foreground))',
+                          marginBottom: '6px',
+                        }}>
+                          {dept === 'voorkant' ? 'Bediening' : 'Keuken'}
+                        </div>
+                        {rows.length === 0 ? (
+                          <div style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))', fontStyle: 'italic' }}>
+                            Nog geen subcategorieën.
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {rows.map((row, idx) => (
+                              <div key={row.category} style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '6px 10px',
+                                backgroundColor: 'hsl(var(--card))',
+                                borderRadius: '8px',
+                                border: '1px solid hsl(var(--border))',
+                              }}>
+                                <span style={{
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  color: 'hsl(var(--muted-foreground))',
+                                  minWidth: '20px',
+                                }}>
+                                  {idx + 1}.
+                                </span>
+                                <span style={{
+                                  flex: 1,
+                                  fontSize: '13px',
+                                  color: 'hsl(var(--foreground))',
+                                }}>
+                                  {row.category}
+                                  {row.sort_order === null && (
+                                    <span style={{
+                                      marginLeft: '6px',
+                                      fontSize: '10px',
+                                      color: 'hsl(var(--muted-foreground))',
+                                    }}>
+                                      (nieuw)
+                                    </span>
+                                  )}
+                                </span>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleMoveCategory(dept, row.category, -1)}
+                                  disabled={idx === 0}
+                                  style={{ height: '28px', padding: '0 6px' }}
+                                  aria-label="Omhoog"
+                                >
+                                  <ChevronUp size={14} />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleMoveCategory(dept, row.category, 1)}
+                                  disabled={idx === rows.length - 1}
+                                  style={{ height: '28px', padding: '0 6px' }}
+                                  aria-label="Omlaag"
+                                >
+                                  <ChevronDown size={14} />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleRenameCategory(dept, row.category)}
+                                  style={{ height: '28px', padding: '0 6px' }}
+                                  aria-label="Hernoemen"
+                                >
+                                  <Pencil size={14} />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleDeleteCategory(dept, row.category)}
+                                  style={{ height: '28px', padding: '0 6px', color: 'hsl(var(--destructive))' }}
+                                  aria-label="Verwijderen"
+                                >
+                                  <Trash2 size={14} />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <p style={{
+                    fontSize: '11px',
+                    color: 'hsl(var(--muted-foreground))',
+                    marginTop: '6px',
+                    lineHeight: 1.4,
+                  }}>
+                    Volgorde geldt voor zowel de live takenlijst als de dropdowns. Verwijderen kan alleen als er geen taken meer in zitten.
+                  </p>
+                </div>
+              )}
+
 
               {/* Template list */}
               {templatesLoading ? (

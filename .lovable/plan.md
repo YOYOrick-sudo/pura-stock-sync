@@ -1,47 +1,62 @@
 ## Doel
-In West onder **Voorkant** en **Achterkant** subcategorieën kunnen aanmaken (bijv. "Bar", "Zaal", "Koeling", "Werkbank") en taken daaronder kunnen plaatsen. Beheer gebeurt vanuit het Admin → Templates Beheren scherm én bij het aanmaken/wijzigen van een taak.
+In West de **volgorde van subcategorieën** (bv. "Bijvullen" vóór "Bar") kunnen bepalen — zowel in de takenlijst zelf als bij het aanmaken/wijzigen via Admin → Templates Beheren. Volgorde moet persistent zijn, per afdeling (voorkant/achterkant), en consistent toegepast in álle weergaven.
 
-## Aanpak in het kort
-We hergebruiken het bestaande `category`-veld op `foh_tasks` en `foh_daily_templates` als "subcategorie binnen een afdeling". Geen schemawijziging nodig — alleen UI + render-logica aanpassen, en West omzetten van platte lijst naar gegroepeerd-per-categorie (net als Midsland), met behoud van Voorkant/Achterkant secties erboven.
+## Aanpak
 
-## Wijzigingen
+### 1. Nieuwe tabel `foh_category_order`
+Eén bron van waarheid voor subcategorie-volgorde per (location, department, category).
 
-### 1. West: van platte lijst naar gegroepeerd
-In `src/components/foh/FohTasks.tsx`:
-- `renderFlatList` voor West vervangen door dezelfde categorie-gegroepeerde render die Midsland gebruikt (`groupTasksByCategory`), maar genest binnen elke afdelingssectie (Voorkant / Achterkant).
-- Lege categorie-headers verbergen.
-- Voltooide taken blijven naar onderen sorteren (zoals afgesproken).
-- Sticky afdelings-header blijft, categorieën komen daar als sub-header onder.
+```
+foh_category_order
+  id (uuid)
+  location (text)        -- 'West' | 'Midsland'
+  department (text)      -- 'voorkant' | 'achterkant'
+  category (text)        -- bv. 'Bijvullen', 'Bar'
+  sort_order (int)       -- 10, 20, 30, ...
+  created_at, updated_at
+  UNIQUE (location, department, category)
+```
+- RLS: read voor `authenticated`, write voor `authenticated` (zelfde patroon als `foh_daily_templates`).
+- GRANT statements voor `authenticated` + `service_role`.
 
-### 2. Vrij invoerbare subcategorie bij taak toevoegen
-- Het categorie-veld in "Nieuwe taak"-dialoog wordt een **combobox**: bestaande subcategorieën voor de actieve afdeling als suggesties + optie "Nieuwe subcategorie aanmaken…" met tekstinvoer.
-- Bestaande lijst wordt gevuld uit de unieke `category`-waarden van templates + taken voor (location, department).
-- Voor Midsland blijft het huidige vaste lijstje (Bar, Zaal, etc.) gewoon werken.
+### 2. Render-logica in `FohTasks.tsx`
+- Nieuwe query `useCategoryOrder(location, department)` die de volgorde ophaalt en cached via React Query.
+- In `groupTasksByCategory` (en in de West-render) categorieën sorteren op `sort_order` uit deze tabel. Categorieën zonder entry → onderaan, alfabetisch, en krijgen automatisch een entry aangemaakt zodra ze zichtbaar zijn (zie §4).
+- Midsland blijft ongewijzigd (gebruikt nog steeds de bestaande hardcoded `CATEGORY_ORDER`); alleen West leest uit `foh_category_order`.
 
-### 3. Subcategoriebeheer in Admin → Templates Beheren
-In het Template Editor scherm (West):
-- Per afdeling een sectie met de huidige subcategorieën als chips.
-- Knop **"+ Subcategorie toevoegen"** → invoer → categorie wordt direct beschikbaar als optie bij het toevoegen van template-taken.
-- Bij elke template-taakrij komt naast titel/tijd een **categorie-keuzeveld** (zelfde combobox als bij "nieuwe taak"), zodat je in admin per taak de subcategorie kiest.
-- Hernoemen van subcategorie: update alle templates + open taken van vandaag in één query.
-- Verwijderen van subcategorie alleen toegestaan als er geen template-taken meer aan hangen (anders waarschuwing).
+### 3. UI in Admin → Templates Beheren (alleen West)
+Per afdeling (Voorkant / Achterkant) een **"Subcategorieën beheren"** sectie boven de takenlijst:
+- Lijst van categorieën in huidige volgorde, elk met:
+  - **drag-handle** (@dnd-kit, zelfde als taken) om te slepen
+  - **↑ / ↓ knoppen** als fallback voor touch
+  - **rename** (potlood-icoon → inline input)
+  - **delete** (alleen als er geen taken/templates meer onder hangen — anders disabled met tooltip)
+- Knop **"+ Subcategorie toevoegen"** (zelfde combobox als in §2 van vorige plan).
+- Bij sleep/knop-volgordewijziging: bulk-update `sort_order` (stappen van 10) in één Supabase-call, optimistische update op de query-cache.
 
-### 4. Generatie en opslaan
-- `handleSaveAsTemplate` en de dagelijkse generator gebruiken al `category` → geen aanpassing nodig, behalve dat we de waarde nu daadwerkelijk respecteren in West (i.p.v. forceren op 'Algemeen').
-- Bestaande West-taken met `category = 'Algemeen'` blijven werken; ze verschijnen onder een "Algemeen" header die je vanuit admin kunt hernoemen.
+### 4. Synchronisatie bij aanmaken
+- Wanneer in "Nieuwe taak" of in een template een **nieuwe** subcategorie wordt aangemaakt, schrijf direct ook een rij in `foh_category_order` met `sort_order = max(sort_order)+10` voor die (location, department). Zo verschijnt elke nieuwe categorie automatisch onderaan en is direct sleepbaar in admin.
+- Bij **rename** in admin: update `category` op alle `foh_tasks` (vandaag, niet-gearchiveerd) en `foh_daily_templates` voor die (location, department) + update de `foh_category_order`-rij — in één transactie via een edge function of een Supabase RPC, zodat namen overal consistent blijven.
+- Bij **delete**: alleen toegestaan als 0 templates én 0 open taken → verwijder de rij uit `foh_category_order`.
 
-### 5. Veiligheid / bugs voorkomen
-- Geen DB-migratie → geen schema-risico.
-- Midsland-logica blijft 100% ongewijzigd (gated op `userLocation === 'West'`).
-- Optimistische updates en sort_order-gedrag blijven intact.
-- Categorie-suggestielijst is per (location, department) gefilterd, zodat Voorkant-categorieën niet in Achterkant verschijnen en omgekeerd.
+### 5. Volgorde toegepast op
+- Live takenlijst West (Voorkant + Achterkant secties).
+- Admin → Templates Beheren (takenlijst gegroepeerd per categorie in zelfde volgorde).
+- Categorie-dropdown bij "Nieuwe taak" en bij per-taak categoriekeuze (suggesties in dezelfde volgorde getoond).
 
-## Technische notities
-- Bestand: `src/components/foh/FohTasks.tsx` (render + dialogen + template editor)
-- Type `FohTask.category` is al `string` → vrij invoerbaar.
-- Hook voor unieke categorieën: kleine `useMemo` over `tasks` + `templates` per departement.
+### 6. Robustheid / geen bugs
+- Geen wijziging aan Midsland-pad (alle wijzigingen gated op `userLocation === 'West'` of op aanwezigheid van een `foh_category_order`-rij).
+- Optimistische updates rollbacken bij fout (React Query `onError` reset).
+- Drag-and-drop én ↑/↓ knoppen schrijven dezelfde bulk-update functie, zodat er één codepad is.
+- Seed-migratie: bij deploy alle bestaande unieke West-categorieën uit `foh_tasks` + `foh_daily_templates` invoegen met een initiële `sort_order` (alfabetisch, stappen van 10) zodat huidige gebruikers direct iets zien om te slepen.
+- Cache-invalidation: na elke mutatie `['category-order', location, department]` + de templates/tasks queries invalidaten zodat lijst en admin in sync blijven.
 
-## Resultaat voor gebruiker
-- In West zie je onder Voorkant en Achterkant nette sub-koppen (Bar, Zaal, Koeling, …) met hun taken eronder.
-- Bij "Taak toevoegen" kies je de subcategorie of typ je een nieuwe.
-- In Admin → Templates Beheren kun je subcategorieën aanmaken, hernoemen en taken eraan koppelen.
+## Technische bestanden
+- **Nieuwe migratie**: tabel `foh_category_order` + GRANTs + RLS + seed.
+- `src/components/foh/FohTasks.tsx`: nieuwe hook, sortering, admin-UI sectie "Subcategorieën beheren", rename/delete/reorder flows.
+- (Optioneel) kleine RPC `foh_rename_category(location, department, old, new)` voor atomaire rename.
+
+## Resultaat
+- In Admin → Templates Beheren (West) kun je per afdeling subcategorieën slepen, hernoemen, toevoegen, verwijderen.
+- De volgorde die je daar instelt, geldt overal: live lijst, template-editor, "nieuwe taak"-dropdown.
+- Midsland blijft exact zoals het is.

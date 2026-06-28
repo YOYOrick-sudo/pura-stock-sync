@@ -509,6 +509,36 @@ export type Database = {
         }
         Relationships: []
       }
+      foh_category_order: {
+        Row: {
+          category: string
+          created_at: string
+          department: string
+          id: string
+          location: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          department?: string
+          id?: string
+          location: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          department?: string
+          id?: string
+          location?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       foh_daily_templates: {
         Row: {
           category: string
@@ -2153,6 +2183,15 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      foh_rename_category: {
+        Args: {
+          _department: string
+          _location: string
+          _new: string
+          _old: string
+        }
+        Returns: undefined
       }
       generate_order_number: { Args: never; Returns: string }
       get_user_location: { Args: { _user_id: string }; Returns: string }
