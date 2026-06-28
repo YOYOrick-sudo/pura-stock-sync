@@ -1,36 +1,33 @@
-## Doel
-Loginscherm visueel in lijn brengen met de nieuwe zwevende, ChatGPT-achtige sidebar: rustiger, lichter, meer ademruimte. Geen functionele wijzigingen — alleen UI.
+## Problemen
 
-## Wat ik aanpas in `src/pages/Auth.tsx`
+1. **Typo**: "Dailt" staat op 5 plekken in de codebase (moet "Daily" zijn).
+2. **Visueel**: De locatie-keuze op het inlogscherm oogt niet polished.
 
-**Card-container**
-- Zachtere shadow (subtiele `shadow-sm` i.p.v. `shadow-elevated`), dunnere `border-border/60`.
-- Smallere max-breedte (`max-w-[420px]`) — voelt compacter en moderner, net als de sidebar-kaart.
-- Iets minder padding (`p-8` blokken i.p.v. `p-12`) voor een lichter geheel.
-- Geen harde scheidingslijn meer tussen header en form — één rustig vlak.
+## Oplossing
 
-**Logo & header**
-- Logo iets kleiner (`h-16` i.p.v. `h-[88px]`) zodat het in verhouding staat met de nieuwe compactere sidebar-stijl.
-- Subtitel-regel ("Operationeel Systeem • Pura Vida Foodbar") iets kleiner en luchtiger.
+### Stap 1 — Typo fixen
+Vervang in de volgende bestanden `Dailt` → `Daily`:
+- `src/lib/utils.ts` (regel 9)
+- `src/pages/Kassa.tsx` (regel 689)
+- `src/components/SidebarLayout.tsx` (regel 31)
+- `src/pages/KasControle.tsx` (regel 198)
+- `src/components/maintenance/TicketList.tsx` (regel 128)
 
-**Locatie-keuze**
-- Van grote kaarten naar een **pill-toggle** (segmented control), zelfde taal als de actieve-rij-accenten in de sidebar: actieve pill in `bg-card` met fijne border en subtiele schaduw, inactieve in `bg-muted/40` met `text-muted-foreground`.
-- Border-radius 12–14px (matcht sidebar-rijen) i.p.v. 20px.
+### Stap 2 — Locatie-toggle redesign (Auth.tsx)
+De huidige `grid-cols-2` segmented control wordt vervangen door twee grote, klikbare kaarten/pillen met:
+- **Icoon per locatie**: bijv. `Building2` voor Daily, `Store` voor Foodbar (Lucide)
+- **Grotere touch target**: minimaal 56px hoog, ruime padding
+- **Actieve state**: duidelijke groene accent (primary) achtergrond of border, niet alleen een schaduw
+- **Inactieve state**: subtiele muted achtergrond, geen border
+- **Label**: locatienaam in 15px semibold, eventueel subtiel adres/label eronder
+- **Transitie**: 200ms ease voor achtergrond- en border-kleur
 
-**Wachtwoordveld**
-- Iets hoger (`h-12`), `rounded-xl`, rustigere focus-ring (`focus:ring-2 ring-primary/20` i.p.v. harde border-swap).
-- Label kleiner en lichter — minder "formulier", meer "app".
+### Technische details
+- Geen nieuwe dependencies nodig (Lucide iconen al aanwezig)
+- Behoud bestaande `onClick` en `disabled` logica bij loading state
+- Responsive: volle breedte op mobiel, max ~200px per pil op desktop
 
-**Knop**
-- `rounded-xl` (i.p.v. 20px) zodat het rijmt op de sidebar-pills.
-- Hover: lichte lift met `transition-all`, geen zware shadow.
-
-**Achtergrond**
-- Blijft `bg-background` (zelfde grijs als content-area), zodat de card net zo "zweeft" als de sidebar-kaart.
-
-## Buiten scope
-- Geen wijziging aan login-logica, locatie-mapping, cooldown, PWA-hint, of session-handling.
-- Geen nieuwe fonts of kleuren — alles binnen het huidige design-systeem (HSL tokens, primary-green).
-
-## Verificatie
-Na de edit: preview openen, controleren dat het scherm rustiger oogt, beide locatie-pills werken, en focus-state op het wachtwoordveld zichtbaar is.
+## Acceptatie
+- Inlogscherm toont "Daily" en "Foodbar" correct gespeld
+- Locatie-pillen zijn merkbaar groter, hebben een icoon, en de actieve keuze valt direct op
+- Geen functionele wijziging aan inloglogica
