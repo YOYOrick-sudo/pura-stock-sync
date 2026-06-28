@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { NotificationsDropdown } from '@/components/NotificationsDropdown';
+
 import { PolarSidebar } from '@/components/polar/Sidebar';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { PincodeNumpad } from '@/components/PincodeNumpad';
@@ -116,7 +116,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
           <img 
             src={puraVidaLogo}
             alt="Pura Vida" 
-            className="h-[53px] w-auto max-w-full object-contain object-left ml-2"
+            className="h-[44px] w-auto max-w-full object-contain object-left"
           />
         }
         items={navigationItems.map(item => ({
@@ -131,7 +131,6 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
         }))}
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
-        headerSlot={<NotificationsDropdown />}
         footerSlot={!collapsed ? <ThemeToggle /> : undefined}
       />
 
