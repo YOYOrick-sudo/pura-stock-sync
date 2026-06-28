@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { PanelLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { PanelLeft, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,6 +27,18 @@ export interface PolarSidebarProps {
   footerSlot?: React.ReactNode;
 }
 
+const OVERVIEW_URLS = new Set(['/dashboard', '/taken-bediening']);
+
+function groupItems(items: PolarSidebarItem[]) {
+  const overzicht: PolarSidebarItem[] = [];
+  const beheer: PolarSidebarItem[] = [];
+  for (const item of items) {
+    if (OVERVIEW_URLS.has(item.url)) overzicht.push(item);
+    else beheer.push(item);
+  }
+  return { overzicht, beheer };
+}
+
 export function PolarSidebar({
   logo,
   items,
@@ -35,165 +47,150 @@ export function PolarSidebar({
   footerSlot,
 }: PolarSidebarProps) {
   const navigate = useNavigate();
+  const { overzicht, beheer } = groupItems(items);
+
+  const renderItem = (item: PolarSidebarItem) => {
+    const Icon = item.icon;
+    const content = (
+      <div
+        key={item.url}
+        onClick={(e) => {
+          if (item.onClick) item.onClick(e);
+          else if (!item.requiresCode) navigate(item.url);
+        }}
+        className={cn(
+          'group flex items-center rounded-md transition-colors cursor-pointer select-none',
+          collapsed ? 'justify-center h-9 w-9 mx-auto' : 'h-7 px-2 gap-2',
+          item.active
+            ? 'bg-muted text-foreground'
+            : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+        )}
+      >
+        <Icon
+          className={cn(
+            'shrink-0 transition-colors',
+            item.active ? 'text-primary' : 'text-muted-foreground/70 group-hover:text-foreground'
+          )}
+          style={{ width: 16, height: 16, strokeWidth: 2 }}
+        />
+        {!collapsed && (
+          <>
+            <span className="text-[12px] font-medium leading-none truncate">
+              {item.title}
+            </span>
+            {item.requiresCode && (
+              <Lock className="ml-auto h-3 w-3 text-muted-foreground/50" strokeWidth={2} />
+            )}
+          </>
+        )}
+      </div>
+    );
+
+    if (collapsed) {
+      return (
+        <TooltipProvider key={item.url}>
+          <Tooltip delayDuration={200}>
+            <TooltipTrigger asChild>{content}</TooltipTrigger>
+            <TooltipContent
+              side="right"
+              className="bg-card text-foreground border border-border rounded-md px-2.5 py-1.5 text-xs shadow-md"
+            >
+              {item.title}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+    return content;
+  };
 
   return (
     <aside
-      className="polar-sidebar flex flex-col bg-background"
+      className="polar-sidebar flex flex-col bg-card border border-border rounded-lg shadow-sm overflow-hidden"
       style={{
-        width: collapsed ? '68px' : '280px',
-        height: '100vh',
+        width: collapsed ? '64px' : '230px',
+        height: 'calc(100vh - 24px)',
         position: 'sticky',
-        top: 0,
+        top: '12px',
+        margin: '12px 0 12px 12px',
         transition: 'width 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-        boxShadow: 'inset -1px 0 0 hsl(var(--border) / 0.6)',
       }}
     >
-      {/* Header - 72px */}
+      {/* Header */}
       <div
+        className="flex items-center justify-between border-b border-border bg-muted/30"
         style={{
-          height: '72px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: collapsed ? '0 10px' : '0 24px',
+          height: '44px',
+          padding: collapsed ? '0 8px' : '0 10px',
         }}
       >
         <div
-          style={{
-            transition: 'opacity 200ms ease',
-            opacity: collapsed ? 0 : 1,
-            overflow: 'hidden',
-          }}
+          className="overflow-hidden flex items-center"
+          style={{ opacity: collapsed ? 0 : 1, transition: 'opacity 150ms' }}
         >
           {!collapsed && logo}
         </div>
-
         {collapsed && (
-          <div className="text-xl font-semibold text-primary">
-            PV
-          </div>
+          <div className="text-sm font-semibold text-primary mx-auto">PV</div>
         )}
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {!collapsed && (
           <Button
             variant="ghost"
             size="icon"
             onClick={onToggle}
-            className="w-10 h-10 rounded-lg hover:bg-muted/60"
+            className="h-7 w-7 rounded-md hover:bg-muted shrink-0"
           >
-            <PanelLeft
-              className="h-5 w-5 text-muted-foreground"
-              style={{ strokeWidth: 1.5 }}
-            />
+            <PanelLeft className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2} />
           </Button>
-        </div>
+        )}
       </div>
 
-      {/* Navigation Items */}
-      <nav
-        className="flex-1 overflow-y-auto"
-        style={{
-          padding: collapsed ? '24px 10px' : '12px 16px 24px',
-        }}
-      >
-        {!collapsed && (
-          <div
-            className="text-[11px] font-medium tracking-wider text-muted-foreground/70 uppercase"
-            style={{ marginBottom: '12px', paddingLeft: '4px' }}
+      {/* Collapsed toggle (separate row) */}
+      {collapsed && (
+        <div className="flex justify-center py-2 border-b border-border/50">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggle}
+            className="h-7 w-7 rounded-md hover:bg-muted"
           >
-            Menu
+            <PanelLeft className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2} />
+          </Button>
+        </div>
+      )}
+
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-2">
+        {overzicht.length > 0 && (
+          <div className={cn(collapsed ? 'px-1' : 'px-2', 'mb-3')}>
+            {!collapsed && (
+              <h3 className="text-[9px] font-bold text-muted-foreground/60 tracking-widest uppercase px-2 mb-1.5">
+                Overzicht
+              </h3>
+            )}
+            <div className="flex flex-col gap-0.5">
+              {overzicht.map(renderItem)}
+            </div>
           </div>
         )}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {items.map((item) => {
-            const Icon = item.icon;
 
-            const itemContent = (
-              <div
-                key={item.url}
-                onClick={(e) => {
-                  if (item.onClick) {
-                    item.onClick(e);
-                  } else if (!item.requiresCode) {
-                    navigate(item.url);
-                  }
-                }}
-                className={cn(
-                  'polar-sidebar-item rounded-lg transition-colors relative',
-                  item.active && 'bg-primary/[0.08]',
-                  !item.active && 'hover:bg-muted/50',
-                  !item.requiresCode && 'cursor-pointer'
-                )}
-                style={{
-                  height: '44px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: collapsed ? '0 12px' : '0 16px',
-                  fontSize: '15px',
-                  fontWeight: item.active ? 500 : 400,
-                  justifyContent: collapsed ? 'center' : 'flex-start',
-                  transition: 'background-color 150ms ease',
-                }}
-              >
-                {item.active && (
-                  <span
-                    className="bg-primary rounded-full"
-                    style={{
-                      position: 'absolute',
-                      left: '4px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      width: '2px',
-                      height: '18px',
-                    }}
-                  />
-                )}
-                <Icon
-                  className={cn(
-                    'shrink-0 transition-colors',
-                    item.active ? 'text-primary' : 'text-muted-foreground'
-                  )}
-                  style={{
-                    width: collapsed ? '22px' : '20px',
-                    height: collapsed ? '22px' : '20px',
-                    marginRight: collapsed ? '0' : '14px',
-                    strokeWidth: 1.75,
-                  }}
-                />
-                {!collapsed && (
-                  <span className={item.active ? 'text-foreground' : 'text-muted-foreground'}>
-                    {item.title}
-                  </span>
-                )}
-              </div>
-            );
-
-            if (collapsed) {
-              return (
-                <TooltipProvider key={item.url}>
-                  <Tooltip delayDuration={200}>
-                    <TooltipTrigger asChild>
-                      {itemContent}
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="right"
-                      className="bg-card text-foreground border border-border rounded-lg px-3 py-2 text-sm shadow-md"
-                    >
-                      {item.title}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              );
-            }
-
-            return itemContent;
-          })}
-        </div>
+        {beheer.length > 0 && (
+          <div className={cn(collapsed ? 'px-1' : 'px-2', 'mb-3')}>
+            {!collapsed && (
+              <h3 className="text-[9px] font-bold text-muted-foreground/60 tracking-widest uppercase px-2 mb-1.5">
+                Beheer
+              </h3>
+            )}
+            <div className="flex flex-col gap-0.5">
+              {beheer.map(renderItem)}
+            </div>
+          </div>
+        )}
       </nav>
 
-      {/* Footer slot for theme toggle */}
-      {footerSlot && (
-        <div style={{ padding: '16px 16px' }}>
+      {/* Footer */}
+      {footerSlot && !collapsed && (
+        <div className="border-t border-border bg-muted/30 p-2">
           {footerSlot}
         </div>
       )}
