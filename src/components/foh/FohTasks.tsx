@@ -1086,29 +1086,31 @@ export function FohTasks() {
     dept: 'voorkant' | 'achterkant',
     orderedCategories: string[],
   ) => {
-    for (let i = 0; i < orderedCategories.length; i++) {
-      const cat = orderedCategories[i];
-      const sort_order = (i + 1) * 10;
-      const { error } = await supabase
-        .from('foh_category_order')
-        .upsert(
-          { location: userLocation, department: dept, category: cat, sort_order },
-          { onConflict: 'location,department,category' },
-        );
-      if (error) {
-        console.error('persistCategoryOrder error', error);
-        toast.error('Fout bij opslaan volgorde');
-        return false;
-      }
+    const rows = orderedCategories.map((cat, i) => ({
+      location: userLocation,
+      department: dept,
+      category: cat,
+      sort_order: (i + 1) * 10,
+    }));
+    const { error } = await supabase
+      .from('foh_category_order')
+      .upsert(rows, { onConflict: 'location,department,category' });
+    if (error) {
+      console.error('persistCategoryOrder error', error);
+      toast.error('Fout bij opslaan volgorde');
+      return false;
     }
     return true;
   };
+
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
 
   const handleMoveCategory = async (
     dept: 'voorkant' | 'achterkant',
     category: string,
     direction: -1 | 1,
   ) => {
+    if (isSavingOrder) return;
     const rows = getOrderedCategoryRows(dept);
     const idx = rows.findIndex(r => r.category === category);
     if (idx < 0) return;
@@ -1116,11 +1118,32 @@ export function FohTasks() {
     if (newIdx < 0 || newIdx >= rows.length) return;
     const list = rows.map(r => r.category);
     [list[idx], list[newIdx]] = [list[newIdx], list[idx]];
+
+    // Optimistische update — UI verspringt direct
+    const queryKey = ['foh-category-order', userLocation];
+    const previous = queryClient.getQueryData(queryKey);
+    const otherDept: 'voorkant' | 'achterkant' = dept === 'voorkant' ? 'achterkant' : 'voorkant';
+    const otherRows = (westCategoryOrder?.[otherDept] ?? []).map(r => ({
+      category: r.category,
+      sort_order: r.sort_order,
+    }));
+    const nextDeptRows = list.map((cat, i) => ({ category: cat, sort_order: (i + 1) * 10 }));
+    queryClient.setQueryData(queryKey, {
+      voorkant: dept === 'voorkant' ? nextDeptRows : otherRows,
+      achterkant: dept === 'achterkant' ? nextDeptRows : otherRows,
+    });
+
+    setIsSavingOrder(true);
     const ok = await persistCategoryOrder(dept, list);
+    setIsSavingOrder(false);
     if (ok) {
       invalidateAfterCategoryChange();
+    } else {
+      // Rollback
+      queryClient.setQueryData(queryKey, previous);
     }
   };
+
 
   const handleRenameCategory = async (
     dept: 'voorkant' | 'achterkant',
