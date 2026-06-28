@@ -52,7 +52,7 @@ export default function Settings() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Locatie:</span>
-                <span className="font-medium">{userLocation}</span>
+                <span className="font-medium">{displayLocation}</span>
               </div>
             </div>
           </Card>
