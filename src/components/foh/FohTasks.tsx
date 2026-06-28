@@ -2882,7 +2882,7 @@ export function FohTasks() {
                     <div>
                       {userLocation === 'West' ? (
                         <>
-                          {renderDepartmentSection('Bediening', 'voorkant', true)}
+                          {renderDepartmentSection('Bediening', 'voorkant')}
                           {renderDepartmentSection('Keuken', 'achterkant')}
                         </>
                       ) : (
