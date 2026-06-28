@@ -5,7 +5,7 @@ import { ServiceStaff } from '@/components/service/ServiceStaff';
 
 export default function ServiceModule() {
   return (
-    <KitchenLayout title="Bediening" subtitle="Taken & Medewerkers - Midsland">
+    <KitchenLayout title="Bediening" subtitle="Taken & Medewerkers - Foodbar">
       <Tabs defaultValue="tasks" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 bg-white">
           <TabsTrigger value="tasks">Taken</TabsTrigger>

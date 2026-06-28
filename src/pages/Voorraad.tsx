@@ -74,7 +74,7 @@ export default function Voorraad() {
                         </button>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs bg-white border-primary/20 text-foreground">
-                        <p className="text-sm">Noteer de huidige voorraad. Het systeem rekent uit wat Midsland aanvult.</p>
+                        <p className="text-sm">Noteer de huidige voorraad. Het systeem rekent uit wat Foodbar aanvult.</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
