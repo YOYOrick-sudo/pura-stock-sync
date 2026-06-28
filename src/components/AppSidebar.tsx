@@ -116,7 +116,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
           <img 
             src={puraVidaLogo}
             alt="Pura Vida" 
-            className="h-[53px] w-auto max-w-full object-contain object-left ml-2"
+            className="h-[44px] w-auto max-w-full object-contain object-left"
           />
         }
         items={navigationItems.map(item => ({
@@ -131,7 +131,6 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
         }))}
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
-        headerSlot={<NotificationsDropdown />}
         footerSlot={!collapsed ? <ThemeToggle /> : undefined}
       />
 
