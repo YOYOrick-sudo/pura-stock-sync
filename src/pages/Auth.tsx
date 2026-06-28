@@ -168,15 +168,17 @@ const Auth = () => {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || cooldown > 0}
               className={`w-full h-12 rounded-[20px] text-[15px] font-semibold text-primary-foreground flex items-center justify-center gap-2 transition-all
-                ${loading ? 'bg-muted-foreground cursor-not-allowed' : 'bg-primary hover:opacity-90 cursor-pointer shadow-md'}`}
+                ${loading || cooldown > 0 ? 'bg-muted-foreground cursor-not-allowed' : 'bg-primary hover:opacity-90 cursor-pointer shadow-md'}`}
             >
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
                   <span>Bezig met inloggen...</span>
                 </>
+              ) : cooldown > 0 ? (
+                <span>Wacht {cooldown}s…</span>
               ) : (
                 <>
                   <LogIn className="w-5 h-5" />
@@ -187,6 +189,7 @@ const Auth = () => {
           </form>
         </div>
       </div>
+      <PWAInstallHint />
     </div>
   );
 };
