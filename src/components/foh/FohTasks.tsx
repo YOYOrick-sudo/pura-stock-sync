@@ -3513,6 +3513,22 @@ export function FohTasks() {
                     onDelete={(id) => {
                       setDeletedTemplateTaskIds(prev => [...prev, id]);
                     }}
+                    onCategoryChange={
+                      (editingTemplate[0]?.location || userLocation) === 'West'
+                        ? (id, category) => {
+                            setEditingTemplate(prev => prev.map(t => t.id === id ? { ...t, category } : t));
+                          }
+                        : undefined
+                    }
+                    categoryOptions={
+                      (editingTemplate[0]?.location || userLocation) === 'West'
+                        ? getCategoriesForContext(
+                            editingTemplate[0]?.location || userLocation,
+                            ((editingTemplate[0] as any)?.department || effectiveDept) as 'voorkant' | 'achterkant',
+                            editingTemplate[0]?.phase || activePhase,
+                          )
+                        : undefined
+                    }
                     isDeleted={deletedTemplateTaskIds.includes(task.id)}
                     showAdminTools={true}
                   />
