@@ -23,6 +23,7 @@ import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-
 import { CSS } from '@dnd-kit/utilities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminPasswordDialog } from './AdminPasswordDialog';
+import { RepeatBadge } from './RepeatBadge';
 
 // Phase time windows (minutes-based)
 const PHASE_WINDOWS = [
