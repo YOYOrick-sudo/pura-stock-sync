@@ -3566,16 +3566,17 @@ export function FohTasks() {
                   }}>
                     Categorie
                   </label>
-                  <Select value={newTemplateTaskCategory} onValueChange={setNewTemplateTaskCategory}>
-                    <SelectTrigger style={{ borderRadius: '16px' }}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getAvailableCategoriesForPhase(userLocation, activePhase).map(cat => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <CategoryPicker
+                    value={newTemplateTaskCategory}
+                    onChange={setNewTemplateTaskCategory}
+                    options={getCategoriesForContext(
+                      editingTemplate[0]?.location || userLocation,
+                      ((editingTemplate[0] as any)?.department || effectiveDept) as 'voorkant' | 'achterkant',
+                      editingTemplate[0]?.phase || activePhase,
+                    )}
+                    allowCreate={(editingTemplate[0]?.location || userLocation) === 'West'}
+                    triggerStyle={{ borderRadius: '16px' }}
+                  />
                 </div>
                 <Button
                   onClick={handleAddTemplateTask}
