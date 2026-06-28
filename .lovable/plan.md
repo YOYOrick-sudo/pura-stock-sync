@@ -1,27 +1,36 @@
 ## Probleem
 
-Bij klikken op ↑ / ↓ in **Subcategorieën beheren** (West) wordt de nieuwe volgorde wél naar de database geschreven, maar de UI verspringt niet meteen. Oorzaak: `handleMoveCategory` doet eerst 6+ sequentiële `upsert`-calls (per categorie één) en wacht dán op `invalidateQueries` → refetch. Tussen klik en refetch zie je de oude volgorde, waardoor het lijkt alsof er niets gebeurt. Bij snel achter elkaar klikken kunnen latere klikken ook op stale data werken.
+Wijzigingen in de Template-editor worden alleen opgeslagen in `foh_daily_templates`, maar niet doorgevoerd in de al gegenereerde `foh_tasks` van vandaag. Daardoor blijft een al aangemaakte taak (bv. "Limonadeflessen in koeling") in het overzicht staan, ook al heet hij in de admin nu "Limonadeflessen Aanvullen (1 van ieder op reserve in de koelcel)".
 
-## Fix (alleen West, subcategorie-beheer paneel)
+## Oplossing
 
-1. **Optimistische update** — in `handleMoveCategory` direct na het swappen van de array `queryClient.setQueryData(['foh-category-order', userLocation], …)` aanroepen met de nieuwe volgorde (en sort_order-waarden als veelvouden van 10). UI verspringt dan onmiddellijk.
+`handleSaveTemplateEdits` in `src/components/foh/FohTasks.tsx` uitbreiden zodat elke template-mutatie ook de bijbehorende actieve taak van vandaag bijwerkt.
 
-2. **Eén batched upsert i.p.v. een for-loop** — `persistCategoryOrder` herschrijven naar één `supabase.from('foh_category_order').upsert([...alle rijen...], { onConflict: 'location,department,category' })`. Sneller en atomair.
+### Per actie
 
-3. **Rollback bij fout** — als de upsert faalt, `setQueryData` terugzetten naar de vorige snapshot en een toast tonen. Bij succes alsnog `invalidateQueries` om met de server te syncen.
+1. **Update bestaande template-taak** → ook `foh_tasks` updaten waar:
+   - `template_id = task.id`
+   - `due_date = vandaag (NL)`
+   - `archived = false`
+   - `completed_at IS NULL` (afgevinkte taken niet aanraken — die zijn al "gedaan")
+   
+   Velden: `title`, `category`, `description`, `estimated_minutes`, `sort_order`.
 
-4. **Knoppen tijdens save kort uitschakelen** — kleine `isSavingOrder`-state zodat dubbele klikken tijdens de roundtrip geen race veroorzaken (knoppen `disabled` tijdens save).
+2. **Nieuwe template-taak ingevoegd** → na de `insert` van de template direct ook een `foh_tasks`-rij voor vandaag aanmaken met `template_id = nieuwe template id`, `due_date = vandaag`, juiste `location`/`phase`/`department`/`category`/`sort_order`/`title`. (Zelfde shape als de DB-trigger `create_task_from_new_template` doet — die werkt alleen bij weekly/dow-match dus we doen het hier expliciet.)
 
-## Niet aanraken
+3. **Verwijderde template-taak** → corresponderende open taak van vandaag soft-deleten (`archived = true` waar `template_id IN (...)`, `due_date = vandaag`, `completed_at IS NULL`). Afgevinkte taken laten staan voor de historie.
 
-- Rename / delete / nieuwe-categorie-flows.
-- Midsland-gedrag.
-- Live takenlijst sortering en template-editor.
-- Database-schema (`foh_category_order` blijft zoals het is).
+4. **Categorie-rename via picker** in de editor: titels blijven hetzelfde, maar `category` op de template wijzigt. De update onder punt 1 dekt dit al (category wordt mee-gesynchroniseerd naar `foh_tasks`).
 
-## Verificatie
+Na afloop `queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] })` (staat er al) zodat de UI ververst.
 
-- ↑ op een rij → rij schuift onmiddellijk omhoog, nummer (1./2./…) update direct.
-- Pagina hard verversen → volgorde blijft hetzelfde (= echt opgeslagen).
-- ↑ op een rij met `(nieuw)` label → werkt ook, label verdwijnt na refetch want hij staat nu in `foh_category_order`.
-- Snel 3x klikken → geen vreemde sprongen, eindvolgorde klopt met DB.
+### Veiligheid
+
+- Alleen taken van **vandaag** (`due_date = today NL`) en alleen **niet-afgevinkte**, **niet-gearchiveerde** rijen worden aangeraakt. Historische data en lopende voortgang blijven intact.
+- Edge function `generate-waste-tasks` / dagelijkse reset (04:00) wordt niet aangepast — die genereert morgen automatisch op basis van de bijgewerkte template.
+
+### Bestanden
+
+- `src/components/foh/FohTasks.tsx` — alleen `handleSaveTemplateEdits` aanpassen.
+
+Geen schema-wijzigingen nodig.
