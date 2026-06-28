@@ -114,7 +114,7 @@ const Auth = () => {
                         : 'border-border bg-card hover:bg-muted'
                       } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    {loc}
+                    {getLocationDisplayName(loc)}
                   </div>
                 ))}
               </div>
