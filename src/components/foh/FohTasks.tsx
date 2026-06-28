@@ -849,6 +849,18 @@ export function FohTasks() {
     }
   }, [activeDepartment, userLocation]);
 
+  // Apparaat-modus (per iPad). 'beide' = bediening + keuken, 'voorkant' = alleen bediening, 'achterkant' = alleen keuken.
+  type DeviceMode = 'beide' | 'voorkant' | 'achterkant';
+  const [deviceMode, setDeviceMode] = useState<DeviceMode>(() => {
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('foh_device_mode_west') : null;
+    return stored === 'voorkant' || stored === 'achterkant' ? stored : 'beide';
+  });
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('foh_device_mode_west', deviceMode);
+    }
+  }, [deviceMode]);
+
   // West heeft geen tussenlijst — reset activePhase als die per ongeluk op 'tussen' staat
   useEffect(() => {
     if (userLocation === 'West' && activePhase === 'tussen') {
