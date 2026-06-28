@@ -115,9 +115,7 @@ export default function Dashboard() {
   return (
     <SidebarLayout>
     <div className="max-w-7xl mx-auto space-y-6">
-        <div className="-mt-2">
-          <HandoverCard />
-        </div>
+        <HandoverCard />
 
         <WasteCalendarCard />
 
