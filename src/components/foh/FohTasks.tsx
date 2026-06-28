@@ -55,6 +55,94 @@ const getAvailableCategoriesForPhase = (location: string, phase: string): string
   return [...CATEGORY_ORDER];
 };
 
+// ===== CATEGORY PICKER (with inline "new subcategory" creation) =====
+interface CategoryPickerProps {
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  allowCreate?: boolean;
+  triggerStyle?: React.CSSProperties;
+}
+function CategoryPicker({ value, onChange, options, allowCreate = true, triggerStyle }: CategoryPickerProps) {
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState('');
+  const merged = value && !options.includes(value) ? [value, ...options] : options;
+
+  const commit = () => {
+    const v = draft.trim();
+    if (v) {
+      onChange(v);
+      setAdding(false);
+      setDraft('');
+    }
+  };
+
+  if (adding) {
+    return (
+      <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+        <Input
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="Nieuwe subcategorie..."
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') { e.preventDefault(); commit(); }
+            if (e.key === 'Escape') { setAdding(false); setDraft(''); }
+          }}
+          style={{ borderRadius: '12px', fontSize: '12px', height: 32, fontFamily: 'Inter, sans-serif', ...triggerStyle }}
+        />
+        <button
+          type="button"
+          onClick={commit}
+          style={{
+            border: '1px solid hsl(var(--primary))',
+            background: 'hsl(var(--primary))',
+            color: 'hsl(var(--primary-foreground))',
+            borderRadius: 8, padding: '4px 10px', fontSize: 12, cursor: 'pointer',
+          }}
+        >OK</button>
+        <button
+          type="button"
+          onClick={() => { setAdding(false); setDraft(''); }}
+          style={{
+            border: '1px solid hsl(var(--border))',
+            background: 'hsl(var(--card))',
+            color: 'hsl(var(--muted-foreground))',
+            borderRadius: 8, padding: '4px 8px', fontSize: 12, cursor: 'pointer',
+          }}
+        >✕</button>
+      </div>
+    );
+  }
+
+  return (
+    <Select
+      value={value}
+      onValueChange={(v) => {
+        if (v === '__new__') {
+          setAdding(true);
+        } else {
+          onChange(v);
+        }
+      }}
+    >
+      <SelectTrigger style={{ borderRadius: '12px', fontFamily: 'Inter, sans-serif', ...triggerStyle }}>
+        <SelectValue placeholder="Selecteer..." />
+      </SelectTrigger>
+      <SelectContent>
+        {merged.map(c => (
+          <SelectItem key={c} value={c}>{c}</SelectItem>
+        ))}
+        {allowCreate && (
+          <SelectItem value="__new__" style={{ color: 'hsl(var(--primary))', fontWeight: 600 }}>
+            + Nieuwe subcategorie...
+          </SelectItem>
+        )}
+      </SelectContent>
+    </Select>
+  );
+}
+
 // ===== SORTABLE TASK ITEM COMPONENT =====
 interface SortableTaskItemProps {
   task: FohTaskWithEmployee;
@@ -62,6 +150,8 @@ interface SortableTaskItemProps {
   onTitleChange: (id: string, title: string) => void;
   onDescriptionChange?: (id: string, description: string) => void;
   onEstimatedMinutesChange?: (id: string, minutes: number | null) => void;
+  onCategoryChange?: (id: string, category: string) => void;
+  categoryOptions?: string[];
   onDelete: (id: string) => void;
   toggleTask?: (id: string, completed: boolean) => void;
   isDeleted: boolean;
@@ -71,7 +161,7 @@ interface SortableTaskItemProps {
   isNew?: boolean;
 }
 
-function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0', taskNumber, isNew = false }: SortableTaskItemProps) {
+function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onCategoryChange, categoryOptions, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0', taskNumber, isNew = false }: SortableTaskItemProps) {
   const {
     attributes,
     listeners,
@@ -329,6 +419,19 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 </span>
               )
             )}
+
+            {/* Category picker - admin edit mode only */}
+            {isEditMode && onCategoryChange && categoryOptions && (
+              <div style={{ width: 150 }}>
+                <CategoryPicker
+                  value={task.category || 'Algemeen'}
+                  onChange={(v) => onCategoryChange(task.id, v)}
+                  options={categoryOptions}
+                  triggerStyle={{ height: 28, fontSize: 12 }}
+                />
+              </div>
+            )}
+
 
             {/* Info button - compact */}
             {!isEditMode && task.description && (
@@ -613,6 +716,9 @@ const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
         if (a.completed !== b.completed) {
           return a.completed ? 1 : -1;
         }
+        if (a.sort_order !== undefined && b.sort_order !== undefined) {
+          return a.sort_order - b.sort_order;
+        }
         return 0;
       });
     }
@@ -861,6 +967,48 @@ export function FohTasks() {
     },
     enabled: !!userLocation,
   });
+
+  // ===== WEST SUBCATEGORIES — verzameld uit templates + actieve taken per afdeling =====
+  const { data: westSubcatsData } = useQuery({
+    queryKey: ['foh-west-subcategories', userLocation],
+    queryFn: async () => {
+      const [tpl, tsk] = await Promise.all([
+        supabase.from('foh_daily_templates').select('category, department').eq('location', 'West'),
+        supabase.from('foh_tasks').select('category, department').eq('location', 'West').eq('archived', false),
+      ]);
+      const out: Record<'voorkant' | 'achterkant', Set<string>> = {
+        voorkant: new Set(),
+        achterkant: new Set(),
+      };
+      for (const r of [...((tpl.data as any[]) || []), ...((tsk.data as any[]) || [])]) {
+        const dept = r.department === 'achterkant' ? 'achterkant' : 'voorkant';
+        const c = (r.category || '').trim();
+        if (c) out[dept].add(c);
+      }
+      return {
+        voorkant: Array.from(out.voorkant).sort(),
+        achterkant: Array.from(out.achterkant).sort(),
+      };
+    },
+    enabled: userLocation === 'West',
+  });
+
+  // Categorieën beschikbaar voor een (location, dept, phase) combinatie.
+  // West: dynamisch op basis van bestaande templates/taken per afdeling, plus 'Algemeen' als fallback.
+  // Midsland: bestaande vaste lijst per fase.
+  const getCategoriesForContext = (
+    loc: string,
+    dept: 'voorkant' | 'achterkant',
+    phase: string,
+  ): string[] => {
+    if (loc === 'West') {
+      const base = westSubcatsData?.[dept] ?? [];
+      if (base.length === 0) return ['Algemeen'];
+      return base.includes('Algemeen') ? base : ['Algemeen', ...base];
+    }
+    return getAvailableCategoriesForPhase(loc, phase);
+  };
+
 
   // Map template_id → isNew (created less than 7 days ago)
   const newTemplateIds = new Set<string>();
@@ -1459,6 +1607,8 @@ export function FohTasks() {
       
       toast.success(`Template "${currentTemplateName}" bijgewerkt`);
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
     } catch (error) {
       console.error('Error saving template:', error);
       toast.error('Fout bij opslaan template');
@@ -1522,6 +1672,8 @@ export function FohTasks() {
       
       toast.success(`Lijst "${templateName}" is nu actief en zichtbaar`);
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['foh-tasks'] });
     } catch (error) {
       console.error('Error activating template:', error);
@@ -1602,6 +1754,8 @@ export function FohTasks() {
       setNewTemplateDialogOpen(false);
       setNewTemplateName('');
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
     } catch (error) {
       console.error('Error creating template:', error);
       toast.error('Fout bij aanmaken template');
@@ -1629,6 +1783,8 @@ export function FohTasks() {
       
       toast.success(`Template "${templateName}" verwijderd`);
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
       setSelectedTemplateName('');
     } catch (error) {
       console.error('Error deleting template:', error);
@@ -1749,6 +1905,8 @@ export function FohTasks() {
       setNewTemplateTaskInput('');
       setNewTemplateTaskCategory('Algemeen');
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
     } catch (error) {
       console.error('Error saving template edits:', error);
       toast.error('Fout bij opslaan');
@@ -2326,16 +2484,19 @@ export function FohTasks() {
                                 <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
                                   Categorie
                                 </Label>
-                                <Select value={newTask.category} onValueChange={(val) => setNewTask({ ...newTask, category: val })}>
-                                  <SelectTrigger style={{ marginTop: '6px', borderRadius: '16px', fontFamily: 'Inter, sans-serif' }}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {getAvailableCategoriesForPhase(userLocation, 'periodiek').map(cat => (
-                                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                                <div style={{ marginTop: '6px' }}>
+                                  <CategoryPicker
+                                    value={newTask.category}
+                                    onChange={(val) => setNewTask({ ...newTask, category: val })}
+                                    options={getCategoriesForContext(
+                                      userLocation,
+                                      (userLocation === 'West' ? (newTask.department as 'voorkant' | 'achterkant') : 'voorkant'),
+                                      'periodiek',
+                                    )}
+                                    allowCreate={userLocation === 'West'}
+                                    triggerStyle={{ borderRadius: '16px' }}
+                                  />
+                                </div>
                               </div>
                             </div>
 
@@ -2727,7 +2888,7 @@ export function FohTasks() {
                     <div>
                       {userLocation === 'West' ? (
                         <>
-                          {renderDepartmentSection('Bediening', 'voorkant', true)}
+                          {renderDepartmentSection('Bediening', 'voorkant')}
                           {renderDepartmentSection('Keuken', 'achterkant')}
                         </>
                       ) : (
@@ -3355,6 +3516,22 @@ export function FohTasks() {
                     onDelete={(id) => {
                       setDeletedTemplateTaskIds(prev => [...prev, id]);
                     }}
+                    onCategoryChange={
+                      (editingTemplate[0]?.location || userLocation) === 'West'
+                        ? (id, category) => {
+                            setEditingTemplate(prev => prev.map(t => t.id === id ? { ...t, category } : t));
+                          }
+                        : undefined
+                    }
+                    categoryOptions={
+                      (editingTemplate[0]?.location || userLocation) === 'West'
+                        ? getCategoriesForContext(
+                            editingTemplate[0]?.location || userLocation,
+                            ((editingTemplate[0] as any)?.department || effectiveDept) as 'voorkant' | 'achterkant',
+                            editingTemplate[0]?.phase || activePhase,
+                          )
+                        : undefined
+                    }
                     isDeleted={deletedTemplateTaskIds.includes(task.id)}
                     showAdminTools={true}
                   />
@@ -3408,16 +3585,17 @@ export function FohTasks() {
                   }}>
                     Categorie
                   </label>
-                  <Select value={newTemplateTaskCategory} onValueChange={setNewTemplateTaskCategory}>
-                    <SelectTrigger style={{ borderRadius: '16px' }}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getAvailableCategoriesForPhase(userLocation, activePhase).map(cat => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <CategoryPicker
+                    value={newTemplateTaskCategory}
+                    onChange={setNewTemplateTaskCategory}
+                    options={getCategoriesForContext(
+                      editingTemplate[0]?.location || userLocation,
+                      ((editingTemplate[0] as any)?.department || effectiveDept) as 'voorkant' | 'achterkant',
+                      editingTemplate[0]?.phase || activePhase,
+                    )}
+                    allowCreate={(editingTemplate[0]?.location || userLocation) === 'West'}
+                    triggerStyle={{ borderRadius: '16px' }}
+                  />
                 </div>
                 <Button
                   onClick={handleAddTemplateTask}
