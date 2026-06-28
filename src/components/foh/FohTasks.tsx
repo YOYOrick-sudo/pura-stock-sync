@@ -1604,6 +1604,8 @@ export function FohTasks() {
       
       toast.success(`Template "${currentTemplateName}" bijgewerkt`);
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
     } catch (error) {
       console.error('Error saving template:', error);
       toast.error('Fout bij opslaan template');
@@ -1667,6 +1669,8 @@ export function FohTasks() {
       
       toast.success(`Lijst "${templateName}" is nu actief en zichtbaar`);
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['foh-tasks'] });
     } catch (error) {
       console.error('Error activating template:', error);
@@ -1747,6 +1751,8 @@ export function FohTasks() {
       setNewTemplateDialogOpen(false);
       setNewTemplateName('');
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
     } catch (error) {
       console.error('Error creating template:', error);
       toast.error('Fout bij aanmaken template');
@@ -1774,6 +1780,8 @@ export function FohTasks() {
       
       toast.success(`Template "${templateName}" verwijderd`);
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
       setSelectedTemplateName('');
     } catch (error) {
       console.error('Error deleting template:', error);
@@ -1894,6 +1902,8 @@ export function FohTasks() {
       setNewTemplateTaskInput('');
       setNewTemplateTaskCategory('Algemeen');
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
     } catch (error) {
       console.error('Error saving template edits:', error);
       toast.error('Fout bij opslaan');
