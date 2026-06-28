@@ -1,37 +1,15 @@
-## Plan
+Toevoegen van 6 nieuwe taken aan de "Sanitair"-categorie in de West sluitlijst (voorkant).
 
-### 1. Nieuwe taak in West (openen, di+vr)
-- Voeg toe aan `foh_daily_templates`: **"Plantjes water geven"**
-  - `location` = West, `phase` = open, `department` = voorkant
-  - `repeat_type` = weekly met **twee rijen** (één voor `day_of_week = 2` dinsdag, één voor `day_of_week = 5` vrijdag) — schema ondersteunt geen array, dus 2 templates is de schone oplossing
-  - `category` = passende bestaande categorie (Bijvullen of Algemeen — kies bij implementatie de logisch passende voor West open voorkant)
-  - `sort_order` = einde van categorie
-- Als vandaag (zondag 28 juni) géén di/vr is wordt er niets voor vandaag aangemaakt — de bestaande `create_task_from_new_template` trigger respecteert dat al.
+Dit omvat:
+1. **Deurhendel schoonmaken**
+2. **Spoelbakje schoonmaken**
+3. **Wanden rondom toilet schoonmaken**
+4. **Toiletpot schoonmaken (boven, onder zeikant)**
+5. **Toiletpapier Bijvullen**
+6. **Papieren handoekjes Bijvullen**
 
-### 2. Stylish "herhalend"-badge door de hele app
-Eén herbruikbare component `RepeatBadge` (`src/components/foh/RepeatBadge.tsx`):
-
-```
-┌─────────────────────┐
-│ ↻  di · vr          │   ← subtiele pill
-└─────────────────────┘
-```
-
-- Stijl: `bg-muted` (≈ #F3F4F6), `text-muted-foreground` (≈ #6B7280), kleine `Repeat` lucide-icon, primary-green accent op het icoon bij hover.
-- Toont:
-  - bij `repeat_type = 'weekly'` + `day_of_week` → korte dagcode (`ma di wo do vr za zo`)
-  - bij meerdere templates met dezelfde titel (zoals di+vr) → samenvoegen tot `di · vr`
-  - bij `repeat_type = 'daily'` → tekst "dagelijks"
-- Wordt gebruikt in:
-  - `SortableTaskItem` (dagelijkse takenlijst) — naast taaktitel
-  - Template-editor lijst in Admin (West én Midsland)
-  - Periodieke takenlijst (waar nu al een datum staat)
-
-### 3. Aggregatie-logica
-Omdat di+vr nu twee aparte templates worden, voeg in `FohTasks.tsx` een helper toe die templates/tasks met dezelfde titel + zelfde phase + zelfde department samenvoegt **alleen voor de badge** (taken zelf blijven los per dag). Voor `foh_tasks` van vandaag is dit niet nodig (er is maar één per dag).
-
-### Technische details
-- Migration: 2× `INSERT` in `foh_daily_templates` voor West.
-- Nieuw component `RepeatBadge` met props `{ repeatType, daysOfWeek: number[] }`.
-- Helper `groupRepeatDays(templates)` in `FohTasks.tsx` om di+vr-paar te detecteren.
-- Geen breaking changes; alle bestaande taken zonder repeat blijven exact zoals nu.
+Technische aanpak:
+- Insert de 6 taken in `foh_daily_templates` (location='West', phase='sluit', department='voorkant', category='Sanitair', template_name='Sluit', is_active=true), met sort_orders na de bestaande "Toilet schoonmaken" (290) en de laatste taak in de lijst (300). Nieuwe sort_orders: 310, 320, 330, 340, 350, 360.
+- Insert dezelfde 6 taken in `foh_tasks` voor **vandaag** (28 juni 2026), zodat ze direct zichtbaar zijn in de actieve lijst.
+- De "Sanitair"-categorie bestaat al in `foh_category_order` (sort_order 50), dus geen wijzigingen nodig aan de categorievolgorde.
+- Geen code-wijzigingen nodig; puur data-aanvulling.
