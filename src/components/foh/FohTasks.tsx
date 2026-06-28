@@ -1697,7 +1697,24 @@ export function FohTasks() {
           return;
         }
       }
-      
+
+      // West: registreer nieuwe categorieën in foh_category_order
+      if (userLocation === 'West') {
+        const cats = new Set<string>();
+        for (const t of editedTasks) {
+          if (deletedTaskIds.includes(t.id)) continue;
+          if (t.category) cats.add(t.category);
+        }
+        for (const t of newTasks) {
+          if (t.category) cats.add(t.category);
+        }
+        for (const c of cats) {
+          await ensureCategoryOrderRow('West', effectiveDept, c);
+        }
+        queryClient.invalidateQueries({ queryKey: ['foh-category-order'] });
+        queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+      }
+
       await fetchDailyTasks();
       setIsEditMode(false);
       setEditedTasks([]);
