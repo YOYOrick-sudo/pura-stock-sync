@@ -1947,13 +1947,29 @@ export function FohTasks() {
           return;
         }
       }
-      
+
+      // Zorg dat alle gebruikte categorieën een volgorde-rij hebben (West).
+      const loc = (editingTemplate[0]?.location || userLocation) as string;
+      if (loc === 'West') {
+        const seen = new Set<string>();
+        for (const t of editingTemplate) {
+          if (deletedTemplateTaskIds.includes(t.id)) continue;
+          const dept = ((t as any).department || effectiveDept) as 'voorkant' | 'achterkant';
+          const cat = (t.category || '').trim();
+          const key = `${dept}::${cat}`;
+          if (!cat || seen.has(key)) continue;
+          seen.add(key);
+          await ensureCategoryOrderRow(loc, dept, cat);
+        }
+      }
+
       toast.success('Template opgeslagen');
       setTemplateEditorOpen(false);
       setNewTemplateTaskInput('');
       setNewTemplateTaskCategory('Algemeen');
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
       queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-category-order'] });
       queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
     } catch (error) {
       console.error('Error saving template edits:', error);
