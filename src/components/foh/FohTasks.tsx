@@ -1056,6 +1056,141 @@ export function FohTasks() {
       );
   };
 
+  // ===== WEST SUBCATEGORIE BEHEER =====
+  const invalidateAfterCategoryChange = () => {
+    queryClient.invalidateQueries({ queryKey: ['foh-category-order'] });
+    queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+    queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
+    queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
+  };
+
+  // Combinatie van geordende rijen + niet-geordende categorieën, in dezelfde volgorde
+  // als getCategoriesForContext zodat de UI 1-op-1 klopt met de live lijst.
+  const getOrderedCategoryRows = (
+    dept: 'voorkant' | 'achterkant',
+  ): { category: string; sort_order: number | null }[] => {
+    const ordered = (westCategoryOrder?.[dept] ?? []).map(r => ({
+      category: r.category,
+      sort_order: r.sort_order as number | null,
+    }));
+    const seen = new Set(ordered.map(r => r.category));
+    const used = westSubcatsData?.[dept] ?? [];
+    for (const c of used.slice().sort()) {
+      if (!seen.has(c)) ordered.push({ category: c, sort_order: null });
+    }
+    return ordered;
+  };
+
+  // Herschrijf alle sort_order waarden naar veelvouden van 10 op basis van array-volgorde.
+  const persistCategoryOrder = async (
+    dept: 'voorkant' | 'achterkant',
+    orderedCategories: string[],
+  ) => {
+    for (let i = 0; i < orderedCategories.length; i++) {
+      const cat = orderedCategories[i];
+      const sort_order = (i + 1) * 10;
+      const { error } = await supabase
+        .from('foh_category_order')
+        .upsert(
+          { location: userLocation, department: dept, category: cat, sort_order },
+          { onConflict: 'location,department,category' },
+        );
+      if (error) {
+        console.error('persistCategoryOrder error', error);
+        toast.error('Fout bij opslaan volgorde');
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleMoveCategory = async (
+    dept: 'voorkant' | 'achterkant',
+    category: string,
+    direction: -1 | 1,
+  ) => {
+    const rows = getOrderedCategoryRows(dept);
+    const idx = rows.findIndex(r => r.category === category);
+    if (idx < 0) return;
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= rows.length) return;
+    const list = rows.map(r => r.category);
+    [list[idx], list[newIdx]] = [list[newIdx], list[idx]];
+    const ok = await persistCategoryOrder(dept, list);
+    if (ok) {
+      invalidateAfterCategoryChange();
+    }
+  };
+
+  const handleRenameCategory = async (
+    dept: 'voorkant' | 'achterkant',
+    oldName: string,
+  ) => {
+    const next = window.prompt(`Nieuwe naam voor "${oldName}":`, oldName);
+    if (!next) return;
+    const trimmed = next.trim();
+    if (!trimmed || trimmed === oldName) return;
+    const { error } = await supabase.rpc('foh_rename_category', {
+      _location: userLocation,
+      _department: dept,
+      _old: oldName,
+      _new: trimmed,
+    });
+    if (error) {
+      console.error('rename category', error);
+      toast.error('Hernoemen mislukt');
+      return;
+    }
+    toast.success('Subcategorie hernoemd');
+    invalidateAfterCategoryChange();
+  };
+
+  const handleDeleteCategory = async (
+    dept: 'voorkant' | 'achterkant',
+    category: string,
+  ) => {
+    // Veiligheid: alleen verwijderen als er geen taken/templates meer in zitten
+    const [tpl, tsk] = await Promise.all([
+      supabase
+        .from('foh_daily_templates')
+        .select('id', { count: 'exact', head: true })
+        .eq('location', userLocation)
+        .eq('department', dept)
+        .eq('category', category),
+      supabase
+        .from('foh_tasks')
+        .select('id', { count: 'exact', head: true })
+        .eq('location', userLocation)
+        .eq('department', dept)
+        .eq('category', category)
+        .eq('archived', false),
+    ]);
+    const tplCount = tpl.count ?? 0;
+    const tskCount = tsk.count ?? 0;
+    if (tplCount + tskCount > 0) {
+      toast.error(
+        `Kan niet verwijderen: nog ${tplCount} template-taak(jes) en ${tskCount} actieve taak/taken in "${category}".`,
+      );
+      return;
+    }
+    if (!window.confirm(`Subcategorie "${category}" verwijderen?`)) return;
+    const { error } = await supabase
+      .from('foh_category_order')
+      .delete()
+      .eq('location', userLocation)
+      .eq('department', dept)
+      .eq('category', category);
+    if (error) {
+      console.error('delete category', error);
+      toast.error('Verwijderen mislukt');
+      return;
+    }
+    toast.success('Subcategorie verwijderd');
+    invalidateAfterCategoryChange();
+  };
+
+
+
 
 
   // Map template_id → isNew (created less than 7 days ago)
