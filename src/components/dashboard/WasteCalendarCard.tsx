@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Trash2, AlertTriangle, Leaf, Newspaper, Wine, ChevronLeft, ChevronRight, Sprout } from 'lucide-react';
 import { useWastePickups, type WastePickup, type WasteFraction, type WasteSource } from '@/hooks/useWastePickups';
 import { useUserLocation } from '@/contexts/UserLocationContext';
+import { getLocationDisplayName } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -86,7 +87,7 @@ export function WasteCalendarCard() {
   if (userLocation !== 'Midsland' && userLocation !== 'West') return null;
 
   const today = todayNl();
-  const cardTitle = `Afvalkalender ${userLocation}`;
+  const cardTitle = `Afvalkalender ${getLocationDisplayName(userLocation)}`;
 
   return (
     <div className="bg-card rounded-[20px] p-5 shadow-sm border border-border">

@@ -413,7 +413,7 @@ export default function OrderDashboard() {
                     Bezig met verzenden...
                   </> : <>
                     <Check className="mr-2 h-5 w-5" />
-                    Verstuur naar Midsland
+                    Verstuur naar Foodbar
                   </>}
               </Button>
             </div>
@@ -485,8 +485,8 @@ export default function OrderDashboard() {
                 <li className="flex gap-3">
                   <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
                   <div>
-                    <span className="font-heading font-medium text-foreground">Verstuur naar Midsland</span>
-                    <p className="text-sm text-foreground/70 mt-1">Klik op "Verstuur naar Midsland" om de bestelling door te geven.</p>
+                    <span className="font-heading font-medium text-foreground">Verstuur naar Foodbar</span>
+                    <p className="text-sm text-foreground/70 mt-1">Klik op "Verstuur naar Foodbar" om de bestelling door te geven.</p>
                   </div>
                 </li>
               </ol>
@@ -520,7 +520,7 @@ export default function OrderDashboard() {
                 Bestelling verzonden!
               </AlertDialogTitle>
               <AlertDialogDescription className="text-center text-foreground/70 text-sm sm:text-base space-y-2 px-2">
-                <p className="font-medium leading-relaxed">Je bestelling is succesvol naar Midsland gestuurd.</p>
+                <p className="font-medium leading-relaxed">Je bestelling is succesvol naar Foodbar gestuurd.</p>
                 {totalRefill > 0 && <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-secondary rounded-xl">
                     <p className="text-sm sm:text-base">
                       <span className="font-semibold text-primary">{totalRefill} {totalRefill === 1 ? 'product' : 'producten'}</span> worden aangevuld
@@ -570,7 +570,7 @@ export default function OrderDashboard() {
         {/* Footer */}
         <div className="mt-8 pb-20 text-center">
           <p className="text-sm text-foreground/60 italic max-w-md mx-auto px-4">
-            *Pro tip: Alles netjes invullen = happy Midsland, happy gasten, happy jullie 🎉
+            *Pro tip: Alles netjes invullen = happy Foodbar, happy gasten, happy jullie 🎉
           </p>
         </div>
     </>

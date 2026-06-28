@@ -1,8 +1,10 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { getLocationDisplayName } from '@/lib/utils';
 
 interface UserLocationContextType {
   userLocation: string;
+  displayLocation: string;
   loading: boolean;
 }
 
@@ -70,8 +72,10 @@ export function UserLocationProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const displayLocation = useMemo(() => getLocationDisplayName(userLocation), [userLocation]);
+
   return (
-    <UserLocationContext.Provider value={{ userLocation, loading }}>
+    <UserLocationContext.Provider value={{ userLocation, displayLocation, loading }}>
       {children}
     </UserLocationContext.Provider>
   );

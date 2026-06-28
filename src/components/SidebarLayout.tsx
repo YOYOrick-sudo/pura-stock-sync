@@ -16,7 +16,7 @@ export function SidebarLayout({
   hideHeader = false
 }: SidebarLayoutProps) {
   const location = useLocation();
-  const { userLocation } = useUserLocation();
+  const { userLocation, displayLocation } = useUserLocation();
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
@@ -28,7 +28,7 @@ export function SidebarLayout({
       '/kassa': 'Kassa',
       '/taken-bediening': 'Taken Bediening',
       '/internal-orders': 'Interne Bestellingen',
-      '/midsland-bestellingen': 'Bestellingen van West',
+      '/midsland-bestellingen': 'Bestellingen van West Daily',
       '/kitchen-menu': 'Keuken Menu',
       '/kitchen-tasks': 'Keuken Taken',
       '/recipes': 'Recepten',
@@ -68,7 +68,7 @@ export function SidebarLayout({
           <PolarHeader
             title={getPageTitle(location.pathname)} 
             showStatusIndicator={false} 
-            location={userLocation}
+            location={displayLocation}
             onMenuClick={isMobile ? () => setMobileMenuOpen(true) : undefined}
           />
         )}

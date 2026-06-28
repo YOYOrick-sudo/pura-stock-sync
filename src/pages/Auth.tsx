@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import logoOfficial from '@/assets/pura-vida-logo-official.png';
+import { getLocationDisplayName } from '@/lib/utils';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -58,12 +59,12 @@ const Auth = () => {
           .maybeSingle();
         
         if (userRole?.location !== location) {
-          toast.error('Verkeerde locatie detecteerd', { description: `Deze account hoort bij ${userRole?.location}` });
+          toast.error('Verkeerde locatie detecteerd', { description: `Deze account hoort bij ${getLocationDisplayName(userRole?.location || '')}` });
           await supabase.auth.signOut();
           return;
         }
         
-        toast.success(`Welkom bij ${location}!`);
+        toast.success(`Welkom bij ${getLocationDisplayName(location)}!`);
         navigate('/dashboard');
       }
     } catch (error) {
@@ -113,7 +114,7 @@ const Auth = () => {
                         : 'border-border bg-card hover:bg-muted'
                       } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    {loc}
+                    {getLocationDisplayName(loc)}
                   </div>
                 ))}
               </div>

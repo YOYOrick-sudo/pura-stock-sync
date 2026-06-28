@@ -10,7 +10,7 @@ import { useUserLocation } from '@/contexts/UserLocationContext';
 
 export default function Settings() {
   const navigate = useNavigate();
-  const { userLocation } = useUserLocation();
+  const { displayLocation } = useUserLocation();
   const [userEmail, setUserEmail] = useState<string>('');
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export default function Settings() {
       <div className="max-w-7xl mx-auto space-y-6">
         <div>
           <h1 className="text-3xl font-heading font-bold text-foreground">Instellingen</h1>
-          <p className="text-sm text-muted-foreground">{userLocation}</p>
+          <p className="text-sm text-muted-foreground">{displayLocation}</p>
         </div>
 
         <div className="grid gap-4 max-w-2xl">
@@ -52,7 +52,7 @@ export default function Settings() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Locatie:</span>
-                <span className="font-medium">{userLocation}</span>
+                <span className="font-medium">{displayLocation}</span>
               </div>
             </div>
           </Card>

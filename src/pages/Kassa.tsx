@@ -686,7 +686,7 @@ const Kassa = () => {
                 <div>
                   <span className="font-heading font-medium text-foreground">Controleer kassalade</span>
                   <p className="text-sm text-foreground/70 mt-1">De kassalade moet altijd €157 bevatten. Vul indien nodig aan vanuit de wisselkassa.</p>
-                  <p className="text-xs text-amber-600/80 mt-1 font-medium">💡 Belangrijk voor zowel Midsland als West</p>
+                  <p className="text-xs text-amber-600/80 mt-1 font-medium">💡 Belangrijk voor zowel Foodbar als West Daily</p>
                 </div>
               </li>
 
