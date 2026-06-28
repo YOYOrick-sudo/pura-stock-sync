@@ -716,6 +716,9 @@ const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
         if (a.completed !== b.completed) {
           return a.completed ? 1 : -1;
         }
+        if (a.sort_order !== undefined && b.sort_order !== undefined) {
+          return a.sort_order - b.sort_order;
+        }
         return 0;
       });
     }
