@@ -55,6 +55,94 @@ const getAvailableCategoriesForPhase = (location: string, phase: string): string
   return [...CATEGORY_ORDER];
 };
 
+// ===== CATEGORY PICKER (with inline "new subcategory" creation) =====
+interface CategoryPickerProps {
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  allowCreate?: boolean;
+  triggerStyle?: React.CSSProperties;
+}
+function CategoryPicker({ value, onChange, options, allowCreate = true, triggerStyle }: CategoryPickerProps) {
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState('');
+  const merged = value && !options.includes(value) ? [value, ...options] : options;
+
+  const commit = () => {
+    const v = draft.trim();
+    if (v) {
+      onChange(v);
+      setAdding(false);
+      setDraft('');
+    }
+  };
+
+  if (adding) {
+    return (
+      <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+        <Input
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="Nieuwe subcategorie..."
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') { e.preventDefault(); commit(); }
+            if (e.key === 'Escape') { setAdding(false); setDraft(''); }
+          }}
+          style={{ borderRadius: '12px', fontSize: '12px', height: 32, fontFamily: 'Inter, sans-serif', ...triggerStyle }}
+        />
+        <button
+          type="button"
+          onClick={commit}
+          style={{
+            border: '1px solid hsl(var(--primary))',
+            background: 'hsl(var(--primary))',
+            color: 'hsl(var(--primary-foreground))',
+            borderRadius: 8, padding: '4px 10px', fontSize: 12, cursor: 'pointer',
+          }}
+        >OK</button>
+        <button
+          type="button"
+          onClick={() => { setAdding(false); setDraft(''); }}
+          style={{
+            border: '1px solid hsl(var(--border))',
+            background: 'hsl(var(--card))',
+            color: 'hsl(var(--muted-foreground))',
+            borderRadius: 8, padding: '4px 8px', fontSize: 12, cursor: 'pointer',
+          }}
+        >✕</button>
+      </div>
+    );
+  }
+
+  return (
+    <Select
+      value={value}
+      onValueChange={(v) => {
+        if (v === '__new__') {
+          setAdding(true);
+        } else {
+          onChange(v);
+        }
+      }}
+    >
+      <SelectTrigger style={{ borderRadius: '12px', fontFamily: 'Inter, sans-serif', ...triggerStyle }}>
+        <SelectValue placeholder="Selecteer..." />
+      </SelectTrigger>
+      <SelectContent>
+        {merged.map(c => (
+          <SelectItem key={c} value={c}>{c}</SelectItem>
+        ))}
+        {allowCreate && (
+          <SelectItem value="__new__" style={{ color: 'hsl(var(--primary))', fontWeight: 600 }}>
+            + Nieuwe subcategorie...
+          </SelectItem>
+        )}
+      </SelectContent>
+    </Select>
+  );
+}
+
 // ===== SORTABLE TASK ITEM COMPONENT =====
 interface SortableTaskItemProps {
   task: FohTaskWithEmployee;
