@@ -361,6 +361,10 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   </span>
                 )}
                 <span style={{ flex: 1 }}>{task.title}</span>
+                <RepeatBadge
+                  repeatType={(task as any).repeat_type}
+                  daysOfWeek={repeatDays && repeatDays.length > 0 ? repeatDays : [(task as any).day_of_week]}
+                />
                 {isNew && !isEditMode && (
                   <Sparkles size={14} style={{ color: 'hsl(var(--warning))', marginLeft: '6px', flexShrink: 0 }} />
                 )}
