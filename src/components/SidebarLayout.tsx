@@ -73,7 +73,7 @@ export function SidebarLayout({
           />
         )}
         
-        <main className="px-6 md:px-10 lg:px-16 py-6 md:py-8 bg-background min-w-0">
+        <main className="px-6 md:px-10 lg:px-16 pt-2 md:pt-3 pb-6 md:pb-8 bg-background min-w-0">
           {children}
         </main>
       </div>
