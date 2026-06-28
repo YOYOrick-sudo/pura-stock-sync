@@ -75,7 +75,7 @@ export function PolarSidebar({
         />
         {!collapsed && (
           <>
-            <span className="text-[13px] font-medium leading-none truncate">
+            <span className="text-[14px] font-medium leading-none truncate">
               {item.title}
             </span>
             {item.requiresCode && (
@@ -121,8 +121,8 @@ export function PolarSidebar({
       <div
         className="flex items-center justify-between bg-muted/20"
         style={{
-          height: '52px',
-          padding: collapsed ? '0 10px' : '0 14px',
+          height: '60px',
+          padding: collapsed ? '0 10px' : '0 16px',
         }}
       >
         <div
@@ -132,7 +132,7 @@ export function PolarSidebar({
           {!collapsed && logo}
         </div>
         {collapsed && (
-          <div className="text-sm font-semibold text-primary mx-auto">PV</div>
+          <div className="text-base font-semibold text-primary mx-auto">PV</div>
         )}
         {!collapsed && (
           <Button
