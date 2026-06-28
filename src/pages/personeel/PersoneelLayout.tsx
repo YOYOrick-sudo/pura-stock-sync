@@ -44,9 +44,9 @@ export default function PersoneelLayout() {
 
   return (
     <SidebarLayout hideHeader>
-      <div className="min-h-full bg-background -m-4 md:-m-6 lg:-mx-12 lg:-my-8 min-w-0 overflow-hidden">
+      <div className="min-h-full bg-background -m-6 md:-mx-10 md:-my-8 lg:-mx-16 lg:-my-8 min-w-0 overflow-hidden">
         <div className="border-b border-border bg-card">
-          <div className="px-4 md:px-6 pt-4">
+          <div className="px-6 md:px-10 lg:px-16 pt-4">
             <div className="flex items-center justify-between mb-3 gap-3">
               <h1 className="text-2xl font-semibold">{copy.module}</h1>
               <Button
@@ -78,7 +78,7 @@ export default function PersoneelLayout() {
             </nav>
           </div>
         </div>
-        <div className="p-4 md:p-6 lg:px-12 lg:py-8 min-w-0">
+        <div className="px-6 md:px-10 lg:px-16 py-6 md:py-8 min-w-0">
           <Outlet />
         </div>
 

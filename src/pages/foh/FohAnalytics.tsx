@@ -173,7 +173,7 @@ export default function FohAnalytics() {
   if (isLoading) {
     return (
       <SidebarLayout>
-        <div className="max-w-7xl mx-auto px-6 space-y-10 pt-12">
+        <div className="max-w-7xl mx-auto space-y-10 pt-12">
           <h1 className="text-3xl font-heading font-bold text-foreground">Laden...</h1>
         </div>
       </SidebarLayout>
@@ -182,7 +182,7 @@ export default function FohAnalytics() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-7xl mx-auto px-6 space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
