@@ -47,7 +47,7 @@ export function SidebarLayout({
     <div className="flex min-h-screen w-full bg-background">
       {/* Desktop Sidebar - hidden on mobile */}
       {!isMobile && (
-        <div className="bg-card border-r border-border" style={{ paddingTop: '16px' }}>
+        <div style={{ paddingTop: '16px' }}>
           <AppSidebar />
         </div>
       )}

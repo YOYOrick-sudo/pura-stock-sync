@@ -1,35 +1,60 @@
-Compacte ChatGPT-stijl zwevende card-rail bouwen voor `PolarSidebar`.
+## Sidebar Redesign
 
-## Wijzigingen — alleen `src/components/polar/Sidebar.tsx`
+Fix de schaal-mismatch en lege ruimte in de sidebar zodat deze professioneel en consistent oogt.
+
+### Problemen
+1. Logo (44px) is te groot ten opzichte van compacte nav-tekst (12px)
+2. Grote leegte tussen laatste item en footer
+3. Header voelt zwaar door groot groen logo boven ijle body
+4. Rij-hoogte (28px) is té compact voor touch en oogt krap
+
+### Wijzigingen — `src/components/polar/Sidebar.tsx` + `src/components/AppSidebar.tsx`
+
+**Logo**
+- Terug naar de crop met subtitel (Pura Vida Terschelling)
+- Hoogte: **28px** max (in plaats van 44px)
+- Lichtere kleur, minder dominerend
+
+**Header-rij**
+- Hoogte: **52px** (nu 44px)
+- Padding: 14px horizontaal
+- Collapse-knop: 16px icoon, niet 14px (huidige is te klein)
+- Background: `bg-muted/20` in plaats van `bg-muted/30`
+- Geen border-bottom meer — subtiele schaduw onder de header
+
+**Nav-rijen**
+- Hoogte: **36px** (nu 28px)
+- Tekst: **13px**, font-medium (nu 12px)
+- Iconen: **18px** (nu 16px)
+- Padding: 10px horizontaal
+- Gap tussen items: **4px** (nu 0.5 = ~2px)
+- Hover: `bg-muted/40`, `rounded-lg`
+- Active: `bg-muted` + icoon **primary** + tekst **foreground**
+
+**Sectiekopjes**
+- Tekst: 10px (nu 9px), uppercase, tracking-wider
+- Kleur: `text-muted-foreground/50` (iets lichter)
+- Margin-top boven sectie: 12px in plaats van 0
+
+**Footer (ThemeToggle)**
+- Terug naar compacte rij-stijl in dezelfde 36px-hoogte als nav items
+- Padding: 10px horizontaal
+- Geen losse border-top meer — subtiele `border-t border-border/50`
+- Icoon + label "Auto/Licht/Donker" in 13px
 
 **Container**
-- Breedte 230px (collapsed 60px), niet meer 280px
-- App-rand: 12px marge rondom (`m-3`) → losse card-look
-- Witte achtergrond, `border border-border`, `rounded-lg`, `shadow-sm`
-- Geen `inset shadow` border-right meer
+- Margin blijft `12px` rondom
+- `rounded-lg` blijft
+- `shadow-sm` iets zichtbaarder maken zodat de card wel "los" staat van de achtergrond
 
-**Header (44px)**
-- Compacter: 44px hoog, klein logo links, collapse-knop rechts (`PanelLeft`, 14px)
-- Subtiele `border-b border-border` + lichte `bg-muted/30`
+**Wat niet aangeraakt wordt**
+- Alle routing, auth, dialogs
+- Sectiegroepering (Overzicht / Beheer)
+- Collapse-gedrag en tooltips
+- ThemeToggle logica zelf
 
-**Nav rows (28px hoog)**
-- `text-[12px] font-medium`
-- Icon 16px, `text-muted-foreground/60`
-- Hover: `bg-muted/50` full-row, `rounded`
-- Active: `bg-muted` + icoon krijgt `text-primary` (groen accent), tekst `text-foreground`
-- Geen pill, geen linkerstreepje meer
-- Sectiekopjes: `text-[9px] uppercase tracking-widest text-muted-foreground/60`, gegroepeerd in "Overzicht" (Dashboard, Taken) en "Beheer" (Kassatelling, Onderhoud, Settings, Statistieken)
-
-**Footer**
-- Compacte 28px-rij voor ThemeToggle in dezelfde stijl
-- `border-t border-border bg-muted/30`
-
-## Wat blijft
-
-- Alle props, alle items, collapse-gedrag, tooltips in collapsed-state
-- `AppSidebar.tsx` ongewijzigd (sectiegroepering wordt in `PolarSidebar` zelf bepaald op basis van item-titel — Settings/Statistieken/Kassatelling/Onderhoud naar "Beheer", rest naar "Overzicht")
-- Dark mode via bestaande tokens (`bg-card`, `border-border`, `bg-muted`) → werkt automatisch
-
-## Niet aangeraakt
-
-- `AppSidebar.tsx`, code-dialogs, routing, auth, ThemeToggle component zelf
+### Technisch
+- Aanpassingen puur in presentatie-componenten
+- Geen nieuwe dependencies
+- Geen database-wijzigingen
+- Dark mode blijft werken via bestaande tokens
