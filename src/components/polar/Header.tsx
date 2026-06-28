@@ -43,7 +43,7 @@ export function PolarHeader({
           </button>
         )}
         <div className="min-w-0">
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground truncate leading-tight">
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground truncate leading-tight">
             {title}
           </h1>
           {location && (
