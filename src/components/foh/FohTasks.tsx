@@ -2059,6 +2059,12 @@ export function FohTasks() {
 
   const handleSaveTemplateEdits = async () => {
     try {
+      // NL-datum vandaag (YYYY-MM-DD)
+      const todayNL = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Europe/Amsterdam',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+      }).format(new Date());
+
       // Update existing template tasks
       for (const task of editingTemplate) {
         if (deletedTemplateTaskIds.includes(task.id)) continue;
@@ -2080,12 +2086,31 @@ export function FohTasks() {
           toast.error('Fout bij opslaan');
           return;
         }
+
+        // Sync naar actieve, niet-afgevinkte taak van vandaag
+        const { error: syncError } = await supabase
+          .from('foh_tasks')
+          .update({
+            title: task.title,
+            sort_order: task.sort_order,
+            category: task.category,
+            description: task.description,
+            estimated_minutes: task.estimated_minutes,
+          })
+          .eq('template_id', task.id)
+          .eq('due_date', todayNL)
+          .eq('archived', false)
+          .is('completed_at', null);
+
+        if (syncError) {
+          console.error('Error syncing task to today:', syncError);
+        }
       }
       
       // Insert new template tasks
       const newTasks = editingTemplate.filter(t => t.isNew);
       for (const task of newTasks) {
-        const { error } = await supabase
+        const { data: inserted, error } = await supabase
           .from('foh_daily_templates')
           .insert({
             location: task.location,
@@ -2100,17 +2125,53 @@ export function FohTasks() {
             sort_order: task.sort_order,
             description: task.description,
             department: task.department ?? effectiveDept,
-          });
+          })
+          .select('id, is_active')
+          .single();
         
         if (error) {
           console.error('Error inserting new template task:', error);
           toast.error('Fout bij toevoegen nieuwe taak');
           return;
         }
+
+        // Direct ook taak voor vandaag aanmaken (alleen als template actief is)
+        if (inserted && task.is_active) {
+          const { error: insertTaskError } = await supabase
+            .from('foh_tasks')
+            .insert({
+              location: task.location,
+              phase: task.phase,
+              title: task.title,
+              priority: task.priority,
+              category: task.category,
+              template_id: inserted.id,
+              estimated_minutes: task.estimated_minutes,
+              sort_order: task.sort_order,
+              description: task.description,
+              department: task.department ?? effectiveDept,
+              due_date: todayNL,
+            });
+          if (insertTaskError) {
+            console.error('Error inserting task for today:', insertTaskError);
+          }
+        }
       }
       
       // Delete removed tasks
       if (deletedTemplateTaskIds.length > 0) {
+        // Eerst open taken van vandaag archiveren (afgevinkte blijven voor historie)
+        const { error: archiveError } = await supabase
+          .from('foh_tasks')
+          .update({ archived: true })
+          .in('template_id', deletedTemplateTaskIds)
+          .eq('due_date', todayNL)
+          .is('completed_at', null);
+
+        if (archiveError) {
+          console.error('Error archiving tasks for today:', archiveError);
+        }
+
         const { error } = await supabase
           .from('foh_daily_templates')
           .delete()
@@ -2122,6 +2183,7 @@ export function FohTasks() {
           return;
         }
       }
+
 
       // Zorg dat alle gebruikte categorieën een volgorde-rij hebben (West).
       const loc = (editingTemplate[0]?.location || userLocation) as string;
