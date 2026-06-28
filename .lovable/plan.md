@@ -1,30 +1,37 @@
-## Doel
-In West kan je nu zowel Voorkant (bediening) als Achterkant (keuken) zien. We willen per iPad instellen welke afdeling standaard bovenaan/geopend staat, zodat de keuken-iPad direct bij keukentaken begint en de bediening-iPad bij bedieningstaken.
+## Plan
 
-## Aanpak
+### 1. Nieuwe taak in West (openen, di+vr)
+- Voeg toe aan `foh_daily_templates`: **"Plantjes water geven"**
+  - `location` = West, `phase` = open, `department` = voorkant
+  - `repeat_type` = weekly met **twee rijen** (één voor `day_of_week = 2` dinsdag, één voor `day_of_week = 5` vrijdag) — schema ondersteunt geen array, dus 2 templates is de schone oplossing
+  - `category` = passende bestaande categorie (Bijvullen of Algemeen — kies bij implementatie de logisch passende voor West open voorkant)
+  - `sort_order` = einde van categorie
+- Als vandaag (zondag 28 juni) géén di/vr is wordt er niets voor vandaag aangemaakt — de bestaande `create_task_from_new_template` trigger respecteert dat al.
 
-**1. Apparaat-instelling (per iPad opgeslagen)**
-- Nieuwe instelling `foh_device_mode` in `localStorage` van die specifieke iPad: `"voorkant"` | `"achterkant"` | `"beide"` (default).
-- Blijft staan na refresh/sluiten — eenmalig instellen per iPad is genoeg.
+### 2. Stylish "herhalend"-badge door de hele app
+Eén herbruikbare component `RepeatBadge` (`src/components/foh/RepeatBadge.tsx`):
 
-**2. Waar instel je het**
-- In het Admin-paneel (wachtwoord 2020 in West) een nieuw blokje **"Apparaat-modus"** met 3 knoppen: Bediening / Keuken / Beide.
-- Toont duidelijk welke modus actief is op dít apparaat.
-- Sneltoegang: ook een klein tandwiel/label rechtsboven in de takenlijst waar je snel kan wisselen (zonder admin-wachtwoord, want het is een lokale apparaat-keuze, geen data-wijziging).
+```
+┌─────────────────────┐
+│ ↻  di · vr          │   ← subtiele pill
+└─────────────────────┘
+```
 
-**3. Gedrag in de takenlijst (West)**
-- Modus **Bediening**: alleen Voorkant-taken zichtbaar, geen department-tabs.
-- Modus **Keuken**: alleen Achterkant-taken zichtbaar, geen department-tabs.
-- Modus **Beide** (default, ongewijzigd gedrag): huidige weergave met beide secties.
-- Voor Midsland verandert er niks (geen departments daar).
+- Stijl: `bg-muted` (≈ #F3F4F6), `text-muted-foreground` (≈ #6B7280), kleine `Repeat` lucide-icon, primary-green accent op het icoon bij hover.
+- Toont:
+  - bij `repeat_type = 'weekly'` + `day_of_week` → korte dagcode (`ma di wo do vr za zo`)
+  - bij meerdere templates met dezelfde titel (zoals di+vr) → samenvoegen tot `di · vr`
+  - bij `repeat_type = 'daily'` → tekst "dagelijks"
+- Wordt gebruikt in:
+  - `SortableTaskItem` (dagelijkse takenlijst) — naast taaktitel
+  - Template-editor lijst in Admin (West én Midsland)
+  - Periodieke takenlijst (waar nu al een datum staat)
 
-**4. Veiligheid / geen bugs**
-- Alleen UI-filter; database en templates blijven onaangeraakt.
-- Aanmaken/bewerken van taken in admin blijft voor beide afdelingen werken, ongeacht apparaat-modus (anders kan een keuken-iPad geen voorkant-taak meer aanmaken — niet wenselijk).
-- Bij wisselen van modus: directe refresh van de lijst, geen herladen nodig.
+### 3. Aggregatie-logica
+Omdat di+vr nu twee aparte templates worden, voeg in `FohTasks.tsx` een helper toe die templates/tasks met dezelfde titel + zelfde phase + zelfde department samenvoegt **alleen voor de badge** (taken zelf blijven los per dag). Voor `foh_tasks` van vandaag is dit niet nodig (er is maar één per dag).
 
-## Bestanden
-- `src/components/foh/FohTasks.tsx` — modus uitlezen uit localStorage, filteren van zichtbare departments, modus-schakelaar in admin + sneltoegang-chip.
-
-## Vraag vooraf
-Wil je dat de sneltoegang-schakelaar (zonder wachtwoord) zichtbaar is, of moet wisselen tussen Bediening/Keuken/Beide altijd via admin (2020)? Dat laatste voorkomt dat personeel per ongeluk de modus van een iPad omzet.
+### Technische details
+- Migration: 2× `INSERT` in `foh_daily_templates` voor West.
+- Nieuw component `RepeatBadge` met props `{ repeatType, daysOfWeek: number[] }`.
+- Helper `groupRepeatDays(templates)` in `FohTasks.tsx` om di+vr-paar te detecteren.
+- Geen breaking changes; alle bestaande taken zonder repeat blijven exact zoals nu.

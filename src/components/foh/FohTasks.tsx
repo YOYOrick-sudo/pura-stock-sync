@@ -23,6 +23,7 @@ import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-
 import { CSS } from '@dnd-kit/utilities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminPasswordDialog } from './AdminPasswordDialog';
+import { RepeatBadge } from './RepeatBadge';
 
 // Phase time windows (minutes-based)
 const PHASE_WINDOWS = [
@@ -159,9 +160,10 @@ interface SortableTaskItemProps {
   taskPadding?: string;
   taskNumber?: number;
   isNew?: boolean;
+  repeatDays?: (number | null)[];
 }
 
-function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onCategoryChange, categoryOptions, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0', taskNumber, isNew = false }: SortableTaskItemProps) {
+function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onCategoryChange, categoryOptions, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0', taskNumber, isNew = false, repeatDays }: SortableTaskItemProps) {
   const {
     attributes,
     listeners,
@@ -359,6 +361,10 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   </span>
                 )}
                 <span style={{ flex: 1 }}>{task.title}</span>
+                <RepeatBadge
+                  repeatType={(task as any).repeat_type}
+                  daysOfWeek={repeatDays && repeatDays.length > 0 ? repeatDays : [(task as any).day_of_week]}
+                />
                 {isNew && !isEditMode && (
                   <Sparkles size={14} style={{ color: 'hsl(var(--warning))', marginLeft: '6px', flexShrink: 0 }} />
                 )}
@@ -972,6 +978,42 @@ export function FohTasks() {
     },
     enabled: !!userLocation,
   });
+
+  // Fetch all weekly templates to group repeat-days per (title|phase|department)
+  const { data: weeklyTemplates } = useQuery({
+    queryKey: ['foh-weekly-templates', userLocation],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('foh_daily_templates')
+        .select('title, phase, department, day_of_week')
+        .eq('location', userLocation)
+        .eq('is_active', true)
+        .eq('repeat_type', 'weekly');
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!userLocation,
+  });
+
+  const repeatDaysByKey = (() => {
+    const map = new Map<string, number[]>();
+    for (const t of weeklyTemplates ?? []) {
+      if (typeof (t as any).day_of_week !== 'number') continue;
+      const key = `${(t as any).title}|${(t as any).phase}|${(t as any).department ?? 'voorkant'}`;
+      const arr = map.get(key) ?? [];
+      if (!arr.includes((t as any).day_of_week)) arr.push((t as any).day_of_week);
+      map.set(key, arr);
+    }
+    return map;
+  })();
+
+  const getRepeatDaysForTask = (task: { title: string; phase?: string | null; department?: string | null; day_of_week?: number | null; repeat_type?: string | null }): (number | null)[] => {
+    if (task.repeat_type !== 'weekly') return [];
+    const key = `${task.title}|${task.phase}|${task.department ?? 'voorkant'}`;
+    const days = repeatDaysByKey.get(key);
+    if (days && days.length > 0) return days;
+    return [task.day_of_week ?? null];
+  };
 
   // ===== WEST SUBCATEGORIES — verzameld uit templates + actieve taken per afdeling =====
   const { data: westSubcatsData } = useQuery({
@@ -3085,6 +3127,7 @@ export function FohTasks() {
                                   showAdminTools={false}
                                   taskPadding={taskPadding}
                                   isNew={!!task.template_id && newTemplateIds.has(task.template_id)}
+                                  repeatDays={getRepeatDaysForTask(task as any)}
                                 />
                               ))}
                             </SortableContext>
@@ -3149,6 +3192,7 @@ export function FohTasks() {
                               showAdminTools={false}
                               taskPadding={taskPadding}
                               isNew={!!task.template_id && newTemplateIds.has(task.template_id)}
+                              repeatDays={getRepeatDaysForTask(task as any)}
                             />
                           ))}
                         </SortableContext>
