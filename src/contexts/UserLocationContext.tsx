@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface UserLocationContextType {
   userLocation: string;
+  displayLocation: string;
   loading: boolean;
 }
 
