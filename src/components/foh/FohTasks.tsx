@@ -3606,7 +3606,7 @@ export function FohTasks() {
                                   size="sm"
                                   variant="ghost"
                                   onClick={() => handleMoveCategory(dept, row.category, -1)}
-                                  disabled={idx === 0}
+                                  disabled={idx === 0 || isSavingOrder}
                                   style={{ height: '28px', padding: '0 6px' }}
                                   aria-label="Omhoog"
                                 >
@@ -3616,10 +3616,11 @@ export function FohTasks() {
                                   size="sm"
                                   variant="ghost"
                                   onClick={() => handleMoveCategory(dept, row.category, 1)}
-                                  disabled={idx === rows.length - 1}
+                                  disabled={idx === rows.length - 1 || isSavingOrder}
                                   style={{ height: '28px', padding: '0 6px' }}
                                   aria-label="Omlaag"
                                 >
+
                                   <ChevronDown size={14} />
                                 </Button>
                                 <Button
