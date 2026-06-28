@@ -979,6 +979,42 @@ export function FohTasks() {
     enabled: !!userLocation,
   });
 
+  // Fetch all weekly templates to group repeat-days per (title|phase|department)
+  const { data: weeklyTemplates } = useQuery({
+    queryKey: ['foh-weekly-templates', userLocation],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('foh_daily_templates')
+        .select('title, phase, department, day_of_week')
+        .eq('location', userLocation)
+        .eq('is_active', true)
+        .eq('repeat_type', 'weekly');
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!userLocation,
+  });
+
+  const repeatDaysByKey = (() => {
+    const map = new Map<string, number[]>();
+    for (const t of weeklyTemplates ?? []) {
+      if (typeof (t as any).day_of_week !== 'number') continue;
+      const key = `${(t as any).title}|${(t as any).phase}|${(t as any).department ?? 'voorkant'}`;
+      const arr = map.get(key) ?? [];
+      if (!arr.includes((t as any).day_of_week)) arr.push((t as any).day_of_week);
+      map.set(key, arr);
+    }
+    return map;
+  })();
+
+  const getRepeatDaysForTask = (task: { title: string; phase?: string | null; department?: string | null; day_of_week?: number | null; repeat_type?: string | null }): (number | null)[] => {
+    if (task.repeat_type !== 'weekly') return [];
+    const key = `${task.title}|${task.phase}|${task.department ?? 'voorkant'}`;
+    const days = repeatDaysByKey.get(key);
+    if (days && days.length > 0) return days;
+    return [task.day_of_week ?? null];
+  };
+
   // ===== WEST SUBCATEGORIES — verzameld uit templates + actieve taken per afdeling =====
   const { data: westSubcatsData } = useQuery({
     queryKey: ['foh-west-subcategories', userLocation],
