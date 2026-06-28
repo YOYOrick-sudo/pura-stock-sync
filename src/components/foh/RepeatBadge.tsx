@@ -48,7 +48,7 @@ export function RepeatBadge({ repeatType, daysOfWeek, size = 'sm' }: RepeatBadge
         flexShrink: 0,
         whiteSpace: 'nowrap',
       }}
-      title={repeatType === 'daily' ? 'Herhaalt elke dag' : `Herhaalt elke week (${label})`}
+      title={`Herhaalt elke week (${label})`}
     >
       <Repeat size={isXs ? 9 : 10} strokeWidth={2.5} style={{ color: 'hsl(var(--primary))' }} />
       {label}
