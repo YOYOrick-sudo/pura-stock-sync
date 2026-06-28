@@ -986,8 +986,31 @@ export function FohTasks() {
     enabled: userLocation === 'West',
   });
 
+  // ===== WEST CATEGORY ORDER — uit foh_category_order tabel =====
+  const { data: westCategoryOrder } = useQuery({
+    queryKey: ['foh-category-order', userLocation],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('foh_category_order')
+        .select('department, category, sort_order')
+        .eq('location', userLocation)
+        .order('sort_order', { ascending: true });
+      if (error) throw error;
+      const out: Record<'voorkant' | 'achterkant', { category: string; sort_order: number }[]> = {
+        voorkant: [],
+        achterkant: [],
+      };
+      for (const r of (data as any[]) || []) {
+        const dept = r.department === 'achterkant' ? 'achterkant' : 'voorkant';
+        out[dept].push({ category: r.category, sort_order: r.sort_order });
+      }
+      return out;
+    },
+    enabled: userLocation === 'West',
+  });
+
   // Categorieën beschikbaar voor een (location, dept, phase) combinatie.
-  // West: dynamisch op basis van bestaande templates/taken per afdeling, plus 'Algemeen' als fallback.
+  // West: gebruikt foh_category_order voor de volgorde, vult aan met (nieuwe) categorieën uit templates/taken.
   // Midsland: bestaande vaste lijst per fase.
   const getCategoriesForContext = (
     loc: string,
@@ -995,12 +1018,44 @@ export function FohTasks() {
     phase: string,
   ): string[] => {
     if (loc === 'West') {
-      const base = westSubcatsData?.[dept] ?? [];
-      if (base.length === 0) return ['Algemeen'];
-      return base.includes('Algemeen') ? base : ['Algemeen', ...base];
+      const orderedList = (westCategoryOrder?.[dept] ?? []).map(r => r.category);
+      const used = westSubcatsData?.[dept] ?? [];
+      const seen = new Set<string>();
+      const result: string[] = [];
+      for (const c of orderedList) {
+        if (!seen.has(c)) { seen.add(c); result.push(c); }
+      }
+      // Append unknown categories (alphabetical) so nothing is lost
+      for (const c of used.slice().sort()) {
+        if (!seen.has(c)) { seen.add(c); result.push(c); }
+      }
+      if (result.length === 0) return ['Algemeen'];
+      if (!result.includes('Algemeen')) result.unshift('Algemeen');
+      return result;
     }
     return getAvailableCategoriesForPhase(loc, phase);
   };
+
+  // Zorg dat een (nieuwe) subcategorie in foh_category_order staat — anders heeft hij geen volgorde.
+  const ensureCategoryOrderRow = async (
+    loc: string,
+    dept: 'voorkant' | 'achterkant',
+    category: string,
+  ) => {
+    if (loc !== 'West') return;
+    const c = (category || '').trim();
+    if (!c) return;
+    const existing = westCategoryOrder?.[dept] ?? [];
+    if (existing.some(r => r.category === c)) return;
+    const nextSort = (existing.length > 0 ? Math.max(...existing.map(r => r.sort_order)) : 0) + 10;
+    await supabase
+      .from('foh_category_order')
+      .upsert(
+        { location: loc, department: dept, category: c, sort_order: nextSort },
+        { onConflict: 'location,department,category' },
+      );
+  };
+
 
 
   // Map template_id → isNew (created less than 7 days ago)
