@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, MapPin } from 'lucide-react';
 
 export interface PolarHeaderProps {
   title?: string;
@@ -8,41 +8,56 @@ export interface PolarHeaderProps {
   onMenuClick?: () => void;
 }
 
-export function PolarHeader({ 
-  title = 'Dashboard', 
-  showStatusIndicator = true,
+const dateFormatter = new Intl.DateTimeFormat('nl-NL', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+});
+
+function formatToday() {
+  const parts = dateFormatter.formatToParts(new Date());
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
+  const weekday = get('weekday');
+  const day = get('day');
+  const month = get('month');
+  return `${day} ${month} · ${weekday}`;
+}
+
+export function PolarHeader({
+  title = 'Dashboard',
   location,
-  onMenuClick
+  onMenuClick,
 }: PolarHeaderProps) {
+  const today = formatToday();
+
   return (
-    <div 
-      className="h-[60px] md:h-[72px] flex items-center justify-between px-6 md:px-10 lg:px-16 bg-background"
-    >
-      <div className="flex items-center gap-3">
+    <div className="flex items-center justify-between gap-4 px-6 md:px-10 lg:px-16 py-5 md:py-6 bg-background">
+      <div className="flex items-center gap-3 min-w-0">
         {onMenuClick && (
           <button
             onClick={onMenuClick}
-            className="flex items-center justify-center w-10 h-10 rounded-lg transition-colors border border-border hover:bg-muted"
+            className="flex items-center justify-center w-10 h-10 rounded-lg transition-colors border border-border hover:bg-muted shrink-0"
             aria-label="Open menu"
           >
             <Menu size={20} className="text-foreground" />
           </button>
         )}
-        <h1 
-          className="text-lg md:text-2xl font-semibold text-foreground"
-          style={{ marginTop: '14px' }}
-        >
-          {title}
-        </h1>
-      </div>
-      {location && (
-        <div
-          className="hidden sm:block text-sm font-medium text-muted-foreground"
-          style={{ marginTop: '14px' }}
-        >
-          Locatie: {location}
+        <div className="min-w-0">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground truncate leading-tight">
+            {title}
+          </h1>
+          {location && (
+            <div className="mt-1 flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+              <MapPin size={14} className="text-primary shrink-0" strokeWidth={2.25} />
+              <span className="truncate">{location}</span>
+            </div>
+          )}
         </div>
-      )}
+      </div>
+
+      <div className="hidden sm:block text-sm text-muted-foreground whitespace-nowrap first-letter:uppercase">
+        {today}
+      </div>
     </div>
   );
 }
