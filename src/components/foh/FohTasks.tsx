@@ -3257,19 +3257,29 @@ export function FohTasks() {
                     onDragEnd={handleDragEnd}
                   >
                     <div>
-                      {userLocation === 'West' ? (
-                        deviceMode === 'achterkant' ? (
-                          <>
-                            {renderDepartmentSection('Keuken', 'achterkant')}
-                            {renderDepartmentSection('Bediening', 'voorkant')}
-                          </>
-                        ) : (
-                          <>
-                            {renderDepartmentSection('Bediening', 'voorkant')}
-                            {renderDepartmentSection('Keuken', 'achterkant')}
-                          </>
-                        )
-                      ) : (
+                      {userLocation === 'West' ? (() => {
+                        // Eén verenigde lijst: merge categorieën van beide afdelingen.
+                        // Apparaat-modus bepaalt alleen welke afdeling-categorieën bovenaan staan.
+                        const voorCats = getCategoriesForContext('West', 'voorkant', activePhase);
+                        const achterCats = getCategoriesForContext('West', 'achterkant', activePhase);
+                        const primary = deviceMode === 'achterkant' ? achterCats : voorCats;
+                        const secondary = deviceMode === 'achterkant' ? voorCats : achterCats;
+                        const seen = new Set<string>();
+                        const merged: string[] = [];
+                        const pushUnique = (c: string) => {
+                          if (!seen.has(c)) { seen.add(c); merged.push(c); }
+                        };
+                        if (deviceMode !== 'beide') {
+                          primary.forEach(pushUnique);
+                          secondary.forEach(pushUnique);
+                        } else {
+                          // Standaard: interleave op alfabet zodat afdeling geen rol speelt
+                          [...new Set([...voorCats, ...achterCats])]
+                            .sort((a, b) => a.localeCompare(b, 'nl'))
+                            .forEach(pushUnique);
+                        }
+                        return renderCategoryGroups(currentTasks, 'all', 'voorkant', merged);
+                      })() : (
                         renderCategoryGroups(currentTasks, 'all')
                       )}
                     </div>
