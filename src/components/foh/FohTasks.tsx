@@ -3492,6 +3492,133 @@ export function FohTasks() {
                 Nieuwe Template
               </Button>
 
+              {/* West: Subcategorieën beheren */}
+              {userLocation === 'West' && (
+                <div style={{
+                  padding: '14px',
+                  backgroundColor: 'hsl(var(--muted) / 0.4)',
+                  borderRadius: '12px',
+                  border: '1px solid hsl(var(--border))',
+                }}>
+                  <div style={{
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: 'hsl(var(--muted-foreground))',
+                    marginBottom: '10px',
+                  }}>
+                    Subcategorieën beheren
+                  </div>
+                  {(['voorkant', 'achterkant'] as const).map(dept => {
+                    const rows = getOrderedCategoryRows(dept);
+                    return (
+                      <div key={dept} style={{ marginBottom: '12px' }}>
+                        <div style={{
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          color: 'hsl(var(--foreground))',
+                          marginBottom: '6px',
+                        }}>
+                          {dept === 'voorkant' ? 'Bediening' : 'Keuken'}
+                        </div>
+                        {rows.length === 0 ? (
+                          <div style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))', fontStyle: 'italic' }}>
+                            Nog geen subcategorieën.
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {rows.map((row, idx) => (
+                              <div key={row.category} style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '6px 10px',
+                                backgroundColor: 'hsl(var(--card))',
+                                borderRadius: '8px',
+                                border: '1px solid hsl(var(--border))',
+                              }}>
+                                <span style={{
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  color: 'hsl(var(--muted-foreground))',
+                                  minWidth: '20px',
+                                }}>
+                                  {idx + 1}.
+                                </span>
+                                <span style={{
+                                  flex: 1,
+                                  fontSize: '13px',
+                                  color: 'hsl(var(--foreground))',
+                                }}>
+                                  {row.category}
+                                  {row.sort_order === null && (
+                                    <span style={{
+                                      marginLeft: '6px',
+                                      fontSize: '10px',
+                                      color: 'hsl(var(--muted-foreground))',
+                                    }}>
+                                      (nieuw)
+                                    </span>
+                                  )}
+                                </span>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleMoveCategory(dept, row.category, -1)}
+                                  disabled={idx === 0}
+                                  style={{ height: '28px', padding: '0 6px' }}
+                                  aria-label="Omhoog"
+                                >
+                                  <ChevronUp size={14} />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleMoveCategory(dept, row.category, 1)}
+                                  disabled={idx === rows.length - 1}
+                                  style={{ height: '28px', padding: '0 6px' }}
+                                  aria-label="Omlaag"
+                                >
+                                  <ChevronDown size={14} />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleRenameCategory(dept, row.category)}
+                                  style={{ height: '28px', padding: '0 6px' }}
+                                  aria-label="Hernoemen"
+                                >
+                                  <Pencil size={14} />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleDeleteCategory(dept, row.category)}
+                                  style={{ height: '28px', padding: '0 6px', color: 'hsl(var(--destructive))' }}
+                                  aria-label="Verwijderen"
+                                >
+                                  <Trash2 size={14} />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <p style={{
+                    fontSize: '11px',
+                    color: 'hsl(var(--muted-foreground))',
+                    marginTop: '6px',
+                    lineHeight: 1.4,
+                  }}>
+                    Volgorde geldt voor zowel de live takenlijst als de dropdowns. Verwijderen kan alleen als er geen taken meer in zitten.
+                  </p>
+                </div>
+              )}
+
+
               {/* Template list */}
               {templatesLoading ? (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '32px' }}>
