@@ -1,13 +1,36 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import logoOfficial from '@/assets/pura-vida-logo-official.png';
 import { getLocationDisplayName } from '@/lib/utils';
+import { PWAInstallHint } from '@/components/PWAInstallHint';
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [cooldown, setCooldown] = useState(0);
+  const cooldownTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (cooldownTimer.current) window.clearInterval(cooldownTimer.current);
+    };
+  }, []);
+
+  const startCooldown = (seconds: number) => {
+    setCooldown(seconds);
+    if (cooldownTimer.current) window.clearInterval(cooldownTimer.current);
+    cooldownTimer.current = window.setInterval(() => {
+      setCooldown((c) => {
+        if (c <= 1) {
+          if (cooldownTimer.current) window.clearInterval(cooldownTimer.current);
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+  };
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState<'West' | 'Midsland'>('West');
@@ -28,6 +51,7 @@ const Auth = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (cooldown > 0) return;
     if (!password.trim()) { toast.error('Vul het wachtwoord in'); return; }
     setLoading(true);
     try {
@@ -43,10 +67,15 @@ const Auth = () => {
       });
 
       if (error) {
-        if (error.message.includes('Invalid login credentials')) {
+        const status = (error as any).status;
+        const msg = error.message || '';
+        if (status === 429 || /rate limit/i.test(msg)) {
+          toast.error('Te veel inlogpogingen', { description: 'Wacht 30 seconden en probeer opnieuw.' });
+          startCooldown(30);
+        } else if (msg.includes('Invalid login credentials')) {
           toast.error('Onjuiste inloggegevens', { description: 'Controleer je gebruikersnaam en wachtwoord' });
         } else {
-          toast.error('Inloggen mislukt', { description: error.message });
+          toast.error('Inloggen mislukt', { description: msg });
         }
         return;
       }
@@ -139,15 +168,17 @@ const Auth = () => {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || cooldown > 0}
               className={`w-full h-12 rounded-[20px] text-[15px] font-semibold text-primary-foreground flex items-center justify-center gap-2 transition-all
-                ${loading ? 'bg-muted-foreground cursor-not-allowed' : 'bg-primary hover:opacity-90 cursor-pointer shadow-md'}`}
+                ${loading || cooldown > 0 ? 'bg-muted-foreground cursor-not-allowed' : 'bg-primary hover:opacity-90 cursor-pointer shadow-md'}`}
             >
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
                   <span>Bezig met inloggen...</span>
                 </>
+              ) : cooldown > 0 ? (
+                <span>Wacht {cooldown}s…</span>
               ) : (
                 <>
                   <LogIn className="w-5 h-5" />
@@ -158,6 +189,7 @@ const Auth = () => {
           </form>
         </div>
       </div>
+      <PWAInstallHint />
     </div>
   );
 };
