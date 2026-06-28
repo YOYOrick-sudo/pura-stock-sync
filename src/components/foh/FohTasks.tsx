@@ -2726,8 +2726,16 @@ export function FohTasks() {
             {/* Tasks display */}
             <div>
               {mainCategory === 'dagelijks' && (() => {
-                const renderCategoryGroups = (tasksToRender: FohTaskWithEmployee[], keyPrefix: string) => {
-                  const groups = groupTasksByCategory(tasksToRender);
+                const renderCategoryGroups = (
+                  tasksToRender: FohTaskWithEmployee[],
+                  keyPrefix: string,
+                  dept: 'voorkant' | 'achterkant' = 'voorkant',
+                ) => {
+                  const orderedCats =
+                    userLocation === 'West'
+                      ? getCategoriesForContext('West', dept, activePhase)
+                      : undefined;
+                  const groups = groupTasksByCategory(tasksToRender, orderedCats);
                   const entries = Object.entries(groups);
                   if (entries.length === 0) {
                     return (
