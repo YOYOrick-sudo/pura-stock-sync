@@ -680,9 +680,12 @@ const getFirstPhaseWithOpenTasks = (
   return phaseOrder.includes(fallback) ? fallback : 'open';
 };
 
-const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
+const groupTasksByCategory = (
+  tasks: FohTaskWithEmployee[],
+  orderedCats?: string[],
+) => {
   const grouped: Record<string, FohTaskWithEmployee[]> = {};
-  
+
   tasks.forEach(task => {
     const category = task.category || 'Algemeen';
     if (!grouped[category]) {
@@ -690,40 +693,30 @@ const groupTasksByCategory = (tasks: FohTaskWithEmployee[]) => {
     }
     grouped[category].push(task);
   });
-  
+
+  const sortFn = (a: FohTaskWithEmployee, b: FohTaskWithEmployee) => {
+    if (a.completed !== b.completed) return a.completed ? 1 : -1;
+    if (a.sort_order !== undefined && b.sort_order !== undefined) {
+      return a.sort_order - b.sort_order;
+    }
+    return 0;
+  };
+
+  const order = orderedCats && orderedCats.length > 0 ? orderedCats : [...CATEGORY_ORDER];
   const sortedGrouped: Record<string, FohTaskWithEmployee[]> = {};
-  CATEGORY_ORDER.forEach(cat => {
-    if (grouped[cat]) {
-      // Sort by sort_order first, then move completed tasks to bottom
-      sortedGrouped[cat] = grouped[cat].sort((a, b) => {
-        // Completed tasks go to bottom
-        if (a.completed !== b.completed) {
-          return a.completed ? 1 : -1;
-        }
-        // Within same completion status, sort by sort_order
-        if (a.sort_order !== undefined && b.sort_order !== undefined) {
-          return a.sort_order - b.sort_order;
-        }
-        return 0;
-      });
-    }
+
+  order.forEach(cat => {
+    if (grouped[cat]) sortedGrouped[cat] = grouped[cat].sort(sortFn);
   });
-  
-  Object.keys(grouped).forEach(cat => {
-    if (!sortedGrouped[cat]) {
-      // Also sort non-standard categories with completed at bottom
-      sortedGrouped[cat] = grouped[cat].sort((a, b) => {
-        if (a.completed !== b.completed) {
-          return a.completed ? 1 : -1;
-        }
-        if (a.sort_order !== undefined && b.sort_order !== undefined) {
-          return a.sort_order - b.sort_order;
-        }
-        return 0;
-      });
-    }
-  });
-  
+
+  // Append any leftover categories (alphabetical) so nothing disappears
+  Object.keys(grouped)
+    .filter(cat => !sortedGrouped[cat])
+    .sort()
+    .forEach(cat => {
+      sortedGrouped[cat] = grouped[cat].sort(sortFn);
+    });
+
   return sortedGrouped;
 };
 
