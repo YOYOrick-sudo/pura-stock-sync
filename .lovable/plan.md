@@ -1,43 +1,59 @@
-## Wat er nu staat
 
-`src/components/polar/Header.tsx` rendert een kleine bold titel links (`text-lg md:text-2xl`) en rechts in grijs `Locatie: Midsland`. Beide hebben een rare `marginTop: 14px` waardoor ze niet verticaal centreren. Het voelt plat en niet in lijn met de rest van de app (witte cards met 20px radius, Inter, primary green #16A34A, rustige hiërarchie).
+## Doel
+Voorkomen dat de iPad telkens opnieuw moet inloggen en niet meer in een 429 "Request rate limit reached"-loop terechtkomt.
 
-## Wat past wel
-
-De app is clean SaaS, géén serif/editorial. De header moet:
-- Bij de bestaande typografie (Inter) en tokens blijven — geen Playfair, geen mono, geen breadcrumbs, geen status-dots, geen chips met carets.
-- Voelen als een echte module-titel: groot, rustig, met duidelijke maar bescheiden locatie-context er direct onder.
-- Werken voor élke module-naam en optioneel een locatie tonen.
-
-## Nieuw ontwerp
-
-Twee-regel lockup, links uitgelijnd, geen border, geen card — gewoon ademen op de grijze achtergrond.
-
-```text
-Kassatelling                              28 juni · zondag
-📍 Midsland
-```
-
-- **Titel**: `text-2xl md:text-3xl font-semibold tracking-tight text-foreground`, één regel, ellipsis bij overflow.
-- **Locatie-regel** (alleen als `location` is meegegeven): kleine MapPin-icon (14px) in `text-primary` + locatienaam in `text-sm font-medium text-muted-foreground`. Direct onder de titel, `mt-1`.
-- **Rechts** (optioneel, nieuw maar subtiel): datum van vandaag in `text-sm text-muted-foreground` (`28 juni · zondag`), verticaal gecentreerd op de titel. Helpt context geven zonder ruis. Verbergen op mobiel.
-- **Hoogte**: `py-5 md:py-6`, geen vaste `h-[]`. Mobiele menu-knop blijft links naast de titel zoals nu.
-- **Achtergrond**: blijft `bg-background`, geen border-bottom — past bij de eerder doorgetrokken grijze achtergrond.
-
-Resultaat: dezelfde rust als Linear/Stripe/Vercel project-headers, maar met onze eigen kleur en tokens — geen nieuwe fonts of stijlbreuken.
+## Oorzaak (uit auth-logs)
+- iPad doet ~20 refresh-token requests in enkele seconden → Supabase blokkeert met **429**.
+- Daarvoor: `refresh_token_not_found` → opgeslagen sessie is weg (Safari/iPadOS wist localStorage, of meerdere PWA/Safari-instances gebruiken hetzelfde token tegelijk).
+- Geen lock op refresh + geen back-off bij 429 → storm blijft hangen tot de app wordt afgesloten.
 
 ## Wijzigingen
 
-1. `src/components/polar/Header.tsx`
-   - Verwijder de twee `marginTop: 14px` hacks.
-   - Bouw de twee-regel lockup (titel + locatie-subregel met MapPin).
-   - Voeg rechts de datum toe (geformatteerd via `Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', weekday: 'long' })`), verborgen onder `sm`.
-   - Behoud de `onMenuClick` knop en alle bestaande props (`title`, `location`, `showStatusIndicator`, `onMenuClick`) — geen breaking change voor de pagina's die hem gebruiken.
+### 1. Refresh-lock + robuustere Supabase-client
+**File:** `src/integrations/supabase/client.ts`
+- Toevoegen aan `auth`-config:
+  - `lock: navigator.locks ? supabaseClientLock : undefined` — gebruikt Web Locks API zodat maar één tab/PWA tegelijk een refresh doet.
+  - `storageKey: 'puravida-auth'` (stabiele key).
+  - `flowType: 'pkce'`.
+  - `storage`: custom adapter (zie punt 3) die schrijft naar IndexedDB met localStorage-fallback.
+- `global.fetch` vervangen door een wrapper (zie punt 2).
 
-2. Geen wijzigingen aan `SidebarLayout` of pagina's nodig — de bestaande aanroep blijft werken.
+> Let op: dit bestand is normaal auto-generated maar is in dit project al handmatig uitgebreid met auth-opties — we breiden die uitbreiding uit.
 
-## Out of scope
+### 2. 429 back-off fetch-wrapper
+**Nieuw bestand:** `src/integrations/supabase/fetchWithBackoff.ts`
+- Wrap `fetch`: bij respons `429` of `5xx` op een Supabase auth-URL: exponentiële back-off (start 1s, max 30s), max 3 retries, respecteert `Retry-After` header.
+- Bij meerdere parallelle calls naar `/token?grant_type=refresh_token` binnen 2s: dedupliceren via in-memory promise-cache.
 
-- Sidebar, cards, pagina-inhoud.
-- Nieuwe acties (zoek, instellingen) in de header.
-- Andere fonts of nieuwe design tokens.
+### 3. Sessie-persistentie via IndexedDB
+**Nieuw bestand:** `src/integrations/supabase/sessionStorage.ts`
+- `SupabaseStorageAdapter` implementeert `{ getItem, setItem, removeItem }` (async).
+- Primair: IndexedDB (overleeft Safari's "Prevent Cross-Site Tracking"-cleanup veel beter dan localStorage).
+- Schrijft tegelijk naar localStorage als snelle synchrone fallback.
+- Bij `getItem`: probeer IndexedDB → val terug op localStorage als IDB leeg/onbeschikbaar.
+
+### 4. PWA-installatie-hint voor iPad
+**Nieuw bestand:** `src/components/PWAInstallHint.tsx`
+- Detecteert iPad-Safari (UA + `'standalone' in navigator`) die nog niet is geïnstalleerd.
+- Toont eenmalig (dismiss in localStorage) een rustige banner onderaan de loginpagina: "Tip: tik op Delen → 'Zet op beginscherm' voor een stabielere sessie."
+- Geen banner als de app al als PWA draait (`window.matchMedia('(display-mode: standalone)').matches`).
+- Inhaken in `src/pages/Auth.tsx`.
+
+### 5. Nette 429-foutmelding
+**File:** `src/pages/Auth.tsx` (login-flow)
+- Detecteer `error.status === 429` of message bevat `rate limit` → toon: "Te veel inlogpogingen kort na elkaar. Wacht 30 seconden en probeer opnieuw."
+- Knop disabled houden tijdens een 30s countdown.
+
+### 6. Manifest-check
+**File:** `public/manifest.json`
+- Controleren dat `display: "standalone"` en `start_url: "/"` aanwezig zijn (zodat de "Zet op beginscherm"-PWA goed start). Alleen aanpassen indien ontbrekend.
+
+## Niet in scope
+- Geen service-worker / offline-modus (zou bestaande PWA-installaties juist kunnen breken).
+- Geen wijziging van Supabase JWT/refresh-expiry-instellingen (server-side, valt buiten app).
+- Geen andere routes of UI dan login-banner.
+
+## Verificatie
+- TypeScript build moet schoon zijn.
+- Handmatig test op iPad: inloggen → app naar achtergrond → 1 dag wachten → nog ingelogd. Twee tabs tegelijk openen mag geen `refresh_token_not_found` triggeren.
+- Console: bij geforceerde 429 (door snel reloaden) zien we de back-off i.p.v. een burst.
