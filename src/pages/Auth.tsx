@@ -105,19 +105,19 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 md:p-12">
-      <div className="w-full max-w-[500px] bg-card border border-border rounded-[20px] shadow-elevated overflow-hidden">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 md:p-8">
+      <div className="w-full max-w-[420px] bg-card border border-border/60 rounded-[20px] shadow-sm overflow-hidden">
         {/* Header */}
-        <div className="p-12 pb-6 border-b border-border">
-          <div className="text-center mb-6">
+        <div className="px-8 pt-10 pb-2">
+          <div className="text-center mb-4">
             <img 
               src={logoOfficial} 
               alt="Pura Vida Foodbar" 
-              className="h-[88px] w-auto mx-auto"
+              className="h-16 w-auto mx-auto"
             />
           </div>
           <div className="text-center">
-            <div className="text-[13px] text-muted-foreground flex items-center justify-center gap-3">
+            <div className="text-[12px] text-muted-foreground/80 flex items-center justify-center gap-2">
               <span>Operationeel Systeem</span>
               <span className="text-border">•</span>
               <span>Pura Vida Foodbar</span>
@@ -126,31 +126,33 @@ const Auth = () => {
         </div>
 
         {/* Login Form */}
-        <div className="p-8">
-          <form onSubmit={handleLogin} className="flex flex-col gap-6">
+        <div className="px-8 pt-6 pb-8">
+          <form onSubmit={handleLogin} className="flex flex-col gap-5">
             <div>
-              <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground block mb-3">
-                Selecteer Locatie
+              <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 block mb-2">
+                Locatie
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-1 p-1 bg-muted/40 rounded-[14px]">
                 {(['West', 'Midsland'] as const).map((loc) => (
-                  <div
+                  <button
+                    type="button"
                     key={loc}
                     onClick={() => !loading && setLocation(loc)}
-                    className={`cursor-pointer p-4 rounded-[20px] border-1.5 transition-all text-center text-base font-semibold text-foreground
+                    disabled={loading}
+                    className={`py-2.5 rounded-[10px] text-[14px] font-medium transition-all
                       ${location === loc 
-                        ? 'border-primary bg-secondary' 
-                        : 'border-border bg-card hover:bg-muted'
-                      } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        ? 'bg-card text-foreground shadow-sm border border-border/60' 
+                        : 'text-muted-foreground hover:text-foreground'
+                      } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                   >
                     {getLocationDisplayName(loc)}
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground block mb-2">
+              <label htmlFor="password" className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 block mb-2">
                 Wachtwoord
               </label>
               <input
@@ -162,26 +164,26 @@ const Auth = () => {
                 disabled={loading}
                 autoComplete="current-password"
                 autoFocus
-                className="w-full h-11 px-4 text-[15px] text-foreground bg-background border border-border rounded-2xl outline-none transition-colors focus:border-primary"
+                className="w-full h-12 px-4 text-[15px] text-foreground bg-background border border-border/60 rounded-xl outline-none transition-all focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading || cooldown > 0}
-              className={`w-full h-12 rounded-[20px] text-[15px] font-semibold text-primary-foreground flex items-center justify-center gap-2 transition-all
-                ${loading || cooldown > 0 ? 'bg-muted-foreground cursor-not-allowed' : 'bg-primary hover:opacity-90 cursor-pointer shadow-md'}`}
+              className={`w-full h-12 rounded-xl text-[15px] font-semibold text-primary-foreground flex items-center justify-center gap-2 transition-all
+                ${loading || cooldown > 0 ? 'bg-muted-foreground cursor-not-allowed' : 'bg-primary hover:opacity-90 hover:-translate-y-[1px] cursor-pointer'}`}
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   <span>Bezig met inloggen...</span>
                 </>
               ) : cooldown > 0 ? (
                 <span>Wacht {cooldown}s…</span>
               ) : (
                 <>
-                  <LogIn className="w-5 h-5" />
+                  <LogIn className="w-4 h-4" />
                   <span>Inloggen</span>
                 </>
               )}
@@ -192,6 +194,7 @@ const Auth = () => {
       <PWAInstallHint />
     </div>
   );
+
 };
 
 export default Auth;
