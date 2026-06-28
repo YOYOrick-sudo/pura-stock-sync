@@ -51,6 +51,7 @@ const Auth = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (cooldown > 0) return;
     if (!password.trim()) { toast.error('Vul het wachtwoord in'); return; }
     setLoading(true);
     try {
@@ -66,10 +67,15 @@ const Auth = () => {
       });
 
       if (error) {
-        if (error.message.includes('Invalid login credentials')) {
+        const status = (error as any).status;
+        const msg = error.message || '';
+        if (status === 429 || /rate limit/i.test(msg)) {
+          toast.error('Te veel inlogpogingen', { description: 'Wacht 30 seconden en probeer opnieuw.' });
+          startCooldown(30);
+        } else if (msg.includes('Invalid login credentials')) {
           toast.error('Onjuiste inloggegevens', { description: 'Controleer je gebruikersnaam en wachtwoord' });
         } else {
-          toast.error('Inloggen mislukt', { description: error.message });
+          toast.error('Inloggen mislukt', { description: msg });
         }
         return;
       }
