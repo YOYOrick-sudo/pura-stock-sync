@@ -59,11 +59,11 @@ export function PolarSidebar({
           else if (!item.requiresCode) navigate(item.url);
         }}
         className={cn(
-          'group flex items-center rounded-md transition-colors cursor-pointer select-none',
-          collapsed ? 'justify-center h-9 w-9 mx-auto' : 'h-7 px-2 gap-2',
+          'group flex items-center rounded-lg transition-colors cursor-pointer select-none',
+          collapsed ? 'justify-center h-9 w-9 mx-auto' : 'h-9 px-2.5 gap-2.5',
           item.active
             ? 'bg-muted text-foreground'
-            : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+            : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
         )}
       >
         <Icon
@@ -71,15 +71,15 @@ export function PolarSidebar({
             'shrink-0 transition-colors',
             item.active ? 'text-primary' : 'text-muted-foreground/70 group-hover:text-foreground'
           )}
-          style={{ width: 16, height: 16, strokeWidth: 2 }}
+          style={{ width: 18, height: 18, strokeWidth: 2 }}
         />
         {!collapsed && (
           <>
-            <span className="text-[12px] font-medium leading-none truncate">
+            <span className="text-[13px] font-medium leading-none truncate">
               {item.title}
             </span>
             {item.requiresCode && (
-              <Lock className="ml-auto h-3 w-3 text-muted-foreground/50" strokeWidth={2} />
+              <Lock className="ml-auto h-3.5 w-3.5 text-muted-foreground/50" strokeWidth={2} />
             )}
           </>
         )}
@@ -106,7 +106,7 @@ export function PolarSidebar({
 
   return (
     <aside
-      className="polar-sidebar flex flex-col bg-card border border-border rounded-lg shadow-sm overflow-hidden"
+      className="polar-sidebar flex flex-col bg-card border border-border rounded-lg overflow-hidden"
       style={{
         width: collapsed ? '64px' : '230px',
         height: 'calc(100vh - 24px)',
@@ -114,14 +114,15 @@ export function PolarSidebar({
         top: '12px',
         margin: '12px 0 12px 12px',
         transition: 'width 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)',
       }}
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between border-b border-border bg-muted/30"
+        className="flex items-center justify-between bg-muted/20"
         style={{
-          height: '44px',
-          padding: collapsed ? '0 8px' : '0 10px',
+          height: '52px',
+          padding: collapsed ? '0 10px' : '0 14px',
         }}
       >
         <div
@@ -138,9 +139,9 @@ export function PolarSidebar({
             variant="ghost"
             size="icon"
             onClick={onToggle}
-            className="h-7 w-7 rounded-md hover:bg-muted shrink-0"
+            className="h-8 w-8 rounded-md hover:bg-muted shrink-0"
           >
-            <PanelLeft className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2} />
+            <PanelLeft className="h-4 w-4 text-muted-foreground" strokeWidth={2} />
           </Button>
         )}
       </div>
@@ -152,9 +153,9 @@ export function PolarSidebar({
             variant="ghost"
             size="icon"
             onClick={onToggle}
-            className="h-7 w-7 rounded-md hover:bg-muted"
+            className="h-8 w-8 rounded-md hover:bg-muted"
           >
-            <PanelLeft className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2} />
+            <PanelLeft className="h-4 w-4 text-muted-foreground" strokeWidth={2} />
           </Button>
         </div>
       )}
@@ -164,11 +165,11 @@ export function PolarSidebar({
         {overzicht.length > 0 && (
           <div className={cn(collapsed ? 'px-1' : 'px-2', 'mb-3')}>
             {!collapsed && (
-              <h3 className="text-[9px] font-bold text-muted-foreground/60 tracking-widest uppercase px-2 mb-1.5">
+              <h3 className="text-[10px] font-bold text-muted-foreground/50 tracking-wider uppercase px-2.5 mb-2 mt-1">
                 Overzicht
               </h3>
             )}
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-1">
               {overzicht.map(renderItem)}
             </div>
           </div>
@@ -177,11 +178,11 @@ export function PolarSidebar({
         {beheer.length > 0 && (
           <div className={cn(collapsed ? 'px-1' : 'px-2', 'mb-3')}>
             {!collapsed && (
-              <h3 className="text-[9px] font-bold text-muted-foreground/60 tracking-widest uppercase px-2 mb-1.5">
+              <h3 className="text-[10px] font-bold text-muted-foreground/50 tracking-wider uppercase px-2.5 mb-2 mt-3">
                 Beheer
               </h3>
             )}
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-1">
               {beheer.map(renderItem)}
             </div>
           </div>
@@ -190,8 +191,10 @@ export function PolarSidebar({
 
       {/* Footer */}
       {footerSlot && !collapsed && (
-        <div className="border-t border-border bg-muted/30 p-2">
-          {footerSlot}
+        <div className="border-t border-border/50 px-2.5">
+          <div className="h-9 flex items-center">
+            {footerSlot}
+          </div>
         </div>
       )}
     </aside>
