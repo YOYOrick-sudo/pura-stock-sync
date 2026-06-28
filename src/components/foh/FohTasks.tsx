@@ -3041,11 +3041,13 @@ export function FohTasks() {
                   tasksToRender: FohTaskWithEmployee[],
                   keyPrefix: string,
                   dept: 'voorkant' | 'achterkant' = 'voorkant',
+                  orderedCatsOverride?: string[],
                 ) => {
                   const orderedCats =
-                    userLocation === 'West'
-                      ? getCategoriesForContext('West', dept, activePhase)
-                      : undefined;
+                    orderedCatsOverride
+                      ?? (userLocation === 'West'
+                        ? getCategoriesForContext('West', dept, activePhase)
+                        : undefined);
                   const groups = groupTasksByCategory(tasksToRender, orderedCats);
                   const entries = Object.entries(groups);
                   if (entries.length === 0) {
