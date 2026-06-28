@@ -60,7 +60,7 @@ export function PolarSidebar({
         }}
         className={cn(
           'group flex items-center rounded-lg transition-colors cursor-pointer select-none',
-          collapsed ? 'justify-center h-9 w-9 mx-auto' : 'h-9 px-2.5 gap-2.5',
+          collapsed ? 'justify-center h-10 w-10 mx-auto' : 'h-10 px-3 gap-3',
           item.active
             ? 'bg-muted text-foreground'
             : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
@@ -71,11 +71,11 @@ export function PolarSidebar({
             'shrink-0 transition-colors',
             item.active ? 'text-primary' : 'text-muted-foreground/70 group-hover:text-foreground'
           )}
-          style={{ width: 18, height: 18, strokeWidth: 2 }}
+          style={{ width: 20, height: 20, strokeWidth: 2 }}
         />
         {!collapsed && (
           <>
-            <span className="text-[13px] font-medium leading-none truncate">
+            <span className="text-[14px] font-medium leading-none truncate">
               {item.title}
             </span>
             {item.requiresCode && (
@@ -121,8 +121,8 @@ export function PolarSidebar({
       <div
         className="flex items-center justify-between bg-muted/20"
         style={{
-          height: '52px',
-          padding: collapsed ? '0 10px' : '0 14px',
+          height: '60px',
+          padding: collapsed ? '0 10px' : '0 16px',
         }}
       >
         <div
@@ -132,7 +132,7 @@ export function PolarSidebar({
           {!collapsed && logo}
         </div>
         {collapsed && (
-          <div className="text-sm font-semibold text-primary mx-auto">PV</div>
+          <div className="text-base font-semibold text-primary mx-auto">PV</div>
         )}
         {!collapsed && (
           <Button
@@ -165,7 +165,7 @@ export function PolarSidebar({
         {overzicht.length > 0 && (
           <div className={cn(collapsed ? 'px-1' : 'px-2', 'mb-3')}>
             {!collapsed && (
-              <h3 className="text-[10px] font-bold text-muted-foreground/50 tracking-wider uppercase px-2.5 mb-2 mt-1">
+              <h3 className="text-[11px] font-bold text-muted-foreground/50 tracking-wider uppercase px-2.5 mb-2 mt-2">
                 Overzicht
               </h3>
             )}
@@ -178,7 +178,7 @@ export function PolarSidebar({
         {beheer.length > 0 && (
           <div className={cn(collapsed ? 'px-1' : 'px-2', 'mb-3')}>
             {!collapsed && (
-              <h3 className="text-[10px] font-bold text-muted-foreground/50 tracking-wider uppercase px-2.5 mb-2 mt-3">
+              <h3 className="text-[11px] font-bold text-muted-foreground/50 tracking-wider uppercase px-2.5 mb-2 mt-4">
                 Beheer
               </h3>
             )}

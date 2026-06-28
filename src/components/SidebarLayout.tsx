@@ -47,7 +47,7 @@ export function SidebarLayout({
     <div className="flex min-h-screen w-full bg-background">
       {/* Desktop Sidebar - hidden on mobile */}
       {!isMobile && (
-        <div style={{ paddingTop: '16px' }}>
+        <div style={{ position: 'sticky', top: 0, height: '100vh', alignSelf: 'flex-start', paddingTop: '16px' }}>
           <AppSidebar />
         </div>
       )}
