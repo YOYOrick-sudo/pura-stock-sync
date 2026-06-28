@@ -14,12 +14,10 @@ interface RepeatBadgeProps {
  *   • weekly → "di · vr" (samengevoegde dagen)
  */
 export function RepeatBadge({ repeatType, daysOfWeek, size = 'sm' }: RepeatBadgeProps) {
-  if (!repeatType || repeatType === 'none') return null;
+  if (!repeatType || repeatType === 'none' || repeatType === 'daily') return null;
 
   let label = '';
-  if (repeatType === 'daily') {
-    label = 'dagelijks';
-  } else if (repeatType === 'weekly') {
+  if (repeatType === 'weekly') {
     const days = (daysOfWeek ?? [])
       .filter((d): d is number => typeof d === 'number')
       .sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7)); // ma=1 eerst, zo=0 laatst
