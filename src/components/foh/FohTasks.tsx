@@ -2929,7 +2929,7 @@ export function FohTasks() {
                           {completed}/{deptTasks.length}
                         </span>
                       </div>
-                      {flat ? renderFlatList(deptTasks, dept) : renderCategoryGroups(deptTasks, dept)}
+                      {flat ? renderFlatList(deptTasks, dept) : renderCategoryGroups(deptTasks, dept, dept)}
                     </div>
 
                   );
