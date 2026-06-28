@@ -195,8 +195,8 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
               }}
             >
               <option value="all">Alle locaties</option>
-              <option value="West">West</option>
-              <option value="Midsland">Midsland</option>
+              <option value="West">West Daily</option>
+              <option value="Midsland">Foodbar</option>
             </select>
           </div>
           <div>

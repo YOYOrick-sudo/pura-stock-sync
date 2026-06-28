@@ -17,7 +17,7 @@ import { Download, TrendingUp, CheckCircle2, AlertCircle, Trophy } from 'lucide-
 import { toast } from 'sonner';
 
 export default function FohAnalytics() {
-  const { userLocation } = useUserLocation();
+  const { userLocation, displayLocation } = useUserLocation();
   const [dateRange, setDateRange] = useState(30); // Last 30 days
   
   useStatisticsTimeout();
@@ -187,7 +187,7 @@ export default function FohAnalytics() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-heading font-bold text-foreground">Taken Analyse</h1>
-            <p className="text-sm text-muted-foreground">{userLocation}</p>
+            <p className="text-sm text-muted-foreground">{displayLocation}</p>
           </div>
           <Button onClick={exportToCSV} variant="outline">
             <Download className="h-4 w-4 mr-2" />
