@@ -150,6 +150,8 @@ interface SortableTaskItemProps {
   onTitleChange: (id: string, title: string) => void;
   onDescriptionChange?: (id: string, description: string) => void;
   onEstimatedMinutesChange?: (id: string, minutes: number | null) => void;
+  onCategoryChange?: (id: string, category: string) => void;
+  categoryOptions?: string[];
   onDelete: (id: string) => void;
   toggleTask?: (id: string, completed: boolean) => void;
   isDeleted: boolean;
@@ -159,7 +161,7 @@ interface SortableTaskItemProps {
   isNew?: boolean;
 }
 
-function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0', taskNumber, isNew = false }: SortableTaskItemProps) {
+function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onCategoryChange, categoryOptions, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0', taskNumber, isNew = false }: SortableTaskItemProps) {
   const {
     attributes,
     listeners,
