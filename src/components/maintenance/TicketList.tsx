@@ -125,7 +125,7 @@ export function TicketList({ user, onNewTicket, onTicketClick, onSettings, onLog
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as Vestiging | 'alles')}>
           <TabsList className="bg-card border border-border rounded-[14px] p-1">
             <TabsTrigger value="alles" className="rounded-[10px] text-sm">Alles</TabsTrigger>
-            <TabsTrigger value="west" className="rounded-[10px] text-sm">Dailt</TabsTrigger>
+            <TabsTrigger value="west" className="rounded-[10px] text-sm">Daily</TabsTrigger>
             <TabsTrigger value="midsland" className="rounded-[10px] text-sm">Foodbar</TabsTrigger>
           </TabsList>
         </Tabs>
