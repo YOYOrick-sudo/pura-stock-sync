@@ -1,51 +1,27 @@
-Herindelen van de **Sluitlijst West (Voorkant)** in 5 logische categorieën, plus 3 nieuwe taken onder **Shop**.
+## Probleem
 
-## Categorieën (in deze volgorde)
+Bij klikken op ↑ / ↓ in **Subcategorieën beheren** (West) wordt de nieuwe volgorde wél naar de database geschreven, maar de UI verspringt niet meteen. Oorzaak: `handleMoveCategory` doet eerst 6+ sequentiële `upsert`-calls (per categorie één) en wacht dán op `invalidateQueries` → refetch. Tussen klik en refetch zie je de oude volgorde, waardoor het lijkt alsof er niets gebeurt. Bij snel achter elkaar klikken kunnen latere klikken ook op stale data werken.
 
-**1. Bijvullen**
-- Smoothies maken voor de volgende dag
-- Smoothie-pakken bijvullen
-- Melk en frisdrank bijvullen
-- Juice fruit aanvullen
-- Fruit vrieslade aanvullen
-- Koffiebonen bijvullen in hopper
-- Koffiebonen in de shop aanvullen
-- Limonadeflessen aanvullen (1 van ieder op reserve in de koelcel)
-- Takeaway koffie en smoothie aanvullen
-- Koffie & smoothiebekers bijvullen
+## Fix (alleen West, subcategorie-beheer paneel)
 
-**2. Schoonmaak Bar**
-- Blenders + kannen schoon (handwas!)
-- Juicer schoonmaken (handwas!)
-- Juspers schoon
-- Lades schoon
-- Dienbladen schoon
-- Tangen zoet/hartig schoon (handwas!)
-- Melkkannetjes in vaat
-- Melkstation schoon + rooster in vaat
-- Deksels op voorgesneden fruit
-- Restwater karaf → bamboeplant
+1. **Optimistische update** — in `handleMoveCategory` direct na het swappen van de array `queryClient.setQueryData(['foh-category-order', userLocation], …)` aanroepen met de nieuwe volgorde (en sort_order-waarden als veelvouden van 10). UI verspringt dan onmiddellijk.
 
-**3. Shop** *(nieuwe categorie + 3 nieuwe taken)*
-- Shop zakjes en flesjes aanvullen (FIFO) — **nieuw**
-- Zakjes naar voren — **nieuw**
-- Shirts aanvullen (geen lege hangers) — **nieuw**
+2. **Eén batched upsert i.p.v. een for-loop** — `persistCategoryOrder` herschrijven naar één `supabase.from('foh_category_order').upsert([...alle rijen...], { onConflict: 'location,department,category' })`. Sneller en atomair.
 
-**4. Terras**
-- Kussens naar binnen
-- Terrasbakjes in grijze bak (naar binnen)
-- Plantjes in grijze bak (naar binnen)
-- Bord naar binnen
+3. **Rollback bij fout** — als de upsert faalt, `setQueryData` terugzetten naar de vorige snapshot en een toast tonen. Bij succes alsnog `invalidateQueries` om met de server te syncen.
 
-**5. Sanitair**
-- Toilet schoonmaken
+4. **Knoppen tijdens save kort uitschakelen** — kleine `isSavingOrder`-state zodat dubbele klikken tijdens de roundtrip geen race veroorzaken (knoppen `disabled` tijdens save).
 
-## Wat ik doe
+## Niet aanraken
 
-- **Update** `foh_daily_templates` (West / sluit / voorkant): nieuwe `category` + opnieuw genummerde `sort_order` (10, 20, 30…) per bovenstaande volgorde.
-- **Insert** 3 nieuwe template-taken onder categorie "Shop".
-- Spiegel dezelfde wijzigingen op vandaag's actieve `foh_tasks` (niet-gearchiveerd, niet-afgevinkt): bestaande taken hercategoriseren/hersorteren, en de 3 nieuwe Shop-taken aanmaken voor vandaag zodat ze direct zichtbaar zijn.
-- Zet `foh_category_order` (West/voorkant): Bijvullen (10), Schoonmaak Bar (20), Shop (30), Terras (40), Sanitair (50).
-- Midsland en West Openlijst blijven ongewijzigd.
+- Rename / delete / nieuwe-categorie-flows.
+- Midsland-gedrag.
+- Live takenlijst sortering en template-editor.
+- Database-schema (`foh_category_order` blijft zoals het is).
 
-Akkoord?
+## Verificatie
+
+- ↑ op een rij → rij schuift onmiddellijk omhoog, nummer (1./2./…) update direct.
+- Pagina hard verversen → volgorde blijft hetzelfde (= echt opgeslagen).
+- ↑ op een rij met `(nieuw)` label → werkt ook, label verdwijnt na refetch want hij staat nu in `foh_category_order`.
+- Snel 3x klikken → geen vreemde sprongen, eindvolgorde klopt met DB.
