@@ -849,6 +849,18 @@ export function FohTasks() {
     }
   }, [activeDepartment, userLocation]);
 
+  // Apparaat-modus (per iPad). 'beide' = bediening + keuken, 'voorkant' = alleen bediening, 'achterkant' = alleen keuken.
+  type DeviceMode = 'beide' | 'voorkant' | 'achterkant';
+  const [deviceMode, setDeviceMode] = useState<DeviceMode>(() => {
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('foh_device_mode_west') : null;
+    return stored === 'voorkant' || stored === 'achterkant' ? stored : 'beide';
+  });
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('foh_device_mode_west', deviceMode);
+    }
+  }, [deviceMode]);
+
   // West heeft geen tussenlijst — reset activePhase als die per ongeluk op 'tussen' staat
   useEffect(() => {
     if (userLocation === 'West' && activePhase === 'tussen') {
@@ -3201,8 +3213,8 @@ export function FohTasks() {
                     <div>
                       {userLocation === 'West' ? (
                         <>
-                          {renderDepartmentSection('Bediening', 'voorkant')}
-                          {renderDepartmentSection('Keuken', 'achterkant')}
+                          {deviceMode !== 'achterkant' && renderDepartmentSection('Bediening', 'voorkant')}
+                          {deviceMode !== 'voorkant' && renderDepartmentSection('Keuken', 'achterkant')}
                         </>
                       ) : (
                         renderCategoryGroups(currentTasks, 'all')
@@ -3583,6 +3595,66 @@ export function FohTasks() {
               <p style={{ fontSize: '14px', color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif' }}>
                 Beheer templates voor {activePhase === 'open' ? 'Openlijst' : activePhase === 'tussen' ? 'Tussenlijst' : 'Sluitlijst'}.
               </p>
+
+              {/* West: Apparaat-modus (per iPad opgeslagen) */}
+              {userLocation === 'West' && (
+                <div style={{
+                  padding: '14px',
+                  backgroundColor: 'hsl(var(--muted) / 0.4)',
+                  borderRadius: '12px',
+                  border: '1px solid hsl(var(--border))',
+                }}>
+                  <div style={{
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: 'hsl(var(--muted-foreground))',
+                    marginBottom: '4px',
+                  }}>
+                    Apparaat-modus
+                  </div>
+                  <div style={{
+                    fontSize: '12px',
+                    color: 'hsl(var(--muted-foreground))',
+                    marginBottom: '10px',
+                  }}>
+                    Bepaalt welke takenlijst deze iPad toont. Wordt lokaal opgeslagen per apparaat.
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {([
+                      { key: 'voorkant', label: 'Bediening' },
+                      { key: 'achterkant', label: 'Keuken' },
+                      { key: 'beide', label: 'Beide' },
+                    ] as { key: DeviceMode; label: string }[]).map(({ key, label }) => {
+                      const isActive = deviceMode === key;
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setDeviceMode(key)}
+                          style={{
+                            flex: 1,
+                            minWidth: '100px',
+                            padding: '10px 14px',
+                            borderRadius: '12px',
+                            border: `1.5px solid ${isActive ? 'hsl(var(--primary))' : 'hsl(var(--border))'}`,
+                            backgroundColor: isActive ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--card))',
+                            color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
+                            fontWeight: isActive ? 700 : 500,
+                            fontSize: '13px',
+                            fontFamily: 'Inter, sans-serif',
+                            cursor: 'pointer',
+                            transition: 'all 150ms',
+                          }}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Create new template button */}
               <Button

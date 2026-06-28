@@ -1,36 +1,30 @@
-## Probleem
+## Doel
+In West kan je nu zowel Voorkant (bediening) als Achterkant (keuken) zien. We willen per iPad instellen welke afdeling standaard bovenaan/geopend staat, zodat de keuken-iPad direct bij keukentaken begint en de bediening-iPad bij bedieningstaken.
 
-Wijzigingen in de Template-editor worden alleen opgeslagen in `foh_daily_templates`, maar niet doorgevoerd in de al gegenereerde `foh_tasks` van vandaag. Daardoor blijft een al aangemaakte taak (bv. "Limonadeflessen in koeling") in het overzicht staan, ook al heet hij in de admin nu "Limonadeflessen Aanvullen (1 van ieder op reserve in de koelcel)".
+## Aanpak
 
-## Oplossing
+**1. Apparaat-instelling (per iPad opgeslagen)**
+- Nieuwe instelling `foh_device_mode` in `localStorage` van die specifieke iPad: `"voorkant"` | `"achterkant"` | `"beide"` (default).
+- Blijft staan na refresh/sluiten — eenmalig instellen per iPad is genoeg.
 
-`handleSaveTemplateEdits` in `src/components/foh/FohTasks.tsx` uitbreiden zodat elke template-mutatie ook de bijbehorende actieve taak van vandaag bijwerkt.
+**2. Waar instel je het**
+- In het Admin-paneel (wachtwoord 2020 in West) een nieuw blokje **"Apparaat-modus"** met 3 knoppen: Bediening / Keuken / Beide.
+- Toont duidelijk welke modus actief is op dít apparaat.
+- Sneltoegang: ook een klein tandwiel/label rechtsboven in de takenlijst waar je snel kan wisselen (zonder admin-wachtwoord, want het is een lokale apparaat-keuze, geen data-wijziging).
 
-### Per actie
+**3. Gedrag in de takenlijst (West)**
+- Modus **Bediening**: alleen Voorkant-taken zichtbaar, geen department-tabs.
+- Modus **Keuken**: alleen Achterkant-taken zichtbaar, geen department-tabs.
+- Modus **Beide** (default, ongewijzigd gedrag): huidige weergave met beide secties.
+- Voor Midsland verandert er niks (geen departments daar).
 
-1. **Update bestaande template-taak** → ook `foh_tasks` updaten waar:
-   - `template_id = task.id`
-   - `due_date = vandaag (NL)`
-   - `archived = false`
-   - `completed_at IS NULL` (afgevinkte taken niet aanraken — die zijn al "gedaan")
-   
-   Velden: `title`, `category`, `description`, `estimated_minutes`, `sort_order`.
+**4. Veiligheid / geen bugs**
+- Alleen UI-filter; database en templates blijven onaangeraakt.
+- Aanmaken/bewerken van taken in admin blijft voor beide afdelingen werken, ongeacht apparaat-modus (anders kan een keuken-iPad geen voorkant-taak meer aanmaken — niet wenselijk).
+- Bij wisselen van modus: directe refresh van de lijst, geen herladen nodig.
 
-2. **Nieuwe template-taak ingevoegd** → na de `insert` van de template direct ook een `foh_tasks`-rij voor vandaag aanmaken met `template_id = nieuwe template id`, `due_date = vandaag`, juiste `location`/`phase`/`department`/`category`/`sort_order`/`title`. (Zelfde shape als de DB-trigger `create_task_from_new_template` doet — die werkt alleen bij weekly/dow-match dus we doen het hier expliciet.)
+## Bestanden
+- `src/components/foh/FohTasks.tsx` — modus uitlezen uit localStorage, filteren van zichtbare departments, modus-schakelaar in admin + sneltoegang-chip.
 
-3. **Verwijderde template-taak** → corresponderende open taak van vandaag soft-deleten (`archived = true` waar `template_id IN (...)`, `due_date = vandaag`, `completed_at IS NULL`). Afgevinkte taken laten staan voor de historie.
-
-4. **Categorie-rename via picker** in de editor: titels blijven hetzelfde, maar `category` op de template wijzigt. De update onder punt 1 dekt dit al (category wordt mee-gesynchroniseerd naar `foh_tasks`).
-
-Na afloop `queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] })` (staat er al) zodat de UI ververst.
-
-### Veiligheid
-
-- Alleen taken van **vandaag** (`due_date = today NL`) en alleen **niet-afgevinkte**, **niet-gearchiveerde** rijen worden aangeraakt. Historische data en lopende voortgang blijven intact.
-- Edge function `generate-waste-tasks` / dagelijkse reset (04:00) wordt niet aangepast — die genereert morgen automatisch op basis van de bijgewerkte template.
-
-### Bestanden
-
-- `src/components/foh/FohTasks.tsx` — alleen `handleSaveTemplateEdits` aanpassen.
-
-Geen schema-wijzigingen nodig.
+## Vraag vooraf
+Wil je dat de sneltoegang-schakelaar (zonder wachtwoord) zichtbaar is, of moet wisselen tussen Bediening/Keuken/Beide altijd via admin (2020)? Dat laatste voorkomt dat personeel per ongeluk de modus van een iPad omzet.
