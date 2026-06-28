@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { getLocationDisplayName } from '@/lib/utils';
 
 interface UserLocationContextType {
   userLocation: string;
