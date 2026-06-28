@@ -10,7 +10,7 @@ import { useUserLocation } from '@/contexts/UserLocationContext';
 
 export default function Settings() {
   const navigate = useNavigate();
-  const { userLocation } = useUserLocation();
+  const { displayLocation } = useUserLocation();
   const [userEmail, setUserEmail] = useState<string>('');
 
   useEffect(() => {
