@@ -965,6 +965,48 @@ export function FohTasks() {
     enabled: !!userLocation,
   });
 
+  // ===== WEST SUBCATEGORIES — verzameld uit templates + actieve taken per afdeling =====
+  const { data: westSubcatsData } = useQuery({
+    queryKey: ['foh-west-subcategories', userLocation],
+    queryFn: async () => {
+      const [tpl, tsk] = await Promise.all([
+        supabase.from('foh_daily_templates').select('category, department').eq('location', 'West'),
+        supabase.from('foh_tasks').select('category, department').eq('location', 'West').eq('archived', false),
+      ]);
+      const out: Record<'voorkant' | 'achterkant', Set<string>> = {
+        voorkant: new Set(),
+        achterkant: new Set(),
+      };
+      for (const r of [...((tpl.data as any[]) || []), ...((tsk.data as any[]) || [])]) {
+        const dept = r.department === 'achterkant' ? 'achterkant' : 'voorkant';
+        const c = (r.category || '').trim();
+        if (c) out[dept].add(c);
+      }
+      return {
+        voorkant: Array.from(out.voorkant).sort(),
+        achterkant: Array.from(out.achterkant).sort(),
+      };
+    },
+    enabled: userLocation === 'West',
+  });
+
+  // Categorieën beschikbaar voor een (location, dept, phase) combinatie.
+  // West: dynamisch op basis van bestaande templates/taken per afdeling, plus 'Algemeen' als fallback.
+  // Midsland: bestaande vaste lijst per fase.
+  const getCategoriesForContext = (
+    loc: string,
+    dept: 'voorkant' | 'achterkant',
+    phase: string,
+  ): string[] => {
+    if (loc === 'West') {
+      const base = westSubcatsData?.[dept] ?? [];
+      if (base.length === 0) return ['Algemeen'];
+      return base.includes('Algemeen') ? base : ['Algemeen', ...base];
+    }
+    return getAvailableCategoriesForPhase(loc, phase);
+  };
+
+
   // Map template_id → isNew (created less than 7 days ago)
   const newTemplateIds = new Set<string>();
   if (templateDates) {
