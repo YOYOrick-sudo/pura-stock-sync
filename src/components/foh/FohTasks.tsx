@@ -420,6 +420,19 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
               )
             )}
 
+            {/* Category picker - admin edit mode only */}
+            {isEditMode && onCategoryChange && categoryOptions && (
+              <div style={{ width: 150 }}>
+                <CategoryPicker
+                  value={task.category || 'Algemeen'}
+                  onChange={(v) => onCategoryChange(task.id, v)}
+                  options={categoryOptions}
+                  triggerStyle={{ height: 28, fontSize: 12 }}
+                />
+              </div>
+            )}
+
+
             {/* Info button - compact */}
             {!isEditMode && task.description && (
               <button
