@@ -113,10 +113,10 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
     <>
       <PolarSidebar
         logo={
-          <img 
+          <img
             src={puraVidaLogo}
-            alt="Pura Vida" 
-            className="h-[44px] w-auto max-w-full object-contain object-left"
+            alt="Pura Vida"
+            className="h-[28px] w-auto max-w-full object-contain object-left"
           />
         }
         items={navigationItems.map(item => ({
