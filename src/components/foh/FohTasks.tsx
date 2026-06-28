@@ -2481,16 +2481,19 @@ export function FohTasks() {
                                 <Label style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>
                                   Categorie
                                 </Label>
-                                <Select value={newTask.category} onValueChange={(val) => setNewTask({ ...newTask, category: val })}>
-                                  <SelectTrigger style={{ marginTop: '6px', borderRadius: '16px', fontFamily: 'Inter, sans-serif' }}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {getAvailableCategoriesForPhase(userLocation, 'periodiek').map(cat => (
-                                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                                <div style={{ marginTop: '6px' }}>
+                                  <CategoryPicker
+                                    value={newTask.category}
+                                    onChange={(val) => setNewTask({ ...newTask, category: val })}
+                                    options={getCategoriesForContext(
+                                      userLocation,
+                                      (userLocation === 'West' ? (newTask.department as 'voorkant' | 'achterkant') : 'voorkant'),
+                                      'periodiek',
+                                    )}
+                                    allowCreate={userLocation === 'West'}
+                                    triggerStyle={{ borderRadius: '16px' }}
+                                  />
+                                </div>
                               </div>
                             </div>
 
