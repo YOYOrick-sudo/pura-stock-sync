@@ -112,7 +112,7 @@ export function PolarSidebar({
         height: 'calc(100vh - 24px)',
         position: 'sticky',
         top: '12px',
-        margin: '12px 0 12px 12px',
+        margin: '12px',
         transition: 'width 200ms cubic-bezier(0.4, 0, 0.2, 1)',
         boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)',
       }}
