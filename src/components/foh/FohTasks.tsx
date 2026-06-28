@@ -3596,7 +3596,79 @@ export function FohTasks() {
                 Beheer templates voor {activePhase === 'open' ? 'Openlijst' : activePhase === 'tussen' ? 'Tussenlijst' : 'Sluitlijst'}.
               </p>
 
+              {/* West: Apparaat-modus (per iPad opgeslagen) */}
+              {userLocation === 'West' && (
+                <div style={{
+                  padding: '14px',
+                  backgroundColor: 'hsl(var(--muted) / 0.4)',
+                  borderRadius: '12px',
+                  border: '1px solid hsl(var(--border))',
+                }}>
+                  <div style={{
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: 'hsl(var(--muted-foreground))',
+                    marginBottom: '4px',
+                  }}>
+                    Apparaat-modus
+                  </div>
+                  <div style={{
+                    fontSize: '12px',
+                    color: 'hsl(var(--muted-foreground))',
+                    marginBottom: '10px',
+                  }}>
+                    Bepaalt welke takenlijst deze iPad toont. Wordt lokaal opgeslagen per apparaat.
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {([
+                      { key: 'voorkant', label: 'Bediening' },
+                      { key: 'achterkant', label: 'Keuken' },
+                      { key: 'beide', label: 'Beide' },
+                    ] as { key: DeviceMode; label: string }[]).map(({ key, label }) => {
+                      const isActive = deviceMode === key;
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setDeviceMode(key)}
+                          style={{
+                            flex: 1,
+                            minWidth: '100px',
+                            padding: '10px 14px',
+                            borderRadius: '12px',
+                            border: `1.5px solid ${isActive ? 'hsl(var(--primary))' : 'hsl(var(--border))'}`,
+                            backgroundColor: isActive ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--card))',
+                            color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
+                            fontWeight: isActive ? 700 : 500,
+                            fontSize: '13px',
+                            fontFamily: 'Inter, sans-serif',
+                            cursor: 'pointer',
+                            transition: 'all 150ms',
+                          }}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Create new template button */}
+              <Button
+                onClick={() => setNewTemplateDialogOpen(true)}
+                style={{
+                  backgroundColor: 'hsl(var(--primary))',
+                  color: 'hsl(var(--primary-foreground))',
+                  borderRadius: '20px',
+                  fontFamily: 'Inter, sans-serif',
+                }}
+              >
+                <Plus size={16} style={{ marginRight: '8px' }} />
+                Nieuwe Template
+              </Button>
               <Button
                 onClick={() => setNewTemplateDialogOpen(true)}
                 style={{
