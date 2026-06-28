@@ -165,7 +165,7 @@ export function PolarSidebar({
         {overzicht.length > 0 && (
           <div className={cn(collapsed ? 'px-1' : 'px-2', 'mb-3')}>
             {!collapsed && (
-              <h3 className="text-[10px] font-bold text-muted-foreground/50 tracking-wider uppercase px-2.5 mb-2 mt-1">
+              <h3 className="text-[11px] font-bold text-muted-foreground/50 tracking-wider uppercase px-2.5 mb-2 mt-2">
                 Overzicht
               </h3>
             )}
@@ -178,7 +178,7 @@ export function PolarSidebar({
         {beheer.length > 0 && (
           <div className={cn(collapsed ? 'px-1' : 'px-2', 'mb-3')}>
             {!collapsed && (
-              <h3 className="text-[10px] font-bold text-muted-foreground/50 tracking-wider uppercase px-2.5 mb-2 mt-3">
+              <h3 className="text-[11px] font-bold text-muted-foreground/50 tracking-wider uppercase px-2.5 mb-2 mt-4">
                 Beheer
               </h3>
             )}
