@@ -3212,10 +3212,17 @@ export function FohTasks() {
                   >
                     <div>
                       {userLocation === 'West' ? (
-                        <>
-                          {deviceMode !== 'achterkant' && renderDepartmentSection('Bediening', 'voorkant')}
-                          {deviceMode !== 'voorkant' && renderDepartmentSection('Keuken', 'achterkant')}
-                        </>
+                        deviceMode === 'achterkant' ? (
+                          <>
+                            {renderDepartmentSection('Keuken', 'achterkant')}
+                            {renderDepartmentSection('Bediening', 'voorkant')}
+                          </>
+                        ) : (
+                          <>
+                            {renderDepartmentSection('Bediening', 'voorkant')}
+                            {renderDepartmentSection('Keuken', 'achterkant')}
+                          </>
+                        )
                       ) : (
                         renderCategoryGroups(currentTasks, 'all')
                       )}
@@ -3619,13 +3626,13 @@ export function FohTasks() {
                     color: 'hsl(var(--muted-foreground))',
                     marginBottom: '10px',
                   }}>
-                    Bepaalt welke takenlijst deze iPad toont. Wordt lokaal opgeslagen per apparaat.
+                    Beide lijsten blijven altijd zichtbaar. Deze keuze bepaalt welke bovenaan staat. Wordt lokaal opgeslagen per iPad.
                   </div>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {([
-                      { key: 'voorkant', label: 'Bediening' },
-                      { key: 'achterkant', label: 'Keuken' },
-                      { key: 'beide', label: 'Beide' },
+                      { key: 'voorkant', label: 'Bediening eerst' },
+                      { key: 'achterkant', label: 'Keuken eerst' },
+                      { key: 'beide', label: 'Standaard' },
                     ] as { key: DeviceMode; label: string }[]).map(({ key, label }) => {
                       const isActive = deviceMode === key;
                       return (
