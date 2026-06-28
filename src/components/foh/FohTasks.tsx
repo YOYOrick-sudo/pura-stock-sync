@@ -160,9 +160,10 @@ interface SortableTaskItemProps {
   taskPadding?: string;
   taskNumber?: number;
   isNew?: boolean;
+  repeatDays?: (number | null)[];
 }
 
-function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onCategoryChange, categoryOptions, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0', taskNumber, isNew = false }: SortableTaskItemProps) {
+function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onCategoryChange, categoryOptions, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0', taskNumber, isNew = false, repeatDays }: SortableTaskItemProps) {
   const {
     attributes,
     listeners,
