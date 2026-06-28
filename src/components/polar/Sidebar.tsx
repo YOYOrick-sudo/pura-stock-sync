@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, PanelLeft } from 'lucide-react';
+import { PanelLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,7 +24,6 @@ export interface PolarSidebarProps {
   items: PolarSidebarItem[];
   collapsed: boolean;
   onToggle: () => void;
-  headerSlot?: React.ReactNode;
   footerSlot?: React.ReactNode;
 }
 
@@ -33,31 +32,30 @@ export function PolarSidebar({
   items,
   collapsed,
   onToggle,
-  headerSlot,
   footerSlot,
 }: PolarSidebarProps) {
   const navigate = useNavigate();
 
   return (
     <aside
-      className="polar-sidebar flex flex-col bg-card border-r border-border"
+      className="polar-sidebar flex flex-col bg-background"
       style={{
-        width: collapsed ? '64px' : '280px',
+        width: collapsed ? '68px' : '280px',
         height: '100vh',
         position: 'sticky',
         top: 0,
         transition: 'width 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+        boxShadow: 'inset -1px 0 0 hsl(var(--border) / 0.6)',
       }}
     >
-      {/* Header - 84px */}
+      {/* Header - 72px */}
       <div
-        className="border-b border-border"
         style={{
-          height: '84px',
+          height: '72px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: collapsed ? '0 12px' : '0 24px',
+          padding: collapsed ? '0 10px' : '0 24px',
         }}
       >
         <div
@@ -77,18 +75,16 @@ export function PolarSidebar({
         )}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {!collapsed && headerSlot}
           <Button
             variant="ghost"
             size="icon"
             onClick={onToggle}
-            className="w-10 h-10 rounded-lg"
+            className="w-10 h-10 rounded-lg hover:bg-muted/60"
           >
-            {collapsed ? (
-              <Menu className="h-5 w-5 text-foreground" />
-            ) : (
-              <PanelLeft className="h-5 w-5 text-foreground" />
-            )}
+            <PanelLeft
+              className="h-5 w-5 text-muted-foreground"
+              style={{ strokeWidth: 1.5 }}
+            />
           </Button>
         </div>
       </div>
@@ -97,13 +93,21 @@ export function PolarSidebar({
       <nav
         className="flex-1 overflow-y-auto"
         style={{
-          padding: collapsed ? '28px 8px' : '28px 16px',
+          padding: collapsed ? '24px 10px' : '12px 16px 24px',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {!collapsed && (
+          <div
+            className="text-[11px] font-medium tracking-wider text-muted-foreground/70 uppercase"
+            style={{ marginBottom: '12px', paddingLeft: '4px' }}
+          >
+            Menu
+          </div>
+        )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {items.map((item) => {
             const Icon = item.icon;
-            
+
             const itemContent = (
               <div
                 key={item.url}
@@ -115,21 +119,35 @@ export function PolarSidebar({
                   }
                 }}
                 className={cn(
-                  'polar-sidebar-item rounded-lg transition-colors',
-                  item.active && 'bg-secondary border border-border shadow-soft',
-                  !item.active && 'border border-transparent hover:bg-muted',
+                  'polar-sidebar-item rounded-lg transition-colors relative',
+                  item.active && 'bg-primary/[0.08]',
+                  !item.active && 'hover:bg-muted/50',
                   !item.requiresCode && 'cursor-pointer'
                 )}
                 style={{
-                  height: '48px',
+                  height: '44px',
                   display: 'flex',
                   alignItems: 'center',
                   padding: collapsed ? '0 12px' : '0 16px',
-                  fontSize: '17px',
+                  fontSize: '15px',
                   fontWeight: item.active ? 500 : 400,
                   justifyContent: collapsed ? 'center' : 'flex-start',
+                  transition: 'background-color 150ms ease',
                 }}
               >
+                {item.active && (
+                  <span
+                    className="bg-primary rounded-full"
+                    style={{
+                      position: 'absolute',
+                      left: '4px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: '2px',
+                      height: '18px',
+                    }}
+                  />
+                )}
                 <Icon
                   className={cn(
                     'shrink-0 transition-colors',
@@ -139,7 +157,7 @@ export function PolarSidebar({
                     width: collapsed ? '22px' : '20px',
                     height: collapsed ? '22px' : '20px',
                     marginRight: collapsed ? '0' : '14px',
-                    strokeWidth: 1.5,
+                    strokeWidth: 1.75,
                   }}
                 />
                 {!collapsed && (
@@ -159,7 +177,7 @@ export function PolarSidebar({
                     </TooltipTrigger>
                     <TooltipContent
                       side="right"
-                      className="bg-foreground text-background rounded-lg px-3 py-2 text-sm"
+                      className="bg-card text-foreground border border-border rounded-lg px-3 py-2 text-sm shadow-md"
                     >
                       {item.title}
                     </TooltipContent>
@@ -175,7 +193,7 @@ export function PolarSidebar({
 
       {/* Footer slot for theme toggle */}
       {footerSlot && (
-        <div className="border-t border-border p-3">
+        <div style={{ padding: '16px 16px' }}>
           {footerSlot}
         </div>
       )}
