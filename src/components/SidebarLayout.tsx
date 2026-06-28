@@ -16,7 +16,7 @@ export function SidebarLayout({
   hideHeader = false
 }: SidebarLayoutProps) {
   const location = useLocation();
-  const { userLocation } = useUserLocation();
+  const { userLocation, displayLocation } = useUserLocation();
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
