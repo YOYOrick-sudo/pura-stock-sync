@@ -60,7 +60,7 @@ export function PolarSidebar({
         }}
         className={cn(
           'group flex items-center rounded-lg transition-colors cursor-pointer select-none',
-          collapsed ? 'justify-center h-9 w-9 mx-auto' : 'h-9 px-2.5 gap-2.5',
+          collapsed ? 'justify-center h-10 w-10 mx-auto' : 'h-10 px-3 gap-3',
           item.active
             ? 'bg-muted text-foreground'
             : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
@@ -71,7 +71,7 @@ export function PolarSidebar({
             'shrink-0 transition-colors',
             item.active ? 'text-primary' : 'text-muted-foreground/70 group-hover:text-foreground'
           )}
-          style={{ width: 18, height: 18, strokeWidth: 2 }}
+          style={{ width: 20, height: 20, strokeWidth: 2 }}
         />
         {!collapsed && (
           <>
