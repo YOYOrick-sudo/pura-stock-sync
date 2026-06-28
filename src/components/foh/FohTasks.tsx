@@ -3127,6 +3127,7 @@ export function FohTasks() {
                                   showAdminTools={false}
                                   taskPadding={taskPadding}
                                   isNew={!!task.template_id && newTemplateIds.has(task.template_id)}
+                                  repeatDays={getRepeatDaysForTask(task as any)}
                                 />
                               ))}
                             </SortableContext>
