@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import logoOfficial from '@/assets/pura-vida-logo-official.png';
+import { getLocationDisplayName } from '@/lib/utils';
 
 const Auth = () => {
   const navigate = useNavigate();
