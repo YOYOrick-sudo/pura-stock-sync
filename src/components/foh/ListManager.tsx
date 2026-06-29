@@ -1061,6 +1061,7 @@ export function ListManager({
               Geen taken in deze lijst. Voeg er één toe via de knoppen hieronder.
             </div>
           ) : (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
               {tasksByCategory.map(({ category, tasks }) => {
                 const catRowIdx = westCategoryRows?.findIndex((r) => r.category === category) ?? -1;
