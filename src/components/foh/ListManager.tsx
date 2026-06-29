@@ -624,42 +624,94 @@ export function ListManager({
     invalidateAll();
   };
 
-  const handleDragEnd = async (event: DragEndEvent, category: string) => {
+  // Cross-category drag: sleep een taak naar een andere positie binnen dezelfde
+  // categorie, of naar een andere categorie. Bij verplaatsing wijzigt de categorie
+  // automatisch en wordt sort_order opnieuw bepaald voor beide categorieën.
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    if (!over || active.id === over.id) return;
+    if (!over) return;
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    if (activeId === overId) return;
 
-    const tasks = currentTasks
-      .filter((t) => t.category === category)
-      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-    const oldIdx = tasks.findIndex((t) => t.id === active.id);
-    const newIdx = tasks.findIndex((t) => t.id === over.id);
-    if (oldIdx < 0 || newIdx < 0) return;
-    const reordered = [...tasks];
-    const [moved] = reordered.splice(oldIdx, 1);
-    reordered.splice(newIdx, 0, moved);
+    const activeTask = currentTasks.find((t) => t.id === activeId);
+    if (!activeTask) return;
+
+    // Build huidige groepering (gerespecteerde volgorde uit tasksByCategory)
+    const catTasksMap = new Map<string, TemplateTask[]>();
+    for (const { category, tasks } of tasksByCategory) {
+      catTasksMap.set(category, [...tasks]);
+    }
+
+    let targetCategory: string;
+    let targetIndex: number;
+
+    if (overId.startsWith('cat:')) {
+      // Drop op lege categorie of onderkant van een categorie-container
+      targetCategory = overId.slice(4);
+      if (!catTasksMap.has(targetCategory)) catTasksMap.set(targetCategory, []);
+      targetIndex = (catTasksMap.get(targetCategory) ?? []).filter((t) => t.id !== activeId).length;
+    } else {
+      const overTask = currentTasks.find((t) => t.id === overId);
+      if (!overTask) return;
+      targetCategory = overTask.category || 'Algemeen';
+      const arr = catTasksMap.get(targetCategory) ?? [];
+      targetIndex = arr.findIndex((t) => t.id === overId);
+      if (targetIndex < 0) targetIndex = arr.length;
+    }
+
+    const sourceCategory = activeTask.category || 'Algemeen';
+
+    // Verwijder uit bron
+    const sourceArr = (catTasksMap.get(sourceCategory) ?? []).filter((t) => t.id !== activeId);
+    catTasksMap.set(sourceCategory, sourceArr);
+
+    // Voeg toe in target
+    const targetArr = (catTasksMap.get(targetCategory) ?? []).filter((t) => t.id !== activeId);
+    targetArr.splice(targetIndex, 0, { ...activeTask, category: targetCategory });
+    catTasksMap.set(targetCategory, targetArr);
+
+    // Bouw updates voor beide (mogelijk dezelfde) categorieën
+    const touched = new Set<string>([sourceCategory, targetCategory]);
+    const updates: { id: string; category: string; sort_order: number }[] = [];
+    for (const cat of touched) {
+      const arr = catTasksMap.get(cat) ?? [];
+      arr.forEach((t, i) => {
+        updates.push({ id: t.id, category: cat, sort_order: (i + 1) * 10 });
+      });
+    }
 
     // Optimistic
-    const withNewOrder = reordered.map((t, i) => ({ ...t, sort_order: (i + 1) * 10 }));
+    const updMap = new Map(updates.map((u) => [u.id, u]));
     queryClient.setQueryData<TemplateTask[]>(
       ['list-manager-templates', location, phase, department],
       (prev) => {
         if (!prev) return prev;
-        const map = new Map(withNewOrder.map((t) => [t.id, t]));
-        return prev.map((t) => map.get(t.id) || t);
+        return prev.map((t) => {
+          const u = updMap.get(t.id);
+          return u ? { ...t, category: u.category, sort_order: u.sort_order } : t;
+        });
       },
     );
 
     // Persist
-    for (const t of withNewOrder) {
-      await supabase
-        .from('foh_daily_templates')
-        .update({ sort_order: t.sort_order })
-        .eq('id', t.id);
-      await syncToToday(t.id, { sort_order: t.sort_order });
+    try {
+      for (const u of updates) {
+        const { error } = await supabase
+          .from('foh_daily_templates')
+          .update({ category: u.category, sort_order: u.sort_order })
+          .eq('id', u.id);
+        if (error) throw error;
+        await syncToToday(u.id, { category: u.category, sort_order: u.sort_order });
+      }
+      flashSaved();
+      queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+    } catch {
+      toast.error('Opslaan mislukt');
+      invalidateAll();
     }
-    flashSaved();
-    queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
-    queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
   };
 
   const handleActivateTemplate = async (templateName: string) => {
