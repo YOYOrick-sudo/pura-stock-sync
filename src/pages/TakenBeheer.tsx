@@ -209,7 +209,9 @@ function TakenBeheerInner() {
 export default function TakenBeheer() {
   return (
     <ProtectedRoute>
-      <TakenBeheerInner />
+      <SidebarLayout>
+        <TakenBeheerInner />
+      </SidebarLayout>
     </ProtectedRoute>
   );
 }
