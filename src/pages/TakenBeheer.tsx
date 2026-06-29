@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ListManager } from '@/components/foh/ListManager';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { SidebarLayout } from '@/components/SidebarLayout';
 
 type Phase = 'open' | 'tussen' | 'sluit';
 type Department = 'voorkant' | 'achterkant';
