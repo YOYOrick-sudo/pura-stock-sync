@@ -188,18 +188,22 @@ function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowP
           gap: '8px',
           padding: '10px 8px',
           borderRadius: '10px',
-          backgroundColor: hovered ? 'hsl(var(--muted) / 0.4)' : 'transparent',
+          backgroundColor: isDragging
+            ? 'hsl(var(--primary) / 0.08)'
+            : hovered
+              ? 'hsl(var(--muted) / 0.4)'
+              : 'transparent',
           transition: 'background-color 120ms ease',
         }}
       >
-        {/* Drag handle (verschijnt op hover) */}
+        {/* Drag handle — altijd zichtbaar, ruim aanraakvlak */}
         <button
           {...attributes}
           {...listeners}
           aria-label="Verslepen"
           style={{
-            width: 24,
-            height: 24,
+            width: 32,
+            height: 32,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -207,13 +211,23 @@ function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowP
             border: 'none',
             cursor: 'grab',
             color: 'hsl(var(--muted-foreground))',
-            opacity: hovered ? 0.7 : 0.25,
-            transition: 'opacity 120ms ease',
+            opacity: 0.55,
+            transition: 'opacity 120ms ease, background 120ms ease',
             padding: 0,
             touchAction: 'none',
+            borderRadius: 8,
+            flexShrink: 0,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.opacity = '1';
+            e.currentTarget.style.background = 'hsl(var(--muted) / 0.6)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.opacity = '0.55';
+            e.currentTarget.style.background = 'transparent';
           }}
         >
-          <GripVertical size={16} />
+          <GripVertical size={18} />
         </button>
 
         {/* Title input */}
