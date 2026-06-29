@@ -86,25 +86,7 @@ function TakenBeheerInner() {
     enabled: isWest,
   });
 
-  // Welke departments hebben überhaupt actieve templates voor deze fase?
-  const { data: deptsWithTemplates } = useQuery({
-    queryKey: ['foh-depts-with-templates', location, phase],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('foh_daily_templates')
-        .select('department')
-        .eq('location', location)
-        .eq('phase', phase)
-        .eq('is_active', true);
-      if (error) throw error;
-      const set = new Set<Department>();
-      for (const r of (data as any[]) || []) {
-        set.add(r.department === 'achterkant' ? 'achterkant' : 'voorkant');
-      }
-      return set;
-    },
-    enabled: isWest && isUnifiedWest,
-  });
+  // (West werkt nu als één lijst — geen multi-department detectie meer nodig)
 
   const buildAvailableCategories = (dept: Department): string[] => {
     if (!isWest) return getMidslandCategories(phase);
