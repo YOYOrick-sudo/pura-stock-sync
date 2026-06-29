@@ -1286,8 +1286,9 @@ export function ListManager({
                           <Plus size={14} /> Taak in {category}
                         </button>
                       )}
-                    </div>
+                    </DroppableCategory>
                   </div>
+
                 );
               })}
 
