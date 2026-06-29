@@ -1,55 +1,74 @@
 ## Probleem
 
-In `/taken/beheer` voor West worden twee aparte kaarten gerenderd: één met de "voorkant"-categorieën (Bijvullen, Schoonmaak Bar, Laatste Loodjes …) en één met de "achterkant"-categorieën (Algemeen, Keuken). Dat komt omdat de templates van West nog in twee `department`-waarden in de database staan (`voorkant` en `achterkant`). `TakenBeheer` stapelt per department één `ListManager` → categorieën kunnen niet over de grens heen geordend of versleept worden, en Keuken kan dus niet boven Laatste Loodjes.
+Categorie omhoog/omlaag verplaatsen in `/taken/beheer` werkt vaak niet zoals verwacht. Onderzoek wijst drie samenhangende oorzaken aan:
 
-## Oplossing: écht één lijst
+1. **Twee verschillende ordeningen**. De weergave gebruikt `availableCategories` (in `TakenBeheer.buildAvailableCategories`), de pijltjes-logica gebruikt `westCategoryRows` (de DB-volgorde). Die twee lopen uiteen omdat:
+   - `Algemeen` wordt geforceerd met `result.unshift('Algemeen')` ook al staat hij in de DB op `sort_order = 60`.
+   - "Used-only" categorieën zonder rij in `foh_category_order` worden alfabetisch achteraan geplakt.
+   Resultaat: na een klik op ↑ wijzigt de DB wél correct, maar de UI verschuift niet (of springt onverwacht) omdat displayed-index ≠ DB-index. Voor de gebruiker oogt dit als "het slaat niet op".
 
-Alles van West samenvoegen onder één department (`voorkant`) zodat er nog maar één template-set, één categorie-ordening en één `ListManager` per fase bestaat. Daarna is slepen + her­ordenen volledig vrij.
+2. **Geen optimistic update**. Na de upsert wordt alleen `invalidateQueries` aangeroepen. De refetch is async (paar 100ms latency); intussen ziet de gebruiker de oude volgorde → indruk van bug. Voor categorie-orde is geen "savingPing"-feedback.
 
-### 1. Database-migratie (West)
+3. **Geen async-guard / dubbel-klikken**. Snel twee keer op ↑ klikken vuurt twee upserts met dezelfde uitgangslijst → tweede klik overschrijft de eerste.
 
-- `foh_daily_templates`: `UPDATE … SET department='voorkant' WHERE location='West' AND department='achterkant'`.
-- `foh_tasks`: idem voor alle niet-gearchiveerde taken van West.
-- `foh_category_order`:
-  - Pak bestaande `voorkant`-rijen voor West en bepaal de hoogste `sort_order`.
-  - Verplaats elke `achterkant`-rij naar `voorkant`, met `sort_order = max + (n*10)` zodat Keuken-categorieën onderaan landen (gebruiker kan ze daarna vrij omhoog slepen — bv. Keuken boven Laatste Loodjes).
-  - Bij naam-conflict (zelfde category-naam bestaat al in voorkant): bewaar de bestaande voorkant-rij en gooi de achterkant-duplicaat weg, en hernoem evt. de Keuken-categorie zo nodig (in praktijk speelt dit alleen bij "Algemeen" — die rij gewoon weggooien aan de achterkant-zijde).
+Daarnaast tijdens onderzoek opgemerkt:
+- Used-only categorieën (zonder DB-rij) tonen géén pijltjes (catRowIdx = -1). Dat is verwarrend; het zou moeten "self-heal" door bij eerste render ontbrekende categorieën te seeden in `foh_category_order`.
+- Bij hernoemen via `foh_rename_category` worden de volgorde-rijen samengevoegd maar de UI-cache niet altijd correct ververst (zelfde optimistic-issue).
 
-Eén SQL-migratie, idempotent (alles in een transactie + `ON CONFLICT DO NOTHING` waar nodig).
+## Oplossing
 
-### 2. Frontend — `src/pages/TakenBeheer.tsx`
+### 1. Eén bron van waarheid voor categorie-volgorde (`src/pages/TakenBeheer.tsx`)
+- Verwijder de `unshift('Algemeen')`. Algemeen krijgt gewoon zijn DB-positie; als hij ontbreekt, seeden we hem onderaan.
+- `buildAvailableCategories` exact dezelfde volgorde laten geven als `westCategoryRows`. Used-only categorieën worden eerst geseed in `foh_category_order` (met `max(sort_order)+10`) en daarna pas weergegeven.
+- `buildCategoryRows` bevat altijd álle weergegeven categorieën (na seeding) zodat catRowIdx voor elke kop matcht.
 
-- Verwijder de "unified West"-stacked render. West gebruikt voortaan dezelfde single-`ListManager` flow als Midsland.
-- `department` voor West is altijd `'voorkant'`.
-- Verwijder `deptsWithTemplates`-query en het `activeDepts`-mechanisme.
-- `westCategoryOrder` en `westSubcats` queries leveren nu alleen `voorkant`-data — vereenvoudigen tot één array i.p.v. record per dept.
+### 2. Auto-seed van ontbrekende categorieën
+- Nieuwe `useEffect` in `TakenBeheer`: wanneer `westSubcats` óf actieve template-categorieën ontbreken in `foh_category_order`, eenmalig upserten met oplopende `sort_order` (`max+10, max+20, …`). Pas hierna pijltjes tonen, zodat élke kop verplaatsbaar is.
 
-### 3. Frontend — `src/pages/TakenAdmin.tsx`
+### 3. Optimistic update + lock in `makeMoveHandler`
+- Verander `makeMoveHandler` naar:
+  - `queryClient.setQueryData(['foh-category-order', location], next)` direct na de swap → UI verspringt meteen.
+  - Lokale `isMovingRef` om dubbele klikken te blokkeren totdat de upsert voltooid is.
+  - Bij DB-fout: `setQueryData` terug naar `prev` + toast.
+  - Na succes: subtiele bevestiging (toast.success kort of een "Opgeslagen"-ping in de header).
+- Zelfde patroon voor `makeRenameHandler` en `makeDeleteHandler`.
 
-- Geen `?dept=` meer in de West-cards. De twee kaarten (Openen / Sluiten) blijven; ze linken naar `/taken/beheer?location=West&phase=…` zonder `dept`.
-- Telling van taken: één query per fase (geen splitsing per department meer).
+### 4. Pijltjes-styling (UX)
+- Pijltjes altijd zichtbaar (niet alleen op hover), iets groter touch-target (32×32 ipv 24×24) voor iPad.
+- `disabled`-state subtieler: `opacity 0.25` ipv `0.2`, geen `cursor: not-allowed` — beter `cursor: default`.
+- Tussen ↑ en ↓ een dunne vertical divider voor visuele groepering.
 
-### 4. Edge function `generate-foh-tasks-v2` (en eventueel `generate-waste-tasks`)
+### 5. Bug-tolerant rename
+- In `makeRenameHandler`: na succesvolle RPC ook `queryClient.setQueryData` patchen voor instant feedback, dan invalidate.
+- Validatie: trim + dedupe-check tegen bestaande categorienamen voorafgaand aan RPC (i.p.v. SQL-fout afwachten).
 
-- Forceer `department = 'voorkant'` bij iedere insert voor West, ongeacht wat in het template staat (extra vangnet).
-- `generate-waste-tasks` schrijft al "Extra Maandag" voor West — checken dat ook daar `department='voorkant'` wordt gebruikt en zo nodig aanpassen.
+## Verificatie (3 stappen, in build mode uit te voeren via Playwright)
 
-### 5. `FohTasks.tsx` (het dagelijkse takenscherm)
+**Stap 1 — Reorder werkt en is persistent**
+1. Open `/taken/beheer?location=West&phase=sluit`.
+2. Screenshot beginpositie van "Sanitair".
+3. Klik 2× ↑ op "Sanitair".
+4. Screenshot direct na elke klik → controleer dat de kop visueel verspringt zonder reload-flash.
+5. Hard refresh → screenshot → "Sanitair" staat 2 plekken hoger.
+6. Query DB: `SELECT category, sort_order FROM foh_category_order WHERE location='West' ORDER BY sort_order` → volgorde komt exact overeen met UI.
 
-- West rendert al alles in één flow (recent samengevoegd), maar het laadt nog wel beide departments. Filter blijft werken; geen functionele wijziging nodig — wel verifiëren dat sortering nu volledig door `foh_category_order` (voorkant) wordt bepaald, en eventueel resterende achterkant-fallbacks verwijderen.
+**Stap 2 — Used-only categorie wordt zelf-geseed**
+1. Maak via "+ Nieuw onderdeel" een nieuwe categorie "Test-stap2" aan in de lijst beheer-UI.
+2. Verifieer dat `foh_category_order` direct een rij krijgt (psql query).
+3. Pijltjes ↑/↓ verschijnen direct en werken.
+4. Verwijder categorie via prullenbak; rij verdwijnt uit DB.
 
-### 6. Validatie
-
-- Na migratie: open `/taken/beheer?location=West&phase=sluit` → één kaart, alle categorieën (Bijvullen, Schoonmaak Bar, Terras, Sanitair, Shop, Extra Maandag, Laatste Loodjes, Keuken, Ontdooien …) zichtbaar in één lijst.
-- Categorie-volgorde-pijltjes verplaatsen Keuken vrij omhoog/omlaag.
-- Taken slepen tussen Keuken ↔ Laatste Loodjes werkt zonder grens.
-- `/taken` (dagelijks scherm) toont taken in de nieuwe volgorde.
+**Stap 3 — Hernoemen en dubbel-klikken**
+1. Hernoem "Algemeen" → "Algemeen 2" via potlood-icoon. Cancel via Esc → geen wijziging.
+2. Hernoem echt → UI toont nieuwe naam direct (optimistic), DB rij heeft nieuwe naam.
+3. Dubbelklik snel 2× op ↑ van een categorie → tweede klik wordt genegeerd tijdens lopende save (controle: slechts één DB-rij wisselt, geen sprongen van 2 posities).
+4. Console controleren op errors.
 
 ## Risico's
 
-- Eenmalige data-migratie, niet terug te draaien zonder backup van de oude `department`-waarden. Effect is puur cosmetisch (lijst-positie); taken zelf, completion-status, repeat-instellingen en template-id's blijven intact.
-- Bestaande "Achterkant"-toggle/UI-resten in West moeten weg, anders ontstaan dode knoppen.
+- Auto-seeding kan eenmalig veel rijen aanmaken; idempotent dankzij `ON CONFLICT DO NOTHING`.
+- Verwijderen van `unshift('Algemeen')` kan bij locaties zonder enige `foh_category_order` rijen tijdelijk een lege lijst geven; daarom auto-seed eerst draaien en pas dan availableCategories berekenen.
 
 ## Resultaat
 
-Eén lijst per fase voor West. Categorie-volgorde volledig vrij te bepalen (Keuken kan boven Laatste Loodjes). Slepen tussen alle categorieën werkt zonder split.
+Reorder, rename en delete van categorieën in `/taken/beheer` werken instantaan, betrouwbaar en zonder visuele desync. Pijltjes verschijnen voor elke categorie, dubbel-klikken corrumpeert de volgorde niet, en DB + UI lopen altijd in sync.
