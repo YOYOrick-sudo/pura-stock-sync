@@ -1,6 +1,5 @@
 // /taken/admin — overzicht van alle takenlijsten met sidebar zichtbaar.
 // Vervangt de oude Dialog-gebaseerde admin popup.
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, ChevronDown, ChevronUp, Pencil, Trash2, Loader2, Shield } from 'lucide-react';
@@ -13,7 +12,7 @@ import { Button } from '@/components/ui/button';
 
 type Phase = 'open' | 'tussen' | 'sluit';
 type Department = 'voorkant' | 'achterkant';
-type DeviceMode = 'beide' | 'voorkant' | 'achterkant';
+
 
 interface ListCard {
   key: string;
@@ -35,15 +34,8 @@ function TakenAdminInner() {
   const queryClient = useQueryClient();
   const isWest = userLocation === 'West';
 
-  // Apparaat-modus (West)
-  const [deviceMode, setDeviceMode] = useState<DeviceMode>(() => {
-    if (typeof window === 'undefined') return 'beide';
-    const stored = localStorage.getItem('foh_device_mode_west');
-    return (stored === 'voorkant' || stored === 'achterkant' || stored === 'beide') ? stored : 'beide';
-  });
-  useEffect(() => {
-    if (isWest) localStorage.setItem('foh_device_mode_west', deviceMode);
-  }, [deviceMode, isWest]);
+
+
 
   // Fetch alle actieve templates voor deze locatie
   const { data: templates, isLoading } = useQuery({
@@ -269,49 +261,8 @@ function TakenAdminInner() {
         </div>
       )}
 
-      {/* West: Apparaat-modus */}
-      {isWest && (
-        <div style={{
-          padding: 18, borderRadius: 16,
-          background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))',
-        }}>
-          <div style={{
-            fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
-            letterSpacing: '0.05em', color: 'hsl(var(--muted-foreground))', marginBottom: 4,
-          }}>
-            Apparaat-modus
-          </div>
-          <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', marginBottom: 12 }}>
-            Bepaalt welke afdeling bovenaan staat op deze iPad. Wordt lokaal opgeslagen.
-          </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {([
-              { key: 'voorkant', label: 'Bediening eerst' },
-              { key: 'achterkant', label: 'Keuken eerst' },
-              { key: 'beide', label: 'Standaard' },
-            ] as { key: DeviceMode; label: string }[]).map(({ key, label }) => {
-              const active = deviceMode === key;
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setDeviceMode(key)}
-                  style={{
-                    flex: 1, minWidth: 120, padding: '10px 14px', borderRadius: 12,
-                    border: `1.5px solid ${active ? 'hsl(var(--primary))' : 'hsl(var(--border))'}`,
-                    background: active ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--card))',
-                    color: active ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
-                    fontWeight: active ? 700 : 500, fontSize: 13, cursor: 'pointer',
-                    fontFamily: 'Inter, sans-serif', transition: 'all 150ms',
-                  }}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+
+
 
       {/* West: Subcategorieën beheren */}
       {isWest && (
