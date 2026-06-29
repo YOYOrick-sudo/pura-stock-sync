@@ -934,6 +934,7 @@ export function FohTasks() {
   // Template management states (for Tab 2: Templates Beheren)
   const [selectedTemplateName, setSelectedTemplateName] = useState<string>('');
   const [templateEditorOpen, setTemplateEditorOpen] = useState(false);
+  const [listManagerOpen, setListManagerOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<any[]>([]);
   const [editingTemplateName, setEditingTemplateName] = useState('');
   const [deletedTemplateTaskIds, setDeletedTemplateTaskIds] = useState<string[]>([]);
