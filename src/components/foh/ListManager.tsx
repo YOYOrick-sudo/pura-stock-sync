@@ -1180,34 +1180,22 @@ export function ListManager({
                     </div>
 
                     {/* Tasks */}
-                    <div
-                      style={{
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: 14,
-                        padding: 6,
-                        background: 'hsl(var(--background))',
-                      }}
-                    >
-                      <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={(e) => handleDragEnd(e, category)}
+                    <DroppableCategory category={category}>
+                      <SortableContext
+                        items={tasks.map((t) => t.id)}
+                        strategy={verticalListSortingStrategy}
                       >
-                        <SortableContext
-                          items={tasks.map((t) => t.id)}
-                          strategy={verticalListSortingStrategy}
-                        >
-                          {tasks.map((task) => (
-                            <SortableRow
-                              key={task.id}
-                              task={task}
-                              onUpdate={updateTask}
-                              onDelete={deleteTask}
-                              categoryOptions={availableCategories}
-                            />
-                          ))}
-                        </SortableContext>
-                      </DndContext>
+                        {tasks.map((task) => (
+                          <SortableRow
+                            key={task.id}
+                            task={task}
+                            onUpdate={updateTask}
+                            onDelete={deleteTask}
+                            categoryOptions={availableCategories}
+                          />
+                        ))}
+                      </SortableContext>
+
 
                       {tasks.length === 0 && (
                         <div style={{ padding: '12px 16px', fontSize: 13, color: 'hsl(var(--muted-foreground))' }}>
