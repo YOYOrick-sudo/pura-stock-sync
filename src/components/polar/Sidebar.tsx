@@ -119,9 +119,9 @@ export function PolarSidebar({
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between bg-muted/20"
+        className="flex items-center justify-between bg-muted/20 pt-3 pb-2"
         style={{
-          height: '60px',
+          height: '72px',
           padding: collapsed ? '0 10px' : '0 16px',
         }}
       >
