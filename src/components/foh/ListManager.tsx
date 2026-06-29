@@ -370,6 +370,34 @@ function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowP
 }
 
 // ============================================================================
+// Droppable category container (voor cross-category drag-and-drop)
+// ============================================================================
+function DroppableCategory({
+  category,
+  children,
+}: {
+  category: string;
+  children: React.ReactNode;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: `cat:${category}` });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        border: isOver ? '1px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
+        borderRadius: 14,
+        padding: 6,
+        background: isOver ? 'hsl(var(--primary) / 0.06)' : 'hsl(var(--background))',
+        transition: 'background 150ms ease, border-color 150ms ease',
+        minHeight: 44,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ============================================================================
 // Main component
 // ============================================================================
 export function ListManager({
