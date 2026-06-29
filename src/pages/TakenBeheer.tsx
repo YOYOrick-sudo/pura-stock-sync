@@ -1,9 +1,10 @@
-// /taken/beheer — full-screen beheerscherm voor takenlijsten.
-// Vervangt de oude popup-flow. Leest context (location/phase/department) uit URL,
-// fetcht zelf de West-categorievolgorde en biedt de move/rename/delete handlers.
-import { useEffect } from 'react';
+// /taken/beheer — beheerscherm voor takenlijsten met sidebar zichtbaar.
+// West-mode (zonder dept-param): toont alle taken van de fase als één unified flow
+// door voorkant + achterkant stacked te renderen (alleen die met data).
+import { useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ListManager } from '@/components/foh/ListManager';
@@ -22,6 +23,10 @@ function getMidslandCategories(phase: Phase): string[] {
   return ['BAR', 'BIJVULLEN (FIFO)', 'BINNEN', 'HYGIENE', 'LAATSTE LOODJES', 'TERRAS'];
 }
 
+function phaseLabel(phase: Phase) {
+  return phase === 'open' ? 'Openen' : phase === 'tussen' ? 'Tussen' : 'Sluiten';
+}
+
 function TakenBeheerInner() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -30,8 +35,11 @@ function TakenBeheerInner() {
 
   const location = (params.get('location') || userLocation || 'West').trim();
   const phase = (params.get('phase') as Phase) || 'sluit';
-  const department: Department = (params.get('dept') as Department) === 'achterkant' ? 'achterkant' : 'voorkant';
+  const deptParam = params.get('dept') as Department | null;
   const isWest = location === 'West';
+  // Unified West: geen dept-param → toon beide departments stacked
+  const isUnifiedWest = isWest && !deptParam;
+  const department: Department = deptParam === 'achterkant' ? 'achterkant' : 'voorkant';
 
   // West category order
   const { data: westCategoryOrder } = useQuery({
@@ -77,11 +85,30 @@ function TakenBeheerInner() {
     enabled: isWest,
   });
 
-  // Beschikbare categorieën — zelfde logica als FohTasks.getCategoriesForContext
-  const availableCategories: string[] = (() => {
+  // Welke departments hebben überhaupt actieve templates voor deze fase?
+  const { data: deptsWithTemplates } = useQuery({
+    queryKey: ['foh-depts-with-templates', location, phase],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('foh_daily_templates')
+        .select('department')
+        .eq('location', location)
+        .eq('phase', phase)
+        .eq('is_active', true);
+      if (error) throw error;
+      const set = new Set<Department>();
+      for (const r of (data as any[]) || []) {
+        set.add(r.department === 'achterkant' ? 'achterkant' : 'voorkant');
+      }
+      return set;
+    },
+    enabled: isWest && isUnifiedWest,
+  });
+
+  const buildAvailableCategories = (dept: Department): string[] => {
     if (!isWest) return getMidslandCategories(phase);
-    const ordered = (westCategoryOrder?.[department] ?? []).map(r => r.category);
-    const used = westSubcats?.[department] ?? [];
+    const ordered = (westCategoryOrder?.[dept] ?? []).map(r => r.category);
+    const used = westSubcats?.[dept] ?? [];
     const seen = new Set<string>();
     const result: string[] = [];
     for (const c of ordered) if (!seen.has(c)) { seen.add(c); result.push(c); }
@@ -89,11 +116,13 @@ function TakenBeheerInner() {
     if (result.length === 0) return [...CATEGORY_ORDER_FALLBACK];
     if (!result.includes('Algemeen')) result.unshift('Algemeen');
     return result;
-  })();
+  };
 
-  const westCategoryRows = isWest ? (westCategoryOrder?.[department] ?? []).map(r => ({
-    category: r.category, sort_order: r.sort_order as number | null,
-  })) : [];
+  const buildCategoryRows = (dept: Department) => isWest
+    ? (westCategoryOrder?.[dept] ?? []).map(r => ({
+        category: r.category, sort_order: r.sort_order as number | null,
+      }))
+    : [];
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['foh-category-order'] });
@@ -103,91 +132,150 @@ function TakenBeheerInner() {
     queryClient.invalidateQueries({ queryKey: ['list-manager-templates'] });
   };
 
-  const handleMoveCategory = async (category: string, direction: -1 | 1) => {
-    const rows = westCategoryRows;
+  const makeMoveHandler = (dept: Department) => async (category: string, direction: -1 | 1) => {
+    const rows = buildCategoryRows(dept);
     const idx = rows.findIndex(r => r.category === category);
     if (idx < 0) return;
     const newIdx = idx + direction;
     if (newIdx < 0 || newIdx >= rows.length) return;
     const list = rows.map(r => r.category);
     [list[idx], list[newIdx]] = [list[newIdx], list[idx]];
-
-    // optimistic
-    const queryKey = ['foh-category-order', location];
-    const previous = queryClient.getQueryData(queryKey);
-    const other: Department = department === 'voorkant' ? 'achterkant' : 'voorkant';
-    const otherRows = (westCategoryOrder?.[other] ?? []).map(r => ({ category: r.category, sort_order: r.sort_order }));
-    const nextRows = list.map((cat, i) => ({ category: cat, sort_order: (i + 1) * 10 }));
-    queryClient.setQueryData(queryKey, {
-      voorkant: department === 'voorkant' ? nextRows : otherRows,
-      achterkant: department === 'achterkant' ? nextRows : otherRows,
-    });
-
     const upsertRows = list.map((cat, i) => ({
-      location, department, category: cat, sort_order: (i + 1) * 10,
+      location, department: dept, category: cat, sort_order: (i + 1) * 10,
     }));
     const { error } = await supabase
       .from('foh_category_order')
       .upsert(upsertRows, { onConflict: 'location,department,category' });
-    if (error) {
-      console.error(error);
-      toast.error('Fout bij opslaan volgorde');
-      queryClient.setQueryData(queryKey, previous);
-      return;
-    }
+    if (error) { toast.error('Fout bij opslaan volgorde'); return; }
     invalidate();
   };
 
-  const handleRenameCategory = async (oldName: string) => {
+  const makeRenameHandler = (dept: Department) => async (oldName: string) => {
     const next = window.prompt(`Nieuwe naam voor "${oldName}":`, oldName);
     if (!next) return;
     const trimmed = next.trim();
     if (!trimmed || trimmed === oldName) return;
     const { error } = await supabase.rpc('foh_rename_category', {
-      _location: location, _department: department, _old: oldName, _new: trimmed,
+      _location: location, _department: dept, _old: oldName, _new: trimmed,
     });
-    if (error) { console.error(error); toast.error('Hernoemen mislukt'); return; }
-    toast.success('Subcategorie hernoemd');
+    if (error) { toast.error('Hernoemen mislukt'); return; }
+    toast.success('Onderdeel hernoemd');
     invalidate();
   };
 
-  const handleDeleteCategory = async (category: string) => {
+  const makeDeleteHandler = (dept: Department) => async (category: string) => {
     const [tpl, tsk] = await Promise.all([
       supabase.from('foh_daily_templates').select('id', { count: 'exact', head: true })
-        .eq('location', location).eq('department', department).eq('category', category),
+        .eq('location', location).eq('department', dept).eq('category', category),
       supabase.from('foh_tasks').select('id', { count: 'exact', head: true })
-        .eq('location', location).eq('department', department).eq('category', category).eq('archived', false),
+        .eq('location', location).eq('department', dept).eq('category', category).eq('archived', false),
     ]);
-    const tplCount = tpl.count ?? 0;
-    const tskCount = tsk.count ?? 0;
-    if (tplCount + tskCount > 0) {
-      toast.error(`Kan niet verwijderen: nog ${tplCount} template-taak(jes) en ${tskCount} actieve taak/taken in "${category}".`);
+    if ((tpl.count ?? 0) + (tsk.count ?? 0) > 0) {
+      toast.error(`Nog ${tpl.count ?? 0} template-taak(jes) en ${tsk.count ?? 0} actieve taken in "${category}".`);
       return;
     }
-    if (!window.confirm(`Subcategorie "${category}" verwijderen?`)) return;
+    if (!window.confirm(`Onderdeel "${category}" verwijderen?`)) return;
     const { error } = await supabase
       .from('foh_category_order')
       .delete()
-      .eq('location', location).eq('department', department).eq('category', category);
-    if (error) { console.error(error); toast.error('Verwijderen mislukt'); return; }
-    toast.success('Subcategorie verwijderd');
+      .eq('location', location).eq('department', dept).eq('category', category);
+    if (error) { toast.error('Verwijderen mislukt'); return; }
+    toast.success('Onderdeel verwijderd');
     invalidate();
   };
 
-  const handleClose = () => {
-    navigate('/taken-bediening');
-  };
+  const handleClose = () => navigate('/taken/admin');
 
-  // Esc → terug
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') handleClose();
-    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Welke departments tonen we (unified West)? Default: beide; filter op die met templates.
+  const activeDepts: Department[] = useMemo(() => {
+    if (!isUnifiedWest) return [department];
+    const all: Department[] = ['voorkant', 'achterkant'];
+    if (!deptsWithTemplates) return all;
+    return all.filter(d => deptsWithTemplates.has(d));
+  }, [isUnifiedWest, department, deptsWithTemplates]);
+
+  // ----- Unified West render -----
+  if (isUnifiedWest) {
+    return (
+      <div style={{
+        display: 'flex', flexDirection: 'column', gap: 16,
+        fontFamily: 'Inter, sans-serif',
+      }}>
+        {/* Eigen header met één 'Terug' knop */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 12,
+          padding: '0 4px',
+        }}>
+          <button
+            onClick={handleClose}
+            aria-label="Terug"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '8px 12px 8px 8px',
+              background: 'transparent',
+              border: '1px solid hsl(var(--border))',
+              borderRadius: 10,
+              cursor: 'pointer',
+              color: 'hsl(var(--foreground))',
+              fontSize: 13, fontWeight: 500,
+              fontFamily: 'Inter, sans-serif',
+            }}
+          >
+            <ArrowLeft size={16} /> Terug
+          </button>
+          <div>
+            <h1 style={{
+              margin: 0, fontSize: 20, fontWeight: 600,
+              color: 'hsl(var(--foreground))', letterSpacing: '-0.01em',
+            }}>
+              {phaseLabel(phase)} beheren
+            </h1>
+            <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', marginTop: 2 }}>
+              Eén lijst — alle onderdelen samen.
+            </div>
+          </div>
+        </div>
+
+        {/* Gestapelde embedded ListManagers — elk eigen kaart, geen dept-labels */}
+        {activeDepts.map((dept) => (
+          <div
+            key={dept}
+            style={{
+              background: 'hsl(var(--card))',
+              border: '1px solid hsl(var(--border))',
+              borderRadius: 20,
+              padding: '20px 0 16px',
+              overflow: 'hidden',
+            }}
+          >
+            <ListManager
+              variant="embedded"
+              open={true}
+              onClose={handleClose}
+              location={location}
+              phase={phase}
+              department={dept}
+              availableCategories={buildAvailableCategories(dept)}
+              isWest={isWest}
+              westCategoryRows={buildCategoryRows(dept)}
+              onMoveCategory={makeMoveHandler(dept)}
+              onRenameCategory={makeRenameHandler(dept)}
+              onDeleteCategory={makeDeleteHandler(dept)}
+            />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // ----- Single-dept render (Midsland of expliciete dept param) -----
   return (
     <ListManager
       variant="page"
@@ -196,12 +284,12 @@ function TakenBeheerInner() {
       location={location}
       phase={phase}
       department={department}
-      availableCategories={availableCategories}
+      availableCategories={buildAvailableCategories(department)}
       isWest={isWest}
-      westCategoryRows={westCategoryRows}
-      onMoveCategory={isWest ? handleMoveCategory : undefined}
-      onRenameCategory={isWest ? handleRenameCategory : undefined}
-      onDeleteCategory={isWest ? handleDeleteCategory : undefined}
+      westCategoryRows={buildCategoryRows(department)}
+      onMoveCategory={isWest ? makeMoveHandler(department) : undefined}
+      onRenameCategory={isWest ? makeRenameHandler(department) : undefined}
+      onDeleteCategory={isWest ? makeDeleteHandler(department) : undefined}
     />
   );
 }
