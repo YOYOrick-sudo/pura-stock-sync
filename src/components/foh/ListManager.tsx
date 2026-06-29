@@ -84,6 +84,8 @@ interface ListManagerProps {
   onMoveCategory?: (category: string, direction: -1 | 1) => void;
   onRenameCategory?: (oldName: string) => void;
   onDeleteCategory?: (category: string) => void;
+  /** 'dialog' = modal popup (legacy); 'page' = full-screen fixed overlay zonder dialog-chrome */
+  variant?: 'dialog' | 'page';
 }
 
 const DAY_LABELS = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
