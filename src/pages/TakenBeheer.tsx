@@ -176,87 +176,9 @@ function TakenBeheerInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Welke departments tonen we (unified West)? Default: beide; filter op die met templates.
-  const activeDepts: Department[] = useMemo(() => {
-    if (!isUnifiedWest) return [department];
-    const all: Department[] = ['voorkant', 'achterkant'];
-    if (!deptsWithTemplates) return all;
-    return all.filter(d => deptsWithTemplates.has(d));
-  }, [isUnifiedWest, department, deptsWithTemplates]);
+  // (West is nu één lijst — single ListManager render hieronder)
 
-  // ----- Unified West render -----
-  if (isUnifiedWest) {
-    return (
-      <div style={{
-        display: 'flex', flexDirection: 'column', gap: 16,
-        fontFamily: 'Inter, sans-serif',
-      }}>
-        {/* Eigen header met één 'Terug' knop */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 12,
-          padding: '0 4px',
-        }}>
-          <button
-            onClick={handleClose}
-            aria-label="Terug"
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '8px 12px 8px 8px',
-              background: 'transparent',
-              border: '1px solid hsl(var(--border))',
-              borderRadius: 10,
-              cursor: 'pointer',
-              color: 'hsl(var(--foreground))',
-              fontSize: 13, fontWeight: 500,
-              fontFamily: 'Inter, sans-serif',
-            }}
-          >
-            <ArrowLeft size={16} /> Terug
-          </button>
-          <div>
-            <h1 style={{
-              margin: 0, fontSize: 20, fontWeight: 600,
-              color: 'hsl(var(--foreground))', letterSpacing: '-0.01em',
-            }}>
-              {phaseLabel(phase)} beheren
-            </h1>
-            <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', marginTop: 2 }}>
-              Eén lijst — alle onderdelen samen.
-            </div>
-          </div>
-        </div>
 
-        {/* Gestapelde embedded ListManagers — elk eigen kaart, geen dept-labels */}
-        {activeDepts.map((dept) => (
-          <div
-            key={dept}
-            style={{
-              background: 'hsl(var(--card))',
-              border: '1px solid hsl(var(--border))',
-              borderRadius: 20,
-              padding: '20px 0 16px',
-              overflow: 'hidden',
-            }}
-          >
-            <ListManager
-              variant="embedded"
-              open={true}
-              onClose={handleClose}
-              location={location}
-              phase={phase}
-              department={dept}
-              availableCategories={buildAvailableCategories(dept)}
-              isWest={isWest}
-              westCategoryRows={buildCategoryRows(dept)}
-              onMoveCategory={makeMoveHandler(dept)}
-              onRenameCategory={makeRenameHandler(dept)}
-              onDeleteCategory={makeDeleteHandler(dept)}
-            />
-          </div>
-        ))}
-      </div>
-    );
-  }
 
   // ----- Single-dept render (Midsland of expliciete dept param) -----
   return (
