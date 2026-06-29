@@ -3933,9 +3933,14 @@ export function FohTasks() {
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            // Nieuwe gepolijste flow: open de Lijst-beheren popup.
+                            // Volledig scherm flow: navigeer naar dedicated beheer-pagina.
                             setAdminPanelOpen(false);
-                            setListManagerOpen(true);
+                            const params = new URLSearchParams({
+                              location: userLocation,
+                              phase: activePhase,
+                              dept: effectiveDept,
+                            });
+                            navigate(`/taken/beheer?${params.toString()}`);
                           }}
                           style={{
                             borderRadius: '12px',
