@@ -39,11 +39,19 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   DndContext,
   closestCenter,
+  closestCorners,
+  pointerWithin,
+  rectIntersection,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
   PointerSensor,
+  TouchSensor,
+  KeyboardSensor,
   useSensor,
   useSensors,
   useDroppable,
+  CollisionDetection,
 } from '@dnd-kit/core';
 import {
   SortableContext,
