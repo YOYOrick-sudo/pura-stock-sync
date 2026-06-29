@@ -84,8 +84,10 @@ interface ListManagerProps {
   onMoveCategory?: (category: string, direction: -1 | 1) => void;
   onRenameCategory?: (oldName: string) => void;
   onDeleteCategory?: (category: string) => void;
-  /** 'dialog' = modal popup (legacy); 'page' = full-screen fixed overlay zonder dialog-chrome */
-  variant?: 'dialog' | 'page';
+  /** 'dialog' = modal popup (legacy); 'page' = volledig scherm; 'embedded' = naakte body zonder shell/header (voor stapelen) */
+  variant?: 'dialog' | 'page' | 'embedded';
+  /** Optionele subkop boven de body. Alleen voor variant='embedded'. */
+  embeddedSubheading?: string;
 }
 
 const DAY_LABELS = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
