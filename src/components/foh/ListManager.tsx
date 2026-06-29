@@ -1355,6 +1355,6 @@ export function ListManager({
           </div>
         </DialogContent>
       </Dialog>
-    </Dialog>
+    </>
   );
 }
