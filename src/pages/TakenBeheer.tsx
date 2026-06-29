@@ -21,9 +21,6 @@ function getMidslandCategories(phase: Phase): string[] {
   return ['BAR', 'BIJVULLEN (FIFO)', 'BINNEN', 'HYGIENE', 'LAATSTE LOODJES', 'TERRAS'];
 }
 
-function phaseLabel(phase: Phase) {
-  return phase === 'open' ? 'Openen' : phase === 'tussen' ? 'Tussen' : 'Sluiten';
-}
 
 function TakenBeheerInner() {
   const navigate = useNavigate();
