@@ -4225,6 +4225,38 @@ export function FohTasks() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ===== LIJST BEHEREN — nieuwe gepolijste flow ===== */}
+      <ListManager
+        open={listManagerOpen}
+        onClose={() => {
+          setListManagerOpen(false);
+          // Heropen admin-paneel zodat gebruiker context houdt.
+          setAdminPanelOpen(true);
+          fetchDailyTasks();
+        }}
+        location={userLocation}
+        phase={activePhase}
+        department={effectiveDept}
+        availableCategories={getCategoriesForContext(userLocation, effectiveDept, activePhase)}
+        isWest={userLocation === 'West'}
+        westCategoryRows={userLocation === 'West' ? (westCategoryOrder?.[effectiveDept] ?? []) : []}
+        onMoveCategory={
+          userLocation === 'West'
+            ? (cat, dir) => handleMoveCategory(effectiveDept, cat, dir)
+            : undefined
+        }
+        onRenameCategory={
+          userLocation === 'West'
+            ? (cat) => handleRenameCategory(effectiveDept, cat)
+            : undefined
+        }
+        onDeleteCategory={
+          userLocation === 'West'
+            ? (cat) => handleDeleteCategory(effectiveDept, cat)
+            : undefined
+        }
+      />
     </div>
   );
 }
