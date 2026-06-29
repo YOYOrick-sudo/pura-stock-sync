@@ -902,11 +902,11 @@ export function ListManager({
 
   // Voor de page-variant gebruiken we DialogHeader niet (geen Radix wrapper); we renderen
   // 'headerNode' direct. Voor dialog-variant verpakken we 'm met DialogHeader voor a11y.
-  const headerWrapped = isPage ? headerNode : (
+  const headerWrapped = isEmbedded ? null : (isPage ? headerNode : (
     <DialogHeader style={{ padding: 0, display: 'block' }}>
       {headerNode}
     </DialogHeader>
-  );
+  ));
 
   return (
     <>
