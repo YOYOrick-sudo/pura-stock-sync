@@ -38,12 +38,20 @@ import { toast } from 'sonner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   DndContext,
-  closestCenter,
+  
+  closestCorners,
+  pointerWithin,
+  rectIntersection,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
   PointerSensor,
+  TouchSensor,
+  KeyboardSensor,
   useSensor,
   useSensors,
   useDroppable,
+  CollisionDetection,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -180,18 +188,22 @@ function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowP
           gap: '8px',
           padding: '10px 8px',
           borderRadius: '10px',
-          backgroundColor: hovered ? 'hsl(var(--muted) / 0.4)' : 'transparent',
+          backgroundColor: isDragging
+            ? 'hsl(var(--primary) / 0.08)'
+            : hovered
+              ? 'hsl(var(--muted) / 0.4)'
+              : 'transparent',
           transition: 'background-color 120ms ease',
         }}
       >
-        {/* Drag handle (verschijnt op hover) */}
+        {/* Drag handle — altijd zichtbaar, ruim aanraakvlak */}
         <button
           {...attributes}
           {...listeners}
           aria-label="Verslepen"
           style={{
-            width: 24,
-            height: 24,
+            width: 32,
+            height: 32,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -199,13 +211,23 @@ function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowP
             border: 'none',
             cursor: 'grab',
             color: 'hsl(var(--muted-foreground))',
-            opacity: hovered ? 0.7 : 0.25,
-            transition: 'opacity 120ms ease',
+            opacity: 0.55,
+            transition: 'opacity 120ms ease, background 120ms ease',
             padding: 0,
             touchAction: 'none',
+            borderRadius: 8,
+            flexShrink: 0,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.opacity = '1';
+            e.currentTarget.style.background = 'hsl(var(--muted) / 0.6)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.opacity = '0.55';
+            e.currentTarget.style.background = 'transparent';
           }}
         >
-          <GripVertical size={16} />
+          <GripVertical size={18} />
         </button>
 
         {/* Title input */}
@@ -842,7 +864,25 @@ export function ListManager({
   // ==========================================================================
   // Render
   // ==========================================================================
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 6 } }),
+    useSensor(KeyboardSensor),
+  );
+
+  // Custom collision: pointer-eerst (zo voelt slepen "natuurlijker"), met rectIntersection fallback
+  const collisionDetectionStrategy: CollisionDetection = (args) => {
+    const pointer = pointerWithin(args);
+    if (pointer.length > 0) return pointer;
+    const intersecting = rectIntersection(args);
+    if (intersecting.length > 0) return intersecting;
+    return closestCorners(args);
+  };
+
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const activeDragTask = activeDragId
+    ? currentTasks.find((t) => t.id === activeDragId) || null
+    : null;
 
   const isPage = variant === 'page';
   const isEmbedded = variant === 'embedded';
@@ -1061,7 +1101,16 @@ export function ListManager({
               Geen taken in deze lijst. Voeg er één toe via de knoppen hieronder.
             </div>
           ) : (
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={collisionDetectionStrategy}
+              onDragStart={(e: DragStartEvent) => setActiveDragId(String(e.active.id))}
+              onDragCancel={() => setActiveDragId(null)}
+              onDragEnd={(e) => {
+                setActiveDragId(null);
+                handleDragEnd(e);
+              }}
+            >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
               {tasksByCategory.map(({ category, tasks }) => {
                 const catRowIdx = westCategoryRows?.findIndex((r) => r.category === category) ?? -1;
@@ -1366,6 +1415,31 @@ export function ListManager({
                 </div>
               )}
             </div>
+            <DragOverlay dropAnimation={{ duration: 180, easing: 'cubic-bezier(0.2, 0, 0, 1)' }}>
+              {activeDragTask ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '10px 12px',
+                    borderRadius: 12,
+                    background: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--primary) / 0.5)',
+                    boxShadow: '0 12px 32px -8px hsl(var(--foreground) / 0.18)',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 15,
+                    color: 'hsl(var(--foreground))',
+                    maxWidth: 520,
+                  }}
+                >
+                  <GripVertical size={18} style={{ color: 'hsl(var(--muted-foreground))' }} />
+                  <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {activeDragTask.title}
+                  </span>
+                </div>
+              ) : null}
+            </DragOverlay>
             </DndContext>
           )}
         </div>
