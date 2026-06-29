@@ -381,6 +381,7 @@ export function ListManager({
   onMoveCategory,
   onRenameCategory,
   onDeleteCategory,
+  variant = 'dialog',
 }: ListManagerProps) {
   const queryClient = useQueryClient();
   const [selectedTemplateName, setSelectedTemplateName] = useState<string | null>(null);
