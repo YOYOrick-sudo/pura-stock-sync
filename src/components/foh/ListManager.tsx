@@ -1275,29 +1275,32 @@ export function ListManager({
           )}
         </div>
 
-        {/* Footer */}
-        <div
-          style={{
-            padding: '12px 24px',
-            borderTop: '1px solid hsl(var(--border))',
-            display: 'flex',
-            justifyContent: 'flex-end',
-          }}
-        >
-          <Button
-            variant="ghost"
-            onClick={onClose}
+        {/* Footer — alleen in dialog-variant (page heeft 'Terug' in de header) */}
+        {!isPage && (
+          <div
             style={{
-              borderRadius: 12,
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 13,
-              color: 'hsl(var(--muted-foreground))',
+              padding: '12px 24px',
+              borderTop: '1px solid hsl(var(--border))',
+              display: 'flex',
+              justifyContent: 'flex-end',
             }}
           >
-            Sluiten
-          </Button>
-        </div>
-      </DialogContent>
+            <Button
+              variant="ghost"
+              onClick={onClose}
+              style={{
+                borderRadius: 12,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 13,
+                color: 'hsl(var(--muted-foreground))',
+              }}
+            >
+              Sluiten
+            </Button>
+          </div>
+        )}
+      </Shell>
+
 
       {/* Nieuwe lijst dialog */}
       <Dialog open={newListDialogOpen} onOpenChange={setNewListDialogOpen}>
