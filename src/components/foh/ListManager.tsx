@@ -1101,7 +1101,16 @@ export function ListManager({
               Geen taken in deze lijst. Voeg er één toe via de knoppen hieronder.
             </div>
           ) : (
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={collisionDetectionStrategy}
+              onDragStart={(e: DragStartEvent) => setActiveDragId(String(e.active.id))}
+              onDragCancel={() => setActiveDragId(null)}
+              onDragEnd={(e) => {
+                setActiveDragId(null);
+                handleDragEnd(e);
+              }}
+            >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
               {tasksByCategory.map(({ category, tasks }) => {
                 const catRowIdx = westCategoryRows?.findIndex((r) => r.category === category) ?? -1;
