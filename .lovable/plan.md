@@ -1,71 +1,37 @@
-## Probleemanalyse (proactief, geen losse fixes)
-De takenlijst-admin voelt los van de rest van de app omdat hij op drie plekken de app-shell verlaat:
+# Ontdooi-lijst — categorie hernoemen
 
-1. **Admin Panel** = `Dialog` popup → sidebar weg, voelt afgesloten.
-2. **Admin is fase-gebonden** → eerst tab "Sluit" kiezen, dan admin openen. Onlogisch.
-3. **`/taken/beheer`** = full-screen route zonder `SidebarLayout` → sidebar weg.
-4. **"Nieuwe Template"** knop staat prominent, maar er kan maar 1 actieve lijst per fase/dept bestaan (DB-trigger). Knop levert alleen verwarring + dubbele lijsten op.
-5. **FIFO-koeling taak** is 1 mega-string met komma's — onleesbaar, niet per item afvinkbaar.
+## Wat verandert er
+- De categorie **"FIFO koeling"** (West, Keuken, sluit) wordt hernoemd naar **"Ontdooien (vriezer → koelcel)"**.
+- De 12 losse taken (Kip, Tempeh, Kebab, Soepen, Zalm & Forel, Bananenpannenkoeken (koellade), Brioche, Zoet (alleen als echt op), Tomatenjam, Relish, Wortelspread, Kaas) blijven exact zoals ze zijn — korte productnamen, losse vinkjes.
+- De `sort_order`-waarden worden netjes opnieuw gezet (10, 20, 30, …) in de door jou aangegeven volgorde, zodat de nummering 1–12 klopt.
 
-De rode draad: de app heeft een nette `SidebarLayout` wrapper die andere pagina's (Dashboard, Kassatelling) gebruiken — admin/beheer doen dat niet. Daar zit de échte fix.
+## Geen wijzigingen aan
+- Taaktitels.
+- Andere categorieën in West Keuken sluit.
+- Andere lijsten of locaties.
+- UI-code (puur data).
 
----
+## Technisch
+Eén data-operatie via de bestaande `foh_rename_category(_location, _department, _old, _new)` RPC. Die functie:
+1. Hernoemt de categorie in `foh_daily_templates`.
+2. Hernoemt 'm ook in alle actieve `foh_tasks` (niet-archived) — dus de wijziging is **vandaag direct zichtbaar** in de live sluitlijst.
+3. Werkt `foh_category_order` bij zodat de volgorde-instellingen behouden blijven.
 
-## Plan
+Daarna een korte UPDATE op `foh_daily_templates` om `sort_order` per item te zetten in de gewenste volgorde.
 
-### 1. `/taken/beheer` binnen de app-shell
-- `src/pages/TakenBeheer.tsx`: render `ListManager` binnen `<SidebarLayout>` (zelfde wrapper als Dashboard/Kassatelling).
-- `ListManager` `variant="page"` aanpassen: niet meer `fixed inset-0` / eigen sticky header die het volledige viewport claimt, maar een normale pagina-container (max-width, padding, sticky header binnen content-kolom). Sidebar blijft links zichtbaar.
-- Esc-shortcut blijft, terug-knop in eigen header blijft.
-
-### 2. Admin als echte route `/taken/admin`
-- Nieuwe pagina `src/pages/TakenAdmin.tsx` in `<SidebarLayout>`.
-- Toont **overzicht van alle actieve lijsten** voor de locatie (kaartjes per fase × department):
-  ```text
-  West                                Midsland
-  ┌──────────────────────┐            ┌──────────────────┐
-  │ Bediening · Openen   │            │ Openen   12 taken│
-  │ 14 taken             │            ├──────────────────┤
-  │ [Lijst beheren →]    │            │ Tussen   8  taken│
-  ├──────────────────────┤            ├──────────────────┤
-  │ Bediening · Sluiten  │            │ Sluiten 22 taken │
-  │ 22 taken             │            └──────────────────┘
-  │ [Lijst beheren →]    │
-  ├──────────────────────┤
-  │ Keuken · Sluiten     │
-  │ 18 taken             │
-  │ [Lijst beheren →]    │
-  └──────────────────────┘
-  ```
-- "Lijst beheren" → `navigate('/taken/beheer?location=…&phase=…&dept=…')` — geen fase-switch nodig.
-- West-instellingen (Apparaat-modus + Subcategorieën-beheer) verhuizen mee naar deze pagina, niet meer in popup.
-- Admin-knop in `FohTasks.tsx`: na success in `AdminPasswordDialog` → `navigate('/taken/admin')`. Bestaande Admin-Dialog + state (`adminPanelOpen`, `adminTab`, `newTemplateDialogOpen`, `groupedTemplates`-rendering) verwijderen.
-
-### 3. "Nieuwe Template" knop weg
-- Knop + `newTemplateDialogOpen`-dialog + bijbehorende create-flow uit de UI. Logica blijft in DB beschikbaar, maar niet meer aanroepbaar.
-
-### 4. FIFO-koeling taak opsplitsen (West · Keuken · Sluit)
-- Bestaande mega-taak archiveren (template + actieve taak vandaag).
-- 12 losse rows in `foh_daily_templates` (location=West, department=achterkant, phase=sluit, template_name=Standaard, category=`FIFO koeling`, oplopende `sort_order`). Titels = enkel productnaam:
-  - Kip · Tempeh · Kebab · Soepen · Zalm & Forel · Bananenpannenkoeken (koellade) · Brioche · Zoet (alleen als echt op) · Tomatenjam · Relish · Wortelspread · Kaas
-- Categorie `FIFO koeling` via `foh_category_order` onderaan keuken-blok zetten.
-- Sync-trigger zet ze meteen in vandaag's lijst.
-
----
-
-## Volgorde van uitvoeren
-1. **FIFO splitsen** (snelle data-fix, direct zichtbaar).
-2. **`/taken/beheer` in SidebarLayout** (kleine wrapper-fix, lost direct grootste klacht op).
-3. **`/taken/admin` route + overzicht + verwijder oude Dialog/knop** (groter refactor).
-
-## Niet aanraken
-- Wachtwoord-dialog (2017/2020) blijft 1-op-1.
-- ListManager interne logica (autosave, drag/drop, sync naar actieve taken).
-- DB-schema, edge functions, taakgeneratie, RLS-policies.
-- Andere routes/pagina's.
-
-## Resultaat
-- Sidebar **altijd zichtbaar** in admin én beheer — voelt als één doorlopende app.
-- 1 klik op Admin → overzicht van **alle** lijsten ongeacht actieve fase.
-- Geen "Nieuwe Template" meer → geen kans op dubbele lijsten.
-- FIFO-koeling = 12 afvinkbare items i.p.v. 1 onleesbare regel.
+```text
+West · Keuken · sluit
+└── Ontdooien (vriezer → koelcel)   (hernoemd uit "FIFO koeling")
+    1. Kip
+    2. Tempeh
+    3. Kebab
+    4. Soepen
+    5. Zalm & Forel
+    6. Bananenpannenkoeken (koellade)
+    7. Brioche
+    8. Zoet (alleen als echt op)
+    9. Tomatenjam
+    10. Relish
+    11. Wortelspread
+    12. Kaas
+```
