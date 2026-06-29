@@ -37,9 +37,10 @@ function TakenBeheerInner() {
   const phase = (params.get('phase') as Phase) || 'sluit';
   const deptParam = params.get('dept') as Department | null;
   const isWest = location === 'West';
-  // Unified West: geen dept-param → toon beide departments stacked
-  const isUnifiedWest = isWest && !deptParam;
-  const department: Department = deptParam === 'achterkant' ? 'achterkant' : 'voorkant';
+  // West werkt allround: één lijst (voorkant department). Midsland negeert dept.
+  const department: Department = isWest
+    ? 'voorkant'
+    : (deptParam === 'achterkant' ? 'achterkant' : 'voorkant');
 
   // West category order
   const { data: westCategoryOrder } = useQuery({
