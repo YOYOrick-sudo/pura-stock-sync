@@ -1,10 +1,8 @@
 // /taken/beheer — beheerscherm voor takenlijsten met sidebar zichtbaar.
-// West-mode (zonder dept-param): toont alle taken van de fase als één unified flow
-// door voorkant + achterkant stacked te renderen (alleen die met data).
-import { useEffect, useMemo } from 'react';
+// West werkt allround: één lijst (voorkant department) per fase.
+import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ListManager } from '@/components/foh/ListManager';
