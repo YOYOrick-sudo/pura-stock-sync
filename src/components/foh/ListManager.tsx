@@ -84,8 +84,10 @@ interface ListManagerProps {
   onMoveCategory?: (category: string, direction: -1 | 1) => void;
   onRenameCategory?: (oldName: string) => void;
   onDeleteCategory?: (category: string) => void;
-  /** 'dialog' = modal popup (legacy); 'page' = full-screen fixed overlay zonder dialog-chrome */
-  variant?: 'dialog' | 'page';
+  /** 'dialog' = modal popup (legacy); 'page' = volledig scherm; 'embedded' = naakte body zonder shell/header (voor stapelen) */
+  variant?: 'dialog' | 'page' | 'embedded';
+  /** Optionele subkop boven de body. Alleen voor variant='embedded'. */
+  embeddedSubheading?: string;
 }
 
 const DAY_LABELS = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
@@ -382,6 +384,7 @@ export function ListManager({
   onRenameCategory,
   onDeleteCategory,
   variant = 'dialog',
+  embeddedSubheading,
 }: ListManagerProps) {
   const queryClient = useQueryClient();
   const [selectedTemplateName, setSelectedTemplateName] = useState<string | null>(null);
@@ -761,44 +764,63 @@ export function ListManager({
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   const isPage = variant === 'page';
+  const isEmbedded = variant === 'embedded';
 
-  // Shells — kiezen tussen Dialog (legacy) en volledig scherm (page).
-  const Shell = ({ children }: { children: React.ReactNode }) => isPage ? (
-    <div
-      style={{
-        background: 'hsl(var(--card))',
-        border: '1px solid hsl(var(--border))',
-        borderRadius: 20,
-        display: 'flex',
-        flexDirection: 'column',
-        fontFamily: 'Inter, sans-serif',
-        minHeight: 'calc(100vh - 140px)',
-        overflow: 'hidden',
-      }}
-    >
-      {children}
-    </div>
-  ) : (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent
+  // Shells — kiezen tussen Dialog (legacy), volledig scherm (page) of naakt (embedded).
+  const Shell = ({ children }: { children: React.ReactNode }) => {
+    if (isEmbedded) {
+      return (
+        <div style={{ fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
+          {embeddedSubheading && (
+            <div style={{
+              fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
+              letterSpacing: '0.05em', color: 'hsl(var(--muted-foreground))',
+              padding: '0 24px 8px',
+            }}>
+              {embeddedSubheading}
+            </div>
+          )}
+          {children}
+        </div>
+      );
+    }
+    return isPage ? (
+      <div
         style={{
-          backgroundColor: 'hsl(var(--card))',
+          background: 'hsl(var(--card))',
           border: '1px solid hsl(var(--border))',
-          borderRadius: '20px',
-          fontFamily: 'Inter, sans-serif',
-          maxWidth: '720px',
-          width: 'calc(100vw - 32px)',
-          maxHeight: '90vh',
-          padding: 0,
-          overflow: 'hidden',
+          borderRadius: 20,
           display: 'flex',
           flexDirection: 'column',
+          fontFamily: 'Inter, sans-serif',
+          minHeight: 'calc(100vh - 140px)',
+          overflow: 'hidden',
         }}
       >
         {children}
-      </DialogContent>
-    </Dialog>
-  );
+      </div>
+    ) : (
+      <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+        <DialogContent
+          style={{
+            backgroundColor: 'hsl(var(--card))',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '20px',
+            fontFamily: 'Inter, sans-serif',
+            maxWidth: '720px',
+            width: 'calc(100vw - 32px)',
+            maxHeight: '90vh',
+            padding: 0,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {children}
+        </DialogContent>
+      </Dialog>
+    );
+  };
 
   const headerNode = (
     <div
@@ -880,11 +902,11 @@ export function ListManager({
 
   // Voor de page-variant gebruiken we DialogHeader niet (geen Radix wrapper); we renderen
   // 'headerNode' direct. Voor dialog-variant verpakken we 'm met DialogHeader voor a11y.
-  const headerWrapped = isPage ? headerNode : (
+  const headerWrapped = isEmbedded ? null : (isPage ? headerNode : (
     <DialogHeader style={{ padding: 0, display: 'block' }}>
       {headerNode}
     </DialogHeader>
-  );
+  ));
 
   return (
     <>

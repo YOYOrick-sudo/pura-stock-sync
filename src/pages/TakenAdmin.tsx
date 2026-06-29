@@ -1,8 +1,9 @@
 // /taken/admin — overzicht van alle takenlijsten met sidebar zichtbaar.
-// Vervangt de oude Dialog-gebaseerde admin popup.
+// West werkt allround: één kaart per fase (geen Bediening/Keuken splitsing).
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, ChevronDown, ChevronUp, Pencil, Trash2, Loader2, Shield } from 'lucide-react';
+import { ArrowRight, ChevronDown, ChevronUp, Pencil, Trash2, Loader2, Shield, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserLocation } from '@/contexts/UserLocationContext';
@@ -13,11 +14,10 @@ import { Button } from '@/components/ui/button';
 type Phase = 'open' | 'tussen' | 'sluit';
 type Department = 'voorkant' | 'achterkant';
 
-
 interface ListCard {
   key: string;
   phase: Phase;
-  department: Department;
+  department?: Department; // alleen voor non-West (Midsland)
   title: string;
   taskCount: number;
 }
@@ -33,9 +33,6 @@ function TakenAdminInner() {
   const { userLocation } = useUserLocation();
   const queryClient = useQueryClient();
   const isWest = userLocation === 'West';
-
-
-
 
   // Fetch alle actieve templates voor deze locatie
   const { data: templates, isLoading } = useQuery({
@@ -72,60 +69,115 @@ function TakenAdminInner() {
     enabled: isWest,
   });
 
+  // Tellingen per categorie (zowel templates als actieve taken) — voor opruim-detectie
+  const { data: categoryUsage, refetch: refetchUsage } = useQuery({
+    queryKey: ['foh-admin-category-usage', userLocation],
+    queryFn: async () => {
+      const [tpl, tsk] = await Promise.all([
+        supabase.from('foh_daily_templates').select('category, department').eq('location', userLocation),
+        supabase.from('foh_tasks').select('category, department').eq('location', userLocation).eq('archived', false),
+      ]);
+      const counts: Record<string, number> = {};
+      const bump = (cat: string | null) => {
+        const c = (cat || '').trim();
+        if (!c) return;
+        counts[c] = (counts[c] ?? 0) + 1;
+      };
+      for (const r of ((tpl.data as any[]) || [])) bump(r.category);
+      for (const r of ((tsk.data as any[]) || [])) bump(r.category);
+      return counts;
+    },
+    enabled: isWest,
+  });
+
   // Bouw lijst van kaarten
-  const cards: ListCard[] = (() => {
+  const cards: ListCard[] = useMemo(() => {
     if (!templates) return [];
-    const grouped = new Map<string, { phase: Phase; department: Department; count: number }>();
-    for (const t of templates as any[]) {
-      const phase = t.phase as Phase;
-      if (!phase) continue;
-      const dept: Department = (t.department === 'achterkant' ? 'achterkant' : 'voorkant');
-      const key = `${phase}::${dept}`;
-      const cur = grouped.get(key);
-      if (cur) cur.count += 1;
-      else grouped.set(key, { phase, department: dept, count: 1 });
+
+    if (isWest) {
+      // West: één kaart per fase, departments samengevoegd
+      const byPhase = new Map<Phase, number>();
+      for (const t of templates as any[]) {
+        const phase = t.phase as Phase | null;
+        if (!phase) continue;
+        byPhase.set(phase, (byPhase.get(phase) ?? 0) + 1);
+      }
+      const phaseOrder: Phase[] = ['open', 'tussen', 'sluit'];
+      return phaseOrder
+        .filter(p => byPhase.has(p))
+        .map(phase => ({
+          key: phase,
+          phase,
+          title: PHASE_LABEL[phase],
+          taskCount: byPhase.get(phase) ?? 0,
+        }));
     }
-    const arr: ListCard[] = [];
-    for (const [key, v] of grouped.entries()) {
-      const deptLabel = isWest ? (v.department === 'voorkant' ? 'Bediening' : 'Keuken') : '';
-      arr.push({
-        key,
-        phase: v.phase,
-        department: v.department,
-        title: isWest ? `${deptLabel} · ${PHASE_LABEL[v.phase]}` : PHASE_LABEL[v.phase],
-        taskCount: v.count,
-      });
+
+    // Midsland: één kaart per fase (geen departments)
+    const byPhase = new Map<Phase, number>();
+    for (const t of templates as any[]) {
+      const phase = t.phase as Phase | null;
+      if (!phase) continue;
+      byPhase.set(phase, (byPhase.get(phase) ?? 0) + 1);
     }
     const phaseOrder: Phase[] = ['open', 'tussen', 'sluit'];
-    const deptOrder: Department[] = ['voorkant', 'achterkant'];
-    arr.sort((a, b) => {
-      const dp = deptOrder.indexOf(a.department) - deptOrder.indexOf(b.department);
-      if (dp !== 0) return dp;
-      return phaseOrder.indexOf(a.phase) - phaseOrder.indexOf(b.phase);
-    });
-    return arr;
-  })();
+    return phaseOrder
+      .filter(p => byPhase.has(p))
+      .map(phase => ({
+        key: phase,
+        phase,
+        title: PHASE_LABEL[phase],
+        taskCount: byPhase.get(phase) ?? 0,
+      }));
+  }, [templates, isWest]);
 
   const openList = (card: ListCard) => {
     const params = new URLSearchParams({
       location: userLocation,
       phase: card.phase,
-      dept: card.department,
     });
+    if (card.department) params.set('dept', card.department);
     navigate(`/taken/beheer?${params.toString()}`);
   };
 
-  // Subcategorie beheer (West) — move/rename/delete
-  const handleMove = async (dept: Department, category: string, direction: -1 | 1) => {
-    const rows = (westCategoryOrder?.[dept] ?? []).map(r => r.category);
-    const idx = rows.indexOf(category);
+  // --------------------------------------------------------------------------
+  // Unified subcategorie-beheer (West): merge voorkant + achterkant op categorie-naam
+  // --------------------------------------------------------------------------
+  const unifiedCategories = useMemo(() => {
+    if (!isWest || !westCategoryOrder) return [];
+    const map = new Map<string, { category: string; minOrder: number; depts: Department[] }>();
+    for (const dept of ['voorkant', 'achterkant'] as Department[]) {
+      for (const row of westCategoryOrder[dept] ?? []) {
+        const ex = map.get(row.category);
+        const order = row.sort_order ?? 9999;
+        if (ex) {
+          ex.minOrder = Math.min(ex.minOrder, order);
+          if (!ex.depts.includes(dept)) ex.depts.push(dept);
+        } else {
+          map.set(row.category, { category: row.category, minOrder: order, depts: [dept] });
+        }
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => a.minOrder - b.minOrder);
+  }, [isWest, westCategoryOrder]);
+
+  const handleMoveUnified = async (category: string, direction: -1 | 1) => {
+    const list = unifiedCategories.map(c => c.category);
+    const idx = list.indexOf(category);
     if (idx < 0) return;
     const newIdx = idx + direction;
-    if (newIdx < 0 || newIdx >= rows.length) return;
-    [rows[idx], rows[newIdx]] = [rows[newIdx], rows[idx]];
-    const upserts = rows.map((cat, i) => ({
-      location: userLocation, department: dept, category: cat, sort_order: (i + 1) * 10,
-    }));
+    if (newIdx < 0 || newIdx >= list.length) return;
+    [list[idx], list[newIdx]] = [list[newIdx], list[idx]];
+
+    // Schrijf nieuwe sort_order voor BEIDE departments (zelfde volgorde overal)
+    const upserts: { location: string; department: Department; category: string; sort_order: number }[] = [];
+    list.forEach((cat, i) => {
+      const entry = unifiedCategories.find(c => c.category === cat);
+      const order = (i + 1) * 10;
+      const depts = entry?.depts ?? ['voorkant'];
+      for (const d of depts) upserts.push({ location: userLocation, department: d, category: cat, sort_order: order });
+    });
+
     const { error } = await supabase
       .from('foh_category_order')
       .upsert(upserts, { onConflict: 'location,department,category' });
@@ -134,38 +186,64 @@ function TakenAdminInner() {
     queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
   };
 
-  const handleRename = async (dept: Department, oldName: string) => {
+  const handleRenameUnified = async (oldName: string) => {
+    const entry = unifiedCategories.find(c => c.category === oldName);
+    if (!entry) return;
     const next = window.prompt(`Nieuwe naam voor "${oldName}":`, oldName);
     if (!next) return;
     const trimmed = next.trim();
     if (!trimmed || trimmed === oldName) return;
-    const { error } = await supabase.rpc('foh_rename_category', {
-      _location: userLocation, _department: dept, _old: oldName, _new: trimmed,
-    });
-    if (error) { toast.error('Hernoemen mislukt'); return; }
-    toast.success('Subcategorie hernoemd');
+    for (const dept of entry.depts) {
+      const { error } = await supabase.rpc('foh_rename_category', {
+        _location: userLocation, _department: dept, _old: oldName, _new: trimmed,
+      });
+      if (error) { toast.error(`Hernoemen mislukt (${dept})`); return; }
+    }
+    toast.success('Onderdeel hernoemd');
     refetchOrder();
+    refetchUsage();
     queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
   };
 
-  const handleDelete = async (dept: Department, category: string) => {
-    const [tpl, tsk] = await Promise.all([
-      supabase.from('foh_daily_templates').select('id', { count: 'exact', head: true })
-        .eq('location', userLocation).eq('department', dept).eq('category', category),
-      supabase.from('foh_tasks').select('id', { count: 'exact', head: true })
-        .eq('location', userLocation).eq('department', dept).eq('category', category).eq('archived', false),
-    ]);
-    if ((tpl.count ?? 0) + (tsk.count ?? 0) > 0) {
-      toast.error(`Nog ${tpl.count ?? 0} template-taak(jes) en ${tsk.count ?? 0} actieve taken in "${category}".`);
+  const handleDeleteUnified = async (category: string) => {
+    const entry = unifiedCategories.find(c => c.category === category);
+    if (!entry) return;
+    const usage = categoryUsage?.[category] ?? 0;
+    if (usage > 0) {
+      toast.error(`Nog ${usage} taak/taken in "${category}". Verplaats of verwijder die eerst.`);
       return;
     }
-    if (!window.confirm(`Subcategorie "${category}" verwijderen?`)) return;
-    const { error } = await supabase
-      .from('foh_category_order').delete()
-      .eq('location', userLocation).eq('department', dept).eq('category', category);
-    if (error) { toast.error('Verwijderen mislukt'); return; }
-    toast.success('Subcategorie verwijderd');
+    if (!window.confirm(`Onderdeel "${category}" verwijderen?`)) return;
+    for (const dept of entry.depts) {
+      await supabase
+        .from('foh_category_order').delete()
+        .eq('location', userLocation).eq('department', dept).eq('category', category);
+    }
+    toast.success('Onderdeel verwijderd');
     refetchOrder();
+    refetchUsage();
+  };
+
+  // Lege legacy-categorieën opruimen
+  const emptyCategories = useMemo(() => {
+    if (!isWest || !categoryUsage) return [];
+    return unifiedCategories.filter(c => (categoryUsage[c.category] ?? 0) === 0);
+  }, [isWest, unifiedCategories, categoryUsage]);
+
+  const handleCleanupEmpty = async () => {
+    if (emptyCategories.length === 0) return;
+    const names = emptyCategories.map(c => `"${c.category}"`).join(', ');
+    if (!window.confirm(`${emptyCategories.length} leeg onderdeel verwijderen: ${names}?`)) return;
+    for (const entry of emptyCategories) {
+      for (const dept of entry.depts) {
+        await supabase
+          .from('foh_category_order').delete()
+          .eq('location', userLocation).eq('department', dept).eq('category', entry.category);
+      }
+    }
+    toast.success(`${emptyCategories.length} leeg onderdeel verwijderd`);
+    refetchOrder();
+    refetchUsage();
   };
 
   return (
@@ -261,81 +339,95 @@ function TakenAdminInner() {
         </div>
       )}
 
-
-
-
-      {/* West: Subcategorieën beheren */}
+      {/* West: Onderdelen beheren (unified) */}
       {isWest && (
         <div style={{
           padding: 18, borderRadius: 16,
           background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))',
         }}>
           <div style={{
-            fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
-            letterSpacing: '0.05em', color: 'hsl(var(--muted-foreground))', marginBottom: 12,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            marginBottom: 12, gap: 12,
           }}>
-            Subcategorieën beheren
+            <div style={{
+              fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
+              letterSpacing: '0.05em', color: 'hsl(var(--muted-foreground))',
+            }}>
+              Onderdelen beheren
+            </div>
+            {emptyCategories.length > 0 && (
+              <Button
+                size="sm" variant="outline"
+                onClick={handleCleanupEmpty}
+                style={{ height: 28, fontSize: 12, gap: 4 }}
+              >
+                <Sparkles size={12} />
+                {emptyCategories.length} leeg opruimen
+              </Button>
+            )}
           </div>
-          {(['voorkant', 'achterkant'] as Department[]).map(dept => {
-            const rows = westCategoryOrder?.[dept] ?? [];
-            return (
-              <div key={dept} style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 6 }}>
-                  {dept === 'voorkant' ? 'Bediening' : 'Keuken'}
-                </div>
-                {rows.length === 0 ? (
-                  <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', fontStyle: 'italic' }}>
-                    Nog geen subcategorieën.
+
+          {unifiedCategories.length === 0 ? (
+            <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', fontStyle: 'italic' }}>
+              Nog geen onderdelen.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {unifiedCategories.map((row, idx) => {
+                const usage = categoryUsage?.[row.category] ?? 0;
+                const isEmpty = usage === 0;
+                return (
+                  <div key={row.category} style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '6px 10px',
+                    background: isEmpty ? 'hsl(var(--destructive) / 0.05)' : 'hsl(var(--muted) / 0.4)',
+                    borderRadius: 8,
+                    border: `1px solid ${isEmpty ? 'hsl(var(--destructive) / 0.25)' : 'hsl(var(--border))'}`,
+                  }}>
+                    <span style={{
+                      fontSize: 11, fontWeight: 600,
+                      color: 'hsl(var(--muted-foreground))', minWidth: 20,
+                    }}>
+                      {idx + 1}.
+                    </span>
+                    <span style={{ flex: 1, fontSize: 13, color: 'hsl(var(--foreground))' }}>
+                      {row.category}
+                    </span>
+                    <span style={{
+                      fontSize: 11, color: 'hsl(var(--muted-foreground))', marginRight: 4,
+                    }}>
+                      {usage === 0 ? 'leeg' : `${usage} ${usage === 1 ? 'taak' : 'taken'}`}
+                    </span>
+                    <Button size="sm" variant="ghost"
+                      onClick={() => handleMoveUnified(row.category, -1)}
+                      disabled={idx === 0}
+                      style={{ height: 28, padding: '0 6px' }} aria-label="Omhoog">
+                      <ChevronUp size={14} />
+                    </Button>
+                    <Button size="sm" variant="ghost"
+                      onClick={() => handleMoveUnified(row.category, 1)}
+                      disabled={idx === unifiedCategories.length - 1}
+                      style={{ height: 28, padding: '0 6px' }} aria-label="Omlaag">
+                      <ChevronDown size={14} />
+                    </Button>
+                    <Button size="sm" variant="ghost"
+                      onClick={() => handleRenameUnified(row.category)}
+                      style={{ height: 28, padding: '0 6px' }} aria-label="Hernoemen">
+                      <Pencil size={14} />
+                    </Button>
+                    <Button size="sm" variant="ghost"
+                      onClick={() => handleDeleteUnified(row.category)}
+                      style={{ height: 28, padding: '0 6px', color: 'hsl(var(--destructive))' }}
+                      aria-label="Verwijderen">
+                      <Trash2 size={14} />
+                    </Button>
                   </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    {rows.map((row, idx) => (
-                      <div key={row.category} style={{
-                        display: 'flex', alignItems: 'center', gap: 6,
-                        padding: '6px 10px', background: 'hsl(var(--muted) / 0.4)',
-                        borderRadius: 8, border: '1px solid hsl(var(--border))',
-                      }}>
-                        <span style={{
-                          fontSize: 11, fontWeight: 600,
-                          color: 'hsl(var(--muted-foreground))', minWidth: 20,
-                        }}>
-                          {idx + 1}.
-                        </span>
-                        <span style={{ flex: 1, fontSize: 13, color: 'hsl(var(--foreground))' }}>
-                          {row.category}
-                        </span>
-                        <Button size="sm" variant="ghost"
-                          onClick={() => handleMove(dept, row.category, -1)}
-                          disabled={idx === 0}
-                          style={{ height: 28, padding: '0 6px' }} aria-label="Omhoog">
-                          <ChevronUp size={14} />
-                        </Button>
-                        <Button size="sm" variant="ghost"
-                          onClick={() => handleMove(dept, row.category, 1)}
-                          disabled={idx === rows.length - 1}
-                          style={{ height: 28, padding: '0 6px' }} aria-label="Omlaag">
-                          <ChevronDown size={14} />
-                        </Button>
-                        <Button size="sm" variant="ghost"
-                          onClick={() => handleRename(dept, row.category)}
-                          style={{ height: 28, padding: '0 6px' }} aria-label="Hernoemen">
-                          <Pencil size={14} />
-                        </Button>
-                        <Button size="sm" variant="ghost"
-                          onClick={() => handleDelete(dept, row.category)}
-                          style={{ height: 28, padding: '0 6px', color: 'hsl(var(--destructive))' }}
-                          aria-label="Verwijderen">
-                          <Trash2 size={14} />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-          <p style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', marginTop: 6, lineHeight: 1.4 }}>
-            Volgorde geldt voor live taken én dropdowns. Verwijderen kan alleen als de categorie leeg is.
+                );
+              })}
+            </div>
+          )}
+          <p style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', marginTop: 8, lineHeight: 1.4 }}>
+            Volgorde geldt voor de hele takenlijst. Verwijderen kan alleen als een onderdeel leeg is.
           </p>
         </div>
       )}
