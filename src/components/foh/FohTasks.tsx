@@ -3930,7 +3930,11 @@ export function FohTasks() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleOpenTemplateEditor(template.name)}
+                          onClick={() => {
+                            // Nieuwe gepolijste flow: open de Lijst-beheren popup.
+                            setAdminPanelOpen(false);
+                            setListManagerOpen(true);
+                          }}
                           style={{
                             borderRadius: '12px',
                             fontFamily: 'Inter, sans-serif',
@@ -3938,7 +3942,7 @@ export function FohTasks() {
                           }}
                         >
                           <Pencil size={14} style={{ marginRight: '4px' }} />
-                          Bewerk Template
+                          Lijst beheren
                         </Button>
 
                         {!template.isActive && (
