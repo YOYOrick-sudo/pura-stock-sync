@@ -1415,6 +1415,31 @@ export function ListManager({
                 </div>
               )}
             </div>
+            <DragOverlay dropAnimation={{ duration: 180, easing: 'cubic-bezier(0.2, 0, 0, 1)' }}>
+              {activeDragTask ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '10px 12px',
+                    borderRadius: 12,
+                    background: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--primary) / 0.5)',
+                    boxShadow: '0 12px 32px -8px hsl(var(--foreground) / 0.18)',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 15,
+                    color: 'hsl(var(--foreground))',
+                    maxWidth: 520,
+                  }}
+                >
+                  <GripVertical size={18} style={{ color: 'hsl(var(--muted-foreground))' }} />
+                  <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {activeDragTask.title}
+                  </span>
+                </div>
+              ) : null}
+            </DragOverlay>
             </DndContext>
           )}
         </div>
