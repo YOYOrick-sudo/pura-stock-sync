@@ -1366,6 +1366,7 @@ export function ListManager({
                 </div>
               )}
             </div>
+            </DndContext>
           )}
         </div>
 
