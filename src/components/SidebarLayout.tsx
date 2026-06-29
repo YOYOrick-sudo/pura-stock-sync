@@ -36,6 +36,8 @@ export function SidebarLayout({
       '/voorraad': 'Voorraad',
       '/settings': 'Instellingen',
       '/taken-analyse': 'Statistieken',
+      '/taken/admin': 'Takenlijsten beheren',
+      '/taken/beheer': 'Lijst bewerken',
       '/onderhoud': 'Onderhoud',
       '/kas-controle': 'Kas-controle',
     };
