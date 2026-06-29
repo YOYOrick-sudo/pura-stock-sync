@@ -766,13 +766,14 @@ export function ListManager({
   const Shell = ({ children }: { children: React.ReactNode }) => isPage ? (
     <div
       style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 50,
-        background: 'hsl(var(--background))',
+        background: 'hsl(var(--card))',
+        border: '1px solid hsl(var(--border))',
+        borderRadius: 20,
         display: 'flex',
         flexDirection: 'column',
         fontFamily: 'Inter, sans-serif',
+        minHeight: 'calc(100vh - 140px)',
+        overflow: 'hidden',
       }}
     >
       {children}
