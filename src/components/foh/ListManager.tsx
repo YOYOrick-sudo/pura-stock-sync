@@ -384,6 +384,7 @@ export function ListManager({
   onRenameCategory,
   onDeleteCategory,
   variant = 'dialog',
+  embeddedSubheading,
 }: ListManagerProps) {
   const queryClient = useQueryClient();
   const [selectedTemplateName, setSelectedTemplateName] = useState<string | null>(null);
