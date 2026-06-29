@@ -1,6 +1,6 @@
 // /taken/beheer — beheerscherm voor takenlijsten met sidebar zichtbaar.
 // West werkt allround: één lijst (voorkant department) per fase.
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -12,6 +12,9 @@ import { SidebarLayout } from '@/components/SidebarLayout';
 
 type Phase = 'open' | 'tussen' | 'sluit';
 type Department = 'voorkant' | 'achterkant';
+
+type OrderRow = { category: string; sort_order: number };
+type OrderMap = Record<Department, OrderRow[]>;
 
 const CATEGORY_ORDER_FALLBACK = ['Algemeen'];
 
@@ -37,9 +40,11 @@ function TakenBeheerInner() {
     ? 'voorkant'
     : (deptParam === 'achterkant' ? 'achterkant' : 'voorkant');
 
+  const orderKey = ['foh-category-order', location] as const;
+
   // West category order
-  const { data: westCategoryOrder } = useQuery({
-    queryKey: ['foh-category-order', location],
+  const { data: westCategoryOrder } = useQuery<OrderMap>({
+    queryKey: orderKey,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('foh_category_order')
@@ -47,9 +52,7 @@ function TakenBeheerInner() {
         .eq('location', location)
         .order('sort_order', { ascending: true });
       if (error) throw error;
-      const out: Record<Department, { category: string; sort_order: number }[]> = {
-        voorkant: [], achterkant: [],
-      };
+      const out: OrderMap = { voorkant: [], achterkant: [] };
       for (const r of (data as any[]) || []) {
         const d: Department = r.department === 'achterkant' ? 'achterkant' : 'voorkant';
         out[d].push({ category: r.category, sort_order: r.sort_order });
@@ -81,19 +84,38 @@ function TakenBeheerInner() {
     enabled: isWest,
   });
 
-  // (West werkt nu als één lijst — geen multi-department detectie meer nodig)
+  // ===== Auto-seed missing categories so every used category has a sort row.
+  const seededRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!isWest || !westCategoryOrder || !westSubcats) return;
+    const dept: Department = 'voorkant';
+    const existing = new Set(westCategoryOrder[dept].map(r => r.category));
+    const used = westSubcats[dept] || [];
+    const missing = used.filter(c => c && !existing.has(c));
+    if (missing.length === 0) return;
+    const seedKey = `${location}:${dept}:${missing.join('|')}`;
+    if (seededRef.current.has(seedKey)) return;
+    seededRef.current.add(seedKey);
+    const maxSort = westCategoryOrder[dept].reduce((m, r) => Math.max(m, r.sort_order ?? 0), 0);
+    const rows = missing.map((c, i) => ({
+      location, department: dept, category: c, sort_order: maxSort + (i + 1) * 10,
+    }));
+    (async () => {
+      const { error } = await supabase
+        .from('foh_category_order')
+        .upsert(rows, { onConflict: 'location,department,category', ignoreDuplicates: true });
+      if (!error) queryClient.invalidateQueries({ queryKey: orderKey });
+    })();
+  }, [isWest, westCategoryOrder, westSubcats, location, queryClient]);
 
+  // Available categories = exact volgorde uit DB (na seeding). Geen unshift.
   const buildAvailableCategories = (dept: Department): string[] => {
     if (!isWest) return getMidslandCategories(phase);
     const ordered = (westCategoryOrder?.[dept] ?? []).map(r => r.category);
+    if (ordered.length > 0) return ordered;
+    // Fallback voor allereerste render vóór seed: gebruik subcats
     const used = westSubcats?.[dept] ?? [];
-    const seen = new Set<string>();
-    const result: string[] = [];
-    for (const c of ordered) if (!seen.has(c)) { seen.add(c); result.push(c); }
-    for (const c of used) if (!seen.has(c)) { seen.add(c); result.push(c); }
-    if (result.length === 0) return [...CATEGORY_ORDER_FALLBACK];
-    if (!result.includes('Algemeen')) result.unshift('Algemeen');
-    return result;
+    return used.length > 0 ? used : [...CATEGORY_ORDER_FALLBACK];
   };
 
   const buildCategoryRows = (dept: Department) => isWest
@@ -110,21 +132,45 @@ function TakenBeheerInner() {
     queryClient.invalidateQueries({ queryKey: ['list-manager-templates'] });
   };
 
+  // Lock om dubbelklikken / race conditions te voorkomen
+  const movingRef = useRef(false);
+
   const makeMoveHandler = (dept: Department) => async (category: string, direction: -1 | 1) => {
+    if (movingRef.current) return;
+    const prev = queryClient.getQueryData<OrderMap>(orderKey);
     const rows = buildCategoryRows(dept);
     const idx = rows.findIndex(r => r.category === category);
     if (idx < 0) return;
     const newIdx = idx + direction;
     if (newIdx < 0 || newIdx >= rows.length) return;
+
     const list = rows.map(r => r.category);
     [list[idx], list[newIdx]] = [list[newIdx], list[idx]];
     const upsertRows = list.map((cat, i) => ({
       location, department: dept, category: cat, sort_order: (i + 1) * 10,
     }));
+
+    // Optimistic update
+    if (prev) {
+      const nextMap: OrderMap = {
+        voorkant: prev.voorkant.map(r => ({ ...r })),
+        achterkant: prev.achterkant.map(r => ({ ...r })),
+      };
+      nextMap[dept] = upsertRows.map(r => ({ category: r.category, sort_order: r.sort_order }));
+      queryClient.setQueryData(orderKey, nextMap);
+    }
+
+    movingRef.current = true;
     const { error } = await supabase
       .from('foh_category_order')
       .upsert(upsertRows, { onConflict: 'location,department,category' });
-    if (error) { toast.error('Fout bij opslaan volgorde'); return; }
+    movingRef.current = false;
+
+    if (error) {
+      if (prev) queryClient.setQueryData(orderKey, prev);
+      toast.error('Fout bij opslaan volgorde');
+      return;
+    }
     invalidate();
   };
 
@@ -133,10 +179,31 @@ function TakenBeheerInner() {
     if (!next) return;
     const trimmed = next.trim();
     if (!trimmed || trimmed === oldName) return;
+
+    // Dedupe-check
+    const existing = new Set((westCategoryOrder?.[dept] ?? []).map(r => r.category));
+    if (existing.has(trimmed)) {
+      if (!window.confirm(`"${trimmed}" bestaat al. Samenvoegen?`)) return;
+    }
+
+    // Optimistic rename
+    const prev = queryClient.getQueryData<OrderMap>(orderKey);
+    if (prev) {
+      const nextMap: OrderMap = {
+        voorkant: prev.voorkant.map(r => r.category === oldName ? { ...r, category: trimmed } : r),
+        achterkant: prev.achterkant.map(r => r.category === oldName ? { ...r, category: trimmed } : r),
+      };
+      queryClient.setQueryData(orderKey, nextMap);
+    }
+
     const { error } = await supabase.rpc('foh_rename_category', {
       _location: location, _department: dept, _old: oldName, _new: trimmed,
     });
-    if (error) { toast.error('Hernoemen mislukt'); return; }
+    if (error) {
+      if (prev) queryClient.setQueryData(orderKey, prev);
+      toast.error('Hernoemen mislukt');
+      return;
+    }
     toast.success('Onderdeel hernoemd');
     invalidate();
   };
@@ -153,11 +220,25 @@ function TakenBeheerInner() {
       return;
     }
     if (!window.confirm(`Onderdeel "${category}" verwijderen?`)) return;
+
+    const prev = queryClient.getQueryData<OrderMap>(orderKey);
+    if (prev) {
+      const nextMap: OrderMap = {
+        voorkant: prev.voorkant.filter(r => r.category !== category),
+        achterkant: prev.achterkant.filter(r => r.category !== category),
+      };
+      queryClient.setQueryData(orderKey, nextMap);
+    }
+
     const { error } = await supabase
       .from('foh_category_order')
       .delete()
       .eq('location', location).eq('department', dept).eq('category', category);
-    if (error) { toast.error('Verwijderen mislukt'); return; }
+    if (error) {
+      if (prev) queryClient.setQueryData(orderKey, prev);
+      toast.error('Verwijderen mislukt');
+      return;
+    }
     toast.success('Onderdeel verwijderd');
     invalidate();
   };
@@ -171,11 +252,6 @@ function TakenBeheerInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // (West is nu één lijst — single ListManager render hieronder)
-
-
-
-  // ----- Single-dept render (Midsland of expliciete dept param) -----
   return (
     <ListManager
       variant="page"

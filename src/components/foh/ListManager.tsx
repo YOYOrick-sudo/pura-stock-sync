@@ -1147,40 +1147,46 @@ export function ListManager({
                             disabled={!canMoveUp}
                             aria-label="Categorie omhoog"
                             style={{
-                              width: 24,
-                              height: 24,
+                              width: 32,
+                              height: 32,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               background: 'transparent',
                               border: 'none',
-                              borderRadius: 6,
-                              cursor: canMoveUp ? 'pointer' : 'not-allowed',
-                              opacity: canMoveUp ? 0.6 : 0.2,
+                              borderRadius: 8,
+                              cursor: canMoveUp ? 'pointer' : 'default',
+                              opacity: canMoveUp ? 0.7 : 0.25,
                               color: 'hsl(var(--muted-foreground))',
+                              transition: 'background-color 120ms',
                             }}
+                            onMouseEnter={(e) => { if (canMoveUp) e.currentTarget.style.background = 'hsl(var(--muted) / 0.6)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                           >
-                            <ChevronUp size={14} />
+                            <ChevronUp size={16} />
                           </button>
                           <button
                             onClick={() => onMoveCategory(category, 1)}
                             disabled={!canMoveDown}
                             aria-label="Categorie omlaag"
                             style={{
-                              width: 24,
-                              height: 24,
+                              width: 32,
+                              height: 32,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               background: 'transparent',
                               border: 'none',
-                              borderRadius: 6,
-                              cursor: canMoveDown ? 'pointer' : 'not-allowed',
-                              opacity: canMoveDown ? 0.6 : 0.2,
+                              borderRadius: 8,
+                              cursor: canMoveDown ? 'pointer' : 'default',
+                              opacity: canMoveDown ? 0.7 : 0.25,
                               color: 'hsl(var(--muted-foreground))',
+                              transition: 'background-color 120ms',
                             }}
+                            onMouseEnter={(e) => { if (canMoveDown) e.currentTarget.style.background = 'hsl(var(--muted) / 0.6)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                           >
-                            <ChevronDown size={14} />
+                            <ChevronDown size={16} />
                           </button>
                           {onRenameCategory && (
                             <button
