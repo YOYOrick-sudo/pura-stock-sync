@@ -838,6 +838,7 @@ export function FohTasks() {
   const { userLocation } = useUserLocation();
   const queryClient = useQueryClient();
   const isTablet = useIsTablet();
+  const navigate = useNavigate();
   
   const [mainCategory, setMainCategory] = useState<'dagelijks' | 'periodiek'>('dagelijks');
   const [activePhase, setActivePhase] = useState<PhaseType>('open');
