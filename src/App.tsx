@@ -67,6 +67,10 @@ const App = () => (
               } 
             />
             <Route
+              path="/taken/beheer"
+              element={<TakenBeheer />}
+            />
+            <Route
               path="/taken-analyse" 
               element={
                 <ProtectedRoute>
