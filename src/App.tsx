@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import FohModule from "./pages/foh/FohModule";
 import FohAnalytics from "./pages/foh/FohAnalytics";
+import TakenBeheer from "./pages/TakenBeheer";
 import Kassatelling from "./pages/Kassatelling";
 import Voorraad from "./pages/Voorraad";
 import Settings from "./pages/Settings";
@@ -64,6 +65,10 @@ const App = () => (
                   <FohModule />
                 </ProtectedRoute>
               } 
+            />
+            <Route
+              path="/taken/beheer"
+              element={<TakenBeheer />}
             />
             <Route
               path="/taken-analyse" 

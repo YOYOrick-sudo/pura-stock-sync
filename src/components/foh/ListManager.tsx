@@ -32,6 +32,7 @@ import {
   Check,
   MoreHorizontal,
   Loader2,
+  ArrowLeft,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -83,6 +84,8 @@ interface ListManagerProps {
   onMoveCategory?: (category: string, direction: -1 | 1) => void;
   onRenameCategory?: (oldName: string) => void;
   onDeleteCategory?: (category: string) => void;
+  /** 'dialog' = modal popup (legacy); 'page' = full-screen fixed overlay zonder dialog-chrome */
+  variant?: 'dialog' | 'page';
 }
 
 const DAY_LABELS = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
@@ -378,6 +381,7 @@ export function ListManager({
   onMoveCategory,
   onRenameCategory,
   onDeleteCategory,
+  variant = 'dialog',
 }: ListManagerProps) {
   const queryClient = useQueryClient();
   const [selectedTemplateName, setSelectedTemplateName] = useState<string | null>(null);
@@ -756,7 +760,24 @@ export function ListManager({
   // ==========================================================================
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
-  return (
+  const isPage = variant === 'page';
+
+  // Shells — kiezen tussen Dialog (legacy) en volledig scherm (page).
+  const Shell = ({ children }: { children: React.ReactNode }) => isPage ? (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 50,
+        background: 'hsl(var(--background))',
+        display: 'flex',
+        flexDirection: 'column',
+        fontFamily: 'Inter, sans-serif',
+      }}
+    >
+      {children}
+    </div>
+  ) : (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
         style={{
@@ -773,33 +794,102 @@ export function ListManager({
           flexDirection: 'column',
         }}
       >
-        {/* Header */}
-        <DialogHeader style={{ padding: '20px 24px 12px', borderBottom: '1px solid hsl(var(--border))' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-            <div style={{ flex: 1 }}>
-              <DialogTitle
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: 20,
-                  fontWeight: 600,
-                  color: 'hsl(var(--foreground))',
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                Lijst beheren
-              </DialogTitle>
-              <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', marginTop: 2 }}>
-                {phaseLabel(phase)} · {locationLabel(location)}
-                {isWest && ` · ${department === 'voorkant' ? 'Bediening' : 'Keuken'}`}
-                {savingPing && (
-                  <span style={{ marginLeft: 10, fontSize: 12, color: 'hsl(var(--primary))', opacity: 0.9 }}>
-                    Opgeslagen
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </DialogHeader>
+        {children}
+      </DialogContent>
+    </Dialog>
+  );
+
+  const headerNode = (
+    <div
+      style={{
+        padding: isPage ? '16px 32px' : '20px 24px 12px',
+        borderBottom: '1px solid hsl(var(--border))',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        background: isPage ? 'hsl(var(--card))' : undefined,
+        flexShrink: 0,
+      }}
+    >
+      {isPage && (
+        <button
+          onClick={onClose}
+          aria-label="Terug"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 12px 8px 8px',
+            background: 'transparent',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: 10,
+            cursor: 'pointer',
+            color: 'hsl(var(--foreground))',
+            fontSize: 13,
+            fontWeight: 500,
+            fontFamily: 'Inter, sans-serif',
+            transition: 'background 120ms ease',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'hsl(var(--muted) / 0.6)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        >
+          <ArrowLeft size={16} />
+          Terug
+        </button>
+      )}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {isPage ? (
+          <h1
+            style={{
+              margin: 0,
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 20,
+              fontWeight: 600,
+              color: 'hsl(var(--foreground))',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            Lijst beheren
+          </h1>
+        ) : (
+          <DialogTitle
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 20,
+              fontWeight: 600,
+              color: 'hsl(var(--foreground))',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            Lijst beheren
+          </DialogTitle>
+        )}
+        <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', marginTop: 2 }}>
+          {phaseLabel(phase)} · {locationLabel(location)}
+          {isWest && ` · ${department === 'voorkant' ? 'Bediening' : 'Keuken'}`}
+          {savingPing && (
+            <span style={{ marginLeft: 10, fontSize: 12, color: 'hsl(var(--primary))', opacity: 0.9 }}>
+              Opgeslagen
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Voor de page-variant gebruiken we DialogHeader niet (geen Radix wrapper); we renderen
+  // 'headerNode' direct. Voor dialog-variant verpakken we 'm met DialogHeader voor a11y.
+  const headerWrapped = isPage ? headerNode : (
+    <DialogHeader style={{ padding: 0, display: 'block' }}>
+      {headerNode}
+    </DialogHeader>
+  );
+
+  return (
+    <>
+    <Shell>
+        {headerWrapped}
+
 
         {/* Body */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 24px' }}>
@@ -1185,29 +1275,32 @@ export function ListManager({
           )}
         </div>
 
-        {/* Footer */}
-        <div
-          style={{
-            padding: '12px 24px',
-            borderTop: '1px solid hsl(var(--border))',
-            display: 'flex',
-            justifyContent: 'flex-end',
-          }}
-        >
-          <Button
-            variant="ghost"
-            onClick={onClose}
+        {/* Footer — alleen in dialog-variant (page heeft 'Terug' in de header) */}
+        {!isPage && (
+          <div
             style={{
-              borderRadius: 12,
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 13,
-              color: 'hsl(var(--muted-foreground))',
+              padding: '12px 24px',
+              borderTop: '1px solid hsl(var(--border))',
+              display: 'flex',
+              justifyContent: 'flex-end',
             }}
           >
-            Sluiten
-          </Button>
-        </div>
-      </DialogContent>
+            <Button
+              variant="ghost"
+              onClick={onClose}
+              style={{
+                borderRadius: 12,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 13,
+                color: 'hsl(var(--muted-foreground))',
+              }}
+            >
+              Sluiten
+            </Button>
+          </div>
+        )}
+      </Shell>
+
 
       {/* Nieuwe lijst dialog */}
       <Dialog open={newListDialogOpen} onOpenChange={setNewListDialogOpen}>
@@ -1262,6 +1355,6 @@ export function ListManager({
           </div>
         </DialogContent>
       </Dialog>
-    </Dialog>
+    </>
   );
 }

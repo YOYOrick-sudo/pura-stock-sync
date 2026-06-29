@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
@@ -837,6 +838,7 @@ export function FohTasks() {
   const { userLocation } = useUserLocation();
   const queryClient = useQueryClient();
   const isTablet = useIsTablet();
+  const navigate = useNavigate();
   
   const [mainCategory, setMainCategory] = useState<'dagelijks' | 'periodiek'>('dagelijks');
   const [activePhase, setActivePhase] = useState<PhaseType>('open');
@@ -3931,9 +3933,14 @@ export function FohTasks() {
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            // Nieuwe gepolijste flow: open de Lijst-beheren popup.
+                            // Volledig scherm flow: navigeer naar dedicated beheer-pagina.
                             setAdminPanelOpen(false);
-                            setListManagerOpen(true);
+                            const params = new URLSearchParams({
+                              location: userLocation,
+                              phase: activePhase,
+                              dept: effectiveDept,
+                            });
+                            navigate(`/taken/beheer?${params.toString()}`);
                           }}
                           style={{
                             borderRadius: '12px',
