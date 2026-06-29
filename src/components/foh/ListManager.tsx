@@ -43,6 +43,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -369,6 +370,34 @@ function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowP
 }
 
 // ============================================================================
+// Droppable category container (voor cross-category drag-and-drop)
+// ============================================================================
+function DroppableCategory({
+  category,
+  children,
+}: {
+  category: string;
+  children: React.ReactNode;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: `cat:${category}` });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        border: isOver ? '1px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
+        borderRadius: 14,
+        padding: 6,
+        background: isOver ? 'hsl(var(--primary) / 0.06)' : 'hsl(var(--background))',
+        transition: 'background 150ms ease, border-color 150ms ease',
+        minHeight: 44,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ============================================================================
 // Main component
 // ============================================================================
 export function ListManager({
@@ -623,42 +652,94 @@ export function ListManager({
     invalidateAll();
   };
 
-  const handleDragEnd = async (event: DragEndEvent, category: string) => {
+  // Cross-category drag: sleep een taak naar een andere positie binnen dezelfde
+  // categorie, of naar een andere categorie. Bij verplaatsing wijzigt de categorie
+  // automatisch en wordt sort_order opnieuw bepaald voor beide categorieën.
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    if (!over || active.id === over.id) return;
+    if (!over) return;
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    if (activeId === overId) return;
 
-    const tasks = currentTasks
-      .filter((t) => t.category === category)
-      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-    const oldIdx = tasks.findIndex((t) => t.id === active.id);
-    const newIdx = tasks.findIndex((t) => t.id === over.id);
-    if (oldIdx < 0 || newIdx < 0) return;
-    const reordered = [...tasks];
-    const [moved] = reordered.splice(oldIdx, 1);
-    reordered.splice(newIdx, 0, moved);
+    const activeTask = currentTasks.find((t) => t.id === activeId);
+    if (!activeTask) return;
+
+    // Build huidige groepering (gerespecteerde volgorde uit tasksByCategory)
+    const catTasksMap = new Map<string, TemplateTask[]>();
+    for (const { category, tasks } of tasksByCategory) {
+      catTasksMap.set(category, [...tasks]);
+    }
+
+    let targetCategory: string;
+    let targetIndex: number;
+
+    if (overId.startsWith('cat:')) {
+      // Drop op lege categorie of onderkant van een categorie-container
+      targetCategory = overId.slice(4);
+      if (!catTasksMap.has(targetCategory)) catTasksMap.set(targetCategory, []);
+      targetIndex = (catTasksMap.get(targetCategory) ?? []).filter((t) => t.id !== activeId).length;
+    } else {
+      const overTask = currentTasks.find((t) => t.id === overId);
+      if (!overTask) return;
+      targetCategory = overTask.category || 'Algemeen';
+      const arr = catTasksMap.get(targetCategory) ?? [];
+      targetIndex = arr.findIndex((t) => t.id === overId);
+      if (targetIndex < 0) targetIndex = arr.length;
+    }
+
+    const sourceCategory = activeTask.category || 'Algemeen';
+
+    // Verwijder uit bron
+    const sourceArr = (catTasksMap.get(sourceCategory) ?? []).filter((t) => t.id !== activeId);
+    catTasksMap.set(sourceCategory, sourceArr);
+
+    // Voeg toe in target
+    const targetArr = (catTasksMap.get(targetCategory) ?? []).filter((t) => t.id !== activeId);
+    targetArr.splice(targetIndex, 0, { ...activeTask, category: targetCategory });
+    catTasksMap.set(targetCategory, targetArr);
+
+    // Bouw updates voor beide (mogelijk dezelfde) categorieën
+    const touched = new Set<string>([sourceCategory, targetCategory]);
+    const updates: { id: string; category: string; sort_order: number }[] = [];
+    for (const cat of touched) {
+      const arr = catTasksMap.get(cat) ?? [];
+      arr.forEach((t, i) => {
+        updates.push({ id: t.id, category: cat, sort_order: (i + 1) * 10 });
+      });
+    }
 
     // Optimistic
-    const withNewOrder = reordered.map((t, i) => ({ ...t, sort_order: (i + 1) * 10 }));
+    const updMap = new Map(updates.map((u) => [u.id, u]));
     queryClient.setQueryData<TemplateTask[]>(
       ['list-manager-templates', location, phase, department],
       (prev) => {
         if (!prev) return prev;
-        const map = new Map(withNewOrder.map((t) => [t.id, t]));
-        return prev.map((t) => map.get(t.id) || t);
+        return prev.map((t) => {
+          const u = updMap.get(t.id);
+          return u ? { ...t, category: u.category, sort_order: u.sort_order } : t;
+        });
       },
     );
 
     // Persist
-    for (const t of withNewOrder) {
-      await supabase
-        .from('foh_daily_templates')
-        .update({ sort_order: t.sort_order })
-        .eq('id', t.id);
-      await syncToToday(t.id, { sort_order: t.sort_order });
+    try {
+      for (const u of updates) {
+        const { error } = await supabase
+          .from('foh_daily_templates')
+          .update({ category: u.category, sort_order: u.sort_order })
+          .eq('id', u.id);
+        if (error) throw error;
+        await syncToToday(u.id, { category: u.category, sort_order: u.sort_order });
+      }
+      flashSaved();
+      queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
+    } catch {
+      toast.error('Opslaan mislukt');
+      invalidateAll();
     }
-    flashSaved();
-    queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
-    queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
   };
 
   const handleActivateTemplate = async (templateName: string) => {
@@ -980,6 +1061,7 @@ export function ListManager({
               Geen taken in deze lijst. Voeg er één toe via de knoppen hieronder.
             </div>
           ) : (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
               {tasksByCategory.map(({ category, tasks }) => {
                 const catRowIdx = westCategoryRows?.findIndex((r) => r.category === category) ?? -1;
@@ -1098,34 +1180,22 @@ export function ListManager({
                     </div>
 
                     {/* Tasks */}
-                    <div
-                      style={{
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: 14,
-                        padding: 6,
-                        background: 'hsl(var(--background))',
-                      }}
-                    >
-                      <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={(e) => handleDragEnd(e, category)}
+                    <DroppableCategory category={category}>
+                      <SortableContext
+                        items={tasks.map((t) => t.id)}
+                        strategy={verticalListSortingStrategy}
                       >
-                        <SortableContext
-                          items={tasks.map((t) => t.id)}
-                          strategy={verticalListSortingStrategy}
-                        >
-                          {tasks.map((task) => (
-                            <SortableRow
-                              key={task.id}
-                              task={task}
-                              onUpdate={updateTask}
-                              onDelete={deleteTask}
-                              categoryOptions={availableCategories}
-                            />
-                          ))}
-                        </SortableContext>
-                      </DndContext>
+                        {tasks.map((task) => (
+                          <SortableRow
+                            key={task.id}
+                            task={task}
+                            onUpdate={updateTask}
+                            onDelete={deleteTask}
+                            categoryOptions={availableCategories}
+                          />
+                        ))}
+                      </SortableContext>
+
 
                       {tasks.length === 0 && (
                         <div style={{ padding: '12px 16px', fontSize: 13, color: 'hsl(var(--muted-foreground))' }}>
@@ -1216,8 +1286,9 @@ export function ListManager({
                           <Plus size={14} /> Taak in {category}
                         </button>
                       )}
-                    </div>
+                    </DroppableCategory>
                   </div>
+
                 );
               })}
 
@@ -1295,6 +1366,7 @@ export function ListManager({
                 </div>
               )}
             </div>
+            </DndContext>
           )}
         </div>
 
