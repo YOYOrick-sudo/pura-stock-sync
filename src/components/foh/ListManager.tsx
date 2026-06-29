@@ -864,7 +864,25 @@ export function ListManager({
   // ==========================================================================
   // Render
   // ==========================================================================
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 6 } }),
+    useSensor(KeyboardSensor),
+  );
+
+  // Custom collision: pointer-eerst (zo voelt slepen "natuurlijker"), met rectIntersection fallback
+  const collisionDetectionStrategy: CollisionDetection = (args) => {
+    const pointer = pointerWithin(args);
+    if (pointer.length > 0) return pointer;
+    const intersecting = rectIntersection(args);
+    if (intersecting.length > 0) return intersecting;
+    return closestCorners(args);
+  };
+
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
+  const activeDragTask = activeDragId
+    ? currentTasks.find((t) => t.id === activeDragId) || null
+    : null;
 
   const isPage = variant === 'page';
   const isEmbedded = variant === 'embedded';
