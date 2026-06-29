@@ -1,23 +1,71 @@
-## Doel
-Vaat-afsluittaken toevoegen aan **Laatste Loodjes** in West (sluit). Laatste Loodjes wordt dé gezamenlijke afsluit-categorie voor zowel bediening als keuken — onderaan de unified lijst, ongeacht voor-/achterkant.
+## Probleemanalyse (proactief, geen losse fixes)
+De takenlijst-admin voelt los van de rest van de app omdat hij op drie plekken de app-shell verlaat:
 
-## Plaatsing
-Categorie **Laatste Loodjes** bestaat al onder voorkant (lampen koel/vries uit, was draaien/ophangen). Daar voegen we de vaattaken aan toe, zodat alles in één blok onderaan de lijst staat.
+1. **Admin Panel** = `Dialog` popup → sidebar weg, voelt afgesloten.
+2. **Admin is fase-gebonden** → eerst tab "Sluit" kiezen, dan admin openen. Onlogisch.
+3. **`/taken/beheer`** = full-screen route zonder `SidebarLayout` → sidebar weg.
+4. **"Nieuwe Template"** knop staat prominent, maar er kan maar 1 actieve lijst per fase/dept bestaan (DB-trigger). Knop levert alleen verwarring + dubbele lijsten op.
+5. **FIFO-koeling taak** is 1 mega-string met komma's — onleesbaar, niet per item afvinkbaar.
 
-## Logische volgorde binnen Laatste Loodjes
-Workflow van "opruimen → schoonmaken → checken → vloer als laatste":
+De rode draad: de app heeft een nette `SidebarLayout` wrapper die andere pagina's (Dashboard, Kassatelling) gebruiken — admin/beheer doen dat niet. Daar zit de échte fix.
 
-1. Lampen koelcel en vriescel uit *(bestaand)*
-2. Was draaien / was ophangen *(bestaand)*
-3. **Prullenbakken schoonmaken** *(nieuw)*
-4. **Vaatwas-hoek schoon & leeg — alles opgeborgen?** *(nieuw)*
-5. **Binnen- en buitenkant vaatwasser schoonmaken** *(nieuw)*
-6. **Onderkant aan- en afvoertafel schoonmaken** *(nieuw)*
-7. **Zeep & naglans vaatwasser checken (evt. vervangen)** *(nieuw)*
-8. **Vloer vegen, daarna schrobben met vloerreiniger** *(nieuw)* — bewust laatst, want vloer doe je nadat al het andere klaar is
+---
 
-## Technisch
-- 6 nieuwe rows in `foh_daily_templates` (location=`west`, department=`voorkant`, phase=`sluit`, category=`Laatste Loodjes`, template_name=`Sluit`, is_active=true, met oplopende `sort_order`).
-- Bestaande sort_order van lampen/was blijven; nieuwe taken krijgen hogere sort_order zodat ze daarna komen.
-- Door bestaande sync-trigger verschijnen ze meteen in vandaag's actieve `foh_tasks`.
-- Geen UI-wijzigingen nodig.
+## Plan
+
+### 1. `/taken/beheer` binnen de app-shell
+- `src/pages/TakenBeheer.tsx`: render `ListManager` binnen `<SidebarLayout>` (zelfde wrapper als Dashboard/Kassatelling).
+- `ListManager` `variant="page"` aanpassen: niet meer `fixed inset-0` / eigen sticky header die het volledige viewport claimt, maar een normale pagina-container (max-width, padding, sticky header binnen content-kolom). Sidebar blijft links zichtbaar.
+- Esc-shortcut blijft, terug-knop in eigen header blijft.
+
+### 2. Admin als echte route `/taken/admin`
+- Nieuwe pagina `src/pages/TakenAdmin.tsx` in `<SidebarLayout>`.
+- Toont **overzicht van alle actieve lijsten** voor de locatie (kaartjes per fase × department):
+  ```text
+  West                                Midsland
+  ┌──────────────────────┐            ┌──────────────────┐
+  │ Bediening · Openen   │            │ Openen   12 taken│
+  │ 14 taken             │            ├──────────────────┤
+  │ [Lijst beheren →]    │            │ Tussen   8  taken│
+  ├──────────────────────┤            ├──────────────────┤
+  │ Bediening · Sluiten  │            │ Sluiten 22 taken │
+  │ 22 taken             │            └──────────────────┘
+  │ [Lijst beheren →]    │
+  ├──────────────────────┤
+  │ Keuken · Sluiten     │
+  │ 18 taken             │
+  │ [Lijst beheren →]    │
+  └──────────────────────┘
+  ```
+- "Lijst beheren" → `navigate('/taken/beheer?location=…&phase=…&dept=…')` — geen fase-switch nodig.
+- West-instellingen (Apparaat-modus + Subcategorieën-beheer) verhuizen mee naar deze pagina, niet meer in popup.
+- Admin-knop in `FohTasks.tsx`: na success in `AdminPasswordDialog` → `navigate('/taken/admin')`. Bestaande Admin-Dialog + state (`adminPanelOpen`, `adminTab`, `newTemplateDialogOpen`, `groupedTemplates`-rendering) verwijderen.
+
+### 3. "Nieuwe Template" knop weg
+- Knop + `newTemplateDialogOpen`-dialog + bijbehorende create-flow uit de UI. Logica blijft in DB beschikbaar, maar niet meer aanroepbaar.
+
+### 4. FIFO-koeling taak opsplitsen (West · Keuken · Sluit)
+- Bestaande mega-taak archiveren (template + actieve taak vandaag).
+- 12 losse rows in `foh_daily_templates` (location=West, department=achterkant, phase=sluit, template_name=Standaard, category=`FIFO koeling`, oplopende `sort_order`). Titels = enkel productnaam:
+  - Kip · Tempeh · Kebab · Soepen · Zalm & Forel · Bananenpannenkoeken (koellade) · Brioche · Zoet (alleen als echt op) · Tomatenjam · Relish · Wortelspread · Kaas
+- Categorie `FIFO koeling` via `foh_category_order` onderaan keuken-blok zetten.
+- Sync-trigger zet ze meteen in vandaag's lijst.
+
+---
+
+## Volgorde van uitvoeren
+1. **FIFO splitsen** (snelle data-fix, direct zichtbaar).
+2. **`/taken/beheer` in SidebarLayout** (kleine wrapper-fix, lost direct grootste klacht op).
+3. **`/taken/admin` route + overzicht + verwijder oude Dialog/knop** (groter refactor).
+
+## Niet aanraken
+- Wachtwoord-dialog (2017/2020) blijft 1-op-1.
+- ListManager interne logica (autosave, drag/drop, sync naar actieve taken).
+- DB-schema, edge functions, taakgeneratie, RLS-policies.
+- Andere routes/pagina's.
+
+## Resultaat
+- Sidebar **altijd zichtbaar** in admin én beheer — voelt als één doorlopende app.
+- 1 klik op Admin → overzicht van **alle** lijsten ongeacht actieve fase.
+- Geen "Nieuwe Template" meer → geen kans op dubbele lijsten.
+- FIFO-koeling = 12 afvinkbare items i.p.v. 1 onleesbare regel.
