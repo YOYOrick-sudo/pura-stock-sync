@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 
 type Phase = 'open' | 'tussen' | 'sluit';
 type Department = 'voorkant' | 'achterkant';
-type DeviceMode = 'beide' | 'voorkant' | 'achterkant';
+
 
 interface ListCard {
   key: string;
