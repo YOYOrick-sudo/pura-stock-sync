@@ -24,6 +24,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminPasswordDialog } from './AdminPasswordDialog';
 import { RepeatBadge } from './RepeatBadge';
+import { ListManager } from './ListManager';
 
 // Phase time windows (minutes-based)
 const PHASE_WINDOWS = [
@@ -933,6 +934,7 @@ export function FohTasks() {
   // Template management states (for Tab 2: Templates Beheren)
   const [selectedTemplateName, setSelectedTemplateName] = useState<string>('');
   const [templateEditorOpen, setTemplateEditorOpen] = useState(false);
+  const [listManagerOpen, setListManagerOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<any[]>([]);
   const [editingTemplateName, setEditingTemplateName] = useState('');
   const [deletedTemplateTaskIds, setDeletedTemplateTaskIds] = useState<string[]>([]);
@@ -3928,7 +3930,11 @@ export function FohTasks() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleOpenTemplateEditor(template.name)}
+                          onClick={() => {
+                            // Nieuwe gepolijste flow: open de Lijst-beheren popup.
+                            setAdminPanelOpen(false);
+                            setListManagerOpen(true);
+                          }}
                           style={{
                             borderRadius: '12px',
                             fontFamily: 'Inter, sans-serif',
@@ -3936,7 +3942,7 @@ export function FohTasks() {
                           }}
                         >
                           <Pencil size={14} style={{ marginRight: '4px' }} />
-                          Bewerk Template
+                          Lijst beheren
                         </Button>
 
                         {!template.isActive && (
@@ -4219,6 +4225,38 @@ export function FohTasks() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ===== LIJST BEHEREN — nieuwe gepolijste flow ===== */}
+      <ListManager
+        open={listManagerOpen}
+        onClose={() => {
+          setListManagerOpen(false);
+          // Heropen admin-paneel zodat gebruiker context houdt.
+          setAdminPanelOpen(true);
+          fetchDailyTasks();
+        }}
+        location={userLocation}
+        phase={activePhase}
+        department={effectiveDept}
+        availableCategories={getCategoriesForContext(userLocation, effectiveDept, activePhase)}
+        isWest={userLocation === 'West'}
+        westCategoryRows={userLocation === 'West' ? (westCategoryOrder?.[effectiveDept] ?? []) : []}
+        onMoveCategory={
+          userLocation === 'West'
+            ? (cat, dir) => handleMoveCategory(effectiveDept, cat, dir)
+            : undefined
+        }
+        onRenameCategory={
+          userLocation === 'West'
+            ? (cat) => handleRenameCategory(effectiveDept, cat)
+            : undefined
+        }
+        onDeleteCategory={
+          userLocation === 'West'
+            ? (cat) => handleDeleteCategory(effectiveDept, cat)
+            : undefined
+        }
+      />
     </div>
   );
 }
