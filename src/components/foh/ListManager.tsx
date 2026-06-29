@@ -129,7 +129,7 @@ function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowP
   const [title, setTitle] = useState(task.title);
   const [hovered, setHovered] = useState(false);
   const [showRepeat, setShowRepeat] = useState(false);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Keep input in sync if external value changes
   useEffect(() => {
