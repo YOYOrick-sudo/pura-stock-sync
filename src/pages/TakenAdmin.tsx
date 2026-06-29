@@ -35,15 +35,8 @@ function TakenAdminInner() {
   const queryClient = useQueryClient();
   const isWest = userLocation === 'West';
 
-  // Apparaat-modus (West)
-  const [deviceMode, setDeviceMode] = useState<DeviceMode>(() => {
-    if (typeof window === 'undefined') return 'beide';
-    const stored = localStorage.getItem('foh_device_mode_west');
-    return (stored === 'voorkant' || stored === 'achterkant' || stored === 'beide') ? stored : 'beide';
-  });
-  useEffect(() => {
-    if (isWest) localStorage.setItem('foh_device_mode_west', deviceMode);
-  }, [deviceMode, isWest]);
+
+
 
   // Fetch alle actieve templates voor deze locatie
   const { data: templates, isLoading } = useQuery({
