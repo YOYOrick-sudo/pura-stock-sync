@@ -26,6 +26,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminPasswordDialog } from './AdminPasswordDialog';
 import { RepeatBadge } from './RepeatBadge';
 import { ListManager } from './ListManager';
+import { getOrderedCategories } from '@/lib/foh-category-order';
 
 // Phase time windows (minutes-based)
 const PHASE_WINDOWS = [
