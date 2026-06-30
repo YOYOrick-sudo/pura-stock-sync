@@ -266,8 +266,10 @@ function TakenBeheerInner() {
     }
     toast.success('Onderdeel hernoemd');
     setRenameState(null);
+    flashSaved();
     invalidate();
   };
+
 
 
   const [deleteState, setDeleteState] = useState<{ dept: Department; category: string } | null>(null);
