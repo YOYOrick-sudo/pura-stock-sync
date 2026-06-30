@@ -288,22 +288,65 @@ function TakenBeheerInner() {
   }, []);
 
   return (
-    <ListManager
-      variant="page"
-      open={true}
-      onClose={handleClose}
-      location={location}
-      phase={phase}
-      department={department}
-      availableCategories={buildAvailableCategories(department)}
-      isWest={isWest}
-      westCategoryRows={buildCategoryRows(department)}
-      onMoveCategory={isWest ? makeMoveHandler(department) : undefined}
-      onRenameCategory={isWest ? makeRenameHandler(department) : undefined}
-      onDeleteCategory={isWest ? makeDeleteHandler(department) : undefined}
-    />
+    <>
+      <ListManager
+        variant="page"
+        open={true}
+        onClose={handleClose}
+        location={location}
+        phase={phase}
+        department={department}
+        availableCategories={buildAvailableCategories(department)}
+        isWest={isWest}
+        westCategoryRows={buildCategoryRows(department)}
+        onMoveCategory={isWest ? makeMoveHandler(department) : undefined}
+        onRenameCategory={isWest ? makeRenameHandler(department) : undefined}
+        onDeleteCategory={isWest ? makeDeleteHandler(department) : undefined}
+      />
+
+      <PolarDialog
+        open={!!renameState}
+        onOpenChange={(o) => { if (!o) setRenameState(null); }}
+        title="Onderdeel hernoemen"
+        description={renameState ? `Geef "${renameState.oldName}" een nieuwe naam.` : undefined}
+      >
+        <div className="space-y-4">
+          <Input
+            autoFocus
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') performRename(); }}
+            placeholder="Nieuwe naam"
+          />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setRenameState(null)} disabled={renameSaving}>
+              Annuleren
+            </Button>
+            <Button onClick={performRename} disabled={renameSaving || !renameValue.trim()}>
+              {renameSaving ? 'Opslaan…' : 'Opslaan'}
+            </Button>
+          </div>
+        </div>
+      </PolarDialog>
+
+      <AlertDialog open={!!deleteState} onOpenChange={(o) => { if (!o) setDeleteState(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Onderdeel verwijderen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteState ? `Weet je zeker dat je "${deleteState.category}" wilt verwijderen?` : ''}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogAction onClick={performDelete}>Verwijderen</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
+
 
 export default function TakenBeheer() {
   return (
