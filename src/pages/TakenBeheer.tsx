@@ -12,6 +12,13 @@ import { SidebarLayout } from '@/components/SidebarLayout';
 import { PolarDialog } from '@/components/polar/Dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Check } from 'lucide-react';
+import {
+  getOrderedCategories,
+  getMissingCategoryRows,
+  type WestCategoryOrder,
+  type WestSubcats,
+} from '@/lib/foh-category-order';
 import {
   AlertDialog,
   AlertDialogAction,
