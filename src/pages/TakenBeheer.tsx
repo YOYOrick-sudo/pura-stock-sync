@@ -236,6 +236,8 @@ function TakenBeheerInner() {
   };
 
 
+  const [deleteState, setDeleteState] = useState<{ dept: Department; category: string } | null>(null);
+
   const makeDeleteHandler = (dept: Department) => async (category: string) => {
     const [tpl, tsk] = await Promise.all([
       supabase.from('foh_daily_templates').select('id', { count: 'exact', head: true })
@@ -247,8 +249,12 @@ function TakenBeheerInner() {
       toast.error(`Nog ${tpl.count ?? 0} template-taak(jes) en ${tsk.count ?? 0} actieve taken in "${category}".`);
       return;
     }
-    if (!window.confirm(`Onderdeel "${category}" verwijderen?`)) return;
+    setDeleteState({ dept, category });
+  };
 
+  const performDelete = async () => {
+    if (!deleteState) return;
+    const { dept, category } = deleteState;
     const prev = queryClient.getQueryData<OrderMap>(orderKey);
     if (prev) {
       const nextMap: OrderMap = {
@@ -257,11 +263,11 @@ function TakenBeheerInner() {
       };
       queryClient.setQueryData(orderKey, nextMap);
     }
-
     const { error } = await supabase
       .from('foh_category_order')
       .delete()
       .eq('location', location).eq('department', dept).eq('category', category);
+    setDeleteState(null);
     if (error) {
       if (prev) queryClient.setQueryData(orderKey, prev);
       toast.error('Verwijderen mislukt');
@@ -270,6 +276,7 @@ function TakenBeheerInner() {
     toast.success('Onderdeel verwijderd');
     invalidate();
   };
+
 
   const handleClose = () => navigate('/taken/admin');
 
