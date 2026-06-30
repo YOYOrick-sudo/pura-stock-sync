@@ -34,7 +34,7 @@ type Phase = 'open' | 'tussen' | 'sluit';
 type Department = 'voorkant' | 'achterkant';
 
 type OrderRow = { category: string; sort_order: number };
-type OrderMap = Record<Department, OrderRow[]>;
+type OrderMap = WestCategoryOrder;
 
 const CATEGORY_ORDER_FALLBACK = ['Algemeen'];
 
