@@ -1,6 +1,6 @@
 // /taken/beheer — beheerscherm voor takenlijsten met sidebar zichtbaar.
 // West werkt allround: één lijst (voorkant department) per fase.
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -9,6 +9,19 @@ import { ListManager } from '@/components/foh/ListManager';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { SidebarLayout } from '@/components/SidebarLayout';
+import { PolarDialog } from '@/components/polar/Dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type Phase = 'open' | 'tussen' | 'sluit';
 type Department = 'voorkant' | 'achterkant';
@@ -174,19 +187,30 @@ function TakenBeheerInner() {
     invalidate();
   };
 
-  const makeRenameHandler = (dept: Department) => async (oldName: string) => {
-    const next = window.prompt(`Nieuwe naam voor "${oldName}":`, oldName);
-    if (!next) return;
-    const trimmed = next.trim();
-    if (!trimmed || trimmed === oldName) return;
+  // Rename dialog state
+  const [renameState, setRenameState] = useState<{ dept: Department; oldName: string } | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [renameSaving, setRenameSaving] = useState(false);
 
-    // Dedupe-check
+  const makeRenameHandler = (dept: Department) => (oldName: string) => {
+    setRenameState({ dept, oldName });
+    setRenameValue(oldName);
+  };
+
+  const performRename = async () => {
+    if (!renameState) return;
+    const { dept, oldName } = renameState;
+    const trimmed = renameValue.trim();
+    if (!trimmed || trimmed === oldName) {
+      setRenameState(null);
+      return;
+    }
     const existing = new Set((westCategoryOrder?.[dept] ?? []).map(r => r.category));
     if (existing.has(trimmed)) {
-      if (!window.confirm(`"${trimmed}" bestaat al. Samenvoegen?`)) return;
+      toast.error(`"${trimmed}" bestaat al.`);
+      return;
     }
 
-    // Optimistic rename
     const prev = queryClient.getQueryData<OrderMap>(orderKey);
     if (prev) {
       const nextMap: OrderMap = {
@@ -196,17 +220,23 @@ function TakenBeheerInner() {
       queryClient.setQueryData(orderKey, nextMap);
     }
 
+    setRenameSaving(true);
     const { error } = await supabase.rpc('foh_rename_category', {
       _location: location, _department: dept, _old: oldName, _new: trimmed,
     });
+    setRenameSaving(false);
     if (error) {
       if (prev) queryClient.setQueryData(orderKey, prev);
       toast.error('Hernoemen mislukt');
       return;
     }
     toast.success('Onderdeel hernoemd');
+    setRenameState(null);
     invalidate();
   };
+
+
+  const [deleteState, setDeleteState] = useState<{ dept: Department; category: string } | null>(null);
 
   const makeDeleteHandler = (dept: Department) => async (category: string) => {
     const [tpl, tsk] = await Promise.all([
@@ -219,8 +249,12 @@ function TakenBeheerInner() {
       toast.error(`Nog ${tpl.count ?? 0} template-taak(jes) en ${tsk.count ?? 0} actieve taken in "${category}".`);
       return;
     }
-    if (!window.confirm(`Onderdeel "${category}" verwijderen?`)) return;
+    setDeleteState({ dept, category });
+  };
 
+  const performDelete = async () => {
+    if (!deleteState) return;
+    const { dept, category } = deleteState;
     const prev = queryClient.getQueryData<OrderMap>(orderKey);
     if (prev) {
       const nextMap: OrderMap = {
@@ -229,11 +263,11 @@ function TakenBeheerInner() {
       };
       queryClient.setQueryData(orderKey, nextMap);
     }
-
     const { error } = await supabase
       .from('foh_category_order')
       .delete()
       .eq('location', location).eq('department', dept).eq('category', category);
+    setDeleteState(null);
     if (error) {
       if (prev) queryClient.setQueryData(orderKey, prev);
       toast.error('Verwijderen mislukt');
@@ -242,6 +276,7 @@ function TakenBeheerInner() {
     toast.success('Onderdeel verwijderd');
     invalidate();
   };
+
 
   const handleClose = () => navigate('/taken/admin');
 
@@ -253,22 +288,65 @@ function TakenBeheerInner() {
   }, []);
 
   return (
-    <ListManager
-      variant="page"
-      open={true}
-      onClose={handleClose}
-      location={location}
-      phase={phase}
-      department={department}
-      availableCategories={buildAvailableCategories(department)}
-      isWest={isWest}
-      westCategoryRows={buildCategoryRows(department)}
-      onMoveCategory={isWest ? makeMoveHandler(department) : undefined}
-      onRenameCategory={isWest ? makeRenameHandler(department) : undefined}
-      onDeleteCategory={isWest ? makeDeleteHandler(department) : undefined}
-    />
+    <>
+      <ListManager
+        variant="page"
+        open={true}
+        onClose={handleClose}
+        location={location}
+        phase={phase}
+        department={department}
+        availableCategories={buildAvailableCategories(department)}
+        isWest={isWest}
+        westCategoryRows={buildCategoryRows(department)}
+        onMoveCategory={isWest ? makeMoveHandler(department) : undefined}
+        onRenameCategory={isWest ? makeRenameHandler(department) : undefined}
+        onDeleteCategory={isWest ? makeDeleteHandler(department) : undefined}
+      />
+
+      <PolarDialog
+        open={!!renameState}
+        onOpenChange={(o) => { if (!o) setRenameState(null); }}
+        title="Onderdeel hernoemen"
+        description={renameState ? `Geef "${renameState.oldName}" een nieuwe naam.` : undefined}
+      >
+        <div className="space-y-4">
+          <Input
+            autoFocus
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') performRename(); }}
+            placeholder="Nieuwe naam"
+          />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setRenameState(null)} disabled={renameSaving}>
+              Annuleren
+            </Button>
+            <Button onClick={performRename} disabled={renameSaving || !renameValue.trim()}>
+              {renameSaving ? 'Opslaan…' : 'Opslaan'}
+            </Button>
+          </div>
+        </div>
+      </PolarDialog>
+
+      <AlertDialog open={!!deleteState} onOpenChange={(o) => { if (!o) setDeleteState(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Onderdeel verwijderen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteState ? `Weet je zeker dat je "${deleteState.category}" wilt verwijderen?` : ''}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogAction onClick={performDelete}>Verwijderen</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
+
 
 export default function TakenBeheer() {
   return (
