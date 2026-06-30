@@ -308,8 +308,10 @@ function TakenBeheerInner() {
       return;
     }
     toast.success('Onderdeel verwijderd');
+    flashSaved();
     invalidate();
   };
+
 
 
   const handleClose = () => navigate('/taken/admin');
