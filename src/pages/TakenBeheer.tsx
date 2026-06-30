@@ -1,6 +1,6 @@
 // /taken/beheer — beheerscherm voor takenlijsten met sidebar zichtbaar.
 // West werkt allround: één lijst (voorkant department) per fase.
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -9,6 +9,19 @@ import { ListManager } from '@/components/foh/ListManager';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { SidebarLayout } from '@/components/SidebarLayout';
+import { PolarDialog } from '@/components/polar/Dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type Phase = 'open' | 'tussen' | 'sluit';
 type Department = 'voorkant' | 'achterkant';
