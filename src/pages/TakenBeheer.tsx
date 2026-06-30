@@ -342,6 +342,36 @@ function TakenBeheerInner() {
         onDeleteCategory={isWest ? makeDeleteHandler(department) : undefined}
       />
 
+      {/* "Opgeslagen ✓" feedback — fade in/out, niet-intrusief */}
+      <div
+        aria-live="polite"
+        style={{
+          position: 'fixed',
+          top: 24,
+          right: 24,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '6px 12px',
+          borderRadius: 999,
+          background: 'hsl(var(--primary) / 0.12)',
+          color: 'hsl(var(--primary))',
+          fontSize: 12,
+          fontWeight: 600,
+          fontFamily: 'Inter, sans-serif',
+          border: '1px solid hsl(var(--primary) / 0.25)',
+          opacity: savedPing ? 1 : 0,
+          transform: savedPing ? 'translateY(0)' : 'translateY(-4px)',
+          transition: 'opacity 200ms ease, transform 200ms ease',
+          pointerEvents: 'none',
+          zIndex: 60,
+        }}
+      >
+        <Check size={12} strokeWidth={3} />
+        Opgeslagen
+      </div>
+
+
       <PolarDialog
         open={!!renameState}
         onOpenChange={(o) => { if (!o) setRenameState(null); }}
