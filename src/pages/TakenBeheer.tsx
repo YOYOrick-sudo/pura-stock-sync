@@ -187,19 +187,30 @@ function TakenBeheerInner() {
     invalidate();
   };
 
-  const makeRenameHandler = (dept: Department) => async (oldName: string) => {
-    const next = window.prompt(`Nieuwe naam voor "${oldName}":`, oldName);
-    if (!next) return;
-    const trimmed = next.trim();
-    if (!trimmed || trimmed === oldName) return;
+  // Rename dialog state
+  const [renameState, setRenameState] = useState<{ dept: Department; oldName: string } | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [renameSaving, setRenameSaving] = useState(false);
 
-    // Dedupe-check
+  const makeRenameHandler = (dept: Department) => (oldName: string) => {
+    setRenameState({ dept, oldName });
+    setRenameValue(oldName);
+  };
+
+  const performRename = async () => {
+    if (!renameState) return;
+    const { dept, oldName } = renameState;
+    const trimmed = renameValue.trim();
+    if (!trimmed || trimmed === oldName) {
+      setRenameState(null);
+      return;
+    }
     const existing = new Set((westCategoryOrder?.[dept] ?? []).map(r => r.category));
     if (existing.has(trimmed)) {
-      if (!window.confirm(`"${trimmed}" bestaat al. Samenvoegen?`)) return;
+      toast.error(`"${trimmed}" bestaat al.`);
+      return;
     }
 
-    // Optimistic rename
     const prev = queryClient.getQueryData<OrderMap>(orderKey);
     if (prev) {
       const nextMap: OrderMap = {
@@ -209,17 +220,21 @@ function TakenBeheerInner() {
       queryClient.setQueryData(orderKey, nextMap);
     }
 
+    setRenameSaving(true);
     const { error } = await supabase.rpc('foh_rename_category', {
       _location: location, _department: dept, _old: oldName, _new: trimmed,
     });
+    setRenameSaving(false);
     if (error) {
       if (prev) queryClient.setQueryData(orderKey, prev);
       toast.error('Hernoemen mislukt');
       return;
     }
     toast.success('Onderdeel hernoemd');
+    setRenameState(null);
     invalidate();
   };
+
 
   const makeDeleteHandler = (dept: Department) => async (category: string) => {
     const [tpl, tsk] = await Promise.all([
