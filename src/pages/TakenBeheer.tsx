@@ -12,6 +12,13 @@ import { SidebarLayout } from '@/components/SidebarLayout';
 import { PolarDialog } from '@/components/polar/Dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Check } from 'lucide-react';
+import {
+  getOrderedCategories,
+  getMissingCategoryRows,
+  type WestCategoryOrder,
+  type WestSubcats,
+} from '@/lib/foh-category-order';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,7 +34,7 @@ type Phase = 'open' | 'tussen' | 'sluit';
 type Department = 'voorkant' | 'achterkant';
 
 type OrderRow = { category: string; sort_order: number };
-type OrderMap = Record<Department, OrderRow[]>;
+type OrderMap = WestCategoryOrder;
 
 const CATEGORY_ORDER_FALLBACK = ['Algemeen'];
 
@@ -98,21 +105,24 @@ function TakenBeheerInner() {
   });
 
   // ===== Auto-seed missing categories so every used category has a sort row.
-  const seededRef = useRef<Set<string>>(new Set());
+  // Idempotent dankzij ignoreDuplicates — geen per-seedKey lock nodig.
   useEffect(() => {
     if (!isWest || !westCategoryOrder || !westSubcats) return;
     const dept: Department = 'voorkant';
-    const existing = new Set(westCategoryOrder[dept].map(r => r.category));
-    const used = westSubcats[dept] || [];
-    const missing = used.filter(c => c && !existing.has(c));
+    const missing = getMissingCategoryRows(westCategoryOrder, westSubcats as WestSubcats, dept);
     if (missing.length === 0) return;
-    const seedKey = `${location}:${dept}:${missing.join('|')}`;
-    if (seededRef.current.has(seedKey)) return;
-    seededRef.current.add(seedKey);
     const maxSort = westCategoryOrder[dept].reduce((m, r) => Math.max(m, r.sort_order ?? 0), 0);
     const rows = missing.map((c, i) => ({
       location, department: dept, category: c, sort_order: maxSort + (i + 1) * 10,
     }));
+    // Optimistic patch zodat reorder direct alle categorieën meeneemt.
+    queryClient.setQueryData<OrderMap>(orderKey, (prev) => {
+      const base: OrderMap = prev
+        ? { voorkant: prev.voorkant.slice(), achterkant: prev.achterkant.slice() }
+        : { voorkant: [], achterkant: [] };
+      base[dept] = base[dept].concat(rows.map(r => ({ category: r.category, sort_order: r.sort_order })));
+      return base;
+    });
     (async () => {
       const { error } = await supabase
         .from('foh_category_order')
@@ -121,21 +131,32 @@ function TakenBeheerInner() {
     })();
   }, [isWest, westCategoryOrder, westSubcats, location, queryClient]);
 
-  // Available categories = exact volgorde uit DB (na seeding). Geen unshift.
+  // Beschikbare categorieën — exact dezelfde volgorde als de live lijst gebruikt
+  // (zie src/lib/foh-category-order.ts). Eén bron van waarheid.
   const buildAvailableCategories = (dept: Department): string[] => {
     if (!isWest) return getMidslandCategories(phase);
-    const ordered = (westCategoryOrder?.[dept] ?? []).map(r => r.category);
-    if (ordered.length > 0) return ordered;
-    // Fallback voor allereerste render vóór seed: gebruik subcats
-    const used = westSubcats?.[dept] ?? [];
-    return used.length > 0 ? used : [...CATEGORY_ORDER_FALLBACK];
+    const result = getOrderedCategories(
+      westCategoryOrder as WestCategoryOrder | undefined,
+      westSubcats as WestSubcats | undefined,
+      dept,
+    );
+    return result.length > 0 ? result : [...CATEGORY_ORDER_FALLBACK];
   };
 
-  const buildCategoryRows = (dept: Department) => isWest
-    ? (westCategoryOrder?.[dept] ?? []).map(r => ({
-        category: r.category, sort_order: r.sort_order as number | null,
-      }))
-    : [];
+  // Voor reorder/rename UI: rij-objecten in dezelfde volgorde als availableCategories.
+  // Used-only categorieën (nog zonder DB-rij) krijgen sort_order=null tot de seed klaar is.
+  const buildCategoryRows = (dept: Department): { category: string; sort_order: number | null }[] => {
+    if (!isWest) return [];
+    const ordered = buildAvailableCategories(dept);
+    const map = new Map<string, number>();
+    for (const r of westCategoryOrder?.[dept] ?? []) {
+      map.set(r.category.trim().toLowerCase(), r.sort_order);
+    }
+    return ordered.map(cat => ({
+      category: cat,
+      sort_order: map.has(cat.trim().toLowerCase()) ? (map.get(cat.trim().toLowerCase()) as number) : null,
+    }));
+  };
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['foh-category-order'] });
@@ -145,12 +166,23 @@ function TakenBeheerInner() {
     queryClient.invalidateQueries({ queryKey: ['list-manager-templates'] });
   };
 
+  // "Opgeslagen ✓" feedback — fade in/out
+  const [savedPing, setSavedPing] = useState(false);
+  const pingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flashSaved = () => {
+    setSavedPing(true);
+    if (pingTimerRef.current) clearTimeout(pingTimerRef.current);
+    pingTimerRef.current = setTimeout(() => setSavedPing(false), 1200);
+  };
+
   // Lock om dubbelklikken / race conditions te voorkomen
   const movingRef = useRef(false);
 
   const makeMoveHandler = (dept: Department) => async (category: string, direction: -1 | 1) => {
     if (movingRef.current) return;
     const prev = queryClient.getQueryData<OrderMap>(orderKey);
+    // Belangrijk: gebruik de volledige weergegeven lijst (incl. used-only),
+    // zodat de DB-volgorde 1-op-1 matcht met wat de gebruiker ziet.
     const rows = buildCategoryRows(dept);
     const idx = rows.findIndex(r => r.category === category);
     if (idx < 0) return;
@@ -164,14 +196,14 @@ function TakenBeheerInner() {
     }));
 
     // Optimistic update
-    if (prev) {
-      const nextMap: OrderMap = {
-        voorkant: prev.voorkant.map(r => ({ ...r })),
-        achterkant: prev.achterkant.map(r => ({ ...r })),
-      };
-      nextMap[dept] = upsertRows.map(r => ({ category: r.category, sort_order: r.sort_order }));
-      queryClient.setQueryData(orderKey, nextMap);
-    }
+    const nextMap: OrderMap = prev
+      ? {
+          voorkant: prev.voorkant.map(r => ({ ...r })),
+          achterkant: prev.achterkant.map(r => ({ ...r })),
+        }
+      : { voorkant: [], achterkant: [] };
+    nextMap[dept] = upsertRows.map(r => ({ category: r.category, sort_order: r.sort_order }));
+    queryClient.setQueryData(orderKey, nextMap);
 
     movingRef.current = true;
     const { error } = await supabase
@@ -184,8 +216,10 @@ function TakenBeheerInner() {
       toast.error('Fout bij opslaan volgorde');
       return;
     }
+    flashSaved();
     invalidate();
   };
+
 
   // Rename dialog state
   const [renameState, setRenameState] = useState<{ dept: Department; oldName: string } | null>(null);
@@ -232,8 +266,10 @@ function TakenBeheerInner() {
     }
     toast.success('Onderdeel hernoemd');
     setRenameState(null);
+    flashSaved();
     invalidate();
   };
+
 
 
   const [deleteState, setDeleteState] = useState<{ dept: Department; category: string } | null>(null);
@@ -274,8 +310,10 @@ function TakenBeheerInner() {
       return;
     }
     toast.success('Onderdeel verwijderd');
+    flashSaved();
     invalidate();
   };
+
 
 
   const handleClose = () => navigate('/taken/admin');
@@ -303,6 +341,36 @@ function TakenBeheerInner() {
         onRenameCategory={isWest ? makeRenameHandler(department) : undefined}
         onDeleteCategory={isWest ? makeDeleteHandler(department) : undefined}
       />
+
+      {/* "Opgeslagen ✓" feedback — fade in/out, niet-intrusief */}
+      <div
+        aria-live="polite"
+        style={{
+          position: 'fixed',
+          top: 24,
+          right: 24,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '6px 12px',
+          borderRadius: 999,
+          background: 'hsl(var(--primary) / 0.12)',
+          color: 'hsl(var(--primary))',
+          fontSize: 12,
+          fontWeight: 600,
+          fontFamily: 'Inter, sans-serif',
+          border: '1px solid hsl(var(--primary) / 0.25)',
+          opacity: savedPing ? 1 : 0,
+          transform: savedPing ? 'translateY(0)' : 'translateY(-4px)',
+          transition: 'opacity 200ms ease, transform 200ms ease',
+          pointerEvents: 'none',
+          zIndex: 60,
+        }}
+      >
+        <Check size={12} strokeWidth={3} />
+        Opgeslagen
+      </div>
+
 
       <PolarDialog
         open={!!renameState}

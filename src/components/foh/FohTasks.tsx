@@ -26,6 +26,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminPasswordDialog } from './AdminPasswordDialog';
 import { RepeatBadge } from './RepeatBadge';
 import { ListManager } from './ListManager';
+import { getOrderedCategories } from '@/lib/foh-category-order';
 
 // Phase time windows (minutes-based)
 const PHASE_WINDOWS = [
@@ -1068,7 +1069,7 @@ export function FohTasks() {
   });
 
   // Categorieën beschikbaar voor een (location, dept, phase) combinatie.
-  // West: gebruikt foh_category_order voor de volgorde, vult aan met (nieuwe) categorieën uit templates/taken.
+  // West: shared helper in src/lib/foh-category-order.ts — zelfde volgorde als /taken/beheer.
   // Midsland: bestaande vaste lijst per fase.
   const getCategoriesForContext = (
     loc: string,
@@ -1076,23 +1077,16 @@ export function FohTasks() {
     phase: string,
   ): string[] => {
     if (loc === 'West') {
-      const orderedList = (westCategoryOrder?.[dept] ?? []).map(r => r.category);
-      const used = westSubcatsData?.[dept] ?? [];
-      const seen = new Set<string>();
-      const result: string[] = [];
-      for (const c of orderedList) {
-        if (!seen.has(c)) { seen.add(c); result.push(c); }
-      }
-      // Append unknown categories (alphabetical) so nothing is lost
-      for (const c of used.slice().sort()) {
-        if (!seen.has(c)) { seen.add(c); result.push(c); }
-      }
-      if (result.length === 0) return ['Algemeen'];
-      if (!result.includes('Algemeen')) result.unshift('Algemeen');
-      return result;
+      const result = getOrderedCategories(
+        westCategoryOrder as any,
+        westSubcatsData as any,
+        dept,
+      );
+      return result.length > 0 ? result : ['Algemeen'];
     }
     return getAvailableCategoriesForPhase(loc, phase);
   };
+
 
   // Zorg dat een (nieuwe) subcategorie in foh_category_order staat — anders heeft hij geen volgorde.
   const ensureCategoryOrderRow = async (
