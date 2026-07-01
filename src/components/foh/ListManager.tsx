@@ -116,7 +116,7 @@ function getAmsterdamDateString() {
 function phaseLabel(phase: string) {
   if (phase === 'open') return 'Openen';
   if (phase === 'tussen') return 'Tussen';
-  if (phase === 'borrel') return 'Borrel-prep';
+  if (phase === 'borrel') return 'Borrel';
   return 'Sluiten';
 }
 
