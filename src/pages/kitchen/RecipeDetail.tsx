@@ -1,80 +1,114 @@
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Edit, Clock, MapPin } from 'lucide-react';
+import { Edit, Users, ImageIcon } from 'lucide-react';
+import { useRecipe } from '@/hooks/useRecipes';
 
 export default function RecipeDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { data, isLoading } = useRecipe(id);
 
-  // TODO: Replace with actual data from useRecipe hook
-  const recipe = {
-    id,
-    name: 'Bananenbrood',
-    category: 'Bakwerk',
-    description: 'Heerlijk bananenbrood voor in de vitrine',
-    prep_time_minutes: 60,
-    location: 'West',
-    steps: [
-      { step_number: 1, instruction: 'Verwarm de oven voor op 180°C', duration_minutes: 5 },
-      { step_number: 2, instruction: 'Meng de droge ingrediënten', duration_minutes: 10 },
-      { step_number: 3, instruction: 'Voeg de natte ingrediënten toe', duration_minutes: 5 },
-      { step_number: 4, instruction: 'Giet in de vorm en bak 45 minuten', duration_minutes: 45 },
-    ],
-  };
+  if (isLoading) {
+    return (
+      <KitchenLayout title="Recept" backTo="/kitchen/recipes" backLabel="Recepten">
+        <div className="text-center py-12 text-muted-foreground">Laden…</div>
+      </KitchenLayout>
+    );
+  }
+
+  if (!data?.recipe) {
+    return (
+      <KitchenLayout title="Recept" backTo="/kitchen/recipes" backLabel="Recepten">
+        <div className="text-center py-12 text-muted-foreground">Recept niet gevonden</div>
+      </KitchenLayout>
+    );
+  }
+
+  const { recipe, ingredients } = data;
 
   return (
     <KitchenLayout title={recipe.name} subtitle={recipe.category} backTo="/kitchen/recipes" backLabel="Recepten">
       <div className="space-y-6">
-        {/* Header Card */}
-        <Card className="p-6 bg-white shadow-sm">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <Badge variant="secondary">{recipe.category}</Badge>
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  {recipe.location}
-                </Badge>
-              </div>
-              <p className="text-muted-foreground">{recipe.description}</p>
-            </div>
-            <Button variant="outline" size="sm">
-              <Edit className="h-4 w-4 mr-2" />
-              Bewerken
-            </Button>
+        {/* Header */}
+        <Card className="overflow-hidden bg-white shadow-sm">
+          <div className="aspect-[21/9] bg-muted flex items-center justify-center overflow-hidden">
+            {recipe.foto_url ? (
+              <img src={recipe.foto_url} alt={recipe.name} className="w-full h-full object-cover" />
+            ) : (
+              <ImageIcon className="w-16 h-16 text-muted-foreground/30" />
+            )}
           </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            <span>{recipe.prep_time_minutes} minuten bereidingstijd</span>
-          </div>
-        </Card>
-
-        {/* Steps Card */}
-        <Card className="p-6 bg-white shadow-sm">
-          <h2 className="font-heading font-bold text-lg mb-4 text-foreground">Stappenplan</h2>
-          <div className="space-y-3">
-            {recipe.steps.map((step) => (
-              <div
-                key={step.step_number}
-                className="flex gap-4 p-4 border-l-4 border-primary bg-background/30 rounded-r-lg"
-              >
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
-                    {step.step_number}
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <p className="text-foreground">{step.instruction}</p>
-                  {step.duration_minutes && (
-                    <p className="text-xs text-muted-foreground mt-1">⏱️ {step.duration_minutes} min</p>
+          <div className="p-6 sm:p-8">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex-1 min-w-0">
+                <h1 className="font-heading font-bold text-3xl sm:text-4xl text-foreground mb-3">
+                  {recipe.name}
+                </h1>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {recipe.category && <Badge variant="secondary" className="text-sm">{recipe.category}</Badge>}
+                  {recipe.type === 'halffabricaat' && (
+                    <Badge variant="outline" className="text-sm">Halffabricaat</Badge>
+                  )}
+                  {recipe.porties != null && (
+                    <span className="inline-flex items-center gap-1.5 text-base text-muted-foreground">
+                      <Users className="w-4 h-4" />
+                      {recipe.porties} porties
+                    </span>
                   )}
                 </div>
               </div>
-            ))}
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => navigate(`/kitchen/recipes/${recipe.id}/bewerken`)}
+                className="min-h-[48px]"
+              >
+                <Edit className="w-5 h-5 mr-2" />
+                Bewerken
+              </Button>
+            </div>
           </div>
         </Card>
+
+        {/* Ingredients */}
+        <Card className="p-6 sm:p-8 bg-white shadow-sm">
+          <h2 className="font-heading font-bold text-2xl mb-5 text-foreground">Ingrediënten</h2>
+          {ingredients.length === 0 ? (
+            <p className="text-muted-foreground">Nog geen ingrediënten toegevoegd.</p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {ingredients.map((ing) => (
+                <li key={ing.id} className="flex items-baseline justify-between gap-6 py-3">
+                  <span className="text-lg sm:text-xl text-foreground">{ing.naam}</span>
+                  <span className="text-lg sm:text-xl text-muted-foreground font-medium text-right">
+                    {ing.hoeveelheid}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        {/* Bereiding */}
+        <Card className="p-6 sm:p-8 bg-white shadow-sm">
+          <h2 className="font-heading font-bold text-2xl mb-5 text-foreground">Bereiding</h2>
+          {recipe.bereiding ? (
+            <div className="text-lg sm:text-xl leading-relaxed whitespace-pre-wrap text-foreground">
+              {recipe.bereiding}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">Nog geen bereiding toegevoegd.</p>
+          )}
+        </Card>
+
+        <div className="flex justify-end">
+          <Button size="lg" variant="ghost" onClick={() => navigate('/kitchen/recipes')} className="min-h-[48px]">
+            Terug naar overzicht
+          </Button>
+        </div>
       </div>
     </KitchenLayout>
   );
