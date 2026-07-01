@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
+import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,24 +13,24 @@ export default function RecipeDetail() {
 
   if (isLoading) {
     return (
-      <KitchenLayout title="Recept" backTo="/kitchen/recipes" backLabel="Recepten">
+      <SidebarLayout>
         <div className="text-center py-12 text-muted-foreground">Laden…</div>
-      </KitchenLayout>
+      </SidebarLayout>
     );
   }
 
   if (!data?.recipe) {
     return (
-      <KitchenLayout title="Recept" backTo="/kitchen/recipes" backLabel="Recepten">
+      <SidebarLayout>
         <div className="text-center py-12 text-muted-foreground">Recept niet gevonden</div>
-      </KitchenLayout>
+      </SidebarLayout>
     );
   }
 
   const { recipe, ingredients } = data;
 
   return (
-    <KitchenLayout title={recipe.name} subtitle={recipe.category} backTo="/kitchen/recipes" backLabel="Recepten">
+    <SidebarLayout>
       <div className="space-y-6">
         {/* Header */}
         <Card className="overflow-hidden bg-white shadow-sm">
@@ -110,6 +110,6 @@ export default function RecipeDetail() {
           </Button>
         </div>
       </div>
-    </KitchenLayout>
+    </SidebarLayout>
   );
 }

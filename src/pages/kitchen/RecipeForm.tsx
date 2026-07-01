@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
+import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -103,11 +103,7 @@ export default function RecipeForm() {
   const busy = createMut.isPending || updateMut.isPending || (isEdit && isLoading);
 
   return (
-    <KitchenLayout
-      title={isEdit ? 'Recept bewerken' : 'Nieuw recept'}
-      backTo={isEdit && id ? `/kitchen/recipes/${id}` : '/kitchen/recipes'}
-      backLabel={isEdit ? 'Recept' : 'Recepten'}
-    >
+    <SidebarLayout>
       <div className="space-y-6">
         <Card className="p-6 bg-white shadow-sm space-y-5">
           <div>
@@ -248,6 +244,6 @@ export default function RecipeForm() {
           </Button>
         </div>
       </div>
-    </KitchenLayout>
+    </SidebarLayout>
   );
 }
