@@ -10,7 +10,7 @@ export interface FohTask {
   completed_by: string | null;
   assigned_employee_id: string | null;
   template_id: string | null;
-  phase: 'open' | 'tussen' | 'sluit' | null;
+  phase: 'open' | 'tussen' | 'borrel' | 'sluit' | null;
   category: string;
   created_at: string;
   estimated_minutes: number | null;
