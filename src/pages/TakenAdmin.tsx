@@ -11,7 +11,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Button } from '@/components/ui/button';
 
-type Phase = 'open' | 'tussen' | 'sluit';
+type Phase = 'open' | 'tussen' | 'borrel' | 'sluit';
 type Department = 'voorkant' | 'achterkant';
 
 interface ListCard {
@@ -25,6 +25,7 @@ interface ListCard {
 const PHASE_LABEL: Record<Phase, string> = {
   open: 'Openen',
   tussen: 'Tussen',
+  borrel: 'Borrel-prep',
   sluit: 'Sluiten',
 };
 
