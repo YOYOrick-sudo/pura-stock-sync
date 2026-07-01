@@ -1524,24 +1524,42 @@ export function FohTasks() {
   const toggleTask = async (id: string, currentCompleted: boolean) => {
     if (isReadOnly) return; // verleden is alleen-lezen
     const now = new Date().toISOString();
+    const nextCompleted = !currentCompleted;
+
+    // Optimistic update — vinkje reageert direct, geen DB-roundtrip wachttijd op iPad.
+    const patch = (t: FohTaskWithEmployee) =>
+      t.id === id
+        ? { ...t, completed: nextCompleted, completed_at: nextCompleted ? now : null }
+        : t;
+    setDailyTasks(prev => prev.map(patch));
+    setExtraTasks(prev => prev.map(patch));
 
     const { error } = await supabase
       .from('foh_tasks')
       .update({
-        completed: !currentCompleted,
-        completed_at: !currentCompleted ? now : null,
+        completed: nextCompleted,
+        completed_at: nextCompleted ? now : null,
       })
       .eq('id', id);
-    
+
     if (error) {
+      // Rollback
+      const revert = (t: FohTaskWithEmployee) =>
+        t.id === id
+          ? { ...t, completed: currentCompleted, completed_at: currentCompleted ? t.completed_at : null }
+          : t;
+      setDailyTasks(prev => prev.map(revert));
+      setExtraTasks(prev => prev.map(revert));
       toast.error('Kon taak niet bijwerken');
       console.error(error);
       return;
     }
-    
-    await fetchDailyTasks();
-    await fetchExtraTasks();
+
+    // Achtergrond-refetch zodat andere devices/realtime bijblijven — UI reageert al.
+    void fetchDailyTasks();
+    void fetchExtraTasks();
   };
+
 
   const filteredEmployees = employees.filter(e => 
     e.name.toLowerCase().includes(employeeInput.toLowerCase())
