@@ -84,7 +84,7 @@ interface ListManagerProps {
   open: boolean;
   onClose: () => void;
   location: string;
-  phase: 'open' | 'tussen' | 'sluit';
+  phase: 'open' | 'tussen' | 'borrel' | 'sluit';
   department: 'voorkant' | 'achterkant';
   availableCategories: string[];
   isWest: boolean;
