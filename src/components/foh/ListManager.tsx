@@ -420,8 +420,87 @@ function DroppableCategory({
 }
 
 // ============================================================================
+// Shell wrapper — at module scope zodat de identity stabiel is en de subtree
+// (met inputs, focus, iOS-toetsenbord) niet remount bij elke render van de
+// parent. Vroeger was dit een inline `const Shell = (...)` in ListManager,
+// waardoor typen in inputs het toetsenbord op iPad liet verdwijnen.
+// ============================================================================
+function ShellWrapper({
+  isPage,
+  isEmbedded,
+  embeddedSubheading,
+  open,
+  onClose,
+  children,
+}: {
+  isPage: boolean;
+  isEmbedded: boolean;
+  embeddedSubheading?: string;
+  open: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  if (isEmbedded) {
+    return (
+      <div style={{ fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
+        {embeddedSubheading && (
+          <div style={{
+            fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
+            letterSpacing: '0.05em', color: 'hsl(var(--muted-foreground))',
+            padding: '0 24px 8px',
+          }}>
+            {embeddedSubheading}
+          </div>
+        )}
+        {children}
+      </div>
+    );
+  }
+  if (isPage) {
+    return (
+      <div
+        style={{
+          background: 'hsl(var(--card))',
+          border: '1px solid hsl(var(--border))',
+          borderRadius: 20,
+          display: 'flex',
+          flexDirection: 'column',
+          fontFamily: 'Inter, sans-serif',
+          minHeight: 'calc(100vh - 140px)',
+          overflow: 'hidden',
+        }}
+      >
+        {children}
+      </div>
+    );
+  }
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent
+        style={{
+          backgroundColor: 'hsl(var(--card))',
+          border: '1px solid hsl(var(--border))',
+          borderRadius: '20px',
+          fontFamily: 'Inter, sans-serif',
+          maxWidth: '720px',
+          width: 'calc(100vw - 32px)',
+          maxHeight: '90vh',
+          padding: 0,
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {children}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ============================================================================
 // Main component
 // ============================================================================
+
 export function ListManager({
   open,
   onClose,
