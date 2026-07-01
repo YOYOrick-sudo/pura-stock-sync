@@ -1,10 +1,14 @@
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Edit, Users, ChevronLeft } from 'lucide-react';
+import { Edit, Users, ChevronLeft, Printer } from 'lucide-react';
 import { useRecipe } from '@/hooks/useRecipes';
+import { useCreatePrintJob } from '@/hooks/usePrintJobs';
+import { buildRecipeLabelZpl, labelaryPreviewUrl } from '@/lib/labelZpl';
+
 
 function formatIngredient(hoeveelheid?: string | null, eenheid?: string | null, naam?: string) {
   return `${hoeveelheid ?? ''} ${eenheid ?? ''} ${naam ?? ''}`.replace(/\s+/g, ' ').trim();
@@ -14,6 +18,18 @@ export default function RecipeDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data, isLoading } = useRecipe(id);
+  const createPrintJob = useCreatePrintJob();
+  const [previewError, setPreviewError] = useState(false);
+
+  const recipeType = (data?.recipe?.type as 'gerecht' | 'halffabricaat' | undefined) ?? 'gerecht';
+  const recipeName = data?.recipe?.name ?? '';
+
+  const previewSrc = useMemo(() => {
+    if (!recipeName) return '';
+    const zpl = buildRecipeLabelZpl({ name: recipeName, type: recipeType });
+    return labelaryPreviewUrl(zpl);
+  }, [recipeName, recipeType]);
+
 
   if (isLoading) {
     return (
