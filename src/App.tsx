@@ -164,6 +164,13 @@ const App = () => (
               }
             />
 
+            {/* Receptenmodule */}
+            <Route path="/kitchen/recipes" element={<ProtectedRoute><Recipes /></ProtectedRoute>} />
+            <Route path="/kitchen/recipes/nieuw" element={<ProtectedRoute><RecipeForm /></ProtectedRoute>} />
+            <Route path="/kitchen/recipes/:id" element={<ProtectedRoute><RecipeDetail /></ProtectedRoute>} />
+            <Route path="/kitchen/recipes/:id/bewerken" element={<ProtectedRoute><RecipeForm /></ProtectedRoute>} />
+
+
             
             
             {/* Maintenance Module */}
