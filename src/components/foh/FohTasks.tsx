@@ -2507,7 +2507,7 @@ export function FohTasks() {
               {getPhasesForLocation(userLocation).map((phase) => {
                 const stats = getDailyListStats(phase);
                 const isActive = mainCategory === 'dagelijks' && activePhase === phase;
-                const labels = { open: 'Openen', tussen: 'Tussen', sluit: 'Sluiten' };
+                const labels: Record<PhaseType, string> = { open: 'Openen', tussen: 'Tussen', borrel: 'Borrel-prep', sluit: 'Sluiten' };
                 
                 return (
                   <button
