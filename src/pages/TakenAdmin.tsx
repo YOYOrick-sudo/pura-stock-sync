@@ -25,7 +25,7 @@ interface ListCard {
 const PHASE_LABEL: Record<Phase, string> = {
   open: 'Openen',
   tussen: 'Tussen',
-  borrel: 'Borrel-prep',
+  borrel: 'Borrel',
   sluit: 'Sluiten',
 };
 
@@ -114,7 +114,7 @@ function TakenAdminInner() {
         }));
     }
 
-    // Midsland: één kaart per fase (geen departments)
+    // Midsland: altijd alle 4 fasen tonen, ook zonder actieve template
     const byPhase = new Map<Phase, number>();
     for (const t of templates as any[]) {
       const phase = t.phase as Phase | null;
@@ -122,14 +122,12 @@ function TakenAdminInner() {
       byPhase.set(phase, (byPhase.get(phase) ?? 0) + 1);
     }
     const phaseOrder: Phase[] = ['open', 'tussen', 'borrel', 'sluit'];
-    return phaseOrder
-      .filter(p => byPhase.has(p))
-      .map(phase => ({
-        key: phase,
-        phase,
-        title: PHASE_LABEL[phase],
-        taskCount: byPhase.get(phase) ?? 0,
-      }));
+    return phaseOrder.map(phase => ({
+      key: phase,
+      phase,
+      title: PHASE_LABEL[phase],
+      taskCount: byPhase.get(phase) ?? 0,
+    }));
   }, [templates, isWest]);
 
   const openList = (card: ListCard) => {

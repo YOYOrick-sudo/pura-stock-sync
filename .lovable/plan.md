@@ -1,41 +1,25 @@
-# Borrel-prep fase — Midsland
+## Probleem
+1. Op `/taken/admin` zie je voor Midsland alleen Openen / Tussen / Sluiten. De **Borrel**-kaart ontbreekt, waardoor je geen taken kunt toevoegen/beheren voor die lijst.
+2. In de app heet die fase overal "Borrel-prep", maar dat moet gewoon **"Borrel"** zijn.
 
-Nieuwe fase `borrel` naast `open`, `tussen`, `sluit`. Alleen zichtbaar voor Midsland; West blijft ongewijzigd (alleen open + sluit). Eén losse lijst zonder categorieën, geen automatische tijd-selectie — medewerker kiest de tab handmatig.
+## Oorzaak
+- `TakenAdmin.tsx` bouwt kaarten alleen voor fasen waar al een actieve template bestaat (`byPhase.has(p)`). Voor Borrel bestaat er nog geen template → geen kaart → je kunt hem niet openen.
+- Label "Borrel-prep" staat hard-coded op meerdere plekken.
 
-## Wat er verandert
+## Aanpak
 
-**Database**
-- Check-constraints op `foh_tasks.phase` en `foh_daily_templates.phase` uitbreiden met `'borrel'`.
-- Bestaande dagelijkse-reset / template-triggers werken al generiek per phase, dus geen extra triggers nodig.
-- Geen seed-taken; jij vult borrel-prep lijst zelf via de admin.
+### 1. Borrel-kaart altijd tonen voor Midsland
+In `src/pages/TakenAdmin.tsx`: voor Midsland alle 4 fasen altijd renderen (open/tussen/borrel/sluit), ook als `taskCount = 0`. De kaart opent gewoon `/taken/beheer?phase=borrel` waar de gebruiker taken kan toevoegen (de bestaande "nieuwe lijst" flow in `ListManager` maakt de template aan bij eerste taak).
 
-**Takenlijst UI (`FohTasks.tsx`)**
-- `getPhasesForLocation('Midsland')` → `['open','tussen','borrel','sluit']`. West blijft `['open','sluit']`.
-- Tab-label "Borrel-prep" met eigen icoon (wijnglas).
-- Geen categorie-groepering voor borrel: alle taken als één platte lijst (zoals West nu al kan).
-- Auto-phase-selectie op basis van tijd: borrel wordt overgeslagen (jij tikt handmatig). Openen blijft default.
-- Progress-teller, admin-wachtwoord (2017), dag-navigator werken automatisch mee.
+### 2. Overal "Borrel-prep" → "Borrel"
+Label-only wijziging (de DB-waarde blijft `'borrel'`). Aanpassen in:
+- `src/pages/TakenAdmin.tsx` — `PHASE_LABEL.borrel`
+- `src/components/foh/FohTasks.tsx` — 3 plekken (labels record, template-naam fallback, dialog-teksten)
+- `src/components/foh/ListManager.tsx` — `getPhaseLabel`
 
-**Admin / Beheer (`TakenBeheer.tsx` + `ListManager.tsx`)**
-- Phase-selector krijgt "Borrel-prep" optie voor Midsland.
-- `phaseLabel('borrel') → 'Borrel-prep'`.
-- Voor borrel: categorie-veld verborgen/optioneel (default `'Borrel'` zodat sortering werkt maar er geen groepskoppen tonen).
-- Actieve-lijst-trigger (`foh_enforce_single_active_template`) werkt al per phase — geen wijziging.
+Geen DB-migratie nodig, geen typewijzigingen.
 
-**Niet aangeraakt**
-- West UI, waste-generator, edge functions, kassa, recepten.
-
-## Technisch
-
-```text
-phase enum uitbreiding
- ├─ foh_tasks_phase_check       → open | tussen | borrel | sluit | NULL
- └─ foh_daily_templates_phase_check → open | tussen | borrel | sluit
-
-PHASE_WINDOWS: geen entry voor borrel (auto-select skipt hem)
-PhaseType = 'open' | 'tussen' | 'borrel' | 'sluit'
-phaseLabel('borrel') = 'Borrel-prep'
-getPhasesForLocation('Midsland') = ['open','tussen','borrel','sluit']
-```
-
-Na goedkeuring migratie: TS-types worden geregenereerd, dan front-end edits in `FohTasks.tsx`, `ListManager.tsx`, `TakenBeheer.tsx` (+ eventuele phase-label helpers).
+## Verificatie
+- `/taken/admin` als Midsland toont nu 4 kaarten incl. "Borrel".
+- Klikken op Borrel opent beheer-scherm; taak toevoegen werkt en verschijnt in de dagelijkse lijst.
+- Overal in UI staat "Borrel" i.p.v. "Borrel-prep".
