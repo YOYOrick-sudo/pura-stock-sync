@@ -653,6 +653,7 @@ const groupTasksByPhase = (tasks: FohTaskWithEmployee[]) => {
   const grouped: Record<PhaseType, FohTaskWithEmployee[]> = {
     open: [],
     tussen: [],
+    borrel: [],
     sluit: [],
   };
   
