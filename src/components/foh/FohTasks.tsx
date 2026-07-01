@@ -673,7 +673,7 @@ const groupTasksByPhase = (tasks: FohTaskWithEmployee[]) => {
 
 // Locatie-specifieke fases: West heeft geen tussenlijst
 const getPhasesForLocation = (loc: string | null | undefined): PhaseType[] =>
-  loc === 'West' ? ['open', 'sluit'] : ['open', 'tussen', 'sluit'];
+  loc === 'West' ? ['open', 'sluit'] : ['open', 'tussen', 'borrel', 'sluit'];
 
 const getFirstPhaseWithOpenTasks = (
   tasks: FohTaskWithEmployee[],
