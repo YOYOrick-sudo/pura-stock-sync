@@ -3,7 +3,7 @@ import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Edit, Users, ImageIcon } from 'lucide-react';
+import { Edit, Users } from 'lucide-react';
 import { useRecipe } from '@/hooks/useRecipes';
 
 export default function RecipeDetail() {
