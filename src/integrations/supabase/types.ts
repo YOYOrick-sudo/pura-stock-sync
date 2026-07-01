@@ -1503,6 +1503,50 @@ export type Database = {
           },
         ]
       }
+      print_jobs: {
+        Row: {
+          aangemaakt_door: string | null
+          created_at: string
+          foutmelding: string | null
+          geprint_op: string | null
+          id: string
+          label_omschrijving: string | null
+          recipe_id: string | null
+          status: string
+          zpl: string
+        }
+        Insert: {
+          aangemaakt_door?: string | null
+          created_at?: string
+          foutmelding?: string | null
+          geprint_op?: string | null
+          id?: string
+          label_omschrijving?: string | null
+          recipe_id?: string | null
+          status?: string
+          zpl: string
+        }
+        Update: {
+          aangemaakt_door?: string | null
+          created_at?: string
+          foutmelding?: string | null
+          geprint_op?: string | null
+          id?: string
+          label_omschrijving?: string | null
+          recipe_id?: string | null
+          status?: string
+          zpl?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "print_jobs_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
