@@ -84,7 +84,7 @@ interface ListManagerProps {
   open: boolean;
   onClose: () => void;
   location: string;
-  phase: 'open' | 'tussen' | 'sluit';
+  phase: 'open' | 'tussen' | 'borrel' | 'sluit';
   department: 'voorkant' | 'achterkant';
   availableCategories: string[];
   isWest: boolean;
@@ -116,6 +116,7 @@ function getAmsterdamDateString() {
 function phaseLabel(phase: string) {
   if (phase === 'open') return 'Openen';
   if (phase === 'tussen') return 'Tussen';
+  if (phase === 'borrel') return 'Borrel-prep';
   return 'Sluiten';
 }
 

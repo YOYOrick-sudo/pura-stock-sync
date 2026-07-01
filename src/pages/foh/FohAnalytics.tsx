@@ -89,7 +89,7 @@ export default function FohAnalytics() {
 
   // Tasks per phase
   const phaseData = useMemo(() => {
-    const phases: PhaseType[] = ['open', 'tussen', 'sluit'];
+    const phases: PhaseType[] = ['open', 'tussen', 'borrel', 'sluit'];
     return phases.map(phase => ({
       phase: phase.toUpperCase(),
       Totaal: tasks.filter(t => t.phase === phase).length,

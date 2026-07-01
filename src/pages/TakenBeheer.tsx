@@ -30,7 +30,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-type Phase = 'open' | 'tussen' | 'sluit';
+type Phase = 'open' | 'tussen' | 'borrel' | 'sluit';
 type Department = 'voorkant' | 'achterkant';
 
 type OrderRow = { category: string; sort_order: number };
@@ -41,6 +41,7 @@ const CATEGORY_ORDER_FALLBACK = ['Algemeen'];
 function getMidslandCategories(phase: Phase): string[] {
   if (phase === 'open') return ['Deel 1', 'Deel 2', 'Deel 3'];
   if (phase === 'tussen') return ['Binnen', 'Deel 1 - Bar Prep Check', 'Deel 2 - Bijvullen', 'Hygiëne', 'Overdracht', 'Terras'];
+  if (phase === 'borrel') return ['Borrel'];
   return ['BAR', 'BIJVULLEN (FIFO)', 'BINNEN', 'HYGIENE', 'LAATSTE LOODJES', 'TERRAS'];
 }
 

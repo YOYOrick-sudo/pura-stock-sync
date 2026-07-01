@@ -10,7 +10,7 @@ export interface FohTask {
   completed_by: string | null;
   assigned_employee_id: string | null;
   template_id: string | null;
-  phase: 'open' | 'tussen' | 'sluit' | null;
+  phase: 'open' | 'tussen' | 'borrel' | 'sluit' | null;
   category: string;
   created_at: string;
   estimated_minutes: number | null;
@@ -32,7 +32,7 @@ export interface FohTaskWithEmployee extends FohTask {
 export interface FohDailyTemplate {
   id: string;
   location: string;
-  phase: 'open' | 'tussen' | 'sluit';
+  phase: 'open' | 'tussen' | 'borrel' | 'sluit';
   title: string;
   priority: 1 | 2 | 3;
   category: string;
@@ -42,7 +42,7 @@ export interface FohDailyTemplate {
   description?: string | null;
 }
 
-export type PhaseType = 'open' | 'tussen' | 'sluit';
+export type PhaseType = 'open' | 'tussen' | 'borrel' | 'sluit';
 
 export interface PhaseWindow {
   phase: PhaseType;

@@ -1,15 +1,41 @@
-## Recepten als tabel/rij weergave
+# Borrel-prep fase — Midsland
 
-Vervang de foto-grid op `/kitchen/recipes` door een compacte tabel-lijst zoals de "Halffabricaten"-referentie.
+Nieuwe fase `borrel` naast `open`, `tussen`, `sluit`. Alleen zichtbaar voor Midsland; West blijft ongewijzigd (alleen open + sluit). Eén losse lijst zonder categorieën, geen automatische tijd-selectie — medewerker kiest de tab handmatig.
 
-### Wijziging in `src/pages/kitchen/Recipes.tsx`
-- Foto-thumbnails en `ImageIcon` weghalen (geen `aspect-[16/9]` blok meer).
-- Grid (`grid-cols-1/2/3`) vervangen door één `Card` met een tabel:
-  - Kolomkoppen (uppercase, muted, klein): **NAAM · CATEGORIE · TYPE · INGREDIËNTEN**
-  - Elke rij klikbaar → `navigate(/kitchen/recipes/:id)`, met hover-highlight.
-  - Naam vet, categorie als subtiele badge, type ("Recept" / "Halffabricaat") als tekst of lichte badge, ingrediënten als aantal.
-- Zoekbalk + "Nieuw recept" knop + categorie-chips blijven ongewijzigd bovenaan.
-- Empty state en loading state blijven ongewijzigd.
-- Op mobiel (< sm): rijen renderen als gestapelde compacte cards (naam + meta onder elkaar) zodat het leesbaar blijft zonder horizontale scroll.
+## Wat er verandert
 
-Geen wijzigingen in datamodel, hooks, RecipeDetail of RecipeForm.
+**Database**
+- Check-constraints op `foh_tasks.phase` en `foh_daily_templates.phase` uitbreiden met `'borrel'`.
+- Bestaande dagelijkse-reset / template-triggers werken al generiek per phase, dus geen extra triggers nodig.
+- Geen seed-taken; jij vult borrel-prep lijst zelf via de admin.
+
+**Takenlijst UI (`FohTasks.tsx`)**
+- `getPhasesForLocation('Midsland')` → `['open','tussen','borrel','sluit']`. West blijft `['open','sluit']`.
+- Tab-label "Borrel-prep" met eigen icoon (wijnglas).
+- Geen categorie-groepering voor borrel: alle taken als één platte lijst (zoals West nu al kan).
+- Auto-phase-selectie op basis van tijd: borrel wordt overgeslagen (jij tikt handmatig). Openen blijft default.
+- Progress-teller, admin-wachtwoord (2017), dag-navigator werken automatisch mee.
+
+**Admin / Beheer (`TakenBeheer.tsx` + `ListManager.tsx`)**
+- Phase-selector krijgt "Borrel-prep" optie voor Midsland.
+- `phaseLabel('borrel') → 'Borrel-prep'`.
+- Voor borrel: categorie-veld verborgen/optioneel (default `'Borrel'` zodat sortering werkt maar er geen groepskoppen tonen).
+- Actieve-lijst-trigger (`foh_enforce_single_active_template`) werkt al per phase — geen wijziging.
+
+**Niet aangeraakt**
+- West UI, waste-generator, edge functions, kassa, recepten.
+
+## Technisch
+
+```text
+phase enum uitbreiding
+ ├─ foh_tasks_phase_check       → open | tussen | borrel | sluit | NULL
+ └─ foh_daily_templates_phase_check → open | tussen | borrel | sluit
+
+PHASE_WINDOWS: geen entry voor borrel (auto-select skipt hem)
+PhaseType = 'open' | 'tussen' | 'borrel' | 'sluit'
+phaseLabel('borrel') = 'Borrel-prep'
+getPhasesForLocation('Midsland') = ['open','tussen','borrel','sluit']
+```
+
+Na goedkeuring migratie: TS-types worden geregenereerd, dan front-end edits in `FohTasks.tsx`, `ListManager.tsx`, `TakenBeheer.tsx` (+ eventuele phase-label helpers).
