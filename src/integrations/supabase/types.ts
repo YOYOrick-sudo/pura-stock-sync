@@ -1545,6 +1545,41 @@ export type Database = {
         }
         Relationships: []
       }
+      recept_ingredienten: {
+        Row: {
+          created_at: string
+          hoeveelheid: string | null
+          id: string
+          naam: string
+          recept_id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          hoeveelheid?: string | null
+          id?: string
+          naam: string
+          recept_id: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          hoeveelheid?: string | null
+          id?: string
+          naam?: string
+          recept_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recept_ingredienten_recept_id_fkey"
+            columns: ["recept_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recipe_steps: {
         Row: {
           created_at: string | null
@@ -1582,36 +1617,51 @@ export type Database = {
       }
       recipes: {
         Row: {
+          bereiding: string | null
           category: string
           created_at: string | null
           created_by: string
           description: string | null
+          foto_url: string | null
           id: string
-          location: string
+          is_gearchiveerd: boolean
+          location: string | null
           name: string
+          porties: number | null
           prep_time_minutes: number | null
+          type: string
           updated_at: string | null
         }
         Insert: {
+          bereiding?: string | null
           category: string
           created_at?: string | null
-          created_by: string
+          created_by?: string
           description?: string | null
+          foto_url?: string | null
           id?: string
-          location: string
+          is_gearchiveerd?: boolean
+          location?: string | null
           name: string
+          porties?: number | null
           prep_time_minutes?: number | null
+          type?: string
           updated_at?: string | null
         }
         Update: {
+          bereiding?: string | null
           category?: string
           created_at?: string | null
           created_by?: string
           description?: string | null
+          foto_url?: string | null
           id?: string
-          location?: string
+          is_gearchiveerd?: boolean
+          location?: string | null
           name?: string
+          porties?: number | null
           prep_time_minutes?: number | null
+          type?: string
           updated_at?: string | null
         }
         Relationships: []

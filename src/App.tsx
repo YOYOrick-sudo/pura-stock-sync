@@ -24,6 +24,9 @@ import StyleGuide from "./pages/StyleGuide";
 import DesignPreview from "./pages/DesignPreview";
 import DesignSystem from "./pages/DesignSystem";
 import KasControle from "./pages/KasControle";
+import Recipes from "./pages/kitchen/Recipes";
+import RecipeDetail from "./pages/kitchen/RecipeDetail";
+import RecipeForm from "./pages/kitchen/RecipeForm";
 // HR Module
 import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } from "./pages/hr";
 // Maintenance Module
@@ -160,6 +163,13 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+
+            {/* Receptenmodule */}
+            <Route path="/kitchen/recipes" element={<ProtectedRoute><Recipes /></ProtectedRoute>} />
+            <Route path="/kitchen/recipes/nieuw" element={<ProtectedRoute><RecipeForm /></ProtectedRoute>} />
+            <Route path="/kitchen/recipes/:id" element={<ProtectedRoute><RecipeDetail /></ProtectedRoute>} />
+            <Route path="/kitchen/recipes/:id/bewerken" element={<ProtectedRoute><RecipeForm /></ProtectedRoute>} />
+
 
             
             
