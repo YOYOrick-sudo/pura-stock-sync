@@ -1420,7 +1420,7 @@ export function ListManager({
             </Button>
           </div>
         )}
-      </Shell>
+      </ShellWrapper>
 
 
       {/* Nieuwe lijst dialog */}
