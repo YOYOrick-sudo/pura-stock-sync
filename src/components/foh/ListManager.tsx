@@ -887,61 +887,6 @@ export function ListManager({
   const isPage = variant === 'page';
   const isEmbedded = variant === 'embedded';
 
-  // Shells — kiezen tussen Dialog (legacy), volledig scherm (page) of naakt (embedded).
-  const Shell = ({ children }: { children: React.ReactNode }) => {
-    if (isEmbedded) {
-      return (
-        <div style={{ fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
-          {embeddedSubheading && (
-            <div style={{
-              fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
-              letterSpacing: '0.05em', color: 'hsl(var(--muted-foreground))',
-              padding: '0 24px 8px',
-            }}>
-              {embeddedSubheading}
-            </div>
-          )}
-          {children}
-        </div>
-      );
-    }
-    return isPage ? (
-      <div
-        style={{
-          background: 'hsl(var(--card))',
-          border: '1px solid hsl(var(--border))',
-          borderRadius: 20,
-          display: 'flex',
-          flexDirection: 'column',
-          fontFamily: 'Inter, sans-serif',
-          minHeight: 'calc(100vh - 140px)',
-          overflow: 'hidden',
-        }}
-      >
-        {children}
-      </div>
-    ) : (
-      <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-        <DialogContent
-          style={{
-            backgroundColor: 'hsl(var(--card))',
-            border: '1px solid hsl(var(--border))',
-            borderRadius: '20px',
-            fontFamily: 'Inter, sans-serif',
-            maxWidth: '720px',
-            width: 'calc(100vw - 32px)',
-            maxHeight: '90vh',
-            padding: 0,
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          {children}
-        </DialogContent>
-      </Dialog>
-    );
-  };
 
   const headerNode = (
     <div
