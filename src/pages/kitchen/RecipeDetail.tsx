@@ -3,7 +3,7 @@ import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Edit, Users, ImageIcon } from 'lucide-react';
+import { Edit, Users } from 'lucide-react';
 import { useRecipe } from '@/hooks/useRecipes';
 
 export default function RecipeDetail() {
@@ -34,13 +34,6 @@ export default function RecipeDetail() {
       <div className="space-y-6">
         {/* Header */}
         <Card className="overflow-hidden bg-white shadow-sm">
-          <div className="aspect-[21/9] bg-muted flex items-center justify-center overflow-hidden">
-            {recipe.foto_url ? (
-              <img src={recipe.foto_url} alt={recipe.name} className="w-full h-full object-cover" />
-            ) : (
-              <ImageIcon className="w-16 h-16 text-muted-foreground/30" />
-            )}
-          </div>
           <div className="p-6 sm:p-8">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="flex-1 min-w-0">
