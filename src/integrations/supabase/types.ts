@@ -1548,6 +1548,7 @@ export type Database = {
       recept_ingredienten: {
         Row: {
           created_at: string
+          eenheid: string | null
           hoeveelheid: string | null
           id: string
           naam: string
@@ -1556,6 +1557,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          eenheid?: string | null
           hoeveelheid?: string | null
           id?: string
           naam: string
@@ -1564,6 +1566,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          eenheid?: string | null
           hoeveelheid?: string | null
           id?: string
           naam?: string

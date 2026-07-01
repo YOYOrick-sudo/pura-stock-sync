@@ -1,0 +1,1 @@
+ALTER TABLE public.recept_ingredienten ADD COLUMN IF NOT EXISTS eenheid text;

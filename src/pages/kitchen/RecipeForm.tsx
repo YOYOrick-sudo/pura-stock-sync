@@ -6,6 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Plus, Trash2, ArrowUp, ArrowDown, Save } from 'lucide-react';
 import {
   Ingredient,
@@ -16,6 +23,9 @@ import {
 import { toast } from 'sonner';
 
 type RecipeType = 'gerecht' | 'halffabricaat';
+
+const EENHEDEN = ['g', 'kg', 'ml', 'l', 'stuks', 'el', 'tl', 'teentje', 'plak', 'blaadje'] as const;
+const NO_UNIT = '__none__';
 
 export default function RecipeForm() {
   const { id } = useParams();
@@ -32,7 +42,7 @@ export default function RecipeForm() {
   const [porties, setPorties] = useState<string>('');
   const [bereiding, setBereiding] = useState('');
   const [ingredients, setIngredients] = useState<Ingredient[]>([
-    { naam: '', hoeveelheid: '', sort_order: 0 },
+    { naam: '', hoeveelheid: '', eenheid: null, sort_order: 0 },
   ]);
 
   useEffect(() => {
@@ -46,13 +56,16 @@ export default function RecipeForm() {
       setIngredients(
         existing.ingredients.length > 0
           ? existing.ingredients.map((i, idx) => ({ ...i, sort_order: idx }))
-          : [{ naam: '', hoeveelheid: '', sort_order: 0 }],
+          : [{ naam: '', hoeveelheid: '', eenheid: null, sort_order: 0 }],
       );
     }
   }, [isEdit, existing]);
 
   const addRow = () =>
-    setIngredients((prev) => [...prev, { naam: '', hoeveelheid: '', sort_order: prev.length }]);
+    setIngredients((prev) => [
+      ...prev,
+      { naam: '', hoeveelheid: '', eenheid: null, sort_order: prev.length },
+    ]);
 
   const removeRow = (idx: number) =>
     setIngredients((prev) => prev.filter((_, i) => i !== idx).map((r, i) => ({ ...r, sort_order: i })));
@@ -67,7 +80,7 @@ export default function RecipeForm() {
     });
   };
 
-  const updateRow = (idx: number, field: 'naam' | 'hoeveelheid', value: string) =>
+  const updateRow = (idx: number, field: 'naam' | 'hoeveelheid' | 'eenheid', value: string | null) =>
     setIngredients((prev) => prev.map((r, i) => (i === idx ? { ...r, [field]: value } : r)));
 
   const onSave = async () => {
@@ -75,14 +88,25 @@ export default function RecipeForm() {
       toast.error('Naam is verplicht');
       return;
     }
-    const cleanIngredients = ingredients.filter((i) => i.naam.trim().length > 0);
+
+    // Detecteer rijen zonder naam maar mét hoeveelheid/eenheid → foutmelding i.p.v. stille drop.
+    const incomplete = ingredients.find(
+      (i) =>
+        i.naam.trim().length === 0 &&
+        ((i.hoeveelheid ?? '').trim().length > 0 || (i.eenheid ?? '').toString().trim().length > 0),
+    );
+    if (incomplete) {
+      toast.error('Er staat een rij zonder naam. Vul een naam in of verwijder de rij.');
+      return;
+    }
+
     const payload = {
       name: name.trim(),
       category: category.trim(),
       type,
       porties: porties.trim() ? parseInt(porties, 10) : null,
-      bereiding: bereiding,
-      ingredients: cleanIngredients,
+      bereiding,
+      ingredients,
     };
 
     try {
@@ -104,30 +128,30 @@ export default function RecipeForm() {
 
   return (
     <SidebarLayout>
-      <div className="space-y-6">
-        <Card className="p-6 bg-white shadow-sm space-y-5">
+      <div className="space-y-4 max-w-4xl">
+        <Card className="p-5 sm:p-6 bg-white shadow-sm space-y-5">
           <div>
-            <Label className="text-base">Naam *</Label>
+            <Label className="text-sm font-medium">Naam *</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Bijv. Bananenbrood"
-              className="mt-2 h-12 text-base"
+              className="mt-2 h-11"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label className="text-base">Categorie</Label>
+              <Label className="text-sm font-medium">Categorie</Label>
               <Input
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 placeholder="Bijv. Saus, Voorgerecht, Bakwerk"
-                className="mt-2 h-12 text-base"
+                className="mt-2 h-11"
               />
             </div>
             <div>
-              <Label className="text-base">Porties</Label>
+              <Label className="text-sm font-medium">Porties</Label>
               <Input
                 type="number"
                 inputMode="numeric"
@@ -135,13 +159,13 @@ export default function RecipeForm() {
                 value={porties}
                 onChange={(e) => setPorties(e.target.value)}
                 placeholder="Bijv. 4"
-                className="mt-2 h-12 text-base"
+                className="mt-2 h-11"
               />
             </div>
           </div>
 
           <div>
-            <Label className="text-base mb-2 block">Type</Label>
+            <Label className="text-sm font-medium mb-2 block">Type</Label>
             <div className="inline-flex rounded-polar-lg bg-muted p-1">
               {(['gerecht', 'halffabricaat'] as RecipeType[]).map((t) => (
                 <button
@@ -160,29 +184,50 @@ export default function RecipeForm() {
         </Card>
 
         {/* Ingredienten */}
-        <Card className="p-6 bg-white shadow-sm">
+        <Card className="p-5 sm:p-6 bg-white shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-heading font-bold text-xl text-foreground">Ingrediënten</h2>
-            <Button onClick={addRow} variant="outline" size="sm" className="min-h-[44px]">
+            <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+              Ingrediënten
+            </h2>
+            <Button onClick={addRow} variant="outline" size="sm" className="min-h-[40px]">
               <Plus className="h-4 w-4 mr-1" /> Rij toevoegen
             </Button>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             {ingredients.map((row, idx) => (
-              <div key={idx} className="flex items-center gap-2">
+              <div
+                key={idx}
+                className="flex flex-wrap items-center gap-2 rounded-polar-md border border-border/60 bg-background/40 p-2"
+              >
                 <Input
                   value={row.naam}
                   onChange={(e) => updateRow(idx, 'naam', e.target.value)}
                   placeholder="Ingrediënt"
-                  className="h-12 text-base flex-1"
+                  className="h-11 flex-1 min-w-[160px]"
                 />
                 <Input
                   value={row.hoeveelheid}
                   onChange={(e) => updateRow(idx, 'hoeveelheid', e.target.value)}
                   placeholder="Hoeveelheid"
-                  className="h-12 text-base w-40 sm:w-56"
+                  className="h-11 w-24"
                 />
+                <Select
+                  value={row.eenheid && row.eenheid.length > 0 ? row.eenheid : NO_UNIT}
+                  onValueChange={(v) => updateRow(idx, 'eenheid', v === NO_UNIT ? null : v)}
+                >
+                  <SelectTrigger className="h-11 w-32">
+                    <SelectValue placeholder="Eenheid" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NO_UNIT}>—</SelectItem>
+                    {EENHEDEN.map((u) => (
+                      <SelectItem key={u} value={u}>
+                        {u}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <div className="flex flex-col gap-0.5">
                   <button
                     type="button"
@@ -217,14 +262,16 @@ export default function RecipeForm() {
         </Card>
 
         {/* Bereiding */}
-        <Card className="p-6 bg-white shadow-sm">
-          <Label className="text-base mb-2 block">Bereiding</Label>
+        <Card className="p-5 sm:p-6 bg-white shadow-sm">
+          <Label className="text-sm font-medium uppercase tracking-wide text-muted-foreground mb-3 block">
+            Bereiding
+          </Label>
           <Textarea
             value={bereiding}
             onChange={(e) => setBereiding(e.target.value)}
             placeholder={'Beschrijf de bereidingsstappen…\n\nBijv.\n1. Verwarm oven op 180°C\n2. Meng droge ingrediënten\n3. …'}
             rows={12}
-            className="text-base leading-relaxed"
+            className="text-[15px] leading-relaxed"
           />
         </Card>
 
@@ -234,12 +281,12 @@ export default function RecipeForm() {
             size="lg"
             onClick={() => navigate(isEdit && id ? `/kitchen/recipes/${id}` : '/kitchen/recipes')}
             disabled={busy}
-            className="min-h-[48px]"
+            className="min-h-[44px]"
           >
             Annuleren
           </Button>
-          <Button size="lg" onClick={onSave} disabled={busy} className="min-h-[48px]">
-            <Save className="h-5 w-5 mr-2" />
+          <Button size="lg" onClick={onSave} disabled={busy} className="min-h-[44px]">
+            <Save className="h-4 w-4 mr-2" />
             {busy ? 'Opslaan…' : 'Opslaan'}
           </Button>
         </div>
