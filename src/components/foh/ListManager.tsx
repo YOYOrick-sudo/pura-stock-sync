@@ -976,7 +976,8 @@ export function ListManager({
 
   return (
     <>
-    <Shell>
+    <ShellWrapper isPage={isPage} isEmbedded={isEmbedded} embeddedSubheading={embeddedSubheading} open={open} onClose={onClose}>
+
         {headerWrapped}
 
 
