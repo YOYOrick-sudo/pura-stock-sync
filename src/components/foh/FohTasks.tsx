@@ -50,6 +50,11 @@ const getAvailableCategoriesForPhase = (location: string, phase: string): string
     return ['Binnen', 'Deel 1 - Bar Prep Check', 'Deel 2 - Bijvullen', 'Hygiëne', 'Overdracht', 'Terras'];
   }
   
+  // Midsland - borrel-prep (één losse lijst)
+  if (location === 'Midsland' && phase === 'borrel') {
+    return ['Borrel'];
+  }
+  
   // Midsland - sluit
   if (location === 'Midsland' && phase === 'sluit') {
     return ['BAR', 'BIJVULLEN (FIFO)', 'BINNEN', 'HYGIENE', 'LAATSTE LOODJES', 'TERRAS'];
