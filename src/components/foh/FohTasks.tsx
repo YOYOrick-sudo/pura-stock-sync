@@ -1846,7 +1846,7 @@ export function FohTasks() {
         .eq('is_active', true)
         .limit(1);
       
-      const currentTemplateName = activeTemplates?.[0]?.template_name || `Standaard ${activePhase === 'open' ? 'Openlijst' : activePhase === 'tussen' ? 'Tussenlijst' : activePhase === 'borrel' ? 'Borrel-prep lijst' : 'Sluitlijst'}`;
+      const currentTemplateName = activeTemplates?.[0]?.template_name || `Standaard ${activePhase === 'open' ? 'Openlijst' : activePhase === 'tussen' ? 'Tussenlijst' : activePhase === 'borrel' ? 'Borrel lijst' : 'Sluitlijst'}`;
       
       // STAP 1: deactiveer ALLE andere lijsten voor deze (location, phase, department)
       const { error: deactivateOthersError } = await supabase
@@ -2507,7 +2507,7 @@ export function FohTasks() {
               {getPhasesForLocation(userLocation).map((phase) => {
                 const stats = getDailyListStats(phase);
                 const isActive = mainCategory === 'dagelijks' && activePhase === phase;
-                const labels: Record<PhaseType, string> = { open: 'Openen', tussen: 'Tussen', borrel: 'Borrel-prep', sluit: 'Sluiten' };
+                const labels: Record<PhaseType, string> = { open: 'Openen', tussen: 'Tussen', borrel: 'Borrel', sluit: 'Sluiten' };
                 
                 return (
                   <button
@@ -3679,7 +3679,7 @@ export function FohTasks() {
           <div style={{ padding: '16px 0', maxHeight: '60vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <p style={{ fontSize: '14px', color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif' }}>
-                Beheer templates voor {activePhase === 'open' ? 'Openlijst' : activePhase === 'tussen' ? 'Tussenlijst' : activePhase === 'borrel' ? 'Borrel-prep lijst' : 'Sluitlijst'}.
+                Beheer templates voor {activePhase === 'open' ? 'Openlijst' : activePhase === 'tussen' ? 'Tussenlijst' : activePhase === 'borrel' ? 'Borrellijst' : 'Sluitlijst'}.
               </p>
 
               {/* West: Apparaat-modus (per iPad opgeslagen) */}
@@ -4052,7 +4052,7 @@ export function FohTasks() {
               }}
             />
             <p style={{ fontSize: '13px', color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif', marginTop: '8px' }}>
-              De template wordt aangemaakt op basis van de huidige taken voor {activePhase === 'open' ? 'Open' : activePhase === 'tussen' ? 'Tussen' : activePhase === 'borrel' ? 'Borrel-prep' : 'Sluit'}.
+              De template wordt aangemaakt op basis van de huidige taken voor {activePhase === 'open' ? 'Open' : activePhase === 'tussen' ? 'Tussen' : activePhase === 'borrel' ? 'Borrel' : 'Sluit'}.
             </p>
           </div>
           <DialogFooter>
