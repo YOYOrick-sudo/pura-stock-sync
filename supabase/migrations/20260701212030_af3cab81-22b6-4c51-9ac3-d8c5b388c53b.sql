@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "Users can update their own recipes" ON public.recipes;
+CREATE POLICY "Authenticated can update recipes" ON public.recipes FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
