@@ -5,6 +5,7 @@ export interface Ingredient {
   id?: string;
   naam: string;
   hoeveelheid: string;
+  eenheid?: string | null;
   sort_order: number;
 }
 
@@ -102,20 +103,21 @@ async function replaceIngredients(recipeId: string, ingredients: Ingredient[]) {
     .from('recept_ingredienten')
     .delete()
     .eq('recept_id', recipeId);
-  if (delErr) throw delErr;
+  if (delErr) throw new Error('Ingrediënten opslaan mislukt (delete): ' + delErr.message);
 
   const clean = ingredients
     .map((i, idx) => ({
       recept_id: recipeId,
       naam: i.naam.trim(),
-      hoeveelheid: (i.hoeveelheid ?? '').trim(),
+      hoeveelheid: (i.hoeveelheid ?? '').trim() || null,
+      eenheid: (i.eenheid ?? '')?.toString().trim() || null,
       sort_order: idx,
     }))
     .filter((i) => i.naam.length > 0);
 
   if (clean.length === 0) return;
   const { error: insErr } = await supabase.from('recept_ingredienten').insert(clean);
-  if (insErr) throw insErr;
+  if (insErr) throw new Error('Ingrediënten opslaan mislukt (insert): ' + insErr.message);
 }
 
 export function useCreateRecipe() {
@@ -156,7 +158,7 @@ export function useUpdateRecipe() {
   return useMutation({
     mutationFn: async (input: RecipeInput & { id: string; ingredients: Ingredient[] }) => {
       const { id, ingredients, ...rest } = input;
-      const { error } = await supabase
+      const { data: updated, error } = await supabase
         .from('recipes')
         .update({
           name: rest.name,
@@ -167,8 +169,12 @@ export function useUpdateRecipe() {
           foto_url: rest.foto_url ?? null,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', id);
+        .eq('id', id)
+        .select('id');
       if (error) throw error;
+      if (!updated || updated.length === 0) {
+        throw new Error('Geen rechten om dit recept te wijzigen (alleen de maker kan aanpassen).');
+      }
 
       await replaceIngredients(id, ingredients);
       return id;
