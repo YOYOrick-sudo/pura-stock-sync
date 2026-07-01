@@ -103,7 +103,7 @@ function TakenAdminInner() {
         if (!phase) continue;
         byPhase.set(phase, (byPhase.get(phase) ?? 0) + 1);
       }
-      const phaseOrder: Phase[] = ['open', 'tussen', 'sluit'];
+      const phaseOrder: Phase[] = ['open', 'sluit'];
       return phaseOrder
         .filter(p => byPhase.has(p))
         .map(phase => ({
