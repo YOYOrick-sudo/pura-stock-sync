@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
+import { SidebarLayout } from '@/components/SidebarLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -21,7 +21,7 @@ export default function Recipes() {
   const chips = useMemo(() => ['Alle', ...categories], [categories]);
 
   return (
-    <KitchenLayout title="Recepten" subtitle="Bereidingen & ingrediënten" backTo="/kitchen" backLabel="Keuken">
+    <SidebarLayout>
       <div className="space-y-6">
         {/* Search & add */}
         <Card className="p-4 bg-white shadow-sm">
@@ -117,6 +117,6 @@ export default function Recipes() {
           </div>
         )}
       </div>
-    </KitchenLayout>
+    </SidebarLayout>
   );
 }

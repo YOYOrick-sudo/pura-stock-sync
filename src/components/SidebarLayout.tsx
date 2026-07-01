@@ -32,6 +32,8 @@ export function SidebarLayout({
       '/kitchen-menu': 'Keuken Menu',
       '/kitchen-tasks': 'Keuken Taken',
       '/recipes': 'Recepten',
+      '/kitchen/recipes': 'Recepten',
+      '/kitchen/recipes/nieuw': 'Nieuw recept',
       '/mep-planning': 'MEP Planning',
       '/voorraad': 'Voorraad',
       '/settings': 'Instellingen',
@@ -42,6 +44,8 @@ export function SidebarLayout({
       '/kas-controle': 'Kas-controle',
     };
     if (pathname === '/taken-bediening' && userLocation === 'West') return 'Taken';
+    if (/^\/kitchen\/recipes\/[^/]+\/bewerken$/.test(pathname)) return 'Recept bewerken';
+    if (/^\/kitchen\/recipes\/[^/]+$/.test(pathname)) return 'Recept';
     return titles[pathname] || 'Pura Vida';
   };
 

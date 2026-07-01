@@ -1,33 +1,31 @@
 ## Doel
-iPad voelt traag bij (1) afvinken van taken en (2) verdwijnend toetsenbord bij taken toevoegen/bewerken. Beide fixen zonder nieuwe bugs.
+Recepten integreren in de hoofd-sidebar en dezelfde layout gebruiken als Dashboard.
 
-## Wat ik ga doen
+## Wijzigingen
 
-### 1. Afvinken direct laten reageren (FohTasks.tsx)
-- **Optimistic update via React Query**: `onMutate` zet de taak lokaal meteen op `completed`, met rollback bij fout.
-- **Geen refetch na toggle** — alleen invalidate op de achtergrond zodat realtime/andere devices bijblijven.
-- Vinkje en doorstreping verschijnen binnen 1 frame ipv na DB-roundtrip.
+### 1) Nav-item toevoegen in `src/components/AppSidebar.tsx`
+In `allNavigationItems`, direct onder "Taken Bediening":
+```ts
+{ title: 'Recepten', url: '/kitchen/recipes', icon: BookOpen, locations: ['West', 'Midsland'], managerOnly: false },
+```
+`BookOpen` toevoegen aan de lucide-import. Actief-detectie werkt automatisch (ook op `/kitchen/recipes/:id` als de bestaande active-logic prefix-match doet — anders `startsWith` check toevoegen).
 
-### 2. Toetsenbord stabiel houden (ListManager.tsx + TakenBeheer.tsx)
-Drie oorzaken van remount tijdens typen, alle drie aanpakken:
+### 2) Recept-pagina's overzetten naar `SidebarLayout`
+Vervang `KitchenLayout` door `SidebarLayout` in:
+- `src/pages/kitchen/Recipes.tsx`
+- `src/pages/kitchen/RecipeDetail.tsx`
+- `src/pages/kitchen/RecipeForm.tsx`
 
-- **Auto-seed idempotent maken**: `ensureCategoryOrder` in `foh-category-order.ts` alleen upserten als er écht ontbrekende categorieën zijn. Nu draait de seed ook als alles al klopt → refetch → re-render.
-- **Stabiele React keys**: categorie- en taak-items keyen op `id` (niet op index of naam). Voorkomt dat een sort een input laat unmounten.
-- **Lokale input-state**: taaktitel-input houdt eigen `useState` + debounced save (400ms). Externe refetches overschrijven niet meer wat je aan het typen bent, en de input blijft in de tree staan.
-- **`useLayoutEffect` focus-restore** als laatste vangnet: bij onvermijdbare remount de focus + cursorpositie herstellen.
+`SidebarLayout` heeft geen `title`/`subtitle`/`backTo` props (`PolarHeader` regelt de titel via route-map). Dus:
+- `title`/`subtitle` props laten vallen.
+- De titelmap in `SidebarLayout.tsx` uitbreiden met `/kitchen/recipes`, `/kitchen/recipes/nieuw`, `/kitchen/recipes/:id`, `/kitchen/recipes/:id/bewerken` → "Recepten" / "Nieuw recept" / "Recept" / "Recept bewerken".
+- In de pagina-body zelf een compacte page-header (titel + acties zoals "Nieuw recept" / "Bewerken" / "Terug") behouden zodat de UX identiek blijft; de "Terug naar Keuken"-knop wordt "Terug naar Recepten" waar relevant, of vervalt want de sidebar heeft nu Recepten.
 
-### 3. Verificatie
-- Playwright: simuleer snelle taps op checkbox, verwacht directe `aria-checked`.
-- Playwright: type in nieuwe taak-input, trigger een parallelle refetch, verwacht dat focus behouden blijft en waarde niet reset.
-- Handmatig testen op iPad na deploy.
+### 3) Geen wijziging aan routes of data
+Routes in `App.tsx` blijven `/kitchen/recipes*`. `KitchenLayout` en `/kitchen`-menu blijven intact voor andere pagina's (KitchenTasks, KitchenMenu, ServiceModule).
 
-## Wat blijft hetzelfde
-- DB-schema, edge functions, category-order logica, drag-and-drop, wachtwoorden, layout.
-
-## Risico's die ik heb doordacht
-- **Optimistic + realtime**: als realtime een oude snapshot terugstuurt kan het vinkje "knipperen". Oplossing: `queryClient.setQueryData` in de realtime handler mergen met pending mutations (React Query doet dit standaard mits we `onMutate` correct returnen).
-- **Debounced save + snel wisselen tussen inputs**: bij blur meteen flushen zodat niets verloren gaat.
-- **Sub-categorieën volgorde**: idempotent seed mag geen bestaande `sort_order` overschrijven — alleen inserten wat ontbreekt.
-- **Undo bij toggle-fout**: rollback moet ook de "Opgeslagen ✓" pill onderdrukken zodat je geen valse bevestiging ziet.
-
-Na deze drie ingrepen zou het op iPad écht smooth moeten voelen. Als er ná deploy nog een specifiek scherm hikt, pak ik dat gericht aan.
+## Verificatie
+- Sidebar toont "Recepten" onder Taken Bediening op zowel West als Midsland.
+- Navigeren naar `/kitchen/recipes` toont dezelfde Pura-sidebar + PolarHeader als `/dashboard`.
+- Detail- en formulierpagina's tonen dezelfde layout; back-navigatie werkt.
+- Build/typecheck groen.

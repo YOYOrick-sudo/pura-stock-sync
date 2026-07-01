@@ -1,4 +1,4 @@
-import { Home, ListChecks, Wallet, Settings, BarChart3, Wrench, Users, ShieldCheck } from 'lucide-react';
+import { Home, ListChecks, Wallet, Settings, BarChart3, Wrench, Users, ShieldCheck, BookOpen } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useEffect, useState } from 'react';
@@ -24,6 +24,7 @@ import puraVidaLogo from '@/assets/pura-vida-logo-sea-cropped.png';
 const allNavigationItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home, locations: ['West', 'Midsland'], managerOnly: false },
   { title: 'Taken Bediening', url: '/taken-bediening', icon: ListChecks, locations: ['West', 'Midsland'], managerOnly: false },
+  { title: 'Recepten', url: '/kitchen/recipes', icon: BookOpen, locations: ['West', 'Midsland'], managerOnly: false },
   { title: 'Kassatelling', url: '/kassatelling', icon: Wallet, locations: ['West', 'Midsland'], managerOnly: false },
 
   { title: 'Onderhoud', url: '/onderhoud', icon: Wrench, locations: ['West', 'Midsland'], managerOnly: false },
@@ -69,7 +70,9 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
     : allNavigationItems
   ).filter(item => !item.managerOnly || isManager);
 
-  const isActive = (url: string) => location.pathname === url;
+  const isActive = (url: string) =>
+    location.pathname === url ||
+    (url !== '/' && location.pathname.startsWith(url + '/'));
 
   const handleNavigation = (url: string) => {
     navigate(url);
