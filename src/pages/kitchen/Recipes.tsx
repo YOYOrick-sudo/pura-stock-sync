@@ -82,39 +82,63 @@ export default function Recipes() {
             }}
           />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {recipes.map((recipe) => (
-              <Card
-                key={recipe.id}
-                onClick={() => navigate(`/kitchen/recipes/${recipe.id}`)}
-                className="overflow-hidden bg-white shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.99]"
-              >
-                <div className="aspect-[16/9] bg-muted flex items-center justify-center overflow-hidden">
-                  {recipe.foto_url ? (
-                    <img src={recipe.foto_url} alt={recipe.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <ImageIcon className="w-10 h-10 text-muted-foreground/40" />
-                  )}
+          <Card className="bg-white shadow-sm overflow-hidden">
+            {/* Desktop table */}
+            <div className="hidden sm:block">
+              <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-4 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b bg-muted/30">
+                <div>Naam</div>
+                <div>Categorie</div>
+                <div>Type</div>
+                <div>Ingrediënten</div>
+              </div>
+              {recipes.map((recipe) => (
+                <div
+                  key={recipe.id}
+                  onClick={() => navigate(`/kitchen/recipes/${recipe.id}`)}
+                  className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-4 px-5 py-4 items-center border-b last:border-b-0 cursor-pointer hover:bg-muted/40 transition-colors"
+                >
+                  <div className="font-semibold text-foreground">{recipe.name}</div>
+                  <div>
+                    {recipe.category ? (
+                      <Badge variant="secondary" className="text-xs">{recipe.category}</Badge>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </div>
+                  <div className="text-sm text-foreground">
+                    {recipe.type === 'halffabricaat' ? 'Halffabricaat' : 'Recept'}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {recipe.ingredient_count ?? 0}
+                  </div>
                 </div>
-                <div className="p-4">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-heading font-bold text-lg text-foreground leading-tight">
-                      {recipe.name}
-                    </h3>
+              ))}
+            </div>
+
+            {/* Mobile list */}
+            <div className="sm:hidden divide-y">
+              {recipes.map((recipe) => (
+                <div
+                  key={recipe.id}
+                  onClick={() => navigate(`/kitchen/recipes/${recipe.id}`)}
+                  className="px-4 py-3 cursor-pointer active:bg-muted/40"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-foreground">{recipe.name}</h3>
                     {recipe.type === 'halffabricaat' && (
                       <Badge variant="outline" className="text-xs shrink-0">Halffabricaat</Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap mt-1">
                     {recipe.category && <Badge variant="secondary" className="text-xs">{recipe.category}</Badge>}
                     <span className="text-xs text-muted-foreground">
                       {recipe.ingredient_count ?? 0} ingrediënten
                     </span>
                   </div>
                 </div>
-              </Card>
-            ))}
-          </div>
+              ))}
+            </div>
+          </Card>
         )}
       </div>
     </SidebarLayout>
