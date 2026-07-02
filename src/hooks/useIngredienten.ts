@@ -38,8 +38,8 @@ export function useIngredientenStats() {
   return useQuery({
     queryKey: ['ingredienten', 'stats'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('v_ingredienten_stats' as any)
+      const { data, error } = await (supabase as any)
+        .from('v_ingredienten_stats')
         .select('*')
         .order('naam', { ascending: true });
       if (error) throw error;
