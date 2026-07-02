@@ -101,7 +101,7 @@ export default function RecipeForm() {
       setIngredients(
         existing.ingredients.length > 0
           ? existing.ingredients.map((i, idx) => ({ ...i, sort_order: idx }))
-          : [{ naam: '', hoeveelheid: '', eenheid: null, sort_order: 0 }],
+          : [{ naam: '', hoeveelheid: '', eenheid: null, sort_order: 0, ingredient_id: null }],
       );
     }
   }, [isEdit, existing]);
@@ -109,7 +109,7 @@ export default function RecipeForm() {
   const addRow = () =>
     setIngredients((prev) => [
       ...prev,
-      { naam: '', hoeveelheid: '', eenheid: null, sort_order: prev.length },
+      { naam: '', hoeveelheid: '', eenheid: null, sort_order: prev.length, ingredient_id: null },
     ]);
 
   const removeRow = (idx: number) =>
