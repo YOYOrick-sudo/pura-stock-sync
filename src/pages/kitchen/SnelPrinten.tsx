@@ -4,7 +4,7 @@ import { nl } from 'date-fns/locale';
 import { Snowflake, ChefHat, Tag, Minus, Plus, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
+import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -113,9 +113,17 @@ export default function SnelPrinten() {
   const canPrint = naam.trim().length >= 2 && !createJob.isPending;
 
   return (
-    <KitchenLayout title="Snel printen" subtitle="Ontdooi-, bereid- en vrije stickers">
-      <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-        <div className="space-y-4">
+    <SidebarLayout>
+      <div className="max-w-5xl mx-auto space-y-4">
+        <div>
+          <h1 className="text-2xl font-heading font-bold text-foreground">Snel printen</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Ontdooi-, bereid- en vrije stickers.
+          </p>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+          <div className="space-y-4">
           {/* Stap 1 — Type */}
           <Card className="p-4 sm:p-5 bg-card shadow-sm">
             <div className="text-caption mb-3">1. Type sticker</div>
@@ -231,8 +239,9 @@ export default function SnelPrinten() {
               57 × 32 mm • Zebra ZD411d
             </p>
           </Card>
+          </div>
         </div>
       </div>
-    </KitchenLayout>
+    </SidebarLayout>
   );
 }
