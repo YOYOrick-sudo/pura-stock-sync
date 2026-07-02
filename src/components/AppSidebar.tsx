@@ -1,4 +1,4 @@
-import { Home, ListChecks, Wallet, Settings, BarChart3, Wrench, Users, ShieldCheck, BookOpen } from 'lucide-react';
+import { Home, ListChecks, Wallet, Settings, BarChart3, Wrench, Users, ShieldCheck, BookOpen, Carrot } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useEffect, useState } from 'react';
