@@ -154,7 +154,6 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
               <Wallet className="h-5 w-5" style={{ color: 'hsl(var(--primary))' }} />
             </div>
             <div>
-              <h1 style={{ fontSize: 22, fontWeight: 700, color: 'hsl(var(--foreground))' }}>Kas-controle</h1>
               <p style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))' }}>
                 Overzicht van alle kassa-afdrachten per locatie en periode.
               </p>
