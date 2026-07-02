@@ -186,36 +186,16 @@ export default function RecipeForm() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label className="text-sm font-medium flex items-center gap-1.5">
-                Categorie
-                {suggesting && (
-                  <span className="inline-flex items-center gap-1 text-xs font-normal text-muted-foreground">
-                    <Sparkles className="h-3 w-3 animate-pulse" /> AI zoekt…
-                  </span>
-                )}
-              </Label>
-              <div className="mt-2 flex gap-2">
-                <Input
-                  value={category}
-                  onChange={(e) => {
-                    setCategoryTouched(true);
-                    setCategory(e.target.value);
-                  }}
-                  placeholder="Bijv. Groente, Sauzen, Hoofdgerecht"
-                  className="h-11 flex-1"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-11 w-11 shrink-0"
-                  title="AI-suggestie op basis van naam en ingrediënten"
-                  onClick={() => suggestCategory({ force: true })}
-                  disabled={suggesting || name.trim().length < 2}
-                >
-                  <Sparkles className="h-4 w-4" />
-                </Button>
-              </div>
+              <Label className="text-sm font-medium">Categorie</Label>
+              <Input
+                value={category}
+                onChange={(e) => {
+                  setCategoryTouched(true);
+                  setCategory(e.target.value);
+                }}
+                placeholder="Bijv. Groente, Sauzen, Hoofdgerecht"
+                className="mt-2 h-11"
+              />
             </div>
             <div>
               <Label className="text-sm font-medium">Porties</Label>
