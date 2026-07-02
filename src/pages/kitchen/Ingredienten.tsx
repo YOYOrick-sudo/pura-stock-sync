@@ -14,8 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Pencil, Check, X, ArrowUpDown, ChefHat, Search, Merge, Info } from 'lucide-react';
+import { Pencil, Check, X, ArrowUpDown, ChefHat, Search, Merge } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -213,25 +212,6 @@ export default function Ingredienten() {
   return (
     <SidebarLayout>
       <div className="max-w-5xl mx-auto space-y-4">
-        <div className="flex items-end justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-heading font-bold text-foreground">Ingrediënten</h1>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  className="inline-flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                  aria-label="Meer informatie"
-                >
-                  <Info className="h-4 w-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="max-w-xs">
-                Gedeelde lijst — groeit vanzelf mee met je recepten. Ingrediënten die je aan een recept toevoegt verschijnen hier automatisch en kunnen worden samengevoegd of hernoemd.
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
 
 
         <Card className="p-4 sm:p-5 bg-card shadow-sm">

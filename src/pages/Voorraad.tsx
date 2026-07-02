@@ -42,10 +42,6 @@ export default function Voorraad() {
           <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
             <div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-heading font-bold text-foreground mb-2">
-                  Telling & Bestelling
-                </h1>
-                
                 {/* Week + datum */}
                 <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground flex-wrap">
                   <span>Week {currentWeek}</span>

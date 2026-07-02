@@ -23,10 +23,6 @@ export default function Recipes() {
   return (
     <SidebarLayout>
       <div className="space-y-6">
-        <div className="flex items-end justify-between gap-4 flex-wrap">
-          <h1 className="text-2xl font-heading font-bold text-foreground">Recepten</h1>
-        </div>
-
         {/* Search & add */}
         <Card className="p-4 bg-card shadow-sm">
           <div className="flex flex-col sm:flex-row gap-3">

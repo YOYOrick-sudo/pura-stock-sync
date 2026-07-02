@@ -174,7 +174,7 @@ export default function FohAnalytics() {
     return (
       <SidebarLayout>
         <div className="max-w-7xl mx-auto space-y-10 pt-12">
-          <h1 className="text-3xl font-heading font-bold text-foreground">Laden...</h1>
+          <div className="text-muted-foreground">Laden...</div>
         </div>
       </SidebarLayout>
     );
@@ -185,10 +185,7 @@ export default function FohAnalytics() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-heading font-bold text-foreground">Taken Analyse</h1>
-            <p className="text-sm text-muted-foreground">{displayLocation}</p>
-          </div>
+          <div />
           <Button onClick={exportToCSV} variant="outline">
             <Download className="h-4 w-4 mr-2" />
             Export CSV
