@@ -1,25 +1,27 @@
-## Probleem
-1. Op `/taken/admin` zie je voor Midsland alleen Openen / Tussen / Sluiten. De **Borrel**-kaart ontbreekt, waardoor je geen taken kunt toevoegen/beheren voor die lijst.
-2. In de app heet die fase overal "Borrel-prep", maar dat moet gewoon **"Borrel"** zijn.
 
-## Oorzaak
-- `TakenAdmin.tsx` bouwt kaarten alleen voor fasen waar al een actieve template bestaat (`byPhase.has(p)`). Voor Borrel bestaat er nog geen template → geen kaart → je kunt hem niet openen.
-- Label "Borrel-prep" staat hard-coded op meerdere plekken.
+Drie kleine verbeteringen aan de Receptenmodule.
 
-## Aanpak
+## 1. Automatische categorie bij nieuw recept (AI, low-cost)
 
-### 1. Borrel-kaart altijd tonen voor Midsland
-In `src/pages/TakenAdmin.tsx`: voor Midsland alle 4 fasen altijd renderen (open/tussen/borrel/sluit), ook als `taskCount = 0`. De kaart opent gewoon `/taken/beheer?phase=borrel` waar de gebruiker taken kan toevoegen (de bestaande "nieuwe lijst" flow in `ListManager` maakt de template aan bij eerste taak).
+- Nieuwe edge function `suggest-recipe-category` op basis van Lovable AI Gateway met `google/gemini-3-flash-preview` (goedkoopste chat-model, ~instant).
+- Input: `name` + eventueel `ingredients`. Output: één woord/korte string met de categorie.
+- Prompt geeft de AI de bestaande categorieën als voorkeurslijst mee (uit `recipes.category`) zodat we niet elke keer een nieuwe variant krijgen ("Saus" vs "Sauzen"). Alleen nieuwe categorie als niks past.
+- In `RecipeForm.tsx`: zodra de naam is ingevuld (of bij blur) en het categorie-veld nog leeg is, roept 'ie de function aan en vult het veld in. Gebruiker kan overschrijven.
+- Debounced + alleen bij leeg veld → minimale calls, minimale kosten.
 
-### 2. Overal "Borrel-prep" → "Borrel"
-Label-only wijziging (de DB-waarde blijft `'borrel'`). Aanpassen in:
-- `src/pages/TakenAdmin.tsx` — `PHASE_LABEL.borrel`
-- `src/components/foh/FohTasks.tsx` — 3 plekken (labels record, template-naam fallback, dialog-teksten)
-- `src/components/foh/ListManager.tsx` — `getPhaseLabel`
+## 2. Recept verwijderen
 
-Geen DB-migratie nodig, geen typewijzigingen.
+- Knop "Verwijderen" op `RecipeDetail.tsx` (naast Bewerken/Print), met `AlertDialog` bevestiging.
+- Nieuwe hook `useDeleteRecipe()` in `useRecipes.ts` die soft-delete doet (`is_gearchiveerd = true`) — zo blijven eventuele historische print_jobs/verwijzingen intact en verdwijnt het recept uit alle lijsten (die filteren al op `is_gearchiveerd = false`).
+- Na verwijderen: toast + navigate terug naar `/kitchen/recipes`.
+- RLS: bestaande update-policy staat authenticated toe → werkt direct.
 
-## Verificatie
-- `/taken/admin` als Midsland toont nu 4 kaarten incl. "Borrel".
-- Klikken op Borrel opent beheer-scherm; taak toevoegen werkt en verschijnt in de dagelijkse lijst.
-- Overal in UI staat "Borrel" i.p.v. "Borrel-prep".
+## 3. Voorbeeld sticker weghalen
+
+- De hele "Voorbeeld sticker"-kaart in `RecipeDetail.tsx` verwijderen (inclusief Labelary-preview, `previewSrc`/`previewError` state, en unused imports `useMemo`, `buildRecipeLabelZpl`, `labelaryPreviewUrl`).
+- "Print sticker"-knop blijft gewoon staan.
+
+## Technisch
+
+- Files: `supabase/functions/suggest-recipe-category/index.ts` (nieuw), `src/hooks/useRecipes.ts` (delete-hook + eventueel categorie-suggest hook), `src/pages/kitchen/RecipeForm.tsx` (auto-fill), `src/pages/kitchen/RecipeDetail.tsx` (delete-knop + preview weg).
+- Geen schema-wijzigingen nodig.

@@ -21,6 +21,8 @@ import {
   useUpdateRecipe,
 } from '@/hooks/useRecipes';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { Sparkles } from 'lucide-react';
 
 type RecipeType = 'gerecht' | 'halffabricaat';
 
@@ -44,6 +46,49 @@ export default function RecipeForm() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([
     { naam: '', hoeveelheid: '', eenheid: null, sort_order: 0 },
   ]);
+  const [categoryTouched, setCategoryTouched] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+
+  // AI: stel categorie voor zodra er een naam is en gebruiker het veld niet aangeraakt heeft.
+  useEffect(() => {
+    if (isEdit) return;
+    if (categoryTouched) return;
+    if (category.trim().length > 0) return;
+    const n = name.trim();
+    if (n.length < 3) return;
+
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      try {
+        setSuggesting(true);
+        const { data: cats } = await supabase
+          .from('recipes')
+          .select('category')
+          .eq('is_gearchiveerd', false);
+        const existing = Array.from(
+          new Set((cats ?? []).map((c: any) => c.category).filter((c: any) => c && c.trim().length > 0)),
+        );
+        const ingr = ingredients.map((i) => i.naam.trim()).filter((s) => s.length > 0);
+        const { data, error } = await supabase.functions.invoke('suggest-recipe-category', {
+          body: { name: n, ingredients: ingr, existingCategories: existing },
+        });
+        if (cancelled) return;
+        if (!error && data?.category && !categoryTouched && category.trim().length === 0) {
+          setCategory(String(data.category));
+        }
+      } catch {
+        /* stil falen — gebruiker vult zelf in */
+      } finally {
+        if (!cancelled) setSuggesting(false);
+      }
+    }, 900);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, isEdit, categoryTouched]);
 
   useEffect(() => {
     if (isEdit && existing?.recipe) {
@@ -142,10 +187,20 @@ export default function RecipeForm() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label className="text-sm font-medium">Categorie</Label>
+              <Label className="text-sm font-medium flex items-center gap-1.5">
+                Categorie
+                {suggesting && (
+                  <span className="inline-flex items-center gap-1 text-xs font-normal text-muted-foreground">
+                    <Sparkles className="h-3 w-3 animate-pulse" /> AI zoekt…
+                  </span>
+                )}
+              </Label>
               <Input
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => {
+                  setCategoryTouched(true);
+                  setCategory(e.target.value);
+                }}
                 placeholder="Bijv. Saus, Voorgerecht, Bakwerk"
                 className="mt-2 h-11"
               />
