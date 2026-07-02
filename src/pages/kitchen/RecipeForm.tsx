@@ -46,6 +46,49 @@ export default function RecipeForm() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([
     { naam: '', hoeveelheid: '', eenheid: null, sort_order: 0 },
   ]);
+  const [categoryTouched, setCategoryTouched] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+
+  // AI: stel categorie voor zodra er een naam is en gebruiker het veld niet aangeraakt heeft.
+  useEffect(() => {
+    if (isEdit) return;
+    if (categoryTouched) return;
+    if (category.trim().length > 0) return;
+    const n = name.trim();
+    if (n.length < 3) return;
+
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      try {
+        setSuggesting(true);
+        const { data: cats } = await supabase
+          .from('recipes')
+          .select('category')
+          .eq('is_gearchiveerd', false);
+        const existing = Array.from(
+          new Set((cats ?? []).map((c: any) => c.category).filter((c: any) => c && c.trim().length > 0)),
+        );
+        const ingr = ingredients.map((i) => i.naam.trim()).filter((s) => s.length > 0);
+        const { data, error } = await supabase.functions.invoke('suggest-recipe-category', {
+          body: { name: n, ingredients: ingr, existingCategories: existing },
+        });
+        if (cancelled) return;
+        if (!error && data?.category && !categoryTouched && category.trim().length === 0) {
+          setCategory(String(data.category));
+        }
+      } catch {
+        /* stil falen — gebruiker vult zelf in */
+      } finally {
+        if (!cancelled) setSuggesting(false);
+      }
+    }, 900);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, isEdit, categoryTouched]);
 
   useEffect(() => {
     if (isEdit && existing?.recipe) {
