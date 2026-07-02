@@ -22,6 +22,7 @@ import {
 } from '@/hooks/useRecipes';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { IngredientCombobox } from '@/components/kitchen/IngredientCombobox';
 
 
 type RecipeType = 'gerecht' | 'halffabricaat';
