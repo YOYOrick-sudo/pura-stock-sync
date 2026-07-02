@@ -25,6 +25,7 @@ const allNavigationItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home, locations: ['West', 'Midsland'], managerOnly: false },
   { title: 'Taken Bediening', url: '/taken-bediening', icon: ListChecks, locations: ['West', 'Midsland'], managerOnly: false },
   { title: 'Recepten', url: '/kitchen/recipes', icon: BookOpen, locations: ['West', 'Midsland'], managerOnly: false },
+  { title: 'Ingrediënten', url: '/kitchen/ingredienten', icon: Carrot, locations: ['West', 'Midsland'], managerOnly: false },
   { title: 'Kassatelling', url: '/kassatelling', icon: Wallet, locations: ['West', 'Midsland'], managerOnly: false },
 
   { title: 'Onderhoud', url: '/onderhoud', icon: Wrench, locations: ['West', 'Midsland'], managerOnly: false },
