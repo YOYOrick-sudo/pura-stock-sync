@@ -128,6 +128,9 @@ export default function RecipeForm() {
   const updateRow = (idx: number, field: 'naam' | 'hoeveelheid' | 'eenheid', value: string | null) =>
     setIngredients((prev) => prev.map((r, i) => (i === idx ? { ...r, [field]: value } : r)));
 
+  const setNaamAndMaster = (idx: number, naam: string, ingredient_id: string | null) =>
+    setIngredients((prev) => prev.map((r, i) => (i === idx ? { ...r, naam, ingredient_id } : r)));
+
   const onSave = async () => {
     if (!name.trim()) {
       toast.error('Naam is verplicht');
