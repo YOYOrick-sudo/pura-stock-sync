@@ -1,14 +1,23 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Edit, Users, ChevronLeft, Printer } from 'lucide-react';
-import { useRecipe } from '@/hooks/useRecipes';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Edit, Users, ChevronLeft, Printer, Trash2 } from 'lucide-react';
+import { useRecipe, useDeleteRecipe } from '@/hooks/useRecipes';
 import { useCreatePrintJob } from '@/hooks/usePrintJobs';
-import { buildRecipeLabelZpl, labelaryPreviewUrl } from '@/lib/labelZpl';
-
+import { toast } from 'sonner';
 
 function formatIngredient(hoeveelheid?: string | null, eenheid?: string | null, naam?: string) {
   return `${hoeveelheid ?? ''} ${eenheid ?? ''} ${naam ?? ''}`.replace(/\s+/g, ' ').trim();
@@ -19,17 +28,10 @@ export default function RecipeDetail() {
   const navigate = useNavigate();
   const { data, isLoading } = useRecipe(id);
   const createPrintJob = useCreatePrintJob();
-  const [previewError, setPreviewError] = useState(false);
+  const deleteMut = useDeleteRecipe();
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const recipeType = (data?.recipe?.type as 'gerecht' | 'halffabricaat' | undefined) ?? 'gerecht';
-  const recipeName = data?.recipe?.name ?? '';
-
-  const previewSrc = useMemo(() => {
-    if (!recipeName) return '';
-    const zpl = buildRecipeLabelZpl({ name: recipeName, type: recipeType });
-    return labelaryPreviewUrl(zpl);
-  }, [recipeName, recipeType]);
-
 
   if (isLoading) {
     return (
@@ -48,6 +50,16 @@ export default function RecipeDetail() {
   }
 
   const { recipe, ingredients } = data;
+
+  const onDelete = async () => {
+    try {
+      await deleteMut.mutateAsync(recipe.id);
+      toast.success('Recept verwijderd');
+      navigate('/kitchen/recipes');
+    } catch (e: any) {
+      toast.error('Verwijderen mislukt: ' + (e?.message ?? 'onbekende fout'));
+    }
+  };
 
   return (
     <SidebarLayout>
@@ -100,7 +112,6 @@ export default function RecipeDetail() {
                 </Button>
                 <Button
                   size="sm"
-                  data-print-ready="v2"
                   onClick={() => createPrintJob.mutate({ id: recipe.id, name: recipe.name, type: recipeType })}
                   disabled={createPrintJob.isPending}
                   className="h-12"
@@ -108,43 +119,19 @@ export default function RecipeDetail() {
                   <Printer className="w-4 h-4 mr-1.5" />
                   Print sticker
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setConfirmOpen(true)}
+                  className="h-12 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+                >
+                  <Trash2 className="w-4 h-4 mr-1.5" />
+                  Verwijderen
+                </Button>
               </div>
             </div>
           </div>
         </Card>
-
-        {/* Sticker voorbeeld */}
-        <Card className="p-5 sm:p-6 bg-white shadow-sm">
-          <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground pb-3 mb-3 border-b border-border/60">
-            Voorbeeld sticker
-          </h2>
-          <div className="flex flex-col items-start gap-2">
-            <div
-              className="rounded-md border border-border/60 bg-muted/30 p-2"
-              style={{ width: 336, maxWidth: '100%' }}
-            >
-              {previewError ? (
-                <div
-                  className="flex items-center justify-center text-xs text-muted-foreground"
-                  style={{ width: '100%', aspectRatio: '2.24 / 1.26' }}
-                >
-                  Voorbeeld niet beschikbaar
-                </div>
-              ) : (
-                <img
-                  src={previewSrc}
-                  alt={`Voorbeeld sticker ${recipe.name}`}
-                  onError={() => setPreviewError(true)}
-                  style={{ width: '100%', height: 'auto', display: 'block' }}
-                />
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Voorbeeld op ware verhouding (57 × 32 mm) — gerenderd via Labelary.
-            </p>
-          </div>
-        </Card>
-
 
         {/* Ingredients */}
         <Card className="p-5 sm:p-6 bg-white shadow-sm">
@@ -192,9 +179,29 @@ export default function RecipeDetail() {
           )}
         </Card>
       </div>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Recept verwijderen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              "{recipe.name}" wordt uit de lijst verwijderd. Deze actie kan niet vanuit de app ongedaan gemaakt worden.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMut.isPending}>Annuleren</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={onDelete}
+              disabled={deleteMut.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMut.isPending ? 'Verwijderen…' : 'Verwijderen'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SidebarLayout>
   );
 }
 
-// Exposed for potential reuse
 export { formatIngredient };
