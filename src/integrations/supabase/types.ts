@@ -1931,6 +1931,36 @@ export type Database = {
         }
         Relationships: []
       }
+      sticker_producten: {
+        Row: {
+          created_at: string
+          id: string
+          keer_geprint: number
+          laatst_geprint: string
+          laatst_tht_dagen: number | null
+          laatst_type: string | null
+          naam: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          keer_geprint?: number
+          laatst_geprint?: string
+          laatst_tht_dagen?: number | null
+          laatst_type?: string | null
+          naam: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          keer_geprint?: number
+          laatst_geprint?: string
+          laatst_tht_dagen?: number | null
+          laatst_type?: string | null
+          naam?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -2372,6 +2402,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      sticker_producten_bump: {
+        Args: { _naam: string; _tht: number; _type: string }
+        Returns: string
       }
     }
     Enums: {
