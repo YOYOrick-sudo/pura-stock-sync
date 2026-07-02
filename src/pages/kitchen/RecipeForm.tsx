@@ -251,12 +251,14 @@ export default function RecipeForm() {
                 key={idx}
                 className="flex flex-wrap items-center gap-2 rounded-polar-md border border-border/60 bg-background/40 p-2"
               >
-                <Input
-                  value={row.naam}
-                  onChange={(e) => updateRow(idx, 'naam', e.target.value)}
-                  placeholder="Ingrediënt"
-                  className="h-11 flex-1 min-w-[160px]"
-                />
+                <div className="flex-1 min-w-[160px]">
+                  <IngredientCombobox
+                    value={row.naam}
+                    ingredientId={row.ingredient_id ?? null}
+                    onChange={(naam, id) => setNaamAndMaster(idx, naam, id)}
+                    placeholder="Ingrediënt"
+                  />
+                </div>
                 <Input
                   value={row.hoeveelheid}
                   onChange={(e) => updateRow(idx, 'hoeveelheid', e.target.value)}
