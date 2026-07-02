@@ -1,27 +1,32 @@
+# AI-categorie onzichtbaar op achtergrond
 
-Drie kleine verbeteringen aan de Receptenmodule.
+## Wat verandert er in de UI
+- **Sparkles-knop weg** naast het categorieveld.
+- **"AI zoekt…" label weg** naast "Categorie".
+- Categorieveld blijft een gewone tekst-input die je altijd zelf kan overschrijven (ook op bestaande recepten).
+- Geen toast, geen laadindicator — het gebeurt stil.
 
-## 1. Automatische categorie bij nieuw recept (AI, low-cost)
+## Gedrag bij nieuw recept
+- Zodra naam ≥ 3 tekens is en gebruiker de categorie niet heeft aangeraakt, wordt na ~1s stil een suggestie opgehaald en ingevuld.
+- Als de gebruiker daarna zelf begint te typen in het categorieveld, stopt de AI met overschrijven (bestaand gedrag blijft).
+- Bij bestaande recepten gebeurt er niks automatisch.
 
-- Nieuwe edge function `suggest-recipe-category` op basis van Lovable AI Gateway met `google/gemini-3-flash-preview` (goedkoopste chat-model, ~instant).
-- Input: `name` + eventueel `ingredients`. Output: één woord/korte string met de categorie.
-- Prompt geeft de AI de bestaande categorieën als voorkeurslijst mee (uit `recipes.category`) zodat we niet elke keer een nieuwe variant krijgen ("Saus" vs "Sauzen"). Alleen nieuwe categorie als niks past.
-- In `RecipeForm.tsx`: zodra de naam is ingevuld (of bij blur) en het categorie-veld nog leeg is, roept 'ie de function aan en vult het veld in. Gebruiker kan overschrijven.
-- Debounced + alleen bij leeg veld → minimale calls, minimale kosten.
+## Slimmere categoriekeuze
+De edge function `suggest-recipe-category` krijgt een striktere prompt:
 
-## 2. Recept verwijderen
+- **Kies vrijwel altijd één van de bestaande categorieën** van dit restaurant.
+- Alleen een nieuwe categorie voorstellen wanneer het recept écht in een andere hoek valt dan alles wat er is (voorbeeld dat de gebruiker gaf: er staat "vlees" in de naam/ingrediënten maar er is nog geen vleescategorie → dan wél "Vlees").
+- Als geen enkele bestaande categorie exact past maar er wel een redelijk vergelijkbare is (bv. bestaande "Groente" en het is een groenterecept), pak die.
+- Bij twijfel: de dichtstbijzijnde bestaande categorie kiezen.
 
-- Knop "Verwijderen" op `RecipeDetail.tsx` (naast Bewerken/Print), met `AlertDialog` bevestiging.
-- Nieuwe hook `useDeleteRecipe()` in `useRecipes.ts` die soft-delete doet (`is_gearchiveerd = true`) — zo blijven eventuele historische print_jobs/verwijzingen intact en verdwijnt het recept uit alle lijsten (die filteren al op `is_gearchiveerd = false`).
-- Na verwijderen: toast + navigate terug naar `/kitchen/recipes`.
-- RLS: bestaande update-policy staat authenticated toe → werkt direct.
+## Technische details
+Bestand `src/pages/kitchen/RecipeForm.tsx`:
+- `suggestCategory` helper en de handmatige knop verwijderen.
+- `useEffect` voor auto-suggestie behouden, maar terug naar "stil falen" — geen toasts, geen zichtbare loading state.
+- `suggesting` state en `Sparkles` import verwijderen.
+- Placeholder van categorie-input laten staan.
 
-## 3. Voorbeeld sticker weghalen
-
-- De hele "Voorbeeld sticker"-kaart in `RecipeDetail.tsx` verwijderen (inclusief Labelary-preview, `previewSrc`/`previewError` state, en unused imports `useMemo`, `buildRecipeLabelZpl`, `labelaryPreviewUrl`).
-- "Print sticker"-knop blijft gewoon staan.
-
-## Technisch
-
-- Files: `supabase/functions/suggest-recipe-category/index.ts` (nieuw), `src/hooks/useRecipes.ts` (delete-hook + eventueel categorie-suggest hook), `src/pages/kitchen/RecipeForm.tsx` (auto-fill), `src/pages/kitchen/RecipeDetail.tsx` (delete-knop + preview weg).
-- Geen schema-wijzigingen nodig.
+Bestand `supabase/functions/suggest-recipe-category/index.ts`:
+- Systeem-prompt herschrijven met sterke instructie "gebruik bestaande categorie tenzij écht ver ernaast".
+- Regels voor Groente/Sauzen/Bakwerk/etc. blijven staan.
+- Nieuwe regel: nieuwe categorie alleen als het recept over een ingrediëntgroep gaat die duidelijk ontbreekt in de lijst (bijv. vlees, vis, pasta).

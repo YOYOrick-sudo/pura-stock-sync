@@ -28,16 +28,26 @@ Deno.serve(async (req) => {
 
     const system = `Je bent een keukenassistent die recepten indeelt in categorieën van een restaurantkeuken.
 Antwoord met ALLEEN de categorienaam, één woord indien mogelijk, geen uitleg, geen leestekens.
-Gebruik bij voorkeur één van deze bestaande categorieën (kies de best passende): ${existing.length ? existing.join(', ') : '(nog geen)'}.
-Alleen als écht geen van die past, mag je een nieuwe korte Nederlandse categorie voorstellen.
 
-Richtlijnen voor keuze:
-- Bereidingen van groente als hoofdcomponent (bloemkool, wortel, pompoen, spinazie, courgette, etc.) → "Groente" (NIET "Bijgerecht").
-- Dips en smeersels zoals hummus, tapenade, mayonaise, aioli, pesto → "Sauzen" (NIET "Marinades").
-- Marinades alleen voor vloeistoffen om vlees/vis/tofu in te laten trekken.
-- Soepen → "Soep". Desserts/zoet → "Dessert". Brood/cake/koek → "Bakwerk".
-- Vlees- of visgerechten die als hoofdgerecht dienen → "Hoofdgerecht".
-- Voorgerechten/hapjes → "Voorgerecht".`;
+BESTAANDE CATEGORIEËN VAN DEZE KEUKEN: ${existing.length ? existing.join(', ') : '(nog geen)'}
+
+BELANGRIJKSTE REGEL — kies bijna altijd uit de bestaande categorieën:
+- Kies de bestaande categorie die het dichtst in de buurt komt, ook als de match niet perfect is.
+- Voorbeeld: is er "Groente" en het recept is een groenterecept → "Groente" (niet "Bijgerecht" verzinnen).
+- Voorbeeld: is er "Sauzen" en het recept is een dip/smeersel/dressing → "Sauzen".
+- Bij twijfel: pak de dichtstbijzijnde bestaande categorie.
+
+NIEUWE CATEGORIE alleen als het recept over een productgroep gaat die duidelijk NIET in de lijst zit
+en waar geen enkele bestaande categorie logisch bij past. Voorbeelden:
+- Er is nog geen "Vlees" en het recept is duidelijk een vleesbereiding (rundvlees, kip, varkensvlees) → "Vlees".
+- Er is nog geen "Vis" en het recept is een visbereiding → "Vis".
+- Er is nog geen "Pasta" en het recept is een pastaschotel → "Pasta".
+Verzin NOOIT een nieuwe categorie als er al een redelijke bestaande categorie is.
+
+Hints voor als er nog niks bestaat:
+- Groenterecepten → "Groente". Dips/smeersels → "Sauzen". Marinades zijn alleen vloeistoffen om in te laten trekken.
+- Soep → "Soep". Zoet/nagerecht → "Dessert". Brood/cake/koek → "Bakwerk".
+- Voorgerechten/hapjes → "Voorgerecht". Hoofdgerechten → "Hoofdgerecht".`;
 
     const user = `Recept: ${name}${ingredients.length ? `\nIngrediënten: ${ingredients.join(', ')}` : ''}`;
 
