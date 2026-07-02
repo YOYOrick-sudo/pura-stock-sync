@@ -93,29 +93,28 @@ export function buildStickerZpl(input: StickerLabelInput): string {
 
   const lines: string[] = ['^XA', '^CI28', '^PW448', '^LL256'];
 
-  // Kop (klein, vet-look via A0). Weglaten bij 'vrij'.
-  if (kop) {
-    lines.push(`^FO20,14^A0N,22,22^FD${kop}^FS`);
-  }
-
-  // Naam — start iets lager als er een kop is
-  const naamY = kop ? 44 : 24;
-  lines.push(`^FO20,${naamY}^A0N,${naamFont},${naamFont}^FB408,2,4,L^FD${naam}^FS`);
-
-  // Datums onderaan (label = 256 dots hoog)
   if (input.type === 'vrij') {
-    lines.push(`^FO20,208^A0N,28,28^FDDatum: ${d1}^FS`);
-  } else if (input.type === 'ontdooid') {
-    lines.push(`^FO20,176^A0N,24,24^FDUit vriezer: ${d1}^FS`);
-    lines.push(`^FO20,212^A0N,26,26^FDGebruiken t/m: ${d2}^FS`);
+    // Geen balk: naam mag naar boven.
+    lines.push(`^FO20,20^A0N,${naamFont},${naamFont}^FB408,2,4,L^FD${naam}^FS`);
+    lines.push(`^FO20,210^A0N,28,28^FDDatum: ${d1}^FS`);
   } else {
-    lines.push(`^FO20,176^A0N,24,24^FDBereid: ${d1}^FS`);
-    lines.push(`^FO20,212^A0N,26,26^FDGebruiken t/m: ${d2}^FS`);
+    // 1) Zwarte kop-balk (36 dots hoog) met witte tekst via ^FR.
+    lines.push('^FO0,0^GB448,36,36,B,0^FS');
+    lines.push(`^FO0,6^A0N,26,26^FB448,1,0,C^FR^FD${kop}^FS`);
+
+    // 2) Naam onder de balk — verticaal binnen budget 52..164 (112 dots, ruim voor 2×40).
+    lines.push(`^FO20,52^A0N,${naamFont},${naamFont}^FB408,2,4,L^FD${naam}^FS`);
+
+    // 3) Datums onderaan, THT prominenter (32) dan bron-datum (24).
+    const bronLabel = input.type === 'ontdooid' ? 'Uit vriezer' : 'Bereid';
+    lines.push(`^FO20,170^A0N,24,24^FD${bronLabel}: ${d1}^FS`);
+    lines.push(`^FO20,202^A0N,32,32^FDGebruiken t/m: ${d2}^FS`);
   }
 
   lines.push('^XZ');
   return lines.join('\n');
 }
+
 
 export function buildStickerOmschrijving(input: StickerLabelInput): string {
   const naam = sanitizeZpl(input.naam);

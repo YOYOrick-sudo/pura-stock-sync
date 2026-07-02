@@ -1,32 +1,39 @@
-De PolarHeader in SidebarLayout toont al de pagina-titel bovenaan elke pagina (zoals Dashboard en Taken doen). Op andere pagina's staat die titel echter ook nog eens als `<h1>` in de pagina-content zelf, wat dubbelop is.
+## Doel
+Alleen `buildStickerZpl` in `src/lib/labelZpl.ts` aanpassen — drie wijzigingen, geen andere code.
 
-Doel: alle pagina's die `SidebarLayout` gebruiken krijgen hun titel alleen via de PolarHeader, consistent met Dashboard en Taken. Dubbele `<h1>` titels in de content worden verwijderd.
+## Wijzigingen
 
----
+### 1. Zwarte kop-balk met witte tekst (behalve type `vrij`)
+- Boven het label een gevuld zwart blok van 448×36 dots via `^GB448,36,36^FS`.
+- Kop-tekst ("ONTDOOID" / "BEREID") daaroverheen, gecentreerd en wit via reverse:
+  - `^FO0,6^A0N,26,26^FB448,1,0,C^FR^FD{kop}^FS`
+- Bij `type === 'vrij'`: geen balk, naam start bovenaan (y=20).
 
-## Aanpak
+### 2. THT-regel prominenter
+- Nieuw formaat voor "Gebruiken t/m: …": font **32** (was 26). `^A0N` is al bold-uitstraling; regel wordt zwaarder puur door grotere font.
+- "Uit vriezer: …" / "Bereid: …" blijft **font 24** en staat erboven.
 
-### Stap 1: Dubbele titels verwijderen uit keuken-pagina's
-- **Ingredienten.tsx** — verwijder `<h1>Ingrediënten</h1>` (de info-tooltip blijft als los element zonder kop)
-- **Recipes.tsx** — verwijder `<h1>Recepten</h1>` die zojuist is toegevoegd
-- **SnelPrinten.tsx** — verwijder `<h1>Snel printen</h1>`
-- **KitchenMenu.tsx** — verwijder `<h1>Keuken</h1>`
+### 3. Verticale ruimte netjes verdelen (256 dots totaal)
+Nieuwe indeling met balk:
 
-### Stap 2: Dubbele titels verwijderen uit overige hoofdmodules
-- **Voorraad.tsx** — `<h1>` titel verwijderen
-- **Settings.tsx** — `<h1>Instellingen</h1>` verwijderen
-- **KasControle.tsx** — `<h1>Kas-controle</h1>` verwijderen
-- **FohAnalytics.tsx** — statische `<h1>Taken Analyse</h1>` verwijderen (de "Laden..." variant is een laadstatus, die kan eventueel blijven of vervangen worden door een skeleton)
+```
+y=0    ┌─────────────────────────┐
+       │ ZWARTE BALK (36 hoog)   │  kop wit
+y=36   ├─────────────────────────┤
+y=52   │ NAAM (max 2 regels,     │
+       │        font 22–40)      │  budget 112 dots
+y=164  ├─────────────────────────┤
+y=170  │ Uit vriezer/Bereid (24) │
+y=202  │ Gebruiken t/m: … (32 b) │
+y=240  └─────────────────────────┘
+```
 
-### Stap 3: HR-module en personeel-module
-- **HrInbox.tsx**, **HousingPlanner.tsx** — statische module-titels verwijderen
-- **PersoneelLayout.tsx** — statische module-titel verwijderen (detailpagina's zoals WonenDetail en ApplicantDetail tonen een specifieke naam en blijven ongewijzigd — dat is geen dubbele pagina-titel)
+Zonder balk (`vrij`):
+- Naam vanaf y=20 (2 regels budget behouden)
+- "Datum: …" op y=210, font 28 (huidig)
 
-### Stap 4: Uitzonderingen (ongewijzigd)
-Pagina's zonder `SidebarLayout` of met een specifieke content-titel blijven buiten scope:
-- DesignSystem, StyleGuide, DesignPreview, NotFound, Unsubscribe (geen SidebarLayout of aparte flows)
-- RecipeDetail, ApplicantDetail, HousingForm, ApplicantForm, WonenDetail (tonen een specifieke naam als content-titel, geen dubbele pagina-titel)
+### Budget-check naam-wrap
+`fontForStickerName` levert max 40. 2 regels × 40 = 80 dots, ruim binnen de 112 dots tussen y=52 en y=164. Geen wijziging aan de font-tabel nodig.
 
-### Stap 5: Validatie
-- TypeScript build check na alle wijzigingen
-- Visuele controle op preview of titels correct in PolarHeader staan en geen dubbele koppen meer in de content staan
+## Bestand
+- `src/lib/labelZpl.ts` — alleen de body van `buildStickerZpl` (regels ~87-118). Rest van het bestand ongemoeid.
