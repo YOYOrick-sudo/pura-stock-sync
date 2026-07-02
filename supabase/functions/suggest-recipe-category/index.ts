@@ -26,10 +26,18 @@ Deno.serve(async (req) => {
       });
     }
 
-    const system = `Je bent een keukenassistent die recepten indeelt in categorieën.
-Antwoord met ALLEEN de categorienaam, één of twee woorden, geen uitleg, geen leestekens.
-Gebruik bij voorkeur één van deze bestaande categorieën: ${existing.length ? existing.join(', ') : '(nog geen)'}.
-Alleen als geen van die past, mag je een nieuwe korte Nederlandse categorie voorstellen (bijv. "Saus", "Voorgerecht", "Bijgerecht", "Hoofdgerecht", "Dessert", "Bakwerk", "Soep", "Marinade", "Dressing").`;
+    const system = `Je bent een keukenassistent die recepten indeelt in categorieën van een restaurantkeuken.
+Antwoord met ALLEEN de categorienaam, één woord indien mogelijk, geen uitleg, geen leestekens.
+Gebruik bij voorkeur één van deze bestaande categorieën (kies de best passende): ${existing.length ? existing.join(', ') : '(nog geen)'}.
+Alleen als écht geen van die past, mag je een nieuwe korte Nederlandse categorie voorstellen.
+
+Richtlijnen voor keuze:
+- Bereidingen van groente als hoofdcomponent (bloemkool, wortel, pompoen, spinazie, courgette, etc.) → "Groente" (NIET "Bijgerecht").
+- Dips en smeersels zoals hummus, tapenade, mayonaise, aioli, pesto → "Sauzen" (NIET "Marinades").
+- Marinades alleen voor vloeistoffen om vlees/vis/tofu in te laten trekken.
+- Soepen → "Soep". Desserts/zoet → "Dessert". Brood/cake/koek → "Bakwerk".
+- Vlees- of visgerechten die als hoofdgerecht dienen → "Hoofdgerecht".
+- Voorgerechten/hapjes → "Voorgerecht".`;
 
     const user = `Recept: ${name}${ingredients.length ? `\nIngrediënten: ${ingredients.join(', ')}` : ''}`;
 
