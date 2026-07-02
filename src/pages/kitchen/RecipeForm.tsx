@@ -22,7 +22,7 @@ import {
 } from '@/hooks/useRecipes';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles } from 'lucide-react';
+
 
 type RecipeType = 'gerecht' | 'halffabricaat';
 
