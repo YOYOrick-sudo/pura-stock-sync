@@ -27,20 +27,19 @@ export default function Recipes() {
         <Card className="p-4 bg-card shadow-sm">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Zoek recepten..."
+                placeholder="Zoek recepten…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-11 h-12 text-base bg-card"
+                className="h-11 pl-10"
               />
             </div>
             <Button
-              size="lg"
               onClick={() => navigate('/kitchen/recipes/nieuw')}
-              className="min-h-[48px]"
+              className="min-h-[44px]"
             >
-              <Plus className="h-5 w-5 mr-2" />
+              <Plus className="h-4 w-4 mr-2" />
               Nieuw recept
             </Button>
           </div>
