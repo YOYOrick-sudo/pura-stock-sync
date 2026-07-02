@@ -177,7 +177,7 @@ export default function RecipeForm() {
   return (
     <SidebarLayout>
       <div className="space-y-4 max-w-4xl">
-        <Card className="p-5 sm:p-6 bg-white shadow-sm space-y-5">
+        <Card className="p-5 sm:p-6 bg-card shadow-sm space-y-5">
           <div>
             <Label className="text-sm font-medium">Naam *</Label>
             <Input
@@ -224,7 +224,7 @@ export default function RecipeForm() {
                   type="button"
                   onClick={() => setType(t)}
                   className={`px-5 py-2.5 rounded-polar-md text-sm font-medium min-h-[44px] transition-colors ${
-                    type === t ? 'bg-white shadow-sm text-foreground' : 'text-muted-foreground'
+                    type === t ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'
                   }`}
                 >
                   {t === 'gerecht' ? 'Gerecht' : 'Halffabricaat'}
@@ -235,7 +235,7 @@ export default function RecipeForm() {
         </Card>
 
         {/* Ingredienten */}
-        <Card className="p-5 sm:p-6 bg-white shadow-sm">
+        <Card className="p-5 sm:p-6 bg-card shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
               Ingrediënten
@@ -315,7 +315,7 @@ export default function RecipeForm() {
         </Card>
 
         {/* Bereiding */}
-        <Card className="p-5 sm:p-6 bg-white shadow-sm">
+        <Card className="p-5 sm:p-6 bg-card shadow-sm">
           <Label className="text-sm font-medium uppercase tracking-wide text-muted-foreground mb-3 block">
             Bereiding
           </Label>

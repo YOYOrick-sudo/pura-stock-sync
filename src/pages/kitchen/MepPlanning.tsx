@@ -26,7 +26,7 @@ export default function MepPlanning() {
       case 'in_progress':
         return 'bg-blue-100 text-blue-600';
       default:
-        return 'bg-gray-100 text-gray-600';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -34,7 +34,7 @@ export default function MepPlanning() {
     <KitchenLayout title="Mise-en-place" subtitle="Plan je voorbereidingen">
       <div className="space-y-6">
         {/* Week Selector */}
-        <Card className="p-1 bg-white shadow-sm">
+        <Card className="p-1 bg-card shadow-sm">
           <Tabs value={format(selectedDate, 'yyyy-MM-dd')} onValueChange={(value) => setSelectedDate(new Date(value))}>
             <TabsList className="w-full grid grid-cols-7 bg-background/50">
               {weekDays.map((day) => (
@@ -83,7 +83,7 @@ export default function MepPlanning() {
         ) : (
           <div className="space-y-3">
             {mepItems.map((item: any) => (
-              <Card key={item.id} className="p-4 bg-white shadow-sm">
+              <Card key={item.id} className="p-4 bg-card shadow-sm">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
