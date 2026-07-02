@@ -14,8 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Pencil, Check, X, ArrowUpDown, ChefHat, Search, Merge, Info } from 'lucide-react';
+import { Pencil, Check, X, ArrowUpDown, ChefHat, Search, Merge } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { toast } from 'sonner';

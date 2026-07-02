@@ -1,14 +1,13 @@
 import { useMemo, useRef, useState } from 'react';
 import { addDays, format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { Snowflake, ChefHat, Tag, Minus, Plus, Printer, Eye, Info } from 'lucide-react';
+import { Snowflake, ChefHat, Tag, Minus, Plus, Printer, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { StickerProductCombobox } from '@/components/kitchen/StickerProductCombobox';
 import {
