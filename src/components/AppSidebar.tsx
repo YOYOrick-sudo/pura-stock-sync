@@ -1,4 +1,4 @@
-import { Home, ListChecks, Wallet, Settings, BarChart3, Wrench, Users, ShieldCheck, BookOpen, Carrot } from 'lucide-react';
+import { Home, ListChecks, Wallet, Settings, BarChart3, Wrench, Users, ShieldCheck, BookOpen, Carrot, Printer } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useEffect, useState } from 'react';
@@ -26,6 +26,7 @@ const allNavigationItems = [
   { title: 'Taken Bediening', url: '/taken-bediening', icon: ListChecks, locations: ['West', 'Midsland'], managerOnly: false },
   { title: 'Recepten', url: '/kitchen/recipes', icon: BookOpen, locations: ['West', 'Midsland'], managerOnly: false },
   { title: 'Ingrediënten', url: '/kitchen/ingredienten', icon: Carrot, locations: ['West', 'Midsland'], managerOnly: false },
+  { title: 'Snel printen', url: '/kitchen/snel-printen', icon: Printer, locations: ['West', 'Midsland'], managerOnly: false },
   { title: 'Kassatelling', url: '/kassatelling', icon: Wallet, locations: ['West', 'Midsland'], managerOnly: false },
 
   { title: 'Onderhoud', url: '/onderhoud', icon: Wrench, locations: ['West', 'Midsland'], managerOnly: false },
