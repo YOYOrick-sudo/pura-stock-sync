@@ -170,6 +170,7 @@ const App = () => (
             <Route path="/kitchen/recipes/nieuw" element={<ProtectedRoute><RecipeForm /></ProtectedRoute>} />
             <Route path="/kitchen/recipes/:id" element={<ProtectedRoute><RecipeDetail /></ProtectedRoute>} />
             <Route path="/kitchen/recipes/:id/bewerken" element={<ProtectedRoute><RecipeForm /></ProtectedRoute>} />
+            <Route path="/kitchen/ingredienten" element={<ProtectedRoute><Ingredienten /></ProtectedRoute>} />
 
 
             
