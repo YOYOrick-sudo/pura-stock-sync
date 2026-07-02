@@ -34,7 +34,7 @@ export function StickerProductCombobox({
     <Popover open={open && term.length >= 2} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <div className="relative">
-          <Package className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+          <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <input
             autoFocus={autoFocus}
             type="text"
@@ -46,8 +46,10 @@ export function StickerProductCombobox({
             onFocus={() => setOpen(true)}
             placeholder={placeholder ?? 'Product…'}
             className={cn(
-              'w-full h-14 pl-12 pr-4 rounded-polar-lg border-1.5 border-input bg-background text-lg',
-              'focus-visible:outline-none focus-visible:border-primary transition-colors',
+              'flex w-full h-11 pl-10 pr-3 rounded-md border border-input bg-background text-sm',
+              'ring-offset-background placeholder:text-muted-foreground',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+              'disabled:cursor-not-allowed disabled:opacity-50 transition-colors',
             )}
           />
         </div>
