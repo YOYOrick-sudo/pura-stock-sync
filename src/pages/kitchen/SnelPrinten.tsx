@@ -208,10 +208,8 @@ export default function SnelPrinten() {
                   autoFocus
                 />
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Suggesties op basis van eerder geprinte producten.
-              </p>
             </Card>
+
 
 
             {/* Stap 3 — Datums */}
