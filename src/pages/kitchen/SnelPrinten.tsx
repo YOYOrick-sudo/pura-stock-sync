@@ -149,23 +149,6 @@ export default function SnelPrinten() {
   return (
     <SidebarLayout>
       <div className="max-w-5xl mx-auto space-y-4">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-heading font-bold text-foreground">Snel printen</h1>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                className="inline-flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                aria-label="Meer informatie"
-              >
-                <Info className="h-4 w-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right" className="max-w-xs">
-              Print ontdooi-, bereid- en vrije stickers direct naar de keuken-printer. Suggesties in het productveld komen van eerder geprinte producten.
-            </TooltipContent>
-          </Tooltip>
-        </div>
 
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
