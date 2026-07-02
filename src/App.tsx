@@ -27,6 +27,7 @@ import KasControle from "./pages/KasControle";
 import Recipes from "./pages/kitchen/Recipes";
 import RecipeDetail from "./pages/kitchen/RecipeDetail";
 import RecipeForm from "./pages/kitchen/RecipeForm";
+import Ingredienten from "./pages/kitchen/Ingredienten";
 // HR Module
 import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } from "./pages/hr";
 // Maintenance Module
