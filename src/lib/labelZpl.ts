@@ -59,6 +59,73 @@ export function buildLabelOmschrijving(naam: string, datum?: string): string {
   return `${sanitizeZpl(naam)} — ${d}`;
 }
 
+// ============ Snel-print stickers (ontdooid / bereid / vrij) ============
+
+export type StickerType = 'ontdooid' | 'bereid' | 'vrij';
+
+const STICKER_KOP: Record<StickerType, string> = {
+  ontdooid: 'ONTDOOID',
+  bereid: 'BEREID',
+  vrij: '',
+};
+
+// Iets compacter dan fontForName omdat er 2 datumregels onder moeten.
+function fontForStickerName(len: number): number {
+  if (len <= 14) return 40;
+  if (len <= 22) return 32;
+  if (len <= 32) return 26;
+  return 22;
+}
+
+export interface StickerLabelInput {
+  type: StickerType;
+  naam: string;
+  datum1: string;
+  datum2?: string;
+}
+
+export function buildStickerZpl(input: StickerLabelInput): string {
+  const naam = sanitizeZpl(input.naam);
+  const kop = STICKER_KOP[input.type];
+  const naamFont = fontForStickerName(naam.length);
+  const d1 = sanitizeZpl(input.datum1);
+  const d2 = input.datum2 ? sanitizeZpl(input.datum2) : '';
+
+  const lines: string[] = ['^XA', '^CI28', '^PW448', '^LL256'];
+
+  // Kop (klein, vet-look via A0). Weglaten bij 'vrij'.
+  if (kop) {
+    lines.push(`^FO20,14^A0N,22,22^FD${kop}^FS`);
+  }
+
+  // Naam — start iets lager als er een kop is
+  const naamY = kop ? 44 : 24;
+  lines.push(`^FO20,${naamY}^A0N,${naamFont},${naamFont}^FB408,2,4,L^FD${naam}^FS`);
+
+  // Datums onderaan (label = 256 dots hoog)
+  if (input.type === 'vrij') {
+    lines.push(`^FO20,208^A0N,28,28^FDDatum: ${d1}^FS`);
+  } else if (input.type === 'ontdooid') {
+    lines.push(`^FO20,176^A0N,24,24^FDUit vriezer: ${d1}^FS`);
+    lines.push(`^FO20,212^A0N,26,26^FDGebruiken t/m: ${d2}^FS`);
+  } else {
+    lines.push(`^FO20,176^A0N,24,24^FDBereid: ${d1}^FS`);
+    lines.push(`^FO20,212^A0N,26,26^FDGebruiken t/m: ${d2}^FS`);
+  }
+
+  lines.push('^XZ');
+  return lines.join('\n');
+}
+
+export function buildStickerOmschrijving(input: StickerLabelInput): string {
+  const naam = sanitizeZpl(input.naam);
+  if (input.type === 'vrij') {
+    return `VRIJ: ${naam} — ${input.datum1}`;
+  }
+  const kop = STICKER_KOP[input.type];
+  return `${kop}: ${naam} — t/m ${input.datum2 ?? ''}`.trim();
+}
+
 // Labelary render-URL — alleen voor UI-voorbeeld, niet voor het printen zelf.
 // 8dpmm = 203 dpi. 2.24 × 1.26 inch ≈ 57 × 32 mm.
 export function labelaryPreviewUrl(zpl: string): string {
