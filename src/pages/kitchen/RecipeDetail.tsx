@@ -111,13 +111,13 @@ export default function RecipeDetail() {
                   Bewerken
                 </Button>
                 <Button
-                  size="sm"
+                  size="icon"
                   onClick={() => createPrintJob.mutate({ id: recipe.id, name: recipe.name, type: recipeType })}
                   disabled={createPrintJob.isPending}
-                  className="h-12"
+                  title="Print sticker"
+                  className="h-10 w-10"
                 >
-                  <Printer className="w-4 h-4 mr-1.5" />
-                  Print sticker
+                  <Printer className="w-4 h-4" />
                 </Button>
                 <Button
                   size="icon"
