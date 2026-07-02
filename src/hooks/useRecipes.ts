@@ -185,3 +185,21 @@ export function useUpdateRecipe() {
     },
   });
 }
+
+export function useDeleteRecipe() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('recipes')
+        .update({ is_gearchiveerd: true, updated_at: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['recipes'] });
+    },
+  });
+}
+
