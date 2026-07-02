@@ -31,6 +31,10 @@ export interface RecipeForLabel {
   type: 'gerecht' | 'halffabricaat' | string;
 }
 
+// 32×32 monochrome Pura Vida logo (32 dots = ~4 mm bij 203 dpi)
+const LOGO_32_HEX =
+  '805FFBFF0007FFFF001F20F7018FE06F628023008100218042020001040040118004000280400000018010000E40000011C0000114C4000217E6B13F3CC40EC3184602421846008208C6018108C6218100C6018180C6218180C621018146210081C601008146210081C6010042C6021843C6060880043A668004000080040000';
+
 export function buildRecipeLabelZpl(recept: RecipeForLabel): string {
   const naam = sanitizeZpl(recept.name);
   const datum = vandaagNL();
@@ -42,7 +46,8 @@ export function buildRecipeLabelZpl(recept: RecipeForLabel): string {
     '^CI28',
     '^PW448',
     '^LL256',
-    `^FO20,20^A0N,${naamFont},${naamFont}^FB408,2,4,L^FD${naam}^FS`,
+    `^FO20,20^A0N,${naamFont},${naamFont}^FB370,2,4,L^FD${naam}^FS`,
+    `^FO406,18^GFA,128,128,4,${LOGO_32_HEX}^FS`,
     `^FO20,125^A0N,28,28^FD${datum}^FS`,
     `^FO20,165^A0N,24,24^FD${typeLabel}^FS`,
     '^XZ',
