@@ -120,13 +120,13 @@ export default function RecipeDetail() {
                   Print sticker
                 </Button>
                 <Button
-                  size="sm"
+                  size="icon"
                   variant="outline"
                   onClick={() => setConfirmOpen(true)}
-                  className="h-12 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+                  title="Verwijderen"
+                  className="h-10 w-10 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
                 >
-                  <Trash2 className="w-4 h-4 mr-1.5" />
-                  Verwijderen
+                  <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
             </div>
