@@ -174,7 +174,7 @@ export default function FohAnalytics() {
     return (
       <SidebarLayout>
         <div className="max-w-7xl mx-auto space-y-10 pt-12">
-          <h1 className="text-3xl font-heading font-bold text-foreground">Laden...</h1>
+          <div className="text-muted-foreground">Laden...</div>
         </div>
       </SidebarLayout>
     );
