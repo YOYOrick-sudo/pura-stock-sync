@@ -24,7 +24,7 @@ export default function KitchenTasks() {
       case 'prep':
         return 'bg-green-100 text-green-600';
       default:
-        return 'bg-gray-100 text-gray-600';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -44,7 +44,7 @@ export default function KitchenTasks() {
         {tasks.map((task) => (
           <Card
             key={task.id}
-            className={`p-4 bg-white shadow-sm ${task.completed ? 'opacity-50' : ''} ${
+            className={`p-4 bg-card shadow-sm ${task.completed ? 'opacity-50' : ''} ${
               task.due_date && new Date(task.due_date) < new Date() && !task.completed
                 ? 'border-l-4 border-red-500'
                 : ''
@@ -98,7 +98,7 @@ export default function KitchenTasks() {
         </div>
 
         <Tabs defaultValue="today" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-white">
+          <TabsList className="grid w-full grid-cols-4 bg-card">
             <TabsTrigger value="today">Vandaag</TabsTrigger>
             <TabsTrigger value="week">Deze week</TabsTrigger>
             <TabsTrigger value="cleaning">Schoonmaak</TabsTrigger>

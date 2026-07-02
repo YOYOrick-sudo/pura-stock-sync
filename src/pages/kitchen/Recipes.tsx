@@ -24,7 +24,7 @@ export default function Recipes() {
     <SidebarLayout>
       <div className="space-y-6">
         {/* Search & add */}
-        <Card className="p-4 bg-white shadow-sm">
+        <Card className="p-4 bg-card shadow-sm">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -32,7 +32,7 @@ export default function Recipes() {
                 placeholder="Zoek recepten..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-11 h-12 text-base bg-white"
+                className="pl-11 h-12 text-base bg-card"
               />
             </div>
             <Button
@@ -82,7 +82,7 @@ export default function Recipes() {
             }}
           />
         ) : (
-          <Card className="bg-white shadow-sm overflow-hidden">
+          <Card className="bg-card shadow-sm overflow-hidden">
             {/* Desktop table */}
             <div className="hidden sm:block">
               <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-4 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b bg-muted/30">

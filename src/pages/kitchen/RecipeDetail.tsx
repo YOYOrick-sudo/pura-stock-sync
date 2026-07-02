@@ -74,7 +74,7 @@ export default function RecipeDetail() {
         </button>
 
         {/* Header */}
-        <Card className="bg-white shadow-sm">
+        <Card className="bg-card shadow-sm">
           <div className="p-5 sm:p-6">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="flex-1 min-w-0">
@@ -134,7 +134,7 @@ export default function RecipeDetail() {
         </Card>
 
         {/* Ingredients */}
-        <Card className="p-5 sm:p-6 bg-white shadow-sm">
+        <Card className="p-5 sm:p-6 bg-card shadow-sm">
           <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground pb-3 mb-1 border-b border-border/60">
             Ingrediënten
           </h2>
@@ -166,7 +166,7 @@ export default function RecipeDetail() {
         </Card>
 
         {/* Bereiding */}
-        <Card className="p-5 sm:p-6 bg-white shadow-sm">
+        <Card className="p-5 sm:p-6 bg-card shadow-sm">
           <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground pb-3 mb-3 border-b border-border/60">
             Bereiding
           </h2>

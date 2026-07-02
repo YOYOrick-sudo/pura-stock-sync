@@ -221,7 +221,7 @@ export default function Ingredienten() {
           </div>
         </div>
 
-        <Card className="p-4 sm:p-5 bg-white shadow-sm">
+        <Card className="p-4 sm:p-5 bg-card shadow-sm">
           <div className="flex items-center gap-3 flex-wrap mb-4">
             <div className="relative flex-1 min-w-[220px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
