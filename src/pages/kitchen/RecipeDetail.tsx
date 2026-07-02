@@ -100,6 +100,7 @@ export default function RecipeDetail() {
                 </Button>
                 <Button
                   size="sm"
+                  data-print-ready="v2"
                   onClick={() => createPrintJob.mutate({ id: recipe.id, name: recipe.name, type: recipeType })}
                   disabled={createPrintJob.isPending}
                   className="h-12"
