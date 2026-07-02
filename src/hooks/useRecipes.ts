@@ -7,6 +7,7 @@ export interface Ingredient {
   hoeveelheid: string;
   eenheid?: string | null;
   sort_order: number;
+  ingredient_id?: string | null;
 }
 
 export interface Recipe {
