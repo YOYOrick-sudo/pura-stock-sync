@@ -1,12 +1,13 @@
 import { useMemo, useRef, useState } from 'react';
 import { addDays, format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { Snowflake, ChefHat, Tag, Minus, Plus, Printer } from 'lucide-react';
+import { Snowflake, ChefHat, Tag, Minus, Plus, Printer, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { StickerProductCombobox } from '@/components/kitchen/StickerProductCombobox';
 import {
@@ -30,14 +31,47 @@ const THT_RANGE: Record<StickerType, { min: number; max: number }> = {
   vrij: { min: 0, max: 0 },
 };
 
-const TYPES: { key: StickerType; label: string; icon: typeof Snowflake }[] = [
-  { key: 'ontdooid', label: 'Ontdooid', icon: Snowflake },
-  { key: 'bereid', label: 'Bereid', icon: ChefHat },
-  { key: 'vrij', label: 'Vrij', icon: Tag },
+const TYPES: {
+  key: StickerType;
+  label: string;
+  icon: typeof Snowflake;
+  hint: string;
+}[] = [
+  { key: 'ontdooid', label: 'Ontdooid', icon: Snowflake, hint: 'Uit de vriezer • standaard +2 dagen' },
+  { key: 'bereid', label: 'Bereid', icon: ChefHat, hint: 'Vers bereid • standaard +3 dagen' },
+  { key: 'vrij', label: 'Vrij', icon: Tag, hint: 'Alleen datum, geen houdbaarheid' },
 ];
 
 function fmt(d: Date) {
   return format(d, 'EEE dd-MM', { locale: nl });
+}
+
+function StepHeader({
+  step,
+  label,
+  meta,
+}: {
+  step?: number;
+  label: string;
+  meta?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-2.5">
+        {step !== undefined ? (
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
+            {step}
+          </span>
+        ) : (
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <Eye className="h-3.5 w-3.5" />
+          </span>
+        )}
+        <span className="text-sm font-medium text-foreground">{label}</span>
+      </div>
+      {meta && <div className="text-xs text-muted-foreground">{meta}</div>}
+    </div>
+  );
 }
 
 export default function SnelPrinten() {
@@ -72,10 +106,7 @@ export default function SnelPrinten() {
     setNaam(p.naam);
     if (p.laatst_type) {
       setType(p.laatst_type);
-      setThtDagen(
-        p.laatst_tht_dagen ??
-          DEFAULT_THT[p.laatst_type],
-      );
+      setThtDagen(p.laatst_tht_dagen ?? DEFAULT_THT[p.laatst_type]);
     }
   };
 
@@ -100,7 +131,6 @@ export default function SnelPrinten() {
       });
       toast.success('Sticker verzonden naar printer');
       setNaam('');
-      // Type + THT blijven staan voor herhaal-flow
       requestAnimationFrame(() => {
         const el = inputRef.current?.querySelector('input');
         el?.focus();
@@ -111,134 +141,170 @@ export default function SnelPrinten() {
   };
 
   const canPrint = naam.trim().length >= 2 && !createJob.isPending;
+  const activeType = TYPES.find((t) => t.key === type)!;
+  const dateLabel = type === 'ontdooid' ? 'Uit vriezer' : type === 'bereid' ? 'Bereid op' : 'Datum';
 
   return (
     <SidebarLayout>
-      <div className="max-w-5xl mx-auto space-y-4">
+      <div className="max-w-6xl mx-auto space-y-6">
         <div>
           <h1 className="text-2xl font-heading font-bold text-foreground">Snel printen</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Ontdooi-, bereid- en vrije stickers.
+            Print ontdooi-, bereid- en vrije stickers direct naar de keuken-printer.
           </p>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+          {/* Linker kolom — stappen */}
           <div className="space-y-4">
-          {/* Stap 1 — Type */}
-          <Card className="p-4 sm:p-5 bg-card shadow-sm">
-            <div className="text-caption mb-3">1. Type sticker</div>
-            <div className="grid grid-cols-3 gap-2">
-              {TYPES.map(({ key, label, icon: Icon }) => {
-                const active = type === key;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => handleTypeChange(key)}
-                    className={cn(
-                      'min-h-[64px] rounded-polar-lg border-1.5 flex flex-col items-center justify-center gap-1 transition-colors',
-                      active
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-background border-input hover:border-primary/40',
-                    )}
-                  >
-                    <Icon className="h-5 w-5" />
-                    <span className="text-sm font-medium">{label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </Card>
-
-          {/* Stap 2 — Product */}
-          <Card className="p-4 sm:p-5 bg-card shadow-sm">
-            <div className="text-caption mb-3">2. Product</div>
-            <div ref={inputRef}>
-              <StickerProductCombobox
-                value={naam}
-                onChange={setNaam}
-                onPickSuggestion={handlePickSuggestion}
-                placeholder="Typ productnaam…"
-                autoFocus
-              />
-            </div>
-          </Card>
-
-          {/* Stap 3 — Datums */}
-          <Card className="p-4 sm:p-5 bg-card shadow-sm">
-            <div className="text-caption mb-3">3. Datums</div>
-
-            {type === 'vrij' ? (
-              <div className="rounded-polar-lg bg-muted/50 px-4 py-3">
-                <div className="text-xs text-muted-foreground">Datum</div>
-                <div className="text-lg font-semibold text-foreground capitalize">{datum1}</div>
+            {/* Stap 1 — Type */}
+            <Card className="p-5 sm:p-6 bg-card shadow-sm rounded-polar-lg border border-border/60">
+              <StepHeader step={1} label="Type sticker" meta={activeType.hint} />
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                {TYPES.map(({ key, label, icon: Icon }) => {
+                  const active = type === key;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => handleTypeChange(key)}
+                      className={cn(
+                        'min-h-[88px] rounded-polar-lg flex flex-col items-center justify-center gap-1.5 transition-all',
+                        active
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'bg-muted/40 hover:bg-muted text-foreground border border-transparent',
+                      )}
+                    >
+                      <Icon className="h-6 w-6" />
+                      <span className="text-sm font-semibold">{label}</span>
+                    </button>
+                  );
+                })}
               </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="rounded-polar-lg bg-muted/50 px-4 py-3">
-                  <div className="text-xs text-muted-foreground">
-                    {type === 'ontdooid' ? 'Uit vriezer' : 'Bereid op'}
-                  </div>
-                  <div className="text-lg font-semibold text-foreground capitalize">{datum1}</div>
-                </div>
+            </Card>
 
-                <div className="rounded-polar-lg border-1.5 border-input px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-                  <div>
-                    <div className="text-xs text-muted-foreground">Gebruiken t/m</div>
-                    <div className="text-lg font-semibold text-foreground capitalize">
-                      {datum2} <span className="text-sm font-normal text-muted-foreground">(+{thtDagen}d)</span>
+            {/* Stap 2 — Product */}
+            <Card className="p-5 sm:p-6 bg-card shadow-sm rounded-polar-lg border border-border/60">
+              <StepHeader step={2} label="Product" />
+              <div ref={inputRef}>
+                <StickerProductCombobox
+                  value={naam}
+                  onChange={setNaam}
+                  onPickSuggestion={handlePickSuggestion}
+                  placeholder="Typ productnaam…"
+                  autoFocus
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Suggesties op basis van eerder geprinte producten.
+              </p>
+            </Card>
+
+            {/* Stap 3 — Datums */}
+            <Card className="p-5 sm:p-6 bg-card shadow-sm rounded-polar-lg border border-border/60">
+              <StepHeader
+                step={3}
+                label="Datums"
+                meta={type === 'vrij' ? 'Geen houdbaarheid' : `Standaard +${DEFAULT_THT[type]} dagen`}
+              />
+
+              {type === 'vrij' ? (
+                <div className="rounded-polar-md bg-muted/40 p-4">
+                  <div className="text-xs text-muted-foreground">{dateLabel}</div>
+                  <div className="text-lg font-semibold text-foreground capitalize mt-0.5">
+                    {datum1}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-polar-md bg-muted/40 p-4">
+                    <div className="text-xs text-muted-foreground">{dateLabel}</div>
+                    <div className="text-lg font-semibold text-foreground capitalize mt-0.5">
+                      {datum1}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => adjustTht(-1)}
-                      className="h-11 w-11 rounded-polar-md border-1.5 border-input hover:bg-muted flex items-center justify-center"
-                      aria-label="Minder dagen"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <div className="w-12 text-center text-lg font-semibold">{thtDagen}</div>
-                    <button
-                      type="button"
-                      onClick={() => adjustTht(+1)}
-                      className="h-11 w-11 rounded-polar-md border-1.5 border-input hover:bg-muted flex items-center justify-center"
-                      aria-label="Meer dagen"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
+
+                  <div className="rounded-polar-md bg-muted/40 p-4 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-xs text-muted-foreground">Gebruiken t/m</div>
+                      <div className="text-lg font-semibold text-foreground capitalize mt-0.5 truncate">
+                        {datum2}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => adjustTht(-1)}
+                        disabled={thtDagen <= THT_RANGE[type].min}
+                        className="h-10 w-10 rounded-polar-md border border-input bg-card hover:bg-muted disabled:opacity-40 disabled:hover:bg-card flex items-center justify-center transition-colors"
+                        aria-label="Minder dagen"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <div className="w-10 text-center text-lg font-semibold tabular-nums">
+                        {thtDagen}
+                        <span className="text-xs font-normal text-muted-foreground">d</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => adjustTht(+1)}
+                        disabled={thtDagen >= THT_RANGE[type].max}
+                        className="h-10 w-10 rounded-polar-md border border-input bg-card hover:bg-muted disabled:opacity-40 disabled:hover:bg-card flex items-center justify-center transition-colors"
+                        aria-label="Meer dagen"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
+              )}
+            </Card>
+
+            {/* Print */}
+            <Button
+              onClick={handlePrint}
+              disabled={!canPrint}
+              className="w-full h-14 text-base font-semibold rounded-polar-lg"
+            >
+              <Printer className="h-5 w-5 mr-2" />
+              {createJob.isPending ? 'Bezig…' : 'Print sticker'}
+            </Button>
+          </div>
+
+          {/* Rechter kolom — voorbeeld */}
+          <div className="lg:sticky lg:top-6 h-fit">
+            <Card className="p-5 bg-card shadow-sm rounded-polar-lg border border-border/60">
+              <StepHeader label="Voorbeeld" />
+
+              <div className="aspect-[57/32] bg-white rounded-polar-md border border-border flex items-center justify-center overflow-hidden">
+                <img
+                  src={previewUrl}
+                  alt="Sticker voorbeeld"
+                  className="max-w-full max-h-full object-contain"
+                  loading="lazy"
+                />
               </div>
-            )}
-          </Card>
 
-          {/* Print */}
-          <Button
-            onClick={handlePrint}
-            disabled={!canPrint}
-            className="w-full min-h-[56px] text-base"
-          >
-            <Printer className="h-5 w-5 mr-2" />
-            {createJob.isPending ? 'Bezig…' : 'Print sticker'}
-          </Button>
-        </div>
+              <div className="flex flex-wrap gap-1.5 mt-4">
+                <Badge variant="secondary" className="text-xs capitalize">
+                  {activeType.label}
+                </Badge>
+                {naam.trim() && (
+                  <Badge variant="secondary" className="text-xs max-w-[180px] truncate">
+                    {naam.trim()}
+                  </Badge>
+                )}
+                {datum2 && (
+                  <Badge variant="secondary" className="text-xs capitalize">
+                    t/m {datum2}
+                  </Badge>
+                )}
+              </div>
 
-        {/* Voorbeeld */}
-        <div className="lg:sticky lg:top-4 h-fit">
-          <Card className="p-4 bg-card shadow-sm">
-            <div className="text-caption mb-3">Voorbeeld</div>
-            <div className="bg-white rounded-polar-md border border-border p-2 flex items-center justify-center">
-              <img
-                src={previewUrl}
-                alt="Sticker voorbeeld"
-                className="max-w-full h-auto"
-                loading="lazy"
-              />
-            </div>
-            <p className="text-xs text-muted-foreground mt-3">
-              57 × 32 mm • Zebra ZD411d
-            </p>
-          </Card>
+              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border/60 text-xs text-muted-foreground">
+                <Printer className="h-3.5 w-3.5" />
+                <span>57 × 32 mm • Zebra ZD411d</span>
+              </div>
+            </Card>
           </div>
         </div>
       </div>
