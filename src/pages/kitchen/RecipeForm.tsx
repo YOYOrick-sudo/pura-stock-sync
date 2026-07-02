@@ -47,42 +47,9 @@ export default function RecipeForm() {
     { naam: '', hoeveelheid: '', eenheid: null, sort_order: 0 },
   ]);
   const [categoryTouched, setCategoryTouched] = useState(false);
-  const [suggesting, setSuggesting] = useState(false);
 
-  const suggestCategory = async (opts?: { force?: boolean }) => {
-    const n = name.trim();
-    if (n.length < 2) {
-      toast.error('Vul eerst een naam in');
-      return;
-    }
-    try {
-      setSuggesting(true);
-      const { data: cats } = await supabase
-        .from('recipes')
-        .select('category')
-        .eq('is_gearchiveerd', false);
-      const existing = Array.from(
-        new Set((cats ?? []).map((c: any) => c.category).filter((c: any) => c && c.trim().length > 0)),
-      );
-      const ingr = ingredients.map((i) => i.naam.trim()).filter((s) => s.length > 0);
-      const { data, error } = await supabase.functions.invoke('suggest-recipe-category', {
-        body: { name: n, ingredients: ingr, existingCategories: existing },
-      });
-      if (error) throw error;
-      if (data?.category) {
-        setCategory(String(data.category));
-        if (opts?.force) toast.success(`AI koos: ${data.category}`);
-      } else {
-        toast.error('Geen suggestie ontvangen');
-      }
-    } catch (e: any) {
-      toast.error('AI-suggestie mislukt: ' + (e?.message ?? 'onbekende fout'));
-    } finally {
-      setSuggesting(false);
-    }
-  };
-
-  // Automatische suggestie bij nieuw recept zolang gebruiker categorie niet zelf heeft aangeraakt.
+  // Stil op de achtergrond: bij een nieuw recept een categorie voorstellen zodra er een naam is
+  // en de gebruiker het veld niet zelf heeft aangeraakt. Geen UI-feedback, faalt stil.
   useEffect(() => {
     if (isEdit) return;
     if (categoryTouched) return;
@@ -92,8 +59,25 @@ export default function RecipeForm() {
 
     let cancelled = false;
     const t = setTimeout(async () => {
-      if (cancelled) return;
-      await suggestCategory();
+      try {
+        const { data: cats } = await supabase
+          .from('recipes')
+          .select('category')
+          .eq('is_gearchiveerd', false);
+        const existing = Array.from(
+          new Set((cats ?? []).map((c: any) => c.category).filter((c: any) => c && c.trim().length > 0)),
+        );
+        const ingr = ingredients.map((i) => i.naam.trim()).filter((s) => s.length > 0);
+        const { data, error } = await supabase.functions.invoke('suggest-recipe-category', {
+          body: { name: n, ingredients: ingr, existingCategories: existing },
+        });
+        if (cancelled) return;
+        if (!error && data?.category && !categoryTouched && category.trim().length === 0) {
+          setCategory(String(data.category));
+        }
+      } catch {
+        /* stil */
+      }
     }, 900);
 
     return () => {
@@ -102,6 +86,7 @@ export default function RecipeForm() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, isEdit, categoryTouched]);
+
 
 
   useEffect(() => {
