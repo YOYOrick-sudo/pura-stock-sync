@@ -33,7 +33,6 @@ export default function HousingPlanner() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Terug naar inbox
             </Button>
-            <h1 className="text-2xl font-heading font-bold text-foreground">Huisvesting Planner</h1>
             <p className="text-muted-foreground">Beheer woonruimtes en bezetting</p>
           </div>
           <Button onClick={() => navigate('/hr/housing/new')}>
