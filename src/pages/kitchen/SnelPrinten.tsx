@@ -1,13 +1,14 @@
 import { useMemo, useRef, useState } from 'react';
 import { addDays, format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { Snowflake, ChefHat, Tag, Minus, Plus, Printer, Eye } from 'lucide-react';
+import { Snowflake, ChefHat, Tag, Minus, Plus, Printer, Eye, Info } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { StickerProductCombobox } from '@/components/kitchen/StickerProductCombobox';
 import {
@@ -148,12 +149,24 @@ export default function SnelPrinten() {
   return (
     <SidebarLayout>
       <div className="max-w-5xl mx-auto space-y-4">
-        <div>
+        <div className="flex items-center gap-2">
           <h1 className="text-2xl font-heading font-bold text-foreground">Snel printen</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Print ontdooi-, bereid- en vrije stickers direct naar de keuken-printer.
-          </p>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                aria-label="Meer informatie"
+              >
+                <Info className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="max-w-xs">
+              Print ontdooi-, bereid- en vrije stickers direct naar de keuken-printer. Suggesties in het productveld komen van eerder geprinte producten.
+            </TooltipContent>
+          </Tooltip>
         </div>
+
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
           {/* Linker kolom — stappen */}
@@ -195,10 +208,9 @@ export default function SnelPrinten() {
                   autoFocus
                 />
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Suggesties op basis van eerder geprinte producten.
-              </p>
             </Card>
+
+
 
             {/* Stap 3 — Datums */}
             <Card className="p-4 sm:p-5 bg-card shadow-sm">
