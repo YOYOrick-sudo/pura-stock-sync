@@ -45,7 +45,7 @@ export default function RecipeForm() {
   const [porties, setPorties] = useState<string>('');
   const [bereiding, setBereiding] = useState('');
   const [ingredients, setIngredients] = useState<Ingredient[]>([
-    { naam: '', hoeveelheid: '', eenheid: null, sort_order: 0 },
+    { naam: '', hoeveelheid: '', eenheid: null, sort_order: 0, ingredient_id: null },
   ]);
   const [categoryTouched, setCategoryTouched] = useState(false);
 
