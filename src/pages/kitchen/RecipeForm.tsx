@@ -22,6 +22,7 @@ import {
 } from '@/hooks/useRecipes';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { IngredientCombobox } from '@/components/kitchen/IngredientCombobox';
 
 
 type RecipeType = 'gerecht' | 'halffabricaat';
@@ -44,7 +45,7 @@ export default function RecipeForm() {
   const [porties, setPorties] = useState<string>('');
   const [bereiding, setBereiding] = useState('');
   const [ingredients, setIngredients] = useState<Ingredient[]>([
-    { naam: '', hoeveelheid: '', eenheid: null, sort_order: 0 },
+    { naam: '', hoeveelheid: '', eenheid: null, sort_order: 0, ingredient_id: null },
   ]);
   const [categoryTouched, setCategoryTouched] = useState(false);
 
@@ -100,7 +101,7 @@ export default function RecipeForm() {
       setIngredients(
         existing.ingredients.length > 0
           ? existing.ingredients.map((i, idx) => ({ ...i, sort_order: idx }))
-          : [{ naam: '', hoeveelheid: '', eenheid: null, sort_order: 0 }],
+          : [{ naam: '', hoeveelheid: '', eenheid: null, sort_order: 0, ingredient_id: null }],
       );
     }
   }, [isEdit, existing]);
@@ -108,7 +109,7 @@ export default function RecipeForm() {
   const addRow = () =>
     setIngredients((prev) => [
       ...prev,
-      { naam: '', hoeveelheid: '', eenheid: null, sort_order: prev.length },
+      { naam: '', hoeveelheid: '', eenheid: null, sort_order: prev.length, ingredient_id: null },
     ]);
 
   const removeRow = (idx: number) =>
@@ -126,6 +127,9 @@ export default function RecipeForm() {
 
   const updateRow = (idx: number, field: 'naam' | 'hoeveelheid' | 'eenheid', value: string | null) =>
     setIngredients((prev) => prev.map((r, i) => (i === idx ? { ...r, [field]: value } : r)));
+
+  const setNaamAndMaster = (idx: number, naam: string, ingredient_id: string | null) =>
+    setIngredients((prev) => prev.map((r, i) => (i === idx ? { ...r, naam, ingredient_id } : r)));
 
   const onSave = async () => {
     if (!name.trim()) {
@@ -247,12 +251,14 @@ export default function RecipeForm() {
                 key={idx}
                 className="flex flex-wrap items-center gap-2 rounded-polar-md border border-border/60 bg-background/40 p-2"
               >
-                <Input
-                  value={row.naam}
-                  onChange={(e) => updateRow(idx, 'naam', e.target.value)}
-                  placeholder="Ingrediënt"
-                  className="h-11 flex-1 min-w-[160px]"
-                />
+                <div className="flex-1 min-w-[160px]">
+                  <IngredientCombobox
+                    value={row.naam}
+                    ingredientId={row.ingredient_id ?? null}
+                    onChange={(naam, id) => setNaamAndMaster(idx, naam, id)}
+                    placeholder="Ingrediënt"
+                  />
+                </div>
                 <Input
                   value={row.hoeveelheid}
                   onChange={(e) => updateRow(idx, 'hoeveelheid', e.target.value)}
