@@ -746,6 +746,24 @@ export type Database = {
         }
         Relationships: []
       }
+      ingredienten_master: {
+        Row: {
+          created_at: string
+          id: string
+          naam: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          naam: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          naam?: string
+        }
+        Relationships: []
+      }
       internal_order_items: {
         Row: {
           created_at: string | null
@@ -1595,6 +1613,7 @@ export type Database = {
           eenheid: string | null
           hoeveelheid: string | null
           id: string
+          ingredient_id: string | null
           naam: string
           recept_id: string
           sort_order: number
@@ -1604,6 +1623,7 @@ export type Database = {
           eenheid?: string | null
           hoeveelheid?: string | null
           id?: string
+          ingredient_id?: string | null
           naam: string
           recept_id: string
           sort_order?: number
@@ -1613,11 +1633,26 @@ export type Database = {
           eenheid?: string | null
           hoeveelheid?: string | null
           id?: string
+          ingredient_id?: string | null
           naam?: string
           recept_id?: string
           sort_order?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "recept_ingredienten_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredienten_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recept_ingredienten_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "recept_ingredienten_recept_id_fkey"
             columns: ["recept_id"]
@@ -2270,6 +2305,15 @@ export type Database = {
           },
         ]
       }
+      v_ingredienten_stats: {
+        Row: {
+          aantal_recepten: number | null
+          id: string | null
+          laatst_gebruikt: string | null
+          naam: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       current_user_location: { Args: never; Returns: string }
@@ -2303,6 +2347,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      ingredienten_merge: {
+        Args: { _drop: string[]; _keep: string }
+        Returns: number
       }
       is_manager_same_location: {
         Args: { _profile_user_id: string }
