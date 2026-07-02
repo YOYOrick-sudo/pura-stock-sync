@@ -113,6 +113,7 @@ async function replaceIngredients(recipeId: string, ingredients: Ingredient[]) {
       hoeveelheid: (i.hoeveelheid ?? '').trim() || null,
       eenheid: (i.eenheid ?? '')?.toString().trim() || null,
       sort_order: idx,
+      ingredient_id: i.ingredient_id ?? null,
     }))
     .filter((i) => i.naam.length > 0);
 
