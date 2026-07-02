@@ -209,15 +209,28 @@ export default function RecipeForm() {
                   </span>
                 )}
               </Label>
-              <Input
-                value={category}
-                onChange={(e) => {
-                  setCategoryTouched(true);
-                  setCategory(e.target.value);
-                }}
-                placeholder="Bijv. Saus, Voorgerecht, Bakwerk"
-                className="mt-2 h-11"
-              />
+              <div className="mt-2 flex gap-2">
+                <Input
+                  value={category}
+                  onChange={(e) => {
+                    setCategoryTouched(true);
+                    setCategory(e.target.value);
+                  }}
+                  placeholder="Bijv. Groente, Sauzen, Hoofdgerecht"
+                  className="h-11 flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-11 w-11 shrink-0"
+                  title="AI-suggestie op basis van naam en ingrediënten"
+                  onClick={() => suggestCategory({ force: true })}
+                  disabled={suggesting || name.trim().length < 2}
+                >
+                  <Sparkles className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             <div>
               <Label className="text-sm font-medium">Porties</Label>
