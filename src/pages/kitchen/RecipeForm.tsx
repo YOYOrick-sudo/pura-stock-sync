@@ -155,6 +155,7 @@ export default function RecipeForm() {
       category: category.trim(),
       type,
       porties: porties.trim() ? parseInt(porties, 10) : null,
+      arbeid_minuten: arbeidMinuten.trim() ? parseInt(arbeidMinuten, 10) : null,
       bereiding,
       ingredients,
     };
