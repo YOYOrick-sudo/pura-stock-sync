@@ -334,11 +334,11 @@ function TakenBeheerInner() {
         phase={phase}
         department={department}
         availableCategories={buildAvailableCategories(department)}
-        isWest={isWest}
+        isWest={isManaged}
         westCategoryRows={buildCategoryRows(department)}
-        onMoveCategory={isWest ? makeMoveHandler(department) : undefined}
-        onRenameCategory={isWest ? makeRenameHandler(department) : undefined}
-        onDeleteCategory={isWest ? makeDeleteHandler(department) : undefined}
+        onMoveCategory={isManaged ? makeMoveHandler(department) : undefined}
+        onRenameCategory={isManaged ? makeRenameHandler(department) : undefined}
+        onDeleteCategory={isManaged ? makeDeleteHandler(department) : undefined}
       />
 
       {/* "Opgeslagen ✓" feedback — fade in/out, niet-intrusief */}
