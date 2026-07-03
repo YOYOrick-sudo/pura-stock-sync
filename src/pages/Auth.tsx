@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, LogIn, Building2, Store } from 'lucide-react';
+import { Loader2, LogIn, Building2, Store, UserRound } from 'lucide-react';
 import { toast } from 'sonner';
 import logoOfficial from '@/assets/pura-vida-logo-official.png';
 import { getLocationDisplayName } from '@/lib/utils';
@@ -138,6 +138,27 @@ const Auth = () => {
         {/* Login Form */}
         <div className="px-8 pt-6 pb-8">
           <form onSubmit={handleLogin} className="flex flex-col gap-5">
+            <div className="grid grid-cols-2 gap-2 rounded-[16px] bg-muted/40 p-1">
+              <button
+                type="button"
+                onClick={() => !loading && setMode('shared')}
+                disabled={loading}
+                className={`h-11 rounded-[14px] text-[13px] font-semibold transition-all flex items-center justify-center gap-2 ${mode === 'shared' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                <Store className="w-4 h-4" />
+                Locatie
+              </button>
+              <button
+                type="button"
+                onClick={() => !loading && setMode('personal')}
+                disabled={loading}
+                className={`h-11 rounded-[14px] text-[13px] font-semibold transition-all flex items-center justify-center gap-2 ${mode === 'personal' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                <UserRound className="w-4 h-4" />
+                Persoonlijk
+              </button>
+            </div>
+
             {mode === 'shared' ? (
               <div>
                 <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 block mb-2">
@@ -221,13 +242,9 @@ const Auth = () => {
               )}
             </button>
 
-            <button
-              type="button"
-              onClick={() => !loading && setMode(mode === 'shared' ? 'personal' : 'shared')}
-              className="text-[12px] text-muted-foreground hover:text-foreground underline underline-offset-4 mt-1"
-            >
-              {mode === 'shared' ? 'Inloggen met persoonlijk account' : 'Terug naar locatie-login'}
-            </button>
+            <p className="text-[12px] text-muted-foreground text-center leading-relaxed">
+              {mode === 'shared' ? 'Gebruik Persoonlijk voor je eigen medewerkeraccount.' : 'Log in met je eigen e-mailadres en wachtwoord.'}
+            </p>
           </form>
         </div>
       </div>

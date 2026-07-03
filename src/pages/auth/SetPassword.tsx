@@ -1,30 +1,67 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import logoOfficial from '@/assets/pura-vida-logo-official.png';
 
+type LinkState = 'checking' | 'ready' | 'invalid' | 'saved';
+
 export default function SetPassword() {
   const navigate = useNavigate();
-  const [checking, setChecking] = useState(true);
-  const [hasSession, setHasSession] = useState(false);
+  const [linkState, setLinkState] = useState<LinkState>('checking');
+  const [errorMessage, setErrorMessage] = useState('Vraag een nieuwe invite- of wachtwoord-resetmail aan.');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    // Supabase parses the URL hash (invite link) via detectSessionInUrl. Wait briefly.
     let cancelled = false;
+
     (async () => {
-      // Give the client a tick to process the invite hash tokens.
-      await new Promise(r => setTimeout(r, 400));
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!cancelled) {
-        setHasSession(!!session);
-        setChecking(false);
+      try {
+        const url = new URL(window.location.href);
+        const hash = new URLSearchParams(url.hash.replace(/^#/, ''));
+        const errorDescription = url.searchParams.get('error_description') || hash.get('error_description');
+
+        if (errorDescription) {
+          setErrorMessage(decodeURIComponent(errorDescription.replace(/\+/g, ' ')));
+          if (!cancelled) setLinkState('invalid');
+          return;
+        }
+
+        const code = url.searchParams.get('code');
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            setErrorMessage('Deze link is verlopen of al gebruikt. Vraag een nieuwe mail aan.');
+            if (!cancelled) setLinkState('invalid');
+            return;
+          }
+          window.history.replaceState({}, document.title, url.pathname);
+        } else if (hash.get('access_token') && hash.get('refresh_token')) {
+          const { error } = await supabase.auth.setSession({
+            access_token: hash.get('access_token')!,
+            refresh_token: hash.get('refresh_token')!,
+          });
+          if (error) {
+            setErrorMessage('Deze link is verlopen of al gebruikt. Vraag een nieuwe mail aan.');
+            if (!cancelled) setLinkState('invalid');
+            return;
+          }
+          window.history.replaceState({}, document.title, url.pathname);
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, 700));
+        }
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!cancelled) setLinkState(session ? 'ready' : 'invalid');
+      } catch {
+        setErrorMessage('De link kon niet verwerkt worden. Vraag een nieuwe mail aan.');
+        if (!cancelled) setLinkState('invalid');
       }
     })();
+
     return () => { cancelled = true; };
   }, []);
 
@@ -36,24 +73,50 @@ export default function SetPassword() {
     const { error } = await supabase.auth.updateUser({ password });
     setSaving(false);
     if (error) { toast.error('Instellen mislukt', { description: error.message }); return; }
+    setLinkState('saved');
     toast.success('Wachtwoord ingesteld');
-    navigate('/dashboard');
+    setTimeout(() => navigate('/dashboard'), 1200);
   };
 
-  if (checking) {
+  if (linkState === 'checking') {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto" />
+          <p className="text-sm text-muted-foreground">Link verwerken…</p>
+        </div>
       </div>
     );
   }
 
-  if (!hasSession) {
+  if (linkState === 'invalid') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="max-w-md text-center space-y-3">
+        <div className="w-full max-w-[420px] bg-card border border-border/60 rounded-[20px] p-8 shadow-sm text-center space-y-4">
+          <img src={logoOfficial} alt="Pura Vida" className="h-14 w-auto mx-auto" />
+          <AlertCircle className="w-8 h-8 text-destructive mx-auto" />
           <h1 className="text-xl font-semibold">Ongeldige of verlopen link</h1>
-          <p className="text-muted-foreground text-sm">Vraag een nieuwe invite-mail aan.</p>
+          <p className="text-muted-foreground text-sm">{errorMessage}</p>
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="h-11 px-5 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90"
+          >
+            Naar persoonlijk inloggen
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (linkState === 'saved') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-[420px] bg-card border border-border/60 rounded-[20px] p-8 shadow-sm text-center space-y-4">
+          <img src={logoOfficial} alt="Pura Vida" className="h-14 w-auto mx-auto" />
+          <CheckCircle2 className="w-9 h-9 text-primary mx-auto" />
+          <h1 className="text-xl font-semibold">Wachtwoord ingesteld</h1>
+          <p className="text-muted-foreground text-sm">Je wordt doorgestuurd naar de app.</p>
         </div>
       </div>
     );
@@ -63,8 +126,8 @@ export default function SetPassword() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-[420px] bg-card border border-border/60 rounded-[20px] p-8 shadow-sm">
         <img src={logoOfficial} alt="Pura Vida" className="h-14 w-auto mx-auto mb-6" />
-        <h1 className="text-lg font-semibold text-center mb-1">Kies je wachtwoord</h1>
-        <p className="text-sm text-muted-foreground text-center mb-6">Persoonlijk account</p>
+        <h1 className="text-lg font-semibold text-center mb-1">Kies je nieuwe wachtwoord</h1>
+        <p className="text-sm text-muted-foreground text-center mb-6">Voor je persoonlijke Pura Vida account</p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
             type="password"
