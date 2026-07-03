@@ -28,16 +28,17 @@ export interface PolarSidebarProps {
   footerSlot?: React.ReactNode;
 }
 
-const OVERVIEW_URLS = new Set(['/dashboard', '/taken-bediening']);
-
 function groupItems(items: PolarSidebarItem[]) {
   const overzicht: PolarSidebarItem[] = [];
+  const keuken: PolarSidebarItem[] = [];
   const beheer: PolarSidebarItem[] = [];
   for (const item of items) {
-    if (OVERVIEW_URLS.has(item.url)) overzicht.push(item);
+    const g = item.group ?? 'beheer';
+    if (g === 'overzicht') overzicht.push(item);
+    else if (g === 'keuken') keuken.push(item);
     else beheer.push(item);
   }
-  return { overzicht, beheer };
+  return { overzicht, keuken, beheer };
 }
 
 export function PolarSidebar({
