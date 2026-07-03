@@ -28,6 +28,9 @@ Deno.serve(async (req) => {
   if (!expected || !provided || !timingSafeEqual(expected, provided)) {
     return json({ error: 'unauthorized' }, 401)
   }
+  if (!expected || !provided || !timingSafeEqual(expected, provided)) {
+    return json({ error: 'unauthorized' }, 401)
+  }
 
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405)
 
