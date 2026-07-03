@@ -22,6 +22,7 @@ export interface Recipe {
   is_gearchiveerd: boolean;
   location: string | null;
   arbeid_minuten: number | null;
+  tht_dagen: number;
   created_at: string;
   updated_at: string;
   ingredient_count?: number;
@@ -35,6 +36,7 @@ export interface RecipeInput {
   bereiding: string;
   foto_url?: string | null;
   arbeid_minuten?: number | null;
+  tht_dagen?: number | null;
 }
 
 export function useRecipes(search: string, category: string | null) {
