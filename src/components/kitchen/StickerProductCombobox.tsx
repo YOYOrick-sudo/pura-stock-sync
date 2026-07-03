@@ -29,9 +29,12 @@ export function StickerProductCombobox({
   const [open, setOpen] = useState(false);
   const term = value.trim();
   const { data: suggestions = [], isFetching } = useStickerSuggesties(term);
+  const headingLabel = term.length === 0 ? 'Meest gebruikt' : 'Voorstellen';
+
+
 
   return (
-    <Popover open={open && term.length >= 2} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <div className="relative">
           <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -68,7 +71,7 @@ export function StickerProductCombobox({
               </div>
             )}
             {suggestions.length > 0 && (
-              <CommandGroup heading="Vaak gebruikt">
+              <CommandGroup heading={headingLabel}>
                 {suggestions.map((s) => (
                   <CommandItem
                     key={s.id}
@@ -88,7 +91,7 @@ export function StickerProductCombobox({
                 ))}
               </CommandGroup>
             )}
-            {!isFetching && suggestions.length === 0 && term.length >= 2 && (
+            {!isFetching && suggestions.length === 0 && term.length >= 1 && (
               <div className="py-4 px-3 text-xs text-muted-foreground text-center">
                 Nieuw product — wordt onthouden bij printen.
               </div>
