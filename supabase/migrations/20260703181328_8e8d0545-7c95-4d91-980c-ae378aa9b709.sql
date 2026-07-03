@@ -1,0 +1,1 @@
+UPDATE public.user_roles SET is_active = true WHERE user_id = '9b59d031-86b2-45c1-882c-ab222c6bbf66' AND role = 'owner';
