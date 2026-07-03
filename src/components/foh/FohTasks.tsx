@@ -2278,11 +2278,12 @@ export function FohTasks() {
         for (const t of editingTemplate) {
           if (deletedTemplateTaskIds.includes(t.id)) continue;
           const dept = ((t as any).department || effectiveDept) as 'voorkant' | 'achterkant';
+          const phase = ((t as any).phase || activePhase) as string;
           const cat = (t.category || '').trim();
-          const key = `${dept}::${cat}`;
+          const key = `${dept}::${phase}::${cat}`;
           if (!cat || seen.has(key)) continue;
           seen.add(key);
-          await ensureCategoryOrderRow(loc, dept, cat);
+          await ensureCategoryOrderRow(loc, dept, phase, cat);
         }
       }
 
