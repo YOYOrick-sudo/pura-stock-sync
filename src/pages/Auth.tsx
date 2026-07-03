@@ -34,6 +34,8 @@ const Auth = () => {
   };
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<'shared' | 'personal'>('shared');
+  const [personalEmail, setPersonalEmail] = useState('');
   const [location, setLocation] = useState<'West' | 'Midsland'>('West');
   
   const getEmailForLocation = (loc: 'West' | 'Midsland') => {
