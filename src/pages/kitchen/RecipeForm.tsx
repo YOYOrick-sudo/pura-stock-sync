@@ -152,12 +152,14 @@ export default function RecipeForm() {
       return;
     }
 
+    const parsedTht = parseInt(thtDagen, 10);
     const payload = {
       name: name.trim(),
       category: category.trim(),
       type,
       porties: porties.trim() ? parseInt(porties, 10) : null,
       arbeid_minuten: arbeidMinuten.trim() ? parseInt(arbeidMinuten, 10) : null,
+      tht_dagen: Number.isFinite(parsedTht) ? Math.min(30, Math.max(1, parsedTht)) : 3,
       bereiding,
       ingredients,
     };
