@@ -72,8 +72,12 @@ export function TicketList({ actor, onNewTicket, onTicketClick }: TicketListProp
       <PageSubheader
         description="Meld iets dat niet in de haak is."
         action={
-          <Button onClick={onNewTicket} size="lg">
-            <Plus className="h-4 w-4" />
+          <Button
+            onClick={onNewTicket}
+            size="lg"
+            className="h-11 px-5 text-[15px] gap-2 rounded-polar-xl"
+          >
+            <Plus className="h-[18px] w-[18px]" strokeWidth={2} />
             Nieuwe melding
           </Button>
         }

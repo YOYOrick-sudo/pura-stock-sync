@@ -115,23 +115,26 @@ export function NewTicketForm({ actor, onBack, onSuccess }: NewTicketFormProps) 
         <div className="grid grid-cols-3 gap-3">
           {prioriteitOptions.map((opt) => {
             const active = prioriteit === opt.value;
-            const color = toneColor(opt.tone);
             return (
               <button
                 key={opt.value}
                 type="button"
                 onClick={() => setPrioriteit(opt.value)}
                 className={cn(
-                  'flex flex-col items-center justify-center gap-0.5 min-h-[64px] px-3 py-3',
-                  'rounded-polar-xl border transition-all duration-200 active:scale-[0.98]',
+                  'flex flex-col items-center justify-center gap-0.5 min-h-[52px] px-3 py-2.5',
+                  'rounded-polar-xl border transition-all duration-150 active:scale-[0.98]',
                   active
-                    ? 'text-primary-foreground border-transparent shadow-card'
+                    ? 'bg-primary text-primary-foreground border-transparent shadow-sm'
                     : 'bg-card border-border text-foreground hover:border-primary/30',
                 )}
-                style={active ? { backgroundColor: color } : undefined}
               >
-                <span className="text-sm font-semibold">{opt.label}</span>
-                <span className={cn('text-xs', active ? 'opacity-90' : 'text-muted-foreground')}>
+                <span className="text-sm font-semibold leading-tight">{opt.label}</span>
+                <span
+                  className={cn(
+                    'text-[11px] leading-tight',
+                    active ? 'text-primary-foreground/80' : 'text-muted-foreground',
+                  )}
+                >
                   {opt.hint}
                 </span>
               </button>
