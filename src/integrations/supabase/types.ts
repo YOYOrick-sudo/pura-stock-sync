@@ -516,6 +516,7 @@ export type Database = {
           department: string
           id: string
           location: string
+          phase: string
           sort_order: number
           updated_at: string
         }
@@ -525,6 +526,7 @@ export type Database = {
           department?: string
           id?: string
           location: string
+          phase: string
           sort_order?: number
           updated_at?: string
         }
@@ -534,6 +536,7 @@ export type Database = {
           department?: string
           id?: string
           location?: string
+          phase?: string
           sort_order?: number
           updated_at?: string
         }
@@ -2394,6 +2397,7 @@ export type Database = {
           _location: string
           _new: string
           _old: string
+          _phase: string
         }
         Returns: undefined
       }

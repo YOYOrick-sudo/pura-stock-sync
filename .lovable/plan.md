@@ -1,68 +1,41 @@
-## Deel 1 — Onderhoud correcties
+## Categorieën per takenlijst (Openen / Tussen / Borrel / Sluiten)
 
-### 1. `SegmentedTabs` herbouwen naar Taken-patroon
-Bestand: `src/components/pura/SegmentedTabs.tsx` — vervangen van shadcn `Tabs`-container door losse pill-knoppen (rechtstreeks `<button>` in een flex-rij, gap 12px, geen grijze omhullende `TabsList`).
+### Gekozen aanpak (meest intuïtief + veilig, geen data verdwijnt)
 
-Per pill:
-- `rounded-polar-xl` (20px), `min-h-[44px]`, `px-5`, `text-sm font-medium`, `gap-2`.
-- Actief: `bg-primary text-primary-foreground border-transparent`; teller-badge = `bg-primary-foreground/25 text-primary-foreground`, `rounded-md px-2 py-0.5 text-xs font-semibold`.
-- Inactief: `bg-card text-foreground border border-border hover:bg-muted hover:shadow-sm`; teller-badge = `bg-foreground/5 text-muted-foreground`.
-- Transitie: `transition-all duration-150`.
-- Container: `flex flex-wrap gap-3` (geen grid, geen achtergrond).
+- **Volledig apart per lijst.** Elke fase (Openen, Tussen, Borrel, Sluiten) krijgt zijn eigen set onderdelen met eigen volgorde. "Bar" in Openen is los van "Bar" in Sluiten — hernoemen/verwijderen raakt alleen die ene lijst.
+- **Migratie behoudt alles.** Iedere bestaande volgorde-rij in `foh_category_order` wordt gekopieerd naar álle 4 de fasen, met dezelfde sort_order. Zo blijven de huidige 17 Midsland-onderdelen én de West-onderdelen zichtbaar in élke lijst. Jij ruimt daarna per lijst op wat je in die specifieke lijst niet wil.
+- **Beheer verhuist naar de detailpagina van de lijst.** In `/taken/beheer?phase=…` komt onder de takenlijst het blok "Onderdelen van deze lijst". Overzichtspagina `/taken/admin` verliest het gedeelde onderdelen-blok (want dat is nu misleidend — het suggereert dat het voor alles geldt).
 
-Automatisch effect: elke plek die `SegmentedTabs` gebruikt (Onderhoud, later Kassatelling/KasControle) matcht meteen Taken.
+### Wat er verandert in de database
 
-### 2. "Nieuwe melding"-knop compacter
-Bestand: `src/components/maintenance/TicketList.tsx` (subheader-actie).
-- Zelfde visuele maat als Taken's Admin-knop: `h-11 px-5 text-[15px] rounded-polar-xl gap-2` icon 18px.
-- Blijft `size="lg"` voor 44px touch, maar geen extra breedte/hoogte.
-- Wordt vastgelegd als nieuwe button-variant `primaryCompact` (of gewoon utility-classes in de subheader) zodat volgende modules dezelfde compacte primaire actie kunnen hergebruiken.
+1. Kolom `phase text` toevoegen aan `foh_category_order`.
+2. Backfill: voor elke bestaande rij → 4 nieuwe rijen (open/tussen/borrel/sluit) met dezelfde sort_order. Originele rij (phase = NULL) daarna verwijderen.
+3. `phase NOT NULL` + nieuwe unique index `(location, department, phase, category)`.
+4. RPC `foh_rename_category` uitbreiden met `_phase text` parameter. De rename update alleen `foh_tasks` en `foh_daily_templates` van díe fase, en alleen de order-rij van díe fase.
 
-### 3. Urgentie-pills in `NewTicketForm` strakker
-Bestand: `src/components/maintenance/NewTicketForm.tsx` regels 115-140.
-- `min-h-[64px]` → `min-h-[52px]`, `py-3` → `py-2.5`, `gap-0.5` blijft.
-- Actieve staat vervangt tone-kleur door **primary green gevuld** (identiek aan actieve tab), niet meer per-urgentie kleur. Urgentie-tone verhuist naar een klein icoon of subtekstkleur alleen als inactief (rustig).
-- Label `text-sm font-semibold`, hint `text-[11px]`.
-- Verzachte hover (`hover:border-primary/30` blijft).
+### Wat er verandert in de code
 
-## Deel 2 — Sidebar polish
+- `src/lib/foh-category-order.ts` — types en helpers krijgen een `phase`-dimensie. Queries in `FohTasks.tsx` en `TakenBeheer.tsx` filteren op de actieve fase.
+- `src/components/foh/FohTasks.tsx` (7 raakpunten rond `foh_category_order`) — alle reads/writes krijgen `phase` erbij. Auto-seed van nieuwe categorie (bij aanmaken van een taak) gebeurt in de fase van die taak.
+- `src/pages/TakenBeheer.tsx` — leest fase uit URL, dus filter meteen op `phase`. Voegt onderaan een blok "Onderdelen van deze lijst" toe (verplaatst uit `TakenAdmin`). Hernoemen/verwijderen/volgorde is per lijst.
+- `src/pages/TakenAdmin.tsx` — het huidige "Onderdelen beheren"-blok wordt verwijderd. Op iedere lijstkaart komt een klein tellertje "N onderdelen" naast "N taken".
 
-Bestand: `src/components/polar/Sidebar.tsx` + `src/components/AppSidebar.tsx`.
+### Wat NIET verandert
 
-### 1. Icons egaal
-- Alle nav-icons: 20×20, `strokeWidth={1.75}` (via `style` prop op de Icon-component), kleur uit één bron:
-  - inactief: `text-muted-foreground`
-  - actief: `text-primary`
-  - hover: `text-foreground`
-- PanelLeft en Lock-icon ook op strokeWidth 1.75 voor visuele rust.
+- Geen bestaande taken worden aangeraakt, verplaatst of verwijderd.
+- Geen templates worden aangepast.
+- Categoriewaarden zelf (de tekst "Bar", "Keuken", enz.) blijven letterlijk staan; alleen de volgorde/aanwezigheid wordt per fase apart bijgehouden.
+- Andere modules (Kassatelling, Onderhoud, HR, enz.) blijven ongemoeid.
 
-### 2. Icon-keuzes rustiger (voorstel per item)
-| Item | Nu | Voorstel |
-|---|---|---|
-| Dashboard | Home | Home (blijft) |
-| Taken Bediening | ListChecks | ListChecks (blijft) |
-| Stickers | Printer | Printer (blijft) |
-| Recepten | BookOpen | BookOpen (blijft) |
-| Ingrediënten | Carrot | **Package** (rustiger, past bij voorraad) |
-| Kassatelling | Wallet | **Calculator** (past bij tellen) |
-| Onderhoud | Wrench | **ClipboardList** (past bij meldingen/tickets) |
-| Settings | Settings | Settings (blijft) |
+### Risico's / bewuste keuzes
 
-### 3. Verticale dichtheid
-- Item-hoogte `h-12` → `h-11` (44px).
-- Gap tussen items `gap-1` → `gap-0.5`.
-- Groep-marge `mb-3` → `mb-2`, sectiekop `mt-4` → `mt-2`, `mb-2` → `mb-1`.
-- Sectiekop lettergrootte blijft `text-[11px]`, maar met minder ruimte er onder.
+- Na migratie zie je in élke lijst dezelfde 17 (of 8 voor West) onderdelen — dat is expres, zodat niks "verdwijnt". Pas als jij ergens op "verwijderen" klikt, gaat het weg uit die specifieke lijst.
+- Als in een lijst een taak bestaat met een categorie die daar (nog) niet in de order-tabel staat, wordt hij automatisch aangevuld op basis van gebruik (bestaande auto-seed-logica, nu per fase).
+- Volgorde-wijzigingen in de ene lijst hebben géén effect op de andere lijsten.
 
-### 4. Inklapknop
-- Toggle-knop uit de logo-rij halen én in de collapsed toggle-rij: minimum `h-10 w-10` (40px), duidelijk `PanelLeft` icoon `h-5 w-5`, hover `hover:bg-muted`.
-- In uitgeklapte staat blijft de knop rechts naast het logo, maar met vergrote touch-target zodat hij niet visueel wegvalt.
+### Verificatie na uitvoering
 
-### 5. Actieve item
-- Achtergrond: `bg-primary/10` (i.p.v. `bg-muted`), tekst `text-foreground`, icoon `text-primary`.
-- Consistent met actieve tab-pill op Taken (groene familie, subtiele tint).
-
-## Buiten scope
-- Geen functionele wijziging, geen route-/data-veranderingen.
-- Andere modules dan Onderhoud/sidebar worden niet aangeraakt in deze beurt.
-- Na deze beurt: gebruiker checkt zelf preview; Kassatelling volgt in aparte sprint.
+1. `/taken/admin` toont geen apart onderdelen-blok meer, per lijstkaart staat "X taken · Y onderdelen".
+2. `/taken/beheer?phase=open` toont onderaan alleen de onderdelen van Openen; volgorde wijzigen daar → alleen Openen in `/taken-bediening` verandert.
+3. In elke fase zijn de 17 Midsland-onderdelen initieel aanwezig, in dezelfde volgorde als nu.
+4. Bestaande taken hebben nog steeds hun categorie; niks is doorgeschoven of gewist.
