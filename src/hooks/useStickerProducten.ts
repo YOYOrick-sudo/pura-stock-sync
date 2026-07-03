@@ -45,8 +45,25 @@ export function useStickerSuggesties(term: string) {
   });
 }
 
+export function useTopStickerProducten(limit = 9) {
+  return useQuery({
+    queryKey: ['sticker-top', limit],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('sticker_producten')
+        .select('id, naam, laatst_type, laatst_tht_dagen, keer_geprint')
+        .order('keer_geprint', { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return (data ?? []) as StickerProduct[];
+    },
+    staleTime: 30_000,
+  });
+}
+
 export interface CreateStickerJobInput extends StickerLabelInput {
   tht_dagen?: number | null;
+  aantal?: number;
 }
 
 export function useCreateStickerPrintJob() {
@@ -55,16 +72,14 @@ export function useCreateStickerPrintJob() {
     mutationFn: async (input: CreateStickerJobInput) => {
       const zpl = buildStickerZpl(input);
       const label_omschrijving = buildStickerOmschrijving(input);
+      const n = Math.max(1, Math.min(50, input.aantal ?? 1));
 
-      const { data: job, error: jobErr } = await supabase
-        .from('print_jobs')
-        .insert({
-          recipe_id: null,
-          zpl,
-          label_omschrijving,
-        })
-        .select()
-        .single();
+      const rows = Array.from({ length: n }, () => ({
+        recipe_id: null,
+        zpl,
+        label_omschrijving,
+      }));
+      const { error: jobErr } = await supabase.from('print_jobs').insert(rows);
       if (jobErr) throw jobErr;
 
       const { error: bumpErr } = await supabase.rpc('sticker_producten_bump', {
@@ -74,62 +89,11 @@ export function useCreateStickerPrintJob() {
       });
       if (bumpErr) throw bumpErr;
 
-      return job;
+      return { count: n };
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['sticker-suggesties'] });
-      qc.invalidateQueries({ queryKey: ['print-jobs-today'] });
-    },
-  });
-}
-
-export interface PrintJobToday {
-  id: string;
-  zpl: string;
-  label_omschrijving: string | null;
-  status: string;
-  created_at: string;
-  geprint_op: string | null;
-  foutmelding: string | null;
-}
-
-export function usePrintJobsToday() {
-  return useQuery({
-    queryKey: ['print-jobs-today'],
-    queryFn: async () => {
-      const start = new Date();
-      start.setHours(0, 0, 0, 0);
-      const { data, error } = await supabase
-        .from('print_jobs')
-        .select('id, zpl, label_omschrijving, status, created_at, geprint_op, foutmelding')
-        .gte('created_at', start.toISOString())
-        .order('created_at', { ascending: false })
-        .limit(5);
-      if (error) throw error;
-      return (data ?? []) as PrintJobToday[];
-    },
-    refetchInterval: 5000,
-  });
-}
-
-export function useReprintJob() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (job: Pick<PrintJobToday, 'zpl' | 'label_omschrijving'>) => {
-      const { data, error } = await supabase
-        .from('print_jobs')
-        .insert({
-          recipe_id: null,
-          zpl: job.zpl,
-          label_omschrijving: job.label_omschrijving,
-        })
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['print-jobs-today'] });
+      qc.invalidateQueries({ queryKey: ['sticker-top'] });
     },
   });
 }

@@ -9,6 +9,7 @@ import {
 
 export interface PrintableRecipe extends RecipeForLabel {
   id: string;
+  aantal?: number;
 }
 
 function fmtStickerDate(d: Date): string {
@@ -31,20 +32,20 @@ export function useCreatePrintJob() {
         datum1: fmtStickerDate(today),
         datum2: fmtStickerDate(later),
       });
-      const { data, error } = await supabase
-        .from('print_jobs')
-        .insert({
-          recipe_id: recipe.id,
-          zpl,
-          label_omschrijving,
-        })
-        .select()
-        .single();
+      const n = Math.max(1, Math.min(50, recipe.aantal ?? 1));
+      const rows = Array.from({ length: n }, () => ({
+        recipe_id: recipe.id,
+        zpl,
+        label_omschrijving,
+      }));
+      const { error } = await supabase.from('print_jobs').insert(rows);
       if (error) throw error;
-      return data;
+      return { count: n };
     },
-    onSuccess: () => {
-      toast.success('Sticker naar printer gestuurd');
+    onSuccess: (res) => {
+      toast.success(
+        res.count > 1 ? `${res.count} stickers naar printer gestuurd` : 'Sticker naar printer gestuurd',
+      );
     },
     onError: (e: any) => {
       toast.error(e?.message ?? 'Kon sticker niet aanmaken');
