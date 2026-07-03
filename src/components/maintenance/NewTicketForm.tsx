@@ -8,7 +8,7 @@ import { uploadMaintenancePhoto } from '@/hooks/maintenance/useMaintenancePhoto'
 import { PLEK_OPTIONS, type MaintenanceActor, type Prioriteit } from '@/types/maintenance';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { toneColor, type StatusTone } from '@/components/pura';
+import type { StatusTone } from '@/components/pura';
 
 interface NewTicketFormProps {
   actor: MaintenanceActor;
