@@ -28,6 +28,7 @@ import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useSendInternalOrder } from '@/hooks/useInternalOrders';
+import { devError } from "@/lib/devLog";
 interface Product {
   name: string;
   targetStock: number;
@@ -96,7 +97,7 @@ export default function OrderDashboard() {
           } : initial;
         });
       } catch (e) {
-        console.error('Failed to parse saved products', e);
+        devError('Failed to parse saved products', e);
       }
     }
     if (savedTempProducts) {
@@ -104,7 +105,7 @@ export default function OrderDashboard() {
         const tempProducts = JSON.parse(savedTempProducts);
         allProducts = [...allProducts, ...tempProducts];
       } catch (e) {
-        console.error('Failed to parse temporary products', e);
+        devError('Failed to parse temporary products', e);
       }
     }
     setProducts(allProducts);
@@ -241,7 +242,7 @@ export default function OrderDashboard() {
                 items: orderItems,
               });
             } catch (error) {
-              console.error('Error creating internal order:', error);
+              devError('Error creating internal order:', error);
             }
           }
         }
@@ -263,7 +264,7 @@ export default function OrderDashboard() {
         throw new Error(`Server responded with ${response.status}`);
       }
     } catch (error) {
-      console.error('Error submitting order:', error);
+      devError('Error submitting order:', error);
       localStorage.setItem('pura-vida-failed-order', JSON.stringify({
         data: orderData,
         timestamp: timestamp,
@@ -293,7 +294,7 @@ export default function OrderDashboard() {
       toast.success('Uitgelogd');
       navigate('/');
     } catch (error) {
-      console.error('Logout error:', error);
+      devError('Logout error:', error);
       toast.error('Uitloggen mislukt');
     }
   };

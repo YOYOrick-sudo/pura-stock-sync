@@ -27,6 +27,7 @@ import { AdminPasswordDialog } from './AdminPasswordDialog';
 import { RepeatBadge } from './RepeatBadge';
 import { ListManager } from './ListManager';
 import { getOrderedCategories } from '@/lib/foh-category-order';
+import { devLog, devError } from "@/lib/devLog";
 
 // Phase time windows (minutes-based)
 const PHASE_WINDOWS = [
@@ -1157,7 +1158,7 @@ export function FohTasks() {
       .from('foh_category_order')
       .upsert(rows, { onConflict: 'location,department,phase,category' });
     if (error) {
-      console.error('persistCategoryOrder error', error);
+      devError('persistCategoryOrder error', error);
       toast.error('Fout bij opslaan volgorde');
       return false;
     }
@@ -1222,7 +1223,7 @@ export function FohTasks() {
       _new: trimmed,
     });
     if (error) {
-      console.error('rename category', error);
+      devError('rename category', error);
       toast.error('Hernoemen mislukt');
       return;
     }
@@ -1269,7 +1270,7 @@ export function FohTasks() {
       .eq('phase', activePhase)
       .eq('category', category);
     if (error) {
-      console.error('delete category', error);
+      devError('delete category', error);
       toast.error('Verwijderen mislukt');
       return;
     }
@@ -1403,7 +1404,7 @@ export function FohTasks() {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching daily tasks:', error);
+      devError('Error fetching daily tasks:', error);
       return;
     }
 
@@ -1424,7 +1425,7 @@ export function FohTasks() {
       .order('priority', { ascending: true });
     
     if (error) {
-      console.error('Error fetching extra tasks:', error);
+      devError('Error fetching extra tasks:', error);
       return;
     }
     
@@ -1439,7 +1440,7 @@ export function FohTasks() {
       .order('name', { ascending: true });
     
     if (error) {
-      console.error('Error fetching employees:', error);
+      devError('Error fetching employees:', error);
       return;
     }
     
@@ -1479,7 +1480,7 @@ export function FohTasks() {
   const performClientSideReset = async () => {
     const location = userLocation || 'West';
     try {
-      console.log(`[${location}] Performing client-side task reset...`);
+      devLog(`[${location}] Performing client-side task reset...`);
       
       const todayDate = getAmsterdamDateString();
       
@@ -1492,16 +1493,16 @@ export function FohTasks() {
         .not('phase', 'is', null);
       
       if (archiveError) {
-        console.error('Error archiving old tasks:', archiveError);
+        devError('Error archiving old tasks:', archiveError);
         return;
       }
       
       await generateDailyTasks();
       
       localStorage.setItem(`lastTaskReset_${location}`, new Date().toISOString());
-      console.log(`[${location}] Client-side reset completed`);
+      devLog(`[${location}] Client-side reset completed`);
     } catch (error) {
-      console.error('Error in client-side reset:', error);
+      devError('Error in client-side reset:', error);
     }
   };
 
@@ -1564,7 +1565,7 @@ export function FohTasks() {
       setDailyTasks(prev => prev.map(revert));
       setExtraTasks(prev => prev.map(revert));
       toast.error('Kon taak niet bijwerken');
-      console.error(error);
+      devError(error);
       return;
     }
 
@@ -1593,7 +1594,7 @@ export function FohTasks() {
     
     if (error) {
       toast.error('Kon medewerker niet aanmaken');
-      console.error(error);
+      devError(error);
       return null;
     }
     
@@ -1649,7 +1650,7 @@ export function FohTasks() {
 
     if (error) {
       toast.error('Kon taak niet aanmaken');
-      console.error(error);
+      devError(error);
       return;
     }
 
@@ -1675,7 +1676,7 @@ export function FohTasks() {
       .eq('id', taskId);
 
     if (error) {
-      console.error('Error deleting task:', error);
+      devError('Error deleting task:', error);
       toast.error('Fout bij verwijderen taak');
       return;
     }
@@ -1759,7 +1760,7 @@ export function FohTasks() {
           .eq('id', task.id);
         
         if (error) {
-          console.error('Error updating task:', error);
+          devError('Error updating task:', error);
           toast.error('Fout bij opslaan');
           return;
         }
@@ -1772,7 +1773,7 @@ export function FohTasks() {
           .in('id', deletedTaskIds);
         
         if (error) {
-          console.error('Error deleting tasks:', error);
+          devError('Error deleting tasks:', error);
           toast.error('Fout bij verwijderen taken');
           return;
         }
@@ -1798,7 +1799,7 @@ export function FohTasks() {
           .insert(tasksToInsert);
         
         if (error) {
-          console.error('Error inserting new tasks:', error);
+          devError('Error inserting new tasks:', error);
           toast.error('Fout bij toevoegen taken');
           return;
         }
@@ -1829,7 +1830,7 @@ export function FohTasks() {
       setNewTaskInput('');
       toast.success('Wijzigingen opgeslagen');
     } catch (error) {
-      console.error('Error saving changes:', error);
+      devError('Error saving changes:', error);
       toast.error('Fout bij opslaan');
     }
   };
@@ -1865,7 +1866,7 @@ export function FohTasks() {
         .neq('template_name', currentTemplateName);
       
       if (deactivateOthersError) {
-        console.error('Error deactivating other templates:', deactivateOthersError);
+        devError('Error deactivating other templates:', deactivateOthersError);
         toast.error('Fout bij voorbereiden template');
         return;
       }
@@ -1881,7 +1882,7 @@ export function FohTasks() {
         .eq('repeat_type', 'daily');
       
       if (deleteError) {
-        console.error('Error deleting old templates:', deleteError);
+        devError('Error deleting old templates:', deleteError);
         toast.error('Fout bij verwijderen oude template');
         return;
       }
@@ -1906,7 +1907,7 @@ export function FohTasks() {
         .insert(templatesToInsert);
       
       if (insertError) {
-        console.error('Error inserting templates:', insertError);
+        devError('Error inserting templates:', insertError);
         toast.error('Fout bij opslaan template');
         return;
       }
@@ -1916,7 +1917,7 @@ export function FohTasks() {
       queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
       queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
     } catch (error) {
-      console.error('Error saving template:', error);
+      devError('Error saving template:', error);
       toast.error('Fout bij opslaan template');
     }
   };
@@ -1968,7 +1969,7 @@ export function FohTasks() {
           .in('template_id', inactiveIds);
         
         if (deleteOrphansError) {
-          console.error('Error removing orphan tasks:', deleteOrphansError);
+          devError('Error removing orphan tasks:', deleteOrphansError);
         }
       }
       
@@ -1982,7 +1983,7 @@ export function FohTasks() {
       queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['foh-tasks'] });
     } catch (error) {
-      console.error('Error activating template:', error);
+      devError('Error activating template:', error);
       toast.error('Fout bij activeren template');
     }
   };
@@ -2063,7 +2064,7 @@ export function FohTasks() {
       queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
       queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
     } catch (error) {
-      console.error('Error creating template:', error);
+      devError('Error creating template:', error);
       toast.error('Fout bij aanmaken template');
     }
   };
@@ -2093,7 +2094,7 @@ export function FohTasks() {
       queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
       setSelectedTemplateName('');
     } catch (error) {
-      console.error('Error deleting template:', error);
+      devError('Error deleting template:', error);
       toast.error('Fout bij verwijderen template');
     }
   };
@@ -2165,7 +2166,7 @@ export function FohTasks() {
           .eq('id', task.id);
         
         if (error) {
-          console.error('Error updating template task:', error);
+          devError('Error updating template task:', error);
           toast.error('Fout bij opslaan');
           return;
         }
@@ -2189,7 +2190,7 @@ export function FohTasks() {
           .eq('archived', false);
 
         if (syncError) {
-          console.error('Error syncing task to today:', syncError);
+          devError('Error syncing task to today:', syncError);
         }
       }
       
@@ -2216,7 +2217,7 @@ export function FohTasks() {
           .single();
         
         if (error) {
-          console.error('Error inserting new template task:', error);
+          devError('Error inserting new template task:', error);
           toast.error('Fout bij toevoegen nieuwe taak');
           return;
         }
@@ -2239,7 +2240,7 @@ export function FohTasks() {
               due_date: todayNL,
             });
           if (insertTaskError) {
-            console.error('Error inserting task for today:', insertTaskError);
+            devError('Error inserting task for today:', insertTaskError);
           }
         }
       }
@@ -2255,7 +2256,7 @@ export function FohTasks() {
           .eq('archived', false);
 
         if (archiveError) {
-          console.error('Error archiving tasks for today:', archiveError);
+          devError('Error archiving tasks for today:', archiveError);
         }
 
         const { error } = await supabase
@@ -2264,7 +2265,7 @@ export function FohTasks() {
           .in('id', deletedTemplateTaskIds);
         
         if (error) {
-          console.error('Error deleting template tasks:', error);
+          devError('Error deleting template tasks:', error);
           toast.error('Fout bij verwijderen taken');
           return;
         }
@@ -2297,7 +2298,7 @@ export function FohTasks() {
       queryClient.invalidateQueries({ queryKey: ['foh-category-order'] });
       queryClient.invalidateQueries({ queryKey: ['foh-daily-tasks'] });
     } catch (error) {
-      console.error('Error saving template edits:', error);
+      devError('Error saving template edits:', error);
       toast.error('Fout bij opslaan');
     }
   };

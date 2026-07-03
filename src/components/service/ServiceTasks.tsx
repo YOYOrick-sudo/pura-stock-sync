@@ -19,6 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { devError } from "@/lib/devLog";
 import {
   Select,
   SelectContent,
@@ -69,7 +70,7 @@ export function ServiceTasks() {
       if (error) throw error;
       setTasks(data || []);
     } catch (error) {
-      console.error('Error fetching tasks:', error);
+      devError('Error fetching tasks:', error);
       toast.error('Kon taken niet laden');
     } finally {
       setLoading(false);
@@ -95,7 +96,7 @@ export function ServiceTasks() {
       toast.success(!currentStatus ? 'Taak voltooid!' : 'Taak heropend');
       fetchTasks();
     } catch (error) {
-      console.error('Error toggling task:', error);
+      devError('Error toggling task:', error);
       toast.error('Kon taak niet updaten');
     }
   };
@@ -143,7 +144,7 @@ export function ServiceTasks() {
       });
       fetchTasks();
     } catch (error) {
-      console.error('Error creating task:', error);
+      devError('Error creating task:', error);
       toast.error('Kon taak niet aanmaken');
     }
   };

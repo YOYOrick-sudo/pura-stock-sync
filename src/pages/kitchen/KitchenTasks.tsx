@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Plus, CheckSquare } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
+import { devLog } from "@/lib/devLog";
 
 export default function KitchenTasks() {
   // TODO: Replace with actual data from useKitchenTasks hook
@@ -54,7 +55,7 @@ export default function KitchenTasks() {
               <Checkbox
                 checked={task.completed}
                 className="mt-1"
-                onCheckedChange={() => console.log('Toggle task', task.id)}
+                onCheckedChange={() => devLog('Toggle task', task.id)}
               />
               <div className="flex-1">
                 <div className="flex items-start justify-between mb-2">

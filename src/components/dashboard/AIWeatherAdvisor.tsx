@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useUserLocation } from '@/contexts/UserLocationContext';
+import { devError } from "@/lib/devLog";
 
 interface Suggestion {
   id: string;
@@ -43,7 +44,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
       setSuggestions(data.suggestions || []);
       setFeedbackStates({});
     } catch (error) {
-      console.error('Error fetching advice:', error);
+      devError('Error fetching advice:', error);
       toast.error('Kon advies niet ophalen');
     } finally {
       setLoading(false);
@@ -73,7 +74,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
 
       toast.success('Taak aangemaakt');
     } catch (error) {
-      console.error('Error creating task:', error);
+      devError('Error creating task:', error);
       toast.error('Fout bij aanmaken taak');
     }
   };
@@ -88,7 +89,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
       toast.success('Feedback opgeslagen');
       setSuggestions(prev => prev.filter(s => s.id !== suggestionId));
     } catch (error) {
-      console.error('Error accepting suggestion:', error);
+      devError('Error accepting suggestion:', error);
       toast.error('Fout bij opslaan feedback');
     }
   };
@@ -108,7 +109,7 @@ export function AIWeatherAdvisor({ onRefresh, canRefresh = true }: AIWeatherAdvi
       toast.success('Feedback opgeslagen');
       setSuggestions(prev => prev.filter(s => s.id !== suggestionId));
     } catch (error) {
-      console.error('Error rejecting suggestion:', error);
+      devError('Error rejecting suggestion:', error);
       toast.error('Fout bij opslaan feedback');
     }
   };

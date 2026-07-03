@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Candidate, CandidateFormData } from '@/types/hr';
 import { toast } from 'sonner';
+import { devError } from "@/lib/devLog";
 
 export function useCandidates() {
   return useQuery({
@@ -56,7 +57,7 @@ export function useCreateCandidate() {
       toast.success('Kandidaat aangemaakt');
     },
     onError: (error) => {
-      console.error('Error creating candidate:', error);
+      devError('Error creating candidate:', error);
       toast.error('Fout bij aanmaken kandidaat');
     },
   });
@@ -83,7 +84,7 @@ export function useUpdateCandidate() {
       toast.success('Kandidaat bijgewerkt');
     },
     onError: (error) => {
-      console.error('Error updating candidate:', error);
+      devError('Error updating candidate:', error);
       toast.error('Fout bij bijwerken kandidaat');
     },
   });
@@ -106,7 +107,7 @@ export function useDeleteCandidate() {
       toast.success('Kandidaat verwijderd');
     },
     onError: (error) => {
-      console.error('Error deleting candidate:', error);
+      devError('Error deleting candidate:', error);
       toast.error('Fout bij verwijderen kandidaat');
     },
   });

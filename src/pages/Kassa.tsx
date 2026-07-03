@@ -16,6 +16,7 @@ import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useUserLocation } from '@/contexts/UserLocationContext';
+import { devError } from "@/lib/devLog";
 
 // Always get week number reliably using ISO 8601
 const getWeekNumber = (date: Date): number => {
@@ -130,7 +131,7 @@ const Kassa = () => {
       toast.success('Uitgelogd');
       navigate('/');
     } catch (error) {
-      console.error('Logout error:', error);
+      devError('Logout error:', error);
       toast.error('Uitloggen mislukt');
     }
   };
@@ -212,7 +213,7 @@ const Kassa = () => {
 
       setShowSuccessDialog(true);
     } catch (error: any) {
-      console.error('Fout bij opslaan kassa-afdracht:', error);
+      devError('Fout bij opslaan kassa-afdracht:', error);
       try {
         localStorage.setItem(
           `kassatelling_backup_${userLocation}_sluit`,

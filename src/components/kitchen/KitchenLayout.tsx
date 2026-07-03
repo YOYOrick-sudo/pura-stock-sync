@@ -5,6 +5,7 @@ import { ArrowLeft, LogOut } from 'lucide-react';
 import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { devError } from "@/lib/devLog";
 
 interface KitchenLayoutProps {
   children: ReactNode;
@@ -23,7 +24,7 @@ export function KitchenLayout({ children, title, subtitle, backTo = '/kitchen', 
       toast.success('Uitgelogd');
       navigate('/auth');
     } catch (error) {
-      console.error('Logout error:', error);
+      devError('Logout error:', error);
       toast.error('Uitloggen mislukt');
     }
   };

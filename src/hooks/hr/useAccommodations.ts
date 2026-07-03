@@ -7,6 +7,7 @@ import {
   AccommodationAssignment 
 } from '@/types/hr';
 import { toast } from 'sonner';
+import { devError } from "@/lib/devLog";
 
 export function useAccommodations() {
   return useQuery({
@@ -102,7 +103,7 @@ export function useCreateAccommodation() {
       toast.success('Woonruimte aangemaakt');
     },
     onError: (error) => {
-      console.error('Error creating accommodation:', error);
+      devError('Error creating accommodation:', error);
       toast.error('Fout bij aanmaken woonruimte');
     },
   });
@@ -130,7 +131,7 @@ export function useUpdateAccommodation() {
       toast.success('Woonruimte bijgewerkt');
     },
     onError: (error) => {
-      console.error('Error updating accommodation:', error);
+      devError('Error updating accommodation:', error);
       toast.error('Fout bij bijwerken woonruimte');
     },
   });
@@ -172,7 +173,7 @@ export function useCreateAssignment() {
       toast.success('Huisvesting toegewezen');
     },
     onError: (error: Error) => {
-      console.error('Error creating assignment:', error);
+      devError('Error creating assignment:', error);
       toast.error(error.message || 'Fout bij toewijzen huisvesting');
     },
   });
@@ -199,7 +200,7 @@ export function useEndAssignment() {
       toast.success('Huisvesting beëindigd');
     },
     onError: (error) => {
-      console.error('Error ending assignment:', error);
+      devError('Error ending assignment:', error);
       toast.error('Fout bij beëindigen huisvesting');
     },
   });

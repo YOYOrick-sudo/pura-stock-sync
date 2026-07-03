@@ -12,6 +12,7 @@ import { useCreateCandidate } from '@/hooks/hr/useCandidates';
 import { useCreateApplication } from '@/hooks/hr/useApplications';
 import { supabase } from '@/integrations/supabase/client';
 import { addDays } from 'date-fns';
+import { devError } from "@/lib/devLog";
 
 const POSITIONS = [
   'Bediening',
@@ -98,7 +99,7 @@ export default function ApplicantForm() {
 
       navigate('/hr');
     } catch (error) {
-      console.error('Error creating applicant:', error);
+      devError('Error creating applicant:', error);
     } finally {
       setIsSubmitting(false);
     }
