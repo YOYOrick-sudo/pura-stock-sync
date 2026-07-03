@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 import { PolarSidebar } from '@/components/polar/Sidebar';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import puraVidaLogo from '@/assets/pura-vida-logo-sea-cropped.png';
+import puraVidaLogo from '@/assets/pura-vida-logo-official.png';
 import puraVidaLogoIcon from '@/assets/pura-vida-logo-official.png';
 
 const allNavigationItems = [
