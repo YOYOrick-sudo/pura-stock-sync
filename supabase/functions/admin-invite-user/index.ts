@@ -10,37 +10,42 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get('Authorization') ?? '';
-    const jwt = authHeader.replace('Bearer ', '');
-    if (!jwt) {
-      return json({ error: 'missing_auth' }, 401);
-    }
-
-    // Identify caller
-    const userClient = createClient(SUPABASE_URL, ANON, {
-      global: { headers: { Authorization: `Bearer ${jwt}` } },
-    });
-    const { data: userRes, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userRes.user) return json({ error: 'invalid_auth' }, 401);
-    const caller = userRes.user;
-
     const body = await req.json().catch(() => ({}));
     const { email, first_name, last_name, redirect_to } = body ?? {};
     if (!email || typeof email !== 'string') return json({ error: 'email_required' }, 400);
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-    // Authorization: caller must be owner/admin, OR bootstrap-invite for BOOTSTRAP_OWNER_EMAIL by any authenticated user
-    const { data: roles } = await admin
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', caller.id)
-      .eq('is_active', true);
-    const isPrivileged = (roles ?? []).some(r => ['owner', 'admin'].includes(r.role as string));
-    const isBootstrap =
-      !isPrivileged &&
-      BOOTSTRAP_EMAIL !== '' &&
-      email.toLowerCase() === BOOTSTRAP_EMAIL;
+    // Bootstrap: allow unauthenticated invite for exactly BOOTSTRAP_OWNER_EMAIL,
+    // and only while no owner/admin exists yet in user_roles.
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const jwt = authHeader.replace('Bearer ', '');
+    let isPrivileged = false;
+
+    if (jwt) {
+      const userClient = createClient(SUPABASE_URL, ANON, {
+        global: { headers: { Authorization: `Bearer ${jwt}` } },
+      });
+      const { data: userRes } = await userClient.auth.getUser();
+      if (userRes?.user) {
+        const { data: roles } = await admin
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userRes.user.id)
+          .eq('is_active', true);
+        isPrivileged = (roles ?? []).some(r => ['owner', 'admin'].includes(r.role as string));
+      }
+    }
+
+    let isBootstrap = false;
+    if (!isPrivileged && BOOTSTRAP_EMAIL && email.toLowerCase() === BOOTSTRAP_EMAIL) {
+      const { count } = await admin
+        .from('user_roles')
+        .select('*', { count: 'exact', head: true })
+        .in('role', ['owner', 'admin'])
+        .eq('is_active', true);
+      isBootstrap = (count ?? 0) === 0;
+    }
 
     if (!isPrivileged && !isBootstrap) {
       return json({ error: 'forbidden' }, 403);
