@@ -142,6 +142,7 @@ export function useCreateRecipe() {
           porties: rest.porties,
           bereiding: rest.bereiding,
           foto_url: rest.foto_url ?? null,
+          arbeid_minuten: rest.arbeid_minuten ?? null,
           created_by: uid,
         })
         .select('id')
