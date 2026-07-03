@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { ArrowLeft, AlertTriangle, Clock, CheckCircle2, Send } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Clock, CheckCircle2, Send, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useMaintenanceTicket, useUpdateTicketStatus } from '@/hooks/maintenance/useMaintenanceTickets';
 import { useTicketComments, useCreateComment } from '@/hooks/maintenance/useTicketComments';
+import { useSignedPhotoUrl } from '@/hooks/maintenance/useMaintenancePhoto';
 import type { MaintenanceUser, TicketStatus } from '@/types/maintenance';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
@@ -50,8 +51,11 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
   const updateStatus = useUpdateTicketStatus();
   const createComment = useCreateComment();
   const [commentText, setCommentText] = useState('');
+  const photoUrl = useSignedPhotoUrl(ticket?.foto_url);
 
-  const isEigenaar = user.rol === 'eigenaar';
+  const isEigenaar = user.rol === 'eigenaar' && !user.isStaff;
+  const canComment = !user.isStaff;
+
 
   if (isLoading || !ticket) {
     return (
@@ -129,6 +133,17 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
             <StatusIcon className="h-3.5 w-3.5" />
             {status.label}
           </span>
+          {ticket.plek && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              padding: '4px 10px', borderRadius: '8px',
+              backgroundColor: 'hsl(var(--muted))', color: 'hsl(var(--muted-foreground))',
+              fontSize: '12px', fontWeight: 600,
+            }}>
+              <MapPin className="h-3.5 w-3.5" />
+              {ticket.plek}
+            </span>
+          )}
         </div>
 
         <h2 className="text-xl font-semibold text-foreground mb-2">
@@ -141,10 +156,20 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
           </p>
         )}
 
+        {ticket.foto_url && (
+          <div className="mb-4 overflow-hidden" style={{ borderRadius: '16px', backgroundColor: 'hsl(var(--muted))' }}>
+            {photoUrl ? (
+              <img src={photoUrl} alt="Foto bij melding" style={{ width: '100%', maxHeight: '480px', objectFit: 'cover', display: 'block' }} />
+            ) : (
+              <div style={{ height: '200px' }} />
+            )}
+          </div>
+        )}
+
         {/* Meta */}
         <div className="rounded-[14px] bg-muted p-3 px-4 text-[13px] text-muted-foreground">
           <div className="flex flex-wrap gap-x-6 gap-y-1">
-            <span>Melder: <strong className="text-foreground">{ticket.melder?.naam ?? 'Onbekend'}</strong></span>
+            <span>Melder: <strong className="text-foreground">{ticket.melder_naam ?? ticket.melder?.naam ?? 'Onbekend'}</strong></span>
             <span>Vestiging: <strong className="text-foreground capitalize">{ticket.vestiging}</strong></span>
             <span>Aangemaakt: <strong className="text-foreground">
               {format(new Date(ticket.aangemaakt_op), 'd MMM yyyy, HH:mm', { locale: nl })}
@@ -223,29 +248,33 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
           </div>
         )}
 
-        {/* New comment input */}
-        <div className="flex gap-2">
-          <Textarea
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder="Voeg een notitie toe..."
-            rows={2}
-            className="flex-1 rounded-[14px] border-1.5 resize-none text-sm"
-          />
-          <Button
-            onClick={handleComment}
-            disabled={!commentText.trim() || createComment.isPending}
-            className="rounded-[14px] self-end"
-            style={{
-              width: '52px',
-              height: '52px',
-              backgroundColor: commentText.trim() ? 'hsl(var(--primary))' : 'hsl(var(--muted))',
-              border: 'none',
-            }}
-          >
-            <Send className="h-5 w-5" style={{ color: 'hsl(var(--primary-foreground))' }} />
-          </Button>
-        </div>
+        {/* New comment input (alleen beheer, staff-user heeft geen maintenance_users-record) */}
+        {canComment ? (
+          <div className="flex gap-2">
+            <Textarea
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Voeg een notitie toe..."
+              rows={2}
+              className="flex-1 rounded-[14px] border-1.5 resize-none text-sm"
+            />
+            <Button
+              onClick={handleComment}
+              disabled={!commentText.trim() || createComment.isPending}
+              className="rounded-[14px] self-end"
+              style={{
+                width: '52px',
+                height: '52px',
+                backgroundColor: commentText.trim() ? 'hsl(var(--primary))' : 'hsl(var(--muted))',
+                border: 'none',
+              }}
+            >
+              <Send className="h-5 w-5" style={{ color: 'hsl(var(--primary-foreground))' }} />
+            </Button>
+          </div>
+        ) : (!comments || comments.length === 0) ? (
+          <p className="text-[13px] text-muted-foreground">Nog geen notities.</p>
+        ) : null}
       </div>
     </div>
   );

@@ -1013,8 +1013,12 @@ export type Database = {
         Row: {
           aangemaakt_op: string
           bijgewerkt_op: string
+          foto_url: string | null
           id: string
-          melder_id: string
+          melder_id: string | null
+          melder_naam: string | null
+          melder_user_id: string | null
+          plek: string | null
           prioriteit: string
           status: string
           titel: string
@@ -1024,8 +1028,12 @@ export type Database = {
         Insert: {
           aangemaakt_op?: string
           bijgewerkt_op?: string
+          foto_url?: string | null
           id?: string
-          melder_id: string
+          melder_id?: string | null
+          melder_naam?: string | null
+          melder_user_id?: string | null
+          plek?: string | null
           prioriteit?: string
           status?: string
           titel: string
@@ -1035,8 +1043,12 @@ export type Database = {
         Update: {
           aangemaakt_op?: string
           bijgewerkt_op?: string
+          foto_url?: string | null
           id?: string
-          melder_id?: string
+          melder_id?: string | null
+          melder_naam?: string | null
+          melder_user_id?: string | null
+          plek?: string | null
           prioriteit?: string
           status?: string
           titel?: string
