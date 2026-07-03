@@ -248,29 +248,33 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
           </div>
         )}
 
-        {/* New comment input */}
-        <div className="flex gap-2">
-          <Textarea
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder="Voeg een notitie toe..."
-            rows={2}
-            className="flex-1 rounded-[14px] border-1.5 resize-none text-sm"
-          />
-          <Button
-            onClick={handleComment}
-            disabled={!commentText.trim() || createComment.isPending}
-            className="rounded-[14px] self-end"
-            style={{
-              width: '52px',
-              height: '52px',
-              backgroundColor: commentText.trim() ? 'hsl(var(--primary))' : 'hsl(var(--muted))',
-              border: 'none',
-            }}
-          >
-            <Send className="h-5 w-5" style={{ color: 'hsl(var(--primary-foreground))' }} />
-          </Button>
-        </div>
+        {/* New comment input (alleen beheer, staff-user heeft geen maintenance_users-record) */}
+        {canComment ? (
+          <div className="flex gap-2">
+            <Textarea
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Voeg een notitie toe..."
+              rows={2}
+              className="flex-1 rounded-[14px] border-1.5 resize-none text-sm"
+            />
+            <Button
+              onClick={handleComment}
+              disabled={!commentText.trim() || createComment.isPending}
+              className="rounded-[14px] self-end"
+              style={{
+                width: '52px',
+                height: '52px',
+                backgroundColor: commentText.trim() ? 'hsl(var(--primary))' : 'hsl(var(--muted))',
+                border: 'none',
+              }}
+            >
+              <Send className="h-5 w-5" style={{ color: 'hsl(var(--primary-foreground))' }} />
+            </Button>
+          </div>
+        ) : (!comments || comments.length === 0) ? (
+          <p className="text-[13px] text-muted-foreground">Nog geen notities.</p>
+        ) : null}
       </div>
     </div>
   );
