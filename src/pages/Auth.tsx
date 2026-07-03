@@ -59,17 +59,15 @@ const Auth = () => {
     if (mode === 'personal' && !personalEmail.trim()) { toast.error('Vul je e-mailadres in'); return; }
     setLoading(true);
     try {
-      const { data: { session: existingSession } } = await supabase.auth.getSession();
-      if (existingSession) {
-        await supabase.auth.signOut();
-        await new Promise(resolve => setTimeout(resolve, 300));
-      }
-
       const emailToUse = mode === 'personal' ? personalEmail.trim() : getEmailForLocation(location);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: emailToUse,
-        password: password
-      });
+
+      // Hard timeout as a safety net: if the client hangs, surface it instead of
+      // spinning forever on "Bezig met inloggen".
+      const signInPromise = supabase.auth.signInWithPassword({ email: emailToUse, password });
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 12_000)
+      );
+      const { data, error } = await Promise.race([signInPromise, timeoutPromise]) as Awaited<typeof signInPromise>;
 
       if (error) {
         const status = (error as any).status;
@@ -105,10 +103,15 @@ const Auth = () => {
         navigate('/dashboard');
       }
     } catch (error) {
+      const isTimeout = error instanceof Error && error.message === 'timeout';
       if (import.meta.env.DEV) {
         devError('Login failed:', error instanceof Error ? error.message : 'unknown');
       }
-      toast.error('Er ging iets mis', { description: 'Probeer het opnieuw' });
+      if (isTimeout) {
+        toast.error('Inloggen duurt te lang', { description: 'Ververs de pagina en probeer opnieuw.' });
+      } else {
+        toast.error('Er ging iets mis', { description: 'Probeer het opnieuw' });
+      }
     } finally {
       setLoading(false);
     }
