@@ -44,6 +44,7 @@ function groupItems(items: PolarSidebarItem[]) {
 
 export function PolarSidebar({
   logo,
+  collapsedLogo,
   items,
   collapsed,
   onToggle,
