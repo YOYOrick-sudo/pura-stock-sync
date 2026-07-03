@@ -71,7 +71,7 @@ export function StickerProductCombobox({
               </div>
             )}
             {suggestions.length > 0 && (
-              <CommandGroup heading="Vaak gebruikt">
+              <CommandGroup heading={headingLabel}>
                 {suggestions.map((s) => (
                   <CommandItem
                     key={s.id}
@@ -91,7 +91,7 @@ export function StickerProductCombobox({
                 ))}
               </CommandGroup>
             )}
-            {!isFetching && suggestions.length === 0 && term.length >= 2 && (
+            {!isFetching && suggestions.length === 0 && term.length >= 1 && (
               <div className="py-4 px-3 text-xs text-muted-foreground text-center">
                 Nieuw product — wordt onthouden bij printen.
               </div>
