@@ -70,16 +70,6 @@ export function PolarSidebar({
             : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
         )}
       >
-        {item.active && (
-          <span
-            aria-hidden
-            className={cn(
-              'absolute left-0 top-1/2 -translate-y-1/2 w-[3px] bg-primary rounded-r-full',
-              collapsed ? 'h-6' : 'h-5',
-              collapsed ? '-left-1' : '-left-2'
-            )}
-          />
-        )}
         <Icon
           className={cn(
             'shrink-0 transition-colors',
