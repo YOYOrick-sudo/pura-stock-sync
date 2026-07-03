@@ -29,9 +29,12 @@ export function StickerProductCombobox({
   const [open, setOpen] = useState(false);
   const term = value.trim();
   const { data: suggestions = [], isFetching } = useStickerSuggesties(term);
+  const headingLabel = term.length === 0 ? 'Meest gebruikt' : 'Voorstellen';
+
+
 
   return (
-    <Popover open={open && term.length >= 2} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <div className="relative">
           <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />

@@ -29,14 +29,16 @@ export function useStickerSuggesties(term: string) {
   const q = useDebounced(term.trim(), 200);
   return useQuery({
     queryKey: ['sticker-suggesties', q.toLowerCase()],
-    enabled: q.length >= 2,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('sticker_producten')
         .select('id, naam, laatst_type, laatst_tht_dagen, keer_geprint')
-        .ilike('naam', `%${q}%`)
         .order('keer_geprint', { ascending: false })
         .limit(8);
+      if (q.length >= 1) {
+        query = query.ilike('naam', `%${q}%`);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       return (data ?? []) as StickerProduct[];
     },
@@ -76,6 +78,58 @@ export function useCreateStickerPrintJob() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['sticker-suggesties'] });
+      qc.invalidateQueries({ queryKey: ['print-jobs-today'] });
+    },
+  });
+}
+
+export interface PrintJobToday {
+  id: string;
+  zpl: string;
+  label_omschrijving: string | null;
+  status: string;
+  created_at: string;
+  geprint_op: string | null;
+  foutmelding: string | null;
+}
+
+export function usePrintJobsToday() {
+  return useQuery({
+    queryKey: ['print-jobs-today'],
+    queryFn: async () => {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const { data, error } = await supabase
+        .from('print_jobs')
+        .select('id, zpl, label_omschrijving, status, created_at, geprint_op, foutmelding')
+        .gte('created_at', start.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      return (data ?? []) as PrintJobToday[];
+    },
+    refetchInterval: 5000,
+  });
+}
+
+export function useReprintJob() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (job: Pick<PrintJobToday, 'zpl' | 'label_omschrijving'>) => {
+      const { data, error } = await supabase
+        .from('print_jobs')
+        .insert({
+          recipe_id: null,
+          zpl: job.zpl,
+          label_omschrijving: job.label_omschrijving,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['print-jobs-today'] });
     },
   });
 }
