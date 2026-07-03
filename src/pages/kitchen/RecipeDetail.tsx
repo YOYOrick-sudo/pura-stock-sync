@@ -98,6 +98,12 @@ export default function RecipeDetail() {
                       {recipe.porties} porties
                     </span>
                   )}
+                  {recipe.arbeid_minuten != null && (
+                    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Clock className="w-3.5 h-3.5" />
+                      {recipe.arbeid_minuten} min arbeid
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
