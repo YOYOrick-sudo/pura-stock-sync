@@ -74,7 +74,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
         <img
           src={puraVidaLogo}
           alt="Pura Vida"
-          className="h-[52px] w-auto max-w-full object-contain object-left"
+          className="h-[60px] w-auto max-w-full object-contain object-left"
         />
       }
       collapsedLogo={
