@@ -195,7 +195,7 @@ export default function RecipeForm() {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <Label className="text-sm font-medium">Categorie</Label>
               <Input
@@ -232,7 +232,21 @@ export default function RecipeForm() {
                 className="mt-2 h-11"
               />
             </div>
+            <div>
+              <Label className="text-sm font-medium">Houdbaarheid (dagen)</Label>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={30}
+                value={thtDagen}
+                onChange={(e) => setThtDagen(e.target.value)}
+                placeholder="3"
+                className="mt-2 h-11"
+              />
+            </div>
           </div>
+
 
           <div>
             <Label className="text-sm font-medium mb-2 block">Type</Label>
