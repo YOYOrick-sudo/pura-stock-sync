@@ -56,6 +56,7 @@ const Auth = () => {
     e.preventDefault();
     if (cooldown > 0) return;
     if (!password.trim()) { toast.error('Vul het wachtwoord in'); return; }
+    if (mode === 'personal' && !personalEmail.trim()) { toast.error('Vul je e-mailadres in'); return; }
     setLoading(true);
     try {
       const { data: { session: existingSession } } = await supabase.auth.getSession();
@@ -63,9 +64,10 @@ const Auth = () => {
         await supabase.auth.signOut();
         await new Promise(resolve => setTimeout(resolve, 300));
       }
-      
+
+      const emailToUse = mode === 'personal' ? personalEmail.trim() : getEmailForLocation(location);
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: getEmailForLocation(location),
+        email: emailToUse,
         password: password
       });
 
@@ -84,19 +86,22 @@ const Auth = () => {
       }
 
       if (data.session) {
-        const { data: userRole } = await supabase
-          .from('user_roles')
-          .select('location')
-          .eq('user_id', data.session.user.id)
-          .maybeSingle();
-        
-        if (userRole?.location !== location) {
-          toast.error('Verkeerde locatie detecteerd', { description: `Deze account hoort bij ${getLocationDisplayName(userRole?.location || '')}` });
-          await supabase.auth.signOut();
-          return;
+        if (mode === 'shared') {
+          const { data: userRole } = await supabase
+            .from('user_roles')
+            .select('location')
+            .eq('user_id', data.session.user.id)
+            .maybeSingle();
+
+          if (userRole?.location !== location) {
+            toast.error('Verkeerde locatie detecteerd', { description: `Deze account hoort bij ${getLocationDisplayName(userRole?.location || '')}` });
+            await supabase.auth.signOut();
+            return;
+          }
+          toast.success(`Welkom bij ${getLocationDisplayName(location)}!`);
+        } else {
+          toast.success('Welkom terug!');
         }
-        
-        toast.success(`Welkom bij ${getLocationDisplayName(location)}!`);
         navigate('/dashboard');
       }
     } catch (error) {
