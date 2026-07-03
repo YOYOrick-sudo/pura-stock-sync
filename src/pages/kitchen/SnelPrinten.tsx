@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { addDays, format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { Snowflake, ChefHat, Tag, Minus, Plus, Printer, Eye } from 'lucide-react';
+import { Snowflake, ChefHat, Tag, Minus, Plus, Printer, RotateCw, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { SidebarLayout } from '@/components/SidebarLayout';
@@ -12,6 +12,8 @@ import { cn } from '@/lib/utils';
 import { StickerProductCombobox } from '@/components/kitchen/StickerProductCombobox';
 import {
   useCreateStickerPrintJob,
+  usePrintJobsToday,
+  useReprintJob,
   type StickerProduct,
 } from '@/hooks/useStickerProducten';
 import {
@@ -35,45 +37,40 @@ const TYPES: {
   key: StickerType;
   label: string;
   icon: typeof Snowflake;
-  hint: string;
 }[] = [
-  { key: 'ontdooid', label: 'Ontdooid', icon: Snowflake, hint: 'Uit de vriezer • standaard +2 dagen' },
-  { key: 'bereid', label: 'Bereid', icon: ChefHat, hint: 'Vers bereid • standaard +3 dagen' },
-  { key: 'vrij', label: 'Vrij', icon: Tag, hint: 'Alleen datum, geen houdbaarheid' },
+  { key: 'ontdooid', label: 'Ontdooid', icon: Snowflake },
+  { key: 'bereid', label: 'Bereid', icon: ChefHat },
+  { key: 'vrij', label: 'Vrij', icon: Tag },
 ];
 
 function fmt(d: Date) {
   return format(d, 'EEE dd-MM', { locale: nl });
 }
 
-function StepHeader({
-  step,
-  label,
-  meta,
-}: {
-  step?: number;
-  label: string;
-  meta?: React.ReactNode;
-}) {
+function SectionTitle({ label, meta }: { label: string; meta?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between mb-3">
-      <div className="flex items-center gap-2">
-        {step !== undefined ? (
-          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-[11px] font-semibold">
-            {step}
-          </span>
-        ) : (
-          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-muted text-muted-foreground">
-            <Eye className="h-3 w-3" />
-          </span>
-        )}
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</span>
-      </div>
+      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </span>
       {meta && <div className="text-xs text-muted-foreground">{meta}</div>}
     </div>
   );
 }
 
+function statusVariant(s: string): 'default' | 'secondary' | 'destructive' | 'outline' {
+  if (s === 'done') return 'secondary';
+  if (s === 'error') return 'destructive';
+  if (s === 'printing') return 'default';
+  return 'outline';
+}
+
+function statusLabel(s: string): string {
+  if (s === 'done') return 'Geprint';
+  if (s === 'error') return 'Fout';
+  if (s === 'printing') return 'Bezig';
+  return 'Wacht';
+}
 
 export default function SnelPrinten() {
   const [type, setType] = useState<StickerType>('ontdooid');
@@ -81,6 +78,8 @@ export default function SnelPrinten() {
   const [thtDagen, setThtDagen] = useState<number>(DEFAULT_THT.ontdooid);
   const inputRef = useRef<HTMLDivElement>(null);
   const createJob = useCreateStickerPrintJob();
+  const { data: jobsToday = [] } = usePrintJobsToday();
+  const reprint = useReprintJob();
 
   const today = useMemo(() => new Date(), []);
   const datum1 = fmt(today);
@@ -141,21 +140,27 @@ export default function SnelPrinten() {
     }
   };
 
+  const handleReprint = async (job: (typeof jobsToday)[number]) => {
+    try {
+      await reprint.mutateAsync({ zpl: job.zpl, label_omschrijving: job.label_omschrijving });
+      toast.success('Opnieuw naar printer gestuurd');
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Herprinten mislukt');
+    }
+  };
+
   const canPrint = naam.trim().length >= 2 && !createJob.isPending;
   const activeType = TYPES.find((t) => t.key === type)!;
-  const dateLabel = type === 'ontdooid' ? 'Uit vriezer' : type === 'bereid' ? 'Bereid op' : 'Datum';
 
   return (
     <SidebarLayout>
       <div className="max-w-5xl mx-auto space-y-4">
-
-
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-          {/* Linker kolom — stappen */}
+          {/* Linker kolom */}
           <div className="space-y-3">
-            {/* Stap 1 — Type */}
+            {/* Type */}
             <Card className="p-4 sm:p-5 bg-card shadow-sm">
-              <StepHeader step={1} label="Type sticker" meta={activeType.hint} />
+              <SectionTitle label="Type sticker" />
               <div className="grid grid-cols-3 gap-2">
                 {TYPES.map(({ key, label, icon: Icon }) => {
                   const active = type === key;
@@ -165,6 +170,7 @@ export default function SnelPrinten() {
                       onClick={() => handleTypeChange(key)}
                       className={cn(
                         'h-16 rounded-polar-md flex flex-col items-center justify-center gap-1 transition-colors',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                         active
                           ? 'bg-primary text-primary-foreground shadow-sm'
                           : 'bg-muted/40 hover:bg-muted text-foreground border border-transparent',
@@ -178,9 +184,9 @@ export default function SnelPrinten() {
               </div>
             </Card>
 
-            {/* Stap 2 — Product */}
+            {/* Product */}
             <Card className="p-4 sm:p-5 bg-card shadow-sm">
-              <StepHeader step={2} label="Product" />
+              <SectionTitle label="Product" />
               <div ref={inputRef}>
                 <StickerProductCombobox
                   value={naam}
@@ -192,45 +198,35 @@ export default function SnelPrinten() {
               </div>
             </Card>
 
-
-
-            {/* Stap 3 — Datums */}
+            {/* Datums */}
             <Card className="p-4 sm:p-5 bg-card shadow-sm">
-              <StepHeader
-                step={3}
-                label="Datums"
-                meta={type === 'vrij' ? 'Geen houdbaarheid' : `Standaard +${DEFAULT_THT[type]} dagen`}
-              />
+              <SectionTitle label="Datums" />
 
               {type === 'vrij' ? (
                 <div className="rounded-polar-md bg-muted/40 px-3 py-2.5">
-                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{dateLabel}</div>
-                  <div className="text-sm font-semibold text-foreground capitalize">
-                    {datum1}
-                  </div>
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Datum</div>
+                  <div className="text-sm font-semibold text-foreground capitalize">{datum1}</div>
                 </div>
               ) : (
                 <div className="grid gap-2 sm:grid-cols-2">
                   <div className="rounded-polar-md bg-muted/40 px-3 py-2.5">
-                    <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{dateLabel}</div>
-                    <div className="text-sm font-semibold text-foreground capitalize">
-                      {datum1}
+                    <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      {type === 'ontdooid' ? 'Uit vriezer' : 'Bereid op'}
                     </div>
+                    <div className="text-sm font-semibold text-foreground capitalize">{datum1}</div>
                   </div>
 
                   <div className="rounded-polar-md bg-muted/40 px-3 py-2.5 flex items-center justify-between gap-2">
                     <div className="min-w-0">
                       <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Gebruiken t/m</div>
-                      <div className="text-sm font-semibold text-foreground capitalize truncate">
-                        {datum2}
-                      </div>
+                      <div className="text-sm font-semibold text-foreground capitalize truncate">{datum2}</div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         type="button"
                         onClick={() => adjustTht(-1)}
                         disabled={thtDagen <= THT_RANGE[type].min}
-                        className="h-8 w-8 rounded-polar-md border border-input bg-card hover:bg-muted disabled:opacity-40 disabled:hover:bg-card flex items-center justify-center transition-colors"
+                        className="h-8 w-8 rounded-polar-md border border-input bg-card hover:bg-muted disabled:opacity-40 disabled:hover:bg-card flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         aria-label="Minder dagen"
                       >
                         <Minus className="h-3.5 w-3.5" />
@@ -243,7 +239,7 @@ export default function SnelPrinten() {
                         type="button"
                         onClick={() => adjustTht(+1)}
                         disabled={thtDagen >= THT_RANGE[type].max}
-                        className="h-8 w-8 rounded-polar-md border border-input bg-card hover:bg-muted disabled:opacity-40 disabled:hover:bg-card flex items-center justify-center transition-colors"
+                        className="h-8 w-8 rounded-polar-md border border-input bg-card hover:bg-muted disabled:opacity-40 disabled:hover:bg-card flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         aria-label="Meer dagen"
                       >
                         <Plus className="h-3.5 w-3.5" />
@@ -255,22 +251,21 @@ export default function SnelPrinten() {
             </Card>
 
             {/* Print */}
-            <Button
-              onClick={handlePrint}
-              disabled={!canPrint}
-              className="w-full h-11"
-            >
-              <Printer className="h-4 w-4 mr-2" />
-              {createJob.isPending ? 'Bezig…' : 'Print sticker'}
-            </Button>
+            <div className="space-y-1.5">
+              <Button onClick={handlePrint} disabled={!canPrint} className="w-full h-11">
+                <Printer className="h-4 w-4 mr-2" />
+                {createJob.isPending ? 'Bezig…' : 'Print sticker'}
+              </Button>
+              {!canPrint && !createJob.isPending && (
+                <p className="text-xs text-muted-foreground text-center">Typ eerst een productnaam</p>
+              )}
+            </div>
           </div>
 
-
-          {/* Rechter kolom — voorbeeld */}
-          <div className="lg:sticky lg:top-4 h-fit">
+          {/* Rechter kolom */}
+          <div className="lg:sticky lg:top-4 h-fit space-y-3">
             <Card className="p-4 bg-card shadow-sm">
-              <StepHeader label="Voorbeeld" />
-
+              <SectionTitle label="Voorbeeld" />
               <div className="aspect-[57/32] bg-white rounded-polar-md border border-border flex items-center justify-center overflow-hidden">
                 <img
                   src={previewUrl}
@@ -279,7 +274,6 @@ export default function SnelPrinten() {
                   loading="lazy"
                 />
               </div>
-
               <div className="flex flex-wrap gap-1.5 mt-4">
                 <Badge variant="secondary" className="text-xs capitalize">
                   {activeType.label}
@@ -295,11 +289,51 @@ export default function SnelPrinten() {
                   </Badge>
                 )}
               </div>
+            </Card>
 
-              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border/60 text-xs text-muted-foreground">
-                <Printer className="h-3.5 w-3.5" />
-                <span>57 × 32 mm • Zebra ZD411d</span>
-              </div>
+            <Card className="p-4 bg-card shadow-sm">
+              <SectionTitle label="Vandaag geprint" />
+              {jobsToday.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-2">Nog niets vandaag.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {jobsToday.map((j) => {
+                    const tijd = format(new Date(j.created_at), 'HH:mm');
+                    return (
+                      <li
+                        key={j.id}
+                        className="flex items-center gap-2 rounded-polar-md bg-muted/40 px-2.5 py-2"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs font-medium text-foreground truncate">
+                            {j.label_omschrijving || '—'}
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[10px] text-muted-foreground tabular-nums">{tijd}</span>
+                            <Badge variant={statusVariant(j.status)} className="text-[10px] px-1.5 py-0 h-4">
+                              {statusLabel(j.status)}
+                            </Badge>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleReprint(j)}
+                          disabled={reprint.isPending}
+                          className="h-8 w-8 shrink-0 rounded-polar-md border border-input bg-card hover:bg-muted disabled:opacity-40 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          aria-label="Opnieuw printen"
+                          title="Opnieuw printen"
+                        >
+                          {reprint.isPending ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <RotateCw className="h-3.5 w-3.5" />
+                          )}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </Card>
           </div>
         </div>
