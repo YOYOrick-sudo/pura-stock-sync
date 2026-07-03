@@ -55,6 +55,7 @@ const App = () => (
             <Routes>
             {/* Auth routes */}
             <Route path="/" element={<Auth />} />
+            <Route path="/auth/set-password" element={<SetPassword />} />
             
             {/* Main module routes - all with sidebar */}
             <Route 
