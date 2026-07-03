@@ -6,6 +6,12 @@ import { toast } from 'sonner';
 import logoOfficial from '@/assets/pura-vida-logo-official.png';
 
 type LinkState = 'checking' | 'ready' | 'invalid' | 'saved';
+type PendingLink = {
+  type: 'invite' | 'recovery';
+  tokenHash?: string;
+  token?: string;
+  email?: string;
+};
 
 export default function SetPassword() {
   const navigate = useNavigate();
@@ -14,6 +20,7 @@ export default function SetPassword() {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [saving, setSaving] = useState(false);
+  const [pendingLink, setPendingLink] = useState<PendingLink | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -27,6 +34,18 @@ export default function SetPassword() {
         if (errorDescription) {
           setErrorMessage(decodeURIComponent(errorDescription.replace(/\+/g, ' ')));
           if (!cancelled) setLinkState('invalid');
+          return;
+        }
+
+        const tokenType = url.searchParams.get('type') || hash.get('type');
+        const tokenHash = url.searchParams.get('token_hash') || hash.get('token_hash');
+        const token = url.searchParams.get('token') || hash.get('token');
+        const email = url.searchParams.get('email') || hash.get('email') || undefined;
+
+        if ((tokenType === 'invite' || tokenType === 'recovery') && (tokenHash || token)) {
+          setPendingLink({ type: tokenType, tokenHash: tokenHash ?? undefined, token: token ?? undefined, email });
+          window.history.replaceState({}, document.title, url.pathname);
+          if (!cancelled) setLinkState('ready');
           return;
         }
 
@@ -70,6 +89,26 @@ export default function SetPassword() {
     if (password.length < 8) { toast.error('Minimaal 8 tekens'); return; }
     if (password !== confirm) { toast.error('Wachtwoorden komen niet overeen'); return; }
     setSaving(true);
+    if (pendingLink) {
+      const verifyPayload = pendingLink.tokenHash
+        ? { type: pendingLink.type, token_hash: pendingLink.tokenHash }
+        : { type: pendingLink.type, token: pendingLink.token, email: pendingLink.email };
+
+      if (!pendingLink.tokenHash && (!pendingLink.token || !pendingLink.email)) {
+        setSaving(false);
+        toast.error('Link mist gegevens', { description: 'Vraag een nieuwe mail aan.' });
+        return;
+      }
+
+      const { error: verifyError } = await supabase.auth.verifyOtp(verifyPayload as any);
+      if (verifyError) {
+        setSaving(false);
+        setErrorMessage('Deze link is verlopen of al gebruikt. Vraag een nieuwe mail aan.');
+        setLinkState('invalid');
+        return;
+      }
+    }
+
     const { error } = await supabase.auth.updateUser({ password });
     setSaving(false);
     if (error) { toast.error('Instellen mislukt', { description: error.message }); return; }
