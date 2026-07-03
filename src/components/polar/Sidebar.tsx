@@ -22,6 +22,7 @@ export interface PolarSidebarItem {
 
 export interface PolarSidebarProps {
   logo: React.ReactNode;
+  collapsedLogo?: React.ReactNode;
   items: PolarSidebarItem[];
   collapsed: boolean;
   onToggle: () => void;
