@@ -39,12 +39,10 @@ Deno.serve(async (req) => {
 
     let isBootstrap = false;
     if (!isPrivileged && BOOTSTRAP_EMAIL && email.toLowerCase() === BOOTSTRAP_EMAIL) {
-      const { count } = await admin
-        .from('user_roles')
-        .select('*', { count: 'exact', head: true })
-        .in('role', ['owner', 'admin'])
-        .eq('is_active', true);
-      isBootstrap = (count ?? 0) === 0;
+      // Bootstrap allowed only if this email doesn't have an account yet.
+      const { data: existing } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
+      const already = existing?.users?.some(u => (u.email ?? '').toLowerCase() === BOOTSTRAP_EMAIL);
+      isBootstrap = !already;
     }
 
     if (!isPrivileged && !isBootstrap) {
