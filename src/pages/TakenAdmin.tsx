@@ -34,6 +34,7 @@ function TakenAdminInner() {
   const { userLocation } = useUserLocation();
   const queryClient = useQueryClient();
   const isWest = userLocation === 'West';
+  const isManagedLocation = userLocation === 'West' || userLocation === 'Midsland';
 
   // Fetch alle actieve templates voor deze locatie
   const { data: templates, isLoading } = useQuery({
@@ -67,7 +68,7 @@ function TakenAdminInner() {
       }
       return out;
     },
-    enabled: isWest,
+    enabled: isManagedLocation,
   });
 
   // Tellingen per categorie (zowel templates als actieve taken) — voor opruim-detectie
@@ -88,7 +89,7 @@ function TakenAdminInner() {
       for (const r of ((tsk.data as any[]) || [])) bump(r.category);
       return counts;
     },
-    enabled: isWest,
+    enabled: isManagedLocation,
   });
 
   // Bouw lijst van kaarten
@@ -143,9 +144,11 @@ function TakenAdminInner() {
   // Unified subcategorie-beheer (West): merge voorkant + achterkant op categorie-naam
   // --------------------------------------------------------------------------
   const unifiedCategories = useMemo(() => {
-    if (!isWest || !westCategoryOrder) return [];
+    if (!isManagedLocation || !westCategoryOrder) return [];
     const map = new Map<string, { category: string; minOrder: number; depts: Department[] }>();
-    for (const dept of ['voorkant', 'achterkant'] as Department[]) {
+    // West heeft voorkant + achterkant; Midsland alleen voorkant.
+    const deptsToScan: Department[] = isWest ? ['voorkant', 'achterkant'] : ['voorkant'];
+    for (const dept of deptsToScan) {
       for (const row of westCategoryOrder[dept] ?? []) {
         const ex = map.get(row.category);
         const order = row.sort_order ?? 9999;
@@ -158,7 +161,7 @@ function TakenAdminInner() {
       }
     }
     return Array.from(map.values()).sort((a, b) => a.minOrder - b.minOrder);
-  }, [isWest, westCategoryOrder]);
+  }, [isManagedLocation, isWest, westCategoryOrder]);
 
   const handleMoveUnified = async (category: string, direction: -1 | 1) => {
     const list = unifiedCategories.map(c => c.category);
@@ -225,9 +228,9 @@ function TakenAdminInner() {
 
   // Lege legacy-categorieën opruimen
   const emptyCategories = useMemo(() => {
-    if (!isWest || !categoryUsage) return [];
+    if (!isManagedLocation || !categoryUsage) return [];
     return unifiedCategories.filter(c => (categoryUsage[c.category] ?? 0) === 0);
-  }, [isWest, unifiedCategories, categoryUsage]);
+  }, [isManagedLocation, unifiedCategories, categoryUsage]);
 
   const handleCleanupEmpty = async () => {
     if (emptyCategories.length === 0) return;
@@ -338,8 +341,8 @@ function TakenAdminInner() {
         </div>
       )}
 
-      {/* West: Onderdelen beheren (unified) */}
-      {isWest && (
+      {/* West + Midsland: Onderdelen beheren (unified) */}
+      {isManagedLocation && (
         <div style={{
           padding: 18, borderRadius: 16,
           background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))',
