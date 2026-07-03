@@ -17,12 +17,12 @@ const corsHeaders = {
 }
 
 const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Confirm your email',
-  invite: "You've been invited",
-  magiclink: 'Your login link',
-  recovery: 'Reset your password',
-  email_change: 'Confirm your new email',
-  reauthentication: 'Your verification code',
+  signup: 'Bevestig je Pura Vida-account',
+  invite: 'Je bent uitgenodigd voor de Pura Vida app',
+  magiclink: 'Je inloglink voor Pura Vida',
+  recovery: 'Wachtwoord resetten voor je Pura Vida-account',
+  email_change: 'Bevestig je nieuwe e-mailadres',
+  reauthentication: 'Je verificatiecode voor Pura Vida',
 }
 
 // Template mapping
@@ -36,7 +36,9 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "pura-stock-sync"
+const SITE_NAME = "Pura Vida Foodbar"
+const FROM_NAME = "Pura Vida Foodbar"
+const SITE_URL = "https://intern.puravidafoodbar.nl"
 const SENDER_DOMAIN = "notify.puravidafoodbar.nl"
 const ROOT_DOMAIN = "puravidafoodbar.nl"
 const FROM_DOMAIN = "puravidafoodbar.nl" // Domain shown in From address (may be root or sender subdomain)
