@@ -49,7 +49,7 @@ export function PolarSidebar({
   footerSlot,
 }: PolarSidebarProps) {
   const navigate = useNavigate();
-  const { overzicht, beheer } = groupItems(items);
+  const { overzicht, keuken, beheer } = groupItems(items);
 
   const renderItem = (item: PolarSidebarItem) => {
     const Icon = item.icon;
