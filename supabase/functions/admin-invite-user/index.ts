@@ -38,15 +38,24 @@ Deno.serve(async (req) => {
     }
 
     let isBootstrap = false;
+    const { data: existing } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
+    const existingUser = existing?.users?.find(u => (u.email ?? '').toLowerCase() === email.toLowerCase());
+
     if (!isPrivileged && BOOTSTRAP_EMAIL && email.toLowerCase() === BOOTSTRAP_EMAIL) {
-      // Bootstrap allowed only if this email doesn't have an account yet.
-      const { data: existing } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
-      const already = existing?.users?.some(u => (u.email ?? '').toLowerCase() === BOOTSTRAP_EMAIL);
-      isBootstrap = !already;
+      // Bootstrap toegestaan als er nog geen bevestigde account is (of nog geen account).
+      isBootstrap = !existingUser || !existingUser.email_confirmed_at;
     }
 
     if (!isPrivileged && !isBootstrap) {
       return json({ error: 'forbidden' }, 403);
+    }
+
+    // Als er al een niet-bevestigde uitnodiging bestaat, eerst verwijderen zodat we een verse invite kunnen sturen.
+    if (existingUser && !existingUser.email_confirmed_at) {
+      const { error: delErr } = await admin.auth.admin.deleteUser(existingUser.id);
+      if (delErr) return json({ error: `cleanup_failed: ${delErr.message}` }, 400);
+    } else if (existingUser && existingUser.email_confirmed_at) {
+      return json({ error: 'user_already_confirmed' }, 409);
     }
 
     const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
