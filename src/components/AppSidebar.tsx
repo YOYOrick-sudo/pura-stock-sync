@@ -50,7 +50,9 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
   const navigationItems = (userLocation
     ? allNavigationItems.filter(item => item.locations.includes(userLocation))
     : allNavigationItems
-  ).filter(item => !item.managerOnly || isManager);
+  )
+    .filter(item => !item.managerOnly || isManager)
+    .filter(item => !(userLocation === 'Midsland' && item.group === 'keuken'));
 
   const isActive = (url: string) =>
     location.pathname === url ||
