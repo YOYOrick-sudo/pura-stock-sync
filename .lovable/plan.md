@@ -1,36 +1,30 @@
-## Aanvullende instructies — Stickers-stap (voorheen SnelPrinten)
+## Stap 1 — Persoonlijk owner-account voor Yorick Mulder
 
-Deze notitie hoort bij de Stickers-module in de bestaande refactor-volgorde:
-**Onderhoud → Kassatelling → Recepten → Ingrediënten → Stickers → …**
+### Wat ik ga doen
+1. Nieuwe edge function `admin-invite-user` aanmaken (SECURITY DEFINER stijl via `SUPABASE_SERVICE_ROLE_KEY`) die:
+   - `auth.admin.inviteUserByEmail('yorick@puravidafoodbar.nl', { data: { first_name: 'Yorick', last_name: 'Mulder' }, redirectTo: 'https://intern.puravidafoodbar.nl/auth/callback' })` aanroept
+   - Alleen callable is voor bestaande owner/admin (via `authClient.auth.getUser()` + `has_role` check) — beveiligt tegen misbruik
+2. Function één keer aanroepen via de dashboard test-runner (of `supabase--curl_edge_functions`) om de invite-mail te versturen. **Let op:** omdat er nu nog geen owner in `user_roles` staat naast de gedeelde accounts, laat ik de rol-check de eerste keer een bootstrap-toestaan (env-var `BOOTSTRAP_OWNER_EMAIL=yorick@puravidafoodbar.nl`) — na eerste succes verwijder ik die bootstrap-tak in stap 3.
+3. Migratie: nadat het account bestaat en Yorick de invite heeft geaccepteerd, insert in `user_roles`:
+   ```sql
+   INSERT INTO public.user_roles (user_id, role, location, is_active)
+   VALUES ((SELECT id FROM auth.users WHERE email='yorick@puravidafoodbar.nl'), 'owner', 'West', true);
+   ```
+   Deze migratie draai ik pas ná je login-bevestiging (anders faalt de subquery).
 
-De volgorde blijft ongewijzigd. Onderstaande punten worden pas uitgevoerd wanneer Stickers aan de beurt is, bovenop de standaard-behandeling (SectionTitle i.p.v. stap-bolletjes, "Stickers" in sidebar én paginatitel).
+### Invite-mail flow
+- Lovable's auth-email-hook stuurt de invite via het bestaande `invite`-template. Redirect-URL landt op `/auth/callback` → sessie wordt gehydrateerd → Yorick kiest zelf een wachtwoord via de standaard Supabase reset/set-password flow die de invite-link opent.
+- Als het invite-template nog niet gestyled is voor Pura Vida, blijft dat een cosmetische taak voor later — de link werkt.
 
-### Presentatie-opschoning
-1. **Dubbele/overbodige hints weg**
-   - Verwijder "standaard +X dagen" op beide plekken (Type sticker én Datums). De datumvelden + stepper spreken voor zich.
-   - Verwijder de hint "Uit de vriezer" bij het type — knop heet al "Ontdooid".
-2. **Metadata-regel volledig weg**: verwijder "57 × 32 mm • Zebra ZD411d" onder het voorbeeld. Alleen het voorbeeldplaatje blijft.
-3. **Focus-ring op type-knoppen**: gebruikt nu een blauwige default-ring. Fix in token/component zodat de ring de primary-kleur volgt — niet lokaal patchen.
+### Wat jij doet
+1. Ik meld je zodra de invite verstuurd is.
+2. Jij opent de mail op `yorick@puravidafoodbar.nl`, klikt de link, kiest een wachtwoord, logt in op https://intern.puravidafoodbar.nl.
+3. Je bevestigt hier "ingelogd" → ik draai de role-migratie (owner) en de bootstrap-tak eruit.
+4. Daarna: stap 2 (iPads → staff).
 
-### Micro-UX
-4. **Disabled-uitleg bij Print-knop**: zolang de knop disabled is (geen productnaam), toon eronder muted hulptekst *"Typ eerst een productnaam"*. Verdwijnt zodra de knop actief wordt.
-5. **Suggesties direct in combobox**
-   - Bij focus (0 tekens): meteen top-8 meest geprinte producten tonen (`order by keer_geprint desc`).
-   - Vanaf 1e teken: live `ilike`-filter, bestaande 200ms debounce blijft.
-   - Doel: herhaal-sticker = veld tikken → product tikken → printen, zonder typen.
+### Waarom een aparte edge function en geen directe SQL?
+`auth.users` en de invite-mail-flow zijn niet via SQL-migraties bereikbaar (verboden `auth` schema). De Admin API vereist de service role key, die alleen serverside in een edge function beschikbaar is.
 
-### Kleine functionele uitzondering: "Vandaag geprint"
-6. Onder het voorbeeldpaneel een kaart *"Vandaag geprint"*:
-   - Laatste 5 `print_jobs` van vandaag.
-   - Per regel: `label_omschrijving` + tijdstip + status-badge.
-   - Compacte **herprint-knop** die dezelfde ZPL opnieuw als `pending` job aanmaakt.
-   - Alleen lezen + herprint-insert, geen verdere print_jobs-beheer-UI.
-   - Bewust kleine functionele toevoeging binnen de presentatie-refactor.
-
-### Technische aandachtspunten
-- `StickerProductCombobox`: `enabled`-conditie in `useStickerSuggesties` versoepelen (term.length ≥ 0), en bij lege term andere query (top-8 by `keer_geprint`). Popover open bij focus.
-- Focus-ring: check `button.tsx` / type-knop-styling in `SnelPrinten.tsx` — waarschijnlijk custom `<button>` zonder `focus-visible:ring-primary`. Oplossen via shared token/klasse.
-- "Vandaag geprint": nieuwe hook `usePrintJobsToday()` (select laatste 5 van vandaag), herprint = `insert print_jobs {zpl, label_omschrijving, status: 'pending'}`. RLS/GRANT check op `print_jobs`.
-- Route-URL `/kitchen/snel-printen` blijft ongewijzigd (afgesproken).
-
-Niets nu implementeren — vastleggen voor de Stickers-stap.
+### Bevestig voordat ik bouw
+- Redirect-URL `https://intern.puravidafoodbar.nl/auth/callback` — of moet dat de preview-URL zijn? (Voor productiegebruik lijkt custom domain juist.)
+- Location voor je owner-account: **West** (aanname op basis van je dagelijkse werkplek) — of Midsland?
