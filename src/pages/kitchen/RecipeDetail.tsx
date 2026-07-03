@@ -31,7 +31,7 @@ export default function RecipeDetail() {
   const deleteMut = useDeleteRecipe();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const recipeType = (data?.recipe?.type as 'gerecht' | 'halffabricaat' | undefined) ?? 'gerecht';
+  
 
   if (isLoading) {
     return (
