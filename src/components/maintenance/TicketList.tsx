@@ -68,21 +68,7 @@ export function TicketList({ actor, onNewTicket, onTicketClick }: TicketListProp
   });
 
   return (
-    <div className="space-y-6">
-      <PageSubheader
-        description=""
-        action={
-          <Button
-            onClick={onNewTicket}
-            size="lg"
-            className="h-11 px-5 text-[15px] gap-2 rounded-polar-xl"
-          >
-            <Plus className="h-[18px] w-[18px]" strokeWidth={2} />
-            Nieuwe melding
-          </Button>
-        }
-      />
-
+    <div className="space-y-4">
       {/* KPI Tellers */}
       <div className="grid grid-cols-3 gap-3 sm:gap-4">
         <StatCard
@@ -105,15 +91,26 @@ export function TicketList({ actor, onNewTicket, onTicketClick }: TicketListProp
         />
       </div>
 
-      <SegmentedTabs<StatusFilter>
-        value={statusFilter}
-        onValueChange={setStatusFilter}
-        options={[
-          { value: 'open', label: 'Open' },
-          { value: 'klaar', label: 'Klaar' },
-          { value: 'alles', label: 'Alles' },
-        ]}
-      />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SegmentedTabs<StatusFilter>
+          value={statusFilter}
+          onValueChange={setStatusFilter}
+          options={[
+            { value: 'open', label: 'Open' },
+            { value: 'klaar', label: 'Klaar' },
+            { value: 'alles', label: 'Alles' },
+          ]}
+        />
+        <Button
+          onClick={onNewTicket}
+          size="lg"
+          className="h-11 px-5 text-[15px] gap-2 rounded-polar-xl"
+        >
+          <Plus className="h-[18px] w-[18px]" strokeWidth={2} />
+          Nieuwe melding
+        </Button>
+      </div>
+
 
       <div className="space-y-3">
         {isLoading ? (
