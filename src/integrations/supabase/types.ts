@@ -2349,6 +2349,14 @@ export type Database = {
       }
     }
     Functions: {
+      claim_next_print_job: {
+        Args: never
+        Returns: {
+          id: string
+          label_omschrijving: string
+          zpl: string
+        }[]
+      }
       current_user_location: { Args: never; Returns: string }
       delete_email: {
         Args: { message_id: number; queue_name: string }
