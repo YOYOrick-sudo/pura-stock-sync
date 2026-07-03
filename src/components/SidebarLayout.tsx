@@ -35,7 +35,7 @@ export function SidebarLayout({
       '/kitchen/recipes': 'Recepten',
       '/kitchen/recipes/nieuw': 'Nieuw recept',
       '/kitchen/ingredienten': 'Ingrediënten',
-      '/kitchen/snel-printen': 'Snel printen',
+      '/kitchen/snel-printen': 'Stickers',
       '/mep-planning': 'MEP Planning',
       '/voorraad': 'Voorraad',
       '/settings': 'Instellingen',
