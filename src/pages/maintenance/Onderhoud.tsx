@@ -28,9 +28,9 @@ export default function Onderhoud() {
     useMaintenanceAuth();
   const { userLocation } = useUserLocation();
   const [screen, setScreen] = useState<Screen>({ type: 'list' });
-  const [showBeheer, setShowBeheer] = useReactState(false);
+  const [showBeheer, setShowBeheer] = useState(false);
 
-  const [authUser, setAuthUser] = useReactState<{ id: string; naam: string } | null>(null);
+  const [authUser, setAuthUser] = useState<{ id: string; naam: string } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
