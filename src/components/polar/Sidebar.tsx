@@ -178,6 +178,19 @@ export function PolarSidebar({
           </div>
         )}
 
+        {keuken.length > 0 && (
+          <div className={cn(collapsed ? 'px-1' : 'px-2', 'mb-3')}>
+            {!collapsed && (
+              <h3 className="text-[11px] font-bold text-muted-foreground/50 tracking-wider uppercase px-2.5 mb-2 mt-4">
+                Keuken
+              </h3>
+            )}
+            <div className="flex flex-col gap-1">
+              {keuken.map(renderItem)}
+            </div>
+          </div>
+        )}
+
         {beheer.length > 0 && (
           <div className={cn(collapsed ? 'px-1' : 'px-2', 'mb-3')}>
             {!collapsed && (
