@@ -1,4 +1,4 @@
-import { Home, ListChecks, Wallet, Settings, Wrench, BookOpen, Carrot, Printer } from 'lucide-react';
+import { Home, ListChecks, Settings, BookOpen, Package, Printer, Calculator, ClipboardList } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useEffect, useState } from 'react';
@@ -13,9 +13,9 @@ const allNavigationItems = [
   { title: 'Taken Bediening', url: '/taken-bediening', icon: ListChecks, group: 'overzicht' as const, locations: ['West', 'Midsland'], managerOnly: false },
   { title: 'Stickers', url: '/kitchen/snel-printen', icon: Printer, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false },
   { title: 'Recepten', url: '/kitchen/recipes', icon: BookOpen, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Ingrediënten', url: '/kitchen/ingredienten', icon: Carrot, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Kassatelling', url: '/kassatelling', icon: Wallet, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Onderhoud', url: '/onderhoud', icon: Wrench, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false },
+  { title: 'Ingrediënten', url: '/kitchen/ingredienten', icon: Package, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false },
+  { title: 'Kassatelling', url: '/kassatelling', icon: Calculator, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false },
+  { title: 'Onderhoud', url: '/onderhoud', icon: ClipboardList, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false },
   { title: 'Settings', url: '/settings', icon: Settings, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false },
 ];
 
