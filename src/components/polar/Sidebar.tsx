@@ -62,7 +62,7 @@ export function PolarSidebar({
         }}
         className={cn(
           'group flex items-center rounded-lg transition-colors cursor-pointer select-none',
-          collapsed ? 'justify-center h-10 w-10 mx-auto' : 'h-10 px-3 gap-3',
+          collapsed ? 'justify-center h-12 w-12 mx-auto' : 'h-12 px-3 gap-3',
           item.active
             ? 'bg-muted text-foreground'
             : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
