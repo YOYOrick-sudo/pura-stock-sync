@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PolarSidebar } from '@/components/polar/Sidebar';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import puraVidaLogo from '@/assets/pura-vida-logo-sea-cropped.png';
+import puraVidaLogoIcon from '@/assets/pura-vida-logo-green.png';
 
 const allNavigationItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home, group: 'overzicht' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
