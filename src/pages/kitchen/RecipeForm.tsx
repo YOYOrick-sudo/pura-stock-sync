@@ -44,6 +44,7 @@ export default function RecipeForm() {
   const [type, setType] = useState<RecipeType>('gerecht');
   const [porties, setPorties] = useState<string>('');
   const [arbeidMinuten, setArbeidMinuten] = useState<string>('');
+  const [thtDagen, setThtDagen] = useState<string>('3');
   const [bereiding, setBereiding] = useState('');
   const [ingredients, setIngredients] = useState<Ingredient[]>([
     { naam: '', hoeveelheid: '', eenheid: null, sort_order: 0, ingredient_id: null },
@@ -99,6 +100,7 @@ export default function RecipeForm() {
       setType((r.type as RecipeType) ?? 'gerecht');
       setPorties(r.porties != null ? String(r.porties) : '');
       setArbeidMinuten(r.arbeid_minuten != null ? String(r.arbeid_minuten) : '');
+      setThtDagen((r as any).tht_dagen != null ? String((r as any).tht_dagen) : '3');
       setBereiding(r.bereiding ?? '');
       setIngredients(
         existing.ingredients.length > 0
@@ -150,12 +152,14 @@ export default function RecipeForm() {
       return;
     }
 
+    const parsedTht = parseInt(thtDagen, 10);
     const payload = {
       name: name.trim(),
       category: category.trim(),
       type,
       porties: porties.trim() ? parseInt(porties, 10) : null,
       arbeid_minuten: arbeidMinuten.trim() ? parseInt(arbeidMinuten, 10) : null,
+      tht_dagen: Number.isFinite(parsedTht) ? Math.min(30, Math.max(1, parsedTht)) : 3,
       bereiding,
       ingredients,
     };
@@ -191,7 +195,7 @@ export default function RecipeForm() {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <Label className="text-sm font-medium">Categorie</Label>
               <Input
@@ -228,7 +232,21 @@ export default function RecipeForm() {
                 className="mt-2 h-11"
               />
             </div>
+            <div>
+              <Label className="text-sm font-medium">Houdbaarheid (dagen)</Label>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={30}
+                value={thtDagen}
+                onChange={(e) => setThtDagen(e.target.value)}
+                placeholder="3"
+                className="mt-2 h-11"
+              />
+            </div>
           </div>
+
 
           <div>
             <Label className="text-sm font-medium mb-2 block">Type</Label>

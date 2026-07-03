@@ -31,7 +31,7 @@ export default function RecipeDetail() {
   const deleteMut = useDeleteRecipe();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const recipeType = (data?.recipe?.type as 'gerecht' | 'halffabricaat' | undefined) ?? 'gerecht';
+  
 
   if (isLoading) {
     return (
@@ -118,7 +118,7 @@ export default function RecipeDetail() {
                 </Button>
                 <Button
                   size="icon"
-                  onClick={() => createPrintJob.mutate({ id: recipe.id, name: recipe.name, type: recipeType })}
+                  onClick={() => createPrintJob.mutate({ id: recipe.id, name: recipe.name, tht_dagen: (recipe as any).tht_dagen })}
                   disabled={createPrintJob.isPending}
                   title="Print sticker"
                   className="h-10 w-10"

@@ -6,18 +6,6 @@ export function sanitizeZpl(s: string): string {
   return (s ?? '').replace(/[\^~]/g, '').trim();
 }
 
-function fontForName(len: number): number {
-  if (len <= 16) return 44;
-  if (len <= 24) return 36;
-  if (len <= 34) return 30;
-  return 26;
-}
-
-const TYPE_LABEL: Record<string, string> = {
-  gerecht: 'Gerecht',
-  halffabricaat: 'Halffabricaat',
-};
-
 export function vandaagNL(): string {
   return new Date().toLocaleDateString('nl-NL', {
     day: '2-digit',
@@ -28,30 +16,26 @@ export function vandaagNL(): string {
 
 export interface RecipeForLabel {
   name: string;
-  type: 'gerecht' | 'halffabricaat' | string;
+  tht_dagen?: number | null;
 }
 
-// 32×32 monochrome Pura Vida logo (32 dots = ~4 mm bij 203 dpi)
-const LOGO_32_HEX =
-  '805FFBFF0007FFFF001F20F7018FE06F628023008100218042020001040040118004000280400000018010000E40000011C0000114C4000217E6B13F3CC40EC3184602421846008208C6018108C6218100C6018180C6218180C621018146210081C601008146210081C6010042C6021843C6060880043A668004000080040000';
+function fmtStickerDate(d: Date): string {
+  return d
+    .toLocaleDateString('nl-NL', { weekday: 'short', day: '2-digit', month: '2-digit' })
+    .replace('.', '');
+}
 
 export function buildRecipeLabelZpl(recept: RecipeForLabel): string {
-  const naam = sanitizeZpl(recept.name);
-  const datum = vandaagNL();
-  const typeLabel = TYPE_LABEL[recept.type] ?? 'Gerecht';
-  const naamFont = fontForName(naam.length);
-
-  return [
-    '^XA',
-    '^CI28',
-    '^PW448',
-    '^LL256',
-    `^FO20,20^A0N,${naamFont},${naamFont}^FB370,2,4,L^FD${naam}^FS`,
-    `^FO406,18^GFA,128,128,4,${LOGO_32_HEX}^FS`,
-    `^FO20,125^A0N,28,28^FD${datum}^FS`,
-    `^FO20,165^A0N,24,24^FD${typeLabel}^FS`,
-    '^XZ',
-  ].join('\n');
+  const dagen = recept.tht_dagen ?? 3;
+  const today = new Date();
+  const later = new Date(today);
+  later.setDate(later.getDate() + dagen);
+  return buildStickerZpl({
+    type: 'bereid',
+    naam: recept.name,
+    datum1: fmtStickerDate(today),
+    datum2: fmtStickerDate(later),
+  });
 }
 
 export function buildLabelOmschrijving(naam: string, datum?: string): string {

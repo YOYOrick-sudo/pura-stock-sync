@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import {
   buildRecipeLabelZpl,
-  buildLabelOmschrijving,
+  buildStickerOmschrijving,
   type RecipeForLabel,
 } from '@/lib/labelZpl';
 
@@ -11,11 +11,26 @@ export interface PrintableRecipe extends RecipeForLabel {
   id: string;
 }
 
+function fmtStickerDate(d: Date): string {
+  return d
+    .toLocaleDateString('nl-NL', { weekday: 'short', day: '2-digit', month: '2-digit' })
+    .replace('.', '');
+}
+
 export function useCreatePrintJob() {
   return useMutation({
     mutationFn: async (recipe: PrintableRecipe) => {
       const zpl = buildRecipeLabelZpl(recipe);
-      const label_omschrijving = buildLabelOmschrijving(recipe.name);
+      const dagen = recipe.tht_dagen ?? 3;
+      const today = new Date();
+      const later = new Date(today);
+      later.setDate(later.getDate() + dagen);
+      const label_omschrijving = buildStickerOmschrijving({
+        type: 'bereid',
+        naam: recipe.name,
+        datum1: fmtStickerDate(today),
+        datum2: fmtStickerDate(later),
+      });
       const { data, error } = await supabase
         .from('print_jobs')
         .insert({

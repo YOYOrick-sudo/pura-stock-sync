@@ -1,76 +1,55 @@
-# Snel-print stickers verbeteren
+# Recept-sticker gelijktrekken met snel-print
 
-Vier gerichte wijzigingen in twee bestanden. Geen andere flows worden geraakt.
+## 1. Database
+Migration: `ALTER TABLE public.recipes ADD COLUMN tht_dagen integer NOT NULL DEFAULT 3;`
 
-## A. `src/lib/labelZpl.ts` — `buildStickerZpl` en helpers
+## 2. `src/lib/labelZpl.ts`
+Vervang `buildRecipeLabelZpl` door een dunne wrapper die `buildStickerZpl` hergebruikt:
 
-### 1. Nieuwe font-tiers voor de naam
-`fontForStickerName(len)` wordt:
-- ≤ 8 → **72**
-- ≤ 14 → **56**
-- ≤ 24 → **40**
-- ≤ 34 → **30**
-- anders → **26**
-
-Word-wrap blijft `^FB408,2,4,L` (max 2 regels).
-
-### 2. Dynamische verticale verdeling
-Nieuwe helper `fitsOnOneLine(len, font)` schat de breedte:
-`len × 0.55 × font ≤ 408` → past op 1 regel.
-
-Voor `ontdooid` / `bereid`:
-- Kop-balk: y=8, hoogte 36 (zie punt 4), dus eindigt op y=44.
-- Datumblok onderaan: 2 regels font 30 (zie punt 3), samen ~72 dots hoog inclusief line-gap. Blok start op y=178, eindigt rond y=250 (binnen `^LL256`).
-- Naam-zone: van y=52 tot y=170 (118 dots beschikbaar).
-- Als naam op 1 regel past → verticaal gecentreerd in die zone (bv. `^FO20,<midY - font/2>`).
-- Als naam 2 regels nodig heeft → start bovenaan de zone (`^FO20,52`), FB met 2 regels.
-
-Voor `vrij`:
-- Geen kop-balk, naam-zone van y=20 tot y=170.
-- Één datumregel font 30 onderaan (y ≈ 210).
-- Zelfde 1-regel-centrering / 2-regels-bovenin logica.
-
-Implementatie: bereken `oneLine = fitsOnOneLine(naam.length, naamFont)`; kies dan `naamY` op basis daarvan. Concreet:
-
-```text
-zone_top    = 52 (of 20 voor vrij)
-zone_bottom = 170
-if oneLine:
-   naamY = zone_top + ((zone_bottom - zone_top) - naamFont) / 2
-else:
-   naamY = zone_top
-```
-
-### 3. Datumregels gelijkwaardig
-Voor `ontdooid` / `bereid`: beide regels font **30**, zelfde `^A0N,30,30`, links uitgelijnd op x=20:
-- `^FO20,178^A0N,30,30^FD<bronLabel>: <d1>^FS`
-- `^FO20,214^A0N,30,30^FDGebruiken t/m: <d2>^FS`
-
-(36 dots lijnafstand = font 30 + 6 gap; past ruim binnen 256.)
-
-### 4. Marge boven de kop-balk
-- Balk: `^FO0,8^GB448,36,36,B,0^FS` (start y=8 i.p.v. 0).
-- Kop-tekst: `^FO0,14^A0N,26,26^FB448,1,0,C^FR^FD<KOP>^FS` (4 dots lager t.o.v. balk-top, blijft gecentreerd verticaal in de balk).
-
-## B. `src/pages/kitchen/SnelPrinten.tsx`
-
-### 5. Stepper-max naar 30
-`THT_RANGE` wordt:
 ```ts
-ontdooid: { min: 1, max: 30 },
-bereid:   { min: 1, max: 30 },
-vrij:     { min: 0, max: 0 },
+export interface RecipeForLabel {
+  name: string;
+  tht_dagen?: number | null;
+}
+
+export function buildRecipeLabelZpl(recept: RecipeForLabel): string {
+  const dagen = recept.tht_dagen ?? 3;
+  const today = new Date();
+  const later = new Date(today);
+  later.setDate(later.getDate() + dagen);
+  const fmt = (d: Date) => d.toLocaleDateString('nl-NL', { weekday: 'short', day: '2-digit', month: '2-digit' });
+  return buildStickerZpl({
+    type: 'bereid',
+    naam: recept.name,
+    datum1: fmt(today),
+    datum2: fmt(later),
+  });
+}
 ```
-Defaults (`DEFAULT_THT`) blijven 2 en 3.
+
+`buildLabelOmschrijving` blijft bestaan (voor bestaande call sites), maar de wrapper voor recepten kan gewoon `buildStickerOmschrijving` gebruiken via een kleine aanpassing in de hook (zie stap 3). Verwijder de `TYPE_LABEL`, `LOGO_32_HEX`, `fontForName` en oude layout — niet meer gebruikt. `sanitizeZpl` en `vandaagNL` blijven.
+
+## 3. `src/hooks/usePrintJobs.ts`
+- `PrintableRecipe` verliest `type`, krijgt `tht_dagen?: number | null`.
+- `label_omschrijving` → `buildStickerOmschrijving({ type: 'bereid', naam: recipe.name, datum1, datum2 })`.
+
+## 4. `src/pages/kitchen/RecipeDetail.tsx`
+- Verwijder `recipeType`-berekening bij de printknop.
+- Call wordt: `createPrintJob.mutate({ id: recipe.id, name: recipe.name, tht_dagen: recipe.tht_dagen })`.
+
+## 5. `src/pages/kitchen/RecipeForm.tsx`
+Klein "Houdbaarheid (dagen)" number-input toevoegen (min 1, max 30, default 3), meesturen in de save-payload. Ik lees het bestand eerst om het invoerveld in de bestaande layout te plaatsen (zelfde stijl als andere velden in het formulier).
+
+## 6. `src/hooks/useRecipes.ts` / types
+`tht_dagen` toevoegen aan de fetch/insert/update-payload zodat de nieuwe kolom wordt opgehaald en opgeslagen. Types worden automatisch geregenereerd na de migration.
 
 ## Verificatie
-Ik render drie ZPL-varianten via Labelary in de sandbox en maak screenshots:
-1. **"Feta"** — type `ontdooid` (korte naam → font 72, verticaal gecentreerd, twee gelijke datumregels).
-2. **Lange naam** die wrapt naar 2 regels (bv. "Gemarineerde geitenkaas met tijm en honing") — type `bereid`.
-3. **Type `vrij`** met een middellange naam.
-
-Bekijk de PNG's, controleer dat: kop niet meer tegen bovenrand plakt, datumregels dezelfde grootte hebben, en korte namen daadwerkelijk groot zijn.
+Render via Labelary in sandbox: recept-sticker "Hummus" met `tht_dagen=3` vs. snel-print "bereid" "Hummus" — verwacht: byte-voor-byte identieke ZPL (behalve de datums als vandaag), en visueel identiek. Screenshot beide PNG's.
 
 ## Bestanden
-- `src/lib/labelZpl.ts` — `fontForStickerName`, `buildStickerZpl` (+ kleine helper `fitsOnOneLine`).
-- `src/pages/kitchen/SnelPrinten.tsx` — `THT_RANGE`.
+- migration (add column)
+- `src/lib/labelZpl.ts` — wrapper i.p.v. eigen layout
+- `src/hooks/usePrintJobs.ts` — `tht_dagen` doorgeven, omschrijving via sticker-helper
+- `src/pages/kitchen/RecipeDetail.tsx` — printknop
+- `src/pages/kitchen/RecipeForm.tsx` — nieuw veld
+- `src/hooks/useRecipes.ts` — `tht_dagen` in payload
