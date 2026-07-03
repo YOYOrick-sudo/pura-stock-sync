@@ -51,8 +51,11 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
   const updateStatus = useUpdateTicketStatus();
   const createComment = useCreateComment();
   const [commentText, setCommentText] = useState('');
+  const photoUrl = useSignedPhotoUrl(ticket?.foto_url);
 
-  const isEigenaar = user.rol === 'eigenaar';
+  const isEigenaar = user.rol === 'eigenaar' && !user.isStaff;
+  const canComment = !user.isStaff;
+
 
   if (isLoading || !ticket) {
     return (
