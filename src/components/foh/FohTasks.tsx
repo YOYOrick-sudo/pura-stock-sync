@@ -1048,7 +1048,7 @@ export function FohTasks() {
         achterkant: Array.from(out.achterkant).sort(),
       };
     },
-    enabled: userLocation === 'West',
+    enabled: userLocation === 'West' || userLocation === 'Midsland',
   });
 
   // ===== WEST CATEGORY ORDER — uit foh_category_order tabel =====
