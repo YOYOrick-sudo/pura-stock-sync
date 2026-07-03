@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Edit, Users, ChevronLeft, Printer, Trash2 } from 'lucide-react';
+import { Edit, Users, ChevronLeft, Printer, Trash2, Clock } from 'lucide-react';
 import { useRecipe, useDeleteRecipe } from '@/hooks/useRecipes';
 import { useCreatePrintJob } from '@/hooks/usePrintJobs';
 import { toast } from 'sonner';
@@ -96,6 +96,12 @@ export default function RecipeDetail() {
                     <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Users className="w-3.5 h-3.5" />
                       {recipe.porties} porties
+                    </span>
+                  )}
+                  {recipe.arbeid_minuten != null && (
+                    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Clock className="w-3.5 h-3.5" />
+                      {recipe.arbeid_minuten} min arbeid
                     </span>
                   )}
                 </div>

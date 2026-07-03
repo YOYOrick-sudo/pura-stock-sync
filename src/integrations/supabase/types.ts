@@ -1699,6 +1699,7 @@ export type Database = {
       }
       recipes: {
         Row: {
+          arbeid_minuten: number | null
           bereiding: string | null
           category: string
           created_at: string | null
@@ -1715,6 +1716,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          arbeid_minuten?: number | null
           bereiding?: string | null
           category: string
           created_at?: string | null
@@ -1731,6 +1733,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          arbeid_minuten?: number | null
           bereiding?: string | null
           category?: string
           created_at?: string | null

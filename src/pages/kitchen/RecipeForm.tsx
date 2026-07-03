@@ -43,6 +43,7 @@ export default function RecipeForm() {
   const [category, setCategory] = useState('');
   const [type, setType] = useState<RecipeType>('gerecht');
   const [porties, setPorties] = useState<string>('');
+  const [arbeidMinuten, setArbeidMinuten] = useState<string>('');
   const [bereiding, setBereiding] = useState('');
   const [ingredients, setIngredients] = useState<Ingredient[]>([
     { naam: '', hoeveelheid: '', eenheid: null, sort_order: 0, ingredient_id: null },
@@ -97,6 +98,7 @@ export default function RecipeForm() {
       setCategory(r.category ?? '');
       setType((r.type as RecipeType) ?? 'gerecht');
       setPorties(r.porties != null ? String(r.porties) : '');
+      setArbeidMinuten(r.arbeid_minuten != null ? String(r.arbeid_minuten) : '');
       setBereiding(r.bereiding ?? '');
       setIngredients(
         existing.ingredients.length > 0
@@ -153,6 +155,7 @@ export default function RecipeForm() {
       category: category.trim(),
       type,
       porties: porties.trim() ? parseInt(porties, 10) : null,
+      arbeid_minuten: arbeidMinuten.trim() ? parseInt(arbeidMinuten, 10) : null,
       bereiding,
       ingredients,
     };
@@ -188,7 +191,7 @@ export default function RecipeForm() {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <Label className="text-sm font-medium">Categorie</Label>
               <Input
@@ -210,6 +213,18 @@ export default function RecipeForm() {
                 value={porties}
                 onChange={(e) => setPorties(e.target.value)}
                 placeholder="Bijv. 4"
+                className="mt-2 h-11"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Arbeidstijd (min)</Label>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                value={arbeidMinuten}
+                onChange={(e) => setArbeidMinuten(e.target.value)}
+                placeholder="Bijv. 30"
                 className="mt-2 h-11"
               />
             </div>
