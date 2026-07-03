@@ -15,6 +15,10 @@ export const PLEK_OPTIONS = [
 ] as const;
 export type Plek = typeof PLEK_OPTIONS[number];
 
+/**
+ * Historisch record uit `maintenance_users`. De pincode-login is verwijderd;
+ * de tabel bestaat nog voor bestaande verwijzingen vanuit oude tickets/notities.
+ */
 export interface MaintenanceUser {
   id: string;
   naam: string;
@@ -24,8 +28,13 @@ export interface MaintenanceUser {
   actief: boolean;
   created_at: string;
   updated_at: string;
-  /** true als deze user via de app-login (Supabase auth) binnenkomt in plaats van de pincode */
-  isStaff?: boolean;
+}
+
+/** In-memory helper: de huidige app-user als "melder/notitie-auteur". */
+export interface MaintenanceActor {
+  id: string;
+  naam: string;
+  vestiging: Vestiging;
 }
 
 export interface MaintenanceTicket {
@@ -42,17 +51,19 @@ export interface MaintenanceTicket {
   foto_url: string | null;
   aangemaakt_op: string;
   bijgewerkt_op: string;
-  // Joined
+  // Joined (kan null zijn voor niet-admins door RLS)
   melder?: MaintenanceUser | null;
 }
 
 export interface TicketComment {
   id: string;
   ticket_id: string;
-  auteur_id: string;
+  auteur_id: string | null;
+  auteur_user_id: string | null;
+  auteur_naam: string | null;
   tekst: string;
   aangemaakt_op: string;
-  auteur?: MaintenanceUser;
+  auteur?: MaintenanceUser | null;
 }
 
 export interface MaintenanceSetting {
@@ -60,9 +71,4 @@ export interface MaintenanceSetting {
   key: string;
   value: string;
   updated_at: string;
-}
-
-export interface MaintenanceSession {
-  user: MaintenanceUser;
-  loggedInAt: number;
 }

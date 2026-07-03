@@ -5,7 +5,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useMaintenanceTicket, useUpdateTicketStatus } from '@/hooks/maintenance/useMaintenanceTickets';
 import { useTicketComments, useCreateComment } from '@/hooks/maintenance/useTicketComments';
 import { useSignedPhotoUrl } from '@/hooks/maintenance/useMaintenancePhoto';
-import type { MaintenanceUser, TicketStatus } from '@/types/maintenance';
+import { useIsMaintenanceAdmin } from '@/hooks/maintenance/useIsMaintenanceAdmin';
+import type { MaintenanceActor, TicketStatus } from '@/types/maintenance';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -13,7 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface TicketDetailProps {
   ticketId: string;
-  user: MaintenanceUser;
+  actor: MaintenanceActor;
   onBack: () => void;
 }
 
@@ -45,17 +46,14 @@ const backButtonStyle: React.CSSProperties = {
   transition: 'all 150ms ease',
 };
 
-export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
+export function TicketDetail({ ticketId, actor, onBack }: TicketDetailProps) {
   const { data: ticket, isLoading } = useMaintenanceTicket(ticketId);
   const { data: comments } = useTicketComments(ticketId);
+  const { data: isAdmin = false } = useIsMaintenanceAdmin();
   const updateStatus = useUpdateTicketStatus();
   const createComment = useCreateComment();
   const [commentText, setCommentText] = useState('');
   const photoUrl = useSignedPhotoUrl(ticket?.foto_url);
-
-  const isEigenaar = user.rol === 'eigenaar' && !user.isStaff;
-  const canComment = !user.isStaff;
-
 
   if (isLoading || !ticket) {
     return (
@@ -89,7 +87,8 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
     try {
       await createComment.mutateAsync({
         ticket_id: ticket.id,
-        auteur_id: user.id,
+        auteur_user_id: actor.id,
+        auteur_naam: actor.naam,
         tekst: commentText.trim(),
       });
       setCommentText('');
@@ -113,7 +112,6 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
 
       {/* Ticket info card */}
       <div style={{ ...cardStyle, padding: '24px' }}>
-        {/* Badges */}
         <div className="flex items-center gap-2 mb-4">
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: '4px',
@@ -166,7 +164,6 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
           </div>
         )}
 
-        {/* Meta */}
         <div className="rounded-[14px] bg-muted p-3 px-4 text-[13px] text-muted-foreground">
           <div className="flex flex-wrap gap-x-6 gap-y-1">
             <span>Melder: <strong className="text-foreground">{ticket.melder_naam ?? ticket.melder?.naam ?? 'Onbekend'}</strong></span>
@@ -178,8 +175,8 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
         </div>
       </div>
 
-      {/* Status wijzigen (alleen eigenaar) */}
-      {isEigenaar && ticket.status !== 'afgehandeld' && (
+      {/* Status wijzigen (alleen owner/admin) */}
+      {isAdmin && ticket.status !== 'afgehandeld' && (
         <div style={{ ...cardStyle, padding: '20px 24px' }}>
           <p className="text-[13px] font-semibold text-foreground uppercase tracking-wide mb-3">
             Status wijzigen
@@ -222,7 +219,7 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
         </div>
       )}
 
-      {/* Notities / comments */}
+      {/* Notities */}
       <div style={{ ...cardStyle, padding: '20px 24px' }}>
         <p className="text-[13px] font-semibold text-foreground uppercase tracking-wide mb-4">
           Notities
@@ -234,7 +231,7 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
               <div key={comment.id} className="rounded-[14px] bg-muted p-3 px-4">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-[13px] font-semibold text-foreground">
-                    {comment.auteur?.naam ?? 'Onbekend'}
+                    {comment.auteur_naam ?? comment.auteur?.naam ?? 'Onbekend'}
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {format(new Date(comment.aangemaakt_op), 'd MMM, HH:mm', { locale: nl })}
@@ -248,8 +245,8 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
           </div>
         )}
 
-        {/* New comment input (alleen beheer, staff-user heeft geen maintenance_users-record) */}
-        {canComment ? (
+        {/* Notitie plaatsen: alleen owner/admin */}
+        {isAdmin ? (
           <div className="flex gap-2">
             <Textarea
               value={commentText}

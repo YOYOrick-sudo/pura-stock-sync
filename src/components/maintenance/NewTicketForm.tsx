@@ -5,11 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useCreateTicket } from '@/hooks/maintenance/useMaintenanceTickets';
 import { uploadMaintenancePhoto } from '@/hooks/maintenance/useMaintenancePhoto';
-import { PLEK_OPTIONS, type MaintenanceUser, type Prioriteit } from '@/types/maintenance';
+import { PLEK_OPTIONS, type MaintenanceActor, type Prioriteit } from '@/types/maintenance';
 import { toast } from 'sonner';
 
 interface NewTicketFormProps {
-  user: MaintenanceUser;
+  actor: MaintenanceActor;
   onBack: () => void;
   onSuccess: () => void;
 }
@@ -33,7 +33,7 @@ const backButtonStyle: React.CSSProperties = {
   transition: 'all 150ms ease',
 };
 
-export function NewTicketForm({ user, onBack, onSuccess }: NewTicketFormProps) {
+export function NewTicketForm({ actor, onBack, onSuccess }: NewTicketFormProps) {
   const [titel, setTitel] = useState('');
   const [prioriteit, setPrioriteit] = useState<Prioriteit | null>(null);
   const [plek, setPlek] = useState<string | null>(null);
@@ -70,15 +70,14 @@ export function NewTicketForm({ user, onBack, onSuccess }: NewTicketFormProps) {
       }
 
       await createTicket.mutateAsync({
-        vestiging: user.vestiging,
+        vestiging: actor.vestiging,
         titel: titel.trim(),
         toelichting: toelichting.trim() || undefined,
         prioriteit,
         plek: plek || null,
         foto_url,
-        ...(user.isStaff
-          ? { melder_user_id: user.id, melder_naam: user.naam }
-          : { melder_id: user.id, melder_naam: user.naam }),
+        melder_user_id: actor.id,
+        melder_naam: actor.naam,
       });
       toast.success('Melding verstuurd!');
       onSuccess();
@@ -293,8 +292,8 @@ export function NewTicketForm({ user, onBack, onSuccess }: NewTicketFormProps) {
 
         {/* Meta */}
         <div className="rounded-[14px] bg-muted p-3 px-4 text-[13px] text-muted-foreground">
-          Vestiging: <strong className="text-foreground capitalize">{user.vestiging}</strong>{' '}
-          &middot; Melder: <strong className="text-foreground">{user.naam}</strong>
+          Vestiging: <strong className="text-foreground capitalize">{actor.vestiging}</strong>{' '}
+          &middot; Melder: <strong className="text-foreground">{actor.naam}</strong>
         </div>
 
         {/* Submit */}
