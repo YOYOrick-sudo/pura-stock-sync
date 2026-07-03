@@ -1051,14 +1051,15 @@ export function FohTasks() {
     enabled: userLocation === 'West' || userLocation === 'Midsland',
   });
 
-  // ===== WEST CATEGORY ORDER — uit foh_category_order tabel =====
+  // ===== WEST CATEGORY ORDER — uit foh_category_order tabel (per fase) =====
   const { data: westCategoryOrder } = useQuery({
-    queryKey: ['foh-category-order', userLocation],
+    queryKey: ['foh-category-order', userLocation, activePhase],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('foh_category_order')
-        .select('department, category, sort_order')
+        .select('department, category, sort_order, phase')
         .eq('location', userLocation)
+        .eq('phase', activePhase)
         .order('sort_order', { ascending: true });
       if (error) throw error;
       const out: Record<'voorkant' | 'achterkant', { category: string; sort_order: number }[]> = {
@@ -1098,6 +1099,7 @@ export function FohTasks() {
   const ensureCategoryOrderRow = async (
     loc: string,
     dept: 'voorkant' | 'achterkant',
+    phase: string,
     category: string,
   ) => {
     if (loc !== 'West' && loc !== 'Midsland') return;
@@ -1109,8 +1111,8 @@ export function FohTasks() {
     await supabase
       .from('foh_category_order')
       .upsert(
-        { location: loc, department: dept, category: c, sort_order: nextSort },
-        { onConflict: 'location,department,category' },
+        { location: loc, department: dept, phase, category: c, sort_order: nextSort },
+        { onConflict: 'location,department,phase,category' },
       );
   };
 
@@ -1147,12 +1149,13 @@ export function FohTasks() {
     const rows = orderedCategories.map((cat, i) => ({
       location: userLocation,
       department: dept,
+      phase: activePhase,
       category: cat,
       sort_order: (i + 1) * 10,
     }));
     const { error } = await supabase
       .from('foh_category_order')
-      .upsert(rows, { onConflict: 'location,department,category' });
+      .upsert(rows, { onConflict: 'location,department,phase,category' });
     if (error) {
       console.error('persistCategoryOrder error', error);
       toast.error('Fout bij opslaan volgorde');
@@ -1178,7 +1181,7 @@ export function FohTasks() {
     [list[idx], list[newIdx]] = [list[newIdx], list[idx]];
 
     // Optimistische update — UI verspringt direct
-    const queryKey = ['foh-category-order', userLocation];
+    const queryKey = ['foh-category-order', userLocation, activePhase];
     const previous = queryClient.getQueryData(queryKey);
     const otherDept: 'voorkant' | 'achterkant' = dept === 'voorkant' ? 'achterkant' : 'voorkant';
     const otherRows = (westCategoryOrder?.[otherDept] ?? []).map(r => ({
@@ -1214,6 +1217,7 @@ export function FohTasks() {
     const { error } = await supabase.rpc('foh_rename_category', {
       _location: userLocation,
       _department: dept,
+      _phase: activePhase,
       _old: oldName,
       _new: trimmed,
     });
@@ -1230,19 +1234,21 @@ export function FohTasks() {
     dept: 'voorkant' | 'achterkant',
     category: string,
   ) => {
-    // Veiligheid: alleen verwijderen als er geen taken/templates meer in zitten
+    // Veiligheid: alleen verwijderen als er geen taken/templates meer in zitten (voor deze fase)
     const [tpl, tsk] = await Promise.all([
       supabase
         .from('foh_daily_templates')
         .select('id', { count: 'exact', head: true })
         .eq('location', userLocation)
         .eq('department', dept)
+        .eq('phase', activePhase)
         .eq('category', category),
       supabase
         .from('foh_tasks')
         .select('id', { count: 'exact', head: true })
         .eq('location', userLocation)
         .eq('department', dept)
+        .eq('phase', activePhase)
         .eq('category', category)
         .eq('archived', false),
     ]);
@@ -1260,6 +1266,7 @@ export function FohTasks() {
       .delete()
       .eq('location', userLocation)
       .eq('department', dept)
+      .eq('phase', activePhase)
       .eq('category', category);
     if (error) {
       console.error('delete category', error);
@@ -1808,7 +1815,7 @@ export function FohTasks() {
           if (t.category) cats.add(t.category);
         }
         for (const c of cats) {
-          await ensureCategoryOrderRow(userLocation, effectiveDept, c);
+          await ensureCategoryOrderRow(userLocation, effectiveDept, activePhase, c);
         }
         queryClient.invalidateQueries({ queryKey: ['foh-category-order'] });
         queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
@@ -2271,11 +2278,12 @@ export function FohTasks() {
         for (const t of editingTemplate) {
           if (deletedTemplateTaskIds.includes(t.id)) continue;
           const dept = ((t as any).department || effectiveDept) as 'voorkant' | 'achterkant';
+          const phase = ((t as any).phase || activePhase) as string;
           const cat = (t.category || '').trim();
-          const key = `${dept}::${cat}`;
+          const key = `${dept}::${phase}::${cat}`;
           if (!cat || seen.has(key)) continue;
           seen.add(key);
-          await ensureCategoryOrderRow(loc, dept, cat);
+          await ensureCategoryOrderRow(loc, dept, phase, cat);
         }
       }
 

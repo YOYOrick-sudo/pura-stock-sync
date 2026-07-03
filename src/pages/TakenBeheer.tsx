@@ -56,14 +56,15 @@ function TakenBeheerInner() {
   const phase = (params.get('phase') as Phase) || 'sluit';
   const deptParam = params.get('dept') as Department | null;
   const isWest = location === 'West';
+  const isManaged = location === 'West' || location === 'Midsland';
   // West werkt allround: één lijst (voorkant department). Midsland negeert dept.
   const department: Department = isWest
     ? 'voorkant'
     : (deptParam === 'achterkant' ? 'achterkant' : 'voorkant');
 
-  const orderKey = ['foh-category-order', location] as const;
+  // Query is per (location, phase) — categorieën zijn nu per takenlijst apart.
+  const orderKey = ['foh-category-order', location, phase] as const;
 
-  // West category order
   const { data: westCategoryOrder } = useQuery<OrderMap>({
     queryKey: orderKey,
     queryFn: async () => {
@@ -71,6 +72,7 @@ function TakenBeheerInner() {
         .from('foh_category_order')
         .select('department, category, sort_order')
         .eq('location', location)
+        .eq('phase', phase)
         .order('sort_order', { ascending: true });
       if (error) throw error;
       const out: OrderMap = { voorkant: [], achterkant: [] };
@@ -80,16 +82,18 @@ function TakenBeheerInner() {
       }
       return out;
     },
-    enabled: isWest,
+    enabled: isManaged,
   });
 
-  // Subcategorieën uit templates + actieve taken
+  // Subcategorieën uit templates + actieve taken (voor déze fase)
   const { data: westSubcats } = useQuery({
-    queryKey: ['foh-west-subcategories', location],
+    queryKey: ['foh-west-subcategories', location, phase],
     queryFn: async () => {
       const [tpl, tsk] = await Promise.all([
-        supabase.from('foh_daily_templates').select('category, department').eq('location', location),
-        supabase.from('foh_tasks').select('category, department').eq('location', location).eq('archived', false),
+        supabase.from('foh_daily_templates')
+          .select('category, department').eq('location', location).eq('phase', phase),
+        supabase.from('foh_tasks')
+          .select('category, department').eq('location', location).eq('phase', phase).eq('archived', false),
       ]);
       const out: Record<Department, Set<string>> = { voorkant: new Set(), achterkant: new Set() };
       for (const r of [...((tpl.data as any[]) || []), ...((tsk.data as any[]) || [])]) {
@@ -102,21 +106,19 @@ function TakenBeheerInner() {
         achterkant: Array.from(out.achterkant).sort(),
       };
     },
-    enabled: isWest,
+    enabled: isManaged,
   });
 
-  // ===== Auto-seed missing categories so every used category has a sort row.
-  // Idempotent dankzij ignoreDuplicates — geen per-seedKey lock nodig.
+  // ===== Auto-seed missing categories so every used category has a sort row (per fase).
   useEffect(() => {
-    if (!isWest || !westCategoryOrder || !westSubcats) return;
+    if (!isManaged || !westCategoryOrder || !westSubcats) return;
     const dept: Department = 'voorkant';
     const missing = getMissingCategoryRows(westCategoryOrder, westSubcats as WestSubcats, dept);
     if (missing.length === 0) return;
     const maxSort = westCategoryOrder[dept].reduce((m, r) => Math.max(m, r.sort_order ?? 0), 0);
     const rows = missing.map((c, i) => ({
-      location, department: dept, category: c, sort_order: maxSort + (i + 1) * 10,
+      location, department: dept, phase, category: c, sort_order: maxSort + (i + 1) * 10,
     }));
-    // Optimistic patch zodat reorder direct alle categorieën meeneemt.
     queryClient.setQueryData<OrderMap>(orderKey, (prev) => {
       const base: OrderMap = prev
         ? { voorkant: prev.voorkant.slice(), achterkant: prev.achterkant.slice() }
@@ -127,27 +129,27 @@ function TakenBeheerInner() {
     (async () => {
       const { error } = await supabase
         .from('foh_category_order')
-        .upsert(rows, { onConflict: 'location,department,category', ignoreDuplicates: true });
+        .upsert(rows, { onConflict: 'location,department,phase,category', ignoreDuplicates: true });
       if (!error) queryClient.invalidateQueries({ queryKey: orderKey });
     })();
-  }, [isWest, westCategoryOrder, westSubcats, location, queryClient]);
+  }, [isManaged, westCategoryOrder, westSubcats, location, phase, queryClient]);
 
-  // Beschikbare categorieën — exact dezelfde volgorde als de live lijst gebruikt
-  // (zie src/lib/foh-category-order.ts). Eén bron van waarheid.
+  // Beschikbare categorieën — exact dezelfde volgorde als de live lijst gebruikt.
   const buildAvailableCategories = (dept: Department): string[] => {
-    if (!isWest) return getMidslandCategories(phase);
+    if (!isManaged) return getMidslandCategories(phase);
     const result = getOrderedCategories(
       westCategoryOrder as WestCategoryOrder | undefined,
       westSubcats as WestSubcats | undefined,
       dept,
     );
-    return result.length > 0 ? result : [...CATEGORY_ORDER_FALLBACK];
+    if (result.length > 0) return result;
+    // Fallback: als er (nog) niks in de DB staat, gebruik defaults op basis van locatie.
+    if (isWest) return [...CATEGORY_ORDER_FALLBACK];
+    return getMidslandCategories(phase);
   };
 
-  // Voor reorder/rename UI: rij-objecten in dezelfde volgorde als availableCategories.
-  // Used-only categorieën (nog zonder DB-rij) krijgen sort_order=null tot de seed klaar is.
   const buildCategoryRows = (dept: Department): { category: string; sort_order: number | null }[] => {
-    if (!isWest) return [];
+    if (!isManaged) return [];
     const ordered = buildAvailableCategories(dept);
     const map = new Map<string, number>();
     for (const r of westCategoryOrder?.[dept] ?? []) {
@@ -176,14 +178,11 @@ function TakenBeheerInner() {
     pingTimerRef.current = setTimeout(() => setSavedPing(false), 1200);
   };
 
-  // Lock om dubbelklikken / race conditions te voorkomen
   const movingRef = useRef(false);
 
   const makeMoveHandler = (dept: Department) => async (category: string, direction: -1 | 1) => {
     if (movingRef.current) return;
     const prev = queryClient.getQueryData<OrderMap>(orderKey);
-    // Belangrijk: gebruik de volledige weergegeven lijst (incl. used-only),
-    // zodat de DB-volgorde 1-op-1 matcht met wat de gebruiker ziet.
     const rows = buildCategoryRows(dept);
     const idx = rows.findIndex(r => r.category === category);
     if (idx < 0) return;
@@ -193,10 +192,9 @@ function TakenBeheerInner() {
     const list = rows.map(r => r.category);
     [list[idx], list[newIdx]] = [list[newIdx], list[idx]];
     const upsertRows = list.map((cat, i) => ({
-      location, department: dept, category: cat, sort_order: (i + 1) * 10,
+      location, department: dept, phase, category: cat, sort_order: (i + 1) * 10,
     }));
 
-    // Optimistic update
     const nextMap: OrderMap = prev
       ? {
           voorkant: prev.voorkant.map(r => ({ ...r })),
@@ -209,7 +207,7 @@ function TakenBeheerInner() {
     movingRef.current = true;
     const { error } = await supabase
       .from('foh_category_order')
-      .upsert(upsertRows, { onConflict: 'location,department,category' });
+      .upsert(upsertRows, { onConflict: 'location,department,phase,category' });
     movingRef.current = false;
 
     if (error) {
@@ -257,7 +255,7 @@ function TakenBeheerInner() {
 
     setRenameSaving(true);
     const { error } = await supabase.rpc('foh_rename_category', {
-      _location: location, _department: dept, _old: oldName, _new: trimmed,
+      _location: location, _department: dept, _phase: phase, _old: oldName, _new: trimmed,
     });
     setRenameSaving(false);
     if (error) {
@@ -278,9 +276,9 @@ function TakenBeheerInner() {
   const makeDeleteHandler = (dept: Department) => async (category: string) => {
     const [tpl, tsk] = await Promise.all([
       supabase.from('foh_daily_templates').select('id', { count: 'exact', head: true })
-        .eq('location', location).eq('department', dept).eq('category', category),
+        .eq('location', location).eq('department', dept).eq('phase', phase).eq('category', category),
       supabase.from('foh_tasks').select('id', { count: 'exact', head: true })
-        .eq('location', location).eq('department', dept).eq('category', category).eq('archived', false),
+        .eq('location', location).eq('department', dept).eq('phase', phase).eq('category', category).eq('archived', false),
     ]);
     if ((tpl.count ?? 0) + (tsk.count ?? 0) > 0) {
       toast.error(`Nog ${tpl.count ?? 0} template-taak(jes) en ${tsk.count ?? 0} actieve taken in "${category}".`);
@@ -303,7 +301,7 @@ function TakenBeheerInner() {
     const { error } = await supabase
       .from('foh_category_order')
       .delete()
-      .eq('location', location).eq('department', dept).eq('category', category);
+      .eq('location', location).eq('department', dept).eq('phase', phase).eq('category', category);
     setDeleteState(null);
     if (error) {
       if (prev) queryClient.setQueryData(orderKey, prev);
@@ -336,11 +334,11 @@ function TakenBeheerInner() {
         phase={phase}
         department={department}
         availableCategories={buildAvailableCategories(department)}
-        isWest={isWest}
+        isWest={isManaged}
         westCategoryRows={buildCategoryRows(department)}
-        onMoveCategory={isWest ? makeMoveHandler(department) : undefined}
-        onRenameCategory={isWest ? makeRenameHandler(department) : undefined}
-        onDeleteCategory={isWest ? makeDeleteHandler(department) : undefined}
+        onMoveCategory={isManaged ? makeMoveHandler(department) : undefined}
+        onRenameCategory={isManaged ? makeRenameHandler(department) : undefined}
+        onDeleteCategory={isManaged ? makeDeleteHandler(department) : undefined}
       />
 
       {/* "Opgeslagen ✓" feedback — fade in/out, niet-intrusief */}

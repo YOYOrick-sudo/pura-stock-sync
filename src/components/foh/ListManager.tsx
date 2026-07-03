@@ -932,8 +932,8 @@ export function ListManager({
       await supabase
         .from('foh_category_order')
         .upsert(
-          { location, department, category: cat, sort_order: nextSort },
-          { onConflict: 'location,department,category' },
+          { location, department, phase, category: cat, sort_order: nextSort },
+          { onConflict: 'location,department,phase,category' },
         );
     }
     setNewCategoryName('');
