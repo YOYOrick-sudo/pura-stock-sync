@@ -100,6 +100,7 @@ export default function RecipeForm() {
       setType((r.type as RecipeType) ?? 'gerecht');
       setPorties(r.porties != null ? String(r.porties) : '');
       setArbeidMinuten(r.arbeid_minuten != null ? String(r.arbeid_minuten) : '');
+      setThtDagen((r as any).tht_dagen != null ? String((r as any).tht_dagen) : '3');
       setBereiding(r.bereiding ?? '');
       setIngredients(
         existing.ingredients.length > 0
