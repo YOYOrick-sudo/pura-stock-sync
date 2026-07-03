@@ -71,10 +71,15 @@ const STICKER_KOP: Record<StickerType, string> = {
 
 // Iets compacter dan fontForName omdat er 2 datumregels onder moeten.
 function fontForStickerName(len: number): number {
-  if (len <= 14) return 40;
-  if (len <= 22) return 32;
-  if (len <= 32) return 26;
-  return 22;
+  if (len <= 8) return 72;
+  if (len <= 14) return 56;
+  if (len <= 24) return 40;
+  if (len <= 34) return 30;
+  return 26;
+}
+
+function fitsOnOneLine(len: number, font: number): boolean {
+  return len * 0.55 * font <= 408;
 }
 
 export interface StickerLabelInput {
@@ -90,25 +95,35 @@ export function buildStickerZpl(input: StickerLabelInput): string {
   const naamFont = fontForStickerName(naam.length);
   const d1 = sanitizeZpl(input.datum1);
   const d2 = input.datum2 ? sanitizeZpl(input.datum2) : '';
+  const oneLine = fitsOnOneLine(naam.length, naamFont);
 
   const lines: string[] = ['^XA', '^CI28', '^PW448', '^LL256'];
 
   if (input.type === 'vrij') {
-    // Geen balk: naam mag naar boven.
-    lines.push(`^FO20,20^A0N,${naamFont},${naamFont}^FB408,2,4,L^FD${naam}^FS`);
-    lines.push(`^FO20,210^A0N,28,28^FDDatum: ${d1}^FS`);
+    const zoneTop = 20;
+    const zoneBottom = 170;
+    const naamY = oneLine
+      ? Math.round(zoneTop + (zoneBottom - zoneTop - naamFont) / 2)
+      : zoneTop;
+    lines.push(`^FO20,${naamY}^A0N,${naamFont},${naamFont}^FB408,2,4,L^FD${naam}^FS`);
+    lines.push(`^FO20,210^A0N,30,30^FDDatum: ${d1}^FS`);
   } else {
-    // 1) Zwarte kop-balk (36 dots hoog) met witte tekst via ^FR.
-    lines.push('^FO0,0^GB448,36,36,B,0^FS');
-    lines.push(`^FO0,6^A0N,26,26^FB448,1,0,C^FR^FD${kop}^FS`);
+    // 1) Zwarte kop-balk met marge boven de labelrand.
+    lines.push('^FO0,8^GB448,36,36,B,0^FS');
+    lines.push(`^FO0,14^A0N,26,26^FB448,1,0,C^FR^FD${kop}^FS`);
 
-    // 2) Naam onder de balk — verticaal binnen budget 52..164 (112 dots, ruim voor 2×40).
-    lines.push(`^FO20,52^A0N,${naamFont},${naamFont}^FB408,2,4,L^FD${naam}^FS`);
+    // 2) Naam-zone tussen balk en datumblok.
+    const zoneTop = 52;
+    const zoneBottom = 170;
+    const naamY = oneLine
+      ? Math.round(zoneTop + (zoneBottom - zoneTop - naamFont) / 2)
+      : zoneTop;
+    lines.push(`^FO20,${naamY}^A0N,${naamFont},${naamFont}^FB408,2,4,L^FD${naam}^FS`);
 
-    // 3) Datums onderaan, THT prominenter (32) dan bron-datum (24).
+    // 3) Twee gelijkwaardige datumregels onderaan (beide font 30).
     const bronLabel = input.type === 'ontdooid' ? 'Uit vriezer' : 'Bereid';
-    lines.push(`^FO20,170^A0N,24,24^FD${bronLabel}: ${d1}^FS`);
-    lines.push(`^FO20,202^A0N,32,32^FDGebruiken t/m: ${d2}^FS`);
+    lines.push(`^FO20,178^A0N,30,30^FD${bronLabel}: ${d1}^FS`);
+    lines.push(`^FO20,214^A0N,30,30^FDGebruiken t/m: ${d2}^FS`);
   }
 
   lines.push('^XZ');
