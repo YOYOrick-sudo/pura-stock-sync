@@ -2048,21 +2048,27 @@ export type Database = {
       ticket_comments: {
         Row: {
           aangemaakt_op: string
-          auteur_id: string
+          auteur_id: string | null
+          auteur_naam: string | null
+          auteur_user_id: string | null
           id: string
           tekst: string
           ticket_id: string
         }
         Insert: {
           aangemaakt_op?: string
-          auteur_id: string
+          auteur_id?: string | null
+          auteur_naam?: string | null
+          auteur_user_id?: string | null
           id?: string
           tekst: string
           ticket_id: string
         }
         Update: {
           aangemaakt_op?: string
-          auteur_id?: string
+          auteur_id?: string | null
+          auteur_naam?: string | null
+          auteur_user_id?: string | null
           id?: string
           tekst?: string
           ticket_id?: string
