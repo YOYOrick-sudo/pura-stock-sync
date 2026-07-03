@@ -97,7 +97,9 @@ const Auth = () => {
         navigate('/dashboard');
       }
     } catch (error) {
-      console.error('Login error:', error);
+      if (import.meta.env.DEV) {
+        console.error('Login failed:', error instanceof Error ? error.message : 'unknown');
+      }
       toast.error('Er ging iets mis', { description: 'Probeer het opnieuw' });
     } finally {
       setLoading(false);
