@@ -1,12 +1,21 @@
 import { useState } from 'react';
 import { Plus, AlertTriangle, Clock, CheckCircle2, MapPin, Image as ImageIcon } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { useMaintenanceTickets, useTicketCounts } from '@/hooks/maintenance/useMaintenanceTickets';
 import { useSignedPhotoUrl } from '@/hooks/maintenance/useMaintenancePhoto';
 import type { MaintenanceActor, MaintenanceTicket, TicketStatus } from '@/types/maintenance';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import {
+  PageSubheader,
+  StatusBadge,
+  SegmentedTabs,
+  StatCard,
+  EmptyState,
+  toneColor,
+  type StatusTone,
+} from '@/components/pura';
 
 interface TicketListProps {
   actor: MaintenanceActor;
@@ -14,27 +23,25 @@ interface TicketListProps {
   onTicketClick: (ticketId: string) => void;
 }
 
-const prioriteitConfig = {
-  hoog: { color: '#EF4444', bg: 'hsl(var(--destructive) / 0.1)', label: 'Hoog' },
-  midden: { color: '#F59E0B', bg: 'hsl(45 100% 95%)', label: 'Normaal' },
-  laag: { color: '#2D8E6F', bg: 'hsl(160 40% 95%)', label: 'Laag' },
+const prioriteitConfig: Record<
+  'hoog' | 'midden' | 'laag',
+  { tone: StatusTone; label: string }
+> = {
+  hoog: { tone: 'danger', label: 'Hoog' },
+  midden: { tone: 'warning', label: 'Normaal' },
+  laag: { tone: 'success', label: 'Laag' },
 };
 
-const statusConfig = {
-  nieuw: { color: '#EF4444', bg: 'hsl(var(--destructive) / 0.1)', label: 'Open', icon: AlertTriangle },
-  in_behandeling: { color: '#F59E0B', bg: 'hsl(45 100% 95%)', label: 'Bezig', icon: Clock },
-  afgehandeld: { color: '#2D8E6F', bg: 'hsl(160 40% 95%)', label: 'Klaar', icon: CheckCircle2 },
+const statusConfig: Record<
+  TicketStatus,
+  { tone: StatusTone; label: string; icon: typeof AlertTriangle }
+> = {
+  nieuw: { tone: 'danger', label: 'Open', icon: AlertTriangle },
+  in_behandeling: { tone: 'warning', label: 'Bezig', icon: Clock },
+  afgehandeld: { tone: 'success', label: 'Klaar', icon: CheckCircle2 },
 };
 
 type StatusFilter = 'open' | 'klaar' | 'alles';
-
-const cardStyle: React.CSSProperties = {
-  borderRadius: '20px',
-  border: '1px solid hsl(var(--border))',
-  backgroundColor: 'hsl(var(--card))',
-  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03)',
-  transition: 'all 200ms ease',
-};
 
 export function TicketList({ actor, onNewTicket, onTicketClick }: TicketListProps) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('open');
@@ -60,134 +67,67 @@ export function TicketList({ actor, onNewTicket, onTicketClick }: TicketListProp
     return new Date(b.aangemaakt_op).getTime() - new Date(a.aangemaakt_op).getTime();
   });
 
-  const vestigingLabel = actor.vestiging === 'west' ? 'Daily' : 'Foodbar';
-
   return (
-    <div className="space-y-6 pb-24">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold text-foreground truncate">
-            Onderhoud <span className="text-muted-foreground font-normal">— {vestigingLabel}</span>
-          </h1>
-          <p className="text-sm text-muted-foreground truncate">
-            Meld iets dat niet in de haak is
-          </p>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageSubheader
+        description="Meld iets dat niet in de haak is."
+        action={
+          <Button onClick={onNewTicket} size="lg">
+            <Plus className="h-4 w-4" />
+            Nieuwe melding
+          </Button>
+        }
+      />
 
       {/* KPI Tellers */}
       <div className="grid grid-cols-3 gap-3 sm:gap-4">
-        {[
-          { label: 'Hoog', value: counts.hoog, icon: AlertTriangle, color: '#EF4444', bg: 'hsl(var(--destructive) / 0.1)' },
-          { label: 'Openstaand', value: counts.openstaand, icon: Clock, color: '#F59E0B', bg: 'hsl(45 100% 95%)' },
-          { label: 'Klaar', value: counts.afgehandeld, icon: CheckCircle2, color: '#2D8E6F', bg: 'hsl(160 40% 95%)' },
-        ].map((kpi) => {
-          const Icon = kpi.icon;
-          return (
-            <div
-              key={kpi.label}
-              style={{ ...cardStyle, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}
-            >
-              <div
-                style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '14px',
-                  backgroundColor: kpi.bg,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-              >
-                <Icon className="h-5 w-5" style={{ color: kpi.color }} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[12px] text-muted-foreground">{kpi.label}</p>
-                <p className="text-2xl font-semibold leading-tight" style={{ color: kpi.color }}>
-                  {isLoading ? <Skeleton className="h-7 w-8" /> : kpi.value}
-                </p>
-              </div>
-            </div>
-          );
-        })}
+        <StatCard
+          label="Hoog"
+          value={isLoading ? <Skeleton className="h-7 w-8" /> : counts.hoog}
+          icon={<AlertTriangle />}
+          tone="danger"
+        />
+        <StatCard
+          label="Openstaand"
+          value={isLoading ? <Skeleton className="h-7 w-8" /> : counts.openstaand}
+          icon={<Clock />}
+          tone="warning"
+        />
+        <StatCard
+          label="Klaar"
+          value={isLoading ? <Skeleton className="h-7 w-8" /> : counts.afgehandeld}
+          icon={<CheckCircle2 />}
+          tone="success"
+        />
       </div>
 
-      {/* Status filter */}
-      <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-        <TabsList className="bg-card border border-border rounded-[14px] p-1 w-full grid grid-cols-3">
-          <TabsTrigger value="open" className="rounded-[10px] text-sm">Open</TabsTrigger>
-          <TabsTrigger value="klaar" className="rounded-[10px] text-sm">Klaar</TabsTrigger>
-          <TabsTrigger value="alles" className="rounded-[10px] text-sm">Alles</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <SegmentedTabs<StatusFilter>
+        value={statusFilter}
+        onValueChange={setStatusFilter}
+        options={[
+          { value: 'open', label: 'Open' },
+          { value: 'klaar', label: 'Klaar' },
+          { value: 'alles', label: 'Alles' },
+        ]}
+      />
 
-      {/* Ticket list */}
       <div className="space-y-3">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-[20px]" />
+            <Skeleton key={i} className="h-24 w-full rounded-polar-xl" />
           ))
         ) : sortedTickets.length === 0 ? (
-          <div
-            style={{ ...cardStyle, padding: '40px 24px' }}
-            className="text-center"
-          >
-            <div
-              className="mx-auto mb-3 flex items-center justify-center"
-              style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '20px',
-                backgroundColor: 'hsl(var(--primary) / 0.1)',
-                color: 'hsl(var(--primary))',
-              }}
-            >
-              <CheckCircle2 className="h-7 w-7" />
-            </div>
-            <p className="text-[15px] font-medium text-foreground mb-1">Niks te melden hier</p>
-            <p className="text-[13px] text-muted-foreground">
-              Zie je iets dat niet in de haak is? Tik op de + knop.
-            </p>
-          </div>
+          <EmptyState
+            icon={CheckCircle2}
+            title="Niks te melden hier"
+            description="Zie je iets dat niet in de haak is? Tik op 'Nieuwe melding' rechtsboven."
+          />
         ) : (
           sortedTickets.map((ticket) => (
             <TicketCard key={ticket.id} ticket={ticket} onClick={() => onTicketClick(ticket.id)} />
           ))
         )}
       </div>
-
-      {/* FAB - New ticket button */}
-      <button
-        onClick={onNewTicket}
-        aria-label="Nieuwe melding"
-        className="hover:scale-105 active:scale-95"
-        style={{
-          position: 'fixed',
-          bottom: '32px',
-          right: '32px',
-          height: '60px',
-          borderRadius: '20px',
-          backgroundColor: 'hsl(var(--primary))',
-          color: 'hsl(var(--primary-foreground))',
-          border: 'none',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '10px',
-          padding: '0 24px',
-          fontSize: '15px',
-          fontWeight: 600,
-          boxShadow: '0 8px 24px hsl(var(--primary) / 0.35)',
-          transition: 'all 200ms ease',
-          zIndex: 50,
-        }}
-      >
-        <Plus className="h-6 w-6" />
-        Nieuwe melding
-      </button>
     </div>
   );
 }
@@ -200,95 +140,47 @@ function TicketCard({ ticket, onClick }: { ticket: MaintenanceTicket; onClick: (
   const melderNaam = ticket.melder_naam ?? ticket.melder?.naam ?? 'Onbekend';
 
   return (
-    <div
+    <button
       onClick={onClick}
-      style={{
-        ...cardStyle,
-        padding: '0',
-        cursor: 'pointer',
-        overflow: 'hidden',
-        display: 'flex',
-      }}
-      className="hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99]"
+      className="w-full text-left bg-card border border-border rounded-polar-xl shadow-card overflow-hidden flex transition-all duration-200 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       {/* Urgency strip */}
-      <div style={{ width: '6px', backgroundColor: prio.color, flexShrink: 0 }} />
+      <div
+        className="w-1 flex-shrink-0"
+        style={{ backgroundColor: toneColor(prio.tone) }}
+        aria-hidden
+      />
 
       <div className="flex-1 min-w-0 flex gap-3 p-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                padding: '2px 8px',
-                borderRadius: '6px',
-                backgroundColor: status.bg,
-                color: status.color,
-                fontSize: '11px',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                gap: '4px',
-              }}
-            >
-              <StatusIcon className="h-3 w-3" />
+            <StatusBadge tone={status.tone} shape="label" icon={<StatusIcon />}>
               {status.label}
-            </span>
+            </StatusBadge>
             {ticket.plek && (
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  padding: '2px 8px',
-                  borderRadius: '6px',
-                  backgroundColor: 'hsl(var(--muted))',
-                  color: 'hsl(var(--muted-foreground))',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  gap: '3px',
-                }}
-              >
-                <MapPin className="h-3 w-3" />
+              <StatusBadge tone="neutral" shape="label" icon={<MapPin />}>
                 {ticket.plek}
-              </span>
+              </StatusBadge>
             )}
           </div>
           <h3 className="text-[15px] font-semibold text-foreground leading-snug mb-1 line-clamp-2">
             {ticket.titel}
           </h3>
-          <p className="text-[12px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {melderNaam} · {formatDistanceToNow(new Date(ticket.aangemaakt_op), { addSuffix: true, locale: nl })}
           </p>
         </div>
 
-        {/* Thumbnail */}
         {ticket.foto_url && (
-          <div
-            style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '14px',
-              backgroundColor: 'hsl(var(--muted))',
-              flexShrink: 0,
-              overflow: 'hidden',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+          <div className="w-16 h-16 flex-shrink-0 rounded-polar-md bg-muted overflow-hidden flex items-center justify-center">
             {thumbUrl ? (
-              <img
-                src={thumbUrl}
-                alt=""
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
+              <img src={thumbUrl} alt="" className="w-full h-full object-cover" />
             ) : (
               <ImageIcon className="h-5 w-5 text-muted-foreground" />
             )}
           </div>
         )}
       </div>
-    </div>
+    </button>
   );
 }

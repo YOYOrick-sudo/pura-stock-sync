@@ -5,16 +5,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-polar-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-polar-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-sm hover:brightness-125",
-        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:brightness-110",
-        outline: "border-1.5 border-border bg-transparent text-foreground shadow-sm hover:bg-muted",
-        secondary: "bg-secondary text-secondary-foreground border-1.5 border-border shadow-sm hover:bg-pv-bg-hover hover:border-primary/30",
-        ghost: "text-foreground hover:bg-muted",
-        link: "text-primary underline-offset-4 hover:underline",
+        default:
+          "bg-primary text-primary-foreground shadow-sm hover:brightness-125 disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none",
+        destructive:
+          "bg-destructive text-destructive-foreground shadow-sm hover:brightness-110 disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none",
+        outline:
+          "border-1.5 border-border bg-transparent text-foreground shadow-sm hover:bg-muted disabled:opacity-50",
+        secondary:
+          "bg-secondary text-secondary-foreground border-1.5 border-border shadow-sm hover:bg-pv-bg-hover hover:border-primary/30 disabled:bg-muted disabled:text-muted-foreground disabled:border-border disabled:shadow-none",
+        ghost: "text-foreground hover:bg-muted disabled:opacity-50",
+        link: "text-primary underline-offset-4 hover:underline disabled:opacity-50",
       },
       size: {
         default: "h-12 px-6 py-3",

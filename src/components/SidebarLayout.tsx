@@ -34,6 +34,8 @@ export function SidebarLayout({
       '/recipes': 'Recepten',
       '/kitchen/recipes': 'Recepten',
       '/kitchen/recipes/nieuw': 'Nieuw recept',
+      '/kitchen/ingredienten': 'Ingrediënten',
+      '/kitchen/snel-printen': 'Snel printen',
       '/mep-planning': 'MEP Planning',
       '/voorraad': 'Voorraad',
       '/settings': 'Instellingen',
@@ -42,10 +44,23 @@ export function SidebarLayout({
       '/taken/beheer': 'Lijst bewerken',
       '/onderhoud': 'Onderhoud',
       '/kas-controle': 'Kas-controle',
+      '/hr': 'HR',
+      '/hr/applicants/new': 'Nieuwe kandidaat',
+      '/hr/housing': 'Huisvesting',
+      '/hr/housing/new': 'Nieuwe woning',
+      '/personeel': 'Personeel',
+      '/personeel/wonen': 'Personeel — Wonen',
+      '/personeel/collegas': 'Collega\'s',
+      '/personeel/settings': 'Personeel — Instellingen',
+      '/style-guide': 'Style Guide',
+      '/design-preview': 'Design Preview',
+      '/design-system': 'Design System',
     };
     if (pathname === '/taken-bediening' && userLocation === 'West') return 'Taken';
     if (/^\/kitchen\/recipes\/[^/]+\/bewerken$/.test(pathname)) return 'Recept bewerken';
     if (/^\/kitchen\/recipes\/[^/]+$/.test(pathname)) return 'Recept';
+    if (/^\/hr\/applicants\/[^/]+$/.test(pathname)) return 'Kandidaat';
+    if (/^\/personeel\/wonen\/[^/]+$/.test(pathname)) return 'Woning';
     return titles[pathname] || 'Pura Vida';
   };
 
