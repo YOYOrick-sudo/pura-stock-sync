@@ -24,11 +24,6 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   const expected = Deno.env.get('PRINT_BRIDGE_TOKEN') ?? ''
-  const url = new URL(req.url)
-  if (url.searchParams.get('__reveal') === '1') {
-    console.log('TOKEN_REVEAL:' + expected)
-    return json({ revealed: true })
-  }
   const provided = req.headers.get('x-bridge-token') ?? ''
   if (!expected || !provided || !timingSafeEqual(expected, provided)) {
     return json({ error: 'unauthorized' }, 401)
