@@ -164,6 +164,12 @@ export function PolarSidebar({
               <PanelLeftClose className="h-5 w-5 text-muted-foreground" strokeWidth={1.75} />
             </Button>
           </>
+        ) : collapsedLogo ? (
+          <div className="mx-auto flex items-center justify-center">
+            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center overflow-hidden p-1">
+              {collapsedLogo}
+            </div>
+          </div>
         ) : (
           <div className="mx-auto flex items-center justify-center">
             <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
