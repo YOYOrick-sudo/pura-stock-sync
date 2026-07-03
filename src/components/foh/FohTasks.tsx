@@ -1031,8 +1031,8 @@ export function FohTasks() {
     queryKey: ['foh-west-subcategories', userLocation],
     queryFn: async () => {
       const [tpl, tsk] = await Promise.all([
-        supabase.from('foh_daily_templates').select('category, department').eq('location', 'West'),
-        supabase.from('foh_tasks').select('category, department').eq('location', 'West').eq('archived', false),
+        supabase.from('foh_daily_templates').select('category, department').eq('location', userLocation),
+        supabase.from('foh_tasks').select('category, department').eq('location', userLocation).eq('archived', false),
       ]);
       const out: Record<'voorkant' | 'achterkant', Set<string>> = {
         voorkant: new Set(),
@@ -1048,7 +1048,7 @@ export function FohTasks() {
         achterkant: Array.from(out.achterkant).sort(),
       };
     },
-    enabled: userLocation === 'West',
+    enabled: userLocation === 'West' || userLocation === 'Midsland',
   });
 
   // ===== WEST CATEGORY ORDER — uit foh_category_order tabel =====
@@ -1071,7 +1071,7 @@ export function FohTasks() {
       }
       return out;
     },
-    enabled: userLocation === 'West',
+    enabled: userLocation === 'West' || userLocation === 'Midsland',
   });
 
   // Categorieën beschikbaar voor een (location, dept, phase) combinatie.
@@ -1082,13 +1082,13 @@ export function FohTasks() {
     dept: 'voorkant' | 'achterkant',
     phase: string,
   ): string[] => {
-    if (loc === 'West') {
+    if (loc === 'West' || loc === 'Midsland') {
       const result = getOrderedCategories(
         westCategoryOrder as any,
         westSubcatsData as any,
         dept,
       );
-      return result.length > 0 ? result : ['Algemeen'];
+      if (result.length > 0) return result;
     }
     return getAvailableCategoriesForPhase(loc, phase);
   };
@@ -1100,7 +1100,7 @@ export function FohTasks() {
     dept: 'voorkant' | 'achterkant',
     category: string,
   ) => {
-    if (loc !== 'West') return;
+    if (loc !== 'West' && loc !== 'Midsland') return;
     const c = (category || '').trim();
     if (!c) return;
     const existing = westCategoryOrder?.[dept] ?? [];
@@ -1798,7 +1798,7 @@ export function FohTasks() {
       }
 
       // West: registreer nieuwe categorieën in foh_category_order
-      if (userLocation === 'West') {
+      if (userLocation === 'West' || userLocation === 'Midsland') {
         const cats = new Set<string>();
         for (const t of editedTasks) {
           if (deletedTaskIds.includes(t.id)) continue;
@@ -1808,7 +1808,7 @@ export function FohTasks() {
           if (t.category) cats.add(t.category);
         }
         for (const c of cats) {
-          await ensureCategoryOrderRow('West', effectiveDept, c);
+          await ensureCategoryOrderRow(userLocation, effectiveDept, c);
         }
         queryClient.invalidateQueries({ queryKey: ['foh-category-order'] });
         queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
@@ -2874,7 +2874,7 @@ export function FohTasks() {
                                       (userLocation === 'West' ? (newTask.department as 'voorkant' | 'achterkant') : 'voorkant'),
                                       'periodiek',
                                     )}
-                                    allowCreate={userLocation === 'West'}
+                                    allowCreate={userLocation === 'West' || userLocation === 'Midsland'}
                                     triggerStyle={{ borderRadius: '16px' }}
                                   />
                                 </div>
@@ -3067,8 +3067,8 @@ export function FohTasks() {
                 ) => {
                   const orderedCats =
                     orderedCatsOverride
-                      ?? (userLocation === 'West'
-                        ? getCategoriesForContext('West', dept, activePhase)
+                      ?? ((userLocation === 'West' || userLocation === 'Midsland')
+                        ? getCategoriesForContext(userLocation, dept, activePhase)
                         : undefined);
                   const groups = groupTasksByCategory(tasksToRender, orderedCats);
                   const entries = Object.entries(groups);
@@ -3756,8 +3756,8 @@ export function FohTasks() {
                 Nieuwe Template
               </Button>
 
-              {/* West: Subcategorieën beheren */}
-              {userLocation === 'West' && (
+              {/* West & Midsland: Subcategorieën beheren */}
+              {(userLocation === 'West' || userLocation === 'Midsland') && (
                 <div style={{
                   padding: '14px',
                   backgroundColor: 'hsl(var(--muted) / 0.4)',
@@ -3774,7 +3774,10 @@ export function FohTasks() {
                   }}>
                     Subcategorieën beheren
                   </div>
-                  {(['voorkant', 'achterkant'] as const).map(dept => {
+                  {(userLocation === 'West'
+                    ? (['voorkant', 'achterkant'] as const)
+                    : (['voorkant'] as const)
+                  ).map(dept => {
                     const rows = getOrderedCategoryRows(dept);
                     return (
                       <div key={dept} style={{ marginBottom: '12px' }}>
@@ -3784,7 +3787,7 @@ export function FohTasks() {
                           color: 'hsl(var(--foreground))',
                           marginBottom: '6px',
                         }}>
-                          {dept === 'voorkant' ? 'Bediening' : 'Keuken'}
+                          {userLocation === 'Midsland' ? 'Categorieën' : (dept === 'voorkant' ? 'Bediening' : 'Keuken')}
                         </div>
                         {rows.length === 0 ? (
                           <div style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))', fontStyle: 'italic' }}>
@@ -4265,20 +4268,24 @@ export function FohTasks() {
         phase={activePhase}
         department={effectiveDept}
         availableCategories={getCategoriesForContext(userLocation, effectiveDept, activePhase)}
-        isWest={userLocation === 'West'}
-        westCategoryRows={userLocation === 'West' ? (westCategoryOrder?.[effectiveDept] ?? []) : []}
+        isWest={userLocation === 'West' || userLocation === 'Midsland'}
+        westCategoryRows={
+          (userLocation === 'West' || userLocation === 'Midsland')
+            ? (westCategoryOrder?.[effectiveDept] ?? [])
+            : []
+        }
         onMoveCategory={
-          userLocation === 'West'
+          (userLocation === 'West' || userLocation === 'Midsland')
             ? (cat, dir) => handleMoveCategory(effectiveDept, cat, dir)
             : undefined
         }
         onRenameCategory={
-          userLocation === 'West'
+          (userLocation === 'West' || userLocation === 'Midsland')
             ? (cat) => handleRenameCategory(effectiveDept, cat)
             : undefined
         }
         onDeleteCategory={
-          userLocation === 'West'
+          (userLocation === 'West' || userLocation === 'Midsland')
             ? (cat) => handleDeleteCategory(effectiveDept, cat)
             : undefined
         }
