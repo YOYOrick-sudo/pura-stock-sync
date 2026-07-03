@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useRef, useState } from 'react';
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
 import {
   Command,
   CommandGroup,
@@ -33,12 +33,15 @@ export function StickerProductCombobox({
 
 
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+      <PopoverAnchor asChild>
         <div className="relative">
           <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <input
+            ref={inputRef}
             autoFocus={autoFocus}
             type="text"
             value={value}
@@ -47,6 +50,14 @@ export function StickerProductCombobox({
               setOpen(true);
             }}
             onFocus={() => setOpen(true)}
+            onClick={() => setOpen(true)}
+            onBlur={(e) => {
+              // Alleen sluiten als focus buiten popover gaat
+              const next = e.relatedTarget as HTMLElement | null;
+              if (!next || !next.closest('[data-radix-popper-content-wrapper]')) {
+                setOpen(false);
+              }
+            }}
             placeholder={placeholder ?? 'Product…'}
             className={cn(
               'flex w-full h-11 pl-10 pr-3 rounded-md border border-input bg-background text-sm',
@@ -56,11 +67,17 @@ export function StickerProductCombobox({
             )}
           />
         </div>
-      </PopoverTrigger>
+      </PopoverAnchor>
       <PopoverContent
         className="p-0 w-[var(--radix-popover-trigger-width)] min-w-[280px]"
         align="start"
         onOpenAutoFocus={(e) => e.preventDefault()}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+        onInteractOutside={(e) => {
+          if (e.target instanceof Node && inputRef.current?.contains(e.target)) {
+            e.preventDefault();
+          }
+        }}
       >
         <Command shouldFilter={false}>
           <CommandInput placeholder="Filter…" value={term} onValueChange={onChange} className="hidden" />
