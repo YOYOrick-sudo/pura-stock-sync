@@ -2874,7 +2874,7 @@ export function FohTasks() {
                                       (userLocation === 'West' ? (newTask.department as 'voorkant' | 'achterkant') : 'voorkant'),
                                       'periodiek',
                                     )}
-                                    allowCreate={userLocation === 'West'}
+                                    allowCreate={userLocation === 'West' || userLocation === 'Midsland'}
                                     triggerStyle={{ borderRadius: '16px' }}
                                   />
                                 </div>
@@ -3756,8 +3756,8 @@ export function FohTasks() {
                 Nieuwe Template
               </Button>
 
-              {/* West: Subcategorieën beheren */}
-              {userLocation === 'West' && (
+              {/* West & Midsland: Subcategorieën beheren */}
+              {(userLocation === 'West' || userLocation === 'Midsland') && (
                 <div style={{
                   padding: '14px',
                   backgroundColor: 'hsl(var(--muted) / 0.4)',
@@ -3774,7 +3774,10 @@ export function FohTasks() {
                   }}>
                     Subcategorieën beheren
                   </div>
-                  {(['voorkant', 'achterkant'] as const).map(dept => {
+                  {(userLocation === 'West'
+                    ? (['voorkant', 'achterkant'] as const)
+                    : (['voorkant'] as const)
+                  ).map(dept => {
                     const rows = getOrderedCategoryRows(dept);
                     return (
                       <div key={dept} style={{ marginBottom: '12px' }}>
@@ -3784,7 +3787,7 @@ export function FohTasks() {
                           color: 'hsl(var(--foreground))',
                           marginBottom: '6px',
                         }}>
-                          {dept === 'voorkant' ? 'Bediening' : 'Keuken'}
+                          {userLocation === 'Midsland' ? 'Categorieën' : (dept === 'voorkant' ? 'Bediening' : 'Keuken')}
                         </div>
                         {rows.length === 0 ? (
                           <div style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))', fontStyle: 'italic' }}>
