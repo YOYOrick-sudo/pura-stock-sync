@@ -220,6 +220,14 @@ const Auth = () => {
                 </>
               )}
             </button>
+
+            <button
+              type="button"
+              onClick={() => !loading && setMode(mode === 'shared' ? 'personal' : 'shared')}
+              className="text-[12px] text-muted-foreground hover:text-foreground underline underline-offset-4 mt-1"
+            >
+              {mode === 'shared' ? 'Inloggen met persoonlijk account' : 'Terug naar locatie-login'}
+            </button>
           </form>
         </div>
       </div>
