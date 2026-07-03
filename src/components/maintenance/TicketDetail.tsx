@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { ArrowLeft, AlertTriangle, Clock, CheckCircle2, Send } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Clock, CheckCircle2, Send, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useMaintenanceTicket, useUpdateTicketStatus } from '@/hooks/maintenance/useMaintenanceTickets';
 import { useTicketComments, useCreateComment } from '@/hooks/maintenance/useTicketComments';
+import { useSignedPhotoUrl } from '@/hooks/maintenance/useMaintenancePhoto';
 import type { MaintenanceUser, TicketStatus } from '@/types/maintenance';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
