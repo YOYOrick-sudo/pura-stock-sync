@@ -70,7 +70,7 @@ export function TicketList({ actor, onNewTicket, onTicketClick }: TicketListProp
   return (
     <div className="space-y-6">
       <PageSubheader
-        description="Meld iets dat niet in de haak is."
+        description=""
         action={
           <Button
             onClick={onNewTicket}
