@@ -77,6 +77,13 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
           className="h-[52px] w-auto max-w-full object-contain object-left"
         />
       }
+      collapsedLogo={
+        <img
+          src={puraVidaLogoIcon}
+          alt="Pura Vida"
+          className="h-full w-full object-contain"
+        />
+      }
       items={navigationItems.map(item => ({
         title: item.url === '/taken-bediening' && userLocation === 'West' ? 'Taken' : item.title,
         icon: item.icon,
