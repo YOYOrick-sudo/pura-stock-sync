@@ -176,6 +176,7 @@ export function useUpdateRecipe() {
           bereiding: rest.bereiding,
           foto_url: rest.foto_url ?? null,
           arbeid_minuten: rest.arbeid_minuten ?? null,
+          tht_dagen: rest.tht_dagen ?? 3,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)
