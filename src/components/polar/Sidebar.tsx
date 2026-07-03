@@ -16,6 +16,7 @@ export interface PolarSidebarItem {
   url: string;
   active: boolean;
   requiresCode?: boolean;
+  group?: 'overzicht' | 'keuken' | 'beheer';
   onClick?: (e: React.MouseEvent) => void;
 }
 
