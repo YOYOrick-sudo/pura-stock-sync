@@ -1,50 +1,35 @@
-## Status — deels al uitgevoerd
+## Midsland categorie-beheer gelijk trekken met West
 
-Migraties zijn beide gedraaid en de oude pincode-bestanden zijn verwijderd. Voor de resterende code-wijzigingen heb ik build-mode nodig — vandaar dit hernieuwde plan.
+Beheer (verschuiven / hernoemen / verwijderen van categorieën) is nu op ~6 plekken hard gegate op `userLocation === 'West'`. Midsland gebruikt bovendien een **hardgecodeerde** lijst per fase (`getAvailableCategoriesForPhase`). Om dezelfde beheer-tools voor Midsland te krijgen, migreren we Midsland naar dezelfde DB-tabel als West (`foh_category_order`) en unlocken we de UI.
 
-**Al klaar in de DB:**
-- Migratie 1: `ticket_comments` heeft `auteur_user_id` + `auteur_naam`, `auteur_id` is nullable, en `auteur_naam` / `melder_naam` zijn eenmalig gebackfilled vanuit `maintenance_users`.
-- Migratie 2: alle open RLS-policies gedropt en vervangen — tickets/settings/comments alleen `authenticated`, `maintenance_users` alleen owner/admin, tickets-INSERT met `melder_user_id = auth.uid()`, tickets-UPDATE alleen owner/admin, comments-INSERT met `auteur_user_id = auth.uid()`. Security-scan telt al 3 findings minder.
+Model: **één gedeelde lijst voor Midsland** in alle fases (open / tussen / borrel / sluit) — zelfde als West. **Geen enkele bestaande categorie of taak verdwijnt** — alles wordt netjes overgezet zodat jij daarna zelf kunt schoonvegen.
 
-**Al klaar in de code (via shell delete):**
-- `src/components/maintenance/PincodeLogin.tsx`
-- `src/components/maintenance/MaintenanceSettings.tsx`
-- `src/hooks/maintenance/useMaintenanceAuth.ts`
-- `src/hooks/maintenance/useMaintenanceUsers.ts`
-- `src/hooks/maintenance/useMaintenanceSettings.ts`
+## Wat er verandert
 
-Het project bouwt nu níet totdat de imports geschoond zijn — dit is dus urgent.
+**1. Eenmalige data-migratie (via `insert`-tool):**
+- Voor Midsland/`voorkant` worden alle unieke categorie-namen die op dit moment voorkomen in `foh_daily_templates` én `foh_tasks` (niet-gearchiveerd) samengesteld — dus **álles** wat vandaag in gebruik is (Deel 1, Deel 2, Deel 3, Binnen, Terras, Bar Prep Check, Bijvullen, Hygiëne, Overdracht, Borrel, BAR, BIJVULLEN (FIFO), BINNEN, HYGIENE, LAATSTE LOODJES, TERRAS, etc.).
+- **Case blijft exact zoals in de DB** — geen samenvoeging. Je hebt na de migratie dus mogelijk zowel `BAR` als `Bar` staan; die kun je zelf hernoemen/samenvoegen via de beheer-UI. Dat is bewust: geen enkele taak-categorie verandert automatisch.
+- Sort-order krijgt spreiding per 10 op alfabet als startpunt. Jij past de volgorde daarna zelf aan met de pijltjes.
+- Niets wordt gedeletet of geüpdatet in `foh_tasks` / `foh_daily_templates` — alleen inserts in `foh_category_order`.
 
-## Resterende code-wijzigingen (in build-mode)
+**2. Code-wijzigingen in `src/components/foh/FohTasks.tsx`:**
+- `westCategoryOrder`-query (regel 1055) — `enabled` wordt `West || Midsland`.
+- `westSubcatsData`-query (regel ~1051) — idem.
+- `getCategoriesForContext` (regel 1080) — Midsland volgt vanaf nu dezelfde `getOrderedCategories(...)` als West. `getAvailableCategoriesForPhase` blijft alleen als vangnet bij een lege lijst.
+- `ensureCategoryOrderRow` (regel 1098) — gate `if (loc !== 'West') return;` verwijderen zodat Midsland-categorieën ook geregistreerd worden bij het toevoegen van nieuwe categorieën aan een taak.
+- Save-blok (regel ~1800) — registratie-blok geldt ook voor Midsland.
+- Admin-paneel (regel ~3070/3285) — Midsland toont dezelfde categorie-lijst mét move/rename/delete-knoppen.
+- ListManager-props (regel 4256-4285) — de vier gates op `userLocation === 'West'` worden `['West','Midsland'].includes(userLocation)`.
 
-**Nieuw:**
-- `src/hooks/maintenance/useIsMaintenanceAdmin.ts` — React Query hook die `user_roles` leest en `true` retourneert bij owner/admin.
+**3. Bewust behouden:**
+- West's `voorkant` / `achterkant`-splitsing blijft. Midsland heeft alleen `voorkant`.
+- Fase-splitsing (open/tussen/borrel/sluit) in de dagelijkse takenlijst blijft ongewijzigd — categorieën zijn gedeeld, taken blijven per fase gegroepeerd zoals nu.
+- `foh_rename_category` RPC werkt al met `_location + _department + _old/_new` — geen wijziging nodig.
 
-**Aanpassen:**
-- `src/hooks/maintenance/useTicketComments.ts` — `useCreateComment` payload wordt `{ ticket_id, auteur_user_id, auteur_naam, tekst }`.
-- `src/components/maintenance/TicketDetail.tsx`:
-  - Verwijder `isEigenaar`-check; gebruik `useIsMaintenanceAdmin()` voor statusknoppen én notitie-invoer.
-  - Notitie-payload gebruikt `auteur_user_id = user.id`, `auteur_naam = user.naam`.
-  - Notities-render: `comment.auteur_naam ?? comment.auteur?.naam ?? 'Onbekend'`.
-- `src/components/maintenance/TicketList.tsx`:
-  - Filter-tabs worden **Open / Klaar / Alles** ("Open" = `nieuw` + `in_behandeling`, matcht "Openstaand"-KPI).
-  - Settings-knop alleen zichtbaar als `useIsMaintenanceAdmin()` true is — maar wordt sowieso verwijderd want er is geen settings-scherm meer (zie hieronder).
-  - Verwijder logout-knop, `user.isStaff` en `canSwitchVestiging` conditionals (er is nu alleen staff-mode).
-- `src/components/maintenance/NewTicketForm.tsx` — verwijder de `user.isStaff ? melder_user_id : melder_id` conditional; altijd `melder_user_id + melder_naam` sturen.
-- `src/pages/maintenance/Onderhoud.tsx` — flow simplificeren:
-  - Weg: pincode-imports, `useMaintenanceAuth`, `showBeheer`, beheer-link, `settings`-screen.
-  - Alleen `list` / `new` / `detail`. Wanneer geen `authUser + vestiging`: toon "Even geduld..." (zoals nu).
-- `src/types/maintenance.ts` — `TicketComment` interface: `auteur_id: string | null`, plus `auteur_user_id: string | null`, `auteur_naam: string | null`.
+## Verificatie na uitrol
 
-**Types & tokens bewust behouden:** `MaintenanceUser`, `MaintenanceRol`, `MaintenanceSession`, `pincode_hash` — de tabel bestaat nog voor historische verwijzingen, dus de types blijven bruikbaar voor de embedded join. `useMaintenanceUsers` heb ik weggegooid omdat er geen UI meer overblijft die pincode-users beheert.
-
-## Verificatie na build
-
-1. **Owner** → `/onderhoud` → status wijzigen + notitie plaatsen werkt.
-2. **Niet-admin** → melden werkt; statusknoppen en notitie-invoer onzichtbaar; poging via curl om status te updaten met anon-token → RLS-403.
-3. **Zonder login** → curl `select id from maintenance_tickets` met alleen anon-key → leeg / permission-error.
-4. **Zonder login** → curl `select naam from maintenance_users` → leeg / permission-error.
-5. **Historie** — bestaande tickets/comments tonen namen (backfill werkt).
-6. `security--run_security_scan` — verifieer dat "tickets public", "pincode-hashes leesbaar" en "comments public" verdwenen zijn.
-
-Zeg "bouwen" of klik implement en ik maak de code-wijzigingen af.
+1. **Midsland-user** → `/taken` beheer → dezelfde move/hernoem/verwijder-iconen naast elke categorie als in West.
+2. **Elke bestaande taak** staat na de migratie nog in dezelfde categorie — steekproef in open én sluit.
+3. Categorie hernoemen in Midsland → alle bestaande taken in die categorie krijgen automatisch de nieuwe naam (via `foh_rename_category` RPC).
+4. Categorie verwijderen → blokkeert als er nog taken in zitten (bestaand West-gedrag).
+5. **West** onveranderd (regressie-check).
