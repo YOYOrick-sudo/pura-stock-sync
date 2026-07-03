@@ -1,4 +1,4 @@
-import { Home, ListChecks, Wallet, Settings, BarChart3, Wrench, Users, ShieldCheck, BookOpen, Carrot, Printer } from 'lucide-react';
+import { Home, ListChecks, Wallet, Settings, Wrench, Users, ShieldCheck, BookOpen, Carrot, Printer } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useEffect, useState } from 'react';
@@ -29,7 +29,7 @@ const allNavigationItems = [
   { title: 'Ingrediënten', url: '/kitchen/ingredienten', icon: Carrot, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false },
   { title: 'Kassatelling', url: '/kassatelling', icon: Wallet, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false },
   { title: 'Onderhoud', url: '/onderhoud', icon: Wrench, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Statistieken', url: '/taken-analyse', icon: BarChart3, group: 'beheer' as const, locations: ['West', 'Midsland'], requiresCode: true, codeKey: 'stats', expectedCode: 'boom', managerOnly: false },
+  
   { title: 'Settings', url: '/settings', icon: Settings, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false },
 ];
 
