@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RequireManager } from "@/components/RequireManager";
+import { RequireOwner } from "@/components/RequireOwner";
 import { LocationGuard } from "@/components/LocationGuard";
 import { UserLocationProvider } from "@/contexts/UserLocationContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -42,6 +43,7 @@ import WonenDetail from "./pages/personeel/WonenDetail";
 import Collegas from "./pages/personeel/Collegas";
 import PersoneelSettings from "./pages/personeel/PersoneelSettings";
 import SetPassword from "./pages/auth/SetPassword";
+import Team from "./pages/settings/Team";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -113,9 +115,21 @@ const App = () => (
               path="/settings" 
               element={
                 <ProtectedRoute>
-                  <Settings />
+                  <RequireOwner>
+                    <Settings />
+                  </RequireOwner>
                 </ProtectedRoute>
               } 
+            />
+            <Route
+              path="/settings/team"
+              element={
+                <ProtectedRoute>
+                  <RequireOwner>
+                    <Team />
+                  </RequireOwner>
+                </ProtectedRoute>
+              }
             />
             <Route 
               path="/internal-orders" 
