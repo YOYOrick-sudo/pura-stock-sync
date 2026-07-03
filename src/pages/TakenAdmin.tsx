@@ -1,15 +1,14 @@
 // /taken/admin — overzicht van alle takenlijsten met sidebar zichtbaar.
 // West werkt allround: één kaart per fase (geen Bediening/Keuken splitsing).
+// Onderdelen worden per lijst beheerd op /taken/beheer.
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, ChevronDown, ChevronUp, Pencil, Trash2, Loader2, Shield, Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import { ArrowRight, Loader2, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { SidebarLayout } from '@/components/SidebarLayout';
-import { Button } from '@/components/ui/button';
 
 type Phase = 'open' | 'tussen' | 'borrel' | 'sluit';
 type Department = 'voorkant' | 'achterkant';
