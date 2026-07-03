@@ -1808,7 +1808,7 @@ export function FohTasks() {
           if (t.category) cats.add(t.category);
         }
         for (const c of cats) {
-          await ensureCategoryOrderRow('West', effectiveDept, c);
+          await ensureCategoryOrderRow(userLocation, effectiveDept, c);
         }
         queryClient.invalidateQueries({ queryKey: ['foh-category-order'] });
         queryClient.invalidateQueries({ queryKey: ['foh-west-subcategories'] });
@@ -3067,8 +3067,8 @@ export function FohTasks() {
                 ) => {
                   const orderedCats =
                     orderedCatsOverride
-                      ?? (userLocation === 'West'
-                        ? getCategoriesForContext('West', dept, activePhase)
+                      ?? ((userLocation === 'West' || userLocation === 'Midsland')
+                        ? getCategoriesForContext(userLocation, dept, activePhase)
                         : undefined);
                   const groups = groupTasksByCategory(tasksToRender, orderedCats);
                   const entries = Object.entries(groups);
@@ -4265,20 +4265,24 @@ export function FohTasks() {
         phase={activePhase}
         department={effectiveDept}
         availableCategories={getCategoriesForContext(userLocation, effectiveDept, activePhase)}
-        isWest={userLocation === 'West'}
-        westCategoryRows={userLocation === 'West' ? (westCategoryOrder?.[effectiveDept] ?? []) : []}
+        isWest={userLocation === 'West' || userLocation === 'Midsland'}
+        westCategoryRows={
+          (userLocation === 'West' || userLocation === 'Midsland')
+            ? (westCategoryOrder?.[effectiveDept] ?? [])
+            : []
+        }
         onMoveCategory={
-          userLocation === 'West'
+          (userLocation === 'West' || userLocation === 'Midsland')
             ? (cat, dir) => handleMoveCategory(effectiveDept, cat, dir)
             : undefined
         }
         onRenameCategory={
-          userLocation === 'West'
+          (userLocation === 'West' || userLocation === 'Midsland')
             ? (cat) => handleRenameCategory(effectiveDept, cat)
             : undefined
         }
         onDeleteCategory={
-          userLocation === 'West'
+          (userLocation === 'West' || userLocation === 'Midsland')
             ? (cat) => handleDeleteCategory(effectiveDept, cat)
             : undefined
         }
