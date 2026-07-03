@@ -288,31 +288,42 @@ export default function SnelPrinten() {
               )}
             </Card>
 
-            {/* Aantal + Print */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-3 rounded-polar-md bg-card border border-border px-3 py-2.5 shadow-sm">
-                <div>
-                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Aantal stickers</div>
-                  <div className="text-xs text-muted-foreground">Zelfde sticker meerdere keren</div>
+            {/* Print + aantal inline */}
+            <div className="space-y-1.5">
+              <div className="flex items-stretch gap-2">
+                <div className="flex items-center gap-1 rounded-polar-lg border border-border bg-card px-2 shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => setAantal((n) => Math.max(AANTAL_RANGE.min, n - 1))}
+                    disabled={aantal <= AANTAL_RANGE.min}
+                    className="h-9 w-9 rounded-polar-md hover:bg-muted disabled:opacity-40 disabled:hover:bg-transparent flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label="Minder stickers"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </button>
+                  <div className="w-8 text-center text-sm font-semibold tabular-nums">
+                    {aantal}
+                    <span className="text-[10px] font-normal text-muted-foreground">×</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAantal((n) => Math.min(AANTAL_RANGE.max, n + 1))}
+                    disabled={aantal >= AANTAL_RANGE.max}
+                    className="h-9 w-9 rounded-polar-md hover:bg-muted disabled:opacity-40 disabled:hover:bg-transparent flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label="Meer stickers"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
                 </div>
-                <Stepper
-                  value={aantal}
-                  min={AANTAL_RANGE.min}
-                  max={AANTAL_RANGE.max}
-                  onChange={setAantal}
-                  suffix="×"
-                  ariaLabel="Aantal stickers"
-                />
+                <Button onClick={handlePrint} disabled={!canPrint} className="flex-1 h-11">
+                  <Printer className="h-4 w-4 mr-2" />
+                  {createJob.isPending
+                    ? 'Bezig…'
+                    : aantal > 1
+                      ? `Print ${aantal} stickers`
+                      : 'Print sticker'}
+                </Button>
               </div>
-
-              <Button onClick={handlePrint} disabled={!canPrint} className="w-full h-11">
-                <Printer className="h-4 w-4 mr-2" />
-                {createJob.isPending
-                  ? 'Bezig…'
-                  : aantal > 1
-                    ? `Print ${aantal} stickers`
-                    : 'Print sticker'}
-              </Button>
               {!canPrint && !createJob.isPending && (
                 <p className="text-xs text-muted-foreground text-center">Typ eerst een productnaam</p>
               )}
