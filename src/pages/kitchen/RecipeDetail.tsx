@@ -14,9 +14,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Edit, Users, ChevronLeft, Printer, Trash2, Clock } from 'lucide-react';
+import { Edit, Users, ChevronLeft, Printer, Trash2, Clock, Minus, Plus } from 'lucide-react';
 import { useRecipe, useDeleteRecipe } from '@/hooks/useRecipes';
 import { useCreatePrintJob } from '@/hooks/usePrintJobs';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
 
 function formatIngredient(hoeveelheid?: string | null, eenheid?: string | null, naam?: string) {
@@ -30,6 +31,8 @@ export default function RecipeDetail() {
   const createPrintJob = useCreatePrintJob();
   const deleteMut = useDeleteRecipe();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [printOpen, setPrintOpen] = useState(false);
+  const [printAantal, setPrintAantal] = useState(1);
 
   
 
@@ -116,15 +119,67 @@ export default function RecipeDetail() {
                   <Edit className="w-4 h-4 mr-1.5" />
                   Bewerken
                 </Button>
-                <Button
-                  size="icon"
-                  onClick={() => createPrintJob.mutate({ id: recipe.id, name: recipe.name, tht_dagen: (recipe as any).tht_dagen })}
-                  disabled={createPrintJob.isPending}
-                  title="Print sticker"
-                  className="h-10 w-10"
-                >
-                  <Printer className="w-4 h-4" />
-                </Button>
+                <Popover open={printOpen} onOpenChange={setPrintOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      size="icon"
+                      disabled={createPrintJob.isPending}
+                      title="Print sticker"
+                      className="h-10 w-10"
+                    >
+                      <Printer className="w-4 h-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-56 p-3">
+                    <div className="space-y-3">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Aantal stickers
+                      </div>
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setPrintAantal((n) => Math.max(1, n - 1))}
+                          disabled={printAantal <= 1}
+                          className="h-9 w-9 rounded-polar-md border border-input bg-card hover:bg-muted disabled:opacity-40 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          aria-label="Minder"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <div className="w-12 text-center text-lg font-semibold tabular-nums">
+                          {printAantal}
+                          <span className="text-xs font-normal text-muted-foreground">×</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setPrintAantal((n) => Math.min(20, n + 1))}
+                          disabled={printAantal >= 20}
+                          className="h-9 w-9 rounded-polar-md border border-input bg-card hover:bg-muted disabled:opacity-40 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          aria-label="Meer"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <Button
+                        className="w-full"
+                        size="sm"
+                        onClick={() => {
+                          createPrintJob.mutate({
+                            id: recipe.id,
+                            name: recipe.name,
+                            tht_dagen: (recipe as any).tht_dagen,
+                            aantal: printAantal,
+                          });
+                          setPrintOpen(false);
+                          setPrintAantal(1);
+                        }}
+                        disabled={createPrintJob.isPending}
+                      >
+                        <Printer className="w-4 h-4 mr-1.5" />
+                        {printAantal > 1 ? `Print ${printAantal}` : 'Print'}
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 <Button
                   size="icon"
                   variant="outline"
