@@ -191,7 +191,7 @@ export default function RecipeForm() {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <Label className="text-sm font-medium">Categorie</Label>
               <Input
@@ -213,6 +213,18 @@ export default function RecipeForm() {
                 value={porties}
                 onChange={(e) => setPorties(e.target.value)}
                 placeholder="Bijv. 4"
+                className="mt-2 h-11"
+              />
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Arbeidstijd (min)</Label>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                value={arbeidMinuten}
+                onChange={(e) => setArbeidMinuten(e.target.value)}
+                placeholder="Bijv. 30"
                 className="mt-2 h-11"
               />
             </div>
