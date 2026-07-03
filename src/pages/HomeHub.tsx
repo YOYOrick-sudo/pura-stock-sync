@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import WaveBackground from "@/components/WaveBackground";
 import logoGreen from "@/assets/pura-vida-logo-official.png";
 import { useUserLocation } from "@/contexts/UserLocationContext";
+import { devError } from "@/lib/devLog";
 const HomeHub = () => {
   const navigate = useNavigate();
   const { userLocation } = useUserLocation();
@@ -16,7 +17,7 @@ const HomeHub = () => {
       toast.success('Uitgelogd');
       navigate('/');
     } catch (error) {
-      console.error('Logout error:', error);
+      devError('Logout error:', error);
       toast.error('Uitloggen mislukt');
     }
   };

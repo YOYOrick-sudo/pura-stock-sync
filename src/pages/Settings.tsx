@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useUserLocation } from '@/contexts/UserLocationContext';
+import { devError } from "@/lib/devLog";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ export default function Settings() {
       toast.success('Uitgelogd');
       navigate('/');
     } catch (error) {
-      console.error('Logout error:', error);
+      devError('Logout error:', error);
       toast.error('Uitloggen mislukt');
     }
   };

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import logoOfficial from '@/assets/pura-vida-logo-official.png';
 import { getLocationDisplayName } from '@/lib/utils';
 import { PWAInstallHint } from '@/components/PWAInstallHint';
+import { devError } from "@/lib/devLog";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -98,7 +99,7 @@ const Auth = () => {
       }
     } catch (error) {
       if (import.meta.env.DEV) {
-        console.error('Login failed:', error instanceof Error ? error.message : 'unknown');
+        devError('Login failed:', error instanceof Error ? error.message : 'unknown');
       }
       toast.error('Er ging iets mis', { description: 'Probeer het opnieuw' });
     } finally {

@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { devError } from "@/lib/devLog";
 
 interface StaffMember {
   id: string;
@@ -50,7 +51,7 @@ export function ServiceStaff() {
       if (error) throw error;
       setStaff(data || []);
     } catch (error) {
-      console.error('Error fetching staff:', error);
+      devError('Error fetching staff:', error);
       toast.error('Kon medewerkers niet laden');
     } finally {
       setLoading(false);
@@ -89,7 +90,7 @@ export function ServiceStaff() {
       setNewStaffName('');
       fetchStaff();
     } catch (error) {
-      console.error('Error adding staff:', error);
+      devError('Error adding staff:', error);
       toast.error('Kon medewerker niet toevoegen');
     }
   };
@@ -110,7 +111,7 @@ export function ServiceStaff() {
       toast.success('Medewerker verwijderd');
       fetchStaff();
     } catch (error) {
-      console.error('Error removing staff:', error);
+      devError('Error removing staff:', error);
       toast.error('Kon medewerker niet verwijderen');
     }
   };

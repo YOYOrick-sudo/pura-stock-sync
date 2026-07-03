@@ -9,6 +9,7 @@ import { PLEK_OPTIONS, type MaintenanceActor, type Prioriteit } from '@/types/ma
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { StatusTone } from '@/components/pura';
+import { devError } from "@/lib/devLog";
 
 interface NewTicketFormProps {
   actor: MaintenanceActor;
@@ -79,7 +80,7 @@ export function NewTicketForm({ actor, onBack, onSuccess }: NewTicketFormProps) 
       toast.success('Melding verstuurd!');
       onSuccess();
     } catch (err) {
-      console.error('[NewTicketForm]', err);
+      devError('[NewTicketForm]', err);
       toast.error('Er ging iets mis. Probeer opnieuw.');
     } finally {
       setUploading(false);

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { devError } from "@/lib/devLog";
 
 interface OrderItem {
   product_name: string;
@@ -68,7 +69,7 @@ export const useSendInternalOrder = () => {
       });
     },
     onError: (error: any) => {
-      console.error('Error sending order:', error);
+      devError('Error sending order:', error);
       toast({
         title: 'Fout bij versturen bestelling',
         description: error.message || 'Er is iets misgegaan bij het versturen van de bestelling',

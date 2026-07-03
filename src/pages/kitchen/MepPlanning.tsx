@@ -8,6 +8,7 @@ import { Plus, Clock, Eye } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { addDays, startOfWeek, format } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import { devLog } from "@/lib/devLog";
 
 export default function MepPlanning() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -77,7 +78,7 @@ export default function MepPlanning() {
             description="Voeg mise-en-place items toe voor deze dag"
             action={{
               label: 'Item toevoegen',
-              onClick: () => console.log('Add MEP item'),
+              onClick: () => devLog('Add MEP item'),
             }}
           />
         ) : (

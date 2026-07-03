@@ -65,22 +65,40 @@ function previousOpenDay(loc: Loc, pickupDateStr: string): string {
   return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, '0')}-${String(dt.getUTCDate()).padStart(2, '0')}`;
 }
 
+let cachedToken: string | null = null;
+async function loadToken(client: ReturnType<typeof createClient>): Promise<string> {
+  if (cachedToken) return cachedToken;
+  const { data, error } = await client.rpc('get_waste_tasks_token');
+  if (error || !data) throw new Error('token_unavailable');
+  cachedToken = data as string;
+  return cachedToken;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-  const expected = Deno.env.get('WASTE_TASKS_TOKEN') ?? '';
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  );
+
+  let expected = '';
+  try {
+    expected = await loadToken(supabase);
+  } catch {
+    return new Response(JSON.stringify({ error: 'server_misconfigured' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
   const provided = req.headers.get('x-waste-tasks-token') ?? '';
-  if (!expected || !provided || !timingSafeEqual(expected, provided)) {
+  if (!provided || !timingSafeEqual(expected, provided)) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
       status: 401,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-  );
 
 
   const today = nlDate(0);

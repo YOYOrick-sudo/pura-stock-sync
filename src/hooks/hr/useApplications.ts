@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Application, ApplicationFormData, ApplicationStatus, FINAL_STATUSES } from '@/types/hr';
 import { toast } from 'sonner';
+import { devError } from "@/lib/devLog";
 
 export function useApplications() {
   return useQuery({
@@ -87,7 +88,7 @@ export function useCreateApplication() {
       toast.success('Sollicitatie aangemaakt');
     },
     onError: (error) => {
-      console.error('Error creating application:', error);
+      devError('Error creating application:', error);
       toast.error('Fout bij aanmaken sollicitatie');
     },
   });
@@ -115,7 +116,7 @@ export function useUpdateApplication() {
       toast.success('Sollicitatie bijgewerkt');
     },
     onError: (error) => {
-      console.error('Error updating application:', error);
+      devError('Error updating application:', error);
       toast.error('Fout bij bijwerken sollicitatie');
     },
   });
@@ -194,7 +195,7 @@ export function useUpdateApplicationStatus() {
       toast.success('Status bijgewerkt');
     },
     onError: (error) => {
-      console.error('Error updating status:', error);
+      devError('Error updating status:', error);
       toast.error('Fout bij bijwerken status');
     },
   });
@@ -218,7 +219,7 @@ export function useDeleteApplication() {
       toast.success('Sollicitatie verwijderd');
     },
     onError: (error) => {
-      console.error('Error deleting application:', error);
+      devError('Error deleting application:', error);
       toast.error('Fout bij verwijderen sollicitatie');
     },
   });

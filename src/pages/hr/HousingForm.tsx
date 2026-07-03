@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft } from 'lucide-react';
 import { useCreateAccommodation } from '@/hooks/hr/useAccommodations';
+import { devError } from "@/lib/devLog";
 
 const LOCATIONS = ['West', 'Midsland'];
 
@@ -42,7 +43,7 @@ export default function HousingForm() {
 
       navigate('/hr/housing');
     } catch (error) {
-      console.error('Error creating accommodation:', error);
+      devError('Error creating accommodation:', error);
     }
   };
 

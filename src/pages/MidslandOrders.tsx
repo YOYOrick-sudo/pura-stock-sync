@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp, Package, Calendar, FileText, Loader2, Truck, Ch
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { devError } from "@/lib/devLog";
 
 interface InternalOrderItem {
   id: string;
@@ -116,7 +117,7 @@ export default function MidslandOrders() {
       setFeedbackText({});
     },
     onError: (error) => {
-      console.error('Error updating order:', error);
+      devError('Error updating order:', error);
       toast.error('Fout bij bijwerken van bestelling');
     },
   });

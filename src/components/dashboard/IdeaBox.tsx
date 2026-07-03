@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { toast } from 'sonner';
+import { devError } from "@/lib/devLog";
 
 export function IdeaBox() {
   const [idea, setIdea] = useState('');
@@ -53,7 +54,7 @@ export function IdeaBox() {
 
       const failures = results.filter((r) => r.error);
       if (failures.length > 0) {
-        console.error('Email send failures:', failures.map((f) => f.error));
+        devError('Email send failures:', failures.map((f) => f.error));
         if (failures.length === recipients.length) {
           toast.error('Idee opgeslagen, maar versturen van mail naar MT is mislukt.');
         } else {
@@ -64,7 +65,7 @@ export function IdeaBox() {
       }
       setIdea('');
     } catch (error) {
-      console.error('Error submitting idea:', error);
+      devError('Error submitting idea:', error);
       toast.error('Er ging iets mis bij het versturen.');
     } finally {
       setSubmitting(false);

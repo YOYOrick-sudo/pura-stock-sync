@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Loader2, Download, RefreshCw, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { SidebarLayout } from '@/components/SidebarLayout';
+import { devError } from "@/lib/devLog";
 
 interface KassaAfdracht {
   id: string;
@@ -82,7 +83,7 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
 
     const { data, error } = await query;
     if (error) {
-      console.error(error);
+      devError(error);
       toast.error(`Laden mislukt: ${error.message}`);
       setRows([]);
     } else {

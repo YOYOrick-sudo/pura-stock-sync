@@ -9,6 +9,7 @@ import { LogOut, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { devError } from "@/lib/devLog";
 
 function getCurrentWeek(): number {
   const now = new Date();
@@ -29,7 +30,7 @@ export default function Voorraad() {
       toast.success('Uitgelogd');
       navigate('/');
     } catch (error) {
-      console.error('Logout error:', error);
+      devError('Logout error:', error);
       toast.error('Uitloggen mislukt');
     }
   };
