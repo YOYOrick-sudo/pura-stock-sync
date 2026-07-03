@@ -133,6 +133,17 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
             <StatusIcon className="h-3.5 w-3.5" />
             {status.label}
           </span>
+          {ticket.plek && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              padding: '4px 10px', borderRadius: '8px',
+              backgroundColor: 'hsl(var(--muted))', color: 'hsl(var(--muted-foreground))',
+              fontSize: '12px', fontWeight: 600,
+            }}>
+              <MapPin className="h-3.5 w-3.5" />
+              {ticket.plek}
+            </span>
+          )}
         </div>
 
         <h2 className="text-xl font-semibold text-foreground mb-2">
@@ -145,10 +156,20 @@ export function TicketDetail({ ticketId, user, onBack }: TicketDetailProps) {
           </p>
         )}
 
+        {ticket.foto_url && (
+          <div className="mb-4 overflow-hidden" style={{ borderRadius: '16px', backgroundColor: 'hsl(var(--muted))' }}>
+            {photoUrl ? (
+              <img src={photoUrl} alt="Foto bij melding" style={{ width: '100%', maxHeight: '480px', objectFit: 'cover', display: 'block' }} />
+            ) : (
+              <div style={{ height: '200px' }} />
+            )}
+          </div>
+        )}
+
         {/* Meta */}
         <div className="rounded-[14px] bg-muted p-3 px-4 text-[13px] text-muted-foreground">
           <div className="flex flex-wrap gap-x-6 gap-y-1">
-            <span>Melder: <strong className="text-foreground">{ticket.melder?.naam ?? 'Onbekend'}</strong></span>
+            <span>Melder: <strong className="text-foreground">{ticket.melder_naam ?? ticket.melder?.naam ?? 'Onbekend'}</strong></span>
             <span>Vestiging: <strong className="text-foreground capitalize">{ticket.vestiging}</strong></span>
             <span>Aangemaakt: <strong className="text-foreground">
               {format(new Date(ticket.aangemaakt_op), 'd MMM yyyy, HH:mm', { locale: nl })}
