@@ -1,9 +1,10 @@
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
+import { LogOut, Users, ChevronRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useUserLocation } from '@/contexts/UserLocationContext';
@@ -52,6 +53,22 @@ export default function Settings() {
                 <span className="font-medium">{displayLocation}</span>
               </div>
             </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="font-semibold text-lg mb-4">Beheer</h3>
+            <Link to="/settings/team">
+              <div className="flex items-center justify-between p-3 rounded-polar-md hover:bg-muted/50 cursor-pointer transition-colors">
+                <div className="flex items-center gap-3">
+                  <Users className="h-5 w-5 text-primary" />
+                  <div>
+                    <div className="font-medium">Team</div>
+                    <div className="text-sm text-muted-foreground">Teamleden uitnodigen en rollen beheren</div>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </Link>
           </Card>
 
           <Card className="p-6">

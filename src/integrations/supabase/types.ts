@@ -1589,6 +1589,7 @@ export type Database = {
           first_name: string
           id: string
           last_name: string
+          mag_cijfers_zien: boolean
           nationality: string | null
           phone: string | null
           updated_at: string
@@ -1602,6 +1603,7 @@ export type Database = {
           first_name?: string
           id?: string
           last_name?: string
+          mag_cijfers_zien?: boolean
           nationality?: string | null
           phone?: string | null
           updated_at?: string
@@ -1615,6 +1617,7 @@ export type Database = {
           first_name?: string
           id?: string
           last_name?: string
+          mag_cijfers_zien?: boolean
           nationality?: string | null
           phone?: string | null
           updated_at?: string
@@ -2454,6 +2457,7 @@ export type Database = {
         | "owner"
         | "team_lead"
         | "employee"
+        | "staff"
       application_status:
         | "received"
         | "screening"
@@ -2598,6 +2602,7 @@ export const Constants = {
         "owner",
         "team_lead",
         "employee",
+        "staff",
       ],
       application_status: [
         "received",
