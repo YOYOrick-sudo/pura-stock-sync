@@ -166,7 +166,7 @@ export function PolarSidebar({
           </>
         ) : collapsedLogo ? (
           <div className="mx-auto flex items-center justify-center">
-            <div className="h-10 w-10 rounded-lg flex items-center justify-center overflow-hidden p-1">
+            <div className="h-11 w-11 rounded-lg flex items-center justify-center overflow-hidden p-1">
               {collapsedLogo}
             </div>
           </div>
