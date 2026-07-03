@@ -43,6 +43,30 @@ const SENDER_DOMAIN = "notify.puravidafoodbar.nl"
 const ROOT_DOMAIN = "puravidafoodbar.nl"
 const FROM_DOMAIN = "puravidafoodbar.nl" // Domain shown in From address (may be root or sender subdomain)
 
+function buildAppConfirmationUrl(rawUrl: string, emailType: string, email?: string) {
+  if (!['invite', 'recovery'].includes(emailType)) return rawUrl
+
+  try {
+    const source = new URL(rawUrl)
+    const params = new URLSearchParams(source.search)
+    const hashParams = new URLSearchParams(source.hash.replace(/^#/, ''))
+    const pick = (key: string) => params.get(key) ?? hashParams.get(key)
+    const tokenHash = pick('token_hash')
+    const token = pick('token')
+    const type = pick('type') ?? emailType
+    const target = new URL('/auth/set-password', SITE_URL)
+
+    target.searchParams.set('type', type)
+    if (tokenHash) target.searchParams.set('token_hash', tokenHash)
+    if (token) target.searchParams.set('token', token)
+    if (email) target.searchParams.set('email', email)
+
+    return target.toString()
+  } catch {
+    return rawUrl
+  }
+}
+
 // Sample data for preview mode ONLY (not used in actual email sending).
 // URLs are baked in at scaffold time from the project's real data.
 // The sample email uses a fixed placeholder (RFC 6761 .test TLD) so the Go backend
@@ -225,7 +249,7 @@ async function handleWebhook(req: Request): Promise<Response> {
     siteName: SITE_NAME,
     siteUrl: SITE_URL,
     recipient: payload.data.email,
-    confirmationUrl: payload.data.url,
+    confirmationUrl: buildAppConfirmationUrl(payload.data.url, emailType, payload.data.email),
     token: payload.data.token,
     email: payload.data.email,
     oldEmail: payload.data.old_email,
