@@ -9,14 +9,14 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import puraVidaLogo from '@/assets/pura-vida-logo-sea-cropped.png';
 
 const allNavigationItems = [
-  { title: 'Dashboard', url: '/dashboard', icon: Home, group: 'overzicht' as const, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Taken Bediening', url: '/taken-bediening', icon: ListChecks, group: 'overzicht' as const, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Stickers', url: '/kitchen/snel-printen', icon: Printer, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Recepten', url: '/kitchen/recipes', icon: BookOpen, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Ingrediënten', url: '/kitchen/ingredienten', icon: Package, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Kassatelling', url: '/kassatelling', icon: Calculator, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Onderhoud', url: '/onderhoud', icon: ClipboardList, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Settings', url: '/settings', icon: Settings, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false },
+  { title: 'Dashboard', url: '/dashboard', icon: Home, group: 'overzicht' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
+  { title: 'Taken Bediening', url: '/taken-bediening', icon: ListChecks, group: 'overzicht' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
+  { title: 'Stickers', url: '/kitchen/snel-printen', icon: Printer, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
+  { title: 'Recepten', url: '/kitchen/recipes', icon: BookOpen, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
+  { title: 'Ingrediënten', url: '/kitchen/ingredienten', icon: Package, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
+  { title: 'Kassatelling', url: '/kassatelling', icon: Calculator, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
+  { title: 'Onderhoud', url: '/onderhoud', icon: ClipboardList, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
+  { title: 'Settings', url: '/settings', icon: Settings, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: true },
 ];
 
 interface AppSidebarProps {
@@ -30,6 +30,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
 
   const [collapsed, setCollapsed] = useState(false);
   const [isManager, setIsManager] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -41,8 +42,10 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
         .select('role')
         .eq('user_id', user.id)
         .eq('is_active', true);
-      const allowed = (data ?? []).some(r => ['owner', 'manager', 'admin'].includes(r.role as string));
-      if (!cancelled) setIsManager(allowed);
+      const roles = (data ?? []).map(r => r.role as string);
+      const owner = roles.some(r => ['owner', 'admin'].includes(r));
+      const manager = owner || roles.includes('manager');
+      if (!cancelled) { setIsManager(manager); setIsOwner(owner); }
     })();
     return () => { cancelled = true; };
   }, []);
@@ -52,6 +55,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
     : allNavigationItems
   )
     .filter(item => !item.managerOnly || isManager)
+    .filter(item => !item.ownerOnly || isOwner)
     .filter(item => !(userLocation === 'Midsland' && item.group === 'keuken'));
 
   const isActive = (url: string) =>
