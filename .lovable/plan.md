@@ -1,56 +1,64 @@
+# Polish: Theme toggle + Sidebar (enterprise finish)
 
-# Plan — Stap 2: iPad-accounts naar `staff`
+Scope: puur UI/presentatie in `src/components/ThemeToggle.tsx` en `src/components/polar/Sidebar.tsx`. Geen navigatie/logica wijzigingen, geen data/RLS.
 
-**Voorwaarde:** dit plan wordt pas uitgevoerd nadat jij de 8 verificatiestappen van de Team-sprint groen hebt gemeld. Tot dan: niet bouwen.
+## 1. ThemeToggle als 3-segment pill (Auto / Licht / Donker)
 
-## Doel
+Vervang de losse "Auto / Licht / Donker" cycle-knop door een strakke segmented control (zoals Linear / Vercel):
 
-De twee gedeelde tablet-accounts afwaarderen van hun huidige rol naar `staff`, zonder dat de dagelijkse iPad-workflows breken (afvinken FohTasks, stickers printen, recepten bekijken, storing melden).
+- Container: `inline-flex` pill met `bg-muted/60`, `rounded-full`, `p-0.5`, `border border-border/60`.
+- Drie iconen-knoppen naast elkaar: `Monitor` (Auto), `Sun` (Licht), `Moon` (Donker), elk 28×28, `rounded-full`.
+- Actief segment: `bg-card`, `text-foreground`, subtiele `shadow-sm` + `ring-1 ring-border/40`.
+- Inactieve segmenten: `text-muted-foreground` → hover `text-foreground`.
+- Tooltip per segment met label ("Automatisch volgen", "Lichte modus", "Donkere modus").
+- Klik zet direct de mode (geen cycle meer) — sneller en duidelijker.
 
-- `puramidsland@puravidafoodbar.nl` → `staff` op locatie **Midsland**
-- `purawestkeuken@puravidafoodbar.nl` → `staff` op locatie **West**
+Compacte variant (voor als sidebar smaller wordt): props `compact?: boolean` waarmee alleen iconen tonen; niet-compact toont icoon + kort label voor actief segment.
 
-## Schema-check (verplicht vóór DB-werk)
+## 2. Sidebar collapsed state — betere verhoudingen
 
-Bevestigen vóór de migratie:
+Huidig: 64px breed, iconen 20px, items 44×44 gecentreerd. Voelt te smal en "krap" bij een 84px header.
 
-1. `user_roles`-rijen voor beide accounts — huidige `role`, `location`, `is_active`.
-2. Enum `app_role` bevat `staff` (zou moeten sinds de Team-sprint-migratie — dubbelcheck).
-3. Of `owner`-rol elders nog vereist is (mag niet — er blijven twee owner-rijen voor Yorick over West+Midsland; check dat we geen laatste owner van een locatie afhalen).
-4. RLS-policies op de tabellen die de iPad gebruikt (foh_tasks, foh_daily_templates, sticker_producten, recipes, maintenance_tickets) — check dat `staff` daar minimaal read/insert heeft waar nodig.
+Wijzigingen in `src/components/polar/Sidebar.tsx`:
 
-Bevindingen rapporteren, **STOP + ASK** bij twijfel, pas daarna migratie.
+- Collapsed breedte: **64 → 76px** (betere verhouding t.o.v. 230px expanded en 84px header).
+- Icon items collapsed: `h-11 w-11` → `h-12 w-12`, iconen 20 → 22px, `rounded-xl`.
+- Actief item collapsed: linker accent-bar (3px, `bg-primary`, `rounded-r-full`) links van het item, plus `bg-primary/10`. Geeft directe visuele hiërarchie zoals Linear/Notion.
+- Header collapsed: PV-monogram vervangen door **cropped logo-mark** (gebruik hetzelfde logo maar `h-8 w-8 object-cover object-left`), gecentreerd. Consistenter dan tekst "PV".
+- Header hoogte gelijk in beide states (84px) — nu al zo, laten staan.
+- Collapsed toggle-rij: verwijder de losse border-b rij; verplaats toggle naar de **footer** (net als bij Vercel/Linear) zodat de collapsed sidebar één rustige kolom is. Expanded: toggle blijft rechtsboven.
+- Groepen-scheiding collapsed: dunne `border-t border-border/40` met 8px marge tussen `overzicht / keuken / beheer` (nu geen visuele scheiding meer als labels verborgen zijn).
+- Tooltip collapsed: iets meer padding (`px-3 py-2`), `text-[13px]`, `font-medium`, +8px offset naar rechts.
 
-## Wijziging
+## 3. Sidebar expanded — kleine finish
 
-Eén migratie: update van de twee `user_roles`-rijen naar `role='staff'`. Geen schemawijziging, geen policy-wijziging in deze stap.
+- Item hoogte 44 → 42px voor iets rustiger ritme.
+- Actief item: linker accent-bar (3px `bg-primary`, `rounded-r-full`, `absolute left-0`) i.p.v. alleen kleurvlak → strakker, enterprise.
+- Section-labels: letter-spacing `tracking-[0.08em]`, 10px, `text-muted-foreground/60`.
+- Footer met ThemeToggle: `py-2.5` i.p.v. vaste `h-9`, `justify-between` zodat pill netjes past + collapse-knop rechts.
 
-## Smoke-test (aantoonbaar, niet alleen benoemen)
+## 4. Footer layout (beide states)
 
-Per account uitvoeren, screenshots/logs terug:
+Expanded footer:
+```
+[ ⚙ Auto | ☀ | 🌙 ]              [ ⇤ ]
+```
+Collapsed footer:
+```
+       [ ⇥ ]
+```
+(Theme toggle verborgen in collapsed; icon-only variant zou te druk zijn in 76px.)
 
-| # | Account | Actie | Verwacht |
-|---|---------|-------|----------|
-| 1 | puramidsland | Login → landing | `/mijn/dashboard` (staff-view), géén Settings in sidebar |
-| 2 | puramidsland | FohTasks: taak afvinken + uitvinken | Werkt, sort_order behouden |
-| 3 | puramidsland | Sticker printen (sticker_producten bump) | Print-job aangemaakt |
-| 4 | puramidsland | Recept openen | Zichtbaar, read-only |
-| 5 | puramidsland | Storing melden (maintenance ticket) | Ticket aangemaakt |
-| 6 | puramidsland | Poging /settings te openen | Redirect / 403 |
-| 7 | purawestkeuken | 1–6 herhalen op locatie West | Idem |
+## Techniek / bestanden
 
-Als één stap faalt → **STOP + ASK**, geen workaround erin frommelen.
+- `src/components/ThemeToggle.tsx` — rewrite naar segmented pill met `compact` prop.
+- `src/components/polar/Sidebar.tsx` — width/heights/actief-bar/collapsed-header/toggle-positie.
+- `src/components/AppSidebar.tsx` — footerSlot geeft `<ThemeToggle />` (expanded) door; toggle-knop naar footer verhuizen gebeurt binnen `PolarSidebar` zelf.
+- Geen nieuwe deps, alleen bestaande shadcn `Tooltip` + Tailwind tokens (respecteert dark/light).
 
-## Buiten scope
+## Verificatie
 
-- Deel B (PINs → has_role) — komt daarna, apart plan.
-- Overige rol-toewijzingen.
-- HR-rol integratie in rollen-UI (blijft zoals nu, per jouw beslissing).
-
-## Werkwijze
-
-1. Wachten op jouw "verificatie groen"-signaal.
-2. Schema-check uitvoeren en terugkoppelen.
-3. Migratie voorleggen ter goedkeuring.
-4. Na akkoord: uitvoeren + smoke-test met bewijs.
-5. Volledige rapportage terug voordat we deel B openen.
+- Preview op desktop (1440) en tablet (1024) checken: expanded 230px, collapsed 76px, geen layout-shift bij toggle.
+- Dark mode + light mode: actief accent-bar, pill contrast, tooltip.
+- Klik op elk segment van de pill → thema wijzigt direct; hover states zichtbaar.
+- Toggle in collapsed footer werkt en uitklappen keert terug naar 230px.
