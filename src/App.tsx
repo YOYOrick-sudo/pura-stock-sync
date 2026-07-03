@@ -41,6 +41,7 @@ import Wonen from "./pages/personeel/Wonen";
 import WonenDetail from "./pages/personeel/WonenDetail";
 import Collegas from "./pages/personeel/Collegas";
 import PersoneelSettings from "./pages/personeel/PersoneelSettings";
+import SetPassword from "./pages/auth/SetPassword";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -54,6 +55,7 @@ const App = () => (
             <Routes>
             {/* Auth routes */}
             <Route path="/" element={<Auth />} />
+            <Route path="/auth/set-password" element={<SetPassword />} />
             
             {/* Main module routes - all with sidebar */}
             <Route 

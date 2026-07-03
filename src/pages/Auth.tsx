@@ -34,6 +34,8 @@ const Auth = () => {
   };
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<'shared' | 'personal'>('shared');
+  const [personalEmail, setPersonalEmail] = useState('');
   const [location, setLocation] = useState<'West' | 'Midsland'>('West');
   
   const getEmailForLocation = (loc: 'West' | 'Midsland') => {
@@ -54,6 +56,7 @@ const Auth = () => {
     e.preventDefault();
     if (cooldown > 0) return;
     if (!password.trim()) { toast.error('Vul het wachtwoord in'); return; }
+    if (mode === 'personal' && !personalEmail.trim()) { toast.error('Vul je e-mailadres in'); return; }
     setLoading(true);
     try {
       const { data: { session: existingSession } } = await supabase.auth.getSession();
@@ -61,9 +64,10 @@ const Auth = () => {
         await supabase.auth.signOut();
         await new Promise(resolve => setTimeout(resolve, 300));
       }
-      
+
+      const emailToUse = mode === 'personal' ? personalEmail.trim() : getEmailForLocation(location);
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: getEmailForLocation(location),
+        email: emailToUse,
         password: password
       });
 
@@ -82,19 +86,22 @@ const Auth = () => {
       }
 
       if (data.session) {
-        const { data: userRole } = await supabase
-          .from('user_roles')
-          .select('location')
-          .eq('user_id', data.session.user.id)
-          .maybeSingle();
-        
-        if (userRole?.location !== location) {
-          toast.error('Verkeerde locatie detecteerd', { description: `Deze account hoort bij ${getLocationDisplayName(userRole?.location || '')}` });
-          await supabase.auth.signOut();
-          return;
+        if (mode === 'shared') {
+          const { data: userRole } = await supabase
+            .from('user_roles')
+            .select('location')
+            .eq('user_id', data.session.user.id)
+            .maybeSingle();
+
+          if (userRole?.location !== location) {
+            toast.error('Verkeerde locatie detecteerd', { description: `Deze account hoort bij ${getLocationDisplayName(userRole?.location || '')}` });
+            await supabase.auth.signOut();
+            return;
+          }
+          toast.success(`Welkom bij ${getLocationDisplayName(location)}!`);
+        } else {
+          toast.success('Welkom terug!');
         }
-        
-        toast.success(`Welkom bij ${getLocationDisplayName(location)}!`);
         navigate('/dashboard');
       }
     } catch (error) {
@@ -131,32 +138,50 @@ const Auth = () => {
         {/* Login Form */}
         <div className="px-8 pt-6 pb-8">
           <form onSubmit={handleLogin} className="flex flex-col gap-5">
-            <div>
-              <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 block mb-2">
-                Locatie
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                {([
-                  { loc: 'West' as const, icon: Building2 },
-                  { loc: 'Midsland' as const, icon: Store },
-                ]).map(({ loc, icon: Icon }) => (
-                  <button
-                    type="button"
-                    key={loc}
-                    onClick={() => !loading && setLocation(loc)}
-                    disabled={loading}
-                    className={`flex flex-col items-center justify-center gap-2 py-5 px-4 rounded-[16px] transition-all duration-200
-                      ${location === loc
-                        ? 'bg-primary/10 text-primary border-2 border-primary'
-                        : 'bg-muted/40 text-muted-foreground border-2 border-transparent hover:text-foreground hover:bg-muted/60'
-                      } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                  >
-                    <Icon className="w-6 h-6" />
-                    <span className="text-[15px] font-semibold">{getLocationDisplayName(loc)}</span>
-                  </button>
-                ))}
+            {mode === 'shared' ? (
+              <div>
+                <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 block mb-2">
+                  Locatie
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {([
+                    { loc: 'West' as const, icon: Building2 },
+                    { loc: 'Midsland' as const, icon: Store },
+                  ]).map(({ loc, icon: Icon }) => (
+                    <button
+                      type="button"
+                      key={loc}
+                      onClick={() => !loading && setLocation(loc)}
+                      disabled={loading}
+                      className={`flex flex-col items-center justify-center gap-2 py-5 px-4 rounded-[16px] transition-all duration-200
+                        ${location === loc
+                          ? 'bg-primary/10 text-primary border-2 border-primary'
+                          : 'bg-muted/40 text-muted-foreground border-2 border-transparent hover:text-foreground hover:bg-muted/60'
+                        } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      <Icon className="w-6 h-6" />
+                      <span className="text-[15px] font-semibold">{getLocationDisplayName(loc)}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div>
+                <label htmlFor="pemail" className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 block mb-2">
+                  E-mail
+                </label>
+                <input
+                  id="pemail"
+                  type="email"
+                  value={personalEmail}
+                  onChange={(e) => setPersonalEmail(e.target.value)}
+                  placeholder="jouw@puravidafoodbar.nl"
+                  disabled={loading}
+                  autoComplete="email"
+                  className="w-full h-12 px-4 text-[15px] text-foreground bg-background border border-border/60 rounded-xl outline-none transition-all focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+            )}
 
             <div>
               <label htmlFor="password" className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 block mb-2">
@@ -194,6 +219,14 @@ const Auth = () => {
                   <span>Inloggen</span>
                 </>
               )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => !loading && setMode(mode === 'shared' ? 'personal' : 'shared')}
+              className="text-[12px] text-muted-foreground hover:text-foreground underline underline-offset-4 mt-1"
+            >
+              {mode === 'shared' ? 'Inloggen met persoonlijk account' : 'Terug naar locatie-login'}
             </button>
           </form>
         </div>
