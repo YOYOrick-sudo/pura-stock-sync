@@ -2407,6 +2407,7 @@ export type Database = {
         Args: { uid: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      get_waste_tasks_token: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
