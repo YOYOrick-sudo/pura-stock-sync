@@ -22,17 +22,15 @@ import { PincodeNumpad } from '@/components/PincodeNumpad';
 import puraVidaLogo from '@/assets/pura-vida-logo-sea-cropped.png';
 
 const allNavigationItems = [
-  { title: 'Dashboard', url: '/dashboard', icon: Home, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Taken Bediening', url: '/taken-bediening', icon: ListChecks, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Recepten', url: '/kitchen/recipes', icon: BookOpen, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Ingrediënten', url: '/kitchen/ingredienten', icon: Carrot, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Snel printen', url: '/kitchen/snel-printen', icon: Printer, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Kassatelling', url: '/kassatelling', icon: Wallet, locations: ['West', 'Midsland'], managerOnly: false },
-
-  { title: 'Onderhoud', url: '/onderhoud', icon: Wrench, locations: ['West', 'Midsland'], managerOnly: false },
-  
-  { title: 'Settings', url: '/settings', icon: Settings, locations: ['West', 'Midsland'], managerOnly: false },
-  { title: 'Statistieken', url: '/taken-analyse', icon: BarChart3, locations: ['West', 'Midsland'], requiresCode: true, codeKey: 'stats', expectedCode: 'boom', managerOnly: false },
+  { title: 'Dashboard', url: '/dashboard', icon: Home, group: 'overzicht' as const, locations: ['West', 'Midsland'], managerOnly: false },
+  { title: 'Taken Bediening', url: '/taken-bediening', icon: ListChecks, group: 'overzicht' as const, locations: ['West', 'Midsland'], managerOnly: false },
+  { title: 'Stickers', url: '/kitchen/snel-printen', icon: Printer, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false },
+  { title: 'Recepten', url: '/kitchen/recipes', icon: BookOpen, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false },
+  { title: 'Ingrediënten', url: '/kitchen/ingredienten', icon: Carrot, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false },
+  { title: 'Kassatelling', url: '/kassatelling', icon: Wallet, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false },
+  { title: 'Onderhoud', url: '/onderhoud', icon: Wrench, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false },
+  { title: 'Statistieken', url: '/taken-analyse', icon: BarChart3, group: 'beheer' as const, locations: ['West', 'Midsland'], requiresCode: true, codeKey: 'stats', expectedCode: 'boom', managerOnly: false },
+  { title: 'Settings', url: '/settings', icon: Settings, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false },
 ];
 
 interface AppSidebarProps {
@@ -130,6 +128,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
           url: item.url,
           active: isActive(item.url),
           requiresCode: item.requiresCode,
+          group: item.group,
           onClick: item.requiresCode 
             ? (e) => handleProtectedClick(e, item.url, item.codeKey!)
             : () => handleNavigation(item.url),

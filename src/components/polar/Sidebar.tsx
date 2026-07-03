@@ -16,6 +16,7 @@ export interface PolarSidebarItem {
   url: string;
   active: boolean;
   requiresCode?: boolean;
+  group?: 'overzicht' | 'keuken' | 'beheer';
   onClick?: (e: React.MouseEvent) => void;
 }
 
@@ -27,16 +28,17 @@ export interface PolarSidebarProps {
   footerSlot?: React.ReactNode;
 }
 
-const OVERVIEW_URLS = new Set(['/dashboard', '/taken-bediening']);
-
 function groupItems(items: PolarSidebarItem[]) {
   const overzicht: PolarSidebarItem[] = [];
+  const keuken: PolarSidebarItem[] = [];
   const beheer: PolarSidebarItem[] = [];
   for (const item of items) {
-    if (OVERVIEW_URLS.has(item.url)) overzicht.push(item);
+    const g = item.group ?? 'beheer';
+    if (g === 'overzicht') overzicht.push(item);
+    else if (g === 'keuken') keuken.push(item);
     else beheer.push(item);
   }
-  return { overzicht, beheer };
+  return { overzicht, keuken, beheer };
 }
 
 export function PolarSidebar({
@@ -47,7 +49,7 @@ export function PolarSidebar({
   footerSlot,
 }: PolarSidebarProps) {
   const navigate = useNavigate();
-  const { overzicht, beheer } = groupItems(items);
+  const { overzicht, keuken, beheer } = groupItems(items);
 
   const renderItem = (item: PolarSidebarItem) => {
     const Icon = item.icon;
@@ -60,7 +62,7 @@ export function PolarSidebar({
         }}
         className={cn(
           'group flex items-center rounded-lg transition-colors cursor-pointer select-none',
-          collapsed ? 'justify-center h-10 w-10 mx-auto' : 'h-10 px-3 gap-3',
+          collapsed ? 'justify-center h-12 w-12 mx-auto' : 'h-12 px-3 gap-3',
           item.active
             ? 'bg-muted text-foreground'
             : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
@@ -172,6 +174,19 @@ export function PolarSidebar({
             )}
             <div className="flex flex-col gap-1">
               {overzicht.map(renderItem)}
+            </div>
+          </div>
+        )}
+
+        {keuken.length > 0 && (
+          <div className={cn(collapsed ? 'px-1' : 'px-2', 'mb-3')}>
+            {!collapsed && (
+              <h3 className="text-[11px] font-bold text-muted-foreground/50 tracking-wider uppercase px-2.5 mb-2 mt-4">
+                Keuken
+              </h3>
+            )}
+            <div className="flex flex-col gap-1">
+              {keuken.map(renderItem)}
             </div>
           </div>
         )}
