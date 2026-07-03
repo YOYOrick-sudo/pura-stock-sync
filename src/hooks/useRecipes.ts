@@ -21,6 +21,7 @@ export interface Recipe {
   description: string | null;
   is_gearchiveerd: boolean;
   location: string | null;
+  arbeid_minuten: number | null;
   created_at: string;
   updated_at: string;
   ingredient_count?: number;
@@ -33,6 +34,7 @@ export interface RecipeInput {
   porties: number | null;
   bereiding: string;
   foto_url?: string | null;
+  arbeid_minuten?: number | null;
 }
 
 export function useRecipes(search: string, category: string | null) {
