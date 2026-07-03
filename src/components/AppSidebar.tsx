@@ -128,6 +128,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
           url: item.url,
           active: isActive(item.url),
           requiresCode: item.requiresCode,
+          group: item.group,
           onClick: item.requiresCode 
             ? (e) => handleProtectedClick(e, item.url, item.codeKey!)
             : () => handleNavigation(item.url),
