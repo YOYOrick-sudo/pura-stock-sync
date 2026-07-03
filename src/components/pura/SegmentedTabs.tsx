@@ -1,4 +1,3 @@
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
 interface SegmentedTabsProps<T extends string> {
@@ -9,8 +8,9 @@ interface SegmentedTabsProps<T extends string> {
 }
 
 /**
- * SegmentedTabs — pill-bar met vaste Pura-styling (radius 20px, 44px touch).
- * Vervangt losse pill-implementaties (Kassatelling, Onderhoud, KasControle).
+ * SegmentedTabs — losse pill-knoppen naar Taken-referentie.
+ * Actief = groen gevuld met witte tekst + teller-badge.
+ * Inactief = witte pill met border.
  */
 export function SegmentedTabs<T extends string>({
   value,
@@ -19,28 +19,38 @@ export function SegmentedTabs<T extends string>({
   className,
 }: SegmentedTabsProps<T>) {
   return (
-    <Tabs value={value} onValueChange={(v) => onValueChange(v as T)} className={className}>
-      <TabsList
-        className={cn('bg-muted p-1 rounded-polar-xl w-full grid h-auto')}
-        style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
-      >
-        {options.map((opt) => (
-          <TabsTrigger
+    <div className={cn('flex flex-wrap gap-3', className)}>
+      {options.map((opt) => {
+        const active = opt.value === value;
+        return (
+          <button
             key={opt.value}
-            value={opt.value}
+            type="button"
+            onClick={() => onValueChange(opt.value)}
             className={cn(
-              'rounded-polar-lg min-h-[44px] text-sm font-medium',
-              'data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-card',
-              'data-[state=inactive]:text-muted-foreground',
+              'inline-flex items-center justify-center gap-2 min-h-[44px] px-5 rounded-polar-xl',
+              'text-sm font-medium transition-all duration-150',
+              active
+                ? 'bg-primary text-primary-foreground border border-transparent shadow-sm'
+                : 'bg-card text-foreground border border-border hover:bg-muted hover:shadow-sm',
             )}
           >
             <span>{opt.label}</span>
             {typeof opt.count === 'number' && (
-              <span className="ml-1.5 text-xs opacity-70">{opt.count}</span>
+              <span
+                className={cn(
+                  'rounded-md px-2 py-0.5 text-xs font-semibold min-w-[28px] text-center',
+                  active
+                    ? 'bg-primary-foreground/25 text-primary-foreground'
+                    : 'bg-foreground/5 text-muted-foreground',
+                )}
+              >
+                {opt.count}
+              </span>
             )}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-    </Tabs>
+          </button>
+        );
+      })}
+    </div>
   );
 }
