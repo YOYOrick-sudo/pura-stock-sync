@@ -9,6 +9,8 @@ export function useTicketComments(ticketId: string | null) {
     queryKey: [COMMENTS_KEY, ticketId],
     queryFn: async () => {
       if (!ticketId) return [];
+      // Embedded join op maintenance_users faalt stil voor niet-admins (RLS).
+      // UI valt daarom terug op `auteur_naam` (backfilled).
       const { data, error } = await (supabase as any)
         .from('ticket_comments')
         .select('*, auteur:maintenance_users!auteur_id(*)')
@@ -27,7 +29,8 @@ export function useCreateComment() {
   return useMutation({
     mutationFn: async (comment: {
       ticket_id: string;
-      auteur_id: string;
+      auteur_user_id: string;
+      auteur_naam: string;
       tekst: string;
     }) => {
       const { data, error } = await (supabase as any)

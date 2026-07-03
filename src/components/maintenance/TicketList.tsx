@@ -1,20 +1,17 @@
 import { useState } from 'react';
-import { Plus, LogOut, Settings, AlertTriangle, Clock, CheckCircle2, MapPin, Image as ImageIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Plus, AlertTriangle, Clock, CheckCircle2, MapPin, Image as ImageIcon } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMaintenanceTickets, useTicketCounts } from '@/hooks/maintenance/useMaintenanceTickets';
 import { useSignedPhotoUrl } from '@/hooks/maintenance/useMaintenancePhoto';
-import type { MaintenanceUser, MaintenanceTicket, Vestiging, TicketStatus } from '@/types/maintenance';
+import type { MaintenanceActor, MaintenanceTicket, TicketStatus } from '@/types/maintenance';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
 interface TicketListProps {
-  user: MaintenanceUser;
+  actor: MaintenanceActor;
   onNewTicket: () => void;
   onTicketClick: (ticketId: string) => void;
-  onSettings: () => void;
-  onLogout: () => void;
 }
 
 const prioriteitConfig = {
@@ -29,7 +26,7 @@ const statusConfig = {
   afgehandeld: { color: '#2D8E6F', bg: 'hsl(160 40% 95%)', label: 'Klaar', icon: CheckCircle2 },
 };
 
-type StatusFilter = 'open' | 'bezig' | 'klaar' | 'alles';
+type StatusFilter = 'open' | 'klaar' | 'alles';
 
 const cardStyle: React.CSSProperties = {
   borderRadius: '20px',
@@ -39,22 +36,15 @@ const cardStyle: React.CSSProperties = {
   transition: 'all 200ms ease',
 };
 
-export function TicketList({ user, onNewTicket, onTicketClick, onSettings, onLogout }: TicketListProps) {
-  const isEigenaar = user.rol === 'eigenaar';
-  const canSwitchVestiging = isEigenaar && !user.isStaff;
-  const [vestigingTab, setVestigingTab] = useState<Vestiging | 'alles'>(
-    canSwitchVestiging ? 'alles' : user.vestiging
-  );
+export function TicketList({ actor, onNewTicket, onTicketClick }: TicketListProps) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('open');
 
-  const vestigingFilter = canSwitchVestiging ? vestigingTab : user.vestiging;
-  const { data: tickets, isLoading } = useMaintenanceTickets(vestigingFilter);
-  const counts = useTicketCounts(vestigingFilter);
+  const { data: tickets, isLoading } = useMaintenanceTickets(actor.vestiging);
+  const counts = useTicketCounts(actor.vestiging);
 
   const filteredTickets = (tickets ?? []).filter((t) => {
     if (statusFilter === 'alles') return true;
-    if (statusFilter === 'open') return t.status === 'nieuw';
-    if (statusFilter === 'bezig') return t.status === 'in_behandeling';
+    if (statusFilter === 'open') return t.status === 'nieuw' || t.status === 'in_behandeling';
     return t.status === 'afgehandeld';
   });
 
@@ -70,7 +60,7 @@ export function TicketList({ user, onNewTicket, onTicketClick, onSettings, onLog
     return new Date(b.aangemaakt_op).getTime() - new Date(a.aangemaakt_op).getTime();
   });
 
-  const vestigingLabel = user.vestiging === 'west' ? 'Daily' : 'Foodbar';
+  const vestigingLabel = actor.vestiging === 'west' ? 'Daily' : 'Foodbar';
 
   return (
     <div className="space-y-6 pb-24">
@@ -78,33 +68,11 @@ export function TicketList({ user, onNewTicket, onTicketClick, onSettings, onLog
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-2xl font-semibold text-foreground truncate">
-            Onderhoud {!canSwitchVestiging && <span className="text-muted-foreground font-normal">— {vestigingLabel}</span>}
+            Onderhoud <span className="text-muted-foreground font-normal">— {vestigingLabel}</span>
           </h1>
           <p className="text-sm text-muted-foreground truncate">
-            {user.isStaff ? 'Meld iets dat niet in de haak is' : `Welkom, ${user.naam}`}
+            Meld iets dat niet in de haak is
           </p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {isEigenaar && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={onSettings}
-              className="rounded-[14px] border-1.5 h-11 w-11"
-            >
-              <Settings className="h-5 w-5 text-muted-foreground" />
-            </Button>
-          )}
-          {!user.isStaff && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={onLogout}
-              className="rounded-[14px] border-1.5 h-11 w-11"
-            >
-              <LogOut className="h-5 w-5 text-muted-foreground" />
-            </Button>
-          )}
         </div>
       </div>
 
@@ -146,22 +114,10 @@ export function TicketList({ user, onNewTicket, onTicketClick, onSettings, onLog
         })}
       </div>
 
-      {/* Vestiging tabs (only for eigenaar via pincode) */}
-      {canSwitchVestiging && (
-        <Tabs value={vestigingTab} onValueChange={(v) => setVestigingTab(v as Vestiging | 'alles')}>
-          <TabsList className="bg-card border border-border rounded-[14px] p-1">
-            <TabsTrigger value="alles" className="rounded-[10px] text-sm">Alles</TabsTrigger>
-            <TabsTrigger value="west" className="rounded-[10px] text-sm">Daily</TabsTrigger>
-            <TabsTrigger value="midsland" className="rounded-[10px] text-sm">Foodbar</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      )}
-
       {/* Status filter */}
       <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-        <TabsList className="bg-card border border-border rounded-[14px] p-1 w-full grid grid-cols-4">
+        <TabsList className="bg-card border border-border rounded-[14px] p-1 w-full grid grid-cols-3">
           <TabsTrigger value="open" className="rounded-[10px] text-sm">Open</TabsTrigger>
-          <TabsTrigger value="bezig" className="rounded-[10px] text-sm">Bezig</TabsTrigger>
           <TabsTrigger value="klaar" className="rounded-[10px] text-sm">Klaar</TabsTrigger>
           <TabsTrigger value="alles" className="rounded-[10px] text-sm">Alles</TabsTrigger>
         </TabsList>
