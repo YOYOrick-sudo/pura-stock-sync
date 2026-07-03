@@ -1,74 +1,50 @@
-## Doel
+## Status — deels al uitgevoerd
 
-Onderhouds-module toegankelijk voor élke ingelogde medewerker (geen pincode meer aan de voorkant), met een strakke, visueel aangename lijst per vestiging en een simpele meld-flow: titel + urgentie + plek in de zaak + optionele foto.
+Migraties zijn beide gedraaid en de oude pincode-bestanden zijn verwijderd. Voor de resterende code-wijzigingen heb ik build-mode nodig — vandaar dit hernieuwde plan.
 
-De bestaande pincode-flow blijft achter de hand voor beheer op de admin-pagina — maar de standaardweg via de sidebar is nu direct binnen.
+**Al klaar in de DB:**
+- Migratie 1: `ticket_comments` heeft `auteur_user_id` + `auteur_naam`, `auteur_id` is nullable, en `auteur_naam` / `melder_naam` zijn eenmalig gebackfilled vanuit `maintenance_users`.
+- Migratie 2: alle open RLS-policies gedropt en vervangen — tickets/settings/comments alleen `authenticated`, `maintenance_users` alleen owner/admin, tickets-INSERT met `melder_user_id = auth.uid()`, tickets-UPDATE alleen owner/admin, comments-INSERT met `auteur_user_id = auth.uid()`. Security-scan telt al 3 findings minder.
 
-## 1. Database
+**Al klaar in de code (via shell delete):**
+- `src/components/maintenance/PincodeLogin.tsx`
+- `src/components/maintenance/MaintenanceSettings.tsx`
+- `src/hooks/maintenance/useMaintenanceAuth.ts`
+- `src/hooks/maintenance/useMaintenanceUsers.ts`
+- `src/hooks/maintenance/useMaintenanceSettings.ts`
 
-Aanpassing op `maintenance_tickets`:
-- `melder_id` wordt optioneel (was NOT NULL, hoorde bij pincode-users).
-- Nieuwe kolom `melder_user_id uuid` — verwijst naar de ingelogde app-gebruiker (`auth.users`), nullable.
-- Nieuwe kolom `plek text` — locatie binnen de zaak (Bar, Keuken, Zaal, Terras, Sanitair, Entree, Voorraad, Overig).
-- Nieuwe kolom `foto_url text` — optionele foto.
+Het project bouwt nu níet totdat de imports geschoond zijn — dit is dus urgent.
 
-RLS blijft zoals nu (lezen open, insert door ingelogde users), zodat medewerkers direct kunnen posten.
+## Resterende code-wijzigingen (in build-mode)
 
-Nieuwe storage-bucket `maintenance-photos` (privaat, met signed URLs) + policies waarbij ingelogde gebruikers kunnen uploaden en iedereen in de app kan lezen via signed URL.
+**Nieuw:**
+- `src/hooks/maintenance/useIsMaintenanceAdmin.ts` — React Query hook die `user_roles` leest en `true` retourneert bij owner/admin.
 
-## 2. Toegang
+**Aanpassen:**
+- `src/hooks/maintenance/useTicketComments.ts` — `useCreateComment` payload wordt `{ ticket_id, auteur_user_id, auteur_naam, tekst }`.
+- `src/components/maintenance/TicketDetail.tsx`:
+  - Verwijder `isEigenaar`-check; gebruik `useIsMaintenanceAdmin()` voor statusknoppen én notitie-invoer.
+  - Notitie-payload gebruikt `auteur_user_id = user.id`, `auteur_naam = user.naam`.
+  - Notities-render: `comment.auteur_naam ?? comment.auteur?.naam ?? 'Onbekend'`.
+- `src/components/maintenance/TicketList.tsx`:
+  - Filter-tabs worden **Open / Klaar / Alles** ("Open" = `nieuw` + `in_behandeling`, matcht "Openstaand"-KPI).
+  - Settings-knop alleen zichtbaar als `useIsMaintenanceAdmin()` true is — maar wordt sowieso verwijderd want er is geen settings-scherm meer (zie hieronder).
+  - Verwijder logout-knop, `user.isStaff` en `canSwitchVestiging` conditionals (er is nu alleen staff-mode).
+- `src/components/maintenance/NewTicketForm.tsx` — verwijder de `user.isStaff ? melder_user_id : melder_id` conditional; altijd `melder_user_id + melder_naam` sturen.
+- `src/pages/maintenance/Onderhoud.tsx` — flow simplificeren:
+  - Weg: pincode-imports, `useMaintenanceAuth`, `showBeheer`, beheer-link, `settings`-screen.
+  - Alleen `list` / `new` / `detail`. Wanneer geen `authUser + vestiging`: toon "Even geduld..." (zoals nu).
+- `src/types/maintenance.ts` — `TicketComment` interface: `auteur_id: string | null`, plus `auteur_user_id: string | null`, `auteur_naam: string | null`.
 
-`Onderhoud.tsx` krijgt twee paden:
-- **Ingelogd via app** (Supabase auth): pincode overslaan, direct de nieuwe tickets-lijst tonen, gefilterd op vestiging van de gebruiker (via `useUserLocation`).
-- **Pincode-flow** blijft bestaan voor beheer-scherm en cross-vestiging (bereikbaar via een discrete "Beheer"-knop rechtsboven). Niets breekt voor bestaande onderhouds-users.
+**Types & tokens bewust behouden:** `MaintenanceUser`, `MaintenanceRol`, `MaintenanceSession`, `pincode_hash` — de tabel bestaat nog voor historische verwijzingen, dus de types blijven bruikbaar voor de embedded join. `useMaintenanceUsers` heb ik weggegooid omdat er geen UI meer overblijft die pincode-users beheert.
 
-## 3. Meldflow — `NewTicketForm` opnieuw
+## Verificatie na build
 
-Eén scherm, groot en duidelijk:
-- **Titel** — korte omschrijving, verplicht.
-- **Urgentie** — 3 grote kaartknoppen (Laag / Normaal / Hoog) met kleur (grijs / oranje / rood).
-- **Plek** — chip-selector met vaste opties (Bar, Keuken, Zaal, Terras, Sanitair, Entree, Voorraad, Overig).
-- **Foto** — optioneel, camera-capture op mobiel (`<input type="file" accept="image/*" capture="environment">`), thumbnail-preview, upload naar `maintenance-photos`.
-- **Toelichting** — optioneel textarea.
-- Grote primaire submit-knop, bevestigings-toast, terug naar lijst.
+1. **Owner** → `/onderhoud` → status wijzigen + notitie plaatsen werkt.
+2. **Niet-admin** → melden werkt; statusknoppen en notitie-invoer onzichtbaar; poging via curl om status te updaten met anon-token → RLS-403.
+3. **Zonder login** → curl `select id from maintenance_tickets` met alleen anon-key → leeg / permission-error.
+4. **Zonder login** → curl `select naam from maintenance_users` → leeg / permission-error.
+5. **Historie** — bestaande tickets/comments tonen namen (backfill werkt).
+6. `security--run_security_scan` — verifieer dat "tickets public", "pincode-hashes leesbaar" en "comments public" verdwenen zijn.
 
-Vestiging wordt automatisch gezet vanuit `useUserLocation` — geen dropdown.
-
-## 4. Lijst-scherm — `TicketList` polish
-
-Compacte, visueel prettige lijst van meldingen op de eigen vestiging:
-- Sticky header met titel "Onderhoud — {vestiging}" en één primaire knop **+ Nieuwe melding**.
-- Filter-tabs: Open • In behandeling • Afgehandeld (Alle als vierde).
-- Ticket-kaarten (rounded 20px, subtiele border, hover-lift):
-  - Links een gekleurde urgentie-strip (grijs/oranje/rood).
-  - Titel prominent, daaronder plek-badge + relatieve tijd ("2 uur geleden").
-  - Foto-thumbnail rechtsboven als aanwezig.
-  - Status-badge (Open / Bezig / Klaar) met semantische kleuren.
-- Empty-state: vriendelijk illustratief blokje met de + knop.
-- Detail-scherm (`TicketDetail`) toont foto full-width, opmerkingen-thread onderin — layout-polish, geen nieuwe functionaliteit.
-
-## 5. Design-tokens
-
-Alles in bestaande semantic tokens uit `index.css`:
-- Urgentie-kleuren via bestaande status-varianten (`success`/`warning`/`destructive` met `/10` achtergrond en volle tekst-kleur).
-- Border-radius 20px voor kaarten, 14px voor knoppen/inputs — conform project-standaard.
-- Icon 20px in kaarten, 16px inline — conform icon-standaard.
-- Touch targets 44px+ voor tablets — conform iPad-richtlijn.
-
-## 6. Bestanden
-
-Nieuw:
-- `supabase/migrations/*_onderhoud_openzetten.sql`
-- Storage bucket + policies
-
-Gewijzigd:
-- `src/pages/maintenance/Onderhoud.tsx` — dual-path (app-user vs pincode)
-- `src/components/maintenance/NewTicketForm.tsx` — nieuwe velden + foto-upload
-- `src/components/maintenance/TicketList.tsx` — polish + filter-tabs + kaart-layout
-- `src/components/maintenance/TicketDetail.tsx` — foto weergave + polish
-- `src/hooks/maintenance/useMaintenanceTickets.ts` — vestiging-filter, nieuwe velden
-
-## Verificatie
-
-- Migration draait en RLS/GRANTs kloppen.
-- Playwright: login als medewerker → Onderhoud in sidebar → direct lijst (geen pincode) → melding maken met foto → verschijnt bovenaan met juiste kleur/plek/thumbnail. Screenshot.
+Zeg "bouwen" of klik implement en ik maak de code-wijzigingen af.
