@@ -68,10 +68,20 @@ function previousOpenDay(loc: Loc, pickupDateStr: string): string {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
+  const expected = Deno.env.get('WASTE_TASKS_TOKEN') ?? '';
+  const provided = req.headers.get('x-waste-tasks-token') ?? '';
+  if (!expected || !provided || !timingSafeEqual(expected, provided)) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
+
 
   const today = nlDate(0);
   const result: Record<string, unknown> = { today, locations: {} as Record<string, unknown> };
