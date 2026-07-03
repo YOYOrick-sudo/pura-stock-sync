@@ -41,17 +41,25 @@ export function useMaintenanceTicket(id: string | null) {
   });
 }
 
+export interface CreateTicketPayload {
+  vestiging: Vestiging;
+  titel: string;
+  toelichting?: string;
+  prioriteit: Prioriteit;
+  plek?: string | null;
+  foto_url?: string | null;
+  // Ofwel pincode-user:
+  melder_id?: string | null;
+  // Ofwel app-medewerker:
+  melder_user_id?: string | null;
+  melder_naam?: string | null;
+}
+
 export function useCreateTicket() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (ticket: {
-      vestiging: Vestiging;
-      titel: string;
-      toelichting?: string;
-      prioriteit: Prioriteit;
-      melder_id: string;
-    }) => {
+    mutationFn: async (ticket: CreateTicketPayload) => {
       const { data, error } = await (supabase as any)
         .from('maintenance_tickets')
         .insert(ticket)
