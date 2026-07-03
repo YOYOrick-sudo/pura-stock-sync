@@ -1712,6 +1712,7 @@ export type Database = {
           name: string
           porties: number | null
           prep_time_minutes: number | null
+          tht_dagen: number
           type: string
           updated_at: string | null
         }
@@ -1729,6 +1730,7 @@ export type Database = {
           name: string
           porties?: number | null
           prep_time_minutes?: number | null
+          tht_dagen?: number
           type?: string
           updated_at?: string | null
         }
@@ -1746,6 +1748,7 @@ export type Database = {
           name?: string
           porties?: number | null
           prep_time_minutes?: number | null
+          tht_dagen?: number
           type?: string
           updated_at?: string | null
         }

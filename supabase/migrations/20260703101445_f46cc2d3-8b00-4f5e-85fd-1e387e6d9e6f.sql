@@ -1,0 +1,1 @@
+ALTER TABLE public.recipes ADD COLUMN IF NOT EXISTS tht_dagen integer NOT NULL DEFAULT 3;
