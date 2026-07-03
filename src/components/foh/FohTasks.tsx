@@ -1031,8 +1031,8 @@ export function FohTasks() {
     queryKey: ['foh-west-subcategories', userLocation],
     queryFn: async () => {
       const [tpl, tsk] = await Promise.all([
-        supabase.from('foh_daily_templates').select('category, department').eq('location', 'West'),
-        supabase.from('foh_tasks').select('category, department').eq('location', 'West').eq('archived', false),
+        supabase.from('foh_daily_templates').select('category, department').eq('location', userLocation),
+        supabase.from('foh_tasks').select('category, department').eq('location', userLocation).eq('archived', false),
       ]);
       const out: Record<'voorkant' | 'achterkant', Set<string>> = {
         voorkant: new Set(),
@@ -1071,7 +1071,7 @@ export function FohTasks() {
       }
       return out;
     },
-    enabled: userLocation === 'West',
+    enabled: userLocation === 'West' || userLocation === 'Midsland',
   });
 
   // Categorieën beschikbaar voor een (location, dept, phase) combinatie.
@@ -1082,13 +1082,13 @@ export function FohTasks() {
     dept: 'voorkant' | 'achterkant',
     phase: string,
   ): string[] => {
-    if (loc === 'West') {
+    if (loc === 'West' || loc === 'Midsland') {
       const result = getOrderedCategories(
         westCategoryOrder as any,
         westSubcatsData as any,
         dept,
       );
-      return result.length > 0 ? result : ['Algemeen'];
+      if (result.length > 0) return result;
     }
     return getAvailableCategoriesForPhase(loc, phase);
   };
@@ -1100,7 +1100,7 @@ export function FohTasks() {
     dept: 'voorkant' | 'achterkant',
     category: string,
   ) => {
-    if (loc !== 'West') return;
+    if (loc !== 'West' && loc !== 'Midsland') return;
     const c = (category || '').trim();
     if (!c) return;
     const existing = westCategoryOrder?.[dept] ?? [];
@@ -1798,7 +1798,7 @@ export function FohTasks() {
       }
 
       // West: registreer nieuwe categorieën in foh_category_order
-      if (userLocation === 'West') {
+      if (userLocation === 'West' || userLocation === 'Midsland') {
         const cats = new Set<string>();
         for (const t of editedTasks) {
           if (deletedTaskIds.includes(t.id)) continue;
