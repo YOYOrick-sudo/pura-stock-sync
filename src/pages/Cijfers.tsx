@@ -158,6 +158,7 @@ function Segment<T extends string>({
 }
 
 function StickyFilters(props: {
+  label: string;
   periode: Periode; setPeriode: (p: Periode) => void;
   vestKeuze: VestKeuze; setVestKeuze: (v: VestKeuze) => void;
   customVan: Date; setCustomVan: (d: Date) => void;
