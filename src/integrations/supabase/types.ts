@@ -1000,6 +1000,7 @@ export type Database = {
           laatste_sync_op: string | null
           merchant_id: string
           refresh_token: string | null
+          refreshing_until: string | null
           status: string
           token_expires_at: string | null
           updated_at: string
@@ -1013,6 +1014,7 @@ export type Database = {
           laatste_sync_op?: string | null
           merchant_id: string
           refresh_token?: string | null
+          refreshing_until?: string | null
           status?: string
           token_expires_at?: string | null
           updated_at?: string
@@ -1026,6 +1028,7 @@ export type Database = {
           laatste_sync_op?: string | null
           merchant_id?: string
           refresh_token?: string | null
+          refreshing_until?: string | null
           status?: string
           token_expires_at?: string | null
           updated_at?: string
