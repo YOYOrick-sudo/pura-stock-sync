@@ -163,6 +163,8 @@ Deno.serve(async (req) => {
         error: 'echte_data_aanwezig',
         detail: `Er staan ${echtCount} echte rijen. Demo-data zou echte data verdringen — geweigerd.`,
       }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     const { count: urenEcht } = await admin
       .from('uren_dagen')
       .select('id', { count: 'exact', head: true })
