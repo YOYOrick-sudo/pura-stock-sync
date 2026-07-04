@@ -34,15 +34,18 @@ const Auth = () => {
   };
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<'shared' | 'personal'>('shared');
+  const [selection, setSelection] = useState<'daily' | 'foodbar' | 'personal'>('daily');
   const [personalEmail, setPersonalEmail] = useState('');
-  const [location, setLocation] = useState<'West' | 'Midsland'>('West');
-  
+
+  const mode: 'shared' | 'personal' = selection === 'personal' ? 'personal' : 'shared';
+  const location: 'West' | 'Midsland' = selection === 'foodbar' ? 'Midsland' : 'West';
+
   const getEmailForLocation = (loc: 'West' | 'Midsland') => {
-    return loc === 'West' 
+    return loc === 'West'
       ? 'purawestkeuken@puravidafoodbar.nl'
       : 'puramidsland@puravidafoodbar.nl';
   };
+
 
   useEffect(() => {
     const checkSession = async () => {
