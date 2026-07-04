@@ -10,18 +10,18 @@
   :root {
     /* === CLEAN SaaS PALETTE — Green primary, neutral grays === */
     
-    /* Page background - warm off-white (login-style canvas) */
-    --background: 45 15% 92%;               /* #EBEAE6 - warm off-white, matches login */
-    --app-canvas: 45 15% 92%;               /* alias for explicit canvas usage */
+    /* Page background - fresh light gray (no clay feel) */
+    --background: 45 8% 95%;                /* #F5F4F2 - fresh light, less clay */
+    --app-canvas: 45 8% 95%;                /* alias for explicit canvas usage */
     --shadow-card: 0 20px 40px -12px rgba(0,0,0,0.08), 0 8px 16px -8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
     --shadow-card-hover: 0 24px 48px -12px rgba(0,0,0,0.10), 0 10px 20px -8px rgba(0,0,0,0.05);
     --foreground: 220 26% 14%;              /* #1F2937 - Gray-800 */
     
-    /* Card surfaces - warm white, soft against canvas */
-    --card: 40 12% 97%;
+    /* Card surfaces - crisp white, clean against canvas */
+    --card: 40 5% 98%;
     --card-foreground: 220 26% 14%;
     
-    --popover: 40 12% 97%;
+    --popover: 40 5% 98%;
     --popover-foreground: 220 26% 14%;
     
     /* Primary - Pura Vida Green */
