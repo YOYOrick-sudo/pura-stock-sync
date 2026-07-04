@@ -50,8 +50,9 @@
     
     /* Borders - warm soft, matches off-white family */
     --border: 40 6% 88%;                    /* warm soft border */
-    --border-state: 220 13% 82%;            /* #D1D5DB - Gray-300 */
-    --input: 220 13% 84%;                   /* #D1D5DB - Gray-300 */
+    --border-state: 40 6% 80%;              /* stronger warm border */
+    --input: 40 6% 82%;                     /* input border, warm */
+    --input-surface: 0 0% 100%;             /* input fill: crisp but not harsh vs #FAFAF8 */
     --ring: 163 65% 26%;                    /* Primary green */
     
     /* Radius */
