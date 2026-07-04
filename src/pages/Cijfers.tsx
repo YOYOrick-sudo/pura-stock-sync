@@ -93,13 +93,7 @@ export default function Cijfers() {
     <SidebarLayout>
       <div className="max-w-6xl mx-auto space-y-5 pb-8">
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: 27, fontWeight: 700, letterSpacing: '-0.02em', color: 'hsl(var(--foreground))' }}>Cijfers</h1>
-            <p style={{ margin: '6px 0 0', fontSize: 14, color: 'hsl(var(--muted-foreground))' }}>
-              Omzet, bonnen en patronen — realtime, per vestiging.
-            </p>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', gap: 20, flexWrap: 'wrap' }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 13px',
             background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12,
@@ -109,6 +103,7 @@ export default function Cijfers() {
             <span className="tabular-nums">{label}</span>
           </div>
         </div>
+
 
         {demoQ.data && <DemoBanner canWipe={isOwner} />}
 
