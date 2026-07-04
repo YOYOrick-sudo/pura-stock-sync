@@ -24,7 +24,7 @@ const DashboardCard = ({ title, count, onClick, isLoading, icon }: DashboardCard
   return (
     <div
       onClick={onClick}
-      className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+      className="cursor-pointer group"
       style={{ borderRadius: '20px' }}
     >
       <PolarKPICard

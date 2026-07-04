@@ -73,7 +73,7 @@ export function IdeaBox() {
   };
 
   return (
-    <div className="p-5 bg-card border border-border rounded-[20px] shadow-soft">
+    <div className="p-6 bg-card border border-border/60 rounded-[20px] shadow-[var(--shadow-card)]">
         <div className="flex items-center gap-2 mb-3">
           <div className="p-1.5 rounded-md bg-secondary">
             <Lightbulb size={16} className="text-primary" />

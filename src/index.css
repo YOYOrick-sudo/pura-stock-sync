@@ -10,8 +10,11 @@
   :root {
     /* === CLEAN SaaS PALETTE — Green primary, neutral grays === */
     
-    /* Page background - light gray */
-    --background: 40 6% 96%;                /* #F5F5F4 - Stone-100, Warm Gray */
+    /* Page background - warm off-white (login-style canvas) */
+    --background: 45 15% 92%;               /* #EBEAE6 - warm off-white, matches login */
+    --app-canvas: 45 15% 92%;               /* alias for explicit canvas usage */
+    --shadow-card: 0 20px 40px -12px rgba(0,0,0,0.08), 0 8px 16px -8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+    --shadow-card-hover: 0 24px 48px -12px rgba(0,0,0,0.10), 0 10px 20px -8px rgba(0,0,0,0.05);
     --foreground: 220 26% 14%;              /* #1F2937 - Gray-800 */
     
     /* Card surfaces - white */

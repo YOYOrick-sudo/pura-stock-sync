@@ -49,7 +49,7 @@ export function WeatherWidget({
   
   return (
     <div
-      className="bg-card border border-border rounded-[20px] p-5 transition-all duration-200 shadow-soft flex flex-col gap-3 h-full"
+      className="bg-card border border-border/60 rounded-[20px] p-6 shadow-[var(--shadow-card)] flex flex-col gap-3 h-full"
     >
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-2">

@@ -90,7 +90,7 @@ export function WasteCalendarCard() {
   const cardTitle = `Afvalkalender ${getLocationDisplayName(userLocation)}`;
 
   return (
-    <div className="bg-card rounded-[20px] p-5 shadow-sm border border-border">
+    <div className="bg-card rounded-[20px] p-6 shadow-[var(--shadow-card)] border border-border/60">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
         <div className="flex items-center gap-2">

@@ -65,19 +65,19 @@ export function PolarSidebar({
           else if (!item.requiresCode) navigate(item.url);
         }}
         className={cn(
-          'group relative flex items-center transition-colors cursor-pointer select-none',
+          'group relative flex items-center transition-colors duration-200 cursor-pointer select-none',
           collapsed
-            ? 'justify-center h-12 w-12 mx-auto rounded-xl'
-            : 'h-[42px] px-3 gap-3 rounded-lg',
+            ? 'justify-center h-12 w-12 mx-auto rounded-[14px]'
+            : 'h-[42px] px-3 gap-3 rounded-[14px]',
           item.active
-            ? 'bg-primary/10 text-foreground'
-            : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+            ? 'bg-primary/10 text-primary ring-1 ring-primary/20'
+            : 'text-foreground/70 hover:bg-white/60 hover:text-foreground'
         )}
       >
         <Icon
           className={cn(
             'shrink-0 transition-colors',
-            item.active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
+            item.active ? 'text-primary' : 'text-foreground/50 group-hover:text-foreground'
           )}
           style={{
             width: collapsed ? 22 : 20,
@@ -90,7 +90,7 @@ export function PolarSidebar({
             <span
               className={cn(
                 'text-[14px] font-medium leading-none truncate',
-                item.active && 'text-foreground'
+                item.active ? 'text-primary' : ''
               )}
             >
               {item.title}
@@ -133,7 +133,7 @@ export function PolarSidebar({
 
   return (
     <aside
-      className="polar-sidebar flex flex-col bg-card border border-border rounded-lg overflow-hidden"
+      className="polar-sidebar flex flex-col bg-card border border-border/60 rounded-[20px] overflow-hidden"
       style={{
         width: collapsed ? '76px' : '230px',
         height: 'calc(100vh - 24px)',
@@ -141,12 +141,12 @@ export function PolarSidebar({
         top: '12px',
         margin: '12px',
         transition: 'width 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)',
+        boxShadow: 'var(--shadow-card)',
       }}
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between bg-muted/20 pt-6 pb-3"
+        className="flex items-center justify-between pt-6 pb-3"
         style={{
           height: '84px',
           paddingLeft: collapsed ? '10px' : '16px',
@@ -161,9 +161,9 @@ export function PolarSidebar({
               size="icon"
               onClick={onToggle}
               aria-label="Sidebar inklappen"
-              className="h-10 w-10 rounded-md hover:bg-muted shrink-0"
+              className="h-10 w-10 rounded-md hover:bg-white/60 shrink-0"
             >
-              <PanelLeftClose className="h-5 w-5 text-muted-foreground" strokeWidth={1.75} />
+              <PanelLeftClose className="h-5 w-5 text-foreground/50" strokeWidth={1.75} />
             </Button>
           </>
         ) : collapsedLogo ? (
@@ -189,11 +189,11 @@ export function PolarSidebar({
             className={cn(
               collapsed ? 'px-2' : 'px-2',
               idx > 0 && collapsed && 'mt-2 pt-2 border-t border-border/40',
-              idx > 0 && !collapsed && 'mt-3'
+              idx > 0 && !collapsed && 'mt-4'
             )}
           >
             {!collapsed && (
-              <h3 className="text-[10px] font-bold text-muted-foreground/60 tracking-[0.08em] uppercase px-2.5 mb-1.5">
+              <h3 className="text-[11px] font-medium text-foreground/45 px-2.5 mb-2">
                 {g.label}
               </h3>
             )}
