@@ -102,6 +102,7 @@
     
     --notification-badge: 0 70% 65%;
     
+    --app-canvas: 220 26% 10%;              /* dark canvas, matcht --background */
     --border: 220 20% 15%;                  /* zeer subtiel, matcht card bijna */
     --border-state: 220 15% 28%;            /* iets zichtbaarder voor inputs/hover */
     --input: 220 17% 24%;
