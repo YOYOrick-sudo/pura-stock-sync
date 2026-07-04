@@ -54,6 +54,11 @@ export const HandoverCard = () => {
     queryClient.invalidateQueries({ queryKey: ['handover-memo', userLocation] });
   };
 
+  // Sync memoText met server-versie zolang we niet aan het editen zijn
+  useEffect(() => {
+    if (!isEditing) setMemoText(latestMemo?.message || '');
+  }, [latestMemo?.message, isEditing]);
+
   const cardClasses = "bg-card border border-border/60 rounded-[20px] shadow-[var(--shadow-card)]";
 
   if (isLoading) {
@@ -66,11 +71,6 @@ export const HandoverCard = () => {
       </div>
     );
   }
-
-  // Sync memoText met server-versie zolang we niet aan het editen zijn
-  useEffect(() => {
-    if (!isEditing) setMemoText(latestMemo?.message || '');
-  }, [latestMemo?.message, isEditing]);
 
   const dirty = isEditing && memoText.trim() !== (latestMemo?.message || '').trim();
 
