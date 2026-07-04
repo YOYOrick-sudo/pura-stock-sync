@@ -7,7 +7,7 @@ import { CijfersTooltipCard } from './CijfersTooltip';
 
 const DAG_NL = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'];
 const UREN = Array.from({ length: 14 }, (_, i) => 10 + i);
-const STAPPEN = [0.06, 0.2, 0.35, 0.5, 0.65, 0.85];
+const STAPPEN = [0.06, 0.2, 0.35, 0.5, 0.65, 0.88];
 
 interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
 type Cel = { isodow: number; uur: number; gem_omzet: number; n_dagen: number };
