@@ -150,7 +150,7 @@ const Auth = () => {
         <div className="px-8 pt-6 pb-8">
           <form onSubmit={handleLogin} className="flex flex-col gap-5">
             <div>
-              <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 block mb-2">
+              <label className="text-[11px] font-medium text-foreground/45 block mb-2">
                 Kies inlogmethode
               </label>
               <div className="grid grid-cols-3 gap-3">
@@ -179,7 +179,7 @@ const Auth = () => {
 
             {mode === 'personal' && (
               <div>
-                <label htmlFor="pemail" className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 block mb-2">
+                <label htmlFor="pemail" className="text-[11px] font-medium text-foreground/45 block mb-2">
                   E-mail
                 </label>
                 <input
