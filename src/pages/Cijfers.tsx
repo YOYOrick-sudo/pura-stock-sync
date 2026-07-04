@@ -5,8 +5,6 @@ import { nl } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { SidebarLayout } from '@/components/SidebarLayout';
-import { PageSubheader } from '@/components/pura/PageSubheader';
-import { SegmentedTabs } from '@/components/pura/SegmentedTabs';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -23,23 +21,18 @@ import { BijgewerktRegel } from '@/components/cijfers/BijgewerktRegel';
 import { periodeRange, toISO, type Periode, type VestKeuze } from '@/components/cijfers/types';
 import { useRole } from '@/hooks/useRole';
 
-
 type Preset = { label: string; van: Date; tot: Date };
 
 function buildPresets(): Preset[] {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const gisteren = new Date(today); gisteren.setDate(today.getDate() - 1);
-  // Vorige week (ma-zo)
   const dow = (today.getDay() + 6) % 7;
   const thisMon = new Date(today); thisMon.setDate(today.getDate() - dow);
   const prevMon = new Date(thisMon); prevMon.setDate(thisMon.getDate() - 7);
   const prevSun = new Date(prevMon); prevSun.setDate(prevMon.getDate() + 6);
-  // Vorig weekend (za-zo)
-  const daysSinceSat = (today.getDay() + 1) % 7 || 7; // dagen sinds laatste za
+  const daysSinceSat = (today.getDay() + 1) % 7 || 7;
   const laatsteZa = new Date(today); laatsteZa.setDate(today.getDate() - daysSinceSat);
   const laatsteZo = new Date(laatsteZa); laatsteZo.setDate(laatsteZa.getDate() + 1);
-  // Deze maand vorig jaar
-  const firstThisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   const firstLYSameMonth = new Date(today.getFullYear() - 1, today.getMonth(), 1);
   const sameDayLY = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
   return [
@@ -51,6 +44,17 @@ function buildPresets(): Preset[] {
 }
 
 const MAX_TERUG_DAGEN = 366;
+
+function rangeLabel(periode: Periode, van: string, tot: string): string {
+  const dv = new Date(van); const dt = new Date(tot);
+  if (periode === 'vandaag') return format(dv, 'EEE d MMM yyyy', { locale: nl });
+  if (periode === 'jaar')    return `jan – dec ${dv.getFullYear()}`;
+  if (periode === 'maand')   return format(dv, 'LLLL yyyy', { locale: nl });
+  if (dv.getFullYear() === dt.getFullYear() && dv.getMonth() === dt.getMonth()) {
+    return `${format(dv, 'd', { locale: nl })} – ${format(dt, 'd MMM yyyy', { locale: nl })}`;
+  }
+  return `${format(dv, 'd MMM', { locale: nl })} – ${format(dt, 'd MMM yyyy', { locale: nl })}`;
+}
 
 export default function Cijfers() {
   const { isOwner } = useRole();
@@ -83,14 +87,32 @@ export default function Cijfers() {
   });
 
   const presets = useMemo(buildPresets, []);
+  const label = rangeLabel(periode, range.van, range.tot);
 
   return (
     <SidebarLayout>
       <div className="max-w-6xl mx-auto space-y-5 pb-8">
-        <PageSubheader description="Omzet, bonnen en patronen — realtime, per vestiging." />
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: 27, fontWeight: 700, letterSpacing: '-0.02em', color: 'hsl(var(--foreground))' }}>Cijfers</h1>
+            <p style={{ margin: '6px 0 0', fontSize: 14, color: 'hsl(var(--muted-foreground))' }}>
+              Omzet, bonnen en patronen — realtime, per vestiging.
+            </p>
+          </div>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 13px',
+            background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12,
+            fontSize: 13, color: 'hsl(var(--foreground))', fontWeight: 500,
+          }}>
+            <CalendarIcon size={14} strokeWidth={2} className="text-muted-foreground" />
+            <span className="tabular-nums">{label}</span>
+          </div>
+        </div>
 
         {demoQ.data && <DemoBanner canWipe={isOwner} />}
 
+        {/* Filters */}
         <StickyFilters
           periode={periode} setPeriode={setPeriode}
           vestKeuze={vestKeuze} setVestKeuze={setVestKeuze}
@@ -121,6 +143,10 @@ export default function Cijfers() {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Filters — segmented pills matching reference                        */
+/* ------------------------------------------------------------------ */
+
 function useScrolled(threshold = 4) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -130,6 +156,37 @@ function useScrolled(threshold = 4) {
     return () => window.removeEventListener('scroll', onScroll);
   }, [threshold]);
   return scrolled;
+}
+
+function Segment<T extends string>({
+  value, onChange, options,
+}: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[] }) {
+  return (
+    <div style={{
+      display: 'inline-flex', background: 'hsl(var(--chart-track))',
+      borderRadius: 12, padding: 4, gap: 2,
+    }}>
+      {options.map((o) => {
+        const active = o.value === value;
+        return (
+          <button
+            key={o.value}
+            type="button"
+            onClick={() => onChange(o.value)}
+            style={{
+              padding: '7px 15px', borderRadius: 9, fontSize: 13,
+              fontWeight: active ? 600 : 500,
+              color: active ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+              background: active ? 'hsl(var(--card))' : 'transparent',
+              border: 'none', cursor: 'pointer',
+              boxShadow: active ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+              transition: 'all .15s', whiteSpace: 'nowrap', fontFamily: 'inherit',
+            }}
+          >{o.label}</button>
+        );
+      })}
+    </div>
+  );
 }
 
 function StickyFilters(props: {
@@ -145,13 +202,13 @@ function StickyFilters(props: {
       className={cn(
         'sticky top-0 z-10 -mx-2 px-2 py-3 space-y-3 transition-all',
         'bg-background/70 backdrop-blur-md',
-        scrolled ? 'border-b border-border/60 shadow-[0_1px_0_hsl(var(--border)/0.4)]' : 'border-b border-transparent',
+        scrolled ? 'border-b border-border/60' : 'border-b border-transparent',
       )}
     >
-      <div className="flex flex-wrap items-center gap-4">
-        <SegmentedTabs
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14 }}>
+        <Segment
           value={props.periode}
-          onValueChange={(v) => props.setPeriode(v as Periode)}
+          onChange={(v) => props.setPeriode(v as Periode)}
           options={[
             { value: 'vandaag', label: 'Vandaag' },
             { value: 'week', label: 'Week' },
@@ -160,16 +217,26 @@ function StickyFilters(props: {
             { value: 'aangepast', label: 'Aangepast' },
           ]}
         />
-        <div className="h-6 w-px bg-border hidden md:block" />
-        <SegmentedTabs
+        <div style={{ width: 1, height: 22, background: 'hsl(var(--border))' }} className="hidden md:block" />
+        <Segment
           value={props.vestKeuze}
-          onValueChange={(v) => props.setVestKeuze(v as VestKeuze)}
+          onChange={(v) => props.setVestKeuze(v as VestKeuze)}
           options={[
             { value: 'Midsland', label: 'Midsland' },
             { value: 'West', label: 'West' },
             { value: 'Beide', label: 'Beide' },
           ]}
         />
+        <div style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: 'hsl(var(--muted-foreground))' }}>
+          <span
+            style={{
+              width: 7, height: 7, borderRadius: '50%', background: '#2DB37D',
+              boxShadow: '0 0 0 3px rgba(45,179,125,0.18)',
+              animation: 'cj-pulseDot 2s ease-in-out infinite',
+            }}
+          />
+          Live · gesynchroniseerd
+        </div>
       </div>
 
       {props.periode === 'aangepast' && (
@@ -180,14 +247,9 @@ function StickyFilters(props: {
           <div className="h-6 w-px bg-border mx-1" />
           {props.presets.map((p) => (
             <Button
-              key={p.label}
-              variant="outline"
-              size="sm"
-              className="h-9 rounded-polar-lg"
+              key={p.label} variant="outline" size="sm" className="h-9 rounded-polar-lg"
               onClick={() => { props.setCustomVan(p.van); props.setCustomTot(p.tot); }}
-            >
-              {p.label}
-            </Button>
+            >{p.label}</Button>
           ))}
           <div className="ml-auto text-xs text-muted-foreground">Max 12 maanden terug</div>
         </div>
@@ -196,18 +258,13 @@ function StickyFilters(props: {
   );
 }
 
-
 function DateBtn({
   label, value, onChange, min, max,
 }: { label: string; value: Date; onChange: (d: Date) => void; min: Date; max: Date }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn('h-9 rounded-polar-lg gap-2 justify-start font-normal')}
-        >
+        <Button variant="outline" size="sm" className={cn('h-9 rounded-polar-lg gap-2 justify-start font-normal')}>
           <CalendarIcon className="w-4 h-4 opacity-70" />
           <span className="text-muted-foreground">{label}:</span>
           <span>{format(value, 'd MMM yyyy', { locale: nl })}</span>
@@ -215,13 +272,9 @@ function DateBtn({
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto p-0">
         <Calendar
-          mode="single"
-          selected={value}
-          onSelect={(d) => d && onChange(d)}
+          mode="single" selected={value} onSelect={(d) => d && onChange(d)}
           disabled={(d) => d < min || d > max}
-          initialFocus
-          locale={nl}
-          weekStartsOn={1}
+          initialFocus locale={nl} weekStartsOn={1}
           className={cn('p-3 pointer-events-auto')}
         />
       </PopoverContent>

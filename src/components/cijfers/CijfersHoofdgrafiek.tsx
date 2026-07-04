@@ -1,46 +1,32 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Area, CartesianGrid, ComposedChart, Line,
-  ResponsiveContainer, Tooltip, XAxis, YAxis,
-} from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/pura/EmptyState';
 import { BarChart3 } from 'lucide-react';
 import {
-  EUR, granulariteitVoor, vestigingenVan,
+  granulariteitVoor, vestigingenVan,
   type Periode, type VestKeuze,
 } from './types';
-import { CijfersTooltipCard, type TooltipRow } from './CijfersTooltip';
+import {
+  EUR0, NUM, axisEUR, smoothPath, svgHoverIndex, TipCard, TipRow, tipTransform,
+} from './chartHelpers';
 
 const DAG_NL = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
 const MND_NL = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
-const PREV_GREY = '#C9C6C0';
 
 interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
 type Row = { bucket: string; vestiging: string; omzet: number; bonnen: number };
 
 function labelVoor(bucket: string, gran: 'uur' | 'dag' | 'maand'): string {
   const d = new Date(bucket);
-  if (gran === 'uur') return `${d.getHours().toString().padStart(2, '0')}u`;
-  if (gran === 'dag') return `${DAG_NL[d.getDay()]} ${d.getDate()}`;
+  if (gran === 'uur')  return `${d.getHours().toString().padStart(2, '0')}`;
+  if (gran === 'dag')  return `${DAG_NL[d.getDay()]}`;
   return MND_NL[d.getMonth()];
 }
 function shift(date: string, dagen: number): string {
-  const d = new Date(date);
-  d.setDate(d.getDate() - dagen);
+  const d = new Date(date); d.setDate(d.getDate() - dagen);
   return d.toISOString().slice(0, 10);
-}
-function fmtEurCompact(v: number): string {
-  const a = Math.abs(v);
-  if (a >= 1_000_000) return `€${(v / 1_000_000).toFixed(1).replace('.', ',')}M`;
-  if (a >= 1_000) return `€${(v / 1_000).toFixed(v >= 10_000 ? 0 : 1).replace('.', ',')}k`;
-  return `€${Math.round(v)}`;
-}
-function fmtDateNL(iso: string): string {
-  const d = new Date(iso);
-  return `${d.getDate()} ${MND_NL[d.getMonth()]}`;
 }
 
 export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props) {
@@ -73,15 +59,14 @@ export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props
     refetchOnWindowFocus: true,
   });
 
-  const title =
-    periode === 'vandaag' ? 'Omzet per uur' :
-    periode === 'week' ? 'Omzet per dag — deze week' :
-    periode === 'maand' ? 'Omzet per dag — deze maand' :
-    periode === 'jaar' ? 'Omzet per maand — dit jaar' :
-    'Omzet — aangepaste periode';
-  const subtitle = `${fmtDateNL(van)} – ${fmtDateNL(tot)}  ·  vs  ${fmtDateNL(prevVan)} – ${fmtDateNL(prevTot)}`;
+  const perfSub =
+    periode === 'vandaag' ? 'Vandaag · per uur' :
+    periode === 'week'    ? 'Deze week · per dag (ma–zo)' :
+    periode === 'maand'   ? 'Deze maand · per dag' :
+    periode === 'jaar'    ? 'Dit jaar · per maand' :
+                            'Aangepaste periode';
 
-  const data = useMemo(() => {
+  const series = useMemo(() => {
     const cur = curQ.data ?? [];
     const prev = prevQ.data ?? [];
     const curBuckets: string[] = [];
@@ -91,186 +76,186 @@ export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props
     for (const r of prev) if (!prevBuckets.includes(r.bucket)) prevBuckets.push(r.bucket);
     prevBuckets.sort();
     const n = Math.max(curBuckets.length, prevBuckets.length);
-    const rows: any[] = [];
+    const labels: string[] = []; const curArr: number[] = []; const prevArr: number[] = []; const bonnenArr: number[] = [];
     for (let i = 0; i < n; i++) {
-      const cb = curBuckets[i];
-      const pb = prevBuckets[i];
-      const key = cb ?? pb ?? String(i);
-      const label = cb ? labelVoor(cb, gran) : pb ? labelVoor(pb, gran) : '';
-      const entry: any = { key, label, cur: 0, prev: 0, curBonnen: 0, prevBonnen: 0 };
-      if (cb) for (const r of cur.filter((x) => x.bucket === cb)) {
-        entry.cur += Number(r.omzet);
-        entry.curBonnen += Number(r.bonnen);
-      }
-      if (pb) for (const r of prev.filter((x) => x.bucket === pb)) {
-        entry.prev += Number(r.omzet);
-        entry.prevBonnen += Number(r.bonnen);
-      }
-      rows.push(entry);
+      const cb = curBuckets[i]; const pb = prevBuckets[i];
+      labels.push(cb ? labelVoor(cb, gran) : pb ? labelVoor(pb, gran) : '');
+      let c = 0, p = 0, b = 0;
+      if (cb) for (const r of cur.filter((x) => x.bucket === cb))  { c += Number(r.omzet); b += Number(r.bonnen); }
+      if (pb) for (const r of prev.filter((x) => x.bucket === pb)) { p += Number(r.omzet); }
+      curArr.push(c); prevArr.push(p); bonnenArr.push(b);
     }
-    return rows;
+    return { labels, cur: curArr, prev: prevArr, bonnen: bonnenArr };
   }, [curQ.data, prevQ.data, gran]);
-
-  const totalCur = useMemo(() => data.reduce((s, d) => s + (d.cur ?? 0), 0), [data]);
-  const totalPrev = useMemo(() => data.reduce((s, d) => s + (d.prev ?? 0), 0), [data]);
-  const totalPct = totalPrev > 0 ? ((totalCur - totalPrev) / totalPrev) * 100 : null;
-  const totalBonnen = useMemo(() => data.reduce((s, d) => s + (d.curBonnen ?? 0), 0), [data]);
 
   if (curQ.isLoading) return <LoadingSkeleton />;
   if (curQ.error) {
     return (
-      <div className="bg-card border border-border rounded-[20px] shadow-card p-6">
+      <div className="bg-card border border-border rounded-[20px] shadow-card p-6 cj-card-in">
         <EmptyState icon={BarChart3} title="Kan grafiek niet laden" description={(curQ.error as Error).message} />
       </div>
     );
   }
-  if (data.length === 0) {
+  if (series.labels.length === 0) {
     return (
-      <div className="bg-card border border-border rounded-[20px] shadow-card p-6">
-        <CardHeading title={title} subtitle={subtitle} />
+      <div className="bg-card border border-border rounded-[20px] shadow-card p-[22px_24px_16px] cj-card-in">
+        <Header sub={perfSub} />
         <EmptyState icon={BarChart3} title="Geen data in deze periode" description="Zodra er omzet is, verschijnt hij hier." />
       </div>
     );
   }
 
   return (
-    <div className="bg-card border border-border rounded-[20px] shadow-card p-6">
-      <div className="flex items-start justify-between gap-4 flex-wrap mb-4">
-        <CardHeading title={title} subtitle={subtitle} />
-        <div className="flex items-center gap-3">
-          <LegendSwatch color="hsl(var(--primary))" label="Deze periode" />
-          <LegendSwatch color={PREV_GREY} label="Vorige periode" dashed />
+    <div
+      className="bg-card border border-border rounded-[20px] shadow-card cj-card-in"
+      style={{ padding: '22px 24px 16px' }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+        <Header sub={perfSub} />
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 14, fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 16, height: 3, borderRadius: 2, background: 'hsl(var(--primary))' }} />
+            Deze periode
+          </span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 16, height: 3, borderRadius: 2, background: 'repeating-linear-gradient(90deg, hsl(var(--chart-prev-line)) 0 4px, transparent 4px 7px)' }} />
+            Vorige periode
+          </span>
         </div>
       </div>
-
-      <div className="h-[300px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 10, right: 10, bottom: 4, left: 0 }}>
-            <defs>
-              <linearGradient id="curAreaFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.20} />
-                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-
-            <CartesianGrid vertical={false} horizontal={true} strokeDasharray="2 5" stroke="hsl(var(--border))" />
-            <XAxis
-              dataKey="label"
-              tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-              axisLine={false}
-              tickLine={false}
-              interval="preserveStartEnd"
-              minTickGap={18}
-              dy={6}
-            />
-            <YAxis
-              tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={(v) => fmtEurCompact(Number(v))}
-              width={48}
-            />
-            <Tooltip
-              content={<Tt />}
-              cursor={{ stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1, strokeDasharray: '4 4', strokeOpacity: 0.6 }}
-            />
-
-            {/* Vorige periode — grey dashed line */}
-            <Line
-              type="monotone"
-              dataKey="prev"
-              stroke={PREV_GREY}
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              dot={false}
-              activeDot={{ r: 3, fill: PREV_GREY, stroke: 'hsl(var(--card))', strokeWidth: 1.5 }}
-              isAnimationActive={true}
-            />
-
-            {/* Huidige periode — gradient area onder de lijn */}
-            <Area
-              type="monotone"
-              dataKey="cur"
-              stroke="none"
-              fill="url(#curAreaFill)"
-              isAnimationActive={true}
-            />
-            <Line
-              type="monotone"
-              dataKey="cur"
-              stroke="hsl(var(--primary))"
-              strokeWidth={2.8}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              dot={false}
-              activeDot={{ r: 5, fill: 'hsl(var(--primary))', stroke: 'hsl(var(--card))', strokeWidth: 2.5 }}
-              isAnimationActive={true}
-            />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Totals row */}
-      <div className="mt-4 pt-4 border-t border-border/60 grid grid-cols-3 gap-4">
-        <TotalCell label="Deze periode" value={EUR.format(totalCur)} highlight />
-        <TotalCell label="Vorige periode" value={EUR.format(totalPrev)} />
-        <TotalCell
-          label="Verschil"
-          value={totalPct === null ? '—' : `${totalPct >= 0 ? '+' : ''}${totalPct.toFixed(1)}%`}
-          sub={`${totalBonnen.toLocaleString('nl-NL')} bonnen`}
-          deltaPct={totalPct}
-        />
+      <div style={{ marginTop: 10 }}>
+        <LineChart series={series} periode={periode} />
       </div>
     </div>
   );
 }
 
-function CardHeading({ title, subtitle }: { title: string; subtitle: string }) {
-  return (
-    <div className="min-w-0">
-      <div className="text-[15px] font-semibold text-foreground">{title}</div>
-      <div className="text-[12px] text-muted-foreground mt-0.5 tabular-nums">{subtitle}</div>
-    </div>
-  );
-}
+/* ------------------------------------------------------------------ */
 
-function LegendSwatch({ color, label, dashed }: { color: string; label: string; dashed?: boolean }) {
-  return (
-    <div className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-      <span
-        className="inline-block h-[2.5px] w-5 rounded"
-        style={{
-          background: dashed
-            ? `repeating-linear-gradient(90deg, ${color} 0 4px, transparent 4px 8px)`
-            : color,
-        }}
-      />
-      {label}
-    </div>
-  );
-}
-
-function TotalCell({ label, value, sub, highlight, deltaPct }: { label: string; value: string; sub?: string; highlight?: boolean; deltaPct?: number | null }) {
-  const showDelta = typeof deltaPct === 'number';
-  const up = showDelta && deltaPct! >= 0;
+function Header({ sub }: { sub: string }) {
   return (
     <div>
-      <div className="text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className={`mt-0.5 text-[16px] font-bold tabular-nums ${highlight ? 'text-foreground' : 'text-foreground/80'}`}>
-        {showDelta ? (
-          <span className={up ? 'text-emerald-700' : 'text-rose-700'}>
-            {up ? '▲ ' : '▼ '}{value.replace(/^-/, '')}
-          </span>
-        ) : value}
-      </div>
-      {sub && <div className="text-[11px] text-muted-foreground mt-0.5">{sub}</div>}
+      <div style={{ fontSize: 15, fontWeight: 600, color: 'hsl(var(--foreground))' }}>Omzet</div>
+      <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', marginTop: 3 }}>{sub}</div>
+    </div>
+  );
+}
+
+function LineChart({
+  series, periode,
+}: { series: { labels: string[]; cur: number[]; prev: number[]; bonnen: number[] }; periode: Periode }) {
+  const [hv, setHv] = useState<number | null>(null);
+  const showCmp = series.prev.some((v) => v > 0);
+
+  const n = series.labels.length;
+  const W = 760, H = 300, padL = 54, padR = 16, padT = 18, padB = 30;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+  const baseY = padT + plotH;
+
+  const vals = showCmp ? series.cur.concat(series.prev) : series.cur.slice();
+  let lo = Math.min(...vals), hi = Math.max(...vals);
+  const span0 = (hi - lo) || hi || 1;
+  lo = Math.max(0, lo - span0 * 0.35);
+  hi = hi + span0 * 0.12;
+  if (hi <= lo) hi = lo + 1;
+
+  const X = (i: number) => (n <= 1 ? padL + plotW / 2 : padL + (i * plotW) / (n - 1));
+  const Y = (v: number) => padT + (1 - (v - lo) / (hi - lo)) * plotH;
+
+  const curPts  = series.cur.map((v, i) => ({ x: X(i), y: Y(v) }));
+  const prevPts = series.prev.map((v, i) => ({ x: X(i), y: Y(v) }));
+  const curD  = smoothPath(curPts);
+  const prevD = smoothPath(prevPts);
+  const areaD = n > 0 ? `${curD} L ${curPts[n - 1].x.toFixed(1)},${baseY} L ${curPts[0].x.toFixed(1)},${baseY} Z` : '';
+  const gid = 'pf_' + periode;
+
+  const ticks = 4;
+  const grid = [];
+  for (let i = 0; i <= ticks; i++) {
+    const val = lo + ((hi - lo) * i) / ticks;
+    const y = Y(val);
+    grid.push(
+      <g key={'g' + i}>
+        <line x1={padL} x2={W - padR} y1={y} y2={y} stroke="hsl(var(--chart-grid))" strokeWidth={1} strokeDasharray="2 5" />
+        <text x={padL - 10} y={y + 3.5} textAnchor="end" fontSize={11} fill="hsl(var(--muted-foreground))">{axisEUR(val)}</text>
+      </g>
+    );
+  }
+  const everyX = n <= 12 ? 1 : Math.ceil(n / 8);
+  const xlabels = series.labels.map((lab, i) =>
+    i % everyX === 0 || i === n - 1
+      ? <text key={'x' + i} x={X(i)} y={H - 8} textAnchor="middle" fontSize={11} fill="hsl(var(--muted-foreground))">{lab}</text>
+      : null,
+  );
+
+  let hovG: any = null; let tipCard: any = null;
+  if (hv != null && hv >= 0 && hv < n) {
+    const gx = X(hv);
+    hovG = (
+      <g style={{ pointerEvents: 'none' }}>
+        <line x1={gx} x2={gx} y1={padT} y2={baseY} stroke="hsl(var(--primary))" strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.45} />
+        {showCmp && <circle cx={gx} cy={Y(series.prev[hv])} r={4} fill="hsl(var(--chart-prev-line))" stroke="hsl(var(--card))" strokeWidth={2} />}
+        <circle cx={gx} cy={Y(series.cur[hv])} r={5.5} fill="hsl(var(--primary))" stroke="hsl(var(--card))" strokeWidth={2.5} />
+      </g>
+    );
+    const leftPct = (gx / W) * 100;
+    const c = series.cur[hv], p = series.prev[hv];
+    const dp = p ? ((c - p) / p) * 100 : null;
+    tipCard = (
+      <TipCard leftPct={leftPct} transform={tipTransform(leftPct)}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 6 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'hsl(var(--foreground))' }}>{series.labels[hv]}</span>
+          {dp == null ? null : (
+            <span style={{
+              fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 6,
+              background: dp >= 0 ? 'rgb(209 250 229)' : 'rgb(255 225 229)',
+              color:      dp >= 0 ? 'rgb(4 120 87)'    : 'rgb(190 18 60)',
+            }}>{(dp >= 0 ? '▲ +' : '▼ ') + dp.toFixed(1) + '%'}</span>
+          )}
+        </div>
+        <TipRow color="hsl(var(--primary))" label="Deze periode" value={EUR0.format(c)} />
+        {showCmp && <TipRow color="hsl(var(--chart-prev-line))" label="Vorige periode" value={EUR0.format(p)} />}
+        <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid hsl(var(--border))', fontSize: 10.5, color: 'hsl(var(--muted-foreground))' }}>
+          ≈ {NUM.format(series.bonnen[hv] || Math.round(c / 36))} bonnen
+        </div>
+      </TipCard>
+    );
+  }
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <svg
+        viewBox={`0 0 ${W} ${H}`} width="100%" height="auto"
+        style={{ display: 'block', overflow: 'visible', cursor: 'crosshair' }}
+        onMouseMove={(e) => setHv(svgHoverIndex(e, n, padL, plotW, W))}
+        onMouseLeave={() => setHv(null)}
+      >
+        <defs>
+          <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.20} />
+            <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        {grid}
+        {xlabels}
+        {showCmp && <path d={prevD} fill="none" stroke="hsl(var(--chart-prev-line))" strokeWidth={2} strokeDasharray="5 5" strokeLinecap="round" />}
+        <path d={areaD} fill={`url(#${gid})`} stroke="none" style={{ opacity: 0, animation: 'cj-fadeArea .8s ease .15s forwards' }} />
+        <path
+          d={curD} fill="none" stroke="hsl(var(--primary))"
+          strokeWidth={2.8} strokeLinecap="round" strokeLinejoin="round" pathLength={1}
+          style={{ strokeDasharray: 1, strokeDashoffset: 1, animation: 'cj-drawLine 1s ease forwards' }}
+        />
+        {hovG}
+      </svg>
+      {tipCard}
     </div>
   );
 }
 
 function LoadingSkeleton() {
   return (
-    <div className="bg-card border border-border rounded-[20px] shadow-card p-6">
+    <div className="bg-card border border-border rounded-[20px] shadow-card p-6 cj-card-in">
       <div className="flex items-start justify-between mb-4">
         <div className="space-y-2">
           <Skeleton className="h-4 w-52" />
@@ -279,28 +264,6 @@ function LoadingSkeleton() {
         <Skeleton className="h-3 w-36" />
       </div>
       <Skeleton className="h-[300px] rounded-[12px] opacity-70" />
-      <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-border/60">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="space-y-2">
-            <Skeleton className="h-2.5 w-24" />
-            <Skeleton className="h-5 w-20" />
-          </div>
-        ))}
-      </div>
     </div>
   );
-}
-
-function Tt({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null;
-  const entry = payload[0]?.payload ?? {};
-  const cur = Number(entry.cur ?? 0);
-  const prev = Number(entry.prev ?? 0);
-  const bonnen = Number(entry.curBonnen ?? 0);
-  const pct = prev > 0 ? ((cur - prev) / prev) * 100 : null;
-  const rows: TooltipRow[] = [
-    { label: 'Deze periode', color: 'hsl(var(--primary))', value: cur, extra: bonnen > 0 ? `≈ ${bonnen} bonnen` : undefined },
-    { label: 'Vorige periode', color: PREV_GREY, value: prev },
-  ];
-  return <CijfersTooltipCard title={label} rows={rows} deltaPct={pct} />;
 }

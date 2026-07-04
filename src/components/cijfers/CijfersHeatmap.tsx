@@ -1,13 +1,13 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { EUR, vestigingenVan, type Periode, type VestKeuze } from './types';
-import { CijfersTooltipCard } from './CijfersTooltip';
+import { vestigingenVan, type Periode, type VestKeuze } from './types';
+import { EUR0 } from './chartHelpers';
 
+const DAG_NL_LONG = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
 const DAG_NL = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'];
 const UREN = Array.from({ length: 14 }, (_, i) => 10 + i);
-const STAPPEN = [0.06, 0.2, 0.35, 0.5, 0.65, 0.88];
 
 interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
 type Cel = { isodow: number; uur: number; gem_omzet: number; n_dagen: number };
@@ -17,8 +17,8 @@ export function CijfersHeatmap({ periode, vestigingKeuze, van: pvan, tot }: Prop
   const van = isSingle
     ? (() => { const d = new Date(tot); d.setDate(d.getDate() - 56); return d.toISOString().slice(0, 10); })()
     : pvan;
-
   const vestigingen = vestigingenVan(vestigingKeuze);
+
   const q = useQuery({
     queryKey: ['cijfers-heatmap', periode, vestigingKeuze, van, tot],
     queryFn: async () => {
@@ -31,15 +31,17 @@ export function CijfersHeatmap({ periode, vestigingKeuze, van: pvan, tot }: Prop
     refetchOnWindowFocus: true,
   });
 
+  const [hover, setHover] = useState<string | null>(null);
+
   if (q.isLoading) {
     return (
-      <div className="bg-card border border-border rounded-[20px] shadow-card p-6">
-        <div className="text-base font-semibold mb-4">Uur-heatmap</div>
+      <div className="bg-card border border-border rounded-[20px] shadow-card cj-card-in" style={{ padding: '22px 24px' }}>
+        <Skeleton className="h-4 w-40 mb-4" />
         <div className="space-y-1.5">
           {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className="grid gap-[6px]" style={{ gridTemplateColumns: `48px repeat(14, minmax(0,1fr))` }}>
-              <Skeleton className="h-8" />
-              {Array.from({ length: 14 }).map((__, j) => <Skeleton key={j} className="h-8 rounded-[8px]" />)}
+            <div key={i} className="grid gap-[5px]" style={{ gridTemplateColumns: `44px repeat(14, minmax(0,1fr))` }}>
+              <Skeleton className="h-[27px]" />
+              {Array.from({ length: 14 }).map((__, j) => <Skeleton key={j} className="h-[27px] rounded-[6px]" />)}
             </div>
           ))}
         </div>
@@ -48,93 +50,88 @@ export function CijfersHeatmap({ periode, vestigingKeuze, van: pvan, tot }: Prop
   }
 
   const cellen = q.data ?? [];
-  const max = cellen.reduce((m, c) => Math.max(m, Number(c.gem_omzet)), 0);
   const grid = new Map<string, Cel>();
   cellen.forEach((c) => grid.set(`${c.isodow}|${c.uur}`, c));
-
-  const stepIndex = (v: number) => {
-    if (max === 0) return 0;
-    const t = Math.min(1, v / max);
-    return Math.min(STAPPEN.length - 1, Math.round(t * (STAPPEN.length - 1)));
+  const max = cellen.reduce((m, c) => Math.max(m, Number(c.gem_omzet)), 0);
+  const bg = (v: number) => {
+    if (max === 0) return 'rgba(0,0,0,0.03)';
+    const t = v / max;
+    return `hsl(var(--primary) / ${(0.06 + t * 0.82).toFixed(3)})`;
   };
-  const kleur = (v: number) => v === 0 ? 'hsl(var(--muted) / 0.35)' : `hsl(var(--primary) / ${STAPPEN[stepIndex(v)]})`;
+
+  let heatSubtitle = 'Gem. omzet per uur × weekdag';
+  if (hover) {
+    const [ds, hs] = hover.split('|').map(Number);
+    const c = grid.get(`${ds + 1}|${UREN[hs]}`);
+    const dn = DAG_NL_LONG[ds];
+    heatSubtitle = `${dn} ${String(UREN[hs]).padStart(2, '0')}:00 — ${EUR0.format(Number(c?.gem_omzet ?? 0))} gem.`;
+  }
 
   return (
-    <TooltipProvider delayDuration={80}>
-      <div className="bg-card border border-border rounded-[20px] shadow-card p-6">
-        <div className="flex items-start justify-between mb-4 gap-4">
-          <div>
-            <div className="text-[15px] font-semibold text-foreground">Uur-heatmap</div>
-            <div className="text-[12px] text-muted-foreground mt-0.5">Gem. omzet per uur × weekdag</div>
-          </div>
-          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-            <span>rustig</span>
-            <div className="flex gap-[3px]">
-              {STAPPEN.map((s, i) => (
-                <div key={i} className="w-4 h-3 rounded-full" style={{ background: `hsl(var(--primary) / ${s})` }} />
-              ))}
-            </div>
-            <span>druk</span>
-          </div>
+    <div className="bg-card border border-border rounded-[20px] shadow-card cj-card-in" style={{ padding: '22px 24px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: 'hsl(var(--foreground))' }}>Uur-heatmap</div>
+          <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', marginTop: 3 }}>{heatSubtitle}</div>
         </div>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 10.5, color: 'hsl(var(--muted-foreground))' }}>
+          <span>rustig</span>
+          <span style={{ display: 'inline-flex', gap: 3 }}>
+            {[0.08, 0.24, 0.42, 0.62, 0.82].map((op) => (
+              <span key={op} style={{ width: 16, height: 12, borderRadius: 3, background: `hsl(var(--primary) / ${op})` }} />
+            ))}
+          </span>
+          <span>druk</span>
+        </div>
+      </div>
 
-        <div className="overflow-x-auto -mx-2 px-2">
-          <div className="min-w-[640px]">
-            <div className="grid" style={{ gridTemplateColumns: `48px repeat(${UREN.length}, minmax(0,1fr))` }}>
-              <div />
-              {UREN.map((u) => (
-                <div key={u} className="text-[10px] text-muted-foreground text-center pb-1 tabular-nums">{u}</div>
-              ))}
-            </div>
-
-            {[1, 2, 3, 4, 5, 6, 7].map((iso, idx) => {
-              const weekend = iso === 6 || iso === 7;
-              return (
+      <div style={{ marginTop: 16, overflowX: 'auto' }}>
+        <div style={{ minWidth: 640 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: `44px repeat(${UREN.length}, minmax(0,1fr))`, gap: 5 }}>
+            {/* Header row */}
+            <div />
+            {UREN.map((hr, i) => (
+              <div key={hr} style={{ fontSize: 10, color: 'hsl(var(--muted-foreground))', textAlign: 'center', paddingBottom: 3, fontVariantNumeric: 'tabular-nums' }}>
+                {i % 2 === 0 ? String(hr).padStart(2, '0') : ''}
+              </div>
+            ))}
+            {/* Rows */}
+            {DAG_NL.flatMap((day, di) => {
+              const weekend = di >= 5;
+              return [
                 <div
-                  key={iso}
-                  className="grid gap-[5px] mb-[5px]"
-                  style={{ gridTemplateColumns: `48px repeat(${UREN.length}, minmax(0,1fr))` }}
-                >
-                  <div
-                    className={`text-xs flex items-center justify-end pr-2 rounded-[6px] ${
-                      weekend ? 'font-bold text-foreground' : 'text-muted-foreground'
-                    }`}
-                  >
-                    {DAG_NL[idx]}
-                  </div>
-                  {UREN.map((u) => {
-                    const c = grid.get(`${iso}|${u}`);
-                    const v = Number(c?.gem_omzet ?? 0);
-                    return (
-                      <Tooltip key={u}>
-                        <TooltipTrigger asChild>
-                          <div
-                            className="h-[27px] rounded-[6px] cursor-default transition-shadow hover:ring-2 hover:ring-primary hover:ring-offset-1"
-                            style={{ background: kleur(v) }}
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="bg-transparent border-0 p-0 shadow-none">
-                          <CijfersTooltipCard
-                            title={`${DAG_NL[idx]} ${u}:00`}
-                            rows={[{ label: 'gemiddeld', color: 'hsl(var(--primary))', value: v }]}
-                            footer={`n = ${c?.n_dagen ?? 0} ${((c?.n_dagen ?? 0) === 1) ? 'week' : 'weken'}`}
-                          />
-                        </TooltipContent>
-                      </Tooltip>
-                    );
-                  })}
-                </div>
-              );
+                  key={'d' + di}
+                  style={{
+                    fontSize: 11, fontWeight: weekend ? 700 : 500,
+                    color: weekend ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
+                    display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 8,
+                  }}
+                >{day}</div>,
+                ...UREN.map((hr, hi) => {
+                  const c = grid.get(`${di + 1}|${hr}`);
+                  const v = Number(c?.gem_omzet ?? 0);
+                  const id = di + '|' + hi;
+                  const hov = hover === id;
+                  return (
+                    <div
+                      key={'c' + id}
+                      onMouseEnter={() => setHover(id)}
+                      onMouseLeave={() => setHover(null)}
+                      style={{
+                        height: 27, borderRadius: 6, background: bg(v),
+                        cursor: 'default',
+                        boxShadow: hov ? `0 0 0 2px hsl(var(--card)), 0 0 0 3.5px hsl(var(--primary))` : 'none',
+                        transition: 'box-shadow .1s',
+                      }}
+                    />
+                  );
+                }),
+              ];
             })}
           </div>
         </div>
-
-        {isSingle && (
-          <div className="text-xs text-muted-foreground mt-3">
-            Op basis van de laatste 8 weken (een heatmap van één dag is zinloos).
-          </div>
-        )}
       </div>
-    </TooltipProvider>
+    </div>
   );
 }
+
