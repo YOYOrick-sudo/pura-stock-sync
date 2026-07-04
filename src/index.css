@@ -268,3 +268,14 @@
 /* Hide scrollbar utility (used by personnel timeline names column) */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* === CIJFERS chart animations (ported from reference) === */
+@keyframes cj-drawLine { to { stroke-dashoffset: 0; } }
+@keyframes cj-fadeArea { to { opacity: 1; } }
+@keyframes cj-growUp   { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes cj-popIn    { from { opacity: 0; transform: translateY(4px) scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes cj-tipIn    { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cj-fadeUp   { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes cj-pulseDot { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+.cj-card-in { animation: cj-fadeUp .5s ease both; }
+
