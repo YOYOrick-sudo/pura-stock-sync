@@ -991,6 +991,72 @@ export type Database = {
         }
         Relationships: []
       }
+      lightspeed_connections: {
+        Row: {
+          access_token: string | null
+          created_at: string
+          id: string
+          laatste_fout: string | null
+          laatste_sync_op: string | null
+          merchant_id: string
+          refresh_token: string | null
+          status: string
+          token_expires_at: string | null
+          updated_at: string
+          vestiging: string
+        }
+        Insert: {
+          access_token?: string | null
+          created_at?: string
+          id?: string
+          laatste_fout?: string | null
+          laatste_sync_op?: string | null
+          merchant_id: string
+          refresh_token?: string | null
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          vestiging: string
+        }
+        Update: {
+          access_token?: string | null
+          created_at?: string
+          id?: string
+          laatste_fout?: string | null
+          laatste_sync_op?: string | null
+          merchant_id?: string
+          refresh_token?: string | null
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          vestiging?: string
+        }
+        Relationships: []
+      }
+      lightspeed_oauth_states: {
+        Row: {
+          code_verifier: string
+          created_at: string
+          expires_at: string
+          state: string
+          vestiging: string
+        }
+        Insert: {
+          code_verifier: string
+          created_at?: string
+          expires_at?: string
+          state: string
+          vestiging: string
+        }
+        Update: {
+          code_verifier?: string
+          created_at?: string
+          expires_at?: string
+          state?: string
+          vestiging?: string
+        }
+        Relationships: []
+      }
       maintenance_settings: {
         Row: {
           id: string
@@ -1181,6 +1247,42 @@ export type Database = {
           read?: boolean
           title?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      omzet_uren: {
+        Row: {
+          aantal_bonnen: number
+          created_at: string
+          id: string
+          omzet_excl: number
+          omzet_incl: number
+          updated_at: string
+          uur: number
+          vestiging: string
+          werkdag: string
+        }
+        Insert: {
+          aantal_bonnen?: number
+          created_at?: string
+          id?: string
+          omzet_excl?: number
+          omzet_incl?: number
+          updated_at?: string
+          uur: number
+          vestiging: string
+          werkdag: string
+        }
+        Update: {
+          aantal_bonnen?: number
+          created_at?: string
+          id?: string
+          omzet_excl?: number
+          omzet_incl?: number
+          updated_at?: string
+          uur?: number
+          vestiging?: string
+          werkdag?: string
         }
         Relationships: []
       }
@@ -2009,6 +2111,48 @@ export type Database = {
         }
         Relationships: []
       }
+      sync_runs: {
+        Row: {
+          bonnen_verwerkt: number | null
+          bron: string
+          foutmelding: string | null
+          gestart_op: string
+          id: string
+          klaar_op: string | null
+          periode_tot: string | null
+          periode_van: string | null
+          status: string
+          type: string
+          vestiging: string | null
+        }
+        Insert: {
+          bonnen_verwerkt?: number | null
+          bron?: string
+          foutmelding?: string | null
+          gestart_op?: string
+          id?: string
+          klaar_op?: string | null
+          periode_tot?: string | null
+          periode_van?: string | null
+          status?: string
+          type: string
+          vestiging?: string | null
+        }
+        Update: {
+          bonnen_verwerkt?: number | null
+          bron?: string
+          foutmelding?: string | null
+          gestart_op?: string
+          id?: string
+          klaar_op?: string | null
+          periode_tot?: string | null
+          periode_van?: string | null
+          status?: string
+          type?: string
+          vestiging?: string | null
+        }
+        Relationships: []
+      }
       terschelling_events: {
         Row: {
           category: string | null
@@ -2371,6 +2515,39 @@ export type Database = {
           id: string | null
           laatst_gebruikt: string | null
           naam: string | null
+        }
+        Relationships: []
+      }
+      v_lightspeed_status: {
+        Row: {
+          laatste_fout: string | null
+          laatste_sync_op: string | null
+          merchant_id: string | null
+          status: string | null
+          token_expires_at: string | null
+          token_geldig: boolean | null
+          updated_at: string | null
+          vestiging: string | null
+        }
+        Insert: {
+          laatste_fout?: string | null
+          laatste_sync_op?: string | null
+          merchant_id?: string | null
+          status?: string | null
+          token_expires_at?: string | null
+          token_geldig?: never
+          updated_at?: string | null
+          vestiging?: string | null
+        }
+        Update: {
+          laatste_fout?: string | null
+          laatste_sync_op?: string | null
+          merchant_id?: string | null
+          status?: string | null
+          token_expires_at?: string | null
+          token_geldig?: never
+          updated_at?: string | null
+          vestiging?: string | null
         }
         Relationships: []
       }
