@@ -51,12 +51,15 @@ export function TerschellingEventsCard() {
   return (
     <div
       onClick={() => window.open(VVV_URL, '_blank', 'noopener,noreferrer')}
-      className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md group relative h-full"
+      className="cursor-pointer group relative h-full"
       style={{ borderRadius: '20px' }}
       title={`Bekijk alle ${upcomingCount} aankomende evenementen`}
     >
-      <div className="bg-card border border-border rounded-[20px] p-5 flex flex-col gap-2 h-full min-h-[140px] shadow-soft transition-all duration-200">
-        <div className="text-[13px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+      <div
+        className="bg-card border border-border/60 rounded-[20px] p-6 flex flex-col gap-2 h-full min-h-[140px]"
+        style={{ boxShadow: 'var(--shadow-card)' }}
+      >
+        <div className="text-[11px] font-medium text-foreground/45 flex items-center gap-1.5">
           <Calendar size={16} className="text-primary" />
           VVV Event kalender
         </div>
