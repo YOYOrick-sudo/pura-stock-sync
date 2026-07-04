@@ -3,6 +3,10 @@ project_id = "ajtqzzzpawqcoaphdkaz"
 [functions]
   [functions.auth-email-hook]
     verify_jwt = false
+  [functions.lightspeed-oauth]
+    verify_jwt = true
+  [functions.lightspeed-sync]
+    verify_jwt = false
   [functions.generate-waste-tasks]
     verify_jwt = false
   [functions.handle-email-suppression]

@@ -44,6 +44,8 @@ import Collegas from "./pages/personeel/Collegas";
 import PersoneelSettings from "./pages/personeel/PersoneelSettings";
 import SetPassword from "./pages/auth/SetPassword";
 import Team from "./pages/settings/Team";
+import Cijfers from "./pages/Cijfers";
+import LightspeedCallback from "./pages/LightspeedCallback";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -179,6 +181,28 @@ const App = () => (
                   <RequireManager>
                     <KasControle />
                   </RequireManager>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Cijfers — owner-only (embryo: alleen koppelingen; dashboard volgt) */}
+            <Route
+              path="/cijfers"
+              element={
+                <ProtectedRoute>
+                  <RequireOwner>
+                    <Cijfers />
+                  </RequireOwner>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/lightspeed/callback"
+              element={
+                <ProtectedRoute>
+                  <RequireOwner>
+                    <LightspeedCallback />
+                  </RequireOwner>
                 </ProtectedRoute>
               }
             />

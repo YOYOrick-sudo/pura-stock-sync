@@ -39,6 +39,7 @@ export function SidebarLayout({
       '/mep-planning': 'MEP Planning',
       '/voorraad': 'Voorraad',
       '/settings': 'Instellingen',
+      '/cijfers': 'Cijfers',
       '/taken-analyse': 'Statistieken',
       '/taken/admin': 'Takenlijsten beheren',
       '/taken/beheer': 'Lijst bewerken',
