@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ClipboardList, Edit2, X, Check, Clock, Trash2 } from 'lucide-react';
+import { ClipboardList, Edit2, X, Check, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { Button } from '@/components/ui/button';
