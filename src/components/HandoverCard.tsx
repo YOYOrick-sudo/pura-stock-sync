@@ -14,13 +14,6 @@ export const HandoverCard = () => {
   const queryClient = useQueryClient();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useLayoutEffect(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.style.height = 'auto';
-    el.style.height = `${el.scrollHeight}px`;
-  }, [memoText, latestMemo?.message]);
-
   const { data: latestMemo, isLoading } = useQuery({
     queryKey: ['handover-memo', userLocation],
     queryFn: async () => {
@@ -36,6 +29,13 @@ export const HandoverCard = () => {
     },
     enabled: !!userLocation,
   });
+
+  useLayoutEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [memoText, latestMemo?.message]);
 
   useEffect(() => {
     if (!userLocation) return;
