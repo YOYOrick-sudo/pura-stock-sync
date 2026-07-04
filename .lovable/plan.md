@@ -1,23 +1,13 @@
-## Login-scherm polish: Soft Shadow Card
+De drie login-methode knopjes (Daily / Foodbar / Persoonlijk) krijgen dezelfde soft, gelaagde uitstraling als de login card zelf, zodat het geheel visueel consistent wordt.
 
-### Doel
-De login-pagina (`/`) voorzien van een **Soft Shadow Card**-uitstraling in lijn met enterprise SaaS zoals Notion/Linear: de card "drijft" zacht boven een iets rijkere achtergrond, met een gelaagde, diffuuse schaduw (geen harde randen).
+Wijzigingen in `src/pages/Auth.tsx`:
 
-### Wijzigingen
-1. **`src/pages/Auth.tsx`**
-   - Achtergrondkleur van de pagina iets warmer/donkerder zetten voor contrast (bijv. `#EBEAE6` i.p.v. huidige `#F5F5F4`).
-   - De login-card voorzien van een **multi-layered box-shadow** in plaats van de huidige `shadow-sm`:
-     - Laag 1: grote, zachte diffuuse schaduw (`0 20px 40px -12px rgba(0,0,0,0.08)`)
-     - Laag 2: middelgrote schaduw (`0 8px 16px -8px rgba(0,0,0,0.04)`)
-     - Laag 3: fijne ondergrond (`0 1px 2px rgba(0,0,0,0.02)`)
-   - Optioneel: border van de card lichter of subtiel highlight (`border-white/50`) voor extra diepte.
+1. **Geselecteerde knop** — behoudt het groene accent, maar vervangt de harde `border-2 border-primary` door een subtiele groene glow/shadow (`shadow-sm` met groene tint + `ring-1 ring-primary/20`) en een iets zachtere achtergrond. Geen harde lijn meer.
 
-2. **`src/index.css` (optioneel)**
-   - Alleen indien nodig: een nieuwe utility-token toevoegen voor hergebruik van de schaduw, bijv. `--shadow-login`.
+2. **Niet-geselecteerde knopjes** — vervang `bg-muted/40 border-2 border-transparent` door `bg-white/60 border border-border/30` met een zeer lichte schaduw (`0 1px 3px rgba(0,0,0,0.04)`), zodat ze als losse "chips" boven de card lijken te zweven in plaats van platte vlakken.
 
-### Scope
-- Alleen visuele aanpassingen op de login-pagina.
-- Geen functionaliteit, routing, of auth-logica wijzigen.
+3. **Hover state** — niet-geselecteerde knopjes krijgen een subtiele verhoging (`translate-y-[-1px]`) en iets meer schaduw bij hover, consistent met de card elevation.
 
-### Verificatie
-- Screenshot van `/` controleren: card drijft zichtbaar boven achtergrond, schaduw is diffuus zonder harde randen.
+4. **Border-radius** behouden op `rounded-[16px]`.
+
+5. **Actieve/pressed state** — subtiele scale-down (`scale-[0.98]`) voor tactiele feedback.
