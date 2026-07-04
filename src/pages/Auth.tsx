@@ -230,9 +230,6 @@ const Auth = () => {
               )}
             </button>
 
-            <p className="text-[12px] text-muted-foreground text-center leading-relaxed">
-              {mode === 'shared' ? 'Gebruik Persoonlijk voor je eigen medewerkeraccount.' : 'Log in met je eigen e-mailadres en wachtwoord.'}
-            </p>
           </form>
         </div>
       </div>
