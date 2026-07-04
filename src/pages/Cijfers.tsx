@@ -10,11 +10,12 @@ import { CijfersHeatmap } from '@/components/cijfers/CijfersHeatmap';
 import { CijfersWeekdagVergelijk } from '@/components/cijfers/CijfersWeekdagVergelijk';
 import { BronnenBlok } from '@/components/cijfers/BronnenBlok';
 import type { Periode, VestKeuze } from '@/components/cijfers/types';
-import { useAuth } from '@/context/AuthContext';
+import { useRole } from '@/hooks/useRole';
 
 export default function Cijfers() {
-  const { role } = useAuth();
-  const canWipe = role === 'owner' || role === 'admin';
+  const { isOwner } = useRole();
+  const canWipe = isOwner;
+
 
   const [periode, setPeriode] = useState<Periode>('week');
   const [vestKeuze, setVestKeuze] = useState<VestKeuze>('Beide');
