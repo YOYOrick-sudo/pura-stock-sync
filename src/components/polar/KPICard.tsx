@@ -57,9 +57,12 @@ export function PolarKPICard({
   if (compact) {
     return (
       <div
-        className="bg-card border border-border rounded-[20px] p-5 flex flex-col gap-2 h-full min-h-[140px] shadow-soft transition-all duration-200"
+        className="bg-card border border-border/60 rounded-[20px] p-6 flex flex-col gap-2 h-full min-h-[140px] transition-shadow duration-200"
+        style={{ boxShadow: 'var(--shadow-card)' }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--shadow-card-hover)'; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--shadow-card)'; }}
       >
-        <div className="text-[13px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+        <div className="text-[11px] font-medium text-foreground/45 flex items-center gap-1.5">
           {statusColor?.icon && (
             <span style={{ color: statusColor.text }} className="flex items-center">
               {statusColor.icon}
