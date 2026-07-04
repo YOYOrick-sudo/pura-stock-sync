@@ -1,26 +1,23 @@
-## Doel
-Voorkomen dat het beeld verspringt bij het wisselen tussen Locatie en Persoonlijk. In plaats van tabs + aparte locatiekiezer wordt het één rij van 3 gelijke icoonknoppen bovenaan het formulier.
+## Login-scherm polish: Soft Shadow Card
 
-## Wijzigingen (`src/pages/Auth.tsx`)
+### Doel
+De login-pagina (`/`) voorzien van een **Soft Shadow Card**-uitstraling in lijn met enterprise SaaS zoals Notion/Linear: de card "drijft" zacht boven een iets rijkere achtergrond, met een gelaagde, diffuuse schaduw (geen harde randen).
 
-1. **State vereenvoudigen** — vervang `mode` + `location` door één `selection`-state met drie waardes:
-   - `'daily'` → West (gedeelde locatie-login)
-   - `'foodbar'` → Midsland (gedeelde locatie-login)
-   - `'personal'` → persoonlijke login (toont e-mailveld)
+### Wijzigingen
+1. **`src/pages/Auth.tsx`**
+   - Achtergrondkleur van de pagina iets warmer/donkerder zetten voor contrast (bijv. `#EBEAE6` i.p.v. huidige `#F5F5F4`).
+   - De login-card voorzien van een **multi-layered box-shadow** in plaats van de huidige `shadow-sm`:
+     - Laag 1: grote, zachte diffuuse schaduw (`0 20px 40px -12px rgba(0,0,0,0.08)`)
+     - Laag 2: middelgrote schaduw (`0 8px 16px -8px rgba(0,0,0,0.04)`)
+     - Laag 3: fijne ondergrond (`0 1px 2px rgba(0,0,0,0.02)`)
+   - Optioneel: border van de card lichter of subtiel highlight (`border-white/50`) voor extra diepte.
 
-2. **Kiezer** — vervang het huidige 2-koloms tab-blok én het 2-koloms locatieblok door één `grid-cols-3` met drie identieke icoonknoppen (zelfde stijl als de huidige locatietegels: icoon boven, label eronder, groene border+achtergrond bij actief):
-   - Daily → `Building2`
-   - Foodbar → `Store`
-   - Persoonlijk → `UserRound`
+2. **`src/index.css` (optioneel)**
+   - Alleen indien nodig: een nieuwe utility-token toevoegen voor hergebruik van de schaduw, bijv. `--shadow-login`.
 
-3. **Formulier stabiel houden** — het e-mailveld verschijnt alléén als "Persoonlijk" gekozen is, direct boven het wachtwoordveld. De rest van het formulier (wachtwoord, inlogknop, hint-tekst) blijft altijd op dezelfde plek, dus geen sprong meer bij wisselen tussen Daily/Foodbar. De extra hoogte bij Persoonlijk (één inputveld erbij) blijft — dat is onvermijdelijk, maar de kop en kiezer bewegen niet meer.
+### Scope
+- Alleen visuele aanpassingen op de login-pagina.
+- Geen functionaliteit, routing, of auth-logica wijzigen.
 
-4. **Login-logica** — `handleLogin` blijft functioneel gelijk:
-   - `daily`/`foodbar` → mapt naar West/Midsland en gebruikt de bestaande shared e-mails en locatie-check tegen `user_roles`.
-   - `personal` → gebruikt `personalEmail` zoals nu.
-
-5. **Hint-tekst** onderaan past zich aan: bij Daily/Foodbar "Gebruik Persoonlijk voor je eigen medewerkeraccount.", bij Persoonlijk "Log in met je eigen e-mailadres en wachtwoord."
-
-## Buiten scope
-- Geen wijzigingen aan auth-flow, rollen, redirects of styling elders.
-- Geen nieuwe icons/assets; alleen bestaande lucide-icons.
+### Verificatie
+- Screenshot van `/` controleren: card drijft zichtbaar boven achtergrond, schaduw is diffuus zonder harde randen.
