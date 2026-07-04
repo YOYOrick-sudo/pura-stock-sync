@@ -18,8 +18,12 @@ export const HandoverCard = () => {
     const checkAdmin = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const { data } = await supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' });
-      setIsAdmin(data === true);
+      const [owner, admin, manager] = await Promise.all([
+        supabase.rpc('has_role', { _user_id: user.id, _role: 'owner' }),
+        supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' }),
+        supabase.rpc('has_role', { _user_id: user.id, _role: 'manager' }),
+      ]);
+      setIsAdmin(owner.data === true || admin.data === true || manager.data === true);
     };
     checkAdmin();
   }, []);
