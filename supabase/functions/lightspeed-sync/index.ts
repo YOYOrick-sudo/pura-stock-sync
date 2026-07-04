@@ -68,12 +68,25 @@ export function computeWerkdagUur(iso: string): { werkdag: string; uur: number }
 // Auth gate: cron token OF owner JWT
 // ------------------------------------------------------------------
 async function requireAuth(req: Request): Promise<Response | null> {
+  // 1) Cron header token
   const syncHeader = req.headers.get('x-sync-token');
   if (syncHeader && syncHeader === SYNC_TOKEN) return null;
 
   const auth = req.headers.get('Authorization') ?? '';
   const jwt = auth.replace('Bearer ', '');
   if (!jwt) return json({ error: 'unauthorized' }, 401);
+
+  // 2) Service-role JWT (cron via net.http_post met vault-secret)
+  try {
+    const [, payloadB64] = jwt.split('.');
+    if (payloadB64) {
+      const pad = payloadB64 + '='.repeat((4 - (payloadB64.length % 4)) % 4);
+      const payload = JSON.parse(atob(pad.replace(/-/g, '+').replace(/_/g, '/')));
+      if (payload?.role === 'service_role') return null;
+    }
+  } catch { /* val door naar user-jwt check */ }
+
+  // 3) User JWT met owner-rol
   const userClient = createClient(SUPABASE_URL, ANON, {
     global: { headers: { Authorization: `Bearer ${jwt}` } },
   });
@@ -83,10 +96,11 @@ async function requireAuth(req: Request): Promise<Response | null> {
   const { data: roles } = await admin
     .from('user_roles').select('role')
     .eq('user_id', userRes.user.id).eq('is_active', true);
-  const isOwner = (roles ?? []).some((r) => ['owner', 'admin'].includes(r.role as string));
+  const isOwner = (roles ?? []).some((r: any) => ['owner', 'admin'].includes(r.role as string));
   if (!isOwner) return json({ error: 'forbidden' }, 403);
   return null;
 }
+
 
 // ------------------------------------------------------------------
 // Lease-gebaseerde token-refresh (zie memory)
