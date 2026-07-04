@@ -89,56 +89,15 @@ export default function Cijfers() {
 
         {demoQ.data && <DemoBanner canWipe={isOwner} />}
 
-        <div className="sticky top-0 z-10 -mx-2 px-2 py-3 bg-background/80 backdrop-blur-sm space-y-3">
-          <div className="flex flex-wrap items-center gap-4">
-            <SegmentedTabs
-              value={periode}
-              onValueChange={(v) => setPeriode(v as Periode)}
-              options={[
-                { value: 'vandaag', label: 'Vandaag' },
-                { value: 'week', label: 'Week' },
-                { value: 'maand', label: 'Maand' },
-                { value: 'jaar', label: 'Jaar' },
-                { value: 'aangepast', label: 'Aangepast' },
-              ]}
-            />
-            <div className="h-6 w-px bg-border hidden md:block" />
-            <SegmentedTabs
-              value={vestKeuze}
-              onValueChange={(v) => setVestKeuze(v as VestKeuze)}
-              options={[
-                { value: 'Midsland', label: 'Midsland' },
-                { value: 'West', label: 'West' },
-                { value: 'Beide', label: 'Beide' },
-              ]}
-            />
-          </div>
+        <StickyFilters
+          periode={periode} setPeriode={setPeriode}
+          vestKeuze={vestKeuze} setVestKeuze={setVestKeuze}
+          customVan={customVan} setCustomVan={setCustomVan}
+          customTot={customTot} setCustomTot={setCustomTot}
+          minDate={minDate} today={today} presets={presets}
+        />
 
-          {periode === 'aangepast' && (
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <DateBtn label="Van" value={customVan} onChange={setCustomVan} min={minDate} max={customTot} />
-              <span className="text-muted-foreground text-sm">→</span>
-              <DateBtn label="Tot" value={customTot} onChange={setCustomTot} min={customVan} max={today} />
-              <div className="h-6 w-px bg-border mx-1" />
-              {presets.map((p) => (
-                <Button
-                  key={p.label}
-                  variant="outline"
-                  size="sm"
-                  className="h-9 rounded-polar-lg"
-                  onClick={() => { setCustomVan(p.van); setCustomTot(p.tot); }}
-                >
-                  {p.label}
-                </Button>
-              ))}
-              <div className="ml-auto text-xs text-muted-foreground">
-                Max 12 maanden terug
-              </div>
-            </div>
-          )}
-        </div>
-
-        <CijfersStatCards periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+        <CijfersMetricsBar periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
         <CijfersHoofdgrafiek periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -151,10 +110,88 @@ export default function Cijfers() {
         </div>
 
         <BronnenBlok />
+
+        <BijgewerktRegel />
       </div>
     </SidebarLayout>
   );
 }
+
+function useScrolled(threshold = 4) {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > threshold);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [threshold]);
+  return scrolled;
+}
+
+function StickyFilters(props: {
+  periode: Periode; setPeriode: (p: Periode) => void;
+  vestKeuze: VestKeuze; setVestKeuze: (v: VestKeuze) => void;
+  customVan: Date; setCustomVan: (d: Date) => void;
+  customTot: Date; setCustomTot: (d: Date) => void;
+  minDate: Date; today: Date; presets: Preset[];
+}) {
+  const scrolled = useScrolled();
+  return (
+    <div
+      className={cn(
+        'sticky top-0 z-10 -mx-2 px-2 py-3 space-y-3 transition-all',
+        'bg-background/70 backdrop-blur-md',
+        scrolled ? 'border-b border-border/60 shadow-[0_1px_0_hsl(var(--border)/0.4)]' : 'border-b border-transparent',
+      )}
+    >
+      <div className="flex flex-wrap items-center gap-4">
+        <SegmentedTabs
+          value={props.periode}
+          onValueChange={(v) => props.setPeriode(v as Periode)}
+          options={[
+            { value: 'vandaag', label: 'Vandaag' },
+            { value: 'week', label: 'Week' },
+            { value: 'maand', label: 'Maand' },
+            { value: 'jaar', label: 'Jaar' },
+            { value: 'aangepast', label: 'Aangepast' },
+          ]}
+        />
+        <div className="h-6 w-px bg-border hidden md:block" />
+        <SegmentedTabs
+          value={props.vestKeuze}
+          onValueChange={(v) => props.setVestKeuze(v as VestKeuze)}
+          options={[
+            { value: 'Midsland', label: 'Midsland' },
+            { value: 'West', label: 'West' },
+            { value: 'Beide', label: 'Beide' },
+          ]}
+        />
+      </div>
+
+      {props.periode === 'aangepast' && (
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <DateBtn label="Van" value={props.customVan} onChange={props.setCustomVan} min={props.minDate} max={props.customTot} />
+          <span className="text-muted-foreground text-sm">→</span>
+          <DateBtn label="Tot" value={props.customTot} onChange={props.setCustomTot} min={props.customVan} max={props.today} />
+          <div className="h-6 w-px bg-border mx-1" />
+          {props.presets.map((p) => (
+            <Button
+              key={p.label}
+              variant="outline"
+              size="sm"
+              className="h-9 rounded-polar-lg"
+              onClick={() => { props.setCustomVan(p.van); props.setCustomTot(p.tot); }}
+            >
+              {p.label}
+            </Button>
+          ))}
+          <div className="ml-auto text-xs text-muted-foreground">Max 12 maanden terug</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 function DateBtn({
   label, value, onChange, min, max,
