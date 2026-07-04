@@ -1,4 +1,4 @@
-import { Home, ListChecks, Settings, BookOpen, Package, Printer, Calculator, ClipboardList } from 'lucide-react';
+import { Home, ListChecks, Settings, BookOpen, Package, Printer, Calculator, ClipboardList, LogOut } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useEffect, useState } from 'react';
@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 import { PolarSidebar } from '@/components/polar/Sidebar';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Button } from '@/components/ui/button';
 import puraVidaLogo from '@/assets/pura-vida-logo-sea-cropped.png';
 import puraVidaLogoIcon from '@/assets/pura-vida-logo-sea-cropped.png';
 
@@ -68,6 +69,11 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
     if (onNavigate) onNavigate();
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/auth');
+  };
+
   return (
     <PolarSidebar
       logo={
@@ -95,6 +101,17 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
       collapsed={collapsed}
       onToggle={() => setCollapsed(!collapsed)}
       footerSlot={!collapsed ? <ThemeToggle /> : undefined}
+      logoutSlot={
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleLogout}
+          aria-label="Uitloggen"
+          className="h-9 w-9 rounded-md hover:bg-muted"
+        >
+          <LogOut className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
+        </Button>
+      }
     />
   );
 }
