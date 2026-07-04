@@ -121,7 +121,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 md:p-8" style={{ backgroundColor: '#F5F4F2' }}>
+    <div className="min-h-screen flex items-center justify-center p-4 md:p-8 bg-background">
       <div
         className="w-full max-w-[420px] bg-card border border-border/60 rounded-[20px] overflow-hidden"
         style={{
