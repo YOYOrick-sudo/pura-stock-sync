@@ -17,11 +17,11 @@
     --shadow-card-hover: 0 24px 48px -12px rgba(0,0,0,0.10), 0 10px 20px -8px rgba(0,0,0,0.05);
     --foreground: 220 26% 14%;              /* #1F2937 - Gray-800 */
     
-    /* Card surfaces - white */
-    --card: 0 0% 100%;
+    /* Card surfaces - warm white, soft against canvas */
+    --card: 40 12% 97%;
     --card-foreground: 220 26% 14%;
     
-    --popover: 0 0% 100%;
+    --popover: 40 12% 97%;
     --popover-foreground: 220 26% 14%;
     
     /* Primary - Pura Vida Green */
