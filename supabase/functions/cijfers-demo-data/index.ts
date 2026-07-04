@@ -13,6 +13,9 @@ const corsHeaders = {
 const VESTIGINGEN = ['Midsland', 'West'] as const;
 const UREN = Array.from({ length: 14 }, (_, i) => 10 + i); // 10..23
 
+// Uurloon (all-in, incl. WG-lasten) per vestiging voor demo-loonkosten
+const UURLOON = { Midsland: 18.5, West: 17.5 } as const;
+
 function seededRandom(seed: number) {
   return () => {
     seed = (seed * 9301 + 49297) % 233280;
@@ -81,6 +84,46 @@ function generate(): Array<{
   return rows;
 }
 
+function generateUrenDagen(omzetRows: Array<{ vestiging: string; werkdag: string; omzet_incl: number }>): Array<{
+  vestiging: string; werkdag: string; gewerkte_uren: number; geplande_uren: number;
+  loonkosten: number; loonkosten_bron: string; eitje_omzet_dag: number; is_demo: boolean;
+}> {
+  const rnd = seededRandom(1337);
+  const perDag = new Map<string, number>(); // key = vestiging|werkdag → omzet
+  for (const r of omzetRows) {
+    const k = `${r.vestiging}|${r.werkdag}`;
+    perDag.set(k, (perDag.get(k) ?? 0) + r.omzet_incl);
+  }
+  const out: any[] = [];
+  for (const [k, omzet] of perDag) {
+    const [vestiging, werkdag] = k.split('|');
+    const uurloon = UURLOON[vestiging as keyof typeof UURLOON];
+    if (omzet === 0) {
+      // Gesloten dag: 0 uren, 0 loonkosten.
+      out.push({
+        vestiging, werkdag, gewerkte_uren: 0, geplande_uren: 0,
+        loonkosten: 0, loonkosten_bron: 'eitje', eitje_omzet_dag: 0, is_demo: true,
+      });
+      continue;
+    }
+    // Target productiviteit ~ €75 omzet/gewerkt uur → uren = omzet/75
+    const targetUren = omzet / 75;
+    const geplande = Math.round(targetUren * (0.95 + rnd() * 0.15) * 4) / 4; // afgerond op 0.25
+    const gewerkte = Math.round((geplande * (0.95 + rnd() * 0.20)) * 4) / 4; // ±10% t.o.v. planning
+    const loonkosten = Math.round(gewerkte * uurloon * 100) / 100;
+    out.push({
+      vestiging, werkdag,
+      gewerkte_uren: gewerkte,
+      geplande_uren: geplande,
+      loonkosten,
+      loonkosten_bron: 'eitje',
+      eitje_omzet_dag: Math.round(omzet * 100) / 100,
+      is_demo: true,
+    });
+  }
+  return out;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
@@ -122,6 +165,18 @@ Deno.serve(async (req) => {
       }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    const { count: urenEcht } = await admin
+      .from('uren_dagen')
+      .select('id', { count: 'exact', head: true })
+      .eq('is_demo', false);
+    if ((urenEcht ?? 0) > 0) {
+      return new Response(JSON.stringify({
+        error: 'echte_uren_data_aanwezig',
+        detail: `Er staan ${urenEcht} echte uren-rijen. Demo-data geweigerd.`,
+      }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+
     const rows = generate();
 
     // Chunk upsert
@@ -140,13 +195,29 @@ Deno.serve(async (req) => {
       done += slice.length;
     }
 
+    // Uren_dagen demo (afgeleid van omzet, met loonkosten & eitje_omzet_dag)
+    const urenRows = generateUrenDagen(rows);
+    let urenDone = 0;
+    for (let i = 0; i < urenRows.length; i += chunk) {
+      const slice = urenRows.slice(i, i + chunk);
+      const { error } = await admin
+        .from('uren_dagen')
+        .upsert(slice, { onConflict: 'vestiging,werkdag,is_demo' });
+      if (error) {
+        return new Response(JSON.stringify({ error: 'uren_upsert_failed', detail: error.message, uren_done: urenDone }), {
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      urenDone += slice.length;
+    }
+
     await admin.from('sync_runs').insert({
       bron: 'lightspeed', type: 'demo_seed', status: 'ok',
       bonnen_verwerkt: done, klaar_op: new Date().toISOString(),
-      foutmelding: 'Demo-data gegenereerd',
+      foutmelding: `Demo-data gegenereerd (omzet: ${done}, uren: ${urenDone})`,
     });
 
-    return new Response(JSON.stringify({ ok: true, rijen: done }), {
+    return new Response(JSON.stringify({ ok: true, rijen: done, uren_rijen: urenDone }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e) {
