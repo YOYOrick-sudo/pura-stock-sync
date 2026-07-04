@@ -11,22 +11,7 @@ export const HandoverCard = () => {
   const { userLocation } = useUserLocation();
   const [isEditing, setIsEditing] = useState(false);
   const [memoText, setMemoText] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const checkAdmin = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const [owner, admin, manager] = await Promise.all([
-        supabase.rpc('has_role', { _user_id: user.id, _role: 'owner' }),
-        supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' }),
-        supabase.rpc('has_role', { _user_id: user.id, _role: 'manager' }),
-      ]);
-      setIsAdmin(owner.data === true || admin.data === true || manager.data === true);
-    };
-    checkAdmin();
-  }, []);
 
   const { data: latestMemo, isLoading } = useQuery({
     queryKey: ['handover-memo', userLocation],
