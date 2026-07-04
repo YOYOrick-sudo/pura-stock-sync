@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
@@ -12,13 +12,15 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { DemoBanner } from '@/components/cijfers/DemoBanner';
-import { CijfersStatCards } from '@/components/cijfers/CijfersStatCards';
+import { CijfersMetricsBar } from '@/components/cijfers/CijfersMetricsBar';
 import { CijfersHoofdgrafiek } from '@/components/cijfers/CijfersHoofdgrafiek';
 import { CijfersHeatmap } from '@/components/cijfers/CijfersHeatmap';
 import { CijfersWeekdagVergelijk } from '@/components/cijfers/CijfersWeekdagVergelijk';
 import { BronnenBlok } from '@/components/cijfers/BronnenBlok';
+import { BijgewerktRegel } from '@/components/cijfers/BijgewerktRegel';
 import { periodeRange, toISO, type Periode, type VestKeuze } from '@/components/cijfers/types';
 import { useRole } from '@/hooks/useRole';
+
 
 type Preset = { label: string; van: Date; tot: Date };
 
