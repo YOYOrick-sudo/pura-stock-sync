@@ -29,8 +29,8 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) 
   if (q.isLoading) {
     return (
       <div className="rounded-[20px] border border-border bg-card shadow-card">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 sm:divide-x sm:divide-border">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 sm:divide-x sm:divide-y-0 divide-y divide-border">
+          {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="p-5 space-y-2">
               <Skeleton className="h-3 w-20" />
               <Skeleton className="h-7 w-28" />
@@ -49,27 +49,28 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) 
   const pct = prev > 0 ? (diff / prev) * 100 : null;
   const opnDgn = Number(s?.totaal.open_dagen ?? 0);
   const bonnen = Number(s?.totaal.bonnen ?? 0);
-  const gem = opnDgn > 0 ? omzet / opnDgn : 0;
+  const gemDag = opnDgn > 0 ? omzet / opnDgn : 0;
+  const gemBon = bonnen > 0 ? omzet / bonnen : 0;
   const per = s?.per_vestiging ?? [];
 
-  const perSubline = (getter: (p: Samenvatting['per_vestiging'][number]) => string) =>
+  const beideSubline = (getter: (p: Samenvatting['per_vestiging'][number]) => string) =>
     vestigingKeuze === 'Beide' && per.length > 0
       ? per.map(getter).join(' · ')
       : null;
 
   return (
     <div className="rounded-[20px] border border-border bg-card shadow-card">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 sm:divide-x sm:divide-y-0 divide-y divide-border">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 sm:divide-x sm:divide-y-0 divide-y divide-border">
         <MetricCol
           label="Omzet"
           value={<Money v={omzet} />}
-          sub={perSubline((p) => `${p.vestiging} ${EUR.format(Number(p.omzet))}`)}
+          sub={beideSubline((p) => `${p.vestiging} ${EUR.format(Number(p.omzet))}`)}
         />
         <MetricCol
           label="T.o.v. vorige periode"
           value={
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-semibold tabular-nums">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-[25px] font-bold tabular-nums leading-tight">
                 {pct === null ? '—' : `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`}
               </span>
               {pct !== null && <DeltaPill pct={pct} />}
@@ -78,14 +79,19 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) 
           sub={`${diff >= 0 ? '+' : ''}${EUR2.format(diff)} vs. ${EUR.format(prev)}`}
         />
         <MetricCol
-          label="Gemiddelde per open dag"
-          value={<Money v={gem} />}
-          sub={`${opnDgn} open ${opnDgn === 1 ? 'dag' : 'dagen'}`}
+          label="Bonnen"
+          value={<Count v={bonnen} />}
+          sub={beideSubline((p) => `${p.vestiging} ${Number(p.bonnen).toLocaleString('nl-NL')}`)}
         />
         <MetricCol
-          label="Aantal bonnen"
-          value={<Count v={bonnen} />}
-          sub={perSubline((p) => `${p.vestiging} ${Number(p.bonnen).toLocaleString('nl-NL')}`)}
+          label="Gem. besteding / bon"
+          value={<Money v={gemBon} decimals={2} />}
+          sub="per bon"
+        />
+        <MetricCol
+          label="Gem. per open dag"
+          value={<Money v={gemDag} />}
+          sub={`${opnDgn} open ${opnDgn === 1 ? 'dag' : 'dagen'}`}
         />
       </div>
     </div>
@@ -94,17 +100,18 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) 
 
 function MetricCol({ label, value, sub }: { label: string; value: React.ReactNode; sub: React.ReactNode }) {
   return (
-    <div className="p-5">
-      <div className="text-[11px] font-medium tracking-wide uppercase text-muted-foreground">{label}</div>
-      <div className="mt-1.5 text-2xl font-semibold tabular-nums leading-tight">{value}</div>
+    <div className="p-5 min-w-0">
+      <div className="text-[10.5px] font-medium tracking-wide uppercase text-muted-foreground">{label}</div>
+      <div className="mt-1.5 text-[25px] font-bold tabular-nums leading-tight text-foreground">{value}</div>
       {sub && <div className="mt-1.5 text-[11px] text-muted-foreground truncate">{sub}</div>}
     </div>
   );
 }
 
-function Money({ v }: { v: number }) {
+function Money({ v, decimals = 0 }: { v: number; decimals?: number }) {
   const anim = useCountUp(v, 320);
-  return <span>{EUR.format(anim)}</span>;
+  const fmt = decimals === 2 ? EUR2 : EUR;
+  return <span>{fmt.format(anim)}</span>;
 }
 function Count({ v }: { v: number }) {
   const anim = useCountUp(v, 320);
@@ -114,12 +121,12 @@ function DeltaPill({ pct }: { pct: number }) {
   const up = pct >= 0;
   return (
     <span
-      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-semibold ${
+      className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[11px] font-bold ${
         up ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
       }`}
     >
       {up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-      {up ? '+' : ''}{pct.toFixed(1)}%
+      {up ? '▲ +' : '▼ '}{pct.toFixed(1)}%
     </span>
   );
 }

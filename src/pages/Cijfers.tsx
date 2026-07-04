@@ -16,6 +16,8 @@ import { CijfersMetricsBar } from '@/components/cijfers/CijfersMetricsBar';
 import { CijfersHoofdgrafiek } from '@/components/cijfers/CijfersHoofdgrafiek';
 import { CijfersHeatmap } from '@/components/cijfers/CijfersHeatmap';
 import { CijfersWeekdagVergelijk } from '@/components/cijfers/CijfersWeekdagVergelijk';
+import { CijfersUurverloop } from '@/components/cijfers/CijfersUurverloop';
+import { CijfersVestigingSplit } from '@/components/cijfers/CijfersVestigingSplit';
 import { BronnenBlok } from '@/components/cijfers/BronnenBlok';
 import { BijgewerktRegel } from '@/components/cijfers/BijgewerktRegel';
 import { periodeRange, toISO, type Periode, type VestKeuze } from '@/components/cijfers/types';
@@ -98,16 +100,18 @@ export default function Cijfers() {
         />
 
         <CijfersMetricsBar periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
-        <CijfersHoofdgrafiek periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          <div className="lg:col-span-2">
-            <CijfersHeatmap periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
-          </div>
-          <div>
-            <CijfersWeekdagVergelijk periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-[1.85fr_1fr] gap-5">
+          <CijfersHoofdgrafiek periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+          <CijfersWeekdagVergelijk periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
         </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5">
+          <CijfersUurverloop periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+          <CijfersVestigingSplit periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+        </div>
+
+        <CijfersHeatmap periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
 
         <BronnenBlok />
 
