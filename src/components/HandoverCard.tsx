@@ -54,17 +54,6 @@ export const HandoverCard = () => {
     queryClient.invalidateQueries({ queryKey: ['handover-memo', userLocation] });
   };
 
-  const handleClear = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { error } = await supabase.from('handover_memos').insert({ location: userLocation, message: '', created_by: user.id });
-    if (error) { toast.error('Kon overdracht niet wissen'); return; }
-    toast.success('Overdracht gewist');
-    setIsEditing(false);
-    setMemoText('');
-    queryClient.invalidateQueries({ queryKey: ['handover-memo', userLocation] });
-  };
-
   const cardClasses = "bg-card border border-border/60 rounded-[20px] shadow-[var(--shadow-card)]";
 
   if (isLoading) {
@@ -104,11 +93,6 @@ export const HandoverCard = () => {
             Voor de volgende dienst
           </p>
         </div>
-        {memoText.trim() && (
-          <Button variant="ghost" size="sm" onClick={handleClear} title="Wis overdracht">
-            <Trash2 size={14} />
-          </Button>
-        )}
       </div>
 
       <Textarea
