@@ -205,7 +205,8 @@ export function PolarSidebar({
       {/* Footer */}
       <div className="border-t border-border/50 px-2.5 py-2.5">
         {collapsed ? (
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center gap-2">
+            {logoutSlot}
             <Button
               variant="ghost"
               size="icon"
@@ -217,7 +218,10 @@ export function PolarSidebar({
             </Button>
           </div>
         ) : (
-          footerSlot && <div className="flex items-center">{footerSlot}</div>
+          <div className="flex items-center justify-between">
+            {footerSlot && <div className="flex items-center">{footerSlot}</div>}
+            {logoutSlot}
+          </div>
         )}
       </div>
     </aside>
