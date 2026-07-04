@@ -2,39 +2,39 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { EUR, periodeRange, vestigingenVan, type Periode, type VestKeuze } from './types';
+import { EUR, vestigingenVan, type Periode, type VestKeuze } from './types';
 
 const DAG_NL = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'];
 const UREN = Array.from({ length: 14 }, (_, i) => 10 + i);
 
-interface Props { periode: Periode; vestigingKeuze: VestKeuze }
+interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
 
 type Cel = { isodow: number; uur: number; gem_omzet: number; n_dagen: number };
 
-export function CijfersHeatmap({ periode, vestigingKeuze }: Props) {
-  const range = periodeRange(periode);
+export function CijfersHeatmap({ periode, vestigingKeuze, van: pvan, tot }: Props) {
   // Voor "vandaag" is één dag zinloos → toon laatste 8 weken.
   const isSingle = periode === 'vandaag';
   const van = isSingle
     ? (() => {
-        const d = new Date(range.tot);
+        const d = new Date(tot);
         d.setDate(d.getDate() - 56);
         return d.toISOString().slice(0, 10);
       })()
-    : range.van;
+    : pvan;
 
   const vestigingen = vestigingenVan(vestigingKeuze);
   const q = useQuery({
-    queryKey: ['cijfers-heatmap', periode, vestigingKeuze, van, range.tot],
+    queryKey: ['cijfers-heatmap', periode, vestigingKeuze, van, tot],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('rpc_cijfers_heatmap', {
-        p_vestigingen: vestigingen, p_van: van, p_tot: range.tot,
+        p_vestigingen: vestigingen, p_van: van, p_tot: tot,
       });
       if (error) throw error;
       return (data ?? []) as Cel[];
     },
     refetchOnWindowFocus: true,
   });
+
 
   if (q.isLoading) {
     return (

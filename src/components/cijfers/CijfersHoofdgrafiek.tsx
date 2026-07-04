@@ -8,14 +8,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/pura/EmptyState';
 import { BarChart3 } from 'lucide-react';
 import {
-  EUR, VEST_KLEUR, granulariteitVoor, periodeRange, vestigingenVan,
+  EUR, VEST_KLEUR, granulariteitVoor, vestigingenVan,
   type Periode, type VestKeuze, type Vestiging,
 } from './types';
 
 const DAG_NL = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
 const MND_NL = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
 
-interface Props { periode: Periode; vestigingKeuze: VestKeuze }
+interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
 
 type Row = { bucket: string; vestiging: string; omzet: number; bonnen: number };
 
@@ -26,10 +26,10 @@ function labelVoor(bucket: string, gran: 'uur' | 'dag' | 'maand'): string {
   return MND_NL[d.getMonth()];
 }
 
-export function CijfersHoofdgrafiek({ periode, vestigingKeuze }: Props) {
-  const { van, tot } = periodeRange(periode);
+export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props) {
   const vestigingen = vestigingenVan(vestigingKeuze);
-  const gran = granulariteitVoor(periode);
+  const gran = granulariteitVoor(periode, van, tot);
+
 
   const q = useQuery({
     queryKey: ['cijfers-tijdreeks', periode, vestigingKeuze, van, tot, gran],

@@ -4,18 +4,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { StatCard } from '@/components/pura/StatCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EUR, EUR2, vestigingenVan, type Periode, type VestKeuze } from './types';
-import { periodeRange } from './types';
 
-interface Props { periode: Periode; vestigingKeuze: VestKeuze }
+interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
 
 type Samenvatting = {
   totaal: { omzet: number; bonnen: number; open_dagen: number; vorige_omzet: number };
   per_vestiging: Array<{ vestiging: string; omzet: number; bonnen: number; open_dagen: number; vorige_omzet: number }>;
 };
 
-export function CijfersStatCards({ periode, vestigingKeuze }: Props) {
-  const { van, tot } = periodeRange(periode);
+export function CijfersStatCards({ periode, vestigingKeuze, van, tot }: Props) {
   const vestigingen = vestigingenVan(vestigingKeuze);
+
 
   const q = useQuery({
     queryKey: ['cijfers-samenvatting', periode, vestigingKeuze, van, tot],

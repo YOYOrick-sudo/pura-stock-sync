@@ -1,6 +1,6 @@
 export type Vestiging = 'Midsland' | 'West';
 export type VestKeuze = 'Midsland' | 'West' | 'Beide';
-export type Periode = 'vandaag' | 'week' | 'maand' | 'jaar';
+export type Periode = 'vandaag' | 'week' | 'maand' | 'jaar' | 'aangepast';
 
 export const VEST_KLEUR: Record<Vestiging, string> = {
   Midsland: 'hsl(var(--primary))',
@@ -53,8 +53,22 @@ export function periodeRange(p: Periode, ref: Date = new Date()): { van: string;
   return { van: toISO(first), tot: toISO(today) };
 }
 
-export function granulariteitVoor(p: Periode): 'uur' | 'dag' | 'maand' {
+export function granulariteitVoor(p: Periode, van?: string, tot?: string): 'uur' | 'dag' | 'maand' {
   if (p === 'vandaag') return 'uur';
   if (p === 'jaar') return 'maand';
+  if (p === 'aangepast' && van && tot) {
+    const dagen = Math.round((new Date(tot).getTime() - new Date(van).getTime()) / 86400000) + 1;
+    if (dagen <= 1) return 'uur';
+    if (dagen > 92) return 'maand';
+    return 'dag';
+  }
   return 'dag';
 }
+
+export function toISO(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+

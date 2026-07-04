@@ -2,17 +2,17 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendingDown, TrendingUp, Minus, Trophy } from 'lucide-react';
-import { EUR, periodeRange, vestigingenVan, type Periode, type VestKeuze } from './types';
+import { EUR, vestigingenVan, type Periode, type VestKeuze } from './types';
 
 const DAG_NL = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'];
 
-interface Props { periode: Periode; vestigingKeuze: VestKeuze }
+interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
 
 type Row = { isodow: number; gem_periode: number; gem_referentie: number; delta_pct: number | null };
 
-export function CijfersWeekdagVergelijk({ periode, vestigingKeuze }: Props) {
-  const { van, tot } = periodeRange(periode);
+export function CijfersWeekdagVergelijk({ periode, vestigingKeuze, van, tot }: Props) {
   const vestigingen = vestigingenVan(vestigingKeuze);
+
 
   const q = useQuery({
     queryKey: ['cijfers-weekdag', periode, vestigingKeuze, van, tot],
