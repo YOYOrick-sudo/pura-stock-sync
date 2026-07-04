@@ -64,14 +64,14 @@ export function CijfersHeatmap({ periode, vestigingKeuze, van: pvan, tot }: Prop
       <div className="bg-card border border-border rounded-[20px] shadow-card p-6">
         <div className="flex items-start justify-between mb-4 gap-4">
           <div>
-            <div className="text-base font-semibold">Uur-heatmap</div>
-            <div className="text-xs text-muted-foreground mt-0.5">Gem. omzet per uur × weekdag</div>
+            <div className="text-[15px] font-semibold text-foreground">Uur-heatmap</div>
+            <div className="text-[12px] text-muted-foreground mt-0.5">Gem. omzet per uur × weekdag</div>
           </div>
           <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
             <span>rustig</span>
-            <div className="flex gap-[2px]">
+            <div className="flex gap-[3px]">
               {STAPPEN.map((s, i) => (
-                <div key={i} className="w-4 h-3 rounded-[3px] border border-border/40" style={{ background: `hsl(var(--primary) / ${s})` }} />
+                <div key={i} className="w-4 h-3 rounded-full" style={{ background: `hsl(var(--primary) / ${s})` }} />
               ))}
             </div>
             <span>druk</span>
@@ -88,16 +88,16 @@ export function CijfersHeatmap({ periode, vestigingKeuze, van: pvan, tot }: Prop
             </div>
 
             {[1, 2, 3, 4, 5, 6, 7].map((iso, idx) => {
-              const weekend = iso === 5 || iso === 6;
+              const weekend = iso === 6 || iso === 7;
               return (
                 <div
                   key={iso}
-                  className="grid gap-[6px] mb-[6px]"
+                  className="grid gap-[5px] mb-[5px]"
                   style={{ gridTemplateColumns: `48px repeat(${UREN.length}, minmax(0,1fr))` }}
                 >
                   <div
                     className={`text-xs flex items-center justify-end pr-2 rounded-[6px] ${
-                      weekend ? 'font-semibold text-foreground bg-muted/40' : 'text-muted-foreground'
+                      weekend ? 'font-bold text-foreground' : 'text-muted-foreground'
                     }`}
                   >
                     {DAG_NL[idx]}
@@ -109,7 +109,7 @@ export function CijfersHeatmap({ periode, vestigingKeuze, van: pvan, tot }: Prop
                       <Tooltip key={u}>
                         <TooltipTrigger asChild>
                           <div
-                            className="h-8 rounded-[8px] border border-border/40 cursor-default transition-shadow hover:ring-2 hover:ring-primary/40 hover:ring-offset-1"
+                            className="h-[27px] rounded-[6px] cursor-default transition-shadow hover:ring-2 hover:ring-primary hover:ring-offset-1"
                             style={{ background: kleur(v) }}
                           />
                         </TooltipTrigger>
