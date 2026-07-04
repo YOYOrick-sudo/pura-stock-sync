@@ -92,7 +92,7 @@ export const HandoverCard = () => {
             Voor de volgende dienst
           </p>
         </div>
-        {isAdmin && !isEditing && (
+        {!isEditing && (
           <Button variant="outline" size="sm" onClick={handleEdit}>
             <Edit2 size={14} />
           </Button>
