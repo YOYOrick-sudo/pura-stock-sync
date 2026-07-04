@@ -68,6 +68,11 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
     if (onNavigate) onNavigate();
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/auth');
+  };
+
   return (
     <PolarSidebar
       logo={
