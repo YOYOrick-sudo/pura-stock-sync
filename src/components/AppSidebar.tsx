@@ -71,7 +71,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate('/auth');
+    navigate('/');
   };
 
   return (
