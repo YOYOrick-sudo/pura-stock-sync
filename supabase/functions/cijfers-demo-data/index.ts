@@ -13,6 +13,9 @@ const corsHeaders = {
 const VESTIGINGEN = ['Midsland', 'West'] as const;
 const UREN = Array.from({ length: 14 }, (_, i) => 10 + i); // 10..23
 
+// Uurloon (all-in, incl. WG-lasten) per vestiging voor demo-loonkosten
+const UURLOON = { Midsland: 18.5, West: 17.5 } as const;
+
 function seededRandom(seed: number) {
   return () => {
     seed = (seed * 9301 + 49297) % 233280;
