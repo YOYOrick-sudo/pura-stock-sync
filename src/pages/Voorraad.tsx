@@ -70,7 +70,7 @@ export default function Voorraad() {
                           <Info className="h-4 w-4" />
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs bg-white border-primary/20 text-foreground">
+                      <TooltipContent className="max-w-xs bg-card border-primary/20 text-foreground">
                         <p className="text-sm">Noteer de huidige voorraad. Het systeem rekent uit wat Foodbar aanvult.</p>
                       </TooltipContent>
                     </Tooltip>
