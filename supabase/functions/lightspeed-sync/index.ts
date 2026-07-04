@@ -100,7 +100,7 @@ type Conn = {
   status: string;
 };
 
-async function readConnection(admin: ReturnType<typeof createClient>, vestiging: string): Promise<Conn | null> {
+async function readConnection(admin: any, vestiging: string): Promise<Conn | null> {
   const { data } = await admin
     .from('lightspeed_connections')
     .select('vestiging, merchant_id, access_token, refresh_token, token_expires_at, status')
@@ -115,7 +115,7 @@ function tokenStillValid(conn: Conn): boolean {
   return new Date(conn.token_expires_at).getTime() - Date.now() > bufferMs;
 }
 
-async function tryClaimLease(admin: ReturnType<typeof createClient>, vestiging: string): Promise<boolean> {
+async function tryClaimLease(admin: any, vestiging: string): Promise<boolean> {
   const nowIso = new Date().toISOString();
   const leaseUntil = new Date(Date.now() + LEASE_SECONDS * 1000).toISOString();
   const { data } = await admin
@@ -127,7 +127,7 @@ async function tryClaimLease(admin: ReturnType<typeof createClient>, vestiging: 
   return (data?.length ?? 0) > 0;
 }
 
-async function releaseLease(admin: ReturnType<typeof createClient>, vestiging: string) {
+async function releaseLease(admin: any, vestiging: string) {
   await admin.from('lightspeed_connections').update({ refreshing_until: null }).eq('vestiging', vestiging);
 }
 
@@ -163,7 +163,7 @@ async function refreshAtLightspeed(refreshToken: string): Promise<{ access_token
  *     (eerste claimer is waarschijnlijk gecrasht, lease is verlopen).
  *  5) Alles gefaald → return {error} en markeer status.
  */
-async function getValidToken(admin: ReturnType<typeof createClient>, vestiging: string): Promise<{ token: string } | { error: string; detail: string }> {
+async function getValidToken(admin: any, vestiging: string): Promise<{ token: string } | { error: string; detail: string }> {
   const conn = await readConnection(admin, vestiging);
   if (!conn) return { error: 'no_connection_row', detail: vestiging };
   if (conn.status !== 'gekoppeld' && conn.status !== 'token_verlopen') {
@@ -268,7 +268,7 @@ async function fetchReceipts(
 // Aggregatie + upsert
 // ------------------------------------------------------------------
 async function aggregateAndUpsert(
-  admin: ReturnType<typeof createClient>,
+  admin: any,
   vestiging: string,
   receipts: Receipt[],
 ): Promise<number> {
@@ -302,7 +302,7 @@ async function aggregateAndUpsert(
 // Sync-run wrapper
 // ------------------------------------------------------------------
 async function runSync(
-  admin: ReturnType<typeof createClient>,
+  admin: any,
   vestiging: string,
   van: string,
   tot: string,
