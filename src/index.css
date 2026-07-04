@@ -65,10 +65,10 @@
     --info: 217 91% 60%;                    /* #3B82F6 */
     --info-foreground: 0 0% 100%;
     
-    /* Sidebar - white bg */
-    --sidebar-bg: 0 0% 100%;               /* White */
+    /* Sidebar - matches card family */
+    --sidebar-bg: 40 5% 98%;                /* #FAFAF8 - same as cards */
     --sidebar-active: 163 30% 95%;          /* Light green tint */
-    --sidebar-hover: 40 6% 96%;             /* Warm Gray hover */
+    --sidebar-hover: 45 8% 93%;             /* subtle warm hover */
   }
 
   .dark {
