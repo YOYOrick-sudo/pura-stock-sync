@@ -81,6 +81,7 @@ export default function Cijfers() {
       <div className="max-w-6xl mx-auto space-y-5 pb-8">
         {/* Filters */}
         <StickyFilters
+          label={label}
           periode={periode} setPeriode={setPeriode}
           vestKeuze={vestKeuze} setVestKeuze={setVestKeuze}
           customVan={customVan} setCustomVan={setCustomVan}
