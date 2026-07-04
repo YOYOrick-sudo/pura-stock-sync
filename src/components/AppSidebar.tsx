@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 import { PolarSidebar } from '@/components/polar/Sidebar';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Button } from '@/components/ui/button';
 import puraVidaLogo from '@/assets/pura-vida-logo-sea-cropped.png';
 import puraVidaLogoIcon from '@/assets/pura-vida-logo-sea-cropped.png';
 
