@@ -16,6 +16,8 @@ import { CijfersMetricsBar } from '@/components/cijfers/CijfersMetricsBar';
 import { CijfersHoofdgrafiek } from '@/components/cijfers/CijfersHoofdgrafiek';
 import { CijfersHeatmap } from '@/components/cijfers/CijfersHeatmap';
 import { CijfersWeekdagVergelijk } from '@/components/cijfers/CijfersWeekdagVergelijk';
+import { CijfersUurverloop } from '@/components/cijfers/CijfersUurverloop';
+import { CijfersVestigingSplit } from '@/components/cijfers/CijfersVestigingSplit';
 import { BronnenBlok } from '@/components/cijfers/BronnenBlok';
 import { BijgewerktRegel } from '@/components/cijfers/BijgewerktRegel';
 import { periodeRange, toISO, type Periode, type VestKeuze } from '@/components/cijfers/types';
