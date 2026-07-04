@@ -96,39 +96,37 @@ export function CijfersHeatmap({ periode, vestigingKeuze, van: pvan, tot }: Prop
               </div>
             ))}
             {/* Rows */}
-            {DAG_NL.map((day, di) => {
+            {DAG_NL.flatMap((day, di) => {
               const weekend = di >= 5;
-              return (
-                <>
-                  <div
-                    key={'d' + di}
-                    style={{
-                      fontSize: 11, fontWeight: weekend ? 700 : 500,
-                      color: weekend ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
-                      display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 8,
-                    }}
-                  >{day}</div>
-                  {UREN.map((hr, hi) => {
-                    const c = grid.get(`${di + 1}|${hr}`);
-                    const v = Number(c?.gem_omzet ?? 0);
-                    const id = di + '|' + hi;
-                    const hov = hover === id;
-                    return (
-                      <div
-                        key={id}
-                        onMouseEnter={() => setHover(id)}
-                        onMouseLeave={() => setHover(null)}
-                        style={{
-                          height: 27, borderRadius: 6, background: bg(v),
-                          cursor: 'default',
-                          boxShadow: hov ? `0 0 0 2px hsl(var(--card)), 0 0 0 3.5px hsl(var(--primary))` : 'none',
-                          transition: 'box-shadow .1s',
-                        }}
-                      />
-                    );
-                  })}
-                </>
-              );
+              return [
+                <div
+                  key={'d' + di}
+                  style={{
+                    fontSize: 11, fontWeight: weekend ? 700 : 500,
+                    color: weekend ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
+                    display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 8,
+                  }}
+                >{day}</div>,
+                ...UREN.map((hr, hi) => {
+                  const c = grid.get(`${di + 1}|${hr}`);
+                  const v = Number(c?.gem_omzet ?? 0);
+                  const id = di + '|' + hi;
+                  const hov = hover === id;
+                  return (
+                    <div
+                      key={'c' + id}
+                      onMouseEnter={() => setHover(id)}
+                      onMouseLeave={() => setHover(null)}
+                      style={{
+                        height: 27, borderRadius: 6, background: bg(v),
+                        cursor: 'default',
+                        boxShadow: hov ? `0 0 0 2px hsl(var(--card)), 0 0 0 3.5px hsl(var(--primary))` : 'none',
+                        transition: 'box-shadow .1s',
+                      }}
+                    />
+                  );
+                }),
+              ];
             })}
           </div>
         </div>
@@ -136,3 +134,4 @@ export function CijfersHeatmap({ periode, vestigingKeuze, van: pvan, tot }: Prop
     </div>
   );
 }
+
