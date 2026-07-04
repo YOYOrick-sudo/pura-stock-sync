@@ -78,6 +78,18 @@ export const HandoverCard = () => {
     );
   }
 
+  // Sync memoText met server-versie zolang we niet aan het editen zijn
+  useEffect(() => {
+    if (!isEditing) setMemoText(latestMemo?.message || '');
+  }, [latestMemo?.message, isEditing]);
+
+  const dirty = isEditing && memoText.trim() !== (latestMemo?.message || '').trim();
+
+  const handleSaveInline = async () => {
+    if (!dirty) { setIsEditing(false); return; }
+    await handleSave();
+  };
+
   return (
     <div className={`${cardClasses} p-5 flex flex-col gap-3 min-h-[100px]`}>
       <div className="flex items-center justify-between">
@@ -92,53 +104,48 @@ export const HandoverCard = () => {
             Voor de volgende dienst
           </p>
         </div>
-        {!isEditing && (
-          <Button variant="outline" size="sm" onClick={handleEdit}>
-            <Edit2 size={14} />
+        {memoText.trim() && (
+          <Button variant="ghost" size="sm" onClick={handleClear} title="Wis overdracht">
+            <Trash2 size={14} />
           </Button>
         )}
       </div>
 
-      {isEditing ? (
-        <>
-          <Textarea
-            value={memoText}
-            onChange={(e) => setMemoText(e.target.value)}
-            placeholder="Noteer hier belangrijke informatie voor de volgende shift:&#10;• Speciale afspraken of afhalingen&#10;• Bijzonderheden van vandaag&#10;• Aandachtspunten voor straks"
-            rows={5}
-            className="resize-none"
-            style={{ whiteSpace: 'pre-wrap' }}
-            autoFocus
-          />
-          <div className="flex gap-2 justify-between">
-            <Button variant="ghost" size="sm" onClick={handleClear}>
-              <Trash2 size={14} /> Wis overdracht
-            </Button>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleCancel}>
-                <X size={14} /> Annuleren
-              </Button>
-              <Button size="sm" onClick={handleSave}>
-                <Check size={14} /> Opslaan
-              </Button>
-            </div>
+      <Textarea
+        value={memoText}
+        onChange={(e) => { setMemoText(e.target.value); if (!isEditing) setIsEditing(true); }}
+        onFocus={() => setIsEditing(true)}
+        onBlur={handleSaveInline}
+        onKeyDown={(e) => {
+          if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); (e.target as HTMLTextAreaElement).blur(); }
+          if (e.key === 'Escape') { setMemoText(latestMemo?.message || ''); setIsEditing(false); (e.target as HTMLTextAreaElement).blur(); }
+        }}
+        placeholder="Noteer hier belangrijke informatie voor de volgende shift:&#10;• Speciale afspraken of afhalingen&#10;• Bijzonderheden van vandaag&#10;• Aandachtspunten voor straks"
+        rows={4}
+        className="resize-none"
+        style={{ whiteSpace: 'pre-wrap' }}
+      />
+
+      <div className="flex items-center justify-between min-h-[20px]">
+        {latestMemo?.message && !isEditing ? (
+          <div className="flex items-center gap-1.5">
+            <Clock size={14} className="text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">
+              Laatst bijgewerkt: {new Date(latestMemo.updated_at).toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+            </p>
           </div>
-        </>
-      ) : (
-        <>
-          <p className={`text-[15px] leading-relaxed whitespace-pre-wrap ${latestMemo?.message ? 'text-foreground' : 'text-muted-foreground italic'}`}>
-            {latestMemo?.message || 'Geen overdracht voor vandaag'}
-          </p>
-          {latestMemo && latestMemo.message && (
-            <div className="flex items-center gap-1.5">
-              <Clock size={14} className="text-muted-foreground" />
-              <p className="text-xs text-muted-foreground">
-                Laatst bijgewerkt: {new Date(latestMemo.updated_at).toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-              </p>
-            </div>
-          )}
-        </>
-      )}
+        ) : <span />}
+        {isEditing && (
+          <div className="flex gap-2 ml-auto">
+            <Button variant="ghost" size="sm" onClick={() => { setMemoText(latestMemo?.message || ''); setIsEditing(false); }}>
+              <X size={14} /> Annuleren
+            </Button>
+            <Button size="sm" onClick={handleSave} disabled={!dirty}>
+              <Check size={14} /> Opslaan
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
