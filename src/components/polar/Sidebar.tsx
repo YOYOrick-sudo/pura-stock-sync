@@ -50,6 +50,7 @@ export function PolarSidebar({
   collapsed,
   onToggle,
   footerSlot,
+  logoutSlot,
 }: PolarSidebarProps) {
   const navigate = useNavigate();
   const { overzicht, keuken, beheer } = groupItems(items);
