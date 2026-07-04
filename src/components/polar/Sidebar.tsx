@@ -193,7 +193,7 @@ export function PolarSidebar({
             )}
           >
             {!collapsed && (
-              <h3 className="text-[11px] font-medium text-foreground/45 px-2.5 mb-2">
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-foreground/45 px-2.5 mb-2">
                 {g.label}
               </h3>
             )}
