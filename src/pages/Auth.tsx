@@ -190,22 +190,7 @@ const Auth = () => {
               </div>
             )}
 
-              <div>
-                <label htmlFor="pemail" className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 block mb-2">
-                  E-mail
-                </label>
-                <input
-                  id="pemail"
-                  type="email"
-                  value={personalEmail}
-                  onChange={(e) => setPersonalEmail(e.target.value)}
-                  placeholder="jouw@puravidafoodbar.nl"
-                  disabled={loading}
-                  autoComplete="email"
-                  className="w-full h-12 px-4 text-[15px] text-foreground bg-background border border-border/60 rounded-xl outline-none transition-all focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
-            )}
+
 
             <div>
               <label htmlFor="password" className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 block mb-2">
