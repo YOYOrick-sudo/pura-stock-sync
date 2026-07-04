@@ -79,23 +79,9 @@ export default function Cijfers() {
   return (
     <SidebarLayout>
       <div className="max-w-6xl mx-auto space-y-5 pb-8">
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', gap: 20, flexWrap: 'wrap' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 13px',
-            background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12,
-            fontSize: 13, color: 'hsl(var(--foreground))', fontWeight: 500,
-          }}>
-            <CalendarIcon size={14} strokeWidth={2} className="text-muted-foreground" />
-            <span className="tabular-nums">{label}</span>
-          </div>
-        </div>
-
-
-        
-
         {/* Filters */}
         <StickyFilters
+          label={label}
           periode={periode} setPeriode={setPeriode}
           vestKeuze={vestKeuze} setVestKeuze={setVestKeuze}
           customVan={customVan} setCustomVan={setCustomVan}
@@ -172,6 +158,7 @@ function Segment<T extends string>({
 }
 
 function StickyFilters(props: {
+  label: string;
   periode: Periode; setPeriode: (p: Periode) => void;
   vestKeuze: VestKeuze; setVestKeuze: (v: VestKeuze) => void;
   customVan: Date; setCustomVan: (d: Date) => void;
@@ -188,6 +175,14 @@ function StickyFilters(props: {
       )}
     >
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14 }}>
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 12px',
+          background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12,
+          fontSize: 13, color: 'hsl(var(--foreground))', fontWeight: 500,
+        }}>
+          <CalendarIcon size={14} strokeWidth={2} className="text-muted-foreground" />
+          <span className="tabular-nums">{props.label}</span>
+        </div>
         <Segment
           value={props.periode}
           onChange={(v) => props.setPeriode(v as Periode)}
