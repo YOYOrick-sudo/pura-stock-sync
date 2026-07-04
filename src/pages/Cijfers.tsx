@@ -92,7 +92,7 @@ export default function Cijfers() {
         </div>
 
 
-        {demoQ.data && <DemoBanner canWipe={isOwner} />}
+        
 
         {/* Filters */}
         <StickyFilters
