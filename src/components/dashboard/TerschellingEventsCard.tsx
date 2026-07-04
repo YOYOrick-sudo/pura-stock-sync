@@ -19,7 +19,7 @@ export function TerschellingEventsCard() {
     return (
       <div
         onClick={() => window.open(VVV_URL, '_blank', 'noopener,noreferrer')}
-        className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+        className="cursor-pointer"
         style={{ borderRadius: '20px' }}
       >
         <PolarKPICard
