@@ -1,18 +1,19 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Area, Bar, BarChart, CartesianGrid, ComposedChart, Legend,
-  Line, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Area, Bar, CartesianGrid, ComposedChart, ReferenceLine,
+  ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/pura/EmptyState';
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, TrendingUp, TrendingDown } from 'lucide-react';
 import {
   EUR, VEST_KLEUR, granulariteitVoor, vestigingenVan,
   type Periode, type VestKeuze, type Vestiging,
 } from './types';
 import { CijfersTooltipCard, type TooltipRow } from './CijfersTooltip';
+import { useCountUp } from './useCountUp';
 
 const DAG_NL = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
 const MND_NL = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
@@ -24,7 +25,7 @@ type Row = { bucket: string; vestiging: string; omzet: number; bonnen: number };
 
 function labelVoor(bucket: string, gran: 'uur' | 'dag' | 'maand'): string {
   const d = new Date(bucket);
-  if (gran === 'uur') return `${d.getHours().toString().padStart(2, '0')}:00`;
+  if (gran === 'uur') return `${d.getHours().toString().padStart(2, '0')}u`;
   if (gran === 'dag') return `${DAG_NL[d.getDay()]} ${d.getDate()}`;
   return MND_NL[d.getMonth()];
 }
@@ -33,6 +34,18 @@ function shift(date: string, dagen: number): string {
   const d = new Date(date);
   d.setDate(d.getDate() - dagen);
   return d.toISOString().slice(0, 10);
+}
+
+function fmtEurCompact(v: number): string {
+  const abs = Math.abs(v);
+  if (abs >= 1_000_000) return `€${(v / 1_000_000).toFixed(1).replace('.', ',')}M`;
+  if (abs >= 1_000) return `€${(v / 1_000).toFixed(v >= 10_000 ? 0 : 1).replace('.', ',')}k`;
+  return `€${Math.round(v)}`;
+}
+
+function fmtDateNL(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getDate()} ${MND_NL[d.getMonth()]}`;
 }
 
 export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props) {
@@ -66,29 +79,25 @@ export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props
   });
 
   const title =
-    periode === 'vandaag' ? 'Vandaag per uur' :
-    periode === 'week' ? 'Deze week per dag' :
-    periode === 'maand' ? 'Deze maand per dag' :
-    periode === 'jaar' ? 'Dit jaar per maand' :
-    `Aangepast: ${van} → ${tot}`;
+    periode === 'vandaag' ? 'Omzet per uur' :
+    periode === 'week' ? 'Omzet per dag — deze week' :
+    periode === 'maand' ? 'Omzet per dag — deze maand' :
+    periode === 'jaar' ? 'Omzet per maand — dit jaar' :
+    'Omzet — aangepaste periode';
+
+  const subtitle = `${fmtDateNL(van)} – ${fmtDateNL(tot)}  ·  vs  ${fmtDateNL(prevVan)} – ${fmtDateNL(prevTot)}`;
 
   const data = useMemo(() => {
     const cur = curQ.data ?? [];
     const prev = prevQ.data ?? [];
-    // Totaal per bucket (som over vestigingen). Behoud per-vestiging huidig als optionele stapel.
-    const map = new Map<string, any>();
-    const idx = (i: number, arr: any[]) => arr[i]?.key ?? '';
-
-    // Bouw de "geordende" set buckets uit cur (fallback prev). We aligneren prev op index (dus offset even lang).
     const curBuckets: string[] = [];
     for (const r of cur) if (!curBuckets.includes(r.bucket)) curBuckets.push(r.bucket);
     curBuckets.sort();
-
     const prevBuckets: string[] = [];
     for (const r of prev) if (!prevBuckets.includes(r.bucket)) prevBuckets.push(r.bucket);
     prevBuckets.sort();
-
     const n = Math.max(curBuckets.length, prevBuckets.length);
+    const rows: any[] = [];
     for (let i = 0; i < n; i++) {
       const cb = curBuckets[i];
       const pb = prevBuckets[i];
@@ -108,23 +117,33 @@ export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props
           entry.prevBonnen += Number(r.bonnen);
         }
       }
-      map.set(key, entry);
+      rows.push(entry);
     }
-    return [...map.values()];
+    return rows;
   }, [curQ.data, prevQ.data, gran]);
+
+  const totalCur = useMemo(() => data.reduce((s, d) => s + (d.curTotaal ?? 0), 0), [data]);
+  const totalPrev = useMemo(() => data.reduce((s, d) => s + (d.prevTotaal ?? 0), 0), [data]);
+  const totalPct = totalPrev > 0 ? ((totalCur - totalPrev) / totalPrev) * 100 : null;
+  const avg = useMemo(() => {
+    const nonZero = data.filter((d) => d.curTotaal > 0);
+    return nonZero.length ? totalCur / nonZero.length : 0;
+  }, [data, totalCur]);
+
+  const totalCurAnim = useCountUp(totalCur, 500);
 
   if (curQ.isLoading) {
     return (
       <div className="bg-card border border-border rounded-[20px] shadow-card p-6">
-        <div className="flex items-baseline justify-between mb-4">
-          <div className="text-base font-semibold">{title}</div>
-        </div>
-        <div className="h-[320px] flex flex-col justify-end gap-1">
-          <Skeleton className="h-[280px] rounded-[10px] opacity-70" />
-          <div className="flex gap-3 pt-2">
-            {Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-2 flex-1" />)}
+        <div className="flex items-start justify-between mb-6">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-8 w-52" />
+            <Skeleton className="h-3 w-64" />
           </div>
+          <Skeleton className="h-6 w-40" />
         </div>
+        <Skeleton className="h-[340px] rounded-[12px] opacity-70" />
       </div>
     );
   }
@@ -145,100 +164,160 @@ export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props
   }
 
   const series: Vestiging[] = vestigingen;
-  const totalCur = data.reduce((s, d) => s + (d.curTotaal ?? 0), 0);
-  const totalPrev = data.reduce((s, d) => s + (d.prevTotaal ?? 0), 0);
-  const totalPct = totalPrev > 0 ? ((totalCur - totalPrev) / totalPrev) * 100 : null;
+  const isLine = gran === 'uur';
+  const showStacked = !isLine && vestigingKeuze === 'Beide';
 
   return (
     <div className="bg-card border border-border rounded-[20px] shadow-card p-6">
-      <div className="flex items-baseline justify-between mb-4">
-        <div>
-          <div className="text-base font-semibold">{title}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">
-            Vergelijking met {prevVan} → {prevTot}
+      {/* Header: KPI + legend */}
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
+        <div className="min-w-0">
+          <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{title}</div>
+          <div className="mt-1 flex items-baseline gap-3">
+            <div className="text-3xl font-semibold tabular-nums text-foreground">{EUR.format(totalCurAnim)}</div>
+            {totalPct !== null && (
+              <div
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
+                  totalPct >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                }`}
+              >
+                {totalPct >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                {totalPct >= 0 ? '+' : ''}{totalPct.toFixed(1)}%
+              </div>
+            )}
+          </div>
+          <div className="mt-1 text-xs text-muted-foreground tabular-nums">
+            {subtitle}  ·  vorige periode <span className="text-foreground/80 font-medium">{EUR.format(totalPrev)}</span>
           </div>
         </div>
-        <div className="flex items-center gap-4 text-xs">
-          <LegendDot color="hsl(var(--primary))" label="Deze periode" />
-          <LegendDot color={GREY} label="Vorige periode" dashed />
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {showStacked ? (
+            series.map((v) => <Chip key={v} color={VEST_KLEUR[v]} label={v} />)
+          ) : (
+            <Chip color="hsl(var(--primary))" label="Deze periode" />
+          )}
+          <Chip color={GREY} label="Vorige periode" soft />
         </div>
       </div>
 
-      <div className="h-[320px]">
+      {/* Chart */}
+      <div className="h-[340px] -ml-2">
         <ResponsiveContainer width="100%" height="100%">
-          {gran === 'uur' || gran === 'maand' || vestigingKeuze !== 'Beide' ? (
-            <ComposedChart data={data} margin={{ top: 8, right: 16, bottom: 4, left: 4 }}>
-              <defs>
-                <linearGradient id="curFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.28} />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid vertical={false} strokeDasharray="2 4" stroke="hsl(var(--border))" strokeOpacity={0.6} />
-              <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} tickFormatter={(v) => EUR.format(Number(v))} width={72} />
-              <Tooltip content={<Tt seriesLabels={{ cur: 'Deze periode', prev: 'Vorige periode' }} />} cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 1, strokeDasharray: '3 3' }} />
-              {/* Prev als staafjes/lijn in grijs */}
-              {gran !== 'uur' ? (
-                <Bar dataKey="prevTotaal" name="Vorige periode" fill={GREY} fillOpacity={0.18} radius={[8, 8, 0, 0]} />
-              ) : (
-                <Line type="monotone" dataKey="prevTotaal" name="Vorige periode" stroke={GREY} strokeWidth={1.5} strokeDasharray="4 4" dot={false} activeDot={{ r: 3, fill: GREY, stroke: 'hsl(var(--card))', strokeWidth: 2 }} />
-              )}
-              {/* Cur */}
-              {gran === 'uur' ? (
-                <>
-                  <Area type="monotone" dataKey="curTotaal" stroke="none" fill="url(#curFill)" isAnimationActive={false} />
-                  <Line type="monotone" dataKey="curTotaal" name="Deze periode" stroke="hsl(var(--primary))" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" dot={false} activeDot={{ r: 5, fill: 'hsl(var(--primary))', stroke: 'hsl(var(--card))', strokeWidth: 2 }} />
-                </>
-              ) : (
-                <Bar dataKey="curTotaal" name="Deze periode" fill="hsl(var(--primary))" radius={[10, 10, 0, 0]} />
-              )}
-            </ComposedChart>
-          ) : (
-            /* Per-vestiging staven (Week/Maand + Beide) */
-            <BarChart data={data} margin={{ top: 8, right: 16, bottom: 4, left: 4 }}>
-              <CartesianGrid vertical={false} strokeDasharray="2 4" stroke="hsl(var(--border))" strokeOpacity={0.6} />
-              <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} tickFormatter={(v) => EUR.format(Number(v))} width={72} />
-              <Tooltip content={<Tt seriesLabels={{ cur: 'Deze periode', prev: 'Vorige periode' }} showPerVest series={series} />} cursor={{ fill: 'hsl(var(--muted) / 0.4)' }} />
-              <Bar dataKey="prevTotaal" name="Vorige periode" fill={GREY} fillOpacity={0.18} radius={[8, 8, 0, 0]} />
-              {series.map((v) => (
-                <Bar key={v} dataKey={`cur_${v}`} name={v} stackId="cur" fill={VEST_KLEUR[v]} radius={[10, 10, 0, 0]} />
-              ))}
-            </BarChart>
-          )}
+          <ComposedChart data={data} margin={{ top: 12, right: 12, bottom: 4, left: 0 }} barCategoryGap="22%">
+            <defs>
+              <linearGradient id="curFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.32} />
+                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="prevFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={GREY} stopOpacity={0.22} />
+                <stop offset="100%" stopColor={GREY} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid vertical={false} strokeDasharray="2 5" stroke="hsl(var(--border))" strokeOpacity={0.55} />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+              axisLine={false}
+              tickLine={false}
+              interval="preserveStartEnd"
+              minTickGap={16}
+              dy={4}
+            />
+            <YAxis
+              tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(v) => fmtEurCompact(Number(v))}
+              width={56}
+            />
+            <Tooltip
+              content={<Tt showPerVest={showStacked} series={series} />}
+              cursor={
+                isLine
+                  ? { stroke: 'hsl(var(--primary))', strokeWidth: 1, strokeDasharray: '3 3', strokeOpacity: 0.4 }
+                  : { fill: 'hsl(var(--primary) / 0.06)', radius: 8 }
+              }
+            />
+            {avg > 0 && (
+              <ReferenceLine
+                y={avg}
+                stroke="hsl(var(--primary))"
+                strokeDasharray="3 5"
+                strokeOpacity={0.35}
+                label={{ value: `gem ${fmtEurCompact(avg)}`, position: 'insideTopRight', fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+              />
+            )}
+
+            {/* Vorige periode ALTIJD als zachte grijze area/staaf, gedempt op de achtergrond */}
+            {isLine ? (
+              <Area
+                type="monotone"
+                dataKey="prevTotaal"
+                stroke={GREY}
+                strokeWidth={1.25}
+                strokeDasharray="4 4"
+                fill="url(#prevFill)"
+                isAnimationActive={false}
+                dot={false}
+                activeDot={{ r: 3, fill: GREY, stroke: 'hsl(var(--card))', strokeWidth: 1.5 }}
+              />
+            ) : (
+              <Bar dataKey="prevTotaal" fill={GREY} fillOpacity={0.16} radius={[6, 6, 0, 0]} maxBarSize={44} />
+            )}
+
+            {/* Huidige periode: sprekend */}
+            {isLine ? (
+              <>
+                <Area type="monotone" dataKey="curTotaal" stroke="none" fill="url(#curFill)" isAnimationActive={false} />
+                <Area
+                  type="monotone"
+                  dataKey="curTotaal"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2.75}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="transparent"
+                  dot={false}
+                  activeDot={{ r: 6, fill: 'hsl(var(--primary))', stroke: 'hsl(var(--card))', strokeWidth: 2.5 }}
+                />
+              </>
+            ) : showStacked ? (
+              series.map((v, i) => (
+                <Bar
+                  key={v}
+                  dataKey={`cur_${v}`}
+                  name={v}
+                  stackId="cur"
+                  fill={VEST_KLEUR[v]}
+                  radius={i === series.length - 1 ? [10, 10, 0, 0] : [0, 0, 0, 0]}
+                  maxBarSize={44}
+                />
+              ))
+            ) : (
+              <Bar dataKey="curTotaal" fill="hsl(var(--primary))" radius={[10, 10, 0, 0]} maxBarSize={44} />
+            )}
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
-
-      <div className="flex items-center justify-end gap-3 text-xs text-muted-foreground mt-2">
-        <span>Totaal deze periode <span className="text-foreground font-medium tabular-nums">{EUR.format(totalCur)}</span></span>
-        <span>·</span>
-        <span>Vorige <span className="tabular-nums">{EUR.format(totalPrev)}</span></span>
-        {totalPct !== null && (
-          <span className={`px-1.5 py-0.5 rounded-md font-semibold ${totalPct >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-            {totalPct >= 0 ? '+' : ''}{totalPct.toFixed(1)}%
-          </span>
-        )}
-      </div>
     </div>
   );
 }
 
-function LegendDot({ color, label, dashed }: { color: string; label: string; dashed?: boolean }) {
+function Chip({ color, label, soft }: { color: string; label: string; soft?: boolean }) {
   return (
-    <div className="inline-flex items-center gap-1.5 text-muted-foreground">
+    <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border border-border/60 bg-muted/40 text-[11px] font-medium text-foreground/80">
       <span
-        className="inline-block w-6 h-[3px] rounded"
-        style={{
-          background: dashed ? `repeating-linear-gradient(90deg, ${color} 0 4px, transparent 4px 7px)` : color,
-        }}
+        className="inline-block h-2 w-2 rounded-full"
+        style={{ background: color, opacity: soft ? 0.55 : 1 }}
       />
-      <span>{label}</span>
+      {label}
     </div>
   );
 }
 
-function Tt({ active, payload, label, seriesLabels, showPerVest, series }: any) {
+function Tt({ active, payload, label, showPerVest, series }: any) {
   if (!active || !payload?.length) return null;
   const entry = payload[0]?.payload ?? {};
   const cur = Number(entry.curTotaal ?? 0);
@@ -250,10 +329,10 @@ function Tt({ active, payload, label, seriesLabels, showPerVest, series }: any) 
       const val = Number(entry[`cur_${v}`] ?? 0);
       if (val > 0) rows.push({ label: v, color: VEST_KLEUR[v], value: val });
     }
-    if (rows.length === 0) rows.push({ label: seriesLabels.cur, color: 'hsl(var(--primary))', value: cur });
+    if (rows.length === 0) rows.push({ label: 'Deze periode', color: 'hsl(var(--primary))', value: cur });
   } else {
-    rows.push({ label: seriesLabels.cur, color: 'hsl(var(--primary))', value: cur, extra: `${entry.curBonnen ?? 0} bonnen` });
+    rows.push({ label: 'Deze periode', color: 'hsl(var(--primary))', value: cur, extra: `${entry.curBonnen ?? 0} bonnen` });
   }
-  rows.push({ label: seriesLabels.prev, color: GREY, value: prev });
+  rows.push({ label: 'Vorige periode', color: GREY, value: prev });
   return <CijfersTooltipCard title={label} rows={rows} deltaPct={pct} />;
 }
