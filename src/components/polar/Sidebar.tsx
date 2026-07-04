@@ -71,7 +71,7 @@ export function PolarSidebar({
             : 'h-[42px] px-3 gap-3 rounded-[14px]',
           item.active
             ? 'bg-primary/10 text-primary ring-1 ring-primary/20'
-            : 'text-foreground/70 hover:bg-white/60 hover:text-foreground'
+            : 'text-foreground/70 hover:bg-background hover:text-foreground'
         )}
       >
         <Icon
