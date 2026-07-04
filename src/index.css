@@ -15,6 +15,11 @@
     --app-canvas: 45 8% 95%;                /* alias for explicit canvas usage */
     --shadow-card: 0 20px 40px -12px rgba(0,0,0,0.08), 0 8px 16px -8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
     --shadow-card-hover: 0 24px 48px -12px rgba(0,0,0,0.10), 0 10px 20px -8px rgba(0,0,0,0.05);
+    /* Chart-specific neutrals (matched to reference #EAE8E3 / #C9C6C0 / #E4E2DD / #EEEDEA) */
+    --chart-grid: 40 8% 90%;
+    --chart-prev-line: 40 5% 78%;
+    --chart-idle-bar: 42 8% 87%;
+    --chart-track: 40 8% 93%;
     --foreground: 220 26% 14%;              /* #1F2937 - Gray-800 */
     
     /* Card surfaces - warm off-white, matches canvas */
