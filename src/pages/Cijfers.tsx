@@ -1,15 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { DemoBanner } from '@/components/cijfers/DemoBanner';
 import { CijfersMetricsBar } from '@/components/cijfers/CijfersMetricsBar';
 import { CijfersHoofdgrafiek } from '@/components/cijfers/CijfersHoofdgrafiek';
 import { CijfersHeatmap } from '@/components/cijfers/CijfersHeatmap';
