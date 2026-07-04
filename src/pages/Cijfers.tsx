@@ -79,21 +79,6 @@ export default function Cijfers() {
   return (
     <SidebarLayout>
       <div className="max-w-6xl mx-auto space-y-5 pb-8">
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', gap: 20, flexWrap: 'wrap' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 13px',
-            background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12,
-            fontSize: 13, color: 'hsl(var(--foreground))', fontWeight: 500,
-          }}>
-            <CalendarIcon size={14} strokeWidth={2} className="text-muted-foreground" />
-            <span className="tabular-nums">{label}</span>
-          </div>
-        </div>
-
-
-        
-
         {/* Filters */}
         <StickyFilters
           periode={periode} setPeriode={setPeriode}
