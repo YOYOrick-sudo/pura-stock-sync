@@ -7,7 +7,7 @@ export default function ServiceModule() {
   return (
     <KitchenLayout title="Bediening" subtitle="Taken & Medewerkers - Foodbar">
       <Tabs defaultValue="tasks" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 bg-white">
+        <TabsList className="grid w-full grid-cols-2 bg-card">
           <TabsTrigger value="tasks">Taken</TabsTrigger>
           <TabsTrigger value="staff">Medewerkers</TabsTrigger>
         </TabsList>

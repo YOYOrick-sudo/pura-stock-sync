@@ -1,73 +1,45 @@
-# Login-stijl doortrekken naar Dashboard, Sidebar & Achtergrond
+# Lichte "Auth-page" achtergrond doorvoeren – 3 fases
 
-Doel: dezelfde rustige, "Notion/Linear"-stijl van de inlogpagina consistent maken op het hele hoofdscherm. **Geen bewegende cards of knoppen** (geen `hover:-translate-y`, geen `hover:scale`, geen tilt). Alleen subtiele veranderingen in schaduw, achtergrond of ring op hover — puur voor feedback, zonder verplaatsing.
+Doel: overal de frisse lichte tint (#F5F4F2 canvas, #FAFAF8 cards) gebruiken die nu al op de Auth-pagina en het Dashboard staat, en zorgen dat sidebar, cards én invoervelden goed op elkaar aansluiten (geen "clay" gevoel meer, geen spierwitte contrasten).
 
-## De stijl-DNA van de inlogpagina (referentie)
-- Achtergrond: warm off-white `#EBEAE6`
-- Cards: `bg-card`, `border border-border/60`, `rounded-[20px]`, zachte gelaagde shadow (`0 20px 40px -12px rgba(0,0,0,0.08)` + subtiele tweede laag)
-- Chips/knoppen: `bg-white/60`, `border border-border/30`, `rounded-[16px]`, hele lichte shadow
-- Selected/active: `bg-primary/10 text-primary ring-1 ring-primary/20`
-- Labels: `text-[11px] font-medium text-foreground/45` (geen uppercase, geen tracking)
-- Radii: 20px cards, 14-16px knoppen/inputs
-- Groen blijft exact zoals nu (`#16A34A`)
+## Fase 1 – Design tokens & globale basis
+Eén bron van waarheid in `src/index.css` zodat de rest automatisch meebeweegt.
 
----
+- `--background` / `--app-canvas`: `45 8% 95%` (#F5F4F2) – bevestigen.
+- `--card` / `--popover`: `40 5% 98%` (#FAFAF8) – iets warmer dan puur wit, past bij canvas.
+- `--muted`: `40 5% 95%` afstemmen op canvas zodat hover/secondary vlakken niet "vuil" ogen.
+- `--sidebar-bg`: van puur wit (`0 0% 100%`) naar `40 5% 98%` (#FAFAF8) zodat sidebar dezelfde toon krijgt als de cards.
+- `--sidebar-hover`: iets warmer grijs dat matcht met canvas (`45 8% 93%`).
+- `--border`: iets warmer/zachter (`40 6% 88%`) zodat lijnen niet blauwig ogen tegen de warme achtergrond.
+- Shadow tokens ongewijzigd houden (blijven subtiel, werken op deze tint).
 
-## Stap 1 — Achtergrond & app-shell (fundament)
-Zorg dat het canvas onder alles hetzelfde ademt als de inlogpagina.
+Resultaat: 90% van de app trekt automatisch bij, want overal worden `bg-background`, `bg-card`, `bg-sidebar` etc. gebruikt.
 
-- App-achtergrond in `SidebarLayout.tsx` (en Dashboard-wrapper) van huidige `bg-muted`/soft-gray naar **warm off-white `#EBEAE6`**, met dark-mode fallback via bestaande tokens.
-- Optioneel: token `--app-canvas` toevoegen in `index.css` zodat we niet hardcoden.
-- Border tussen sidebar en content verzachten: `border-border/50` i.p.v. harde `border-border`.
-- Top-header (indien aanwezig) transparant maken zodat de canvas doorloopt; alleen een subtiele onderlijn bij scroll.
+## Fase 2 – Hardcoded kleuren opsporen en vervangen
+Alle plekken waar puur wit, `#FFFFFF`, `bg-white`, `#EBEAE6` of oude clay-tinten hardcoded staan vervangen door tokens (`bg-card`, `bg-background`, `bg-muted`).
 
-**Verificatie:** login → dashboard: achtergrondkleur voelt identiek, geen "sprong" bij transitie.
+Te controleren gebieden:
+- `src/pages/Auth.tsx` – al #F5F4F2, controleren of alles token-based kan.
+- `src/components/polar/Sidebar.tsx` – header toggle knop (`hover:bg-white/60`) → `hover:bg-muted`.
+- `src/components/polar/*` (KPICard, FormCard, Header, Dialog, Table, Tooltip, Alert) – witte vlakken naar `bg-card`.
+- `src/components/dashboard/*` (HandoverCard, WasteCalendarCard, IdeaBox, TerschellingEventsCard, WasteAlertBanner, WeatherWidget) – controleren op `bg-white` / hex.
+- `src/components/SidebarLayout.tsx`, `src/components/AppSidebar.tsx`, `src/components/NotificationsDropdown.tsx`.
+- HR / Personeel / Kitchen / Maintenance / FOH modules (`src/components/hr/*`, `src/components/personeel/*`, `src/components/kitchen/*`, `src/components/maintenance/*`, `src/components/foh/*`, `src/components/service/*`).
+- Pagina's onder `src/pages/*` (Kassa, Kassatelling, KasControle, Voorraad, Settings, TakenAdmin, TakenBeheer, HomeHub, personeel/*, kitchen/*, hr/*, foh/*, service/*, maintenance/*).
 
----
+## Fase 3 – Invoervelden, dialogen & afstemming
+De formulier- en overlay-laag laten matchen zodat inputs niet fel wit "gaten" worden.
 
-## Stap 2 — Sidebar in inlog-stijl (rustig, statisch)
-Sidebar krijgt de zachte kaartlook, zonder bewegingen.
+- `src/components/ui/input.tsx` en `src/components/ui/textarea.tsx`: `bg-background` → `bg-card` (of nieuw `bg-input-surface` token) zodat inputs subtiel oplichten tegen canvas maar niet spierwit zijn.
+- `src/components/ui/select.tsx`, `command.tsx`, `dropdown-menu.tsx`, `popover.tsx`, `dialog.tsx`, `sheet.tsx`, `drawer.tsx`, `calendar.tsx`, `alert-dialog.tsx`: controleren dat ze `bg-popover` / `bg-card` gebruiken en niet hardcoded wit.
+- `src/components/polar/DatePicker.tsx`, `TimePicker.tsx`, `Dialog.tsx`, `Textarea.tsx`.
+- Focus-ring en border kleuren van inputs iets zachter (`--input` afstemmen op nieuwe border-tint).
+- Visuele controle via Playwright screenshots op: Dashboard, Auth (referentie), FOH Taken, Kassatelling, Personeel > Wonen, Kitchen > Recepten, HR Inbox, Maintenance. Vergelijken dat sidebar, cards en inputs dezelfde familie vormen.
 
-- Sidebar-oppervlak: `bg-card` met dezelfde zachte gelaagde shadow als de inlogcard (of alleen rechterrand `border-border/60`), radius alleen aan de binnenkant waar zinvol.
-- Menu-items:
-  - Inactief: transparante achtergrond, `text-foreground/70`, icon `text-foreground/50`
-  - Hover: **alleen** `bg-white/60` + `text-foreground` (geen translate, geen scale)
-  - Actief: `bg-primary/10 text-primary ring-1 ring-primary/20 rounded-[14px]` — exact de "selected chip" look van de inloggerknoppen
-- Groep-labels ("MAIN", "BEHEER", …): `text-[11px] font-medium text-foreground/45`, **niet** uppercase/tracked.
-- Icons: 20px, inline uitgelijnd, `text-current` zodat ze meekleuren met actief-groen.
-- Collapse-trigger: subtiele ghost-button, geen shadow-lift.
+## Technische aanpak
+- Fase 1 = alleen `src/index.css` (light mode; dark mode ongemoeid).
+- Fase 2 = `rg -n "bg-white|#FFFFFF|#EBEAE6|#F7F6F4|bg-\[#"` om hardcoded gevallen te vinden, per module vervangen door tokens.
+- Fase 3 = `src/components/ui/*` en `src/components/polar/*` inputs/overlays; daarna Playwright verificatie.
+- Na elke fase build + snelle visuele check voordat we door naar de volgende gaan.
 
-**Verificatie:** hover over menu-items → geen enkel item beweegt; actieve route toont zachte groene chip identiek aan "Daily" op de inlogpagina.
-
----
-
-## Stap 3 — Dashboard-cards & KPI's polish
-Cards krijgen exact de inlog-cardstijl. **Statisch** — hover geeft hoogstens een iets diepere shadow, geen verplaatsing.
-
-- Alle dashboard-cards (`src/components/dashboard/*`, `HandoverCard`, KPI-tegels):
-  - `bg-card border border-border/60 rounded-[20px]`
-  - Shadow: `0 20px 40px -12px rgba(0,0,0,0.08), 0 8px 16px -8px rgba(0,0,0,0.04)` (dezelfde token als inlogcard — één keer definiëren als `--shadow-card`)
-  - Interne padding ruim: `p-6` minimaal
-  - Verwijder alle `hover:-translate-y-*`, `hover:scale-*`, `transition-transform` op cards en knoppen op het dashboard
-- Titels binnen cards: `text-[13px] font-medium text-foreground/60` (mini-label boven getal), waarde `text-3xl font-semibold text-foreground`
-- Status-badges (success/warning/error): behoud kleuren, maar radius `rounded-[10px]` en `bg-*/10 ring-1 ring-*/20` in plaats van gevulde blokken
-- Knoppen op het dashboard: primaire actie `bg-primary text-primary-foreground rounded-[14px]` **zonder** hover-lift (alleen `hover:opacity-90` of `hover:bg-primary/90`); secundaire acties in dezelfde chip-stijl als de inloggerkeuze-buttons (`bg-white/60 border border-border/30`)
-- Iconen in cards: 20px voor cardheader, 24px voor grote KPI, altijd inline uitgelijnd met tekst
-
-**Verificatie (screenshots):**
-1. Login-pagina naast dashboard: cards, radius, shadow, kleur — visueel identiek DNA.
-2. Hover over elke card & knop op dashboard: **geen enkele beweging**, alleen subtiele shadow/opacity feedback.
-3. Sidebar actief-item: identieke groene chip als "Daily" selected.
-
----
-
-## Technische notities
-- Nieuwe tokens toevoegen in `src/index.css`:
-  - `--app-canvas: 40 20% 94%;` (≈ `#EBEAE6`)
-  - `--shadow-card: 0 20px 40px -12px rgba(0,0,0,0.08), 0 8px 16px -8px rgba(0,0,0,0.04);`
-  - `--shadow-card-hover: 0 24px 48px -12px rgba(0,0,0,0.10), 0 10px 20px -8px rgba(0,0,0,0.05);` (alleen diepere shadow, geen translate)
-- Geraakte bestanden (verwacht): `src/index.css`, `src/components/AppSidebar.tsx`, `src/components/SidebarLayout.tsx`, `src/pages/Dashboard.tsx`, `src/components/HandoverCard.tsx`, `src/components/dashboard/*`.
-- Categorie: **UI-only** (geen data/RLS). Groen `#16A34A` blijft exact ongewijzigd.
-- Geen framer-motion toevoegen; bestaande motion op deze schermen wordt verwijderd waar het cards/knoppen verplaatst.
-
-Na akkoord voer ik Stap 1 → 2 → 3 uit met screenshot-verificatie na elke stap.
+Laat me weten of ik zo mag starten met **Fase 1**.

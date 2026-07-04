@@ -28,7 +28,7 @@ export function PolarSetupCard({
       <div
         className="flex flex-col rounded-polar-lg"
         style={{
-          backgroundColor: '#FFFFFF',
+          backgroundColor: 'hsl(var(--card))',
           padding: '24px',
         }}
       >

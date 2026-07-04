@@ -17,7 +17,7 @@
     --shadow-card-hover: 0 24px 48px -12px rgba(0,0,0,0.10), 0 10px 20px -8px rgba(0,0,0,0.05);
     --foreground: 220 26% 14%;              /* #1F2937 - Gray-800 */
     
-    /* Card surfaces - crisp white, clean against canvas */
+    /* Card surfaces - warm off-white, matches canvas */
     --card: 40 5% 98%;
     --card-foreground: 220 26% 14%;
     
@@ -33,8 +33,8 @@
     --secondary: 163 30% 95%;              /* #EDF7F5 */
     --secondary-foreground: 163 65% 26%;
     
-    /* Muted - Gray */
-    --muted: 40 6% 93%;                     /* #EDECEB - Warm Gray muted */
+    /* Muted - Gray, matches canvas family */
+    --muted: 40 5% 95%;                     /* aligned with canvas */
     --muted-foreground: 220 9% 46%;         /* #6B7280 - Gray-500 */
     
     /* Accent - keep green as accent too */
@@ -48,10 +48,11 @@
     /* Notification badge */
     --notification-badge: 0 70% 60%;
     
-    /* Borders - clean neutral */
-    --border: 220 13% 91%;                  /* #E5E7EB - Gray-200 */
-    --border-state: 220 13% 82%;            /* #D1D5DB - Gray-300 */
-    --input: 220 13% 84%;                   /* #D1D5DB - Gray-300 */
+    /* Borders - warm soft, matches off-white family */
+    --border: 40 6% 88%;                    /* warm soft border */
+    --border-state: 40 6% 80%;              /* stronger warm border */
+    --input: 40 6% 82%;                     /* input border, warm */
+    --input-surface: 0 0% 100%;             /* input fill: crisp but not harsh vs #FAFAF8 */
     --ring: 163 65% 26%;                    /* Primary green */
     
     /* Radius */
@@ -65,10 +66,10 @@
     --info: 217 91% 60%;                    /* #3B82F6 */
     --info-foreground: 0 0% 100%;
     
-    /* Sidebar - white bg */
-    --sidebar-bg: 0 0% 100%;               /* White */
+    /* Sidebar - matches card family */
+    --sidebar-bg: 40 5% 98%;                /* #FAFAF8 - same as cards */
     --sidebar-active: 163 30% 95%;          /* Light green tint */
-    --sidebar-hover: 40 6% 96%;             /* Warm Gray hover */
+    --sidebar-hover: 45 8% 93%;             /* subtle warm hover */
   }
 
   .dark {
@@ -104,6 +105,7 @@
     --border: 220 17% 24%;                  /* Gray-700 */
     --border-state: 220 13% 35%;            /* Gray-600 */
     --input: 220 17% 24%;
+    --input-surface: 220 20% 16%;
     --ring: 160 55% 50%;
     
     /* Status colors */

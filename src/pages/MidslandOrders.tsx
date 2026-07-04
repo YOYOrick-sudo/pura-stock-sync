@@ -576,7 +576,7 @@ export default function MidslandOrders() {
                                   }
                                 }}
                                 onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#FFFFFF';
+                                  e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
                                 }}
                               >
                                 <AlertCircle className="h-4 w-4" />

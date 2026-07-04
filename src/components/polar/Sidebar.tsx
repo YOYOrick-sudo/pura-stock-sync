@@ -161,7 +161,7 @@ export function PolarSidebar({
               size="icon"
               onClick={onToggle}
               aria-label="Sidebar inklappen"
-              className="h-10 w-10 rounded-md hover:bg-white/60 shrink-0"
+              className="h-10 w-10 rounded-md hover:bg-muted shrink-0"
             >
               <PanelLeftClose className="h-5 w-5 text-foreground/50" strokeWidth={1.75} />
             </Button>

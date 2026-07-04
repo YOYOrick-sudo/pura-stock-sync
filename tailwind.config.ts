@@ -45,6 +45,7 @@ export default {
           strong: "hsl(var(--primary) / 0.3)",   // Hover states
         },
         input: "hsl(var(--input))",
+        "input-surface": "hsl(var(--input-surface))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
