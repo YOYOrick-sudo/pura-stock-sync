@@ -1258,6 +1258,7 @@ export type Database = {
           aantal_bonnen: number
           created_at: string
           id: string
+          is_demo: boolean
           omzet_excl: number
           omzet_incl: number
           updated_at: string
@@ -1269,6 +1270,7 @@ export type Database = {
           aantal_bonnen?: number
           created_at?: string
           id?: string
+          is_demo?: boolean
           omzet_excl?: number
           omzet_incl?: number
           updated_at?: string
@@ -1280,6 +1282,7 @@ export type Database = {
           aantal_bonnen?: number
           created_at?: string
           id?: string
+          is_demo?: boolean
           omzet_excl?: number
           omzet_incl?: number
           updated_at?: string
@@ -2512,6 +2515,27 @@ export type Database = {
           },
         ]
       }
+      v_cijfers_dag: {
+        Row: {
+          aantal_bonnen: number | null
+          is_demo: boolean | null
+          omzet_excl: number | null
+          omzet_incl: number | null
+          vestiging: string | null
+          werkdag: string | null
+        }
+        Relationships: []
+      }
+      v_cijfers_uur_weekdag: {
+        Row: {
+          gem_omzet: number | null
+          isodow: number | null
+          n_dagen: number | null
+          uur: number | null
+          vestiging: string | null
+        }
+        Relationships: []
+      }
       v_ingredienten_stats: {
         Row: {
           aantal_recepten: number | null
@@ -2606,6 +2630,7 @@ export type Database = {
         Args: { _profile_user_id: string }
         Returns: boolean
       }
+      mag_cijfers_zien: { Args: { _uid: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -2623,6 +2648,44 @@ export type Database = {
           read_ct: number
         }[]
       }
+      rpc_cijfers_heatmap: {
+        Args: { p_tot: string; p_van: string; p_vestigingen: string[] }
+        Returns: {
+          gem_omzet: number
+          isodow: number
+          n_dagen: number
+          uur: number
+        }[]
+      }
+      rpc_cijfers_samenvatting: {
+        Args: { p_tot: string; p_van: string; p_vestigingen: string[] }
+        Returns: Json
+      }
+      rpc_cijfers_tijdreeks: {
+        Args: {
+          p_granulariteit: string
+          p_tot: string
+          p_van: string
+          p_vestigingen: string[]
+        }
+        Returns: {
+          bonnen: number
+          bucket: string
+          omzet: number
+          vestiging: string
+        }[]
+      }
+      rpc_cijfers_weekdag_vergelijk: {
+        Args: { p_tot: string; p_van: string; p_vestigingen: string[] }
+        Returns: {
+          delta_pct: number
+          gem_periode: number
+          gem_referentie: number
+          isodow: number
+        }[]
+      }
+      rpc_demo_data_wissen: { Args: never; Returns: number }
+      rpc_heeft_demo_data: { Args: never; Returns: boolean }
       sticker_producten_bump: {
         Args: { _naam: string; _tht: number; _type: string }
         Returns: string
