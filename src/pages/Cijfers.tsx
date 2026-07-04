@@ -54,7 +54,6 @@ function rangeLabel(periode: Periode, van: string, tot: string): string {
 }
 
 export default function Cijfers() {
-  const { isOwner } = useRole();
   const [periode, setPeriode] = useState<Periode>('week');
   const [vestKeuze, setVestKeuze] = useState<VestKeuze>('Beide');
 
