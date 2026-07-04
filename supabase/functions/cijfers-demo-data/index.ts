@@ -183,13 +183,29 @@ Deno.serve(async (req) => {
       done += slice.length;
     }
 
+    // Uren_dagen demo (afgeleid van omzet, met loonkosten & eitje_omzet_dag)
+    const urenRows = generateUrenDagen(rows);
+    let urenDone = 0;
+    for (let i = 0; i < urenRows.length; i += chunk) {
+      const slice = urenRows.slice(i, i + chunk);
+      const { error } = await admin
+        .from('uren_dagen')
+        .upsert(slice, { onConflict: 'vestiging,werkdag,is_demo' });
+      if (error) {
+        return new Response(JSON.stringify({ error: 'uren_upsert_failed', detail: error.message, uren_done: urenDone }), {
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      urenDone += slice.length;
+    }
+
     await admin.from('sync_runs').insert({
       bron: 'lightspeed', type: 'demo_seed', status: 'ok',
       bonnen_verwerkt: done, klaar_op: new Date().toISOString(),
-      foutmelding: 'Demo-data gegenereerd',
+      foutmelding: `Demo-data gegenereerd (omzet: ${done}, uren: ${urenDone})`,
     });
 
-    return new Response(JSON.stringify({ ok: true, rijen: done }), {
+    return new Response(JSON.stringify({ ok: true, rijen: done, uren_rijen: urenDone }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e) {
