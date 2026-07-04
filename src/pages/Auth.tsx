@@ -144,55 +144,52 @@ const Auth = () => {
         {/* Login Form */}
         <div className="px-8 pt-6 pb-8">
           <form onSubmit={handleLogin} className="flex flex-col gap-5">
-            <div className="grid grid-cols-2 gap-2 rounded-[16px] bg-muted/40 p-1">
-              <button
-                type="button"
-                onClick={() => !loading && setMode('shared')}
-                disabled={loading}
-                className={`h-11 rounded-[14px] text-[13px] font-semibold transition-all flex items-center justify-center gap-2 ${mode === 'shared' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-              >
-                <Store className="w-4 h-4" />
-                Locatie
-              </button>
-              <button
-                type="button"
-                onClick={() => !loading && setMode('personal')}
-                disabled={loading}
-                className={`h-11 rounded-[14px] text-[13px] font-semibold transition-all flex items-center justify-center gap-2 ${mode === 'personal' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-              >
-                <UserRound className="w-4 h-4" />
-                Persoonlijk
-              </button>
+            <div>
+              <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 block mb-2">
+                Kies inlogmethode
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                {([
+                  { key: 'daily' as const, label: 'Daily', icon: Building2 },
+                  { key: 'foodbar' as const, label: 'Foodbar', icon: Store },
+                  { key: 'personal' as const, label: 'Persoonlijk', icon: UserRound },
+                ]).map(({ key, label, icon: Icon }) => (
+                  <button
+                    type="button"
+                    key={key}
+                    onClick={() => !loading && setSelection(key)}
+                    disabled={loading}
+                    className={`flex flex-col items-center justify-center gap-2 py-5 px-2 rounded-[16px] transition-all duration-200
+                      ${selection === key
+                        ? 'bg-primary/10 text-primary border-2 border-primary'
+                        : 'bg-muted/40 text-muted-foreground border-2 border-transparent hover:text-foreground hover:bg-muted/60'
+                      } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                  >
+                    <Icon className="w-6 h-6" />
+                    <span className="text-[14px] font-semibold">{label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {mode === 'shared' ? (
+            {mode === 'personal' && (
               <div>
-                <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 block mb-2">
-                  Locatie
+                <label htmlFor="pemail" className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 block mb-2">
+                  E-mail
                 </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {([
-                    { loc: 'West' as const, icon: Building2 },
-                    { loc: 'Midsland' as const, icon: Store },
-                  ]).map(({ loc, icon: Icon }) => (
-                    <button
-                      type="button"
-                      key={loc}
-                      onClick={() => !loading && setLocation(loc)}
-                      disabled={loading}
-                      className={`flex flex-col items-center justify-center gap-2 py-5 px-4 rounded-[16px] transition-all duration-200
-                        ${location === loc
-                          ? 'bg-primary/10 text-primary border-2 border-primary'
-                          : 'bg-muted/40 text-muted-foreground border-2 border-transparent hover:text-foreground hover:bg-muted/60'
-                        } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                    >
-                      <Icon className="w-6 h-6" />
-                      <span className="text-[15px] font-semibold">{getLocationDisplayName(loc)}</span>
-                    </button>
-                  ))}
-                </div>
+                <input
+                  id="pemail"
+                  type="email"
+                  value={personalEmail}
+                  onChange={(e) => setPersonalEmail(e.target.value)}
+                  placeholder="jouw@puravidafoodbar.nl"
+                  disabled={loading}
+                  autoComplete="email"
+                  className="w-full h-12 px-4 text-[15px] text-foreground bg-background border border-border/60 rounded-xl outline-none transition-all focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
+                />
               </div>
-            ) : (
+            )}
+
               <div>
                 <label htmlFor="pemail" className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 block mb-2">
                   E-mail
