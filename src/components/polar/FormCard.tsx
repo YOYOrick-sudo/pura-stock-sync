@@ -22,7 +22,7 @@ export function PolarFormCard({ title, children }: PolarFormCardProps) {
       <div
         className="rounded-polar-lg"
         style={{
-          backgroundColor: '#FFFFFF',
+          backgroundColor: 'hsl(var(--card))',
           border: '1px solid hsl(var(--border))',
           padding: '32px',
         }}
