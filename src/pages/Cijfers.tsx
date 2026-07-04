@@ -175,6 +175,14 @@ function StickyFilters(props: {
       )}
     >
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14 }}>
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 12px',
+          background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12,
+          fontSize: 13, color: 'hsl(var(--foreground))', fontWeight: 500,
+        }}>
+          <CalendarIcon size={14} strokeWidth={2} className="text-muted-foreground" />
+          <span className="tabular-nums">{props.label}</span>
+        </div>
         <Segment
           value={props.periode}
           onChange={(v) => props.setPeriode(v as Periode)}
