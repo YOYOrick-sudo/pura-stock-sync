@@ -113,6 +113,12 @@
     --input: 220 17% 24%;
     --input-surface: 220 20% 16%;
     --ring: 160 55% 50%;
+
+    /* Chart-specific neutrals (dark) */
+    --chart-grid: 220 15% 22%;
+    --chart-prev-line: 220 10% 42%;
+    --chart-idle-bar: 220 15% 24%;
+    --chart-track: 220 18% 20%;
     
     /* Status colors */
     --success: 160 55% 50%;
