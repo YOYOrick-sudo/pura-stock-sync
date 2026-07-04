@@ -1,6 +1,6 @@
 export type Vestiging = 'Midsland' | 'West';
 export type VestKeuze = 'Midsland' | 'West' | 'Beide';
-export type Periode = 'vandaag' | 'week' | 'maand' | 'jaar';
+export type Periode = 'vandaag' | 'week' | 'maand' | 'jaar' | 'aangepast';
 
 export const VEST_KLEUR: Record<Vestiging, string> = {
   Midsland: 'hsl(var(--primary))',
