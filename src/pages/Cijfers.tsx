@@ -72,15 +72,6 @@ export default function Cijfers() {
     return periodeRange(periode);
   }, [periode, customVan, customTot, minDate, today]);
 
-  const demoQ = useQuery({
-    queryKey: ['heeft-demo-data'],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('rpc_heeft_demo_data');
-      if (error) throw error;
-      return Boolean(data);
-    },
-    refetchOnWindowFocus: true,
-  });
 
   const presets = useMemo(buildPresets, []);
   const label = rangeLabel(periode, range.van, range.tot);
