@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, LogIn, Building2, Store, UserRound } from 'lucide-react';
 import { toast } from 'sonner';
-import logoOfficial from '@/assets/pura-vida-logo-official.png';
+import logoOfficial from '@/assets/pura-vida-logo-sea-cropped.png';
 import { getLocationDisplayName } from '@/lib/utils';
 import { PWAInstallHint } from '@/components/PWAInstallHint';
 import { devError } from "@/lib/devLog";
