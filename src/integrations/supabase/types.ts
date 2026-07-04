@@ -338,6 +338,24 @@ export type Database = {
         }
         Relationships: []
       }
+      cijfers_instellingen: {
+        Row: {
+          updated_at: string
+          uurloon_allin: number | null
+          vestiging: string
+        }
+        Insert: {
+          updated_at?: string
+          uurloon_allin?: number | null
+          vestiging: string
+        }
+        Update: {
+          updated_at?: string
+          uurloon_allin?: number | null
+          vestiging?: string
+        }
+        Relationships: []
+      }
       document_templates: {
         Row: {
           accommodation_id: string | null
@@ -388,6 +406,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      eitje_connection: {
+        Row: {
+          created_at: string
+          id: string
+          laatste_fout: string | null
+          laatste_sync_op: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          laatste_fout?: string | null
+          laatste_sync_op?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          laatste_fout?: string | null
+          laatste_sync_op?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      eitje_environments: {
+        Row: {
+          created_at: string
+          eitje_environment_id: string
+          eitje_naam: string | null
+          id: string
+          updated_at: string
+          vestiging: string | null
+        }
+        Insert: {
+          created_at?: string
+          eitje_environment_id: string
+          eitje_naam?: string | null
+          id?: string
+          updated_at?: string
+          vestiging?: string | null
+        }
+        Update: {
+          created_at?: string
+          eitje_environment_id?: string
+          eitje_naam?: string | null
+          id?: string
+          updated_at?: string
+          vestiging?: string | null
+        }
+        Relationships: []
       }
       email_send_log: {
         Row: {
@@ -2117,16 +2189,42 @@ export type Database = {
         }
         Relationships: []
       }
+      sync_leases: {
+        Row: {
+          bron: string
+          expires_at: string | null
+          holder: string | null
+          lease_token: string | null
+          updated_at: string
+        }
+        Insert: {
+          bron: string
+          expires_at?: string | null
+          holder?: string | null
+          lease_token?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bron?: string
+          expires_at?: string | null
+          holder?: string | null
+          lease_token?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sync_runs: {
         Row: {
           bonnen_verwerkt: number | null
           bron: string
+          details: Json | null
           foutmelding: string | null
           gestart_op: string
           id: string
           klaar_op: string | null
           periode_tot: string | null
           periode_van: string | null
+          state: Json | null
           status: string
           type: string
           vestiging: string | null
@@ -2134,12 +2232,14 @@ export type Database = {
         Insert: {
           bonnen_verwerkt?: number | null
           bron?: string
+          details?: Json | null
           foutmelding?: string | null
           gestart_op?: string
           id?: string
           klaar_op?: string | null
           periode_tot?: string | null
           periode_van?: string | null
+          state?: Json | null
           status?: string
           type: string
           vestiging?: string | null
@@ -2147,12 +2247,14 @@ export type Database = {
         Update: {
           bonnen_verwerkt?: number | null
           bron?: string
+          details?: Json | null
           foutmelding?: string | null
           gestart_op?: string
           id?: string
           klaar_op?: string | null
           periode_tot?: string | null
           periode_van?: string | null
+          state?: Json | null
           status?: string
           type?: string
           vestiging?: string | null
@@ -2292,6 +2394,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      uren_dagen: {
+        Row: {
+          created_at: string
+          eitje_omzet_dag: number | null
+          geplande_uren: number
+          gewerkte_uren: number
+          id: string
+          is_demo: boolean
+          loonkosten: number | null
+          loonkosten_bron: string | null
+          updated_at: string
+          vestiging: string
+          werkdag: string
+        }
+        Insert: {
+          created_at?: string
+          eitje_omzet_dag?: number | null
+          geplande_uren?: number
+          gewerkte_uren?: number
+          id?: string
+          is_demo?: boolean
+          loonkosten?: number | null
+          loonkosten_bron?: string | null
+          updated_at?: string
+          vestiging: string
+          werkdag: string
+        }
+        Update: {
+          created_at?: string
+          eitje_omzet_dag?: number | null
+          geplande_uren?: number
+          gewerkte_uren?: number
+          id?: string
+          is_demo?: boolean
+          loonkosten?: number | null
+          loonkosten_bron?: string | null
+          updated_at?: string
+          vestiging?: string
+          werkdag?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
