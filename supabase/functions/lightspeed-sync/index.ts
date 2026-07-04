@@ -298,6 +298,22 @@ async function aggregateAndUpsert(
   }
   if (buckets.size === 0) return 0;
 
+  // Guard: weiger te schrijven zolang er demo-data bestaat voor deze vestiging.
+  const { data: demoRow, error: demoErr } = await admin
+    .from('omzet_uren')
+    .select('id', { head: false })
+    .eq('vestiging', vestiging)
+    .eq('is_demo', true)
+    .limit(1)
+    .maybeSingle();
+  if (demoErr) throw new Error(`demo_check_failed: ${demoErr.message}`);
+  if (demoRow) {
+    throw new Error(
+      `gestopt_demo_data_aanwezig: er staan nog demo-rijen voor ${vestiging}. ` +
+      `Wis eerst de demo-data via het Cijfers-dashboard (owner) voordat de echte sync mag schrijven.`,
+    );
+  }
+
   const rows = [...buckets.values()].map((b) => ({
     vestiging,
     werkdag: b.werkdag,
@@ -305,12 +321,14 @@ async function aggregateAndUpsert(
     omzet_incl: Number(b.incl.toFixed(2)),
     omzet_excl: Number(b.excl.toFixed(2)),
     aantal_bonnen: b.count,
+    is_demo: false,
     updated_at: new Date().toISOString(),
   }));
   const { error } = await admin.from('omzet_uren').upsert(rows, { onConflict: 'vestiging,werkdag,uur' });
   if (error) throw new Error(`upsert_failed: ${error.message}`);
   return receipts.length;
 }
+
 
 // ------------------------------------------------------------------
 // Sync-run wrapper
