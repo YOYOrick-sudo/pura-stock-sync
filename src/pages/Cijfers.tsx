@@ -1,15 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { DemoBanner } from '@/components/cijfers/DemoBanner';
 import { CijfersMetricsBar } from '@/components/cijfers/CijfersMetricsBar';
 import { CijfersHoofdgrafiek } from '@/components/cijfers/CijfersHoofdgrafiek';
 import { CijfersHeatmap } from '@/components/cijfers/CijfersHeatmap';
@@ -57,7 +54,6 @@ function rangeLabel(periode: Periode, van: string, tot: string): string {
 }
 
 export default function Cijfers() {
-  const { isOwner } = useRole();
   const [periode, setPeriode] = useState<Periode>('week');
   const [vestKeuze, setVestKeuze] = useState<VestKeuze>('Beide');
 
@@ -76,15 +72,6 @@ export default function Cijfers() {
     return periodeRange(periode);
   }, [periode, customVan, customTot, minDate, today]);
 
-  const demoQ = useQuery({
-    queryKey: ['heeft-demo-data'],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('rpc_heeft_demo_data');
-      if (error) throw error;
-      return Boolean(data);
-    },
-    refetchOnWindowFocus: true,
-  });
 
   const presets = useMemo(buildPresets, []);
   const label = rangeLabel(periode, range.van, range.tot);
@@ -105,7 +92,7 @@ export default function Cijfers() {
         </div>
 
 
-        {demoQ.data && <DemoBanner canWipe={isOwner} />}
+        
 
         {/* Filters */}
         <StickyFilters
