@@ -100,6 +100,17 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
       collapsed={collapsed}
       onToggle={() => setCollapsed(!collapsed)}
       footerSlot={!collapsed ? <ThemeToggle /> : undefined}
+      logoutSlot={
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleLogout}
+          aria-label="Uitloggen"
+          className="h-9 w-9 rounded-md hover:bg-muted"
+        >
+          <LogOut className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
+        </Button>
+      }
     />
   );
 }
