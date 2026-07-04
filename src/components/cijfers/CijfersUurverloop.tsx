@@ -1,22 +1,16 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Area, CartesianGrid, ComposedChart, Line, ReferenceDot, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { EUR, vestigingenVan, type Periode, type VestKeuze } from './types';
-import { CijfersTooltipCard, type TooltipRow } from './CijfersTooltip';
+import { vestigingenVan, type Periode, type VestKeuze } from './types';
+import {
+  EUR0, axisEUR, smoothPath, svgHoverIndex, TipCard, TipRow, tipTransform,
+} from './chartHelpers';
 
 interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
 type Cel = { isodow: number; uur: number; gem_omzet: number; n_dagen: number };
 
-function fmtEurCompact(v: number): string {
-  const a = Math.abs(v);
-  if (a >= 1_000) return `€${(v / 1_000).toFixed(a >= 10_000 ? 0 : 1).replace('.', ',')}k`;
-  return `€${Math.round(v)}`;
-}
-
 export function CijfersUurverloop({ periode, vestigingKeuze, van: pvan, tot }: Props) {
-  // Hergebruik dezelfde query-key als de heatmap zodat we niet dubbel fetchen.
   const isSingle = periode === 'vandaag';
   const van = isSingle
     ? (() => { const d = new Date(tot); d.setDate(d.getDate() - 56); return d.toISOString().slice(0, 10); })()
@@ -35,30 +29,26 @@ export function CijfersUurverloop({ periode, vestigingKeuze, van: pvan, tot }: P
     refetchOnWindowFocus: true,
   });
 
-  const { data, peakIdx, dagTotaal } = useMemo(() => {
+  const { labels, vals, total } = useMemo(() => {
     const cellen = q.data ?? [];
     const perUur = new Map<number, { som: number; n: number }>();
     for (const c of cellen) {
       const cur = perUur.get(c.uur) ?? { som: 0, n: 0 };
-      cur.som += Number(c.gem_omzet);
-      cur.n += 1;
+      cur.som += Number(c.gem_omzet); cur.n += 1;
       perUur.set(c.uur, cur);
     }
-    const rows: { uur: number; label: string; gem: number }[] = [];
+    const _labels: string[] = []; const _vals: number[] = [];
     for (let u = 10; u <= 23; u++) {
       const p = perUur.get(u);
-      const gem = p && p.n > 0 ? p.som / p.n : 0;
-      rows.push({ uur: u, label: `${u}u`, gem });
+      _labels.push(String(u).padStart(2, '0'));
+      _vals.push(p && p.n > 0 ? p.som / p.n : 0);
     }
-    const totaal = rows.reduce((s, r) => s + r.gem, 0);
-    let pk = 0;
-    for (let i = 1; i < rows.length; i++) if (rows[i].gem > rows[pk].gem) pk = i;
-    return { data: rows, peakIdx: pk, dagTotaal: totaal };
+    return { labels: _labels, vals: _vals, total: _vals.reduce((a, b) => a + b, 0) };
   }, [q.data]);
 
   if (q.isLoading) {
     return (
-      <div className="bg-card border border-border rounded-[20px] shadow-card p-6">
+      <div className="bg-card border border-border rounded-[20px] shadow-card cj-card-in" style={{ padding: '22px 24px 16px' }}>
         <Skeleton className="h-4 w-52 mb-2" />
         <Skeleton className="h-3 w-64 mb-6" />
         <Skeleton className="h-[240px] rounded-[12px]" />
@@ -66,112 +56,122 @@ export function CijfersUurverloop({ periode, vestigingKeuze, van: pvan, tot }: P
     );
   }
 
-  const peak = data[peakIdx];
-  const heeftData = data.some((d) => d.gem > 0);
+  const heeft = vals.some((v) => v > 0);
 
   return (
-    <div className="bg-card border border-border rounded-[20px] shadow-card p-6 h-full flex flex-col">
-      <div className="mb-4">
-        <div className="text-[15px] font-semibold text-foreground">Omzetverloop over de dag</div>
-        <div className="text-[12px] text-muted-foreground mt-0.5">Gemiddeld patroon per uur · piek gemarkeerd</div>
+    <div className="bg-card border border-border rounded-[20px] shadow-card cj-card-in h-full flex flex-col" style={{ padding: '22px 24px 16px' }}>
+      <div style={{ fontSize: 15, fontWeight: 600, color: 'hsl(var(--foreground))' }}>Omzetverloop over de dag</div>
+      <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', marginTop: 3 }}>Gemiddeld patroon per uur · piek gemarkeerd</div>
+      <div style={{ marginTop: 12 }}>
+        {!heeft
+          ? <div className="py-10 text-center text-sm text-muted-foreground">Geen data.</div>
+          : <HourChart labels={labels} vals={vals} total={total} />}
       </div>
-
-      {!heeftData ? (
-        <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">Geen data.</div>
-      ) : (
-        <div className="flex-1 min-h-[240px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={data} margin={{ top: 28, right: 8, bottom: 4, left: 0 }}>
-              <defs>
-                <linearGradient id="uurAreaFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.20} />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid vertical={false} strokeDasharray="2 5" stroke="hsl(var(--border))" />
-              <XAxis
-                dataKey="label"
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                axisLine={false}
-                tickLine={false}
-                interval={1}
-                dy={6}
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(v) => fmtEurCompact(Number(v))}
-                width={48}
-              />
-              <Tooltip
-                cursor={{ stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1, strokeDasharray: '4 4', strokeOpacity: 0.6 }}
-                content={<Tt dagTotaal={dagTotaal} />}
-              />
-
-              {/* Verticale accent-lijnen (impressionistisch) — via smalle Bar-look met Line-segmenten */}
-              {/* Voor eenvoud gebruiken we een tweede Area met heel lage opacity */}
-              <Area
-                type="monotone"
-                dataKey="gem"
-                stroke="none"
-                fill="url(#uurAreaFill)"
-                fillOpacity={0.5}
-                isAnimationActive={true}
-              />
-              <Line
-                type="monotone"
-                dataKey="gem"
-                stroke="hsl(var(--primary))"
-                strokeWidth={2.8}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                dot={false}
-                activeDot={{ r: 5, fill: 'hsl(var(--primary))', stroke: 'hsl(var(--card))', strokeWidth: 2.5 }}
-                isAnimationActive={true}
-              />
-              {/* Piek marker */}
-              <ReferenceDot
-                x={peak.label}
-                y={peak.gem}
-                r={6}
-                fill="hsl(var(--primary))"
-                stroke="hsl(var(--card))"
-                strokeWidth={3}
-                isFront
-                label={({ viewBox }: any) => {
-                  const cx = viewBox.cx ?? 0;
-                  const cy = viewBox.cy ?? 0;
-                  const txt = `piek ${fmtEurCompact(peak.gem)}`;
-                  const w = Math.max(56, txt.length * 6 + 12);
-                  return (
-                    <g>
-                      <rect x={cx - w / 2} y={cy - 26} width={w} height={16} rx={8} fill="hsl(var(--primary))" />
-                      <text x={cx} y={cy - 15} textAnchor="middle" fontSize={11} fontWeight={700} fill="white" className="tabular-nums">
-                        {txt}
-                      </text>
-                    </g>
-                  );
-                }}
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </div>
-      )}
     </div>
   );
 }
 
-function Tt({ active, payload, dagTotaal }: any) {
-  if (!active || !payload?.length) return null;
-  const d = payload[0].payload;
-  const gem = Number(d.gem);
-  const share = dagTotaal > 0 ? (gem / dagTotaal) * 100 : 0;
-  const rows: TooltipRow[] = [
-    { label: 'gem. omzet', color: 'hsl(var(--primary))', value: gem, extra: `${share.toFixed(1)}% van dag` },
-  ];
-  const startU = d.uur;
-  const endU = (startU + 1) % 24;
-  const title = `${String(startU).padStart(2, '0')}:00 – ${String(endU).padStart(2, '0')}:00`;
-  return <CijfersTooltipCard title={title} rows={rows} />;
+function HourChart({ labels, vals, total }: { labels: string[]; vals: number[]; total: number }) {
+  const [hv, setHv] = useState<number | null>(null);
+  const n = vals.length;
+  const W = 560, H = 240, padL = 50, padR = 16, padT = 32, padB = 28;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+  const baseY = padT + plotH;
+  const hi = Math.max(...vals) * 1.18 || 1;
+  const X = (i: number) => padL + (i * plotW) / (n - 1);
+  const Y = (v: number) => padT + (1 - v / hi) * plotH;
+
+  const pts = vals.map((v, i) => ({ x: X(i), y: Y(v) }));
+  const d = smoothPath(pts);
+  const areaD = `${d} L ${pts[n - 1].x.toFixed(1)},${baseY} L ${pts[0].x.toFixed(1)},${baseY} Z`;
+  const maxIdx = vals.indexOf(Math.max(...vals));
+
+  const grid = [];
+  const ticks = 3;
+  for (let i = 0; i <= ticks; i++) {
+    const val = (hi * i) / ticks; const y = Y(val);
+    grid.push(
+      <g key={'g' + i}>
+        <line x1={padL} x2={W - padR} y1={y} y2={y} stroke="hsl(var(--chart-grid))" strokeWidth={1} strokeDasharray="2 5" />
+        <text x={padL - 9} y={y + 3.5} textAnchor="end" fontSize={10.5} fill="hsl(var(--muted-foreground))">{axisEUR(val)}</text>
+      </g>,
+    );
+  }
+  const hatch = pts.map((p, i) => (
+    <line
+      key={'h' + i} x1={p.x} x2={p.x} y1={baseY} y2={p.y}
+      stroke="hsl(var(--primary))" strokeWidth={(plotW / n) * 0.5}
+      strokeOpacity={0.13} strokeLinecap="round"
+    />
+  ));
+  const xlabels = labels.map((lab, i) =>
+    i % 2 === 0
+      ? <text key={'x' + i} x={X(i)} y={H - 8} textAnchor="middle" fontSize={10.5} fill="hsl(var(--muted-foreground))">{lab}</text>
+      : null,
+  );
+
+  const pk = pts[maxIdx];
+  const pillText = 'piek ' + axisEUR(vals[maxIdx]);
+  const pw = pillText.length * 6.1 + 18;
+  let px = pk.x;
+  if (px - pw / 2 < padL) px = padL + pw / 2;
+  if (px + pw / 2 > W - padR) px = W - padR - pw / 2;
+  const peak = (
+    <g style={{ pointerEvents: 'none' }}>
+      <circle cx={pk.x} cy={pk.y} r={5} fill="hsl(var(--primary))" stroke="hsl(var(--card))" strokeWidth={2.5} />
+      <g style={{ animation: 'cj-popIn .35s ease .45s both' }}>
+        <rect x={px - pw / 2} y={pk.y - 32} width={pw} height={21} rx={10.5} fill="hsl(var(--primary))" />
+        <text x={px} y={pk.y - 17} textAnchor="middle" fontSize={11} fontWeight={700} fill="#fff">{pillText}</text>
+      </g>
+    </g>
+  );
+
+  let hovG: any = null; let tip: any = null;
+  if (hv != null && hv >= 0 && hv < n) {
+    const gx = X(hv);
+    hovG = (
+      <g style={{ pointerEvents: 'none' }}>
+        <line x1={gx} x2={gx} y1={padT} y2={baseY} stroke="hsl(var(--primary))" strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.45} />
+        <circle cx={gx} cy={Y(vals[hv])} r={5} fill="hsl(var(--primary))" stroke="hsl(var(--card))" strokeWidth={2.5} />
+      </g>
+    );
+    const leftPct = (gx / W) * 100;
+    const share = total ? (vals[hv] / total) * 100 : 0;
+    tip = (
+      <TipCard leftPct={leftPct} transform={tipTransform(leftPct)}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 6 }}>
+          {labels[hv]}:00 – {labels[hv]}:59
+        </div>
+        <TipRow color="hsl(var(--primary))" label="Gem. omzet" value={EUR0.format(vals[hv])} />
+        <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid hsl(var(--border))', fontSize: 10.5, color: 'hsl(var(--muted-foreground))' }}>
+          {share.toFixed(1)}% van de dagomzet
+        </div>
+      </TipCard>
+    );
+  }
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <svg
+        viewBox={`0 0 ${W} ${H}`} width="100%" height="auto"
+        style={{ display: 'block', overflow: 'visible', cursor: 'crosshair' }}
+        onMouseMove={(e) => setHv(svgHoverIndex(e, n, padL, plotW, W))}
+        onMouseLeave={() => setHv(null)}
+      >
+        {grid}
+        {hatch}
+        <path d={areaD} fill="hsl(var(--primary) / 0.10)" stroke="none" style={{ opacity: 0, animation: 'cj-fadeArea .8s ease .15s forwards' }} />
+        <path
+          d={d} fill="none" stroke="hsl(var(--primary))"
+          strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" pathLength={1}
+          style={{ strokeDasharray: 1, strokeDashoffset: 1, animation: 'cj-drawLine 1s ease forwards' }}
+        />
+        {xlabels}
+        {peak}
+        {hovG}
+      </svg>
+      {tip}
+    </div>
+  );
 }
