@@ -27,6 +27,7 @@ export interface PolarSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
   footerSlot?: React.ReactNode;
+  logoutSlot?: React.ReactNode;
 }
 
 function groupItems(items: PolarSidebarItem[]) {
