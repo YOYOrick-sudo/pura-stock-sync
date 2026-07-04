@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ClipboardList, Edit2, X, Check, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +12,7 @@ export const HandoverCard = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [memoText, setMemoText] = useState('');
   const queryClient = useQueryClient();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const { data: latestMemo, isLoading } = useQuery({
     queryKey: ['handover-memo', userLocation],
@@ -28,6 +29,13 @@ export const HandoverCard = () => {
     },
     enabled: !!userLocation,
   });
+
+  useLayoutEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [memoText, latestMemo?.message]);
 
   useEffect(() => {
     if (!userLocation) return;
@@ -96,6 +104,7 @@ export const HandoverCard = () => {
       </div>
 
       <Textarea
+        ref={textareaRef}
         value={memoText}
         onChange={(e) => { setMemoText(e.target.value); if (!isEditing) setIsEditing(true); }}
         onFocus={() => setIsEditing(true)}
@@ -105,8 +114,8 @@ export const HandoverCard = () => {
           if (e.key === 'Escape') { setMemoText(latestMemo?.message || ''); setIsEditing(false); (e.target as HTMLTextAreaElement).blur(); }
         }}
         placeholder="Noteer hier belangrijke informatie voor de volgende shift:&#10;• Speciale afspraken of afhalingen&#10;• Bijzonderheden van vandaag&#10;• Aandachtspunten voor straks"
-        rows={4}
-        className="resize-none"
+        rows={3}
+        className="resize-none overflow-hidden"
         style={{ whiteSpace: 'pre-wrap' }}
       />
 
