@@ -259,11 +259,11 @@ async function withRun(
         laatste_sync_op: new Date().toISOString(),
         laatste_fout: null,
         status: 'gekoppeld',
-      }).eq('id', 1);
+      }).not('id', 'is', null);
     } else if (res.error) {
       await admin.from('eitje_connection').update({
         laatste_fout: res.error.slice(0, 500),
-      }).eq('id', 1);
+      }).not('id', 'is', null);
     }
     return res;
   } catch (e) {
@@ -271,7 +271,7 @@ async function withRun(
     await admin.from('sync_runs').update({
       status: 'fout', foutmelding: msg.slice(0, 1000), klaar_op: new Date().toISOString(),
     }).eq('id', runId);
-    await admin.from('eitje_connection').update({ laatste_fout: msg.slice(0, 500) }).eq('id', 1);
+    await admin.from('eitje_connection').update({ laatste_fout: msg.slice(0, 500) }).not('id', 'is', null);
     return { ok: false, error: msg };
   } finally {
     await releaseLease(admin, lease.token);
