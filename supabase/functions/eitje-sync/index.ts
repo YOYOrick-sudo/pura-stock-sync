@@ -104,23 +104,15 @@ async function requireAuth(req: Request): Promise<Response | null> {
 // Lease per bron ('eitje')
 // ------------------------------------------------------------------
 async function acquireLease(admin: any, holder: string): Promise<{ token: string } | { error: string }> {
-  const nowIso = new Date().toISOString();
-  const token = crypto.randomUUID();
-  const expires = new Date(Date.now() + LEASE_SECONDS * 1000).toISOString();
-  const { data, error } = await admin
-    .from('sync_leases')
-    .update({ lease_token: token, expires_at: expires, holder, updated_at: nowIso })
-    .eq('bron', 'eitje')
-    .or(`lease_token.is.null,expires_at.lt.${nowIso}`)
-    .select('bron');
+  const { data, error } = await admin.rpc('sync_lease_acquire', {
+    _bron: 'eitje', _holder: holder, _seconds: LEASE_SECONDS,
+  });
   if (error) return { error: `lease_query_failed: ${error.message}` };
-  if (!data || data.length === 0) return { error: 'lease_bezet: andere Eitje-sync draait nog' };
-  return { token };
+  if (!data) return { error: 'lease_bezet: andere Eitje-sync draait nog' };
+  return { token: data as string };
 }
 async function releaseLease(admin: any, token: string) {
-  await admin.from('sync_leases')
-    .update({ lease_token: null, expires_at: null, holder: null, updated_at: new Date().toISOString() })
-    .eq('bron', 'eitje').eq('lease_token', token);
+  await admin.rpc('sync_lease_release', { _bron: 'eitje', _token: token });
 }
 
 // ------------------------------------------------------------------

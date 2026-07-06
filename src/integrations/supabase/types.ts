@@ -2834,6 +2834,14 @@ export type Database = {
         Args: { _naam: string; _tht: number; _type: string }
         Returns: string
       }
+      sync_lease_acquire: {
+        Args: { _bron: string; _holder: string; _seconds: number }
+        Returns: string
+      }
+      sync_lease_release: {
+        Args: { _bron: string; _token: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role:
