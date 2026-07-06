@@ -142,7 +142,7 @@ async function eitjeGet(path: string, params?: Record<string, string>): Promise<
   const text = await resp.text();
   let body: unknown = null;
   try { body = JSON.parse(text); } catch { body = null; }
-  return { status: resp.status, body, raw: body === null ? text.slice(0, 2000) : undefined };
+  return { status: resp.status, body, raw: text.slice(0, 800) };
 }
 
 // ------------------------------------------------------------------
