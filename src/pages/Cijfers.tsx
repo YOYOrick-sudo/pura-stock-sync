@@ -60,6 +60,8 @@ function rangeLabel(periode: Periode, van: string, tot: string): string {
 export default function Cijfers() {
   const [periode, setPeriode] = useState<Periode>('week');
   const [vestKeuze, setVestKeuze] = useState<VestKeuze>('Beide');
+  const magLoon = useMagLoonkostenZien();
+
 
   const today = useMemo(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }, []);
   const minDate = useMemo(() => { const d = new Date(today); d.setDate(d.getDate() - MAX_TERUG_DAGEN); return d; }, [today]);
