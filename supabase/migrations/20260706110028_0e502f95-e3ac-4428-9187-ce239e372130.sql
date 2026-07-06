@@ -1,0 +1,1 @@
+ALTER TABLE public.sync_leases ADD COLUMN IF NOT EXISTS _cache_bump text; ALTER TABLE public.sync_leases DROP COLUMN IF EXISTS _cache_bump; NOTIFY pgrst, 'reload schema';
