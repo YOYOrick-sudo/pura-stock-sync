@@ -158,10 +158,10 @@ async function doVerkennen(admin: any): Promise<{ ok: boolean; details: any; err
     { name: 'teams', path: '/teams' },
     { name: 'users', path: '/users' },
     { name: 'shift_types', path: '/shift_types' },
-    { name: 'time_registration_shifts', path: '/time_registration_shifts', params: { 'resource_date[from]': van, 'resource_date[to]': tot } },
-    { name: 'planning_shifts', path: '/planning_shifts', params: { 'resource_date[from]': van, 'resource_date[to]': tot } },
+    { name: 'time_registration_shifts', path: '/time_registration_shifts', params: { 'filters[start_date]': van, 'filters[end_date]': tot, 'filters[date_filter_type]': 'resource_date' } },
+    { name: 'planning_shifts', path: '/planning_shifts', params: { 'filters[start_date]': van, 'filters[end_date]': tot, 'filters[date_filter_type]': 'resource_date' } },
     { name: 'salaries', path: '/salaries' },
-    { name: 'revenue_days', path: '/revenue_days', params: { 'resource_date[from]': van, 'resource_date[to]': tot } },
+    { name: 'revenue_days', path: '/revenue_days', params: { 'filters[start_date]': van, 'filters[end_date]': tot, 'filters[date_filter_type]': 'resource_date' } },
   ];
 
   const details: Record<string, unknown> = { probed_at: new Date().toISOString(), window: { van, tot } };
