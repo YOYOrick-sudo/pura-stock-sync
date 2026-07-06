@@ -148,7 +148,7 @@ async function eitjeGet(path: string, params?: Record<string, string>): Promise<
 // ------------------------------------------------------------------
 // VERKENNEN
 // ------------------------------------------------------------------
-async function doVerkennen(admin: any): Promise<{ ok: boolean; details: any; error?: string }> {
+async function doVerkennen(admin: any, opts?: { user_ids?: Array<number | string> }): Promise<{ ok: boolean; details: any; error?: string }> {
   const today = new Date().toISOString().slice(0, 10);
   const van = addDays(today, -1);
   const tot = today;
@@ -186,6 +186,22 @@ async function doVerkennen(admin: any): Promise<{ ok: boolean; details: any; err
       // Volledige environment-lijst (id+naam) dumpen voor mapping
       if (ep.name === 'environments' && Array.isArray(items)) {
         info.all = items.map((e: any) => ({ id: e.id, name: e.name, active: e.active }));
+      }
+      // User-lookup: dump geselecteerde profielen op naam
+      if (ep.name === 'users' && Array.isArray(items) && opts?.user_ids?.length) {
+        const want = new Set(opts.user_ids.map((x) => String(x)));
+        info.user_lookup = items
+          .filter((u: any) => want.has(String(u?.id)))
+          .map((u: any) => ({
+            id: u?.id,
+            name: u?.name ?? u?.full_name ?? ([u?.first_name, u?.last_name].filter(Boolean).join(' ') || null),
+            first_name: u?.first_name ?? null,
+            last_name: u?.last_name ?? null,
+            email: u?.email ?? null,
+            active: u?.active ?? null,
+            environment_ids: u?.environment_ids ?? u?.environments ?? null,
+          }));
+        info.user_lookup_missing = [...want].filter((id) => !items.some((u: any) => String(u?.id) === id));
       }
       details[ep.name] = info;
       if (r.status >= 200 && r.status < 300) anyOk = true;
@@ -273,23 +289,26 @@ function shiftDurationHours(shift: any, dateHint?: string): { hours: number; sou
 }
 
 // Fetch alle pagina's van een endpoint met bracketed filters. Eitje kan
-// paginering via ?page=N ondersteunen — we lezen tot lege items of max 20 pages.
-async function eitjeFetchAll(path: string, baseParams: Record<string, string>): Promise<{ items: any[]; pages: number; error?: string }> {
+// paginering via ?page=N ondersteunen — we lezen tot lege items of max 50 pages (10.000 records).
+const EITJE_MAX_PAGES = 50;
+async function eitjeFetchAll(path: string, baseParams: Record<string, string>): Promise<{ items: any[]; pages: number; truncated: boolean; error?: string }> {
   const items: any[] = [];
   let pages = 0;
-  for (let page = 1; page <= 20; page++) {
+  let truncated = false;
+  for (let page = 1; page <= EITJE_MAX_PAGES; page++) {
     const params = { ...baseParams, page: String(page), per_page: '200' };
     const r = await eitjeGet(path, params);
-    if (r.status >= 400) return { items, pages, error: `HTTP ${r.status} op ${path} p${page}: ${r.raw}` };
+    if (r.status >= 400) return { items, pages, truncated, error: `HTTP ${r.status} op ${path} p${page}: ${r.raw}` };
     const body: any = r.body;
     const chunk = Array.isArray(body) ? body : (body?.items ?? body?.data ?? []);
     if (!Array.isArray(chunk) || chunk.length === 0) break;
     items.push(...chunk);
     pages = page;
     if (chunk.length < 200) break;
+    if (page === EITJE_MAX_PAGES) truncated = true;
     await sleep(200);
   }
-  return { items, pages };
+  return { items, pages, truncated };
 }
 
 async function doSyncWindow(
@@ -321,10 +340,10 @@ async function doSyncWindow(
     eitjeFetchAll('/salaries', {}),
   ]);
   details.endpoints = {
-    time_registration_shifts: { count: trs.items.length, pages: trs.pages, error: trs.error },
-    planning_shifts: { count: plans.items.length, pages: plans.pages, error: plans.error },
-    revenue_days: { count: revs.items.length, pages: revs.pages, error: revs.error },
-    salaries: { count: salariesRaw.items.length, pages: salariesRaw.pages, error: salariesRaw.error },
+    time_registration_shifts: { count: trs.items.length, pages: trs.pages, truncated: trs.truncated, error: trs.error },
+    planning_shifts: { count: plans.items.length, pages: plans.pages, truncated: plans.truncated, error: plans.error },
+    revenue_days: { count: revs.items.length, pages: revs.pages, truncated: revs.truncated, error: revs.error },
+    salaries: { count: salariesRaw.items.length, pages: salariesRaw.pages, truncated: salariesRaw.truncated, error: salariesRaw.error },
   };
   const firstErr = trs.error || plans.error || revs.error || salariesRaw.error;
   if (firstErr && trs.items.length === 0 && plans.items.length === 0) {
@@ -560,8 +579,9 @@ Deno.serve(async (req) => {
   const type = body?.type;
 
   if (type === 'verkennen') {
+    const userIds = Array.isArray(body?.user_ids) ? body.user_ids : undefined;
     const res = await withRun(admin, 'verkennen', null, null, null, async () => {
-      const r = await doVerkennen(admin);
+      const r = await doVerkennen(admin, { user_ids: userIds });
       return { ok: r.ok, details: r.details, error: r.error };
     });
     return json(res);
