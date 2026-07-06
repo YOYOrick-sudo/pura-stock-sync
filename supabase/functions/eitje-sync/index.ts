@@ -579,8 +579,9 @@ Deno.serve(async (req) => {
   const type = body?.type;
 
   if (type === 'verkennen') {
+    const userIds = Array.isArray(body?.user_ids) ? body.user_ids : undefined;
     const res = await withRun(admin, 'verkennen', null, null, null, async () => {
-      const r = await doVerkennen(admin);
+      const r = await doVerkennen(admin, { user_ids: userIds });
       return { ok: r.ok, details: r.details, error: r.error };
     });
     return json(res);
