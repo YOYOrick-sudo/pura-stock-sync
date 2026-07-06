@@ -15,8 +15,12 @@ import { CijfersUurverloop } from '@/components/cijfers/CijfersUurverloop';
 import { CijfersVestigingSplit } from '@/components/cijfers/CijfersVestigingSplit';
 import { BronnenBlok } from '@/components/cijfers/BronnenBlok';
 import { BijgewerktRegel } from '@/components/cijfers/BijgewerktRegel';
+import { CijfersLoonkostenBar } from '@/components/cijfers/CijfersLoonkostenBar';
+import { CijfersLoonkostenGrafiek } from '@/components/cijfers/CijfersLoonkostenGrafiek';
+import { CijfersUrenVergelijk } from '@/components/cijfers/CijfersUrenVergelijk';
 import { periodeRange, toISO, type Periode, type VestKeuze } from '@/components/cijfers/types';
 import { useRole } from '@/hooks/useRole';
+import { useMagLoonkostenZien } from '@/hooks/useMagLoonkostenZien';
 
 type Preset = { label: string; van: Date; tot: Date };
 
@@ -56,6 +60,8 @@ function rangeLabel(periode: Periode, van: string, tot: string): string {
 export default function Cijfers() {
   const [periode, setPeriode] = useState<Periode>('week');
   const [vestKeuze, setVestKeuze] = useState<VestKeuze>('Beide');
+  const magLoon = useMagLoonkostenZien();
+
 
   const today = useMemo(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }, []);
   const minDate = useMemo(() => { const d = new Date(today); d.setDate(d.getDate() - MAX_TERUG_DAGEN); return d; }, [today]);
@@ -91,10 +97,21 @@ export default function Cijfers() {
 
         <CijfersMetricsBar periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
 
+        {magLoon && (
+          <CijfersLoonkostenBar periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-[1.85fr_1fr] gap-5">
           <CijfersHoofdgrafiek periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
           <CijfersWeekdagVergelijk periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
         </div>
+
+        {magLoon && (
+          <div className="grid grid-cols-1 lg:grid-cols-[1.85fr_1fr] gap-5">
+            <CijfersLoonkostenGrafiek periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+            <CijfersUrenVergelijk periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5">
           <CijfersUurverloop periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
@@ -102,6 +119,7 @@ export default function Cijfers() {
         </div>
 
         <CijfersHeatmap periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+
 
         <BronnenBlok />
 
