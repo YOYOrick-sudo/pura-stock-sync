@@ -1773,6 +1773,7 @@ export type Database = {
           id: string
           last_name: string
           mag_cijfers_zien: boolean
+          mag_loonkosten_zien: boolean
           nationality: string | null
           phone: string | null
           updated_at: string
@@ -1787,6 +1788,7 @@ export type Database = {
           id?: string
           last_name?: string
           mag_cijfers_zien?: boolean
+          mag_loonkosten_zien?: boolean
           nationality?: string | null
           phone?: string | null
           updated_at?: string
@@ -1801,6 +1803,7 @@ export type Database = {
           id?: string
           last_name?: string
           mag_cijfers_zien?: boolean
+          mag_loonkosten_zien?: boolean
           nationality?: string | null
           phone?: string | null
           updated_at?: string
@@ -2778,6 +2781,7 @@ export type Database = {
         Returns: boolean
       }
       mag_cijfers_zien: { Args: { _uid: string }; Returns: boolean }
+      mag_loonkosten_zien: { Args: { _uid: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -2818,6 +2822,26 @@ export type Database = {
         Returns: {
           bonnen: number
           bucket: string
+          omzet: number
+          vestiging: string
+        }[]
+      }
+      rpc_cijfers_uren_samenvatting: {
+        Args: { p_tot: string; p_van: string; p_vestigingen: string[] }
+        Returns: Json
+      }
+      rpc_cijfers_uren_tijdreeks: {
+        Args: {
+          p_granulariteit: string
+          p_tot: string
+          p_van: string
+          p_vestigingen: string[]
+        }
+        Returns: {
+          bucket: string
+          geplande_uren: number
+          gewerkte_uren: number
+          loonkosten: number
           omzet: number
           vestiging: string
         }[]
