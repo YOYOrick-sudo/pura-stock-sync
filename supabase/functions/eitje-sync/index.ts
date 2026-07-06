@@ -324,10 +324,10 @@ async function doSyncWindow(
     eitjeFetchAll('/salaries', {}),
   ]);
   details.endpoints = {
-    time_registration_shifts: { count: trs.items.length, pages: trs.pages, error: trs.error },
-    planning_shifts: { count: plans.items.length, pages: plans.pages, error: plans.error },
-    revenue_days: { count: revs.items.length, pages: revs.pages, error: revs.error },
-    salaries: { count: salariesRaw.items.length, pages: salariesRaw.pages, error: salariesRaw.error },
+    time_registration_shifts: { count: trs.items.length, pages: trs.pages, truncated: trs.truncated, error: trs.error },
+    planning_shifts: { count: plans.items.length, pages: plans.pages, truncated: plans.truncated, error: plans.error },
+    revenue_days: { count: revs.items.length, pages: revs.pages, truncated: revs.truncated, error: revs.error },
+    salaries: { count: salariesRaw.items.length, pages: salariesRaw.pages, truncated: salariesRaw.truncated, error: salariesRaw.error },
   };
   const firstErr = trs.error || plans.error || revs.error || salariesRaw.error;
   if (firstErr && trs.items.length === 0 && plans.items.length === 0) {
