@@ -291,10 +291,12 @@ function shiftDurationHours(shift: any, dateHint?: string): { hours: number; sou
 // Fetch alle pagina's van een endpoint met bracketed filters. Eitje kan
 // paginering via ?page=N ondersteunen — we lezen tot lege items of max 50 pages (10.000 records).
 const EITJE_MAX_PAGES = 50;
-async function eitjeFetchAll(path: string, baseParams: Record<string, string>): Promise<{ items: any[]; pages: number; truncated: boolean; error?: string }> {
+async function eitjeFetchAll(path: string, baseParams: Record<string, string>): Promise<{ items: any[]; pages: number; truncated: boolean; non_paginated?: boolean; error?: string }> {
   const items: any[] = [];
   let pages = 0;
   let truncated = false;
+  let nonPaginated = false;
+  let prevFingerprint: string | null = null;
   for (let page = 1; page <= EITJE_MAX_PAGES; page++) {
     const params = { ...baseParams, page: String(page), per_page: '200' };
     const r = await eitjeGet(path, params);
@@ -302,13 +304,23 @@ async function eitjeFetchAll(path: string, baseParams: Record<string, string>): 
     const body: any = r.body;
     const chunk = Array.isArray(body) ? body : (body?.items ?? body?.data ?? []);
     if (!Array.isArray(chunk) || chunk.length === 0) break;
+    // Detect non-paginated endpoints: server ignores `page` and returns the same
+    // full list every request. Fingerprint = length + first/last item id. If it
+    // matches the previous page's fingerprint we've already got everything.
+    const first = chunk[0], last = chunk[chunk.length - 1];
+    const fp = `${chunk.length}|${first?.id ?? ''}|${last?.id ?? ''}`;
+    if (fp === prevFingerprint) {
+      nonPaginated = true;
+      break;
+    }
+    prevFingerprint = fp;
     items.push(...chunk);
     pages = page;
     if (chunk.length < 200) break;
     if (page === EITJE_MAX_PAGES) truncated = true;
     await sleep(200);
   }
-  return { items, pages, truncated };
+  return { items, pages, truncated, non_paginated: nonPaginated };
 }
 
 async function doSyncWindow(
