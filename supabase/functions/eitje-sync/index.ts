@@ -171,18 +171,23 @@ async function doVerkennen(admin: any): Promise<{ ok: boolean; details: any; err
   for (const ep of endpoints) {
     try {
       const r = await eitjeGet(ep.path, ep.params);
-      // Bewaar shape: status + keys op top-level + eerste item als sample.
       const body: any = r.body;
       const isArray = Array.isArray(body);
-      const first = isArray ? body[0] : (body?.data?.[0] ?? body?.items?.[0] ?? null);
-      details[ep.name] = {
+      const items = isArray ? body : (body?.items ?? body?.data ?? null);
+      const first = Array.isArray(items) ? items[0] : null;
+      const info: any = {
         status: r.status,
-        is_array: isArray,
-        length: isArray ? body.length : (Array.isArray(body?.data) ? body.data.length : null),
+        length: Array.isArray(items) ? items.length : null,
         top_keys: body && typeof body === 'object' && !isArray ? Object.keys(body).slice(0, 20) : null,
         sample_keys: first && typeof first === 'object' ? Object.keys(first).slice(0, 40) : null,
-        sample: first ?? (r.raw ?? null),
+        sample: first ?? null,
       };
+      if (r.status >= 400) info.error_body = r.raw;
+      // Volledige environment-lijst (id+naam) dumpen voor mapping
+      if (ep.name === 'environments' && Array.isArray(items)) {
+        info.all = items.map((e: any) => ({ id: e.id, name: e.name, active: e.active }));
+      }
+      details[ep.name] = info;
       if (r.status >= 200 && r.status < 300) anyOk = true;
       else if (!firstError) firstError = `${ep.name}: HTTP ${r.status}`;
     } catch (e) {
