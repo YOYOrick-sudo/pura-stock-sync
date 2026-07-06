@@ -609,14 +609,14 @@ Deno.serve(async (req) => {
     const windows = chunkWindows(van, today, MAX_WINDOW_DAYS);
     const res = await withRun(admin, 'backfill', van, today, null, async () => {
       const results: any[] = [];
-      let anyOk = false; let lastErr: string | null = null;
+      let anyOk = false; let lastErr: string | null = null; let totalBonnen = 0;
       for (const w of windows) {
         const r = await doSyncWindow(admin, w.van, w.tot);
-        results.push({ ...w, ok: r.ok, error: r.ok ? undefined : (r as any).error });
-        if (r.ok) anyOk = true; else lastErr = (r as any).error;
+        results.push({ ...w, ok: r.ok, bonnen: r.bonnen ?? 0, error: r.ok ? undefined : (r as any).error, details: (r as any).details ?? null });
+        if (r.ok) { anyOk = true; totalBonnen += r.bonnen ?? 0; } else lastErr = (r as any).error;
         await sleep(1000);
       }
-      return { ok: anyOk, details: { windows: results, cursor: today }, error: anyOk ? undefined : (lastErr ?? 'all_windows_failed') };
+      return { ok: anyOk, bonnen: totalBonnen, details: { windows: results, cursor: today }, error: anyOk ? undefined : (lastErr ?? 'all_windows_failed') };
     });
     return json(res);
   }
