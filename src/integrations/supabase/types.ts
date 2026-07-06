@@ -343,16 +343,19 @@ export type Database = {
           updated_at: string
           uurloon_allin: number | null
           vestiging: string
+          wg_lasten_factor: number
         }
         Insert: {
           updated_at?: string
           uurloon_allin?: number | null
           vestiging: string
+          wg_lasten_factor?: number
         }
         Update: {
           updated_at?: string
           uurloon_allin?: number | null
           vestiging?: string
+          wg_lasten_factor?: number
         }
         Relationships: []
       }

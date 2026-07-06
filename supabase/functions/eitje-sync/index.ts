@@ -201,24 +201,292 @@ async function doVerkennen(admin: any): Promise<{ ok: boolean; details: any; err
 }
 
 // ------------------------------------------------------------------
-// SYNC (dagelijks/handmatig/backfill) — placeholder tot verkennen bevestigd
+// SYNC (dagelijks/handmatig/backfill)
 // ------------------------------------------------------------------
-async function doSyncWindow(
-  _admin: any,
-  _van: string,
-  _tot: string,
-): Promise<{ ok: false; error: string }> {
-  // NIET ACTIEF — wacht op verkennen-STOP+ASK met bevestigde veldnamen
-  // voordat we time_registration_shifts/salaries/revenue_days mappen naar
-  // uren_dagen (gewerkte_uren, geplande_uren, loonkosten, eitje_omzet_dag)
-  // per (vestiging, werkdag).
+
+const ENV_TO_VESTIGING: Record<number, string> = { 404: 'West', 352: 'Midsland' };
+
+type ShiftAgg = {
+  gewerkte_uren: number;
+  geplande_uren: number;
+  loonkosten: number;
+  loonkosten_had_fallback: boolean;
+  loonkosten_had_match: boolean;
+  fallback_user_ids: Set<string | number>;
+  missing_uurloon_user_ids: Set<string | number>;
+  eitje_omzet_dag: number | null;
+};
+
+function emptyAgg(): ShiftAgg {
   return {
-    ok: false,
-    error:
-      'stop_ask_veldmapping: verkennen-run vereist. Draai eerst {"type":"verkennen"} ' +
-      'zodra Eitje-credentials en (evt.) partner-vraag beantwoord zijn; details worden ' +
-      'in sync_runs.details opgeslagen ter review.',
+    gewerkte_uren: 0, geplande_uren: 0, loonkosten: 0,
+    loonkosten_had_fallback: false, loonkosten_had_match: false,
+    fallback_user_ids: new Set(), missing_uurloon_user_ids: new Set(),
+    eitje_omzet_dag: null,
   };
+}
+
+// Duur-afleiding: eerst kijken naar duration-velden, anders start/end + break_minutes.
+// Retourneert uren (float) of 0 als niet af te leiden.
+function shiftDurationHours(shift: any, dateHint?: string): { hours: number; source: string } {
+  // 1. directe duration-velden
+  for (const [key, factor] of [
+    ['duration_minutes', 1/60], ['minutes', 1/60], ['total_minutes', 1/60],
+    ['duration_hours', 1], ['hours', 1], ['total_hours', 1],
+    ['duration', null], // ambigu — sla over
+  ] as const) {
+    const v = shift?.[key];
+    if (typeof v === 'number' && factor !== null) {
+      return { hours: Math.max(0, v * factor), source: `field:${key}` };
+    }
+  }
+  // 2. start/end
+  const start = shift?.start ?? shift?.start_time ?? shift?.from;
+  const end = shift?.end ?? shift?.end_time ?? shift?.to;
+  const brk = Number(shift?.break_minutes ?? shift?.break ?? 0) || 0;
+  const date = shift?.date ?? dateHint ?? null;
+  if (!start || !end) return { hours: 0, source: 'none' };
+
+  const parse = (v: string): Date | null => {
+    if (typeof v !== 'string') return null;
+    // ISO datetime?
+    if (v.includes('T') || v.length > 10) {
+      const d = new Date(v);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    // HH:MM(:SS)?
+    if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(v) && date) {
+      const d = new Date(`${date}T${v.length === 5 ? v + ':00' : v}Z`);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    return null;
+  };
+  const s = parse(start); let e = parse(end);
+  if (!s || !e) return { hours: 0, source: 'unparseable' };
+  if (e.getTime() <= s.getTime()) {
+    // overnacht
+    e = new Date(e.getTime() + 24 * 3600 * 1000);
+  }
+  const minutenBruto = (e.getTime() - s.getTime()) / 60000;
+  const netto = Math.max(0, minutenBruto - brk);
+  return { hours: netto / 60, source: 'start_end' };
+}
+
+// Fetch alle pagina's van een endpoint met bracketed filters. Eitje kan
+// paginering via ?page=N ondersteunen — we lezen tot lege items of max 20 pages.
+async function eitjeFetchAll(path: string, baseParams: Record<string, string>): Promise<{ items: any[]; pages: number; error?: string }> {
+  const items: any[] = [];
+  let pages = 0;
+  for (let page = 1; page <= 20; page++) {
+    const params = { ...baseParams, page: String(page), per_page: '200' };
+    const r = await eitjeGet(path, params);
+    if (r.status >= 400) return { items, pages, error: `HTTP ${r.status} op ${path} p${page}: ${r.raw}` };
+    const body: any = r.body;
+    const chunk = Array.isArray(body) ? body : (body?.items ?? body?.data ?? []);
+    if (!Array.isArray(chunk) || chunk.length === 0) break;
+    items.push(...chunk);
+    pages = page;
+    if (chunk.length < 200) break;
+    await sleep(200);
+  }
+  return { items, pages };
+}
+
+async function doSyncWindow(
+  admin: any,
+  van: string,
+  tot: string,
+): Promise<{ ok: boolean; bonnen?: number; details?: any; error?: string }> {
+  const details: any = { window: { van, tot }, endpoints: {}, skipped_env_ids: {}, skipped_types: {}, duration_source: {}, per_vestiging_stats: {}, loonkosten: { fallback_users: [], missing_uurloon: [] } };
+
+  // 0. Instellingen (uurloon_allin + wg_lasten_factor per vestiging)
+  const { data: instellingen, error: instErr } = await admin
+    .from('cijfers_instellingen')
+    .select('vestiging, uurloon_allin, wg_lasten_factor');
+  if (instErr) return { ok: false, error: `cijfers_instellingen: ${instErr.message}` };
+  const settingsByVest: Record<string, { uurloon_allin: number | null; wg_lasten_factor: number }> = {};
+  for (const row of instellingen ?? []) {
+    settingsByVest[row.vestiging] = {
+      uurloon_allin: row.uurloon_allin == null ? null : Number(row.uurloon_allin),
+      wg_lasten_factor: Number(row.wg_lasten_factor ?? 1.30),
+    };
+  }
+
+  // 1. Eitje endpoints ophalen
+  const dateParams = { 'filters[start_date]': van, 'filters[end_date]': tot, 'filters[date_filter_type]': 'resource_date' };
+  const [trs, plans, revs, salariesRaw] = await Promise.all([
+    eitjeFetchAll('/time_registration_shifts', dateParams),
+    eitjeFetchAll('/planning_shifts', dateParams),
+    eitjeFetchAll('/revenue_days', dateParams),
+    eitjeFetchAll('/salaries', {}),
+  ]);
+  details.endpoints = {
+    time_registration_shifts: { count: trs.items.length, pages: trs.pages, error: trs.error },
+    planning_shifts: { count: plans.items.length, pages: plans.pages, error: plans.error },
+    revenue_days: { count: revs.items.length, pages: revs.pages, error: revs.error },
+    salaries: { count: salariesRaw.items.length, pages: salariesRaw.pages, error: salariesRaw.error },
+  };
+  const firstErr = trs.error || plans.error || revs.error || salariesRaw.error;
+  if (firstErr && trs.items.length === 0 && plans.items.length === 0) {
+    return { ok: false, details, error: firstErr };
+  }
+
+  // 2. Salaries-lookup: per user_id een gesorteerde lijst {start_date, end_date, amount, environment_id}
+  const salariesByUser: Map<string, Array<{ start: string; end: string | null; amount: number; env: number | null }>> = new Map();
+  for (const s of salariesRaw.items) {
+    const uid = String(s?.user?.id ?? s?.user_id ?? '');
+    if (!uid) continue;
+    const amount = Number(s?.amount);
+    if (!isFinite(amount) || amount <= 0) continue;
+    const start = s?.start_date ?? null;
+    if (!start) continue;
+    const arr = salariesByUser.get(uid) ?? [];
+    arr.push({
+      start, end: s?.end_date ?? null, amount,
+      env: s?.environment?.id ?? s?.environment_id ?? null,
+    });
+    salariesByUser.set(uid, arr);
+  }
+
+  function lookupSalary(userId: string | number, date: string, envId: number | null): number | null {
+    const arr = salariesByUser.get(String(userId));
+    if (!arr) return null;
+    const matches = arr.filter((r) => r.start <= date && (r.end == null || r.end >= date));
+    if (matches.length === 0) return null;
+    // env-match wint als aanwezig
+    const envMatch = matches.filter((m) => envId != null && m.env === envId);
+    const pool = envMatch.length > 0 ? envMatch : matches;
+    pool.sort((a, b) => (a.start < b.start ? 1 : -1));
+    return pool[0].amount;
+  }
+
+  // 3. Aggregatie per (vestiging, werkdag)
+  const buckets: Map<string, ShiftAgg> = new Map();
+  const keyOf = (vest: string, date: string) => `${vest}|${date}`;
+
+  // 3a. time_registration_shifts → gewerkte_uren + loonkosten
+  const durSourceCounts: Record<string, number> = {};
+  for (const sh of trs.items) {
+    const envId = sh?.environment?.id ?? sh?.environment_id;
+    const vest = ENV_TO_VESTIGING[envId as number];
+    if (!vest) { details.skipped_env_ids[envId] = (details.skipped_env_ids[envId] ?? 0) + 1; continue; }
+    const typeName = sh?.type?.name ?? sh?.type ?? null;
+    if (typeName && typeName !== 'gewerkte_uren') {
+      details.skipped_types[typeName] = (details.skipped_types[typeName] ?? 0) + 1;
+      continue;
+    }
+    const date = sh?.date;
+    if (!date) continue;
+    const { hours, source } = shiftDurationHours(sh, date);
+    durSourceCounts[source] = (durSourceCounts[source] ?? 0) + 1;
+    if (hours <= 0) continue;
+
+    const key = keyOf(vest, date);
+    if (!buckets.has(key)) buckets.set(key, emptyAgg());
+    const b = buckets.get(key)!;
+    b.gewerkte_uren += hours;
+
+    const uid = sh?.user?.id ?? sh?.user_id;
+    if (uid == null) continue;
+    const salary = lookupSalary(uid, date, envId ?? null);
+    const settings = settingsByVest[vest];
+    if (salary != null) {
+      const factor = settings?.wg_lasten_factor ?? 1.30;
+      b.loonkosten += hours * salary * factor;
+      b.loonkosten_had_match = true;
+    } else {
+      const uurloon = settings?.uurloon_allin ?? null;
+      if (uurloon != null && uurloon > 0) {
+        b.loonkosten += hours * uurloon; // GEEN factor — is al all-in
+        b.loonkosten_had_fallback = true;
+        b.fallback_user_ids.add(uid);
+      } else {
+        b.missing_uurloon_user_ids.add(uid);
+      }
+    }
+  }
+  details.duration_source = durSourceCounts;
+
+  // 3b. planning_shifts → geplande_uren
+  for (const sh of plans.items) {
+    const envId = sh?.environment?.id ?? sh?.environment_id;
+    const vest = ENV_TO_VESTIGING[envId as number];
+    if (!vest) { details.skipped_env_ids[envId] = (details.skipped_env_ids[envId] ?? 0) + 1; continue; }
+    const date = sh?.date;
+    if (!date) continue;
+    const { hours } = shiftDurationHours(sh, date);
+    if (hours <= 0) continue;
+    const key = keyOf(vest, date);
+    if (!buckets.has(key)) buckets.set(key, emptyAgg());
+    buckets.get(key)!.geplande_uren += hours;
+  }
+
+  // 3c. revenue_days (Totaal) → eitje_omzet_dag
+  for (const rv of revs.items) {
+    const envId = rv?.environment?.id ?? rv?.environment_id;
+    const vest = ENV_TO_VESTIGING[envId as number];
+    if (!vest) continue;
+    const groupName = rv?.revenue_group?.name ?? rv?.revenue_group_name ?? null;
+    if (groupName !== 'Totaal') continue;
+    const date = rv?.date;
+    if (!date) continue;
+    const cents = Number(rv?.amt_in_cents ?? 0);
+    if (!isFinite(cents)) continue;
+    const key = keyOf(vest, date);
+    if (!buckets.has(key)) buckets.set(key, emptyAgg());
+    const b = buckets.get(key)!;
+    b.eitje_omzet_dag = (b.eitje_omzet_dag ?? 0) + cents / 100;
+  }
+
+  // 4. UPSERT naar uren_dagen
+  const rows: any[] = [];
+  for (const [key, b] of buckets.entries()) {
+    const [vest, werkdag] = key.split('|');
+    const hasLoonkosten = b.loonkosten_had_match || b.loonkosten_had_fallback;
+    const loonkostenBron = hasLoonkosten
+      ? (b.loonkosten_had_fallback ? 'berekend' : 'eitje')
+      : null;
+    rows.push({
+      vestiging: vest,
+      werkdag,
+      is_demo: false,
+      gewerkte_uren: Number(b.gewerkte_uren.toFixed(4)),
+      geplande_uren: Number(b.geplande_uren.toFixed(4)),
+      loonkosten: hasLoonkosten ? Number(b.loonkosten.toFixed(2)) : null,
+      loonkosten_bron: loonkostenBron,
+      eitje_omzet_dag: b.eitje_omzet_dag == null ? null : Number(b.eitje_omzet_dag.toFixed(2)),
+    });
+    details.per_vestiging_stats[key] = {
+      gewerkte_uren: Number(b.gewerkte_uren.toFixed(4)),
+      geplande_uren: Number(b.geplande_uren.toFixed(4)),
+      loonkosten: hasLoonkosten ? Number(b.loonkosten.toFixed(2)) : null,
+      loonkosten_bron: loonkostenBron,
+      eitje_omzet_dag: b.eitje_omzet_dag,
+    };
+    if (b.fallback_user_ids.size > 0) {
+      details.loonkosten.fallback_users.push({
+        vestiging: vest, werkdag, count: b.fallback_user_ids.size,
+        user_ids: [...b.fallback_user_ids],
+      });
+    }
+    if (b.missing_uurloon_user_ids.size > 0) {
+      details.loonkosten.missing_uurloon.push({
+        vestiging: vest, werkdag, count: b.missing_uurloon_user_ids.size,
+        user_ids: [...b.missing_uurloon_user_ids],
+      });
+    }
+  }
+
+  if (rows.length === 0) {
+    return { ok: true, bonnen: 0, details };
+  }
+
+  const { error: upErr } = await admin
+    .from('uren_dagen')
+    .upsert(rows, { onConflict: 'vestiging,werkdag,is_demo' });
+  if (upErr) return { ok: false, details, error: `upsert_uren_dagen: ${upErr.message}` };
+
+  return { ok: true, bonnen: rows.length, details };
 }
 
 // ------------------------------------------------------------------
@@ -318,13 +586,14 @@ Deno.serve(async (req) => {
       const results: any[] = [];
       let anyOk = false;
       let lastErr: string | null = null;
+      let totalBonnen = 0;
       for (const w of windows) {
         const r = await doSyncWindow(admin, w.van, w.tot);
-        results.push({ ...w, ok: r.ok, error: r.ok ? undefined : (r as any).error });
-        if (r.ok) anyOk = true; else lastErr = (r as any).error;
+        results.push({ ...w, ok: r.ok, bonnen: r.bonnen ?? 0, error: r.ok ? undefined : (r as any).error, details: (r as any).details ?? null });
+        if (r.ok) { anyOk = true; totalBonnen += r.bonnen ?? 0; } else lastErr = (r as any).error;
         await sleep(500);
       }
-      return { ok: anyOk, details: { windows: results }, error: anyOk ? undefined : (lastErr ?? 'all_windows_failed') };
+      return { ok: anyOk, bonnen: totalBonnen, details: { windows: results }, error: anyOk ? undefined : (lastErr ?? 'all_windows_failed') };
     });
     return json(res);
   }
@@ -340,14 +609,14 @@ Deno.serve(async (req) => {
     const windows = chunkWindows(van, today, MAX_WINDOW_DAYS);
     const res = await withRun(admin, 'backfill', van, today, null, async () => {
       const results: any[] = [];
-      let anyOk = false; let lastErr: string | null = null;
+      let anyOk = false; let lastErr: string | null = null; let totalBonnen = 0;
       for (const w of windows) {
         const r = await doSyncWindow(admin, w.van, w.tot);
-        results.push({ ...w, ok: r.ok, error: r.ok ? undefined : (r as any).error });
-        if (r.ok) anyOk = true; else lastErr = (r as any).error;
+        results.push({ ...w, ok: r.ok, bonnen: r.bonnen ?? 0, error: r.ok ? undefined : (r as any).error, details: (r as any).details ?? null });
+        if (r.ok) { anyOk = true; totalBonnen += r.bonnen ?? 0; } else lastErr = (r as any).error;
         await sleep(1000);
       }
-      return { ok: anyOk, details: { windows: results, cursor: today }, error: anyOk ? undefined : (lastErr ?? 'all_windows_failed') };
+      return { ok: anyOk, bonnen: totalBonnen, details: { windows: results, cursor: today }, error: anyOk ? undefined : (lastErr ?? 'all_windows_failed') };
     });
     return json(res);
   }
