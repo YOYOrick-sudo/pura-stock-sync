@@ -187,6 +187,22 @@ async function doVerkennen(admin: any, opts?: { user_ids?: Array<number | string
       if (ep.name === 'environments' && Array.isArray(items)) {
         info.all = items.map((e: any) => ({ id: e.id, name: e.name, active: e.active }));
       }
+      // User-lookup: dump geselecteerde profielen op naam
+      if (ep.name === 'users' && Array.isArray(items) && opts?.user_ids?.length) {
+        const want = new Set(opts.user_ids.map((x) => String(x)));
+        info.user_lookup = items
+          .filter((u: any) => want.has(String(u?.id)))
+          .map((u: any) => ({
+            id: u?.id,
+            name: u?.name ?? u?.full_name ?? [u?.first_name, u?.last_name].filter(Boolean).join(' ') || null,
+            first_name: u?.first_name ?? null,
+            last_name: u?.last_name ?? null,
+            email: u?.email ?? null,
+            active: u?.active ?? null,
+            environment_ids: u?.environment_ids ?? u?.environments ?? null,
+          }));
+        info.user_lookup_missing = [...want].filter((id) => !items.some((u: any) => String(u?.id) === id));
+      }
       details[ep.name] = info;
       if (r.status >= 200 && r.status < 300) anyOk = true;
       else if (!firstError) firstError = `${ep.name}: HTTP ${r.status}`;
