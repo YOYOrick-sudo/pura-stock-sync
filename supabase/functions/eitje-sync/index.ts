@@ -273,23 +273,26 @@ function shiftDurationHours(shift: any, dateHint?: string): { hours: number; sou
 }
 
 // Fetch alle pagina's van een endpoint met bracketed filters. Eitje kan
-// paginering via ?page=N ondersteunen — we lezen tot lege items of max 20 pages.
-async function eitjeFetchAll(path: string, baseParams: Record<string, string>): Promise<{ items: any[]; pages: number; error?: string }> {
+// paginering via ?page=N ondersteunen — we lezen tot lege items of max 50 pages (10.000 records).
+const EITJE_MAX_PAGES = 50;
+async function eitjeFetchAll(path: string, baseParams: Record<string, string>): Promise<{ items: any[]; pages: number; truncated: boolean; error?: string }> {
   const items: any[] = [];
   let pages = 0;
-  for (let page = 1; page <= 20; page++) {
+  let truncated = false;
+  for (let page = 1; page <= EITJE_MAX_PAGES; page++) {
     const params = { ...baseParams, page: String(page), per_page: '200' };
     const r = await eitjeGet(path, params);
-    if (r.status >= 400) return { items, pages, error: `HTTP ${r.status} op ${path} p${page}: ${r.raw}` };
+    if (r.status >= 400) return { items, pages, truncated, error: `HTTP ${r.status} op ${path} p${page}: ${r.raw}` };
     const body: any = r.body;
     const chunk = Array.isArray(body) ? body : (body?.items ?? body?.data ?? []);
     if (!Array.isArray(chunk) || chunk.length === 0) break;
     items.push(...chunk);
     pages = page;
     if (chunk.length < 200) break;
+    if (page === EITJE_MAX_PAGES) truncated = true;
     await sleep(200);
   }
-  return { items, pages };
+  return { items, pages, truncated };
 }
 
 async function doSyncWindow(
