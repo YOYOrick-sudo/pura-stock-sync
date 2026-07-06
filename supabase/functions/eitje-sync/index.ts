@@ -148,7 +148,7 @@ async function eitjeGet(path: string, params?: Record<string, string>): Promise<
 // ------------------------------------------------------------------
 // VERKENNEN
 // ------------------------------------------------------------------
-async function doVerkennen(admin: any): Promise<{ ok: boolean; details: any; error?: string }> {
+async function doVerkennen(admin: any, opts?: { user_ids?: Array<number | string> }): Promise<{ ok: boolean; details: any; error?: string }> {
   const today = new Date().toISOString().slice(0, 10);
   const van = addDays(today, -1);
   const tot = today;
