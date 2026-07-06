@@ -97,10 +97,21 @@ export default function Cijfers() {
 
         <CijfersMetricsBar periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
 
+        {magLoon && (
+          <CijfersLoonkostenBar periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-[1.85fr_1fr] gap-5">
           <CijfersHoofdgrafiek periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
           <CijfersWeekdagVergelijk periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
         </div>
+
+        {magLoon && (
+          <div className="grid grid-cols-1 lg:grid-cols-[1.85fr_1fr] gap-5">
+            <CijfersLoonkostenGrafiek periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+            <CijfersUrenVergelijk periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5">
           <CijfersUurverloop periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
@@ -108,6 +119,7 @@ export default function Cijfers() {
         </div>
 
         <CijfersHeatmap periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+
 
         <BronnenBlok />
 
