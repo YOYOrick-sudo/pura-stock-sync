@@ -15,8 +15,12 @@ import { CijfersUurverloop } from '@/components/cijfers/CijfersUurverloop';
 import { CijfersVestigingSplit } from '@/components/cijfers/CijfersVestigingSplit';
 import { BronnenBlok } from '@/components/cijfers/BronnenBlok';
 import { BijgewerktRegel } from '@/components/cijfers/BijgewerktRegel';
+import { CijfersLoonkostenBar } from '@/components/cijfers/CijfersLoonkostenBar';
+import { CijfersLoonkostenGrafiek } from '@/components/cijfers/CijfersLoonkostenGrafiek';
+import { CijfersUrenVergelijk } from '@/components/cijfers/CijfersUrenVergelijk';
 import { periodeRange, toISO, type Periode, type VestKeuze } from '@/components/cijfers/types';
 import { useRole } from '@/hooks/useRole';
+import { useMagLoonkostenZien } from '@/hooks/useMagLoonkostenZien';
 
 type Preset = { label: string; van: Date; tot: Date };
 
