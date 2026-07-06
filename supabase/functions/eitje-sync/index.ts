@@ -194,7 +194,7 @@ async function doVerkennen(admin: any, opts?: { user_ids?: Array<number | string
           .filter((u: any) => want.has(String(u?.id)))
           .map((u: any) => ({
             id: u?.id,
-            name: u?.name ?? u?.full_name ?? [u?.first_name, u?.last_name].filter(Boolean).join(' ') || null,
+            name: u?.name ?? u?.full_name ?? ([u?.first_name, u?.last_name].filter(Boolean).join(' ') || null),
             first_name: u?.first_name ?? null,
             last_name: u?.last_name ?? null,
             email: u?.email ?? null,
