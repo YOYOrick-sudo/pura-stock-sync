@@ -169,9 +169,14 @@ function Header({ sub }: { sub: string }) {
   );
 }
 
+type SeriesData = {
+  labels: string[]; cur: number[]; prev: number[];
+  bonnen: Array<number | null>;
+  bron: Array<Row['omzet_bron']>;
+};
 function LineChart({
   series, periode,
-}: { series: { labels: string[]; cur: number[]; prev: number[]; bonnen: number[] }; periode: Periode }) {
+}: { series: SeriesData; periode: Periode }) {
   const [hv, setHv] = useState<number | null>(null);
   const showCmp = series.prev.some((v) => v > 0);
 
