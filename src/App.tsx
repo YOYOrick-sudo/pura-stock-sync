@@ -44,6 +44,7 @@ import Collegas from "./pages/personeel/Collegas";
 import PersoneelSettings from "./pages/personeel/PersoneelSettings";
 import SetPassword from "./pages/auth/SetPassword";
 import Team from "./pages/settings/Team";
+import Bronnen from "./pages/settings/Bronnen";
 import Cijfers from "./pages/Cijfers";
 import LightspeedCallback from "./pages/LightspeedCallback";
 const queryClient = new QueryClient();
@@ -129,6 +130,16 @@ const App = () => (
                 <ProtectedRoute>
                   <RequireOwner>
                     <Team />
+                  </RequireOwner>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/bronnen"
+              element={
+                <ProtectedRoute>
+                  <RequireOwner>
+                    <Bronnen />
                   </RequireOwner>
                 </ProtectedRoute>
               }

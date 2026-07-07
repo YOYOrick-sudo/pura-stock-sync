@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { useRole } from '@/hooks/useRole';
 
 function formatRelative(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -57,17 +59,28 @@ export function BijgewerktRegel() {
   if (q.data?.ls?.klaar_op) tooltipParts.push(`Lightspeed: ${formatRelative(q.data.ls.klaar_op)}`);
   if (q.data?.eitje?.klaar_op) tooltipParts.push(`Eitje: ${formatRelative(q.data.eitje.klaar_op)}`);
 
+  const { isOwner } = useRole();
+  const text = nieuwste ? `Bijgewerkt: ${formatRelative(nieuwste as string)}` : 'Nog niet bijgewerkt';
+  const classes = cn(
+    'text-xs text-center pt-2 transition-colors',
+    level === 'ok' && 'text-muted-foreground',
+    level === 'warn' && 'text-amber-600',
+    level === 'alarm' && 'text-red-600 font-medium',
+  );
+
+  if (isOwner) {
+    return (
+      <div className={classes} title={tooltipParts.join(' · ')}>
+        <Link to="/settings/bronnen" className="hover:underline hover:text-foreground transition-colors">
+          {text}
+        </Link>
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={cn(
-        'text-xs text-center pt-2 transition-colors',
-        level === 'ok' && 'text-muted-foreground',
-        level === 'warn' && 'text-amber-600',
-        level === 'alarm' && 'text-red-600 font-medium',
-      )}
-      title={tooltipParts.join(' · ')}
-    >
-      {nieuwste ? `Bijgewerkt: ${formatRelative(nieuwste as string)}` : 'Nog niet bijgewerkt'}
+    <div className={classes} title={tooltipParts.join(' · ')}>
+      {text}
     </div>
   );
 }
