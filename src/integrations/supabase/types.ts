@@ -2758,6 +2758,13 @@ export type Database = {
           omzet: number
         }[]
       }
+      f_vorige_periode: {
+        Args: { p_tot: string; p_van: string }
+        Returns: {
+          prev_tot: string
+          prev_van: string
+        }[]
+      }
       foh_rename_category: {
         Args: {
           _department: string
