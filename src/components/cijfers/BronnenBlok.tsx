@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, ExternalLink, RefreshCw, Link2, AlertCircle, Search, Users } from 'lucide-react';
@@ -8,6 +8,29 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { StatusBadge, type StatusTone } from '@/components/pura/StatusBadge';
 import { EmptyState } from '@/components/pura/EmptyState';
 import { toast } from '@/hooks/use-toast';
+import { BackfillProgressDialog, type BackfillState, type WeekResult } from './BackfillProgressDialog';
+
+function addDaysISO(iso: string, days: number): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+function diffDays(vanIso: string, totIso: string): number {
+  return Math.round(
+    (new Date(`${totIso}T00:00:00Z`).getTime() - new Date(`${vanIso}T00:00:00Z`).getTime()) / 86_400_000,
+  ) + 1;
+}
+function splitInWeken(vanIso: string, totIso: string): { van: string; tot: string }[] {
+  const chunks: { van: string; tot: string }[] = [];
+  let cursor = vanIso;
+  while (cursor <= totIso) {
+    const chunkEnd = addDaysISO(cursor, 6);
+    const eff = chunkEnd > totIso ? totIso : chunkEnd;
+    chunks.push({ van: cursor, tot: eff });
+    cursor = addDaysISO(eff, 1);
+  }
+  return chunks;
+}
 
 function isoYesterday(): string {
   return new Date(Date.now() - 24 * 3600 * 1000).toISOString().slice(0, 10);
