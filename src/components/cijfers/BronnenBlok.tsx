@@ -146,14 +146,19 @@ export function BronnenBlok() {
 
   const syncNow = useMutation({
     mutationFn: async ({ vestiging, van, tot }: { vestiging: 'Midsland' | 'West'; van: string; tot: string }) => {
+      // Auto-switch: >30 dagen → backfill-pad (week-chunks, eigen sync_runs per week).
+      // ≤30 dagen → handmatig-pad (één run over de hele range).
+      const dagen = Math.round((new Date(tot).getTime() - new Date(van).getTime()) / 86_400_000) + 1;
+      const type = dagen > 30 ? 'backfill' : 'handmatig';
       const { data, error } = await supabase.functions.invoke('lightspeed-sync', {
-        body: { type: 'handmatig', vestiging, van, tot },
+        body: { type, vestiging, van, tot },
       });
       if (error) throw error;
-      return data;
+      return { data, type, dagen };
     },
-    onSuccess: (_d, vars) => {
-      toast({ title: 'Sync gestart', description: `${vars.vestiging}: ${vars.van} → ${vars.tot}` });
+    onSuccess: (res, vars) => {
+      const label = res.type === 'backfill' ? `backfill ${res.dagen} dagen` : 'sync';
+      toast({ title: `${label} gestart`, description: `${vars.vestiging}: ${vars.van} → ${vars.tot}` });
       qc.invalidateQueries();
     },
     onError: (e: Error) => toast({ title: 'Sync mislukt', description: e.message, variant: 'destructive' }),
