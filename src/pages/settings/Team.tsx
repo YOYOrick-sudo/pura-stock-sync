@@ -434,3 +434,38 @@ function InviteDialog({ open, onOpenChange, onDone }: {
     </Dialog>
   );
 }
+
+function LoonkostenToggle({ member, isSelf, busy, onChange }: {
+  member: TeamMember; isSelf: boolean; busy: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  const isOwnerRow = member.role === 'owner' || member.role === 'admin';
+  const forced = isOwnerRow; // owner ziet altijd loonkosten
+  const checked = forced ? true : !!member.mag_loonkosten_zien;
+  const disabled = forced || busy || member.status === 'deactivated';
+
+  const sw = (
+    <Switch
+      checked={checked}
+      disabled={disabled}
+      onCheckedChange={onChange}
+    />
+  );
+
+  if (!forced && member.status !== 'deactivated') return sw;
+
+  const reason = forced
+    ? 'Owner ziet altijd loonkosten'
+    : 'Gedeactiveerde gebruiker';
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex opacity-90">{sw}</span>
+        </TooltipTrigger>
+        <TooltipContent>{reason}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
