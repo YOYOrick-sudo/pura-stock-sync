@@ -79,20 +79,27 @@ export function CijfersLoonkostenBar({ vestigingKeuze, van, tot }: Props) {
   const berekend = Number(t.bron_mix?.berekend ?? 0);
   const omsEitje = Number(t.omzet_bron_mix?.eitje ?? 0);
 
+  const prevLbl = prevLabel(q.data.vorige_periode?.van, q.data.vorige_periode?.tot);
+  const vsSub = prevLbl ? ` · vs ${prevLbl}` : '';
+
   return (
     <div className="rounded-[20px] border border-border bg-card shadow-card cj-card-in overflow-hidden">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Col first
           label="Loonkosten"
           value={<Money v={loonkosten} />}
-          sub={pctVanOmzet != null ? `${pctVanOmzet.toString().replace('.', ',')}% van omzet` : 'geen omzet in periode'}
+          sub={(pctVanOmzet != null ? `${pctVanOmzet.toString().replace('.', ',')}% van omzet` : 'geen omzet in periode') + vsSub}
           dp={dpLoon}
+          intent="neutraal"
+          dpTitle={prevLbl ? `t.o.v. ${prevLbl}` : undefined}
         />
         <Col
           label="Omzet / gewerkt uur"
           value={omzPerUur == null ? <span>—</span> : <Money v={omzPerUur} decimals={2} />}
-          sub={`${gewerkt.toFixed(1).replace('.', ',')} u gewerkt`}
+          sub={`${gewerkt.toFixed(1).replace('.', ',')} u gewerkt${vsSub}`}
           dp={dpOmzPerUur}
+          intent="hoger-is-goed"
+          dpTitle={prevLbl ? `t.o.v. ${prevLbl}` : undefined}
         />
         <Col
           label="Uren gewerkt vs gepland"
@@ -100,9 +107,11 @@ export function CijfersLoonkostenBar({ vestigingKeuze, van, tot }: Props) {
           sub={
             afwijking == null
               ? 'geen planning'
-              : `${afwijking >= 0 ? '+' : ''}${afwijking.toFixed(1).replace('.', ',')}% t.o.v. gepland`
+              : `${gewerkt.toFixed(0).replace('.', ',')} u gewerkt · ${gepland.toFixed(0)} u gepland`
           }
-          dp={dpUren}
+          dp={afwijking}
+          intent="afwijking-signaal"
+          dpTitle="afwijking t.o.v. planning"
         />
       </div>
       {(berekend > 0 || omsEitje > 0) && (
