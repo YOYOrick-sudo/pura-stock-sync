@@ -56,6 +56,40 @@ export function CijfersLoonkostenGrafiek({ vestigingKeuze, van, tot }: Props) {
     refetchOnWindowFocus: true,
   });
 
+  const instQ = useQuery({
+    queryKey: ['cijfers-instellingen-doel'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cijfers_instellingen')
+        .select('vestiging, loon_pct_doel');
+      if (error) throw error;
+      return (data ?? []) as Array<{ vestiging: string; loon_pct_doel: number }>;
+    },
+    staleTime: 60_000,
+  });
+
+  // Bepaal doellijnen: unieke waardes over gekozen vestigingen.
+  const doelen = useMemo(() => {
+    const perVest = new Map<string, number>();
+    for (const r of instQ.data ?? []) {
+      if (vestigingen.includes(r.vestiging as any)) {
+        perVest.set(r.vestiging, Number(r.loon_pct_doel));
+      }
+    }
+    const waardes = Array.from(new Set(perVest.values()));
+    if (waardes.length <= 1) {
+      // Zelfde doel (of maar 1 vestiging): één gedeelde lijn
+      const w = waardes[0] ?? 30;
+      return [{ waarde: w, label: `Doel ${w}%` }];
+    }
+    // Verschillende doelen: aparte lijnen per vestiging
+    return Array.from(perVest.entries()).map(([vest, w]) => ({
+      waarde: w,
+      label: `${vest} ${w}%`,
+    }));
+  }, [instQ.data, vestigingen]);
+
+
   const data = useMemo(() => {
     if (!q.data?.length) return [];
     // Aggregeer over vestigingen per bucket + combineer omzet_bron
