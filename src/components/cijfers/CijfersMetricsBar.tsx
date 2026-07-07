@@ -1,7 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertTriangle } from 'lucide-react';
+import { format } from 'date-fns';
+import { nl } from 'date-fns/locale';
 import { EUR, EUR2, vestigingenVan, type Periode, type VestKeuze } from './types';
 import { useCountUp } from './useCountUp';
 import { DeltaPill } from './chartHelpers';
@@ -10,12 +13,15 @@ interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot:
 
 type BronMix = { lightspeed: number; eitje: number; geen: number };
 type Samenvatting = {
+  periode?: { van: string; tot: string };
+  vorige_periode?: { van: string; tot: string };
   totaal: {
     omzet: number;
     bonnen: number | null;
     open_dagen: number | null;
     vorige_omzet: number | null;
     omzet_bron_mix?: BronMix;
+    vorige_omzet_bron_mix?: BronMix;
   };
   per_vestiging: Array<{
     vestiging: string;
@@ -24,8 +30,44 @@ type Samenvatting = {
     open_dagen: number | null;
     vorige_omzet: number | null;
     omzet_bron_mix?: BronMix;
+    vorige_omzet_bron_mix?: BronMix;
   }>;
 };
+
+function bronLabel(m?: BronMix): string {
+  if (!m) return 'onbekend';
+  const parts: string[] = [];
+  if (m.lightspeed > 0) parts.push('Lightspeed');
+  if (m.eitje > 0) parts.push('Eitje');
+  if (parts.length === 0) return 'geen data';
+  return parts.length === 1 ? parts[0] : parts.join(' + ');
+}
+
+function bronMismatch(cur?: BronMix, prev?: BronMix): boolean {
+  if (!cur || !prev) return false;
+  if (prev.lightspeed + prev.eitje === 0) return false; // geen vorige data → geen mismatch (delta wordt '—')
+  const curHasEitje = cur.eitje > 0;
+  const curHasLs = cur.lightspeed > 0;
+  const prvHasEitje = prev.eitje > 0;
+  const prvHasLs = prev.lightspeed > 0;
+  // Mismatch als bron-samenstelling niet gelijk is
+  return curHasEitje !== prvHasEitje || curHasLs !== prvHasLs;
+}
+
+function fmtRange(van?: string, tot?: string): string {
+  if (!van || !tot) return '';
+  const dv = new Date(van); const dt = new Date(tot);
+  const sameDay = van === tot;
+  const nowYear = new Date().getFullYear();
+  const showYear = dv.getFullYear() !== nowYear || dt.getFullYear() !== nowYear;
+  if (sameDay) {
+    return format(dv, showYear ? 'd MMM yyyy' : 'd MMM', { locale: nl });
+  }
+  if (dv.getFullYear() === dt.getFullYear() && dv.getMonth() === dt.getMonth()) {
+    return `${format(dv, 'd', { locale: nl })} – ${format(dt, showYear ? 'd MMM yyyy' : 'd MMM', { locale: nl })}`;
+  }
+  return `${format(dv, 'd MMM', { locale: nl })} – ${format(dt, showYear ? 'd MMM yyyy' : 'd MMM', { locale: nl })}`;
+}
 
 export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) {
   const vestigingen = vestigingenVan(vestigingKeuze);
