@@ -1,0 +1,1 @@
+DELETE FROM public.omzet_uren WHERE is_demo = false AND werkdag < '2000-01-01';

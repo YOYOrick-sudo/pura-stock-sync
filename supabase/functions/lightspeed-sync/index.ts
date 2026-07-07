@@ -259,15 +259,42 @@ async function getValidToken(admin: any, vestiging: string): Promise<{ token: st
 // ------------------------------------------------------------------
 // Receipts ophalen — Lightspeed L-Series (euc2 via lightspeedapis.com gateway)
 // Endpoint: GET /resto/rest/financial/receipt?date=YYYY-MM-DD&offset=N&limit=50
-// - closingDate/creationDate zijn UTC (ISO Z). computeWerkdagUur() converteert
-//   naar Europe/Amsterdam vóór het bucketen, dus late-avond UTC-bonnen belanden
-//   automatisch op de juiste NL-werkdag/uur (22:30Z zomer = 00:30 NL → volgende dag).
-// - Timestamp-keuze: closingDate. Dit is het moment van afrekenen (= omzet-moment
-//   voor kassa-vergelijk). creationDate is bon-openen; kan uren eerder liggen bij
-//   lang openstaande tafels en zou de uur-buckets vervuilen.
+// - Timestamp-keuze: modificationDate (= laatste touch = afreken/close-moment).
+//   Deze tenant vult closingDate structureel NIET (altijd 1970-01-01), dus die is
+//   onbruikbaar. modificationDate is dichter bij afreken-moment dan creationDate
+//   (bon-openen); zie sample-analyse: bonnen lopen tot 3.5u open, ts-keuze bepaalt
+//   uur-bucket. Fallback-keten: modificationDate → creationDate → closingDate →
+//   printDate, met sanity-skip voor epoch/pre-2000 waardes.
+// - UTC (ISO Z) → computeWerkdagUur() bucketet naar Europe/Amsterdam vóór upsert.
 // - Filter: status === 'PAID' (alleen betaalde bonnen tellen als omzet).
 // ------------------------------------------------------------------
 type Receipt = { timestamp: string; total_incl: number; total_excl: number };
+
+/**
+ * Kies het beste timestamp-veld van een Lightspeed receipt.
+ * Volgorde: modificationDate → creationDate → closingDate → printDate.
+ * Skipt epoch-waardes (1969/1970 of numeriek < 2000-01-01) en normaliseert
+ * unix seconds/ms → ISO. Retourneert null als geen enkel veld bruikbaar is.
+ */
+function pickReceiptTs(r: any): string | null {
+  const cands = [r?.modificationDate, r?.creationDate, r?.closingDate, r?.printDate];
+  for (const c of cands) {
+    if (c == null || c === '') continue;
+    const s = String(c);
+    if (s.startsWith('1970-') || s.startsWith('1969-')) continue;
+    // Numeric (unix seconds or ms)?
+    if (typeof c === 'number' || /^\d+$/.test(s)) {
+      const n = typeof c === 'number' ? c : Number(s);
+      if (!Number.isFinite(n) || n <= 0) continue;
+      const ms = n < 1e12 ? n * 1000 : n;
+      if (ms < 946684800000) continue; // < 2000-01-01
+      return new Date(ms).toISOString();
+    }
+    // ISO string — vertrouw op formaat, computeWerkdagUur() valideert via Date().
+    return s;
+  }
+  return null;
+}
 
 async function fetchReceiptsForDay(
   accessToken: string,
@@ -306,6 +333,7 @@ async function fetchReceiptsForDay(
     let pageClosingEpoch = 0;
     let pageClosingReal = 0;
     let pageCreationReal = 0;
+    let pageModReal = 0;
     let dumpedOnPage = 0;
 
     for (const r of arr) {
@@ -356,27 +384,25 @@ async function fetchReceiptsForDay(
       const crEpoch = crS === '' || crS.startsWith('1970-') || crS.startsWith('1969-') ||
         (Number.isFinite(crN) && crN > 0 && crN < 946684800000);
       if (!crEpoch) pageCreationReal += 1;
+      const mdRaw = r?.modificationDate;
+      const mdS = mdRaw == null ? '' : String(mdRaw);
+      const mdN = typeof mdRaw === 'number' ? mdRaw : Number(mdRaw);
+      const mdEpoch = mdS === '' || mdS.startsWith('1970-') || mdS.startsWith('1969-') ||
+        (Number.isFinite(mdN) && mdN > 0 && mdN < 946684800000);
+      if (!mdEpoch) pageModReal += 1;
 
-      const rawTs = r?.closingDate ?? r?.creationDate;
-      if (rawTs === null || rawTs === undefined || rawTs === '') continue;
-      // Normaliseer Lightspeed timestamp: kan number (unix s/ms) of ISO-string zijn.
-      // Grens 10^12: <  → seconds (×1000), ≥ → milliseconds.
-      let iso: string;
-      const n = typeof rawTs === 'number' ? rawTs : Number(rawTs);
-      if (Number.isFinite(n) && n > 0 && (typeof rawTs === 'number' || /^\d+$/.test(String(rawTs)))) {
-        const ms = n < 1e12 ? n * 1000 : n;
-        iso = new Date(ms).toISOString();
-        if (paidRaw === 1) console.log(`[fetchReceipts] ts-format=${n < 1e12 ? 'unix_seconds' : 'unix_ms'} sample=${rawTs} → ${iso}`);
-      } else {
-        iso = String(rawTs);
-        if (paidRaw === 1) console.log(`[fetchReceipts] ts-format=iso_string sample=${rawTs}`);
-      }
+      // Kies timestamp via pickReceiptTs: modificationDate → creationDate → closingDate → printDate,
+      // met epoch/pre-2000-skip. Deze tenant heeft closingDate structureel op 1970-01-01;
+      // modificationDate is dichter bij afreken-moment dan creationDate (bon-openen).
+      const iso = pickReceiptTs(r);
+      if (paidRaw === 1) console.log(`[fetchReceipts] picked_ts=${iso} (mod=${r?.modificationDate} cre=${r?.creationDate} clo=${r?.closingDate})`);
+      if (!iso) continue;
       const incl = Number(r?.total ?? 0);
       const excl = Number(r?.totalWithoutTax ?? r?.totalExcludingTax ?? 0);
       kept.push({ timestamp: iso, total_incl: incl, total_excl: excl });
     }
 
-    console.log(`[epoch-scan] page=${page} n_paid=${pagePaid} n_closing_epoch=${pageClosingEpoch} n_closing_real=${pageClosingReal} n_creation_real=${pageCreationReal}`);
+    console.log(`[epoch-scan] page=${page} n_paid=${pagePaid} n_closing_epoch=${pageClosingEpoch} n_closing_real=${pageClosingReal} n_creation_real=${pageCreationReal} n_mod_real=${pageModReal}`);
 
     if (arr.length < RECEIPTS_PAGE_SIZE) break;
     offset += RECEIPTS_PAGE_SIZE;
