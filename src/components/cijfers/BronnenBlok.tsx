@@ -329,7 +329,15 @@ export function BronnenBlok() {
 
   return (
     <div className="space-y-4">
+      <BackfillProgressDialog
+        state={backfill}
+        onClose={() => setBackfill(null)}
+        onCancel={() => { cancelRef.current = true; setBackfill((s) => s && ({ ...s, geannuleerd: true })); }}
+        onRetryFailed={retryFailed}
+      />
       <div className="text-base font-semibold text-foreground">Bronnen</div>
+
+
 
       {statusQ.isLoading ? (
         <div className="flex justify-center py-6"><Loader2 className="animate-spin text-primary" /></div>
