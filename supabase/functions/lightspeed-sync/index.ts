@@ -597,19 +597,42 @@ Deno.serve(async (req) => {
 
   if (type === 'backfill') {
     if (!['Midsland', 'West'].includes(body.vestiging)) return json({ error: 'invalid_vestiging' }, 400);
-    const maanden = Math.max(1, Math.min(24, Number(body.maanden ?? 12)));
-    const results: any[] = [];
-    for (let i = 1; i <= maanden; i++) {
-      const end = new Date();
-      end.setUTCMonth(end.getUTCMonth() - (i - 1), 0); // laatste dag van maand i-1 terug
-      const start = new Date(end);
-      start.setUTCDate(1);
-      const van = start.toISOString().slice(0, 10);
-      const tot = end.toISOString().slice(0, 10);
-      results.push({ periode: `${van}..${tot}`, ...(await runSync(admin, body.vestiging, van, tot, 'backfill')) });
-      await sleep(2000); // rate-limit-vriendelijk
+
+    // Bepaal periode: expliciete van/tot heeft voorrang; anders val terug op maanden-N (cron/legacy).
+    let periodStart: Date;
+    let periodEnd: Date;
+    if (body.van && body.tot) {
+      periodStart = new Date(`${body.van}T00:00:00Z`);
+      periodEnd = new Date(`${body.tot}T00:00:00Z`);
+      if (isNaN(periodStart.getTime()) || isNaN(periodEnd.getTime()) || periodEnd < periodStart) {
+        return json({ error: 'invalid_date_range', detail: `${body.van}..${body.tot}` }, 400);
+      }
+    } else {
+      const maanden = Math.max(1, Math.min(24, Number(body.maanden ?? 12)));
+      periodEnd = new Date();
+      periodEnd.setUTCHours(0, 0, 0, 0);
+      periodEnd.setUTCDate(periodEnd.getUTCDate() - 1); // gisteren
+      periodStart = new Date(periodEnd);
+      periodStart.setUTCMonth(periodStart.getUTCMonth() - maanden);
     }
-    return json({ ok: true, runs: results });
+
+    // Splits in week-chunks (7 dagen) — één runSync per chunk = eigen sync_runs-rij + eigen timeout-budget.
+    const results: any[] = [];
+    let cursor = new Date(periodStart);
+    while (cursor <= periodEnd) {
+      const chunkEnd = new Date(cursor);
+      chunkEnd.setUTCDate(chunkEnd.getUTCDate() + 6);
+      const effectiveEnd = chunkEnd > periodEnd ? periodEnd : chunkEnd;
+      const van = cursor.toISOString().slice(0, 10);
+      const tot = effectiveEnd.toISOString().slice(0, 10);
+      const res = await runSync(admin, body.vestiging, van, tot, 'backfill');
+      console.log(`[backfill] week=${van}..${tot} vestiging=${body.vestiging} bonnen=${(res as any).bonnen ?? 0} ok=${(res as any).ok}`);
+      results.push({ periode: `${van}..${tot}`, ...res });
+      await sleep(2000); // rate-limit-vriendelijk tussen weken
+      cursor = new Date(effectiveEnd);
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
+    }
+    return json({ ok: true, weeks: results.length, runs: results });
   }
 
   return json({ error: 'unhandled' }, 500);
