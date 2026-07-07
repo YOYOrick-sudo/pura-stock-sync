@@ -250,7 +250,9 @@ function LineChart({
         <TipRow color="hsl(var(--primary))" label="Deze periode" value={EUR0.format(c)} />
         {showCmp && <TipRow color="hsl(var(--chart-prev-line))" label="Vorige periode" value={EUR0.format(p)} />}
         <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid hsl(var(--border))', fontSize: 10.5, color: 'hsl(var(--muted-foreground))' }}>
-          ≈ {NUM.format(series.bonnen[hv] || Math.round(c / 36))} bonnen
+          {series.bonnen[hv] != null
+            ? `≈ ${NUM.format(series.bonnen[hv] as number)} bonnen`
+            : 'omzet uit Eitje — bonnen n.v.t.'}
         </div>
       </TipCard>
     );
