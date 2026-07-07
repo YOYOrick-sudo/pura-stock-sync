@@ -114,6 +114,11 @@ export default function Cijfers() {
           </div>
         )}
 
+        {magLoon && (
+          <CijfersLoonkostenDoelGrafiek periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+        )}
+
+
         <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5">
           <CijfersUurverloop periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
           <CijfersVestigingSplit periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
