@@ -145,15 +145,15 @@ export function BronnenBlok() {
   });
 
   const syncNow = useMutation({
-    mutationFn: async (vestiging: 'Midsland' | 'West') => {
+    mutationFn: async ({ vestiging, van, tot }: { vestiging: 'Midsland' | 'West'; van: string; tot: string }) => {
       const { data, error } = await supabase.functions.invoke('lightspeed-sync', {
-        body: { type: 'handmatig', vestiging },
+        body: { type: 'handmatig', vestiging, van, tot },
       });
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      toast({ title: 'Sync gestart' });
+    onSuccess: (_d, vars) => {
+      toast({ title: 'Sync gestart', description: `${vars.vestiging}: ${vars.van} → ${vars.tot}` });
       qc.invalidateQueries();
     },
     onError: (e: Error) => toast({ title: 'Sync mislukt', description: e.message, variant: 'destructive' }),
