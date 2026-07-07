@@ -259,15 +259,42 @@ async function getValidToken(admin: any, vestiging: string): Promise<{ token: st
 // ------------------------------------------------------------------
 // Receipts ophalen — Lightspeed L-Series (euc2 via lightspeedapis.com gateway)
 // Endpoint: GET /resto/rest/financial/receipt?date=YYYY-MM-DD&offset=N&limit=50
-// - closingDate/creationDate zijn UTC (ISO Z). computeWerkdagUur() converteert
-//   naar Europe/Amsterdam vóór het bucketen, dus late-avond UTC-bonnen belanden
-//   automatisch op de juiste NL-werkdag/uur (22:30Z zomer = 00:30 NL → volgende dag).
-// - Timestamp-keuze: closingDate. Dit is het moment van afrekenen (= omzet-moment
-//   voor kassa-vergelijk). creationDate is bon-openen; kan uren eerder liggen bij
-//   lang openstaande tafels en zou de uur-buckets vervuilen.
+// - Timestamp-keuze: modificationDate (= laatste touch = afreken/close-moment).
+//   Deze tenant vult closingDate structureel NIET (altijd 1970-01-01), dus die is
+//   onbruikbaar. modificationDate is dichter bij afreken-moment dan creationDate
+//   (bon-openen); zie sample-analyse: bonnen lopen tot 3.5u open, ts-keuze bepaalt
+//   uur-bucket. Fallback-keten: modificationDate → creationDate → closingDate →
+//   printDate, met sanity-skip voor epoch/pre-2000 waardes.
+// - UTC (ISO Z) → computeWerkdagUur() bucketet naar Europe/Amsterdam vóór upsert.
 // - Filter: status === 'PAID' (alleen betaalde bonnen tellen als omzet).
 // ------------------------------------------------------------------
 type Receipt = { timestamp: string; total_incl: number; total_excl: number };
+
+/**
+ * Kies het beste timestamp-veld van een Lightspeed receipt.
+ * Volgorde: modificationDate → creationDate → closingDate → printDate.
+ * Skipt epoch-waardes (1969/1970 of numeriek < 2000-01-01) en normaliseert
+ * unix seconds/ms → ISO. Retourneert null als geen enkel veld bruikbaar is.
+ */
+function pickReceiptTs(r: any): string | null {
+  const cands = [r?.modificationDate, r?.creationDate, r?.closingDate, r?.printDate];
+  for (const c of cands) {
+    if (c == null || c === '') continue;
+    const s = String(c);
+    if (s.startsWith('1970-') || s.startsWith('1969-')) continue;
+    // Numeric (unix seconds or ms)?
+    if (typeof c === 'number' || /^\d+$/.test(s)) {
+      const n = typeof c === 'number' ? c : Number(s);
+      if (!Number.isFinite(n) || n <= 0) continue;
+      const ms = n < 1e12 ? n * 1000 : n;
+      if (ms < 946684800000) continue; // < 2000-01-01
+      return new Date(ms).toISOString();
+    }
+    // ISO string — vertrouw op formaat, computeWerkdagUur() valideert via Date().
+    return s;
+  }
+  return null;
+}
 
 async function fetchReceiptsForDay(
   accessToken: string,
