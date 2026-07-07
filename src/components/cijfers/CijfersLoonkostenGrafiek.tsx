@@ -137,12 +137,33 @@ export function CijfersLoonkostenGrafiek({ vestigingKeuze, van, tot }: Props) {
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
               <YAxis yAxisId="l" tickFormatter={axisEUR} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} width={54} />
-              <YAxis yAxisId="r" orientation="right" tickFormatter={(v) => v + '%'} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} width={40} domain={[0, (dataMax: number) => Math.max(50, Math.ceil(dataMax / 10) * 10)]} />
+              <YAxis yAxisId="r" orientation="right" tickFormatter={(v) => v + '%'} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} width={40} domain={[0, (dataMax: number) => {
+                const doelMax = doelen.reduce((m, d) => Math.max(m, d.waarde), 0);
+                return Math.max(50, Math.ceil(Math.max(dataMax, doelMax + 5) / 10) * 10);
+              }]} />
               <Tooltip content={<TT />} />
               <Legend wrapperStyle={{ fontSize: 12 }} iconType="circle" />
+              {doelen.map((d, i) => (
+                <ReferenceLine
+                  key={`doel-${i}-${d.waarde}`}
+                  yAxisId="r"
+                  y={d.waarde}
+                  stroke="hsl(var(--destructive))"
+                  strokeWidth={1.5}
+                  strokeDasharray="6 4"
+                  ifOverflow="extendDomain"
+                  label={{
+                    value: d.label,
+                    fill: 'hsl(var(--destructive))',
+                    fontSize: 10,
+                    position: 'insideTopRight',
+                  }}
+                />
+              ))}
               <Area yAxisId="l" type="monotone" dataKey="omzet" name="Omzet" stroke="hsl(var(--primary))" fill="url(#omzetGrad)" strokeWidth={2} />
               <Line yAxisId="l" type="monotone" dataKey="loonkosten" name="Loonkosten" stroke="#E27726" strokeWidth={2} dot={false} />
               <Line yAxisId="r" type="monotone" dataKey="pct" name="Loon % omzet" stroke="hsl(var(--muted-foreground))" strokeWidth={1.5} strokeDasharray="4 4" dot={false} connectNulls />
+
             </ComposedChart>
           </ResponsiveContainer>
         </div>
