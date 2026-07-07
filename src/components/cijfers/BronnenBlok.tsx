@@ -231,9 +231,11 @@ export function BronnenBlok() {
               <div className="flex gap-2">
                 {row.status === 'gekoppeld' ? (
                   <>
-                    <Button size="sm" onClick={() => syncNow.mutate(row.vestiging)} disabled={syncNow.isPending} className="flex-1">
-                      <RefreshCw className="w-3.5 h-3.5 mr-2" /> Sync nu
-                    </Button>
+                    <SyncPopover
+                      vestiging={row.vestiging}
+                      pending={syncNow.isPending}
+                      onSubmit={(van, tot) => syncNow.mutate({ vestiging: row.vestiging, van, tot })}
+                    />
                     <Button size="sm" onClick={() => startOAuth.mutate(row.vestiging)} disabled={startOAuth.isPending} variant="outline">
                       Opnieuw koppelen
                     </Button>
