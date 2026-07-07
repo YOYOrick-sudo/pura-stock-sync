@@ -1,10 +1,20 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, ExternalLink, RefreshCw, Link2, AlertCircle, Search, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { StatusBadge, type StatusTone } from '@/components/pura/StatusBadge';
 import { EmptyState } from '@/components/pura/EmptyState';
 import { toast } from '@/hooks/use-toast';
+
+function isoYesterday(): string {
+  return new Date(Date.now() - 24 * 3600 * 1000).toISOString().slice(0, 10);
+}
+function isoToday(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 type StatusRow = {
   vestiging: 'Midsland' | 'West';
