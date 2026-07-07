@@ -197,6 +197,7 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) 
             value={c.value}
             sub={c.sub}
             dp={c.dp}
+            intent={c.intent}
             first={i === 0}
           />
         ))}
@@ -219,8 +220,8 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) 
 }
 
 function MetricCol({
-  label, value, sub, dp, first,
-}: { label: string; value: React.ReactNode; sub: React.ReactNode; dp?: number | null; first: boolean }) {
+  label, value, sub, dp, intent, first,
+}: { label: string; value: React.ReactNode; sub: React.ReactNode; dp?: number | null; intent?: DeltaIntent; first: boolean }) {
   return (
     <div
       style={{
@@ -238,7 +239,7 @@ function MetricCol({
           fontSize: 25, fontWeight: 700, letterSpacing: '-0.02em',
           fontVariantNumeric: 'tabular-nums', lineHeight: 1, color: 'hsl(var(--foreground))',
         }}>{value}</span>
-        {dp !== undefined && <DeltaPill pct={dp} />}
+        {dp !== undefined && <DeltaPill pct={dp} intent={intent ?? 'hoger-is-goed'} />}
       </div>
       <div style={{
         fontSize: 11.5, color: 'hsl(var(--muted-foreground))', marginTop: 8,
