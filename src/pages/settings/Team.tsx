@@ -153,10 +153,12 @@ export default function Team() {
   );
 }
 
-function TeamRow({ member, isSelf, onChanged }: {
+function TeamRow({ member, isSelf, onChanged, onLocalUpdate }: {
   member: TeamMember; isSelf: boolean; onChanged: () => void;
+  onLocalUpdate: (patch: Partial<TeamMember>) => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const [loonBusy, setLoonBusy] = useState(false);
 
   const displayRole = member.role ? ROLE_LABELS[member.role] ?? member.role : '—';
   const displayName = [member.first_name, member.last_name].filter(Boolean).join(' ') || '—';
