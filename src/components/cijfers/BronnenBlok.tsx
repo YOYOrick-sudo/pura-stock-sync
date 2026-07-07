@@ -1,10 +1,20 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, ExternalLink, RefreshCw, Link2, AlertCircle, Search, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { StatusBadge, type StatusTone } from '@/components/pura/StatusBadge';
 import { EmptyState } from '@/components/pura/EmptyState';
 import { toast } from '@/hooks/use-toast';
+
+function isoYesterday(): string {
+  return new Date(Date.now() - 24 * 3600 * 1000).toISOString().slice(0, 10);
+}
+function isoToday(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 type StatusRow = {
   vestiging: 'Midsland' | 'West';
@@ -135,15 +145,15 @@ export function BronnenBlok() {
   });
 
   const syncNow = useMutation({
-    mutationFn: async (vestiging: 'Midsland' | 'West') => {
+    mutationFn: async ({ vestiging, van, tot }: { vestiging: 'Midsland' | 'West'; van: string; tot: string }) => {
       const { data, error } = await supabase.functions.invoke('lightspeed-sync', {
-        body: { type: 'handmatig', vestiging },
+        body: { type: 'handmatig', vestiging, van, tot },
       });
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      toast({ title: 'Sync gestart' });
+    onSuccess: (_d, vars) => {
+      toast({ title: 'Sync gestart', description: `${vars.vestiging}: ${vars.van} → ${vars.tot}` });
       qc.invalidateQueries();
     },
     onError: (e: Error) => toast({ title: 'Sync mislukt', description: e.message, variant: 'destructive' }),
@@ -221,9 +231,11 @@ export function BronnenBlok() {
               <div className="flex gap-2">
                 {row.status === 'gekoppeld' ? (
                   <>
-                    <Button size="sm" onClick={() => syncNow.mutate(row.vestiging)} disabled={syncNow.isPending} className="flex-1">
-                      <RefreshCw className="w-3.5 h-3.5 mr-2" /> Sync nu
-                    </Button>
+                    <SyncPopover
+                      vestiging={row.vestiging}
+                      pending={syncNow.isPending}
+                      onSubmit={(van, tot) => syncNow.mutate({ vestiging: row.vestiging, van, tot })}
+                    />
                     <Button size="sm" onClick={() => startOAuth.mutate(row.vestiging)} disabled={startOAuth.isPending} variant="outline">
                       Opnieuw koppelen
                     </Button>
@@ -348,5 +360,73 @@ export function BronnenBlok() {
         )}
       </div>
     </div>
+  );
+}
+
+function SyncPopover({
+  vestiging,
+  pending,
+  onSubmit,
+}: {
+  vestiging: 'Midsland' | 'West';
+  pending: boolean;
+  onSubmit: (van: string, tot: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [van, setVan] = useState(isoYesterday());
+  const [tot, setTot] = useState(isoYesterday());
+  const today = isoToday();
+  const valid = van && tot && van <= tot && tot <= today;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button size="sm" disabled={pending} className="flex-1">
+          <RefreshCw className={`w-3.5 h-3.5 mr-2 ${pending ? 'animate-spin' : ''}`} /> Sync nu
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-72 p-3 space-y-3">
+        <div className="text-xs font-semibold">Sync {vestiging}</div>
+        <div className="space-y-2">
+          <label className="block text-[11px] text-muted-foreground">
+            Van
+            <Input
+              type="date"
+              value={van}
+              max={today}
+              onChange={(e) => setVan(e.target.value)}
+              className="mt-1 h-8 text-xs"
+            />
+          </label>
+          <label className="block text-[11px] text-muted-foreground">
+            Tot
+            <Input
+              type="date"
+              value={tot}
+              max={today}
+              min={van}
+              onChange={(e) => setTot(e.target.value)}
+              className="mt-1 h-8 text-xs"
+            />
+          </label>
+        </div>
+        {!valid && (
+          <div className="text-[11px] text-destructive">Van ≤ tot en niet in de toekomst.</div>
+        )}
+        <div className="flex gap-2 justify-end">
+          <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>Annuleer</Button>
+          <Button
+            size="sm"
+            disabled={!valid || pending}
+            onClick={() => {
+              onSubmit(van, tot);
+              setOpen(false);
+            }}
+          >
+            Sync {van === tot ? van : `${van} → ${tot}`}
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
