@@ -144,8 +144,11 @@ export function CijfersLoonkostenBar({ vestigingKeuze, van, tot }: Props) {
 }
 
 function Col({
-  label, value, sub, dp, first,
-}: { label: string; value: React.ReactNode; sub: React.ReactNode; dp?: number | null; first?: boolean }) {
+  label, value, sub, dp, intent, dpTitle, first,
+}: {
+  label: string; value: React.ReactNode; sub: React.ReactNode;
+  dp?: number | null; intent?: DeltaIntent; dpTitle?: string; first?: boolean;
+}) {
   return (
     <div style={{
       padding: '18px 20px',
@@ -161,7 +164,7 @@ function Col({
           fontSize: 25, fontWeight: 700, letterSpacing: '-0.02em',
           fontVariantNumeric: 'tabular-nums', lineHeight: 1, color: 'hsl(var(--foreground))',
         }}>{value}</span>
-        {dp !== undefined && <DeltaPill pct={dp ?? null} />}
+        {dp !== undefined && <DeltaPill pct={dp ?? null} intent={intent ?? 'hoger-is-goed'} title={dpTitle} />}
       </div>
       <div style={{
         fontSize: 11.5, color: 'hsl(var(--muted-foreground))', marginTop: 8,
