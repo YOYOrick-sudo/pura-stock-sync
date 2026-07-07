@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     // Fetch all roles
     const { data: allRoles } = await admin.from('user_roles').select('*');
     // Fetch profiles
-    const { data: profiles } = await admin.from('profiles').select('user_id, first_name, last_name');
+    const { data: profiles } = await admin.from('profiles').select('user_id, first_name, last_name, mag_loonkosten_zien');
 
     const rolesByUser = new Map<string, any[]>();
     for (const r of allRoles ?? []) {
