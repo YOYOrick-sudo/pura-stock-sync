@@ -1,0 +1,1 @@
+UPDATE public.lightspeed_connections SET token_expires_at = now() - interval '1 minute' WHERE vestiging='Midsland';
