@@ -2843,6 +2843,7 @@ export type Database = {
           gewerkte_uren: number
           loonkosten: number
           omzet: number
+          omzet_bron: string
           vestiging: string
         }[]
       }

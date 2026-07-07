@@ -16,6 +16,7 @@ type PerVest = {
   omzet_per_gewerkt_uur: number | null;
   prev_loonkosten: number; prev_omzet: number; prev_gewerkte_uren: number;
   bron_mix: { eitje: number; berekend: number };
+  omzet_bron_mix?: { lightspeed: number; eitje: number; geen: number };
 };
 type Sam = {
   periode: { van: string; tot: string };
@@ -75,6 +76,7 @@ export function CijfersLoonkostenBar({ vestigingKeuze, van, tot }: Props) {
 
   const afwijking = gepland > 0 ? ((gewerkt - gepland) / gepland) * 100 : null;
   const berekend = Number(t.bron_mix?.berekend ?? 0);
+  const omsEitje = Number(t.omzet_bron_mix?.eitje ?? 0);
 
   return (
     <div className="rounded-[20px] border border-border bg-card shadow-card cj-card-in overflow-hidden">
@@ -102,17 +104,29 @@ export function CijfersLoonkostenBar({ vestigingKeuze, van, tot }: Props) {
           dp={dpUren}
         />
       </div>
-      {berekend > 0 && (
+      {(berekend > 0 || omsEitje > 0) && (
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px',
+          display: 'flex', flexDirection: 'column', gap: 4, padding: '10px 16px',
           borderTop: '1px solid hsl(var(--border))', background: 'hsl(var(--muted)/0.4)',
           fontSize: 12, color: 'hsl(var(--muted-foreground))',
         }}>
-          <AlertTriangle size={14} className="text-amber-600" />
-          <span>
-            {berekend} {berekend === 1 ? 'dag berekend' : 'dagen berekend'} met vangnet-uurloon
-            {' '}(geen geldig tarief in Eitje). Loonkosten kunnen afwijken van werkelijk.
-          </span>
+          {berekend > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <AlertTriangle size={14} className="text-amber-600" />
+              <span>
+                {berekend} {berekend === 1 ? 'dag berekend' : 'dagen berekend'} met vangnet-uurloon
+                {' '}(geen geldig tarief in Eitje). Loonkosten kunnen afwijken van werkelijk.
+              </span>
+            </div>
+          )}
+          {omsEitje > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <AlertTriangle size={14} className="text-amber-600" />
+              <span>
+                {omsEitje} {omsEitje === 1 ? 'dag omzet' : 'dagen omzet'} uit Eitje (Lightspeed leeg of niet-representatief).
+              </span>
+            </div>
+          )}
         </div>
       )}
     </div>

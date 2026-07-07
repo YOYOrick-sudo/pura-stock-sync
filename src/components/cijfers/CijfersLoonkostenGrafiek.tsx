@@ -15,6 +15,7 @@ type Row = {
   bucket: string; vestiging: string;
   gewerkte_uren: number; geplande_uren: number;
   loonkosten: number; omzet: number;
+  omzet_bron?: 'lightspeed' | 'eitje' | 'gemengd' | 'geen';
 };
 
 function granVoor(van: string, tot: string): 'dag' | 'week' | 'maand' {
@@ -57,22 +58,30 @@ export function CijfersLoonkostenGrafiek({ vestigingKeuze, van, tot }: Props) {
 
   const data = useMemo(() => {
     if (!q.data?.length) return [];
-    // Aggregeer over vestigingen per bucket
-    const m = new Map<string, { bucket: string; omzet: number; loonkosten: number }>();
+    // Aggregeer over vestigingen per bucket + combineer omzet_bron
+    const m = new Map<string, { bucket: string; omzet: number; loonkosten: number; bronnen: Set<string> }>();
     for (const r of q.data) {
       const key = r.bucket;
-      const cur = m.get(key) ?? { bucket: key, omzet: 0, loonkosten: 0 };
+      const cur = m.get(key) ?? { bucket: key, omzet: 0, loonkosten: 0, bronnen: new Set<string>() };
       cur.omzet += Number(r.omzet ?? 0);
       cur.loonkosten += Number(r.loonkosten ?? 0);
+      if (r.omzet_bron) cur.bronnen.add(r.omzet_bron);
       m.set(key, cur);
     }
     return Array.from(m.values())
       .sort((a, b) => a.bucket.localeCompare(b.bucket))
-      .map(x => ({
-        ...x,
-        label: label(x.bucket, gran),
-        pct: x.omzet > 0 ? Number(((x.loonkosten / x.omzet) * 100).toFixed(1)) : null,
-      }));
+      .map(x => {
+        const heeftEitje = x.bronnen.has('eitje') || x.bronnen.has('gemengd');
+        const heeftLs = x.bronnen.has('lightspeed') || x.bronnen.has('gemengd');
+        const bron: 'lightspeed' | 'eitje' | 'gemengd' | 'geen' =
+          heeftLs && heeftEitje ? 'gemengd' : heeftLs ? 'lightspeed' : heeftEitje ? 'eitje' : 'geen';
+        return {
+          bucket: x.bucket, omzet: x.omzet, loonkosten: x.loonkosten,
+          label: label(x.bucket, gran),
+          pct: x.omzet > 0 ? Number(((x.loonkosten / x.omzet) * 100).toFixed(1)) : null,
+          bron,
+        };
+      });
   }, [q.data, gran]);
 
   return (
@@ -112,8 +121,13 @@ function granLabel(g: 'dag' | 'week' | 'maand'): string {
   return g === 'dag' ? 'per dag' : g === 'week' ? 'per week' : 'per maand';
 }
 
-function TT({ active, payload, label: lb }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) {
+function TT({ active, payload, label: lb }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string; payload?: { bron?: string } }>; label?: string }) {
   if (!active || !payload?.length) return null;
+  const bron = payload[0]?.payload?.bron as string | undefined;
+  const bronLabel = bron === 'eitje' ? 'Omzet uit Eitje'
+    : bron === 'gemengd' ? 'Omzet: Lightspeed + Eitje'
+    : bron === 'lightspeed' ? 'Omzet uit Lightspeed'
+    : null;
   return (
     <div style={{
       background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))',
@@ -132,6 +146,12 @@ function TT({ active, payload, label: lb }: { active?: boolean; payload?: Array<
           </span>
         </div>
       ))}
+      {bronLabel && (bron === 'eitje' || bron === 'gemengd') && (
+        <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px dashed hsl(var(--border))',
+          fontSize: 10.5, color: 'hsl(38 92% 40%)', letterSpacing: '0.02em' }}>
+          ⚠ {bronLabel}
+        </div>
+      )}
     </div>
   );
 }
