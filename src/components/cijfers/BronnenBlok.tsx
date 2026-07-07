@@ -362,3 +362,71 @@ export function BronnenBlok() {
     </div>
   );
 }
+
+function SyncPopover({
+  vestiging,
+  pending,
+  onSubmit,
+}: {
+  vestiging: 'Midsland' | 'West';
+  pending: boolean;
+  onSubmit: (van: string, tot: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [van, setVan] = useState(isoYesterday());
+  const [tot, setTot] = useState(isoYesterday());
+  const today = isoToday();
+  const valid = van && tot && van <= tot && tot <= today;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button size="sm" disabled={pending} className="flex-1">
+          <RefreshCw className={`w-3.5 h-3.5 mr-2 ${pending ? 'animate-spin' : ''}`} /> Sync nu
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-72 p-3 space-y-3">
+        <div className="text-xs font-semibold">Sync {vestiging}</div>
+        <div className="space-y-2">
+          <label className="block text-[11px] text-muted-foreground">
+            Van
+            <Input
+              type="date"
+              value={van}
+              max={today}
+              onChange={(e) => setVan(e.target.value)}
+              className="mt-1 h-8 text-xs"
+            />
+          </label>
+          <label className="block text-[11px] text-muted-foreground">
+            Tot
+            <Input
+              type="date"
+              value={tot}
+              max={today}
+              min={van}
+              onChange={(e) => setTot(e.target.value)}
+              className="mt-1 h-8 text-xs"
+            />
+          </label>
+        </div>
+        {!valid && (
+          <div className="text-[11px] text-destructive">Van ≤ tot en niet in de toekomst.</div>
+        )}
+        <div className="flex gap-2 justify-end">
+          <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>Annuleer</Button>
+          <Button
+            size="sm"
+            disabled={!valid || pending}
+            onClick={() => {
+              onSubmit(van, tot);
+              setOpen(false);
+            }}
+          >
+            Sync {van === tot ? van : `${van} → ${tot}`}
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
