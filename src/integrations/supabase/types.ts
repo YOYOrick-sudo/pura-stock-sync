@@ -2759,7 +2759,7 @@ export type Database = {
         }[]
       }
       f_vorige_periode: {
-        Args: { p_tot: string; p_van: string }
+        Args: { p_mode?: string; p_tot: string; p_van: string }
         Returns: {
           prev_tot: string
           prev_van: string
@@ -2825,10 +2825,20 @@ export type Database = {
           uur: number
         }[]
       }
-      rpc_cijfers_samenvatting: {
-        Args: { p_tot: string; p_van: string; p_vestigingen: string[] }
-        Returns: Json
-      }
+      rpc_cijfers_samenvatting:
+        | {
+            Args: { p_tot: string; p_van: string; p_vestigingen: string[] }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_mode?: string
+              p_tot: string
+              p_van: string
+              p_vestigingen: string[]
+            }
+            Returns: Json
+          }
       rpc_cijfers_tijdreeks: {
         Args: {
           p_granulariteit: string
@@ -2844,10 +2854,20 @@ export type Database = {
           vestiging: string
         }[]
       }
-      rpc_cijfers_uren_samenvatting: {
-        Args: { p_tot: string; p_van: string; p_vestigingen: string[] }
-        Returns: Json
-      }
+      rpc_cijfers_uren_samenvatting:
+        | {
+            Args: { p_tot: string; p_van: string; p_vestigingen: string[] }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_mode?: string
+              p_tot: string
+              p_van: string
+              p_vestigingen: string[]
+            }
+            Returns: Json
+          }
       rpc_cijfers_uren_tijdreeks: {
         Args: {
           p_granulariteit: string
