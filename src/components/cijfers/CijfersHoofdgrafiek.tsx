@@ -76,16 +76,30 @@ export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props
     for (const r of prev) if (!prevBuckets.includes(r.bucket)) prevBuckets.push(r.bucket);
     prevBuckets.sort();
     const n = Math.max(curBuckets.length, prevBuckets.length);
-    const labels: string[] = []; const curArr: number[] = []; const prevArr: number[] = []; const bonnenArr: number[] = [];
+    const labels: string[] = []; const curArr: number[] = []; const prevArr: number[] = [];
+    const bonnenArr: Array<number | null> = []; const bronArr: Array<Row['omzet_bron']> = [];
     for (let i = 0; i < n; i++) {
       const cb = curBuckets[i]; const pb = prevBuckets[i];
       labels.push(cb ? labelVoor(cb, gran) : pb ? labelVoor(pb, gran) : '');
-      let c = 0, p = 0, b = 0;
-      if (cb) for (const r of cur.filter((x) => x.bucket === cb))  { c += Number(r.omzet); b += Number(r.bonnen); }
+      let c = 0, p = 0;
+      let bSum = 0, bAny = false;
+      const brons = new Set<string>();
+      if (cb) for (const r of cur.filter((x) => x.bucket === cb))  {
+        c += Number(r.omzet);
+        if (r.bonnen != null) { bSum += Number(r.bonnen); bAny = true; }
+        if (r.omzet_bron) brons.add(r.omzet_bron);
+      }
       if (pb) for (const r of prev.filter((x) => x.bucket === pb)) { p += Number(r.omzet); }
-      curArr.push(c); prevArr.push(p); bonnenArr.push(b);
+      curArr.push(c); prevArr.push(p);
+      bonnenArr.push(bAny && !brons.has('eitje') && !brons.has('gemengd') && !brons.has('geen') ? bSum : null);
+      let bron: Row['omzet_bron'] = 'geen';
+      const hasLS = brons.has('lightspeed'); const hasE = brons.has('eitje') || brons.has('gemengd');
+      if (hasLS && hasE) bron = 'gemengd';
+      else if (hasLS) bron = 'lightspeed';
+      else if (hasE) bron = 'eitje';
+      bronArr.push(bron);
     }
-    return { labels, cur: curArr, prev: prevArr, bonnen: bonnenArr };
+    return { labels, cur: curArr, prev: prevArr, bonnen: bonnenArr, bron: bronArr };
   }, [curQ.data, prevQ.data, gran]);
 
   if (curQ.isLoading) return <LoadingSkeleton />;
