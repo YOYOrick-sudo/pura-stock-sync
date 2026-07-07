@@ -13,7 +13,7 @@ import { CijfersHeatmap } from '@/components/cijfers/CijfersHeatmap';
 import { CijfersWeekdagVergelijk } from '@/components/cijfers/CijfersWeekdagVergelijk';
 import { CijfersUurverloop } from '@/components/cijfers/CijfersUurverloop';
 import { CijfersVestigingSplit } from '@/components/cijfers/CijfersVestigingSplit';
-import { BronnenBlok } from '@/components/cijfers/BronnenBlok';
+
 import { BijgewerktRegel } from '@/components/cijfers/BijgewerktRegel';
 import { CijfersLoonkostenBar } from '@/components/cijfers/CijfersLoonkostenBar';
 import { CijfersLoonkostenGrafiek } from '@/components/cijfers/CijfersLoonkostenGrafiek';
@@ -125,9 +125,6 @@ export default function Cijfers() {
         </div>
 
         <CijfersHeatmap periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
-
-
-        <BronnenBlok />
 
         <BijgewerktRegel />
       </div>
