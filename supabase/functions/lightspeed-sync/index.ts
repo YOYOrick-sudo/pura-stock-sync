@@ -301,10 +301,62 @@ async function fetchReceiptsForDay(
     }
     totalRaw += arr.length;
 
+    // Per-pagina epoch-scan aggregaat (debug)
+    let pagePaid = 0;
+    let pageClosingEpoch = 0;
+    let pageClosingReal = 0;
+    let pageCreationReal = 0;
+    let dumpedOnPage = 0;
+
     for (const r of arr) {
       const status = String(r?.status ?? '').toUpperCase();
       if (status !== 'PAID') continue;
       paidRaw += 1;
+      pagePaid += 1;
+
+      // ---- DEBUG DUMP: eerste 3 PAID-receipts per pagina ----
+      if (dumpedOnPage < 3) {
+        dumpedOnPage += 1;
+        const tsFields = {
+          creationDate: r?.creationDate,
+          modificationDate: r?.modificationDate,
+          closingDate: r?.closingDate,
+          printDate: r?.printDate,
+          receiptDate: r?.receiptDate,
+          finalized: r?.finalized,
+          openingDate: r?.openingDate,
+          closedTime: r?.closedTime,
+          finalizedTime: r?.finalizedTime,
+          payments0_date: r?.payments?.[0]?.date,
+          payments0_time: r?.payments?.[0]?.time,
+          payments0_paidDate: r?.payments?.[0]?.paidDate,
+        };
+        const cd = r?.closingDate;
+        const cdStr = cd == null ? '' : String(cd);
+        const cdNum = typeof cd === 'number' ? cd : Number(cd);
+        const closingIsEpoch =
+          cdStr.startsWith('1970-') || cdStr.startsWith('1969-') ||
+          (Number.isFinite(cdNum) && cdNum > 0 && cdNum < 946684800000);
+        console.log(`[receipt-dump] page=${page} i=${dumpedOnPage} keys=${JSON.stringify(Object.keys(r ?? {}))} ts_fields=${JSON.stringify(tsFields)} closing_is_epoch=${closingIsEpoch}`);
+        if (page === 0 && dumpedOnPage === 1) {
+          console.log(`[receipt-raw] ${JSON.stringify(r).slice(0, 1200)}`);
+        }
+      }
+
+      // ---- Epoch-scan telling ----
+      const cdRaw = r?.closingDate;
+      const cdS = cdRaw == null ? '' : String(cdRaw);
+      const cdN = typeof cdRaw === 'number' ? cdRaw : Number(cdRaw);
+      const cdEpoch = cdS === '' || cdS.startsWith('1970-') || cdS.startsWith('1969-') ||
+        (Number.isFinite(cdN) && cdN > 0 && cdN < 946684800000);
+      if (cdEpoch) pageClosingEpoch += 1; else pageClosingReal += 1;
+      const crRaw = r?.creationDate;
+      const crS = crRaw == null ? '' : String(crRaw);
+      const crN = typeof crRaw === 'number' ? crRaw : Number(crRaw);
+      const crEpoch = crS === '' || crS.startsWith('1970-') || crS.startsWith('1969-') ||
+        (Number.isFinite(crN) && crN > 0 && crN < 946684800000);
+      if (!crEpoch) pageCreationReal += 1;
+
       const rawTs = r?.closingDate ?? r?.creationDate;
       if (rawTs === null || rawTs === undefined || rawTs === '') continue;
       // Normaliseer Lightspeed timestamp: kan number (unix s/ms) of ISO-string zijn.
@@ -323,6 +375,8 @@ async function fetchReceiptsForDay(
       const excl = Number(r?.totalWithoutTax ?? r?.totalExcludingTax ?? 0);
       kept.push({ timestamp: iso, total_incl: incl, total_excl: excl });
     }
+
+    console.log(`[epoch-scan] page=${page} n_paid=${pagePaid} n_closing_epoch=${pageClosingEpoch} n_closing_real=${pageClosingReal} n_creation_real=${pageCreationReal}`);
 
     if (arr.length < RECEIPTS_PAGE_SIZE) break;
     offset += RECEIPTS_PAGE_SIZE;
