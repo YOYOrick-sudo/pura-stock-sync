@@ -134,6 +134,16 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/settings/bronnen"
+              element={
+                <ProtectedRoute>
+                  <RequireOwner>
+                    <Bronnen />
+                  </RequireOwner>
+                </ProtectedRoute>
+              }
+            />
             <Route 
               path="/internal-orders" 
               element={
