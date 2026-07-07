@@ -333,6 +333,7 @@ async function fetchReceiptsForDay(
     let pageClosingEpoch = 0;
     let pageClosingReal = 0;
     let pageCreationReal = 0;
+    let pageModReal = 0;
     let dumpedOnPage = 0;
 
     for (const r of arr) {
