@@ -340,18 +340,21 @@ export type Database = {
       }
       cijfers_instellingen: {
         Row: {
+          loon_pct_doel: number
           updated_at: string
           uurloon_allin: number | null
           vestiging: string
           wg_lasten_factor: number
         }
         Insert: {
+          loon_pct_doel?: number
           updated_at?: string
           uurloon_allin?: number | null
           vestiging: string
           wg_lasten_factor?: number
         }
         Update: {
+          loon_pct_doel?: number
           updated_at?: string
           uurloon_allin?: number | null
           vestiging?: string
