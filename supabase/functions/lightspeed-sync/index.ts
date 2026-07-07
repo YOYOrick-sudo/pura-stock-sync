@@ -305,11 +305,23 @@ async function fetchReceiptsForDay(
       const status = String(r?.status ?? '').toUpperCase();
       if (status !== 'PAID') continue;
       paidRaw += 1;
-      const ts = r?.closingDate ?? r?.creationDate;
-      if (!ts) continue;
+      const rawTs = r?.closingDate ?? r?.creationDate;
+      if (rawTs === null || rawTs === undefined || rawTs === '') continue;
+      // Normaliseer Lightspeed timestamp: kan number (unix s/ms) of ISO-string zijn.
+      // Grens 10^12: <  → seconds (×1000), ≥ → milliseconds.
+      let iso: string;
+      const n = typeof rawTs === 'number' ? rawTs : Number(rawTs);
+      if (Number.isFinite(n) && n > 0 && (typeof rawTs === 'number' || /^\d+$/.test(String(rawTs)))) {
+        const ms = n < 1e12 ? n * 1000 : n;
+        iso = new Date(ms).toISOString();
+        if (paidRaw === 1) console.log(`[fetchReceipts] ts-format=${n < 1e12 ? 'unix_seconds' : 'unix_ms'} sample=${rawTs} → ${iso}`);
+      } else {
+        iso = String(rawTs);
+        if (paidRaw === 1) console.log(`[fetchReceipts] ts-format=iso_string sample=${rawTs}`);
+      }
       const incl = Number(r?.total ?? 0);
       const excl = Number(r?.totalWithoutTax ?? r?.totalExcludingTax ?? 0);
-      kept.push({ timestamp: String(ts), total_incl: incl, total_excl: excl });
+      kept.push({ timestamp: iso, total_incl: incl, total_excl: excl });
     }
 
     if (arr.length < RECEIPTS_PAGE_SIZE) break;
