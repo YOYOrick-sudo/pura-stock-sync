@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { EUR, VEST_KLEUR, vestigingenVan, type Periode, type VestKeuze, type Vestiging } from './types';
+import { EUR, VEST_KLEUR, vestigingenVan, vergelijkModeVan, type Periode, type VestKeuze, type Vestiging } from './types';
 
 interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
 
