@@ -16,7 +16,7 @@ const DAG_NL = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
 const MND_NL = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
 
 interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
-type Row = { bucket: string; vestiging: string; omzet: number; bonnen: number };
+type Row = { bucket: string; vestiging: string; omzet: number; bonnen: number | null; omzet_bron?: 'lightspeed' | 'eitje' | 'gemengd' | 'geen' };
 
 function labelVoor(bucket: string, gran: 'uur' | 'dag' | 'maand'): string {
   const d = new Date(bucket);
