@@ -72,3 +72,43 @@ export function toISO(d: Date): string {
   return `${y}-${m}-${dd}`;
 }
 
+const NL_MAAND = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+const NL_DAG_KORT = ['zo','ma','di','wo','do','vr','za'];
+
+/**
+ * Compact label voor de vergelijkperiode uit de RPC, bv:
+ *  - 1 dag       → "zo 28 jun"
+ *  - week/range  → "30 jun – 6 jul"
+ *  - hele maand  → "juli 2025"
+ *  - heel jaar   → "2025"
+ */
+export function prevLabel(van?: string | null, tot?: string | null): string {
+  if (!van || !tot) return '';
+  const dv = new Date(van); const dt = new Date(tot);
+  if (isNaN(dv.getTime()) || isNaN(dt.getTime())) return '';
+
+  // heel jaar
+  const isJan1 = dv.getMonth() === 0 && dv.getDate() === 1;
+  const isDec31 = dt.getMonth() === 11 && dt.getDate() === 31;
+  if (isJan1 && isDec31 && dv.getFullYear() === dt.getFullYear()) {
+    return String(dv.getFullYear());
+  }
+  // hele maand
+  const lastOfMonth = new Date(dv.getFullYear(), dv.getMonth() + 1, 0);
+  if (dv.getDate() === 1
+      && dt.getFullYear() === dv.getFullYear()
+      && dt.getMonth() === dv.getMonth()
+      && dt.getDate() === lastOfMonth.getDate()) {
+    return `${NL_MAAND[dv.getMonth()]} ${dv.getFullYear()}`;
+  }
+  // 1 dag
+  if (van === tot) {
+    return `${NL_DAG_KORT[dv.getDay()]} ${dv.getDate()} ${NL_MAAND[dv.getMonth()].slice(0,3)}`;
+  }
+  // range
+  if (dv.getMonth() === dt.getMonth() && dv.getFullYear() === dt.getFullYear()) {
+    return `${dv.getDate()} – ${dt.getDate()} ${NL_MAAND[dv.getMonth()].slice(0,3)}`;
+  }
+  return `${dv.getDate()} ${NL_MAAND[dv.getMonth()].slice(0,3)} – ${dt.getDate()} ${NL_MAAND[dt.getMonth()].slice(0,3)}`;
+}
+

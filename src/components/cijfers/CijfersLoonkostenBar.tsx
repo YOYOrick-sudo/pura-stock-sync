@@ -2,9 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertTriangle } from 'lucide-react';
-import { EUR, EUR2, vestigingenVan, type Periode, type VestKeuze } from './types';
+import { EUR, EUR2, vestigingenVan, prevLabel, type Periode, type VestKeuze } from './types';
 import { useCountUp } from './useCountUp';
 import { DeltaPill } from './chartHelpers';
+import type { DeltaIntent } from './deltaKleur';
 
 interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
 
@@ -78,20 +79,27 @@ export function CijfersLoonkostenBar({ vestigingKeuze, van, tot }: Props) {
   const berekend = Number(t.bron_mix?.berekend ?? 0);
   const omsEitje = Number(t.omzet_bron_mix?.eitje ?? 0);
 
+  const prevLbl = prevLabel(q.data.vorige_periode?.van, q.data.vorige_periode?.tot);
+  const vsSub = prevLbl ? ` · vs ${prevLbl}` : '';
+
   return (
     <div className="rounded-[20px] border border-border bg-card shadow-card cj-card-in overflow-hidden">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Col first
           label="Loonkosten"
           value={<Money v={loonkosten} />}
-          sub={pctVanOmzet != null ? `${pctVanOmzet.toString().replace('.', ',')}% van omzet` : 'geen omzet in periode'}
+          sub={(pctVanOmzet != null ? `${pctVanOmzet.toString().replace('.', ',')}% van omzet` : 'geen omzet in periode') + vsSub}
           dp={dpLoon}
+          intent="neutraal"
+          dpTitle={prevLbl ? `t.o.v. ${prevLbl}` : undefined}
         />
         <Col
           label="Omzet / gewerkt uur"
           value={omzPerUur == null ? <span>—</span> : <Money v={omzPerUur} decimals={2} />}
-          sub={`${gewerkt.toFixed(1).replace('.', ',')} u gewerkt`}
+          sub={`${gewerkt.toFixed(1).replace('.', ',')} u gewerkt${vsSub}`}
           dp={dpOmzPerUur}
+          intent="hoger-is-goed"
+          dpTitle={prevLbl ? `t.o.v. ${prevLbl}` : undefined}
         />
         <Col
           label="Uren gewerkt vs gepland"
@@ -99,9 +107,11 @@ export function CijfersLoonkostenBar({ vestigingKeuze, van, tot }: Props) {
           sub={
             afwijking == null
               ? 'geen planning'
-              : `${afwijking >= 0 ? '+' : ''}${afwijking.toFixed(1).replace('.', ',')}% t.o.v. gepland`
+              : `${gewerkt.toFixed(0).replace('.', ',')} u gewerkt · ${gepland.toFixed(0)} u gepland`
           }
-          dp={dpUren}
+          dp={afwijking}
+          intent="afwijking-signaal"
+          dpTitle="afwijking t.o.v. planning"
         />
       </div>
       {(berekend > 0 || omsEitje > 0) && (
@@ -134,8 +144,11 @@ export function CijfersLoonkostenBar({ vestigingKeuze, van, tot }: Props) {
 }
 
 function Col({
-  label, value, sub, dp, first,
-}: { label: string; value: React.ReactNode; sub: React.ReactNode; dp?: number | null; first?: boolean }) {
+  label, value, sub, dp, intent, dpTitle, first,
+}: {
+  label: string; value: React.ReactNode; sub: React.ReactNode;
+  dp?: number | null; intent?: DeltaIntent; dpTitle?: string; first?: boolean;
+}) {
   return (
     <div style={{
       padding: '18px 20px',
@@ -151,7 +164,7 @@ function Col({
           fontSize: 25, fontWeight: 700, letterSpacing: '-0.02em',
           fontVariantNumeric: 'tabular-nums', lineHeight: 1, color: 'hsl(var(--foreground))',
         }}>{value}</span>
-        {dp !== undefined && <DeltaPill pct={dp ?? null} />}
+        {dp !== undefined && <DeltaPill pct={dp ?? null} intent={intent ?? 'hoger-is-goed'} title={dpTitle} />}
       </div>
       <div style={{
         fontSize: 11.5, color: 'hsl(var(--muted-foreground))', marginTop: 8,

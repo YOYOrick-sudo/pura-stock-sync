@@ -101,35 +101,41 @@ export function TipCard({
   return <div style={style}>{children}</div>;
 }
 
-/** Small ▲/▼ delta pill using the reference colors. */
-export function DeltaPill({ pct, size = 'sm' }: { pct: number | null | undefined; size?: 'sm' | 'md' }) {
+/** Small ▲/▼ delta pill. Kleur volgt intent (goed/slecht), niet enkel richting. */
+import { deltaKleur, deltaPijl, KLEUR_STYLE, type DeltaIntent } from './deltaKleur';
+
+export function DeltaPill({
+  pct,
+  size = 'sm',
+  intent = 'hoger-is-goed',
+  title,
+}: {
+  pct: number | null | undefined;
+  size?: 'sm' | 'md';
+  intent?: DeltaIntent;
+  title?: string;
+}) {
   const s = size === 'md' ? { fontSize: 11.5, padding: '2px 7px' } : { fontSize: 11, padding: '2px 6px' };
   if (pct == null) {
     return (
-      <span style={{
+      <span title={title} style={{
         display: 'inline-flex', alignItems: 'center', borderRadius: 6, fontWeight: 700,
         background: 'hsl(var(--chart-track))', color: 'hsl(var(--muted-foreground))', ...s,
       }}>—</span>
     );
   }
-  if (Math.abs(pct) < 0.05) {
-    return (
-      <span style={{
-        display: 'inline-flex', alignItems: 'center', borderRadius: 6, fontWeight: 700,
-        background: 'hsl(var(--chart-track))', color: 'hsl(var(--muted-foreground))', ...s,
-      }}>0,0%</span>
-    );
-  }
-  const up = pct >= 0;
+  const kleur = deltaKleur(pct, intent);
+  const { bg, fg } = KLEUR_STYLE[kleur];
+  const pijl = deltaPijl(pct);
+  const teken = pct >= 0 ? '+' : '';
+  const label = `${pijl}${pijl ? ' ' : ''}${teken}${pct.toFixed(1)}%`;
   return (
-    <span style={{
+    <span title={title} style={{
       display: 'inline-flex', alignItems: 'center', gap: 2, borderRadius: 6, fontWeight: 700,
       fontVariantNumeric: 'tabular-nums',
-      background: up ? 'rgb(209 250 229)' : 'rgb(255 225 229)',
-      color:      up ? 'rgb(4 120 87)'    : 'rgb(190 18 60)',
-      ...s,
+      background: bg, color: fg, ...s,
     }}>
-      {(up ? '▲ +' : '▼ ') + pct.toFixed(1) + '%'}
+      {label.trim() || '0,0%'}
     </span>
   );
 }
