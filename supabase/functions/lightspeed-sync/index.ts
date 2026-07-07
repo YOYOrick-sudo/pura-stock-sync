@@ -287,12 +287,17 @@ async function fetchReceiptsForDay(
     if (!resp.ok) {
       return { error: 'receipts_http_error', detail: `${resp.status} ${text.slice(0, 500)} url=${url}` };
     }
-    let arr: any;
-    try { arr = JSON.parse(text); } catch {
+    let parsed: any;
+    try { parsed = JSON.parse(text); } catch {
       return { error: 'receipts_not_json', detail: text.slice(0, 500) };
     }
+    // Lightspeed shape: { results: Receipt[], amount: number, offset: number }
+    // (backward-compat: sommige installaties leveren een bare array).
+    const arr: any[] = Array.isArray(parsed)
+      ? parsed
+      : Array.isArray(parsed?.results) ? parsed.results : null as any;
     if (!Array.isArray(arr)) {
-      return { error: 'receipts_unexpected_shape', detail: JSON.stringify(arr).slice(0, 500) };
+      return { error: 'receipts_unexpected_shape', detail: JSON.stringify(parsed).slice(0, 500) };
     }
     totalRaw += arr.length;
 
@@ -310,6 +315,7 @@ async function fetchReceiptsForDay(
     if (arr.length < RECEIPTS_PAGE_SIZE) break;
     offset += RECEIPTS_PAGE_SIZE;
   }
+
 
   return { receipts: kept, total_raw: totalRaw, paid_raw: paidRaw };
 }
