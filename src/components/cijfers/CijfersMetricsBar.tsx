@@ -76,7 +76,7 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) 
     queryKey: ['cijfers-samenvatting', periode, vestigingKeuze, van, tot],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('rpc_cijfers_samenvatting', {
-        p_vestigingen: vestigingen, p_van: van, p_tot: tot,
+        p_vestigingen: vestigingen, p_van: van, p_tot: tot, p_mode: vergelijkModeVan(periode),
       });
       if (error) throw error;
       return data as unknown as Samenvatting;
