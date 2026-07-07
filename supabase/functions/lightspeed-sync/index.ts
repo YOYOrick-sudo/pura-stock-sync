@@ -357,20 +357,12 @@ async function fetchReceiptsForDay(
         (Number.isFinite(crN) && crN > 0 && crN < 946684800000);
       if (!crEpoch) pageCreationReal += 1;
 
-      const rawTs = r?.closingDate ?? r?.creationDate;
-      if (rawTs === null || rawTs === undefined || rawTs === '') continue;
-      // Normaliseer Lightspeed timestamp: kan number (unix s/ms) of ISO-string zijn.
-      // Grens 10^12: <  → seconds (×1000), ≥ → milliseconds.
-      let iso: string;
-      const n = typeof rawTs === 'number' ? rawTs : Number(rawTs);
-      if (Number.isFinite(n) && n > 0 && (typeof rawTs === 'number' || /^\d+$/.test(String(rawTs)))) {
-        const ms = n < 1e12 ? n * 1000 : n;
-        iso = new Date(ms).toISOString();
-        if (paidRaw === 1) console.log(`[fetchReceipts] ts-format=${n < 1e12 ? 'unix_seconds' : 'unix_ms'} sample=${rawTs} → ${iso}`);
-      } else {
-        iso = String(rawTs);
-        if (paidRaw === 1) console.log(`[fetchReceipts] ts-format=iso_string sample=${rawTs}`);
-      }
+      // Kies timestamp via pickReceiptTs: modificationDate → creationDate → closingDate → printDate,
+      // met epoch/pre-2000-skip. Deze tenant heeft closingDate structureel op 1970-01-01;
+      // modificationDate is dichter bij afreken-moment dan creationDate (bon-openen).
+      const iso = pickReceiptTs(r);
+      if (paidRaw === 1) console.log(`[fetchReceipts] picked_ts=${iso} (mod=${r?.modificationDate} cre=${r?.creationDate} clo=${r?.closingDate})`);
+      if (!iso) continue;
       const incl = Number(r?.total ?? 0);
       const excl = Number(r?.totalWithoutTax ?? r?.totalExcludingTax ?? 0);
       kept.push({ timestamp: iso, total_incl: incl, total_excl: excl });
