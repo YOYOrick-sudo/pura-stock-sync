@@ -5,9 +5,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { EUR, EUR2, vestigingenVan, type Periode, type VestKeuze } from './types';
+import { EUR, EUR2, vestigingenVan, prevLabel, type Periode, type VestKeuze } from './types';
 import { useCountUp } from './useCountUp';
 import { DeltaPill } from './chartHelpers';
+import type { DeltaIntent } from './deltaKleur';
 
 interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
 
@@ -117,12 +118,16 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) 
 
   const dash = '—';
 
-  const cols: { label: string; value: React.ReactNode; sub: React.ReactNode; dp?: number | null }[] = [
+  const prevLbl = prevLabel(s?.vorige_periode?.van, s?.vorige_periode?.tot);
+  const vsLabel = prevLbl ? `T.o.v. ${prevLbl}` : 'T.o.v. vorige periode';
+
+  const cols: { label: string; value: React.ReactNode; sub: React.ReactNode; dp?: number | null; intent?: DeltaIntent }[] = [
     {
       label: 'Omzet',
       value: <Money v={omzet} />,
       sub: beideSubline((p) => `${p.vestiging} ${EUR.format(Number(p.omzet))}`) ?? `vestiging ${vestigingKeuze}`,
       dp: pct,
+      intent: 'hoger-is-goed',
     },
     {
       label: 'Bonnen',
@@ -142,7 +147,7 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) 
         : `${opnDgn} open ${opnDgn === 1 ? 'dag' : 'dagen'}`,
     },
     {
-      label: 'T.o.v. vorige periode',
+      label: vsLabel,
       value: pct === null ? dash : `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`,
       sub: (() => {
         const prevRange = fmtRange(s?.vorige_periode?.van, s?.vorige_periode?.tot);
@@ -178,6 +183,7 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) 
         );
       })(),
       dp: pct,
+      intent: 'hoger-is-goed',
     },
   ];
 
