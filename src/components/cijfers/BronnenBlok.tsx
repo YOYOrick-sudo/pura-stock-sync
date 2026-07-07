@@ -167,22 +167,120 @@ export function BronnenBlok() {
     onError: (e: Error) => toast({ title: 'Koppelen mislukt', description: e.message, variant: 'destructive' }),
   });
 
+  // ------- Client-side week-loop backfill (>30 dagen) + kleine handmatig-sync (≤30 dagen) -------
+  const [backfill, setBackfill] = useState<BackfillState | null>(null);
+  const cancelRef = useRef(false);
+  const backfillRunning = useRef(false);
+
+  // beforeunload-waarschuwing tijdens actieve loop
+  useEffect(() => {
+    if (!backfill || backfill.klaar || backfill.geannuleerd) return;
+    const h = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', h);
+    return () => window.removeEventListener('beforeunload', h);
+  }, [backfill]);
+
+  async function fetchWeekOmzet(vestiging: 'Midsland' | 'West', van: string, tot: string): Promise<number> {
+    const { data } = await supabase
+      .from('omzet_uren')
+      .select('omzet_incl')
+      .eq('vestiging', vestiging)
+      .eq('is_demo', false)
+      .gte('werkdag', van)
+      .lte('werkdag', tot);
+    return (data ?? []).reduce((s: number, r: any) => s + Number(r.omzet_incl ?? 0), 0);
+  }
+
+  async function runOneWeek(vestiging: 'Midsland' | 'West', van: string, tot: string): Promise<Omit<WeekResult, 'van' | 'tot' | 'status'>> {
+    const t0 = performance.now();
+    try {
+      const { data, error } = await supabase.functions.invoke('lightspeed-sync', {
+        body: { type: 'handmatig', vestiging, van, tot },
+      });
+      if (error) throw new Error(error.message);
+      if (data && (data as any).ok === false) throw new Error((data as any).error ?? 'onbekende fout');
+      const bonnen = Number((data as any)?.bonnen ?? 0);
+      const omzet = await fetchWeekOmzet(vestiging, van, tot);
+      return { bonnen, omzet, duurMs: Math.round(performance.now() - t0), fout: null };
+    } catch (e) {
+      return { bonnen: null, omzet: null, duurMs: Math.round(performance.now() - t0), fout: (e as Error).message };
+    }
+  }
+
+  async function runLoop(vestiging: 'Midsland' | 'West', weken: { van: string; tot: string }[], resumeIdx = 0) {
+    if (backfillRunning.current) return;
+    backfillRunning.current = true;
+    cancelRef.current = false;
+
+    for (let i = resumeIdx; i < weken.length; i++) {
+      if (cancelRef.current) break;
+      // mark bezig
+      setBackfill((s) => s && ({
+        ...s,
+        huidigeIdx: i,
+        weken: s.weken.map((w, idx) => idx === i ? { ...w, status: 'bezig' } : w),
+      }));
+      const res = await runOneWeek(vestiging, weken[i].van, weken[i].tot);
+      const status: WeekResult['status'] = res.fout ? 'fout' : 'ok';
+      setBackfill((s) => s && ({
+        ...s,
+        weken: s.weken.map((w, idx) => idx === i ? { ...w, status, ...res } : w),
+      }));
+      if (i < weken.length - 1) await new Promise((r) => setTimeout(r, 500));
+    }
+
+    setBackfill((s) => s && ({ ...s, klaar: true, geannuleerd: cancelRef.current }));
+    backfillRunning.current = false;
+    qc.invalidateQueries();
+  }
+
+  function startBackfill(vestiging: 'Midsland' | 'West', van: string, tot: string) {
+    const weken = splitInWeken(van, tot);
+    const initial: WeekResult[] = weken.map((w) => ({
+      van: w.van, tot: w.tot, status: 'wachtend', bonnen: null, omzet: null, duurMs: null, fout: null,
+    }));
+    setBackfill({ open: true, vestiging, weken: initial, huidigeIdx: 0, geannuleerd: false, klaar: false });
+    void runLoop(vestiging, weken, 0);
+  }
+
+  function retryFailed() {
+    if (!backfill) return;
+    const failedIndices = backfill.weken.map((w, i) => ({ w, i })).filter(({ w }) => w.status === 'fout');
+    if (failedIndices.length === 0) return;
+    const failed = failedIndices.map(({ w }) => ({ van: w.van, tot: w.tot }));
+    // Reset alleen de gefaalde rijen naar wachtend + herbouw weken-array
+    const newWeken: WeekResult[] = failed.map((w) => ({
+      van: w.van, tot: w.tot, status: 'wachtend', bonnen: null, omzet: null, duurMs: null, fout: null,
+    }));
+    setBackfill({
+      open: true, vestiging: backfill.vestiging,
+      weken: newWeken, huidigeIdx: 0, geannuleerd: false, klaar: false,
+    });
+    void runLoop(backfill.vestiging, failed, 0);
+  }
+
   const syncNow = useMutation({
     mutationFn: async ({ vestiging, van, tot }: { vestiging: 'Midsland' | 'West'; van: string; tot: string }) => {
-      // Auto-switch: >30 dagen → backfill-pad (week-chunks, eigen sync_runs per week).
-      // ≤30 dagen → handmatig-pad (één run over de hele range).
-      const dagen = Math.round((new Date(tot).getTime() - new Date(van).getTime()) / 86_400_000) + 1;
-      const type = dagen > 30 ? 'backfill' : 'handmatig';
+      const dagen = diffDays(van, tot);
+      if (dagen > 30) {
+        startBackfill(vestiging, van, tot);
+        return { path: 'backfill', dagen };
+      }
+      // Kleine range: direct één handmatig-invoke (bewezen pad, geen modal nodig)
       const { data, error } = await supabase.functions.invoke('lightspeed-sync', {
-        body: { type, vestiging, van, tot },
+        body: { type: 'handmatig', vestiging, van, tot },
       });
       if (error) throw error;
-      return { data, type, dagen };
+      if (data && (data as any).ok === false) throw new Error((data as any).error ?? 'sync-fout');
+      return { path: 'handmatig', dagen, bonnen: (data as any)?.bonnen };
     },
-    onSuccess: (res, vars) => {
-      const label = res.type === 'backfill' ? `backfill ${res.dagen} dagen` : 'sync';
-      toast({ title: `${label} gestart`, description: `${vars.vestiging}: ${vars.van} → ${vars.tot}` });
-      qc.invalidateQueries();
+    onSuccess: (res: any, vars) => {
+      if (res.path === 'backfill') {
+        toast({ title: `Backfill gestart`, description: `${vars.vestiging}: ${res.dagen} dagen in ${splitInWeken(vars.van, vars.tot).length} weken` });
+      } else {
+        toast({ title: 'Sync klaar', description: `${vars.vestiging}: ${res.bonnen ?? 0} bonnen` });
+        qc.invalidateQueries();
+      }
     },
     onError: (e: Error) => toast({ title: 'Sync mislukt', description: e.message, variant: 'destructive' }),
   });
