@@ -194,9 +194,9 @@ async function getValidToken(admin: any, vestiging: string): Promise<{ token: st
   if (tokenStillValid(conn)) return { token: conn.access_token! };
 
   // Probeer lease te claimen
-  const claimed = await tryClaimLease(admin, vestiging);
+  let leaseToken = await tryClaimLease(admin);
 
-  if (!claimed) {
+  if (!leaseToken) {
     // Poll tot token weer geldig
     const deadline = Date.now() + LEASE_POLL_TIMEOUT_MS;
     while (Date.now() < deadline) {
@@ -208,57 +208,49 @@ async function getValidToken(admin: any, vestiging: string): Promise<{ token: st
       }
     }
     // Poll-timeout: probeer alsnog zelf de lease
-    const secondClaim = await tryClaimLease(admin, vestiging);
-    if (!secondClaim) return { error: 'lease_timeout', detail: 'kan lease niet claimen na poll-periode' };
-    // valt door naar refresh hieronder met de nieuwe conn state
+    leaseToken = await tryClaimLease(admin);
+    if (!leaseToken) return { error: 'lease_timeout', detail: 'kan lease niet claimen na poll-periode' };
   }
 
   // We hebben de lease → refresh doen
-  const currentConn = await readConnection(admin, vestiging);
-  if (!currentConn?.refresh_token) {
-    await releaseLease(admin, vestiging);
-    return { error: 'no_refresh_token', detail: '' };
-  }
+  try {
+    const currentConn = await readConnection(admin, vestiging);
+    if (!currentConn?.refresh_token) {
+      return { error: 'no_refresh_token', detail: '' };
+    }
 
-  const refreshResult = await refreshAtLightspeed(currentConn.refresh_token);
-  if ('error' in refreshResult) {
-    // OPSLAG-FALEN randgeval: hier weten we niet zeker of Lightspeed het oude token
-    // heeft verbrand of niet. Volgende refresh-poging zal ofwel slagen (als 't gelukt is
-    // maar wij ‘t niet zagen — onwaarschijnlijk want fetch retourneert vóór dit pad)
-    // OF invalid_grant geven → dit pad hier.
-    await admin.from('lightspeed_connections').update({
-      status: 'token_verlopen',
-      laatste_fout: `Refresh geweigerd: ${refreshResult.detail.slice(0, 500)}`,
-      refreshing_until: null,
+    const refreshResult = await refreshAtLightspeed(currentConn.refresh_token);
+    if ('error' in refreshResult) {
+      await admin.from('lightspeed_connections').update({
+        status: 'token_verlopen',
+        laatste_fout: `Refresh geweigerd: ${refreshResult.detail.slice(0, 500)}`,
+      }).eq('vestiging', vestiging);
+      return refreshResult;
+    }
+
+    const newExpiresAt = new Date(Date.now() + refreshResult.expires_in * 1000).toISOString();
+
+    // Nieuwe tokens opslaan (incl. geroteerde refresh_token) VOORDAT we ze gebruiken.
+    const { error: upErr } = await admin.from('lightspeed_connections').update({
+      access_token: refreshResult.access_token,
+      refresh_token: refreshResult.refresh_token,
+      token_expires_at: newExpiresAt,
+      status: 'gekoppeld',
+      laatste_fout: null,
     }).eq('vestiging', vestiging);
-    return refreshResult;
+
+    if (upErr) {
+      await admin.from('lightspeed_connections').update({
+        status: 'token_verlopen',
+        laatste_fout: 'Token opgeslagen faalde na refresh — opnieuw koppelen vereist',
+      }).eq('vestiging', vestiging);
+      return { error: 'token_persist_failed', detail: upErr.message };
+    }
+
+    return { token: refreshResult.access_token };
+  } finally {
+    await releaseLease(admin, leaseToken);
   }
-
-  const newExpiresAt = new Date(Date.now() + refreshResult.expires_in * 1000).toISOString();
-
-  // Nieuwe tokens opslaan VOORDAT we ze gebruiken (brief-eis)
-  const { error: upErr } = await admin.from('lightspeed_connections').update({
-    access_token: refreshResult.access_token,
-    refresh_token: refreshResult.refresh_token,
-    token_expires_at: newExpiresAt,
-    status: 'gekoppeld',
-    laatste_fout: null,
-    refreshing_until: null,
-  }).eq('vestiging', vestiging);
-
-  if (upErr) {
-    // Opslag faalde na succesvolle refresh → oud refresh_token bij Lightspeed
-    // is nu verbrand. Volgende poging zal invalid_grant krijgen → token_verlopen.
-    // Zet meteen status defensief:
-    await admin.from('lightspeed_connections').update({
-      status: 'token_verlopen',
-      laatste_fout: 'Token opgeslagen faalde na refresh — opnieuw koppelen vereist',
-      refreshing_until: null,
-    }).eq('vestiging', vestiging);
-    return { error: 'token_persist_failed', detail: upErr.message };
-  }
-
-  return { token: refreshResult.access_token };
 }
 
 // ------------------------------------------------------------------
