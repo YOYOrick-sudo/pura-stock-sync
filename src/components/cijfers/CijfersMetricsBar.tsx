@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { EUR, EUR2, vestigingenVan, prevLabel, type Periode, type VestKeuze } from './types';
+import { EUR, EUR2, vestigingenVan, vergelijkModeVan, prevLabel, type Periode, type VestKeuze } from './types';
 import { useCountUp } from './useCountUp';
 import { DeltaPill } from './chartHelpers';
 import type { DeltaIntent } from './deltaKleur';
