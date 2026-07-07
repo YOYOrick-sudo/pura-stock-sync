@@ -131,21 +131,24 @@ function tokenStillValid(conn: Conn): boolean {
   return new Date(conn.token_expires_at).getTime() - Date.now() > bufferMs;
 }
 
-async function tryClaimLease(admin: any, vestiging: string): Promise<boolean> {
-  const nowIso = new Date().toISOString();
-  const leaseUntil = new Date(Date.now() + LEASE_SECONDS * 1000).toISOString();
-  const { data, error } = await admin
-    .from('lightspeed_connections')
-    .update({ refreshing_until: leaseUntil })
-    .eq('vestiging', vestiging)
-    .or(`refreshing_until.is.null,refreshing_until.lt.${nowIso}`)
-    .select('vestiging');
-  console.error('[claimLease-diag]', JSON.stringify({ vestiging, nowIso, leaseUntil, err: error?.message ?? null, rowsMatched: data?.length ?? 0, data }));
-  return (data?.length ?? 0) > 0;
+const LEASE_BRON = 'lightspeed';
+
+async function tryClaimLease(admin: any): Promise<string | null> {
+  const { data, error } = await admin.rpc('sync_lease_acquire', {
+    _bron: LEASE_BRON,
+    _holder: 'lightspeed-sync',
+    _seconds: LEASE_SECONDS,
+  });
+  if (error) {
+    console.error('[claimLease] rpc error', error.message);
+    return null;
+  }
+  return (data as string | null) ?? null;
 }
 
-async function releaseLease(admin: any, vestiging: string) {
-  await admin.from('lightspeed_connections').update({ refreshing_until: null }).eq('vestiging', vestiging);
+async function releaseLease(admin: any, token: string) {
+  const { error } = await admin.rpc('sync_lease_release', { _bron: LEASE_BRON, _token: token });
+  if (error) console.error('[releaseLease] rpc error', error.message);
 }
 
 async function refreshAtLightspeed(refreshToken: string): Promise<{ access_token: string; refresh_token: string; expires_in: number } | { error: string; detail: string }> {
