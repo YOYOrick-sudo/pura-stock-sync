@@ -121,8 +121,13 @@ function granLabel(g: 'dag' | 'week' | 'maand'): string {
   return g === 'dag' ? 'per dag' : g === 'week' ? 'per week' : 'per maand';
 }
 
-function TT({ active, payload, label: lb }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) {
+function TT({ active, payload, label: lb }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string; payload?: { bron?: string } }>; label?: string }) {
   if (!active || !payload?.length) return null;
+  const bron = payload[0]?.payload?.bron as string | undefined;
+  const bronLabel = bron === 'eitje' ? 'Omzet uit Eitje'
+    : bron === 'gemengd' ? 'Omzet: Lightspeed + Eitje'
+    : bron === 'lightspeed' ? 'Omzet uit Lightspeed'
+    : null;
   return (
     <div style={{
       background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))',
@@ -141,6 +146,12 @@ function TT({ active, payload, label: lb }: { active?: boolean; payload?: Array<
           </span>
         </div>
       ))}
+      {bronLabel && (bron === 'eitje' || bron === 'gemengd') && (
+        <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px dashed hsl(var(--border))',
+          fontSize: 10.5, color: 'hsl(38 92% 40%)', letterSpacing: '0.02em' }}>
+          ⚠ {bronLabel}
+        </div>
+      )}
     </div>
   );
 }
