@@ -253,6 +253,34 @@ function TeamRow({ member, isSelf, onChanged, onLocalUpdate }: {
           {STATUS_LABELS[member.status]}
         </Badge>
       </TableCell>
+      <TableCell>
+        <LoonkostenToggle
+          member={member}
+          isSelf={isSelf}
+          busy={loonBusy}
+          onChange={async (next) => {
+            const isOwnerRow = member.role === 'owner' || member.role === 'admin';
+            if (isSelf && isOwnerRow) return; // owner mag zichzelf niet wijzigen
+            const prev = !!member.mag_loonkosten_zien;
+            setLoonBusy(true);
+            onLocalUpdate({ mag_loonkosten_zien: next }); // optimistic
+            const { error } = await supabase
+              .from('profiles')
+              .update({ mag_loonkosten_zien: next })
+              .eq('user_id', member.user_id);
+            setLoonBusy(false);
+            if (error) {
+              onLocalUpdate({ mag_loonkosten_zien: prev }); // rollback
+              const msg = /owner/i.test(error.message) || /permission/i.test(error.message)
+                ? 'Alleen de eigenaar kan dit wijzigen'
+                : `Kon niet bijwerken: ${error.message}`;
+              toast.error(msg);
+              return;
+            }
+            toast.success(next ? 'Loonkosten-toegang aan' : 'Loonkosten-toegang uit');
+          }}
+        />
+      </TableCell>
       <TableCell className="text-muted-foreground text-sm">
         {member.last_sign_in_at
           ? new Date(member.last_sign_in_at).toLocaleDateString('nl-NL', { day: '2-digit', month: 'short', year: 'numeric' })
