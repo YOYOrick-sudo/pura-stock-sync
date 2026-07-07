@@ -144,9 +144,39 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) 
     {
       label: 'T.o.v. vorige periode',
       value: pct === null ? dash : `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`,
-      sub: prev == null
-        ? 'geen vergelijkbare omzet'
-        : `${omzet - prev >= 0 ? '+' : ''}${EUR2.format(omzet - prev)} vs. ${EUR.format(prev)}`,
+      sub: (() => {
+        const prevRange = fmtRange(s?.vorige_periode?.van, s?.vorige_periode?.tot);
+        const curRange = fmtRange(s?.periode?.van ?? van, s?.periode?.tot ?? tot);
+        const curBron = bronLabel(s?.totaal.omzet_bron_mix);
+        const prvBron = bronLabel(s?.totaal.vorige_omzet_bron_mix);
+        const mismatch = bronMismatch(s?.totaal.omzet_bron_mix, s?.totaal.vorige_omzet_bron_mix);
+        const label = prev == null ? 'geen vergelijkbare omzet' : `t.o.v. ${prevRange}`;
+        const tip = (
+          <div className="text-xs leading-snug space-y-1">
+            <div><b>Huidig:</b> {EUR2.format(omzet)} ({curBron})<br /><span className="text-muted-foreground">{curRange}</span></div>
+            <div><b>Vorig:</b> {prev == null ? '—' : `${EUR2.format(prev)} (${prvBron})`}<br /><span className="text-muted-foreground">{prevRange || '—'}</span></div>
+            {prev != null && (
+              <div>Verschil: {omzet - prev >= 0 ? '+' : ''}{EUR2.format(omzet - prev)}</div>
+            )}
+            {mismatch && (
+              <div className="text-amber-600 pt-1 border-t">Vergelijking over verschillende bronnen — betrouwbaarheid beperkt.</div>
+            )}
+          </div>
+        );
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'help' }}>
+                  {mismatch && <AlertTriangle size={11} className="text-amber-600" />}
+                  <span>{label}</span>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[280px]">{tip}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      })(),
       dp: pct,
     },
   ];
