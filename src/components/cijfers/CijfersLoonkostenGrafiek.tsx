@@ -15,6 +15,7 @@ type Row = {
   bucket: string; vestiging: string;
   gewerkte_uren: number; geplande_uren: number;
   loonkosten: number; omzet: number;
+  omzet_bron?: 'lightspeed' | 'eitje' | 'gemengd' | 'geen';
 };
 
 function granVoor(van: string, tot: string): 'dag' | 'week' | 'maand' {
