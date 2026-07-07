@@ -384,6 +384,12 @@ async function fetchReceiptsForDay(
       const crEpoch = crS === '' || crS.startsWith('1970-') || crS.startsWith('1969-') ||
         (Number.isFinite(crN) && crN > 0 && crN < 946684800000);
       if (!crEpoch) pageCreationReal += 1;
+      const mdRaw = r?.modificationDate;
+      const mdS = mdRaw == null ? '' : String(mdRaw);
+      const mdN = typeof mdRaw === 'number' ? mdRaw : Number(mdRaw);
+      const mdEpoch = mdS === '' || mdS.startsWith('1970-') || mdS.startsWith('1969-') ||
+        (Number.isFinite(mdN) && mdN > 0 && mdN < 946684800000);
+      if (!mdEpoch) pageModReal += 1;
 
       // Kies timestamp via pickReceiptTs: modificationDate → creationDate → closingDate → printDate,
       // met epoch/pre-2000-skip. Deze tenant heeft closingDate structureel op 1970-01-01;
@@ -396,7 +402,7 @@ async function fetchReceiptsForDay(
       kept.push({ timestamp: iso, total_incl: incl, total_excl: excl });
     }
 
-    console.log(`[epoch-scan] page=${page} n_paid=${pagePaid} n_closing_epoch=${pageClosingEpoch} n_closing_real=${pageClosingReal} n_creation_real=${pageCreationReal}`);
+    console.log(`[epoch-scan] page=${page} n_paid=${pagePaid} n_closing_epoch=${pageClosingEpoch} n_closing_real=${pageClosingReal} n_creation_real=${pageCreationReal} n_mod_real=${pageModReal}`);
 
     if (arr.length < RECEIPTS_PAGE_SIZE) break;
     offset += RECEIPTS_PAGE_SIZE;
