@@ -178,7 +178,6 @@ Deno.serve(async (req) => {
         token_expires_at: expiresAt,
         status: 'gekoppeld',
         laatste_fout: null,
-        refreshing_until: null,
       })
       .eq('vestiging', stateRow.vestiging);
 
