@@ -2825,20 +2825,15 @@ export type Database = {
           uur: number
         }[]
       }
-      rpc_cijfers_samenvatting:
-        | {
-            Args: { p_tot: string; p_van: string; p_vestigingen: string[] }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_mode?: string
-              p_tot: string
-              p_van: string
-              p_vestigingen: string[]
-            }
-            Returns: Json
-          }
+      rpc_cijfers_samenvatting: {
+        Args: {
+          p_mode?: string
+          p_tot: string
+          p_van: string
+          p_vestigingen: string[]
+        }
+        Returns: Json
+      }
       rpc_cijfers_tijdreeks: {
         Args: {
           p_granulariteit: string
@@ -2854,20 +2849,15 @@ export type Database = {
           vestiging: string
         }[]
       }
-      rpc_cijfers_uren_samenvatting:
-        | {
-            Args: { p_tot: string; p_van: string; p_vestigingen: string[] }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_mode?: string
-              p_tot: string
-              p_van: string
-              p_vestigingen: string[]
-            }
-            Returns: Json
-          }
+      rpc_cijfers_uren_samenvatting: {
+        Args: {
+          p_mode?: string
+          p_tot: string
+          p_van: string
+          p_vestigingen: string[]
+        }
+        Returns: Json
+      }
       rpc_cijfers_uren_tijdreeks: {
         Args: {
           p_granulariteit: string
