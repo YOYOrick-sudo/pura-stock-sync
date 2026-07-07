@@ -16,6 +16,7 @@ type PerVest = {
   omzet_per_gewerkt_uur: number | null;
   prev_loonkosten: number; prev_omzet: number; prev_gewerkte_uren: number;
   bron_mix: { eitje: number; berekend: number };
+  omzet_bron_mix?: { lightspeed: number; eitje: number; geen: number };
 };
 type Sam = {
   periode: { van: string; tot: string };
