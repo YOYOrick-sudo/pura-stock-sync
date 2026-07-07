@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { EUR, EUR2, vestigingenVan, prevLabel, type Periode, type VestKeuze } from './types';
+import { EUR, EUR2, vestigingenVan, vergelijkModeVan, prevLabel, type Periode, type VestKeuze } from './types';
 import { useCountUp } from './useCountUp';
 import { DeltaPill } from './chartHelpers';
 import type { DeltaIntent } from './deltaKleur';
@@ -76,7 +76,7 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) 
     queryKey: ['cijfers-samenvatting', periode, vestigingKeuze, van, tot],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('rpc_cijfers_samenvatting', {
-        p_vestigingen: vestigingen, p_van: van, p_tot: tot,
+        p_vestigingen: vestigingen, p_van: van, p_tot: tot, p_mode: vergelijkModeVan(periode),
       });
       if (error) throw error;
       return data as unknown as Samenvatting;

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { EUR, VEST_KLEUR, vestigingenVan, type Periode, type VestKeuze, type Vestiging } from './types';
+import { EUR, VEST_KLEUR, vestigingenVan, vergelijkModeVan, type Periode, type VestKeuze, type Vestiging } from './types';
 
 interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
 
@@ -18,7 +18,7 @@ export function CijfersVestigingSplit({ periode, vestigingKeuze, van, tot }: Pro
     queryKey: ['cijfers-samenvatting', periode, vestigingKeuze, van, tot],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('rpc_cijfers_samenvatting', {
-        p_vestigingen: vestigingen, p_van: van, p_tot: tot,
+        p_vestigingen: vestigingen, p_van: van, p_tot: tot, p_mode: vergelijkModeVan(periode),
       });
       if (error) throw error;
       return data as unknown as Samenvatting;

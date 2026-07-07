@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertTriangle } from 'lucide-react';
-import { EUR, EUR2, vestigingenVan, prevLabel, type Periode, type VestKeuze } from './types';
+import { EUR, EUR2, vestigingenVan, vergelijkModeVan, prevLabel, type Periode, type VestKeuze } from './types';
 import { useCountUp } from './useCountUp';
 import { DeltaPill } from './chartHelpers';
 import type { DeltaIntent } from './deltaKleur';
@@ -26,13 +26,13 @@ type Sam = {
   per_vestiging: PerVest[];
 };
 
-export function CijfersLoonkostenBar({ vestigingKeuze, van, tot }: Props) {
+export function CijfersLoonkostenBar({ periode, vestigingKeuze, van, tot }: Props) {
   const vestigingen = vestigingenVan(vestigingKeuze);
   const q = useQuery({
-    queryKey: ['cijfers-uren-samenvatting', vestigingKeuze, van, tot],
+    queryKey: ['cijfers-uren-samenvatting', periode, vestigingKeuze, van, tot],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('rpc_cijfers_uren_samenvatting', {
-        p_vestigingen: vestigingen, p_van: van, p_tot: tot,
+        p_vestigingen: vestigingen, p_van: van, p_tot: tot, p_mode: vergelijkModeVan(periode),
       });
       if (error) throw error;
       return data as unknown as Sam;

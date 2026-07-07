@@ -2,6 +2,18 @@ export type Vestiging = 'Midsland' | 'West';
 export type VestKeuze = 'Midsland' | 'West' | 'Beide';
 export type Periode = 'vandaag' | 'week' | 'maand' | 'jaar' | 'aangepast';
 
+/** Preset-mode voor de vergelijkperiode. Wordt door de RPC gebruikt om
+ *  "t.o.v. vorige"-datums te berekenen. Custom range → 'custom'. */
+export type VergelijkMode = 'dag' | 'week' | 'maand' | 'jaar' | 'custom';
+
+export function vergelijkModeVan(p: Periode): VergelijkMode {
+  if (p === 'vandaag') return 'dag';
+  if (p === 'week') return 'week';
+  if (p === 'maand') return 'maand';
+  if (p === 'jaar') return 'jaar';
+  return 'custom';
+}
+
 export const VEST_KLEUR: Record<Vestiging, string> = {
   Midsland: 'hsl(var(--primary))',
   West: '#0EA5E9',
