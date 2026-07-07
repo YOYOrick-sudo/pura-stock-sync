@@ -1,7 +1,9 @@
 // Lightspeed omzet-sync — dagelijks (cron) | handmatig | backfill
 // Auth: OF x-sync-token header (cron) OF owner-JWT (UI).
-// Token-refresh: lease-pattern via lightspeed_connections.refreshing_until (zie
-// mem://patterns/edge-function-serialization-lease).
+// Token-refresh: lease-pattern via sync_leases + sync_lease_acquire/release RPC
+// (projectbrede standaard, zie mem://patterns/edge-function-serialization-lease).
+// Één gedeelde 'lightspeed'-lease serialiseert refresh over beide vestigingen —
+// refresh is <1s en cron loopt Midsland/West toch sequentieel.
 //
 // EERSTE LIVE CALL: STOP+ASK — response loggen en veldmapping vaststellen.
 // Deze versie ondersteunt "mock_receipts" voor deterministische tests zonder API.
