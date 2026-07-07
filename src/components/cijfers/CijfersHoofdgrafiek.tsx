@@ -119,6 +119,8 @@ export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props
     );
   }
 
+  const nEitje = series.bron.filter((b) => b === 'eitje' || b === 'gemengd').length;
+
   return (
     <div
       className="bg-card border border-border rounded-[20px] shadow-card cj-card-in"
@@ -140,6 +142,18 @@ export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props
       <div style={{ marginTop: 10 }}>
         <LineChart series={series} periode={periode} />
       </div>
+      {nEitje > 0 && (
+        <div style={{
+          marginTop: 10, paddingTop: 10, borderTop: '1px solid hsl(var(--border))',
+          display: 'flex', alignItems: 'center', gap: 8,
+          fontSize: 12, color: 'hsl(var(--muted-foreground))',
+        }}>
+          <span style={{ color: 'hsl(38 92% 45%)' }}>⚠</span>
+          <span>
+            {nEitje} {nEitje === 1 ? 'punt' : 'punten'} met omzet uit Eitje (Lightspeed leeg of niet-representatief).
+          </span>
+        </div>
+      )}
     </div>
   );
 }
