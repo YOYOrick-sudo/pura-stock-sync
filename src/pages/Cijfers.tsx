@@ -193,14 +193,14 @@ function StickyFilters(props: {
       )}
     >
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14 }}>
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 12px',
-          background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12,
-          fontSize: 13, color: 'hsl(var(--foreground))', fontWeight: 500,
-        }}>
-          <CalendarIcon size={14} strokeWidth={2} className="text-muted-foreground" />
-          <span className="tabular-nums">{props.label}</span>
-        </div>
+        <DateRangePopover
+          label={props.label}
+          van={props.customVan} tot={props.customTot}
+          setVan={props.setCustomVan} setTot={props.setCustomTot}
+          minDate={props.minDate} today={props.today}
+          presets={props.presets}
+          setPeriode={props.setPeriode}
+        />
         <Segment
           value={props.periode}
           onChange={(v) => props.setPeriode(v as Periode)}
@@ -234,44 +234,76 @@ function StickyFilters(props: {
         </div>
       </div>
 
-      {props.periode === 'aangepast' && (
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <DateBtn label="Van" value={props.customVan} onChange={props.setCustomVan} min={props.minDate} max={props.customTot} />
-          <span className="text-muted-foreground text-sm">→</span>
-          <DateBtn label="Tot" value={props.customTot} onChange={props.setCustomTot} min={props.customVan} max={props.today} />
-          <div className="h-6 w-px bg-border mx-1" />
-          {props.presets.map((p) => (
-            <Button
-              key={p.label} variant="outline" size="sm" className="h-9 rounded-polar-lg"
-              onClick={() => { props.setCustomVan(p.van); props.setCustomTot(p.tot); }}
-            >{p.label}</Button>
-          ))}
-          <div className="ml-auto text-xs text-muted-foreground">Max 12 maanden terug</div>
-        </div>
-      )}
     </div>
   );
 }
 
-function DateBtn({
-  label, value, onChange, min, max,
-}: { label: string; value: Date; onChange: (d: Date) => void; min: Date; max: Date }) {
+function DateRangePopover({
+  label, van, tot, setVan, setTot, minDate, today, presets, setPeriode,
+}: {
+  label: string;
+  van: Date; tot: Date;
+  setVan: (d: Date) => void; setTot: (d: Date) => void;
+  minDate: Date; today: Date;
+  presets: Preset[];
+  setPeriode: (p: Periode) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [range, setRange] = useState<{ from?: Date; to?: Date }>({ from: van, to: tot });
+
+  // Sync when parent state changes
+  useEffect(() => { setRange({ from: van, to: tot }); }, [van, tot]);
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className={cn('h-9 rounded-polar-lg gap-2 justify-start font-normal')}>
-          <CalendarIcon className="w-4 h-4 opacity-70" />
-          <span className="text-muted-foreground">{label}:</span>
-          <span>{format(value, 'd MMM yyyy', { locale: nl })}</span>
-        </Button>
+        <button
+          type="button"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 12px',
+            background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12,
+            fontSize: 13, color: 'hsl(var(--foreground))', fontWeight: 500, cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          <CalendarIcon size={14} strokeWidth={2} className="text-muted-foreground" />
+          <span className="tabular-nums">{label}</span>
+        </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto p-0">
+        <div className="p-2 flex flex-wrap gap-1.5 border-b border-border">
+          {presets.map((p) => (
+            <Button
+              key={p.label} variant="outline" size="sm" className="h-8 rounded-polar-md text-xs"
+              onClick={() => {
+                setVan(p.van); setTot(p.tot);
+                setPeriode('aangepast');
+                setRange({ from: p.van, to: p.tot });
+                setOpen(false);
+              }}
+            >{p.label}</Button>
+          ))}
+        </div>
         <Calendar
-          mode="single" selected={value} onSelect={(d) => d && onChange(d)}
-          disabled={(d) => d < min || d > max}
+          mode="range"
+          selected={range as any}
+          onSelect={(r: any) => {
+            setRange(r ?? {});
+            if (r?.from && r?.to) {
+              setVan(r.from);
+              setTot(r.to);
+              setPeriode('aangepast');
+              setOpen(false);
+            }
+          }}
+          numberOfMonths={2}
+          disabled={(d) => d < minDate || d > today}
           initialFocus locale={nl} weekStartsOn={1}
           className={cn('p-3 pointer-events-auto')}
         />
+        <div className="px-3 py-2 border-t border-border text-[11px] text-muted-foreground">
+          Max 12 maanden terug
+        </div>
       </PopoverContent>
     </Popover>
   );

@@ -1,7 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertTriangle } from 'lucide-react';
+import { format } from 'date-fns';
+import { nl } from 'date-fns/locale';
 import { EUR, EUR2, vestigingenVan, type Periode, type VestKeuze } from './types';
 import { useCountUp } from './useCountUp';
 import { DeltaPill } from './chartHelpers';
@@ -10,12 +13,15 @@ interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot:
 
 type BronMix = { lightspeed: number; eitje: number; geen: number };
 type Samenvatting = {
+  periode?: { van: string; tot: string };
+  vorige_periode?: { van: string; tot: string };
   totaal: {
     omzet: number;
     bonnen: number | null;
     open_dagen: number | null;
     vorige_omzet: number | null;
     omzet_bron_mix?: BronMix;
+    vorige_omzet_bron_mix?: BronMix;
   };
   per_vestiging: Array<{
     vestiging: string;
@@ -24,8 +30,44 @@ type Samenvatting = {
     open_dagen: number | null;
     vorige_omzet: number | null;
     omzet_bron_mix?: BronMix;
+    vorige_omzet_bron_mix?: BronMix;
   }>;
 };
+
+function bronLabel(m?: BronMix): string {
+  if (!m) return 'onbekend';
+  const parts: string[] = [];
+  if (m.lightspeed > 0) parts.push('Lightspeed');
+  if (m.eitje > 0) parts.push('Eitje');
+  if (parts.length === 0) return 'geen data';
+  return parts.length === 1 ? parts[0] : parts.join(' + ');
+}
+
+function bronMismatch(cur?: BronMix, prev?: BronMix): boolean {
+  if (!cur || !prev) return false;
+  if (prev.lightspeed + prev.eitje === 0) return false; // geen vorige data → geen mismatch (delta wordt '—')
+  const curHasEitje = cur.eitje > 0;
+  const curHasLs = cur.lightspeed > 0;
+  const prvHasEitje = prev.eitje > 0;
+  const prvHasLs = prev.lightspeed > 0;
+  // Mismatch als bron-samenstelling niet gelijk is
+  return curHasEitje !== prvHasEitje || curHasLs !== prvHasLs;
+}
+
+function fmtRange(van?: string, tot?: string): string {
+  if (!van || !tot) return '';
+  const dv = new Date(van); const dt = new Date(tot);
+  const sameDay = van === tot;
+  const nowYear = new Date().getFullYear();
+  const showYear = dv.getFullYear() !== nowYear || dt.getFullYear() !== nowYear;
+  if (sameDay) {
+    return format(dv, showYear ? 'd MMM yyyy' : 'd MMM', { locale: nl });
+  }
+  if (dv.getFullYear() === dt.getFullYear() && dv.getMonth() === dt.getMonth()) {
+    return `${format(dv, 'd', { locale: nl })} – ${format(dt, showYear ? 'd MMM yyyy' : 'd MMM', { locale: nl })}`;
+  }
+  return `${format(dv, 'd MMM', { locale: nl })} – ${format(dt, showYear ? 'd MMM yyyy' : 'd MMM', { locale: nl })}`;
+}
 
 export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) {
   const vestigingen = vestigingenVan(vestigingKeuze);
@@ -102,9 +144,39 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) 
     {
       label: 'T.o.v. vorige periode',
       value: pct === null ? dash : `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`,
-      sub: prev == null
-        ? 'geen vergelijkbare omzet'
-        : `${omzet - prev >= 0 ? '+' : ''}${EUR2.format(omzet - prev)} vs. ${EUR.format(prev)}`,
+      sub: (() => {
+        const prevRange = fmtRange(s?.vorige_periode?.van, s?.vorige_periode?.tot);
+        const curRange = fmtRange(s?.periode?.van ?? van, s?.periode?.tot ?? tot);
+        const curBron = bronLabel(s?.totaal.omzet_bron_mix);
+        const prvBron = bronLabel(s?.totaal.vorige_omzet_bron_mix);
+        const mismatch = bronMismatch(s?.totaal.omzet_bron_mix, s?.totaal.vorige_omzet_bron_mix);
+        const label = prev == null ? 'geen vergelijkbare omzet' : `t.o.v. ${prevRange}`;
+        const tip = (
+          <div className="text-xs leading-snug space-y-1">
+            <div><b>Huidig:</b> {EUR2.format(omzet)} ({curBron})<br /><span className="text-muted-foreground">{curRange}</span></div>
+            <div><b>Vorig:</b> {prev == null ? '—' : `${EUR2.format(prev)} (${prvBron})`}<br /><span className="text-muted-foreground">{prevRange || '—'}</span></div>
+            {prev != null && (
+              <div>Verschil: {omzet - prev >= 0 ? '+' : ''}{EUR2.format(omzet - prev)}</div>
+            )}
+            {mismatch && (
+              <div className="text-amber-600 pt-1 border-t">Vergelijking over verschillende bronnen — betrouwbaarheid beperkt.</div>
+            )}
+          </div>
+        );
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'help' }}>
+                  {mismatch && <AlertTriangle size={11} className="text-amber-600" />}
+                  <span>{label}</span>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[280px]">{tip}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      })(),
       dp: pct,
     },
   ];

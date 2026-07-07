@@ -18,6 +18,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { UserPlus, MoreVertical, Loader2, RefreshCw } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -38,6 +40,7 @@ interface TeamMember {
   status: Status;
   last_sign_in_at: string | null;
   email_confirmed_at: string | null;
+  mag_loonkosten_zien?: boolean;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -117,6 +120,7 @@ export default function Team() {
                   <TableHead>Rol</TableHead>
                   <TableHead>Locatie(s)</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Loonkosten</TableHead>
                   <TableHead>Laatst actief</TableHead>
                   <TableHead className="w-12"></TableHead>
                 </TableRow>
@@ -128,11 +132,12 @@ export default function Team() {
                     member={m}
                     isSelf={m.user_id === myId}
                     onChanged={load}
+                    onLocalUpdate={(patch) => setTeam(prev => prev?.map(r => r.user_id === m.user_id ? { ...r, ...patch } : r) ?? prev)}
                   />
                 ))}
                 {team?.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
                       Nog geen teamleden.
                     </TableCell>
                   </TableRow>
@@ -148,10 +153,12 @@ export default function Team() {
   );
 }
 
-function TeamRow({ member, isSelf, onChanged }: {
+function TeamRow({ member, isSelf, onChanged, onLocalUpdate }: {
   member: TeamMember; isSelf: boolean; onChanged: () => void;
+  onLocalUpdate: (patch: Partial<TeamMember>) => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const [loonBusy, setLoonBusy] = useState(false);
 
   const displayRole = member.role ? ROLE_LABELS[member.role] ?? member.role : '—';
   const displayName = [member.first_name, member.last_name].filter(Boolean).join(' ') || '—';
@@ -245,6 +252,34 @@ function TeamRow({ member, isSelf, onChanged }: {
         <Badge className={`${STATUS_VARIANTS[member.status]} border`}>
           {STATUS_LABELS[member.status]}
         </Badge>
+      </TableCell>
+      <TableCell>
+        <LoonkostenToggle
+          member={member}
+          isSelf={isSelf}
+          busy={loonBusy}
+          onChange={async (next) => {
+            const isOwnerRow = member.role === 'owner' || member.role === 'admin';
+            if (isSelf && isOwnerRow) return; // owner mag zichzelf niet wijzigen
+            const prev = !!member.mag_loonkosten_zien;
+            setLoonBusy(true);
+            onLocalUpdate({ mag_loonkosten_zien: next }); // optimistic
+            const { error } = await supabase
+              .from('profiles')
+              .update({ mag_loonkosten_zien: next })
+              .eq('user_id', member.user_id);
+            setLoonBusy(false);
+            if (error) {
+              onLocalUpdate({ mag_loonkosten_zien: prev }); // rollback
+              const msg = /owner/i.test(error.message) || /permission/i.test(error.message)
+                ? 'Alleen de eigenaar kan dit wijzigen'
+                : `Kon niet bijwerken: ${error.message}`;
+              toast.error(msg);
+              return;
+            }
+            toast.success(next ? 'Loonkosten-toegang aan' : 'Loonkosten-toegang uit');
+          }}
+        />
       </TableCell>
       <TableCell className="text-muted-foreground text-sm">
         {member.last_sign_in_at
@@ -397,5 +432,40 @@ function InviteDialog({ open, onOpenChange, onDone }: {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function LoonkostenToggle({ member, isSelf, busy, onChange }: {
+  member: TeamMember; isSelf: boolean; busy: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  const isOwnerRow = member.role === 'owner' || member.role === 'admin';
+  const forced = isOwnerRow; // owner ziet altijd loonkosten
+  const checked = forced ? true : !!member.mag_loonkosten_zien;
+  const disabled = forced || busy || member.status === 'deactivated';
+
+  const sw = (
+    <Switch
+      checked={checked}
+      disabled={disabled}
+      onCheckedChange={onChange}
+    />
+  );
+
+  if (!forced && member.status !== 'deactivated') return sw;
+
+  const reason = forced
+    ? 'Owner ziet altijd loonkosten'
+    : 'Gedeactiveerde gebruiker';
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex opacity-90">{sw}</span>
+        </TooltipTrigger>
+        <TooltipContent>{reason}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
