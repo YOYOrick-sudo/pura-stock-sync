@@ -516,7 +516,7 @@ async function runSync(
   vestiging: string,
   van: string,
   tot: string,
-  type: 'dagelijks' | 'handmatig' | 'backfill',
+  type: 'dagelijks' | 'handmatig' | 'backfill' | 'auto',
   mockReceipts?: Receipt[],
 ): Promise<{ ok: true; bonnen: number } | { ok: false; error: string }> {
   const { data: runRow } = await admin.from('sync_runs').insert({
@@ -576,7 +576,7 @@ Deno.serve(async (req) => {
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
   const type = body?.type;
-  if (!['dagelijks', 'handmatig', 'backfill'].includes(type)) {
+  if (!['dagelijks', 'handmatig', 'backfill', 'auto'].includes(type)) {
     return json({ error: 'invalid_type' }, 400);
   }
 
@@ -649,6 +649,39 @@ Deno.serve(async (req) => {
       cursor.setUTCDate(cursor.getUTCDate() + 1);
     }
     return json({ ok: true, weeks: results.length, runs: results });
+  }
+
+  if (type === 'auto') {
+    // Cron-modus: per-vestiging job-overlap-lock via sync_leases (job-key, geen token-lease).
+    // window: 'hot' = vandaag+gisteren; 'reconcile' = T-7..T-1 (late edits/voids).
+    const vestiging = body.vestiging;
+    const window = body.window ?? 'hot';
+    if (!['Midsland', 'West'].includes(vestiging)) return json({ error: 'invalid_vestiging' }, 400);
+    if (!['hot', 'reconcile'].includes(window)) return json({ error: 'invalid_window' }, 400);
+
+    const jobKey = vestiging === 'Midsland' ? 'ls-job:midsland' : 'ls-job:west';
+    const holder = `auto:${window}:${crypto.randomUUID().slice(0, 8)}`;
+    const { data: lockToken, error: lockErr } = await admin.rpc('sync_lease_acquire', {
+      _bron: jobKey, _holder: holder, _seconds: 540, // 9 min TTL, cron tick = 30 min
+    });
+    if (lockErr) return json({ ok: false, error: `job_lock_query_failed: ${lockErr.message}` }, 500);
+    if (!lockToken) return json({ ok: false, error: 'lease_busy', vestiging, window }, 200);
+
+    try {
+      // Werkdagen in NL-tijd (kanteluur 06:00 wordt in de aggregatie afgehandeld).
+      const nlToday = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Amsterdam' }).format(new Date());
+      const day = (offset: number) => {
+        const d = new Date(nlToday + 'T00:00:00Z');
+        d.setUTCDate(d.getUTCDate() + offset);
+        return d.toISOString().slice(0, 10);
+      };
+      const van = window === 'hot' ? day(-1) : day(-7);
+      const tot = window === 'hot' ? day(0) : day(-1);
+      const result = await runSync(admin, vestiging, van, tot, 'auto');
+      return json({ ...result, vestiging, window, van, tot });
+    } finally {
+      await admin.rpc('sync_lease_release', { _bron: jobKey, _token: lockToken });
+    }
   }
 
   return json({ error: 'unhandled' }, 500);

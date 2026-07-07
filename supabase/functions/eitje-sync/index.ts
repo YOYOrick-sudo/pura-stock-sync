@@ -525,7 +525,7 @@ async function doSyncWindow(
 // ------------------------------------------------------------------
 async function withRun(
   admin: any,
-  type: 'verkennen' | 'dagelijks' | 'handmatig' | 'backfill',
+  type: 'verkennen' | 'dagelijks' | 'handmatig' | 'backfill' | 'auto',
   periode_van: string | null,
   periode_tot: string | null,
   vestiging: string | null,
@@ -653,5 +653,23 @@ Deno.serve(async (req) => {
     return json(res);
   }
 
-  return json({ error: 'invalid_type', allowed: ['verkennen', 'dagelijks', 'handmatig', 'backfill'] }, 400);
+  if (type === 'auto') {
+    // Cron-modus: window 'hot' = lopende dag; 't-1' = gisteren+eergisteren (nachtrun).
+    // Hergebruikt bestaande 'eitje' lease — bij overlap krijgen we 'lease_bezet'.
+    const window = body.window ?? 'hot';
+    if (!['hot', 't-1'].includes(window)) return json({ error: 'invalid_window' }, 400);
+    const today = new Date().toISOString().slice(0, 10);
+    const van = window === 'hot' ? today : addDays(today, -2);
+    const tot = window === 'hot' ? today : addDays(today, -1);
+    const res = await withRun(admin, 'auto', van, tot, null, async () => {
+      return await doSyncWindow(admin, van, tot);
+    });
+    // Normaliseer lease_bezet naar lease_busy voor consistentie met lightspeed-sync.
+    if (!res.ok && typeof res.error === 'string' && res.error.startsWith('lease_bezet')) {
+      return json({ ok: false, error: 'lease_busy', window }, 200);
+    }
+    return json({ ...res, window, van, tot });
+  }
+
+  return json({ error: 'invalid_type', allowed: ['verkennen', 'dagelijks', 'handmatig', 'backfill', 'auto'] }, 400);
 });

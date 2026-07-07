@@ -2878,6 +2878,10 @@ export type Database = {
         Args: { _bron: string; _token: string }
         Returns: undefined
       }
+      trigger_sync_edge: {
+        Args: { _body: Json; _function: string }
+        Returns: number
+      }
     }
     Enums: {
       app_role:

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 
 function formatRelative(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -12,27 +13,61 @@ function formatRelative(iso: string): string {
   return `${days} d geleden`;
 }
 
+type Row = { bron: string; klaar_op: string | null; gestart_op: string; status: string };
+
 export function BijgewerktRegel() {
   const q = useQuery({
-    queryKey: ['bijgewerkt'],
+    queryKey: ['bijgewerkt-per-bron'],
     queryFn: async () => {
+      // Laatste succesvolle run per bron (lightspeed + eitje)
       const { data, error } = await supabase
         .from('sync_runs')
-        .select('klaar_op, gestart_op, type, status')
+        .select('bron, klaar_op, gestart_op, status')
+        .eq('status', 'ok')
         .not('klaar_op', 'is', null)
         .order('klaar_op', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(50);
       if (error) throw error;
-      return data;
+      const rows = (data ?? []) as Row[];
+      const laatsteLs = rows.find((r) => r.bron === 'lightspeed');
+      const laatsteEitje = rows.find((r) => r.bron === 'eitje');
+      return { ls: laatsteLs, eitje: laatsteEitje };
     },
+    refetchInterval: 60_000,
     refetchOnWindowFocus: true,
   });
 
-  const ts = q.data?.klaar_op ?? q.data?.gestart_op;
+  const nu = Date.now();
+  const lsMs = q.data?.ls?.klaar_op ? nu - new Date(q.data.ls.klaar_op).getTime() : null;
+  const eitjeMs = q.data?.eitje?.klaar_op ? nu - new Date(q.data.eitje.klaar_op).getTime() : null;
+
+  const WARN = 90 * 60_000; // 90 min → amber
+  const ALARM = 4 * 60 * 60_000; // 4 uur → rood
+
+  const worst = Math.max(lsMs ?? 0, eitjeMs ?? 0);
+  const level: 'ok' | 'warn' | 'alarm' =
+    worst > ALARM ? 'alarm' : worst > WARN ? 'warn' : 'ok';
+
+  const nieuwste = [q.data?.ls?.klaar_op, q.data?.eitje?.klaar_op]
+    .filter(Boolean)
+    .sort()
+    .reverse()[0];
+
+  const tooltipParts: string[] = [];
+  if (q.data?.ls?.klaar_op) tooltipParts.push(`Lightspeed: ${formatRelative(q.data.ls.klaar_op)}`);
+  if (q.data?.eitje?.klaar_op) tooltipParts.push(`Eitje: ${formatRelative(q.data.eitje.klaar_op)}`);
+
   return (
-    <div className="text-xs text-muted-foreground text-center pt-2">
-      {ts ? `Bijgewerkt: ${formatRelative(ts)}` : 'Nog niet bijgewerkt'}
+    <div
+      className={cn(
+        'text-xs text-center pt-2 transition-colors',
+        level === 'ok' && 'text-muted-foreground',
+        level === 'warn' && 'text-amber-600',
+        level === 'alarm' && 'text-red-600 font-medium',
+      )}
+      title={tooltipParts.join(' · ')}
+    >
+      {nieuwste ? `Bijgewerkt: ${formatRelative(nieuwste as string)}` : 'Nog niet bijgewerkt'}
     </div>
   );
 }
