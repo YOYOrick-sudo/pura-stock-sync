@@ -120,6 +120,7 @@ export default function Team() {
                   <TableHead>Rol</TableHead>
                   <TableHead>Locatie(s)</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Loonkosten</TableHead>
                   <TableHead>Laatst actief</TableHead>
                   <TableHead className="w-12"></TableHead>
                 </TableRow>
@@ -131,11 +132,12 @@ export default function Team() {
                     member={m}
                     isSelf={m.user_id === myId}
                     onChanged={load}
+                    onLocalUpdate={(patch) => setTeam(prev => prev?.map(r => r.user_id === m.user_id ? { ...r, ...patch } : r) ?? prev)}
                   />
                 ))}
                 {team?.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
                       Nog geen teamleden.
                     </TableCell>
                   </TableRow>
