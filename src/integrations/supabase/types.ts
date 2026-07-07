@@ -2748,6 +2748,13 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      f_omzet_effectief: {
+        Args: { eitje_omzet: number; ls_omzet: number }
+        Returns: {
+          bron: string
+          omzet: number
+        }[]
+      }
       foh_rename_category: {
         Args: {
           _department: string
@@ -2823,6 +2830,7 @@ export type Database = {
           bonnen: number
           bucket: string
           omzet: number
+          omzet_bron: string
           vestiging: string
         }[]
       }

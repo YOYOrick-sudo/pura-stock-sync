@@ -16,7 +16,7 @@ const DAG_NL = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
 const MND_NL = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
 
 interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
-type Row = { bucket: string; vestiging: string; omzet: number; bonnen: number };
+type Row = { bucket: string; vestiging: string; omzet: number; bonnen: number | null; omzet_bron?: 'lightspeed' | 'eitje' | 'gemengd' | 'geen' };
 
 function labelVoor(bucket: string, gran: 'uur' | 'dag' | 'maand'): string {
   const d = new Date(bucket);
@@ -76,16 +76,30 @@ export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props
     for (const r of prev) if (!prevBuckets.includes(r.bucket)) prevBuckets.push(r.bucket);
     prevBuckets.sort();
     const n = Math.max(curBuckets.length, prevBuckets.length);
-    const labels: string[] = []; const curArr: number[] = []; const prevArr: number[] = []; const bonnenArr: number[] = [];
+    const labels: string[] = []; const curArr: number[] = []; const prevArr: number[] = [];
+    const bonnenArr: Array<number | null> = []; const bronArr: Array<Row['omzet_bron']> = [];
     for (let i = 0; i < n; i++) {
       const cb = curBuckets[i]; const pb = prevBuckets[i];
       labels.push(cb ? labelVoor(cb, gran) : pb ? labelVoor(pb, gran) : '');
-      let c = 0, p = 0, b = 0;
-      if (cb) for (const r of cur.filter((x) => x.bucket === cb))  { c += Number(r.omzet); b += Number(r.bonnen); }
+      let c = 0, p = 0;
+      let bSum = 0, bAny = false;
+      const brons = new Set<string>();
+      if (cb) for (const r of cur.filter((x) => x.bucket === cb))  {
+        c += Number(r.omzet);
+        if (r.bonnen != null) { bSum += Number(r.bonnen); bAny = true; }
+        if (r.omzet_bron) brons.add(r.omzet_bron);
+      }
       if (pb) for (const r of prev.filter((x) => x.bucket === pb)) { p += Number(r.omzet); }
-      curArr.push(c); prevArr.push(p); bonnenArr.push(b);
+      curArr.push(c); prevArr.push(p);
+      bonnenArr.push(bAny && !brons.has('eitje') && !brons.has('gemengd') && !brons.has('geen') ? bSum : null);
+      let bron: Row['omzet_bron'] = 'geen';
+      const hasLS = brons.has('lightspeed'); const hasE = brons.has('eitje') || brons.has('gemengd');
+      if (hasLS && hasE) bron = 'gemengd';
+      else if (hasLS) bron = 'lightspeed';
+      else if (hasE) bron = 'eitje';
+      bronArr.push(bron);
     }
-    return { labels, cur: curArr, prev: prevArr, bonnen: bonnenArr };
+    return { labels, cur: curArr, prev: prevArr, bonnen: bonnenArr, bron: bronArr };
   }, [curQ.data, prevQ.data, gran]);
 
   if (curQ.isLoading) return <LoadingSkeleton />;
@@ -104,6 +118,8 @@ export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props
       </div>
     );
   }
+
+  const nEitje = series.bron.filter((b) => b === 'eitje' || b === 'gemengd').length;
 
   return (
     <div
@@ -126,6 +142,18 @@ export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props
       <div style={{ marginTop: 10 }}>
         <LineChart series={series} periode={periode} />
       </div>
+      {nEitje > 0 && (
+        <div style={{
+          marginTop: 10, paddingTop: 10, borderTop: '1px solid hsl(var(--border))',
+          display: 'flex', alignItems: 'center', gap: 8,
+          fontSize: 12, color: 'hsl(var(--muted-foreground))',
+        }}>
+          <span style={{ color: 'hsl(38 92% 45%)' }}>⚠</span>
+          <span>
+            {nEitje} {nEitje === 1 ? 'punt' : 'punten'} met omzet uit Eitje (Lightspeed leeg of niet-representatief).
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -141,9 +169,14 @@ function Header({ sub }: { sub: string }) {
   );
 }
 
+type SeriesData = {
+  labels: string[]; cur: number[]; prev: number[];
+  bonnen: Array<number | null>;
+  bron: Array<Row['omzet_bron']>;
+};
 function LineChart({
   series, periode,
-}: { series: { labels: string[]; cur: number[]; prev: number[]; bonnen: number[] }; periode: Periode }) {
+}: { series: SeriesData; periode: Periode }) {
   const [hv, setHv] = useState<number | null>(null);
   const showCmp = series.prev.some((v) => v > 0);
 
@@ -217,7 +250,9 @@ function LineChart({
         <TipRow color="hsl(var(--primary))" label="Deze periode" value={EUR0.format(c)} />
         {showCmp && <TipRow color="hsl(var(--chart-prev-line))" label="Vorige periode" value={EUR0.format(p)} />}
         <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid hsl(var(--border))', fontSize: 10.5, color: 'hsl(var(--muted-foreground))' }}>
-          ≈ {NUM.format(series.bonnen[hv] || Math.round(c / 36))} bonnen
+          {series.bonnen[hv] != null
+            ? `≈ ${NUM.format(series.bonnen[hv] as number)} bonnen`
+            : 'omzet uit Eitje — bonnen n.v.t.'}
         </div>
       </TipCard>
     );
