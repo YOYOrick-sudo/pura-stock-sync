@@ -40,6 +40,7 @@ interface TeamMember {
   status: Status;
   last_sign_in_at: string | null;
   email_confirmed_at: string | null;
+  mag_loonkosten_zien?: boolean;
 }
 
 const ROLE_LABELS: Record<string, string> = {
