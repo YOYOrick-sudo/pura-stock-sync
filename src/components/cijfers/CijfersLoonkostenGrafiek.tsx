@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
-  ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine,
 } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -56,6 +56,40 @@ export function CijfersLoonkostenGrafiek({ vestigingKeuze, van, tot }: Props) {
     refetchOnWindowFocus: true,
   });
 
+  const instQ = useQuery({
+    queryKey: ['cijfers-instellingen-doel'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cijfers_instellingen')
+        .select('vestiging, loon_pct_doel');
+      if (error) throw error;
+      return (data ?? []) as Array<{ vestiging: string; loon_pct_doel: number }>;
+    },
+    staleTime: 60_000,
+  });
+
+  // Bepaal doellijnen: unieke waardes over gekozen vestigingen.
+  const doelen = useMemo(() => {
+    const perVest = new Map<string, number>();
+    for (const r of instQ.data ?? []) {
+      if (vestigingen.includes(r.vestiging as any)) {
+        perVest.set(r.vestiging, Number(r.loon_pct_doel));
+      }
+    }
+    const waardes = Array.from(new Set(perVest.values()));
+    if (waardes.length <= 1) {
+      // Zelfde doel (of maar 1 vestiging): één gedeelde lijn
+      const w = waardes[0] ?? 30;
+      return [{ waarde: w, label: `Doel ${w}%` }];
+    }
+    // Verschillende doelen: aparte lijnen per vestiging
+    return Array.from(perVest.entries()).map(([vest, w]) => ({
+      waarde: w,
+      label: `${vest} ${w}%`,
+    }));
+  }, [instQ.data, vestigingen]);
+
+
   const data = useMemo(() => {
     if (!q.data?.length) return [];
     // Aggregeer over vestigingen per bucket + combineer omzet_bron
@@ -103,12 +137,33 @@ export function CijfersLoonkostenGrafiek({ vestigingKeuze, van, tot }: Props) {
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
               <YAxis yAxisId="l" tickFormatter={axisEUR} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} width={54} />
-              <YAxis yAxisId="r" orientation="right" tickFormatter={(v) => v + '%'} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} width={40} domain={[0, (dataMax: number) => Math.max(50, Math.ceil(dataMax / 10) * 10)]} />
+              <YAxis yAxisId="r" orientation="right" tickFormatter={(v) => v + '%'} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} width={40} domain={[0, (dataMax: number) => {
+                const doelMax = doelen.reduce((m, d) => Math.max(m, d.waarde), 0);
+                return Math.max(50, Math.ceil(Math.max(dataMax, doelMax + 5) / 10) * 10);
+              }]} />
               <Tooltip content={<TT />} />
               <Legend wrapperStyle={{ fontSize: 12 }} iconType="circle" />
+              {doelen.map((d, i) => (
+                <ReferenceLine
+                  key={`doel-${i}-${d.waarde}`}
+                  yAxisId="r"
+                  y={d.waarde}
+                  stroke="hsl(var(--destructive))"
+                  strokeWidth={1.5}
+                  strokeDasharray="6 4"
+                  ifOverflow="extendDomain"
+                  label={{
+                    value: d.label,
+                    fill: 'hsl(var(--destructive))',
+                    fontSize: 10,
+                    position: 'insideTopRight',
+                  }}
+                />
+              ))}
               <Area yAxisId="l" type="monotone" dataKey="omzet" name="Omzet" stroke="hsl(var(--primary))" fill="url(#omzetGrad)" strokeWidth={2} />
               <Line yAxisId="l" type="monotone" dataKey="loonkosten" name="Loonkosten" stroke="#E27726" strokeWidth={2} dot={false} />
               <Line yAxisId="r" type="monotone" dataKey="pct" name="Loon % omzet" stroke="hsl(var(--muted-foreground))" strokeWidth={1.5} strokeDasharray="4 4" dot={false} connectNulls />
+
             </ComposedChart>
           </ResponsiveContainer>
         </div>
