@@ -307,12 +307,27 @@ async function fetchReceiptsForDay(
 
   for (let page = 0; page < RECEIPTS_MAX_PAGES; page++) {
     const url = `${RECEIPTS_URL}?date=${encodeURIComponent(date)}&offset=${offset}&limit=${RECEIPTS_PAGE_SIZE}`;
-    const resp = await fetch(url, {
-      headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' },
-    });
-    const text = await resp.text();
-    if (!resp.ok) {
-      return { error: 'receipts_http_error', detail: `${resp.status} ${text.slice(0, 500)} url=${url}` };
+
+    // Fetch met retry op 429/5xx (Retry-After respecteren, fallback exponentieel).
+    let resp: Response | null = null;
+    let text = '';
+    const backoffs = [2000, 5000, 15000, 45000];
+    let attempt = 0;
+    while (true) {
+      resp = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' },
+      });
+      text = await resp.text();
+      if (resp.ok) break;
+      const retryable = resp.status === 429 || (resp.status >= 500 && resp.status < 600);
+      if (!retryable || attempt >= backoffs.length) {
+        return { error: 'receipts_http_error', detail: `${resp.status} ${text.slice(0, 500)} url=${url}` };
+      }
+      const retryAfter = Number(resp.headers.get('Retry-After'));
+      const waitMs = Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : backoffs[attempt];
+      console.log(`[backoff] status=${resp.status} attempt=${attempt + 1} wait=${waitMs}ms url=${url}`);
+      await sleep(waitMs);
+      attempt += 1;
     }
     let parsed: any;
     try { parsed = JSON.parse(text); } catch {
