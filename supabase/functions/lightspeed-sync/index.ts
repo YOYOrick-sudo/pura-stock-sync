@@ -443,6 +443,7 @@ async function fetchReceipts(
   let totalRaw = 0, paidRaw = 0, days = 0;
   for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
     const day = d.toISOString().slice(0, 10);
+    if (days > 0) await sleep(250); // burst-spreiding tussen dagen
     const res = await fetchReceiptsForDay(accessToken, day);
     if ('error' in res) return res;
     all.push(...res.receipts);
