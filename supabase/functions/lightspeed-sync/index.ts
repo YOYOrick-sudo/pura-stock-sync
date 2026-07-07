@@ -132,12 +132,13 @@ function tokenStillValid(conn: Conn): boolean {
 async function tryClaimLease(admin: any, vestiging: string): Promise<boolean> {
   const nowIso = new Date().toISOString();
   const leaseUntil = new Date(Date.now() + LEASE_SECONDS * 1000).toISOString();
-  const { data } = await admin
+  const { data, error } = await admin
     .from('lightspeed_connections')
     .update({ refreshing_until: leaseUntil })
     .eq('vestiging', vestiging)
     .or(`refreshing_until.is.null,refreshing_until.lt.${nowIso}`)
     .select('vestiging');
+  console.error('[claimLease-diag]', JSON.stringify({ vestiging, nowIso, leaseUntil, err: error?.message ?? null, rowsMatched: data?.length ?? 0, data }));
   return (data?.length ?? 0) > 0;
 }
 
