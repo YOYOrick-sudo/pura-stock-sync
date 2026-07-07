@@ -257,27 +257,90 @@ async function getValidToken(admin: any, vestiging: string): Promise<{ token: st
 }
 
 // ------------------------------------------------------------------
-// Receipts ophalen — echte call OF mock
-// STOP+ASK: eerste echte call → response-body loggen en veldmapping vaststellen.
+// Receipts ophalen — Lightspeed L-Series (euc2 via lightspeedapis.com gateway)
+// Endpoint: GET /resto/rest/financial/receipt?date=YYYY-MM-DD&offset=N&limit=50
+// - closingDate/creationDate zijn UTC (ISO Z). computeWerkdagUur() converteert
+//   naar Europe/Amsterdam vóór het bucketen, dus late-avond UTC-bonnen belanden
+//   automatisch op de juiste NL-werkdag/uur (22:30Z zomer = 00:30 NL → volgende dag).
+// - Timestamp-keuze: closingDate. Dit is het moment van afrekenen (= omzet-moment
+//   voor kassa-vergelijk). creationDate is bon-openen; kan uren eerder liggen bij
+//   lang openstaande tafels en zou de uur-buckets vervuilen.
+// - Filter: status === 'PAID' (alleen betaalde bonnen tellen als omzet).
 // ------------------------------------------------------------------
 type Receipt = { timestamp: string; total_incl: number; total_excl: number };
 
-async function fetchReceipts(
-  _accessToken: string,
-  _merchantId: string,
-  _van: string,
-  _tot: string,
-): Promise<{ receipts: Receipt[]; raw_sample?: unknown } | { error: string; detail: string }> {
-  // NOG NIET ACTIEF — wacht op eerste live call voor veldmapping.
-  return {
-    error: 'stop_ask_receipts_mapping',
-    detail:
-      `Eerste echte receipts-call nog niet gedaan. Endpoint ${RECEIPTS_URL} met ` +
-      `businessLocationId=${_merchantId}, van=${_van}, tot=${_tot}. ` +
-      `Response-body moet gelogd worden en veldnamen bevestigd (timestamp, incl, excl, paginering) ` +
-      `voordat we hem mappen naar Receipt{timestamp,total_incl,total_excl}.`,
-  };
+async function fetchReceiptsForDay(
+  accessToken: string,
+  date: string, // YYYY-MM-DD (NL-werkdag; Lightspeed interpreteert als lokale dag)
+): Promise<{ receipts: Receipt[]; total_raw: number; paid_raw: number } | { error: string; detail: string }> {
+  const kept: Receipt[] = [];
+  let offset = 0;
+  let totalRaw = 0;
+  let paidRaw = 0;
+
+  for (let page = 0; page < RECEIPTS_MAX_PAGES; page++) {
+    const url = `${RECEIPTS_URL}?date=${encodeURIComponent(date)}&offset=${offset}&limit=${RECEIPTS_PAGE_SIZE}`;
+    const resp = await fetch(url, {
+      headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' },
+    });
+    const text = await resp.text();
+    if (!resp.ok) {
+      return { error: 'receipts_http_error', detail: `${resp.status} ${text.slice(0, 500)} url=${url}` };
+    }
+    let arr: any;
+    try { arr = JSON.parse(text); } catch {
+      return { error: 'receipts_not_json', detail: text.slice(0, 500) };
+    }
+    if (!Array.isArray(arr)) {
+      return { error: 'receipts_unexpected_shape', detail: JSON.stringify(arr).slice(0, 500) };
+    }
+    totalRaw += arr.length;
+
+    for (const r of arr) {
+      const status = String(r?.status ?? '').toUpperCase();
+      if (status !== 'PAID') continue;
+      paidRaw += 1;
+      const ts = r?.closingDate ?? r?.creationDate;
+      if (!ts) continue;
+      const incl = Number(r?.total ?? 0);
+      const excl = Number(r?.totalWithoutTax ?? r?.totalExcludingTax ?? 0);
+      kept.push({ timestamp: String(ts), total_incl: incl, total_excl: excl });
+    }
+
+    if (arr.length < RECEIPTS_PAGE_SIZE) break;
+    offset += RECEIPTS_PAGE_SIZE;
+  }
+
+  return { receipts: kept, total_raw: totalRaw, paid_raw: paidRaw };
 }
+
+/** Loop van..tot inclusief (dag-granulariteit). Backfill hergebruikt dit. */
+async function fetchReceipts(
+  accessToken: string,
+  _merchantId: string,
+  van: string,
+  tot: string,
+): Promise<{ receipts: Receipt[]; meta: { days: number; total_raw: number; paid_raw: number } } | { error: string; detail: string }> {
+  const start = new Date(`${van}T00:00:00Z`);
+  const end = new Date(`${tot}T00:00:00Z`);
+  if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) {
+    return { error: 'invalid_date_range', detail: `${van}..${tot}` };
+  }
+  const all: Receipt[] = [];
+  let totalRaw = 0, paidRaw = 0, days = 0;
+  for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+    const day = d.toISOString().slice(0, 10);
+    const res = await fetchReceiptsForDay(accessToken, day);
+    if ('error' in res) return res;
+    all.push(...res.receipts);
+    totalRaw += res.total_raw;
+    paidRaw += res.paid_raw;
+    days++;
+  }
+  console.log(`[fetchReceipts] ${van}..${tot} days=${days} raw=${totalRaw} paid=${paidRaw} kept=${all.length}`);
+  return { receipts: all, meta: { days, total_raw: totalRaw, paid_raw: paidRaw } };
+}
+
 
 // ------------------------------------------------------------------
 // Aggregatie + upsert
