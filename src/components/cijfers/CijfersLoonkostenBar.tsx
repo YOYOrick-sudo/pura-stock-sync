@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertTriangle } from 'lucide-react';
-import { EUR, EUR2, vestigingenVan, prevLabel, type Periode, type VestKeuze } from './types';
+import { EUR, EUR2, vestigingenVan, vergelijkModeVan, prevLabel, type Periode, type VestKeuze } from './types';
 import { useCountUp } from './useCountUp';
 import { DeltaPill } from './chartHelpers';
 import type { DeltaIntent } from './deltaKleur';
