@@ -1,15 +1,30 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AlertTriangle } from 'lucide-react';
 import { EUR, EUR2, vestigingenVan, type Periode, type VestKeuze } from './types';
 import { useCountUp } from './useCountUp';
 import { DeltaPill } from './chartHelpers';
 
 interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
 
+type BronMix = { lightspeed: number; eitje: number; geen: number };
 type Samenvatting = {
-  totaal: { omzet: number; bonnen: number; open_dagen: number; vorige_omzet: number };
-  per_vestiging: Array<{ vestiging: string; omzet: number; bonnen: number; open_dagen: number; vorige_omzet: number }>;
+  totaal: {
+    omzet: number;
+    bonnen: number | null;
+    open_dagen: number | null;
+    vorige_omzet: number | null;
+    omzet_bron_mix?: BronMix;
+  };
+  per_vestiging: Array<{
+    vestiging: string;
+    omzet: number;
+    bonnen: number | null;
+    open_dagen: number | null;
+    vorige_omzet: number | null;
+    omzet_bron_mix?: BronMix;
+  }>;
 };
 
 export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) {
@@ -44,16 +59,21 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) 
 
   const s = q.data;
   const omzet = Number(s?.totaal.omzet ?? 0);
-  const prev = Number(s?.totaal.vorige_omzet ?? 0);
-  const opnDgn = Number(s?.totaal.open_dagen ?? 0);
-  const bonnen = Number(s?.totaal.bonnen ?? 0);
-  const gemDag = opnDgn > 0 ? omzet / opnDgn : 0;
-  const gemBon = bonnen > 0 ? omzet / bonnen : 0;
+  const prev = s?.totaal.vorige_omzet == null ? null : Number(s.totaal.vorige_omzet);
+  const opnDgn = s?.totaal.open_dagen == null ? null : Number(s.totaal.open_dagen);
+  const bonnen = s?.totaal.bonnen == null ? null : Number(s.totaal.bonnen);
+  const gemDag = opnDgn != null && opnDgn > 0 ? omzet / opnDgn : null;
+  const gemBon = bonnen != null && bonnen > 0 ? omzet / bonnen : null;
   const per = s?.per_vestiging ?? [];
-  const pct = prev > 0 ? ((omzet - prev) / prev) * 100 : null;
+  const pct = prev != null && prev > 0 ? ((omzet - prev) / prev) * 100 : null;
+
+  const bronMix = s?.totaal.omzet_bron_mix;
+  const nEitje = Number(bronMix?.eitje ?? 0);
 
   const beideSubline = (getter: (p: Samenvatting['per_vestiging'][number]) => string) =>
     vestigingKeuze === 'Beide' && per.length > 0 ? per.map(getter).join(' · ') : null;
+
+  const dash = '—';
 
   const cols: { label: string; value: React.ReactNode; sub: React.ReactNode; dp?: number | null }[] = [
     {
@@ -64,23 +84,27 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) 
     },
     {
       label: 'Bonnen',
-      value: <Count v={bonnen} />,
-      sub: beideSubline((p) => `${p.vestiging} ${Number(p.bonnen).toLocaleString('nl-NL')}`) ?? 'aantal transacties',
+      value: bonnen == null ? <span>{dash}</span> : <Count v={bonnen} />,
+      sub: bonnen == null ? 'niet beschikbaar bij Eitje-omzet' : 'aantal transacties',
     },
     {
       label: 'Gem. besteding / bon',
-      value: <Money v={gemBon} decimals={2} />,
-      sub: 'per bon',
+      value: gemBon == null ? <span>{dash}</span> : <Money v={gemBon} decimals={2} />,
+      sub: gemBon == null ? 'niet beschikbaar bij Eitje-omzet' : 'per bon',
     },
     {
       label: 'Gem. per open dag',
-      value: <Money v={gemDag} />,
-      sub: `${opnDgn} open ${opnDgn === 1 ? 'dag' : 'dagen'}`,
+      value: gemDag == null ? <span>{dash}</span> : <Money v={gemDag} />,
+      sub: opnDgn == null
+        ? 'niet beschikbaar bij Eitje-omzet'
+        : `${opnDgn} open ${opnDgn === 1 ? 'dag' : 'dagen'}`,
     },
     {
       label: 'T.o.v. vorige periode',
-      value: pct === null ? '—' : `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`,
-      sub: `${omzet - prev >= 0 ? '+' : ''}${EUR2.format(omzet - prev)} vs. ${EUR.format(prev)}`,
+      value: pct === null ? dash : `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`,
+      sub: prev == null
+        ? 'geen vergelijkbare omzet'
+        : `${omzet - prev >= 0 ? '+' : ''}${EUR2.format(omzet - prev)} vs. ${EUR.format(prev)}`,
       dp: pct,
     },
   ];
@@ -99,6 +123,19 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) 
           />
         ))}
       </div>
+      {nEitje > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px',
+          borderTop: '1px solid hsl(var(--border))', background: 'hsl(var(--muted)/0.4)',
+          fontSize: 12, color: 'hsl(var(--muted-foreground))',
+        }}>
+          <AlertTriangle size={14} className="text-amber-600" />
+          <span>
+            {nEitje} {nEitje === 1 ? 'dag omzet' : 'dagen omzet'} uit Eitje (Lightspeed leeg of niet-representatief).
+            Bonnen, gem. besteding en gem. per open dag zijn dan niet beschikbaar.
+          </span>
+        </div>
+      )}
     </div>
   );
 }
