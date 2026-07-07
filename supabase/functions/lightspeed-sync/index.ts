@@ -19,7 +19,10 @@ const SYNC_TOKEN = Deno.env.get('LIGHTSPEED_SYNC_TOKEN')!;
 
 const TOKEN_URL = 'https://lightspeedapis.com/resto/oauth2/v1/token';
 // Receipts endpoint: nog te bevestigen bij eerste live call (paginering + veldnamen).
-const RECEIPTS_URL = 'https://lightspeedapis.com/resto/financials/v1/receipts';
+const RECEIPTS_URL = 'https://lightspeedapis.com/resto/rest/financial/receipt';
+const RECEIPTS_PAGE_SIZE = 50;
+const RECEIPTS_MAX_PAGES = 500; // safety-cap: 25k receipts/window
+
 
 const LEASE_SECONDS = 30;
 const LEASE_POLL_MS = 500;
