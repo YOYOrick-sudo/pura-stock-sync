@@ -2446,6 +2446,54 @@ export type Database = {
         }
         Relationships: []
       }
+      uren_shifts: {
+        Row: {
+          bron: string
+          created_at: string
+          eind_ts: string
+          eitje_shift_id: string
+          eitje_user_id: string | null
+          id: string
+          is_demo: boolean
+          pauze_min: number
+          start_ts: string
+          updated_at: string
+          uurloon_bron: string | null
+          vestiging: string
+          werkdag: string
+        }
+        Insert: {
+          bron: string
+          created_at?: string
+          eind_ts: string
+          eitje_shift_id: string
+          eitje_user_id?: string | null
+          id?: string
+          is_demo?: boolean
+          pauze_min?: number
+          start_ts: string
+          updated_at?: string
+          uurloon_bron?: string | null
+          vestiging: string
+          werkdag: string
+        }
+        Update: {
+          bron?: string
+          created_at?: string
+          eind_ts?: string
+          eitje_shift_id?: string
+          eitje_user_id?: string | null
+          id?: string
+          is_demo?: boolean
+          pauze_min?: number
+          start_ts?: string
+          updated_at?: string
+          uurloon_bron?: string | null
+          vestiging?: string
+          werkdag?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           contract_type: string | null
@@ -2756,6 +2804,21 @@ export type Database = {
         Returns: {
           bron: string
           omzet: number
+        }[]
+      }
+      f_uren_bezetting_per_uur: {
+        Args: {
+          p_bron?: string
+          p_tot: string
+          p_van: string
+          p_vestigingen: string[]
+        }
+        Returns: {
+          fte_fractie: number
+          headcount: number
+          uur: number
+          vestiging: string
+          werkdag: string
         }[]
       }
       f_vorige_periode: {

@@ -288,6 +288,34 @@ function shiftDurationHours(shift: any, dateHint?: string): { hours: number; sou
   return { hours: netto / 60, source: 'start_end' };
 }
 
+// Parse start/eind naar Date, in dezelfde stijl als shiftDurationHours.
+// Retourneert ISO-strings (UTC) voor timestamptz-opslag, plus pauze_min.
+function shiftStartEnd(shift: any, dateHint?: string): { start_iso: string; eind_iso: string; pauze_min: number } | null {
+  const start = shift?.start ?? shift?.start_time ?? shift?.from;
+  const end = shift?.end ?? shift?.end_time ?? shift?.to;
+  const brk = Number(shift?.break_minutes ?? shift?.break ?? 0) || 0;
+  const date = shift?.date ?? dateHint ?? null;
+  if (!start || !end) return null;
+  const parse = (v: string): Date | null => {
+    if (typeof v !== 'string') return null;
+    if (v.includes('T') || v.length > 10) {
+      const d = new Date(v);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(v) && date) {
+      // NL-lokale tijd → UTC. Simpel: behandel als Europe/Amsterdam ~ UTC+1/+2.
+      // We laten JS de conversie doen door een lokale datum-string zonder Z.
+      const d = new Date(`${date}T${v.length === 5 ? v + ':00' : v}`);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    return null;
+  };
+  const s = parse(start); let e = parse(end);
+  if (!s || !e) return null;
+  if (e.getTime() <= s.getTime()) e = new Date(e.getTime() + 24 * 3600 * 1000); // overnacht
+  return { start_iso: s.toISOString(), eind_iso: e.toISOString(), pauze_min: Math.max(0, Math.round(brk)) };
+}
+
 // Fetch alle pagina's van een endpoint met bracketed filters. Eitje kan
 // paginering via ?page=N ondersteunen — we lezen tot lege items of max 50 pages (10.000 records).
 const EITJE_MAX_PAGES = 50;
@@ -395,7 +423,9 @@ async function doSyncWindow(
   const buckets: Map<string, ShiftAgg> = new Map();
   const keyOf = (vest: string, date: string) => `${vest}|${date}`;
 
-  // 3a. time_registration_shifts → gewerkte_uren + loonkosten
+  const shiftRows: any[] = [];
+
+  // 3a. time_registration_shifts → gewerkte_uren + loonkosten + uren_shifts
   const durSourceCounts: Record<string, number> = {};
   for (const sh of trs.items) {
     const envId = sh?.environment?.id ?? sh?.environment_id;
@@ -418,27 +448,46 @@ async function doSyncWindow(
     b.gewerkte_uren += hours;
 
     const uid = sh?.user?.id ?? sh?.user_id;
-    if (uid == null) continue;
-    const salary = lookupSalary(uid, date, envId ?? null);
-    const settings = settingsByVest[vest];
-    if (salary != null) {
-      const factor = settings?.wg_lasten_factor ?? 1.30;
-      b.loonkosten += hours * salary * factor;
-      b.loonkosten_had_match = true;
-    } else {
-      const uurloon = settings?.uurloon_allin ?? null;
-      if (uurloon != null && uurloon > 0) {
-        b.loonkosten += hours * uurloon; // GEEN factor — is al all-in
-        b.loonkosten_had_fallback = true;
-        b.fallback_user_ids.add(uid);
+    let uurloonBron: 'salaris' | 'vangnet' | 'geen' = 'geen';
+    if (uid != null) {
+      const salary = lookupSalary(uid, date, envId ?? null);
+      const settings = settingsByVest[vest];
+      if (salary != null) {
+        const factor = settings?.wg_lasten_factor ?? 1.30;
+        b.loonkosten += hours * salary * factor;
+        b.loonkosten_had_match = true;
+        uurloonBron = 'salaris';
       } else {
-        b.missing_uurloon_user_ids.add(uid);
+        const uurloon = settings?.uurloon_allin ?? null;
+        if (uurloon != null && uurloon > 0) {
+          b.loonkosten += hours * uurloon;
+          b.loonkosten_had_fallback = true;
+          b.fallback_user_ids.add(uid);
+          uurloonBron = 'vangnet';
+        } else {
+          b.missing_uurloon_user_ids.add(uid);
+        }
       }
+    }
+
+    // Shift-row voor per-uur bezetting
+    const se = shiftStartEnd(sh, date);
+    const shiftId = sh?.id;
+    if (se && shiftId != null) {
+      shiftRows.push({
+        vestiging: vest, werkdag: date,
+        start_ts: se.start_iso, eind_ts: se.eind_iso, pauze_min: se.pauze_min,
+        bron: 'time_registration',
+        eitje_shift_id: String(shiftId),
+        eitje_user_id: uid != null ? String(uid) : null,
+        uurloon_bron: uurloonBron,
+        is_demo: false,
+      });
     }
   }
   details.duration_source = durSourceCounts;
 
-  // 3b. planning_shifts → geplande_uren
+  // 3b. planning_shifts → geplande_uren + uren_shifts (bron=planning)
   for (const sh of plans.items) {
     const envId = sh?.environment?.id ?? sh?.environment_id;
     const vest = ENV_TO_VESTIGING[envId as number];
@@ -450,6 +499,21 @@ async function doSyncWindow(
     const key = keyOf(vest, date);
     if (!buckets.has(key)) buckets.set(key, emptyAgg());
     buckets.get(key)!.geplande_uren += hours;
+
+    const se = shiftStartEnd(sh, date);
+    const shiftId = sh?.id;
+    const uid = sh?.user?.id ?? sh?.user_id;
+    if (se && shiftId != null) {
+      shiftRows.push({
+        vestiging: vest, werkdag: date,
+        start_ts: se.start_iso, eind_ts: se.eind_iso, pauze_min: se.pauze_min,
+        bron: 'planning',
+        eitje_shift_id: String(shiftId),
+        eitje_user_id: uid != null ? String(uid) : null,
+        uurloon_bron: null,
+        is_demo: false,
+      });
+    }
   }
 
   // 3c. revenue_days (Totaal) → eitje_omzet_dag
@@ -508,16 +572,33 @@ async function doSyncWindow(
     }
   }
 
-  if (rows.length === 0) {
+  if (rows.length === 0 && shiftRows.length === 0) {
     return { ok: true, bonnen: 0, details };
   }
 
-  const { error: upErr } = await admin
-    .from('uren_dagen')
-    .upsert(rows, { onConflict: 'vestiging,werkdag,is_demo' });
-  if (upErr) return { ok: false, details, error: `upsert_uren_dagen: ${upErr.message}` };
+  if (rows.length > 0) {
+    const { error: upErr } = await admin
+      .from('uren_dagen')
+      .upsert(rows, { onConflict: 'vestiging,werkdag,is_demo' });
+    if (upErr) return { ok: false, details, error: `upsert_uren_dagen: ${upErr.message}` };
+  }
 
-  return { ok: true, bonnen: rows.length, details };
+  // Shifts in batches upsert (Postgres param-limiet ~65k, per rij ~11 cols → veilig <5000)
+  let shiftsUpserted = 0;
+  if (shiftRows.length > 0) {
+    const CHUNK = 500;
+    for (let i = 0; i < shiftRows.length; i += CHUNK) {
+      const chunk = shiftRows.slice(i, i + CHUNK);
+      const { error: shErr } = await admin
+        .from('uren_shifts')
+        .upsert(chunk, { onConflict: 'bron,eitje_shift_id' });
+      if (shErr) return { ok: false, details, error: `upsert_uren_shifts: ${shErr.message}` };
+      shiftsUpserted += chunk.length;
+    }
+  }
+  details.uren_shifts_upserted = shiftsUpserted;
+
+  return { ok: true, bonnen: rows.length + shiftsUpserted, details };
 }
 
 // ------------------------------------------------------------------
