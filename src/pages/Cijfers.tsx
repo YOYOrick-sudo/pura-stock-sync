@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, ChevronDown } from 'lucide-react';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -19,31 +19,58 @@ import { CijfersLoonkostenBar } from '@/components/cijfers/CijfersLoonkostenBar'
 import { CijfersLoonkostenGrafiek } from '@/components/cijfers/CijfersLoonkostenGrafiek';
 import { CijfersLoonkostenDoelGrafiek } from '@/components/cijfers/CijfersLoonkostenDoelGrafiek';
 import { CijfersUrenVergelijk } from '@/components/cijfers/CijfersUrenVergelijk';
-import { periodeRange, toISO, type Periode, type VestKeuze } from '@/components/cijfers/types';
+import { periodeRange, toISO, vergelijkModeVan, type Periode, type VergelijkMode, type VestKeuze } from '@/components/cijfers/types';
 import { useRole } from '@/hooks/useRole';
 import { useMagLoonkostenZien } from '@/hooks/useMagLoonkostenZien';
 
-type Preset = { label: string; van: Date; tot: Date };
+/** Preset uit de popover: elke shortcut geeft periode én optionele mode-override mee,
+ *  zodat de D-vergelijkingslogica correct blijft (dag/week/maand/jaar/custom). */
+type Preset = {
+  label: string;
+  van: Date; tot: Date;
+  periode: Periode;
+  override: VergelijkMode | null;
+};
 
-function buildPresets(): Preset[] {
+function buildPresets(): { snel: Preset[]; vergelijk: Preset[] } {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const gisteren = new Date(today); gisteren.setDate(today.getDate() - 1);
+
   const dow = (today.getDay() + 6) % 7;
   const thisMon = new Date(today); thisMon.setDate(today.getDate() - dow);
   const prevMon = new Date(thisMon); prevMon.setDate(thisMon.getDate() - 7);
   const prevSun = new Date(prevMon); prevSun.setDate(prevMon.getDate() + 6);
+
   const daysSinceSat = (today.getDay() + 1) % 7 || 7;
   const laatsteZa = new Date(today); laatsteZa.setDate(today.getDate() - daysSinceSat);
   const laatsteZo = new Date(laatsteZa); laatsteZo.setDate(laatsteZa.getDate() + 1);
+
+  // Volledige maand vorig jaar (1e t/m laatste van diezelfde maand LY).
   const firstLYSameMonth = new Date(today.getFullYear() - 1, today.getMonth(), 1);
-  const sameDayLY = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-  return [
-    { label: 'Gisteren', van: gisteren, tot: gisteren },
-    { label: 'Vorige week', van: prevMon, tot: prevSun },
-    { label: 'Vorig weekend', van: laatsteZa, tot: laatsteZo },
-    { label: 'Deze maand vorig jaar', van: firstLYSameMonth, tot: sameDayLY < firstLYSameMonth ? firstLYSameMonth : sameDayLY },
-  ];
+  const lastLYSameMonth = new Date(today.getFullYear() - 1, today.getMonth() + 1, 0);
+
+  const firstThisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const firstThisYear = new Date(today.getFullYear(), 0, 1);
+
+  return {
+    // Snelle presets — 1-op-1 met de periode-pill; geen override nodig.
+    snel: [
+      { label: 'Vandaag',    van: today,          tot: today,  periode: 'vandaag', override: null },
+      { label: 'Deze week',  van: thisMon,        tot: today,  periode: 'week',    override: null },
+      { label: 'Deze maand', van: firstThisMonth, tot: today,  periode: 'maand',   override: null },
+      { label: 'Dit jaar',   van: firstThisYear,  tot: today,  periode: 'jaar',    override: null },
+    ],
+    // Vergelijk-shortcuts — datums vast, mode gedwongen via override.
+    vergelijk: [
+      { label: 'Gisteren',              van: gisteren,        tot: gisteren,       periode: 'aangepast', override: 'dag' },
+      { label: 'Vorige week',           van: prevMon,         tot: prevSun,        periode: 'aangepast', override: 'week' },
+      { label: 'Vorig weekend',         van: laatsteZa,       tot: laatsteZo,      periode: 'aangepast', override: null }, // custom
+      { label: 'Deze maand vorig jaar', van: firstLYSameMonth, tot: lastLYSameMonth, periode: 'aangepast', override: 'maand' },
+    ],
+  };
 }
+
+
 
 const MAX_TERUG_DAGEN = 366;
 
@@ -59,15 +86,24 @@ function rangeLabel(periode: Periode, van: string, tot: string): string {
 }
 
 export default function Cijfers() {
-  const [periode, setPeriode] = useState<Periode>('week');
+  const [periode, setPeriodeRaw] = useState<Periode>('week');
   const [vestKeuze, setVestKeuze] = useState<VestKeuze>('Beide');
+  const [modeOverride, setModeOverride] = useState<VergelijkMode | null>(null);
   const magLoon = useMagLoonkostenZien();
-
 
   const today = useMemo(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }, []);
   const minDate = useMemo(() => { const d = new Date(today); d.setDate(d.getDate() - MAX_TERUG_DAGEN); return d; }, [today]);
   const [customVan, setCustomVan] = useState<Date>(() => { const d = new Date(); d.setDate(d.getDate() - 7); return d; });
   const [customTot, setCustomTot] = useState<Date>(new Date());
+
+  // Elke handmatige periode-verandering wist een override.
+  const setPeriode = (p: Periode) => { setPeriodeRaw(p); setModeOverride(null); };
+
+  // Preset-toepassing: zet periode + optionele mode-override (voor "Deze maand vorig jaar" etc.).
+  const applyPresetMode = (p: Periode, override: VergelijkMode | null) => {
+    setPeriodeRaw(p);
+    setModeOverride(override);
+  };
 
   const range = useMemo(() => {
     if (periode === 'aangepast') {
@@ -79,6 +115,7 @@ export default function Cijfers() {
     return periodeRange(periode);
   }, [periode, customVan, customTot, minDate, today]);
 
+  const effectiveMode: VergelijkMode = modeOverride ?? vergelijkModeVan(periode);
 
   const presets = useMemo(buildPresets, []);
   const label = rangeLabel(periode, range.van, range.tot);
@@ -91,15 +128,16 @@ export default function Cijfers() {
           label={label}
           periode={periode} setPeriode={setPeriode}
           vestKeuze={vestKeuze} setVestKeuze={setVestKeuze}
-          customVan={customVan} setCustomVan={setCustomVan}
-          customTot={customTot} setCustomTot={setCustomTot}
+          effectiveVan={range.van} effectiveTot={range.tot}
+          setCustomVan={setCustomVan} setCustomTot={setCustomTot}
           minDate={minDate} today={today} presets={presets}
+          applyPresetMode={applyPresetMode}
         />
 
-        <CijfersMetricsBar periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+        <CijfersMetricsBar periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} mode={effectiveMode} />
 
         {magLoon && (
-          <CijfersLoonkostenBar periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+          <CijfersLoonkostenBar periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} mode={effectiveMode} />
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-[1.85fr_1fr] gap-5">
@@ -121,7 +159,7 @@ export default function Cijfers() {
 
         <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5">
           <CijfersUurverloop periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
-          <CijfersVestigingSplit periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+          <CijfersVestigingSplit periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} mode={effectiveMode} />
         </div>
 
         <CijfersHeatmap periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
@@ -131,6 +169,7 @@ export default function Cijfers() {
     </SidebarLayout>
   );
 }
+
 
 /* ------------------------------------------------------------------ */
 /* Filters — segmented pills matching reference                        */
@@ -182,9 +221,11 @@ function StickyFilters(props: {
   label: string;
   periode: Periode; setPeriode: (p: Periode) => void;
   vestKeuze: VestKeuze; setVestKeuze: (v: VestKeuze) => void;
-  customVan: Date; setCustomVan: (d: Date) => void;
-  customTot: Date; setCustomTot: (d: Date) => void;
-  minDate: Date; today: Date; presets: Preset[];
+  effectiveVan: string; effectiveTot: string;
+  setCustomVan: (d: Date) => void; setCustomTot: (d: Date) => void;
+  minDate: Date; today: Date;
+  presets: { snel: Preset[]; vergelijk: Preset[] };
+  applyPresetMode: (p: Periode, override: VergelijkMode | null) => void;
 }) {
   const scrolled = useScrolled();
   return (
@@ -198,12 +239,15 @@ function StickyFilters(props: {
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14 }}>
         <DateRangePopover
           label={props.label}
-          van={props.customVan} tot={props.customTot}
+          effectiveVan={props.effectiveVan}
+          effectiveTot={props.effectiveTot}
           setVan={props.setCustomVan} setTot={props.setCustomTot}
           minDate={props.minDate} today={props.today}
           presets={props.presets}
           setPeriode={props.setPeriode}
+          applyPresetMode={props.applyPresetMode}
         />
+
         <Segment
           value={props.periode}
           onChange={(v) => props.setPeriode(v as Periode)}
@@ -236,26 +280,66 @@ function StickyFilters(props: {
           Live · gesynchroniseerd
         </div>
       </div>
-
     </div>
   );
 }
 
+function fmtNL(d?: Date): string {
+  if (!d) return '—';
+  return format(d, 'd MMM yyyy', { locale: nl });
+}
+
 function DateRangePopover({
-  label, van, tot, setVan, setTot, minDate, today, presets, setPeriode,
+  label, effectiveVan, effectiveTot, setVan, setTot, minDate, today, presets, setPeriode, applyPresetMode,
 }: {
   label: string;
-  van: Date; tot: Date;
+  effectiveVan: string; effectiveTot: string;
   setVan: (d: Date) => void; setTot: (d: Date) => void;
   minDate: Date; today: Date;
-  presets: Preset[];
+  presets: { snel: Preset[]; vergelijk: Preset[] };
   setPeriode: (p: Periode) => void;
+  applyPresetMode: (p: Periode, override: VergelijkMode | null) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [range, setRange] = useState<{ from?: Date; to?: Date }>({ from: van, to: tot });
+  const parseISO = (s: string) => { const d = new Date(s); d.setHours(0,0,0,0); return d; };
+  const [range, setRange] = useState<{ from?: Date; to?: Date }>(
+    () => ({ from: parseISO(effectiveVan), to: parseISO(effectiveTot) })
+  );
+  const [month, setMonth] = useState<Date>(() => parseISO(effectiveVan));
 
-  // Sync when parent state changes
-  useEffect(() => { setRange({ from: van, to: tot }); }, [van, tot]);
+  // Bij OPENEN: altijd huidige effectieve selectie tonen (P1-fix voor stale highlight).
+  useEffect(() => {
+    if (open) {
+      const from = parseISO(effectiveVan);
+      const to = parseISO(effectiveTot);
+      setRange({ from, to });
+      setMonth(from);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const applyPreset = (p: Preset) => {
+    setVan(p.van); setTot(p.tot);
+    applyPresetMode(p.periode, p.override);
+    setOpen(false);
+  };
+
+  const applyCustom = (from: Date, to: Date) => {
+    setVan(from); setTot(to);
+    setPeriode('aangepast'); // reset override → mode='custom'
+    setOpen(false);
+  };
+
+
+  const canApply = !!(range.from && range.to);
+  const rangeHeader = range.from && range.to
+    ? `${fmtNL(range.from)}  →  ${fmtNL(range.to)}`
+    : range.from
+      ? `${fmtNL(range.from)}  →  kies einddatum…`
+      : 'Kies een startdatum…';
+
+  const fromYear = minDate.getFullYear();
+  const toYear = today.getFullYear();
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -263,51 +347,84 @@ function DateRangePopover({
         <button
           type="button"
           style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 12px',
+            display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 14px',
             background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12,
             fontSize: 13, color: 'hsl(var(--foreground))', fontWeight: 500, cursor: 'pointer',
-            fontFamily: 'inherit',
+            fontFamily: 'inherit', minHeight: 40,
           }}
         >
           <CalendarIcon size={14} strokeWidth={2} className="text-muted-foreground" />
           <span className="tabular-nums">{label}</span>
+          <ChevronDown size={13} strokeWidth={2} className="text-muted-foreground" />
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto p-0">
-        <div className="p-2 flex flex-wrap gap-1.5 border-b border-border">
-          {presets.map((p) => (
-            <Button
-              key={p.label} variant="outline" size="sm" className="h-8 rounded-polar-md text-xs"
-              onClick={() => {
-                setVan(p.van); setTot(p.tot);
-                setPeriode('aangepast');
-                setRange({ from: p.van, to: p.tot });
-                setOpen(false);
-              }}
-            >{p.label}</Button>
-          ))}
+        {/* Snelle presets — één klik naar juiste mode */}
+        <div className="p-3 border-b border-border space-y-2">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">Snel</div>
+          <div className="flex flex-wrap gap-1.5">
+            {presets.snel.map((p) => (
+              <Button
+                key={p.label} variant="outline" size="sm"
+                className="h-10 min-w-[80px] rounded-polar-md text-xs font-medium"
+                onClick={() => applyPreset(p)}
+              >{p.label}</Button>
+            ))}
+          </div>
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium pt-1">Vergelijken</div>
+          <div className="flex flex-wrap gap-1.5">
+            {presets.vergelijk.map((p) => (
+              <Button
+                key={p.label} variant="outline" size="sm"
+                className="h-10 rounded-polar-md text-xs font-medium"
+                onClick={() => applyPreset(p)}
+              >{p.label}</Button>
+            ))}
+          </div>
         </div>
+
+        {/* Live-header met van→tot */}
+        <div className="px-3 py-2 border-b border-border text-xs tabular-nums text-foreground bg-muted/30">
+          {rangeHeader}
+        </div>
+
         <Calendar
           mode="range"
           selected={range as any}
-          onSelect={(r: any) => {
-            setRange(r ?? {});
-            if (r?.from && r?.to) {
-              setVan(r.from);
-              setTot(r.to);
-              setPeriode('aangepast');
-              setOpen(false);
-            }
-          }}
+          onSelect={(r: any) => setRange(r ?? {})}
+          month={month}
+          onMonthChange={setMonth}
           numberOfMonths={2}
           disabled={(d) => d < minDate || d > today}
+          captionLayout="dropdown-buttons"
+          fromYear={fromYear}
+          toYear={toYear}
+          fromDate={minDate}
+          toDate={today}
           initialFocus locale={nl} weekStartsOn={1}
           className={cn('p-3 pointer-events-auto')}
         />
-        <div className="px-3 py-2 border-t border-border text-[11px] text-muted-foreground">
-          Max 12 maanden terug
+
+        {/* Actiebalk — geen auto-close meer, correctie mogelijk */}
+        <div className="flex items-center justify-between gap-2 px-3 py-2 border-t border-border">
+          <span className="text-[11px] text-muted-foreground">Max 12 maanden terug</span>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost" size="sm" className="h-9"
+              onClick={() => setOpen(false)}
+            >Annuleren</Button>
+            <Button
+              size="sm" className="h-9"
+              disabled={!canApply}
+              onClick={() => {
+                if (range.from && range.to) applyCustom(range.from, range.to);
+              }}
+            >Toepassen</Button>
+          </div>
         </div>
       </PopoverContent>
     </Popover>
   );
 }
+
+

@@ -5,12 +5,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { EUR, EUR2, vestigingenVan, vergelijkModeVan, prevLabel, type Periode, type VestKeuze } from './types';
+import { EUR, EUR2, vestigingenVan, vergelijkModeVan, prevLabel, type Periode, type VestKeuze, type VergelijkMode } from './types';
 import { useCountUp } from './useCountUp';
 import { DeltaPill } from './chartHelpers';
 import type { DeltaIntent } from './deltaKleur';
 
-interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
+interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string; mode?: VergelijkMode }
+
 
 type BronMix = { lightspeed: number; eitje: number; geen: number };
 type Samenvatting = {
@@ -70,19 +71,21 @@ function fmtRange(van?: string, tot?: string): string {
   return `${format(dv, 'd MMM', { locale: nl })} – ${format(dt, showYear ? 'd MMM yyyy' : 'd MMM', { locale: nl })}`;
 }
 
-export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) {
+export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot, mode }: Props) {
   const vestigingen = vestigingenVan(vestigingKeuze);
+  const effMode = mode ?? vergelijkModeVan(periode);
   const q = useQuery({
-    queryKey: ['cijfers-samenvatting', periode, vestigingKeuze, van, tot],
+    queryKey: ['cijfers-samenvatting', periode, vestigingKeuze, van, tot, effMode],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('rpc_cijfers_samenvatting', {
-        p_vestigingen: vestigingen, p_van: van, p_tot: tot, p_mode: vergelijkModeVan(periode),
+        p_vestigingen: vestigingen, p_van: van, p_tot: tot, p_mode: effMode,
       });
       if (error) throw error;
       return data as unknown as Samenvatting;
     },
     refetchOnWindowFocus: true,
   });
+
 
   if (q.isLoading) {
     return (

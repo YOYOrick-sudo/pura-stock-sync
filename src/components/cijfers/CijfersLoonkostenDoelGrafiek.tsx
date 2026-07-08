@@ -41,10 +41,12 @@ function weeknr(d: Date): number {
 }
 function bucketLabel(iso: string, gran: 'dag' | 'week' | 'maand'): string {
   const d = new Date(iso);
+  if (isNaN(d.getTime()) || d.getFullYear() < 2000) return '—';
   if (gran === 'maand') return `${MND_NL[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`;
   if (gran === 'week') return `w${weeknr(d)}`;
   return `${DAG_NL[d.getDay()]} ${d.getDate()}`;
 }
+
 
 const KLEUR_GOED = 'hsl(142 71% 45%)'; // groen — onder doel
 const KLEUR_SLECHT = 'hsl(0 72% 51%)'; // rood — boven doel
@@ -143,7 +145,14 @@ export function CijfersLoonkostenDoelGrafiek({ vestigingKeuze, van, tot }: Props
       });
     }
     // Sorteer op bucket, filter buckets zonder data
-    return result.sort((a, b) => a.bucket.localeCompare(b.bucket)).filter((d) => d.status !== 'geen');
+    return result
+      .filter((d) => {
+        const dt = new Date(d.bucket);
+        return !isNaN(dt.getTime()) && dt.getFullYear() >= 2000;
+      })
+      .sort((a, b) => a.bucket.localeCompare(b.bucket))
+      .filter((d) => d.status !== 'geen');
+
   }, [q.data, gran, vestigingen, doelPerVest]);
 
   const periodeGem = useMemo(() => {
