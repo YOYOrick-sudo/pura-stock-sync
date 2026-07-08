@@ -201,9 +201,10 @@ function StickyFilters(props: {
   label: string;
   periode: Periode; setPeriode: (p: Periode) => void;
   vestKeuze: VestKeuze; setVestKeuze: (v: VestKeuze) => void;
-  customVan: Date; setCustomVan: (d: Date) => void;
-  customTot: Date; setCustomTot: (d: Date) => void;
-  minDate: Date; today: Date; presets: Preset[];
+  effectiveVan: string; effectiveTot: string;
+  setCustomVan: (d: Date) => void; setCustomTot: (d: Date) => void;
+  minDate: Date; today: Date;
+  presets: { snel: Preset[]; vergelijk: Preset[] };
 }) {
   const scrolled = useScrolled();
   return (
@@ -217,7 +218,8 @@ function StickyFilters(props: {
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14 }}>
         <DateRangePopover
           label={props.label}
-          van={props.customVan} tot={props.customTot}
+          effectiveVan={props.effectiveVan}
+          effectiveTot={props.effectiveTot}
           setVan={props.setCustomVan} setTot={props.setCustomTot}
           minDate={props.minDate} today={props.today}
           presets={props.presets}
@@ -255,26 +257,60 @@ function StickyFilters(props: {
           Live · gesynchroniseerd
         </div>
       </div>
-
     </div>
   );
 }
 
+function fmtNL(d?: Date): string {
+  if (!d) return '—';
+  return format(d, 'd MMM yyyy', { locale: nl });
+}
+
 function DateRangePopover({
-  label, van, tot, setVan, setTot, minDate, today, presets, setPeriode,
+  label, effectiveVan, effectiveTot, setVan, setTot, minDate, today, presets, setPeriode,
 }: {
   label: string;
-  van: Date; tot: Date;
+  effectiveVan: string; effectiveTot: string;
   setVan: (d: Date) => void; setTot: (d: Date) => void;
   minDate: Date; today: Date;
-  presets: Preset[];
+  presets: { snel: Preset[]; vergelijk: Preset[] };
   setPeriode: (p: Periode) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [range, setRange] = useState<{ from?: Date; to?: Date }>({ from: van, to: tot });
+  const parseISO = (s: string) => { const d = new Date(s); d.setHours(0,0,0,0); return d; };
+  const [range, setRange] = useState<{ from?: Date; to?: Date }>(
+    () => ({ from: parseISO(effectiveVan), to: parseISO(effectiveTot) })
+  );
+  const [month, setMonth] = useState<Date>(() => parseISO(effectiveVan));
 
-  // Sync when parent state changes
-  useEffect(() => { setRange({ from: van, to: tot }); }, [van, tot]);
+  // Bij OPENEN: altijd huidige effectieve selectie tonen (P1-fix voor stale highlight).
+  useEffect(() => {
+    if (open) {
+      const from = parseISO(effectiveVan);
+      const to = parseISO(effectiveTot);
+      setRange({ from, to });
+      setMonth(from);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const apply = (from: Date, to: Date, mode: Periode) => {
+    setVan(from); setTot(to);
+    setPeriode(mode);
+    setOpen(false);
+  };
+
+  const applyPreset = (p: Preset) => apply(p.van, p.tot, p.mode);
+
+  const canApply = !!(range.from && range.to);
+  const rangeHeader = range.from && range.to
+    ? `${fmtNL(range.from)}  →  ${fmtNL(range.to)}`
+    : range.from
+      ? `${fmtNL(range.from)}  →  kies einddatum…`
+      : 'Kies een startdatum…';
+
+  const fromYear = minDate.getFullYear();
+  const toYear = today.getFullYear();
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -282,51 +318,85 @@ function DateRangePopover({
         <button
           type="button"
           style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 12px',
+            display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 14px',
             background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12,
             fontSize: 13, color: 'hsl(var(--foreground))', fontWeight: 500, cursor: 'pointer',
-            fontFamily: 'inherit',
+            fontFamily: 'inherit', minHeight: 40,
           }}
         >
           <CalendarIcon size={14} strokeWidth={2} className="text-muted-foreground" />
           <span className="tabular-nums">{label}</span>
+          <ChevronDown size={13} strokeWidth={2} className="text-muted-foreground" />
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto p-0">
-        <div className="p-2 flex flex-wrap gap-1.5 border-b border-border">
-          {presets.map((p) => (
-            <Button
-              key={p.label} variant="outline" size="sm" className="h-8 rounded-polar-md text-xs"
-              onClick={() => {
-                setVan(p.van); setTot(p.tot);
-                setPeriode('aangepast');
-                setRange({ from: p.van, to: p.tot });
-                setOpen(false);
-              }}
-            >{p.label}</Button>
-          ))}
+        {/* Snelle presets — één klik naar juiste mode */}
+        <div className="p-3 border-b border-border space-y-2">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">Snel</div>
+          <div className="flex flex-wrap gap-1.5">
+            {presets.snel.map((p) => (
+              <Button
+                key={p.label} variant="outline" size="sm"
+                className="h-10 min-w-[80px] rounded-polar-md text-xs font-medium"
+                onClick={() => applyPreset(p)}
+              >{p.label}</Button>
+            ))}
+          </div>
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium pt-1">Vergelijken</div>
+          <div className="flex flex-wrap gap-1.5">
+            {presets.vergelijk.map((p) => (
+              <Button
+                key={p.label} variant="outline" size="sm"
+                className="h-10 rounded-polar-md text-xs font-medium"
+                onClick={() => applyPreset(p)}
+              >{p.label}</Button>
+            ))}
+          </div>
         </div>
+
+        {/* Live-header met van→tot */}
+        <div className="px-3 py-2 border-b border-border text-xs tabular-nums text-foreground bg-muted/30">
+          {rangeHeader}
+        </div>
+
         <Calendar
           mode="range"
           selected={range as any}
-          onSelect={(r: any) => {
-            setRange(r ?? {});
-            if (r?.from && r?.to) {
-              setVan(r.from);
-              setTot(r.to);
-              setPeriode('aangepast');
-              setOpen(false);
-            }
-          }}
+          onSelect={(r: any) => setRange(r ?? {})}
+          month={month}
+          onMonthChange={setMonth}
           numberOfMonths={2}
           disabled={(d) => d < minDate || d > today}
+          captionLayout="dropdown-buttons"
+          fromYear={fromYear}
+          toYear={toYear}
+          fromDate={minDate}
+          toDate={today}
           initialFocus locale={nl} weekStartsOn={1}
           className={cn('p-3 pointer-events-auto')}
         />
-        <div className="px-3 py-2 border-t border-border text-[11px] text-muted-foreground">
-          Max 12 maanden terug
+
+        {/* Actiebalk — geen auto-close meer, correctie mogelijk */}
+        <div className="flex items-center justify-between gap-2 px-3 py-2 border-t border-border">
+          <span className="text-[11px] text-muted-foreground">Max 12 maanden terug</span>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost" size="sm" className="h-9"
+              onClick={() => setOpen(false)}
+            >Annuleren</Button>
+            <Button
+              size="sm" className="h-9"
+              disabled={!canApply}
+              onClick={() => {
+                if (range.from && range.to) apply(range.from, range.to, 'aangepast');
+              }}
+            >Toepassen</Button>
+          </div>
         </div>
       </PopoverContent>
     </Popover>
+  );
+}
+
   );
 }
