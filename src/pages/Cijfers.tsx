@@ -341,16 +341,37 @@ function DateRangePopover({
   const fromYear = minDate.getFullYear();
   const toYear = today.getFullYear();
 
+  const isActive = (p: Preset) => {
+    const pv = toISO(p.van), pt = toISO(p.tot);
+    return pv === effectiveVan && pt === effectiveTot;
+  };
+
+  const PresetRow = ({ p }: { p: Preset }) => {
+    const active = isActive(p);
+    return (
+      <button
+        type="button"
+        onClick={() => applyPreset(p)}
+        className={cn(
+          'w-full text-left px-2.5 h-8 rounded-md text-[12.5px] transition-colors',
+          active
+            ? 'bg-accent text-foreground font-medium'
+            : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
+        )}
+      >{p.label}</button>
+    );
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
           type="button"
           style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 14px',
+            display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 12px',
             background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12,
             fontSize: 13, color: 'hsl(var(--foreground))', fontWeight: 500, cursor: 'pointer',
-            fontFamily: 'inherit', minHeight: 40,
+            fontFamily: 'inherit',
           }}
         >
           <CalendarIcon size={14} strokeWidth={2} className="text-muted-foreground" />
@@ -358,73 +379,59 @@ function DateRangePopover({
           <ChevronDown size={13} strokeWidth={2} className="text-muted-foreground" />
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-auto p-0">
-        {/* Snelle presets — één klik naar juiste mode */}
-        <div className="p-3 border-b border-border space-y-2">
-          <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">Snel</div>
-          <div className="flex flex-wrap gap-1.5">
-            {presets.snel.map((p) => (
-              <Button
-                key={p.label} variant="outline" size="sm"
-                className="h-10 min-w-[80px] rounded-polar-md text-xs font-medium"
-                onClick={() => applyPreset(p)}
-              >{p.label}</Button>
-            ))}
+      <PopoverContent align="start" className="p-0 w-auto">
+        <div className="flex" style={{ minHeight: 320 }}>
+          {/* Presets — smalle kolom links */}
+          <div className="w-[148px] border-r border-border p-1.5 flex flex-col gap-0.5 bg-muted/20">
+            {presets.snel.map((p) => <PresetRow key={p.label} p={p} />)}
+            <div className="h-px bg-border my-1.5 mx-1" />
+            {presets.vergelijk.map((p) => <PresetRow key={p.label} p={p} />)}
           </div>
-          <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium pt-1">Vergelijken</div>
-          <div className="flex flex-wrap gap-1.5">
-            {presets.vergelijk.map((p) => (
-              <Button
-                key={p.label} variant="outline" size="sm"
-                className="h-10 rounded-polar-md text-xs font-medium"
-                onClick={() => applyPreset(p)}
-              >{p.label}</Button>
-            ))}
-          </div>
-        </div>
 
-        {/* Live-header met van→tot */}
-        <div className="px-3 py-2 border-b border-border text-xs tabular-nums text-foreground bg-muted/30">
-          {rangeHeader}
-        </div>
-
-        <Calendar
-          mode="range"
-          selected={range as any}
-          onSelect={(r: any) => setRange(r ?? {})}
-          month={month}
-          onMonthChange={setMonth}
-          numberOfMonths={2}
-          disabled={(d) => d < minDate || d > today}
-          captionLayout="dropdown-buttons"
-          fromYear={fromYear}
-          toYear={toYear}
-          fromDate={minDate}
-          toDate={today}
-          initialFocus locale={nl} weekStartsOn={1}
-          className={cn('p-3 pointer-events-auto')}
-        />
-
-        {/* Actiebalk — geen auto-close meer, correctie mogelijk */}
-        <div className="flex items-center justify-between gap-2 px-3 py-2 border-t border-border">
-          <span className="text-[11px] text-muted-foreground">Max 12 maanden terug</span>
-          <div className="flex gap-2">
-            <Button
-              variant="ghost" size="sm" className="h-9"
-              onClick={() => setOpen(false)}
-            >Annuleren</Button>
-            <Button
-              size="sm" className="h-9"
-              disabled={!canApply}
-              onClick={() => {
-                if (range.from && range.to) applyCustom(range.from, range.to);
+          {/* Kalender-kolom */}
+          <div className="flex flex-col">
+            <div className="px-3 pt-2 pb-1 text-[11px] tabular-nums text-muted-foreground">
+              {rangeHeader}
+            </div>
+            <Calendar
+              mode="range"
+              selected={range as any}
+              onSelect={(r: any) => setRange(r ?? {})}
+              month={month}
+              onMonthChange={setMonth}
+              numberOfMonths={1}
+              disabled={(d) => d < minDate || d > today}
+              captionLayout="dropdown-buttons"
+              fromYear={fromYear}
+              toYear={toYear}
+              fromDate={minDate}
+              toDate={today}
+              initialFocus locale={nl} weekStartsOn={1}
+              className="p-2 pointer-events-auto"
+              classNames={{
+                caption_label: 'hidden',
+                head_cell: 'text-muted-foreground rounded-md w-8 font-normal text-[0.72rem]',
+                cell: 'h-8 w-8 text-center text-[12.5px] p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
+                day: 'h-8 w-8 p-0 font-normal aria-selected:opacity-100 rounded-md hover:bg-accent hover:text-accent-foreground',
               }}
-            >Toepassen</Button>
+            />
+            <div className="flex items-center justify-end gap-1.5 px-2 py-1.5 border-t border-border">
+              <Button
+                variant="ghost" size="sm" className="h-7 px-2.5 text-xs"
+                onClick={() => setOpen(false)}
+              >Annuleren</Button>
+              <Button
+                size="sm" className="h-7 px-3 text-xs"
+                disabled={!canApply}
+                onClick={() => { if (range.from && range.to) applyCustom(range.from, range.to); }}
+              >Toepassen</Button>
+            </div>
           </div>
         </div>
       </PopoverContent>
     </Popover>
   );
 }
+
 
 
