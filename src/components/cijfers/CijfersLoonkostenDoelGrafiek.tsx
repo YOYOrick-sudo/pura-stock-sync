@@ -145,7 +145,14 @@ export function CijfersLoonkostenDoelGrafiek({ vestigingKeuze, van, tot }: Props
       });
     }
     // Sorteer op bucket, filter buckets zonder data
-    return result.sort((a, b) => a.bucket.localeCompare(b.bucket)).filter((d) => d.status !== 'geen');
+    return result
+      .filter((d) => {
+        const dt = new Date(d.bucket);
+        return !isNaN(dt.getTime()) && dt.getFullYear() >= 2000;
+      })
+      .sort((a, b) => a.bucket.localeCompare(b.bucket))
+      .filter((d) => d.status !== 'geen');
+
   }, [q.data, gran, vestigingen, doelPerVest]);
 
   const periodeGem = useMemo(() => {
