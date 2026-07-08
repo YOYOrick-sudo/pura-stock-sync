@@ -217,6 +217,7 @@ function StickyFilters(props: {
   setCustomVan: (d: Date) => void; setCustomTot: (d: Date) => void;
   minDate: Date; today: Date;
   presets: { snel: Preset[]; vergelijk: Preset[] };
+  applyPresetMode: (p: Periode, override: VergelijkMode | null) => void;
 }) {
   const scrolled = useScrolled();
   return (
@@ -236,7 +237,9 @@ function StickyFilters(props: {
           minDate={props.minDate} today={props.today}
           presets={props.presets}
           setPeriode={props.setPeriode}
+          applyPresetMode={props.applyPresetMode}
         />
+
         <Segment
           value={props.periode}
           onChange={(v) => props.setPeriode(v as Periode)}
