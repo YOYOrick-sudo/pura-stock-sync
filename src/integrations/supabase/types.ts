@@ -341,6 +341,8 @@ export type Database = {
       cijfers_instellingen: {
         Row: {
           loon_pct_doel: number
+          service_uur_eind: number
+          service_uur_start: number
           updated_at: string
           uurloon_allin: number | null
           vestiging: string
@@ -348,6 +350,8 @@ export type Database = {
         }
         Insert: {
           loon_pct_doel?: number
+          service_uur_eind?: number
+          service_uur_start?: number
           updated_at?: string
           uurloon_allin?: number | null
           vestiging: string
@@ -355,6 +359,8 @@ export type Database = {
         }
         Update: {
           loon_pct_doel?: number
+          service_uur_eind?: number
+          service_uur_start?: number
           updated_at?: string
           uurloon_allin?: number | null
           vestiging?: string
@@ -2886,6 +2892,38 @@ export type Database = {
           isodow: number
           n_dagen: number
           uur: number
+        }[]
+      }
+      rpc_cijfers_heatmap_bezet: {
+        Args: { p_tot: string; p_van: string; p_vestigingen: string[] }
+        Returns: {
+          gem_fte: number
+          gem_headcount: number
+          gem_omzet: number
+          isodow: number
+          n_dagen: number
+          uur: number
+        }[]
+      }
+      rpc_cijfers_loze_uren: {
+        Args: {
+          p_top?: number
+          p_tot: string
+          p_van: string
+          p_vestigingen: string[]
+        }
+        Returns: {
+          gem_fte: number
+          gem_headcount: number
+          gem_loonkosten: number
+          gem_omzet: number
+          isodow: number
+          loonkosten_bron: string
+          n_dagen: number
+          pct_vangnet: number
+          uur: number
+          verspilling: number
+          vestiging: string
         }[]
       }
       rpc_cijfers_samenvatting: {
