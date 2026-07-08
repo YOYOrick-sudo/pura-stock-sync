@@ -205,3 +205,93 @@ export function CijfersLozeUren({ periode, vestigingKeuze, van: pvan, tot: ptot 
     </div>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Service-uren-venster popover (owner only)                           */
+/* ------------------------------------------------------------------ */
+function ServiceUrenPopover({ onSaved }: { onSaved: () => void }) {
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [rows, setRows] = useState<InstellingRow[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from('cijfers_instellingen')
+        .select('vestiging, service_uur_start, service_uur_eind')
+        .order('vestiging');
+      if (error) { toast({ title: 'Kon instellingen niet laden', description: error.message, variant: 'destructive' }); return; }
+      setRows((data ?? []) as InstellingRow[]);
+    })();
+  }, [open, toast]);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      for (const r of rows) {
+        const s = Math.max(0, Math.min(23, Number(r.service_uur_start)));
+        const e = Math.max(s + 1, Math.min(24, Number(r.service_uur_eind)));
+        const { error } = await supabase
+          .from('cijfers_instellingen')
+          .update({ service_uur_start: s, service_uur_eind: e })
+          .eq('vestiging', r.vestiging);
+        if (error) throw error;
+      }
+      toast({ title: 'Service-venster opgeslagen' });
+      setOpen(false);
+      onSaved();
+    } catch (err: any) {
+      toast({ title: 'Opslaan mislukt', description: err.message, variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          title="Service-venster per vestiging"
+          className="inline-flex items-center gap-1.5 rounded-[10px] px-2 py-1.5 text-xs font-medium border transition-colors hover:bg-muted"
+          style={{ background: 'hsl(var(--card))', color: 'hsl(var(--muted-foreground))', borderColor: 'hsl(var(--border))' }}
+        >
+          <Settings2 size={13} />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-80 p-4">
+        <div className="text-sm font-semibold mb-1">Service-venster per vestiging</div>
+        <div className="text-xs text-muted-foreground mb-3">Uren buiten dit venster tellen niet mee als "loze uren" (prep, schoonmaak, sluit).</div>
+        <div className="space-y-2.5">
+          {rows.map((r, idx) => (
+            <div key={r.vestiging} className="grid grid-cols-[1fr_auto_auto] gap-2 items-center">
+              <Label className="text-sm capitalize">{r.vestiging}</Label>
+              <div className="flex items-center gap-1">
+                <Input
+                  type="number" min={0} max={23}
+                  className="h-8 w-14 text-center"
+                  value={r.service_uur_start}
+                  onChange={(e) => setRows((prev) => prev.map((p, i) => i === idx ? { ...p, service_uur_start: Number(e.target.value) } : p))}
+                />
+                <span className="text-xs text-muted-foreground">–</span>
+                <Input
+                  type="number" min={1} max={24}
+                  className="h-8 w-14 text-center"
+                  value={r.service_uur_eind}
+                  onChange={(e) => setRows((prev) => prev.map((p, i) => i === idx ? { ...p, service_uur_eind: Number(e.target.value) } : p))}
+                />
+              </div>
+              <span className="text-xs text-muted-foreground tabular-nums w-8 text-right">uur</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-end gap-2 mt-4">
+          <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Annuleren</Button>
+          <Button size="sm" onClick={save} disabled={saving}>{saving ? 'Opslaan…' : 'Opslaan'}</Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
