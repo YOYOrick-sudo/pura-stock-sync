@@ -71,19 +71,21 @@ function fmtRange(van?: string, tot?: string): string {
   return `${format(dv, 'd MMM', { locale: nl })} – ${format(dt, showYear ? 'd MMM yyyy' : 'd MMM', { locale: nl })}`;
 }
 
-export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot }: Props) {
+export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot, mode }: Props) {
   const vestigingen = vestigingenVan(vestigingKeuze);
+  const effMode = mode ?? vergelijkModeVan(periode);
   const q = useQuery({
-    queryKey: ['cijfers-samenvatting', periode, vestigingKeuze, van, tot],
+    queryKey: ['cijfers-samenvatting', periode, vestigingKeuze, van, tot, effMode],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('rpc_cijfers_samenvatting', {
-        p_vestigingen: vestigingen, p_van: van, p_tot: tot, p_mode: vergelijkModeVan(periode),
+        p_vestigingen: vestigingen, p_van: van, p_tot: tot, p_mode: effMode,
       });
       if (error) throw error;
       return data as unknown as Samenvatting;
     },
     refetchOnWindowFocus: true,
   });
+
 
   if (q.isLoading) {
     return (
