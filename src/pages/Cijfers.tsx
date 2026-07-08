@@ -19,7 +19,7 @@ import { CijfersLoonkostenBar } from '@/components/cijfers/CijfersLoonkostenBar'
 import { CijfersLoonkostenGrafiek } from '@/components/cijfers/CijfersLoonkostenGrafiek';
 import { CijfersLoonkostenDoelGrafiek } from '@/components/cijfers/CijfersLoonkostenDoelGrafiek';
 import { CijfersUrenVergelijk } from '@/components/cijfers/CijfersUrenVergelijk';
-import { periodeRange, toISO, type Periode, type VestKeuze } from '@/components/cijfers/types';
+import { periodeRange, toISO, vergelijkModeVan, type Periode, type VergelijkMode, type VestKeuze } from '@/components/cijfers/types';
 import { useRole } from '@/hooks/useRole';
 import { useMagLoonkostenZien } from '@/hooks/useMagLoonkostenZien';
 
