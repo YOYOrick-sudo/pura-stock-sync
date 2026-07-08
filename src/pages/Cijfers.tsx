@@ -23,9 +23,14 @@ import { periodeRange, toISO, vergelijkModeVan, type Periode, type VergelijkMode
 import { useRole } from '@/hooks/useRole';
 import { useMagLoonkostenZien } from '@/hooks/useMagLoonkostenZien';
 
-/** Preset uit de popover: elke shortcut geeft óók de juiste periode-mode mee,
- *  zodat de D-vergelijkingslogica correct blijft (dag/week/maand/jaar/aangepast). */
-type Preset = { label: string; van: Date; tot: Date; mode: Periode };
+/** Preset uit de popover: elke shortcut geeft periode én optionele mode-override mee,
+ *  zodat de D-vergelijkingslogica correct blijft (dag/week/maand/jaar/custom). */
+type Preset = {
+  label: string;
+  van: Date; tot: Date;
+  periode: Periode;
+  override: VergelijkMode | null;
+};
 
 function buildPresets(): { snel: Preset[]; vergelijk: Preset[] } {
   const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -48,20 +53,23 @@ function buildPresets(): { snel: Preset[]; vergelijk: Preset[] } {
   const firstThisYear = new Date(today.getFullYear(), 0, 1);
 
   return {
+    // Snelle presets — 1-op-1 met de periode-pill; geen override nodig.
     snel: [
-      { label: 'Vandaag', van: today, tot: today, mode: 'vandaag' },
-      { label: 'Deze week', van: thisMon, tot: today, mode: 'week' },
-      { label: 'Deze maand', van: firstThisMonth, tot: today, mode: 'maand' },
-      { label: 'Dit jaar', van: firstThisYear, tot: today, mode: 'jaar' },
+      { label: 'Vandaag',    van: today,          tot: today,  periode: 'vandaag', override: null },
+      { label: 'Deze week',  van: thisMon,        tot: today,  periode: 'week',    override: null },
+      { label: 'Deze maand', van: firstThisMonth, tot: today,  periode: 'maand',   override: null },
+      { label: 'Dit jaar',   van: firstThisYear,  tot: today,  periode: 'jaar',    override: null },
     ],
+    // Vergelijk-shortcuts — datums vast, mode gedwongen via override.
     vergelijk: [
-      { label: 'Gisteren', van: gisteren, tot: gisteren, mode: 'vandaag' },
-      { label: 'Vorige week', van: prevMon, tot: prevSun, mode: 'week' },
-      { label: 'Vorig weekend', van: laatsteZa, tot: laatsteZo, mode: 'aangepast' },
-      { label: 'Deze maand vorig jaar', van: firstLYSameMonth, tot: lastLYSameMonth, mode: 'maand' },
+      { label: 'Gisteren',              van: gisteren,        tot: gisteren,       periode: 'aangepast', override: 'dag' },
+      { label: 'Vorige week',           van: prevMon,         tot: prevSun,        periode: 'aangepast', override: 'week' },
+      { label: 'Vorig weekend',         van: laatsteZa,       tot: laatsteZo,      periode: 'aangepast', override: null }, // custom
+      { label: 'Deze maand vorig jaar', van: firstLYSameMonth, tot: lastLYSameMonth, periode: 'aangepast', override: 'maand' },
     ],
   };
 }
+
 
 
 const MAX_TERUG_DAGEN = 366;
