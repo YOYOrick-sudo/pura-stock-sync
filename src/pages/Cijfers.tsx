@@ -290,7 +290,7 @@ function fmtNL(d?: Date): string {
 }
 
 function DateRangePopover({
-  label, effectiveVan, effectiveTot, setVan, setTot, minDate, today, presets, setPeriode,
+  label, effectiveVan, effectiveTot, setVan, setTot, minDate, today, presets, setPeriode, applyPresetMode,
 }: {
   label: string;
   effectiveVan: string; effectiveTot: string;
@@ -298,6 +298,7 @@ function DateRangePopover({
   minDate: Date; today: Date;
   presets: { snel: Preset[]; vergelijk: Preset[] };
   setPeriode: (p: Periode) => void;
+  applyPresetMode: (p: Periode, override: VergelijkMode | null) => void;
 }) {
   const [open, setOpen] = useState(false);
   const parseISO = (s: string) => { const d = new Date(s); d.setHours(0,0,0,0); return d; };
@@ -317,13 +318,18 @@ function DateRangePopover({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const apply = (from: Date, to: Date, mode: Periode) => {
-    setVan(from); setTot(to);
-    setPeriode(mode);
+  const applyPreset = (p: Preset) => {
+    setVan(p.van); setTot(p.tot);
+    applyPresetMode(p.periode, p.override);
     setOpen(false);
   };
 
-  const applyPreset = (p: Preset) => apply(p.van, p.tot, p.mode);
+  const applyCustom = (from: Date, to: Date) => {
+    setVan(from); setTot(to);
+    setPeriode('aangepast'); // reset override → mode='custom'
+    setOpen(false);
+  };
+
 
   const canApply = !!(range.from && range.to);
   const rangeHeader = range.from && range.to
