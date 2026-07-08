@@ -78,15 +78,24 @@ function rangeLabel(periode: Periode, van: string, tot: string): string {
 }
 
 export default function Cijfers() {
-  const [periode, setPeriode] = useState<Periode>('week');
+  const [periode, setPeriodeRaw] = useState<Periode>('week');
   const [vestKeuze, setVestKeuze] = useState<VestKeuze>('Beide');
+  const [modeOverride, setModeOverride] = useState<VergelijkMode | null>(null);
   const magLoon = useMagLoonkostenZien();
-
 
   const today = useMemo(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }, []);
   const minDate = useMemo(() => { const d = new Date(today); d.setDate(d.getDate() - MAX_TERUG_DAGEN); return d; }, [today]);
   const [customVan, setCustomVan] = useState<Date>(() => { const d = new Date(); d.setDate(d.getDate() - 7); return d; });
   const [customTot, setCustomTot] = useState<Date>(new Date());
+
+  // Elke handmatige periode-verandering wist een override.
+  const setPeriode = (p: Periode) => { setPeriodeRaw(p); setModeOverride(null); };
+
+  // Preset-toepassing: zet periode + optionele mode-override (voor "Deze maand vorig jaar" etc.).
+  const applyPresetMode = (p: Periode, override: VergelijkMode | null) => {
+    setPeriodeRaw(p);
+    setModeOverride(override);
+  };
 
   const range = useMemo(() => {
     if (periode === 'aangepast') {
@@ -98,6 +107,7 @@ export default function Cijfers() {
     return periodeRange(periode);
   }, [periode, customVan, customTot, minDate, today]);
 
+  const effectiveMode: VergelijkMode = modeOverride ?? vergelijkModeVan(periode);
 
   const presets = useMemo(buildPresets, []);
   const label = rangeLabel(periode, range.van, range.tot);
@@ -113,13 +123,13 @@ export default function Cijfers() {
           effectiveVan={range.van} effectiveTot={range.tot}
           setCustomVan={setCustomVan} setCustomTot={setCustomTot}
           minDate={minDate} today={today} presets={presets}
+          applyPresetMode={applyPresetMode}
         />
 
-
-        <CijfersMetricsBar periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+        <CijfersMetricsBar periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} mode={effectiveMode} />
 
         {magLoon && (
-          <CijfersLoonkostenBar periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+          <CijfersLoonkostenBar periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} mode={effectiveMode} />
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-[1.85fr_1fr] gap-5">
@@ -141,7 +151,7 @@ export default function Cijfers() {
 
         <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5">
           <CijfersUurverloop periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
-          <CijfersVestigingSplit periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+          <CijfersVestigingSplit periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} mode={effectiveMode} />
         </div>
 
         <CijfersHeatmap periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
@@ -151,6 +161,7 @@ export default function Cijfers() {
     </SidebarLayout>
   );
 }
+
 
 /* ------------------------------------------------------------------ */
 /* Filters — segmented pills matching reference                        */
