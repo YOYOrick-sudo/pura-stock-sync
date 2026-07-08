@@ -102,19 +102,22 @@ export function CijfersLozeUren({ periode, vestigingKeuze, van: pvan, tot: ptot 
             )}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => setVooruit((v) => !v)}
-          className="inline-flex items-center gap-1.5 rounded-[10px] px-2.5 py-1.5 text-xs font-medium border transition-colors"
-          style={{
-            background: vooruit ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--card))',
-            color: vooruit ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-            borderColor: vooruit ? 'hsl(var(--primary) / 0.3)' : 'hsl(var(--border))',
-          }}
-        >
-          <CalendarIcon size={13} />
-          {vooruit ? 'Vooruitkijk: aan' : 'Vooruitkijk (vorig jaar)'}
-        </button>
+        <div style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+          {isOwner && <ServiceUrenPopover onSaved={() => qc.invalidateQueries({ queryKey: ['cijfers-loze-uren'] })} />}
+          <button
+            type="button"
+            onClick={() => setVooruit((v) => !v)}
+            className="inline-flex items-center gap-1.5 rounded-[10px] px-2.5 py-1.5 text-xs font-medium border transition-colors"
+            style={{
+              background: vooruit ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--card))',
+              color: vooruit ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+              borderColor: vooruit ? 'hsl(var(--primary) / 0.3)' : 'hsl(var(--border))',
+            }}
+          >
+            <CalendarIcon size={13} />
+            {vooruit ? 'Vooruitkijk: aan' : 'Vooruitkijk (vorig jaar)'}
+          </button>
+        </div>
       </div>
 
       {q.isLoading ? (
