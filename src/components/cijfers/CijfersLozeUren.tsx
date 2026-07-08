@@ -44,9 +44,25 @@ function sameMonthLastYear(base: Date): { van: string; tot: string; label: strin
   };
 }
 
+type InstellingRow = { vestiging: string; service_uur_start: number; service_uur_eind: number };
+
 export function CijfersLozeUren({ periode, vestigingKeuze, van: pvan, tot: ptot }: Props) {
   const [vooruit, setVooruit] = useState(false);
   const vestigingen = vestigingenVan(vestigingKeuze);
+  const { toast } = useToast();
+  const qc = useQueryClient();
+
+  const roleQ = useQuery({
+    queryKey: ['user-role'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data } = await supabase.rpc('get_user_role', { uid: user.id });
+      return (data as string | null) ?? null;
+    },
+    staleTime: 60_000,
+  });
+  const isOwner = roleQ.data === 'owner' || roleQ.data === 'admin';
 
   const ref = useMemo(() => {
     if (!vooruit) return { van: pvan, tot: ptot, label: null as string | null };
