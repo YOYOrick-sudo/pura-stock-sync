@@ -53,6 +53,17 @@ export function CijfersHeatmap({ periode, vestigingKeuze, van: pvan, tot }: Prop
     );
   }
 
+  if (q.error) {
+    return (
+      <div className="bg-card border border-border rounded-[20px] shadow-card" style={{ padding: '22px 24px' }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: 'hsl(var(--foreground))' }}>Uur-heatmap — omzet × bezetting</div>
+        <div style={{ marginTop: 12, padding: '12px 14px', borderRadius: 10, background: 'hsl(var(--destructive) / 0.08)', border: '1px solid hsl(var(--destructive) / 0.3)', fontSize: 12.5, color: 'hsl(var(--destructive))' }}>
+          <b>RPC-fout:</b> {(q.error as any)?.message ?? String(q.error)}
+        </div>
+      </div>
+    );
+  }
+
   const cellen = q.data ?? [];
   const grid = new Map<string, Cel>();
   cellen.forEach((c) => grid.set(`${c.isodow}|${c.uur}`, c));
