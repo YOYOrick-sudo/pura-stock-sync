@@ -132,6 +132,7 @@ export function CijfersLozeUren({ periode, vestigingKeuze, van: pvan, tot: ptot 
         <div style={{ marginTop: 18, padding: '20px 16px', textAlign: 'center', fontSize: 13, color: 'hsl(var(--muted-foreground))', background: 'hsl(var(--muted) / 0.3)', borderRadius: 12 }}>
           Geen loze uren gevonden in deze periode — bezetting matcht de omzet binnen het doel-percentage.
         </div>
+      ) : (
         <>
           <div style={{ marginTop: 14, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
             <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>Totale verspilling top-{rows.length}:</div>
