@@ -7,10 +7,14 @@ import { EUR0 } from './chartHelpers';
 
 const DAG_NL_LONG = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
 const DAG_NL = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'];
-const UREN = Array.from({ length: 14 }, (_, i) => 10 + i);
+const UREN = Array.from({ length: 15 }, (_, i) => 9 + i); // 09–23
 
 interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
-type Cel = { isodow: number; uur: number; gem_omzet: number; n_dagen: number };
+type Cel = {
+  isodow: number; uur: number;
+  gem_omzet: number; n_dagen: number;
+  gem_headcount: number; gem_fte: number;
+};
 
 export function CijfersHeatmap({ periode, vestigingKeuze, van: pvan, tot }: Props) {
   const isSingle = periode === 'vandaag';
@@ -20,9 +24,9 @@ export function CijfersHeatmap({ periode, vestigingKeuze, van: pvan, tot }: Prop
   const vestigingen = vestigingenVan(vestigingKeuze);
 
   const q = useQuery({
-    queryKey: ['cijfers-heatmap', periode, vestigingKeuze, van, tot],
+    queryKey: ['cijfers-heatmap-bezet', periode, vestigingKeuze, van, tot],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('rpc_cijfers_heatmap', {
+      const { data, error } = await supabase.rpc('rpc_cijfers_heatmap_bezet', {
         p_vestigingen: vestigingen, p_van: van, p_tot: tot,
       });
       if (error) throw error;
@@ -39,9 +43,9 @@ export function CijfersHeatmap({ periode, vestigingKeuze, van: pvan, tot }: Prop
         <Skeleton className="h-4 w-40 mb-4" />
         <div className="space-y-1.5">
           {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className="grid gap-[5px]" style={{ gridTemplateColumns: `44px repeat(14, minmax(0,1fr))` }}>
-              <Skeleton className="h-[27px]" />
-              {Array.from({ length: 14 }).map((__, j) => <Skeleton key={j} className="h-[27px] rounded-[6px]" />)}
+            <div key={i} className="grid gap-[5px]" style={{ gridTemplateColumns: `44px repeat(${UREN.length}, minmax(0,1fr))` }}>
+              <Skeleton className="h-[40px]" />
+              {Array.from({ length: UREN.length }).map((__, j) => <Skeleton key={j} className="h-[40px] rounded-[6px]" />)}
             </div>
           ))}
         </div>
@@ -54,24 +58,30 @@ export function CijfersHeatmap({ periode, vestigingKeuze, van: pvan, tot }: Prop
   cellen.forEach((c) => grid.set(`${c.isodow}|${c.uur}`, c));
   const max = cellen.reduce((m, c) => Math.max(m, Number(c.gem_omzet)), 0);
   const bg = (v: number) => {
-    if (max === 0) return 'rgba(0,0,0,0.03)';
+    if (max === 0) return 'hsl(var(--muted) / 0.4)';
     const t = v / max;
-    return `hsl(var(--primary) / ${(0.06 + t * 0.82).toFixed(3)})`;
+    return `hsl(var(--primary) / ${(0.05 + t * 0.78).toFixed(3)})`;
+  };
+  const contrastText = (v: number) => {
+    if (max === 0) return 'hsl(var(--muted-foreground))';
+    return v / max > 0.55 ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))';
   };
 
-  let heatSubtitle = 'Gem. omzet per uur × weekdag';
+  let heatSubtitle = 'Gem. omzet (kleur) + bezetting per cel — weekdag × uur';
   if (hover) {
     const [ds, hs] = hover.split('|').map(Number);
     const c = grid.get(`${ds + 1}|${UREN[hs]}`);
     const dn = DAG_NL_LONG[ds];
-    heatSubtitle = `${dn} ${String(UREN[hs]).padStart(2, '0')}:00 — ${EUR0.format(Number(c?.gem_omzet ?? 0))} gem.`;
+    const hc = Number(c?.gem_headcount ?? 0);
+    const fte = Number(c?.gem_fte ?? 0);
+    heatSubtitle = `${dn} ${String(UREN[hs]).padStart(2, '0')}:00 — ${EUR0.format(Number(c?.gem_omzet ?? 0))} · ${hc.toFixed(1)} pers · ${fte.toFixed(2)} FTE`;
   }
 
   return (
     <div className="bg-card border border-border rounded-[20px] shadow-card cj-card-in" style={{ padding: '22px 24px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div>
-          <div style={{ fontSize: 15, fontWeight: 600, color: 'hsl(var(--foreground))' }}>Uur-heatmap</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: 'hsl(var(--foreground))' }}>Uur-heatmap — omzet × bezetting</div>
           <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', marginTop: 3 }}>{heatSubtitle}</div>
         </div>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 10.5, color: 'hsl(var(--muted-foreground))' }}>
@@ -86,8 +96,8 @@ export function CijfersHeatmap({ periode, vestigingKeuze, van: pvan, tot }: Prop
       </div>
 
       <div style={{ marginTop: 16, overflowX: 'auto' }}>
-        <div style={{ minWidth: 640 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: `44px repeat(${UREN.length}, minmax(0,1fr))`, gap: 5 }}>
+        <div style={{ minWidth: 780 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: `40px repeat(${UREN.length}, minmax(0,1fr))`, gap: 4 }}>
             {/* Header row */}
             <div />
             {UREN.map((hr, i) => (
@@ -104,26 +114,47 @@ export function CijfersHeatmap({ periode, vestigingKeuze, van: pvan, tot }: Prop
                   style={{
                     fontSize: 11, fontWeight: weekend ? 700 : 500,
                     color: weekend ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
-                    display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 8,
+                    display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 6,
                   }}
                 >{day}</div>,
                 ...UREN.map((hr, hi) => {
                   const c = grid.get(`${di + 1}|${hr}`);
                   const v = Number(c?.gem_omzet ?? 0);
+                  const hc = Number(c?.gem_headcount ?? 0);
+                  const fte = Number(c?.gem_fte ?? 0);
                   const id = di + '|' + hi;
                   const hov = hover === id;
+                  const hasBez = hc > 0.05;
                   return (
                     <div
                       key={'c' + id}
                       onMouseEnter={() => setHover(id)}
                       onMouseLeave={() => setHover(null)}
                       style={{
-                        height: 27, borderRadius: 6, background: bg(v),
+                        height: 40, borderRadius: 6, background: bg(v),
                         cursor: 'default',
-                        boxShadow: hov ? `0 0 0 2px hsl(var(--card)), 0 0 0 3.5px hsl(var(--primary))` : 'none',
+                        display: 'flex', flexDirection: 'column',
+                        alignItems: 'center', justifyContent: 'center',
+                        gap: 1,
+                        boxShadow: hov ? `0 0 0 2px hsl(var(--card)), 0 0 0 3px hsl(var(--primary))` : 'none',
                         transition: 'box-shadow .1s',
+                        color: contrastText(v),
+                        fontVariantNumeric: 'tabular-nums',
+                        lineHeight: 1,
                       }}
-                    />
+                      title={hasBez
+                        ? `${DAG_NL_LONG[di]} ${String(hr).padStart(2,'0')}:00 — ${EUR0.format(v)} · ${hc.toFixed(1)} pers · ${fte.toFixed(2)} FTE`
+                        : `${DAG_NL_LONG[di]} ${String(hr).padStart(2,'0')}:00 — ${EUR0.format(v)} · geen bezetting`}
+                    >
+                      {hasBez ? (
+                        <>
+                          <div style={{ fontSize: 10.5, fontWeight: 700 }}>{hc.toFixed(hc < 10 ? 1 : 0)}</div>
+                          <div style={{ fontSize: 8.5, opacity: 0.78, fontWeight: 500 }}>{fte.toFixed(2)}</div>
+                        </>
+                      ) : v > 0 ? (
+                        <div style={{ fontSize: 8.5, opacity: 0.6 }}>·</div>
+                      ) : null}
+                    </div>
                   );
                 }),
               ];
@@ -131,7 +162,10 @@ export function CijfersHeatmap({ periode, vestigingKeuze, van: pvan, tot }: Prop
           </div>
         </div>
       </div>
+      <div style={{ marginTop: 12, fontSize: 10.5, color: 'hsl(var(--muted-foreground))', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        <span><b style={{ color: 'hsl(var(--foreground))' }}>groter cijfer</b> = gemiddeld aantal medewerkers</span>
+        <span><b style={{ color: 'hsl(var(--foreground))' }}>kleiner cijfer</b> = FTE-fractie (met pauze-correctie)</span>
+      </div>
     </div>
   );
 }
-

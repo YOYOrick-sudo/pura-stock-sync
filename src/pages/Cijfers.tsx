@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { CijfersMetricsBar } from '@/components/cijfers/CijfersMetricsBar';
 import { CijfersHoofdgrafiek } from '@/components/cijfers/CijfersHoofdgrafiek';
 import { CijfersHeatmap } from '@/components/cijfers/CijfersHeatmap';
+import { CijfersLozeUren } from '@/components/cijfers/CijfersLozeUren';
 import { CijfersWeekdagVergelijk } from '@/components/cijfers/CijfersWeekdagVergelijk';
 import { CijfersUurverloop } from '@/components/cijfers/CijfersUurverloop';
 import { CijfersVestigingSplit } from '@/components/cijfers/CijfersVestigingSplit';
@@ -163,6 +164,10 @@ export default function Cijfers() {
         </div>
 
         <CijfersHeatmap periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+
+        {magLoon && (
+          <CijfersLozeUren periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+        )}
 
         <BijgewerktRegel />
       </div>
