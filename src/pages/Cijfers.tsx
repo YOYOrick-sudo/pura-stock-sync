@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, ChevronDown } from 'lucide-react';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -23,27 +23,46 @@ import { periodeRange, toISO, type Periode, type VestKeuze } from '@/components/
 import { useRole } from '@/hooks/useRole';
 import { useMagLoonkostenZien } from '@/hooks/useMagLoonkostenZien';
 
-type Preset = { label: string; van: Date; tot: Date };
+/** Preset uit de popover: elke shortcut geeft óók de juiste periode-mode mee,
+ *  zodat de D-vergelijkingslogica correct blijft (dag/week/maand/jaar/aangepast). */
+type Preset = { label: string; van: Date; tot: Date; mode: Periode };
 
-function buildPresets(): Preset[] {
+function buildPresets(): { snel: Preset[]; vergelijk: Preset[] } {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const gisteren = new Date(today); gisteren.setDate(today.getDate() - 1);
+
   const dow = (today.getDay() + 6) % 7;
   const thisMon = new Date(today); thisMon.setDate(today.getDate() - dow);
   const prevMon = new Date(thisMon); prevMon.setDate(thisMon.getDate() - 7);
   const prevSun = new Date(prevMon); prevSun.setDate(prevMon.getDate() + 6);
+
   const daysSinceSat = (today.getDay() + 1) % 7 || 7;
   const laatsteZa = new Date(today); laatsteZa.setDate(today.getDate() - daysSinceSat);
   const laatsteZo = new Date(laatsteZa); laatsteZo.setDate(laatsteZa.getDate() + 1);
+
+  // Volledige maand vorig jaar (1e t/m laatste van diezelfde maand LY).
   const firstLYSameMonth = new Date(today.getFullYear() - 1, today.getMonth(), 1);
-  const sameDayLY = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-  return [
-    { label: 'Gisteren', van: gisteren, tot: gisteren },
-    { label: 'Vorige week', van: prevMon, tot: prevSun },
-    { label: 'Vorig weekend', van: laatsteZa, tot: laatsteZo },
-    { label: 'Deze maand vorig jaar', van: firstLYSameMonth, tot: sameDayLY < firstLYSameMonth ? firstLYSameMonth : sameDayLY },
-  ];
+  const lastLYSameMonth = new Date(today.getFullYear() - 1, today.getMonth() + 1, 0);
+
+  const firstThisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const firstThisYear = new Date(today.getFullYear(), 0, 1);
+
+  return {
+    snel: [
+      { label: 'Vandaag', van: today, tot: today, mode: 'vandaag' },
+      { label: 'Deze week', van: thisMon, tot: today, mode: 'week' },
+      { label: 'Deze maand', van: firstThisMonth, tot: today, mode: 'maand' },
+      { label: 'Dit jaar', van: firstThisYear, tot: today, mode: 'jaar' },
+    ],
+    vergelijk: [
+      { label: 'Gisteren', van: gisteren, tot: gisteren, mode: 'vandaag' },
+      { label: 'Vorige week', van: prevMon, tot: prevSun, mode: 'week' },
+      { label: 'Vorig weekend', van: laatsteZa, tot: laatsteZo, mode: 'aangepast' },
+      { label: 'Deze maand vorig jaar', van: firstLYSameMonth, tot: lastLYSameMonth, mode: 'maand' },
+    ],
+  };
 }
+
 
 const MAX_TERUG_DAGEN = 366;
 
