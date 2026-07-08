@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { EUR, VEST_KLEUR, vestigingenVan, vergelijkModeVan, type Periode, type VestKeuze, type Vestiging } from './types';
+import { EUR, VEST_KLEUR, vestigingenVan, vergelijkModeVan, type Periode, type VestKeuze, type Vestiging, type VergelijkMode } from './types';
 
-interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
+interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string; mode?: VergelijkMode }
 
 type Samenvatting = {
   totaal: { omzet: number; bonnen: number; open_dagen: number; vorige_omzet: number };
@@ -12,19 +12,21 @@ type Samenvatting = {
 
 const ORDER: Vestiging[] = ['Midsland', 'West'];
 
-export function CijfersVestigingSplit({ periode, vestigingKeuze, van, tot }: Props) {
+export function CijfersVestigingSplit({ periode, vestigingKeuze, van, tot, mode }: Props) {
   const vestigingen = vestigingenVan(vestigingKeuze);
+  const effMode = mode ?? vergelijkModeVan(periode);
   const q = useQuery({
-    queryKey: ['cijfers-samenvatting', periode, vestigingKeuze, van, tot],
+    queryKey: ['cijfers-samenvatting', periode, vestigingKeuze, van, tot, effMode],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('rpc_cijfers_samenvatting', {
-        p_vestigingen: vestigingen, p_van: van, p_tot: tot, p_mode: vergelijkModeVan(periode),
+        p_vestigingen: vestigingen, p_van: van, p_tot: tot, p_mode: effMode,
       });
       if (error) throw error;
       return data as unknown as Samenvatting;
     },
     refetchOnWindowFocus: true,
   });
+
 
   if (q.isLoading) {
     return (
