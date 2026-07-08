@@ -417,7 +417,7 @@ function DateRangePopover({
               size="sm" className="h-9"
               disabled={!canApply}
               onClick={() => {
-                if (range.from && range.to) apply(range.from, range.to, 'aangepast');
+                if (range.from && range.to) applyCustom(range.from, range.to);
               }}
             >Toepassen</Button>
           </div>
