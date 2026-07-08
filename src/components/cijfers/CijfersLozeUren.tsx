@@ -124,11 +124,14 @@ export function CijfersLozeUren({ periode, vestigingKeuze, van: pvan, tot: ptot 
         <div className="mt-4 space-y-2">
           {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-[10px]" />)}
         </div>
+      ) : q.error ? (
+        <div style={{ marginTop: 14, padding: '12px 14px', borderRadius: 10, background: 'hsl(var(--destructive) / 0.08)', border: '1px solid hsl(var(--destructive) / 0.3)', fontSize: 12.5, color: 'hsl(var(--destructive))' }}>
+          <b>RPC-fout:</b> {(q.error as any)?.message ?? String(q.error)}
+        </div>
       ) : rows.length === 0 ? (
         <div style={{ marginTop: 18, padding: '20px 16px', textAlign: 'center', fontSize: 13, color: 'hsl(var(--muted-foreground))', background: 'hsl(var(--muted) / 0.3)', borderRadius: 12 }}>
           Geen loze uren gevonden in deze periode — bezetting matcht de omzet binnen het doel-percentage.
         </div>
-      ) : (
         <>
           <div style={{ marginTop: 14, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
             <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>Totale verspilling top-{rows.length}:</div>
