@@ -41,10 +41,12 @@ function weeknr(d: Date): number {
 }
 function bucketLabel(iso: string, gran: 'dag' | 'week' | 'maand'): string {
   const d = new Date(iso);
+  if (isNaN(d.getTime()) || d.getFullYear() < 2000) return '—';
   if (gran === 'maand') return `${MND_NL[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`;
   if (gran === 'week') return `w${weeknr(d)}`;
   return `${DAG_NL[d.getDay()]} ${d.getDate()}`;
 }
+
 
 const KLEUR_GOED = 'hsl(142 71% 45%)'; // groen — onder doel
 const KLEUR_SLECHT = 'hsl(0 72% 51%)'; // rood — boven doel
