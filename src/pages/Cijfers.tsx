@@ -165,6 +165,10 @@ export default function Cijfers() {
 
         <CijfersHeatmap periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
 
+        {magLoon && (
+          <CijfersLozeUren periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+        )}
+
         <BijgewerktRegel />
       </div>
     </SidebarLayout>
