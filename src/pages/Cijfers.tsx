@@ -110,10 +110,11 @@ export default function Cijfers() {
           label={label}
           periode={periode} setPeriode={setPeriode}
           vestKeuze={vestKeuze} setVestKeuze={setVestKeuze}
-          customVan={customVan} setCustomVan={setCustomVan}
-          customTot={customTot} setCustomTot={setCustomTot}
+          effectiveVan={range.van} effectiveTot={range.tot}
+          setCustomVan={setCustomVan} setCustomTot={setCustomTot}
           minDate={minDate} today={today} presets={presets}
         />
+
 
         <CijfersMetricsBar periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
 
