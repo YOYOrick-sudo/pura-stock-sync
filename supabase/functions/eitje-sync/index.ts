@@ -531,6 +531,7 @@ async function doSyncWindow(
         bron: 'planning',
         eitje_shift_id: String(shiftId),
         eitje_user_id: uid != null ? String(uid) : null,
+        team_id: (sh?.team?.id ?? sh?.team_id) != null ? String(sh?.team?.id ?? sh?.team_id) : null,
         uurloon_bron: null,
         is_demo: false,
       });
