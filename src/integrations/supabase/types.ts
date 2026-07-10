@@ -341,6 +341,7 @@ export type Database = {
       cijfers_instellingen: {
         Row: {
           loon_pct_doel: number
+          loze_uren_marge_pp: number
           service_uur_eind: number
           service_uur_start: number
           updated_at: string
@@ -350,6 +351,7 @@ export type Database = {
         }
         Insert: {
           loon_pct_doel?: number
+          loze_uren_marge_pp?: number
           service_uur_eind?: number
           service_uur_start?: number
           updated_at?: string
@@ -359,6 +361,7 @@ export type Database = {
         }
         Update: {
           loon_pct_doel?: number
+          loze_uren_marge_pp?: number
           service_uur_eind?: number
           service_uur_start?: number
           updated_at?: string
@@ -2954,6 +2957,34 @@ export type Database = {
           uur: number
           verspilling: number
           vestiging: string
+        }[]
+      }
+      rpc_cijfers_loze_uren_v2: {
+        Args: {
+          p_marge_pp?: number
+          p_tot: string
+          p_van: string
+          p_vestigingen: string[]
+        }
+        Returns: {
+          dag_loon_pct: number
+          delta_fte: number
+          delta_headcount: number
+          doel_pct: number
+          headcount_gem: number
+          isodow: number
+          loonkosten_bron: string
+          marge_pp: number
+          omzet_cluster: number
+          pct_vangnet: number
+          ritme_headcount: number
+          ritme_omzet_cluster: number
+          team_breakdown: Json
+          uur_tot: number
+          uur_van: number
+          verspilling: number
+          vestiging: string
+          werkdag: string
         }[]
       }
       rpc_cijfers_samenvatting: {
