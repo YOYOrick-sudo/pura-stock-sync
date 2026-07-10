@@ -473,6 +473,33 @@ export type Database = {
         }
         Relationships: []
       }
+      eitje_teams: {
+        Row: {
+          created_at: string
+          environment_id: number | null
+          id: string
+          naam: string
+          updated_at: string
+          vestiging: string | null
+        }
+        Insert: {
+          created_at?: string
+          environment_id?: number | null
+          id: string
+          naam: string
+          updated_at?: string
+          vestiging?: string | null
+        }
+        Update: {
+          created_at?: string
+          environment_id?: number | null
+          id?: string
+          naam?: string
+          updated_at?: string
+          vestiging?: string | null
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -2463,6 +2490,7 @@ export type Database = {
           is_demo: boolean
           pauze_min: number
           start_ts: string
+          team_id: string | null
           updated_at: string
           uurloon_bron: string | null
           vestiging: string
@@ -2478,6 +2506,7 @@ export type Database = {
           is_demo?: boolean
           pauze_min?: number
           start_ts: string
+          team_id?: string | null
           updated_at?: string
           uurloon_bron?: string | null
           vestiging: string
@@ -2493,6 +2522,7 @@ export type Database = {
           is_demo?: boolean
           pauze_min?: number
           start_ts?: string
+          team_id?: string | null
           updated_at?: string
           uurloon_bron?: string | null
           vestiging?: string
