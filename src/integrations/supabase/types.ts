@@ -2961,6 +2961,7 @@ export type Database = {
       }
       rpc_cijfers_loze_uren_v2: {
         Args: {
+          p_bypass_auth?: boolean
           p_marge_pp?: number
           p_tot: string
           p_van: string
