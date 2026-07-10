@@ -373,21 +373,41 @@ async function doSyncWindow(
 
   // 1. Eitje endpoints ophalen
   const dateParams = { 'filters[start_date]': van, 'filters[end_date]': tot, 'filters[date_filter_type]': 'resource_date' };
-  const [trs, plans, revs, salariesRaw] = await Promise.all([
+  const [trs, plans, revs, salariesRaw, teamsRaw] = await Promise.all([
     eitjeFetchAll('/time_registration_shifts', dateParams),
     eitjeFetchAll('/planning_shifts', dateParams),
     eitjeFetchAll('/revenue_days', dateParams),
     eitjeFetchAll('/salaries', {}),
+    eitjeFetchAll('/teams', {}),
   ]);
   details.endpoints = {
     time_registration_shifts: { count: trs.items.length, pages: trs.pages, truncated: trs.truncated, non_paginated: trs.non_paginated, error: trs.error },
     planning_shifts: { count: plans.items.length, pages: plans.pages, truncated: plans.truncated, non_paginated: plans.non_paginated, error: plans.error },
     revenue_days: { count: revs.items.length, pages: revs.pages, truncated: revs.truncated, non_paginated: revs.non_paginated, error: revs.error },
     salaries: { count: salariesRaw.items.length, pages: salariesRaw.pages, truncated: salariesRaw.truncated, non_paginated: salariesRaw.non_paginated, error: salariesRaw.error },
+    teams: { count: teamsRaw.items.length, pages: teamsRaw.pages, truncated: teamsRaw.truncated, non_paginated: teamsRaw.non_paginated, error: teamsRaw.error },
   };
   const firstErr = trs.error || plans.error || revs.error || salariesRaw.error;
   if (firstErr && trs.items.length === 0 && plans.items.length === 0) {
     return { ok: false, details, error: firstErr };
+  }
+
+  // 1b. Teams cachen in eitje_teams (idempotent upsert)
+  if (teamsRaw.items.length > 0) {
+    const teamRows = teamsRaw.items.map((t: any) => {
+      const envId = t?.environment?.id ?? t?.environment_id ?? null;
+      return {
+        id: String(t?.id),
+        naam: String(t?.name ?? t?.naam ?? '(onbekend)'),
+        environment_id: envId,
+        vestiging: envId != null ? (ENV_TO_VESTIGING[envId as number] ?? null) : null,
+      };
+    }).filter((r: any) => r.id && r.id !== 'undefined');
+    if (teamRows.length > 0) {
+      const { error: teamErr } = await admin.from('eitje_teams').upsert(teamRows, { onConflict: 'id' });
+      if (teamErr) details.teams_upsert_error = teamErr.message;
+      else details.teams_upserted = teamRows.length;
+    }
   }
 
   // 2. Salaries-lookup: per user_id een gesorteerde lijst {start_date, end_date, amount, environment_id}
@@ -480,6 +500,7 @@ async function doSyncWindow(
         bron: 'time_registration',
         eitje_shift_id: String(shiftId),
         eitje_user_id: uid != null ? String(uid) : null,
+        team_id: (sh?.team?.id ?? sh?.team_id) != null ? String(sh?.team?.id ?? sh?.team_id) : null,
         uurloon_bron: uurloonBron,
         is_demo: false,
       });
@@ -510,6 +531,7 @@ async function doSyncWindow(
         bron: 'planning',
         eitje_shift_id: String(shiftId),
         eitje_user_id: uid != null ? String(uid) : null,
+        team_id: (sh?.team?.id ?? sh?.team_id) != null ? String(sh?.team?.id ?? sh?.team_id) : null,
         uurloon_bron: null,
         is_demo: false,
       });
