@@ -2980,6 +2980,7 @@ export type Database = {
           pct_vangnet: number
           ritme_headcount: number
           ritme_omzet_cluster: number
+          signaal_type: string
           team_breakdown: Json
           uur_tot: number
           uur_van: number
