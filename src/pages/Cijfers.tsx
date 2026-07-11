@@ -63,9 +63,10 @@ function buildPresets(): { snel: Preset[]; vergelijk: Preset[] } {
     ],
     // Vergelijk-shortcuts — datums vast, mode gedwongen via override.
     vergelijk: [
-      { label: 'Gisteren',              van: gisteren,        tot: gisteren,       periode: 'aangepast', override: 'dag' },
-      { label: 'Vorige week',           van: prevMon,         tot: prevSun,        periode: 'aangepast', override: 'week' },
-      { label: 'Vorig weekend',         van: laatsteZa,       tot: laatsteZo,      periode: 'aangepast', override: null }, // custom
+      // Shortcuts: vergelijking = week ervoor (niet vorig jaar), want dat is hun bedoeling.
+      { label: 'Gisteren',              van: gisteren,        tot: gisteren,       periode: 'aangepast', override: 'dag_prev' },
+      { label: 'Vorige week',           van: prevMon,         tot: prevSun,        periode: 'aangepast', override: 'week_prev' },
+      { label: 'Vorig weekend',         van: laatsteZa,       tot: laatsteZo,      periode: 'aangepast', override: 'weekend_prev' },
       { label: 'Deze maand vorig jaar', van: firstLYSameMonth, tot: lastLYSameMonth, periode: 'aangepast', override: 'maand' },
     ],
   };

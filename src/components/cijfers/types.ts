@@ -4,7 +4,10 @@ export type Periode = 'vandaag' | 'week' | 'maand' | 'jaar' | 'aangepast';
 
 /** Preset-mode voor de vergelijkperiode. Wordt door de RPC gebruikt om
  *  "t.o.v. vorige"-datums te berekenen. Custom range → 'custom'. */
-export type VergelijkMode = 'dag' | 'week' | 'maand' | 'jaar' | 'custom';
+export type VergelijkMode =
+  | 'dag' | 'week' | 'maand' | 'jaar' | 'custom'
+  // shortcuts die uitdrukkelijk "periode ervoor" willen vergelijken
+  | 'dag_prev' | 'week_prev' | 'weekend_prev';
 
 export function vergelijkModeVan(p: Periode): VergelijkMode {
   if (p === 'vandaag') return 'dag';
@@ -95,9 +98,9 @@ const NL_DAG_KORT = ['zo','ma','di','wo','do','vr','za'];
  *  - heel jaar   → "2025"
  */
 export function prevLabel(van?: string | null, tot?: string | null): string {
-  if (!van || !tot) return '';
+  if (!van || !tot) return '—';
   const dv = new Date(van); const dt = new Date(tot);
-  if (isNaN(dv.getTime()) || isNaN(dt.getTime())) return '';
+  if (isNaN(dv.getTime()) || isNaN(dt.getTime())) return '—';
 
   // heel jaar
   const isJan1 = dv.getMonth() === 0 && dv.getDate() === 1;

@@ -29,21 +29,25 @@ export function CijfersUurverloop({ periode, vestigingKeuze, van: pvan, tot }: P
     refetchOnWindowFocus: true,
   });
 
-  const { labels, vals, total } = useMemo(() => {
+  const { labels, vals, total, nDagen } = useMemo(() => {
     const cellen = q.data ?? [];
     const perUur = new Map<number, { som: number; n: number }>();
+    const daysSet = new Set<string>();
     for (const c of cellen) {
       const cur = perUur.get(c.uur) ?? { som: 0, n: 0 };
       cur.som += Number(c.gem_omzet); cur.n += 1;
       perUur.set(c.uur, cur);
+      daysSet.add(`${c.isodow}`);
     }
+    // n_dagen som over cellen geeft geen betrouwbare uniek-dag-teller; approx: max n_dagen per uur
+    const maxN = cellen.reduce((m, c) => Math.max(m, Number(c.n_dagen) || 0), 0);
     const _labels: string[] = []; const _vals: number[] = [];
     for (let u = 10; u <= 23; u++) {
       const p = perUur.get(u);
       _labels.push(String(u).padStart(2, '0'));
       _vals.push(p && p.n > 0 ? p.som / p.n : 0);
     }
-    return { labels: _labels, vals: _vals, total: _vals.reduce((a, b) => a + b, 0) };
+    return { labels: _labels, vals: _vals, total: _vals.reduce((a, b) => a + b, 0), nDagen: maxN };
   }, [q.data]);
 
   if (q.isLoading) {
@@ -57,11 +61,14 @@ export function CijfersUurverloop({ periode, vestigingKeuze, van: pvan, tot }: P
   }
 
   const heeft = vals.some((v) => v > 0);
+  const subtitle = nDagen > 1
+    ? `Gemiddeld per uur over ${nDagen} dagen · piek gemarkeerd`
+    : 'Gemiddeld patroon per uur · piek gemarkeerd';
 
   return (
     <div className="bg-card border border-border rounded-[20px] shadow-card cj-card-in h-full flex flex-col" style={{ padding: '22px 24px 16px' }}>
       <div style={{ fontSize: 15, fontWeight: 600, color: 'hsl(var(--foreground))' }}>Omzetverloop over de dag</div>
-      <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', marginTop: 3 }}>Gemiddeld patroon per uur · piek gemarkeerd</div>
+      <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', marginTop: 3 }}>{subtitle}</div>
       <div style={{ marginTop: 12 }}>
         {!heeft
           ? <div className="py-10 text-center text-sm text-muted-foreground">Geen data.</div>
