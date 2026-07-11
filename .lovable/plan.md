@@ -1,82 +1,99 @@
-## Verkenning
 
-### 1. Waar zit de vorige-periode-berekening?
-**In de RPC's**, op één plek per functie, altijd volgens hetzelfde patroon:
-```sql
-v_len      := p_tot - p_van;
-v_prev_van := p_van - (v_len + 1);   -- direct daarvoor, zelfde lengte
-v_prev_tot := p_van - 1;
-```
-Aanwezig in drie RPC's die de metric-bars voeden:
-- `rpc_cijfers_samenvatting` — MetricsBar (omzet, bonnen, gem/bon)
-- `rpc_cijfers_uren_samenvatting` — LoonkostenBar (loonkosten €/%, uren, omzet/uur)
-- (`rpc_cijfers_tijdreeks` en `rpc_cijfers_uren_tijdreeks` gebruiken `v_prev_van/tot` niet voor delta's — die geven alleen huidige reeks)
+# Plan: Vier verbeteringen aan de cijfers-analyse
 
-Elke RPC retourneert `vorige_periode: { van, tot }` in de JSON, dus het label dat de frontend toont volgt automatisch.
+Volgorde: 1 → 2 → 3 → 4. Elke stap eindigt met een korte verificatie voor jou (steekproef of screenshot van de curve/labels). Pas na jouw "OK" op stap 4 sluit ik af.
 
-De frontend berekent zelf géén prev_periode — hij toont alleen wat de RPC teruggeeft. **Fix landt dus in de SQL** (één helper + drie call-sites).
+---
 
-### 2. Componenten met gekleurde delta's
-| Component | Metrics + delta | Kleurregel nu |
-|---|---|---|
-| `CijfersMetricsBar` | omzet, bonnen, gem/bon | ↑groen / ↓rood |
-| `CijfersLoonkostenBar` | loonkosten €, loon-%, uren gewerkt, omzet/uur, uren gepland vs gewerkt | ↑groen / ↓rood (overal gelijk — fout voor loon-%/uren) |
-| `CijfersVestigingSplit` | omzet per vestiging vs vorige | ↑groen / ↓rood |
-| `CijfersTooltip` (chart-tooltips) | `deltaPct` in hoofd/uur/heatmap-tooltips | ↑groen / ↓rood |
-| `CijfersWeekdagVergelijk` | periode-gem vs referentie-gem per weekdag | eigen logica — buiten scope (dit is geen vorige-periode, maar periode-vs-referentie) |
+## 1. Ritme-basis vast op laatste 12 weken (loze-uren)
 
-## Aanpak (na akkoord bouwen)
+**Probleem:** `rpc_cijfers_loze_uren_v2` berekent het ritme (`ritme` CTE) over de aangevraagde periode zelf. Bij 1-dag-selectie is er dan maar 1 observatie per (weekdag, uur), waardoor `n_obs >= 2` alles wegfiltert → "geen loze uren".
 
-### A. SQL — weekdag-eerlijke prev-periode
-Nieuwe helper-functie in `public`:
-```sql
-CREATE FUNCTION f_vorige_periode(p_van date, p_tot date)
-RETURNS TABLE(prev_van date, prev_tot date)
-```
-Logica:
-- **1 dag** (`p_van = p_tot`) → -7 dagen (zelfde weekdag vorige week)
-- **volledige kalendermaand** (p_van = 1e van maand, p_tot = laatste van diezelfde maand) → zelfde maand vorig jaar
-- **volledig kalenderjaar** (1 jan – 31 dec zelfde jaar) → vorig jaar
-- **anders** (week, custom range) → zelfde lengte, 7 dagen eerder (i.p.v. `v_len+1`)
+**Fix:** ritme wordt altijd berekend over `[p_tot - 84 dagen, p_tot]` (12 wkn t/m eindatum), onafhankelijk van `p_van`. De `dure_dagen`-CTE (welke dagen tonen we) blijft filteren op `[p_van, p_tot]`. Zelfde split voor `ritme_team` en de vangnet-berekening blijft op de selectieperiode.
 
-Vervang in `rpc_cijfers_samenvatting` en `rpc_cijfers_uren_samenvatting` de twee-regel-berekening door `SELECT * FROM f_vorige_periode(p_van, p_tot) INTO v_prev_van, v_prev_tot;`. Rest van de RPC's onaangeraakt — ze retourneren nog steeds `vorige_periode: {van, tot}`, alleen met eerlijke waarden.
+**Migratie:** `CREATE OR REPLACE FUNCTION public.rpc_cijfers_loze_uren_v2(...)` — alleen de twee ritme-CTE's krijgen een eigen datumvenster.
 
-Frontend hoeft niks te veranderen voor label-tekst: `fmtRange(s?.vorige_periode.van, .tot)` toont automatisch de juiste weekdag / maand / jaar. Wel: label "T.o.v. vorige periode" vervangen door dynamisch label ("T.o.v. zo 28 jun" / "T.o.v. juli 2025" / "T.o.v. 2025" / "T.o.v. 30 jun – 6 jul") — één helper `prevLabel(periode, prev)` in `types.ts`, hergebruikt in alle delta-componenten.
+**Verificatie (rapporteer):** roep de RPC aan voor {do 9 jul 2026} enkel — moet nu wél het do-cluster tonen dat we in de week-steekproef zagen.
 
-### B. Frontend — kleur per metric-intent
-Nieuwe helper `src/components/cijfers/deltaKleur.ts`:
-```ts
-type Intent = 'hoger-is-goed' | 'lager-is-goed' | 'neutraal' | 'afwijking-signaal';
-export function deltaClass(pct: number | null, intent: Intent): string
-```
-Regels:
-- `hoger-is-goed` → ≥0 groen, <0 rood (huidige gedrag)
-- `lager-is-goed` → ≤0 groen, >0 rood
-- `neutraal` → altijd grijs (pijltje blijft)
-- `afwijking-signaal` → |pct| >15% amber, anders grijs
+---
 
-Toewijzing per delta:
-| Metric | Intent |
-|---|---|
-| Omzet, omzet/uur, gem/bon, bonnen | hoger-is-goed |
-| Loonkosten-% van omzet | lager-is-goed |
-| Loonkosten € absoluut | neutraal |
-| Uren gewerkt | neutraal |
-| Uren gewerkt vs gepland | afwijking-signaal |
-| Chart-tooltip `deltaPct` (omzet-context) | hoger-is-goed |
-| Vestiging-split omzet | hoger-is-goed |
+## 2. Gelijkmatig-dure dagen apart tonen (loze-uren)
 
-Update: `CijfersMetricsBar`, `CijfersLoonkostenBar`, `CijfersVestigingSplit`, `CijfersTooltip` — vervang hardcoded ↑groen/↓rood door `deltaClass(pct, intent)`.
+**Probleem:** dag boven doel+marge zonder uitschieter-uur (bv. Midsland do 9 jul, 42,7%) verschijnt nergens.
 
-### C. Verificatie
-1. Selecteer "vandaag" op zondag → label "T.o.v. zo {vorige zondag}", data uit die dag.
-2. Selecteer "deze maand" (juli 2026) → label "T.o.v. juli 2025".
-3. Selecteer "week" → label "T.o.v. {vorige ma}–{vorige zo}".
-4. Loonkosten-% delta bij hogere kosten → rood. Bij lagere → groen.
-5. Uren gewerkt delta → altijd grijs.
-6. Uren gepland vs gewerkt bij +20% → amber.
-7. Custom periode van 3 dagen → label "T.o.v. {3 dagen ervoor - 7d}".
+**Fix:** RPC krijgt tweede resultaattype "dag-signaal". Aanpak: zelfde functie, extra kolom `signaal_type text` met waarden `'uur'` (bestaand cluster) of `'dag'` (dag boven doel+marge, géén enkel uur haalt de laag-B drempel). Voor `'dag'`-rijen: `uur_van/uur_tot = NULL`, `verspilling = (dag_loonkosten - dag_omzet * doel_pct/100)`, geen team-breakdown (of alleen totaal-team-delta over hele dag als goedkoop toevoegsel — houd ik simpel: leeg `[]`).
 
-## Buiten scope
-- `CijfersWeekdagVergelijk` (andere vergelijkings-as: periode vs vaste referentie, blijft zoals is).
-- Chart-lijnen zelf (hoofdgrafiek toont geen delta-kleur, alleen tooltip — die valt onder B).
+**UI (`CijfersLozeUren.tsx`):** apart lijstitem met ander icoon (bv. `TrendingUp` grijs i.p.v. rode `AlertTriangle`), tekst: *"Dag op 42,7% (doel 30%) — geen specifiek dagdeel wijkt af, gelijkmatige overbezetting."* Sortering: uur-clusters eerst (op verspilling), dag-signalen daaronder (op dag-loon%).
+
+**Loonkosten-doelgrafiek check:** ik lees `CijfersLoonkostenDoelGrafiek.tsx` en bevestig in het rapport of dure dagen daar al als rode staaf zichtbaar zijn (verwacht: ja, want die grafiek werkt op dag-niveau — maar ik verifieer het echt in code, niet op aanname).
+
+**Verificatie:** ik toon de nieuwe rijen voor week 6-10 juli 2026 in een platte tabel — jij toetst herkenning.
+
+---
+
+## 3. Omzetverloop over de dag ook bij meerdaagse selectie
+
+**Probleem (`CijfersUurverloop.tsx`):** bij `periode !== 'vandaag'` gebruikt de component `p_van` direct; RPC `rpc_cijfers_heatmap` retourneert per (isodow, uur) rijen; de aggregatie in de component middelt correct per uur — dus **de curve zou al moeten werken** bij meerdaagse selectie. Ik verifieer eerst waarom hij toch leeg lijkt (mogelijk toont hij een andere kaart, of er is een conditie die hem verbergt).
+
+**Actie:**
+1. Grondig inlezen wat de "Omzetverloop over de dag"-kaart in de huidige `/cijfers` layout doet bij een meerdaagse selectie (kijk in `Cijfers.tsx` welke component daar rendert en met welke props).
+2. Zorg dat bij elke selectie (1 dag t/m jaar) een gemiddelde-uurcurve over alle geselecteerde dagen wordt getoond, piek-markering behouden.
+3. Subtiel label eronder: *"gemiddelde per uur over N dagen"*.
+
+**Verificatie:** ik run de flow voor 1-10 juli 2026 en toon de curve + piek in het rapport (getallen per uur), zodat je 't herkent zonder screenshot af te wachten.
+
+---
+
+## 4. Vergelijking standaard = vorig jaar (vervangt sprint-D-regel)
+
+**Kern:** `f_vorige_periode(p_van, p_tot, p_mode)` — de enige plek waar de vergelijkingsperiode wordt bepaald — wordt herzien:
+
+| Mode          | Nieuw gedrag                                            |
+| ------------- | ------------------------------------------------------- |
+| `dag`         | zelfde datum vorig jaar (**keuze: datum, niet weekdag** — zie hieronder) |
+| `week`        | zelfde ISO-week vorig jaar (p_van/p_tot -1 jaar, verschoven naar dezelfde ISO-weekdagen) |
+| `maand`       | al -1 jaar (blijft)                                     |
+| `jaar`        | al -1 jaar (blijft)                                     |
+| `custom`      | -1 jaar (was: periode-ervoor)                           |
+
+**Keuze bij `dag` — datum i.p.v. weekdag:** seizoensbedrijf → toerisme volgt kalender (bouwvak, schoolvakantie, feestdagen), niet weekdag. Za 10 aug 2025 zegt méér over za 10 aug 2026 dan do 14 aug 2025 (zelfde weekdag) zou zeggen. Uitzondering: als de datum vorig jaar > 3 dagen van dezelfde weekdag afwijkt (bv. zon vs woe) is de vergelijking scheef; dan schuif ik ±3 dagen naar dichtstbijzijnde zelfde weekdag. **Rapporteer:** ik bevestig deze regel expliciet en toon voor {vandaag=vr 10 jul 2026} welke datum uit 2025 wordt gekozen.
+
+**Guard bij ontbrekende historie:** als `prev_van < (min(werkdag) uit uren_dagen)` of `< '2025-07-01'` (afhankelijk van welke eerder is) → RPC's retourneren `NULL` voor vorige-periode-velden. Frontend toont "—" met tooltip *"geen vergelijkbare periode vorig jaar"*.
+
+**Shortcuts uitzonderen:** de knoppen "Gisteren / Vorige week / Vorig weekend" moeten zelf hun p_mode niet triggeren via `f_vorige_periode` als vorig-jaar-vergelijker. Ik voeg een nieuwe mode toe: `dag_prev_week` / `week_prev_week` / `weekend_prev` die de oude "periode-ervoor"-logica behouden. Frontend (waar deze shortcuts periode zetten) geeft die mode expliciet mee.
+
+**Labels:** overal waar nu "t.o.v. vorige periode" of vergelijkbaar staat, wordt het label opgebouwd uit `prev_van/prev_tot`:
+- 1-dag: *"t.o.v. 10 jul 2025"*
+- Maand: *"t.o.v. juli 2025"*
+- Jaar: *"t.o.v. 2025"*
+- Custom range: *"t.o.v. 1-10 jul 2025"*
+- Ontbrekend: *"— (geen vergelijkbare periode vorig jaar)"*
+
+Locaties waar labels leven: `CijfersMetricsBar.tsx`, `CijfersVestigingSplit.tsx`, `CijfersHoofdgrafiek.tsx`, `BijgewerktRegel.tsx` — ik lees ze alle vier vóór ik schrijf.
+
+**Verificatie (rapporteer):** roep `rpc_cijfers_samenvatting` aan voor drie cases en toon `periode` + `vorige_periode` + totaal-omzet-vergelijk:
+1. Custom 1-10 jul 2026 → moet prev = 1-10 jul 2025
+2. Mode maand, juli 2026 → prev = juli 2025
+3. Mode jaar, 2026 → prev = 2025
+4. Custom 1-5 jun 2025 → moet NULL (buiten historie: 1-5 jun 2024 hebben we niet)
+
+Plus: de sprint-D-preferentie in `mem://` update ik zodat toekomstige sessies de nieuwe regel kennen.
+
+---
+
+## Rapportage-volgorde naar jou
+
+1. Stap 1 uitgevoerd → 1-dag-steekproef do 9 jul.
+2. Stap 2 uitgevoerd → nieuwe lijst week 6-10 juli met uur-clusters én dag-signalen, jij herkent.
+3. Stap 3 uitgevoerd → uurcurve 1-10 juli, getallen per uur + piek.
+4. Stap 4 uitgevoerd → 4 vergelijkingscases + label-check + geheugen-update.
+
+Geen UI-swap tussendoor die jouw akkoord nodig heeft — de UI-swap voor de v2-loze-uren-lijst uit de vorige sprint blijft afhankelijk van jouw eerdere "herken je dit?"-oordeel; die staat los.
+
+## Technische details (voor referentie, niet-technische lezer mag overslaan)
+
+- Migratie 1: nieuwe versie `rpc_cijfers_loze_uren_v2` — ritme-CTE's krijgen `WHERE werkdag BETWEEN (p_tot - 84) AND p_tot`; rest ongewijzigd.
+- Migratie 2: zelfde functie krijgt tweede tak (UNION ALL) voor `signaal_type='dag'` op basis van `dure_dagen`-CTE met `NOT EXISTS (uur_sig ...)`. Return-signatuur uitbreiden met `signaal_type text`.
+- Migratie 3: `f_vorige_periode` uitbreiden met nieuwe modes en `custom` naar -1 jaar sturen; guard toevoegen (`prev_van := NULL` als vóór historie-min).
+- Frontend: `Cijfers.tsx` moet bij shortcut-clicks de juiste `_prev_week`-modes doorgeven; alle RPC-callers labels aanpassen.
+- Types-file wordt automatisch geregenereerd na migraties.
