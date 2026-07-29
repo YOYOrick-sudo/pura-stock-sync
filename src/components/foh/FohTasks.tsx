@@ -3300,15 +3300,10 @@ export function FohTasks() {
                         const pushUnique = (c: string) => {
                           if (!seen.has(c)) { seen.add(c); merged.push(c); }
                         };
-                        if (deviceMode !== 'beide') {
-                          primary.forEach(pushUnique);
-                          secondary.forEach(pushUnique);
-                        } else {
-                          // Standaard: interleave op alfabet zodat afdeling geen rol speelt
-                          [...new Set([...voorCats, ...achterCats])]
-                            .sort((a, b) => a.localeCompare(b, 'nl'))
-                            .forEach(pushUnique);
-                        }
+                        // Respecteer altijd de sort_order uit foh_category_order.
+                        // In 'beide'-modus: voorkant eerst (op volgorde), dan achterkant.
+                        primary.forEach(pushUnique);
+                        secondary.forEach(pushUnique);
                         return renderCategoryGroups(currentTasks, 'all', 'voorkant', merged);
                       })() : (
                         renderCategoryGroups(currentTasks, 'all')
