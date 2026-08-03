@@ -133,7 +133,7 @@ Deno.serve(async (req) => {
           template_id: template.id,
           estimated_minutes: template.estimated_minutes,
           sort_order: template.sort_order,
-          department: (template as any).department ?? 'voorkant',
+          department: (template as any).department ?? ((template as any).location === 'West' ? 'samen' : 'voorkant'),
         }));
 
       console.log(

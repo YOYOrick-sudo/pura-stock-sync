@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
           const title = `🗑️ ${SOURCE_LABEL[p.source as keyof typeof SOURCE_LABEL]} ${FRACTION_LABEL[p.fraction as keyof typeof FRACTION_LABEL]}-container aan de weg zetten`;
           // West: bundel container-taak in dezelfde "Extra Maandag"-categorie als de andere wekelijkse extras.
           const taskCategory = loc === 'West' ? 'Extra Maandag' : 'Afval';
-          const taskDepartment = loc === 'West' ? 'voorkant' : null;
+          const taskDepartment = loc === 'West' ? 'samen' : null;
           const { data: task, error } = await supabase
             .from('foh_tasks')
             .insert({

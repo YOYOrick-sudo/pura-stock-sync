@@ -16,6 +16,8 @@ import { Check } from 'lucide-react';
 import {
   getOrderedCategories,
   getMissingCategoryRows,
+  WEST_SECTIONS,
+  type Department,
   type WestCategoryOrder,
   type WestSubcats,
 } from '@/lib/foh-category-order';
@@ -31,7 +33,6 @@ import {
 } from '@/components/ui/alert-dialog';
 
 type Phase = 'open' | 'tussen' | 'borrel' | 'sluit';
-type Department = 'voorkant' | 'achterkant';
 
 type OrderRow = { category: string; sort_order: number };
 type OrderMap = WestCategoryOrder;
@@ -57,10 +58,18 @@ function TakenBeheerInner() {
   const deptParam = params.get('dept') as Department | null;
   const isWest = location === 'West';
   const isManaged = location === 'West' || location === 'Midsland';
-  // West werkt allround: één lijst (voorkant department). Midsland negeert dept.
+  // West is opgedeeld in secties (Bediening / Keuken / Samen). Midsland negeert dept.
   const department: Department = isWest
-    ? 'voorkant'
+    ? (deptParam === 'keuken' || deptParam === 'samen' ? deptParam : 'bediening')
     : (deptParam === 'achterkant' ? 'achterkant' : 'voorkant');
+
+  const setSection = (dept: Department) => {
+    const next = new URLSearchParams(params);
+    next.set('location', location);
+    next.set('phase', phase);
+    next.set('dept', dept);
+    navigate(`/taken/beheer?${next.toString()}`, { replace: true });
+  };
 
   // Query is per (location, phase) — categorieën zijn nu per takenlijst apart.
   const orderKey = ['foh-category-order', location, phase] as const;
@@ -75,10 +84,10 @@ function TakenBeheerInner() {
         .eq('phase', phase)
         .order('sort_order', { ascending: true });
       if (error) throw error;
-      const out: OrderMap = { voorkant: [], achterkant: [] };
+      const out: OrderMap = {};
       for (const r of (data as any[]) || []) {
-        const d: Department = r.department === 'achterkant' ? 'achterkant' : 'voorkant';
-        out[d].push({ category: r.category, sort_order: r.sort_order });
+        const d = (r.department || 'voorkant') as Department;
+        (out[d] ||= []).push({ category: r.category, sort_order: r.sort_order });
       }
       return out;
     },
@@ -95,16 +104,16 @@ function TakenBeheerInner() {
         supabase.from('foh_tasks')
           .select('category, department').eq('location', location).eq('phase', phase).eq('archived', false),
       ]);
-      const out: Record<Department, Set<string>> = { voorkant: new Set(), achterkant: new Set() };
+      const out: Partial<Record<Department, Set<string>>> = {};
       for (const r of [...((tpl.data as any[]) || []), ...((tsk.data as any[]) || [])]) {
-        const d: Department = r.department === 'achterkant' ? 'achterkant' : 'voorkant';
+        const d = (r.department || 'voorkant') as Department;
         const c = (r.category || '').trim();
-        if (c) out[d].add(c);
+        if (!c) continue;
+        (out[d] ||= new Set<string>()).add(c);
       }
-      return {
-        voorkant: Array.from(out.voorkant).sort(),
-        achterkant: Array.from(out.achterkant).sort(),
-      };
+      const res: WestSubcats = {};
+      for (const [k, v] of Object.entries(out)) res[k as Department] = Array.from(v as Set<string>).sort();
+      return res;
     },
     enabled: isManaged,
   });
@@ -112,18 +121,16 @@ function TakenBeheerInner() {
   // ===== Auto-seed missing categories so every used category has a sort row (per fase).
   useEffect(() => {
     if (!isManaged || !westCategoryOrder || !westSubcats) return;
-    const dept: Department = 'voorkant';
+    const dept: Department = department;
     const missing = getMissingCategoryRows(westCategoryOrder, westSubcats as WestSubcats, dept);
     if (missing.length === 0) return;
-    const maxSort = westCategoryOrder[dept].reduce((m, r) => Math.max(m, r.sort_order ?? 0), 0);
+    const maxSort = (westCategoryOrder[dept] ?? []).reduce((m, r) => Math.max(m, r.sort_order ?? 0), 0);
     const rows = missing.map((c, i) => ({
       location, department: dept, phase, category: c, sort_order: maxSort + (i + 1) * 10,
     }));
     queryClient.setQueryData<OrderMap>(orderKey, (prev) => {
-      const base: OrderMap = prev
-        ? { voorkant: prev.voorkant.slice(), achterkant: prev.achterkant.slice() }
-        : { voorkant: [], achterkant: [] };
-      base[dept] = base[dept].concat(rows.map(r => ({ category: r.category, sort_order: r.sort_order })));
+      const base: OrderMap = { ...(prev ?? {}) };
+      base[dept] = (base[dept] ?? []).concat(rows.map(r => ({ category: r.category, sort_order: r.sort_order })));
       return base;
     });
     (async () => {
@@ -132,7 +139,7 @@ function TakenBeheerInner() {
         .upsert(rows, { onConflict: 'location,department,phase,category', ignoreDuplicates: true });
       if (!error) queryClient.invalidateQueries({ queryKey: orderKey });
     })();
-  }, [isManaged, westCategoryOrder, westSubcats, location, phase, queryClient]);
+  }, [isManaged, westCategoryOrder, westSubcats, location, phase, department, queryClient]);
 
   // Beschikbare categorieën — exact dezelfde volgorde als de live lijst gebruikt.
   const buildAvailableCategories = (dept: Department): string[] => {
@@ -195,12 +202,7 @@ function TakenBeheerInner() {
       location, department: dept, phase, category: cat, sort_order: (i + 1) * 10,
     }));
 
-    const nextMap: OrderMap = prev
-      ? {
-          voorkant: prev.voorkant.map(r => ({ ...r })),
-          achterkant: prev.achterkant.map(r => ({ ...r })),
-        }
-      : { voorkant: [], achterkant: [] };
+    const nextMap: OrderMap = { ...(prev ?? {}) };
     nextMap[dept] = upsertRows.map(r => ({ category: r.category, sort_order: r.sort_order }));
     queryClient.setQueryData(orderKey, nextMap);
 
@@ -246,10 +248,10 @@ function TakenBeheerInner() {
 
     const prev = queryClient.getQueryData<OrderMap>(orderKey);
     if (prev) {
-      const nextMap: OrderMap = {
-        voorkant: prev.voorkant.map(r => r.category === oldName ? { ...r, category: trimmed } : r),
-        achterkant: prev.achterkant.map(r => r.category === oldName ? { ...r, category: trimmed } : r),
-      };
+      const nextMap: OrderMap = { ...prev };
+      for (const k of Object.keys(nextMap) as Department[]) {
+        nextMap[k] = (nextMap[k] ?? []).map(r => r.category === oldName ? { ...r, category: trimmed } : r);
+      }
       queryClient.setQueryData(orderKey, nextMap);
     }
 
@@ -292,10 +294,10 @@ function TakenBeheerInner() {
     const { dept, category } = deleteState;
     const prev = queryClient.getQueryData<OrderMap>(orderKey);
     if (prev) {
-      const nextMap: OrderMap = {
-        voorkant: prev.voorkant.filter(r => r.category !== category),
-        achterkant: prev.achterkant.filter(r => r.category !== category),
-      };
+      const nextMap: OrderMap = { ...prev };
+      for (const k of Object.keys(nextMap) as Department[]) {
+        nextMap[k] = (nextMap[k] ?? []).filter(r => r.category !== category);
+      }
       queryClient.setQueryData(orderKey, nextMap);
     }
     const { error } = await supabase
@@ -326,7 +328,38 @@ function TakenBeheerInner() {
 
   return (
     <>
+      {isWest && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          {WEST_SECTIONS.map(({ key, label }) => {
+            const active = department === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setSection(key)}
+                style={{
+                  padding: '10px 16px',
+                  minHeight: 44,
+                  borderRadius: 14,
+                  fontSize: 14,
+                  fontWeight: active ? 700 : 500,
+                  fontFamily: 'Inter, sans-serif',
+                  cursor: 'pointer',
+                  border: `1.5px solid ${active ? 'hsl(var(--primary))' : 'hsl(var(--border))'}`,
+                  backgroundColor: active ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--card))',
+                  color: active ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
+                  transition: 'all 150ms ease',
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <ListManager
+
         variant="page"
         open={true}
         onClose={handleClose}

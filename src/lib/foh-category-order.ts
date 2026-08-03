@@ -11,12 +11,21 @@
 //     vs "Shop") tonen we alleen de eerst gevonden spelling.
 //  4. Geen geforceerde positie voor "Algemeen" — die krijgt gewoon zijn DB-plek.
 
-export type Department = 'voorkant' | 'achterkant';
+// West gebruikt sectie-departments (bediening/keuken/samen).
+// Overige locaties gebruiken de klassieke voorkant/achterkant.
+export type Department = 'voorkant' | 'achterkant' | 'bediening' | 'keuken' | 'samen';
+
+export const WEST_SECTIONS: { key: Department; label: string }[] = [
+  { key: 'bediening', label: 'Bediening' },
+  { key: 'keuken', label: 'Keuken' },
+  { key: 'samen', label: 'Samen / Laatste loodjes' },
+];
 
 export type OrderRow = { category: string; sort_order: number };
 
-export type WestCategoryOrder = Record<Department, OrderRow[]>;
-export type WestSubcats = Record<Department, string[]>;
+export type WestCategoryOrder = Partial<Record<Department, OrderRow[]>>;
+export type WestSubcats = Partial<Record<Department, string[]>>;
+
 
 export function getOrderedCategories(
   westCategoryOrder: WestCategoryOrder | undefined,
