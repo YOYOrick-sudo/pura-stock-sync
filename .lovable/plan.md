@@ -25,11 +25,16 @@ Doel: de West-lijst opdelen in drie vaste secties met eigen kop en voortgang, me
 
 ## Splitsing "Bijvullen & legen" (21 taken)
 
-Naar **Bijvullen bar** (14):
-Bananencake aanvullen vanuit vitrine · Broodbakken aanvullen (Pita, brioche, deugniet) · Fruit garnering aanvullen (FIFO) · Fruit koellade aanvullen · Fruit vrieslade aanvullen · Glasbak legen · Koffiebonen bijvullen in hopper · Kokosmelk bijvullen · Limonadeflessen aanvullen · Melk en frisdrank bijvullen · Sinaasappelsap bijvullen · Smoothies maken voor de volgende dag · Takeaway bekers & deksels · Toppings pas aanvullen
+Naar **Bijvullen bar** (13):
+Bananencake aanvullen vanuit vitrine · Broodbakken aanvullen (Pita, brioche, deugniet) · Fruit garnering aanvullen (FIFO) · Fruit koellade aanvullen · Fruit vrieslade aanvullen · Glasbak legen · Koffiebonen bijvullen in hopper · Kokosmelk bijvullen · Limonadeflessen aanvullen · Melk en frisdrank bijvullen · Sinaasappelsap bijvullen · Smoothies maken voor de volgende dag · Takeaway bekers & deksels
 
-Naar **Bijvullen keuken** (7):
-Bananenpannenkoeken aanvullen vanuit vriezer · Forel aanvullen · Gerookte zalm aanvullen · Op reserve hoge 1/9e bak (Hüttenkäse, cranberry, kokosyoghurt, avocado spread) · Op reserve midden 1/9e (relish, wortelspread, pesto) · Zuurdesem stokbrood in 3en snijden · Check MEP lijst whiteboard (open-fase)
+Naar **Bijvullen keuken** (8):
+Bananenpannenkoeken aanvullen vanuit vriezer · Forel aanvullen · Gerookte zalm aanvullen · Op reserve hoge 1/9e bak (Hüttenkäse, cranberry, kokosyoghurt, avocado spread) · Op reserve midden 1/9e (relish, wortelspread, pesto) · Toppings pas aanvullen · Zuurdesem stokbrood in 3en snijden · Check MEP lijst whiteboard (open-fase)
+
+## Fase "Periodiek"
+
+Gecontroleerd: `foh_category_order` bevat alleen rijen voor open/tussen/borrel/sluit (een check-constraint laat geen andere waarde toe) en West heeft momenteel geen actieve periodieke taken (`phase IS NULL`). Er is dus niets extra's mee te nemen; periodieke taken blijven buiten de sectie-indeling en worden onderaan als eigen blok getoond.
+
 
 ## Technisch
 
@@ -38,12 +43,18 @@ Het bestaande `department`-veld wordt voor West hergebruikt met de waarden `bedi
 ### Migratie-SQL (uit te voeren na akkoord)
 
 ```sql
+-- 0. Backup van de huidige West-volgorde (terugdraaibaar)
+CREATE TABLE IF NOT EXISTS public.foh_category_order_backup_west AS
+SELECT *, now() AS backup_at FROM public.foh_category_order WHERE location='West';
+-- GRANTs: alleen service_role (interne backup, geen Data API-toegang nodig)
+
 -- 1. Bijvullen splitsen in templates (West)
 UPDATE public.foh_daily_templates SET category = 'Bijvullen keuken'
 WHERE location='West' AND category='Bijvullen & legen' AND (
   title ILIKE 'Bananenpannenkoeken%' OR title ILIKE 'Forel%' OR title ILIKE 'Gerookte zalm%'
   OR title ILIKE 'Op reserve%' OR title ILIKE 'Zuudesem%' OR title ILIKE 'Zuurdesem%'
-  OR title ILIKE 'Check MEP lijst%');
+  OR title ILIKE 'Toppings pas%' OR title ILIKE 'Check MEP lijst%');
+
 
 UPDATE public.foh_daily_templates SET category = 'Bijvullen bar'
 WHERE location='West' AND category='Bijvullen & legen';
@@ -53,7 +64,7 @@ UPDATE public.foh_tasks SET category='Bijvullen keuken'
 WHERE location='West' AND category='Bijvullen & legen' AND archived=false AND (
   title ILIKE 'Bananenpannenkoeken%' OR title ILIKE 'Forel%' OR title ILIKE 'Gerookte zalm%'
   OR title ILIKE 'Op reserve%' OR title ILIKE 'Zuudesem%' OR title ILIKE 'Zuurdesem%'
-  OR title ILIKE 'Check MEP lijst%');
+  OR title ILIKE 'Toppings pas%' OR title ILIKE 'Check MEP lijst%');
 
 UPDATE public.foh_tasks SET category='Bijvullen bar'
 WHERE location='West' AND category='Bijvullen & legen' AND archived=false;
