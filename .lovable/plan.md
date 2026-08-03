@@ -43,12 +43,18 @@ Het bestaande `department`-veld wordt voor West hergebruikt met de waarden `bedi
 ### Migratie-SQL (uit te voeren na akkoord)
 
 ```sql
+-- 0. Backup van de huidige West-volgorde (terugdraaibaar)
+CREATE TABLE IF NOT EXISTS public.foh_category_order_backup_west AS
+SELECT *, now() AS backup_at FROM public.foh_category_order WHERE location='West';
+-- GRANTs: alleen service_role (interne backup, geen Data API-toegang nodig)
+
 -- 1. Bijvullen splitsen in templates (West)
 UPDATE public.foh_daily_templates SET category = 'Bijvullen keuken'
 WHERE location='West' AND category='Bijvullen & legen' AND (
   title ILIKE 'Bananenpannenkoeken%' OR title ILIKE 'Forel%' OR title ILIKE 'Gerookte zalm%'
   OR title ILIKE 'Op reserve%' OR title ILIKE 'Zuudesem%' OR title ILIKE 'Zuurdesem%'
-  OR title ILIKE 'Check MEP lijst%');
+  OR title ILIKE 'Toppings pas%' OR title ILIKE 'Check MEP lijst%');
+
 
 UPDATE public.foh_daily_templates SET category = 'Bijvullen bar'
 WHERE location='West' AND category='Bijvullen & legen';
