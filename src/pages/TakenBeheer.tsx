@@ -328,7 +328,38 @@ function TakenBeheerInner() {
 
   return (
     <>
+      {isWest && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          {WEST_SECTIONS.map(({ key, label }) => {
+            const active = department === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setSection(key)}
+                style={{
+                  padding: '10px 16px',
+                  minHeight: 44,
+                  borderRadius: 14,
+                  fontSize: 14,
+                  fontWeight: active ? 700 : 500,
+                  fontFamily: 'Inter, sans-serif',
+                  cursor: 'pointer',
+                  border: `1.5px solid ${active ? 'hsl(var(--primary))' : 'hsl(var(--border))'}`,
+                  backgroundColor: active ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--card))',
+                  color: active ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
+                  transition: 'all 150ms ease',
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <ListManager
+
         variant="page"
         open={true}
         onClose={handleClose}
