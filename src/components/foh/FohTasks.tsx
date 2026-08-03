@@ -3713,12 +3713,12 @@ export function FohTasks() {
                     color: 'hsl(var(--muted-foreground))',
                     marginBottom: '10px',
                   }}>
-                    Beide lijsten blijven altijd zichtbaar. Deze keuze bepaalt welke bovenaan staat. Wordt lokaal opgeslagen per iPad.
+                    Alle secties blijven altijd zichtbaar. Deze keuze bepaalt welke bovenaan staat. Wordt lokaal opgeslagen per iPad.
                   </div>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {([
-                      { key: 'voorkant', label: 'Bediening eerst' },
-                      { key: 'achterkant', label: 'Keuken eerst' },
+                      { key: 'bediening', label: 'Bediening eerst' },
+                      { key: 'keuken', label: 'Keuken eerst' },
                       { key: 'beide', label: 'Standaard' },
                     ] as { key: DeviceMode; label: string }[]).map(({ key, label }) => {
                       const isActive = deviceMode === key;
