@@ -26,7 +26,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminPasswordDialog } from './AdminPasswordDialog';
 import { RepeatBadge } from './RepeatBadge';
 import { ListManager } from './ListManager';
-import { getOrderedCategories } from '@/lib/foh-category-order';
+import { getOrderedCategories, WEST_SECTIONS, type Department } from '@/lib/foh-category-order';
 import { devLog, devError } from "@/lib/devLog";
 
 // Phase time windows (minutes-based)
@@ -854,12 +854,13 @@ export function FohTasks() {
 
   // West heeft afdelingen: Voorkant (bediening) / Achterkant (keuken).
   // Voor andere locaties altijd 'voorkant' zodat bestaande data zichtbaar blijft.
-  type Department = Department;
   const [activeDepartment, setActiveDepartment] = useState<Department>(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('foh_active_department_west') : null;
-    return stored === 'achterkant' ? 'achterkant' : 'voorkant';
+    return stored === 'keuken' || stored === 'samen' ? stored : 'bediening';
   });
   const effectiveDept: Department = userLocation === 'West' ? activeDepartment : 'voorkant';
+  const westSectionOf = (dept: string | null | undefined): Department =>
+    dept === 'keuken' || dept === 'samen' ? dept : 'bediening';
   useEffect(() => {
     if (userLocation === 'West') {
       localStorage.setItem('foh_active_department_west', activeDepartment);
@@ -870,7 +871,7 @@ export function FohTasks() {
   type DeviceMode = 'beide' | Department;
   const [deviceMode, setDeviceMode] = useState<DeviceMode>(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('foh_device_mode_west') : null;
-    return stored === 'voorkant' || stored === 'achterkant' ? stored : 'beide';
+    return stored === 'bediening' || stored === 'keuken' ? stored : 'beide';
   });
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -914,7 +915,7 @@ export function FohTasks() {
     assigned_employee_id: null as string | null,
     category: 'Algemeen' as string,
     estimated_minutes: null as number | null,
-    department: 'voorkant' as Department,
+    department: 'bediening' as Department,
   });
   
   // Task padding: slightly more on tablet
@@ -1035,19 +1036,17 @@ export function FohTasks() {
         supabase.from('foh_daily_templates').select('category, department').eq('location', userLocation),
         supabase.from('foh_tasks').select('category, department').eq('location', userLocation).eq('archived', false),
       ]);
-      const out: Partial<Record<Department, Set<string>>> = {
-        voorkant: new Set(),
-        achterkant: new Set(),
-      };
+      const out: Partial<Record<Department, Set<string>>> = {};
       for (const r of [...((tpl.data as any[]) || []), ...((tsk.data as any[]) || [])]) {
-        const dept = r.department === 'achterkant' ? 'achterkant' : 'voorkant';
+        const dept = (r.department || 'voorkant') as Department;
         const c = (r.category || '').trim();
-        if (c) out[dept].add(c);
+        if (!c) continue;
+        if (!out[dept]) out[dept] = new Set();
+        out[dept]!.add(c);
       }
-      return {
-        voorkant: Array.from(out.voorkant).sort(),
-        achterkant: Array.from(out.achterkant).sort(),
-      };
+      const res: Partial<Record<Department, string[]>> = {};
+      for (const [k, v] of Object.entries(out)) res[k as Department] = Array.from(v as Set<string>).sort();
+      return res;
     },
     enabled: userLocation === 'West' || userLocation === 'Midsland',
   });
@@ -1063,13 +1062,11 @@ export function FohTasks() {
         .eq('phase', activePhase)
         .order('sort_order', { ascending: true });
       if (error) throw error;
-      const out: Partial<Record<Department, { category: string; sort_order: number }[]>> = {
-        voorkant: [],
-        achterkant: [],
-      };
+      const out: Partial<Record<Department, { category: string; sort_order: number }[]>> = {};
       for (const r of (data as any[]) || []) {
-        const dept = r.department === 'achterkant' ? 'achterkant' : 'voorkant';
-        out[dept].push({ category: r.category, sort_order: r.sort_order });
+        const dept = (r.department || 'voorkant') as Department;
+        if (!out[dept]) out[dept] = [];
+        out[dept]!.push({ category: r.category, sort_order: r.sort_order });
       }
       return out;
     },
@@ -1184,15 +1181,10 @@ export function FohTasks() {
     // Optimistische update — UI verspringt direct
     const queryKey = ['foh-category-order', userLocation, activePhase];
     const previous = queryClient.getQueryData(queryKey);
-    const otherDept: Department = dept === 'voorkant' ? 'achterkant' : 'voorkant';
-    const otherRows = (westCategoryOrder?.[otherDept] ?? []).map(r => ({
-      category: r.category,
-      sort_order: r.sort_order,
-    }));
     const nextDeptRows = list.map((cat, i) => ({ category: cat, sort_order: (i + 1) * 10 }));
     queryClient.setQueryData(queryKey, {
-      voorkant: dept === 'voorkant' ? nextDeptRows : otherRows,
-      achterkant: dept === 'achterkant' ? nextDeptRows : otherRows,
+      ...(westCategoryOrder ?? {}),
+      [dept]: nextDeptRows,
     });
 
     setIsSavingOrder(true);
@@ -1368,7 +1360,7 @@ export function FohTasks() {
         estimated_minutes: template.estimated_minutes,
         sort_order: template.sort_order,
         description: template.description,
-        department: (template as any).department ?? 'voorkant',
+        department: (template as any).department ?? (userLocation === 'West' ? 'samen' : 'voorkant'),
       }));
 
     if (tasksToInsert.length > 0) {
@@ -2920,8 +2912,7 @@ export function FohTasks() {
                                 </Label>
                                 <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
                                   {([
-                                    { key: 'voorkant', label: 'Voorkant' },
-                                    { key: 'achterkant', label: 'Achterkant' },
+                                    ...WEST_SECTIONS,
                                   ] as { key: Department; label: string }[]).map(({ key, label }) => {
                                     const isActive = newTask.department === key;
                                     return (
@@ -3033,7 +3024,7 @@ export function FohTasks() {
                               assigned_employee_id: null,
                               category: 'Algemeen',
                               estimated_minutes: null,
-                              department: 'voorkant',
+                              department: userLocation === 'West' ? 'bediening' : 'voorkant',
                             });
                             setEmployeeInput('');
                           }}
