@@ -3226,9 +3226,14 @@ export function FohTasks() {
                 };
 
                 const renderDepartmentSection = (label: string, dept: Department, flat = false) => {
-                  const deptTasks = currentTasks.filter(
-                    (t: any) => (t.department ?? 'voorkant') === dept
+                  const isWestSection = userLocation === 'West';
+                  const deptTasks = currentTasks.filter((t: any) =>
+                    isWestSection
+                      ? westSectionOf(t.department) === dept
+                      : (t.department ?? 'voorkant') === dept
                   );
+                  if (isWestSection && deptTasks.length === 0) return null;
+
                   const completed = deptTasks.filter(t => t.completed).length;
                   return (
                     <div key={dept} style={{ marginBottom: '32px' }}>
