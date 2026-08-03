@@ -64,7 +64,7 @@ UPDATE public.foh_tasks SET category='Bijvullen keuken'
 WHERE location='West' AND category='Bijvullen & legen' AND archived=false AND (
   title ILIKE 'Bananenpannenkoeken%' OR title ILIKE 'Forel%' OR title ILIKE 'Gerookte zalm%'
   OR title ILIKE 'Op reserve%' OR title ILIKE 'Zuudesem%' OR title ILIKE 'Zuurdesem%'
-  OR title ILIKE 'Check MEP lijst%');
+  OR title ILIKE 'Toppings pas%' OR title ILIKE 'Check MEP lijst%');
 
 UPDATE public.foh_tasks SET category='Bijvullen bar'
 WHERE location='West' AND category='Bijvullen & legen' AND archived=false;
