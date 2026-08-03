@@ -59,6 +59,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import type { Department } from '@/lib/foh-category-order';
 
 // ============================================================================
 // Types
@@ -80,12 +81,20 @@ interface TemplateTask {
   is_active: boolean;
 }
 
+const DEPT_LABELS: Partial<Record<Department, string>> = {
+  voorkant: 'Bediening',
+  achterkant: 'Keuken',
+  bediening: 'Bediening',
+  keuken: 'Keuken',
+  samen: 'Samen / Laatste loodjes',
+};
+
 interface ListManagerProps {
   open: boolean;
   onClose: () => void;
   location: string;
   phase: 'open' | 'tussen' | 'borrel' | 'sluit';
-  department: 'voorkant' | 'achterkant';
+  department: Department;
   availableCategories: string[];
   isWest: boolean;
   // West-only: reorder/rename/delete categorieën (gedelegeerd naar FohTasks)
@@ -1035,7 +1044,7 @@ export function ListManager({
         )}
         <div style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', marginTop: 2 }}>
           {phaseLabel(phase)} · {locationLabel(location)}
-          {isWest && ` · ${department === 'voorkant' ? 'Bediening' : 'Keuken'}`}
+          {isWest && ` · ${DEPT_LABELS[department] ?? 'Bediening'}`}
           {savingPing && (
             <span style={{ marginLeft: 10, fontSize: 12, color: 'hsl(var(--primary))', opacity: 0.9 }}>
               Opgeslagen
