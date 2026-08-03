@@ -656,6 +656,42 @@ export type Database = {
         }
         Relationships: []
       }
+      foh_category_order_backup_west: {
+        Row: {
+          backup_at: string | null
+          category: string | null
+          created_at: string | null
+          department: string | null
+          id: string | null
+          location: string | null
+          phase: string | null
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          backup_at?: string | null
+          category?: string | null
+          created_at?: string | null
+          department?: string | null
+          id?: string | null
+          location?: string | null
+          phase?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          backup_at?: string | null
+          category?: string | null
+          created_at?: string | null
+          department?: string | null
+          id?: string | null
+          location?: string | null
+          phase?: string | null
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       foh_daily_templates: {
         Row: {
           category: string
