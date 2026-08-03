@@ -854,7 +854,7 @@ export function FohTasks() {
 
   // West heeft afdelingen: Voorkant (bediening) / Achterkant (keuken).
   // Voor andere locaties altijd 'voorkant' zodat bestaande data zichtbaar blijft.
-  type Department = 'voorkant' | 'achterkant';
+  type Department = Department;
   const [activeDepartment, setActiveDepartment] = useState<Department>(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('foh_active_department_west') : null;
     return stored === 'achterkant' ? 'achterkant' : 'voorkant';
@@ -867,7 +867,7 @@ export function FohTasks() {
   }, [activeDepartment, userLocation]);
 
   // Apparaat-modus (per iPad). 'beide' = bediening + keuken, 'voorkant' = alleen bediening, 'achterkant' = alleen keuken.
-  type DeviceMode = 'beide' | 'voorkant' | 'achterkant';
+  type DeviceMode = 'beide' | Department;
   const [deviceMode, setDeviceMode] = useState<DeviceMode>(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('foh_device_mode_west') : null;
     return stored === 'voorkant' || stored === 'achterkant' ? stored : 'beide';
@@ -914,7 +914,7 @@ export function FohTasks() {
     assigned_employee_id: null as string | null,
     category: 'Algemeen' as string,
     estimated_minutes: null as number | null,
-    department: 'voorkant' as 'voorkant' | 'achterkant',
+    department: 'voorkant' as Department,
   });
   
   // Task padding: slightly more on tablet
@@ -1035,7 +1035,7 @@ export function FohTasks() {
         supabase.from('foh_daily_templates').select('category, department').eq('location', userLocation),
         supabase.from('foh_tasks').select('category, department').eq('location', userLocation).eq('archived', false),
       ]);
-      const out: Record<'voorkant' | 'achterkant', Set<string>> = {
+      const out: Partial<Record<Department, Set<string>>> = {
         voorkant: new Set(),
         achterkant: new Set(),
       };
@@ -1063,7 +1063,7 @@ export function FohTasks() {
         .eq('phase', activePhase)
         .order('sort_order', { ascending: true });
       if (error) throw error;
-      const out: Record<'voorkant' | 'achterkant', { category: string; sort_order: number }[]> = {
+      const out: Partial<Record<Department, { category: string; sort_order: number }[]>> = {
         voorkant: [],
         achterkant: [],
       };
@@ -1081,7 +1081,7 @@ export function FohTasks() {
   // Midsland: bestaande vaste lijst per fase.
   const getCategoriesForContext = (
     loc: string,
-    dept: 'voorkant' | 'achterkant',
+    dept: Department,
     phase: string,
   ): string[] => {
     if (loc === 'West' || loc === 'Midsland') {
@@ -1099,7 +1099,7 @@ export function FohTasks() {
   // Zorg dat een (nieuwe) subcategorie in foh_category_order staat — anders heeft hij geen volgorde.
   const ensureCategoryOrderRow = async (
     loc: string,
-    dept: 'voorkant' | 'achterkant',
+    dept: Department,
     phase: string,
     category: string,
   ) => {
@@ -1128,7 +1128,7 @@ export function FohTasks() {
   // Combinatie van geordende rijen + niet-geordende categorieën, in dezelfde volgorde
   // als getCategoriesForContext zodat de UI 1-op-1 klopt met de live lijst.
   const getOrderedCategoryRows = (
-    dept: 'voorkant' | 'achterkant',
+    dept: Department,
   ): { category: string; sort_order: number | null }[] => {
     const ordered = (westCategoryOrder?.[dept] ?? []).map(r => ({
       category: r.category,
@@ -1144,7 +1144,7 @@ export function FohTasks() {
 
   // Herschrijf alle sort_order waarden naar veelvouden van 10 op basis van array-volgorde.
   const persistCategoryOrder = async (
-    dept: 'voorkant' | 'achterkant',
+    dept: Department,
     orderedCategories: string[],
   ) => {
     const rows = orderedCategories.map((cat, i) => ({
@@ -1168,7 +1168,7 @@ export function FohTasks() {
   const [isSavingOrder, setIsSavingOrder] = useState(false);
 
   const handleMoveCategory = async (
-    dept: 'voorkant' | 'achterkant',
+    dept: Department,
     category: string,
     direction: -1 | 1,
   ) => {
@@ -1184,7 +1184,7 @@ export function FohTasks() {
     // Optimistische update — UI verspringt direct
     const queryKey = ['foh-category-order', userLocation, activePhase];
     const previous = queryClient.getQueryData(queryKey);
-    const otherDept: 'voorkant' | 'achterkant' = dept === 'voorkant' ? 'achterkant' : 'voorkant';
+    const otherDept: Department = dept === 'voorkant' ? 'achterkant' : 'voorkant';
     const otherRows = (westCategoryOrder?.[otherDept] ?? []).map(r => ({
       category: r.category,
       sort_order: r.sort_order,
@@ -1208,7 +1208,7 @@ export function FohTasks() {
 
 
   const handleRenameCategory = async (
-    dept: 'voorkant' | 'achterkant',
+    dept: Department,
     oldName: string,
   ) => {
     const next = window.prompt(`Nieuwe naam voor "${oldName}":`, oldName);
@@ -1232,7 +1232,7 @@ export function FohTasks() {
   };
 
   const handleDeleteCategory = async (
-    dept: 'voorkant' | 'achterkant',
+    dept: Department,
     category: string,
   ) => {
     // Veiligheid: alleen verwijderen als er geen taken/templates meer in zitten (voor deze fase)
@@ -2278,7 +2278,7 @@ export function FohTasks() {
         const seen = new Set<string>();
         for (const t of editingTemplate) {
           if (deletedTemplateTaskIds.includes(t.id)) continue;
-          const dept = ((t as any).department || effectiveDept) as 'voorkant' | 'achterkant';
+          const dept = ((t as any).department || effectiveDept) as Department;
           const phase = ((t as any).phase || activePhase) as string;
           const cat = (t.category || '').trim();
           const key = `${dept}::${phase}::${cat}`;
@@ -2880,7 +2880,7 @@ export function FohTasks() {
                                     onChange={(val) => setNewTask({ ...newTask, category: val })}
                                     options={getCategoriesForContext(
                                       userLocation,
-                                      (userLocation === 'West' ? (newTask.department as 'voorkant' | 'achterkant') : 'voorkant'),
+                                      (userLocation === 'West' ? (newTask.department as Department) : 'voorkant'),
                                       'periodiek',
                                     )}
                                     allowCreate={userLocation === 'West' || userLocation === 'Midsland'}
@@ -2922,7 +2922,7 @@ export function FohTasks() {
                                   {([
                                     { key: 'voorkant', label: 'Voorkant' },
                                     { key: 'achterkant', label: 'Achterkant' },
-                                  ] as { key: 'voorkant' | 'achterkant'; label: string }[]).map(({ key, label }) => {
+                                  ] as { key: Department; label: string }[]).map(({ key, label }) => {
                                     const isActive = newTask.department === key;
                                     return (
                                       <button
@@ -3071,7 +3071,7 @@ export function FohTasks() {
                 const renderCategoryGroups = (
                   tasksToRender: FohTaskWithEmployee[],
                   keyPrefix: string,
-                  dept: 'voorkant' | 'achterkant' = 'voorkant',
+                  dept: Department = 'voorkant',
                   orderedCatsOverride?: string[],
                 ) => {
                   const orderedCats =
@@ -3234,7 +3234,7 @@ export function FohTasks() {
                   );
                 };
 
-                const renderDepartmentSection = (label: string, dept: 'voorkant' | 'achterkant', flat = false) => {
+                const renderDepartmentSection = (label: string, dept: Department, flat = false) => {
                   const deptTasks = currentTasks.filter(
                     (t: any) => (t.department ?? 'voorkant') === dept
                   );
@@ -4142,7 +4142,7 @@ export function FohTasks() {
                       (editingTemplate[0]?.location || userLocation) === 'West'
                         ? getCategoriesForContext(
                             editingTemplate[0]?.location || userLocation,
-                            ((editingTemplate[0] as any)?.department || effectiveDept) as 'voorkant' | 'achterkant',
+                            ((editingTemplate[0] as any)?.department || effectiveDept) as Department,
                             editingTemplate[0]?.phase || activePhase,
                           )
                         : undefined
@@ -4205,7 +4205,7 @@ export function FohTasks() {
                     onChange={setNewTemplateTaskCategory}
                     options={getCategoriesForContext(
                       editingTemplate[0]?.location || userLocation,
-                      ((editingTemplate[0] as any)?.department || effectiveDept) as 'voorkant' | 'achterkant',
+                      ((editingTemplate[0] as any)?.department || effectiveDept) as Department,
                       editingTemplate[0]?.phase || activePhase,
                     )}
                     allowCreate={(editingTemplate[0]?.location || userLocation) === 'West'}
