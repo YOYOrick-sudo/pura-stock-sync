@@ -3285,25 +3285,33 @@ export function FohTasks() {
                   >
                     <div>
                       {userLocation === 'West' ? (() => {
-                        // Eén verenigde lijst: merge categorieën van beide afdelingen.
-                        // Apparaat-modus bepaalt alleen welke afdeling-categorieën bovenaan staan.
-                        const voorCats = getCategoriesForContext('West', 'voorkant', activePhase);
-                        const achterCats = getCategoriesForContext('West', 'achterkant', activePhase);
-                        const primary = deviceMode === 'achterkant' ? achterCats : voorCats;
-                        const secondary = deviceMode === 'achterkant' ? voorCats : achterCats;
-                        const seen = new Set<string>();
-                        const merged: string[] = [];
-                        const pushUnique = (c: string) => {
-                          if (!seen.has(c)) { seen.add(c); merged.push(c); }
-                        };
-                        // Respecteer altijd de sort_order uit foh_category_order.
-                        // In 'beide'-modus: voorkant eerst (op volgorde), dan achterkant.
-                        primary.forEach(pushUnique);
-                        secondary.forEach(pushUnique);
-                        return renderCategoryGroups(currentTasks, 'all', 'voorkant', merged);
+                        // Drie vaste secties: Bediening, Keuken, Samen.
+                        // Apparaat-modus bepaalt alleen welke sectie bovenaan staat.
+                        const order = WEST_SECTIONS.slice().sort((a, b) => {
+                          const w = (k: string) => (k === deviceMode ? -1 : 0);
+                          return w(a.key as string) - w(b.key as string);
+                        });
+                        const sections = order
+                          .map(({ key, label }) => renderDepartmentSection(label, key))
+                          .filter(Boolean);
+                        if (sections.length === 0) {
+                          return (
+                            <div style={{
+                              padding: '16px 4px 24px',
+                              color: 'hsl(var(--muted-foreground))',
+                              fontSize: '13px',
+                              fontStyle: 'italic',
+                              fontFamily: 'Inter, sans-serif',
+                            }}>
+                              Geen taken
+                            </div>
+                          );
+                        }
+                        return sections;
                       })() : (
                         renderCategoryGroups(currentTasks, 'all')
                       )}
+
                     </div>
                   </DndContext>
                 );
