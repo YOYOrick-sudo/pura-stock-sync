@@ -3225,18 +3225,26 @@ export function FohTasks() {
                   );
                 };
 
-                const renderDepartmentSection = (label: string, dept: Department, flat = false) => {
+                const renderDepartmentSection = (
+                  label: string,
+                  dept: Department,
+                  flat = false,
+                  opts?: { keyPrefix?: string; categoryFilter?: (cat: string) => boolean },
+                ) => {
                   const isWestSection = userLocation === 'West';
-                  const deptTasks = currentTasks.filter((t: any) =>
+                  let deptTasks = currentTasks.filter((t: any) =>
                     isWestSection
                       ? westSectionOf(t.department) === dept
                       : (t.department ?? 'voorkant') === dept
                   );
+                  if (opts?.categoryFilter) {
+                    deptTasks = deptTasks.filter((t: any) => opts.categoryFilter!((t.category ?? '').trim()));
+                  }
                   if (isWestSection && deptTasks.length === 0) return null;
 
                   const completed = deptTasks.filter(t => t.completed).length;
                   return (
-                    <div key={dept} style={{ marginBottom: '32px' }}>
+                    <div key={`${opts?.keyPrefix ?? ''}${dept}`} style={{ marginBottom: '32px' }}>
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -3285,25 +3293,45 @@ export function FohTasks() {
                   >
                     <div>
                       {userLocation === 'West' ? (() => {
-                        // Drie vaste secties: Bediening, Keuken, Samen.
-                        // Apparaat-modus bepaalt alleen welke sectie bovenaan staat.
-                        // In de open-fase begint iedereen sámen (poort, licht, vitrines),
-                        // dus die sectie staat dan bovenaan en heet 'Samen / Opstarten'.
+                        // Secties: Samen (opstarten) → Bediening/Keuken → Samen (afronden) → Vitrine.
+                        // 'Samen' komt dus twee keer terug: aan het begin (binnenkomst) en
+                        // helemaal aan het einde (afronden / laatste loodjes).
                         const isOpen = activePhase === 'open';
-                        const order = WEST_SECTIONS.slice().sort((a, b) => {
-                          const w = (k: string) => {
-                            if (k === 'vitrine') return 10; // altijd als laatste, na keuken
-                            if (isOpen && k === 'samen') return -2;
-                            return k === deviceMode ? -1 : 0;
-                          };
-                          return w(a.key as string) - w(b.key as string);
-                        });
-                        const sections = order
-                          .map(({ key, label }) => renderDepartmentSection(
-                            key === 'samen' && isOpen ? 'Samen / Opstarten' : label,
-                            key,
-                          ))
-                          .filter(Boolean);
+                        const START_CATS = ['binnenkomst'];
+                        const isStartCat = (c: string) => START_CATS.includes(c.toLowerCase());
+                        const order = WEST_SECTIONS.filter(s => s.key !== 'samen')
+                          .slice()
+                          .sort((a, b) => {
+                            const w = (k: string) => {
+                              if (k === 'vitrine') return 10; // altijd als laatste, na keuken
+                              return k === deviceMode ? -1 : 0;
+                            };
+                            return w(a.key as string) - w(b.key as string);
+                          });
+                        const samenTop = renderDepartmentSection(
+                          isOpen ? 'Samen / Opstarten' : 'Samen / Start',
+                          'samen',
+                          false,
+                          { keyPrefix: 'top-', categoryFilter: isStartCat },
+                        );
+                        const samenBottom = renderDepartmentSection(
+                          'Samen / Laatste loodjes',
+                          'samen',
+                          false,
+                          { keyPrefix: 'bottom-', categoryFilter: (c) => !isStartCat(c) },
+                        );
+                        const rendered = order.map(({ key, label }) => ({
+                          key,
+                          node: renderDepartmentSection(label, key),
+                        }));
+                        const middle = rendered.filter(r => r.key !== 'vitrine').map(r => r.node);
+                        const vitrine = rendered.filter(r => r.key === 'vitrine').map(r => r.node);
+                        const sections = [
+                          samenTop,
+                          ...middle,
+                          samenBottom,
+                          ...vitrine,
+                        ].filter(Boolean);
                         if (sections.length === 0) {
                           return (
                             <div style={{
