@@ -13,13 +13,13 @@
 
 // West gebruikt sectie-departments (bediening/keuken/samen).
 // Overige locaties gebruiken de klassieke voorkant/achterkant.
-export type Department = 'voorkant' | 'achterkant' | 'bediening' | 'keuken' | 'samen' | 'vitrine';
+export type Department = 'voorkant' | 'achterkant' | 'bediening' | 'keuken' | 'samen';
 
 export const WEST_SECTIONS: { key: Department; label: string }[] = [
   { key: 'bediening', label: 'Bediening' },
   { key: 'keuken', label: 'Keuken' },
   { key: 'samen', label: 'Samen / Laatste loodjes' },
-  { key: 'vitrine', label: 'Vitrine (samen)' },
+
 ];
 
 export type OrderRow = { category: string; sort_order: number };
