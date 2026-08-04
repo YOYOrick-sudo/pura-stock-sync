@@ -3244,7 +3244,7 @@ export function FohTasks() {
 
                   const completed = deptTasks.filter(t => t.completed).length;
                   return (
-                    <div key={dept} style={{ marginBottom: '32px' }}>
+                    <div key={`${opts?.keyPrefix ?? ''}${dept}`} style={{ marginBottom: '32px' }}>
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
