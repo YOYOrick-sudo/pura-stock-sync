@@ -3320,15 +3320,17 @@ export function FohTasks() {
                           false,
                           { keyPrefix: 'bottom-', categoryFilter: (c) => !isStartCat(c) },
                         );
-                        const rest = order
-                          .map(({ key, label }) => renderDepartmentSection(label, key))
-                          .filter(Boolean);
-                        const vitrineIdx = rest.length; // vitrine staat al achteraan in `rest`
+                        const rendered = order.map(({ key, label }) => ({
+                          key,
+                          node: renderDepartmentSection(label, key),
+                        }));
+                        const middle = rendered.filter(r => r.key !== 'vitrine').map(r => r.node);
+                        const vitrine = rendered.filter(r => r.key === 'vitrine').map(r => r.node);
                         const sections = [
                           samenTop,
-                          ...rest.slice(0, Math.max(0, vitrineIdx - (WEST_SECTIONS.some(s => s.key === 'vitrine') ? 1 : 0))),
+                          ...middle,
                           samenBottom,
-                          ...rest.slice(Math.max(0, vitrineIdx - (WEST_SECTIONS.some(s => s.key === 'vitrine') ? 1 : 0))),
+                          ...vitrine,
                         ].filter(Boolean);
                         if (sections.length === 0) {
                           return (
