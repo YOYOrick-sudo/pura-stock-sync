@@ -3293,25 +3293,43 @@ export function FohTasks() {
                   >
                     <div>
                       {userLocation === 'West' ? (() => {
-                        // Drie vaste secties: Bediening, Keuken, Samen.
-                        // Apparaat-modus bepaalt alleen welke sectie bovenaan staat.
-                        // In de open-fase begint iedereen sámen (poort, licht, vitrines),
-                        // dus die sectie staat dan bovenaan en heet 'Samen / Opstarten'.
+                        // Secties: Samen (opstarten) → Bediening/Keuken → Samen (afronden) → Vitrine.
+                        // 'Samen' komt dus twee keer terug: aan het begin (binnenkomst) en
+                        // helemaal aan het einde (afronden / laatste loodjes).
                         const isOpen = activePhase === 'open';
-                        const order = WEST_SECTIONS.slice().sort((a, b) => {
-                          const w = (k: string) => {
-                            if (k === 'vitrine') return 10; // altijd als laatste, na keuken
-                            if (isOpen && k === 'samen') return -2;
-                            return k === deviceMode ? -1 : 0;
-                          };
-                          return w(a.key as string) - w(b.key as string);
-                        });
-                        const sections = order
-                          .map(({ key, label }) => renderDepartmentSection(
-                            key === 'samen' && isOpen ? 'Samen / Opstarten' : label,
-                            key,
-                          ))
+                        const START_CATS = ['binnenkomst'];
+                        const isStartCat = (c: string) => START_CATS.includes(c.toLowerCase());
+                        const order = WEST_SECTIONS.filter(s => s.key !== 'samen')
+                          .slice()
+                          .sort((a, b) => {
+                            const w = (k: string) => {
+                              if (k === 'vitrine') return 10; // altijd als laatste, na keuken
+                              return k === deviceMode ? -1 : 0;
+                            };
+                            return w(a.key as string) - w(b.key as string);
+                          });
+                        const samenTop = renderDepartmentSection(
+                          isOpen ? 'Samen / Opstarten' : 'Samen / Start',
+                          'samen',
+                          false,
+                          { keyPrefix: 'top-', categoryFilter: isStartCat },
+                        );
+                        const samenBottom = renderDepartmentSection(
+                          'Samen / Laatste loodjes',
+                          'samen',
+                          false,
+                          { keyPrefix: 'bottom-', categoryFilter: (c) => !isStartCat(c) },
+                        );
+                        const rest = order
+                          .map(({ key, label }) => renderDepartmentSection(label, key))
                           .filter(Boolean);
+                        const vitrineIdx = rest.length; // vitrine staat al achteraan in `rest`
+                        const sections = [
+                          samenTop,
+                          ...rest.slice(0, Math.max(0, vitrineIdx - (WEST_SECTIONS.some(s => s.key === 'vitrine') ? 1 : 0))),
+                          samenBottom,
+                          ...rest.slice(Math.max(0, vitrineIdx - (WEST_SECTIONS.some(s => s.key === 'vitrine') ? 1 : 0))),
+                        ].filter(Boolean);
                         if (sections.length === 0) {
                           return (
                             <div style={{
