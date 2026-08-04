@@ -1,115 +1,78 @@
-# West-takenlijst: secties Bediening / Keuken / Samen
+# West open-fase: gestandaardiseerde openlijst toevoegen
 
-Doel: de West-lijst opdelen in drie vaste secties met eigen kop en voortgang, met daarbinnen de bestaande categorieën. "Bijvullen & legen" wordt gesplitst in "Bijvullen bar" (Bediening) en "Bijvullen keuken" (Keuken).
+Alles als dagelijkse templates (`foh_daily_templates`, phase `open`, `repeat_type='daily'`, `is_active=true`), zodat ze elke dag opnieuw verschijnen. Midsland blijft ongemoeid. Geen bestaande taak wordt verwijderd zonder akkoord.
 
-## Sectie-indeling (goedgekeurd)
+## Huidige open-fase West (opgehaald)
 
 **Bediening**
-1. Deel 1 (alleen open)
-2. Bar
-3. Bijvullen bar (nieuw)
-4. Schoonmaak Bar
-5. shop
-6. Terras
+- Deel 1 (10): Inklokken · Kussens naar terras · Bakjes en plantjes op tafels · Tafels schoonmaken (binnen + buiten) · Terras vegen · Stofzuigen en dweilen · Kassa tellen
+- Bar (20): Waterkaraf vullen · Sinaasappels halveren · Fles water bij juicer · Mini-gardes in glaasje water · Siropen op bar · Muntblaadjes op bar · Koffiemachine uit eco-stand
+- shop (50): Ziet de shop er verzorgd uit?
 
 **Keuken**
-1. Ontdooien (vriezer -> koelcel)  — bovenaan
-2. Keuken
-3. Bijvullen keuken (nieuw)
+- Bijvullen keuken (30): Check MEP lijst whiteboard, zijn er dingen die je kan maken?
 
-**Samen / Laatste loodjes**
-1. Sanitair
-2. Extra
-3. Algemeen
-4. Laatste Loodjes
+**Samen**
+- Extra (20): Planten watergeven
 
-## Splitsing "Bijvullen & legen" (21 taken)
+Bestaande categorie-volgorde West (alle fases): bediening 10 Deel 1, 20 Bar, 30 Bijvullen bar, 40 Schoonmaak Bar, 50 shop, 60 Terras · keuken 10 Ontdooien, 20 Keuken, 30 Bijvullen keuken · samen 10 Sanitair, 20 Extra, 30 Algemeen, 40 Laatste Loodjes.
 
-Naar **Bijvullen bar** (13):
-Bananencake aanvullen vanuit vitrine · Broodbakken aanvullen (Pita, brioche, deugniet) · Fruit garnering aanvullen (FIFO) · Fruit koellade aanvullen · Fruit vrieslade aanvullen · Glasbak legen · Koffiebonen bijvullen in hopper · Kokosmelk bijvullen · Limonadeflessen aanvullen · Melk en frisdrank bijvullen · Sinaasappelsap bijvullen · Smoothies maken voor de volgende dag · Takeaway bekers & deksels
+## Dubbelingen / overlap — voorstel
 
-Naar **Bijvullen keuken** (8):
-Bananenpannenkoeken aanvullen vanuit vriezer · Forel aanvullen · Gerookte zalm aanvullen · Op reserve hoge 1/9e bak (Hüttenkäse, cranberry, kokosyoghurt, avocado spread) · Op reserve midden 1/9e (relish, wortelspread, pesto) · Toppings pas aanvullen · Zuurdesem stokbrood in 3en snijden · Check MEP lijst whiteboard (open-fase)
+| Nieuw | Bestaand (open) | Voorstel |
+|---|---|---|
+| Water voor de juicer klaarzetten | Bar: "Fles water bij juicer" | **Samenvoegen** — nieuwe taak niet aanmaken, bestaande verplaatsen naar "Machines & klaarzetten" |
+| Glaasje water voor de chai-garde | Bar: "Mini-gardes in glaasje water" | **Samenvoegen** — bestaande verplaatsen naar "Machines & klaarzetten" |
+| Tafels binnen / buiten afnemen met doekje | Deel 1: "Tafels schoonmaken (binnen + buiten)" | **Vervangen** — oude template deactiveren, twee nieuwe (binnen / buiten) in "Zaal & terras" |
+| Smoothies maken | Bijvullen bar (**sluit**): "Smoothies maken voor de volgende dag" | **Beide houden** — verschillende fases (sluit = voorbereiden, open = aanvullen indien op) |
+| — | Bijvullen keuken (open): "Check MEP lijst whiteboard" | Geen dubbeling met de nieuwe lijst; blijft staan |
 
-## Fase "Periodiek"
+Alle overige nieuwe taken hebben geen tegenhanger.
 
-Gecontroleerd: `foh_category_order` bevat alleen rijen voor open/tussen/borrel/sluit (een check-constraint laat geen andere waarde toe) en West heeft momenteel geen actieve periodieke taken (`phase IS NULL`). Er is dus niets extra's mee te nemen; periodieke taken blijven buiten de sectie-indeling en worden onderaan als eigen blok getoond.
+## Nieuwe categorieën + sort_order
 
+Rijen in `foh_category_order` voor **alle vier fases** (open/tussen/borrel/sluit), consistent met de bestaande opzet; bestaande categorieën schuiven op.
+
+**samen**: 5 Binnenkomst · 10 Sanitair · 20 Extra · 30 Algemeen · 40 Laatste Loodjes
+
+**bediening**: 10 Deel 1 · 15 Machines & klaarzetten · 20 Bar · 25 Vers & bijvullen · 28 Zaal & terras · 30 Bijvullen bar · 40 Schoonmaak Bar · 50 shop · 60 Terras · 70 Admin
+
+**keuken**: 5 Apparatuur aan · 10 Ontdooien (vriezer → koelcel) · 12 Koelcel-ronde · 14 Afbakken — brood · 16 Afbakken — croissants · 18 Warm eten · 20 Keuken · 30 Bijvullen keuken
+
+## Taken per categorie (open-fase)
+
+**SAMEN — Binnenkomst** (13, sort_order 10..130): Poort openen — code 2020 · Sleutel van het randje pakken · Schuur openen · Licht tussenstukje aan · Licht koelcel aan · Licht vriescel aan · Deur naar binnen openen · Sleutel op haakje hangen bij wasmachine · Licht binnen aan · Vaatwasser aan · Licht linker vitrine aan · Licht + aanknop middelste vitrine aan · Check: licht rechter vitrine brandt (staat altijd aan i.v.m. boter en jam)
+
+**BEDIENING — Machines & klaarzetten** (6): Sopje klaarzetten onder koffiemachine en in de wasbak in de keuken · Glaasje water voor de chai-garde (verplaatst) · Water voor de juicer klaarzetten (verplaatst) · Deksels van de theebakjes af · Telefoons checken op batterij en aan de lader · Muziek aan
+
+**BEDIENING — Vers & bijvullen** (3): Limoensapfles vullen/persen · Smoothies maken · Servetjes in de bestekblikjes
+
+**BEDIENING — Zaal & terras** (2): Tafels binnen afnemen met doekje · Tafels buiten afnemen met doekje
+
+**BEDIENING — Admin** (2): Mail checken · Agenda checken
+
+**KEUKEN — Apparatuur aan** (3): Oven aan — 210 °C, hete lucht · Bain-marie aan · Tosti-ijzer aan
+
+**KEUKEN — Koelcel-ronde** (3): Alle bakken die op de grond staan in de koelcel mee naar binnen · Grijze bak met potten mee naar binnen · Deksels van de potten halen en schoonmaken — potten zelf indien nodig
+
+**KEUKEN — Afbakken — brood** (6): Pastel de nata van gisteren: 4 min in de oven — nieuwe: 10 min · Brood checken en in de lades: bovenin brioche + pita · midden up north + stokbrood · onderin panini (evt. flatbread) · Up north broodjes afbakken (indien nodig) — 30/185, 8 min · Brood van Menno afbakken voor verkoop: 1× spelt, 1× tarwe bruin, 1× meerzaden + 2–3 stokbroden. Stokbrood uit de vriezer, Menno-brood ligt ontdooid in de koelcel — 40/200, 8 min · 2 grote broden afbakken (ook voor toast) — Nederlands graan of horecabrood van Menno · Manden vullen: 1 spelt · 1 meerzaden · 1 tarwe bruin · 2–3 stokbroden · 2 grote broden
+
+**KEUKEN — Afbakken — croissants** (4): 8 roomboter croissants afbakken — 180 °C, 20 min · 6 chocolade croissants afbakken — (instelling volgt) · 6 pistache croissants afbakken — (instelling volgt) · Gevulde croissants afbakken — via het croissant-programma van de oven
+
+**KEUKEN — Warm eten** (2): Soep opwarmen · Kip en ei van gisteren in de oven — 30/185, tot warm
+
+Totaal nieuw aan te maken: **42 templates** (44 uit de lijst minus 2 samengevoegde juicer/chai-taken), plus 2 verplaatsingen en 1 vervanging.
 
 ## Technisch
 
-Het bestaande `department`-veld wordt voor West hergebruikt met de waarden `bediening`, `keuken`, `samen` (Midsland/overige locaties blijven `voorkant`/`achterkant`, ongewijzigd). Geen nieuwe kolommen nodig; `foh_tasks`, `foh_daily_templates` en `foh_category_order` hebben allemaal al `department`.
+- Categorie-rijen via `INSERT` in `foh_category_order` (location West, 4 fases × 8 nieuwe categorieën) plus `UPDATE` van `sort_order` voor bestaande categorieën.
+- Nieuwe templates via de insert-tool: `location='West'`, `phase='open'`, `repeat_type='daily'`, `is_active=true`, `priority=2`, `department` per sectie, `sort_order` per 10 oplopend, `category` zoals hierboven.
+- Verplaatsingen: `UPDATE foh_daily_templates SET category='Machines & klaarzetten'` voor de twee bar-taken; `is_active=false` voor "Tafels schoonmaken (binnen + buiten)".
+- De DB-trigger `create_task_from_new_template` maakt de taken meteen voor vandaag aan; vanaf morgen loopt het via de dagelijkse reset.
+- Geen frontend-wijzigingen nodig: secties en categorie-volgorde komen uit de database.
 
-### Migratie-SQL (uit te voeren na akkoord)
+## Verificatie na uitvoering
 
-```sql
--- 0. Backup van de huidige West-volgorde (terugdraaibaar)
-CREATE TABLE IF NOT EXISTS public.foh_category_order_backup_west AS
-SELECT *, now() AS backup_at FROM public.foh_category_order WHERE location='West';
--- GRANTs: alleen service_role (interne backup, geen Data API-toegang nodig)
-
--- 1. Bijvullen splitsen in templates (West)
-UPDATE public.foh_daily_templates SET category = 'Bijvullen keuken'
-WHERE location='West' AND category='Bijvullen & legen' AND (
-  title ILIKE 'Bananenpannenkoeken%' OR title ILIKE 'Forel%' OR title ILIKE 'Gerookte zalm%'
-  OR title ILIKE 'Op reserve%' OR title ILIKE 'Zuudesem%' OR title ILIKE 'Zuurdesem%'
-  OR title ILIKE 'Toppings pas%' OR title ILIKE 'Check MEP lijst%');
-
-
-UPDATE public.foh_daily_templates SET category = 'Bijvullen bar'
-WHERE location='West' AND category='Bijvullen & legen';
-
--- 2. Zelfde splitsing voor lopende (niet-gearchiveerde) taken
-UPDATE public.foh_tasks SET category='Bijvullen keuken'
-WHERE location='West' AND category='Bijvullen & legen' AND archived=false AND (
-  title ILIKE 'Bananenpannenkoeken%' OR title ILIKE 'Forel%' OR title ILIKE 'Gerookte zalm%'
-  OR title ILIKE 'Op reserve%' OR title ILIKE 'Zuudesem%' OR title ILIKE 'Zuurdesem%'
-  OR title ILIKE 'Toppings pas%' OR title ILIKE 'Check MEP lijst%');
-
-UPDATE public.foh_tasks SET category='Bijvullen bar'
-WHERE location='West' AND category='Bijvullen & legen' AND archived=false;
-
--- 3. Department zetten per categorie (templates + taken)
-WITH m(cat, dept) AS (VALUES
-  ('Deel 1','bediening'),('Bar','bediening'),('Bijvullen bar','bediening'),
-  ('Schoonmaak Bar','bediening'),('shop','bediening'),('Terras','bediening'),
-  ('Ontdooien (vriezer → koelcel)','keuken'),('Keuken','keuken'),('Bijvullen keuken','keuken'),
-  ('Sanitair','samen'),('Extra','samen'),('Algemeen','samen'),('Laatste Loodjes','samen'))
-UPDATE public.foh_daily_templates t SET department = m.dept
-FROM m WHERE t.location='West' AND lower(t.category)=lower(m.cat);
-
-WITH m(cat, dept) AS (VALUES
-  ('Deel 1','bediening'),('Bar','bediening'),('Bijvullen bar','bediening'),
-  ('Schoonmaak Bar','bediening'),('shop','bediening'),('Terras','bediening'),
-  ('Ontdooien (vriezer → koelcel)','keuken'),('Keuken','keuken'),('Bijvullen keuken','keuken'),
-  ('Sanitair','samen'),('Extra','samen'),('Algemeen','samen'),('Laatste Loodjes','samen'))
-UPDATE public.foh_tasks t SET department = m.dept
-FROM m WHERE t.location='West' AND lower(t.category)=lower(m.cat);
-
--- 4. Volgorde-tabel herbouwen voor West (alle fases), sectie-volgorde in sort_order
-DELETE FROM public.foh_category_order WHERE location='West';
-
-INSERT INTO public.foh_category_order (location, department, phase, category, sort_order)
-SELECT 'West', v.dept, p.phase, v.cat, v.ord
-FROM (VALUES ('open'),('tussen'),('borrel'),('sluit')) AS p(phase),
-(VALUES
-  ('bediening','Deel 1',10),('bediening','Bar',20),('bediening','Bijvullen bar',30),
-  ('bediening','Schoonmaak Bar',40),('bediening','shop',50),('bediening','Terras',60),
-  ('keuken','Ontdooien (vriezer → koelcel)',10),('keuken','Keuken',20),('keuken','Bijvullen keuken',30),
-  ('samen','Sanitair',10),('samen','Extra',20),('samen','Algemeen',30),('samen','Laatste Loodjes',40)
-) AS v(dept,cat,ord);
-```
-
-### Frontend-aanpassingen
-
-- `src/lib/foh-category-order.ts`: `Department` uitbreiden met `'bediening' | 'keuken' | 'samen'`; helpers generiek maken over departments.
-- `src/components/foh/FohTasks.tsx`: West rendert drie sectiekoppen (Bediening / Keuken / Samen) met eigen voortgangsbalk en inklapbaarheid; binnen elke sectie de categorieën op `sort_order`. Midsland-gedrag ongewijzigd.
-- `src/pages/TakenBeheer.tsx`: voor West een sectiekeuze (Bediening/Keuken/Samen) i.p.v. de vaste `voorkant`; categorie-volgorde en hernoemen/verwijderen per sectie.
-- `src/components/foh/ListManager.tsx`: nieuwe taak krijgt automatisch het department van de gekozen categorie.
-- `supabase/functions/reset-daily-tasks`: department mee overnemen vanuit template bij dagelijkse generatie (controleren; zo niet, toevoegen).
-
-### Verificatie na uitvoering
-
-1. Query: 0 rijen `foh_daily_templates`/`foh_tasks` (West, niet-gearchiveerd) met `category='Bijvullen & legen'` of `department='voorkant'`.
-2. `/taken-bediening` West toont drie secties in de juiste volgorde, Ontdooien bovenaan in Keuken.
-3. Categorie verplaatsen in `/taken/beheer` slaat direct door naar de live lijst binnen de eigen sectie.
+1. Query: West open-fase telt de nieuwe categorieën met de juiste `department` en `sort_order`.
+2. `/taken-bediening` West toont Binnenkomst bovenaan in Samen, Apparatuur aan bovenaan in Keuken.
+3. Geen taak met `department='voorkant'` of ontbrekende categorie-rij.
