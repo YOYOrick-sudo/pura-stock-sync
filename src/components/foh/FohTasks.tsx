@@ -3287,12 +3287,21 @@ export function FohTasks() {
                       {userLocation === 'West' ? (() => {
                         // Drie vaste secties: Bediening, Keuken, Samen.
                         // Apparaat-modus bepaalt alleen welke sectie bovenaan staat.
+                        // In de open-fase begint iedereen sámen (poort, licht, vitrines),
+                        // dus die sectie staat dan bovenaan en heet 'Samen / Opstarten'.
+                        const isOpen = activePhase === 'open';
                         const order = WEST_SECTIONS.slice().sort((a, b) => {
-                          const w = (k: string) => (k === deviceMode ? -1 : 0);
+                          const w = (k: string) => {
+                            if (isOpen && k === 'samen') return -2;
+                            return k === deviceMode ? -1 : 0;
+                          };
                           return w(a.key as string) - w(b.key as string);
                         });
                         const sections = order
-                          .map(({ key, label }) => renderDepartmentSection(label, key))
+                          .map(({ key, label }) => renderDepartmentSection(
+                            key === 'samen' && isOpen ? 'Samen / Opstarten' : label,
+                            key,
+                          ))
                           .filter(Boolean);
                         if (sections.length === 0) {
                           return (
