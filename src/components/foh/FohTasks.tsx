@@ -3293,19 +3293,16 @@ export function FohTasks() {
                   >
                     <div>
                       {userLocation === 'West' ? (() => {
-                        // Secties: Samen (opstarten) → Bediening/Keuken → Samen (afronden) → Vitrine.
+                        // Secties: Samen (opstarten) → Bediening/Keuken → Samen (afronden).
                         // 'Samen' komt dus twee keer terug: aan het begin (binnenkomst) en
-                        // helemaal aan het einde (afronden / laatste loodjes).
+                        // helemaal aan het einde (afronden / laatste loodjes, incl. Vitrine).
                         const isOpen = activePhase === 'open';
                         const START_CATS = ['binnenkomst'];
                         const isStartCat = (c: string) => START_CATS.includes(c.toLowerCase());
                         const order = WEST_SECTIONS.filter(s => s.key !== 'samen')
                           .slice()
                           .sort((a, b) => {
-                            const w = (k: string) => {
-                              if (k === 'vitrine') return 10; // altijd als laatste, na keuken
-                              return k === deviceMode ? -1 : 0;
-                            };
+                            const w = (k: string) => (k === deviceMode ? -1 : 0);
                             return w(a.key as string) - w(b.key as string);
                           });
                         const samenTop = renderDepartmentSection(
@@ -3320,17 +3317,11 @@ export function FohTasks() {
                           false,
                           { keyPrefix: 'bottom-', categoryFilter: (c) => !isStartCat(c) },
                         );
-                        const rendered = order.map(({ key, label }) => ({
-                          key,
-                          node: renderDepartmentSection(label, key),
-                        }));
-                        const middle = rendered.filter(r => r.key !== 'vitrine').map(r => r.node);
-                        const vitrine = rendered.filter(r => r.key === 'vitrine').map(r => r.node);
+                        const middle = order.map(({ key, label }) => renderDepartmentSection(label, key));
                         const sections = [
                           samenTop,
                           ...middle,
                           samenBottom,
-                          ...vitrine,
                         ].filter(Boolean);
                         if (sections.length === 0) {
                           return (
