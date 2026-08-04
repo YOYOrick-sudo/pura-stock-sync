@@ -3292,6 +3292,7 @@ export function FohTasks() {
                         const isOpen = activePhase === 'open';
                         const order = WEST_SECTIONS.slice().sort((a, b) => {
                           const w = (k: string) => {
+                            if (k === 'vitrine') return 10; // altijd als laatste, na keuken
                             if (isOpen && k === 'samen') return -2;
                             return k === deviceMode ? -1 : 0;
                           };
