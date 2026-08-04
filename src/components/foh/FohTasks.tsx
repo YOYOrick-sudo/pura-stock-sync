@@ -3225,13 +3225,21 @@ export function FohTasks() {
                   );
                 };
 
-                const renderDepartmentSection = (label: string, dept: Department, flat = false) => {
+                const renderDepartmentSection = (
+                  label: string,
+                  dept: Department,
+                  flat = false,
+                  opts?: { keyPrefix?: string; categoryFilter?: (cat: string) => boolean },
+                ) => {
                   const isWestSection = userLocation === 'West';
-                  const deptTasks = currentTasks.filter((t: any) =>
+                  let deptTasks = currentTasks.filter((t: any) =>
                     isWestSection
                       ? westSectionOf(t.department) === dept
                       : (t.department ?? 'voorkant') === dept
                   );
+                  if (opts?.categoryFilter) {
+                    deptTasks = deptTasks.filter((t: any) => opts.categoryFilter!((t.category ?? '').trim()));
+                  }
                   if (isWestSection && deptTasks.length === 0) return null;
 
                   const completed = deptTasks.filter(t => t.completed).length;
