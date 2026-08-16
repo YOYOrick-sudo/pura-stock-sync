@@ -1,34 +1,31 @@
-# Recepten toevoegen aan West
-
-Drie halffabricaten uit de aangeleverde screenshots worden als recept in de keukenmodule gezet, met locatie West.
+# Sluittaak West: afwasmeuk door de vaat (met foto)
 
 ## Wat er komt
 
-**1. Kokosmakroon** — categorie Sweets, halffabricaat, 4 dagen houdbaar, 50 stuks
-- 400 gr kokos geraspt gedroogd gemalen
-- 400 gr suiker
-- 260 gr eiwit scharrel
-- Bereiding: alles in een pan, rustig op laag vuur; blijven roeren tot het mengsel plakkerig genoeg is; met kleine ijslepel bolletjes op bakplaat met bakpapier; afbakken 160-170 °C, 10-20 min.
+Eén nieuwe taak in de sluitlijst van West, sectie **Samen / Laatste Loodjes**:
 
-**2. Döner** — categorie Vega, halffabricaat, 3 dagen houdbaar, 1 kg
-- 1 kg döner kebab
-- 1 1/2 el shoarma kruiden
-- 1 el komijn
-- zonnebloemolie
-- Bereiding: alles door elkaar hussellen; in braadslee; oven 60/170 5 min; daarna 30/170 5 min. Opslag: koel af, in bak, sticker erop.
+- **Titel:** `Afwasmeuk door de vaat`
+- **Info-tekst:** "Het bakje met klein afwasgerei (schuursponsjes, borstels, rasp, doseerdoppen) bij de spoelbak leegmaken en alles door de vaatwasser halen. Bakje zelf ook schoonmaken."
+- **Foto:** de geüploade foto van het witte bakje, aanklikbaar vanuit het info-icoon.
 
-**3. Kruidenbus** — categorie Kruiden, halffabricaat, 3 dagen houdbaar, 1 kg
-- 1 el Suprasel fijn zout
-- 1 el paprikapoeder hon.
-- 1 el kerriepoeder massala
-- 1 el peper wit gemalen (Kooyman)
-- Bereiding: meng alle ingrediënten.
+Suggestie voor volgorde: onderaan Laatste Loodjes, samen met de andere afsluitende schoonmaakacties.
 
-## Aandachtspunt
+## Foto in taken
 
-Er staat al een recept "Döner kebab" (categorie Vega) in de lijst zonder locatie. Ik voeg de West-versie toe als apart recept; het oude blijft ongewijzigd staan. Wil je liever dat het bestaande recept naar West wordt gezet in plaats van een tweede regel, laat het weten.
+Taken hebben nu alleen een tekstuele omschrijving (info-icoon → popup met tekst). Dit wordt uitgebreid:
+
+- Info-popup toont bovenaan de foto (indien aanwezig) en daaronder de tekst.
+- Klik/tik op de foto opent hem groot (full-screen overlay), zodat het team detail kan zien.
+- Taken met foto krijgen een klein camera-icoontje naast het info-icoon, zodat zichtbaar is dat er beeld bij zit.
 
 ## Technisch
 
-- Rijen in `recipes` (type `halffabricaat`, `location = 'West'`, `tht_dagen`, `porties`, `bereiding`) plus bijbehorende regels in `recept_ingredienten` (naam, hoeveelheid, eenheid, sort_order).
-- Data-invoer via de insert-tool, geen schema- of codewijzigingen nodig.
+- Nieuwe kolom `foto_url text` op `foh_daily_templates` en `foh_tasks` (nullable, geen impact op bestaande taken).
+- De foto wordt als CDN-asset opgeslagen (lovable-assets) en die URL komt in `foto_url` — geen storage-bucket of uploadflow nodig voor deze eerste taak.
+- `FohTasks.tsx`: `foto_url` meenemen in select/insert/update-paden en in de info-popup renderen; nieuwe lichtgewicht lightbox-component.
+- Template-editor: `foto_url` blijft behouden bij bewerken/opslaan (nog geen upload-UI in de admin — dat kan later als er meer foto-taken komen).
+- Data: template invoegen voor West/sluit/samen/Laatste Loodjes én de taak voor vandaag aanmaken, zodat hij vanavond al in de lijst staat.
+
+## Later (niet nu)
+
+Upload-knop in de template-editor met een `foh-task-photos` bucket, zodat managers zelf foto's aan taken kunnen hangen.
