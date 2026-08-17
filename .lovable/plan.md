@@ -4,7 +4,7 @@
 
 Eén nieuwe taak in de sluitlijst van West, sectie **Samen / Laatste Loodjes**:
 
-- **Titel:** `Afwasmeuk door de vaat`
+- **Titel:** `Schoonmaakgerei door de vaat`
 - **Info-tekst:** "Het bakje met klein afwasgerei (schuursponsjes, borstels, rasp, doseerdoppen) bij de spoelbak leegmaken en alles door de vaatwasser halen. Bakje zelf ook schoonmaken."
 - **Foto:** de geüploade foto van het witte bakje, aanklikbaar vanuit het info-icoon.
 
