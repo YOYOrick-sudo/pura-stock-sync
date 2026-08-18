@@ -2185,6 +2185,7 @@ export function FohTasks() {
       sort_order: maxSortOrder + 10,
       estimated_minutes: null,
       description: null,
+      foto_url: null,
       phase: editingTemplate[0]?.phase || activePhase,
       location: editingTemplate[0]?.location || userLocation,
       priority: 2,
