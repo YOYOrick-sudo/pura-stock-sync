@@ -184,6 +184,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
 
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState(task.description || '');
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   
   // Touch feedback state (tablet only)
   const isTablet = useIsTablet();
