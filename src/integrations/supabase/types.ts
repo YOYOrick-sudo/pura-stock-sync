@@ -700,6 +700,7 @@ export type Database = {
           department: string
           description: string | null
           estimated_minutes: number | null
+          foto_url: string | null
           id: string
           is_active: boolean
           location: string
@@ -717,6 +718,7 @@ export type Database = {
           department?: string
           description?: string | null
           estimated_minutes?: number | null
+          foto_url?: string | null
           id?: string
           is_active?: boolean
           location: string
@@ -734,6 +736,7 @@ export type Database = {
           department?: string
           description?: string | null
           estimated_minutes?: number | null
+          foto_url?: string | null
           id?: string
           is_active?: boolean
           location?: string
@@ -781,6 +784,7 @@ export type Database = {
           description: string | null
           due_date: string
           estimated_minutes: number | null
+          foto_url: string | null
           id: string
           location: string
           phase: string | null
@@ -803,6 +807,7 @@ export type Database = {
           description?: string | null
           due_date: string
           estimated_minutes?: number | null
+          foto_url?: string | null
           id?: string
           location: string
           phase?: string | null
@@ -825,6 +830,7 @@ export type Database = {
           description?: string | null
           due_date?: string
           estimated_minutes?: number | null
+          foto_url?: string | null
           id?: string
           location?: string
           phase?: string | null

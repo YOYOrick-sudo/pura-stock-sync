@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Loader2, Plus, Check, ChevronsUpDown, Trash2, Info, Pencil, Settings, Shield, X, GripVertical, BookTemplate, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { Loader2, Plus, Check, ChevronsUpDown, Trash2, Info, Pencil, Settings, Shield, X, GripVertical, BookTemplate, ChevronDown, ChevronUp, Sparkles, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { toZonedTime } from 'date-fns-tz';
@@ -184,6 +184,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
 
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState(task.description || '');
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   
   // Touch feedback state (tablet only)
   const isTablet = useIsTablet();
@@ -449,7 +450,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
 
 
             {/* Info button - compact */}
-            {!isEditMode && task.description && (
+            {!isEditMode && (task.description || task.foto_url) && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -471,7 +472,11 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 }}
                 title="Bekijk info"
               >
-                <Info size={16} style={{ color: 'hsl(var(--primary))' }} />
+                {task.foto_url ? (
+                  <Camera size={16} style={{ color: 'hsl(var(--primary))' }} />
+                ) : (
+                  <Info size={16} style={{ color: 'hsl(var(--primary))' }} />
+                )}
               </button>
             )}
 
@@ -557,6 +562,36 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 </DialogTitle>
               </DialogHeader>
               <div style={{ padding: '16px 0' }}>
+                {!showAdminTools && task.foto_url && (
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setLightboxOpen(true);
+                    }}
+                    style={{
+                      width: '100%',
+                      maxHeight: '220px',
+                      borderRadius: '16px',
+                      overflow: 'hidden',
+                      marginBottom: '16px',
+                      cursor: 'pointer',
+                      border: '1px solid hsl(var(--border))',
+                      backgroundColor: 'hsl(var(--muted))',
+                    }}
+                  >
+                    <img
+                      src={task.foto_url}
+                      alt="Taak foto"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        maxHeight: '220px',
+                        objectFit: 'contain',
+                        display: 'block',
+                      }}
+                    />
+                  </div>
+                )}
                 {showAdminTools && onDescriptionChange ? (
                   <Textarea
                     value={descriptionValue}
@@ -612,6 +647,35 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
               </DialogFooter>
             </DialogContent>
           </Dialog>
+        )}
+
+        {/* Lightbox for task photo */}
+        {lightboxOpen && task.foto_url && (
+          <div
+            onClick={() => setLightboxOpen(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '24px',
+              cursor: 'zoom-out',
+            }}
+          >
+            <img
+              src={task.foto_url}
+              alt="Taak foto vergroot"
+              style={{
+                maxWidth: '100%',
+                maxHeight: '100%',
+                objectFit: 'contain',
+                borderRadius: '12px',
+              }}
+            />
+          </div>
         )}
       </div>
     </div>
@@ -1360,6 +1424,7 @@ export function FohTasks() {
         estimated_minutes: template.estimated_minutes,
         sort_order: template.sort_order,
         description: template.description,
+        foto_url: template.foto_url,
         department: (template as any).department ?? (userLocation === 'West' ? 'samen' : 'voorkant'),
       }));
 
@@ -1748,6 +1813,7 @@ export function FohTasks() {
             sort_order: task.sort_order,
             category: task.category,
             description: task.description,
+            foto_url: task.foto_url,
           })
           .eq('id', task.id);
         
@@ -1888,6 +1954,7 @@ export function FohTasks() {
         estimated_minutes: task.estimated_minutes,
         sort_order: task.sort_order,
         description: task.description,
+        foto_url: task.foto_url,
         repeat_type: 'daily',
         template_name: currentTemplateName,
         is_active: true,
@@ -2036,6 +2103,7 @@ export function FohTasks() {
           estimated_minutes: task.estimated_minutes,
           sort_order: task.sort_order,
           description: task.description,
+          foto_url: task.foto_url,
           repeat_type: 'daily',
           template_name: newTemplateName.trim(),
           is_active: false,
@@ -2117,6 +2185,7 @@ export function FohTasks() {
       sort_order: maxSortOrder + 10,
       estimated_minutes: null,
       description: null,
+      foto_url: null,
       phase: editingTemplate[0]?.phase || activePhase,
       location: editingTemplate[0]?.location || userLocation,
       priority: 2,
@@ -2153,6 +2222,7 @@ export function FohTasks() {
             sort_order: task.sort_order,
             category: task.category,
             description: task.description,
+            foto_url: task.foto_url,
             estimated_minutes: task.estimated_minutes,
           })
           .eq('id', task.id);
@@ -2172,6 +2242,7 @@ export function FohTasks() {
             sort_order: task.sort_order,
             category: task.category,
             description: task.description,
+            foto_url: task.foto_url,
             estimated_minutes: task.estimated_minutes,
           })
           .eq('template_id', task.id)
@@ -2203,6 +2274,7 @@ export function FohTasks() {
             estimated_minutes: task.estimated_minutes,
             sort_order: task.sort_order,
             description: task.description,
+            foto_url: task.foto_url,
             department: task.department ?? effectiveDept,
           })
           .select('id, is_active')
@@ -2228,6 +2300,7 @@ export function FohTasks() {
               estimated_minutes: task.estimated_minutes,
               sort_order: task.sort_order,
               description: task.description,
+              foto_url: task.foto_url,
               department: task.department ?? effectiveDept,
               due_date: todayNL,
             });
