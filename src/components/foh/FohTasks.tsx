@@ -1424,6 +1424,7 @@ export function FohTasks() {
         estimated_minutes: template.estimated_minutes,
         sort_order: template.sort_order,
         description: template.description,
+        foto_url: template.foto_url,
         department: (template as any).department ?? (userLocation === 'West' ? 'samen' : 'voorkant'),
       }));
 
@@ -1812,6 +1813,7 @@ export function FohTasks() {
             sort_order: task.sort_order,
             category: task.category,
             description: task.description,
+            foto_url: task.foto_url,
           })
           .eq('id', task.id);
         
@@ -1952,6 +1954,7 @@ export function FohTasks() {
         estimated_minutes: task.estimated_minutes,
         sort_order: task.sort_order,
         description: task.description,
+        foto_url: task.foto_url,
         repeat_type: 'daily',
         template_name: currentTemplateName,
         is_active: true,
@@ -2100,6 +2103,7 @@ export function FohTasks() {
           estimated_minutes: task.estimated_minutes,
           sort_order: task.sort_order,
           description: task.description,
+          foto_url: task.foto_url,
           repeat_type: 'daily',
           template_name: newTemplateName.trim(),
           is_active: false,
