@@ -450,7 +450,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
 
 
             {/* Info button - compact */}
-            {!isEditMode && task.description && (
+            {!isEditMode && (task.description || task.foto_url) && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -472,7 +472,11 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 }}
                 title="Bekijk info"
               >
-                <Info size={16} style={{ color: 'hsl(var(--primary))' }} />
+                {task.foto_url ? (
+                  <Camera size={16} style={{ color: 'hsl(var(--primary))' }} />
+                ) : (
+                  <Info size={16} style={{ color: 'hsl(var(--primary))' }} />
+                )}
               </button>
             )}
 
