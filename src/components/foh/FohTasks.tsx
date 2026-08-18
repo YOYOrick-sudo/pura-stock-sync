@@ -562,6 +562,36 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                 </DialogTitle>
               </DialogHeader>
               <div style={{ padding: '16px 0' }}>
+                {!showAdminTools && task.foto_url && (
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setLightboxOpen(true);
+                    }}
+                    style={{
+                      width: '100%',
+                      maxHeight: '220px',
+                      borderRadius: '16px',
+                      overflow: 'hidden',
+                      marginBottom: '16px',
+                      cursor: 'pointer',
+                      border: '1px solid hsl(var(--border))',
+                      backgroundColor: 'hsl(var(--muted))',
+                    }}
+                  >
+                    <img
+                      src={task.foto_url}
+                      alt="Taak foto"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        maxHeight: '220px',
+                        objectFit: 'contain',
+                        display: 'block',
+                      }}
+                    />
+                  </div>
+                )}
                 {showAdminTools && onDescriptionChange ? (
                   <Textarea
                     value={descriptionValue}
@@ -617,6 +647,35 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
               </DialogFooter>
             </DialogContent>
           </Dialog>
+        )}
+
+        {/* Lightbox for task photo */}
+        {lightboxOpen && task.foto_url && (
+          <div
+            onClick={() => setLightboxOpen(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '24px',
+              cursor: 'zoom-out',
+            }}
+          >
+            <img
+              src={task.foto_url}
+              alt="Taak foto vergroot"
+              style={{
+                maxWidth: '100%',
+                maxHeight: '100%',
+                objectFit: 'contain',
+                borderRadius: '12px',
+              }}
+            />
+          </div>
         )}
       </div>
     </div>
