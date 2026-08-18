@@ -2222,6 +2222,7 @@ export function FohTasks() {
             sort_order: task.sort_order,
             category: task.category,
             description: task.description,
+            foto_url: task.foto_url,
             estimated_minutes: task.estimated_minutes,
           })
           .eq('id', task.id);
@@ -2241,6 +2242,7 @@ export function FohTasks() {
             sort_order: task.sort_order,
             category: task.category,
             description: task.description,
+            foto_url: task.foto_url,
             estimated_minutes: task.estimated_minutes,
           })
           .eq('template_id', task.id)
@@ -2272,6 +2274,7 @@ export function FohTasks() {
             estimated_minutes: task.estimated_minutes,
             sort_order: task.sort_order,
             description: task.description,
+            foto_url: task.foto_url,
             department: task.department ?? effectiveDept,
           })
           .select('id, is_active')
@@ -2297,6 +2300,7 @@ export function FohTasks() {
               estimated_minutes: task.estimated_minutes,
               sort_order: task.sort_order,
               description: task.description,
+              foto_url: task.foto_url,
               department: task.department ?? effectiveDept,
               due_date: todayNL,
             });
