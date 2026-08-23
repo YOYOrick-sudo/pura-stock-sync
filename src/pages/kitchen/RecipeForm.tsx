@@ -62,6 +62,49 @@ export default function RecipeForm() {
     { naam: '', hoeveelheid: '', eenheid: null, sort_order: 0, ingredient_id: null },
   ]);
   const [categoryTouched, setCategoryTouched] = useState(false);
+  const [editAllergenenId, setEditAllergenenId] = useState<string | null>(null);
+
+  // Allergenen: live afgeleid uit de gekoppelde ingrediënten
+  const { data: allergenenRows = [] } = useIngredientAllergenen();
+  const suggestMut = useSuggestAllergenen();
+  const confirmMut = useConfirmIngredientAllergenen();
+
+  const allergenenMap = useMemo(
+    () => new Map<string, IngredientAllergenen>(allergenenRows.map((a) => [a.id, a])),
+    [allergenenRows],
+  );
+
+  const afgeleid = useMemo(() => {
+    const bevat = new Set<AllergeenCode>();
+    const sporen = new Set<AllergeenCode>();
+    let onbekend = 0;
+    for (const row of ingredients) {
+      if (!row.naam.trim()) continue;
+      const info = row.ingredient_id ? allergenenMap.get(row.ingredient_id) : undefined;
+      if (!info || info.allergenen_status === 'onbekend') {
+        onbekend += 1;
+        continue;
+      }
+      (info.allergenen ?? []).forEach((c) => bevat.add(c));
+      (info.allergenen_sporen ?? []).forEach((c) => sporen.add(c));
+    }
+    return { bevat: Array.from(bevat), sporen: Array.from(sporen), onbekend };
+  }, [ingredients, allergenenMap]);
+
+  /** Stille AI-pass over ingrediënten die nog geen allergenen-info hebben. */
+  const suggestVoor = async (items: { id: string; naam: string }[]) => {
+    const todo = items.filter((i) => {
+      const info = allergenenMap.get(i.id);
+      return !info || info.allergenen_status === 'onbekend';
+    });
+    if (todo.length === 0) return;
+    try {
+      await suggestMut.mutateAsync(todo);
+    } catch {
+      /* stil: ingrediënt blijft 'onbekend' en wordt rood gemarkeerd */
+    }
+  };
+
 
   // Stil op de achtergrond: bij een nieuw recept een categorie voorstellen zodra er een naam is
   // en de gebruiker het veld niet zelf heeft aangeraakt. Geen UI-feedback, faalt stil.
