@@ -1,4 +1,6 @@
 import { useState, useMemo } from 'react';
+import { AllergenenBadges } from '@/components/kitchen/AllergenenBadges';
+import { useAlleReceptAllergenen } from '@/hooks/useAllergenen';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -84,17 +86,17 @@ export default function Recipes() {
           <Card className="bg-card shadow-sm overflow-hidden">
             {/* Desktop table */}
             <div className="hidden sm:block">
-              <div className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-4 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b bg-muted/30">
+              <div className="grid grid-cols-[2fr_1fr_1fr_1.5fr] gap-4 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b bg-muted/30">
                 <div>Naam</div>
                 <div>Categorie</div>
                 <div>Type</div>
-                <div>Ingrediënten</div>
+                <div>Allergenen</div>
               </div>
               {recipes.map((recipe) => (
                 <div
                   key={recipe.id}
                   onClick={() => navigate(`/kitchen/recipes/${recipe.id}`)}
-                  className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-4 px-5 py-4 items-center border-b last:border-b-0 cursor-pointer hover:bg-muted/40 transition-colors"
+                  className="grid grid-cols-[2fr_1fr_1fr_1.5fr] gap-4 px-5 py-4 items-center border-b last:border-b-0 cursor-pointer hover:bg-muted/40 transition-colors"
                 >
                   <div className="font-semibold text-foreground">{recipe.name}</div>
                   <div>
@@ -107,8 +109,12 @@ export default function Recipes() {
                   <div className="text-sm text-foreground">
                     {recipe.type === 'halffabricaat' ? 'Halffabricaat' : 'Recept'}
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    {recipe.ingredient_count ?? 0}
+                  <div>
+                    <AllergenenBadges
+                      size="sm"
+                      allergenen={allergenenMap?.get(recipe.id)?.allergenen ?? []}
+                      onbekend={allergenenMap?.get(recipe.id)?.onbekende_ingredienten ?? 0}
+                    />
                   </div>
                 </div>
               ))}
@@ -134,6 +140,12 @@ export default function Recipes() {
                       {recipe.ingredient_count ?? 0} ingrediënten
                     </span>
                   </div>
+                  <AllergenenBadges
+                    className="mt-1.5"
+                    size="sm"
+                    allergenen={allergenenMap?.get(recipe.id)?.allergenen ?? []}
+                    onbekend={allergenenMap?.get(recipe.id)?.onbekende_ingredienten ?? 0}
+                  />
                 </div>
               ))}
             </div>
