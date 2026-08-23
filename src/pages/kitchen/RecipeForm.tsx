@@ -469,9 +469,45 @@ export default function RecipeForm() {
                   <Trash2 className="h-5 w-5" />
                 </button>
               </div>
-            ))}
+              );
+            })}
+          </div>
+
+          {/* Allergenen — live afgeleid */}
+          <div className="mt-5 pt-4 border-t border-border/60">
+            <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+              <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Allergenen
+              </h3>
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-h-[36px]"
+                disabled={suggestMut.isPending}
+                onClick={() =>
+                  suggestVoor(
+                    ingredients
+                      .filter((i) => i.ingredient_id && i.naam.trim())
+                      .map((i) => ({ id: i.ingredient_id as string, naam: i.naam.trim() })),
+                  )
+                }
+              >
+                {suggestMut.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4 mr-1" />
+                )}
+                Ontbrekende aanvullen
+              </Button>
+            </div>
+            <AllergenenBadges
+              allergenen={afgeleid.bevat}
+              sporen={afgeleid.sporen}
+              onbekend={afgeleid.onbekend}
+            />
           </div>
         </Card>
+
 
         {/* Bereiding */}
         <Card className="p-5 sm:p-6 bg-card shadow-sm">
