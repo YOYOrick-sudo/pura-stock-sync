@@ -24,7 +24,7 @@ interface Props {
  * - "➕ toevoegen als nieuw" → insert in master (case-safe via ensureIngredientMaster).
  * - Vrij typen zonder kiezen mag: alleen naam, geen ingredient_id.
  */
-export function IngredientCombobox({ value, ingredientId, onChange, placeholder, className }: Props) {
+export function IngredientCombobox({ value, ingredientId, onChange, onCreated, placeholder, className }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [creating, setCreating] = useState(false);
