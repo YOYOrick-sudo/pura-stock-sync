@@ -19,6 +19,8 @@ export default function Recipes() {
 
   const { data: recipes = [], isLoading } = useRecipes(search, category);
   const { data: categories = [] } = useRecipeCategories();
+  const { data: allergenenMap } = useAlleReceptAllergenen();
+
 
   const chips = useMemo(() => ['Alle', ...categories], [categories]);
 
