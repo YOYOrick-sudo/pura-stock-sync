@@ -25,6 +25,9 @@ import {
   type IngredientStat,
 } from '@/hooks/useIngredienten';
 import { MergeIngredientenDialog } from '@/components/kitchen/MergeIngredientenDialog';
+import { AllergenenEditDialog } from '@/components/kitchen/AllergenenEditDialog';
+import { useIngredientAllergenen, type IngredientAllergenen } from '@/hooks/useAllergenen';
+import { ALLERGEEN_LABEL, type AllergeenCode } from '@/lib/allergenen';
 import { cn } from '@/lib/utils';
 
 type SortKey = 'naam' | 'aantal';
@@ -77,14 +80,55 @@ function RecipesPopover({ ingredient }: { ingredient: IngredientStat }) {
   );
 }
 
+function AllergenenCell({
+  info,
+  onEdit,
+}: {
+  info?: IngredientAllergenen;
+  onEdit: () => void;
+}) {
+  const codes = (info?.allergenen ?? []) as AllergeenCode[];
+  const status = info?.allergenen_status ?? 'onbekend';
+  return (
+    <button
+      type="button"
+      onClick={onEdit}
+      className="flex flex-wrap items-center gap-1 text-left min-h-[36px] rounded-md px-1 hover:bg-muted transition-colors"
+      title="Allergenen bewerken"
+    >
+      {codes.length === 0 ? (
+        <span className="text-xs text-muted-foreground">Geen</span>
+      ) : (
+        codes.map((c) => (
+          <span
+            key={c}
+            className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive"
+          >
+            {ALLERGEEN_LABEL[c]}
+          </span>
+        ))
+      )}
+      {status !== 'bevestigd' && (
+        <span className="rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-medium text-warning">
+          {status === 'ai_voorstel' ? 'Te checken' : 'Onbekend'}
+        </span>
+      )}
+    </button>
+  );
+}
+
 function IngredientRow({
   ing,
   selected,
   onToggleSelect,
+  allergenenInfo,
+  onEditAllergenen,
 }: {
   ing: IngredientStat;
   selected: boolean;
   onToggleSelect: (checked: boolean) => void;
+  allergenenInfo?: IngredientAllergenen;
+  onEditAllergenen: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(ing.naam);
@@ -147,6 +191,9 @@ function IngredientRow({
           <span>{ing.naam}</span>
         )}
       </TableCell>
+      <TableCell className="max-w-[280px]">
+        <AllergenenCell info={allergenenInfo} onEdit={onEditAllergenen} />
+      </TableCell>
       <TableCell>
         <RecipesPopover ingredient={ing} />
       </TableCell>
@@ -172,6 +219,13 @@ function IngredientRow({
 
 export default function Ingredienten() {
   const { data: rows = [], isLoading } = useIngredientenStats();
+  const { data: allergenenRows = [] } = useIngredientAllergenen();
+  const allergenenMap = useMemo(
+    () => new Map(allergenenRows.map((a) => [a.id, a])),
+    [allergenenRows],
+  );
+  const [editAllergenenId, setEditAllergenenId] = useState<string | null>(null);
+  const [onlyTeChecken, setOnlyTeChecken] = useState(false);
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('naam');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
@@ -180,13 +234,16 @@ export default function Ingredienten() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const base = q ? rows.filter((r) => r.naam.toLowerCase().includes(q)) : rows;
+    let base = q ? rows.filter((r) => r.naam.toLowerCase().includes(q)) : rows;
+    if (onlyTeChecken) {
+      base = base.filter((r) => (allergenenMap.get(r.id)?.allergenen_status ?? 'onbekend') !== 'bevestigd');
+    }
     const sorted = [...base].sort((a, b) => {
       if (sortKey === 'naam') return a.naam.localeCompare(b.naam, 'nl');
       return (a.aantal_recepten ?? 0) - (b.aantal_recepten ?? 0);
     });
     return sortDir === 'asc' ? sorted : sorted.reverse();
-  }, [rows, search, sortKey, sortDir]);
+  }, [rows, search, sortKey, sortDir, onlyTeChecken, allergenenMap]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -225,6 +282,13 @@ export default function Ingredienten() {
                 className="h-11 pl-10"
               />
             </div>
+            <Button
+              variant={onlyTeChecken ? 'default' : 'outline'}
+              onClick={() => setOnlyTeChecken((v) => !v)}
+              className="min-h-[44px]"
+            >
+              Alleen te checken
+            </Button>
             {canMerge && (
               <Button onClick={() => setMergeOpen(true)} className="min-h-[44px]">
                 <Merge className="h-4 w-4 mr-2" />
@@ -267,6 +331,7 @@ export default function Ingredienten() {
                         <ArrowUpDown className="h-3 w-3 opacity-60" />
                       </button>
                     </TableHead>
+                    <TableHead>Allergenen</TableHead>
                     <TableHead>
                       <button
                         onClick={() => toggleSort('aantal')}
@@ -287,6 +352,8 @@ export default function Ingredienten() {
                       ing={ing}
                       selected={selectedIds.has(ing.id)}
                       onToggleSelect={(v) => toggleSelect(ing.id, v)}
+                      allergenenInfo={allergenenMap.get(ing.id)}
+                      onEditAllergenen={() => setEditAllergenenId(ing.id)}
                     />
                   ))}
                 </TableBody>
@@ -295,6 +362,12 @@ export default function Ingredienten() {
           )}
         </Card>
       </div>
+
+      <AllergenenEditDialog
+        ingredient={editAllergenenId ? allergenenMap.get(editAllergenenId) ?? null : null}
+        open={!!editAllergenenId}
+        onOpenChange={(v) => !v && setEditAllergenenId(null)}
+      />
 
       <MergeIngredientenDialog
         open={mergeOpen}

@@ -19,6 +19,8 @@ import { useRecipe, useDeleteRecipe } from '@/hooks/useRecipes';
 import { useCreatePrintJob } from '@/hooks/usePrintJobs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
+import { AllergenenBadges } from '@/components/kitchen/AllergenenBadges';
+import { useReceptAllergenen } from '@/hooks/useAllergenen';
 
 function formatIngredient(hoeveelheid?: string | null, eenheid?: string | null, naam?: string) {
   return `${hoeveelheid ?? ''} ${eenheid ?? ''} ${naam ?? ''}`.replace(/\s+/g, ' ').trim();
@@ -30,6 +32,7 @@ export default function RecipeDetail() {
   const { data, isLoading } = useRecipe(id);
   const createPrintJob = useCreatePrintJob();
   const deleteMut = useDeleteRecipe();
+  const { data: allergenen } = useReceptAllergenen(id);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
   const [printAantal, setPrintAantal] = useState(1);
@@ -194,11 +197,30 @@ export default function RecipeDetail() {
           </div>
         </Card>
 
+        {/* Allergenen */}
+        <Card className="p-5 sm:p-6 bg-card shadow-sm">
+          <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground pb-3 mb-3 border-b border-border/60">
+            Allergenen
+          </h2>
+          <AllergenenBadges
+            allergenen={allergenen?.allergenen ?? []}
+            sporen={allergenen?.sporen ?? []}
+            onbekend={allergenen?.onbekende_ingredienten ?? 0}
+          />
+          {allergenen?.allergenen_notitie && (
+            <p className="mt-3 text-sm text-muted-foreground">{allergenen.allergenen_notitie}</p>
+          )}
+          <p className="mt-3 text-xs text-muted-foreground">
+            Automatisch afgeleid uit de ingrediënten. Controleer bij twijfel altijd het productetiket.
+          </p>
+        </Card>
+
         {/* Ingredients */}
         <Card className="p-5 sm:p-6 bg-card shadow-sm">
           <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground pb-3 mb-1 border-b border-border/60">
             Ingrediënten
           </h2>
+
           {ingredients.length === 0 ? (
             <p className="text-sm text-muted-foreground pt-3">Nog geen ingrediënten toegevoegd.</p>
           ) : (
