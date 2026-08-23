@@ -94,7 +94,81 @@ export function useUpdateIngredientAllergenen() {
   });
 }
 
+/** Zet de status van een ingrediënt in één klik op 'bevestigd'. */
+export function useConfirmIngredientAllergenen() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase as any)
+        .from('ingredienten_master')
+        .update({ allergenen_status: 'bevestigd', allergenen_bijgewerkt_op: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['allergenen'] });
+    },
+  });
+}
+
+export interface AllergeenSuggestie {
+  naam: string;
+  allergenen: AllergeenCode[];
+  sporen: AllergeenCode[];
+  onzeker: boolean;
+  reden: string;
+}
+
+/**
+ * Vraagt AI-voorstellen op voor ingrediënten en slaat ze op als status 'ai_voorstel'.
+ * Ingrediënten die al 'bevestigd' zijn worden nooit overschreven.
+ */
+export function useSuggestAllergenen() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (items: { id: string; naam: string }[]) => {
+      const uniek = items.filter((i, idx) => items.findIndex((x) => x.id === i.id) === idx);
+      if (uniek.length === 0) return 0;
+
+      let bijgewerkt = 0;
+      for (let i = 0; i < uniek.length; i += 20) {
+        const batch = uniek.slice(i, i + 20);
+        const { data, error } = await supabase.functions.invoke('suggest-allergenen', {
+          body: { namen: batch.map((b) => b.naam) },
+        });
+        if (error) throw error;
+
+        const resultaten: AllergeenSuggestie[] = (data as any)?.resultaten ?? [];
+        for (const r of resultaten) {
+          const match = batch.find((b) => b.naam.toLowerCase() === r.naam.toLowerCase());
+          if (!match) continue;
+          if (r.onzeker && r.allergenen.length === 0 && r.sporen.length === 0) continue;
+
+          const { error: upErr } = await (supabase as any)
+            .from('ingredienten_master')
+            .update({
+              allergenen: r.allergenen,
+              allergenen_sporen: r.sporen,
+              allergenen_status: 'ai_voorstel',
+              allergenen_bron: r.reden ? `AI-voorstel: ${r.reden}` : 'AI-voorstel',
+              allergenen_bijgewerkt_op: new Date().toISOString(),
+            })
+            .eq('id', match.id)
+            .neq('allergenen_status', 'bevestigd');
+          if (!upErr) bijgewerkt += 1;
+        }
+      }
+      return bijgewerkt;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['allergenen'] });
+    },
+  });
+}
+
 export function useUpdateReceptAllergenenOverride() {
+
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: {
