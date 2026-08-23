@@ -23,6 +23,17 @@ Zoveel mogelijk gaat vanzelf; jij hoeft alleen te bevestigen waar het wettelijk 
 
 Bewust niet volledig automatisch: het definitieve stempel "gecontroleerd" blijft menselijk. Allergeneninfo is wettelijk; AI mag voorstellen, niet beslissen. Een recept met alleen voorstellen werkt wel gewoon en toont een zachte waarschuwing.
 
+### Scenario: nieuw ingrediënt tijdens een nieuw recept
+
+1. Je typt bijv. "Sesamolie geroosterd" in de ingrediëntenrij; het bestaat nog niet.
+2. Je kiest "toevoegen als nieuw ingrediënt" — zoals nu wordt het product aangemaakt in de ingrediëntenlijst.
+3. Direct daarna draait de AI-suggestie automatisch op die naam (geen extra klik). Binnen een paar seconden verschijnt in de rij bijv. een oranje chip "Sesam · voorstel", en het allergenenblok bovenaan telt het meteen mee.
+4. Klopt het? Eén klik op "Klopt" en het staat op bevestigd — voorgoed, ook voor elk volgend recept met dit product. Klopt het niet, of wil je sporen toevoegen, dan opent de bewerk-dialoog.
+5. Doe je niets, dan wordt het recept gewoon opgeslagen met de AI-waarden en blijft de zachte waarschuwing "nog niet gecontroleerd" staan, plus verschijnt het product in de filter "Te checken".
+
+Faalt de AI (geen internet, limiet bereikt), dan wordt het ingrediënt gewoon aangemaakt met status "onbekend" en zie je een rode markering — nooit stilzwijgend "geen allergenen".
+
+
 ## 4. Wat is wijsheid
 
 Ingrediënt = bron van waarheid, recept = optelsom. Eén keer per product goed = klopt in alle recepten. De AI doet het typewerk, jij doet de check — dat is de snelste route die ook correct blijft.
