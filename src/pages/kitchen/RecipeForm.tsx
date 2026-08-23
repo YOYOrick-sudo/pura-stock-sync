@@ -539,6 +539,13 @@ export default function RecipeForm() {
           </Button>
         </div>
       </div>
+
+      <AllergenenEditDialog
+        ingredient={editAllergenenId ? allergenenMap.get(editAllergenenId) ?? null : null}
+        open={!!editAllergenenId}
+        onOpenChange={(v) => !v && setEditAllergenenId(null)}
+      />
     </SidebarLayout>
+
   );
 }
