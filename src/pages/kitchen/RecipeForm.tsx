@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Trash2, ArrowUp, ArrowDown, Save } from 'lucide-react';
+import { Plus, Trash2, ArrowUp, ArrowDown, Save, Check, AlertTriangle, Loader2, Sparkles } from 'lucide-react';
 import {
   Ingredient,
   useCreateRecipe,
@@ -23,6 +23,18 @@ import {
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { IngredientCombobox } from '@/components/kitchen/IngredientCombobox';
+import { AllergenenBadges } from '@/components/kitchen/AllergenenBadges';
+import { AllergenenEditDialog } from '@/components/kitchen/AllergenenEditDialog';
+import {
+  useIngredientAllergenen,
+  useSuggestAllergenen,
+  useConfirmIngredientAllergenen,
+  type IngredientAllergenen,
+} from '@/hooks/useAllergenen';
+import type { AllergeenCode } from '@/lib/allergenen';
+import { cn } from '@/lib/utils';
+
+
 
 
 type RecipeType = 'gerecht' | 'halffabricaat';
