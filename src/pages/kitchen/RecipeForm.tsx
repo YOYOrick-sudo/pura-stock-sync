@@ -207,7 +207,15 @@ export default function RecipeForm() {
       return;
     }
 
+    // Stille AI-pass: ingrediënten zonder allergenen-info alsnog invullen als voorstel.
+    await suggestVoor(
+      ingredients
+        .filter((i) => i.ingredient_id && i.naam.trim())
+        .map((i) => ({ id: i.ingredient_id as string, naam: i.naam.trim() })),
+    );
+
     const parsedTht = parseInt(thtDagen, 10);
+
     const payload = {
       name: name.trim(),
       category: category.trim(),
