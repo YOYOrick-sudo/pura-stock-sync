@@ -10,9 +10,12 @@ interface Props {
   value: string;
   ingredientId?: string | null;
   onChange: (naam: string, ingredientId: string | null) => void;
+  /** Wordt aangeroepen zodra een nieuw ingrediënt is aangemaakt (voor automatische allergenen-suggestie). */
+  onCreated?: (id: string, naam: string) => void;
   placeholder?: string;
   className?: string;
 }
+
 
 /**
  * Combobox voor ingrediëntnaam met live suggesties uit ingredienten_master.
@@ -21,7 +24,7 @@ interface Props {
  * - "➕ toevoegen als nieuw" → insert in master (case-safe via ensureIngredientMaster).
  * - Vrij typen zonder kiezen mag: alleen naam, geen ingredient_id.
  */
-export function IngredientCombobox({ value, ingredientId, onChange, placeholder, className }: Props) {
+export function IngredientCombobox({ value, ingredientId, onChange, onCreated, placeholder, className }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [creating, setCreating] = useState(false);
@@ -44,8 +47,10 @@ export function IngredientCombobox({ value, ingredientId, onChange, placeholder,
     try {
       const created = await ensureIngredientMaster(term);
       onChange(created.naam, created.id);
+      onCreated?.(created.id, created.naam);
       setOpen(false);
       setQuery('');
+
     } catch (e: any) {
       toast.error('Toevoegen mislukt: ' + (e.message ?? 'onbekende fout'));
     } finally {

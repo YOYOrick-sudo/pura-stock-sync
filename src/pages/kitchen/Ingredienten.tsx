@@ -14,7 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Pencil, Check, X, ArrowUpDown, ChefHat, Search, Merge } from 'lucide-react';
+import { Pencil, Check, X, ArrowUpDown, ChefHat, Search, Merge, Sparkles, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -26,7 +26,12 @@ import {
 } from '@/hooks/useIngredienten';
 import { MergeIngredientenDialog } from '@/components/kitchen/MergeIngredientenDialog';
 import { AllergenenEditDialog } from '@/components/kitchen/AllergenenEditDialog';
-import { useIngredientAllergenen, type IngredientAllergenen } from '@/hooks/useAllergenen';
+import {
+  useIngredientAllergenen,
+  useConfirmIngredientAllergenen,
+  useSuggestAllergenen,
+  type IngredientAllergenen,
+} from '@/hooks/useAllergenen';
 import { ALLERGEEN_LABEL, type AllergeenCode } from '@/lib/allergenen';
 import { cn } from '@/lib/utils';
 
@@ -87,35 +92,48 @@ function AllergenenCell({
   info?: IngredientAllergenen;
   onEdit: () => void;
 }) {
+  const confirmMut = useConfirmIngredientAllergenen();
   const codes = (info?.allergenen ?? []) as AllergeenCode[];
   const status = info?.allergenen_status ?? 'onbekend';
   return (
-    <button
-      type="button"
-      onClick={onEdit}
-      className="flex flex-wrap items-center gap-1 text-left min-h-[36px] rounded-md px-1 hover:bg-muted transition-colors"
-      title="Allergenen bewerken"
-    >
-      {codes.length === 0 ? (
-        <span className="text-xs text-muted-foreground">Geen</span>
-      ) : (
-        codes.map((c) => (
-          <span
-            key={c}
-            className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive"
-          >
-            {ALLERGEEN_LABEL[c]}
+    <div className="flex flex-wrap items-center gap-1">
+      <button
+        type="button"
+        onClick={onEdit}
+        className="flex flex-wrap items-center gap-1 text-left min-h-[36px] rounded-md px-1 hover:bg-muted transition-colors"
+        title="Allergenen bewerken"
+      >
+        {codes.length === 0 ? (
+          <span className="text-xs text-muted-foreground">Geen</span>
+        ) : (
+          codes.map((c) => (
+            <span
+              key={c}
+              className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive"
+            >
+              {ALLERGEEN_LABEL[c]}
+            </span>
+          ))
+        )}
+        {status !== 'bevestigd' && (
+          <span className="rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-medium text-warning">
+            {status === 'ai_voorstel' ? 'Voorstel' : 'Onbekend'}
           </span>
-        ))
+        )}
+      </button>
+      {status === 'ai_voorstel' && (
+        <button
+          type="button"
+          onClick={() => info && confirmMut.mutate(info.id)}
+          className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary hover:bg-primary/20 min-h-[28px]"
+        >
+          Klopt
+        </button>
       )}
-      {status !== 'bevestigd' && (
-        <span className="rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-medium text-warning">
-          {status === 'ai_voorstel' ? 'Te checken' : 'Onbekend'}
-        </span>
-      )}
-    </button>
+    </div>
   );
 }
+
 
 function IngredientRow({
   ing,
@@ -231,6 +249,13 @@ export default function Ingredienten() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [mergeOpen, setMergeOpen] = useState(false);
+  const suggestMut = useSuggestAllergenen();
+
+  // Ingrediënten zonder enige allergenen-info → kandidaten voor de AI-pass.
+  const ontbrekend = useMemo(
+    () => rows.filter((r) => (allergenenMap.get(r.id)?.allergenen_status ?? 'onbekend') === 'onbekend'),
+    [rows, allergenenMap],
+  );
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -282,6 +307,28 @@ export default function Ingredienten() {
                 className="h-11 pl-10"
               />
             </div>
+            <Button
+              variant="outline"
+              className="min-h-[44px]"
+              disabled={suggestMut.isPending || ontbrekend.length === 0}
+              onClick={async () => {
+                try {
+                  const n = await suggestMut.mutateAsync(
+                    ontbrekend.map((r) => ({ id: r.id, naam: r.naam })),
+                  );
+                  toast.success(`${n} ingrediënt(en) aangevuld met een AI-voorstel`);
+                } catch (e: any) {
+                  toast.error('Aanvullen mislukt: ' + (e?.message ?? 'onbekende fout'));
+                }
+              }}
+            >
+              {suggestMut.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4 mr-2" />
+              )}
+              Voorstellen aanvullen ({ontbrekend.length})
+            </Button>
             <Button
               variant={onlyTeChecken ? 'default' : 'outline'}
               onClick={() => setOnlyTeChecken((v) => !v)}

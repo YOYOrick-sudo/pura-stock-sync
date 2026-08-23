@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Trash2, ArrowUp, ArrowDown, Save } from 'lucide-react';
+import { Plus, Trash2, ArrowUp, ArrowDown, Save, Check, AlertTriangle, Loader2, Sparkles } from 'lucide-react';
 import {
   Ingredient,
   useCreateRecipe,
@@ -23,6 +23,18 @@ import {
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { IngredientCombobox } from '@/components/kitchen/IngredientCombobox';
+import { AllergenenBadges } from '@/components/kitchen/AllergenenBadges';
+import { AllergenenEditDialog } from '@/components/kitchen/AllergenenEditDialog';
+import {
+  useIngredientAllergenen,
+  useSuggestAllergenen,
+  useConfirmIngredientAllergenen,
+  type IngredientAllergenen,
+} from '@/hooks/useAllergenen';
+import type { AllergeenCode } from '@/lib/allergenen';
+import { cn } from '@/lib/utils';
+
+
 
 
 type RecipeType = 'gerecht' | 'halffabricaat';
@@ -50,6 +62,49 @@ export default function RecipeForm() {
     { naam: '', hoeveelheid: '', eenheid: null, sort_order: 0, ingredient_id: null },
   ]);
   const [categoryTouched, setCategoryTouched] = useState(false);
+  const [editAllergenenId, setEditAllergenenId] = useState<string | null>(null);
+
+  // Allergenen: live afgeleid uit de gekoppelde ingrediënten
+  const { data: allergenenRows = [] } = useIngredientAllergenen();
+  const suggestMut = useSuggestAllergenen();
+  const confirmMut = useConfirmIngredientAllergenen();
+
+  const allergenenMap = useMemo(
+    () => new Map<string, IngredientAllergenen>(allergenenRows.map((a) => [a.id, a])),
+    [allergenenRows],
+  );
+
+  const afgeleid = useMemo(() => {
+    const bevat = new Set<AllergeenCode>();
+    const sporen = new Set<AllergeenCode>();
+    let onbekend = 0;
+    for (const row of ingredients) {
+      if (!row.naam.trim()) continue;
+      const info = row.ingredient_id ? allergenenMap.get(row.ingredient_id) : undefined;
+      if (!info || info.allergenen_status === 'onbekend') {
+        onbekend += 1;
+        continue;
+      }
+      (info.allergenen ?? []).forEach((c) => bevat.add(c));
+      (info.allergenen_sporen ?? []).forEach((c) => sporen.add(c));
+    }
+    return { bevat: Array.from(bevat), sporen: Array.from(sporen), onbekend };
+  }, [ingredients, allergenenMap]);
+
+  /** Stille AI-pass over ingrediënten die nog geen allergenen-info hebben. */
+  const suggestVoor = async (items: { id: string; naam: string }[]) => {
+    const todo = items.filter((i) => {
+      const info = allergenenMap.get(i.id);
+      return !info || info.allergenen_status === 'onbekend';
+    });
+    if (todo.length === 0) return;
+    try {
+      await suggestMut.mutateAsync(todo);
+    } catch {
+      /* stil: ingrediënt blijft 'onbekend' en wordt rood gemarkeerd */
+    }
+  };
+
 
   // Stil op de achtergrond: bij een nieuw recept een categorie voorstellen zodra er een naam is
   // en de gebruiker het veld niet zelf heeft aangeraakt. Geen UI-feedback, faalt stil.
@@ -152,7 +207,15 @@ export default function RecipeForm() {
       return;
     }
 
+    // Stille AI-pass: ingrediënten zonder allergenen-info alsnog invullen als voorstel.
+    await suggestVoor(
+      ingredients
+        .filter((i) => i.ingredient_id && i.naam.trim())
+        .map((i) => ({ id: i.ingredient_id as string, naam: i.naam.trim() })),
+    );
+
     const parsedTht = parseInt(thtDagen, 10);
+
     const payload = {
       name: name.trim(),
       category: category.trim(),
@@ -279,19 +342,82 @@ export default function RecipeForm() {
           </div>
 
           <div className="space-y-3">
-            {ingredients.map((row, idx) => (
+            {ingredients.map((row, idx) => {
+              const info = row.ingredient_id ? allergenenMap.get(row.ingredient_id) : undefined;
+              const status = row.naam.trim()
+                ? !row.ingredient_id
+                  ? 'niet_gekoppeld'
+                  : (info?.allergenen_status ?? 'onbekend')
+                : null;
+              return (
               <div
                 key={idx}
                 className="flex flex-wrap items-center gap-2 rounded-polar-md border border-border/60 bg-background/40 p-2"
               >
-                <div className="flex-1 min-w-[160px]">
+                <div className="flex-1 min-w-[160px] space-y-1.5">
                   <IngredientCombobox
                     value={row.naam}
                     ingredientId={row.ingredient_id ?? null}
                     onChange={(naam, id) => setNaamAndMaster(idx, naam, id)}
+                    onCreated={(newId, naam) => suggestVoor([{ id: newId, naam }])}
                     placeholder="Ingrediënt"
                   />
+                  {status && (
+                    <div className="flex flex-wrap items-center gap-1.5 pl-0.5">
+                      {suggestMut.isPending && status === 'onbekend' && (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <Loader2 className="h-3 w-3 animate-spin" /> allergenen opzoeken…
+                        </span>
+                      )}
+                      {status === 'bevestigd' && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                          <Check className="h-3 w-3" />
+                          {info?.allergenen?.length ? info.allergenen.join(', ') : 'geen allergenen'}
+                        </span>
+                      )}
+                      {status === 'ai_voorstel' && (
+                        <>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-medium text-warning">
+                            <Sparkles className="h-3 w-3" />
+                            {info?.allergenen?.length ? info.allergenen.join(', ') : 'geen allergenen'} · voorstel
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => info && confirmMut.mutate(info.id)}
+                            className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary hover:bg-primary/20"
+                          >
+                            Klopt
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => info && setEditAllergenenId(info.id)}
+                            className="text-[11px] text-muted-foreground underline underline-offset-2"
+                          >
+                            aanpassen
+                          </button>
+                        </>
+                      )}
+                      {(status === 'onbekend' || status === 'niet_gekoppeld') && !suggestMut.isPending && (
+                        <>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive">
+                            <AlertTriangle className="h-3 w-3" />
+                            allergenen onbekend
+                          </span>
+                          {row.ingredient_id && (
+                            <button
+                              type="button"
+                              onClick={() => setEditAllergenenId(row.ingredient_id as string)}
+                              className="text-[11px] text-muted-foreground underline underline-offset-2"
+                            >
+                              instellen
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
+
                 <Input
                   value={row.hoeveelheid}
                   onChange={(e) => updateRow(idx, 'hoeveelheid', e.target.value)}
@@ -343,9 +469,45 @@ export default function RecipeForm() {
                   <Trash2 className="h-5 w-5" />
                 </button>
               </div>
-            ))}
+              );
+            })}
+          </div>
+
+          {/* Allergenen — live afgeleid */}
+          <div className="mt-5 pt-4 border-t border-border/60">
+            <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+              <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Allergenen
+              </h3>
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-h-[36px]"
+                disabled={suggestMut.isPending}
+                onClick={() =>
+                  suggestVoor(
+                    ingredients
+                      .filter((i) => i.ingredient_id && i.naam.trim())
+                      .map((i) => ({ id: i.ingredient_id as string, naam: i.naam.trim() })),
+                  )
+                }
+              >
+                {suggestMut.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4 mr-1" />
+                )}
+                Ontbrekende aanvullen
+              </Button>
+            </div>
+            <AllergenenBadges
+              allergenen={afgeleid.bevat}
+              sporen={afgeleid.sporen}
+              onbekend={afgeleid.onbekend}
+            />
           </div>
         </Card>
+
 
         {/* Bereiding */}
         <Card className="p-5 sm:p-6 bg-card shadow-sm">
@@ -377,6 +539,13 @@ export default function RecipeForm() {
           </Button>
         </div>
       </div>
+
+      <AllergenenEditDialog
+        ingredient={editAllergenenId ? allergenenMap.get(editAllergenenId) ?? null : null}
+        open={!!editAllergenenId}
+        onOpenChange={(v) => !v && setEditAllergenenId(null)}
+      />
     </SidebarLayout>
+
   );
 }
