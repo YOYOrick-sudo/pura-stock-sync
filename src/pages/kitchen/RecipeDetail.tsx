@@ -19,6 +19,8 @@ import { useRecipe, useDeleteRecipe } from '@/hooks/useRecipes';
 import { useCreatePrintJob } from '@/hooks/usePrintJobs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
+import { AllergenenBadges } from '@/components/kitchen/AllergenenBadges';
+import { useReceptAllergenen } from '@/hooks/useAllergenen';
 
 function formatIngredient(hoeveelheid?: string | null, eenheid?: string | null, naam?: string) {
   return `${hoeveelheid ?? ''} ${eenheid ?? ''} ${naam ?? ''}`.replace(/\s+/g, ' ').trim();
@@ -30,6 +32,7 @@ export default function RecipeDetail() {
   const { data, isLoading } = useRecipe(id);
   const createPrintJob = useCreatePrintJob();
   const deleteMut = useDeleteRecipe();
+  const { data: allergenen } = useReceptAllergenen(id);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
   const [printAantal, setPrintAantal] = useState(1);
