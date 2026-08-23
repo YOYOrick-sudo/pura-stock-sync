@@ -10,9 +10,12 @@ interface Props {
   value: string;
   ingredientId?: string | null;
   onChange: (naam: string, ingredientId: string | null) => void;
+  /** Wordt aangeroepen zodra een nieuw ingrediënt is aangemaakt (voor automatische allergenen-suggestie). */
+  onCreated?: (id: string, naam: string) => void;
   placeholder?: string;
   className?: string;
 }
+
 
 /**
  * Combobox voor ingrediëntnaam met live suggesties uit ingredienten_master.
