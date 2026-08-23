@@ -210,9 +210,6 @@ export default function RecipeDetail() {
           {allergenen?.allergenen_notitie && (
             <p className="mt-3 text-sm text-muted-foreground">{allergenen.allergenen_notitie}</p>
           )}
-          <p className="mt-3 text-xs text-muted-foreground">
-            Automatisch afgeleid uit de ingrediënten. Controleer bij twijfel altijd het productetiket.
-          </p>
         </Card>
 
         {/* Ingredients */}
