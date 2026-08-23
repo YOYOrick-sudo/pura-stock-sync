@@ -47,8 +47,10 @@ export function IngredientCombobox({ value, ingredientId, onChange, onCreated, p
     try {
       const created = await ensureIngredientMaster(term);
       onChange(created.naam, created.id);
+      onCreated?.(created.id, created.naam);
       setOpen(false);
       setQuery('');
+
     } catch (e: any) {
       toast.error('Toevoegen mislukt: ' + (e.message ?? 'onbekende fout'));
     } finally {
