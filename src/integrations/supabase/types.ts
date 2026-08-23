@@ -907,16 +907,31 @@ export type Database = {
       }
       ingredienten_master: {
         Row: {
+          allergenen: Database["public"]["Enums"]["allergen"][]
+          allergenen_bijgewerkt_op: string | null
+          allergenen_bron: string | null
+          allergenen_sporen: Database["public"]["Enums"]["allergen"][]
+          allergenen_status: string
           created_at: string
           id: string
           naam: string
         }
         Insert: {
+          allergenen?: Database["public"]["Enums"]["allergen"][]
+          allergenen_bijgewerkt_op?: string | null
+          allergenen_bron?: string | null
+          allergenen_sporen?: Database["public"]["Enums"]["allergen"][]
+          allergenen_status?: string
           created_at?: string
           id?: string
           naam: string
         }
         Update: {
+          allergenen?: Database["public"]["Enums"]["allergen"][]
+          allergenen_bijgewerkt_op?: string | null
+          allergenen_bron?: string | null
+          allergenen_sporen?: Database["public"]["Enums"]["allergen"][]
+          allergenen_status?: string
           created_at?: string
           id?: string
           naam?: string
@@ -1373,6 +1388,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "recipes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mep_planning_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "v_recept_allergenen"
+            referencedColumns: ["recept_id"]
           },
         ]
       }
@@ -1842,6 +1864,13 @@ export type Database = {
             referencedRelation: "recipes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "print_jobs_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "v_recept_allergenen"
+            referencedColumns: ["recept_id"]
+          },
         ]
       }
       profiles: {
@@ -1945,6 +1974,13 @@ export type Database = {
             referencedRelation: "recipes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "recept_ingredienten_recept_id_fkey"
+            columns: ["recept_id"]
+            isOneToOne: false
+            referencedRelation: "v_recept_allergenen"
+            referencedColumns: ["recept_id"]
+          },
         ]
       }
       recipe_steps: {
@@ -1980,10 +2016,20 @@ export type Database = {
             referencedRelation: "recipes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "recipe_steps_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "v_recept_allergenen"
+            referencedColumns: ["recept_id"]
+          },
         ]
       }
       recipes: {
         Row: {
+          allergenen_extra: Database["public"]["Enums"]["allergen"][]
+          allergenen_notitie: string | null
+          allergenen_uitgesloten: Database["public"]["Enums"]["allergen"][]
           arbeid_minuten: number | null
           bereiding: string | null
           category: string
@@ -2002,6 +2048,9 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          allergenen_extra?: Database["public"]["Enums"]["allergen"][]
+          allergenen_notitie?: string | null
+          allergenen_uitgesloten?: Database["public"]["Enums"]["allergen"][]
           arbeid_minuten?: number | null
           bereiding?: string | null
           category: string
@@ -2020,6 +2069,9 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          allergenen_extra?: Database["public"]["Enums"]["allergen"][]
+          allergenen_notitie?: string | null
+          allergenen_uitgesloten?: Database["public"]["Enums"]["allergen"][]
           arbeid_minuten?: number | null
           bereiding?: string | null
           category?: string
@@ -2860,6 +2912,16 @@ export type Database = {
         }
         Relationships: []
       }
+      v_recept_allergenen: {
+        Row: {
+          allergenen: Database["public"]["Enums"]["allergen"][] | null
+          allergenen_notitie: string | null
+          onbekende_ingredienten: number | null
+          recept_id: string | null
+          sporen: Database["public"]["Enums"]["allergen"][] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       claim_next_print_job: {
@@ -3110,6 +3172,21 @@ export type Database = {
       }
     }
     Enums: {
+      allergen:
+        | "gluten"
+        | "schaaldieren"
+        | "ei"
+        | "vis"
+        | "pinda"
+        | "soja"
+        | "melk"
+        | "noten"
+        | "selderij"
+        | "mosterd"
+        | "sesam"
+        | "sulfiet"
+        | "lupine"
+        | "weekdieren"
       app_role:
         | "admin"
         | "manager"
@@ -3255,6 +3332,22 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      allergen: [
+        "gluten",
+        "schaaldieren",
+        "ei",
+        "vis",
+        "pinda",
+        "soja",
+        "melk",
+        "noten",
+        "selderij",
+        "mosterd",
+        "sesam",
+        "sulfiet",
+        "lupine",
+        "weekdieren",
+      ],
       app_role: [
         "admin",
         "manager",
