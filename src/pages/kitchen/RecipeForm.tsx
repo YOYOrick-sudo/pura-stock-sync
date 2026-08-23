@@ -342,19 +342,82 @@ export default function RecipeForm() {
           </div>
 
           <div className="space-y-3">
-            {ingredients.map((row, idx) => (
+            {ingredients.map((row, idx) => {
+              const info = row.ingredient_id ? allergenenMap.get(row.ingredient_id) : undefined;
+              const status = row.naam.trim()
+                ? !row.ingredient_id
+                  ? 'niet_gekoppeld'
+                  : (info?.allergenen_status ?? 'onbekend')
+                : null;
+              return (
               <div
                 key={idx}
                 className="flex flex-wrap items-center gap-2 rounded-polar-md border border-border/60 bg-background/40 p-2"
               >
-                <div className="flex-1 min-w-[160px]">
+                <div className="flex-1 min-w-[160px] space-y-1.5">
                   <IngredientCombobox
                     value={row.naam}
                     ingredientId={row.ingredient_id ?? null}
                     onChange={(naam, id) => setNaamAndMaster(idx, naam, id)}
+                    onCreated={(newId, naam) => suggestVoor([{ id: newId, naam }])}
                     placeholder="Ingrediënt"
                   />
+                  {status && (
+                    <div className="flex flex-wrap items-center gap-1.5 pl-0.5">
+                      {suggestMut.isPending && status === 'onbekend' && (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <Loader2 className="h-3 w-3 animate-spin" /> allergenen opzoeken…
+                        </span>
+                      )}
+                      {status === 'bevestigd' && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                          <Check className="h-3 w-3" />
+                          {info?.allergenen?.length ? info.allergenen.join(', ') : 'geen allergenen'}
+                        </span>
+                      )}
+                      {status === 'ai_voorstel' && (
+                        <>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-medium text-warning">
+                            <Sparkles className="h-3 w-3" />
+                            {info?.allergenen?.length ? info.allergenen.join(', ') : 'geen allergenen'} · voorstel
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => info && confirmMut.mutate(info.id)}
+                            className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary hover:bg-primary/20"
+                          >
+                            Klopt
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => info && setEditAllergenenId(info.id)}
+                            className="text-[11px] text-muted-foreground underline underline-offset-2"
+                          >
+                            aanpassen
+                          </button>
+                        </>
+                      )}
+                      {(status === 'onbekend' || status === 'niet_gekoppeld') && !suggestMut.isPending && (
+                        <>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive">
+                            <AlertTriangle className="h-3 w-3" />
+                            allergenen onbekend
+                          </span>
+                          {row.ingredient_id && (
+                            <button
+                              type="button"
+                              onClick={() => setEditAllergenenId(row.ingredient_id as string)}
+                              className="text-[11px] text-muted-foreground underline underline-offset-2"
+                            >
+                              instellen
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
+
                 <Input
                   value={row.hoeveelheid}
                   onChange={(e) => updateRow(idx, 'hoeveelheid', e.target.value)}
