@@ -83,39 +83,53 @@ function RecipesPopover({ ingredient }: { ingredient: IngredientStat }) {
 function AllergenenCell({
   info,
   onEdit,
+  onConfirm,
 }: {
   info?: IngredientAllergenen;
   onEdit: () => void;
+  onConfirm: () => void;
 }) {
   const codes = (info?.allergenen ?? []) as AllergeenCode[];
   const status = info?.allergenen_status ?? 'onbekend';
   return (
-    <button
-      type="button"
-      onClick={onEdit}
-      className="flex flex-wrap items-center gap-1 text-left min-h-[36px] rounded-md px-1 hover:bg-muted transition-colors"
-      title="Allergenen bewerken"
-    >
-      {codes.length === 0 ? (
-        <span className="text-xs text-muted-foreground">Geen</span>
-      ) : (
-        codes.map((c) => (
-          <span
-            key={c}
-            className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive"
-          >
-            {ALLERGEEN_LABEL[c]}
+    <div className="flex flex-wrap items-center gap-1">
+      <button
+        type="button"
+        onClick={onEdit}
+        className="flex flex-wrap items-center gap-1 text-left min-h-[36px] rounded-md px-1 hover:bg-muted transition-colors"
+        title="Allergenen bewerken"
+      >
+        {codes.length === 0 ? (
+          <span className="text-xs text-muted-foreground">Geen</span>
+        ) : (
+          codes.map((c) => (
+            <span
+              key={c}
+              className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive"
+            >
+              {ALLERGEEN_LABEL[c]}
+            </span>
+          ))
+        )}
+        {status !== 'bevestigd' && (
+          <span className="rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-medium text-warning">
+            {status === 'ai_voorstel' ? 'Voorstel' : 'Onbekend'}
           </span>
-        ))
+        )}
+      </button>
+      {status === 'ai_voorstel' && (
+        <button
+          type="button"
+          onClick={onConfirm}
+          className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary hover:bg-primary/20 min-h-[28px]"
+        >
+          Klopt
+        </button>
       )}
-      {status !== 'bevestigd' && (
-        <span className="rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-medium text-warning">
-          {status === 'ai_voorstel' ? 'Te checken' : 'Onbekend'}
-        </span>
-      )}
-    </button>
+    </div>
   );
 }
+
 
 function IngredientRow({
   ing,
