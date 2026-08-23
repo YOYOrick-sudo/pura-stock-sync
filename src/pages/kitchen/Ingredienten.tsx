@@ -14,7 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Pencil, Check, X, ArrowUpDown, ChefHat, Search, Merge } from 'lucide-react';
+import { Pencil, Check, X, ArrowUpDown, ChefHat, Search, Merge, Sparkles, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -26,7 +26,12 @@ import {
 } from '@/hooks/useIngredienten';
 import { MergeIngredientenDialog } from '@/components/kitchen/MergeIngredientenDialog';
 import { AllergenenEditDialog } from '@/components/kitchen/AllergenenEditDialog';
-import { useIngredientAllergenen, type IngredientAllergenen } from '@/hooks/useAllergenen';
+import {
+  useIngredientAllergenen,
+  useConfirmIngredientAllergenen,
+  useSuggestAllergenen,
+  type IngredientAllergenen,
+} from '@/hooks/useAllergenen';
 import { ALLERGEEN_LABEL, type AllergeenCode } from '@/lib/allergenen';
 import { cn } from '@/lib/utils';
 
@@ -83,12 +88,11 @@ function RecipesPopover({ ingredient }: { ingredient: IngredientStat }) {
 function AllergenenCell({
   info,
   onEdit,
-  onConfirm,
 }: {
   info?: IngredientAllergenen;
   onEdit: () => void;
-  onConfirm: () => void;
 }) {
+  const confirmMut = useConfirmIngredientAllergenen();
   const codes = (info?.allergenen ?? []) as AllergeenCode[];
   const status = info?.allergenen_status ?? 'onbekend';
   return (
@@ -120,7 +124,7 @@ function AllergenenCell({
       {status === 'ai_voorstel' && (
         <button
           type="button"
-          onClick={onConfirm}
+          onClick={() => info && confirmMut.mutate(info.id)}
           className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary hover:bg-primary/20 min-h-[28px]"
         >
           Klopt
@@ -245,6 +249,13 @@ export default function Ingredienten() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [mergeOpen, setMergeOpen] = useState(false);
+  const suggestMut = useSuggestAllergenen();
+
+  // Ingrediënten zonder enige allergenen-info → kandidaten voor de AI-pass.
+  const ontbrekend = useMemo(
+    () => rows.filter((r) => (allergenenMap.get(r.id)?.allergenen_status ?? 'onbekend') === 'onbekend'),
+    [rows, allergenenMap],
+  );
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -296,6 +307,28 @@ export default function Ingredienten() {
                 className="h-11 pl-10"
               />
             </div>
+            <Button
+              variant="outline"
+              className="min-h-[44px]"
+              disabled={suggestMut.isPending || ontbrekend.length === 0}
+              onClick={async () => {
+                try {
+                  const n = await suggestMut.mutateAsync(
+                    ontbrekend.map((r) => ({ id: r.id, naam: r.naam })),
+                  );
+                  toast.success(`${n} ingrediënt(en) aangevuld met een AI-voorstel`);
+                } catch (e: any) {
+                  toast.error('Aanvullen mislukt: ' + (e?.message ?? 'onbekende fout'));
+                }
+              }}
+            >
+              {suggestMut.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4 mr-2" />
+              )}
+              Voorstellen aanvullen ({ontbrekend.length})
+            </Button>
             <Button
               variant={onlyTeChecken ? 'default' : 'outline'}
               onClick={() => setOnlyTeChecken((v) => !v)}
