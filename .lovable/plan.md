@@ -8,11 +8,17 @@ De basis uit v1 blijft: recept-of-vrije-taak, nullable `recipe_id`, drie priorit
 - Een nieuwe dag wordt automatisch gevuld vanuit de templates van die weekdag. Geen knop.
 - Elke dagregel kan met één actie ("elke donderdag") template worden — het templatebestand groeit vanuit de praktijk.
 
-## B. Dagwissel & doorschuiven — automatisch, met ontdubbeling
+## B. Twee tabs: Vandaag en Morgen + dagwissel
 
-- Onafgemaakte regels schuiven automatisch door, met badge "van gisteren" en teller ("2e dag").
-- Ontdubbeling bij dagopbouw: doorgeschoven regel en templateregel met dezelfde `recipe_id` óf identieke titel worden één regel — hoogste prioriteit wint, aantallen niet optellen (doorgeschoven regel wint), badge blijft.
+- **Tab Vandaag** = werkscherm. **Tab Morgen** = vooruitplannen.
+- Dagwissel om **04:00** (niet middernacht), instelbaar per vestiging. Morgen wordt dan de nieuwe Vandaag, aangevuld met de weekdag-templates.
+- **Ontdubbeling** bij dagopbouw: regel uit Morgen/doorgeschoven en templateregel met dezelfde `recipe_id` óf identieke titel worden één regel — hoogste prioriteit wint, aantallen niet optellen (bestaande regel wint), badge blijft.
+- **Doorschuiven = kopiëren**: het onafgeronde origineel blijft op gisteren staan; op Vandaag komt een nieuwe regel met `bron = doorgeschoven`, `doorgeschoven_van` en opgehoogde teller, badge "van gisteren". Historie laat dus per dag zien wat gepland stond en niet af kwam.
 - 3+ dagen doorgeschoven krijgt aparte markering.
+- **Slimme standaard bij toevoegen**: vóór 17:00 → Vandaag, na 17:00 → Morgen, met altijd een zichtbare Vandaag/Morgen-toggle om te overrulen. Grens instelbaar per vestiging.
+- **Handmatig verplaatsen**: elke regel met één actie naar Morgen (en terug) — knop in de regel, swipe alleen als extra.
+- **Opnieuw toevoegen na afronden**: botst een insert op de unieke index met een al afgeronde regel, dan wordt die regel heropend en het aantal opgehoogd (`aantal_klaar` blijft staan: "3 van 5" wordt "3 van 8"). Nooit een stille fout.
+
 
 ## C. Realtime sync tussen tablets
 
@@ -62,18 +68,21 @@ De basis uit v1 blijft: recept-of-vrije-taak, nullable `recipe_id`, drie priorit
 
 `mep_templates`: zoals onder A.
 
+`mep_instellingen` per vestiging: `dagwissel_uur` (default 04:00), `morgen_grens_uur` (default 17:00).
+
 `sort_order` in stappen van 10, met renumber-routine wanneer buren te dicht op elkaar komen.
 
 ## J. Bouwvolgorde
 
-1. Migratie: kolommen, `mep_templates`, `afdeling` op `foh_employees`, RLS + grants, unieke index, `create_mep_from_order` herschrijven, soft-delete
-2. Hook + view "Alles": toevoegen (recept-of-vrij), afvinken met deelvoortgang, slepen, prio, automatische dagopbouw uit templates + doorschuiven + ontdubbeling
+1. Migratie: kolommen, `mep_templates`, `mep_instellingen`, `afdeling` op `foh_employees`, RLS + grants, unieke index, `create_mep_from_order` herschrijven, soft-delete
+2. Hook + view "Alles" met tabs Vandaag/Morgen: toevoegen (recept-of-vrij, slimme standaard + toggle), afvinken met deelvoortgang, slepen, prio, verplaatsen naar Morgen/terug, dagopbouw uit templates + doorschuif-kopie + ontdubbeling
 3. Realtime sync
 4. Werkview + voortgangsbalk
 5. View "Per persoon" met eigen volgorde
 6. Suggestie-chips + "opslaan als template"
 
-Stap 1–4 is de lanceerbare kern voor West; 5–6 mag later.
+Nu bouwen: stap 1 t/m 4 voor West.
+
 
 ## K. Keuzes
 
