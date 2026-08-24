@@ -1,73 +1,85 @@
-# Mise-en-place lijst (MEP) — voorstel
+# Mise-en-place lijst (MEP) — plan v2
 
-Een dag-planning per vestiging waarop staat wát er voorbereid moet worden, door wie, in welke volgorde. Regels kunnen wél of níet aan een recept hangen — zonder de receptendatabase te vervuilen.
+De basis uit v1 blijft: recept-of-vrije-taak, nullable `recipe_id`, drie prioriteiten, drie views, slepen met @dnd-kit zoals de takenlijst. Hieronder de herziening.
 
-## 1. Recept of los werk: hoe we het onderscheid maken
+## A. Templates zijn core, geen sluitstuk
 
-Een MEP-regel heeft twee bronnen:
+- Tabel `mep_templates`: vestiging, weekdag (of "dagelijks"), titel, `recipe_id` (nullable), aantal, eenheid, prioriteit, `sort_order`, `actief`.
+- Een nieuwe dag wordt automatisch gevuld vanuit de templates van die weekdag. Geen knop.
+- Elke dagregel kan met één actie ("elke donderdag") template worden — het templatebestand groeit vanuit de praktijk.
 
-- **Receptregel**: gekoppeld aan een bestaand recept (`recipe_id`). Titel, foto en THT komen uit het recept; klikken opent het recept.
-- **Vrije taak**: geen recept, alleen een eigen titel (`titel`) — "Kip vacumeren", "Kip lunch bereiden", "Zout aanvullen".
+## B. Dagwissel & doorschuiven — automatisch, met ontdubbeling
 
-De koppeling is optioneel: de MEP-lijst slaat de titel altijd zelf op. Er wordt dus nooit een "nep-recept" aangemaakt om iets op de lijst te krijgen. Bij toevoegen kies je in één zoekveld: bestaand recept selecteren, of "Los: <wat je typt>" als vrije taak.
+- Onafgemaakte regels schuiven automatisch door, met badge "van gisteren" en teller ("2e dag").
+- Ontdubbeling bij dagopbouw: doorgeschoven regel en templateregel met dezelfde `recipe_id` óf identieke titel worden één regel — hoogste prioriteit wint, aantallen niet optellen (doorgeschoven regel wint), badge blijft.
+- 3+ dagen doorgeschoven krijgt aparte markering.
 
-Wordt een vrije taak later tóch een echt recept? Dan kun je hem in het detailpaneel alsnog aan een recept koppelen.
+## C. Realtime sync tussen tablets
 
-## 2. Prioriteit
+- Realtime-subscription op `mep_planning` per vestiging + dag, bovenop de React Query optimistic updates.
+- Laatste schrijver wint per veld; afvinken is idempotent.
 
-Drie niveaus — meer wordt in de praktijk nooit consequent gebruikt:
+## D. Gedeeld keukenaccount
 
-- **Must** (rood) — moet vandaag af, anders draaien we vast
-- **Normaal** (neutraal) — standaard
-- **Als er tijd is** (grijs/blauw) — mag doorschuiven
+- Gedeeld, permanent ingelogd account per vestiging. Sessie mag niet verlopen — dat is al zo geregeld in deze app (`persistSession`, `autoRefreshToken`, IndexedDB-opslag van de sessie).
+- RLS in lijn met `foh_tasks`: lezen/schrijven binnen eigen vestiging; GRANTs meeleveren.
+- Gecheckt: `foh_employees` bevat nu 4 namen (West: 1, Midsland: 3) — het keukenteam staat er dus nog niet in. We gebruiken deze tabel wél (geen tweede personentabel), voegen een kolom `afdeling` toe (bediening/keuken) en zetten het keukenteam van West erin als onderdeel van stap 1.
 
-Sorteren gebeurt binnen een sectie op handmatige volgorde (`sort_order`), prioriteit is een badge + filter, niet de sorteersleutel. Zo blijft slepen leidend, precies zoals in de takenlijst.
+## E. Bestellingen-koppeling niet stilletjes breken
 
-## 3. Medewerker toewijzen
+`titel` wordt verplicht, dus `create_mep_from_order` moet in dezelfde migratie mee: productnaam als titel, ook wanneer er geen recept matcht. Let op het tweede breukpunt: die functie gebruikt `ON CONFLICT (date, location, recipe_id)`. Met een nullable `recipe_id` werkt die unieke index niet meer betrouwbaar — vervangen door een unieke index op (date, location, lower(titel)) waar `deleted_at is null`, en de functie daarop aanpassen. Beide paden expliciet testen.
 
-Toewijzen op **naam** uit een eenvoudige medewerkerslijst per vestiging (dezelfde bron als de takenlijst: `foh_employees`), plus optioneel "niet toegewezen". Geen inlog-account nodig — MEP wordt vaak op één keukentablet gedaan.
+## F. Historie bewaren
 
-## 4. Drie views
+- Afgeronde dagen worden nooit verwijderd; verwijderen is soft-delete (`deleted_at`).
+- `completed_at` en `completed_by` altijd vullen.
+- Doel: later per vestiging zien wat hoe vaak op de lijst staat, op welke weekdag, en hoe vaak het doorschuift.
 
-1. **Alles** — alle regels van de dag onder elkaar, groepeerbaar op status; slepen om te ordenen.
-2. **Per persoon** — kolommen/blokken per medewerker (+ "Niet toegewezen"). Binnen elke persoon een eigen volgorde die je kunt slepen: iedereen ziet meteen zijn eigen rijtje in werkvolgorde.
-3. **Werkview** — grote, tablet-vriendelijke lijst: één regel per taak met naam, aantal, prio, afvinken. Bedoeld om ernaast te staan tijdens het werken (filter op "mijn naam" met één tik).
+## G. Slimmigheden zonder AI
 
-## 5. Wat ik er zelf aan toe zou voegen
+1. Suggestie-chips boven het zoekveld: 5 regels die de afgelopen 4 weken het vaakst op deze weekdag stonden en vandaag nog ontbreken. Eén tik = toegevoegd.
+2. Deelvoortgang per regel: tik op het aantal telt op ("3 van 5 bakken"); klaar bij vol aantal.
+3. Voortgangsbalk per dag en per persoon.
+4. Doorschuif-teller als vroege signalering.
 
-- **Aantal + eenheid** (2 bakken, 5 kg) in plaats van alleen een getal.
-- **Status** gepland → bezig → klaar, met een voortgangsbalk bovenaan ("12 van 18 klaar").
-- **Doorschuiven naar morgen**: onafgemaakte regels bij dagwissel met één knop meenemen (of automatisch, met melding).
-- **MEP-templates**: vaste weekdag-lijsten ("elke donderdag: kip spiesen, dressings, zuurdesem") die je met één klik op de dag zet — zelfde idee als de takenlijst-templates.
-- **Notitie per regel** en (later) een foto zoals bij de taken.
-- **Vanuit interne bestellingen**: de bestaande automatische koppeling (goedgekeurde bestelling → MEP-regel) blijft werken.
+## H. Werkview — tablet
 
-## 6. Technisch
+- Grote regels, afvinkdoel minimaal 56px, filter "mijn naam" met één tik, zoekveld bovenaan.
+- Wake-lock zolang de werkview open staat.
+- Geen swipe als enige weg naar een actie.
 
-Database — uitbreiden van de bestaande, nog ongebruikte tabel `mep_planning`:
+## I. Datamodel (delta t.o.v. v1)
 
-- `recipe_id` wordt **nullable** (nu verplicht) — dat is precies wat de vrije taken mogelijk maakt
-- nieuw: `titel` (verplicht, gevuld met de receptnaam bij receptregels), `prioriteit` (1/2/3), `eenheid`, `sort_order`, `employee_id` → `foh_employees`, `sort_order_persoon`, `completed_at`/`completed_by`
-- bestaande `assigned_to` (uuid naar auth-gebruiker) blijft ongebruikt naast `employee_id`
-- optioneel later: `mep_templates` (vestiging, weekdag, titel, recipe_id, aantal, prio, sort_order)
-- RLS: lezen/schrijven voor ingelogde medewerkers van dezelfde vestiging, in lijn met `foh_tasks`; GRANTs meeleveren
+`mep_planning`:
+- `recipe_id` nullable; `titel` verplicht (receptnaam bij receptregels)
+- `prioriteit` (1/2/3), `aantal` (numeric), `eenheid`, `sort_order`, `sort_order_persoon`
+- `employee_id` → `foh_employees`
+- `aantal_klaar` (numeric, default 0)
+- `completed_at`, `completed_by`, `deleted_at`
+- `doorgeschoven_van` (date, nullable), `doorschuif_teller` (int, default 0)
+- `bron`: handmatig / template / bestelling / doorgeschoven
+- unieke index (date, location, lower(titel)) waar `deleted_at is null`, ter vervanging van de huidige recipe_id-constraint
 
-Frontend:
+`mep_templates`: zoals onder A.
 
-- Route `/kitchen/mep` (link in keukenmenu + sidebar); `src/pages/kitchen/MepPlanning.tsx` bestaat al als lege stub en wordt de echte pagina
-- Hook `src/hooks/useMepPlanning.ts` (React Query, optimistic updates zoals in FohTasks)
-- Componenten: `MepAddRow` (recept-of-vrij zoekveld), `MepRow`, `MepPersonBoard`, `MepWorkView`
-- Slepen met `@dnd-kit`, zelfde patroon als de takenlijst; `sort_order` in stappen van 10
+`sort_order` in stappen van 10, met renumber-routine wanneer buren te dicht op elkaar komen.
 
-## 7. Bouwvolgorde
+## J. Bouwvolgorde
 
-1. Migratie (kolommen + RLS + grants)
-2. Hook + basispagina met view "Alles" (toevoegen, afvinken, slepen, prio)
-3. View "Per persoon" met eigen volgorde
-4. Werkview (tablet-formaat) + voortgangsbalk
-5. Doorschuiven naar morgen + weekdag-templates
+1. Migratie: kolommen, `mep_templates`, `afdeling` op `foh_employees`, RLS + grants, unieke index, `create_mep_from_order` herschrijven, soft-delete
+2. Hook + view "Alles": toevoegen (recept-of-vrij), afvinken met deelvoortgang, slepen, prio, automatische dagopbouw uit templates + doorschuiven + ontdubbeling
+3. Realtime sync
+4. Werkview + voortgangsbalk
+5. View "Per persoon" met eigen volgorde
+6. Suggestie-chips + "opslaan als template"
 
-## Openstaande keuzes
+Stap 1–4 is de lanceerbare kern voor West; 5–6 mag later.
 
-- Voor welke vestiging(en) starten we: alleen West, of West + Midsland?
-- Medewerkerslijst uit `foh_employees` (bestaand, per vestiging) — akkoord, of wil je vrije naam-invoer?
+## K. Keuzes
+
+- West eerst, Midsland zodra week 1 loopt (datamodel is al per vestiging).
+- Medewerkers uit `foh_employees` (keukenteam toevoegen in stap 1), geen vrije naam-invoer.
+
+## Bewust niet
+
+Automatisch vullen op reserveringen, weer, verkoop of voorraad; AI-voorspellingen. Dat komt later, gevoed door de historie uit F.
