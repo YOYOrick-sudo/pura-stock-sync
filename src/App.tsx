@@ -30,6 +30,7 @@ import RecipeDetail from "./pages/kitchen/RecipeDetail";
 import RecipeForm from "./pages/kitchen/RecipeForm";
 import Ingredienten from "./pages/kitchen/Ingredienten";
 import SnelPrinten from "./pages/kitchen/SnelPrinten";
+import MepPlanning from "./pages/kitchen/MepPlanning";
 // HR Module
 import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } from "./pages/hr";
 // Maintenance Module
@@ -224,6 +225,7 @@ const App = () => (
             <Route path="/kitchen/recipes/:id" element={<ProtectedRoute><RecipeDetail /></ProtectedRoute>} />
             <Route path="/kitchen/recipes/:id/bewerken" element={<ProtectedRoute><RecipeForm /></ProtectedRoute>} />
             <Route path="/kitchen/ingredienten" element={<ProtectedRoute><Ingredienten /></ProtectedRoute>} />
+            <Route path="/kitchen/mep" element={<ProtectedRoute><MepPlanning /></ProtectedRoute>} />
             <Route path="/kitchen/snel-printen" element={<ProtectedRoute><SnelPrinten /></ProtectedRoute>} />
 
 
