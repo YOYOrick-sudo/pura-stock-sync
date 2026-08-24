@@ -8,11 +8,17 @@ De basis uit v1 blijft: recept-of-vrije-taak, nullable `recipe_id`, drie priorit
 - Een nieuwe dag wordt automatisch gevuld vanuit de templates van die weekdag. Geen knop.
 - Elke dagregel kan met één actie ("elke donderdag") template worden — het templatebestand groeit vanuit de praktijk.
 
-## B. Dagwissel & doorschuiven — automatisch, met ontdubbeling
+## B. Twee tabs: Vandaag en Morgen + dagwissel
 
-- Onafgemaakte regels schuiven automatisch door, met badge "van gisteren" en teller ("2e dag").
-- Ontdubbeling bij dagopbouw: doorgeschoven regel en templateregel met dezelfde `recipe_id` óf identieke titel worden één regel — hoogste prioriteit wint, aantallen niet optellen (doorgeschoven regel wint), badge blijft.
+- **Tab Vandaag** = werkscherm. **Tab Morgen** = vooruitplannen.
+- Dagwissel om **04:00** (niet middernacht), instelbaar per vestiging. Morgen wordt dan de nieuwe Vandaag, aangevuld met de weekdag-templates.
+- **Ontdubbeling** bij dagopbouw: regel uit Morgen/doorgeschoven en templateregel met dezelfde `recipe_id` óf identieke titel worden één regel — hoogste prioriteit wint, aantallen niet optellen (bestaande regel wint), badge blijft.
+- **Doorschuiven = kopiëren**: het onafgeronde origineel blijft op gisteren staan; op Vandaag komt een nieuwe regel met `bron = doorgeschoven`, `doorgeschoven_van` en opgehoogde teller, badge "van gisteren". Historie laat dus per dag zien wat gepland stond en niet af kwam.
 - 3+ dagen doorgeschoven krijgt aparte markering.
+- **Slimme standaard bij toevoegen**: vóór 17:00 → Vandaag, na 17:00 → Morgen, met altijd een zichtbare Vandaag/Morgen-toggle om te overrulen. Grens instelbaar per vestiging.
+- **Handmatig verplaatsen**: elke regel met één actie naar Morgen (en terug) — knop in de regel, swipe alleen als extra.
+- **Opnieuw toevoegen na afronden**: botst een insert op de unieke index met een al afgeronde regel, dan wordt die regel heropend en het aantal opgehoogd (`aantal_klaar` blijft staan: "3 van 5" wordt "3 van 8"). Nooit een stille fout.
+
 
 ## C. Realtime sync tussen tablets
 
