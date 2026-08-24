@@ -751,18 +751,21 @@ export type Database = {
       }
       foh_employees: {
         Row: {
+          afdeling: string
           created_at: string
           id: string
           location: string
           name: string
         }
         Insert: {
+          afdeling?: string
           created_at?: string
           id?: string
           location: string
           name: string
         }
         Update: {
+          afdeling?: string
           created_at?: string
           id?: string
           location?: string
@@ -1341,47 +1344,162 @@ export type Database = {
         }
         Relationships: []
       }
+      mep_dagopbouw_log: {
+        Row: {
+          datum: string
+          regels_toegevoegd: number
+          uitgevoerd_op: string
+          vestiging: string
+        }
+        Insert: {
+          datum: string
+          regels_toegevoegd?: number
+          uitgevoerd_op?: string
+          vestiging: string
+        }
+        Update: {
+          datum?: string
+          regels_toegevoegd?: number
+          uitgevoerd_op?: string
+          vestiging?: string
+        }
+        Relationships: []
+      }
+      mep_handelingen: {
+        Row: {
+          actief: boolean
+          created_at: string
+          id: string
+          naam: string
+          sort_order: number
+          vestiging: string
+        }
+        Insert: {
+          actief?: boolean
+          created_at?: string
+          id?: string
+          naam: string
+          sort_order?: number
+          vestiging: string
+        }
+        Update: {
+          actief?: boolean
+          created_at?: string
+          id?: string
+          naam?: string
+          sort_order?: number
+          vestiging?: string
+        }
+        Relationships: []
+      }
+      mep_instellingen: {
+        Row: {
+          dagwissel_uur: number
+          morgen_grens_uur: number
+          updated_at: string
+          vestiging: string
+        }
+        Insert: {
+          dagwissel_uur?: number
+          morgen_grens_uur?: number
+          updated_at?: string
+          vestiging: string
+        }
+        Update: {
+          dagwissel_uur?: number
+          morgen_grens_uur?: number
+          updated_at?: string
+          vestiging?: string
+        }
+        Relationships: []
+      }
       mep_planning: {
         Row: {
+          aantal_klaar: number
           assigned_to: string | null
+          bron: string
           completed_at: string | null
+          completed_by: string | null
           created_at: string | null
           date: string
+          deleted_at: string | null
+          doorgeschoven_van: string | null
+          doorschuif_teller: number
+          eenheid: string | null
+          employee_id: string | null
+          handeling: string | null
           id: string
           location: string
           notes: string | null
+          prioriteit: number
           quantity: number
-          recipe_id: string
+          recipe_id: string | null
+          sort_order: number
+          sort_order_persoon: number
           status: string
+          titel: string
           updated_at: string | null
         }
         Insert: {
+          aantal_klaar?: number
           assigned_to?: string | null
+          bron?: string
           completed_at?: string | null
+          completed_by?: string | null
           created_at?: string | null
           date: string
+          deleted_at?: string | null
+          doorgeschoven_van?: string | null
+          doorschuif_teller?: number
+          eenheid?: string | null
+          employee_id?: string | null
+          handeling?: string | null
           id?: string
           location: string
           notes?: string | null
+          prioriteit?: number
           quantity?: number
-          recipe_id: string
+          recipe_id?: string | null
+          sort_order?: number
+          sort_order_persoon?: number
           status?: string
+          titel: string
           updated_at?: string | null
         }
         Update: {
+          aantal_klaar?: number
           assigned_to?: string | null
+          bron?: string
           completed_at?: string | null
+          completed_by?: string | null
           created_at?: string | null
           date?: string
+          deleted_at?: string | null
+          doorgeschoven_van?: string | null
+          doorschuif_teller?: number
+          eenheid?: string | null
+          employee_id?: string | null
+          handeling?: string | null
           id?: string
           location?: string
           notes?: string | null
+          prioriteit?: number
           quantity?: number
-          recipe_id?: string
+          recipe_id?: string | null
+          sort_order?: number
+          sort_order_persoon?: number
           status?: string
+          titel?: string
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "mep_planning_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "foh_employees"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "mep_planning_recipe_id_fkey"
             columns: ["recipe_id"]
@@ -1391,6 +1509,69 @@ export type Database = {
           },
           {
             foreignKeyName: "mep_planning_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "v_recept_allergenen"
+            referencedColumns: ["recept_id"]
+          },
+        ]
+      }
+      mep_templates: {
+        Row: {
+          aantal: number | null
+          actief: boolean
+          created_at: string
+          eenheid: string | null
+          handeling: string | null
+          id: string
+          prioriteit: number
+          recipe_id: string | null
+          sort_order: number
+          titel: string
+          updated_at: string
+          vestiging: string
+          weekdag: number | null
+        }
+        Insert: {
+          aantal?: number | null
+          actief?: boolean
+          created_at?: string
+          eenheid?: string | null
+          handeling?: string | null
+          id?: string
+          prioriteit?: number
+          recipe_id?: string | null
+          sort_order?: number
+          titel: string
+          updated_at?: string
+          vestiging: string
+          weekdag?: number | null
+        }
+        Update: {
+          aantal?: number | null
+          actief?: boolean
+          created_at?: string
+          eenheid?: string | null
+          handeling?: string | null
+          id?: string
+          prioriteit?: number
+          recipe_id?: string | null
+          sort_order?: number
+          titel?: string
+          updated_at?: string
+          vestiging?: string
+          weekdag?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mep_templates_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mep_templates_recipe_id_fkey"
             columns: ["recipe_id"]
             isOneToOne: false
             referencedRelation: "v_recept_allergenen"
@@ -2660,6 +2841,54 @@ export type Database = {
         }
         Relationships: []
       }
+      vestiging_opendagen: {
+        Row: {
+          is_open: boolean
+          updated_at: string
+          vestiging: string
+          weekdag: number
+        }
+        Insert: {
+          is_open?: boolean
+          updated_at?: string
+          vestiging: string
+          weekdag: number
+        }
+        Update: {
+          is_open?: boolean
+          updated_at?: string
+          vestiging?: string
+          weekdag?: number
+        }
+        Relationships: []
+      }
+      vestiging_sluitdatums: {
+        Row: {
+          created_at: string
+          datum: string
+          id: string
+          is_open_uitzondering: boolean
+          reden: string | null
+          vestiging: string
+        }
+        Insert: {
+          created_at?: string
+          datum: string
+          id?: string
+          is_open_uitzondering?: boolean
+          reden?: string | null
+          vestiging: string
+        }
+        Update: {
+          created_at?: string
+          datum?: string
+          id?: string
+          is_open_uitzondering?: boolean
+          reden?: string | null
+          vestiging?: string
+        }
+        Relationships: []
+      }
       waste_pickups: {
         Row: {
           acknowledged_at: string | null
@@ -3005,6 +3234,26 @@ export type Database = {
       }
       mag_cijfers_zien: { Args: { _uid: string }; Returns: boolean }
       mag_loonkosten_zien: { Args: { _uid: string }; Returns: boolean }
+      mep_bouw_dag: {
+        Args: { _datum: string; _vestiging: string }
+        Returns: number
+      }
+      mep_is_open: {
+        Args: { _datum: string; _vestiging: string }
+        Returns: boolean
+      }
+      mep_verplaats_dag: {
+        Args: { _naar: string; _van: string; _vestiging: string }
+        Returns: number
+      }
+      mep_volgende_open_dag: {
+        Args: { _vanaf: string; _vestiging: string }
+        Returns: string
+      }
+      mep_vorige_open_dag: {
+        Args: { _vestiging: string; _voor: string }
+        Returns: string
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
