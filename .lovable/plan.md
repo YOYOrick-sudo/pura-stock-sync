@@ -10,11 +10,13 @@ Basis: recept-of-vrije-taak, nullable `recipe_id`, drie prioriteiten, drie views
 
 ## B. Openingsdagen — fundament, niet een randgeval
 
-- **Eén bron van waarheid.** Vandaag staan gesloten dagen hardcoded in de afval-edge-function (`CLOSED_DOW`: Midsland ma+di, West wo). Die kennis verhuist naar de database: `vestiging_opendagen` (vestiging × weekdag 0–6, open ja/nee) en `vestiging_sluitdatums` (losse datums met reden: feestdag, besloten feest). Gevuld met de huidige waarden. De afval-function later laten meelezen is een losse opruimstap — geen tweede lijstje bijhouden.
-- **De tweede tab heet niet "Morgen"** maar toont de **eerstvolgende open dag**, met de dagnaam als label ("Woensdag", "Morgen" alleen als dat toevallig morgen is). Zoeken slaat gesloten weekdagen én sluitdatums over, maximaal 14 dagen vooruit.
-- **Dagwissel, doorschuiven en de 17:00-standaard slaan gesloten dagen over.** Onafgemaakt werk van zondag landt op woensdag; templates van maandag en dinsdag worden nooit geladen. De doorschuif-teller telt open dagen, niet kalenderdagen.
+- **Eén bron van waarheid.** Vandaag staan gesloten dagen hardcoded in de afval-edge-function: `CLOSED_DOW` = Midsland ma+di, West wo, plus open-uitzonderingen (Midsland 15+16 juni 2026). Die kennis verhuist naar de database: `vestiging_opendagen` (vestiging × weekdag 0–6, open ja/nee) en `vestiging_sluitdatums` (losse datums met reden) plus open-uitzonderingen. Gevuld met de huidige waarden — **te bevestigen door jou of dit de actuele (zomer)situatie is**. De afval-function later laten meelezen is een losse opruimstap; geen tweede lijstje bijhouden.
+- **De tweede tab heet niet "Morgen"** maar toont de **eerstvolgende open dag**, met de dagnaam als label ("Donderdag"; "Morgen" alleen als dat toevallig morgen is). Zoeken slaat gesloten weekdagen én sluitdatums over, maximaal 14 dagen vooruit.
+- **Dagwissel, doorschuiven en de 17:00-standaard slaan gesloten dagen over.** In West landt dinsdag-restant op donderdag; templates van woensdag worden nooit geladen. De doorschuif-teller telt open dagen, niet kalenderdagen.
 - **Gesloten ≠ geblokkeerd.** Een gesloten dag wordt alleen niet automatisch gevuld. Handmatig toevoegen kan altijd, met een rustige melding "West is deze dag gesloten".
+- **Sluitdatum toevoegen op een dag die al gevuld is**: bij het opslaan van een sluitdatum verhuizen alle openstaande regels van die dag automatisch naar de eerstvolgende open dag (ontdubbeling uit C wordt toegepast), met melding "7 regels verplaatst naar donderdag" en één keer ongedaan maken. Afgeronde regels blijven staan waar ze staan, als historie.
 - **Seizoenswissel** = de instellingen aanpassen. Geen aparte seizoenslogica.
+
 
 ## C. Twee tabs: Vandaag en eerstvolgende open dag
 
@@ -26,6 +28,7 @@ Basis: recept-of-vrije-taak, nullable `recipe_id`, drie prioriteiten, drie views
 - **Slimme standaard bij toevoegen**: vóór 17:00 → Vandaag, na 17:00 → volgende open dag, met altijd een zichtbare toggle. Grens instelbaar per vestiging. Is vandaag gesloten, dan staat de standaard op de eerstvolgende open dag.
 - **Handmatig verplaatsen**: elke regel met één knop naar de andere tab en terug. Swipe alleen als extra.
 - **Opnieuw toevoegen na afronden**: botst een insert op de unieke index met een afgeronde regel, dan wordt die heropend en het aantal opgehoogd (`aantal_klaar` blijft staan: "3 van 5" wordt "3 van 8"). Nooit een stille fout.
+- **Dagopbouw is idempotent en zelfherstellend.** De opbouw zit in één SQL-functie `mep_bouw_dag(vestiging, datum)` die veilig meerdere keren mag draaien: bestaat de regel al (zelfde sleutel), dan gebeurt er niets. Per vestiging + dag wordt in `mep_dagopbouw_log` vastgelegd dat de opbouw klaar is. De 04:00-cron roept de functie aan; **daarnaast roept de app hem bij het openen van de MEP-lijst zelf aan** wanneer er voor die dag nog geen log-regel staat. Cron is gemak, geen single point of failure — de keuken staat nooit voor een lege lijst.
 
 ## D. Handeling per halfproduct
 
@@ -85,22 +88,28 @@ Helper in SQL: `mep_volgende_open_dag(vestiging, vanaf_datum)` — gebruikt door
 
 Nu bouwen: stap 1 t/m 4 voor West.
 
-## L. Toets: een normale zondag in West
+## L. Toets: een normale zondag in West (West is dicht op woensdag)
 
 ```text
 04:00  dagwissel   -> zondag is open: templates zondag geladen; zaterdag-restant
                       gekopieerd naar zondag met badge "van gisteren"
+07:50  cron gemist -> keuken opent de lijst; geen log-regel voor vandaag, dus de app
+                      draait mep_bouw_dag zelf: dezelfde lijst, geen dubbelingen
 08:00  binnenkomst -> Werkview op tablet, filter "mijn naam", wake-lock aan
 09:00  prep        -> "Döner — ontdooien" afvinken; "Kip vacumeren" 3 van 5
 12:00  bestelling  -> order uit Midsland valt binnen: regel via create_mep_from_order,
                       bron = bestelling, botst niet want andere titel
 15:00  bijwerken   -> "Chimichurri" is op -> opnieuw toevoegen: heropent de afgeronde
                       regel en hoogt het aantal op
-17:30  vooruit     -> nieuwe regel krijgt standaard tab "Woensdag" (ma+di gesloten),
-                      toggle zichtbaar om alsnog vandaag te kiezen
+17:30  vooruit     -> nieuwe regel krijgt standaard tab "Maandag" (maandag is open in
+                      West), toggle zichtbaar om alsnog vandaag te kiezen
+19:00  feest       -> besloten feest op donderdag ingevoerd: de 4 openstaande regels van
+                      donderdag verhuizen naar vrijdag, met melding en ongedaan maken
 22:00  sluiten     -> onafgeronde regels blijven op zondag staan; kopie verschijnt
-                      woensdag 04:00, teller +1 (open dagen, dus niet +3)
+                      maandag 04:00, teller +1
 ```
+
+Woensdag-restant in West schuift door naar donderdag; in Midsland (dicht ma+di) schuift zondag-restant door naar woensdag.
 
 Wat hier niet uitkomt, vangen we in week één in de praktijk.
 
