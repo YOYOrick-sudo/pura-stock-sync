@@ -10,11 +10,13 @@ Basis: recept-of-vrije-taak, nullable `recipe_id`, drie prioriteiten, drie views
 
 ## B. Openingsdagen — fundament, niet een randgeval
 
-- **Eén bron van waarheid.** Vandaag staan gesloten dagen hardcoded in de afval-edge-function (`CLOSED_DOW`: Midsland ma+di, West wo). Die kennis verhuist naar de database: `vestiging_opendagen` (vestiging × weekdag 0–6, open ja/nee) en `vestiging_sluitdatums` (losse datums met reden: feestdag, besloten feest). Gevuld met de huidige waarden. De afval-function later laten meelezen is een losse opruimstap — geen tweede lijstje bijhouden.
-- **De tweede tab heet niet "Morgen"** maar toont de **eerstvolgende open dag**, met de dagnaam als label ("Woensdag", "Morgen" alleen als dat toevallig morgen is). Zoeken slaat gesloten weekdagen én sluitdatums over, maximaal 14 dagen vooruit.
-- **Dagwissel, doorschuiven en de 17:00-standaard slaan gesloten dagen over.** Onafgemaakt werk van zondag landt op woensdag; templates van maandag en dinsdag worden nooit geladen. De doorschuif-teller telt open dagen, niet kalenderdagen.
+- **Eén bron van waarheid.** Vandaag staan gesloten dagen hardcoded in de afval-edge-function: `CLOSED_DOW` = Midsland ma+di, West wo, plus open-uitzonderingen (Midsland 15+16 juni 2026). Die kennis verhuist naar de database: `vestiging_opendagen` (vestiging × weekdag 0–6, open ja/nee) en `vestiging_sluitdatums` (losse datums met reden) plus open-uitzonderingen. Gevuld met de huidige waarden — **te bevestigen door jou of dit de actuele (zomer)situatie is**. De afval-function later laten meelezen is een losse opruimstap; geen tweede lijstje bijhouden.
+- **De tweede tab heet niet "Morgen"** maar toont de **eerstvolgende open dag**, met de dagnaam als label ("Donderdag"; "Morgen" alleen als dat toevallig morgen is). Zoeken slaat gesloten weekdagen én sluitdatums over, maximaal 14 dagen vooruit.
+- **Dagwissel, doorschuiven en de 17:00-standaard slaan gesloten dagen over.** In West landt dinsdag-restant op donderdag; templates van woensdag worden nooit geladen. De doorschuif-teller telt open dagen, niet kalenderdagen.
 - **Gesloten ≠ geblokkeerd.** Een gesloten dag wordt alleen niet automatisch gevuld. Handmatig toevoegen kan altijd, met een rustige melding "West is deze dag gesloten".
+- **Sluitdatum toevoegen op een dag die al gevuld is**: bij het opslaan van een sluitdatum verhuizen alle openstaande regels van die dag automatisch naar de eerstvolgende open dag (ontdubbeling uit C wordt toegepast), met melding "7 regels verplaatst naar donderdag" en één keer ongedaan maken. Afgeronde regels blijven staan waar ze staan, als historie.
 - **Seizoenswissel** = de instellingen aanpassen. Geen aparte seizoenslogica.
+
 
 ## C. Twee tabs: Vandaag en eerstvolgende open dag
 
