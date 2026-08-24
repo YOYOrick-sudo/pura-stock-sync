@@ -88,22 +88,28 @@ Helper in SQL: `mep_volgende_open_dag(vestiging, vanaf_datum)` — gebruikt door
 
 Nu bouwen: stap 1 t/m 4 voor West.
 
-## L. Toets: een normale zondag in West
+## L. Toets: een normale zondag in West (West is dicht op woensdag)
 
 ```text
 04:00  dagwissel   -> zondag is open: templates zondag geladen; zaterdag-restant
                       gekopieerd naar zondag met badge "van gisteren"
+07:50  cron gemist -> keuken opent de lijst; geen log-regel voor vandaag, dus de app
+                      draait mep_bouw_dag zelf: dezelfde lijst, geen dubbelingen
 08:00  binnenkomst -> Werkview op tablet, filter "mijn naam", wake-lock aan
 09:00  prep        -> "Döner — ontdooien" afvinken; "Kip vacumeren" 3 van 5
 12:00  bestelling  -> order uit Midsland valt binnen: regel via create_mep_from_order,
                       bron = bestelling, botst niet want andere titel
 15:00  bijwerken   -> "Chimichurri" is op -> opnieuw toevoegen: heropent de afgeronde
                       regel en hoogt het aantal op
-17:30  vooruit     -> nieuwe regel krijgt standaard tab "Woensdag" (ma+di gesloten),
-                      toggle zichtbaar om alsnog vandaag te kiezen
+17:30  vooruit     -> nieuwe regel krijgt standaard tab "Maandag" (maandag is open in
+                      West), toggle zichtbaar om alsnog vandaag te kiezen
+19:00  feest       -> besloten feest op donderdag ingevoerd: de 4 openstaande regels van
+                      donderdag verhuizen naar vrijdag, met melding en ongedaan maken
 22:00  sluiten     -> onafgeronde regels blijven op zondag staan; kopie verschijnt
-                      woensdag 04:00, teller +1 (open dagen, dus niet +3)
+                      maandag 04:00, teller +1
 ```
+
+Woensdag-restant in West schuift door naar donderdag; in Midsland (dicht ma+di) schuift zondag-restant door naar woensdag.
 
 Wat hier niet uitkomt, vangen we in week één in de praktijk.
 
