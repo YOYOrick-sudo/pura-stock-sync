@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,6 +43,10 @@ export function MepToevoegenDialog({ open, onOpenChange, location, dagOpties, st
     if (q.length < 2) return [];
     return suggesties.filter((s) => s.titel.toLowerCase().includes(q)).slice(0, 6);
   }, [titel, suggesties]);
+
+  useEffect(() => {
+    if (open) setDag(standaardDag);
+  }, [open, standaardDag]);
 
   const exact = suggesties.some((s) => s.titel.toLowerCase() === titel.trim().toLowerCase());
 
