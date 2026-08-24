@@ -209,15 +209,18 @@ export function useMepPlanning(location: string, datum: string, autoBouw = false
       // Bestaat de regel al (zelfde titel + handeling)? Dan heropenen en ophogen.
       const { data: bestaand } = await supabase
         .from('mep_planning')
-        .select('id, quantity, completed_at')
+        .select('id, titel, handeling, quantity, completed_at')
         .eq('location', location)
         .eq('date', dag)
         .is('deleted_at', null)
-        .ilike('titel', regel.titel)
-        .limit(20);
+        .ilike('titel', regel.titel);
 
-      const match = (bestaand ?? []).find(() => true);
-      const dubbel = (bestaand ?? []).length > 0 ? match : null;
+      const dubbel = (bestaand ?? []).find(
+        (r) =>
+          r.titel.toLowerCase() === regel.titel.toLowerCase() &&
+          (r.handeling ?? '') === (regel.handeling ?? ''),
+      );
+
 
       if (dubbel) {
         const { error } = await supabase
