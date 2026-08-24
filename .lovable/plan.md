@@ -28,6 +28,7 @@ Basis: recept-of-vrije-taak, nullable `recipe_id`, drie prioriteiten, drie views
 - **Slimme standaard bij toevoegen**: vóór 17:00 → Vandaag, na 17:00 → volgende open dag, met altijd een zichtbare toggle. Grens instelbaar per vestiging. Is vandaag gesloten, dan staat de standaard op de eerstvolgende open dag.
 - **Handmatig verplaatsen**: elke regel met één knop naar de andere tab en terug. Swipe alleen als extra.
 - **Opnieuw toevoegen na afronden**: botst een insert op de unieke index met een afgeronde regel, dan wordt die heropend en het aantal opgehoogd (`aantal_klaar` blijft staan: "3 van 5" wordt "3 van 8"). Nooit een stille fout.
+- **Dagopbouw is idempotent en zelfherstellend.** De opbouw zit in één SQL-functie `mep_bouw_dag(vestiging, datum)` die veilig meerdere keren mag draaien: bestaat de regel al (zelfde sleutel), dan gebeurt er niets. Per vestiging + dag wordt in `mep_dagopbouw_log` vastgelegd dat de opbouw klaar is. De 04:00-cron roept de functie aan; **daarnaast roept de app hem bij het openen van de MEP-lijst zelf aan** wanneer er voor die dag nog geen log-regel staat. Cron is gemak, geen single point of failure — de keuken staat nooit voor een lege lijst.
 
 ## D. Handeling per halfproduct
 
