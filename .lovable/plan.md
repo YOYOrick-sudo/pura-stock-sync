@@ -15,11 +15,14 @@ Doel: alle keukenkennis kan ingevuld worden (Helga-sessie), de artikelketen word
 1. `leveranciers`: naam, kanaal (`mail` | `telefoon` | `portal` | `api`), contact e-mail/telefoon, api_basis_url, api_sleutel_referentie (alleen naam van het secret), notitie, actief, deleted_at, timestamps.
 2. `leverancier_besteldagen`: leverancier_id, weekdag, deadline_tijd, leverdag_offset, actief.
 3. `leverancier_artikelen`: leverancier_id, artikel_id, artikelnummer (product_code), besteleenheid_id, inhoud_per_besteleenheid, netto_prijs, is_voorkeur, actief.
-4. `keten_instellingen`: vestiging (CHECK West/Midsland), `cycle_count_aantal int default 5 check >= 0`, timestamps. Rij per vestiging.
-5. `internal_order_items`: `artikel_id uuid` + `eenheid_id uuid` erbij (nullable, FK), `quantity` naar `numeric`. `product_name`/`unit` blijven staan als historische snapshot.
-6. Trigger `create_mep_from_order` uitschakelen (DROP TRIGGER, functie blijft staan tot stap 3), zodra de nieuwe UI live is — in dezelfde migratie, want de nieuwe route komt in stap 3.
-7. Compat-views `ingredienten_master` / `ingredient_locaties` droppen nadat de frontend om is.
-8. RLS + GRANTs volgens besluit H: staff leest, manager/owner schrijft, service_role alles.
+4. `leverancier_vestiging_config`: leverancier_id, vestiging (CHECK West/Midsland), klantnummer, api_sleutel_referentie (naam van het Edge Function secret, dus per vestiging een eigen secret zoals `KOOYMAN_API_KEY_WEST` / `KOOYMAN_API_KEY_MIDSLAND`), portal_login_hint (nooit wachtwoorden), actief. `api_basis_url` blijft op `leveranciers`.
+5. `leverancier_besteldagen` krijgt optionele kolom `vestiging` (NULL = geldt voor beide).
+6. `keten_instellingen`: vestiging (CHECK West/Midsland), `cycle_count_aantal int default 5 check >= 0`, timestamps. Rij per vestiging.
+7. `internal_order_items`: `artikel_id uuid` + `eenheid_id uuid` erbij (nullable, FK), `quantity` naar `numeric`. `product_name`/`unit` blijven staan als historische snapshot.
+8. Trigger `create_mep_from_order` direct droppen (functie blijft tot stap 3), met migratie-comment: hij schrijft alleen naar `mep_planning` en geen enkel scherm leest die tabel, dus uitzetten heeft geen zichtbaar effect.
+9. Compat-views `ingredienten_master` / `ingredient_locaties` droppen nadat de frontend om is.
+10. RLS + GRANTs volgens besluit H: staff leest, manager/owner schrijft, service_role alles.
+
 
 ## Frontend
 
