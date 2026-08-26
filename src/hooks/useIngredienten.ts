@@ -22,7 +22,7 @@ export function useIngredientSuggestions(term: string) {
     staleTime: 30_000,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('ingredienten_master')
+        .from('artikelen')
         .select('id, naam')
         .ilike('naam', `%${q}%`)
         .order('naam', { ascending: true })
@@ -57,7 +57,7 @@ export async function ensureIngredientMaster(naam: string): Promise<IngredientMa
   if (!clean) throw new Error('Naam is leeg');
 
   const { data: ins, error: insErr } = await supabase
-    .from('ingredienten_master')
+    .from('artikelen')
     .insert({ naam: clean })
     .select('id, naam')
     .single();
@@ -66,7 +66,7 @@ export async function ensureIngredientMaster(naam: string): Promise<IngredientMa
 
   if (insErr && (insErr as any).code === '23505') {
     const { data: existing, error: selErr } = await supabase
-      .from('ingredienten_master')
+      .from('artikelen')
       .select('id, naam')
       .ilike('naam', clean)
       .limit(1)
@@ -108,7 +108,7 @@ export function useRenameIngredient() {
       if (!clean) throw new Error('Naam is leeg');
 
       const { error } = await supabase
-        .from('ingredienten_master')
+        .from('artikelen')
         .update({ naam: clean })
         .eq('id', id);
       if (error) {
