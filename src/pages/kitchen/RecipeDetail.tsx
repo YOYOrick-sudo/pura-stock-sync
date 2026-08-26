@@ -21,6 +21,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { toast } from 'sonner';
 import { AllergenenBadges } from '@/components/kitchen/AllergenenBadges';
 import { useReceptAllergenen } from '@/hooks/useAllergenen';
+import { MethodesKaart } from '@/components/kitchen/MethodesKaart';
+import { useRole } from '@/hooks/useRole';
 
 function formatIngredient(hoeveelheid?: string | null, eenheid?: string | null, naam?: string) {
   return `${hoeveelheid ?? ''} ${eenheid ?? ''} ${naam ?? ''}`.replace(/\s+/g, ' ').trim();
