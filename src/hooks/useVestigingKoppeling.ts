@@ -8,7 +8,7 @@ export type KoppelSoort = 'recept' | 'ingredient';
 
 const CONFIG: Record<KoppelSoort, { tabel: string; fk: string }> = {
   recept: { tabel: 'recept_locaties', fk: 'recept_id' },
-  ingredient: { tabel: 'ingredient_locaties', fk: 'ingredient_id' },
+  ingredient: { tabel: 'artikel_locaties', fk: 'artikel_id' },
 };
 
 /** De vestiging van de ingelogde gebruiker (West / Midsland), of null. */
