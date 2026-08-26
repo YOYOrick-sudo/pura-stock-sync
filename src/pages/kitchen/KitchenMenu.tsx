@@ -44,6 +44,7 @@ const MenuCard = ({ to, icon: Icon, title, description, color }: MenuCardProps) 
 
 export default function KitchenMenu() {
   const navigate = useNavigate();
+  const { userLocation } = useUserLocation();
 
   return (
     <div className="min-h-screen bg-background">
