@@ -261,6 +261,9 @@ export default function RecipeDetail() {
             <p className="text-sm text-muted-foreground">Nog geen bereiding toegevoegd.</p>
           )}
         </Card>
+
+        {/* Handelingen / mise en place */}
+        <MethodesKaart receptId={recipe.id} kanBeheren={isManager} />
       </div>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
