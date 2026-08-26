@@ -860,6 +860,66 @@ export type Database = {
           },
         ]
       }
+      halffabricaat_methodes: {
+        Row: {
+          created_at: string
+          houdbaarheid: number | null
+          id: string
+          instructie: string | null
+          output_eenheid: string
+          output_hoeveelheid: number
+          recept_id: string
+          sort_order: number
+          standaard_duur: number
+          type: string
+          updated_at: string
+          visuele_eenheid: string
+        }
+        Insert: {
+          created_at?: string
+          houdbaarheid?: number | null
+          id?: string
+          instructie?: string | null
+          output_eenheid?: string
+          output_hoeveelheid?: number
+          recept_id: string
+          sort_order?: number
+          standaard_duur?: number
+          type: string
+          updated_at?: string
+          visuele_eenheid: string
+        }
+        Update: {
+          created_at?: string
+          houdbaarheid?: number | null
+          id?: string
+          instructie?: string | null
+          output_eenheid?: string
+          output_hoeveelheid?: number
+          recept_id?: string
+          sort_order?: number
+          standaard_duur?: number
+          type?: string
+          updated_at?: string
+          visuele_eenheid?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "halffabricaat_methodes_recept_id_fkey"
+            columns: ["recept_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "halffabricaat_methodes_recept_id_fkey"
+            columns: ["recept_id"]
+            isOneToOne: false
+            referencedRelation: "v_recept_allergenen"
+            referencedColumns: ["recept_id"]
+          },
+        ]
+      }
       handover_memos: {
         Row: {
           created_at: string
@@ -907,6 +967,51 @@ export type Database = {
           location?: string
         }
         Relationships: []
+      }
+      ingredient_locaties: {
+        Row: {
+          created_at: string
+          id: string
+          ingredient_id: string
+          is_actief: boolean
+          min_voorraad: number
+          updated_at: string
+          vestiging: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ingredient_id: string
+          is_actief?: boolean
+          min_voorraad?: number
+          updated_at?: string
+          vestiging: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ingredient_id?: string
+          is_actief?: boolean
+          min_voorraad?: number
+          updated_at?: string
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingredient_locaties_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredienten_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingredient_locaties_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ingredienten_master: {
         Row: {
@@ -1516,6 +1621,139 @@ export type Database = {
           },
         ]
       }
+      mep_taak_afrondingen: {
+        Row: {
+          aantal_gemaakt: number
+          afgerond_door: string | null
+          afgerond_op: string
+          batch_id: string | null
+          id: string
+          notitie: string | null
+          taak_id: string
+          temperatuur: number | null
+        }
+        Insert: {
+          aantal_gemaakt?: number
+          afgerond_door?: string | null
+          afgerond_op?: string
+          batch_id?: string | null
+          id?: string
+          notitie?: string | null
+          taak_id: string
+          temperatuur?: number | null
+        }
+        Update: {
+          aantal_gemaakt?: number
+          afgerond_door?: string | null
+          afgerond_op?: string
+          batch_id?: string | null
+          id?: string
+          notitie?: string | null
+          taak_id?: string
+          temperatuur?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mep_taak_afrondingen_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "productie_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mep_taak_afrondingen_taak_id_fkey"
+            columns: ["taak_id"]
+            isOneToOne: false
+            referencedRelation: "mep_taken"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mep_taken: {
+        Row: {
+          categorie: string
+          created_at: string
+          created_by: string | null
+          deadline: string | null
+          doel_aantal: number | null
+          doel_eenheid: string | null
+          id: string
+          methode_id: string | null
+          notitie: string | null
+          prioriteit: number
+          recept_id: string | null
+          status: string
+          taak_datum: string
+          titel: string
+          toegewezen_aan: string | null
+          updated_at: string
+          vestiging: string
+          volgorde: number
+        }
+        Insert: {
+          categorie?: string
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          doel_aantal?: number | null
+          doel_eenheid?: string | null
+          id?: string
+          methode_id?: string | null
+          notitie?: string | null
+          prioriteit?: number
+          recept_id?: string | null
+          status?: string
+          taak_datum?: string
+          titel: string
+          toegewezen_aan?: string | null
+          updated_at?: string
+          vestiging: string
+          volgorde?: number
+        }
+        Update: {
+          categorie?: string
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          doel_aantal?: number | null
+          doel_eenheid?: string | null
+          id?: string
+          methode_id?: string | null
+          notitie?: string | null
+          prioriteit?: number
+          recept_id?: string | null
+          status?: string
+          taak_datum?: string
+          titel?: string
+          toegewezen_aan?: string | null
+          updated_at?: string
+          vestiging?: string
+          volgorde?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mep_taken_methode_id_fkey"
+            columns: ["methode_id"]
+            isOneToOne: false
+            referencedRelation: "halffabricaat_methodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mep_taken_recept_id_fkey"
+            columns: ["recept_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mep_taken_recept_id_fkey"
+            columns: ["recept_id"]
+            isOneToOne: false
+            referencedRelation: "v_recept_allergenen"
+            referencedColumns: ["recept_id"]
+          },
+        ]
+      }
       mep_templates: {
         Row: {
           aantal: number | null
@@ -2057,6 +2295,76 @@ export type Database = {
           },
         ]
       }
+      productie_batches: {
+        Row: {
+          batch_nummer: string
+          created_at: string
+          eenheid: string | null
+          geproduceerd_door: string | null
+          hoeveelheid: number | null
+          houdbaar_tot: string | null
+          id: string
+          methode_id: string | null
+          notitie: string | null
+          omschrijving: string | null
+          productie_datum: string
+          recept_id: string | null
+          vestiging: string
+        }
+        Insert: {
+          batch_nummer: string
+          created_at?: string
+          eenheid?: string | null
+          geproduceerd_door?: string | null
+          hoeveelheid?: number | null
+          houdbaar_tot?: string | null
+          id?: string
+          methode_id?: string | null
+          notitie?: string | null
+          omschrijving?: string | null
+          productie_datum?: string
+          recept_id?: string | null
+          vestiging: string
+        }
+        Update: {
+          batch_nummer?: string
+          created_at?: string
+          eenheid?: string | null
+          geproduceerd_door?: string | null
+          hoeveelheid?: number | null
+          houdbaar_tot?: string | null
+          id?: string
+          methode_id?: string | null
+          notitie?: string | null
+          omschrijving?: string | null
+          productie_datum?: string
+          recept_id?: string | null
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "productie_batches_methode_id_fkey"
+            columns: ["methode_id"]
+            isOneToOne: false
+            referencedRelation: "halffabricaat_methodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "productie_batches_recept_id_fkey"
+            columns: ["recept_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "productie_batches_recept_id_fkey"
+            columns: ["recept_id"]
+            isOneToOne: false
+            referencedRelation: "v_recept_allergenen"
+            referencedColumns: ["recept_id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -2160,6 +2468,48 @@ export type Database = {
           },
           {
             foreignKeyName: "recept_ingredienten_recept_id_fkey"
+            columns: ["recept_id"]
+            isOneToOne: false
+            referencedRelation: "v_recept_allergenen"
+            referencedColumns: ["recept_id"]
+          },
+        ]
+      }
+      recept_locaties: {
+        Row: {
+          created_at: string
+          id: string
+          is_actief: boolean
+          recept_id: string
+          updated_at: string
+          vestiging: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_actief?: boolean
+          recept_id: string
+          updated_at?: string
+          vestiging: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_actief?: boolean
+          recept_id?: string
+          updated_at?: string
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recept_locaties_recept_id_fkey"
+            columns: ["recept_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recept_locaties_recept_id_fkey"
             columns: ["recept_id"]
             isOneToOne: false
             referencedRelation: "v_recept_allergenen"
@@ -3241,10 +3591,24 @@ export type Database = {
         Args: { _datum: string; _vestiging: string }
         Returns: number
       }
+      mep_genereer_batchnummer: {
+        Args: { _vestiging: string }
+        Returns: string
+      }
       mep_is_open: {
         Args: { _datum: string; _vestiging: string }
         Returns: boolean
       }
+      mep_taak_afronden: {
+        Args: {
+          _aantal_gemaakt?: number
+          _notitie?: string
+          _taak_id: string
+          _temperatuur?: number
+        }
+        Returns: Json
+      }
+      mep_taak_heropenen: { Args: { _taak_id: string }; Returns: undefined }
       mep_verplaats_dag: {
         Args: { _naar: string; _van: string; _vestiging: string }
         Returns: number
