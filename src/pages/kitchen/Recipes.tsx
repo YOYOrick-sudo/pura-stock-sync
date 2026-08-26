@@ -151,9 +151,7 @@ export default function Recipes() {
                     ) : (
                       <span className="text-sm text-foreground">Recept</span>
                     )}
-                    {methodeIds.has(recipe.id) ? (
-                      <Badge variant="secondary" className="text-xs">Methode ✓</Badge>
-                    ) : isManager ? (
+                    {isManager ? (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -164,9 +162,12 @@ export default function Recipes() {
                         }}
                       >
                         <ChefHat className="h-4 w-4 mr-1" />
-                        Methode
+                        {methodeIds.has(recipe.id) ? 'Methode ✓' : 'Methode'}
                       </Button>
+                    ) : methodeIds.has(recipe.id) ? (
+                      <Badge variant="secondary" className="text-xs">Methode ✓</Badge>
                     ) : null}
+
                   </div>
 
                   <div>
