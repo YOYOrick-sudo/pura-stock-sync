@@ -227,6 +227,7 @@ const App = () => (
             <Route path="/kitchen/recipes/:id/bewerken" element={<ProtectedRoute><RecipeForm /></ProtectedRoute>} />
             <Route path="/kitchen/ingredienten" element={<ProtectedRoute><Ingredienten /></ProtectedRoute>} />
             <Route path="/kitchen/mep" element={<ProtectedRoute><MepPlanning /></ProtectedRoute>} />
+            <Route path="/kitchen/mep/beheer" element={<ProtectedRoute><MepBeheer /></ProtectedRoute>} />
             <Route path="/kitchen/snel-printen" element={<ProtectedRoute><SnelPrinten /></ProtectedRoute>} />
 
 
