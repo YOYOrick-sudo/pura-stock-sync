@@ -296,6 +296,220 @@ export type Database = {
           },
         ]
       }
+      artikel_eenheden: {
+        Row: {
+          artikel_id: string
+          created_at: string
+          deleted_at: string | null
+          eenheid_id: string
+          factor_naar_basis: number
+          id: string
+          is_inkoop: boolean
+          is_keuken: boolean
+          rendement_pct: number | null
+          updated_at: string
+        }
+        Insert: {
+          artikel_id: string
+          created_at?: string
+          deleted_at?: string | null
+          eenheid_id: string
+          factor_naar_basis?: number
+          id?: string
+          is_inkoop?: boolean
+          is_keuken?: boolean
+          rendement_pct?: number | null
+          updated_at?: string
+        }
+        Update: {
+          artikel_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          eenheid_id?: string
+          factor_naar_basis?: number
+          id?: string
+          is_inkoop?: boolean
+          is_keuken?: boolean
+          rendement_pct?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artikel_eenheden_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artikel_eenheden_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "ingredienten_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artikel_eenheden_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artikel_eenheden_eenheid_id_fkey"
+            columns: ["eenheid_id"]
+            isOneToOne: false
+            referencedRelation: "eenheden"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artikel_locaties: {
+        Row: {
+          aanvul_bron: string
+          artikel_id: string
+          bron_vestiging: string | null
+          created_at: string
+          deleted_at: string | null
+          id: string
+          is_actief: boolean
+          max_voorraad: number
+          min_voorraad: number
+          opslag_locatie: string | null
+          tel_volgorde: number
+          updated_at: string
+          vestiging: string
+        }
+        Insert: {
+          aanvul_bron?: string
+          artikel_id: string
+          bron_vestiging?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_actief?: boolean
+          max_voorraad?: number
+          min_voorraad?: number
+          opslag_locatie?: string | null
+          tel_volgorde?: number
+          updated_at?: string
+          vestiging: string
+        }
+        Update: {
+          aanvul_bron?: string
+          artikel_id?: string
+          bron_vestiging?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_actief?: boolean
+          max_voorraad?: number
+          min_voorraad?: number
+          opslag_locatie?: string | null
+          tel_volgorde?: number
+          updated_at?: string
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingredient_locaties_ingredient_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingredient_locaties_ingredient_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "ingredienten_master"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingredient_locaties_ingredient_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artikelen: {
+        Row: {
+          allergenen: Database["public"]["Enums"]["allergen"][]
+          allergenen_bijgewerkt_op: string | null
+          allergenen_bron: string | null
+          allergenen_sporen: Database["public"]["Enums"]["allergen"][]
+          allergenen_status: string
+          basis_eenheid_id: string | null
+          categorie: string | null
+          created_at: string
+          deleted_at: string | null
+          id: string
+          is_voorraad_artikel: boolean
+          naam: string
+          recept_id: string | null
+          soort: string
+          updated_at: string
+        }
+        Insert: {
+          allergenen?: Database["public"]["Enums"]["allergen"][]
+          allergenen_bijgewerkt_op?: string | null
+          allergenen_bron?: string | null
+          allergenen_sporen?: Database["public"]["Enums"]["allergen"][]
+          allergenen_status?: string
+          basis_eenheid_id?: string | null
+          categorie?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_voorraad_artikel?: boolean
+          naam: string
+          recept_id?: string | null
+          soort?: string
+          updated_at?: string
+        }
+        Update: {
+          allergenen?: Database["public"]["Enums"]["allergen"][]
+          allergenen_bijgewerkt_op?: string | null
+          allergenen_bron?: string | null
+          allergenen_sporen?: Database["public"]["Enums"]["allergen"][]
+          allergenen_status?: string
+          basis_eenheid_id?: string | null
+          categorie?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_voorraad_artikel?: boolean
+          naam?: string
+          recept_id?: string | null
+          soort?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artikelen_basis_eenheid_id_fkey"
+            columns: ["basis_eenheid_id"]
+            isOneToOne: false
+            referencedRelation: "eenheden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artikelen_recept_id_fkey"
+            columns: ["recept_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artikelen_recept_id_fkey"
+            columns: ["recept_id"]
+            isOneToOne: false
+            referencedRelation: "v_recept_allergenen"
+            referencedColumns: ["recept_id"]
+          },
+        ]
+      }
       candidates: {
         Row: {
           created_at: string
@@ -421,6 +635,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      eenheden: {
+        Row: {
+          basis_code: string
+          code: string
+          created_at: string
+          deleted_at: string | null
+          factor_naar_basis: number
+          id: string
+          naam: string
+          soort: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          basis_code: string
+          code: string
+          created_at?: string
+          deleted_at?: string | null
+          factor_naar_basis?: number
+          id?: string
+          naam: string
+          soort: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          basis_code?: string
+          code?: string
+          created_at?: string
+          deleted_at?: string | null
+          factor_naar_basis?: number
+          id?: string
+          naam?: string
+          soort?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       eitje_connection: {
         Row: {
@@ -868,6 +1121,7 @@ export type Database = {
           instructie: string | null
           output_eenheid: string
           output_hoeveelheid: number
+          productie_leadtime_dagen: number
           recept_id: string
           sort_order: number
           standaard_duur: number
@@ -882,6 +1136,7 @@ export type Database = {
           instructie?: string | null
           output_eenheid?: string
           output_hoeveelheid?: number
+          productie_leadtime_dagen?: number
           recept_id: string
           sort_order?: number
           standaard_duur?: number
@@ -896,6 +1151,7 @@ export type Database = {
           instructie?: string | null
           output_eenheid?: string
           output_hoeveelheid?: number
+          productie_leadtime_dagen?: number
           recept_id?: string
           sort_order?: number
           standaard_duur?: number
@@ -965,84 +1221,6 @@ export type Database = {
           id?: string
           idea_text?: string
           location?: string
-        }
-        Relationships: []
-      }
-      ingredient_locaties: {
-        Row: {
-          created_at: string
-          id: string
-          ingredient_id: string
-          is_actief: boolean
-          min_voorraad: number
-          updated_at: string
-          vestiging: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          ingredient_id: string
-          is_actief?: boolean
-          min_voorraad?: number
-          updated_at?: string
-          vestiging: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          ingredient_id?: string
-          is_actief?: boolean
-          min_voorraad?: number
-          updated_at?: string
-          vestiging?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ingredient_locaties_ingredient_id_fkey"
-            columns: ["ingredient_id"]
-            isOneToOne: false
-            referencedRelation: "ingredienten_master"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ingredient_locaties_ingredient_id_fkey"
-            columns: ["ingredient_id"]
-            isOneToOne: false
-            referencedRelation: "v_ingredienten_stats"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ingredienten_master: {
-        Row: {
-          allergenen: Database["public"]["Enums"]["allergen"][]
-          allergenen_bijgewerkt_op: string | null
-          allergenen_bron: string | null
-          allergenen_sporen: Database["public"]["Enums"]["allergen"][]
-          allergenen_status: string
-          created_at: string
-          id: string
-          naam: string
-        }
-        Insert: {
-          allergenen?: Database["public"]["Enums"]["allergen"][]
-          allergenen_bijgewerkt_op?: string | null
-          allergenen_bron?: string | null
-          allergenen_sporen?: Database["public"]["Enums"]["allergen"][]
-          allergenen_status?: string
-          created_at?: string
-          id?: string
-          naam: string
-        }
-        Update: {
-          allergenen?: Database["public"]["Enums"]["allergen"][]
-          allergenen_bijgewerkt_op?: string | null
-          allergenen_bron?: string | null
-          allergenen_sporen?: Database["public"]["Enums"]["allergen"][]
-          allergenen_status?: string
-          created_at?: string
-          id?: string
-          naam?: string
         }
         Relationships: []
       }
@@ -1126,6 +1304,45 @@ export type Database = {
           status?: string
           to_location?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      interne_leverdagen: {
+        Row: {
+          actief: boolean
+          created_at: string
+          deadline_tijd: string | null
+          deleted_at: string | null
+          id: string
+          naar_vestiging: string
+          notitie: string | null
+          updated_at: string
+          van_vestiging: string
+          weekdag: number
+        }
+        Insert: {
+          actief?: boolean
+          created_at?: string
+          deadline_tijd?: string | null
+          deleted_at?: string | null
+          id?: string
+          naar_vestiging: string
+          notitie?: string | null
+          updated_at?: string
+          van_vestiging: string
+          weekdag: number
+        }
+        Update: {
+          actief?: boolean
+          created_at?: string
+          deadline_tijd?: string | null
+          deleted_at?: string | null
+          id?: string
+          naar_vestiging?: string
+          notitie?: string | null
+          updated_at?: string
+          van_vestiging?: string
+          weekdag?: number
         }
         Relationships: []
       }
@@ -1820,6 +2037,45 @@ export type Database = {
           },
         ]
       }
+      migratie_logboek: {
+        Row: {
+          bron_id: string | null
+          bron_tabel: string
+          created_at: string
+          id: string
+          onderwerp: string
+          opgelost_door: string | null
+          opgelost_op: string | null
+          reden: string
+          ruwe_waarde: string | null
+          updated_at: string
+        }
+        Insert: {
+          bron_id?: string | null
+          bron_tabel: string
+          created_at?: string
+          id?: string
+          onderwerp: string
+          opgelost_door?: string | null
+          opgelost_op?: string | null
+          reden: string
+          ruwe_waarde?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bron_id?: string | null
+          bron_tabel?: string
+          created_at?: string
+          id?: string
+          onderwerp?: string
+          opgelost_door?: string | null
+          opgelost_op?: string | null
+          reden?: string
+          ruwe_waarde?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -2417,7 +2673,9 @@ export type Database = {
         Row: {
           created_at: string
           eenheid: string | null
+          eenheid_id: string | null
           hoeveelheid: string | null
+          hoeveelheid_num: number | null
           id: string
           ingredient_id: string | null
           naam: string
@@ -2427,7 +2685,9 @@ export type Database = {
         Insert: {
           created_at?: string
           eenheid?: string | null
+          eenheid_id?: string | null
           hoeveelheid?: string | null
+          hoeveelheid_num?: number | null
           id?: string
           ingredient_id?: string | null
           naam: string
@@ -2437,7 +2697,9 @@ export type Database = {
         Update: {
           created_at?: string
           eenheid?: string | null
+          eenheid_id?: string | null
           hoeveelheid?: string | null
+          hoeveelheid_num?: number | null
           id?: string
           ingredient_id?: string | null
           naam?: string
@@ -2445,6 +2707,20 @@ export type Database = {
           sort_order?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "recept_ingredienten_eenheid_id_fkey"
+            columns: ["eenheid_id"]
+            isOneToOne: false
+            referencedRelation: "eenheden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recept_ingredienten_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "recept_ingredienten_ingredient_id_fkey"
             columns: ["ingredient_id"]
@@ -3333,6 +3609,39 @@ export type Database = {
           id: string | null
           location: string | null
           name: string | null
+        }
+        Relationships: []
+      }
+      ingredienten_master: {
+        Row: {
+          allergenen: Database["public"]["Enums"]["allergen"][] | null
+          allergenen_bijgewerkt_op: string | null
+          allergenen_bron: string | null
+          allergenen_sporen: Database["public"]["Enums"]["allergen"][] | null
+          allergenen_status: string | null
+          created_at: string | null
+          id: string | null
+          naam: string | null
+        }
+        Insert: {
+          allergenen?: Database["public"]["Enums"]["allergen"][] | null
+          allergenen_bijgewerkt_op?: string | null
+          allergenen_bron?: string | null
+          allergenen_sporen?: Database["public"]["Enums"]["allergen"][] | null
+          allergenen_status?: string | null
+          created_at?: string | null
+          id?: string | null
+          naam?: string | null
+        }
+        Update: {
+          allergenen?: Database["public"]["Enums"]["allergen"][] | null
+          allergenen_bijgewerkt_op?: string | null
+          allergenen_bron?: string | null
+          allergenen_sporen?: Database["public"]["Enums"]["allergen"][] | null
+          allergenen_status?: string | null
+          created_at?: string | null
+          id?: string | null
+          naam?: string | null
         }
         Relationships: []
       }
