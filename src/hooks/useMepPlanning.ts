@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { addDays, format, parseISO } from 'date-fns';
 import { nl } from 'date-fns/locale';
+
 
 export interface MepRegel {
   id: string;
@@ -16,6 +17,7 @@ export interface MepRegel {
   eenheid: string | null;
   prioriteit: number;
   sort_order: number;
+  sort_order_persoon: number;
   employee_id: string | null;
   notes: string | null;
   status: string;
@@ -35,6 +37,7 @@ export interface MepNieuweRegel {
   employee_id?: string | null;
   notes?: string | null;
 }
+
 
 export const ymd = (d: Date) => format(d, 'yyyy-MM-dd');
 
@@ -185,7 +188,8 @@ export function useMepPlanning(location: string, datum: string, autoBouw = false
     },
   });
 
-  // Realtime: elke tablet ziet wijzigingen direct.
+  // Realtime: elke tablet ziet wijzigingen direct. Status voedt de verbindingsbanner.
+  const [realtimeOk, setRealtimeOk] = useState(true);
   useEffect(() => {
     if (!location) return;
     const channel = supabase
@@ -195,14 +199,39 @@ export function useMepPlanning(location: string, datum: string, autoBouw = false
         { event: '*', schema: 'public', table: 'mep_planning', filter: `location=eq.${location}` },
         () => qc.invalidateQueries({ queryKey }),
       )
-      .subscribe();
+      .subscribe((status) => {
+        setRealtimeOk(status === 'SUBSCRIBED');
+      });
     return () => {
       supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location, datum]);
 
+  // Wachtrij met mislukte acties: nooit stilletjes een vinkje kwijt.
+  type Wachtrij = { id: number; label: string; run: () => Promise<void> };
+  const [wachtrij, setWachtrij] = useState<Wachtrij[]>([]);
+  const teller = useRef(0);
+  const inWachtrij = useCallback((label: string, run: () => Promise<void>) => {
+    teller.current += 1;
+    setWachtrij((w) => [...w, { id: teller.current, label, run }]);
+  }, []);
+
+  const opnieuwProberen = useCallback(async () => {
+    const items = wachtrij;
+    setWachtrij([]);
+    for (const item of items) {
+      try {
+        await item.run();
+      } catch {
+        setWachtrij((w) => [...w, item]);
+      }
+    }
+    qc.invalidateQueries({ queryKey: ['mep-planning'] });
+  }, [wachtrij, qc]);
+
   const invalidate = () => qc.invalidateQueries({ queryKey: ['mep-planning'] });
+
 
   const toevoegen = useMutation({
     mutationFn: async ({ regel, dag }: { regel: MepNieuweRegel; dag: string }) => {
@@ -264,26 +293,36 @@ export function useMepPlanning(location: string, datum: string, autoBouw = false
     onSuccess: invalidate,
   });
 
+  /** Afvinken en uitvinken. Uitvinken laat aantal_klaar staan — corrigeren mag geen werk wissen. */
   const afvinken = useMutation({
     mutationFn: async ({ regel, klaar }: { regel: MepRegel; klaar: boolean }) => {
-      const { error } = await supabase
-        .from('mep_planning')
-        .update({
-          completed_at: klaar ? new Date().toISOString() : null,
-          status: klaar ? 'completed' : 'pending',
-          aantal_klaar: klaar ? regel.quantity ?? 1 : 0,
-        })
-        .eq('id', regel.id);
+      const patch = {
+        completed_at: klaar ? new Date().toISOString() : null,
+        status: klaar ? 'completed' : 'pending',
+        ...(klaar ? { aantal_klaar: regel.quantity ?? 1 } : {}),
+      };
+      const { error } = await supabase.from('mep_planning').update(patch).eq('id', regel.id);
       if (error) throw error;
     },
     onSuccess: invalidate,
+    onError: (_e, v) =>
+      inWachtrij(`${v.klaar ? 'Afvinken' : 'Uitvinken'}: ${v.regel.titel}`, async () => {
+        const patch = {
+          completed_at: v.klaar ? new Date().toISOString() : null,
+          status: v.klaar ? 'completed' : 'pending',
+          ...(v.klaar ? { aantal_klaar: v.regel.quantity ?? 1 } : {}),
+        };
+        const { error } = await supabase.from('mep_planning').update(patch).eq('id', v.regel.id);
+        if (error) throw error;
+      }),
   });
 
-  /** Deelvoortgang: tik op het aantal telt op; vol = klaar. */
+  /** Deelvoortgang: omhoog of omlaag, altijd tussen 0 en het totaal. */
   const stapVoortgang = useMutation({
-    mutationFn: async (regel: MepRegel) => {
+    mutationFn: async ({ regel, richting = 1 }: { regel: MepRegel; richting?: 1 | -1 }) => {
       const totaal = regel.quantity ?? 1;
-      const nieuw = regel.aantal_klaar + 1 > totaal ? 0 : regel.aantal_klaar + 1;
+      const ruw = Number(regel.aantal_klaar) + richting;
+      const nieuw = richting > 0 ? (ruw > totaal ? 0 : ruw) : Math.max(ruw, 0);
       const klaar = nieuw >= totaal;
       const { error } = await supabase
         .from('mep_planning')
@@ -296,11 +335,26 @@ export function useMepPlanning(location: string, datum: string, autoBouw = false
       if (error) throw error;
     },
     onSuccess: invalidate,
+    onError: (_e, v) => inWachtrij(`Voortgang: ${v.regel.titel}`, async () => {}),
   });
 
   const verplaatsNaarDag = useMutation({
     mutationFn: async ({ id, dag }: { id: string; dag: string }) => {
       const { error } = await supabase.from('mep_planning').update({ date: dag }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  /** Toewijzen aan een persoon (of losmaken); belandt achteraan diens lijst. */
+  const toewijzen = useMutation({
+    mutationFn: async ({ id, employeeId }: { id: string; employeeId: string | null }) => {
+      const zelfde = (query.data ?? []).filter((r) => r.employee_id === employeeId);
+      const achteraan = (zelfde.length + 1) * 10;
+      const { error } = await supabase
+        .from('mep_planning')
+        .update({ employee_id: employeeId, sort_order_persoon: achteraan })
+        .eq('id', id);
       if (error) throw error;
     },
     onSuccess: invalidate,
@@ -317,6 +371,14 @@ export function useMepPlanning(location: string, datum: string, autoBouw = false
     onSuccess: invalidate,
   });
 
+  const herstellen = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('mep_planning').update({ deleted_at: null }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
   const herordenen = useMutation({
     mutationFn: async (ids: string[]) => {
       await Promise.all(
@@ -326,18 +388,34 @@ export function useMepPlanning(location: string, datum: string, autoBouw = false
     onSuccess: invalidate,
   });
 
+  const herordenenPersoon = useMutation({
+    mutationFn: async (ids: string[]) => {
+      await Promise.all(
+        ids.map((id, i) =>
+          supabase.from('mep_planning').update({ sort_order_persoon: (i + 1) * 10 }).eq('id', id),
+        ),
+      );
+    },
+    onSuccess: invalidate,
+  });
+
   return {
     regels: query.data ?? [],
     loading: query.isLoading,
+    verbinding: { ok: realtimeOk && wachtrij.length === 0, realtimeOk, wachtrij, opnieuwProberen },
     toevoegen,
     bijwerken,
     afvinken,
     stapVoortgang,
     verplaatsNaarDag,
+    toewijzen,
     verwijderen,
+    herstellen,
     herordenen,
+    herordenenPersoon,
   };
 }
+
 
 /** Handelingen (bereiden, vacumeren, ...) per vestiging. */
 export function useMepHandelingen(location: string) {
@@ -410,3 +488,289 @@ export function useKeukenMedewerkers(location: string) {
 }
 
 export const parseDag = (s: string) => parseISO(s);
+
+export interface MepTemplate {
+  id: string;
+  vestiging: string;
+  weekdag: number | null;
+  titel: string;
+  handeling: string | null;
+  recipe_id: string | null;
+  aantal: number | null;
+  eenheid: string | null;
+  prioriteit: number;
+  sort_order: number;
+  actief: boolean;
+  notitie: string | null;
+}
+
+/** Suggestie-chips: wat stond de laatste 4 weken op deze weekdag vaak op de lijst? */
+export function useMepSuggesties(location: string, datum: string, huidigeRegels: MepRegel[]) {
+  const query = useQuery({
+    queryKey: ['mep-suggesties', location, datum],
+    enabled: !!location && !!datum,
+    queryFn: async () => {
+      const dag = parseISO(datum);
+      const sinds = ymd(addDays(dag, -28));
+      const { data, error } = await supabase
+        .from('mep_planning')
+        .select('titel, handeling, recipe_id, quantity, eenheid, prioriteit, date')
+        .eq('location', location)
+        .gte('date', sinds)
+        .lt('date', datum)
+        .limit(500);
+      if (error) throw error;
+      const zelfdeWeekdag = (data ?? []).filter((r) => parseISO(r.date).getDay() === dag.getDay());
+      const map = new Map<string, { titel: string; handeling: string | null; quantity: number | null; eenheid: string | null; prioriteit: number; aantal: number }>();
+      for (const r of zelfdeWeekdag) {
+        const key = `${r.titel.toLowerCase()}|${r.handeling ?? ''}`;
+        const bestaand = map.get(key);
+        if (bestaand) bestaand.aantal += 1;
+        else
+          map.set(key, {
+            titel: r.titel,
+            handeling: r.handeling,
+            quantity: r.quantity,
+            eenheid: r.eenheid,
+            prioriteit: r.prioriteit,
+            aantal: 1,
+          });
+      }
+      return [...map.values()].sort((a, b) => b.aantal - a.aantal);
+    },
+  });
+
+  const chips = useMemo(() => {
+    const alHier = new Set(huidigeRegels.map((r) => `${r.titel.toLowerCase()}|${r.handeling ?? ''}`));
+    return (query.data ?? []).filter((s) => !alHier.has(`${s.titel.toLowerCase()}|${s.handeling ?? ''}`)).slice(0, 5);
+  }, [query.data, huidigeRegels]);
+
+  return { chips, loading: query.isLoading };
+}
+
+/** Templates per vestiging: lezen en beheren. */
+export function useMepTemplates(location: string) {
+  const qc = useQueryClient();
+  const queryKey = ['mep-templates', location];
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['mep-templates'] });
+
+  const query = useQuery({
+    queryKey,
+    enabled: !!location,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('mep_templates')
+        .select('*')
+        .eq('vestiging', location)
+        .order('weekdag', { nullsFirst: true })
+        .order('sort_order');
+      if (error) throw error;
+      return (data ?? []) as unknown as MepTemplate[];
+    },
+  });
+
+  const opslaan = useMutation({
+    mutationFn: async (t: Partial<MepTemplate> & { titel: string }) => {
+      if (t.id) {
+        const { error } = await supabase.from('mep_templates').update(t).eq('id', t.id);
+        if (error) throw error;
+        return;
+      }
+      const aantalBestaand = (query.data ?? []).filter((x) => x.weekdag === (t.weekdag ?? null)).length;
+      const { error } = await supabase.from('mep_templates').insert({
+        vestiging: location,
+        weekdag: t.weekdag ?? null,
+        titel: t.titel,
+        handeling: t.handeling ?? null,
+        recipe_id: t.recipe_id ?? null,
+        aantal: t.aantal ?? 1,
+        eenheid: t.eenheid ?? null,
+        prioriteit: t.prioriteit ?? 2,
+        notitie: t.notitie ?? null,
+        actief: t.actief ?? true,
+        sort_order: (aantalBestaand + 1) * 10,
+      });
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  const verwijderen = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('mep_templates').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  const herordenen = useMutation({
+    mutationFn: async (ids: string[]) => {
+      await Promise.all(
+        ids.map((id, i) => supabase.from('mep_templates').update({ sort_order: (i + 1) * 10 }).eq('id', id)),
+      );
+    },
+    onSuccess: invalidate,
+  });
+
+  return { templates: query.data ?? [], loading: query.isLoading, opslaan, verwijderen, herordenen };
+}
+
+/** Beheer van handelingen. */
+export function useMepHandelingenBeheer(location: string) {
+  const qc = useQueryClient();
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['mep-handelingen'] });
+
+  const query = useQuery({
+    queryKey: ['mep-handelingen-beheer', location],
+    enabled: !!location,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('mep_handelingen')
+        .select('id, naam, sort_order, actief')
+        .eq('vestiging', location)
+        .order('sort_order');
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const opslaan = useMutation({
+    mutationFn: async (h: { id?: string; naam: string; actief?: boolean }) => {
+      if (h.id) {
+        const { error } = await supabase
+          .from('mep_handelingen')
+          .update({ naam: h.naam, actief: h.actief ?? true })
+          .eq('id', h.id);
+        if (error) throw error;
+        return;
+      }
+      const { error } = await supabase.from('mep_handelingen').insert({
+        vestiging: location,
+        naam: h.naam,
+        actief: h.actief ?? true,
+        sort_order: ((query.data?.length ?? 0) + 1) * 10,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidate();
+      qc.invalidateQueries({ queryKey: ['mep-handelingen-beheer'] });
+    },
+  });
+
+  return { handelingen: query.data ?? [], loading: query.isLoading, opslaan };
+}
+
+/** Openingsdagen en sluitdatums beheren; sluitdatum verhuist openstaande regels mee. */
+export function useMepOpendagenBeheer(location: string) {
+  const qc = useQueryClient();
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ['mep-opendagen'] });
+    qc.invalidateQueries({ queryKey: ['mep-opendagen-beheer'] });
+    qc.invalidateQueries({ queryKey: ['mep-planning'] });
+  };
+
+  const query = useQuery({
+    queryKey: ['mep-opendagen-beheer', location],
+    enabled: !!location,
+    queryFn: async () => {
+      const [{ data: dagen, error: e1 }, { data: datums, error: e2 }] = await Promise.all([
+        supabase.from('vestiging_opendagen').select('*').eq('vestiging', location).order('weekdag'),
+        supabase
+          .from('vestiging_sluitdatums')
+          .select('*')
+          .eq('vestiging', location)
+          .gte('datum', ymd(addDays(new Date(), -30)))
+          .order('datum'),
+      ]);
+      if (e1) throw e1;
+      if (e2) throw e2;
+      return { dagen: dagen ?? [], datums: datums ?? [] };
+    },
+  });
+
+  const zetWeekdag = useMutation({
+    mutationFn: async ({ weekdag, isOpen }: { weekdag: number; isOpen: boolean }) => {
+      const { error } = await supabase
+        .from('vestiging_opendagen')
+        .upsert({ vestiging: location, weekdag, is_open: isOpen }, { onConflict: 'vestiging,weekdag' });
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  /** Sluitdatum opslaan en openstaande regels naar de eerstvolgende open dag verhuizen. */
+  const zetDatum = useMutation({
+    mutationFn: async ({
+      datum,
+      reden,
+      isOpenUitzondering,
+    }: {
+      datum: string;
+      reden: string | null;
+      isOpenUitzondering: boolean;
+    }) => {
+      const { error } = await supabase.from('vestiging_sluitdatums').upsert(
+        { vestiging: location, datum, reden, is_open_uitzondering: isOpenUitzondering },
+        { onConflict: 'vestiging,datum' },
+      );
+      if (error) throw error;
+      if (isOpenUitzondering) return { verplaatst: 0, naar: null as string | null, ids: [] as string[] };
+
+      const { data: doel } = await supabase.rpc('mep_volgende_open_dag', {
+        _vestiging: location,
+        _vanaf: datum,
+      });
+      const naar = doel as unknown as string | null;
+      if (!naar) return { verplaatst: 0, naar: null, ids: [] as string[] };
+
+      const { data: open } = await supabase
+        .from('mep_planning')
+        .select('id')
+        .eq('location', location)
+        .eq('date', datum)
+        .is('deleted_at', null)
+        .is('completed_at', null);
+      const ids = (open ?? []).map((r) => r.id);
+      if (ids.length) {
+        const { error: e2 } = await supabase.from('mep_planning').update({ date: naar }).in('id', ids);
+        if (e2) throw e2;
+      }
+      return { verplaatst: ids.length, naar, ids };
+    },
+    onSuccess: invalidate,
+  });
+
+  const verwijderDatum = useMutation({
+    mutationFn: async (datum: string) => {
+      const { error } = await supabase
+        .from('vestiging_sluitdatums')
+        .delete()
+        .eq('vestiging', location)
+        .eq('datum', datum);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  /** Ongedaan maken van de verhuizing bij een sluitdatum. */
+  const zetTerug = useMutation({
+    mutationFn: async ({ ids, datum }: { ids: string[]; datum: string }) => {
+      if (!ids.length) return;
+      const { error } = await supabase.from('mep_planning').update({ date: datum }).in('id', ids);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  return {
+    dagen: query.data?.dagen ?? [],
+    datums: query.data?.datums ?? [],
+    loading: query.isLoading,
+    zetWeekdag,
+    zetDatum,
+    verwijderDatum,
+    zetTerug,
+  };
+}
+

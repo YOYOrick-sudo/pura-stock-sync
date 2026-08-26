@@ -31,6 +31,7 @@ import RecipeForm from "./pages/kitchen/RecipeForm";
 import Ingredienten from "./pages/kitchen/Ingredienten";
 import SnelPrinten from "./pages/kitchen/SnelPrinten";
 import MepPlanning from "./pages/kitchen/MepPlanning";
+import MepBeheer from "./pages/kitchen/MepBeheer";
 // HR Module
 import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } from "./pages/hr";
 // Maintenance Module

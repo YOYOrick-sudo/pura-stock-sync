@@ -1524,6 +1524,7 @@ export type Database = {
           eenheid: string | null
           handeling: string | null
           id: string
+          notitie: string | null
           prioriteit: number
           recipe_id: string | null
           sort_order: number
@@ -1539,6 +1540,7 @@ export type Database = {
           eenheid?: string | null
           handeling?: string | null
           id?: string
+          notitie?: string | null
           prioriteit?: number
           recipe_id?: string | null
           sort_order?: number
@@ -1554,6 +1556,7 @@ export type Database = {
           eenheid?: string | null
           handeling?: string | null
           id?: string
+          notitie?: string | null
           prioriteit?: number
           recipe_id?: string | null
           sort_order?: number
