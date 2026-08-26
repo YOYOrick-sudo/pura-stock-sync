@@ -43,7 +43,8 @@ const PRIO_CLASS: Record<number, string> = {
 
 export default function MepDag() {
   const navigate = useNavigate();
-  const { location: vestiging } = useUserLocation();
+  const { userLocation } = useUserLocation();
+  const vestiging = userLocation ?? '';
   const [dagOffset, setDagOffset] = useState(0);
   const datum = ymd(addDays(new Date(), dagOffset));
 
@@ -167,10 +168,10 @@ export default function MepDag() {
           <p className="py-10 text-center text-sm text-muted-foreground">Laden…</p>
         ) : taken.length === 0 ? (
           <EmptyState
+            icon={Plus}
             title="Nog geen MEP voor deze dag"
             description="Voeg halffabricaten of vrije taken toe om de dag klaar te zetten."
-            actionLabel="Taak toevoegen"
-            onAction={() => setToevoegenOpen(true)}
+            action={{ label: 'Taak toevoegen', onClick: () => setToevoegenOpen(true) }}
           />
         ) : (
           <div className="space-y-4">
