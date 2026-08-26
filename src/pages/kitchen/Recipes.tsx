@@ -207,7 +207,24 @@ export default function Recipes() {
                     <span className="text-xs text-muted-foreground">
                       {recipe.ingredient_count ?? 0} ingrediënten
                     </span>
+                    {isManager ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2 text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMethodeRecept({ id: recipe.id, naam: recipe.name });
+                        }}
+                      >
+                        <ChefHat className="h-4 w-4 mr-1" />
+                        {methodeIds.has(recipe.id) ? 'Methode ✓' : 'Methode'}
+                      </Button>
+                    ) : methodeIds.has(recipe.id) ? (
+                      <Badge variant="secondary" className="text-xs">Methode ✓</Badge>
+                    ) : null}
                   </div>
+
                   <div className="flex items-center justify-between gap-2 mt-1.5">
                     <AllergenenBadges
                       size="sm"
