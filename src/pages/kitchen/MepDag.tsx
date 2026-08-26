@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
+import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -115,12 +115,17 @@ export default function MepDag() {
   };
 
   return (
-    <KitchenLayout title="Mise-en-place" subtitle={`${vestiging} · ${format(addDays(new Date(), dagOffset), 'EEEE d MMMM', { locale: nl })}`}>
+    <SidebarLayout>
       <div className="space-y-4">
         {/* Kop */}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="text-sm text-muted-foreground">
-            {klaar.length}/{taken.length} klaar
+          <div>
+            <p className="text-[15px] font-medium capitalize">
+              {format(addDays(new Date(), dagOffset), 'EEEE d MMMM', { locale: nl })}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {vestiging} · {klaar.length}/{taken.length} klaar
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -329,6 +334,6 @@ export default function MepDag() {
         onOpenChange={(v) => !v && setAfrondTaak(null)}
         onAfronden={(args) => afronden.mutateAsync(args)}
       />
-    </KitchenLayout>
+    </SidebarLayout>
   );
 }
