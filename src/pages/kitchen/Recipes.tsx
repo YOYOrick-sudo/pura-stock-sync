@@ -6,16 +6,19 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, BookOpen } from 'lucide-react';
+import { Plus, Search, BookOpen, ChefHat } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { useNavigate } from 'react-router-dom';
 import { useRecipes, useRecipeCategories } from '@/hooks/useRecipes';
 import { VestigingFilter, VestigingToggles } from '@/components/kitchen/VestigingKoppeling';
 import { useMijnVestiging, useVestigingKoppelingen, type Vestiging } from '@/hooks/useVestigingKoppeling';
 import { useRole } from '@/hooks/useRole';
+import { useAlleMethodes } from '@/hooks/useHalffabricaatMethodes';
+import { MethodeDialog } from '@/components/keten/MethodeDialog';
 import { cn } from '@/lib/utils';
 
 const LEEG = new Set<string>();
+
 
 export default function Recipes() {
   const navigate = useNavigate();
