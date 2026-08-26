@@ -3,6 +3,7 @@ import { BookOpen, Calendar, ArrowRightLeft, CheckSquare, ArrowLeft, Package } f
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useUserLocation } from '@/contexts/UserLocationContext';
 import logoGreen from '@/assets/pura-vida-logo-official.png';
 
 interface MenuCardProps {
@@ -44,6 +45,7 @@ const MenuCard = ({ to, icon: Icon, title, description, color }: MenuCardProps) 
 
 export default function KitchenMenu() {
   const navigate = useNavigate();
+  const { userLocation } = useUserLocation();
 
   return (
     <div className="min-h-screen bg-background">
@@ -67,7 +69,7 @@ export default function KitchenMenu() {
           </div>
 
           <div className="text-center mt-4">
-            <p className="text-sm text-muted-foreground">Pura Vida - West</p>
+            <p className="text-sm text-muted-foreground">Pura Vida - {userLocation}</p>
           </div>
         </div>
       </div>

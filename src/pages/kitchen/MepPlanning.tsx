@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
@@ -7,7 +8,22 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { MepToevoegenDialog } from '@/components/kitchen/MepToevoegenDialog';
-import { Plus, Clock, ArrowRight, ArrowLeft, Trash2, Check, GripVertical, Monitor, List } from 'lucide-react';
+import { MepPerPersoon } from '@/components/kitchen/MepPerPersoon';
+import { MepVerbindingBanner } from '@/components/kitchen/MepVerbindingBanner';
+import {
+  Plus,
+  Clock,
+  ArrowRight,
+  ArrowLeft,
+  Trash2,
+  Check,
+  GripVertical,
+  Monitor,
+  List,
+  Users,
+  Settings,
+  CalendarPlus,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -27,6 +43,8 @@ import {
   useMepKalender,
   useMepPlanning,
   useKeukenMedewerkers,
+  useMepSuggesties,
+  useMepTemplates,
   ymd,
   MepRegel,
 } from '@/hooks/useMepPlanning';
@@ -38,6 +56,8 @@ const PRIO_CLASS: Record<number, string> = {
   3: 'bg-muted/60 text-muted-foreground',
 };
 
+type Weergave = 'alles' | 'persoon' | 'werk';
+
 function MepRij({
   regel,
   naam,
@@ -46,16 +66,18 @@ function MepRij({
   onAfvinken,
   onVerplaats,
   onVerwijder,
+  onTemplate,
   verplaatsLabel,
   verplaatsTerug,
 }: {
   regel: MepRegel;
   naam?: string;
   werkview: boolean;
-  onVoortgang: () => void;
+  onVoortgang: (richting: 1 | -1) => void;
   onAfvinken: (klaar: boolean) => void;
   onVerplaats: () => void;
   onVerwijder: () => void;
+  onTemplate: () => void;
   verplaatsLabel: string;
   verplaatsTerug: boolean;
 }) {
@@ -113,20 +135,32 @@ function MepRij({
         )}
       </div>
 
-      <button
-        onClick={onVoortgang}
-        className={cn(
-          'shrink-0 rounded-polar border border-border px-3 text-sm font-medium tabular-nums',
-          werkview ? 'h-14 min-w-[92px]' : 'h-11 min-w-[80px]',
-        )}
-        aria-label="Deelvoortgang ophogen"
-      >
-        {regel.aantal_klaar} / {totaal}
-        {regel.eenheid && <span className="block text-[10px] text-muted-foreground">{regel.eenheid}</span>}
-      </button>
+      <div className="flex items-center gap-1 shrink-0">
+        <button
+          onClick={() => onVoortgang(-1)}
+          className={cn('rounded-polar border border-border text-muted-foreground', werkview ? 'h-14 w-11 text-lg' : 'h-11 w-9')}
+          aria-label="Voortgang omlaag"
+        >
+          –
+        </button>
+        <button
+          onClick={() => onVoortgang(1)}
+          className={cn(
+            'rounded-polar border border-border px-3 text-sm font-medium tabular-nums',
+            werkview ? 'h-14 min-w-[92px]' : 'h-11 min-w-[74px]',
+          )}
+          aria-label="Voortgang omhoog"
+        >
+          {regel.aantal_klaar} / {totaal}
+          {regel.eenheid && <span className="block text-[10px] text-muted-foreground">{regel.eenheid}</span>}
+        </button>
+      </div>
 
       {!werkview && (
         <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" onClick={onTemplate} title="Opslaan als template" className="h-10 w-10">
+            <CalendarPlus className="h-4 w-4 text-muted-foreground" />
+          </Button>
           <Button variant="ghost" size="icon" onClick={onVerplaats} title={verplaatsLabel} className="h-10 w-10">
             {verplaatsTerug ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
           </Button>
@@ -141,18 +175,21 @@ function MepRij({
 
 export default function MepPlanning() {
   const { userLocation } = useUserLocation();
+  const navigate = useNavigate();
   const kalender = useMepKalender(userLocation);
   const [tab, setTab] = useState<'vandaag' | 'volgende'>('vandaag');
-  const [werkview, setWerkview] = useState(false);
+  const [weergave, setWeergave] = useState<Weergave>('alles');
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const vandaagKey = ymd(kalender.vandaag);
   const volgendeKey = ymd(kalender.volgendeDag);
   const actieveKey = tab === 'vandaag' ? vandaagKey : volgendeKey;
   const andereKey = tab === 'vandaag' ? volgendeKey : vandaagKey;
+  const actieveDatum = tab === 'vandaag' ? kalender.vandaag : kalender.volgendeDag;
 
   const planning = useMepPlanning(userLocation, actieveKey, tab === 'vandaag');
   const { data: medewerkers = [] } = useKeukenMedewerkers(userLocation);
+  const templates = useMepTemplates(userLocation);
   const naamVan = useMemo(
     () => Object.fromEntries(medewerkers.map((m) => [m.id, m.name])),
     [medewerkers],
@@ -160,9 +197,11 @@ export default function MepPlanning() {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
   const regels = planning.regels;
+  const { chips } = useMepSuggesties(userLocation, actieveKey, regels);
   const klaarAantal = regels.filter((r) => r.completed_at).length;
-  const dagDicht = !kalender.isOpen(tab === 'vandaag' ? kalender.vandaag : kalender.volgendeDag);
-  const sluitReden = kalender.sluitReden(tab === 'vandaag' ? kalender.vandaag : kalender.volgendeDag);
+  const dagDicht = !kalender.isOpen(actieveDatum);
+  const sluitReden = kalender.sluitReden(actieveDatum);
+  const werkview = weergave === 'werk';
 
   const onDragEnd = (e: DragEndEvent) => {
     const { active, over } = e;
@@ -173,6 +212,37 @@ export default function MepPlanning() {
     planning.herordenen.mutate(volgorde);
   };
 
+  const verwijderMetUndo = (r: MepRegel) =>
+    planning.verwijderen.mutate(r.id, {
+      onSuccess: () =>
+        toast.success(`"${r.titel}" verwijderd`, {
+          action: { label: 'Ongedaan maken', onClick: () => planning.herstellen.mutate(r.id) },
+          duration: 8000,
+        }),
+      onError: () => toast.error('Verwijderen mislukt'),
+    });
+
+  const opslaanAlsTemplate = (r: MepRegel) => {
+    const weekdag = actieveDatum.getDay();
+    templates.opslaan.mutate(
+      {
+        titel: r.titel,
+        weekdag,
+        handeling: r.handeling,
+        recipe_id: r.recipe_id,
+        aantal: r.quantity ?? 1,
+        eenheid: r.eenheid,
+        prioriteit: r.prioriteit,
+        notitie: r.notes,
+      },
+      {
+        onSuccess: () =>
+          toast.success(`Staat nu elke ${format(actieveDatum, 'EEEE', { locale: nl })} op de lijst`),
+        onError: () => toast.error('Opslaan als template mislukt'),
+      },
+    );
+  };
+
   const dagOpties = [
     { waarde: vandaagKey, label: kalender.dagLabel(kalender.vandaag) },
     { waarde: volgendeKey, label: kalender.dagLabel(kalender.volgendeDag) },
@@ -181,6 +251,12 @@ export default function MepPlanning() {
   return (
     <KitchenLayout title="Mise-en-place" subtitle={`${format(kalender.vandaag, 'EEEE d MMMM', { locale: nl })}`}>
       <div className="space-y-5">
+        <MepVerbindingBanner
+          realtimeOk={planning.verbinding.realtimeOk}
+          wachtrij={planning.verbinding.wachtrij}
+          onOpnieuw={planning.verbinding.opnieuwProberen}
+        />
+
         <div className="flex items-center gap-2">
           <Tabs value={tab} onValueChange={(v) => setTab(v as 'vandaag' | 'volgende')} className="flex-1">
             <TabsList className="w-full grid grid-cols-2">
@@ -188,8 +264,26 @@ export default function MepPlanning() {
               <TabsTrigger value="volgende">{kalender.dagLabel(kalender.volgendeDag)}</TabsTrigger>
             </TabsList>
           </Tabs>
-          <Button variant="outline" size="icon" className="h-10 w-10" onClick={() => setWerkview((v) => !v)} title="Werkview">
+          <Button
+            variant={weergave === 'persoon' ? 'default' : 'outline'}
+            size="icon"
+            className="h-10 w-10"
+            onClick={() => setWeergave((w) => (w === 'persoon' ? 'alles' : 'persoon'))}
+            title="Per persoon"
+          >
+            <Users className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={werkview ? 'default' : 'outline'}
+            size="icon"
+            className="h-10 w-10"
+            onClick={() => setWeergave((w) => (w === 'werk' ? 'alles' : 'werk'))}
+            title="Werkview"
+          >
             {werkview ? <List className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}
+          </Button>
+          <Button variant="outline" size="icon" className="h-10 w-10" onClick={() => navigate('/kitchen/mep/beheer')} title="Beheren">
+            <Settings className="h-4 w-4" />
           </Button>
         </div>
 
@@ -212,6 +306,40 @@ export default function MepPlanning() {
           <Progress value={regels.length ? (klaarAantal / regels.length) * 100 : 0} className="h-2" />
         </Card>
 
+        {!werkview && chips.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground">Vaak op deze dag</p>
+            <div className="flex flex-wrap gap-2">
+              {chips.map((c) => (
+                <Button
+                  key={`${c.titel}-${c.handeling ?? ''}`}
+                  variant="outline"
+                  className="h-10 rounded-full"
+                  onClick={() =>
+                    planning.toevoegen.mutate(
+                      {
+                        regel: {
+                          titel: c.titel,
+                          handeling: c.handeling,
+                          quantity: c.quantity ?? 1,
+                          eenheid: c.eenheid,
+                          prioriteit: c.prioriteit,
+                        },
+                        dag: actieveKey,
+                      },
+                      { onSuccess: () => toast.success('Toegevoegd'), onError: () => toast.error('Toevoegen mislukt') },
+                    )
+                  }
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1.5" />
+                  {c.titel}
+                  {c.handeling ? ` · ${c.handeling}` : ''}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {planning.loading ? (
           <p className="text-sm text-muted-foreground">Laden…</p>
         ) : regels.length === 0 ? (
@@ -220,6 +348,17 @@ export default function MepPlanning() {
             title="Nog niets gepland"
             description="Voeg halfproducten of vrije taken toe voor deze dag"
             action={{ label: 'Toevoegen', onClick: () => setDialogOpen(true) }}
+          />
+        ) : weergave === 'persoon' ? (
+          <MepPerPersoon
+            regels={regels}
+            medewerkers={medewerkers}
+            onAfvinken={(regel, klaar) => planning.afvinken.mutate({ regel, klaar })}
+            onVoortgang={(regel, richting) => planning.stapVoortgang.mutate({ regel, richting })}
+            onToewijzen={(id, employeeId) =>
+              planning.toewijzen.mutate({ id, employeeId }, { onError: () => toast.error('Toewijzen mislukt') })
+            }
+            onHerordenen={(ids) => planning.herordenenPersoon.mutate(ids)}
           />
         ) : (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -231,8 +370,9 @@ export default function MepPlanning() {
                     regel={r}
                     naam={r.employee_id ? naamVan[r.employee_id] : undefined}
                     werkview={werkview}
-                    onVoortgang={() => planning.stapVoortgang.mutate(r)}
+                    onVoortgang={(richting) => planning.stapVoortgang.mutate({ regel: r, richting })}
                     onAfvinken={(klaar) => planning.afvinken.mutate({ regel: r, klaar })}
+                    onTemplate={() => opslaanAlsTemplate(r)}
                     onVerplaats={() => {
                       planning.verplaatsNaarDag.mutate(
                         { id: r.id, dag: andereKey },
@@ -245,9 +385,7 @@ export default function MepPlanning() {
                         },
                       );
                     }}
-                    onVerwijder={() =>
-                      planning.verwijderen.mutate(r.id, { onSuccess: () => toast.success('Verwijderd') })
-                    }
+                    onVerwijder={() => verwijderMetUndo(r)}
                     verplaatsLabel={`Naar ${tab === 'vandaag' ? kalender.dagLabel(kalender.volgendeDag) : kalender.dagLabel(kalender.vandaag)}`}
                     verplaatsTerug={tab !== 'vandaag'}
                   />

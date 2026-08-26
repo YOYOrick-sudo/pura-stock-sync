@@ -32,6 +32,7 @@ export function MepToevoegenDialog({ open, onOpenChange, location, dagOpties, st
   const [eenheid, setEenheid] = useState('');
   const [prioriteit, setPrioriteit] = useState(2);
   const [medewerker, setMedewerker] = useState<string>('geen');
+  const [notitie, setNotitie] = useState('');
   const [dag, setDag] = useState(standaardDag);
 
   const { data: handelingen = [] } = useMepHandelingen(location);
@@ -58,6 +59,7 @@ export function MepToevoegenDialog({ open, onOpenChange, location, dagOpties, st
     setEenheid('');
     setPrioriteit(2);
     setMedewerker('geen');
+    setNotitie('');
     setDag(standaardDag);
   };
 
@@ -72,6 +74,7 @@ export function MepToevoegenDialog({ open, onOpenChange, location, dagOpties, st
         eenheid: eenheid.trim() || null,
         prioriteit,
         employee_id: medewerker === 'geen' ? null : medewerker,
+        notes: notitie.trim() || null,
       },
       dag,
     );
@@ -196,8 +199,19 @@ export function MepToevoegenDialog({ open, onOpenChange, location, dagOpties, st
                   ))}
                 </SelectContent>
               </Select>
-            </div>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="mep-notitie">Notitie</Label>
+            <Input
+              id="mep-notitie"
+              value={notitie}
+              onChange={(e) => setNotitie(e.target.value)}
+              placeholder="Bijv. dubbele portie, gaat naar West"
+            />
+          </div>
+        </div>
+
         </div>
 
         <DialogFooter>
