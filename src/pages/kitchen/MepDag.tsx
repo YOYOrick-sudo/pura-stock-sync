@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,8 +19,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Tag,
+  CalendarDays,
 } from 'lucide-react';
-import { addDays, format } from 'date-fns';
+import { addDays, differenceInCalendarDays, format, parseISO } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -45,8 +46,22 @@ export default function MepDag() {
   const navigate = useNavigate();
   const { userLocation } = useUserLocation();
   const vestiging = userLocation ?? '';
-  const [dagOffset, setDagOffset] = useState(0);
+  const [params, setParams] = useSearchParams();
+  const datumParam = params.get('datum');
+  const initieleOffset = datumParam
+    ? differenceInCalendarDays(parseISO(datumParam), new Date())
+    : 0;
+  const [dagOffset, setDagOffsetState] = useState(Number.isFinite(initieleOffset) ? initieleOffset : 0);
   const datum = ymd(addDays(new Date(), dagOffset));
+  const setDagOffset = (fn: (d: number) => number) => {
+    setDagOffsetState((d) => {
+      const next = fn(d);
+      const nieuweDatum = ymd(addDays(new Date(), next));
+      if (next === 0) setParams({}, { replace: true });
+      else setParams({ datum: nieuweDatum }, { replace: true });
+      return next;
+    });
+  };
 
   const { data: taken = [], isLoading } = useMepTaken(vestiging, datum);
   const { data: batches = [] } = useProductieBatches(vestiging, datum);
@@ -126,6 +141,15 @@ export default function MepDag() {
               aria-label="Volgende dag"
             >
               <ChevronRight className="w-5 h-5" />
+            </Button>
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-11 w-11"
+              onClick={() => navigate('/kitchen/mep/week')}
+              aria-label="Weekweergave"
+            >
+              <CalendarDays className="w-5 h-5" />
             </Button>
             <Button
               size="icon"
