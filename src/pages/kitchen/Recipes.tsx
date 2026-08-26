@@ -32,6 +32,13 @@ export default function Recipes() {
   const { data: mijnVestiging } = useMijnVestiging();
   const { data: koppelingen } = useVestigingKoppelingen('recept');
   const { isManager } = useRole();
+  const { data: alleMethodes = [] } = useAlleMethodes();
+  const [methodeRecept, setMethodeRecept] = useState<{ id: string; naam: string } | null>(null);
+
+  const methodeIds = useMemo(
+    () => new Set(alleMethodes.map((m) => m.recept_id)),
+    [alleMethodes],
+  );
 
   // Standaard: alleen wat aan staat voor mijn eigen keuken.
   useEffect(() => {
@@ -46,6 +53,7 @@ export default function Recipes() {
   }, [alleRecipes, vestiging, koppelingen]);
 
   const chips = useMemo(() => ['Alle', ...categories], [categories]);
+
 
 
   return (
