@@ -340,17 +340,8 @@ export default function OrderDashboard() {
 
         {/* Submit Section */}
         <div className="space-y-4">
-          {demoMode && <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-card border-l-4 border-warning rounded-2xl shadow-sm">
-              <AlertCircle className="w-5 h-5 text-warning flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-sm text-foreground">
-                  <span className="font-semibold">Demo-modus</span> – Bestellingen worden gesimuleerd
-                </p>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => setDemoMode(false)} className="text-foreground/70 hover:text-primary hover:bg-muted self-end sm:self-auto">
-                Uitschakelen
-              </Button>
-            </div>}
+
+
 
           {/* Summary Badge */}
           {hasAnyStock && <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl p-5 border-2 border-primary/30 shadow-sm">
