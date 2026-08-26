@@ -6,16 +6,19 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, BookOpen } from 'lucide-react';
+import { Plus, Search, BookOpen, ChefHat } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { useNavigate } from 'react-router-dom';
 import { useRecipes, useRecipeCategories } from '@/hooks/useRecipes';
 import { VestigingFilter, VestigingToggles } from '@/components/kitchen/VestigingKoppeling';
 import { useMijnVestiging, useVestigingKoppelingen, type Vestiging } from '@/hooks/useVestigingKoppeling';
 import { useRole } from '@/hooks/useRole';
+import { useAlleMethodes } from '@/hooks/useHalffabricaatMethodes';
+import { MethodeDialog } from '@/components/keten/MethodeDialog';
 import { cn } from '@/lib/utils';
 
 const LEEG = new Set<string>();
+
 
 export default function Recipes() {
   const navigate = useNavigate();
@@ -29,6 +32,13 @@ export default function Recipes() {
   const { data: mijnVestiging } = useMijnVestiging();
   const { data: koppelingen } = useVestigingKoppelingen('recept');
   const { isManager } = useRole();
+  const { data: alleMethodes = [] } = useAlleMethodes();
+  const [methodeRecept, setMethodeRecept] = useState<{ id: string; naam: string } | null>(null);
+
+  const methodeIds = useMemo(
+    () => new Set(alleMethodes.map((m) => m.recept_id)),
+    [alleMethodes],
+  );
 
   // Standaard: alleen wat aan staat voor mijn eigen keuken.
   useEffect(() => {
@@ -43,6 +53,7 @@ export default function Recipes() {
   }, [alleRecipes, vestiging, koppelingen]);
 
   const chips = useMemo(() => ['Alle', ...categories], [categories]);
+
 
 
   return (
@@ -134,9 +145,31 @@ export default function Recipes() {
                       <span className="text-muted-foreground">—</span>
                     )}
                   </div>
-                  <div className="text-sm text-foreground">
-                    {recipe.type === 'halffabricaat' ? 'Halffabricaat' : 'Recept'}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {recipe.type === 'halffabricaat' ? (
+                      <Badge variant="outline" className="text-xs">Halffabricaat</Badge>
+                    ) : (
+                      <span className="text-sm text-foreground">Recept</span>
+                    )}
+                    {isManager ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2 text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMethodeRecept({ id: recipe.id, naam: recipe.name });
+                        }}
+                      >
+                        <ChefHat className="h-4 w-4 mr-1" />
+                        {methodeIds.has(recipe.id) ? 'Methode ✓' : 'Methode'}
+                      </Button>
+                    ) : methodeIds.has(recipe.id) ? (
+                      <Badge variant="secondary" className="text-xs">Methode ✓</Badge>
+                    ) : null}
+
                   </div>
+
                   <div>
                     <AllergenenBadges
                       size="sm"
@@ -174,7 +207,24 @@ export default function Recipes() {
                     <span className="text-xs text-muted-foreground">
                       {recipe.ingredient_count ?? 0} ingrediënten
                     </span>
+                    {isManager ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2 text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMethodeRecept({ id: recipe.id, naam: recipe.name });
+                        }}
+                      >
+                        <ChefHat className="h-4 w-4 mr-1" />
+                        {methodeIds.has(recipe.id) ? 'Methode ✓' : 'Methode'}
+                      </Button>
+                    ) : methodeIds.has(recipe.id) ? (
+                      <Badge variant="secondary" className="text-xs">Methode ✓</Badge>
+                    ) : null}
                   </div>
+
                   <div className="flex items-center justify-between gap-2 mt-1.5">
                     <AllergenenBadges
                       size="sm"
@@ -194,7 +244,15 @@ export default function Recipes() {
             </div>
           </Card>
         )}
+
+        <MethodeDialog
+          receptId={methodeRecept?.id ?? null}
+          receptNaam={methodeRecept?.naam ?? ''}
+          open={!!methodeRecept}
+          onOpenChange={(v) => !v && setMethodeRecept(null)}
+        />
       </div>
     </SidebarLayout>
   );
+
 }
