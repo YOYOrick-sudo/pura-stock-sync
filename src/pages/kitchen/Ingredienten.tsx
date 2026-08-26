@@ -368,7 +368,26 @@ export default function Ingredienten() {
             >
               Alleen te checken
             </Button>
+            <Button
+              variant="outline"
+              className="min-h-[44px]"
+              onClick={() => setArtikelDialog({ open: true, id: null })}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nieuw artikel
+            </Button>
+            {selected.length === 1 && (
+              <Button
+                variant="outline"
+                className="min-h-[44px]"
+                onClick={() => setArtikelDialog({ open: true, id: selected[0].id })}
+              >
+                <Pencil className="h-4 w-4 mr-2" />
+                Bewerken
+              </Button>
+            )}
             {canMerge && (
+
               <Button onClick={() => setMergeOpen(true)} className="min-h-[44px]">
                 <Merge className="h-4 w-4 mr-2" />
                 Samenvoegen ({selected.length})
