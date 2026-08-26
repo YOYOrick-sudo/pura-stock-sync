@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
+import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -50,14 +50,15 @@ export default function MepWeek() {
       : `${format(start, 'd MMM', { locale: nl })} – ${format(addDays(start, 6), 'd MMM', { locale: nl })}`;
 
   return (
-    <KitchenLayout
-      title="Mise-en-place · week"
-      subtitle={`${vestiging} · ${format(start, 'd MMMM', { locale: nl })} – ${format(addDays(start, 6), 'd MMMM yyyy', { locale: nl })}`}
-      backTo="/kitchen/mep"
-      backLabel="Vandaag"
-    >
+    <SidebarLayout>
       <div className="space-y-4">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="text-[15px] font-medium">
+              {format(start, 'd MMMM', { locale: nl })} – {format(addDays(start, 6), 'd MMMM yyyy', { locale: nl })}
+            </p>
+            <p className="text-sm text-muted-foreground">{vestiging}</p>
+          </div>
           <div className="flex items-center gap-2">
             <Button
               size="icon"

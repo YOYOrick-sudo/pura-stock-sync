@@ -334,6 +334,6 @@ export default function MepDag() {
         onOpenChange={(v) => !v && setAfrondTaak(null)}
         onAfronden={(args) => afronden.mutateAsync(args)}
       />
-    </KitchenLayout>
+    </SidebarLayout>
   );
 }
