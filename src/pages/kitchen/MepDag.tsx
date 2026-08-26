@@ -100,15 +100,12 @@ export default function MepDag() {
   };
 
   return (
-    <KitchenLayout>
+    <KitchenLayout title="Mise-en-place" subtitle={`${vestiging} · ${format(addDays(new Date(), dagOffset), 'EEEE d MMMM', { locale: nl })}`}>
       <div className="space-y-4">
         {/* Kop */}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Mise en place</h1>
-            <p className="text-sm text-muted-foreground">
-              {vestiging} · {format(addDays(new Date(), dagOffset), 'EEEE d MMMM', { locale: nl })}
-            </p>
+          <div className="text-sm text-muted-foreground">
+            {klaar.length}/{taken.length} klaar
           </div>
           <div className="flex items-center gap-2">
             <Button
