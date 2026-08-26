@@ -34,6 +34,8 @@ import MepPlanning from "./pages/kitchen/MepPlanning";
 import MepDag from "./pages/kitchen/MepDag";
 import MepWeek from "./pages/kitchen/MepWeek";
 import MepInstellingen from "./pages/settings/MepInstellingen";
+import KetenBeheer from "./pages/settings/KetenBeheer";
+
 import MepBeheer from "./pages/kitchen/MepBeheer";
 // HR Module
 import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } from "./pages/hr";
@@ -234,6 +236,8 @@ const App = () => (
             <Route path="/kitchen/mep/oud" element={<ProtectedRoute><MepPlanning /></ProtectedRoute>} />
             <Route path="/kitchen/mep/beheer" element={<ProtectedRoute><MepBeheer /></ProtectedRoute>} />
             <Route path="/settings/mep" element={<ProtectedRoute><MepInstellingen /></ProtectedRoute>} />
+            <Route path="/settings/keten" element={<ProtectedRoute><KetenBeheer /></ProtectedRoute>} />
+
             <Route path="/kitchen/snel-printen" element={<ProtectedRoute><SnelPrinten /></ProtectedRoute>} />
 
 

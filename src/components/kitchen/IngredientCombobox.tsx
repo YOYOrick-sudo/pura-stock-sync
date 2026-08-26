@@ -18,7 +18,7 @@ interface Props {
 
 
 /**
- * Combobox voor ingrediëntnaam met live suggesties uit ingredienten_master.
+ * Combobox voor ingrediëntnaam met live suggesties uit artikelen.
  * - Bij typen ≥2 chars: suggesties tonen.
  * - Suggestie kiezen → ingredient_id + naam gezet.
  * - "➕ toevoegen als nieuw" → insert in master (case-safe via ensureIngredientMaster).

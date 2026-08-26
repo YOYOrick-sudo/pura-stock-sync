@@ -1,7 +1,7 @@
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LogOut, Users, ChevronRight, Database, ChefHat } from 'lucide-react';
+import { LogOut, Users, ChevronRight, Database, ChefHat, Package } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
@@ -93,7 +93,20 @@ export default function Settings() {
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </div>
             </Link>
+            <Link to="/settings/keten">
+              <div className="flex items-center justify-between p-3 rounded-polar-md hover:bg-muted/50 cursor-pointer transition-colors">
+                <div className="flex items-center gap-3">
+                  <Package className="h-5 w-5 text-primary" />
+                  <div>
+                    <div className="font-medium">Voorraadketen</div>
+                    <div className="text-sm text-muted-foreground">Artikelen per vestiging, leveranciers, interne leverdagen en methodes</div>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </Link>
           </Card>
+
 
           <Card className="p-6">
             <h3 className="font-semibold text-lg mb-4">Account</h3>

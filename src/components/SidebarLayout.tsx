@@ -39,6 +39,8 @@ export function SidebarLayout({
       '/kitchen/mep': 'Mise-en-place',
       '/kitchen/mep/week': 'Mise-en-place · week',
       '/settings/mep': 'Mise-en-place instellingen',
+      '/settings/keten': 'Voorraadketen',
+
       '/mep-planning': 'MEP Planning',
       '/voorraad': 'Voorraad',
       '/settings': 'Instellingen',

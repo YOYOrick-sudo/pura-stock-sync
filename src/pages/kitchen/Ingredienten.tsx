@@ -14,7 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Pencil, Check, X, ArrowUpDown, ChefHat, Search, Merge, Sparkles, Loader2 } from 'lucide-react';
+import { Pencil, Check, X, ArrowUpDown, ChefHat, Search, Merge, Sparkles, Loader2, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -26,6 +26,8 @@ import {
 } from '@/hooks/useIngredienten';
 import { MergeIngredientenDialog } from '@/components/kitchen/MergeIngredientenDialog';
 import { AllergenenEditDialog } from '@/components/kitchen/AllergenenEditDialog';
+import { ArtikelDialog } from '@/components/keten/ArtikelDialog';
+
 import {
   useIngredientAllergenen,
   useConfirmIngredientAllergenen,
@@ -274,7 +276,9 @@ export default function Ingredienten() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [mergeOpen, setMergeOpen] = useState(false);
   const suggestMut = useSuggestAllergenen();
+  const [artikelDialog, setArtikelDialog] = useState<{ open: boolean; id: string | null }>({ open: false, id: null });
   const [vestiging, setVestiging] = useState<Vestiging | null>(null);
+
   const { data: ingKoppelingen } = useVestigingKoppelingen('ingredient');
   const { isManager } = useRole();
   useMijnVestiging();
@@ -368,7 +372,26 @@ export default function Ingredienten() {
             >
               Alleen te checken
             </Button>
+            <Button
+              variant="outline"
+              className="min-h-[44px]"
+              onClick={() => setArtikelDialog({ open: true, id: null })}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nieuw artikel
+            </Button>
+            {selected.length === 1 && (
+              <Button
+                variant="outline"
+                className="min-h-[44px]"
+                onClick={() => setArtikelDialog({ open: true, id: selected[0].id })}
+              >
+                <Pencil className="h-4 w-4 mr-2" />
+                Bewerken
+              </Button>
+            )}
             {canMerge && (
+
               <Button onClick={() => setMergeOpen(true)} className="min-h-[44px]">
                 <Merge className="h-4 w-4 mr-2" />
                 Samenvoegen ({selected.length})
@@ -463,6 +486,13 @@ export default function Ingredienten() {
         selected={selected}
         onDone={() => setSelectedIds(new Set())}
       />
+
+      <ArtikelDialog
+        artikelId={artikelDialog.id}
+        open={artikelDialog.open}
+        onOpenChange={(v) => setArtikelDialog((s) => ({ ...s, open: v }))}
+      />
     </SidebarLayout>
+
   );
 }

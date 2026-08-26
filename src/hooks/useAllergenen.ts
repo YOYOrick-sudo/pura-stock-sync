@@ -26,7 +26,7 @@ export function useIngredientAllergenen() {
     queryKey: ['allergenen', 'ingredienten'],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
-        .from('ingredienten_master')
+        .from('artikelen')
         .select('id, naam, allergenen, allergenen_sporen, allergenen_status, allergenen_bron, allergenen_bijgewerkt_op')
         .order('naam', { ascending: true });
       if (error) throw error;
@@ -84,7 +84,7 @@ export function useUpdateIngredientAllergenen() {
       if (input.allergenen_sporen) patch.allergenen_sporen = input.allergenen_sporen;
       if (input.bron !== undefined) patch.allergenen_bron = input.bron;
 
-      const { error } = await (supabase as any).from('ingredienten_master').update(patch).eq('id', input.id);
+      const { error } = await (supabase as any).from('artikelen').update(patch).eq('id', input.id);
       if (error) throw error;
       return input.id;
     },
@@ -100,7 +100,7 @@ export function useConfirmIngredientAllergenen() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await (supabase as any)
-        .from('ingredienten_master')
+        .from('artikelen')
         .update({ allergenen_status: 'bevestigd', allergenen_bijgewerkt_op: new Date().toISOString() })
         .eq('id', id);
       if (error) throw error;
@@ -146,7 +146,7 @@ export function useSuggestAllergenen() {
           if (r.onzeker && r.allergenen.length === 0 && r.sporen.length === 0) continue;
 
           const { error: upErr } = await (supabase as any)
-            .from('ingredienten_master')
+            .from('artikelen')
             .update({
               allergenen: r.allergenen,
               allergenen_sporen: r.sporen,
