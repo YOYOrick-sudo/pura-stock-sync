@@ -79,13 +79,16 @@ export default function MepWeek() {
             >
               <ChevronRight className="w-5 h-5" />
             </Button>
-          </div>
-          {weekOffset !== 0 && (
-            <Button variant="ghost" className="h-11" onClick={() => setWeekOffset(0)}>
-              <CalendarDays className="w-4 h-4 mr-1.5" />
-              Deze week
+            {weekOffset !== 0 && (
+              <Button variant="ghost" className="h-11" onClick={() => setWeekOffset(0)}>
+                <CalendarDays className="w-4 h-4 mr-1.5" />
+                Deze week
+              </Button>
+            )}
+            <Button variant="outline" className="h-11" onClick={() => navigate('/kitchen/mep')}>
+              Vandaag
             </Button>
-          )}
+          </div>
         </div>
 
         {isLoading ? (
@@ -164,6 +167,6 @@ export default function MepWeek() {
           </div>
         )}
       </div>
-    </KitchenLayout>
+    </SidebarLayout>
   );
 }
