@@ -219,3 +219,72 @@ export function useMepRecepten(vestiging: string) {
 }
 
 export type MepReceptOptie = NonNullable<ReturnType<typeof useMepRecepten>['data']>[number];
+
+/** Taken over een periode (weekweergave). */
+export function useMepTakenBereik(vestiging: string, van: string, tot: string) {
+  const qc = useQueryClient();
+  const key = useMemo(() => ['mep-taken-bereik', vestiging, van, tot], [vestiging, van, tot]);
+
+  const query = useQuery({
+    queryKey: key,
+    enabled: !!vestiging && !!van && !!tot,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('mep_taken')
+        .select('*')
+        .eq('vestiging', vestiging)
+        .gte('taak_datum', van)
+        .lte('taak_datum', tot)
+        .neq('status', 'geannuleerd')
+        .order('taak_datum', { ascending: true })
+        .order('prioriteit', { ascending: true })
+        .order('volgorde', { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as MepTaak[];
+    },
+  });
+
+  useEffect(() => {
+    if (!vestiging) return;
+    const channel = supabase
+      .channel(`mep-week-${vestiging}-${van}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'mep_taken', filter: `vestiging=eq.${vestiging}` },
+        () => qc.invalidateQueries({ queryKey: key }),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [vestiging, van, tot, qc, key]);
+
+  return query;
+}
+
+/** Alle halffabricaat-methodes met receptnaam — voor het beheerscherm. */
+export function useHalffabricaatOverzicht() {
+  return useQuery({
+    queryKey: ['hf-overzicht'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('halffabricaat_methodes')
+        .select('*, recipes!inner(id, name, category, is_gearchiveerd)')
+        .order('sort_order', { ascending: true });
+      if (error) throw error;
+      return (data ?? [])
+        .filter((m: any) => !m.recipes?.is_gearchiveerd)
+        .map((m: any) => ({
+          id: m.id as string,
+          recept_id: m.recept_id as string,
+          recept_naam: m.recipes.name as string,
+          categorie: (m.recipes.category as string) ?? 'Algemeen',
+          type: m.type as string,
+          visuele_eenheid: m.visuele_eenheid as string,
+          output_hoeveelheid: Number(m.output_hoeveelheid),
+          output_eenheid: m.output_eenheid as string,
+          houdbaarheid: m.houdbaarheid as number | null,
+        }));
+    },
+  });
+}
