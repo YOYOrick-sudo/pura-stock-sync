@@ -75,7 +75,6 @@ export default function OrderDashboard() {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [showInstructionsDialog, setShowInstructionsDialog] = useState(false);
-  const [demoMode, setDemoMode] = useState(false);
   const [newProductName, setNewProductName] = useState('');
   const [newProductAmount, setNewProductAmount] = useState('');
   const currentWeek = getCurrentWeek();
