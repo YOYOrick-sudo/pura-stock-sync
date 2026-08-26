@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { AllergenenBadges } from '@/components/kitchen/AllergenenBadges';
 import { useAlleReceptAllergenen } from '@/hooks/useAllergenen';
 import { SidebarLayout } from '@/components/SidebarLayout';
@@ -10,19 +10,40 @@ import { Plus, Search, BookOpen } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { useNavigate } from 'react-router-dom';
 import { useRecipes, useRecipeCategories } from '@/hooks/useRecipes';
+import { VestigingFilter, VestigingToggles } from '@/components/kitchen/VestigingKoppeling';
+import { useMijnVestiging, useVestigingKoppelingen, type Vestiging } from '@/hooks/useVestigingKoppeling';
+import { useRole } from '@/hooks/useRole';
 import { cn } from '@/lib/utils';
+
+const LEEG = new Set<string>();
 
 export default function Recipes() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string | null>(null);
+  const [vestiging, setVestiging] = useState<Vestiging | null>(null);
 
-  const { data: recipes = [], isLoading } = useRecipes(search, category);
+  const { data: alleRecipes = [], isLoading } = useRecipes(search, category);
   const { data: categories = [] } = useRecipeCategories();
   const { data: allergenenMap } = useAlleReceptAllergenen();
+  const { data: mijnVestiging } = useMijnVestiging();
+  const { data: koppelingen } = useVestigingKoppelingen('recept');
+  const { isManager } = useRole();
 
+  // Standaard: alleen wat aan staat voor mijn eigen keuken.
+  useEffect(() => {
+    if (mijnVestiging === 'West' || mijnVestiging === 'Midsland') {
+      setVestiging(mijnVestiging as Vestiging);
+    }
+  }, [mijnVestiging]);
+
+  const recipes = useMemo(() => {
+    if (!vestiging) return alleRecipes;
+    return alleRecipes.filter((r) => koppelingen?.get(r.id)?.has(vestiging));
+  }, [alleRecipes, vestiging, koppelingen]);
 
   const chips = useMemo(() => ['Alle', ...categories], [categories]);
+
 
   return (
     <SidebarLayout>
@@ -47,6 +68,10 @@ export default function Recipes() {
               Nieuw recept
             </Button>
           </div>
+
+          <VestigingFilter waarde={vestiging} onChange={setVestiging} className="mt-4" />
+
+
 
           {chips.length > 1 && (
             <div className="flex flex-wrap gap-2 mt-4">
@@ -88,17 +113,18 @@ export default function Recipes() {
           <Card className="bg-card shadow-sm overflow-hidden">
             {/* Desktop table */}
             <div className="hidden sm:block">
-              <div className="grid grid-cols-[2fr_1fr_1fr_1.5fr] gap-4 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b bg-muted/30">
+              <div className="grid grid-cols-[2fr_1fr_1fr_1.5fr_auto] gap-4 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b bg-muted/30">
                 <div>Naam</div>
                 <div>Categorie</div>
                 <div>Type</div>
                 <div>Allergenen</div>
+                <div className="w-[76px]">Aan bij</div>
               </div>
               {recipes.map((recipe) => (
                 <div
                   key={recipe.id}
                   onClick={() => navigate(`/kitchen/recipes/${recipe.id}`)}
-                  className="grid grid-cols-[2fr_1fr_1fr_1.5fr] gap-4 px-5 py-4 items-center border-b last:border-b-0 cursor-pointer hover:bg-muted/40 transition-colors"
+                  className="grid grid-cols-[2fr_1fr_1fr_1.5fr_auto] gap-4 px-5 py-4 items-center border-b last:border-b-0 cursor-pointer hover:bg-muted/40 transition-colors"
                 >
                   <div className="font-semibold text-foreground">{recipe.name}</div>
                   <div>
@@ -118,8 +144,15 @@ export default function Recipes() {
                       onbekend={allergenenMap?.get(recipe.id)?.onbekende_ingredienten ?? 0}
                     />
                   </div>
+                  <VestigingToggles
+                    soort="recept"
+                    id={recipe.id}
+                    actieve={koppelingen?.get(recipe.id) ?? LEEG}
+                    disabled={!isManager}
+                  />
                 </div>
               ))}
+
             </div>
 
             {/* Mobile list */}
@@ -142,12 +175,20 @@ export default function Recipes() {
                       {recipe.ingredient_count ?? 0} ingrediënten
                     </span>
                   </div>
-                  <AllergenenBadges
-                    className="mt-1.5"
-                    size="sm"
-                    allergenen={allergenenMap?.get(recipe.id)?.allergenen ?? []}
-                    onbekend={allergenenMap?.get(recipe.id)?.onbekende_ingredienten ?? 0}
-                  />
+                  <div className="flex items-center justify-between gap-2 mt-1.5">
+                    <AllergenenBadges
+                      size="sm"
+                      allergenen={allergenenMap?.get(recipe.id)?.allergenen ?? []}
+                      onbekend={allergenenMap?.get(recipe.id)?.onbekende_ingredienten ?? 0}
+                    />
+                    <VestigingToggles
+                      soort="recept"
+                      id={recipe.id}
+                      actieve={koppelingen?.get(recipe.id) ?? LEEG}
+                      disabled={!isManager}
+                    />
+                  </div>
+
                 </div>
               ))}
             </div>

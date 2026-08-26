@@ -21,6 +21,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { toast } from 'sonner';
 import { AllergenenBadges } from '@/components/kitchen/AllergenenBadges';
 import { useReceptAllergenen } from '@/hooks/useAllergenen';
+import { MethodesKaart } from '@/components/kitchen/MethodesKaart';
+import { useRole } from '@/hooks/useRole';
 
 function formatIngredient(hoeveelheid?: string | null, eenheid?: string | null, naam?: string) {
   return `${hoeveelheid ?? ''} ${eenheid ?? ''} ${naam ?? ''}`.replace(/\s+/g, ' ').trim();
@@ -33,6 +35,7 @@ export default function RecipeDetail() {
   const createPrintJob = useCreatePrintJob();
   const deleteMut = useDeleteRecipe();
   const { data: allergenen } = useReceptAllergenen(id);
+  const { isManager } = useRole();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
   const [printAantal, setPrintAantal] = useState(1);
@@ -258,6 +261,9 @@ export default function RecipeDetail() {
             <p className="text-sm text-muted-foreground">Nog geen bereiding toegevoegd.</p>
           )}
         </Card>
+
+        {/* Handelingen / mise en place */}
+        <MethodesKaart receptId={recipe.id} kanBeheren={isManager} />
       </div>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>

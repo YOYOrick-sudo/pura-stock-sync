@@ -34,6 +34,16 @@ import {
 } from '@/hooks/useAllergenen';
 import { ALLERGEEN_LABEL, type AllergeenCode } from '@/lib/allergenen';
 import { cn } from '@/lib/utils';
+import { VestigingFilter, VestigingToggles } from '@/components/kitchen/VestigingKoppeling';
+import {
+  useMijnVestiging,
+  useVestigingKoppelingen,
+  type Vestiging,
+} from '@/hooks/useVestigingKoppeling';
+import { useRole } from '@/hooks/useRole';
+
+const LEEG = new Set<string>();
+
 
 type SortKey = 'naam' | 'aantal';
 
@@ -141,13 +151,18 @@ function IngredientRow({
   onToggleSelect,
   allergenenInfo,
   onEditAllergenen,
+  vestigingen,
+  kanKoppelen,
 }: {
   ing: IngredientStat;
   selected: boolean;
   onToggleSelect: (checked: boolean) => void;
   allergenenInfo?: IngredientAllergenen;
   onEditAllergenen: () => void;
+  vestigingen: Set<string>;
+  kanKoppelen: boolean;
 }) {
+
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(ing.naam);
   const rename = useRenameIngredient();
@@ -220,6 +235,15 @@ function IngredientRow({
           ? format(new Date(ing.laatst_gebruikt), 'd MMM yyyy', { locale: nl })
           : '—'}
       </TableCell>
+      <TableCell>
+        <VestigingToggles
+          soort="ingredient"
+          id={ing.id}
+          actieve={vestigingen}
+          disabled={!kanKoppelen}
+        />
+      </TableCell>
+
       <TableCell className="text-right">
         {!editing && (
           <button
@@ -250,6 +274,10 @@ export default function Ingredienten() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [mergeOpen, setMergeOpen] = useState(false);
   const suggestMut = useSuggestAllergenen();
+  const [vestiging, setVestiging] = useState<Vestiging | null>(null);
+  const { data: ingKoppelingen } = useVestigingKoppelingen('ingredient');
+  const { isManager } = useRole();
+  useMijnVestiging();
 
   // Ingrediënten zonder enige allergenen-info → kandidaten voor de AI-pass.
   const ontbrekend = useMemo(
@@ -263,12 +291,16 @@ export default function Ingredienten() {
     if (onlyTeChecken) {
       base = base.filter((r) => (allergenenMap.get(r.id)?.allergenen_status ?? 'onbekend') !== 'bevestigd');
     }
+    if (vestiging) {
+      base = base.filter((r) => ingKoppelingen?.get(r.id)?.has(vestiging));
+    }
     const sorted = [...base].sort((a, b) => {
       if (sortKey === 'naam') return a.naam.localeCompare(b.naam, 'nl');
       return (a.aantal_recepten ?? 0) - (b.aantal_recepten ?? 0);
     });
     return sortDir === 'asc' ? sorted : sorted.reverse();
-  }, [rows, search, sortKey, sortDir, onlyTeChecken, allergenenMap]);
+  }, [rows, search, sortKey, sortDir, onlyTeChecken, allergenenMap, vestiging, ingKoppelingen]);
+
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -349,6 +381,10 @@ export default function Ingredienten() {
             )}
           </div>
 
+          <VestigingFilter waarde={vestiging} onChange={setVestiging} className="mb-4" />
+
+
+
           {isLoading ? (
             <div className="py-12 text-center text-muted-foreground text-sm">Laden…</div>
           ) : rows.length === 0 ? (
@@ -389,6 +425,8 @@ export default function Ingredienten() {
                       </button>
                     </TableHead>
                     <TableHead>Laatst gebruikt</TableHead>
+                    <TableHead>Aan bij</TableHead>
+
                     <TableHead className="text-right">Acties</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -401,6 +439,9 @@ export default function Ingredienten() {
                       onToggleSelect={(v) => toggleSelect(ing.id, v)}
                       allergenenInfo={allergenenMap.get(ing.id)}
                       onEditAllergenen={() => setEditAllergenenId(ing.id)}
+                      vestigingen={ingKoppelingen?.get(ing.id) ?? LEEG}
+                      kanKoppelen={isManager}
+
                     />
                   ))}
                 </TableBody>
