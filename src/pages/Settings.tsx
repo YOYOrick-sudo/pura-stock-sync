@@ -1,7 +1,7 @@
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LogOut, Users, ChevronRight, Database } from 'lucide-react';
+import { LogOut, Users, ChevronRight, Database, ChefHat } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
