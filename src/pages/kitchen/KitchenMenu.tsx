@@ -3,6 +3,7 @@ import { BookOpen, Calendar, ArrowRightLeft, CheckSquare, ArrowLeft, Package } f
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useUserLocation } from '@/contexts/UserLocationContext';
 import logoGreen from '@/assets/pura-vida-logo-official.png';
 
 interface MenuCardProps {
