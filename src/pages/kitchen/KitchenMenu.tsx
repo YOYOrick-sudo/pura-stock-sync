@@ -67,7 +67,7 @@ export default function KitchenMenu() {
           </div>
 
           <div className="text-center mt-4">
-            <p className="text-sm text-muted-foreground">Pura Vida - West</p>
+            <p className="text-sm text-muted-foreground">Pura Vida - {userLocation}</p>
           </div>
         </div>
       </div>
