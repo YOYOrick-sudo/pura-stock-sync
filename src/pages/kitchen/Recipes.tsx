@@ -145,9 +145,30 @@ export default function Recipes() {
                       <span className="text-muted-foreground">—</span>
                     )}
                   </div>
-                  <div className="text-sm text-foreground">
-                    {recipe.type === 'halffabricaat' ? 'Halffabricaat' : 'Recept'}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {recipe.type === 'halffabricaat' ? (
+                      <Badge variant="outline" className="text-xs">Halffabricaat</Badge>
+                    ) : (
+                      <span className="text-sm text-foreground">Recept</span>
+                    )}
+                    {methodeIds.has(recipe.id) ? (
+                      <Badge variant="secondary" className="text-xs">Methode ✓</Badge>
+                    ) : isManager ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2 text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMethodeRecept({ id: recipe.id, naam: recipe.name });
+                        }}
+                      >
+                        <ChefHat className="h-4 w-4 mr-1" />
+                        Methode
+                      </Button>
+                    ) : null}
                   </div>
+
                   <div>
                     <AllergenenBadges
                       size="sm"
