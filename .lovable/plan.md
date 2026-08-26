@@ -29,18 +29,24 @@ Doel: alle keukenkennis kan ingevuld worden (Helga-sessie), de artikelketen word
 Nieuwe sectie onder Instellingen (`/settings/keten`), tabbladen:
 
 - **Fixlijst** — de open logboekregels als werklijst: 10 receptregels (exacte waarde invullen, geen middeling van "1 tot 2"), 6 zonder eenheid, 18 basiseenheden. Regel afvinken zet `opgelost_op`/`opgelost_door`.
-- **Methodes** — per halffabricaat: handeling, output-hoeveelheid + eenheid, houdbaarheid, leadtime. Hergebruikt `useHalffabricaatMethodes`.
-- **Leveranciers** — CRUD leverancier + besteldagen + gekoppelde artikelen (artikelnummer, besteleenheid, inhoud, prijs). Kanaal `api` toont de API-velden; de sleutel zelf staat alleen in Edge Function secrets.
+- **Methodes** — per halffabricaat: handeling, output-hoeveelheid + eenheid, houdbaarheid, leadtime. Bij opslaan wordt `artikelen.basis_eenheid_id` automatisch de output-eenheid en gaat de bijbehorende logboekregel op opgelost (scheelt 17 dubbele handelingen).
+- **Leveranciers** — CRUD leverancier + besteldagen (met optionele vestiging) + gekoppelde artikelen (artikelnummer, besteleenheid, inhoud, prijs) + per-vestiging config (klantnummer, secret-naam, portal-hint). Kanaal `api` toont de API-velden; sleutels staan alleen in Edge Function secrets.
 - **Interne leverdagen** — CRUD op `interne_leverdagen` (van/naar vestiging, weekdag, deadline).
 - **Artikelen per vestiging** — tabel over `artikel_locaties`: min/max, aanvul_bron, bron_vestiging, opslag_locatie, telvolgorde; filter op vestiging en soort, inline bewerken, geschikt voor snel doorwerken tijdens de Helga-sessie.
+
+Ingrediënten-scherm wordt **Artikelen-scherm**: aanmaken en bewerken van artikelen met naam, soort, categorie, basis-eenheid en `is_voorraad_artikel`, naast de bestaande allergenenvelden. In het artikeldetail een eenvoudige lijst **eenheden per artikel** (`artikel_eenheden`): eenheid, factor naar basis, optioneel rendement, inkoop/keuken-vinkjes — zodat "1 bak = 2,5 kg" en "1 tray = 12 stuks" ingevoerd kunnen worden.
 
 Interne bestelling (`OrderDashboard`): productkeuze uit `artikelen` (actief op de vestiging) in plaats van de localStorage-lijst, met eenheid uit `artikel_eenheden`; regels schrijven `artikel_id` + `eenheid_id` + numerieke hoeveelheid.
 
 Opschoning: n8n-webhook en demo-modus-fallback weg uit `OrderDashboard`; `useIngredienten`, `useAllergenen`, `IngredientCombobox` en de edge function `suggest-allergenen` omzetten naar `artikelen` / `artikel_locaties`.
 
-## Tellen — wijziging in het architectuurdocument
+## Architectuurdocument bijwerken
 
-Vervangt §2.9: geen terugkerende tel-taak. Tellen gebeurt als bestelronde-check (stap 1b) en later als kalibratie (cycle counting max. `cycle_count_aantal` artikelen per ronde, plus tellen op signaal). Volledige telling blijft optioneel scherm. Wordt in project knowledge bijgewerkt, samen met het schrappen van de n8n-flow.
+- Tellen (vervangt §2.9): geen terugkerende tel-taak. Tellen is bestelronde-check (1b) en later kalibratie (cycle counting max. `cycle_count_aantal` per ronde, plus tellen op signaal). Volledige telling blijft optioneel scherm.
+- n8n-flow West→Midsland geschrapt; interne aanvulling loopt uitsluitend via interne orders.
+- Klantnummers per vestiging: versturen gebeurt met de config van de bestellende vestiging; zonder config kan een bestelling niet op "besteld" komen (duidelijke melding, geen stil falen).
+- Uitgesteld besluit: nettoprijzen zijn klantnummer-specifiek en kunnen per vestiging verschillen; `netto_prijs` blijft voorlopig één veld op `leverancier_artikelen` en verhuist pas naar per-vestiging als de product-sync aantoont dat prijzen echt afwijken.
+
 
 ## Praktijk
 
