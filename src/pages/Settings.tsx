@@ -81,6 +81,18 @@ export default function Settings() {
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </div>
             </Link>
+            <Link to="/settings/mep">
+              <div className="flex items-center justify-between p-3 rounded-polar-md hover:bg-muted/50 cursor-pointer transition-colors">
+                <div className="flex items-center gap-3">
+                  <ChefHat className="h-5 w-5 text-primary" />
+                  <div>
+                    <div className="font-medium">Mise-en-place</div>
+                    <div className="text-sm text-muted-foreground">Templates, handelingen en open dagen per vestiging</div>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </Link>
           </Card>
 
           <Card className="p-6">
