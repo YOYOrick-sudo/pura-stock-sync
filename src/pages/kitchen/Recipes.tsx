@@ -244,7 +244,15 @@ export default function Recipes() {
             </div>
           </Card>
         )}
+
+        <MethodeDialog
+          receptId={methodeRecept?.id ?? null}
+          receptNaam={methodeRecept?.naam ?? ''}
+          open={!!methodeRecept}
+          onOpenChange={(v) => !v && setMethodeRecept(null)}
+        />
       </div>
     </SidebarLayout>
   );
+
 }
