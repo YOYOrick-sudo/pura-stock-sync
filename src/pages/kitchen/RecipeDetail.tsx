@@ -35,6 +35,7 @@ export default function RecipeDetail() {
   const createPrintJob = useCreatePrintJob();
   const deleteMut = useDeleteRecipe();
   const { data: allergenen } = useReceptAllergenen(id);
+  const { isManager } = useRole();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
   const [printAantal, setPrintAantal] = useState(1);
