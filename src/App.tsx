@@ -31,6 +31,7 @@ import RecipeForm from "./pages/kitchen/RecipeForm";
 import Ingredienten from "./pages/kitchen/Ingredienten";
 import SnelPrinten from "./pages/kitchen/SnelPrinten";
 import MepPlanning from "./pages/kitchen/MepPlanning";
+import MepDag from "./pages/kitchen/MepDag";
 import MepBeheer from "./pages/kitchen/MepBeheer";
 // HR Module
 import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } from "./pages/hr";
@@ -226,8 +227,10 @@ const App = () => (
             <Route path="/kitchen/recipes/:id" element={<ProtectedRoute><RecipeDetail /></ProtectedRoute>} />
             <Route path="/kitchen/recipes/:id/bewerken" element={<ProtectedRoute><RecipeForm /></ProtectedRoute>} />
             <Route path="/kitchen/ingredienten" element={<ProtectedRoute><Ingredienten /></ProtectedRoute>} />
-            <Route path="/kitchen/mep" element={<ProtectedRoute><MepPlanning /></ProtectedRoute>} />
+            <Route path="/kitchen/mep" element={<ProtectedRoute><MepDag /></ProtectedRoute>} />
+            <Route path="/kitchen/mep/oud" element={<ProtectedRoute><MepPlanning /></ProtectedRoute>} />
             <Route path="/kitchen/mep/beheer" element={<ProtectedRoute><MepBeheer /></ProtectedRoute>} />
+            <Route path="/settings/mep" element={<ProtectedRoute><MepBeheer /></ProtectedRoute>} />
             <Route path="/kitchen/snel-printen" element={<ProtectedRoute><SnelPrinten /></ProtectedRoute>} />
 
 
