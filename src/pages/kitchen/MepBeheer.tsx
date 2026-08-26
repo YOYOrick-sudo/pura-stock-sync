@@ -297,6 +297,8 @@ function OpendagenTab({ location }: { location: string }) {
   );
 }
 
+export { OpendagenTab };
+
 export default function MepBeheer() {
   const { userLocation } = useUserLocation();
 
