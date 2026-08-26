@@ -1,118 +1,48 @@
-# Mise-en-place lijst (MEP) — bouwplan v3
+# MEP stap 5 + 6, en MEP zichtbaar maken in Midsland
 
-Basis: recept-of-vrije-taak, nullable `recipe_id`, drie prioriteiten, drie views, slepen met @dnd-kit zoals de takenlijst. v3 verwerkt de drie aanvullingen (gesloten dagen, handeling per halfproduct, consistente vrije taken).
+## 0. Waarom MEP "niet actief" is in Midsland
 
-## A. Templates zijn core, geen sluitstuk
+Gecontroleerd: de database is voor Midsland gewoon gevuld — instellingen, open/dicht-dagen (dicht ma+di), handelingen en drie keukenmedewerkers staan er. De pagina zelf werkt ook per vestiging (hij leest de locatie van de ingelogde gebruiker).
 
-- Tabel `mep_templates`: vestiging, weekdag (of "dagelijks"), titel, `recipe_id` (nullable), `handeling` (nullable), aantal, eenheid, prioriteit, `sort_order`, `actief`.
-- Een open dag wordt automatisch gevuld vanuit de templates van die weekdag. Geen knop.
-- Elke dagregel kan met één actie ("elke donderdag") template worden.
+Wat ontbreekt is de **ingang**: Mise-en-place staat niet in de zijbalk (alleen Stickers, Recepten, Ingrediënten staan daar onder Keuken), en de enige link zit in het keukenmenu dat als "Pura Vida - West" gepresenteerd wordt. Midsland kan er dus simpelweg niet komen.
 
-## B. Openingsdagen — fundament, niet een randgeval
+Fix:
+- Zijbalk: menu-item "Mise-en-place" (`/kitchen/mep`) onder groep Keuken, voor West én Midsland.
+- Keukenmenu: kop toont de eigen vestiging in plaats van vast "West".
+- Geen datawerk nodig; Midsland heeft alleen nog geen templates (die maak je in stap 6 zelf aan).
 
-- **Eén bron van waarheid.** Vandaag staan gesloten dagen hardcoded in de afval-edge-function: `CLOSED_DOW` = Midsland ma+di, West wo — **die West-waarde klopt niet meer: West is dicht op dinsdag**, dus de afval-function moet mee gecorrigeerd worden, plus open-uitzonderingen (Midsland 15+16 juni 2026). Die kennis verhuist naar de database: `vestiging_opendagen` (vestiging × weekdag 0–6, open ja/nee) en `vestiging_sluitdatums` (losse datums met reden) plus open-uitzonderingen. Gevuld met de bevestigde waarden: Midsland dicht ma+di, West dicht di. De afval-function later laten meelezen is een losse opruimstap; geen tweede lijstje bijhouden.
-- **De tweede tab heet niet "Morgen"** maar toont de **eerstvolgende open dag**, met de dagnaam als label ("Donderdag"; "Morgen" alleen als dat toevallig morgen is). Zoeken slaat gesloten weekdagen én sluitdatums over, maximaal 14 dagen vooruit.
-- **Dagwissel, doorschuiven en de 17:00-standaard slaan gesloten dagen over.** In West landt maandag-restant op woensdag; templates van dinsdag worden nooit geladen. De doorschuif-teller telt open dagen, niet kalenderdagen.
-- **Gesloten ≠ geblokkeerd.** Een gesloten dag wordt alleen niet automatisch gevuld. Handmatig toevoegen kan altijd, met een rustige melding "West is deze dag gesloten".
-- **Sluitdatum toevoegen op een dag die al gevuld is**: bij het opslaan van een sluitdatum verhuizen alle openstaande regels van die dag automatisch naar de eerstvolgende open dag (ontdubbeling uit C wordt toegepast), met melding "7 regels verplaatst naar donderdag" en één keer ongedaan maken. Afgeronde regels blijven staan waar ze staan, als historie.
-- **Seizoenswissel** = de instellingen aanpassen. Geen aparte seizoenslogica.
+## 1. Stap 5 — view "Per persoon"
 
+- Derde weergave naast Alles en Werkview: **Per persoon**, met een kolom/blok per keukenmedewerker van de vestiging plus een blok "Niet toegewezen".
+- Elke persoon heeft een **eigen volgorde** (`sort_order_persoon`), los van de algemene lijst. Slepen binnen een blok zet alleen die volgorde.
+- Regel van het ene naar het andere blok slepen wijst hem toe aan die persoon (en zet hem achteraan diens lijst).
+- Voortgangsbalk per persoon ("4 van 7 klaar") bovenaan het blok.
+- Filter "mijn naam" in de Werkview hergebruikt dezelfde toewijzing.
+- Afvinken, deelvoortgang en verwijderen werken exact als in Alles.
 
-## C. Twee tabs: Vandaag en eerstvolgende open dag
+## 2. Stap 6 — suggesties, templates en beheer
 
-- **Tab Vandaag** = werkscherm. **Tweede tab** = vooruitplannen.
-- Dagwissel om **04:00**, instelbaar per vestiging. De tweede tab wordt dan de nieuwe Vandaag, aangevuld met de weekdag-templates.
-- **Ontdubbeling** bij dagopbouw: regels met dezelfde sleutel (titel + handeling, of hetzelfde recept + handeling) worden één regel — hoogste prioriteit wint, aantallen niet optellen (bestaande regel wint), badge blijft.
-- **Doorschuiven = kopiëren**: het onafgeronde origineel blijft op zijn eigen dag staan; op de volgende open dag komt een nieuwe regel met `bron = doorgeschoven`, `doorgeschoven_van` en opgehoogde teller. Historie laat per dag zien wat gepland stond en niet af kwam.
-- 3+ keer doorgeschoven krijgt aparte markering.
-- **Slimme standaard bij toevoegen**: vóór 17:00 → Vandaag, na 17:00 → volgende open dag, met altijd een zichtbare toggle. Grens instelbaar per vestiging. Is vandaag gesloten, dan staat de standaard op de eerstvolgende open dag.
-- **Handmatig verplaatsen**: elke regel met één knop naar de andere tab en terug. Swipe alleen als extra.
-- **Opnieuw toevoegen na afronden**: botst een insert op de unieke index met een afgeronde regel, dan wordt die heropend en het aantal opgehoogd (`aantal_klaar` blijft staan: "3 van 5" wordt "3 van 8"). Nooit een stille fout.
-- **Dagopbouw is idempotent en zelfherstellend.** De opbouw zit in één SQL-functie `mep_bouw_dag(vestiging, datum)` die veilig meerdere keren mag draaien: bestaat de regel al (zelfde sleutel), dan gebeurt er niets. Per vestiging + dag wordt in `mep_dagopbouw_log` vastgelegd dat de opbouw klaar is. De 04:00-cron roept de functie aan; **daarnaast roept de app hem bij het openen van de MEP-lijst zelf aan** wanneer er voor die dag nog geen log-regel staat. Cron is gemak, geen single point of failure — de keuken staat nooit voor een lege lijst.
+**Suggestie-chips** boven de lijst: vijf combinaties (titel + handeling) die de afgelopen 4 weken op deze weekdag het vaakst voorkwamen en vandaag nog niet op de lijst staan. Eén tik = toevoegen aan de geopende dag.
 
-## D. Handeling per halfproduct
+**Opslaan als template**: elke dagregel krijgt een actie "elke <weekdag>" (en "dagelijks"), die de regel in `mep_templates` zet met titel, handeling, aantal, eenheid en prioriteit.
 
-- Nieuw **optioneel** veld `handeling` op planning én templates: bereiden / vacumeren / snijden / aanvullen / ontdooien — beheerbaar lijstje per vestiging (`mep_handelingen`, met `sort_order` en `actief`).
-- Hetzelfde recept kan zo meerdere keren op één dag staan: "Döner — ontdooien" 's ochtends, "Döner — vacumeren" 's middags.
-- Handeling verschijnt als badge naast de titel, en zit in:
-  - de unieke index: `(date, location, lower(titel), coalesce(handeling,''))`
-  - de ontdubbelregel bij dagopbouw
-  - het heropen-gedrag bij conflict
-  - de suggestie-chips (chip = titel + handeling)
-- Leeg mag: een vrije taak zonder handeling blijft gewoon één regel.
+**Beheerscherm** (manager, onder instellingen van de keuken):
+- Templates per vestiging: lijst per weekdag/dagelijks, aanmaken, bewerken, aan/uit zetten, volgorde.
+- Handelingen: naam, volgorde, actief/inactief.
+- Openingsdagen: vinkjes per weekdag, plus losse sluitdatums met reden en open-uitzonderingen. Bij het opslaan van een sluitdatum verhuizen openstaande regels van die dag naar de eerstvolgende open dag, met melding en één keer ongedaan maken.
 
-## E. Vrije taken consistent houden
+## 3. Technisch
 
-- Halfproduct zonder recept gaat via de vrije taak — geen modelwijziging.
-- **Wel: autocomplete op eerder gebruikte titels** uit de historie van die vestiging (laatste ~6 maanden, ontdubbeld op `lower(titel)`, gesorteerd op frequentie), plus receptnamen in dezelfde lijst. Bij typen van "kip vac" komt "Kip vacumeren" bovenaan; een nieuwe titel aanmaken kan altijd, maar kost een extra bewuste tik ("+ Nieuw: …").
-- Zo blijven ontdubbeling, chips en de latere analyse betrouwbaar.
+- Bestaande tabellen volstaan: `mep_planning.sort_order_persoon`, `mep_templates`, `mep_handelingen`, `vestiging_opendagen`, `vestiging_sluitdatums`. Alleen als `sort_order_persoon` in de praktijk ontbreekt volgt een kleine migratie.
+- Suggesties komen uit een query op `mep_planning` (zelfde vestiging, zelfde weekdag, laatste 28 dagen), naast de bestaande `useMepTitelSuggesties`.
+- Nieuwe hooks in `src/hooks/useMepPlanning.ts`: `useMepSuggesties`, `useMepTemplates`, `useMepPerPersoon` (toewijzen + herordenen per persoon).
+- Nieuwe bestanden: `src/components/kitchen/MepPerPersoon.tsx`, `src/pages/kitchen/MepBeheer.tsx` (route `/kitchen/mep/beheer`, achter `ProtectedRoute` + `RequireManager`).
+- Zijbalk-item toevoegen in `src/components/AppSidebar.tsx` met `locations: ['West','Midsland']`.
+- Slepen met @dnd-kit, zoals nu; realtime sync blijft ongewijzigd.
 
-## F. Realtime sync tussen tablets
+## 4. Volgorde en test
 
-- Realtime-subscription op `mep_planning` per vestiging + dag, bovenop React Query optimistic updates.
-- Laatste schrijver wint per veld; afvinken is idempotent.
-
-## G. Gedeeld keukenaccount
-
-- Gedeeld, permanent ingelogd account per vestiging; sessie verloopt niet (`persistSession`, `autoRefreshToken`).
-- RLS in lijn met `foh_tasks`: lezen/schrijven binnen eigen vestiging, met GRANTs.
-- `foh_employees` krijgt `afdeling` (bediening/keuken); keukenteam West wordt in stap 1 toegevoegd. Geen tweede personentabel.
-
-## H. Bestellingen-koppeling niet stilletjes breken
-
-`titel` wordt verplicht, dus `create_mep_from_order` gaat mee in dezelfde migratie: productnaam als titel (ook zonder recept-match), `handeling` leeg, en `ON CONFLICT` op de nieuwe index met het heropen-gedrag uit C. Beide paden expliciet testen.
-
-## I. Historie, slimmigheden, werkview
-
-- Verwijderen = soft-delete (`deleted_at`); `completed_at`/`completed_by` altijd vullen.
-- Suggestie-chips: 5 combinaties (titel + handeling) die de afgelopen 4 weken op deze weekdag het vaakst voorkwamen en vandaag ontbreken.
-- Deelvoortgang per regel ("3 van 5 bakken"), voortgangsbalk per dag en per persoon, doorschuif-teller als signalering.
-- Werkview: regels groot, afvinkdoel ≥56px, filter "mijn naam", zoekveld bovenaan, wake-lock zolang de view open staat.
-
-## J. Datamodel (delta)
-
-`mep_planning`: `recipe_id` nullable; `titel` verplicht; `handeling` (nullable); `prioriteit` (1/2/3); `aantal`, `eenheid`; `sort_order`, `sort_order_persoon`; `employee_id` → `foh_employees`; `aantal_klaar` (default 0); `completed_at`, `completed_by`, `deleted_at`; `doorgeschoven_van`, `doorschuif_teller`; `bron` (handmatig/template/bestelling/doorgeschoven). Unieke index `(date, location, lower(titel), coalesce(handeling,''))` waar `deleted_at is null`.
-
-Nieuw: `mep_templates`, `mep_handelingen`, `mep_instellingen` (`dagwissel_uur` 04:00, `morgen_grens_uur` 17:00), `vestiging_opendagen`, `vestiging_sluitdatums`.
-
-Helper in SQL: `mep_volgende_open_dag(vestiging, vanaf_datum)` — gebruikt door dagopbouw, doorschuiven en de tab-labels, zodat frontend en cron dezelfde definitie delen. `sort_order` in stappen van 10 met renumber-routine.
-
-## K. Bouwvolgorde
-
-1. Migratie: alle tabellen/kolommen hierboven, RLS + GRANTs, unieke index, `mep_volgende_open_dag`, `create_mep_from_order` herschreven, gesloten dagen en handelingen gevuld voor West/Midsland, keukenteam West in `foh_employees`
-2. Hook + view "Alles" met de twee tabs: toevoegen (recept-of-vrij, autocomplete, handeling, slimme standaard + toggle), afvinken met deelvoortgang, slepen, prio, verplaatsen tussen tabs, dagopbouw uit templates + doorschuif-kopie + ontdubbeling, gesloten-dag-gedrag
-3. Realtime sync
-4. Werkview + voortgangsbalk
-5. View "Per persoon" met eigen volgorde
-6. Suggestie-chips + "opslaan als template" + beheer van handelingen/openingsdagen in settings
-
-Nu bouwen: stap 1 t/m 4 voor West.
-
-## L. Toets: een normale zondag in West (West is dicht op dinsdag)
-
-```text
-04:00  dagwissel   -> zondag is open: templates zondag geladen; zaterdag-restant
-                      gekopieerd naar zondag met badge "van gisteren"
-07:50  cron gemist -> keuken opent de lijst; geen log-regel voor vandaag, dus de app
-                      draait mep_bouw_dag zelf: dezelfde lijst, geen dubbelingen
-08:00  binnenkomst -> Werkview op tablet, filter "mijn naam", wake-lock aan
-09:00  prep        -> "Döner — ontdooien" afvinken; "Kip vacumeren" 3 van 5
-12:00  bestelling  -> order uit Midsland valt binnen: regel via create_mep_from_order,
-                      bron = bestelling, botst niet want andere titel
-15:00  bijwerken   -> "Chimichurri" is op -> opnieuw toevoegen: heropent de afgeronde
-                      regel en hoogt het aantal op
-17:30  vooruit     -> nieuwe regel krijgt standaard tab "Maandag" (maandag is open in
-                      West, dinsdag niet), toggle zichtbaar om alsnog vandaag te kiezen
-19:00  feest       -> besloten feest op donderdag ingevoerd: de 4 openstaande regels van
-                      donderdag verhuizen naar vrijdag, met melding en ongedaan maken
-22:00  sluiten     -> onafgeronde regels blijven op zondag staan; kopie verschijnt
-                      maandag 04:00, teller +1
-```
-
-Maandag-restant in West schuift door naar woensdag; in Midsland (dicht ma+di) schuift zondag-restant door naar woensdag.
-
-Wat hier niet uitkomt, vangen we in week één in de praktijk.
-
-## Bewust niet
-
-Automatisch vullen op reserveringen, weer, verkoop of voorraad; AI-voorspellingen. Later, gevoed door de historie.
+1. Zijbalk + keukenmenu → Midsland kan bij MEP (test: inloggen als Midsland, item zichtbaar, tabs tonen dicht ma+di).
+2. Per-persoon view met eigen volgorde (test: toewijzen door slepen, volgorde blijft na verversen).
+3. Suggestie-chips + opslaan als template (test: chip verdwijnt na toevoegen; template verschijnt de volgende dag automatisch).
+4. Beheerscherm templates/handelingen/openingsdagen (test: sluitdatum zetten verplaatst openstaande regels).
