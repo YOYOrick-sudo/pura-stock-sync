@@ -189,104 +189,70 @@ export default function OrderDashboard() {
       hour: '2-digit',
       minute: '2-digit'
     });
-    if (demoMode) {
-      setTimeout(async () => {
-        setLastSubmitted(timestamp);
-        localStorage.setItem('pura-vida-last-submitted', timestamp);
-        localStorage.setItem('pura-vida-last-order', JSON.stringify(orderData));
-        const resetProducts = products.filter(p => !p.isTemporary).map(p => ({
-          ...p,
-          currentStock: 0
-        }));
-        setProducts(resetProducts);
-        localStorage.setItem('pura-vida-products', JSON.stringify(resetProducts));
-        localStorage.removeItem('pura-vida-temp-products');
-        setShowSuccessDialog(true);
-        setIsSubmitting(false);
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 1500);
-      }, 1500);
+
+    // Aanvulling loopt uitsluitend via de interne orders in de app.
+    const orderItems = products
+      .map(p => ({
+        product_name: p.name,
+        quantity: calculateRefill(p.targetStock, p.currentStock),
+        unit: 'stuks'
+      }))
+      .filter(item => item.quantity > 0);
+
+    if (!userLocation) {
+      toast.error('Geen vestiging bekend', {
+        description: 'Je account heeft geen vestiging; de bestelling kan niet worden verstuurd.',
+      });
+      setIsSubmitting(false);
       return;
     }
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-      const response = await fetch('https://jaapies.app.n8n.cloud/webhook/inventory-restock', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(products.map(product => ({
-          product: product.name,
-          ijzer: product.targetStock,
-          huidig: product.currentStock,
-          vullen: calculateRefill(product.targetStock, product.currentStock)
-        }))),
-        signal: controller.signal
+
+    if (orderItems.length === 0) {
+      toast.error('Niets aan te vullen', {
+        description: 'Vul eerst de huidige voorraad in.',
       });
-      clearTimeout(timeoutId);
-      if (response.ok) {
-        if (userLocation) {
-          const orderItems = products
-            .map(p => ({
-              product_name: p.name,
-              quantity: calculateRefill(p.targetStock, p.currentStock),
-              unit: 'stuks'
-            }))
-            .filter(item => item.quantity > 0);
-          if (orderItems.length > 0) {
-            try {
-              await sendOrderMutation.mutateAsync({
-                from_location: userLocation,
-                to_location: 'Midsland',
-                delivery_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                items: orderItems,
-              });
-            } catch (error) {
-              devError('Error creating internal order:', error);
-            }
-          }
-        }
-        setLastSubmitted(timestamp);
-        localStorage.setItem('pura-vida-last-submitted', timestamp);
-        localStorage.setItem('pura-vida-last-order', JSON.stringify(orderData));
-        const resetProducts = products.filter(p => !p.isTemporary).map(p => ({
-          ...p,
-          currentStock: 0
-        }));
-        setProducts(resetProducts);
-        localStorage.setItem('pura-vida-products', JSON.stringify(resetProducts));
-        localStorage.removeItem('pura-vida-temp-products');
-        setShowSuccessDialog(true);
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 1500);
-      } else {
-        throw new Error(`Server responded with ${response.status}`);
-      }
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      await sendOrderMutation.mutateAsync({
+        from_location: userLocation,
+        to_location: 'Midsland',
+        delivery_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        items: orderItems,
+      });
+
+      setLastSubmitted(timestamp);
+      localStorage.setItem('pura-vida-last-submitted', timestamp);
+      localStorage.setItem('pura-vida-last-order', JSON.stringify(orderData));
+      const resetProducts = products.filter(p => !p.isTemporary).map(p => ({
+        ...p,
+        currentStock: 0
+      }));
+      setProducts(resetProducts);
+      localStorage.setItem('pura-vida-products', JSON.stringify(resetProducts));
+      localStorage.removeItem('pura-vida-temp-products');
+      setShowSuccessDialog(true);
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1500);
     } catch (error) {
       devError('Error submitting order:', error);
       localStorage.setItem('pura-vida-failed-order', JSON.stringify({
         data: orderData,
-        timestamp: timestamp,
+        timestamp,
         error: error instanceof Error ? error.message : 'Unknown error'
       }));
-      if (error instanceof Error && error.name === 'AbortError') {
-        toast.error('⏱️ Verbinding verbroken', {
-          description: 'De webhook reageert niet. Schakel over naar demo-modus?',
-          duration: 6000,
-          action: { label: 'Demo-modus', onClick: () => setDemoMode(true) }
-        });
-      } else {
-        toast.error('🔌 Kan webhook niet bereiken', {
-          description: 'Controleer of de n8n webhook actief is, of gebruik demo-modus.',
-          duration: 6000,
-          action: { label: 'Demo-modus', onClick: () => setDemoMode(true) }
-        });
-      }
+      toast.error('Bestelling niet verstuurd', {
+        description: 'Probeer het opnieuw; je invoer blijft bewaard.',
+        duration: 6000,
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
+
 
   const handleLogout = async () => {
     try {
