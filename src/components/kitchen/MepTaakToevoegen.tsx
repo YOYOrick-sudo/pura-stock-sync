@@ -126,7 +126,7 @@ export function MepTaakToevoegen({
         <Tabs value={tab} onValueChange={(v) => setTab(v as 'recept' | 'vrij')}>
           <TabsList className="w-full">
             <TabsTrigger value="recept" className="flex-1">
-              Halffabricaat
+              Recept / methode
             </TabsTrigger>
             <TabsTrigger value="vrij" className="flex-1">
               Vrije taak

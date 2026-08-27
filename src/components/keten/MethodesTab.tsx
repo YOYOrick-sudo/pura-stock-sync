@@ -138,7 +138,7 @@ function MethodeRij({ artikel }: { artikel: { id: string; naam: string; recept_i
 export function MethodesTab() {
   const { data: artikelen = [], isLoading } = useArtikelen();
   const { data: alleMethodes = [] } = useAlleMethodes();
-  const { data: recepten = [] } = useRecipes('', 'Alle');
+  const { data: recepten = [] } = useRecipes('', null);
   const [zoek, setZoek] = useState('');
   const [bewerk, setBewerk] = useState<{ id: string; naam: string } | null>(null);
 
