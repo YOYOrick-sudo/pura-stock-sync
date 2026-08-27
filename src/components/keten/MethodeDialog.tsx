@@ -106,7 +106,8 @@ export function MethodeDialog({ receptId, receptNaam, open, onOpenChange }: Prop
         <DialogHeader>
           <DialogTitle>Methode — {receptNaam}</DialogTitle>
           <DialogDescription>
-            Hoe wordt dit gemaakt en wat levert het op? De output-eenheid wordt de basis-eenheid van het artikel.
+            Hoe wordt dit gemaakt en wat levert het op? Gaat de output op voorraad (halffabricaat),
+            dan wordt de output-eenheid de basis-eenheid van het artikel.
           </DialogDescription>
         </DialogHeader>
 
@@ -157,9 +158,20 @@ export function MethodeDialog({ receptId, receptNaam, open, onOpenChange }: Prop
               className="h-11 mt-1"
             />
           </div>
+          <div className="sm:col-span-2 flex items-center justify-between gap-3 rounded-polar border border-border/60 px-4 py-3">
+            <div>
+              <Label>Output gaat op voorraad</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {naarVoorraad
+                  ? 'Halffabricaat: de output wordt geteld als voorraad (bv. hummus).'
+                  : 'Direct verkoop: de output gaat meteen door (bv. croissant afbakken), geen voorraad.'}
+              </p>
+            </div>
+            <Switch checked={naarVoorraad} onCheckedChange={setNaarVoorraad} />
+          </div>
         </div>
 
-        {!artikel && (
+        {naarVoorraad && !artikel && (
           <p className="text-xs text-muted-foreground">
             Er hangt nog geen voorraadartikel aan dit recept; de basis-eenheid wordt dan niet automatisch gezet.
           </p>
