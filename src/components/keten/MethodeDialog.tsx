@@ -44,6 +44,7 @@ export function MethodeDialog({ receptId, receptNaam, open, onOpenChange }: Prop
   const [outputEenheid, setOutputEenheid] = useState('');
   const [houdbaarheid, setHoudbaarheid] = useState('');
   const [leadtime, setLeadtime] = useState('');
+  const [naarVoorraad, setNaarVoorraad] = useState(true);
 
   useEffect(() => {
     if (!open) return;
@@ -56,6 +57,7 @@ export function MethodeDialog({ receptId, receptNaam, open, onOpenChange }: Prop
         ? String((bestaand as any).productie_leadtime_dagen)
         : '',
     );
+    setNaarVoorraad(bestaand?.output_gaat_op_voorraad ?? true);
   }, [open, bestaand?.id]);
 
   const opslaan = async () => {
@@ -76,10 +78,13 @@ export function MethodeDialog({ receptId, receptNaam, open, onOpenChange }: Prop
         standaard_duur: bestaand?.standaard_duur ?? 0,
         houdbaarheid: houdbaarheid ? Number(houdbaarheid) : null,
         productie_leadtime_dagen: leadtime ? Number(leadtime) : 0,
+        output_gaat_op_voorraad: naarVoorraad,
       } as any);
 
+      // Alleen bij voorraad-output: output-eenheid wordt basis-eenheid van het halffabricaat-artikel
+      // en de bijbehorende logboekregel gaat op opgelost.
       const eenheid = eenheden.find((e) => e.code === outputEenheid);
-      if (artikel && eenheid) {
+      if (naarVoorraad && artikel && eenheid) {
         await saveArtikel.mutateAsync({
           id: artikel.id,
           naam: artikel.naam,
