@@ -2,9 +2,15 @@ import { useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { METHODE_TYPES, useMethodes, useSaveMethode } from '@/hooks/useHalffabricaatMethodes';
+import {
+  METHODE_TYPES,
+  useAlleMethodes,
+  useMethodes,
+  useSaveMethode,
+} from '@/hooks/useHalffabricaatMethodes';
 import {
   useArtikelen,
   useEenheden,
@@ -12,6 +18,8 @@ import {
   useLogboekAfronden,
   useSaveArtikel,
 } from '@/hooks/useKeten';
+import { useRecipes } from '@/hooks/useRecipes';
+import { MethodeDialog } from '@/components/keten/MethodeDialog';
 
 function MethodeRij({ artikel }: { artikel: { id: string; naam: string; recept_id: string | null } }) {
   const { data: methodes = [] } = useMethodes(artikel.recept_id ?? undefined);
@@ -33,6 +41,7 @@ function MethodeRij({ artikel }: { artikel: { id: string; naam: string; recept_i
   const [leadtime, setLeadtime] = useState(
     (bestaand as any)?.productie_leadtime_dagen != null ? String((bestaand as any).productie_leadtime_dagen) : '',
   );
+  const [naarVoorraad, setNaarVoorraad] = useState(bestaand?.output_gaat_op_voorraad ?? true);
 
   const opslaan = async () => {
     if (!artikel.recept_id) {
@@ -55,11 +64,12 @@ function MethodeRij({ artikel }: { artikel: { id: string; naam: string; recept_i
         standaard_duur: bestaand?.standaard_duur ?? 0,
         houdbaarheid: houdbaarheid ? Number(houdbaarheid) : null,
         productie_leadtime_dagen: leadtime ? Number(leadtime) : 0,
+        output_gaat_op_voorraad: naarVoorraad,
       } as any);
 
-      // Basis-eenheid volgt automatisch uit de output-eenheid.
+      // Alleen bij voorraad-output: output-eenheid wordt basis-eenheid + logboekregel oplossen.
       const eenheid = eenheden.find((e) => e.code === outputEenheid);
-      if (eenheid) {
+      if (naarVoorraad && eenheid) {
         await saveArtikel.mutateAsync({ id: artikel.id, naam: artikel.naam, basis_eenheid_id: eenheid.id } as any);
         const log = logboek.find((l) => l.bron_tabel === 'artikelen' && l.bron_id === artikel.id);
         if (log) await afronden.mutateAsync(log.id);
@@ -72,7 +82,14 @@ function MethodeRij({ artikel }: { artikel: { id: string; naam: string; recept_i
 
   return (
     <div className="flex flex-wrap items-end gap-2 border-b border-border py-3">
-      <div className="min-w-[180px] flex-1 text-sm font-medium">{artikel.naam}</div>
+      <div className="min-w-[180px] flex-1 text-sm font-medium">
+        {artikel.naam}
+        {bestaand && (
+          <Badge variant={bestaand.output_gaat_op_voorraad ? 'secondary' : 'outline'} className="ml-2 text-xs">
+            {bestaand.output_gaat_op_voorraad ? 'Voorraad' : 'Direct'}
+          </Badge>
+        )}
+      </div>
       <div className="w-36">
         <label className="text-xs text-muted-foreground">Handeling</label>
         <Select value={type} onValueChange={setType}>
@@ -103,6 +120,16 @@ function MethodeRij({ artikel }: { artikel: { id: string; naam: string; recept_i
         <label className="text-xs text-muted-foreground">Leadtime (d)</label>
         <Input value={leadtime} onChange={(e) => setLeadtime(e.target.value)} inputMode="numeric" className="h-11 mt-1" />
       </div>
+      <div className="w-32">
+        <label className="text-xs text-muted-foreground">Output</label>
+        <Select value={naarVoorraad ? 'voorraad' : 'direct'} onValueChange={(v) => setNaarVoorraad(v === 'voorraad')}>
+          <SelectTrigger className="h-11 mt-1"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="voorraad">Op voorraad</SelectItem>
+            <SelectItem value="direct">Direct verkoop</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       <Button className="h-11" onClick={opslaan} disabled={save.isPending}>Opslaan</Button>
     </div>
   );
@@ -110,7 +137,10 @@ function MethodeRij({ artikel }: { artikel: { id: string; naam: string; recept_i
 
 export function MethodesTab() {
   const { data: artikelen = [], isLoading } = useArtikelen();
+  const { data: alleMethodes = [] } = useAlleMethodes();
+  const { data: recepten = [] } = useRecipes('', 'Alle');
   const [zoek, setZoek] = useState('');
+  const [bewerk, setBewerk] = useState<{ id: string; naam: string } | null>(null);
 
   const halffabricaten = useMemo(() => {
     const q = zoek.trim().toLowerCase();
@@ -119,11 +149,28 @@ export function MethodesTab() {
       .filter((a) => (q ? a.naam.toLowerCase().includes(q) : true));
   }, [artikelen, zoek]);
 
+  // Methodes op recepten zonder voorraadartikel (bv. croissant afbakken: direct verkoop).
+  const overigeMethodes = useMemo(() => {
+    const receptMetArtikel = new Set(artikelen.map((a) => a.recept_id).filter(Boolean));
+    const namen = new Map(recepten.map((r: any) => [r.id, r.name]));
+    const gezien = new Set<string>();
+    return alleMethodes
+      .filter((m) => !receptMetArtikel.has(m.recept_id))
+      .filter((m) => (gezien.has(m.recept_id) ? false : (gezien.add(m.recept_id), true)))
+      .map((m) => ({
+        recept_id: m.recept_id,
+        naam: namen.get(m.recept_id) ?? 'Onbekend recept',
+        type: m.type,
+        naarVoorraad: m.output_gaat_op_voorraad,
+      }));
+  }, [alleMethodes, artikelen, recepten]);
+
   return (
     <Card className="p-4 sm:p-5">
-      <h3 className="font-semibold mb-1">Halffabricaat-methodes</h3>
+      <h3 className="font-semibold mb-1">Methodes</h3>
       <p className="text-xs text-muted-foreground mb-3">
-        De output-eenheid wordt automatisch de basis-eenheid van het artikel.
+        Bij "Op voorraad" wordt de output-eenheid automatisch de basis-eenheid van het artikel.
+        "Direct verkoop" (bv. afbakken) raakt de voorraad niet.
       </p>
       <Input
         value={zoek}
@@ -138,6 +185,34 @@ export function MethodesTab() {
       ) : (
         halffabricaten.map((a) => <MethodeRij key={a.id} artikel={a} />)
       )}
+
+      {overigeMethodes.length > 0 && (
+        <div className="mt-6">
+          <h4 className="text-sm font-semibold mb-2">Methodes zonder voorraadartikel</h4>
+          <p className="text-xs text-muted-foreground mb-2">
+            Ingevuld vanuit het receptenscherm (bv. afbakken of ontdooien van ingekocht product).
+          </p>
+          {overigeMethodes.map((m) => (
+            <div key={m.recept_id} className="flex items-center gap-2 border-b border-border py-2.5">
+              <span className="flex-1 text-sm font-medium">{m.naam}</span>
+              <Badge variant="secondary" className="text-xs">{m.type}</Badge>
+              <Badge variant={m.naarVoorraad ? 'secondary' : 'outline'} className="text-xs">
+                {m.naarVoorraad ? 'Voorraad' : 'Direct'}
+              </Badge>
+              <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setBewerk({ id: m.recept_id, naam: m.naam })}>
+                Bewerk
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <MethodeDialog
+        receptId={bewerk?.id ?? null}
+        receptNaam={bewerk?.naam ?? ''}
+        open={!!bewerk}
+        onOpenChange={(v) => !v && setBewerk(null)}
+      />
     </Card>
   );
 }
