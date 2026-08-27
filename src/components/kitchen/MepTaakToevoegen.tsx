@@ -83,7 +83,7 @@ export function MepTaakToevoegen({
     let input: MepTaakInput;
     if (tab === 'recept') {
       if (!gekozen) {
-        toast.error('Kies eerst een halffabricaat');
+        toast.error('Kies eerst een recept');
         return;
       }
       input = {
@@ -126,7 +126,7 @@ export function MepTaakToevoegen({
         <Tabs value={tab} onValueChange={(v) => setTab(v as 'recept' | 'vrij')}>
           <TabsList className="w-full">
             <TabsTrigger value="recept" className="flex-1">
-              Halffabricaat
+              Recept / methode
             </TabsTrigger>
             <TabsTrigger value="vrij" className="flex-1">
               Vrije taak
@@ -149,7 +149,7 @@ export function MepTaakToevoegen({
             <div className="max-h-64 overflow-y-auto rounded-polar border border-border/60 divide-y divide-border/60">
               {gefilterd.length === 0 ? (
                 <p className="p-4 text-sm text-muted-foreground">
-                  Geen halffabricaten met handelingen voor deze vestiging. Voeg een handeling toe op het
+                  Geen recepten met een methode voor deze vestiging. Vul een methode in op het
                   recept.
                 </p>
               ) : (

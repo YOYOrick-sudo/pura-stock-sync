@@ -1106,6 +1106,7 @@ export type Database = {
           id: string
           instructie: string | null
           output_eenheid: string
+          output_gaat_op_voorraad: boolean
           output_hoeveelheid: number
           productie_leadtime_dagen: number
           recept_id: string
@@ -1121,6 +1122,7 @@ export type Database = {
           id?: string
           instructie?: string | null
           output_eenheid?: string
+          output_gaat_op_voorraad?: boolean
           output_hoeveelheid?: number
           productie_leadtime_dagen?: number
           recept_id: string
@@ -1136,6 +1138,7 @@ export type Database = {
           id?: string
           instructie?: string | null
           output_eenheid?: string
+          output_gaat_op_voorraad?: boolean
           output_hoeveelheid?: number
           productie_leadtime_dagen?: number
           recept_id?: string

@@ -28,6 +28,8 @@ export interface HalffabricaatMethode {
   houdbaarheid: number | null;
   instructie: string | null;
   sort_order: number;
+  /** true = output op voorraad (halffabricaat); false = direct verkoop (bv. afbakken). */
+  output_gaat_op_voorraad: boolean;
 }
 
 export interface MethodeInput {
@@ -40,6 +42,7 @@ export interface MethodeInput {
   houdbaarheid?: number | null;
   instructie?: string | null;
   sort_order?: number;
+  output_gaat_op_voorraad?: boolean;
 }
 
 export function useMethodes(receptId?: string) {
