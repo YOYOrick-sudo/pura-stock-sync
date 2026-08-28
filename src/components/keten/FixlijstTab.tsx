@@ -63,11 +63,15 @@ function ReceptRegel({ regel, log, prioriteit }: { regel: any; log: LogboekRegel
   return (
     <div className="flex flex-wrap items-end gap-2 border-b border-border py-3">
       <div className="min-w-[220px] flex-1">
-        <div className="text-sm font-medium">{regel?.naam ?? '—'}</div>
+        <div className="flex items-center gap-2">
+          <div className="text-sm font-medium">{regel?.naam ?? '—'}</div>
+          {prioriteit && <PrioBadge />}
+        </div>
         <div className="text-xs text-muted-foreground">
           {regel?.recipes?.name ?? 'onbekend recept'} · oorspronkelijk: "{log.ruwe_waarde || '(leeg)'}"
         </div>
       </div>
+
       <div className="w-28">
         <Input
           value={waarde}
