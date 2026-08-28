@@ -1213,12 +1213,174 @@ export type Database = {
         }
         Relationships: []
       }
+      inkoop_order_regels: {
+        Row: {
+          aantal: number
+          artikel_id: string | null
+          artikelnummer: string | null
+          besteleenheid_code: string | null
+          besteleenheid_id: string | null
+          created_at: string
+          id: string
+          inhoud_per_besteleenheid: number | null
+          is_backorder: boolean
+          omschrijving: string
+          ontvangen_aantal: number | null
+          order_id: string
+          updated_at: string
+        }
+        Insert: {
+          aantal: number
+          artikel_id?: string | null
+          artikelnummer?: string | null
+          besteleenheid_code?: string | null
+          besteleenheid_id?: string | null
+          created_at?: string
+          id?: string
+          inhoud_per_besteleenheid?: number | null
+          is_backorder?: boolean
+          omschrijving: string
+          ontvangen_aantal?: number | null
+          order_id: string
+          updated_at?: string
+        }
+        Update: {
+          aantal?: number
+          artikel_id?: string | null
+          artikelnummer?: string | null
+          besteleenheid_code?: string | null
+          besteleenheid_id?: string | null
+          created_at?: string
+          id?: string
+          inhoud_per_besteleenheid?: number | null
+          is_backorder?: boolean
+          omschrijving?: string
+          ontvangen_aantal?: number | null
+          order_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inkoop_order_regels_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inkoop_order_regels_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inkoop_order_regels_besteleenheid_id_fkey"
+            columns: ["besteleenheid_id"]
+            isOneToOne: false
+            referencedRelation: "eenheden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inkoop_order_regels_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "inkoop_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inkoop_orders: {
+        Row: {
+          besteld_door: string | null
+          besteld_op: string | null
+          bestelnummer: string
+          created_at: string
+          deleted_at: string | null
+          extern_ordernummer: string | null
+          extern_status: string | null
+          extern_totaal: number | null
+          id: string
+          kanaal: string
+          laatste_fout: string | null
+          leverancier_id: string
+          leverdatum: string | null
+          notitie: string | null
+          ontvangen_op: string | null
+          status: string
+          telronde_id: string | null
+          updated_at: string
+          verzonden_op: string | null
+          vestiging: string
+        }
+        Insert: {
+          besteld_door?: string | null
+          besteld_op?: string | null
+          bestelnummer: string
+          created_at?: string
+          deleted_at?: string | null
+          extern_ordernummer?: string | null
+          extern_status?: string | null
+          extern_totaal?: number | null
+          id?: string
+          kanaal: string
+          laatste_fout?: string | null
+          leverancier_id: string
+          leverdatum?: string | null
+          notitie?: string | null
+          ontvangen_op?: string | null
+          status?: string
+          telronde_id?: string | null
+          updated_at?: string
+          verzonden_op?: string | null
+          vestiging: string
+        }
+        Update: {
+          besteld_door?: string | null
+          besteld_op?: string | null
+          bestelnummer?: string
+          created_at?: string
+          deleted_at?: string | null
+          extern_ordernummer?: string | null
+          extern_status?: string | null
+          extern_totaal?: number | null
+          id?: string
+          kanaal?: string
+          laatste_fout?: string | null
+          leverancier_id?: string
+          leverdatum?: string | null
+          notitie?: string | null
+          ontvangen_op?: string | null
+          status?: string
+          telronde_id?: string | null
+          updated_at?: string
+          verzonden_op?: string | null
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inkoop_orders_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inkoop_orders_telronde_id_fkey"
+            columns: ["telronde_id"]
+            isOneToOne: false
+            referencedRelation: "telrondes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       internal_order_items: {
         Row: {
           artikel_id: string | null
           created_at: string | null
           eenheid_id: string | null
           id: string
+          ontvangen_aantal: number | null
           order_id: string
           product_name: string
           quantity: number
@@ -1229,6 +1391,7 @@ export type Database = {
           created_at?: string | null
           eenheid_id?: string | null
           id?: string
+          ontvangen_aantal?: number | null
           order_id: string
           product_name: string
           quantity: number
@@ -1239,6 +1402,7 @@ export type Database = {
           created_at?: string | null
           eenheid_id?: string | null
           id?: string
+          ontvangen_aantal?: number | null
           order_id?: string
           product_name?: string
           quantity?: number
@@ -3453,6 +3617,127 @@ export type Database = {
         }
         Relationships: []
       }
+      telronde_regels: {
+        Row: {
+          artikel_id: string
+          conversie_ontbreekt: boolean
+          created_at: string
+          eenheid_id: string | null
+          geteld_aantal: number
+          geteld_basis: number | null
+          id: string
+          telronde_id: string
+          updated_at: string
+        }
+        Insert: {
+          artikel_id: string
+          conversie_ontbreekt?: boolean
+          created_at?: string
+          eenheid_id?: string | null
+          geteld_aantal?: number
+          geteld_basis?: number | null
+          id?: string
+          telronde_id: string
+          updated_at?: string
+        }
+        Update: {
+          artikel_id?: string
+          conversie_ontbreekt?: boolean
+          created_at?: string
+          eenheid_id?: string | null
+          geteld_aantal?: number
+          geteld_basis?: number | null
+          id?: string
+          telronde_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telronde_regels_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "telronde_regels_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "telronde_regels_eenheid_id_fkey"
+            columns: ["eenheid_id"]
+            isOneToOne: false
+            referencedRelation: "eenheden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "telronde_regels_telronde_id_fkey"
+            columns: ["telronde_id"]
+            isOneToOne: false
+            referencedRelation: "telrondes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      telrondes: {
+        Row: {
+          aangemaakt_door: string | null
+          afgerond_door: string | null
+          afgerond_op: string | null
+          bron_vestiging: string | null
+          created_at: string
+          datum: string
+          deleted_at: string | null
+          id: string
+          leverancier_id: string | null
+          route_type: string
+          status: string
+          updated_at: string
+          vestiging: string
+        }
+        Insert: {
+          aangemaakt_door?: string | null
+          afgerond_door?: string | null
+          afgerond_op?: string | null
+          bron_vestiging?: string | null
+          created_at?: string
+          datum?: string
+          deleted_at?: string | null
+          id?: string
+          leverancier_id?: string | null
+          route_type: string
+          status?: string
+          updated_at?: string
+          vestiging: string
+        }
+        Update: {
+          aangemaakt_door?: string | null
+          afgerond_door?: string | null
+          afgerond_op?: string | null
+          bron_vestiging?: string | null
+          created_at?: string
+          datum?: string
+          deleted_at?: string | null
+          id?: string
+          leverancier_id?: string | null
+          route_type?: string
+          status?: string
+          updated_at?: string
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telrondes_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       terschelling_events: {
         Row: {
           category: string | null
@@ -4288,6 +4573,10 @@ export type Database = {
         }[]
       }
       rpc_demo_data_wissen: { Args: never; Returns: number }
+      rpc_genereer_bestelvoorstel: {
+        Args: { p_datum?: string; p_vestiging: string }
+        Returns: Json
+      }
       rpc_heeft_demo_data: { Args: never; Returns: boolean }
       sticker_producten_bump: {
         Args: { _naam: string; _tht: number; _type: string }
