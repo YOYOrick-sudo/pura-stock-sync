@@ -34,6 +34,7 @@ export function MethodeDialog({ receptId, receptNaam, open, onOpenChange }: Prop
   const { data: eenheden = [] } = useEenheden();
   const { data: artikelen = [] } = useArtikelen();
   const { data: logboek = [] } = useLogboek(true);
+  const { data: regelCount } = useReceptRegelCount(open && receptId ? receptId : undefined);
   const save = useSaveMethode();
   const saveArtikel = useSaveArtikel();
   const afronden = useLogboekAfronden();
