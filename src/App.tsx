@@ -19,10 +19,7 @@ import Kassatelling from "./pages/Kassatelling";
 import VoorraadBestellen from "./pages/voorraad/Bestellen";
 import VoorraadOnderweg from "./pages/voorraad/Onderweg";
 import VoorraadStand from "./pages/voorraad/Stand";
-import Inkooporders from "./pages/Inkooporders";
 import Settings from "./pages/Settings";
-import InternalOrders from "./pages/kitchen/InternalOrders";
-import MidslandOrders from "./pages/MidslandOrders";
 import StyleGuide from "./pages/StyleGuide";
 import DesignPreview from "./pages/DesignPreview";
 import DesignSystem from "./pages/DesignSystem";
@@ -138,14 +135,7 @@ const App = () => (
               }
             />
             <Route path="/bestelronde" element={<Navigate to="/voorraad" replace />} />
-            <Route
-              path="/inkooporders"
-              element={
-                <ProtectedRoute>
-                  <Inkooporders />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/inkooporders" element={<Navigate to="/voorraad/onderweg" replace />} />
             <Route 
               path="/settings" 
               element={
@@ -176,22 +166,8 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route 
-              path="/internal-orders" 
-              element={
-                <ProtectedRoute>
-                  <InternalOrders />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/midsland-bestellingen" 
-              element={
-                <ProtectedRoute>
-                  <MidslandOrders />
-                </ProtectedRoute>
-              } 
-            />
+            <Route path="/internal-orders" element={<Navigate to="/voorraad" replace />} />
+            <Route path="/midsland-bestellingen" element={<Navigate to="/voorraad/onderweg" replace />} />
             <Route 
               path="/style-guide" 
               element={
