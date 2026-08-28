@@ -504,3 +504,35 @@ export function useAanvulArtikelen(vestiging?: string) {
     },
   });
 }
+
+/** Aantal openstaande fixlijst-regels per recept (receptregels + gekoppeld artikel). */
+export function useFixlijstPerRecept() {
+  return useQuery({
+    queryKey: ['keten', 'fixlijst-per-recept'],
+    queryFn: async () => {
+      const { data: logs, error } = await db
+        .from('migratie_logboek')
+        .select('bron_tabel, bron_id')
+        .is('opgelost_op', null);
+      if (error) throw error;
+
+      const teller = new Map<string, number>();
+      const regelIds = (logs ?? []).filter((l: any) => l.bron_tabel === 'recept_ingredienten').map((l: any) => l.bron_id);
+      const artikelIds = (logs ?? []).filter((l: any) => l.bron_tabel === 'artikelen').map((l: any) => l.bron_id);
+
+      if (regelIds.length) {
+        const { data } = await db.from('recept_ingredienten').select('id, recept_id').in('id', regelIds);
+        (data ?? []).forEach((r: any) => {
+          if (r.recept_id) teller.set(r.recept_id, (teller.get(r.recept_id) ?? 0) + 1);
+        });
+      }
+      if (artikelIds.length) {
+        const { data } = await db.from('artikelen').select('id, recept_id').in('id', artikelIds);
+        (data ?? []).forEach((a: any) => {
+          if (a.recept_id) teller.set(a.recept_id, (teller.get(a.recept_id) ?? 0) + 1);
+        });
+      }
+      return teller;
+    },
+  });
+}
