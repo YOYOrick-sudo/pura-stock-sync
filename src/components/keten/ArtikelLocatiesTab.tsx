@@ -77,8 +77,8 @@ export function ArtikelLocatiesTab() {
             <TableHeader>
               <TableRow>
                 <TableHead>Artikel</TableHead>
-                <TableHead>Min</TableHead>
-                <TableHead>Max</TableHead>
+                <TableHead>Minimum (bestelgrens)</TableHead>
+                <TableHead>Aanvullen tot</TableHead>
                 <TableHead>Aanvul-bron</TableHead>
                 <TableHead>Bron-vestiging</TableHead>
                 <TableHead>Opslag</TableHead>
