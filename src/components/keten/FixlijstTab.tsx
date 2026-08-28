@@ -126,6 +126,8 @@ function ArtikelBasisEenheid({ log }: { log: LogboekRegel }) {
 
 export function FixlijstTab() {
   const { data: logboek = [], isLoading } = useLogboek(true);
+  const { data: alleMethodes = [] } = useAlleMethodes();
+  const { data: alleArtikelen = [] } = useArtikelen();
   const receptIds = useMemo(
     () => logboek.filter((l) => l.bron_tabel === 'recept_ingredienten').map((l) => l.bron_id),
     [logboek],
@@ -133,8 +135,34 @@ export function FixlijstTab() {
   const { data: regels = [] } = useReceptRegels(receptIds);
   const regelMap = useMemo(() => new Map(regels.map((r: any) => [r.id, r])), [regels]);
 
-  const recept = logboek.filter((l) => l.bron_tabel === 'recept_ingredienten');
-  const artikel = logboek.filter((l) => l.bron_tabel === 'artikelen');
+  /** Recepten waarvoor een methode bestaat — die regels blokkeren straks het boeken van verbruik. */
+  const methodeRecepten = useMemo(
+    () => new Set(alleMethodes.map((m) => m.recept_id)),
+    [alleMethodes],
+  );
+  const artikelMap = useMemo(
+    () => new Map(alleArtikelen.map((a: any) => [a.id, a])),
+    [alleArtikelen],
+  );
+
+  const heeftMethode = (l: LogboekRegel) => {
+    if (l.bron_tabel === 'recept_ingredienten') {
+      const receptId = regelMap.get(l.bron_id)?.recept_id;
+      return !!receptId && methodeRecepten.has(receptId);
+    }
+    if (l.bron_tabel === 'artikelen') {
+      const receptId = artikelMap.get(l.bron_id)?.recept_id;
+      return !!receptId && methodeRecepten.has(receptId);
+    }
+    return false;
+  };
+
+  /** Standaardsortering: regels van recepten mét methode bovenaan. */
+  const sorteer = (rijen: LogboekRegel[]) =>
+    [...rijen].sort((a, b) => Number(heeftMethode(b)) - Number(heeftMethode(a)));
+
+  const recept = sorteer(logboek.filter((l) => l.bron_tabel === 'recept_ingredienten'));
+  const artikel = sorteer(logboek.filter((l) => l.bron_tabel === 'artikelen'));
 
   if (isLoading) return <div className="py-10 text-center text-sm text-muted-foreground">Laden…</div>;
 
@@ -153,10 +181,15 @@ export function FixlijstTab() {
         <Card className="p-4 sm:p-5">
           <h3 className="font-semibold mb-1">Receptregels ({recept.length})</h3>
           <p className="text-xs text-muted-foreground mb-2">
-            Vul één exacte waarde in — geen gemiddelde van een bereik.
+            Regels van recepten met een methode staan bovenaan — die blokkeren straks het boeken van verbruik.
           </p>
           {recept.map((l) => (
-            <ReceptRegel key={l.id} log={l} regel={regelMap.get(l.bron_id)} />
+            <ReceptRegel
+              key={l.id}
+              log={l}
+              regel={regelMap.get(l.bron_id)}
+              prioriteit={heeftMethode(l)}
+            />
           ))}
         </Card>
       )}
@@ -165,13 +198,15 @@ export function FixlijstTab() {
         <Card className="p-4 sm:p-5">
           <h3 className="font-semibold mb-1">Basiseenheden ({artikel.length})</h3>
           <p className="text-xs text-muted-foreground mb-2">
-            Bij halffabricaten vult het invullen van de methode dit automatisch.
+            Bij halffabricaten vult het invullen van de methode dit automatisch. Artikelen van een recept met
+            methode staan bovenaan.
           </p>
           {artikel.map((l) => (
-            <ArtikelBasisEenheid key={l.id} log={l} />
+            <ArtikelBasisEenheid key={l.id} log={l} prioriteit={heeftMethode(l)} />
           ))}
         </Card>
       )}
+
     </div>
   );
 }
