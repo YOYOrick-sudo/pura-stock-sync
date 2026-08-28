@@ -1,61 +1,44 @@
-# Stap 1c afronden — tellen eindigt in een voorstel, en het voorstel kan weg
+# Vestigingswissel voor accounts met meerdere vestigingen
 
-Drie gaten dichten, dan één klikronde die de hele flow als gebruiker bewijst.
+## Wat het oplost
+Owner-accounts (jij en Helga) staan in de rollentabel met twee regels: Midsland én West. De app gaat er overal vanuit dat één account bij één vestiging hoort en pakt bij twee regels niets of willekeurig één. Gevolg: /voorraad toont "Vestiging onbekend" en Helga — de enige die extern mag verzenden — kan het bestelscherm niet openen. Dat is een blocker voor de eerste echte bestelling.
 
-## 1. Telronde afronden binnen de telflow
+Na deze opdracht kiest zo'n account bovenaan het scherm zelf de vestiging, en die keuze geldt overal: voorraad, mise-en-place, taken, kassatelling, overdracht.
 
-Nu blijft de telronde op `open` staan; `rpc_genereer_bestelvoorstel` kijkt alleen naar rondes met status `afgerond`, dus er ontstaat nooit een voorstel. De afrondstap komt in het telblok zelf, geen apart scherm.
+## Wat je gaat zien
+- **Eén grote knop in de header**, naast de paginatitel, waar nu al "Foodbar"/"Daily" staat. Tikken opent een korte lijst met de vestigingen waar je toegang toe hebt; tikken op een naam schakelt direct om. Tikdoel minimaal 44px, ook op tablet.
+- **De keuze wordt onthouden per account** en blijft staan na afsluiten en opnieuw openen. Bij het eerste gebruik staat hij op de vestiging waar het account als eerste aan gekoppeld is.
+- **Accounts met één vestiging zien geen wissel** — daar blijft de header letterlijk zoals hij nu is.
 
-- Onder de tellijst staat één primaire knop **Klaar met tellen** (grote tikbalk, blijft in beeld op tablet). Erboven één regel: "12 van 16 geteld — de rest komt in 'niet geteld'."
-- De knop rondt de ronde af en draait meteen het voorstel; het resultaat verschijnt op dezelfde plek onder "Wat wordt besteld", met de blokken "niet geteld" en "geen leverancier gekoppeld".
-- Afronden mag met niet-getelde artikelen. Geen blokkade, geen bevestigingsdialoog.
-- **Deels tellen:** een open ronde blijft gewoon staan. Elke invoer is direct opgeslagen (zoals nu), dus een weggelegde tablet verliest niets. De routekaart toont dan "Telling bezig — 7 van 16", en openen zet je verder in dezelfde ronde. Niets wordt automatisch afgerond.
-- **Opnieuw tellen na afronden:** de afgeronde route toont "Geteld om 15:10" met een kleine knop "Verder tellen" die de ronde terugzet op open; bij de volgende afronding draait het voorstel opnieuw, en handwerk blijft beschermd door `bron`/`handmatig_aangepast`.
+## Wat er onder water moet mee veranderen
+De vestigingsfilters in de database gaan nu uit van "de" vestiging van een account (één waarde). Voor een account met twee vestigingen kiest de database willekeurig één van de twee, ongeacht wat de header toont. Zonder deze stap zou de wissel op sommige schermen (taken, mise-en-place, overdracht, interne bestellingen) wél de knop veranderen maar niet de data. Daarom wordt de databasecontrole aangepast van "is dit dé vestiging van deze gebruiker" naar "hoort deze vestiging bij deze gebruiker".
 
-De bestaande `useAfrondenEnVoorstel` (in `useBestelronde.ts`) wordt hiervoor gebruikt; hij bestaat al maar wordt nergens aangeroepen.
+## Technische uitvoering
 
-## 2. Verzendknoppen per kanaal — één primaire knop
+**Database (migratie)**
+- Nieuwe functie `public.heeft_vestiging(_user_id uuid, _loc text)` (security definer, stable): waar of onwaar op basis van alle actieve rollenregels van de gebruiker.
+- `current_user_location()` en `get_user_location()` blijven bestaan (te veel plekken), maar krijgen een deterministische volgorde in plaats van willekeurige `LIMIT 1`.
+- Policies die nu `location = current_user_location()` / `= get_user_location(auth.uid())` gebruiken, worden omgezet naar `heeft_vestiging(auth.uid(), <kolom>)`: `foh_tasks`, `foh_employees`, `foh_daily_templates`, `ai_suggestions`, `handover_memos`, `kitchen_tasks`, `mep_planning`, `mep_taken`, `productie_batches`, `staff_members`, `recipes`, `kassa_afdrachten`, `internal_orders` (+ `internal_order_items`). Rechten worden hiermee niet verruimd voor enkelvoudige accounts — die hebben één vestiging, dus dezelfde uitkomst.
 
-Onderaan het voorstel, precies één primaire actie, afhankelijk van het kanaal van de route:
+**Frontend**
+- `src/contexts/UserLocationContext.tsx`: laadt alle vestigingen van het account (`user_roles`, actief) in plaats van `maybeSingle()`. Levert `userLocation` (actief), `availableLocations`, `setUserLocation`. Actieve keuze in `localStorage` per gebruikers-id; validatie tegen de toegestane lijst zodat een oude keuze na een rolwijziging niet blijft hangen.
+- `src/components/polar/Header.tsx`: locatieregel wordt een knop met dropdown wanneer er meer dan één vestiging is; anders ongewijzigde tekst. Bestaande tokens en radii, geen nieuwe kleuren.
+- `src/components/SidebarLayout.tsx`: geeft de vestigingslijst en wisselactie door aan de header.
+- `src/components/LocationGuard.tsx`: controleert op de actieve keuze én valt terug op de volledige lijst, zodat een owner niet meer weggestuurd wordt naar /taken-bediening.
+- Schermen die op `userLocation` draaien (voorraad Bestellen/Onderweg/Stand, MEP dag/week/beheer, taken, kassatelling, dashboardkaarten) hoeven geen aanpassing: ze herladen via de context zodra de keuze wijzigt. Waar queries op `userLocation` staan, wordt gecontroleerd dat de query-sleutel de vestiging bevat zodat er niet uit cache van de andere vestiging gelezen wordt.
 
-| Kanaal | Knop | Wie |
-| --- | --- | --- |
-| intern | **Stuur naar Midsland** | elk teamlid |
-| portal | **Kopieer bestellijst** → daarna **Gemarkeerd als besteld** | elk teamlid |
-| mail | **Kopieer bestellijst** → daarna **Gemarkeerd als besteld**; secundair "Concept-mail openen" | elk teamlid |
-| api | **Verstuur naar \<leverancier\>** | manager/owner; teamlid ziet de knop uitgeschakeld met "een manager verstuurt deze bestelling" |
-
-- Kopiëren gebruikt de bestaande `bestelTekst()`; na kopiëren verschijnt de markeer-knop, zodat niemand per ongeluk "besteld" zet zonder de lijst te hebben gehad.
-- Api roept de bestaande edge function `bestelling-versturen-api` aan; die zet zelf `besteld`. Mislukt het, dan komt `laatste_fout` als gewone zin in beeld met "Probeer opnieuw".
-- Ontbrekende leverdatum of ontbrekende api-configuratie blokkeert met één zin, geen instellingenscherm in de flow.
-
-## 3. Namen in plaats van id's
-
-De `profiles`-tabel is op dit moment leeg (0 rijen), dus elke aanvraag toont nu "Onbekend" — ook waar `requested_by` wél gevuld is. Er komt een `SECURITY DEFINER`-functie `rpc_namen_voor_users(uuid[])` die per gebruiker naam uit `profiles` teruggeeft en terugvalt op het e-mailadres uit de authenticatie. Onderweg en de orderhistorie gebruiken die; alleen als beide ontbreken staat er "Onbekend".
-
-## 4. Klikronde als bewijs
-
-Met tijdelijke testleveranciers, één per kanaal (portal, mail, api), inclusief besteldag, artikelkoppeling en api-config. Die worden na afloop hard verwijderd en met query aangetoond dat ze weg zijn.
-
-Doorlopen als West-teamlid, Midsland-teamlid en manager:
-
-1. tellen (deels), tablet "weglegen", terugkomen en verder tellen
-2. Klaar met tellen → voorstel verschijnt, met blok "niet geteld"
-3. aantal aanpassen + extra regel toevoegen → dashboard opnieuw openen (voorstel draait) → beide ongewijzigd
-4. portal: kopiëren → gemarkeerd als besteld; mail idem; api als teamlid (knop uit) en als manager (verstuurt)
-5. intern versturen als teamlid → Midsland ziet de aanvraag met de naam van de aanvrager
-6. ontvangst afvinken, deels en compleet
-
-Verslag per rol als gebruikersflow, met de statussen die de database daarna laat zien.
-
-## Technisch
-
-- `src/pages/voorraad/Bestellen.tsx`: afrondknop + voortgangsregel + "Verder tellen"; verzendblok per kanaal; melding bij ontbrekende configuratie.
-- `src/hooks/useVoorraadModule.ts`: afronden koppelen, `useInkoopVersturen` (edge function), `useInkoopBesteldMarkeren`, namen-lookup in `useOnderweg`.
-- Migratie: `rpc_namen_voor_users(uuid[])` als `SECURITY DEFINER` met `search_path = public`, uitvoerrecht voor `authenticated`.
-- Guards blijven leidend: de knoppen tonen wat mag, de trigger op `inkoop_orders` beslist. Api + `besteld` blijft uitsluitend de edge function.
+## Opleveren met klikronde (als owner)
+1. Inloggen als owner → header toont de wissel met twee vestigingen.
+2. /voorraad met Midsland gekozen → routes van Midsland, geen "Vestiging onbekend".
+3. Wisselen naar West → dezelfde pagina toont de West-routes (Midsland-route + leveranciers).
+4. Doorklikken naar mise-en-place en taken → data hoort bij de gekozen vestiging.
+5. Pagina verversen → laatst gekozen vestiging staat er nog.
+6. Controle met een enkelvoudig account (West-teamlid): geen wissel zichtbaar, alles werkt als voorheen.
 
 ## Risico's
+- De policy-omzetting raakt veel tabellen tegelijk. Elke policy wordt één-op-één vervangen; enkelvoudige accounts houden exact dezelfde uitkomst. Na de migratie draait de klikronde ook met een teamlid-account om te bevestigen dat er niets is verruimd of dichtgeslagen.
+- Verkeerde vestiging actief laten staan is een reëel bedieningsrisico (tellen in de verkeerde keuken). Daarom staat de vestiging groot en permanent in beeld, niet verstopt in een menu.
 
-- Testleveranciers raken de echte database. Ze krijgen een herkenbare naam met `ZZTEST`, staan op West, en worden in dezelfde ronde verwijderd inclusief orders en regels; opruiming wordt met query aangetoond.
-- "Verder tellen" na een afgerond voorstel kan systeemregels vervangen. Dat is de bedoeling; handmatige regels en aangepaste aantallen blijven staan, en dat is precies het testgeval uit punt 3.
+## Genoteerd (buiten deze opdracht)
+- De 7 interne leverdagen Midsland → West blijven ongewijzigd tot jij ze tegen het echte leverritme hebt gecheckt.
+- Het api-kanaal heeft nog geen geslaagde echte verzending gehad; die volgt als proefbestelling van één artikel zodra de Kooyman-configuratie er staat.
