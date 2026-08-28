@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAlleMethodes } from '@/hooks/useHalffabricaatMethodes';
 import {
   useArtikelen,
   useEenheden,
@@ -16,7 +18,16 @@ import {
   type LogboekRegel,
 } from '@/hooks/useKeten';
 
-function ReceptRegel({ regel, log }: { regel: any; log: LogboekRegel }) {
+function PrioBadge() {
+  return (
+    <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+      Methode
+    </Badge>
+  );
+}
+
+function ReceptRegel({ regel, log, prioriteit }: { regel: any; log: LogboekRegel; prioriteit?: boolean }) {
+
   const { data: eenheden = [] } = useEenheden();
   const update = useUpdateReceptRegel();
   const afronden = useLogboekAfronden();
@@ -52,11 +63,15 @@ function ReceptRegel({ regel, log }: { regel: any; log: LogboekRegel }) {
   return (
     <div className="flex flex-wrap items-end gap-2 border-b border-border py-3">
       <div className="min-w-[220px] flex-1">
-        <div className="text-sm font-medium">{regel?.naam ?? '—'}</div>
+        <div className="flex items-center gap-2">
+          <div className="text-sm font-medium">{regel?.naam ?? '—'}</div>
+          {prioriteit && <PrioBadge />}
+        </div>
         <div className="text-xs text-muted-foreground">
           {regel?.recipes?.name ?? 'onbekend recept'} · oorspronkelijk: "{log.ruwe_waarde || '(leeg)'}"
         </div>
       </div>
+
       <div className="w-28">
         <Input
           value={waarde}
@@ -81,7 +96,7 @@ function ReceptRegel({ regel, log }: { regel: any; log: LogboekRegel }) {
   );
 }
 
-function ArtikelBasisEenheid({ log }: { log: LogboekRegel }) {
+function ArtikelBasisEenheid({ log, prioriteit }: { log: LogboekRegel; prioriteit?: boolean }) {
   const { data: eenheden = [] } = useEenheden();
   const { data: artikelen = [] } = useArtikelen();
   const artikel = artikelen.find((a) => a.id === log.bron_id);
@@ -106,9 +121,13 @@ function ArtikelBasisEenheid({ log }: { log: LogboekRegel }) {
   return (
     <div className="flex flex-wrap items-end gap-2 border-b border-border py-3">
       <div className="min-w-[220px] flex-1">
-        <div className="text-sm font-medium">{artikel?.naam ?? log.ruwe_waarde}</div>
+        <div className="flex items-center gap-2">
+          <div className="text-sm font-medium">{artikel?.naam ?? log.ruwe_waarde}</div>
+          {prioriteit && <PrioBadge />}
+        </div>
         <div className="text-xs text-muted-foreground">{log.reden}</div>
       </div>
+
       <div className="w-40">
         <Select value={eenheidId} onValueChange={setEenheidId}>
           <SelectTrigger className="h-11"><SelectValue placeholder="Basis-eenheid" /></SelectTrigger>
@@ -126,6 +145,8 @@ function ArtikelBasisEenheid({ log }: { log: LogboekRegel }) {
 
 export function FixlijstTab() {
   const { data: logboek = [], isLoading } = useLogboek(true);
+  const { data: alleMethodes = [] } = useAlleMethodes();
+  const { data: alleArtikelen = [] } = useArtikelen();
   const receptIds = useMemo(
     () => logboek.filter((l) => l.bron_tabel === 'recept_ingredienten').map((l) => l.bron_id),
     [logboek],
@@ -133,8 +154,34 @@ export function FixlijstTab() {
   const { data: regels = [] } = useReceptRegels(receptIds);
   const regelMap = useMemo(() => new Map(regels.map((r: any) => [r.id, r])), [regels]);
 
-  const recept = logboek.filter((l) => l.bron_tabel === 'recept_ingredienten');
-  const artikel = logboek.filter((l) => l.bron_tabel === 'artikelen');
+  /** Recepten waarvoor een methode bestaat — die regels blokkeren straks het boeken van verbruik. */
+  const methodeRecepten = useMemo(
+    () => new Set(alleMethodes.map((m) => m.recept_id)),
+    [alleMethodes],
+  );
+  const artikelMap = useMemo(
+    () => new Map(alleArtikelen.map((a: any) => [a.id, a])),
+    [alleArtikelen],
+  );
+
+  const heeftMethode = (l: LogboekRegel) => {
+    if (l.bron_tabel === 'recept_ingredienten') {
+      const receptId = regelMap.get(l.bron_id)?.recept_id;
+      return !!receptId && methodeRecepten.has(receptId);
+    }
+    if (l.bron_tabel === 'artikelen') {
+      const receptId = artikelMap.get(l.bron_id)?.recept_id;
+      return !!receptId && methodeRecepten.has(receptId);
+    }
+    return false;
+  };
+
+  /** Standaardsortering: regels van recepten mét methode bovenaan. */
+  const sorteer = (rijen: LogboekRegel[]) =>
+    [...rijen].sort((a, b) => Number(heeftMethode(b)) - Number(heeftMethode(a)));
+
+  const recept = sorteer(logboek.filter((l) => l.bron_tabel === 'recept_ingredienten'));
+  const artikel = sorteer(logboek.filter((l) => l.bron_tabel === 'artikelen'));
 
   if (isLoading) return <div className="py-10 text-center text-sm text-muted-foreground">Laden…</div>;
 
@@ -153,10 +200,15 @@ export function FixlijstTab() {
         <Card className="p-4 sm:p-5">
           <h3 className="font-semibold mb-1">Receptregels ({recept.length})</h3>
           <p className="text-xs text-muted-foreground mb-2">
-            Vul één exacte waarde in — geen gemiddelde van een bereik.
+            Regels van recepten met een methode staan bovenaan — die blokkeren straks het boeken van verbruik.
           </p>
           {recept.map((l) => (
-            <ReceptRegel key={l.id} log={l} regel={regelMap.get(l.bron_id)} />
+            <ReceptRegel
+              key={l.id}
+              log={l}
+              regel={regelMap.get(l.bron_id)}
+              prioriteit={heeftMethode(l)}
+            />
           ))}
         </Card>
       )}
@@ -165,13 +217,15 @@ export function FixlijstTab() {
         <Card className="p-4 sm:p-5">
           <h3 className="font-semibold mb-1">Basiseenheden ({artikel.length})</h3>
           <p className="text-xs text-muted-foreground mb-2">
-            Bij halffabricaten vult het invullen van de methode dit automatisch.
+            Bij halffabricaten vult het invullen van de methode dit automatisch. Artikelen van een recept met
+            methode staan bovenaan.
           </p>
           {artikel.map((l) => (
-            <ArtikelBasisEenheid key={l.id} log={l} />
+            <ArtikelBasisEenheid key={l.id} log={l} prioriteit={heeftMethode(l)} />
           ))}
         </Card>
       )}
+
     </div>
   );
 }
