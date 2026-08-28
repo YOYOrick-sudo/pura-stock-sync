@@ -16,7 +16,7 @@ export interface PolarSidebarItem {
   url: string;
   active: boolean;
   requiresCode?: boolean;
-  group?: 'overzicht' | 'keuken' | 'beheer';
+  group?: 'overzicht' | 'voorraad' | 'keuken' | 'beheer';
   onClick?: (e: React.MouseEvent) => void;
 }
 
@@ -32,15 +32,17 @@ export interface PolarSidebarProps {
 
 function groupItems(items: PolarSidebarItem[]) {
   const overzicht: PolarSidebarItem[] = [];
+  const voorraad: PolarSidebarItem[] = [];
   const keuken: PolarSidebarItem[] = [];
   const beheer: PolarSidebarItem[] = [];
   for (const item of items) {
     const g = item.group ?? 'beheer';
     if (g === 'overzicht') overzicht.push(item);
+    else if (g === 'voorraad') voorraad.push(item);
     else if (g === 'keuken') keuken.push(item);
     else beheer.push(item);
   }
-  return { overzicht, keuken, beheer };
+  return { overzicht, voorraad, keuken, beheer };
 }
 
 export function PolarSidebar({
@@ -53,7 +55,7 @@ export function PolarSidebar({
   logoutSlot,
 }: PolarSidebarProps) {
   const navigate = useNavigate();
-  const { overzicht, keuken, beheer } = groupItems(items);
+  const { overzicht, voorraad, keuken, beheer } = groupItems(items);
 
   const renderItem = (item: PolarSidebarItem) => {
     const Icon = item.icon;
@@ -127,6 +129,7 @@ export function PolarSidebar({
 
   const groups = [
     { key: 'overzicht', items: overzicht, label: 'Overzicht' },
+    { key: 'voorraad', items: voorraad, label: 'Voorraad' },
     { key: 'keuken', items: keuken, label: 'Keuken' },
     { key: 'beheer', items: beheer, label: 'Beheer' },
   ].filter((g) => g.items.length > 0);
