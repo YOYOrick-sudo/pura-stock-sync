@@ -38,10 +38,11 @@ function OrderDetail({ order }: { order: InkoopOrder }) {
     toast.success('Bestellijst gekopieerd');
   };
 
+  // Mail gedraagt zich als portal: alleen een concept-mail openen. De app weet niet of
+  // de mail echt de deur uit is, dus geen automatische status "verzonden".
   const mail = () => {
     const onderwerp = `Bestelling ${order.bestelnummer} — Pura Vida ${order.vestiging}`;
     window.location.href = `mailto:?subject=${encodeURIComponent(onderwerp)}&body=${encodeURIComponent(tekst)}`;
-    status.mutate({ orderId: order.id, status: 'verzonden' });
   };
 
   const viaApi = async () => {
