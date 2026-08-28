@@ -174,6 +174,13 @@ export function MethodeDialog({ receptId, receptNaam, open, onOpenChange }: Prop
           </div>
         </div>
 
+        {regelCount === 0 && (
+          <div className="flex items-start gap-2 rounded-polar bg-warning/10 px-3 py-2 text-xs text-warning">
+            <AlertTriangle className="h-4 w-4 shrink-0 mt-px" />
+            <span>Dit recept heeft nog geen ingrediëntregels — het verbruik kan straks niet geboekt worden.</span>
+          </div>
+        )}
+
         {naarVoorraad && !artikel && (
           <p className="text-xs text-muted-foreground">
             Er hangt nog geen voorraadartikel aan dit recept; de basis-eenheid wordt dan niet automatisch gezet.
