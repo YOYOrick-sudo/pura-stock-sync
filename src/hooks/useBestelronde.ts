@@ -364,8 +364,11 @@ export function useInkoopStatus() {
         patch.besteld_op = new Date().toISOString();
         patch.besteld_door = user?.id ?? null;
       }
-      const { error } = await db.from('inkoop_orders').update(patch).eq('id', orderId);
+      const { data, error } = await db.from('inkoop_orders').update(patch).eq('id', orderId).select('id');
       if (error) throw error;
+      if (!data?.length)
+        throw new Error('Je account mag deze bestelling niet wijzigen. Vraag een manager om dit te doen.');
+
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['inkoop'] }),
   });
@@ -383,23 +386,30 @@ export function useInkoopOntvangst() {
       regels: { id: string; besteld: number; ontvangen: number | null }[];
     }) => {
       for (const r of regels) {
-        const { error } = await db
+        const { data, error } = await db
           .from('inkoop_order_regels')
           .update({
             ontvangen_aantal: r.ontvangen,
             is_backorder: r.ontvangen !== null && r.ontvangen < r.besteld,
           })
-          .eq('id', r.id);
+          .eq('id', r.id)
+          .select('id');
         if (error) throw error;
+        if (!data?.length)
+          throw new Error('Je account mag de ontvangst niet vastleggen. Vraag een manager om dit te doen.');
       }
       const compleet = regels.every((r) => r.ontvangen !== null && r.ontvangen >= r.besteld);
       const status = compleet ? 'ontvangen' : 'deels_ontvangen';
-      const { error } = await db
+      const { data: ord, error } = await db
         .from('inkoop_orders')
         .update({ status, ontvangen_op: compleet ? new Date().toISOString() : null })
-        .eq('id', orderId);
+        .eq('id', orderId)
+        .select('id');
       if (error) throw error;
+      if (!ord?.length)
+        throw new Error('Je account mag de status van deze bestelling niet wijzigen.');
       return status;
+
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['inkoop'] }),
   });

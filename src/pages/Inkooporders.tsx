@@ -91,6 +91,20 @@ function OrderDetail({ order }: { order: InkoopOrder }) {
         </div>
       )}
 
+      {(order as any).extern_ordernummer && (
+        <div className="rounded-polar bg-muted/50 p-3 text-sm">
+          <div className="font-medium">Bevestiging leverancier</div>
+          <div className="text-muted-foreground">
+            Ordernummer {(order as any).extern_ordernummer}
+            {(order as any).extern_status ? ` · status ${(order as any).extern_status}` : ''}
+            {(order as any).extern_totaal !== null && (order as any).extern_totaal !== undefined
+              ? ` · totaal € ${Number((order as any).extern_totaal).toFixed(2)}`
+              : ''}
+          </div>
+        </div>
+      )}
+
+
       <div className="space-y-1">
         {regels.map((r: any) => (
           <div key={r.id} className="flex items-center gap-3 text-sm">
