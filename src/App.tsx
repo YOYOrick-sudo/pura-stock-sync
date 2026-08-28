@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RequireManager } from "@/components/RequireManager";
 import { RequireOwner } from "@/components/RequireOwner";
-import { LocationGuard } from "@/components/LocationGuard";
 import { UserLocationProvider } from "@/contexts/UserLocationContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Auth from "./pages/Auth";
@@ -115,9 +114,7 @@ const App = () => (
               path="/voorraad" 
               element={
                 <ProtectedRoute>
-                  <LocationGuard allowedLocations={['West']}>
-                    <Voorraad />
-                  </LocationGuard>
+                  <Voorraad />
                 </ProtectedRoute>
               } 
             />
@@ -155,9 +152,7 @@ const App = () => (
               path="/internal-orders" 
               element={
                 <ProtectedRoute>
-                  <LocationGuard allowedLocations={['West']}>
-                    <InternalOrders />
-                  </LocationGuard>
+                  <InternalOrders />
                 </ProtectedRoute>
               } 
             />
@@ -165,9 +160,7 @@ const App = () => (
               path="/midsland-bestellingen" 
               element={
                 <ProtectedRoute>
-                  <LocationGuard allowedLocations={['Midsland']}>
-                    <MidslandOrders />
-                  </LocationGuard>
+                  <MidslandOrders />
                 </ProtectedRoute>
               } 
             />

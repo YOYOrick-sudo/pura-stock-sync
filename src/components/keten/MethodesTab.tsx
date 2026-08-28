@@ -14,6 +14,7 @@ import {
 import {
   useArtikelen,
   useEenheden,
+  useFixlijstPerRecept,
   useLogboek,
   useLogboekAfronden,
   useSaveArtikel,
@@ -44,9 +45,11 @@ function GeenRegelsWaarschuwing({ compact }: { compact?: boolean }) {
 function MethodeRij({
   artikel,
   regelCount,
+  openFix,
 }: {
   artikel: { id: string; naam: string; recept_id: string | null };
   regelCount?: number;
+  openFix?: number;
 }) {
   const { data: methodes = [] } = useMethodes(artikel.recept_id ?? undefined);
   const { data: eenheden = [] } = useEenheden();
@@ -158,6 +161,9 @@ function MethodeRij({
       </div>
       <Button className="h-11" onClick={opslaan} disabled={save.isPending}>Opslaan</Button>
       {regelCount === 0 && <GeenRegelsWaarschuwing />}
+      {!!openFix && (
+        <Badge variant="outline" className="text-[10px]">{openFix} fixlijst</Badge>
+      )}
     </div>
   );
 }
@@ -166,6 +172,7 @@ export function MethodesTab() {
   const { data: artikelen = [], isLoading } = useArtikelen();
   const { data: alleMethodes = [] } = useAlleMethodes();
   const { data: recepten = [] } = useRecipes('', null);
+  const { data: fixlijst } = useFixlijstPerRecept();
   const [zoek, setZoek] = useState('');
   const receptRegels = useMemo(
     () => new Map<string, number>(recepten.map((r: any) => [r.id, r.ingredient_count ?? 0])),
@@ -221,6 +228,7 @@ export function MethodesTab() {
             key={a.id}
             artikel={a}
             regelCount={a.recept_id ? receptRegels.get(a.recept_id) ?? 0 : undefined}
+            openFix={a.recept_id ? fixlijst?.get(a.recept_id) ?? 0 : 0}
           />
         ))
       )}
@@ -239,6 +247,9 @@ export function MethodesTab() {
                 {m.naarVoorraad ? 'Voorraad' : 'Direct'}
               </Badge>
               {m.regelCount === 0 && <GeenRegelsWaarschuwing compact />}
+              {!!fixlijst?.get(m.recept_id) && (
+                <Badge variant="outline" className="text-[10px]">{fixlijst.get(m.recept_id)} fixlijst</Badge>
+              )}
               <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setBewerk({ id: m.recept_id, naam: m.naam })}>
                 Bewerk
               </Button>

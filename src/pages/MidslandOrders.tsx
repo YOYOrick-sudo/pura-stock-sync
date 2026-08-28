@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { devError } from "@/lib/devLog";
+import { useUserLocation } from '@/contexts/UserLocationContext';
 
 interface InternalOrderItem {
   id: string;
@@ -38,13 +39,15 @@ const statusLabels = {
 };
 
 export default function MidslandOrders() {
+  const { userLocation } = useUserLocation();
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [feedbackText, setFeedbackText] = useState<{ [key: string]: string }>({});
   const [showFeedbackFor, setShowFeedbackFor] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: orders, isLoading } = useQuery({
-    queryKey: ['midsland-orders'],
+    queryKey: ['midsland-orders', userLocation],
+    enabled: !!userLocation,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('internal_orders')
@@ -52,8 +55,7 @@ export default function MidslandOrders() {
           *,
           internal_order_items(*)
         `)
-        .eq('from_location', 'West')
-        .eq('to_location', 'Midsland')
+        .eq('to_location', userLocation)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

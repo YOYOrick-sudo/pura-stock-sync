@@ -28,35 +28,24 @@ import logoGreen from '@/assets/pura-vida-logo-official.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useSendInternalOrder } from '@/hooks/useInternalOrders';
+import { useAanvulArtikelen } from '@/hooks/useKeten';
 import { devError } from "@/lib/devLog";
 interface Product {
+  artikelId?: string;
+  eenheidId?: string | null;
+  unitCode: string;
   name: string;
+  /** Aanvullen tot (max_voorraad uit artikel_locaties) */
   targetStock: number;
   currentStock: number;
   isTemporary?: boolean;
   category?: string;
+  bronVestiging?: string | null;
 }
-const INITIAL_PRODUCTS: Product[] = [
-  // Pattiserie
-  { name: "Wortelwalnoot", targetStock: 9, currentStock: 0, category: "Pattiserie" },
-  { name: "Cheesecake", targetStock: 9, currentStock: 0, category: "Pattiserie" },
-  { name: "Notenbar", targetStock: 4, currentStock: 0, category: "Pattiserie" },
-  { name: "Brownie", targetStock: 4, currentStock: 0, category: "Pattiserie" },
-  { name: "Vegan boterkoek", targetStock: 4, currentStock: 0, category: "Pattiserie" },
-  { name: "Tahini choco", targetStock: 4, currentStock: 0, category: "Pattiserie" },
-  { name: "Bananencake", targetStock: 4, currentStock: 0, category: "Pattiserie" },
-  { name: "Arabische sinaasappel cake", targetStock: 4, currentStock: 0, category: "Pattiserie" },
-  // Overig
-  { name: "Vissoep", targetStock: 9, currentStock: 0, category: "Overig" },
-  { name: "Kip", targetStock: 10, currentStock: 0, category: "Overig" },
-  { name: "Kaas", targetStock: 8, currentStock: 0, category: "Overig" },
-  { name: "Tempeh", targetStock: 6, currentStock: 0, category: "Overig" },
-  { name: "Rode kool", targetStock: 6, currentStock: 0, category: "Overig" },
-  // Extra
-  { name: "Handzeep", targetStock: 10, currentStock: 0, category: "Extra" },
-  { name: "Zeep vaatwasser blauw", targetStock: 1, currentStock: 0, category: "Extra" },
-  { name: "Zeep vaatwasser wit", targetStock: 1, currentStock: 0, category: "Extra" },
-];
+
+const TELLING_KEY = 'pura-vida-telling-v2';
+const TEMP_KEY = 'pura-vida-temp-products-v2';
+
 function getCurrentWeek(): number {
   const now = new Date();
   const start = new Date(now.getFullYear(), 0, 1);
@@ -68,7 +57,8 @@ export default function OrderDashboard() {
   const navigate = useNavigate();
   const { userLocation } = useUserLocation();
   const sendOrderMutation = useSendInternalOrder();
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const { data: aanvulArtikelen = [], isLoading: laadtArtikelen } = useAanvulArtikelen(userLocation || undefined);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastSubmitted, setLastSubmitted] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -79,48 +69,46 @@ export default function OrderDashboard() {
   const [newProductAmount, setNewProductAmount] = useState('');
   const currentWeek = getCurrentWeek();
 
-  // Load saved data from localStorage
+  // Artikelen komen uit artikel_locaties (aanvul_bron = interne_order); tellingen blijven lokaal bewaard.
   useEffect(() => {
-    const savedProducts = localStorage.getItem('pura-vida-products');
-    const savedTempProducts = localStorage.getItem('pura-vida-temp-products');
+    if (laadtArtikelen) return;
+    let telling: Record<string, number> = {};
+    try {
+      telling = JSON.parse(localStorage.getItem(TELLING_KEY) || '{}');
+    } catch (e) {
+      devError('Failed to parse saved telling', e);
+    }
+    const basis: Product[] = aanvulArtikelen.map((a) => ({
+      artikelId: a.artikel_id,
+      eenheidId: a.eenheid_id,
+      unitCode: a.eenheid_code,
+      name: a.naam,
+      targetStock: a.max_voorraad,
+      currentStock: telling[a.artikel_id] ?? 0,
+      category: a.categorie ?? 'Overig',
+      bronVestiging: a.bron_vestiging,
+    }));
+    let temps: Product[] = [];
+    try {
+      temps = JSON.parse(localStorage.getItem(TEMP_KEY) || '[]');
+    } catch (e) {
+      devError('Failed to parse temporary products', e);
+    }
+    setProducts([...basis, ...temps]);
     const savedTimestamp = localStorage.getItem('pura-vida-last-submitted');
-    let allProducts = [...INITIAL_PRODUCTS];
-    if (savedProducts) {
-      try {
-        const parsed = JSON.parse(savedProducts);
-        allProducts = INITIAL_PRODUCTS.map(initial => {
-          const saved = parsed.find((p: Product) => p.name === initial.name);
-          return saved ? {
-            ...initial,
-            currentStock: saved.currentStock
-          } : initial;
-        });
-      } catch (e) {
-        devError('Failed to parse saved products', e);
-      }
-    }
-    if (savedTempProducts) {
-      try {
-        const tempProducts = JSON.parse(savedTempProducts);
-        allProducts = [...allProducts, ...tempProducts];
-      } catch (e) {
-        devError('Failed to parse temporary products', e);
-      }
-    }
-    setProducts(allProducts);
-    if (savedTimestamp) {
-      setLastSubmitted(savedTimestamp);
-    }
-  }, []);
+    if (savedTimestamp) setLastSubmitted(savedTimestamp);
+  }, [aanvulArtikelen, laadtArtikelen]);
 
   useEffect(() => {
-    const permanentProducts = products.filter(p => !p.isTemporary);
-    const temporaryProducts = products.filter(p => p.isTemporary);
-    localStorage.setItem('pura-vida-products', JSON.stringify(permanentProducts));
+    if (products.length === 0) return;
+    const telling: Record<string, number> = {};
+    products.filter((p) => p.artikelId).forEach((p) => { telling[p.artikelId!] = p.currentStock; });
+    localStorage.setItem(TELLING_KEY, JSON.stringify(telling));
+    const temporaryProducts = products.filter((p) => p.isTemporary);
     if (temporaryProducts.length > 0) {
-      localStorage.setItem('pura-vida-temp-products', JSON.stringify(temporaryProducts));
+      localStorage.setItem(TEMP_KEY, JSON.stringify(temporaryProducts));
     } else {
-      localStorage.removeItem('pura-vida-temp-products');
+      localStorage.removeItem(TEMP_KEY);
     }
   }, [products]);
 
@@ -138,9 +126,10 @@ export default function OrderDashboard() {
     const amount = parseInt(newProductAmount);
     const newProduct: Product = {
       name: newProductName.trim(),
+      unitCode: 'stuk',
       targetStock: amount,
       currentStock: 0,
-      category: "Extra",
+      category: "Extra (vrije tekst)",
       isTemporary: true
     };
     setProducts([...products, newProduct]);
@@ -194,7 +183,9 @@ export default function OrderDashboard() {
       .map(p => ({
         product_name: p.name,
         quantity: calculateRefill(p.targetStock, p.currentStock),
-        unit: 'stuks'
+        unit: p.unitCode,
+        artikel_id: p.artikelId ?? null,
+        eenheid_id: p.eenheidId ?? null,
       }))
       .filter(item => item.quantity > 0);
 
@@ -214,10 +205,14 @@ export default function OrderDashboard() {
       return;
     }
 
+    const bronVestiging =
+      products.find((p) => p.bronVestiging)?.bronVestiging ??
+      (userLocation === 'West' ? 'Midsland' : 'West');
+
     try {
       await sendOrderMutation.mutateAsync({
         from_location: userLocation,
-        to_location: 'Midsland',
+        to_location: bronVestiging,
         delivery_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         items: orderItems,
       });
@@ -230,8 +225,8 @@ export default function OrderDashboard() {
         currentStock: 0
       }));
       setProducts(resetProducts);
-      localStorage.setItem('pura-vida-products', JSON.stringify(resetProducts));
-      localStorage.removeItem('pura-vida-temp-products');
+      localStorage.removeItem(TELLING_KEY);
+      localStorage.removeItem(TEMP_KEY);
       setShowSuccessDialog(true);
       setTimeout(() => {
         navigate('/dashboard');
@@ -269,6 +264,13 @@ export default function OrderDashboard() {
 
   return (
     <>
+        {!laadtArtikelen && products.length === 0 && (
+          <Card className="p-6 mb-4 text-center text-sm text-muted-foreground">
+            Er staan voor deze vestiging nog geen artikelen met aanvulbron "interne bestelling".
+            Stel ze in via Instellingen → Voorraadketen → Artikelen per vestiging.
+          </Card>
+        )}
+
         {/* Products Table */}
         <Card className="overflow-hidden shadow-sm border-primary/8 bg-card hover:shadow-md transition-shadow duration-200 mb-4">
           <div>
@@ -276,7 +278,7 @@ export default function OrderDashboard() {
               <thead>
                 <tr className="border-b border-primary/10 bg-card">
                   <th className="px-3 py-3 sm:px-4 sm:py-3 text-left font-heading font-bold text-foreground/70 text-xs sm:text-sm uppercase tracking-wide">Product</th>
-                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-foreground/70 text-xs sm:text-sm uppercase tracking-wide">Ijzer</th>
+                  <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-foreground/70 text-xs sm:text-sm uppercase tracking-wide">Aanvullen tot</th>
                   <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-foreground/70 text-xs sm:text-sm uppercase tracking-wide">Huidig</th>
                   <th className="px-2 py-3 sm:px-3 sm:py-3 text-center font-heading font-bold text-foreground/70 text-xs sm:text-sm uppercase tracking-wide">Vullen</th>
                 </tr>
@@ -370,7 +372,7 @@ export default function OrderDashboard() {
                     Bezig met verzenden...
                   </> : <>
                     <Check className="mr-2 h-5 w-5" />
-                    Verstuur naar Foodbar
+                    Verstuur bestelling
                   </>}
               </Button>
             </div>
@@ -442,15 +444,15 @@ export default function OrderDashboard() {
                 <li className="flex gap-3">
                   <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
                   <div>
-                    <span className="font-heading font-medium text-foreground">Verstuur naar Foodbar</span>
-                    <p className="text-sm text-foreground/70 mt-1">Klik op "Verstuur naar Foodbar" om de bestelling door te geven.</p>
+                    <span className="font-heading font-medium text-foreground">Verstuur de bestelling</span>
+                    <p className="text-sm text-foreground/70 mt-1">Klik op "Verstuur bestelling" om de bestelling door te geven.</p>
                   </div>
                 </li>
               </ol>
 
               <div className="mt-6 p-4 bg-secondary rounded-xl">
                 <p className="text-sm text-foreground leading-relaxed">
-                  <span className="font-semibold">Let op:</span> Het systeem berekent automatisch hoeveel producten er aangevuld moeten worden op basis van het ijzer (streefvoorraad) en de huidige voorraad.
+                  <span className="font-semibold">Let op:</span> Het systeem berekent automatisch hoeveel producten er aangevuld moeten worden op basis van "Aanvullen tot" en de huidige voorraad.
                 </p>
               </div>
             </div>
@@ -477,7 +479,7 @@ export default function OrderDashboard() {
                 Bestelling verzonden!
               </AlertDialogTitle>
               <AlertDialogDescription className="text-center text-foreground/70 text-sm sm:text-base space-y-2 px-2">
-                <p className="font-medium leading-relaxed">Je bestelling is succesvol naar Foodbar gestuurd.</p>
+                <p className="font-medium leading-relaxed">Je bestelling is succesvol verstuurd.</p>
                 {totalRefill > 0 && <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-secondary rounded-xl">
                     <p className="text-sm sm:text-base">
                       <span className="font-semibold text-primary">{totalRefill} {totalRefill === 1 ? 'product' : 'producten'}</span> worden aangevuld

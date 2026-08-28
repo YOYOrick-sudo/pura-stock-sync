@@ -28,7 +28,7 @@ export function SidebarLayout({
       '/kassa': 'Kassa',
       '/taken-bediening': 'Taken Bediening',
       '/internal-orders': 'Interne Bestellingen',
-      '/midsland-bestellingen': 'Bestellingen van Daily',
+      '/midsland-bestellingen': 'Binnengekomen bestellingen',
       '/kitchen-menu': 'Keuken Menu',
       '/kitchen-tasks': 'Keuken Taken',
       '/recipes': 'Recepten',

@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { METHODE_TYPES, useMethodes, useSaveMethode } from '@/hooks/useHalffabricaatMethodes';
-import { useArtikelen, useEenheden, useLogboek, useLogboekAfronden, useSaveArtikel } from '@/hooks/useKeten';
+import { useArtikelen, useEenheden, useFixlijstPerRecept, useLogboek, useLogboekAfronden, useSaveArtikel } from '@/hooks/useKeten';
 import { useReceptRegelCount } from '@/hooks/useRecipes';
 import { AlertTriangle } from 'lucide-react';
 
@@ -35,6 +35,8 @@ export function MethodeDialog({ receptId, receptNaam, open, onOpenChange }: Prop
   const { data: artikelen = [] } = useArtikelen();
   const { data: logboek = [] } = useLogboek(true);
   const { data: regelCount } = useReceptRegelCount(open && receptId ? receptId : undefined);
+  const { data: fixlijst } = useFixlijstPerRecept();
+  const openFix = receptId ? fixlijst?.get(receptId) ?? 0 : 0;
   const save = useSaveMethode();
   const saveArtikel = useSaveArtikel();
   const afronden = useLogboekAfronden();
@@ -179,6 +181,13 @@ export function MethodeDialog({ receptId, receptNaam, open, onOpenChange }: Prop
             <AlertTriangle className="h-4 w-4 shrink-0 mt-px" />
             <span>Dit recept heeft nog geen ingrediëntregels — het verbruik kan straks niet geboekt worden.</span>
           </div>
+        )}
+
+        {openFix > 0 && (
+          <p className="text-xs text-muted-foreground">
+            {openFix} openstaande fixlijst-{openFix === 1 ? 'regel' : 'regels'} voor dit recept — op te lossen via
+            Instellingen → Voorraadketen → Fixlijst.
+          </p>
         )}
 
         {naarVoorraad && !artikel && (

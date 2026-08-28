@@ -4,9 +4,13 @@ import { toast } from '@/hooks/use-toast';
 import { devError } from "@/lib/devLog";
 
 interface OrderItem {
+  /** Snapshot-naam vanuit het artikel (of vrije tekst bij een extra product). */
   product_name: string;
   quantity: number;
+  /** Snapshot-eenheid vanuit het artikel. */
   unit: string;
+  artikel_id?: string | null;
+  eenheid_id?: string | null;
 }
 
 interface CreateOrderData {
@@ -49,6 +53,8 @@ export const useSendInternalOrder = () => {
         product_name: item.product_name,
         quantity: item.quantity,
         unit: item.unit,
+        artikel_id: item.artikel_id ?? null,
+        eenheid_id: item.eenheid_id ?? null,
       }));
 
       const { error: itemsError } = await supabase
@@ -91,7 +97,9 @@ export const useSentOrders = (userLocation: string) => {
             id,
             product_name,
             quantity,
-            unit
+            unit,
+            artikel_id,
+            eenheid_id
           )
         `)
         .eq('from_location', userLocation)
@@ -116,7 +124,9 @@ export const useReceivedOrders = (userLocation: string) => {
             id,
             product_name,
             quantity,
-            unit
+            unit,
+            artikel_id,
+            eenheid_id
           )
         `)
         .eq('to_location', userLocation)
@@ -126,5 +136,40 @@ export const useReceivedOrders = (userLocation: string) => {
       return data;
     },
     enabled: !!userLocation,
+  });
+};
+
+/** Ontvangende vestiging werkt de status van een binnengekomen bestelling bij. */
+export const useUpdateOrderStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      orderId,
+      status,
+      receiverNotes,
+    }: { orderId: string; status: string; receiverNotes?: string | null }) => {
+      const patch: Record<string, unknown> = { status };
+      if (receiverNotes !== undefined) patch.receiver_notes = receiverNotes || null;
+      if (status === 'delivered' || status === 'partially_delivered') {
+        patch.received_at = new Date().toISOString();
+      }
+      const { error } = await supabase.from('internal_orders').update(patch).eq('id', orderId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sent-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['received-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['midsland-orders'] });
+      toast({ title: 'Bestelling bijgewerkt' });
+    },
+    onError: (error: any) => {
+      devError('Error updating order status:', error);
+      toast({
+        title: 'Bijwerken mislukt',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
   });
 };
