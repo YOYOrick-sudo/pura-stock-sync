@@ -159,6 +159,9 @@ function TeamRow({ member, isSelf, onChanged, onLocalUpdate }: {
 }) {
   const [busy, setBusy] = useState(false);
   const [loonBusy, setLoonBusy] = useState(false);
+  const [naamOpen, setNaamOpen] = useState(false);
+  const [naam, setNaam] = useState('');
+
 
   const displayRole = member.role ? ROLE_LABELS[member.role] ?? member.role : '—';
   const displayName = [member.first_name, member.last_name].filter(Boolean).join(' ') || '—';
