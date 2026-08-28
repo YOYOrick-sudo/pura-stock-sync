@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAlleMethodes } from '@/hooks/useHalffabricaatMethodes';
 import {
   useArtikelen,
   useEenheden,
@@ -16,7 +18,16 @@ import {
   type LogboekRegel,
 } from '@/hooks/useKeten';
 
-function ReceptRegel({ regel, log }: { regel: any; log: LogboekRegel }) {
+function PrioBadge() {
+  return (
+    <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+      Methode
+    </Badge>
+  );
+}
+
+function ReceptRegel({ regel, log, prioriteit }: { regel: any; log: LogboekRegel; prioriteit?: boolean }) {
+
   const { data: eenheden = [] } = useEenheden();
   const update = useUpdateReceptRegel();
   const afronden = useLogboekAfronden();
