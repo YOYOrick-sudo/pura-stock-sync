@@ -156,6 +156,7 @@ function MethodeRij({
         </Select>
       </div>
       <Button className="h-11" onClick={opslaan} disabled={save.isPending}>Opslaan</Button>
+      {regelCount === 0 && <GeenRegelsWaarschuwing />}
     </div>
   );
 }
