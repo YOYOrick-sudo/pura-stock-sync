@@ -96,7 +96,7 @@ function ReceptRegel({ regel, log, prioriteit }: { regel: any; log: LogboekRegel
   );
 }
 
-function ArtikelBasisEenheid({ log }: { log: LogboekRegel }) {
+function ArtikelBasisEenheid({ log, prioriteit }: { log: LogboekRegel; prioriteit?: boolean }) {
   const { data: eenheden = [] } = useEenheden();
   const { data: artikelen = [] } = useArtikelen();
   const artikel = artikelen.find((a) => a.id === log.bron_id);
