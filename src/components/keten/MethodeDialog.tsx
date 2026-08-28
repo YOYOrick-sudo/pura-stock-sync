@@ -15,6 +15,8 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { METHODE_TYPES, useMethodes, useSaveMethode } from '@/hooks/useHalffabricaatMethodes';
 import { useArtikelen, useEenheden, useLogboek, useLogboekAfronden, useSaveArtikel } from '@/hooks/useKeten';
+import { useReceptRegelCount } from '@/hooks/useRecipes';
+import { AlertTriangle } from 'lucide-react';
 
 interface Props {
   receptId: string | null;
