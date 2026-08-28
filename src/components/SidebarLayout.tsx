@@ -2,6 +2,7 @@ import { AppSidebar } from '@/components/AppSidebar';
 import { PolarHeader } from '@/components/polar';
 import { useLocation } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
+import { getLocationDisplayName } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { useState } from 'react';
@@ -16,7 +17,7 @@ export function SidebarLayout({
   hideHeader = false
 }: SidebarLayoutProps) {
   const location = useLocation();
-  const { userLocation, displayLocation } = useUserLocation();
+  const { userLocation, displayLocation, availableLocations, setActiveLocation } = useUserLocation();
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
@@ -96,6 +97,9 @@ export function SidebarLayout({
             title={getPageTitle(location.pathname)} 
             showStatusIndicator={false} 
             location={displayLocation}
+            locationOptions={availableLocations.map(loc => ({ value: loc, label: getLocationDisplayName(loc) }))}
+            activeLocationValue={userLocation}
+            onLocationChange={setActiveLocation}
             onMenuClick={isMobile ? () => setMobileMenuOpen(true) : undefined}
           />
         )}
