@@ -213,3 +213,19 @@ export function useDeleteRecipe() {
   });
 }
 
+
+/** Aantal ingrediëntregels van een recept (voor de verbruik-waarschuwing bij methodes). */
+export function useReceptRegelCount(receptId?: string) {
+  return useQuery({
+    queryKey: ['recept-regel-count', receptId],
+    enabled: !!receptId,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('recept_ingredienten')
+        .select('id', { count: 'exact', head: true })
+        .eq('recept_id', receptId!);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+}
