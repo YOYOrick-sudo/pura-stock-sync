@@ -115,9 +115,7 @@ const App = () => (
               path="/voorraad" 
               element={
                 <ProtectedRoute>
-                  <LocationGuard allowedLocations={['West']}>
-                    <Voorraad />
-                  </LocationGuard>
+                  <Voorraad />
                 </ProtectedRoute>
               } 
             />
@@ -155,9 +153,7 @@ const App = () => (
               path="/internal-orders" 
               element={
                 <ProtectedRoute>
-                  <LocationGuard allowedLocations={['West']}>
-                    <InternalOrders />
-                  </LocationGuard>
+                  <InternalOrders />
                 </ProtectedRoute>
               } 
             />
@@ -165,9 +161,7 @@ const App = () => (
               path="/midsland-bestellingen" 
               element={
                 <ProtectedRoute>
-                  <LocationGuard allowedLocations={['Midsland']}>
-                    <MidslandOrders />
-                  </LocationGuard>
+                  <MidslandOrders />
                 </ProtectedRoute>
               } 
             />

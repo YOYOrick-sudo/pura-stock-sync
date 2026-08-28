@@ -264,6 +264,13 @@ export default function OrderDashboard() {
 
   return (
     <>
+        {!laadtArtikelen && products.length === 0 && (
+          <Card className="p-6 mb-4 text-center text-sm text-muted-foreground">
+            Er staan voor deze vestiging nog geen artikelen met aanvulbron "interne bestelling".
+            Stel ze in via Instellingen → Voorraadketen → Artikelen per vestiging.
+          </Card>
+        )}
+
         {/* Products Table */}
         <Card className="overflow-hidden shadow-sm border-primary/8 bg-card hover:shadow-md transition-shadow duration-200 mb-4">
           <div>
@@ -365,7 +372,7 @@ export default function OrderDashboard() {
                     Bezig met verzenden...
                   </> : <>
                     <Check className="mr-2 h-5 w-5" />
-                    Verstuur naar Foodbar
+                    Verstuur bestelling
                   </>}
               </Button>
             </div>
@@ -437,8 +444,8 @@ export default function OrderDashboard() {
                 <li className="flex gap-3">
                   <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
                   <div>
-                    <span className="font-heading font-medium text-foreground">Verstuur naar Foodbar</span>
-                    <p className="text-sm text-foreground/70 mt-1">Klik op "Verstuur naar Foodbar" om de bestelling door te geven.</p>
+                    <span className="font-heading font-medium text-foreground">Verstuur de bestelling</span>
+                    <p className="text-sm text-foreground/70 mt-1">Klik op "Verstuur bestelling" om de bestelling door te geven.</p>
                   </div>
                 </li>
               </ol>
@@ -472,7 +479,7 @@ export default function OrderDashboard() {
                 Bestelling verzonden!
               </AlertDialogTitle>
               <AlertDialogDescription className="text-center text-foreground/70 text-sm sm:text-base space-y-2 px-2">
-                <p className="font-medium leading-relaxed">Je bestelling is succesvol naar Foodbar gestuurd.</p>
+                <p className="font-medium leading-relaxed">Je bestelling is succesvol verstuurd.</p>
                 {totalRefill > 0 && <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-secondary rounded-xl">
                     <p className="text-sm sm:text-base">
                       <span className="font-semibold text-primary">{totalRefill} {totalRefill === 1 ? 'product' : 'producten'}</span> worden aangevuld
