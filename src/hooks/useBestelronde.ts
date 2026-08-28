@@ -364,8 +364,11 @@ export function useInkoopStatus() {
         patch.besteld_op = new Date().toISOString();
         patch.besteld_door = user?.id ?? null;
       }
-      const { error } = await db.from('inkoop_orders').update(patch).eq('id', orderId);
+      const { data, error } = await db.from('inkoop_orders').update(patch).eq('id', orderId).select('id');
       if (error) throw error;
+      if (!data?.length)
+        throw new Error('Je account mag deze bestelling niet wijzigen. Vraag een manager om dit te doen.');
+
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['inkoop'] }),
   });
