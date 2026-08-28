@@ -17,6 +17,8 @@ import TakenBeheer from "./pages/TakenBeheer";
 import TakenAdmin from "./pages/TakenAdmin";
 import Kassatelling from "./pages/Kassatelling";
 import Voorraad from "./pages/Voorraad";
+import Bestelronde from "./pages/Bestelronde";
+import Inkooporders from "./pages/Inkooporders";
 import Settings from "./pages/Settings";
 import InternalOrders from "./pages/kitchen/InternalOrders";
 import MidslandOrders from "./pages/MidslandOrders";
