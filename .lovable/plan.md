@@ -35,7 +35,7 @@ Gevolg: de leverancierskant is data-gedreven en blijft leeg tot de invulsessie. 
 | Kanaal | verzonden | besteld |
 | --- | --- | --- |
 | portal | bestaat niet — de mens plakt zelf in het portaal | handmatige knop "Gemarkeerd als besteld", met tijdstip en wie |
-| mail | automatisch zodra de mail de deur uit is | handmatige bevestiging zodra de leverancier de order bevestigt |
+| mail | bestaat niet — de app kan niet weten of de mail echt verstuurd is | concept-mail openen + kopieerlijst, daarna handmatig "Gemarkeerd als besteld" |
 | api | wordt overgeslagen | automatisch bij een 2xx-respons van de leverancier; fout ⇒ `verzenden_mislukt` |
 
 **Deelontvangst**: `deels_ontvangen` is een echte status. Een order wordt `ontvangen` zodra elke regel een ontvangen aantal heeft en er geen open backorderregel meer is; heeft minstens één regel een afwijking of open backorder, dan `deels_ontvangen`. Interne orders houden hun bestaande `partially_delivered` / `delivered`.
@@ -65,7 +65,7 @@ Leverdatum komt uit `leverancier_besteldagen` / `interne_leverdagen`; ontbreekt 
 ## Verzenden per kanaal
 
 - **portal**: kopieerbare lijst (artikelnummer · omschrijving · aantal in besteleenheid) + kopieerknop + knop "Gemarkeerd als besteld".
-- **mail**: bestaande transactionele mailroute met dezelfde lijst.
+- **mail**: gedraagt zich als portal — knop "Concept-mail openen" (mailto met dezelfde lijst) + kopieerknop, daarna handmatig "Gemarkeerd als besteld". Geen status `verzonden`. Een echt bestelmail-template bouwen we pas als een leverancier daadwerkelijk per mail bestelt.
 - **api**: edge function `bestelling-versturen-api` conform §2.10a. Sleutel per vestiging uit secrets via `leverancier_vestiging_config.api_sleutel_referentie`; `idempotency_key` = eigen bestelnummer; `delivery_date` uit de besteldagen; response opslaan, `backorder_lines` per regel markeren. 422/429/timeout ⇒ `verzenden_mislukt`, zichtbare melding, retry met dezelfde sleutel. Nooit stil falen.
 - **Config ontbreekt** (bijvoorbeeld de West-sleutel die nog volgt): verzenden geblokkeerd met duidelijke melding; de bestelling blijft concept en kan niet op "besteld" komen.
 
