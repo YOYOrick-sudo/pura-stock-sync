@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const { action, user_id, role, locations, is_active } = body ?? {};
+    const { action, user_id, role, locations, is_active, first_name, last_name } = body ?? {};
 
     if (!action || !user_id) return json({ error: 'action_and_user_id_required' }, 400);
 
