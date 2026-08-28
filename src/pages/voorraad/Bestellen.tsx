@@ -322,6 +322,8 @@ function RouteDetail({
                   type="number"
                   inputMode="decimal"
                   defaultValue={regel?.geteld_aantal ?? ''}
+                  disabled={afgerond && !dicht}
+
                   onBlur={(e) => e.target.value !== '' && opslaan(a, e.target.value)}
                   className="w-24 h-12 text-lg text-right"
                 />
