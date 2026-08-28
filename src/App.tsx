@@ -116,18 +116,27 @@ const App = () => (
               path="/voorraad" 
               element={
                 <ProtectedRoute>
-                  <Voorraad />
+                  <VoorraadBestellen />
                 </ProtectedRoute>
               } 
             />
             <Route
-              path="/bestelronde"
+              path="/voorraad/onderweg"
               element={
                 <ProtectedRoute>
-                  <Bestelronde />
+                  <VoorraadOnderweg />
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/voorraad/stand"
+              element={
+                <ProtectedRoute>
+                  <VoorraadStand />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/bestelronde" element={<Navigate to="/voorraad" replace />} />
             <Route
               path="/inkooporders"
               element={
