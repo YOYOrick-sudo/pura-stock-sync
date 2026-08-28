@@ -233,7 +233,7 @@ const App = () => (
             <Route path="/kitchen/mep/oud" element={<ProtectedRoute><MepPlanning /></ProtectedRoute>} />
             <Route path="/kitchen/mep/beheer" element={<ProtectedRoute><MepBeheer /></ProtectedRoute>} />
             <Route path="/settings/mep" element={<ProtectedRoute><MepInstellingen /></ProtectedRoute>} />
-            <Route path="/settings/keten" element={<ProtectedRoute><KetenBeheer /></ProtectedRoute>} />
+            <Route path="/settings/keten" element={<ProtectedRoute><RequireManager><KetenBeheer /></RequireManager></ProtectedRoute>} />
 
             <Route path="/kitchen/snel-printen" element={<ProtectedRoute><SnelPrinten /></ProtectedRoute>} />
 
