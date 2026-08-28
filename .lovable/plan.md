@@ -35,7 +35,7 @@ Gevolg: de leverancierskant is data-gedreven en blijft leeg tot de invulsessie. 
 | Kanaal | verzonden | besteld |
 | --- | --- | --- |
 | portal | bestaat niet — de mens plakt zelf in het portaal | handmatige knop "Gemarkeerd als besteld", met tijdstip en wie |
-| mail | automatisch zodra de mail de deur uit is | handmatige bevestiging zodra de leverancier de order bevestigt |
+| mail | bestaat niet — de app kan niet weten of de mail echt verstuurd is | concept-mail openen + kopieerlijst, daarna handmatig "Gemarkeerd als besteld" |
 | api | wordt overgeslagen | automatisch bij een 2xx-respons van de leverancier; fout ⇒ `verzenden_mislukt` |
 
 **Deelontvangst**: `deels_ontvangen` is een echte status. Een order wordt `ontvangen` zodra elke regel een ontvangen aantal heeft en er geen open backorderregel meer is; heeft minstens één regel een afwijking of open backorder, dan `deels_ontvangen`. Interne orders houden hun bestaande `partially_delivered` / `delivered`.
