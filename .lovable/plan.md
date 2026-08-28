@@ -1,50 +1,77 @@
-# 1a afronden: interne orders op artikelen + richting-agnostische keten
+# Stap 1b — Bestelronde, bestelvoorstel, verzenden, ontvangen
 
-## 1. OrderDashboard op artikelen (laatste 1a-bouwtaak)
+Doel: van "handmatig lijstje" naar een bestelketen die per leverancier of interne route werkt, voorstellen genereert, per kanaal verstuurt en ontvangst vastlegt. Alles zo gebouwd dat stap 3 er alleen een cron-run op hoeft te zetten.
 
-Vandaag is de bestellijst een hardgecodeerde array van 16 productnamen in `OrderDashboard.tsx` met localStorage als geheugen, en schrijft `useSendInternalOrder` alleen `product_name` + `unit: 'stuks'`. Daardoor is een orderregel niet aan een artikel te koppelen.
+## Wat de gebruiker straks doet
 
-Wat er komt:
-- De lijst wordt geladen uit `artikel_locaties` van de eigen vestiging waar `aanvul_bron = 'intern'`, gesorteerd op `tel_volgorde`, met `max_voorraad` als ijzervoorraad en `min_voorraad` als signaalgrens. Categorie komt uit `artikelen.categorie`.
-- Invoer blijft hetzelfde gebaar: huidige voorraad tikken, aan te vullen = max − huidig (nooit negatief). Hoeveelheid wordt numeriek (decimalen toegestaan voor kg/liter-artikelen).
-- Eenheid is geen invoer meer: per artikel wordt de basiseenheid gebruikt (of de gemarkeerde keuken-/besteleenheid uit `artikel_eenheden` als die er is). Zichtbaar als label, niet als veld.
-- `useSendInternalOrder` schrijft per regel `artikel_id`, `eenheid_id`, numerieke `quantity`, en vult `product_name`/`unit` als **snapshot** vanuit artikel en eenheid.
-- "Extra product" (vrije regel) blijft mogelijk voor uitzonderingen, maar wordt zichtbaar gemarkeerd als losse regel zonder artikelkoppeling — die regels blokkeren later een automatische koppeling in 1b.
-- De ontvangstkant (`MidslandOrders`, `InternalOrders`) toont naast de snapshotnaam een teken of de regel gekoppeld is aan een artikel.
+1. **Zichtbaarheid**: Voorraad en Interne bestellingen staan in de sidebar (beide vestigingen). Instellingen → Voorraadketen alleen voor manager/owner. De legacy-route `/midsland-bestellingen` verdwijnt uit navigatie; ontvangen/behandelen zit voortaan in Interne bestellingen.
+2. **Bestelronde-check**: kies een leverancier of interne route → alleen de artikelen van die route, in telvolgorde, invoer in keuken-eenheden, grote tikdoelen. Tellen kan halverwege stoppen en later verder.
+3. **Bestelvoorstel**: aanvullen tot maximum (`max_voorraad − geteld`), gesplitst per aanvul-bron. Leveranciersvoorstel per leverancier per vestiging; interne regels worden een concept-order in het bestaande orderscherm.
+4. **Verzenden per kanaal**: portal = kopieerlijst + knop "besteld"; mail = bestaande mailroute; api = Kooyman-edge-function.
+5. **Ontvangen**: per regel ontvangen hoeveelheid invullen; afwijkingen zichtbaar. Nog géén voorraadmutaties — dat is stap 2.
+6. **Notificaties**: "besteldeadline vandaag" per leverancier per vestiging en "interne order wacht op goedkeuring".
 
-**Datavoorwaarde (belangrijk):** er bestaan nu 0 rijen met `aanvul_bron = 'intern'`. West heeft 17 `eigen_productie`- en 64 `leverancier`-rijen. Zonder databehandeling is de nieuwe lijst leeg. Onderdeel van deze stap is daarom een migratie die de 16 huidige lijstproducten matcht op bestaande artikelen en voor West `aanvul_bron = 'intern'`, `bron_vestiging = 'Midsland'`, `max_voorraad` = huidige ijzervoorraad en `tel_volgorde` = huidige lijstvolgorde zet. Producten die niet 1-op-1 op een artikel matchen (bijv. Handzeep, Zeep vaatwasser) krijgen een nieuw artikel of komen in het migratielogboek — geen stille aannames.
+## Wat er nu in de database staat (gemeten)
 
-## 2. Richting: de guard eruit
+- 131 actieve artikel-locatieregels met bron `leverancier`, 16 met `interne_order`.
+- **0** leveranciers, **0** leverancier-artikelen, **0** besteldagen, **0** vestiging-configs, **0** interne leverdagen.
+- Er bestaat nog géén tabel voor leveranciersbestellingen of voor tellingen; interne orders bestaan wel.
 
-Nu: `/voorraad` en `/internal-orders` staan achter `LocationGuard West`, `/midsland-bestellingen` achter `LocationGuard Midsland`, en `MidslandOrders` heeft `from_location = 'West'` en `to_location = 'Midsland'` hardgecodeerd in de query. Dat is een aanname die niet in het architectuurdocument staat: `aanvul_bron`/`bron_vestiging` zijn richting-agnostisch.
+Gevolg: de leverancierskant is volledig data-gedreven en blijft leeg tot de invulsessie. Elk scherm krijgt daarom een expliciete lege staat met verwijzing naar Instellingen → Voorraadketen — geen foutmelding, geen lege witte pagina.
 
-Wat er komt:
-- `/internal-orders` wordt het enige scherm voor beide kanten en verliest de LocationGuard (blijft `ProtectedRoute`). De bestaande tabs Verzonden/Ontvangen doen het richtingswerk al; "Nieuwe bestelling" verschijnt alleen als de eigen vestiging artikelen met `aanvul_bron = 'intern'` heeft.
-- De ontvangstkant krijgt in de tab Ontvangen de acties die nu alleen in `MidslandOrders` zitten: goedkeuren, afwijzen, geleverd/deels geleverd melden met ontvangstnotitie. Daarmee ziet en behandelt Midsland de West-order op hetzelfde scherm, en werkt de omgekeerde richting later zonder nieuw scherm.
-- `/midsland-bestellingen` blijft bestaan als redirect naar `/internal-orders` (bestaande links en gewoontes breken niet). `MidslandOrders` verdwijnt als apart scherm zodra de acties zijn overgezet.
-- `/voorraad` houdt `LocationGuard West` niet als richtingsregel maar wordt vestiging-neutraal: het toont de tellijst van je eigen vestiging. Wie geen interne artikelen heeft, ziet een lege staat met uitleg.
-- Het architectuurdocument krijgt een korte notitie: richting volgt uit `aanvul_bron` + `bron_vestiging`, niet uit routeguards.
+## Nieuwe tabellen
 
-## 3. Fixlijst-teller
+- `telrondes`: vestiging, type (`leverancier` | `interne_route`), leverancier_id of bron_vestiging, datum, status (`open` | `afgerond`), wie/wanneer.
+- `telronde_regels`: telronde_id, artikel_id, geteld_aantal, eenheid_id (keuken-eenheid), omgerekend naar basiseenheid.
+- `inkoop_orders`: vestiging, leverancier_id, bestelnummer (eigen, uniek — dient als `idempotency_key`), kanaal-snapshot, status (`concept` | `verzonden` | `besteld` | `verzenden_mislukt` | `ontvangen`), leverdatum, response-velden (extern ordernummer, status, totalen), foutmelding.
+- `inkoop_order_regels`: artikel_id, leverancier_artikel-snapshot (artikelnummer, omschrijving), aantal in besteleenheid, ontvangen_aantal, is_backorder.
+- `internal_order_items` krijgt `ontvangen_aantal` (numeric, nullable) voor ontvangstregistratie.
 
-Bij het invoeren/openen van een methode een tellertje: "nog N openstaande logboekregels van dit recept", met doorklik naar de Fixlijst gefilterd op dat recept.
+Alle nieuwe tabellen: GRANTs, RLS (`authenticated` leest, manager/owner schrijft via `has_role`), CHECK op vestiging `West`/`Midsland`, `deleted_at`, tijdstempels + updated_at-trigger — conform besluit F/H/I.
 
-## 4. Verificatie (West-account, echte klikronde)
+## Logica: één functie, twee ingangen
 
-Er zijn 4 actieve West-accounts. Ik log met een West-sessie in en loop door:
-- `/voorraad`: lijst laadt uit artikelen, invoeren, aanvulling klopt, versturen.
-- `/internal-orders`: order verschijnt in Verzonden met artikelkoppeling.
-- Daarna Midsland-sessie: dezelfde order in Ontvangen, goedkeuren en geleverd melden.
-- Databasecheck op de weggeschreven regels: `artikel_id` en `eenheid_id` gevuld, `quantity` numeriek, snapshot correct.
-Bevindingen worden per scherm gerapporteerd, inclusief wat niet lukt.
+De voorstelgeneratie komt in een database-functie `rpc_genereer_bestelvoorstel(vestiging, datum)`:
 
-## Praktijk en risico
+- Leest per artikel-locatie de laatste afgeronde telronde en berekent `max_voorraad − geteld` (nooit negatief).
+- Splitst op `aanvul_bron`: `leverancier` → concept `inkoop_orders` per leverancier; `interne_order` → concept `internal_orders` per bron-vestiging.
+- **Idempotent**: bestaat er al een concept voor dezelfde vestiging + leverancier/route + leverdatum, dan wordt die bijgewerkt, niet gedupliceerd. Twee keer draaien geeft hetzelfde resultaat.
+- Leverdatum komt uit `leverancier_besteldagen` / `interne_leverdagen`; ontbreekt die, dan concept zonder datum + zichtbare melding.
 
-- De keukentablet in West telt straks vanuit de artikelstamgegevens; wijzigt iemand de ijzervoorraad in Instellingen → Voorraadketen, dan verandert de lijst direct. Dat is gewenst, maar betekent dat de lijst niet meer lokaal "vast" staat — bij een lege of foute configuratie is de tellijst leeg. Daarom de lege staat met uitleg in plaats van een leeg scherm.
-- Openstaande invoer blijft in localStorage bewaard per artikel-id, zodat een haperende wifi of herladen midden in het tellen niets kost.
-- Bestaande orders blijven leesbaar: oude regels zonder `artikel_id` tonen gewoon hun snapshotnaam.
-- Risico bij het weghalen van de guard: Midsland-medewerkers zien nu een scherm dat ze niet kenden. Daarom redirect vanaf de oude route en dezelfde acties op dezelfde plek.
+De UI-knop "Genereer voorstel" roept dezelfde functie aan als straks de cron. Stap 3 hoeft er alleen een schedule op te zetten.
 
-## Technisch
+## Verzenden per kanaal
 
-Bestanden: `src/components/OrderDashboard.tsx`, `src/hooks/useInternalOrders.ts`, `src/pages/kitchen/InternalOrders.tsx`, `src/pages/Voorraad.tsx`, `src/pages/MidslandOrders.tsx` (opgaat in InternalOrders), `src/App.tsx`, `src/components/keten/MethodeDialog.tsx` + `MethodesTab.tsx` (teller), plus één migratie voor de `aanvul_bron = 'intern'`-configuratie van West. `internal_order_items.artikel_id`/`eenheid_id` bestaan al en blijven nullable voor vrije regels.
+- **portal**: kopieerbare lijst (artikelnummer · omschrijving · aantal in besteleenheid) + kopieerknop + knop "Gemarkeerd als besteld".
+- **mail**: bestaande transactionele mailroute, met dezelfde lijst.
+- **api**: nieuwe edge function `bestelling-versturen-api`. Sleutel per vestiging uit secrets via `leverancier_vestiging_config.api_sleutel_referentie`; `idempotency_key` = ons bestelnummer (retry veilig); `delivery_date` uit de besteldagen; response opslaan, `backorder_lines` per regel markeren. Fout (422/429/timeout) ⇒ status `verzenden_mislukt`, zichtbare melding, retry met dezelfde sleutel. Nooit stil falen, nooit "besteld" zonder bevestiging.
+- **Config ontbreekt** (bijvoorbeeld de West-sleutel die nog volgt): verzenden wordt geblokkeerd met de melding "Geen API-configuratie voor deze vestiging — vul klantnummer en sleutelreferentie in bij Instellingen → Voorraadketen → Leveranciers"; de bestelling blijft concept.
+
+## Notificaties
+
+Eén edge function `bestel-notificaties` (handmatig aanroepbaar nu, cron in stap 3):
+
+- Voor elke actieve besteldag met deadline vandaag en géén verzonden bestelling: notificatie naar manager/owner van die vestiging.
+- Voor elke interne order met status "wacht op goedkeuring": notificatie naar de ontvangende vestiging.
+- Idempotent: per dag/leverancier/vestiging maximaal één notificatie.
+
+## Volgorde van bouwen
+
+1. Migratie: nieuwe tabellen + `ontvangen_aantal` + `rpc_genereer_bestelvoorstel`.
+2. Sidebar-zichtbaarheid en navigatie-opschoning.
+3. Bestelronde-check-scherm (tablet-vriendelijk, keuken-eenheden).
+4. Voorstelscherm + concept-orders, gekoppeld aan het bestaande interne orderscherm.
+5. Verzenden per kanaal (portal, mail, api).
+6. Ontvangstscherm met afwijkingen.
+7. Notificatiefunctie.
+8. Verificatieronde met West- én Midsland-sessie, plus een testleverancier die daarna weer wordt verwijderd.
+
+## Risico's die ik nu al zie
+
+- **Geen leveranciersdata**: de hele leverancierskant is pas echt bruikbaar na de invulsessie (leveranciers, artikelnummers, besteleenheden, besteldagen). Ik bouw de schermen leeg-vriendelijk en verifieer met een tijdelijke testleverancier.
+- **Kooyman-API is niet end-to-end testbaar**: er is nog geen leverancier, geen basis-URL en geen sleutel. Ik bouw de function volgens §2.10a en test alleen de foutpaden (config ontbreekt, retry met dezelfde idempotency_key). Echte verzending pas na de sleutel.
+- **Telling en werkelijkheid**: de bestelronde vervangt de oude losse telling in `localStorage`. Lopende tellingen op een tablet gaan bij de overstap één keer verloren; ik doe dat expliciet en meld het.
+
+## Wat ik bewust níet doe
+
+Geen voorraadmutaties, geen grootboek, geen aanvul-run op schema, geen keten-schuifjes — dat is stap 2 en 3.
