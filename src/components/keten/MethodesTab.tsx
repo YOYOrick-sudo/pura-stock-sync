@@ -19,6 +19,7 @@ import {
   useSaveArtikel,
 } from '@/hooks/useKeten';
 import { useRecipes } from '@/hooks/useRecipes';
+import { AlertTriangle } from 'lucide-react';
 import { MethodeDialog } from '@/components/keten/MethodeDialog';
 
 const GEEN_REGELS_TEKST =
@@ -166,6 +167,10 @@ export function MethodesTab() {
   const { data: alleMethodes = [] } = useAlleMethodes();
   const { data: recepten = [] } = useRecipes('', null);
   const [zoek, setZoek] = useState('');
+  const receptRegels = useMemo(
+    () => new Map<string, number>(recepten.map((r: any) => [r.id, r.ingredient_count ?? 0])),
+    [recepten],
+  );
   const [bewerk, setBewerk] = useState<{ id: string; naam: string } | null>(null);
 
   const halffabricaten = useMemo(() => {
@@ -179,6 +184,7 @@ export function MethodesTab() {
   const overigeMethodes = useMemo(() => {
     const receptMetArtikel = new Set(artikelen.map((a) => a.recept_id).filter(Boolean));
     const namen = new Map(recepten.map((r: any) => [r.id, r.name]));
+    const regels = new Map(recepten.map((r: any) => [r.id, r.ingredient_count ?? 0]));
     const gezien = new Set<string>();
     return alleMethodes
       .filter((m) => !receptMetArtikel.has(m.recept_id))
@@ -188,6 +194,7 @@ export function MethodesTab() {
         naam: namen.get(m.recept_id) ?? 'Onbekend recept',
         type: m.type,
         naarVoorraad: m.output_gaat_op_voorraad,
+        regelCount: regels.get(m.recept_id) ?? 0,
       }));
   }, [alleMethodes, artikelen, recepten]);
 
@@ -209,7 +216,13 @@ export function MethodesTab() {
       ) : halffabricaten.length === 0 ? (
         <p className="text-sm text-muted-foreground">Geen halffabricaten gevonden.</p>
       ) : (
-        halffabricaten.map((a) => <MethodeRij key={a.id} artikel={a} />)
+        halffabricaten.map((a) => (
+          <MethodeRij
+            key={a.id}
+            artikel={a}
+            regelCount={a.recept_id ? receptRegels.get(a.recept_id) ?? 0 : undefined}
+          />
+        ))
       )}
 
       {overigeMethodes.length > 0 && (
@@ -225,6 +238,7 @@ export function MethodesTab() {
               <Badge variant={m.naarVoorraad ? 'secondary' : 'outline'} className="text-xs">
                 {m.naarVoorraad ? 'Voorraad' : 'Direct'}
               </Badge>
+              {m.regelCount === 0 && <GeenRegelsWaarschuwing compact />}
               <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setBewerk({ id: m.recept_id, naam: m.naam })}>
                 Bewerk
               </Button>
