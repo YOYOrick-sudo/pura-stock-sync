@@ -120,6 +120,22 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+            <Route
+              path="/bestelronde"
+              element={
+                <ProtectedRoute>
+                  <Bestelronde />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/inkooporders"
+              element={
+                <ProtectedRoute>
+                  <Inkooporders />
+                </ProtectedRoute>
+              }
+            />
             <Route 
               path="/settings" 
               element={
