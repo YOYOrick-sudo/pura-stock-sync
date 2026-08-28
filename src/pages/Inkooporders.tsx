@@ -121,8 +121,8 @@ function OrderDetail({ order }: { order: InkoopOrder }) {
         </Button>
 
         {order.kanaal === 'mail' && order.status === 'concept' && (
-          <Button size="sm" onClick={mail}>
-            <Mail className="h-4 w-4 mr-1" /> Mail versturen
+          <Button size="sm" variant="outline" onClick={mail}>
+            <Mail className="h-4 w-4 mr-1" /> Concept-mail openen
           </Button>
         )}
 
