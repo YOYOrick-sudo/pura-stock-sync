@@ -4393,6 +4393,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      heeft_vestiging: {
+        Args: { _loc: string; _user_id: string }
+        Returns: boolean
+      }
       ingredienten_merge: {
         Args: { _drop: string[]; _keep: string }
         Returns: number
