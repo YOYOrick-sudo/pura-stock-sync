@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useUserLocation } from '@/contexts/UserLocationContext';
 
 export const VESTIGINGEN = ['West', 'Midsland'] as const;
 export type Vestiging = (typeof VESTIGINGEN)[number];
@@ -11,17 +12,13 @@ const CONFIG: Record<KoppelSoort, { tabel: string; fk: string }> = {
   ingredient: { tabel: 'artikel_locaties', fk: 'artikel_id' },
 };
 
-/** De vestiging van de ingelogde gebruiker (West / Midsland), of null. */
+/** De actieve vestiging van de ingelogde gebruiker (West / Midsland), of null. */
 export function useMijnVestiging() {
-  return useQuery({
-    queryKey: ['mijn-vestiging'],
-    staleTime: 5 * 60_000,
-    queryFn: async () => {
-      const { data, error } = await (supabase as any).rpc('current_user_location');
-      if (error) throw error;
-      return (data as string | null) ?? null;
-    },
-  });
+  const { userLocation, loading } = useUserLocation();
+  return {
+    data: (userLocation || null) as string | null,
+    isLoading: loading,
+  };
 }
 
 /**
