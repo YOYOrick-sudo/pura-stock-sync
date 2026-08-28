@@ -4602,6 +4602,13 @@ export type Database = {
         Returns: Json
       }
       rpc_heeft_demo_data: { Args: never; Returns: boolean }
+      rpc_namen_voor_users: {
+        Args: { _ids: string[] }
+        Returns: {
+          naam: string
+          user_id: string
+        }[]
+      }
       sticker_producten_bump: {
         Args: { _naam: string; _tht: number; _type: string }
         Returns: string

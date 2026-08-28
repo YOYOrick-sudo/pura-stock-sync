@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { vandaagNL } from '@/hooks/useBestelronde';
+import { kiesTelronde, vandaagNL } from '@/hooks/useBestelronde';
 
 const db = supabase as any;
 
@@ -25,6 +25,9 @@ export interface DashboardRoute {
   artikelen: number;
   telrondeId: string | null;
   telrondeAfgerond: boolean;
+  /** true = uit deze ronde is al een bestelling geplaatst; verder tellen kan niet meer */
+  rondeDicht: boolean;
+
   conceptOrderId: string | null;
   conceptRegels: number;
   conceptLeverdatum: string | null;
@@ -35,6 +38,8 @@ export interface DashboardRoute {
 function dowNL(datum: string): number {
   return new Date(`${datum}T12:00:00`).getDay();
 }
+
+
 
 export function useIsBeheerder() {
   return useQuery({
@@ -47,6 +52,16 @@ export function useIsBeheerder() {
     staleTime: 5 * 60 * 1000,
   });
 }
+
+/** Weergavenamen ophalen: naam uit het profiel, anders het e-mailadres. */
+export async function namenVoorUsers(ids: string[]): Promise<Map<string, string>> {
+  const namen = new Map<string, string>();
+  if (!ids.length) return namen;
+  const { data } = await db.rpc('rpc_namen_voor_users', { _ids: ids });
+  (data ?? []).forEach((r: any) => namen.set(r.user_id, r.naam));
+  return namen;
+}
+
 
 /** Alle routes van de vestiging met hun stand van zaken voor vandaag. */
 export function useRouteDashboard(vestiging?: string, datum?: string) {
@@ -79,12 +94,13 @@ export function useRouteDashboard(vestiging?: string, datum?: string) {
         db.from('telrondes').select('*').eq('vestiging', vestiging!).eq('datum', dag).is('deleted_at', null),
         db
           .from('inkoop_orders')
-          .select('id, leverancier_id, status, leverdatum, inkoop_order_regels(id)')
+          .select('id, leverancier_id, status, leverdatum, telronde_id, inkoop_order_regels(id)')
           .eq('vestiging', vestiging!)
           .is('deleted_at', null),
         db
           .from('internal_orders')
-          .select('id, to_location, status, delivery_date, internal_order_items(id)')
+          .select('id, to_location, status, delivery_date, created_at, internal_order_items(id)')
+
           .eq('from_location', vestiging!),
       ]);
 
@@ -102,14 +118,18 @@ export function useRouteDashboard(vestiging?: string, datum?: string) {
           (b: any) => b.leverancier_id === l.id && (b.vestiging === null || b.vestiging === vestiging),
         );
         const vandaagRegel = dagen.find((b: any) => Number(b.weekdag) === dow);
-        const telronde = (trRes.data ?? []).find(
-          (t: any) => t.route_type === 'leverancier' && t.leverancier_id === l.id,
+        const telronde = kiesTelronde(
+          (trRes.data ?? []).filter((t: any) => t.route_type === 'leverancier' && t.leverancier_id === l.id),
         );
         const orders = (inkRes.data ?? []).filter((o: any) => o.leverancier_id === l.id);
         const concept = orders.find((o: any) => o.status === 'concept');
         const onderweg = orders.filter((o: any) =>
           ['verzonden', 'besteld', 'deels_ontvangen'].includes(o.status),
         ).length;
+        // Een ronde waar al een bestelling uit is geplaatst is definitief dicht.
+        const rondeDicht =
+          !!telronde &&
+          orders.some((o: any) => o.telronde_id === telronde.id && o.status !== 'concept');
 
         routes.push({
           key: `lev:${l.id}`,
@@ -122,6 +142,7 @@ export function useRouteDashboard(vestiging?: string, datum?: string) {
           artikelen: artikelenPerLeverancier,
           telrondeId: telronde?.id ?? null,
           telrondeAfgerond: telronde?.status === 'afgerond',
+          rondeDicht,
           conceptOrderId: concept?.id ?? null,
           conceptRegels: concept?.inkoop_order_regels?.length ?? 0,
           conceptLeverdatum: concept?.leverdatum ?? null,
@@ -129,6 +150,7 @@ export function useRouteDashboard(vestiging?: string, datum?: string) {
           status: bepaalStatus(!!concept, telronde?.status, onderweg),
         });
       }
+
 
       const bronnen = Array.from(
         new Set(
@@ -145,14 +167,18 @@ export function useRouteDashboard(vestiging?: string, datum?: string) {
         const leverdag = (ilRes.data ?? []).find(
           (i: any) => i.van_vestiging === bron && Number(i.weekdag) === dow,
         );
-        const telronde = (trRes.data ?? []).find(
-          (t: any) => t.route_type === 'interne_route' && t.bron_vestiging === bron,
+        const telronde = kiesTelronde(
+          (trRes.data ?? []).filter((t: any) => t.route_type === 'interne_route' && t.bron_vestiging === bron),
         );
         const orders = (intRes.data ?? []).filter((o: any) => o.to_location === bron);
         const concept = orders.find((o: any) => o.status === 'concept');
         const onderweg = orders.filter((o: any) =>
           ['pending', 'approved', 'partially_delivered'].includes(o.status),
         ).length;
+        // Interne orders hebben geen telronde-verwijzing: een vandaag verstuurde aanvraag sluit de ronde.
+        const rondeDicht =
+          !!telronde &&
+          orders.some((o: any) => o.status !== 'concept' && String(o.created_at ?? '').slice(0, 10) === dag);
 
         routes.push({
           key: `int:${bron}`,
@@ -165,6 +191,7 @@ export function useRouteDashboard(vestiging?: string, datum?: string) {
           artikelen: aantal,
           telrondeId: telronde?.id ?? null,
           telrondeAfgerond: telronde?.status === 'afgerond',
+          rondeDicht,
           conceptOrderId: concept?.id ?? null,
           conceptRegels: concept?.internal_order_items?.length ?? 0,
           conceptLeverdatum: concept?.delivery_date ?? null,
@@ -172,6 +199,7 @@ export function useRouteDashboard(vestiging?: string, datum?: string) {
           status: bepaalStatus(!!concept, telronde?.status, onderweg),
         });
       }
+
 
       return routes.sort((a, b) => Number(b.vandaag) - Number(a.vandaag) || a.naam.localeCompare(b.naam));
     },
@@ -192,6 +220,110 @@ export const ROUTE_STATUS_LABEL: Record<RouteStatus, string> = {
   concept: 'Voorstel klaar',
   onderweg: 'Onderweg',
 };
+
+/** Telronde afronden en meteen het voorstel draaien — het einde van de telstap. */
+export function useTellingAfronden() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ telrondeId, vestiging, datum }: { telrondeId: string; vestiging: string; datum?: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data, error } = await db
+        .from('telrondes')
+        .update({ status: 'afgerond', afgerond_op: new Date().toISOString(), afgerond_door: user?.id ?? null })
+        .eq('id', telrondeId)
+        .select('id');
+      if (error) throw error;
+      if (!data?.length) throw new Error('Afronden niet gelukt — vernieuw de pagina en probeer opnieuw.');
+      const { data: res, error: rpcErr } = await db.rpc('rpc_genereer_bestelvoorstel', {
+        p_vestiging: vestiging,
+        p_datum: datum ?? vandaagNL(),
+      });
+      if (rpcErr) throw rpcErr;
+      return res;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['voorraad'] });
+      qc.invalidateQueries({ queryKey: ['bestelronde'] });
+      qc.invalidateQueries({ queryKey: ['inkoop'] });
+    },
+  });
+}
+
+/** Ronde weer openzetten. Alleen zolang er nog geen bestelling uit is geplaatst. */
+export function useTellingHeropenen() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (telrondeId: string) => {
+      const { data, error } = await db
+        .from('telrondes')
+        .update({ status: 'open', afgerond_op: null, afgerond_door: null })
+        .eq('id', telrondeId)
+        .select('id');
+      if (error) throw error;
+      if (!data?.length) throw new Error('Verder tellen lukt niet — vernieuw de pagina.');
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['voorraad'] });
+      qc.invalidateQueries({ queryKey: ['bestelronde'] });
+    },
+  });
+}
+
+/** Bestellijst als platte tekst voor portal en mail. */
+export function bestellijstTekst(order: ConceptOrder, vestiging: string): string {
+  const kop = `${order.titel} — ${vestiging}${order.bestelnummer ? ` — ${order.bestelnummer}` : ''}${
+    order.leverdatum ? ` — levering ${order.leverdatum}` : ''
+  }`;
+  const lijnen = order.regels.map((r) =>
+    `${r.artikelnummer ?? '—'}\t${r.omschrijving}\t${r.aantal} ${r.eenheid}`.trim(),
+  );
+  return [kop, '', ...lijnen].join('\n');
+}
+
+/** API-kanaal: de edge function verstuurt en zet zelf 'besteld'. Manager/owner. */
+export function useInkoopVersturen() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (orderId: string) => {
+      const { data, error } = await supabase.functions.invoke('bestelling-versturen-api', {
+        body: { order_id: orderId },
+      });
+      if (error) throw new Error(error.message);
+      if ((data as any)?.error) throw new Error((data as any).error);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['voorraad'] });
+      qc.invalidateQueries({ queryKey: ['inkoop'] });
+    },
+  });
+}
+
+/** Portal/mail: het team markeert zelf dat de bestelling geplaatst is. */
+export function useBesteldMarkeren() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (orderId: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data, error } = await db
+        .from('inkoop_orders')
+        .update({
+          status: 'besteld',
+          besteld_op: new Date().toISOString(),
+          besteld_door: user?.id ?? null,
+          laatste_fout: null,
+        })
+        .eq('id', orderId)
+        .select('id');
+      if (error) throw error;
+      if (!data?.length) throw new Error('Markeren niet gelukt — vernieuw de pagina en probeer opnieuw.');
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['voorraad'] });
+      qc.invalidateQueries({ queryKey: ['inkoop'] });
+    },
+  });
+}
 
 /** Draait het bestelvoorstel; idempotent, dus veilig bij elk bezoek. */
 export function useVoorstelDraaien() {
@@ -467,17 +599,8 @@ export function useOnderweg(vestiging?: string) {
       const userIds = Array.from(
         new Set((intRes.data ?? []).map((o: any) => o.requested_by).filter(Boolean)),
       ) as string[];
-      const namen = new Map<string, string>();
-      if (userIds.length) {
-        const { data: profielen } = await db
-          .from('profiles')
-          .select('user_id, first_name, last_name')
-          .in('user_id', userIds);
-        (profielen ?? []).forEach((p: any) => {
-          const naam = [p.first_name, p.last_name].filter(Boolean).join(' ').trim();
-          if (naam) namen.set(p.user_id, naam);
-        });
-      }
+      const namen = await namenVoorUsers(userIds);
+
 
       const inkoop: OnderwegOrder[] = (inkRes.data ?? []).map((o: any) => ({
         type: 'inkoop',

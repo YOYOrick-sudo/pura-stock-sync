@@ -3,6 +3,18 @@ import { supabase } from '@/integrations/supabase/client';
 
 const db = supabase as any;
 
+/** Per route telt de open ronde; is die er niet, dan de laatst afgeronde. */
+export function kiesTelronde(rondes: any[]): any | null {
+  if (!rondes.length) return null;
+  const open = rondes.find((t) => t.status === 'open');
+  if (open) return open;
+  return [...rondes].sort((a, b) =>
+    String(b.afgerond_op ?? b.created_at).localeCompare(String(a.afgerond_op ?? a.created_at)),
+  )[0];
+}
+
+
+
 export type RouteType = 'leverancier' | 'interne_route';
 
 export interface BestelRoute {
@@ -90,12 +102,14 @@ export function useTelronde(vestiging?: string, route?: BestelRoute | null, datu
         .eq('datum', dag)
         .is('deleted_at', null);
       q = route!.type === 'leverancier' ? q.eq('leverancier_id', route!.id) : q.eq('bron_vestiging', route!.id);
-      const { data, error } = await q.maybeSingle();
+      const { data, error } = await q;
       if (error) throw error;
-      return data ?? null;
+      // Meerdere rondes per dag kunnen bestaan zodra er een bestelling is geplaatst.
+      return kiesTelronde(data ?? []);
     },
   });
 }
+
 
 export function useStartTelronde() {
   const qc = useQueryClient();
