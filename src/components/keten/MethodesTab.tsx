@@ -21,7 +21,32 @@ import {
 import { useRecipes } from '@/hooks/useRecipes';
 import { MethodeDialog } from '@/components/keten/MethodeDialog';
 
-function MethodeRij({ artikel }: { artikel: { id: string; naam: string; recept_id: string | null } }) {
+const GEEN_REGELS_TEKST =
+  'Dit recept heeft nog geen ingrediëntregels — het verbruik kan straks niet geboekt worden.';
+
+function GeenRegelsWaarschuwing({ compact }: { compact?: boolean }) {
+  if (compact) {
+    return (
+      <span className="inline-flex items-center gap-1 text-warning" title={GEEN_REGELS_TEKST}>
+        <AlertTriangle className="h-4 w-4" />
+      </span>
+    );
+  }
+  return (
+    <div className="flex w-full items-start gap-2 text-xs text-warning">
+      <AlertTriangle className="h-4 w-4 shrink-0 mt-px" />
+      <span>{GEEN_REGELS_TEKST}</span>
+    </div>
+  );
+}
+
+function MethodeRij({
+  artikel,
+  regelCount,
+}: {
+  artikel: { id: string; naam: string; recept_id: string | null };
+  regelCount?: number;
+}) {
   const { data: methodes = [] } = useMethodes(artikel.recept_id ?? undefined);
   const { data: eenheden = [] } = useEenheden();
   const { data: logboek = [] } = useLogboek(true);
