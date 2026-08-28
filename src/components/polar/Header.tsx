@@ -1,12 +1,28 @@
 import React from 'react';
-import { Menu, MapPin } from 'lucide-react';
+import { Menu, MapPin, ChevronDown, Check } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
+export interface PolarHeaderLocationOption {
+  value: string;
+  label: string;
+}
 
 export interface PolarHeaderProps {
   title?: string;
   showStatusIndicator?: boolean;
   location?: string;
   onMenuClick?: () => void;
+  /** Meer dan één optie ⇒ header toont een vestigingswissel */
+  locationOptions?: PolarHeaderLocationOption[];
+  activeLocationValue?: string;
+  onLocationChange?: (value: string) => void;
 }
+
 
 const dateFormatter = new Intl.DateTimeFormat('nl-NL', {
   weekday: 'long',
