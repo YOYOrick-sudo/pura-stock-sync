@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -43,6 +43,8 @@ interface Product {
   bronVestiging?: string | null;
 }
 
+const LEEG: any[] = [];
+
 const TELLING_KEY = 'pura-vida-telling-v2';
 const TEMP_KEY = 'pura-vida-temp-products-v2';
 
@@ -57,7 +59,8 @@ export default function OrderDashboard() {
   const navigate = useNavigate();
   const { userLocation } = useUserLocation();
   const sendOrderMutation = useSendInternalOrder();
-  const { data: aanvulArtikelen = [], isLoading: laadtArtikelen } = useAanvulArtikelen(userLocation || undefined);
+  const { data: aanvulData, isLoading: laadtArtikelen } = useAanvulArtikelen(userLocation || undefined);
+  const aanvulArtikelen = aanvulData ?? LEEG;
   const [products, setProducts] = useState<Product[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastSubmitted, setLastSubmitted] = useState<string | null>(null);
@@ -287,7 +290,7 @@ export default function OrderDashboard() {
                 {products.map((product, index) => {
                   const showCategoryHeader = index === 0 || product.category !== products[index - 1]?.category;
                   return (
-                    <>
+                    <React.Fragment key={product.artikelId ?? `temp-${product.name}-${index}`}>
                       {showCategoryHeader && product.category && (
                         <tr key={`category-${product.category}-${index}`} className="bg-primary/20 border-t border-b border-primary/20">
                           <td colSpan={4} className="px-3 py-2 sm:px-4 font-heading font-bold text-primary text-sm uppercase tracking-wide">
@@ -308,7 +311,7 @@ export default function OrderDashboard() {
                         index={index} 
                         onRemove={product.isTemporary ? () => removeTemporaryProduct(index) : undefined} 
                       />
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </tbody>
