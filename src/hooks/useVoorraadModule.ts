@@ -138,7 +138,7 @@ export function useRouteDashboard(vestiging?: string, datum?: string) {
         ),
       );
 
-      for (const bron of bronnen) {
+      for (const bron of bronnen as string[]) {
         const aantal = locaties.filter(
           (l: any) => l.aanvul_bron === 'interne_order' && l.bron_vestiging === bron,
         ).length;
