@@ -1,99 +1,109 @@
-# Stap 1b — Bestelronde, bestelvoorstel, verzenden, ontvangen
+# Stap 1c — één voorraadmodule, één bestelflow
 
-Doel: van "handmatig lijstje" naar een bestelketen die per leverancier of interne route werkt, voorstellen genereert, per kanaal verstuurt en ontvangst vastlegt. Alles zo gebouwd dat stap 3 er alleen een cron-run op hoeft te zetten.
+1b is geaccepteerd. Nu vervalt de dubbele flow: het oude "Nieuwe bestelling"-scherm en de nieuwe keten worden één module. Principe: **automatisch is de standaard, handmatig is de uitzondering**.
 
-## Wat de gebruiker straks doet
+## Rechten (vastgelegd)
 
-1. **Zichtbaarheid**: Voorraad en Interne bestellingen staan in de sidebar (beide vestigingen). Instellingen → Voorraadketen alleen voor manager/owner. De legacy-route `/midsland-bestellingen` verdwijnt uit navigatie; behandelen zit voortaan in Interne bestellingen.
-2. **Bestelronde-check**: kies een leverancier of interne route → alleen de artikelen van die route, in telvolgorde, invoer in keuken-eenheden, grote tikdoelen. Tellen kan halverwege stoppen en later verder.
-3. **Bestelvoorstel** (zie regels hieronder): per aanvul-bron gesplitst. Leveranciersvoorstel per leverancier per vestiging; interne regels worden een concept-order in het bestaande orderscherm.
-4. **Verzenden per kanaal**: portal = kopieerlijst + "besteld"; mail = bestaande mailroute; api = Kooyman-edge-function.
-5. **Ontvangen**: per regel ontvangen hoeveelheid invullen; afwijkingen zichtbaar. Nog géén voorraadmutaties — dat is stap 2.
-6. **Notificaties**: besteldeadline vandaag, en interne order die op afhandeling wacht.
+| Actie | Wie |
+| --- | --- |
+| Tellen / "Huidig" invullen | alle ingelogde teamleden |
+| Ontvangst vastleggen (inkoop én intern) | alle ingelogde teamleden |
+| "Gemarkeerd als besteld" (portal/mail) | alle ingelogde teamleden |
+| Verzenden (API-klik, definitief de deur uit) | manager/owner |
+| Order aanmaken / annuleren | manager/owner |
 
-## Wat er nu in de database staat (gemeten)
+Dit wordt in RLS afgedwongen, niet alleen in de UI: aparte policies per kolomgroep-actie op `inkoop_orders` / `inkoop_order_regels` (staff mag alleen `ontvangen_aantal`, `is_backorder`, en status-overgang naar `besteld` / `deels_ontvangen` / `ontvangen` zetten; concept aanmaken, `verzonden` en `geannuleerd` blijven manager/owner). De hooks houden hun `.select('id')`-controle, zodat stil falen onmogelijk blijft.
 
-- 131 actieve artikel-locatieregels met bron `leverancier`, 16 met `interne_order`.
-- **0** leveranciers, **0** leverancier-artikelen, **0** besteldagen, **0** vestiging-configs, **0** interne leverdagen.
-- Er bestaat nog géén tabel voor leveranciersbestellingen of voor tellingen; interne orders bestaan wel (statussen `pending`, `approved`, `delivered`, `partially_delivered`, `rejected`).
+## Zijbalk en routes
 
-Gevolg: de leverancierskant is data-gedreven en blijft leeg tot de invulsessie. Elk scherm krijgt een expliciete lege staat met verwijzing naar Instellingen → Voorraadketen.
+Eén module **Voorraad** met drie items:
 
-## Bestelregels (aangescherpt)
+| Nieuw | Wat het is |
+| --- | --- |
+| `/voorraad` | Voorraadstand: wat staat er, per route/leverancier, laatst geteld wanneer |
+| `/voorraad/bestellen` | Dashboard met de routes van vandaag + tellen + voorstel + verzenden |
+| `/voorraad/ontvangen` | Alles wat onderweg is: inkooporders én interne orders, ontvangst vastleggen |
 
-1. **Bestelgrens telt mee**: een artikel komt alleen in het voorstel als `geteld ≤ min_voorraad`. Zit het daarboven, dan geen regel. Zo ontstaan er geen mini-regels voor alles wat één eenheid onder max zit.
-2. **Hoeveelheid** = `max_voorraad − geteld`, daarna **omhoog afgerond naar hele besteleenheden** via `leverancier_artikelen.inhoud_per_besteleenheid`. Voor interne routes wordt afgerond op de basiseenheid (hele stuks).
-3. **Onderweg meetellen**: openstaande regels van orders die al de deur uit zijn (inkoop: `verzonden`/`besteld`, intern: `pending`/`approved`) en nog niet ontvangen zijn, inclusief backorderregels, worden van de behoefte afgetrokken. Blijft er ≤ 0 over, dan geen regel.
-4. **Versheid**: het voorstel gebruikt **uitsluitend** de telronde van déze bestelronde (zelfde route, zelfde dag). Een artikel dat in die ronde niet geteld is, krijgt géén regel en verschijnt in een zichtbaar blok **"niet geteld"**.
-5. **Geen leverancier gekoppeld**: artikel met bron `leverancier` zonder actief `leverancier_artikelen`-record komt in een zichtbaar blok **"geen leverancier gekoppeld"** — nooit stil overslaan.
-6. **Ontbrekende eenheid-conversie**: heeft een artikel geen `artikel_eenheden`-regel voor de gekozen keuken-/besteleenheid, dan wordt de invoer gemarkeerd en een fixlijst-regel in `migratie_logboek` gezet. Nooit stil 1:1 omrekenen.
+**Vervalt volledig** (route weg uit `App.tsx`, bestand verwijderd, geen redirect-ruïnes):
 
-## Statusmodel per kanaal (vastgelegd)
+- `/bestelronde` → opgaat in `/voorraad/bestellen`
+- `/internal-orders` → splitst in Bestellen (aanvragen) en Ontvangen (behandelen)
+- `/midsland-bestellingen` (legacy `MidslandOrders.tsx`) → vervalt; behandelen zit in Ontvangen
+- `/inkooporders` → splitst in Bestellen (verzenden) en Ontvangen
 
-`inkoop_orders.status`: `concept` → `verzonden` → `besteld` → `deels_ontvangen` → `ontvangen`, plus `verzenden_mislukt` en `geannuleerd`.
+Oude paden krijgen één keer een redirect naar de nieuwe plek zodat opgeslagen tabbladen op tablets niet op een 404 komen; geen dubbele schermen erachter.
 
-| Kanaal | verzonden | besteld |
-| --- | --- | --- |
-| portal | bestaat niet — de mens plakt zelf in het portaal | handmatige knop "Gemarkeerd als besteld", met tijdstip en wie |
-| mail | bestaat niet — de app kan niet weten of de mail echt verstuurd is | concept-mail openen + kopieerlijst, daarna handmatig "Gemarkeerd als besteld" |
-| api | wordt overgeslagen | automatisch bij een 2xx-respons van de leverancier; fout ⇒ `verzenden_mislukt` |
+## Bestellen = dashboard, geen formulier
 
-**Deelontvangst**: `deels_ontvangen` is een echte status. Een order wordt `ontvangen` zodra elke regel een ontvangen aantal heeft en er geen open backorderregel meer is; heeft minstens één regel een afwijking of open backorder, dan `deels_ontvangen`. Interne orders houden hun bestaande `partially_delivered` / `delivered`.
+Bij binnenkomst staat er per route van vandaag (afgeleid uit besteldagen en interne leverdagen) een kaart met één status:
 
-## Nieuwe tabellen
+```text
+Kooyman        besteldag vandaag   [ te tellen ]        12 artikelen
+Midsland       levert morgen       [ voorstel klaar ]   7 regels
+Bidfood                            [ verzonden ]        ma 12:00 besteld
+```
 
-- `telrondes`: vestiging, type (`leverancier` | `interne_route`), leverancier_id of bron_vestiging, datum, status (`open` | `afgerond`), wie/wanneer. Uniek per vestiging + route + datum.
-- `telronde_regels`: telronde_id, artikel_id, geteld_aantal, eenheid_id (ingevoerde eenheid), geteld_basis (omgerekend), `conversie_ontbreekt` (boolean).
-- `inkoop_orders`: vestiging, leverancier_id, bestelnummer (uniek, dient als `idempotency_key`), kanaal-snapshot, status, leverdatum, extern ordernummer/status/totalen, foutmelding, tijdstempels per overgang.
-- `inkoop_order_regels`: artikel_id, snapshot (artikelnummer, omschrijving), aantal in besteleenheid, besteleenheid + inhoud, ontvangen_aantal, is_backorder.
-- `internal_order_items` krijgt `ontvangen_aantal` (numeric, nullable).
+- **te tellen** → knop opent de tel-stap
+- **voorstel klaar / concept** → knop opent het voorstel
+- **verzonden / onderweg** → link naar Ontvangen
 
-Alle nieuwe tabellen: GRANTs, RLS (`authenticated` leest, manager/owner schrijft via `has_role`), CHECK op vestiging, `deleted_at`, tijdstempels + updated_at-trigger.
+Het scherm wordt gebouwd op de eindtoestand van stap 3: het voorstel staat er al. Zolang de cron er niet is, draait dezelfde `rpc_genereer_bestelvoorstel` bij het openen van het dashboard voor routes die vandaag aan de beurt zijn en al een afgeronde telronde hebben. Idempotent, dus openen kan zo vaak als je wil.
 
-## Logica: één functie, twee ingangen
+### Tel-stap = het oude patisserie-scherm
 
-`rpc_genereer_bestelvoorstel(vestiging, datum)` past alle bestelregels hierboven toe en levert:
+De vertrouwde lijst blijft precies zoals hij is: artikel, **Aanvullen tot**, **Huidig** invullen, grote tikdoelen, per route gefilterd, in telvolgorde. Alleen de bestemming verandert: "Huidig" schrijft nu een `telronde_regels`-regel in plaats van localStorage. Er is geen tweede telplek meer.
 
-- concept `inkoop_orders` per leverancier (bron `leverancier`),
-- concept `internal_orders` per bron-vestiging (bron `interne_order`),
-- plus de signaalblokken "niet geteld" en "geen leverancier gekoppeld".
+### Voorstel en verzenden — één scherm, één knop
 
-**Idempotent**: bestaat er al een concept voor dezelfde vestiging + route + leverdatum, dan wordt die bijgewerkt, niet gedupliceerd. De UI-knop "Genereer voorstel" roept dezelfde functie aan als straks de cron; stap 3 zet er alleen een schedule op.
+Het voorstel toont de regels (aanpasbaar aantal) plus de bestaande blokken "niet geteld" en "geen leverancier gekoppeld". Onderaan staat precies één primaire knop, afhankelijk van het kanaal:
 
-Leverdatum komt uit `leverancier_besteldagen` / `interne_leverdagen`; ontbreekt die, dan concept zonder datum met zichtbare melding.
+- portal/mail: **Kopieer bestellijst** (daarna verschijnt "Gemarkeerd als besteld")
+- api: **Verstuur naar Kooyman** (alleen manager/owner; voor teamleden zichtbaar-maar-uit met "manager verstuurt")
+- intern: **Stuur naar Midsland**
 
-## Verzenden per kanaal
+Geen instellingen, geen tabs, geen zijstappen op dit scherm. Ontbrekende config blokkeert met één zin in gewone taal.
 
-- **portal**: kopieerbare lijst (artikelnummer · omschrijving · aantal in besteleenheid) + kopieerknop + knop "Gemarkeerd als besteld".
-- **mail**: gedraagt zich als portal — knop "Concept-mail openen" (mailto met dezelfde lijst) + kopieerknop, daarna handmatig "Gemarkeerd als besteld". Geen status `verzonden`. Een echt bestelmail-template bouwen we pas als een leverancier daadwerkelijk per mail bestelt.
-- **api**: edge function `bestelling-versturen-api` conform §2.10a. Sleutel per vestiging uit secrets via `leverancier_vestiging_config.api_sleutel_referentie`; `idempotency_key` = eigen bestelnummer; `delivery_date` uit de besteldagen; response opslaan, `backorder_lines` per regel markeren. 422/429/timeout ⇒ `verzenden_mislukt`, zichtbare melding, retry met dezelfde sleutel. Nooit stil falen.
-- **Config ontbreekt** (bijvoorbeeld de West-sleutel die nog volgt): verzenden geblokkeerd met duidelijke melding; de bestelling blijft concept en kan niet op "besteld" komen.
+### Extra bestellen (ad-hoc)
 
-## Notificaties
+Knop **Extra bestellen** op het dashboard: artikel(en) zoeken, aantal, toevoegen. De regel gaat op de bestaande concept-order van die route; bestaat die nog niet, dan wordt hij aangemaakt. Bestaat de regel al, dan wordt het aantal opgehoogd — geen dubbele regels.
 
-Edge function `bestel-notificaties` (handmatig aanroepbaar nu, cron in stap 3):
+## Ontvangen
 
-- **Besteldeadline vandaag** per leverancier per vestiging zonder verzonden bestelling ⇒ naar manager/owner van díe vestiging.
-- **Interne order wacht op afhandeling** ⇒ naar de **leverende/producerende** vestiging, dat is `to_location` (West vraagt aan, Midsland maakt en levert). De term "ontvangende vestiging" uit het eerste plan was fout en vervalt.
-- Idempotent: per dag/leverancier/vestiging en per order maximaal één notificatie.
+Eén lijst met alles wat onderweg is, inkoop en intern door elkaar, gesorteerd op verwachte leverdatum. Per regel ontvangen aantal; afwijking zichtbaar; order wordt `ontvangen` of `deels_ontvangen` (intern: `delivered` / `partially_delivered`). Nog steeds geen voorraadmutaties — dat is stap 2.
+
+## De 8 bestaande interne orders
+
+Gemeten: 6 met status `approved` en 2 met `delivered`, allemaal West → Midsland. Die blijven staan en worden niet verplaatst of verwijderd:
+
+- de 6 `approved` verschijnen in het nieuwe Ontvangen-scherm bij Midsland en bij West als "onderweg";
+- de 2 `delivered` komen in de historie-weergave.
+
+Regels zonder `artikel_id` (oude vrije tekst) blijven gewoon leesbaar via hun snapshot `product_name` / `unit`; ze worden niet stil aan een artikel gekoppeld.
+
+## Naam in plaats van gebruikers-id
+
+`requested_by` / `approved_by` worden opgezocht in `profiles` en als naam getoond (val terug op e-mail, dan op "onbekend"). Geldt in Ontvangen en in de orderhistorie.
+
+## Architectuurdocument
+
+`mem://architecture/voorraadketen-datamodel-v2` krijgt een sectie **1c — bedieningsmodel**: één voorraadmodule met drie schermen, tellen bestaat alleen als tel-stap binnen een bestelronde, ad-hoc regels lopen via de concept-order van de route, en de rechtenverdeling uit de tabel hierboven (verzenden = manager/owner, ontvangen en besteld-markeren = iedereen).
 
 ## Volgorde van bouwen
 
-1. Migratie: nieuwe tabellen, `ontvangen_aantal`, `rpc_genereer_bestelvoorstel`.
-2. Sidebar-zichtbaarheid en navigatie-opschoning.
-3. Bestelronde-check-scherm (tablet-vriendelijk, keuken-eenheden, conversie-markering).
-4. Voorstelscherm met de drie blokken (voorstel, niet geteld, geen leverancier) + concept-orders.
-5. Verzenden per kanaal.
-6. Ontvangstscherm met afwijkingen en deelontvangst.
-7. Notificatiefunctie.
-8. Verificatieronde met West- én Midsland-sessie, met een testleverancier die daarna weer verdwijnt.
+1. Migratie: RLS-policies per actie.
+2. Nieuwe routes + zijbalkmodule, oude routes en bestanden weg.
+3. `/voorraad/bestellen` dashboard + tel-stap (hergebruik van de bestaande tel-UI).
+4. Voorstel/verzendscherm, één knop per kanaal.
+5. Extra bestellen.
+6. `/voorraad/ontvangen` inkoop + intern samen, met namen.
+7. Klikronde West-staff, Midsland-staff en manager; verslag als gebruikersflow.
+
+## Opruimbevestiging
+
+Na de ombouw: geen testleveranciers of ZZTEST-records in de database (wordt met een query aangetoond), geen `MidslandOrders.tsx`, `Bestelronde.tsx`, `Inkooporders.tsx` of oude `OrderDashboard`-telcode in de repo, geen localStorage-tellingen meer in gebruik, en geen zijbalk- of routeverwijzing naar de vervallen paden.
 
 ## Risico's
 
-- **Geen leveranciersdata**: de leverancierskant is pas echt bruikbaar na de invulsessie. Schermen worden leeg-vriendelijk gebouwd en met een testleverancier geverifieerd.
-- **Kooyman-API niet end-to-end testbaar**: geen leverancier, geen URL, geen sleutel. Alleen de foutpaden worden getest.
-- **Lopende localStorage-tellingen vervallen** bij de overstap — akkoord, wordt gemeld in de UI.
-
-## Wat ik bewust níet doe
-
-Geen voorraadmutaties, geen grootboek, geen aanvul-run op schema, geen keten-schuifjes — dat is stap 2 en 3.
+- Lopende localStorage-tellingen vervallen bij de overstap — akkoord, met melding in de UI.
+- Zonder leveranciersdata blijft de leverancierskant leeg; het dashboard toont dan alleen interne routes plus een verwijzing naar Instellingen → Voorraadketen.
+- Ruimere ontvangst-rechten betekenen dat een teamlid een order kan afsluiten; afwijkingen blijven daarom per regel zichtbaar en de historie blijft bewaard.
