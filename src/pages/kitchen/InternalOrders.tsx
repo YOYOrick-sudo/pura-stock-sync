@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { ArrowRight, Package, Loader2, ChevronDown, AlertCircle } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
