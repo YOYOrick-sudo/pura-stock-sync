@@ -65,7 +65,7 @@ Leverdatum komt uit `leverancier_besteldagen` / `interne_leverdagen`; ontbreekt 
 ## Verzenden per kanaal
 
 - **portal**: kopieerbare lijst (artikelnummer · omschrijving · aantal in besteleenheid) + kopieerknop + knop "Gemarkeerd als besteld".
-- **mail**: bestaande transactionele mailroute met dezelfde lijst.
+- **mail**: gedraagt zich als portal — knop "Concept-mail openen" (mailto met dezelfde lijst) + kopieerknop, daarna handmatig "Gemarkeerd als besteld". Geen status `verzonden`. Een echt bestelmail-template bouwen we pas als een leverancier daadwerkelijk per mail bestelt.
 - **api**: edge function `bestelling-versturen-api` conform §2.10a. Sleutel per vestiging uit secrets via `leverancier_vestiging_config.api_sleutel_referentie`; `idempotency_key` = eigen bestelnummer; `delivery_date` uit de besteldagen; response opslaan, `backorder_lines` per regel markeren. 422/429/timeout ⇒ `verzenden_mislukt`, zichtbare melding, retry met dezelfde sleutel. Nooit stil falen.
 - **Config ontbreekt** (bijvoorbeeld de West-sleutel die nog volgt): verzenden geblokkeerd met duidelijke melding; de bestelling blijft concept en kan niet op "besteld" komen.
 
