@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const { action, user_id, role, locations, is_active } = body ?? {};
+    const { action, user_id, role, locations, is_active, first_name, last_name } = body ?? {};
 
     if (!action || !user_id) return json({ error: 'action_and_user_id_required' }, 400);
 
@@ -124,7 +124,20 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    if (action === 'update_name') {
+      const voor = typeof first_name === 'string' ? first_name.trim() : '';
+      const achter = typeof last_name === 'string' ? last_name.trim() : '';
+      if (!voor) return json({ error: 'first_name_required' }, 400);
+
+      const { error } = await admin
+        .from('profiles')
+        .upsert({ user_id, first_name: voor, last_name: achter }, { onConflict: 'user_id' });
+      if (error) return json({ error: error.message }, 500);
+      return json({ ok: true });
+    }
+
     return json({ error: 'unknown_action' }, 400);
+
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
   }

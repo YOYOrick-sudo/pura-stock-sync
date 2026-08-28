@@ -159,6 +159,9 @@ function TeamRow({ member, isSelf, onChanged, onLocalUpdate }: {
 }) {
   const [busy, setBusy] = useState(false);
   const [loonBusy, setLoonBusy] = useState(false);
+  const [naamOpen, setNaamOpen] = useState(false);
+  const [naam, setNaam] = useState('');
+
 
   const displayRole = member.role ? ROLE_LABELS[member.role] ?? member.role : '—';
   const displayName = [member.first_name, member.last_name].filter(Boolean).join(' ') || '—';
@@ -216,14 +219,48 @@ function TeamRow({ member, isSelf, onChanged, onLocalUpdate }: {
   };
 
   const setLocations = (locs: Location[]) => invokeUpdate(
-    { action: 'update_locations', user_id: member.user_id, locations: locs },
-    'Locaties bijgewerkt'
-  );
+     { action: 'update_locations', user_id: member.user_id, locations: locs },
+     'Locaties bijgewerkt'
+   );
+
+  const bewaarNaam = async () => {
+    const schoon = naam.trim();
+    if (!schoon) { setNaamOpen(false); return; }
+    const [voor, ...rest] = schoon.split(' ');
+    await invokeUpdate(
+      { action: 'update_name', user_id: member.user_id, first_name: voor, last_name: rest.join(' ') },
+      'Naam bijgewerkt',
+    );
+    setNaamOpen(false);
+  };
 
   return (
     <TableRow>
-      <TableCell className="font-medium">{displayName}{isSelf && <span className="text-muted-foreground text-xs ml-1">(jij)</span>}</TableCell>
+      <TableCell className="font-medium">
+        {naamOpen ? (
+          <Input
+            autoFocus
+            value={naam}
+            onChange={(e) => setNaam(e.target.value)}
+            onBlur={bewaarNaam}
+            onKeyDown={(e) => e.key === 'Enter' && bewaarNaam()}
+            placeholder="Naam of teamnaam"
+            className="h-8 w-44"
+          />
+        ) : (
+          <button
+            type="button"
+            className="text-left hover:underline"
+            onClick={() => { setNaam(displayName === '—' ? '' : displayName); setNaamOpen(true); }}
+            title="Klik om de weergavenaam aan te passen"
+          >
+            {displayName}
+          </button>
+        )}
+        {isSelf && <span className="text-muted-foreground text-xs ml-1">(jij)</span>}
+      </TableCell>
       <TableCell className="text-muted-foreground">{member.email}</TableCell>
+
       <TableCell>
         <Select
           value={member.role === 'admin' ? 'owner' : (member.role ?? 'staff')}

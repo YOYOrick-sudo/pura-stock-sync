@@ -19,16 +19,22 @@ import {
   vandaagNL,
 } from '@/hooks/useBestelronde';
 import {
+  bestellijstTekst,
   DashboardRoute,
   ROUTE_STATUS_LABEL,
+  useBesteldMarkeren,
   useConceptOrder,
+  useInkoopVersturen,
   useInternVersturen,
   useIsBeheerder,
   useRegelAantal,
   useRegelVerwijderen,
   useRouteDashboard,
+  useTellingAfronden,
+  useTellingHeropenen,
   useVoorstelDraaien,
 } from '@/hooks/useVoorraadModule';
+
 import { ExtraBestellenDialog } from '@/components/voorraad/ExtraBestellenDialog';
 
 const STATUS_KLEUR: Record<string, string> = {
@@ -199,6 +205,10 @@ function RouteDetail({
   const wijzigAantal = useRegelAantal();
   const verwijderRegel = useRegelVerwijderen();
   const internVersturen = useInternVersturen();
+  const afronden = useTellingAfronden();
+  const heropenen = useTellingHeropenen();
+  const inkoopVersturen = useInkoopVersturen();
+  const besteldMarkeren = useBesteldMarkeren();
 
   const geteld = regels ? regels.size : 0;
   const voortgang = artikelen.length ? Math.round((geteld / artikelen.length) * 100) : 0;
@@ -206,9 +216,14 @@ function RouteDetail({
     () => artikelen.filter((a) => !regels?.has(a.artikel_id)).map((a) => a.naam),
     [artikelen, regels],
   );
+  const afgerond = telronde?.status === 'afgerond';
+  const dicht = route.rondeDicht;
+  const [gekopieerd, setGekopieerd] = useState(false);
+
 
   const opslaan = async (artikel: RouteArtikel, waarde: string) => {
-    let rondeId = telronde?.id;
+    // Na een geplaatste bestelling is de ronde definitief dicht: tellen start een nieuwe ronde.
+    let rondeId = afgerond && dicht ? undefined : telronde?.id;
     if (!rondeId) {
       try {
         const nieuw = await startRonde.mutateAsync({ vestiging, route: route as any, datum });
@@ -218,14 +233,28 @@ function RouteDetail({
         return;
       }
     }
+
     const aantal = Number(waarde.replace(',', '.'));
     if (!Number.isFinite(aantal)) return;
     try {
       await saveRegel.mutateAsync({ telrondeId: rondeId!, artikel, aantal });
-      await voorstel.mutateAsync({ vestiging, datum });
       onVernieuw();
     } catch (e: any) {
       toast.error('Opslaan mislukt', { description: e.message });
+    }
+  };
+
+  const klaarMetTellen = async () => {
+    if (!telronde?.id) {
+      toast.error('Er is nog niets geteld');
+      return;
+    }
+    try {
+      await afronden.mutateAsync({ telrondeId: telronde.id, vestiging, datum });
+      toast.success('Telling afgerond — bekijk het voorstel');
+      onVernieuw();
+    } catch (e: any) {
+      toast.error('Afronden mislukt', { description: e.message });
     }
   };
 
@@ -240,9 +269,29 @@ function RouteDetail({
         </div>
         <Progress value={voortgang} />
         <p className="text-xs text-muted-foreground">
-          Vul in wat er nog staat. Het voorstel eronder werkt vanzelf bij.
+          {afgerond
+            ? dicht
+              ? 'Deze ronde is besteld en daarmee klaar. Nieuw tellen start een nieuwe ronde.'
+              : 'Telling afgerond. Hieronder staat het voorstel.'
+            : 'Vul in wat er nog staat. Klaar? Rond de telling onderaan af.'}
         </p>
+        {afgerond && !dicht && (
+          <Button
+            variant="outline"
+            className="w-full h-12"
+            disabled={heropenen.isPending}
+            onClick={() =>
+              heropenen
+                .mutateAsync(telronde.id)
+                .then(() => onVernieuw())
+                .catch((e) => toast.error('Verder tellen mislukt', { description: e.message }))
+            }
+          >
+            Verder tellen
+          </Button>
+        )}
       </Card>
+
 
       {isLoading && <Card className="p-4 text-sm">Laden…</Card>}
       {!isLoading && artikelen.length === 0 && (
@@ -273,6 +322,8 @@ function RouteDetail({
                   type="number"
                   inputMode="decimal"
                   defaultValue={regel?.geteld_aantal ?? ''}
+                  disabled={afgerond && !dicht}
+
                   onBlur={(e) => e.target.value !== '' && opslaan(a, e.target.value)}
                   className="w-24 h-12 text-lg text-right"
                 />
@@ -284,7 +335,25 @@ function RouteDetail({
         })}
       </div>
 
+      {!afgerond && artikelen.length > 0 && (
+        <Button
+          size="lg"
+          className="w-full h-14"
+          disabled={afronden.isPending || geteld === 0}
+          onClick={klaarMetTellen}
+        >
+          Klaar met tellen
+        </Button>
+      )}
+      {!afgerond && geteld > 0 && nietGeteld.length > 0 && (
+        <p className="text-xs text-muted-foreground text-center">
+          {nietGeteld.length} artikelen nog niet geteld — die blijven straks als "niet geteld" staan.
+        </p>
+      )}
+
+      {afgerond && (
       <Card className="p-4 space-y-3">
+
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">Wat wordt besteld</h2>
           {concept?.leverdatum && (
@@ -359,25 +428,91 @@ function RouteDetail({
               internVersturen
                 .mutateAsync(concept.id)
                 .then(() => {
-                  toast.success('Aanvraag verstuurd');
+                  toast.success('Aanvraag verstuurd naar ' + concept.titel);
                   onVernieuw();
                   onNaarOnderweg();
                 })
                 .catch((e) => toast.error('Versturen mislukt', { description: e.message }))
             }
           >
-            Aanvraag versturen naar {concept.titel}
+            Stuur naar {concept.titel}
           </Button>
         )}
 
-        {concept && concept.type === 'inkoop' && (
+        {concept && concept.type === 'inkoop' && (route.kanaal === 'portal' || route.kanaal === 'mail') && (
+          <div className="space-y-2">
+            {!gekopieerd ? (
+              <Button
+                size="lg"
+                className="w-full h-14"
+                disabled={concept.regels.length === 0}
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(bestellijstTekst(concept, vestiging));
+                    setGekopieerd(true);
+                    toast.success('Bestellijst gekopieerd — plak hem in de portal of de mail');
+                  } catch {
+                    toast.error('Kopiëren mislukt — selecteer de lijst handmatig');
+                  }
+                }}
+              >
+                Kopieer bestellijst
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                className="w-full h-14"
+                disabled={besteldMarkeren.isPending}
+                onClick={() =>
+                  besteldMarkeren
+                    .mutateAsync(concept.id)
+                    .then(() => {
+                      toast.success('Genoteerd als besteld');
+                      onVernieuw();
+                      onNaarOnderweg();
+                    })
+                    .catch((e) => toast.error('Markeren mislukt', { description: e.message }))
+                }
+              >
+                Gemarkeerd als besteld
+              </Button>
+            )}
+          </div>
+        )}
+
+        {concept && concept.type === 'inkoop' && route.kanaal === 'api' && (
+          <div className="space-y-2">
+            <Button
+              size="lg"
+              className="w-full h-14"
+              disabled={!isBeheerder || inkoopVersturen.isPending || concept.regels.length === 0}
+              onClick={() =>
+                inkoopVersturen
+                  .mutateAsync(concept.id)
+                  .then(() => {
+                    toast.success('Bestelling verstuurd naar ' + concept.titel);
+                    onVernieuw();
+                    onNaarOnderweg();
+                  })
+                  .catch((e) => toast.error('Versturen mislukt', { description: e.message }))
+              }
+            >
+              Verstuur naar {concept.titel}
+            </Button>
+            {!isBeheerder && (
+              <p className="text-xs text-muted-foreground text-center">Een manager verstuurt deze bestelling.</p>
+            )}
+          </div>
+        )}
+
+        {concept && concept.type === 'inkoop' && !['portal', 'mail', 'api'].includes(route.kanaal ?? '') && (
           <div className="text-sm text-muted-foreground">
-            {isBeheerder
-              ? 'Een manager verstuurt deze bestelling vanaf het inkoopscherm.'
-              : 'Klaar zo. Een manager verstuurt de bestelling naar de leverancier.'}
+            Er staat nog geen bestelkanaal bij deze leverancier. Stel dat in via Instellingen → Voorraadketen.
           </div>
         )}
       </Card>
+      )}
     </div>
   );
+
 }
