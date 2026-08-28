@@ -469,6 +469,20 @@ export default function InternalOrders() {
 
           {activeTab === 'received' && (
             <div>
+              <div style={{ marginBottom: '12px' }}>
+                <Link
+                  to="/midsland-bestellingen"
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '13px',
+                    color: 'hsl(var(--primary))',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  Bestellingen behandelen (goedkeuren en leveren)
+                </Link>
+              </div>
+
               {loadingReceived ? (
                 <div style={{
                   display: 'flex',
