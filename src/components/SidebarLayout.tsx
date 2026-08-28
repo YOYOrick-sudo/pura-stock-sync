@@ -42,7 +42,9 @@ export function SidebarLayout({
       '/settings/keten': 'Voorraadketen',
 
       '/mep-planning': 'MEP Planning',
-      '/voorraad': 'Voorraad',
+      '/voorraad': 'Bestellen',
+      '/voorraad/onderweg': 'Onderweg',
+      '/voorraad/stand': 'Voorraadstand',
       '/settings': 'Instellingen',
       '/cijfers': 'Cijfers',
       '/taken-analyse': 'Statistieken',

@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RequireManager } from "@/components/RequireManager";
 import { RequireOwner } from "@/components/RequireOwner";
@@ -16,8 +16,9 @@ import FohAnalytics from "./pages/foh/FohAnalytics";
 import TakenBeheer from "./pages/TakenBeheer";
 import TakenAdmin from "./pages/TakenAdmin";
 import Kassatelling from "./pages/Kassatelling";
-import Voorraad from "./pages/Voorraad";
-import Bestelronde from "./pages/Bestelronde";
+import VoorraadBestellen from "./pages/voorraad/Bestellen";
+import VoorraadOnderweg from "./pages/voorraad/Onderweg";
+import VoorraadStand from "./pages/voorraad/Stand";
 import Inkooporders from "./pages/Inkooporders";
 import Settings from "./pages/Settings";
 import InternalOrders from "./pages/kitchen/InternalOrders";
@@ -116,18 +117,27 @@ const App = () => (
               path="/voorraad" 
               element={
                 <ProtectedRoute>
-                  <Voorraad />
+                  <VoorraadBestellen />
                 </ProtectedRoute>
               } 
             />
             <Route
-              path="/bestelronde"
+              path="/voorraad/onderweg"
               element={
                 <ProtectedRoute>
-                  <Bestelronde />
+                  <VoorraadOnderweg />
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/voorraad/stand"
+              element={
+                <ProtectedRoute>
+                  <VoorraadStand />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/bestelronde" element={<Navigate to="/voorraad" replace />} />
             <Route
               path="/inkooporders"
               element={

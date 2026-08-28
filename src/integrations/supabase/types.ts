@@ -1220,7 +1220,9 @@ export type Database = {
           artikelnummer: string | null
           besteleenheid_code: string | null
           besteleenheid_id: string | null
+          bron: string
           created_at: string
+          handmatig_aangepast: boolean
           id: string
           inhoud_per_besteleenheid: number | null
           is_backorder: boolean
@@ -1235,7 +1237,9 @@ export type Database = {
           artikelnummer?: string | null
           besteleenheid_code?: string | null
           besteleenheid_id?: string | null
+          bron?: string
           created_at?: string
+          handmatig_aangepast?: boolean
           id?: string
           inhoud_per_besteleenheid?: number | null
           is_backorder?: boolean
@@ -1250,7 +1254,9 @@ export type Database = {
           artikelnummer?: string | null
           besteleenheid_code?: string | null
           besteleenheid_id?: string | null
+          bron?: string
           created_at?: string
+          handmatig_aangepast?: boolean
           id?: string
           inhoud_per_besteleenheid?: number | null
           is_backorder?: boolean
@@ -1377,8 +1383,10 @@ export type Database = {
       internal_order_items: {
         Row: {
           artikel_id: string | null
+          bron: string
           created_at: string | null
           eenheid_id: string | null
+          handmatig_aangepast: boolean
           id: string
           ontvangen_aantal: number | null
           order_id: string
@@ -1388,8 +1396,10 @@ export type Database = {
         }
         Insert: {
           artikel_id?: string | null
+          bron?: string
           created_at?: string | null
           eenheid_id?: string | null
+          handmatig_aangepast?: boolean
           id?: string
           ontvangen_aantal?: number | null
           order_id: string
@@ -1399,8 +1409,10 @@ export type Database = {
         }
         Update: {
           artikel_id?: string | null
+          bron?: string
           created_at?: string | null
           eenheid_id?: string | null
+          handmatig_aangepast?: boolean
           id?: string
           ontvangen_aantal?: number | null
           order_id?: string
@@ -4385,10 +4397,12 @@ export type Database = {
         Args: { _drop: string[]; _keep: string }
         Returns: number
       }
+      is_inkoop_beheerder: { Args: never; Returns: boolean }
       is_manager_same_location: {
         Args: { _profile_user_id: string }
         Returns: boolean
       }
+      is_service_call: { Args: never; Returns: boolean }
       mag_cijfers_zien: { Args: { _uid: string }; Returns: boolean }
       mag_loonkosten_zien: { Args: { _uid: string }; Returns: boolean }
       mep_bouw_dag: {
@@ -4573,6 +4587,16 @@ export type Database = {
         }[]
       }
       rpc_demo_data_wissen: { Args: never; Returns: number }
+      rpc_extra_bestellen: {
+        Args: {
+          p_aantal: number
+          p_artikel_id: string
+          p_route_id: string
+          p_route_type: string
+          p_vestiging: string
+        }
+        Returns: Json
+      }
       rpc_genereer_bestelvoorstel: {
         Args: { p_datum?: string; p_vestiging: string }
         Returns: Json
