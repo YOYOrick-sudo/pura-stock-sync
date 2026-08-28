@@ -121,9 +121,13 @@ function ArtikelBasisEenheid({ log, prioriteit }: { log: LogboekRegel; prioritei
   return (
     <div className="flex flex-wrap items-end gap-2 border-b border-border py-3">
       <div className="min-w-[220px] flex-1">
-        <div className="text-sm font-medium">{artikel?.naam ?? log.ruwe_waarde}</div>
+        <div className="flex items-center gap-2">
+          <div className="text-sm font-medium">{artikel?.naam ?? log.ruwe_waarde}</div>
+          {prioriteit && <PrioBadge />}
+        </div>
         <div className="text-xs text-muted-foreground">{log.reden}</div>
       </div>
+
       <div className="w-40">
         <Select value={eenheidId} onValueChange={setEenheidId}>
           <SelectTrigger className="h-11"><SelectValue placeholder="Basis-eenheid" /></SelectTrigger>
