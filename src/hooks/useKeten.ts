@@ -452,3 +452,55 @@ export function useUpdateKetenInstelling() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['keten', 'instellingen'] }),
   });
 }
+
+/* ---------------- interne aanvul-artikelen (bestelscherm) ---------------- */
+
+export interface AanvulArtikel {
+  locatie_id: string;
+  artikel_id: string;
+  naam: string;
+  categorie: string | null;
+  eenheid_id: string | null;
+  eenheid_code: string;
+  min_voorraad: number;
+  /** Aanvullen tot */
+  max_voorraad: number;
+  bron_vestiging: string | null;
+  tel_volgorde: number | null;
+}
+
+/**
+ * Artikelen die deze vestiging via een interne order aanvult bij een andere vestiging.
+ * Bron van waarheid voor het bestelscherm (geen hardcoded productenlijst meer).
+ */
+export function useAanvulArtikelen(vestiging?: string) {
+  return useQuery({
+    queryKey: ['keten', 'aanvul-artikelen', vestiging ?? 'geen'],
+    enabled: !!vestiging,
+    queryFn: async () => {
+      const { data, error } = await db
+        .from('artikel_locaties')
+        .select(
+          'id, artikel_id, vestiging, min_voorraad, max_voorraad, tel_volgorde, bron_vestiging, artikelen!inner(naam, categorie, basis_eenheid_id, eenheden:basis_eenheid_id(id, code))',
+        )
+        .eq('vestiging', vestiging!)
+        .eq('aanvul_bron', 'interne_order')
+        .eq('is_actief', true)
+        .is('deleted_at', null)
+        .order('tel_volgorde', { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map((r: any) => ({
+        locatie_id: r.id,
+        artikel_id: r.artikel_id,
+        naam: r.artikelen?.naam ?? 'Onbekend',
+        categorie: r.artikelen?.categorie ?? null,
+        eenheid_id: r.artikelen?.basis_eenheid_id ?? null,
+        eenheid_code: r.artikelen?.eenheden?.code ?? 'stuk',
+        min_voorraad: Number(r.min_voorraad ?? 0),
+        max_voorraad: Number(r.max_voorraad ?? 0),
+        bron_vestiging: r.bron_vestiging ?? null,
+        tel_volgorde: r.tel_volgorde,
+      })) as AanvulArtikel[];
+    },
+  });
+}
