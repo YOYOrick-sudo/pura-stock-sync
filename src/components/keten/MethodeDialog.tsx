@@ -15,6 +15,8 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { METHODE_TYPES, useMethodes, useSaveMethode } from '@/hooks/useHalffabricaatMethodes';
 import { useArtikelen, useEenheden, useLogboek, useLogboekAfronden, useSaveArtikel } from '@/hooks/useKeten';
+import { useReceptRegelCount } from '@/hooks/useRecipes';
+import { AlertTriangle } from 'lucide-react';
 
 interface Props {
   receptId: string | null;
@@ -32,6 +34,7 @@ export function MethodeDialog({ receptId, receptNaam, open, onOpenChange }: Prop
   const { data: eenheden = [] } = useEenheden();
   const { data: artikelen = [] } = useArtikelen();
   const { data: logboek = [] } = useLogboek(true);
+  const { data: regelCount } = useReceptRegelCount(open && receptId ? receptId : undefined);
   const save = useSaveMethode();
   const saveArtikel = useSaveArtikel();
   const afronden = useLogboekAfronden();
@@ -170,6 +173,13 @@ export function MethodeDialog({ receptId, receptNaam, open, onOpenChange }: Prop
             <Switch checked={naarVoorraad} onCheckedChange={setNaarVoorraad} />
           </div>
         </div>
+
+        {regelCount === 0 && (
+          <div className="flex items-start gap-2 rounded-polar bg-warning/10 px-3 py-2 text-xs text-warning">
+            <AlertTriangle className="h-4 w-4 shrink-0 mt-px" />
+            <span>Dit recept heeft nog geen ingrediëntregels — het verbruik kan straks niet geboekt worden.</span>
+          </div>
+        )}
 
         {naarVoorraad && !artikel && (
           <p className="text-xs text-muted-foreground">

@@ -19,9 +19,35 @@ import {
   useSaveArtikel,
 } from '@/hooks/useKeten';
 import { useRecipes } from '@/hooks/useRecipes';
+import { AlertTriangle } from 'lucide-react';
 import { MethodeDialog } from '@/components/keten/MethodeDialog';
 
-function MethodeRij({ artikel }: { artikel: { id: string; naam: string; recept_id: string | null } }) {
+const GEEN_REGELS_TEKST =
+  'Dit recept heeft nog geen ingrediëntregels — het verbruik kan straks niet geboekt worden.';
+
+function GeenRegelsWaarschuwing({ compact }: { compact?: boolean }) {
+  if (compact) {
+    return (
+      <span className="inline-flex items-center gap-1 text-warning" title={GEEN_REGELS_TEKST}>
+        <AlertTriangle className="h-4 w-4" />
+      </span>
+    );
+  }
+  return (
+    <div className="flex w-full items-start gap-2 text-xs text-warning">
+      <AlertTriangle className="h-4 w-4 shrink-0 mt-px" />
+      <span>{GEEN_REGELS_TEKST}</span>
+    </div>
+  );
+}
+
+function MethodeRij({
+  artikel,
+  regelCount,
+}: {
+  artikel: { id: string; naam: string; recept_id: string | null };
+  regelCount?: number;
+}) {
   const { data: methodes = [] } = useMethodes(artikel.recept_id ?? undefined);
   const { data: eenheden = [] } = useEenheden();
   const { data: logboek = [] } = useLogboek(true);
@@ -131,6 +157,7 @@ function MethodeRij({ artikel }: { artikel: { id: string; naam: string; recept_i
         </Select>
       </div>
       <Button className="h-11" onClick={opslaan} disabled={save.isPending}>Opslaan</Button>
+      {regelCount === 0 && <GeenRegelsWaarschuwing />}
     </div>
   );
 }
@@ -140,6 +167,10 @@ export function MethodesTab() {
   const { data: alleMethodes = [] } = useAlleMethodes();
   const { data: recepten = [] } = useRecipes('', null);
   const [zoek, setZoek] = useState('');
+  const receptRegels = useMemo(
+    () => new Map<string, number>(recepten.map((r: any) => [r.id, r.ingredient_count ?? 0])),
+    [recepten],
+  );
   const [bewerk, setBewerk] = useState<{ id: string; naam: string } | null>(null);
 
   const halffabricaten = useMemo(() => {
@@ -153,6 +184,7 @@ export function MethodesTab() {
   const overigeMethodes = useMemo(() => {
     const receptMetArtikel = new Set(artikelen.map((a) => a.recept_id).filter(Boolean));
     const namen = new Map(recepten.map((r: any) => [r.id, r.name]));
+    const regels = new Map(recepten.map((r: any) => [r.id, r.ingredient_count ?? 0]));
     const gezien = new Set<string>();
     return alleMethodes
       .filter((m) => !receptMetArtikel.has(m.recept_id))
@@ -162,6 +194,7 @@ export function MethodesTab() {
         naam: namen.get(m.recept_id) ?? 'Onbekend recept',
         type: m.type,
         naarVoorraad: m.output_gaat_op_voorraad,
+        regelCount: regels.get(m.recept_id) ?? 0,
       }));
   }, [alleMethodes, artikelen, recepten]);
 
@@ -183,7 +216,13 @@ export function MethodesTab() {
       ) : halffabricaten.length === 0 ? (
         <p className="text-sm text-muted-foreground">Geen halffabricaten gevonden.</p>
       ) : (
-        halffabricaten.map((a) => <MethodeRij key={a.id} artikel={a} />)
+        halffabricaten.map((a) => (
+          <MethodeRij
+            key={a.id}
+            artikel={a}
+            regelCount={a.recept_id ? receptRegels.get(a.recept_id) ?? 0 : undefined}
+          />
+        ))
       )}
 
       {overigeMethodes.length > 0 && (
@@ -199,6 +238,7 @@ export function MethodesTab() {
               <Badge variant={m.naarVoorraad ? 'secondary' : 'outline'} className="text-xs">
                 {m.naarVoorraad ? 'Voorraad' : 'Direct'}
               </Badge>
+              {m.regelCount === 0 && <GeenRegelsWaarschuwing compact />}
               <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => setBewerk({ id: m.recept_id, naam: m.naam })}>
                 Bewerk
               </Button>
