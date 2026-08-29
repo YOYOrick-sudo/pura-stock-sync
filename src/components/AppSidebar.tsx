@@ -36,28 +36,10 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
   const location = useLocation();
   const navigate = useNavigate();
   const { userLocation } = useUserLocation();
+  const { isManager, isOwner } = useRole();
 
   const [collapsed, setCollapsed] = useState(false);
-  const [isManager, setIsManager] = useState(false);
-  const [isOwner, setIsOwner] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('is_active', true);
-      const roles = (data ?? []).map(r => r.role as string);
-      const owner = roles.some(r => ['owner', 'admin'].includes(r));
-      const manager = owner || roles.includes('manager');
-      if (!cancelled) { setIsManager(manager); setIsOwner(owner); }
-    })();
-    return () => { cancelled = true; };
-  }, []);
 
   const navigationItems = (userLocation
     ? allNavigationItems.filter(item => item.locations.includes(userLocation))
