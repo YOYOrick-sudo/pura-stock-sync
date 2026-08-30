@@ -229,6 +229,7 @@ const App = () => (
             <Route path="/kitchen/recipes/:id" element={<ProtectedRoute><RecipeDetail /></ProtectedRoute>} />
             <Route path="/kitchen/recipes/:id/bewerken" element={<ProtectedRoute><RecipeForm /></ProtectedRoute>} />
             <Route path="/kitchen/ingredienten" element={<ProtectedRoute><Ingredienten /></ProtectedRoute>} />
+            <Route path="/kitchen/gerechten" element={<ProtectedRoute><Gerechten /></ProtectedRoute>} />
             <Route path="/kitchen/mep" element={<ProtectedRoute><MepDag /></ProtectedRoute>} />
             <Route path="/kitchen/mep/week" element={<ProtectedRoute><MepWeek /></ProtectedRoute>} />
             <Route path="/kitchen/mep/oud" element={<ProtectedRoute><MepPlanning /></ProtectedRoute>} />
