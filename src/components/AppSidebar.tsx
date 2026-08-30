@@ -1,4 +1,4 @@
-import { Home, ListChecks, Settings, BookOpen, Package, Printer, Calculator, ClipboardList, LogOut, BarChart3, ChefHat, Boxes, Truck } from 'lucide-react';
+import { Home, ListChecks, Settings, BookOpen, Package, Printer, Calculator, ClipboardList, LogOut, BarChart3, ChefHat, Boxes, Truck, Cookie } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useState } from 'react';
@@ -18,6 +18,7 @@ const allNavigationItems = [
   { title: 'Mise-en-place', url: '/kitchen/mep', icon: ChefHat, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Stickers', url: '/kitchen/snel-printen', icon: Printer, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Recepten', url: '/kitchen/recipes', icon: BookOpen, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
+  { title: 'Gerechten', url: '/kitchen/gerechten', icon: Cookie, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Ingrediënten', url: '/kitchen/ingredienten', icon: Package, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Bestellen', url: '/voorraad', icon: ClipboardList, group: 'voorraad' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Onderweg', url: '/voorraad/onderweg', icon: Truck, group: 'voorraad' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
