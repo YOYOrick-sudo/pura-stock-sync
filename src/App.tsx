@@ -25,6 +25,7 @@ import DesignPreview from "./pages/DesignPreview";
 import DesignSystem from "./pages/DesignSystem";
 import KasControle from "./pages/KasControle";
 import Recipes from "./pages/kitchen/Recipes";
+import Gerechten from "./pages/kitchen/Gerechten";
 import RecipeDetail from "./pages/kitchen/RecipeDetail";
 import RecipeForm from "./pages/kitchen/RecipeForm";
 import Ingredienten from "./pages/kitchen/Ingredienten";
