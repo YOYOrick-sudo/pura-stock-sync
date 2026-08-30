@@ -1,44 +1,39 @@
-# Vestigingswissel voor accounts met meerdere vestigingen
+# Gerechten met allergenen — Keuken → Gerechten → categorie Zoet
 
-## Wat het oplost
-Owner-accounts (jij en Helga) staan in de rollentabel met twee regels: Midsland én West. De app gaat er overal vanuit dat één account bij één vestiging hoort en pakt bij twee regels niets of willekeurig één. Gevolg: /voorraad toont "Vestiging onbekend" en Helga — de enige die extern mag verzenden — kan het bestelscherm niet openen. Dat is een blocker voor de eerste echte bestelling.
+Gerechten zijn iets anders dan recepten: een gerecht is wat de gast koopt, met de allergenen die erin zitten. Recepten blijven ongemoeid.
 
-Na deze opdracht kiest zo'n account bovenaan het scherm zelf de vestiging, en die keuze geldt overal: voorraad, mise-en-place, taken, kassatelling, overdracht.
+## Wat je krijgt
 
-## Wat je gaat zien
-- **Eén grote knop in de header**, naast de paginatitel, waar nu al "Foodbar"/"Daily" staat. Tikken opent een korte lijst met de vestigingen waar je toegang toe hebt; tikken op een naam schakelt direct om. Tikdoel minimaal 44px, ook op tablet.
-- **De keuze wordt onthouden per account** en blijft staan na afsluiten en opnieuw openen. Bij het eerste gebruik staat hij op de vestiging waar het account als eerste aan gekoppeld is.
-- **Accounts met één vestiging zien geen wissel** — daar blijft de header letterlijk zoals hij nu is.
+Nieuw scherm **Keuken → Gerechten** (`/kitchen/gerechten`):
 
-## Wat er onder water moet mee veranderen
-De vestigingsfilters in de database gaan nu uit van "de" vestiging van een account (één waarde). Voor een account met twee vestigingen kiest de database willekeurig één van de twee, ongeacht wat de header toont. Zonder deze stap zou de wissel op sommige schermen (taken, mise-en-place, overdracht, interne bestellingen) wél de knop veranderen maar niet de data. Daarom wordt de databasecontrole aangepast van "is dit dé vestiging van deze gebruiker" naar "hoort deze vestiging bij deze gebruiker".
+- Categorietabs bovenaan, nu alleen **Zoet** (later makkelijk Hartig/Dranken erbij).
+- Binnen Zoet twee blokken zoals in je lijst: **Standaard assortiment** en **Specials**.
+- Per gerecht: naam, prijs (als die bekend is) en de allergeen-labels als chips.
+- Zoekbalk bovenaan — typ "brownie" en je hebt hem meteen. Bedoeld om aan de bar/kassa in twee tellen te beantwoorden: "zit hier noten in?"
+- Toevoegen/bewerken via één dialoog met aanvinkbare labels (grote tikdoelen, tablet-proof).
+- Oranje markering **"nog te controleren"** bij de rijen die in de PDF leeg of met vraagtekens stonden.
 
-## Technische uitvoering
+## Labels — exact zoals jouw lijst
 
-**Database (migratie)**
-- Nieuwe functie `public.heeft_vestiging(_user_id uuid, _loc text)` (security definer, stable): waar of onwaar op basis van alle actieve rollenregels van de gebruiker.
-- `current_user_location()` en `get_user_location()` blijven bestaan (te veel plekken), maar krijgen een deterministische volgorde in plaats van willekeurige `LIMIT 1`.
-- Policies die nu `location = current_user_location()` / `= get_user_location(auth.uid())` gebruiken, worden omgezet naar `heeft_vestiging(auth.uid(), <kolom>)`: `foh_tasks`, `foh_employees`, `foh_daily_templates`, `ai_suggestions`, `handover_memos`, `kitchen_tasks`, `mep_planning`, `mep_taken`, `productie_batches`, `staff_members`, `recipes`, `kassa_afdrachten`, `internal_orders` (+ `internal_order_items`). Rechten worden hiermee niet verruimd voor enkelvoudige accounts — die hebben één vestiging, dus dezelfde uitkomst.
+Gluten · Zuivel · Vegan · Ei · Haver · Pinda's · Sesam · Soja · Walnoot · Amandel · Hazelnoot · Suiker · Pistache
 
-**Frontend**
-- `src/contexts/UserLocationContext.tsx`: laadt alle vestigingen van het account (`user_roles`, actief) in plaats van `maybeSingle()`. Levert `userLocation` (actief), `availableLocations`, `setUserLocation`. Actieve keuze in `localStorage` per gebruikers-id; validatie tegen de toegestane lijst zodat een oude keuze na een rolwijziging niet blijft hangen.
-- `src/components/polar/Header.tsx`: locatieregel wordt een knop met dropdown wanneer er meer dan één vestiging is; anders ongewijzigde tekst. Bestaande tokens en radii, geen nieuwe kleuren.
-- `src/components/SidebarLayout.tsx`: geeft de vestigingslijst en wisselactie door aan de header.
-- `src/components/LocationGuard.tsx`: controleert op de actieve keuze én valt terug op de volledige lijst, zodat een owner niet meer weggestuurd wordt naar /taken-bediening.
-- Schermen die op `userLocation` draaien (voorraad Bestellen/Onderweg/Stand, MEP dag/week/beheer, taken, kassatelling, dashboardkaarten) hoeven geen aanpassing: ze herladen via de context zodra de keuze wijzigt. Waar queries op `userLocation` staan, wordt gecontroleerd dat de query-sleutel de vestiging bevat zodat er niet uit cache van de andere vestiging gelezen wordt.
+Vegan wordt als groen dieetlabel getoond, de allergenen rood, Suiker/Haver neutraal — zodat je in één blik ziet wat een waarschuwing is en wat informatie.
 
-## Opleveren met klikronde (als owner)
-1. Inloggen als owner → header toont de wissel met twee vestigingen.
-2. /voorraad met Midsland gekozen → routes van Midsland, geen "Vestiging onbekend".
-3. Wisselen naar West → dezelfde pagina toont de West-routes (Midsland-route + leveranciers).
-4. Doorklikken naar mise-en-place en taken → data hoort bij de gekozen vestiging.
-5. Pagina verversen → laatst gekozen vestiging staat er nog.
-6. Controle met een enkelvoudig account (West-teamlid): geen wissel zichtbaar, alles werkt als voorheen.
+## Data uit de PDF
 
-## Risico's
-- De policy-omzetting raakt veel tabellen tegelijk. Elke policy wordt één-op-één vervangen; enkelvoudige accounts houden exact dezelfde uitkomst. Na de migratie draait de klikronde ook met een teamlid-account om te bevestigen dat er niets is verruimd of dichtgeslagen.
-- Verkeerde vestiging actief laten staan is een reëel bedieningsrisico (tellen in de verkeerde keuken). Daarom staat de vestiging groot en permanent in beeld, niet verstopt in een menu.
+Alle ~55 producten worden overgenomen, inclusief de prijzen die nu in de namen staan (bijv. "Espresso brownie 3,80" wordt naam "Espresso brownie" + prijs 3,80).
 
-## Genoteerd (buiten deze opdracht)
-- De 7 interne leverdagen Midsland → West blijven ongewijzigd tot jij ze tegen het echte leverritme hebt gecheckt.
-- Het api-kanaal heeft nog geen geslaagde echte verzending gehad; die volgt als proefbestelling van één artikel zodra de Kooyman-configuratie er staat.
+Als "nog te controleren" komen erin: Osawa Cake, Espresso Dadel Taart, Pruimen Tulband, Earl grey - zuidvruchten cake, Perentaart (alleen vraagtekens), en Haver zuidvruchten (glutenkolom onduidelijk: "Haver"). Typefouten uit de lijst worden netjes overgenomen: "Raberber & kokos taart" → "Rabarber & kokos taart", "Banaan amdel muffin" → "Banaan amandel muffin", "No bake wiite c cheesecake" → "No bake witte choco cheesecake", "Madelaine" → "Madeleine".
+
+## In de praktijk
+
+- Wie: bediening en keuken, op tablet of telefoon, midden in een gesprek met een gast. Daarom zoeken vóór bladeren.
+- Wat verandert er: de papieren/PDF-lijst vervalt. Wijzigt een recept, dan past de keuken het gerecht hier aan — één plek.
+- Risico: een gerecht dat niet in de lijst staat of niet is bijgewerkt geeft verkeerde info aan een gast. Daarom staat "nog te controleren" duidelijk in beeld en niet stilletjes als "geen allergenen", en tonen we onderaan altijd de zin dat bij twijfel het etiket/de keuken leidend is.
+- Over een maand: specials wisselen. Gerechten worden gearchiveerd, niet verwijderd, met een filter "Ook gearchiveerde tonen".
+
+## Technisch
+
+- Migratie: tabel `public.gerechten` (naam, categorie default 'Zoet', groep 'standaard'|'special', prijs numeric null, labels text[], gecontroleerd boolean default true, notitie, is_gearchiveerd, sort_order, vestiging null = beide, created_at/updated_at + trigger). GRANT voor `authenticated` (lezen/schrijven) en `service_role`; RLS aan met lezen voor alle ingelogde gebruikers en schrijven voor manager/owner via `has_role`. Geen anon-toegang.
+- Data-insert van de PDF-rijen via een aparte data-stap na de migratie.
+- Frontend: `src/lib/gerecht-labels.ts` (labelcodes + kleurgroep), hook `src/hooks/useGerechten.ts` (TanStack Query, CRUD), pagina `src/pages/kitchen/Gerechten.tsx` en `src/components/kitchen/GerechtDialog.tsx`. Route in `App.tsx` achter `ProtectedRoute`, item "Gerechten" in de keuken-sectie van `AppSidebar.tsx` en in `KitchenMenu`. Bestaande design-tokens, geen nieuwe libraries.
