@@ -49,7 +49,11 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
   )
     .filter(item => !item.managerOnly || isManager)
     .filter(item => !item.ownerOnly || isOwner)
-    .filter(item => !(userLocation === 'Midsland' && item.group === 'keuken' && item.url !== '/kitchen/mep'));
+    .filter(item => !(
+      userLocation === 'Midsland' &&
+      item.group === 'keuken' &&
+      !['/kitchen/mep', '/kitchen/gerechten'].includes(item.url)
+    ));
 
   const isActive = (url: string) =>
     location.pathname === url ||
