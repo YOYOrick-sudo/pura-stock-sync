@@ -1099,6 +1099,54 @@ export type Database = {
           },
         ]
       }
+      gerechten: {
+        Row: {
+          categorie: string
+          created_at: string
+          gecontroleerd: boolean
+          groep: string
+          id: string
+          is_gearchiveerd: boolean
+          labels: string[]
+          naam: string
+          notitie: string | null
+          prijs: number | null
+          sort_order: number
+          updated_at: string
+          vestiging: string | null
+        }
+        Insert: {
+          categorie?: string
+          created_at?: string
+          gecontroleerd?: boolean
+          groep?: string
+          id?: string
+          is_gearchiveerd?: boolean
+          labels?: string[]
+          naam: string
+          notitie?: string | null
+          prijs?: number | null
+          sort_order?: number
+          updated_at?: string
+          vestiging?: string | null
+        }
+        Update: {
+          categorie?: string
+          created_at?: string
+          gecontroleerd?: boolean
+          groep?: string
+          id?: string
+          is_gearchiveerd?: boolean
+          labels?: string[]
+          naam?: string
+          notitie?: string | null
+          prijs?: number | null
+          sort_order?: number
+          updated_at?: string
+          vestiging?: string | null
+        }
+        Relationships: []
+      }
       halffabricaat_methodes: {
         Row: {
           created_at: string
