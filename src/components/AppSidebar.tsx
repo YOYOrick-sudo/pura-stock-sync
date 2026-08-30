@@ -1,4 +1,4 @@
-import { Home, ListChecks, Settings, BookOpen, Package, Printer, Calculator, ClipboardList, LogOut, BarChart3, ChefHat, Boxes, Truck } from 'lucide-react';
+import { Home, ListChecks, Settings, BookOpen, Package, Printer, Calculator, ClipboardList, LogOut, BarChart3, ChefHat, Boxes, Truck, Cookie } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useState } from 'react';
