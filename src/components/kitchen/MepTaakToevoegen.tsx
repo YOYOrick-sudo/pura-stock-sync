@@ -1,16 +1,10 @@
 import { useMemo, useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Clock, Zap, Plus, Check } from 'lucide-react';
+import { Search, Clock, Zap, Plus, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 import {
   MepFavoriet,
   MepReceptOptie,
@@ -21,8 +15,6 @@ import {
 } from '@/hooks/useMepTaken';
 
 interface Props {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
   vestiging: string;
   datum: string;
   medewerkers: { id: string; name: string }[];
@@ -32,8 +24,6 @@ interface Props {
 }
 
 export function MepTaakToevoegen({
-  open,
-  onOpenChange,
   vestiging,
   datum,
   medewerkers,
@@ -44,15 +34,12 @@ export function MepTaakToevoegen({
   const { data: favorieten = [] } = useMepFavorieten(vestiging);
   const [zoek, setZoek] = useState('');
   const [bezig, setBezig] = useState(false);
-  // Net toegevoegde taak → stap 2 (persoon toewijzen)
   const [netToegevoegd, setNetToegevoegd] = useState<MepTaak | null>(null);
 
   const gefilterd = useMemo(() => {
     const q = zoek.trim().toLowerCase();
     if (q.length < 2) return [];
-    return opties
-      .filter((o) => o.recept_naam.toLowerCase().includes(q))
-      .slice(0, 8);
+    return opties.filter((o) => o.recept_naam.toLowerCase().includes(q)).slice(0, 8);
   }, [opties, zoek]);
 
   const exacteMatch = useMemo(() => {
@@ -62,26 +49,28 @@ export function MepTaakToevoegen({
 
   const toonNieuw = zoek.trim().length >= 2 && !exacteMatch;
 
-  const sluit = () => {
-    setZoek('');
-    setNetToegevoegd(null);
-    onOpenChange(false);
-  };
-
   const naToevoegen = (taak: MepTaak | null) => {
     setZoek('');
-    if (taak && medewerkers.length > 0 && onToewijzen) {
-      setNetToegevoegd(taak);
-    } else {
-      setNetToegevoegd(null);
-    }
+    setNetToegevoegd(taak && medewerkers.length > 0 && onToewijzen ? taak : null);
   };
 
-  const voegReceptToe = async (o: MepReceptOptie) => {
+  const voegToe = async (input: MepTaakInput, label: string) => {
     if (bezig) return;
     setBezig(true);
     try {
-      const taak = (await onToevoegen({
+      const taak = (await onToevoegen(input)) as MepTaak;
+      toast.success(`${label} toegevoegd`);
+      naToevoegen(taak ?? null);
+    } catch (e: any) {
+      toast.error('Toevoegen mislukt: ' + (e?.message ?? 'onbekende fout'));
+    } finally {
+      setBezig(false);
+    }
+  };
+
+  const voegReceptToe = (o: MepReceptOptie) =>
+    voegToe(
+      {
         vestiging,
         taak_datum: datum,
         titel: o.heeft_methode ? `${o.recept_naam} · ${o.type}` : o.recept_naam,
@@ -91,42 +80,22 @@ export function MepTaakToevoegen({
         doel_aantal: 1,
         doel_eenheid: o.visuele_eenheid,
         prioriteit: 2,
-      })) as MepTaak;
-      toast.success(`${o.recept_naam} toegevoegd`);
-      naToevoegen(taak ?? null);
-    } catch (e: any) {
-      toast.error('Toevoegen mislukt: ' + (e?.message ?? 'onbekende fout'));
-    } finally {
-      setBezig(false);
-    }
-  };
+      },
+      o.recept_naam,
+    );
 
-  const voegVrijToe = async () => {
+  const voegVrijToe = () => {
     const titel = zoek.trim();
-    if (titel.length < 2 || bezig) return;
-    setBezig(true);
-    try {
-      const taak = (await onToevoegen({
-        vestiging,
-        taak_datum: datum,
-        titel,
-        categorie: 'Algemeen',
-        prioriteit: 2,
-      })) as MepTaak;
-      toast.success(`${titel} toegevoegd`);
-      naToevoegen(taak ?? null);
-    } catch (e: any) {
-      toast.error('Toevoegen mislukt: ' + (e?.message ?? 'onbekende fout'));
-    } finally {
-      setBezig(false);
-    }
+    if (titel.length < 2) return;
+    return voegToe(
+      { vestiging, taak_datum: datum, titel, categorie: 'Algemeen', prioriteit: 2 },
+      titel,
+    );
   };
 
-  const snelToevoegen = async (f: MepFavoriet) => {
-    if (bezig) return;
-    setBezig(true);
-    try {
-      const taak = (await onToevoegen({
+  const snelToevoegen = (f: MepFavoriet) =>
+    voegToe(
+      {
         vestiging,
         taak_datum: datum,
         titel: f.titel,
@@ -136,15 +105,9 @@ export function MepTaakToevoegen({
         doel_aantal: f.doel_aantal,
         doel_eenheid: f.doel_eenheid,
         prioriteit: 2,
-      })) as MepTaak;
-      toast.success(`${f.titel} toegevoegd`);
-      naToevoegen(taak ?? null);
-    } catch (e: any) {
-      toast.error('Toevoegen mislukt: ' + (e?.message ?? 'onbekende fout'));
-    } finally {
-      setBezig(false);
-    }
-  };
+      },
+      f.titel,
+    );
 
   const wijsToe = async (medewerkerId: string) => {
     if (!netToegevoegd || !onToewijzen || bezig) return;
@@ -153,7 +116,7 @@ export function MepTaakToevoegen({
       await onToewijzen(netToegevoegd.id, medewerkerId);
       const naam = medewerkers.find((m) => m.id === medewerkerId)?.name ?? '';
       toast.success(`${netToegevoegd.titel} → ${naam}`);
-      sluit();
+      setNetToegevoegd(null);
     } catch (e: any) {
       toast.error('Toewijzen mislukt: ' + (e?.message ?? 'onbekende fout'));
     } finally {
@@ -162,137 +125,126 @@ export function MepTaakToevoegen({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => (v ? onOpenChange(v) : sluit())}>
-      <DialogContent className="max-w-[650px]">
-        <DialogHeader>
-          <DialogTitle>Taak toevoegen</DialogTitle>
-        </DialogHeader>
+    <Card className="p-4 sm:p-5 bg-card shadow-sm space-y-3">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          className="h-12 pl-9 text-[15px]"
+          placeholder="Taak toevoegen — typ recept of vrije taak…"
+          value={zoek}
+          onChange={(e) => setZoek(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              if (gefilterd.length > 0) voegReceptToe(gefilterd[0]);
+              else voegVrijToe();
+            }
+          }}
+          autoComplete="off"
+        />
+      </div>
 
-        {netToegevoegd ? (
-          /* Stap 2: persoon toewijzen */
-          <div className="space-y-4">
-            <p className="flex items-center gap-2 text-[15px]">
-              <Check className="w-5 h-5 text-primary shrink-0" />
-              <span className="font-medium truncate">{netToegevoegd.titel}</span>
-              <span className="text-muted-foreground shrink-0">toegevoegd</span>
-            </p>
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Wie doet het?
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {medewerkers.map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    disabled={bezig}
-                    onClick={() => wijsToe(m.id)}
-                    className="rounded-polar-md border border-border/60 bg-card px-3 py-2.5 min-h-[48px] text-[14px] font-medium text-left hover:bg-primary/5 active:bg-primary/10 transition-colors disabled:opacity-50 truncate"
-                  >
-                    {m.name}
-                  </button>
-                ))}
+      {(gefilterd.length > 0 || toonNieuw) && (
+        <div className="max-h-72 overflow-y-auto rounded-polar border border-border/60 divide-y divide-border/60">
+          {gefilterd.map((o) => (
+            <button
+              key={o.methode_id ?? `recept:${o.recept_id}`}
+              type="button"
+              disabled={bezig}
+              onClick={() => voegReceptToe(o)}
+              className="w-full text-left px-4 py-3 min-h-[56px] transition-colors hover:bg-primary/5 active:bg-primary/10 disabled:opacity-50"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[15px] font-medium">{o.recept_naam}</span>
+                <Badge variant="secondary" className="font-normal shrink-0">
+                  {o.heeft_methode ? o.type : 'recept'}
+                </Badge>
               </div>
-            </div>
-            <div className="flex justify-end">
-              <Button variant="outline" onClick={sluit} disabled={bezig}>
-                Overslaan
-              </Button>
-            </div>
-          </div>
-        ) : (
-          /* Stap 1: toevoegen */
-          <div className="space-y-3">
-            {favorieten.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Vaakst gemaakt
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {favorieten.map((f) => (
-                    <button
-                      key={f.sleutel}
-                      type="button"
-                      disabled={bezig}
-                      onClick={() => snelToevoegen(f)}
-                      className="rounded-polar-md border border-border/60 bg-card px-3 py-2.5 min-h-[56px] text-left hover:bg-primary/5 active:bg-primary/10 transition-colors disabled:opacity-50"
-                    >
-                      <span className="flex items-center gap-1.5 text-[14px] font-medium leading-tight line-clamp-2">
-                        <Zap className="w-3.5 h-3.5 shrink-0 text-primary/70" />
-                        {f.titel}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{f.aantal_keer}×</span>
-                    </button>
-                  ))}
+              {o.heeft_methode && (
+                <div className="mt-0.5 flex items-center gap-3 text-sm text-muted-foreground">
+                  <span>
+                    1 {o.visuele_eenheid} = {o.output_hoeveelheid} {o.output_eenheid}
+                  </span>
+                  {o.standaard_duur != null && (
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />~{o.standaard_duur} min
+                    </span>
+                  )}
                 </div>
-              </div>
-            )}
+              )}
+            </button>
+          ))}
+          {toonNieuw && (
+            <button
+              type="button"
+              disabled={bezig}
+              onClick={voegVrijToe}
+              className="w-full text-left px-4 py-3 min-h-[56px] flex items-center gap-2 transition-colors hover:bg-primary/5 active:bg-primary/10 disabled:opacity-50"
+            >
+              <Plus className="w-4 h-4 text-primary shrink-0" />
+              <span className="text-[15px] font-medium truncate">Nieuw: “{zoek.trim()}”</span>
+              <Badge variant="outline" className="ml-auto font-normal shrink-0">
+                vrije taak
+              </Badge>
+            </button>
+          )}
+        </div>
+      )}
 
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                className="h-12 pl-9 text-[15px]"
-                placeholder="Typ recept of taak…"
-                value={zoek}
-                onChange={(e) => setZoek(e.target.value)}
-                autoFocus
-                autoComplete="off"
-              />
-            </div>
-
-            {(gefilterd.length > 0 || toonNieuw) && (
-              <div className="max-h-72 overflow-y-auto rounded-polar border border-border/60 divide-y divide-border/60">
-                {gefilterd.map((o) => (
-                  <button
-                    key={o.methode_id ?? `recept:${o.recept_id}`}
-                    type="button"
-                    disabled={bezig}
-                    onClick={() => voegReceptToe(o)}
-                    className="w-full text-left px-4 py-3 min-h-[56px] transition-colors hover:bg-primary/5 active:bg-primary/10 disabled:opacity-50"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-[15px] font-medium">{o.recept_naam}</span>
-                      <Badge variant="secondary" className="font-normal shrink-0">
-                        {o.heeft_methode ? o.type : 'recept'}
-                      </Badge>
-                    </div>
-                    {o.heeft_methode && (
-                      <div className="mt-0.5 flex items-center gap-3 text-sm text-muted-foreground">
-                        <span>
-                          1 {o.visuele_eenheid} = {o.output_hoeveelheid} {o.output_eenheid}
-                        </span>
-                        {o.standaard_duur != null && (
-                          <span className="inline-flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" />~{o.standaard_duur} min
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </button>
-                ))}
-                {toonNieuw && (
-                  <button
-                    type="button"
-                    disabled={bezig}
-                    onClick={voegVrijToe}
-                    className={cn(
-                      'w-full text-left px-4 py-3 min-h-[56px] transition-colors hover:bg-primary/5 active:bg-primary/10 disabled:opacity-50',
-                      'flex items-center gap-2 text-[15px] font-medium text-primary',
-                    )}
-                  >
-                    <Plus className="w-4 h-4 shrink-0" />
-                    Nieuw: "{zoek.trim()}"
-                  </button>
-                )}
-              </div>
-            )}
-
-            {zoek.trim().length > 0 && zoek.trim().length < 2 && (
-              <p className="text-sm text-muted-foreground px-1">Typ minstens 2 tekens…</p>
-            )}
+      {netToegevoegd && (
+        <div className="rounded-polar border border-primary/30 bg-primary/5 p-3 space-y-2">
+          <div className="flex items-center gap-2 text-[15px]">
+            <Check className="w-5 h-5 text-primary shrink-0" />
+            <span className="font-medium truncate">{netToegevoegd.titel}</span>
+            <span className="text-muted-foreground shrink-0">toegevoegd — wie doet het?</span>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="ml-auto h-9 w-9 shrink-0"
+              onClick={() => setNetToegevoegd(null)}
+              aria-label="Overslaan"
+            >
+              <X className="w-4 h-4" />
+            </Button>
           </div>
-        )}
-      </DialogContent>
-    </Dialog>
+          <div className="flex flex-wrap gap-2">
+            {medewerkers.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                disabled={bezig}
+                onClick={() => wijsToe(m.id)}
+                className="rounded-polar-md border border-border/60 bg-card px-4 min-h-[44px] text-[14px] font-medium hover:bg-primary/5 active:bg-primary/10 transition-colors disabled:opacity-50"
+              >
+                {m.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {favorieten.length > 0 && !zoek.trim() && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Vaakst gemaakt
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {favorieten.map((f) => (
+              <button
+                key={f.sleutel}
+                type="button"
+                disabled={bezig}
+                onClick={() => snelToevoegen(f)}
+                className="inline-flex items-center gap-1.5 rounded-polar-md border border-border/60 bg-card px-4 min-h-[44px] text-[14px] font-medium hover:bg-primary/5 active:bg-primary/10 transition-colors disabled:opacity-50"
+              >
+                <Zap className="w-3.5 h-3.5 shrink-0 text-primary/70" />
+                {f.titel}
+                <span className="text-xs text-muted-foreground">{f.aantal_keer}×</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </Card>
   );
 }

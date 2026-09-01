@@ -68,7 +68,6 @@ export default function MepDag() {
   const { data: medewerkers = [] } = useKeukenMedewerkers(vestiging);
   const { toevoegen, bijwerken, verwijderen, afronden, heropenen } = useMepTaakMutaties(vestiging, datum);
 
-  const [toevoegenOpen, setToevoegenOpen] = useState(false);
   const [afrondTaak, setAfrondTaak] = useState<MepTaak | null>(null);
   const [weergave, setWeergave] = useState<'categorie' | 'persoon'>('categorie');
 
@@ -165,12 +164,19 @@ export default function MepDag() {
             >
               <Settings className="w-5 h-5" />
             </Button>
-            <Button className="h-11" onClick={() => setToevoegenOpen(true)}>
-              <Plus className="w-5 h-5 mr-1.5" />
-              Taak
-            </Button>
           </div>
         </div>
+
+        {/* Taak toevoegen — inline */}
+        <MepTaakToevoegen
+          vestiging={vestiging}
+          datum={datum}
+          medewerkers={medewerkers}
+          onToevoegen={(input) => toevoegen.mutateAsync(input)}
+          onToewijzen={(taakId, medewerkerId) =>
+            bijwerken.mutateAsync({ id: taakId, toegewezen_aan: medewerkerId })
+          }
+        />
 
         {/* Voortgang */}
         <Card className="p-4 sm:p-5 bg-card shadow-sm">
@@ -190,14 +196,14 @@ export default function MepDag() {
           </TabsList>
         </Tabs>
 
+
         {isLoading ? (
           <p className="py-10 text-center text-sm text-muted-foreground">Laden…</p>
         ) : taken.length === 0 ? (
           <EmptyState
             icon={Plus}
             title="Nog geen MEP voor deze dag"
-            description="Voeg halffabricaten of vrije taken toe om de dag klaar te zetten."
-            action={{ label: 'Taak toevoegen', onClick: () => setToevoegenOpen(true) }}
+            description="Gebruik het zoekveld hierboven om halffabricaten of vrije taken toe te voegen."
           />
         ) : (
           <div className="space-y-4">
@@ -320,19 +326,8 @@ export default function MepDag() {
         )}
       </div>
 
-      <MepTaakToevoegen
-        open={toevoegenOpen}
-        onOpenChange={setToevoegenOpen}
-        vestiging={vestiging}
-        datum={datum}
-        medewerkers={medewerkers}
-        onToevoegen={(input) => toevoegen.mutateAsync(input)}
-        onToewijzen={(taakId, medewerkerId) =>
-          bijwerken.mutateAsync({ id: taakId, toegewezen_aan: medewerkerId })
-        }
-      />
-
       <MepAfrondDialog
+
         taak={afrondTaak}
         onOpenChange={(v) => !v && setAfrondTaak(null)}
         onAfronden={(args) => afronden.mutateAsync(args)}
