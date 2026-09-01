@@ -2,24 +2,19 @@ import { useMemo, useState } from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Clock, Zap } from 'lucide-react';
+import { Search, Clock, Zap, Plus, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
-  MEP_CATEGORIEEN,
   MepFavoriet,
   MepReceptOptie,
+  MepTaak,
   MepTaakInput,
   useMepFavorieten,
   useMepRecepten,
@@ -32,6 +27,8 @@ interface Props {
   datum: string;
   medewerkers: { id: string; name: string }[];
   onToevoegen: (input: MepTaakInput) => Promise<unknown>;
+  /** Optioneel: persoon toewijzen ná toevoegen. */
+  onToewijzen?: (taakId: string, medewerkerId: string) => Promise<unknown>;
 }
 
 export function MepTaakToevoegen({
@@ -41,41 +38,95 @@ export function MepTaakToevoegen({
   datum,
   medewerkers,
   onToevoegen,
+  onToewijzen,
 }: Props) {
   const { data: opties = [] } = useMepRecepten(vestiging);
   const { data: favorieten = [] } = useMepFavorieten(vestiging);
-  const [tab, setTab] = useState<'recept' | 'vrij'>('recept');
   const [zoek, setZoek] = useState('');
-  const [gekozen, setGekozen] = useState<MepReceptOptie | null>(null);
-  const [aantal, setAantal] = useState(1);
-  const [titel, setTitel] = useState('');
-  const [categorie, setCategorie] = useState<string>('Algemeen');
-  const [prioriteit, setPrioriteit] = useState(2);
-  const [medewerker, setMedewerker] = useState<string>('geen');
-  const [notitie, setNotitie] = useState('');
   const [bezig, setBezig] = useState(false);
+  // Net toegevoegde taak → stap 2 (persoon toewijzen)
+  const [netToegevoegd, setNetToegevoegd] = useState<MepTaak | null>(null);
 
   const gefilterd = useMemo(() => {
     const q = zoek.trim().toLowerCase();
-    if (!q) return opties;
-    return opties.filter(
-      (o) => o.recept_naam.toLowerCase().includes(q) || o.type.toLowerCase().includes(q),
-    );
+    if (q.length < 2) return [];
+    return opties
+      .filter((o) => o.recept_naam.toLowerCase().includes(q))
+      .slice(0, 8);
   }, [opties, zoek]);
 
-  const blokken = useMemo(() => {
-    const met = gefilterd.filter((o) => o.heeft_methode);
-    const zonder = gefilterd.filter((o) => !o.heeft_methode);
-    const uit: [string, MepReceptOptie[]][] = [];
-    if (met.length) uit.push(['Met methode', met]);
-    if (zonder.length) uit.push(['Overige recepten van deze vestiging', zonder]);
-    return uit;
-  }, [gefilterd]);
+  const exacteMatch = useMemo(() => {
+    const q = zoek.trim().toLowerCase();
+    return q.length >= 2 && opties.some((o) => o.recept_naam.toLowerCase() === q);
+  }, [opties, zoek]);
 
-  const snelToevoegen = async (f: MepFavoriet) => {
+  const toonNieuw = zoek.trim().length >= 2 && !exacteMatch;
+
+  const sluit = () => {
+    setZoek('');
+    setNetToegevoegd(null);
+    onOpenChange(false);
+  };
+
+  const naToevoegen = (taak: MepTaak | null) => {
+    setZoek('');
+    if (taak && medewerkers.length > 0 && onToewijzen) {
+      setNetToegevoegd(taak);
+    } else {
+      setNetToegevoegd(null);
+    }
+  };
+
+  const voegReceptToe = async (o: MepReceptOptie) => {
+    if (bezig) return;
     setBezig(true);
     try {
-      await onToevoegen({
+      const taak = (await onToevoegen({
+        vestiging,
+        taak_datum: datum,
+        titel: o.heeft_methode ? `${o.recept_naam} · ${o.type}` : o.recept_naam,
+        categorie: o.categorie || 'Algemeen',
+        recept_id: o.recept_id,
+        methode_id: o.methode_id,
+        doel_aantal: 1,
+        doel_eenheid: o.visuele_eenheid,
+        prioriteit: 2,
+      })) as MepTaak;
+      toast.success(`${o.recept_naam} toegevoegd`);
+      naToevoegen(taak ?? null);
+    } catch (e: any) {
+      toast.error('Toevoegen mislukt: ' + (e?.message ?? 'onbekende fout'));
+    } finally {
+      setBezig(false);
+    }
+  };
+
+  const voegVrijToe = async () => {
+    const titel = zoek.trim();
+    if (titel.length < 2 || bezig) return;
+    setBezig(true);
+    try {
+      const taak = (await onToevoegen({
+        vestiging,
+        taak_datum: datum,
+        titel,
+        categorie: 'Algemeen',
+        prioriteit: 2,
+      })) as MepTaak;
+      toast.success(`${titel} toegevoegd`);
+      naToevoegen(taak ?? null);
+    } catch (e: any) {
+      toast.error('Toevoegen mislukt: ' + (e?.message ?? 'onbekende fout'));
+    } finally {
+      setBezig(false);
+    }
+  };
+
+  const snelToevoegen = async (f: MepFavoriet) => {
+    if (bezig) return;
+    setBezig(true);
+    try {
+      const taak = (await onToevoegen({
         vestiging,
         taak_datum: datum,
         titel: f.titel,
@@ -85,10 +136,9 @@ export function MepTaakToevoegen({
         doel_aantal: f.doel_aantal,
         doel_eenheid: f.doel_eenheid,
         prioriteit: 2,
-      });
+      })) as MepTaak;
       toast.success(`${f.titel} toegevoegd`);
-      reset();
-      onOpenChange(false);
+      naToevoegen(taak ?? null);
     } catch (e: any) {
       toast.error('Toevoegen mislukt: ' + (e?.message ?? 'onbekende fout'));
     } finally {
@@ -96,85 +146,62 @@ export function MepTaakToevoegen({
     }
   };
 
-
-
-  const reset = () => {
-    setZoek('');
-    setGekozen(null);
-    setAantal(1);
-    setTitel('');
-    setCategorie('Algemeen');
-    setPrioriteit(2);
-    setMedewerker('geen');
-    setNotitie('');
-  };
-
-  const opslaan = async () => {
-    const basis = {
-      vestiging,
-      taak_datum: datum,
-      prioriteit,
-      toegewezen_aan: medewerker === 'geen' ? null : medewerker,
-      notitie: notitie.trim() || null,
-    };
-
-    let input: MepTaakInput;
-    if (tab === 'recept') {
-      if (!gekozen) {
-        toast.error('Kies eerst een recept');
-        return;
-      }
-      input = {
-        ...basis,
-        titel: gekozen.heeft_methode
-          ? `${gekozen.recept_naam} · ${gekozen.type}`
-          : gekozen.recept_naam,
-        categorie: gekozen.categorie || 'Algemeen',
-        recept_id: gekozen.recept_id,
-        methode_id: gekozen.methode_id,
-        doel_aantal: aantal,
-        doel_eenheid: gekozen.visuele_eenheid,
-      };
-    } else {
-      if (titel.trim().length < 2) {
-        toast.error('Geef de taak een korte naam');
-        return;
-      }
-      input = { ...basis, titel: titel.trim(), categorie };
-    }
-
+  const wijsToe = async (medewerkerId: string) => {
+    if (!netToegevoegd || !onToewijzen || bezig) return;
     setBezig(true);
     try {
-      await onToevoegen(input);
-      toast.success('Toegevoegd aan de MEP-lijst');
-      reset();
-      onOpenChange(false);
+      await onToewijzen(netToegevoegd.id, medewerkerId);
+      const naam = medewerkers.find((m) => m.id === medewerkerId)?.name ?? '';
+      toast.success(`${netToegevoegd.titel} → ${naam}`);
+      sluit();
     } catch (e: any) {
-      toast.error('Toevoegen mislukt: ' + (e?.message ?? 'onbekende fout'));
+      toast.error('Toewijzen mislukt: ' + (e?.message ?? 'onbekende fout'));
     } finally {
       setBezig(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => (v ? onOpenChange(v) : (reset(), onOpenChange(false)))}>
+    <Dialog open={open} onOpenChange={(v) => (v ? onOpenChange(v) : sluit())}>
       <DialogContent className="max-w-[650px]">
         <DialogHeader>
           <DialogTitle>Taak toevoegen</DialogTitle>
         </DialogHeader>
 
-        <Tabs value={tab} onValueChange={(v) => setTab(v as 'recept' | 'vrij')}>
-          <TabsList className="w-full">
-            <TabsTrigger value="recept" className="flex-1">
-              Recept / methode
-            </TabsTrigger>
-            <TabsTrigger value="vrij" className="flex-1">
-              Vrije taak
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        {tab === 'recept' ? (
+        {netToegevoegd ? (
+          /* Stap 2: persoon toewijzen */
+          <div className="space-y-4">
+            <p className="flex items-center gap-2 text-[15px]">
+              <Check className="w-5 h-5 text-primary shrink-0" />
+              <span className="font-medium truncate">{netToegevoegd.titel}</span>
+              <span className="text-muted-foreground shrink-0">toegevoegd</span>
+            </p>
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Wie doet het?
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {medewerkers.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    disabled={bezig}
+                    onClick={() => wijsToe(m.id)}
+                    className="rounded-polar-md border border-border/60 bg-card px-3 py-2.5 min-h-[48px] text-[14px] font-medium text-left hover:bg-primary/5 active:bg-primary/10 transition-colors disabled:opacity-50 truncate"
+                  >
+                    {m.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={sluit} disabled={bezig}>
+                Overslaan
+              </Button>
+            </div>
+          </div>
+        ) : (
+          /* Stap 1: toevoegen */
           <div className="space-y-3">
             {favorieten.length > 0 && (
               <div className="space-y-2">
@@ -204,181 +231,67 @@ export function MepTaakToevoegen({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                className="h-11 pl-9"
-                placeholder="Zoek recept of handeling"
+                className="h-12 pl-9 text-[15px]"
+                placeholder="Typ recept of taak…"
                 value={zoek}
                 onChange={(e) => setZoek(e.target.value)}
+                autoFocus
+                autoComplete="off"
               />
             </div>
 
-            <div className="max-h-64 overflow-y-auto rounded-polar border border-border/60 divide-y divide-border/60">
-              {gefilterd.length === 0 ? (
-                <p className="p-4 text-sm text-muted-foreground">
-                  Geen recepten aan voor deze vestiging. Zet het recept aan bij Recepten.
-                </p>
-              ) : (
-                blokken.map(([kop, rij]) => (
-                  <div key={kop}>
-                    <p className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground bg-muted/40">
-                      {kop}
-                    </p>
-                    {rij.map((o) => {
-                      const sleutel = o.methode_id ?? `recept:${o.recept_id}`;
-                      const actief =
-                        (gekozen?.methode_id ?? `recept:${gekozen?.recept_id}`) === sleutel;
-                      return (
-                        <button
-                          key={sleutel}
-                          type="button"
-                          onClick={() => setGekozen(o)}
-                          className={cn(
-                            'w-full text-left px-4 py-3 min-h-[56px] transition-colors border-t border-border/60',
-                            actief ? 'bg-primary/10' : 'hover:bg-muted/60',
-                          )}
-                        >
-                          <div className="flex items-center justify-between gap-3">
-                            <span className="text-[15px] font-medium">{o.recept_naam}</span>
-                            <Badge variant="secondary" className="font-normal shrink-0">
-                              {o.heeft_methode ? o.type : o.categorie}
-                            </Badge>
-                          </div>
-                          {o.heeft_methode ? (
-                            <div className="mt-0.5 flex items-center gap-3 text-sm text-muted-foreground">
-                              <span>
-                                1 {o.visuele_eenheid} = {o.output_hoeveelheid} {o.output_eenheid}
-                              </span>
-                              <span className="inline-flex items-center gap-1">
-                                <Clock className="w-3.5 h-3.5" />~{o.standaard_duur} min
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="mt-0.5 text-sm text-muted-foreground">
-                              Zonder methode — geen sticker of batch bij afronden
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                ))
-              )}
-            </div>
-
-
-            {gekozen && (
-              <div className="space-y-1.5">
-                <Label>Hoeveel {gekozen.visuele_eenheid}?</Label>
-                <div className="flex items-center gap-2">
-                  <Button
+            {(gefilterd.length > 0 || toonNieuw) && (
+              <div className="max-h-72 overflow-y-auto rounded-polar border border-border/60 divide-y divide-border/60">
+                {gefilterd.map((o) => (
+                  <button
+                    key={o.methode_id ?? `recept:${o.recept_id}`}
                     type="button"
-                    variant="outline"
-                    className="h-12 w-12 text-lg"
-                    onClick={() => setAantal((a) => Math.max(1, a - 1))}
+                    disabled={bezig}
+                    onClick={() => voegReceptToe(o)}
+                    className="w-full text-left px-4 py-3 min-h-[56px] transition-colors hover:bg-primary/5 active:bg-primary/10 disabled:opacity-50"
                   >
-                    −
-                  </Button>
-                  <Input
-                    className="h-12 text-center text-lg tabular-nums"
-                    type="number"
-                    inputMode="numeric"
-                    value={aantal}
-                    onChange={(e) => setAantal(Math.max(1, Number(e.target.value)))}
-                  />
-                  <Button
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-[15px] font-medium">{o.recept_naam}</span>
+                      <Badge variant="secondary" className="font-normal shrink-0">
+                        {o.heeft_methode ? o.type : 'recept'}
+                      </Badge>
+                    </div>
+                    {o.heeft_methode && (
+                      <div className="mt-0.5 flex items-center gap-3 text-sm text-muted-foreground">
+                        <span>
+                          1 {o.visuele_eenheid} = {o.output_hoeveelheid} {o.output_eenheid}
+                        </span>
+                        {o.standaard_duur != null && (
+                          <span className="inline-flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5" />~{o.standaard_duur} min
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </button>
+                ))}
+                {toonNieuw && (
+                  <button
                     type="button"
-                    variant="outline"
-                    className="h-12 w-12 text-lg"
-                    onClick={() => setAantal((a) => a + 1)}
+                    disabled={bezig}
+                    onClick={voegVrijToe}
+                    className={cn(
+                      'w-full text-left px-4 py-3 min-h-[56px] transition-colors hover:bg-primary/5 active:bg-primary/10 disabled:opacity-50',
+                      'flex items-center gap-2 text-[15px] font-medium text-primary',
+                    )}
                   >
-                    +
-                  </Button>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Levert {(gekozen.output_hoeveelheid * aantal).toLocaleString('nl-NL')}{' '}
-                  {gekozen.output_eenheid} op
-                  {gekozen.houdbaarheid != null && ` · ${gekozen.houdbaarheid} dagen houdbaar`}
-                </p>
+                    <Plus className="w-4 h-4 shrink-0" />
+                    Nieuw: "{zoek.trim()}"
+                  </button>
+                )}
               </div>
             )}
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label>Wat moet er gebeuren?</Label>
-              <Input
-                className="h-11"
-                placeholder="Kip vacumeren"
-                value={titel}
-                onChange={(e) => setTitel(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Categorie</Label>
-              <Select value={categorie} onValueChange={setCategorie}>
-                <SelectTrigger className="h-11">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {MEP_CATEGORIEEN.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+
+            {zoek.trim().length > 0 && zoek.trim().length < 2 && (
+              <p className="text-sm text-muted-foreground px-1">Typ minstens 2 tekens…</p>
+            )}
           </div>
         )}
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label>Prioriteit</Label>
-            <Select value={String(prioriteit)} onValueChange={(v) => setPrioriteit(Number(v))}>
-              <SelectTrigger className="h-11">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">Moet vandaag</SelectItem>
-                <SelectItem value="2">Normaal</SelectItem>
-                <SelectItem value="3">Als er tijd is</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Wie doet het?</Label>
-            <Select value={medewerker} onValueChange={setMedewerker}>
-              <SelectTrigger className="h-11">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="geen">Niet toegewezen</SelectItem>
-                {medewerkers.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>
-                    {m.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5 sm:col-span-2">
-            <Label>Notitie (optioneel)</Label>
-            <Textarea
-              rows={2}
-              value={notitie}
-              onChange={(e) => setNotitie(e.target.value)}
-              placeholder="Bijzonderheden voor de kok"
-            />
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={bezig}>
-            Annuleren
-          </Button>
-          <Button onClick={opslaan} disabled={bezig}>
-            {bezig ? 'Toevoegen…' : 'Toevoegen'}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
