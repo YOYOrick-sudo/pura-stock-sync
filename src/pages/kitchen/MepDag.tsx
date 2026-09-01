@@ -165,12 +165,19 @@ export default function MepDag() {
             >
               <Settings className="w-5 h-5" />
             </Button>
-            <Button className="h-11" onClick={() => setToevoegenOpen(true)}>
-              <Plus className="w-5 h-5 mr-1.5" />
-              Taak
-            </Button>
           </div>
         </div>
+
+        {/* Taak toevoegen — inline */}
+        <MepTaakToevoegen
+          vestiging={vestiging}
+          datum={datum}
+          medewerkers={medewerkers}
+          onToevoegen={(input) => toevoegen.mutateAsync(input)}
+          onToewijzen={(taakId, medewerkerId) =>
+            bijwerken.mutateAsync({ id: taakId, toegewezen_aan: medewerkerId })
+          }
+        />
 
         {/* Voortgang */}
         <Card className="p-4 sm:p-5 bg-card shadow-sm">
@@ -189,6 +196,7 @@ export default function MepDag() {
             <TabsTrigger value="persoon">Per persoon</TabsTrigger>
           </TabsList>
         </Tabs>
+
 
         {isLoading ? (
           <p className="py-10 text-center text-sm text-muted-foreground">Laden…</p>
