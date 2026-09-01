@@ -327,6 +327,9 @@ export default function MepDag() {
         datum={datum}
         medewerkers={medewerkers}
         onToevoegen={(input) => toevoegen.mutateAsync(input)}
+        onToewijzen={(taakId, medewerkerId) =>
+          bijwerken.mutateAsync({ id: taakId, toegewezen_aan: medewerkerId })
+        }
       />
 
       <MepAfrondDialog
