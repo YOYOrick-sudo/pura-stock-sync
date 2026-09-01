@@ -320,19 +320,8 @@ export default function MepDag() {
         )}
       </div>
 
-      <MepTaakToevoegen
-        open={toevoegenOpen}
-        onOpenChange={setToevoegenOpen}
-        vestiging={vestiging}
-        datum={datum}
-        medewerkers={medewerkers}
-        onToevoegen={(input) => toevoegen.mutateAsync(input)}
-        onToewijzen={(taakId, medewerkerId) =>
-          bijwerken.mutateAsync({ id: taakId, toegewezen_aan: medewerkerId })
-        }
-      />
-
       <MepAfrondDialog
+
         taak={afrondTaak}
         onOpenChange={(v) => !v && setAfrondTaak(null)}
         onAfronden={(args) => afronden.mutateAsync(args)}
