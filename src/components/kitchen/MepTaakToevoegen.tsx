@@ -88,7 +88,9 @@ export function MepTaakToevoegen({
       }
       input = {
         ...basis,
-        titel: `${gekozen.recept_naam} · ${gekozen.type}`,
+        titel: gekozen.heeft_methode
+          ? `${gekozen.recept_naam} · ${gekozen.type}`
+          : gekozen.recept_naam,
         categorie: gekozen.categorie || 'Algemeen',
         recept_id: gekozen.recept_id,
         methode_id: gekozen.methode_id,
