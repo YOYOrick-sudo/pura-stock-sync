@@ -68,7 +68,6 @@ export default function MepDag() {
   const { data: medewerkers = [] } = useKeukenMedewerkers(vestiging);
   const { toevoegen, bijwerken, verwijderen, afronden, heropenen } = useMepTaakMutaties(vestiging, datum);
 
-  const [toevoegenOpen, setToevoegenOpen] = useState(false);
   const [afrondTaak, setAfrondTaak] = useState<MepTaak | null>(null);
   const [weergave, setWeergave] = useState<'categorie' | 'persoon'>('categorie');
 
@@ -204,8 +203,7 @@ export default function MepDag() {
           <EmptyState
             icon={Plus}
             title="Nog geen MEP voor deze dag"
-            description="Voeg halffabricaten of vrije taken toe om de dag klaar te zetten."
-            action={{ label: 'Taak toevoegen', onClick: () => setToevoegenOpen(true) }}
+            description="Gebruik het zoekveld hierboven om halffabricaten of vrije taken toe te voegen."
           />
         ) : (
           <div className="space-y-4">
