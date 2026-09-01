@@ -66,7 +66,7 @@ export default function MepDag() {
   const { data: taken = [], isLoading } = useMepTaken(vestiging, datum);
   const { data: batches = [] } = useProductieBatches(vestiging, datum);
   const { data: medewerkers = [] } = useKeukenMedewerkers(vestiging);
-  const { toevoegen, verwijderen, afronden, heropenen } = useMepTaakMutaties(vestiging, datum);
+  const { toevoegen, bijwerken, verwijderen, afronden, heropenen } = useMepTaakMutaties(vestiging, datum);
 
   const [toevoegenOpen, setToevoegenOpen] = useState(false);
   const [afrondTaak, setAfrondTaak] = useState<MepTaak | null>(null);
