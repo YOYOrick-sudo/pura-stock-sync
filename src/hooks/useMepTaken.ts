@@ -96,6 +96,7 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ['mep-taken'] });
     qc.invalidateQueries({ queryKey: ['mep-batches'] });
+    qc.invalidateQueries({ queryKey: ['mep-favorieten'] });
   };
 
   const toevoegen = useMutation({
