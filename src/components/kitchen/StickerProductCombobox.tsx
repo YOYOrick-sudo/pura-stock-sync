@@ -31,9 +31,15 @@ export function StickerProductCombobox({
   const { data: suggestions = [], isFetching } = useStickerSuggesties(term);
   const headingLabel = term.length === 0 ? 'Meest gebruikt' : 'Voorstellen';
 
-
-
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Bij openen van het scherm meteen het veld actief met de lijst eronder.
+  useEffect(() => {
+    if (!autoFocus) return;
+    inputRef.current?.focus();
+    setOpen(true);
+  }, [autoFocus]);
+
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
