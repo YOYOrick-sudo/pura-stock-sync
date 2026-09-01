@@ -63,6 +63,41 @@ export function MepTaakToevoegen({
     );
   }, [opties, zoek]);
 
+  const blokken = useMemo(() => {
+    const met = gefilterd.filter((o) => o.heeft_methode);
+    const zonder = gefilterd.filter((o) => !o.heeft_methode);
+    const uit: [string, MepReceptOptie[]][] = [];
+    if (met.length) uit.push(['Met methode', met]);
+    if (zonder.length) uit.push(['Overige recepten van deze vestiging', zonder]);
+    return uit;
+  }, [gefilterd]);
+
+  const snelToevoegen = async (f: MepFavoriet) => {
+    setBezig(true);
+    try {
+      await onToevoegen({
+        vestiging,
+        taak_datum: datum,
+        titel: f.titel,
+        categorie: f.categorie,
+        recept_id: f.recept_id,
+        methode_id: f.methode_id,
+        doel_aantal: f.doel_aantal,
+        doel_eenheid: f.doel_eenheid,
+        prioriteit: 2,
+      });
+      toast.success(`${f.titel} toegevoegd`);
+      reset();
+      onOpenChange(false);
+    } catch (e: any) {
+      toast.error('Toevoegen mislukt: ' + (e?.message ?? 'onbekende fout'));
+    } finally {
+      setBezig(false);
+    }
+  };
+
+
+
   const reset = () => {
     setZoek('');
     setGekozen(null);
