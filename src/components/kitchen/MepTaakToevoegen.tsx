@@ -43,6 +43,7 @@ export function MepTaakToevoegen({
   onToevoegen,
 }: Props) {
   const { data: opties = [] } = useMepRecepten(vestiging);
+  const { data: favorieten = [] } = useMepFavorieten(vestiging);
   const [tab, setTab] = useState<'recept' | 'vrij'>('recept');
   const [zoek, setZoek] = useState('');
   const [gekozen, setGekozen] = useState<MepReceptOptie | null>(null);
