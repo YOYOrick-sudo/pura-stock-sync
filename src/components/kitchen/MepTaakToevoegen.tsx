@@ -13,13 +13,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Clock } from 'lucide-react';
+import { Search, Clock, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
   MEP_CATEGORIEEN,
+  MepFavoriet,
   MepReceptOptie,
   MepTaakInput,
+  useMepFavorieten,
   useMepRecepten,
 } from '@/hooks/useMepTaken';
 
@@ -41,6 +43,7 @@ export function MepTaakToevoegen({
   onToevoegen,
 }: Props) {
   const { data: opties = [] } = useMepRecepten(vestiging);
+  const { data: favorieten = [] } = useMepFavorieten(vestiging);
   const [tab, setTab] = useState<'recept' | 'vrij'>('recept');
   const [zoek, setZoek] = useState('');
   const [gekozen, setGekozen] = useState<MepReceptOptie | null>(null);
@@ -59,6 +62,41 @@ export function MepTaakToevoegen({
       (o) => o.recept_naam.toLowerCase().includes(q) || o.type.toLowerCase().includes(q),
     );
   }, [opties, zoek]);
+
+  const blokken = useMemo(() => {
+    const met = gefilterd.filter((o) => o.heeft_methode);
+    const zonder = gefilterd.filter((o) => !o.heeft_methode);
+    const uit: [string, MepReceptOptie[]][] = [];
+    if (met.length) uit.push(['Met methode', met]);
+    if (zonder.length) uit.push(['Overige recepten van deze vestiging', zonder]);
+    return uit;
+  }, [gefilterd]);
+
+  const snelToevoegen = async (f: MepFavoriet) => {
+    setBezig(true);
+    try {
+      await onToevoegen({
+        vestiging,
+        taak_datum: datum,
+        titel: f.titel,
+        categorie: f.categorie,
+        recept_id: f.recept_id,
+        methode_id: f.methode_id,
+        doel_aantal: f.doel_aantal,
+        doel_eenheid: f.doel_eenheid,
+        prioriteit: 2,
+      });
+      toast.success(`${f.titel} toegevoegd`);
+      reset();
+      onOpenChange(false);
+    } catch (e: any) {
+      toast.error('Toevoegen mislukt: ' + (e?.message ?? 'onbekende fout'));
+    } finally {
+      setBezig(false);
+    }
+  };
+
+
 
   const reset = () => {
     setZoek('');
@@ -88,7 +126,9 @@ export function MepTaakToevoegen({
       }
       input = {
         ...basis,
-        titel: `${gekozen.recept_naam} · ${gekozen.type}`,
+        titel: gekozen.heeft_methode
+          ? `${gekozen.recept_naam} · ${gekozen.type}`
+          : gekozen.recept_naam,
         categorie: gekozen.categorie || 'Algemeen',
         recept_id: gekozen.recept_id,
         methode_id: gekozen.methode_id,
@@ -136,6 +176,31 @@ export function MepTaakToevoegen({
 
         {tab === 'recept' ? (
           <div className="space-y-3">
+            {favorieten.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Vaakst gemaakt
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {favorieten.map((f) => (
+                    <button
+                      key={f.sleutel}
+                      type="button"
+                      disabled={bezig}
+                      onClick={() => snelToevoegen(f)}
+                      className="rounded-polar-md border border-border/60 bg-card px-3 py-2.5 min-h-[56px] text-left hover:bg-primary/5 active:bg-primary/10 transition-colors disabled:opacity-50"
+                    >
+                      <span className="flex items-center gap-1.5 text-[14px] font-medium leading-tight line-clamp-2">
+                        <Zap className="w-3.5 h-3.5 shrink-0 text-primary/70" />
+                        {f.titel}
+                      </span>
+                      <span className="text-xs text-muted-foreground">{f.aantal_keer}×</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -149,38 +214,56 @@ export function MepTaakToevoegen({
             <div className="max-h-64 overflow-y-auto rounded-polar border border-border/60 divide-y divide-border/60">
               {gefilterd.length === 0 ? (
                 <p className="p-4 text-sm text-muted-foreground">
-                  Geen recepten met een methode voor deze vestiging. Vul een methode in op het
-                  recept.
+                  Geen recepten aan voor deze vestiging. Zet het recept aan bij Recepten.
                 </p>
               ) : (
-                gefilterd.map((o) => (
-                  <button
-                    key={o.methode_id}
-                    type="button"
-                    onClick={() => setGekozen(o)}
-                    className={cn(
-                      'w-full text-left px-4 py-3 min-h-[56px] transition-colors',
-                      gekozen?.methode_id === o.methode_id ? 'bg-primary/10' : 'hover:bg-muted/60',
-                    )}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-[15px] font-medium">{o.recept_naam}</span>
-                      <Badge variant="secondary" className="font-normal shrink-0">
-                        {o.type}
-                      </Badge>
-                    </div>
-                    <div className="mt-0.5 flex items-center gap-3 text-sm text-muted-foreground">
-                      <span>
-                        1 {o.visuele_eenheid} = {o.output_hoeveelheid} {o.output_eenheid}
-                      </span>
-                      <span className="inline-flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />~{o.standaard_duur} min
-                      </span>
-                    </div>
-                  </button>
+                blokken.map(([kop, rij]) => (
+                  <div key={kop}>
+                    <p className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground bg-muted/40">
+                      {kop}
+                    </p>
+                    {rij.map((o) => {
+                      const sleutel = o.methode_id ?? `recept:${o.recept_id}`;
+                      const actief =
+                        (gekozen?.methode_id ?? `recept:${gekozen?.recept_id}`) === sleutel;
+                      return (
+                        <button
+                          key={sleutel}
+                          type="button"
+                          onClick={() => setGekozen(o)}
+                          className={cn(
+                            'w-full text-left px-4 py-3 min-h-[56px] transition-colors border-t border-border/60',
+                            actief ? 'bg-primary/10' : 'hover:bg-muted/60',
+                          )}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-[15px] font-medium">{o.recept_naam}</span>
+                            <Badge variant="secondary" className="font-normal shrink-0">
+                              {o.heeft_methode ? o.type : o.categorie}
+                            </Badge>
+                          </div>
+                          {o.heeft_methode ? (
+                            <div className="mt-0.5 flex items-center gap-3 text-sm text-muted-foreground">
+                              <span>
+                                1 {o.visuele_eenheid} = {o.output_hoeveelheid} {o.output_eenheid}
+                              </span>
+                              <span className="inline-flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5" />~{o.standaard_duur} min
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="mt-0.5 text-sm text-muted-foreground">
+                              Zonder methode — geen sticker of batch bij afronden
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 ))
               )}
             </div>
+
 
             {gekozen && (
               <div className="space-y-1.5">

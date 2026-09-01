@@ -1,4 +1,4 @@
-import { Home, ListChecks, Settings, BookOpen, Package, Printer, Calculator, ClipboardList, LogOut, BarChart3, ChefHat, Boxes, Truck, Cookie } from 'lucide-react';
+import { Home, ListChecks, Settings, BookOpen, Printer, Calculator, ClipboardList, LogOut, BarChart3, ChefHat, Cookie } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useState } from 'react';
@@ -19,10 +19,8 @@ const allNavigationItems = [
   { title: 'Stickers', url: '/kitchen/snel-printen', icon: Printer, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Recepten', url: '/kitchen/recipes', icon: BookOpen, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Gerechten', url: '/kitchen/gerechten', icon: Cookie, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
-  { title: 'Ingrediënten', url: '/kitchen/ingredienten', icon: Package, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Bestellen', url: '/voorraad', icon: ClipboardList, group: 'voorraad' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
-  { title: 'Onderweg', url: '/voorraad/onderweg', icon: Truck, group: 'voorraad' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
-  { title: 'Voorraadstand', url: '/voorraad/stand', icon: Boxes, group: 'voorraad' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
+
   { title: 'Voorraadketen', url: '/settings/keten', icon: Settings, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: true, ownerOnly: false },
   { title: 'Cijfers', url: '/cijfers', icon: BarChart3, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: true },
   { title: 'Kassatelling', url: '/kassatelling', icon: Calculator, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
