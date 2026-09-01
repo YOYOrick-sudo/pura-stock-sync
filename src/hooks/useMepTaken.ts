@@ -182,43 +182,147 @@ export function useProductieBatches(vestiging: string, datum: string) {
   });
 }
 
-/** Recepten met minimaal één handeling — de MEP-bibliotheek. */
+export interface MepReceptOptie {
+  methode_id: string | null;
+  recept_id: string;
+  recept_naam: string;
+  categorie: string;
+  tht_dagen: number | null;
+  type: string;
+  visuele_eenheid: string;
+  output_hoeveelheid: number;
+  output_eenheid: string;
+  standaard_duur: number | null;
+  houdbaarheid: number | null;
+  heeft_methode: boolean;
+}
+
+/** Recepten die op deze vestiging aan staan — met methode én zonder. */
 export function useMepRecepten(vestiging: string) {
   return useQuery({
     queryKey: ['mep-recepten', vestiging],
-    queryFn: async () => {
-      const [{ data: methodes, error: e1 }, { data: koppels, error: e2 }] = await Promise.all([
-        supabase
-          .from('halffabricaat_methodes')
-          .select('*, recipes!inner(id, name, category, is_gearchiveerd, tht_dagen)')
-          .order('sort_order'),
-        supabase.from('recept_locaties').select('recept_id, is_actief').eq('vestiging', vestiging),
-      ]);
+    queryFn: async (): Promise<MepReceptOptie[]> => {
+      const [{ data: methodes, error: e1 }, { data: koppels, error: e2 }, { data: recepten, error: e3 }] =
+        await Promise.all([
+          supabase
+            .from('halffabricaat_methodes')
+            .select('*, recipes!inner(id, name, category, is_gearchiveerd, tht_dagen)')
+            .order('sort_order'),
+          supabase.from('recept_locaties').select('recept_id, is_actief').eq('vestiging', vestiging),
+          supabase
+            .from('recipes')
+            .select('id, name, category, is_gearchiveerd, tht_dagen')
+            .order('name'),
+        ]);
       if (e1) throw e1;
       if (e2) throw e2;
+      if (e3) throw e3;
+
       const actief = new Set(
         (koppels ?? []).filter((k: any) => k.is_actief).map((k: any) => k.recept_id),
       );
-      return (methodes ?? [])
+
+      const metMethode = (methodes ?? [])
         .filter((m: any) => !m.recipes?.is_gearchiveerd && actief.has(m.recept_id))
-        .map((m: any) => ({
-          methode_id: m.id as string,
-          recept_id: m.recept_id as string,
-          recept_naam: m.recipes.name as string,
-          categorie: (m.recipes.category as string) ?? 'Algemeen',
-          tht_dagen: (m.recipes.tht_dagen as number) ?? null,
-          type: m.type as string,
-          visuele_eenheid: m.visuele_eenheid as string,
-          output_hoeveelheid: Number(m.output_hoeveelheid),
-          output_eenheid: m.output_eenheid as string,
-          standaard_duur: m.standaard_duur as number,
-          houdbaarheid: m.houdbaarheid as number | null,
-        }));
+        .map(
+          (m: any): MepReceptOptie => ({
+            methode_id: m.id as string,
+            recept_id: m.recept_id as string,
+            recept_naam: m.recipes.name as string,
+            categorie: (m.recipes.category as string) ?? 'Algemeen',
+            tht_dagen: (m.recipes.tht_dagen as number) ?? null,
+            type: m.type as string,
+            visuele_eenheid: m.visuele_eenheid as string,
+            output_hoeveelheid: Number(m.output_hoeveelheid),
+            output_eenheid: m.output_eenheid as string,
+            standaard_duur: m.standaard_duur as number,
+            houdbaarheid: m.houdbaarheid as number | null,
+            heeft_methode: true,
+          }),
+        );
+
+      const metMethodeIds = new Set(metMethode.map((m) => m.recept_id));
+      const zonderMethode = (recepten ?? [])
+        .filter(
+          (r: any) => !r.is_gearchiveerd && actief.has(r.id) && !metMethodeIds.has(r.id),
+        )
+        .map(
+          (r: any): MepReceptOptie => ({
+            methode_id: null,
+            recept_id: r.id as string,
+            recept_naam: r.name as string,
+            categorie: (r.category as string) ?? 'Algemeen',
+            tht_dagen: (r.tht_dagen as number) ?? null,
+            type: 'recept',
+            visuele_eenheid: 'batch',
+            output_hoeveelheid: 1,
+            output_eenheid: 'batch',
+            standaard_duur: null,
+            houdbaarheid: null,
+            heeft_methode: false,
+          }),
+        );
+
+      return [...metMethode, ...zonderMethode];
     },
   });
 }
 
-export type MepReceptOptie = NonNullable<ReturnType<typeof useMepRecepten>['data']>[number];
+export interface MepFavoriet {
+  sleutel: string;
+  titel: string;
+  categorie: string;
+  recept_id: string | null;
+  methode_id: string | null;
+  doel_aantal: number | null;
+  doel_eenheid: string | null;
+  aantal_keer: number;
+}
+
+/** De zes vaakst gemaakte MEP-taken van de laatste 90 dagen (per vestiging). */
+export function useMepFavorieten(vestiging: string, limiet = 6) {
+  return useQuery({
+    queryKey: ['mep-favorieten', vestiging, limiet],
+    enabled: !!vestiging,
+    staleTime: 60_000,
+    queryFn: async (): Promise<MepFavoriet[]> => {
+      const vanaf = ymd(new Date(Date.now() - 90 * 24 * 60 * 60 * 1000));
+      const { data, error } = await supabase
+        .from('mep_taken')
+        .select('titel, categorie, recept_id, methode_id, doel_aantal, doel_eenheid, taak_datum')
+        .eq('vestiging', vestiging)
+        .gte('taak_datum', vanaf)
+        .neq('status', 'geannuleerd')
+        .order('taak_datum', { ascending: false })
+        .limit(1000);
+      if (error) throw error;
+
+      const map = new Map<string, MepFavoriet>();
+      for (const t of (data ?? []) as any[]) {
+        const sleutel = t.methode_id ?? t.recept_id ?? `vrij:${(t.titel ?? '').toLowerCase()}`;
+        const bestaand = map.get(sleutel);
+        if (bestaand) {
+          bestaand.aantal_keer += 1;
+        } else {
+          map.set(sleutel, {
+            sleutel,
+            titel: t.titel,
+            categorie: t.categorie ?? 'Algemeen',
+            recept_id: t.recept_id ?? null,
+            methode_id: t.methode_id ?? null,
+            doel_aantal: t.doel_aantal ?? null,
+            doel_eenheid: t.doel_eenheid ?? null,
+            aantal_keer: 1,
+          });
+        }
+      }
+      return [...map.values()]
+        .sort((a, b) => b.aantal_keer - a.aantal_keer)
+        .slice(0, limiet);
+    },
+  });
+}
+
 
 /** Taken over een periode (weekweergave). */
 export function useMepTakenBereik(vestiging: string, van: string, tot: string) {
