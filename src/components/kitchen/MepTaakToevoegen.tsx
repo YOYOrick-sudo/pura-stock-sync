@@ -13,13 +13,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Clock } from 'lucide-react';
+import { Search, Clock, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
   MEP_CATEGORIEEN,
+  MepFavoriet,
   MepReceptOptie,
   MepTaakInput,
+  useMepFavorieten,
   useMepRecepten,
 } from '@/hooks/useMepTaken';
 
