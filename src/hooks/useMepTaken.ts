@@ -93,24 +93,48 @@ export function useMepTaken(vestiging: string, datum: string) {
 
 export function useMepTaakMutaties(vestiging: string, datum: string) {
   const qc = useQueryClient();
-  const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ['mep-taken'] });
+  const actieveTakenKey = ['mep-taken', vestiging, datum] as const;
+  const invalidate = async () => {
+    await qc.invalidateQueries({ queryKey: actieveTakenKey, exact: true });
+    qc.invalidateQueries({ queryKey: ['mep-taken-bereik'] });
     qc.invalidateQueries({ queryKey: ['mep-batches'] });
     qc.invalidateQueries({ queryKey: ['mep-favorieten'] });
   };
 
   const toevoegen = useMutation({
     mutationFn: async (input: MepTaakInput) => {
+      if (!vestiging || !datum) {
+        throw new Error('Kies eerst een geldige vestiging en datum');
+      }
       const { data: user } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from('mep_taken')
-        .insert({ ...input, created_by: user.user?.id ?? null })
+        .insert({
+          ...input,
+          vestiging,
+          taak_datum: datum,
+          created_by: user.user?.id ?? null,
+        })
         .select('*')
         .single();
       if (error) throw error;
+      if (!data?.id) throw new Error('De taak is niet opgeslagen');
       return data as MepTaak;
     },
-    onSuccess: invalidate,
+    onSuccess: async (nieuweTaak) => {
+      // Zet de opgeslagen rij direct in de zichtbare daglijst. Dit voorkomt dat
+      // trage wifi of een vertraagde realtime-event een geslaagde insert verbergt.
+      qc.setQueryData<MepTaak[]>(actieveTakenKey, (huidig = []) => {
+        if (huidig.some((taak) => taak.id === nieuweTaak.id)) return huidig;
+        return [...huidig, nieuweTaak].sort(
+          (a, b) =>
+            a.prioriteit - b.prioriteit ||
+            a.volgorde - b.volgorde ||
+            a.created_at.localeCompare(b.created_at),
+        );
+      });
+      await invalidate();
+    },
   });
 
   const bijwerken = useMutation({

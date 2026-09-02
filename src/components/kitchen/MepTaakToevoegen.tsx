@@ -59,8 +59,9 @@ export function MepTaakToevoegen({
     setBezig(true);
     try {
       const taak = (await onToevoegen(input)) as MepTaak;
+      if (!taak?.id) throw new Error('De taak is niet opgeslagen');
       toast.success(`${label} toegevoegd`);
-      naToevoegen(taak ?? null);
+      naToevoegen(taak);
     } catch (e: any) {
       toast.error('Toevoegen mislukt: ' + (e?.message ?? 'onbekende fout'));
     } finally {

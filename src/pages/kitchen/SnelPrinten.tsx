@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { addDays, format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { Snowflake, ChefHat, Tag, Minus, Plus, Printer, Sparkles } from 'lucide-react';
@@ -107,7 +107,6 @@ export default function SnelPrinten() {
   const [naam, setNaam] = useState('');
   const [thtDagen, setThtDagen] = useState<number>(DEFAULT_THT.ontdooid);
   const [aantal, setAantal] = useState<number>(1);
-  const inputRef = useRef<HTMLDivElement>(null);
   const createJob = useCreateStickerPrintJob();
   const { data: topProducten = [] } = useTopStickerProducten(9);
 
@@ -160,10 +159,6 @@ export default function SnelPrinten() {
       );
       setNaam('');
       setAantal(1);
-      requestAnimationFrame(() => {
-        const el = inputRef.current?.querySelector('input');
-        el?.focus();
-      });
     } catch (e: any) {
       toast.error(e?.message ?? 'Printen mislukt');
     }
@@ -241,13 +236,12 @@ export default function SnelPrinten() {
             {/* Product */}
             <Card className="p-4 sm:p-5 bg-card shadow-sm">
               <SectionTitle label="Product" />
-              <div ref={inputRef}>
+              <div>
                 <StickerProductCombobox
                   value={naam}
                   onChange={setNaam}
                   onPickSuggestion={handlePickSuggestion}
                   placeholder="Typ productnaam…"
-                  autoFocus
                 />
               </div>
             </Card>
