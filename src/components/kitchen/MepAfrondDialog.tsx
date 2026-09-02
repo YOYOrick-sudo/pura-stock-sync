@@ -12,10 +12,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { Printer } from 'lucide-react';
+import { Printer, Snowflake, ChefHat, Tag } from 'lucide-react';
+import { addDays, format } from 'date-fns';
+import { nl } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 import { MepTaak } from '@/hooks/useMepTaken';
-import { useCreatePrintJob } from '@/hooks/usePrintJobs';
-import { supabase } from '@/integrations/supabase/client';
+import { useCreateStickerPrintJob } from '@/hooks/useStickerProducten';
+import type { StickerType } from '@/lib/labelZpl';
 
 interface Props {
   taak: MepTaak | null;
@@ -28,22 +31,46 @@ interface Props {
   }) => Promise<{ batch_nummer: string; hoeveelheid: number; eenheid: string } | unknown>;
 }
 
+const TYPES: { key: StickerType; label: string; icon: typeof Snowflake }[] = [
+  { key: 'bereid', label: 'Bereid', icon: ChefHat },
+  { key: 'ontdooid', label: 'Ontdooid', icon: Snowflake },
+  { key: 'vrij', label: 'Vrij', icon: Tag },
+];
+const DEFAULT_THT: Record<StickerType, number> = { ontdooid: 2, bereid: 3, vrij: 0 };
+
+function fmtDatum(d: Date) {
+  return format(d, 'EEE dd-MM', { locale: nl });
+}
+
 export function MepAfrondDialog({ taak, onOpenChange, onAfronden }: Props) {
   const [aantal, setAantal] = useState(1);
   const [temperatuur, setTemperatuur] = useState('');
   const [notitie, setNotitie] = useState('');
   const [sticker, setSticker] = useState(true);
+  const [stickerType, setStickerType] = useState<StickerType>('bereid');
+  const [stickerNaam, setStickerNaam] = useState('');
+  const [thtDagen, setThtDagen] = useState(3);
+  const [stickerAantal, setStickerAantal] = useState(1);
   const [bezig, setBezig] = useState(false);
-  const print = useCreatePrintJob();
+  const printSticker = useCreateStickerPrintJob();
 
   useEffect(() => {
     if (taak) {
       setAantal(Number(taak.doel_aantal ?? 1));
       setTemperatuur('');
       setNotitie('');
-      setSticker(!!taak.recept_id);
+      setSticker(true);
+      setStickerType('bereid');
+      setStickerNaam(taak.titel);
+      setThtDagen(DEFAULT_THT.bereid);
+      setStickerAantal(1);
     }
   }, [taak]);
+
+  const kiesType = (t: StickerType) => {
+    setStickerType(t);
+    setThtDagen(DEFAULT_THT[t]);
+  };
 
   const bevestig = async () => {
     if (!taak) return;
@@ -61,20 +88,21 @@ export function MepAfrondDialog({ taak, onOpenChange, onAfronden }: Props) {
       });
       toast.success(`Afgerond · batch ${res?.batch_nummer ?? ''}`.trim());
 
-      if (sticker && taak.recept_id) {
-        const { data: recept } = await supabase
-          .from('recipes')
-          .select('id, name, tht_dagen, bereiding')
-          .eq('id', taak.recept_id)
-          .maybeSingle();
-        if (recept) {
-          await print.mutateAsync({
-            id: recept.id,
-            name: recept.name,
-            tht_dagen: recept.tht_dagen,
-            aantal: Math.max(1, Math.round(aantal)),
-          } as any);
-        }
+      if (sticker && stickerNaam.trim()) {
+        const vandaag = new Date();
+        await printSticker.mutateAsync({
+          type: stickerType,
+          naam: stickerNaam.trim(),
+          datum1: fmtDatum(vandaag),
+          datum2: stickerType === 'vrij' ? undefined : fmtDatum(addDays(vandaag, thtDagen)),
+          tht_dagen: stickerType === 'vrij' ? null : thtDagen,
+          aantal: stickerAantal,
+        });
+        toast.success(
+          stickerAantal > 1
+            ? `${stickerAantal} stickers naar printer gestuurd`
+            : 'Sticker naar printer gestuurd',
+        );
       }
       onOpenChange(false);
     } catch (e: any) {
@@ -86,7 +114,7 @@ export function MepAfrondDialog({ taak, onOpenChange, onAfronden }: Props) {
 
   return (
     <Dialog open={!!taak} onOpenChange={(v) => !v && onOpenChange(false)}>
-      <DialogContent className="max-w-[650px]">
+      <DialogContent className="max-w-[650px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{taak?.titel} afronden</DialogTitle>
         </DialogHeader>
@@ -138,15 +166,109 @@ export function MepAfrondDialog({ taak, onOpenChange, onAfronden }: Props) {
             <Textarea rows={2} value={notitie} onChange={(e) => setNotitie(e.target.value)} />
           </div>
 
-          {taak?.recept_id && (
-            <div className="flex items-center justify-between rounded-polar border border-border/60 px-4 py-3">
+          {/* Sticker */}
+          <div className="rounded-polar border border-border/60">
+            <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-2">
                 <Printer className="w-5 h-5 text-muted-foreground" />
                 <span className="text-[15px]">Sticker printen</span>
               </div>
               <Switch checked={sticker} onCheckedChange={setSticker} />
             </div>
-          )}
+
+            {sticker && (
+              <div className="space-y-3 border-t border-border/60 px-4 py-3">
+                <div className="flex flex-wrap gap-2">
+                  {TYPES.map(({ key, label, icon: Icon }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => kiesType(key)}
+                      className={cn(
+                        'inline-flex min-h-[44px] items-center gap-2 rounded-polar-md border px-4 text-[15px] transition-colors',
+                        stickerType === key
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-input bg-card hover:bg-muted',
+                      )}
+                    >
+                      <Icon className="w-5 h-5" />
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Naam op sticker</Label>
+                  <Input
+                    className="h-12"
+                    value={stickerNaam}
+                    onChange={(e) => setStickerNaam(e.target.value)}
+                    placeholder="Productnaam"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-end gap-4">
+                  {stickerType !== 'vrij' && (
+                    <div className="space-y-1.5">
+                      <Label>Houdbaar (dagen)</Label>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="h-12 w-12"
+                          onClick={() => setThtDagen((d) => Math.max(1, d - 1))}
+                        >
+                          −
+                        </Button>
+                        <span className="w-10 text-center text-[17px] font-medium tabular-nums">
+                          {thtDagen}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="h-12 w-12"
+                          onClick={() => setThtDagen((d) => Math.min(30, d + 1))}
+                        >
+                          +
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-1.5">
+                    <Label>Aantal stickers</Label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-12 w-12"
+                        onClick={() => setStickerAantal((a) => Math.max(1, a - 1))}
+                      >
+                        −
+                      </Button>
+                      <span className="w-10 text-center text-[17px] font-medium tabular-nums">
+                        {stickerAantal}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-12 w-12"
+                        onClick={() => setStickerAantal((a) => Math.min(20, a + 1))}
+                      >
+                        +
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {stickerType !== 'vrij' && (
+                  <p className="text-sm text-muted-foreground">
+                    T.h.t. {fmtDatum(addDays(new Date(), thtDagen))}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <DialogFooter>
