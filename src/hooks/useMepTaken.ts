@@ -139,10 +139,22 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
 
   const bijwerken = useMutation({
     mutationFn: async ({ id, ...patch }: Partial<MepTaak> & { id: string }) => {
-      const { error } = await supabase.from('mep_taken').update(patch).eq('id', id);
+      const { data, error } = await supabase
+        .from('mep_taken')
+        .update(patch)
+        .eq('id', id)
+        .select('*')
+        .single();
       if (error) throw error;
+      if (!data?.id) throw new Error('De taakwijziging is niet opgeslagen');
+      return data as MepTaak;
     },
-    onSuccess: invalidate,
+    onSuccess: async (bijgewerkteTaak) => {
+      qc.setQueryData<MepTaak[]>(actieveTakenKey, (huidig = []) =>
+        huidig.map((taak) => (taak.id === bijgewerkteTaak.id ? bijgewerkteTaak : taak)),
+      );
+      await invalidate();
+    },
   });
 
   const verwijderen = useMutation({
