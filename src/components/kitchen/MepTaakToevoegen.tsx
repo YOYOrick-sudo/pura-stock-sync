@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, Clock, Zap, Plus, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { useMepHandelingen } from '@/hooks/useMepPlanning';
 import {
   MepFavoriet,
   MepReceptOptie,
@@ -19,8 +21,8 @@ interface Props {
   datum: string;
   medewerkers: { id: string; name: string }[];
   onToevoegen: (input: MepTaakInput) => Promise<unknown>;
-  /** Optioneel: persoon toewijzen ná toevoegen. */
-  onToewijzen?: (taakId: string, medewerkerId: string) => Promise<unknown>;
+  /** Optioneel: taak bijwerken ná toevoegen (handeling / persoon). */
+  onBijwerken?: (taakId: string, patch: Partial<MepTaak>) => Promise<unknown>;
 }
 
 export function MepTaakToevoegen({
@@ -28,10 +30,11 @@ export function MepTaakToevoegen({
   datum,
   medewerkers,
   onToevoegen,
-  onToewijzen,
+  onBijwerken,
 }: Props) {
   const { data: opties = [] } = useMepRecepten(vestiging);
   const { data: favorieten = [] } = useMepFavorieten(vestiging);
+  const { data: handelingen = [] } = useMepHandelingen(vestiging);
   const [zoek, setZoek] = useState('');
   const [bezig, setBezig] = useState(false);
   const [netToegevoegd, setNetToegevoegd] = useState<MepTaak | null>(null);
@@ -51,7 +54,7 @@ export function MepTaakToevoegen({
 
   const naToevoegen = (taak: MepTaak | null) => {
     setZoek('');
-    setNetToegevoegd(taak && medewerkers.length > 0 && onToewijzen ? taak : null);
+    setNetToegevoegd(taak && onBijwerken ? taak : null);
   };
 
   const voegToe = async (input: MepTaakInput, label: string) => {
@@ -103,6 +106,7 @@ export function MepTaakToevoegen({
         categorie: f.categorie,
         recept_id: f.recept_id,
         methode_id: f.methode_id,
+        handeling: f.handeling,
         doel_aantal: f.doel_aantal,
         doel_eenheid: f.doel_eenheid,
         prioriteit: 2,
@@ -110,16 +114,15 @@ export function MepTaakToevoegen({
       f.titel,
     );
 
-  const wijsToe = async (medewerkerId: string) => {
-    if (!netToegevoegd || !onToewijzen || bezig) return;
+  const patchNieuweTaak = async (patch: Partial<MepTaak>, melding: string) => {
+    if (!netToegevoegd || !onBijwerken || bezig) return;
     setBezig(true);
     try {
-      await onToewijzen(netToegevoegd.id, medewerkerId);
-      const naam = medewerkers.find((m) => m.id === medewerkerId)?.name ?? '';
-      toast.success(`${netToegevoegd.titel} → ${naam}`);
-      setNetToegevoegd(null);
+      await onBijwerken(netToegevoegd.id, patch);
+      setNetToegevoegd({ ...netToegevoegd, ...patch });
+      toast.success(melding);
     } catch (e: any) {
-      toast.error('Toewijzen mislukt: ' + (e?.message ?? 'onbekende fout'));
+      toast.error('Opslaan mislukt: ' + (e?.message ?? 'onbekende fout'));
     } finally {
       setBezig(false);
     }
@@ -193,34 +196,91 @@ export function MepTaakToevoegen({
       )}
 
       {netToegevoegd && (
-        <div className="rounded-polar border border-primary/30 bg-primary/5 p-3 space-y-2">
+        <div className="rounded-polar border border-primary/30 bg-primary/5 p-3 space-y-3">
           <div className="flex items-center gap-2 text-[15px]">
             <Check className="w-5 h-5 text-primary shrink-0" />
             <span className="font-medium truncate">{netToegevoegd.titel}</span>
-            <span className="text-muted-foreground shrink-0">toegevoegd — wie doet het?</span>
+            {netToegevoegd.handeling && (
+              <Badge variant="secondary" className="font-normal shrink-0">
+                {netToegevoegd.handeling}
+              </Badge>
+            )}
+            <span className="text-muted-foreground shrink-0 hidden sm:inline">toegevoegd</span>
             <Button
               size="icon"
               variant="ghost"
               className="ml-auto h-9 w-9 shrink-0"
               onClick={() => setNetToegevoegd(null)}
-              aria-label="Overslaan"
+              aria-label="Klaar"
             >
               <X className="w-4 h-4" />
             </Button>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {medewerkers.map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                disabled={bezig}
-                onClick={() => wijsToe(m.id)}
-                className="rounded-polar-md border border-border/60 bg-card px-4 min-h-[44px] text-[14px] font-medium hover:bg-primary/5 active:bg-primary/10 transition-colors disabled:opacity-50"
-              >
-                {m.name}
-              </button>
-            ))}
-          </div>
+
+          {handelingen.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Wat moet ermee gebeuren?
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {handelingen.map((h: { id: string; naam: string }) => (
+                  <button
+                    key={h.id}
+                    type="button"
+                    disabled={bezig}
+                    onClick={() =>
+                      patchNieuweTaak(
+                        { handeling: netToegevoegd.handeling === h.naam ? null : h.naam },
+                        `${netToegevoegd.titel} · ${h.naam}`,
+                      )
+                    }
+                    className={cn(
+                      'rounded-polar-md border px-4 min-h-[44px] text-[14px] font-medium transition-colors disabled:opacity-50',
+                      netToegevoegd.handeling === h.naam
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border/60 bg-card hover:bg-primary/5 active:bg-primary/10',
+                    )}
+                  >
+                    {h.naam}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {medewerkers.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Wie doet het?
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {medewerkers.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    disabled={bezig}
+                    onClick={() =>
+                      patchNieuweTaak(
+                        {
+                          toegewezen_aan:
+                            netToegevoegd.toegewezen_aan === m.id ? null : m.id,
+                        },
+                        `${netToegevoegd.titel} → ${m.name}`,
+                      )
+                    }
+                    className={cn(
+                      'rounded-polar-md border px-4 min-h-[44px] text-[14px] font-medium transition-colors disabled:opacity-50',
+                      netToegevoegd.toegewezen_aan === m.id
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border/60 bg-card hover:bg-primary/5 active:bg-primary/10',
+                    )}
+                  >
+                    {m.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -240,6 +300,9 @@ export function MepTaakToevoegen({
               >
                 <Zap className="w-3.5 h-3.5 shrink-0 text-primary/70" />
                 {f.titel}
+                {f.handeling && (
+                  <span className="text-muted-foreground">· {f.handeling}</span>
+                )}
                 <span className="text-xs text-muted-foreground">{f.aantal_keer}×</span>
               </button>
             ))}
