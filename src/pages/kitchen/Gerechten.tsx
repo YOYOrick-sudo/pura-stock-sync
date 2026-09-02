@@ -156,14 +156,16 @@ export default function Gerechten() {
                 {/* Tabelkop (alleen vanaf sm) */}
                 <div
                   className={cn(
-                    'hidden sm:grid items-center gap-4 px-5 py-2 border-b bg-muted/10',
-                    'grid-cols-[minmax(220px,280px)_1fr_auto]',
-                    !isManager && 'grid-cols-[minmax(220px,280px)_1fr]',
+                    'hidden sm:grid items-center px-0 py-2 border-b bg-muted/10',
+                    'grid-cols-[minmax(180px,260px)_1fr_auto]',
+                    !isManager && 'grid-cols-[minmax(180px,260px)_1fr]',
                   )}
                 >
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Gerecht</span>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bevat</span>
-                  {isManager && <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground w-[96px] text-right">Acties</span>}
+                  <span className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-r border-border/50">Gerecht</span>
+                  <span className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-r border-border/50">Bevat</span>
+                  {isManager && (
+                    <span className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground w-[96px] text-right">Acties</span>
+                  )}
                 </div>
 
                 {rijen.map((g, i) => {
@@ -172,14 +174,15 @@ export default function Gerechten() {
                     <div
                       key={g.id}
                       className={cn(
-                        'grid gap-2 px-5 py-3 sm:items-center sm:gap-4',
-                        'sm:grid-cols-[minmax(220px,280px)_1fr_auto] grid-cols-1',
-                        !isManager && 'sm:grid-cols-[minmax(220px,280px)_1fr]',
+                        'grid px-0 py-2 sm:items-center',
+                        'sm:grid-cols-[minmax(180px,260px)_1fr_auto] grid-cols-1',
+                        !isManager && 'sm:grid-cols-[minmax(180px,260px)_1fr]',
+                        'border-b border-border/50 last:border-b-0',
                         i % 2 === 1 && 'bg-muted/20',
                         g.is_gearchiveerd && 'opacity-60',
                       )}
                     >
-                      <div className="min-w-0">
+                      <div className="min-w-0 px-4 sm:border-r border-border/50 py-1 sm:py-0">
                         <p className="font-medium text-foreground flex items-center gap-2 flex-wrap">
                           <span>{g.naam}</span>
                           {isVegan && (
@@ -200,11 +203,11 @@ export default function Gerechten() {
                           {g.notitie ? `${g.prijs != null ? ' · ' : ''}${g.notitie}` : ''}
                         </p>
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 px-4 sm:border-r border-border/50 py-1 sm:py-0">
                         <InhoudChips gerecht={g} />
                       </div>
                       {isManager && (
-                        <div className="flex items-center gap-1 shrink-0 justify-end">
+                        <div className="flex items-center gap-1 shrink-0 justify-end px-4 py-1 sm:py-0">
                           <Button
                             variant="ghost"
                             size="icon"
