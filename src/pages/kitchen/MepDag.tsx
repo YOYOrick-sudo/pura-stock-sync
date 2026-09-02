@@ -71,26 +71,26 @@ export default function MepDag() {
 
   const [afrondTaak, setAfrondTaak] = useState<MepTaak | null>(null);
   const [bewerkTaak, setBewerkTaak] = useState<MepTaak | null>(null);
-  const [weergave, setWeergave] = useState<'categorie' | 'persoon' | 'handeling'>('categorie');
+  const [weergave, setWeergave] = useState<'alles' | 'persoon' | 'handeling'>('alles');
 
   const open = taken.filter((t) => t.status !== 'afgerond');
   const klaar = taken.filter((t) => t.status === 'afgerond');
   const voortgang = taken.length ? Math.round((klaar.length / taken.length) * 100) : 0;
 
   const groepen = useMemo(() => {
+    if (weergave === 'alles') return [['Alle taken', taken]] as [string, MepTaak[]][];
     const map = new Map<string, MepTaak[]>();
     for (const t of taken) {
       const sleutel =
-        weergave === 'categorie'
-          ? t.categorie || 'Algemeen'
-          : weergave === 'handeling'
-            ? t.handeling || 'Geen handeling'
-            : medewerkers.find((m) => m.id === t.toegewezen_aan)?.name ?? 'Niet toegewezen';
+        weergave === 'handeling'
+          ? t.handeling || 'Geen handeling'
+          : medewerkers.find((m) => m.id === t.toegewezen_aan)?.name ?? 'Niet toegewezen';
       if (!map.has(sleutel)) map.set(sleutel, []);
       map.get(sleutel)!.push(t);
     }
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], 'nl'));
   }, [taken, weergave, medewerkers]);
+
 
   const dagLabel =
     dagOffset === 0
@@ -187,11 +187,12 @@ export default function MepDag() {
 
         <Tabs
           value={weergave}
-          onValueChange={(v) => setWeergave(v as 'categorie' | 'persoon' | 'handeling')}
+          onValueChange={(v) => setWeergave(v as 'alles' | 'persoon' | 'handeling')}
         >
           <TabsList>
-            <TabsTrigger value="categorie">Per categorie</TabsTrigger>
+            <TabsTrigger value="alles">Alle taken</TabsTrigger>
             <TabsTrigger value="persoon">Per persoon</TabsTrigger>
+
             <TabsTrigger value="handeling">Per handeling</TabsTrigger>
           </TabsList>
         </Tabs>
@@ -257,9 +258,10 @@ export default function MepDag() {
                             </Badge>
                           </div>
                           <div className="mt-0.5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                            {weergave === 'categorie' && t.toegewezen_aan && (
+                            {weergave !== 'persoon' && t.toegewezen_aan && (
                               <span>{medewerkers.find((m) => m.id === t.toegewezen_aan)?.name}</span>
                             )}
+
                             {t.deadline && (
                               <span className="inline-flex items-center gap-1">
                                 <Clock className="w-4 h-4" />
