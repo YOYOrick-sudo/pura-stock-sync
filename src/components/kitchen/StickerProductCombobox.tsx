@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
 import {
   Command,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
@@ -16,7 +15,6 @@ interface Props {
   onChange: (naam: string) => void;
   onPickSuggestion: (p: StickerProduct) => void;
   placeholder?: string;
-  autoFocus?: boolean;
 }
 
 export function StickerProductCombobox({
@@ -24,7 +22,6 @@ export function StickerProductCombobox({
   onChange,
   onPickSuggestion,
   placeholder,
-  autoFocus,
 }: Props) {
   const [open, setOpen] = useState(false);
   const term = value.trim();
@@ -33,14 +30,6 @@ export function StickerProductCombobox({
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Bij openen van het scherm meteen het veld actief met de lijst eronder.
-  useEffect(() => {
-    if (!autoFocus) return;
-    inputRef.current?.focus();
-    setOpen(true);
-  }, [autoFocus]);
-
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverAnchor asChild>
@@ -48,7 +37,6 @@ export function StickerProductCombobox({
           <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <input
             ref={inputRef}
-            autoFocus={autoFocus}
             type="text"
             value={value}
             onChange={(e) => {
@@ -86,7 +74,6 @@ export function StickerProductCombobox({
         }}
       >
         <Command shouldFilter={false}>
-          <CommandInput placeholder="Filter…" value={term} onValueChange={onChange} className="hidden" />
           <CommandList>
             {isFetching && suggestions.length === 0 && (
               <div className="py-4 flex items-center justify-center text-muted-foreground">
