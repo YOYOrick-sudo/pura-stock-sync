@@ -342,11 +342,19 @@ export default function MepDag() {
       </div>
 
       <MepAfrondDialog
-
         taak={afrondTaak}
         onOpenChange={(v) => !v && setAfrondTaak(null)}
         onAfronden={(args) => afronden.mutateAsync(args)}
       />
+
+      <MepTaakBewerken
+        taak={bewerkTaak}
+        vestiging={vestiging}
+        medewerkers={medewerkers}
+        onOpenChange={(v) => !v && setBewerkTaak(null)}
+        onOpslaan={(taakId, patch) => bijwerken.mutateAsync({ id: taakId, ...patch })}
+      />
+
     </SidebarLayout>
   );
 }
