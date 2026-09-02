@@ -24,6 +24,7 @@ export interface MepTaak {
   deadline: string | null;
   recept_id: string | null;
   methode_id: string | null;
+  handeling: string | null;
   doel_aantal: number | null;
   doel_eenheid: string | null;
   prioriteit: number;
@@ -43,12 +44,14 @@ export interface MepTaakInput {
   deadline?: string | null;
   recept_id?: string | null;
   methode_id?: string | null;
+  handeling?: string | null;
   doel_aantal?: number | null;
   doel_eenheid?: string | null;
   prioriteit?: number;
   toegewezen_aan?: string | null;
   notitie?: string | null;
 }
+
 
 /** Taken van één vestiging op één dag, inclusief realtime sync tussen tablets. */
 export function useMepTaken(vestiging: string, datum: string) {
