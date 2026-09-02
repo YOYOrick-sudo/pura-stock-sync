@@ -314,6 +314,7 @@ export interface MepFavoriet {
   categorie: string;
   recept_id: string | null;
   methode_id: string | null;
+  handeling: string | null;
   doel_aantal: number | null;
   doel_eenheid: string | null;
   aantal_keer: number;
@@ -329,7 +330,9 @@ export function useMepFavorieten(vestiging: string, limiet = 6) {
       const vanaf = ymd(new Date(Date.now() - 90 * 24 * 60 * 60 * 1000));
       const { data, error } = await supabase
         .from('mep_taken')
-        .select('titel, categorie, recept_id, methode_id, doel_aantal, doel_eenheid, taak_datum')
+        .select(
+          'titel, categorie, recept_id, methode_id, handeling, doel_aantal, doel_eenheid, taak_datum',
+        )
         .eq('vestiging', vestiging)
         .gte('taak_datum', vanaf)
         .neq('status', 'geannuleerd')
@@ -339,7 +342,9 @@ export function useMepFavorieten(vestiging: string, limiet = 6) {
 
       const map = new Map<string, MepFavoriet>();
       for (const t of (data ?? []) as any[]) {
-        const sleutel = t.methode_id ?? t.recept_id ?? `vrij:${(t.titel ?? '').toLowerCase()}`;
+        // Item + handeling samen: "Lente-ui · Snijden" is een andere knop dan "Lente-ui · Aanvullen".
+        const basis = t.methode_id ?? t.recept_id ?? `vrij:${(t.titel ?? '').toLowerCase()}`;
+        const sleutel = `${basis}|${(t.handeling ?? '').toLowerCase()}`;
         const bestaand = map.get(sleutel);
         if (bestaand) {
           bestaand.aantal_keer += 1;
@@ -350,12 +355,14 @@ export function useMepFavorieten(vestiging: string, limiet = 6) {
             categorie: t.categorie ?? 'Algemeen',
             recept_id: t.recept_id ?? null,
             methode_id: t.methode_id ?? null,
+            handeling: t.handeling ?? null,
             doel_aantal: t.doel_aantal ?? null,
             doel_eenheid: t.doel_eenheid ?? null,
             aantal_keer: 1,
           });
         }
       }
+
       return [...map.values()]
         .sort((a, b) => b.aantal_keer - a.aantal_keer)
         .slice(0, limiet);
