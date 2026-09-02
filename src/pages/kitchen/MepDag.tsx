@@ -171,6 +171,11 @@ export default function MepDag() {
           </div>
         </div>
 
+        {/* Voortgang */}
+        <Card className="p-3 sm:p-4 bg-card shadow-sm">
+          <Progress value={voortgang} className="h-2" />
+        </Card>
+
         {/* Taak toevoegen — inline */}
         <MepTaakToevoegen
           vestiging={vestiging}
@@ -179,17 +184,6 @@ export default function MepDag() {
           onToevoegen={(input) => toevoegen.mutateAsync(input)}
           onBijwerken={(taakId, patch) => bijwerken.mutateAsync({ id: taakId, ...patch })}
         />
-
-        {/* Voortgang */}
-        <Card className="p-4 sm:p-5 bg-card shadow-sm">
-          <div className="flex items-center justify-between text-sm mb-2">
-            <span className="font-medium">
-              {klaar.length} van {taken.length} klaar
-            </span>
-            <span className="text-muted-foreground tabular-nums">{voortgang}%</span>
-          </div>
-          <Progress value={voortgang} className="h-2" />
-        </Card>
 
         <Tabs
           value={weergave}
