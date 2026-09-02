@@ -3,7 +3,7 @@ import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, Search, AlertTriangle, Pencil, Archive, ArchiveRestore, Cookie } from 'lucide-react';
+import { Plus, Search, AlertTriangle, Pencil, Archive, ArchiveRestore, Cookie, Leaf } from 'lucide-react';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { cn } from '@/lib/utils';
 import { useRole } from '@/hooks/useRole';
@@ -11,33 +11,36 @@ import { useArchiveerGerecht, useGerechten, type Gerecht } from '@/hooks/useGere
 import { GerechtDialog } from '@/components/kitchen/GerechtDialog';
 import {
   GERECHT_CATEGORIEEN,
+  GERECHT_LABEL_CODES,
   GERECHT_LABEL_NAAM,
   GERECHT_LABEL_SOORT,
   isGerechtLabel,
+  type GerechtLabel,
 } from '@/lib/gerecht-labels';
 
-function LabelChips({ gerecht }: { gerecht: Gerecht }) {
-  const labels = (gerecht.labels ?? []).filter(isGerechtLabel);
+/** Labels die iets zeggen over wat erin zit, in vaste volgorde. */
+const INHOUD_LABELS = GERECHT_LABEL_CODES.filter((c) => c !== 'vegan');
+
+function gesorteerdeInhoud(gerecht: Gerecht): GerechtLabel[] {
+  const set = new Set((gerecht.labels ?? []).filter(isGerechtLabel));
+  return INHOUD_LABELS.filter((c) => set.has(c));
+}
+
+function InhoudChips({ gerecht }: { gerecht: Gerecht }) {
+  const inhoud = gesorteerdeInhoud(gerecht);
+  if (inhoud.length === 0) {
+    return <span className="text-sm text-muted-foreground">—</span>;
+  }
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      {!gerecht.gecontroleerd && (
-        <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2.5 py-1 text-xs font-medium text-warning">
-          <AlertTriangle className="h-3 w-3" />
-          Nog te controleren
-        </span>
-      )}
-      {labels.length === 0 && gerecht.gecontroleerd && (
-        <span className="text-sm text-muted-foreground">Geen labels</span>
-      )}
-      {labels.map((code) => {
+      {inhoud.map((code) => {
         const soort = GERECHT_LABEL_SOORT[code];
         return (
           <span
             key={code}
             className={cn(
-              'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium',
+              'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap',
               soort === 'allergeen' && 'bg-destructive/10 text-destructive',
-              soort === 'dieet' && 'bg-primary/10 text-primary',
               soort === 'info' && 'bg-muted text-muted-foreground',
             )}
           >
@@ -149,52 +152,85 @@ export default function Gerechten() {
                     {groep.titel} · {rijen.length}
                   </h2>
                 </div>
-                {rijen.map((g, i) => (
-                  <div
-                    key={g.id}
-                    className={cn(
-                      'flex flex-col gap-2 px-5 py-3 sm:flex-row sm:items-center sm:gap-4',
-                      i % 2 === 1 && 'bg-muted/20',
-                      g.is_gearchiveerd && 'opacity-60',
-                    )}
-                  >
-                    <div className="sm:w-[240px] shrink-0">
-                      <p className="font-medium text-foreground">{g.naam}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {g.prijs != null ? `€ ${g.prijs.toFixed(2).replace('.', ',')}` : ''}
-                        {g.notitie ? `${g.prijs != null ? ' · ' : ''}${g.notitie}` : ''}
-                      </p>
-                    </div>
-                    <div className="flex-1">
-                      <LabelChips gerecht={g} />
-                    </div>
-                    {isManager && (
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-11 w-11"
-                          aria-label={`${g.naam} bewerken`}
-                          onClick={() => {
-                            setBewerken(g);
-                            setDialogOpen(true);
-                          }}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-11 w-11"
-                          aria-label={g.is_gearchiveerd ? `${g.naam} terugzetten` : `${g.naam} archiveren`}
-                          onClick={() => archiveer.mutate({ id: g.id, archiveren: !g.is_gearchiveerd })}
-                        >
-                          {g.is_gearchiveerd ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
-                        </Button>
+
+                {/* Tabelkop (alleen vanaf sm) */}
+                <div
+                  className={cn(
+                    'hidden sm:grid items-center gap-4 px-5 py-2 border-b bg-muted/10',
+                    'grid-cols-[minmax(220px,280px)_1fr_auto]',
+                    !isManager && 'grid-cols-[minmax(220px,280px)_1fr]',
+                  )}
+                >
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Gerecht</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bevat</span>
+                  {isManager && <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground w-[96px] text-right">Acties</span>}
+                </div>
+
+                {rijen.map((g, i) => {
+                  const isVegan = (g.labels ?? []).includes('vegan');
+                  return (
+                    <div
+                      key={g.id}
+                      className={cn(
+                        'grid gap-2 px-5 py-3 sm:items-center sm:gap-4',
+                        'sm:grid-cols-[minmax(220px,280px)_1fr_auto] grid-cols-1',
+                        !isManager && 'sm:grid-cols-[minmax(220px,280px)_1fr]',
+                        i % 2 === 1 && 'bg-muted/20',
+                        g.is_gearchiveerd && 'opacity-60',
+                      )}
+                    >
+                      <div className="min-w-0">
+                        <p className="font-medium text-foreground flex items-center gap-2 flex-wrap">
+                          <span>{g.naam}</span>
+                          {isVegan && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                              <Leaf className="h-3 w-3" />
+                              Vegan
+                            </span>
+                          )}
+                          {!g.gecontroleerd && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning">
+                              <AlertTriangle className="h-3 w-3" />
+                              Nog te controleren
+                            </span>
+                          )}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {g.prijs != null ? `€ ${g.prijs.toFixed(2).replace('.', ',')}` : ''}
+                          {g.notitie ? `${g.prijs != null ? ' · ' : ''}${g.notitie}` : ''}
+                        </p>
                       </div>
-                    )}
-                  </div>
-                ))}
+                      <div className="min-w-0">
+                        <InhoudChips gerecht={g} />
+                      </div>
+                      {isManager && (
+                        <div className="flex items-center gap-1 shrink-0 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-11 w-11"
+                            aria-label={`${g.naam} bewerken`}
+                            onClick={() => {
+                              setBewerken(g);
+                              setDialogOpen(true);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-11 w-11"
+                            aria-label={g.is_gearchiveerd ? `${g.naam} terugzetten` : `${g.naam} archiveren`}
+                            onClick={() => archiveer.mutate({ id: g.id, archiveren: !g.is_gearchiveerd })}
+                          >
+                            {g.is_gearchiveerd ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </Card>
             );
           })
