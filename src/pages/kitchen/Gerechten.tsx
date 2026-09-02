@@ -156,14 +156,16 @@ export default function Gerechten() {
                 {/* Tabelkop (alleen vanaf sm) */}
                 <div
                   className={cn(
-                    'hidden sm:grid items-center gap-4 px-5 py-2 border-b bg-muted/10',
-                    'grid-cols-[minmax(220px,280px)_1fr_auto]',
-                    !isManager && 'grid-cols-[minmax(220px,280px)_1fr]',
+                    'hidden sm:grid items-center px-0 py-2 border-b bg-muted/10',
+                    'grid-cols-[minmax(180px,260px)_1fr_auto]',
+                    !isManager && 'grid-cols-[minmax(180px,260px)_1fr]',
                   )}
                 >
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Gerecht</span>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bevat</span>
-                  {isManager && <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground w-[96px] text-right">Acties</span>}
+                  <span className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-r border-border/50">Gerecht</span>
+                  <span className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-r border-border/50">Bevat</span>
+                  {isManager && (
+                    <span className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground w-[96px] text-right">Acties</span>
+                  )}
                 </div>
 
                 {rijen.map((g, i) => {
