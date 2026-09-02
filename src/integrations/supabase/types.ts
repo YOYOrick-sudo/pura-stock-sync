@@ -2368,6 +2368,7 @@ export type Database = {
           deadline: string | null
           doel_aantal: number | null
           doel_eenheid: string | null
+          handeling: string | null
           id: string
           methode_id: string | null
           notitie: string | null
@@ -2388,6 +2389,7 @@ export type Database = {
           deadline?: string | null
           doel_aantal?: number | null
           doel_eenheid?: string | null
+          handeling?: string | null
           id?: string
           methode_id?: string | null
           notitie?: string | null
@@ -2408,6 +2410,7 @@ export type Database = {
           deadline?: string | null
           doel_aantal?: number | null
           doel_eenheid?: string | null
+          handeling?: string | null
           id?: string
           methode_id?: string | null
           notitie?: string | null

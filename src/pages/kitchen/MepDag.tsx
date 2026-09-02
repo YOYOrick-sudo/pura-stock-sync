@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { MepTaakToevoegen } from '@/components/kitchen/MepTaakToevoegen';
 import { MepAfrondDialog } from '@/components/kitchen/MepAfrondDialog';
+import { MepTaakBewerken } from '@/components/kitchen/MepTaakBewerken';
 import {
   Plus,
   Check,
@@ -69,7 +70,8 @@ export default function MepDag() {
   const { toevoegen, bijwerken, verwijderen, afronden, heropenen } = useMepTaakMutaties(vestiging, datum);
 
   const [afrondTaak, setAfrondTaak] = useState<MepTaak | null>(null);
-  const [weergave, setWeergave] = useState<'categorie' | 'persoon'>('categorie');
+  const [bewerkTaak, setBewerkTaak] = useState<MepTaak | null>(null);
+  const [weergave, setWeergave] = useState<'categorie' | 'persoon' | 'handeling'>('categorie');
 
   const open = taken.filter((t) => t.status !== 'afgerond');
   const klaar = taken.filter((t) => t.status === 'afgerond');
@@ -81,7 +83,9 @@ export default function MepDag() {
       const sleutel =
         weergave === 'categorie'
           ? t.categorie || 'Algemeen'
-          : medewerkers.find((m) => m.id === t.toegewezen_aan)?.name ?? 'Niet toegewezen';
+          : weergave === 'handeling'
+            ? t.handeling || 'Geen handeling'
+            : medewerkers.find((m) => m.id === t.toegewezen_aan)?.name ?? 'Niet toegewezen';
       if (!map.has(sleutel)) map.set(sleutel, []);
       map.get(sleutel)!.push(t);
     }
@@ -173,9 +177,7 @@ export default function MepDag() {
           datum={datum}
           medewerkers={medewerkers}
           onToevoegen={(input) => toevoegen.mutateAsync(input)}
-          onToewijzen={(taakId, medewerkerId) =>
-            bijwerken.mutateAsync({ id: taakId, toegewezen_aan: medewerkerId })
-          }
+          onBijwerken={(taakId, patch) => bijwerken.mutateAsync({ id: taakId, ...patch })}
         />
 
         {/* Voortgang */}
@@ -189,10 +191,14 @@ export default function MepDag() {
           <Progress value={voortgang} className="h-2" />
         </Card>
 
-        <Tabs value={weergave} onValueChange={(v) => setWeergave(v as 'categorie' | 'persoon')}>
+        <Tabs
+          value={weergave}
+          onValueChange={(v) => setWeergave(v as 'categorie' | 'persoon' | 'handeling')}
+        >
           <TabsList>
             <TabsTrigger value="categorie">Per categorie</TabsTrigger>
             <TabsTrigger value="persoon">Per persoon</TabsTrigger>
+            <TabsTrigger value="handeling">Per handeling</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -228,7 +234,11 @@ export default function MepDag() {
                           isKlaar && 'opacity-60',
                         )}
                       >
-                        <div className="min-w-0 flex-1">
+                        <button
+                          type="button"
+                          onClick={() => setBewerkTaak(t)}
+                          className="min-w-0 flex-1 text-left rounded-polar-md -mx-1 px-1 py-1 hover:bg-primary/5 active:bg-primary/10 transition-colors"
+                        >
                           <div className="flex flex-wrap items-center gap-2">
                             <span
                               className={cn(
@@ -238,6 +248,11 @@ export default function MepDag() {
                             >
                               {t.titel}
                             </span>
+                            {t.handeling && (
+                              <Badge variant="secondary" className="font-normal">
+                                {t.handeling}
+                              </Badge>
+                            )}
                             {t.doel_aantal != null && (
                               <Badge variant="secondary" className="font-normal">
                                 {Number(t.doel_aantal)} {t.doel_eenheid ?? ''}
@@ -259,7 +274,7 @@ export default function MepDag() {
                             )}
                             {t.notitie && <span className="truncate">{t.notitie}</span>}
                           </div>
-                        </div>
+                        </button>
 
                         {isKlaar ? (
                           <Button
@@ -327,11 +342,19 @@ export default function MepDag() {
       </div>
 
       <MepAfrondDialog
-
         taak={afrondTaak}
         onOpenChange={(v) => !v && setAfrondTaak(null)}
         onAfronden={(args) => afronden.mutateAsync(args)}
       />
+
+      <MepTaakBewerken
+        taak={bewerkTaak}
+        vestiging={vestiging}
+        medewerkers={medewerkers}
+        onOpenChange={(v) => !v && setBewerkTaak(null)}
+        onOpslaan={(taakId, patch) => bijwerken.mutateAsync({ id: taakId, ...patch })}
+      />
+
     </SidebarLayout>
   );
 }
