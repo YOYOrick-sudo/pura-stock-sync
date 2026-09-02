@@ -9,7 +9,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Printer, Snowflake, ChefHat, Tag } from 'lucide-react';
@@ -27,7 +26,6 @@ interface Props {
     taakId: string;
     aantal: number;
     temperatuur?: number | null;
-    notitie?: string | null;
   }) => Promise<{ batch_nummer: string; hoeveelheid: number; eenheid: string } | unknown>;
 }
 
@@ -45,7 +43,6 @@ function fmtDatum(d: Date) {
 export function MepAfrondDialog({ taak, onOpenChange, onAfronden }: Props) {
   const [aantal, setAantal] = useState(1);
   const [temperatuur, setTemperatuur] = useState('');
-  const [notitie, setNotitie] = useState('');
   const [sticker, setSticker] = useState(true);
   const [stickerType, setStickerType] = useState<StickerType>('bereid');
   const [stickerNaam, setStickerNaam] = useState('');
@@ -58,7 +55,6 @@ export function MepAfrondDialog({ taak, onOpenChange, onAfronden }: Props) {
     if (taak) {
       setAantal(Number(taak.doel_aantal ?? 1));
       setTemperatuur('');
-      setNotitie('');
       setSticker(true);
       setStickerType('bereid');
       setStickerNaam(taak.titel);
@@ -84,7 +80,6 @@ export function MepAfrondDialog({ taak, onOpenChange, onAfronden }: Props) {
         taakId: taak.id,
         aantal,
         temperatuur: temperatuur === '' ? null : Number(temperatuur),
-        notitie: notitie.trim() || null,
       });
       toast.success(`Afgerond · batch ${res?.batch_nummer ?? ''}`.trim());
 
@@ -114,70 +109,68 @@ export function MepAfrondDialog({ taak, onOpenChange, onAfronden }: Props) {
 
   return (
     <Dialog open={!!taak} onOpenChange={(v) => !v && onOpenChange(false)}>
-      <DialogContent className="max-w-[650px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{taak?.titel} afronden</DialogTitle>
+      <DialogContent className="max-w-[560px] p-4 max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="pb-1">
+          <DialogTitle className="text-lg">{taak?.titel} afronden</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <Label>Hoeveel {taak?.doel_eenheid ?? 'stuks'} gemaakt?</Label>
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-14 w-14 text-xl"
-                onClick={() => setAantal((a) => Math.max(1, a - 1))}
-              >
-                −
-              </Button>
+        <div className="space-y-3">
+          {/* Aantal + temperatuur */}
+          <div className="grid grid-cols-[1fr_auto] gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-sm">Hoeveel {taak?.doel_eenheid ?? 'stuks'}?</Label>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-12 w-12 text-lg"
+                  onClick={() => setAantal((a) => Math.max(1, a - 1))}
+                >
+                  −
+                </Button>
+                <Input
+                  className="h-12 text-center text-lg tabular-nums"
+                  type="number"
+                  inputMode="decimal"
+                  value={aantal}
+                  onChange={(e) => setAantal(Number(e.target.value))}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-12 w-12 text-lg"
+                  onClick={() => setAantal((a) => a + 1)}
+                >
+                  +
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5 w-[110px]">
+              <Label className="text-sm">Kerntemp.</Label>
               <Input
-                className="h-14 text-center text-xl tabular-nums"
+                className="h-12 text-center"
                 type="number"
                 inputMode="decimal"
-                value={aantal}
-                onChange={(e) => setAantal(Number(e.target.value))}
+                placeholder="°C"
+                value={temperatuur}
+                onChange={(e) => setTemperatuur(e.target.value)}
               />
-              <Button
-                type="button"
-                variant="outline"
-                className="h-14 w-14 text-xl"
-                onClick={() => setAantal((a) => a + 1)}
-              >
-                +
-              </Button>
             </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Kerntemperatuur (optioneel)</Label>
-            <Input
-              className="h-12"
-              type="number"
-              inputMode="decimal"
-              placeholder="bijv. 75"
-              value={temperatuur}
-              onChange={(e) => setTemperatuur(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Notitie (optioneel)</Label>
-            <Textarea rows={2} value={notitie} onChange={(e) => setNotitie(e.target.value)} />
           </div>
 
           {/* Sticker */}
           <div className="rounded-polar border border-border/60">
-            <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center justify-between px-3 py-2.5">
               <div className="flex items-center gap-2">
-                <Printer className="w-5 h-5 text-muted-foreground" />
-                <span className="text-[15px]">Sticker printen</span>
+                <Printer className="w-4 h-4 text-muted-foreground" />
+                <span className="text-[15px] font-medium">Sticker printen</span>
               </div>
               <Switch checked={sticker} onCheckedChange={setSticker} />
             </div>
 
             {sticker && (
-              <div className="space-y-3 border-t border-border/60 px-4 py-3">
+              <div className="space-y-3 border-t border-border/60 px-3 py-3">
                 <div className="flex flex-wrap gap-2">
                   {TYPES.map(({ key, label, icon: Icon }) => (
                     <button
@@ -185,22 +178,22 @@ export function MepAfrondDialog({ taak, onOpenChange, onAfronden }: Props) {
                       type="button"
                       onClick={() => kiesType(key)}
                       className={cn(
-                        'inline-flex min-h-[44px] items-center gap-2 rounded-polar-md border px-4 text-[15px] transition-colors',
+                        'inline-flex min-h-[40px] items-center gap-1.5 rounded-polar-md border px-3 text-[14px] transition-colors',
                         stickerType === key
                           ? 'border-primary bg-primary/10 text-primary'
                           : 'border-input bg-card hover:bg-muted',
                       )}
                     >
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-4 h-4" />
                       {label}
                     </button>
                   ))}
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label>Naam op sticker</Label>
+                  <Label className="text-sm">Naam op sticker</Label>
                   <Input
-                    className="h-12"
+                    className="h-11"
                     value={stickerNaam}
                     onChange={(e) => setStickerNaam(e.target.value)}
                     placeholder="Productnaam"
@@ -210,23 +203,23 @@ export function MepAfrondDialog({ taak, onOpenChange, onAfronden }: Props) {
                 <div className="flex flex-wrap items-end gap-4">
                   {stickerType !== 'vrij' && (
                     <div className="space-y-1.5">
-                      <Label>Houdbaar (dagen)</Label>
+                      <Label className="text-sm">Houdbaar (dagen)</Label>
                       <div className="flex items-center gap-2">
                         <Button
                           type="button"
                           variant="outline"
-                          className="h-12 w-12"
+                          className="h-10 w-10"
                           onClick={() => setThtDagen((d) => Math.max(1, d - 1))}
                         >
                           −
                         </Button>
-                        <span className="w-10 text-center text-[17px] font-medium tabular-nums">
+                        <span className="w-9 text-center text-[16px] font-medium tabular-nums">
                           {thtDagen}
                         </span>
                         <Button
                           type="button"
                           variant="outline"
-                          className="h-12 w-12"
+                          className="h-10 w-10"
                           onClick={() => setThtDagen((d) => Math.min(30, d + 1))}
                         >
                           +
@@ -236,23 +229,23 @@ export function MepAfrondDialog({ taak, onOpenChange, onAfronden }: Props) {
                   )}
 
                   <div className="space-y-1.5">
-                    <Label>Aantal stickers</Label>
+                    <Label className="text-sm">Aantal stickers</Label>
                     <div className="flex items-center gap-2">
                       <Button
                         type="button"
                         variant="outline"
-                        className="h-12 w-12"
+                        className="h-10 w-10"
                         onClick={() => setStickerAantal((a) => Math.max(1, a - 1))}
                       >
                         −
                       </Button>
-                      <span className="w-10 text-center text-[17px] font-medium tabular-nums">
+                      <span className="w-9 text-center text-[16px] font-medium tabular-nums">
                         {stickerAantal}
                       </span>
                       <Button
                         type="button"
                         variant="outline"
-                        className="h-12 w-12"
+                        className="h-10 w-10"
                         onClick={() => setStickerAantal((a) => Math.min(20, a + 1))}
                       >
                         +
@@ -271,7 +264,7 @@ export function MepAfrondDialog({ taak, onOpenChange, onAfronden }: Props) {
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 pt-2">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={bezig}>
             Annuleren
           </Button>
