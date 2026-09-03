@@ -56,6 +56,20 @@ import Cijfers from "./pages/Cijfers";
 import LightspeedCallback from "./pages/LightspeedCallback";
 const queryClient = new QueryClient();
 
+/** MEP is alleen actief voor West (Daily); Midsland-gebruikers worden teruggestuurd. */
+const RequireWest = ({ children }: { children: React.ReactNode }) => {
+  const { userLocation, loading } = useUserLocation();
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-muted-foreground">Laden...</div>
+      </div>
+    );
+  }
+  if (userLocation !== 'West') return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
