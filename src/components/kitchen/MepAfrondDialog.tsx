@@ -75,36 +75,51 @@ export function MepAfrondDialog({ taak, onOpenChange, onAfronden }: Props) {
       return;
     }
     setBezig(true);
+    let afrondingGelukt = false;
     try {
       const res: any = await onAfronden({
         taakId: taak.id,
         aantal,
         temperatuur: temperatuur === '' ? null : Number(temperatuur),
       });
+      afrondingGelukt = true;
       toast.success(`Afgerond · batch ${res?.batch_nummer ?? ''}`.trim());
-
-      if (sticker && stickerNaam.trim()) {
-        const vandaag = new Date();
-        await printSticker.mutateAsync({
-          type: stickerType,
-          naam: stickerNaam.trim(),
-          datum1: fmtDatum(vandaag),
-          datum2: stickerType === 'vrij' ? undefined : fmtDatum(addDays(vandaag, thtDagen)),
-          tht_dagen: stickerType === 'vrij' ? null : thtDagen,
-          aantal: stickerAantal,
-        });
-        toast.success(
-          stickerAantal > 1
-            ? `${stickerAantal} stickers naar printer gestuurd`
-            : 'Sticker naar printer gestuurd',
-        );
-      }
-      onOpenChange(false);
     } catch (e: any) {
       toast.error('Afronden mislukt: ' + (e?.message ?? 'onbekende fout'));
-    } finally {
       setBezig(false);
+      return;
     }
+
+    if (sticker) {
+      const naam = stickerNaam.trim() || taak.titel;
+      if (naam) {
+        try {
+          const vandaag = new Date();
+          await printSticker.mutateAsync({
+            type: stickerType,
+            naam,
+            datum1: fmtDatum(vandaag),
+            datum2: stickerType === 'vrij' ? undefined : fmtDatum(addDays(vandaag, thtDagen)),
+            tht_dagen: stickerType === 'vrij' ? null : thtDagen,
+            aantal: stickerAantal,
+          });
+          toast.success(
+            stickerAantal > 1
+              ? `${stickerAantal} stickers naar printer gestuurd`
+              : 'Sticker naar printer gestuurd',
+          );
+        } catch (e: any) {
+          toast.warning(
+            `Taak afgerond, maar sticker kon niet worden geprint: ${e?.message ?? 'onbekende fout'}`,
+          );
+        }
+      } else {
+        toast.warning('Taak afgerond. Vul een productnaam in om een sticker te printen.');
+      }
+    }
+
+    onOpenChange(false);
+    setBezig(false);
   };
 
   return (
