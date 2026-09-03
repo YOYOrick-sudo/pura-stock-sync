@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,7 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RequireManager } from "@/components/RequireManager";
 import { RequireOwner } from "@/components/RequireOwner";
-import { UserLocationProvider } from "@/contexts/UserLocationContext";
+import { UserLocationProvider, useUserLocation } from "@/contexts/UserLocationContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -55,6 +56,20 @@ import Bronnen from "./pages/settings/Bronnen";
 import Cijfers from "./pages/Cijfers";
 import LightspeedCallback from "./pages/LightspeedCallback";
 const queryClient = new QueryClient();
+
+/** MEP is alleen actief voor West (Daily); Midsland-gebruikers worden teruggestuurd. */
+const RequireWest = ({ children }: { children: ReactNode }) => {
+  const { userLocation, loading } = useUserLocation();
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-muted-foreground">Laden...</div>
+      </div>
+    );
+  }
+  if (userLocation !== 'West') return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -230,10 +245,10 @@ const App = () => (
             <Route path="/kitchen/recipes/:id/bewerken" element={<ProtectedRoute><RecipeForm /></ProtectedRoute>} />
             <Route path="/kitchen/ingredienten" element={<ProtectedRoute><Ingredienten /></ProtectedRoute>} />
             <Route path="/kitchen/gerechten" element={<ProtectedRoute><Gerechten /></ProtectedRoute>} />
-            <Route path="/kitchen/mep" element={<ProtectedRoute><MepDag /></ProtectedRoute>} />
-            <Route path="/kitchen/mep/week" element={<ProtectedRoute><MepWeek /></ProtectedRoute>} />
-            <Route path="/kitchen/mep/oud" element={<ProtectedRoute><MepPlanning /></ProtectedRoute>} />
-            <Route path="/kitchen/mep/beheer" element={<ProtectedRoute><MepBeheer /></ProtectedRoute>} />
+            <Route path="/kitchen/mep" element={<ProtectedRoute><RequireWest><MepDag /></RequireWest></ProtectedRoute>} />
+            <Route path="/kitchen/mep/week" element={<ProtectedRoute><RequireWest><MepWeek /></RequireWest></ProtectedRoute>} />
+            <Route path="/kitchen/mep/oud" element={<ProtectedRoute><RequireWest><MepPlanning /></RequireWest></ProtectedRoute>} />
+            <Route path="/kitchen/mep/beheer" element={<ProtectedRoute><RequireWest><MepBeheer /></RequireWest></ProtectedRoute>} />
             <Route path="/settings/mep" element={<ProtectedRoute><MepInstellingen /></ProtectedRoute>} />
             <Route path="/settings/keten" element={<ProtectedRoute><RequireManager><KetenBeheer /></RequireManager></ProtectedRoute>} />
 
