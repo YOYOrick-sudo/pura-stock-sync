@@ -28,9 +28,6 @@ Deno.serve(async (req) => {
   if (!expected || !provided || !timingSafeEqual(expected, provided)) {
     return json({ error: 'unauthorized' }, 401)
   }
-  if (!expected || !provided || !timingSafeEqual(expected, provided)) {
-    return json({ error: 'unauthorized' }, 401)
-  }
 
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405)
 
@@ -48,6 +45,9 @@ Deno.serve(async (req) => {
   )
 
   const action = body?.action
+  // De bridge stuurt optioneel mee waar hij staat; standaard West (huidige printer).
+  const vestiging =
+    typeof body?.vestiging === 'string' && body.vestiging.length > 0 ? body.vestiging : 'West'
 
   if (action === 'claim') {
     const { data, error } = await supabase.rpc('claim_next_print_job')
@@ -81,6 +81,10 @@ Deno.serve(async (req) => {
 
     if (error) return json({ error: error.message }, 500)
     if (!data) return json({ error: 'not_printing_or_not_found' }, 409)
+
+    if (success) {
+      await supabase.rpc('print_bridge_mark_printed', { _vestiging: vestiging })
+    }
     return json({ ok: true, id: data.id })
   }
 
