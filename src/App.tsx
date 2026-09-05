@@ -101,7 +101,10 @@ const RequireWest = ({ children }: { children: ReactNode }) => {
   return <>{children}</>;
 };
 
-const App = () => (
+const App = () => {
+  useVersHouden();
+  return (
+  <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <TooltipProvider>
