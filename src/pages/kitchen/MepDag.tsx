@@ -10,6 +10,7 @@ import { EmptyState } from '@/components/kitchen/EmptyState';
 import { MepTaakToevoegen } from '@/components/kitchen/MepTaakToevoegen';
 import { MepAfrondDialog } from '@/components/kitchen/MepAfrondDialog';
 import { MepTaakBewerken } from '@/components/kitchen/MepTaakBewerken';
+import { PrintStatusBalk } from '@/components/kitchen/PrintStatusBalk';
 import {
   Plus,
   Check,

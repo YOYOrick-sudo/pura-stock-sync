@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { StickerProductCombobox } from '@/components/kitchen/StickerProductCombobox';
+import { PrintStatusBalk } from '@/components/kitchen/PrintStatusBalk';
 import {
   useCreateStickerPrintJob,
   useTopStickerProducten,
@@ -155,7 +156,9 @@ export default function SnelPrinten() {
         aantal,
       });
       toast.success(
-        res.count > 1 ? `${res.count} stickers verzonden naar printer` : 'Sticker verzonden naar printer',
+        res.count > 1
+          ? `${res.count} stickers in de wachtrij`
+          : 'Sticker in de wachtrij — komt er niets uit, kijk dan bij de statusbalk',
       );
       setNaam('');
       setAantal(1);
@@ -170,6 +173,7 @@ export default function SnelPrinten() {
   return (
     <SidebarLayout>
       <div className="max-w-5xl mx-auto space-y-4">
+        <PrintStatusBalk />
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
           {/* Linker kolom */}
           <div className="space-y-3">
