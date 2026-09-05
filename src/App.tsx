@@ -55,7 +55,37 @@ import Team from "./pages/settings/Team";
 import Bronnen from "./pages/settings/Bronnen";
 import Cijfers from "./pages/Cijfers";
 import LightspeedCallback from "./pages/LightspeedCallback";
-const queryClient = new QueryClient();
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { focusManager } from "@tanstack/react-query";
+import { useEffect } from "react";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 15_000),
+      refetchOnWindowFocus: true,
+      staleTime: 30_000,
+    },
+    mutations: { retry: 1, retryDelay: 1_000 },
+  },
+});
+
+/** Haalt data vers op zodra een tablet uit de slaapstand komt of de wifi terug is. */
+function useVersHouden() {
+  useEffect(() => {
+    const sync = () => {
+      focusManager.setFocused(document.visibilityState === "visible");
+      if (document.visibilityState === "visible") queryClient.invalidateQueries();
+    };
+    document.addEventListener("visibilitychange", sync);
+    window.addEventListener("online", sync);
+    return () => {
+      document.removeEventListener("visibilitychange", sync);
+      window.removeEventListener("online", sync);
+    };
+  }, []);
+}
 
 /** MEP is alleen actief voor West (Daily); Midsland-gebruikers worden teruggestuurd. */
 const RequireWest = ({ children }: { children: ReactNode }) => {
@@ -71,7 +101,10 @@ const RequireWest = ({ children }: { children: ReactNode }) => {
   return <>{children}</>;
 };
 
-const App = () => (
+const App = () => {
+  useVersHouden();
+  return (
+  <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <TooltipProvider>
@@ -335,6 +368,8 @@ const App = () => (
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
-);
+  </ErrorBoundary>
+  );
+};
 
 export default App;

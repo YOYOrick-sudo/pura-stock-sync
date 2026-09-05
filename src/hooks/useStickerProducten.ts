@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useUserLocation } from '@/contexts/UserLocationContext';
 import {
   buildStickerZpl,
   buildStickerOmschrijving,
@@ -64,10 +65,13 @@ export function useTopStickerProducten(limit = 9) {
 export interface CreateStickerJobInput extends StickerLabelInput {
   tht_dagen?: number | null;
   aantal?: number;
+  /** Waar de sticker vandaan komt: snel_printen | mep */
+  bron?: string;
 }
 
 export function useCreateStickerPrintJob() {
   const qc = useQueryClient();
+  const { userLocation } = useUserLocation();
   return useMutation({
     mutationFn: async (input: CreateStickerJobInput) => {
       const zpl = buildStickerZpl(input);
@@ -78,6 +82,8 @@ export function useCreateStickerPrintJob() {
         recipe_id: null,
         zpl,
         label_omschrijving,
+        vestiging: userLocation || null,
+        bron: input.bron ?? 'snel_printen',
       }));
       const { error: jobErr } = await supabase.from('print_jobs').insert(rows);
       if (jobErr) throw jobErr;

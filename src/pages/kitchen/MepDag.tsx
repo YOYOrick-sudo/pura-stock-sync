@@ -10,6 +10,7 @@ import { EmptyState } from '@/components/kitchen/EmptyState';
 import { MepTaakToevoegen } from '@/components/kitchen/MepTaakToevoegen';
 import { MepAfrondDialog } from '@/components/kitchen/MepAfrondDialog';
 import { MepTaakBewerken } from '@/components/kitchen/MepTaakBewerken';
+import { PrintStatusBalk } from '@/components/kitchen/PrintStatusBalk';
 import {
   Plus,
   Check,
@@ -175,6 +176,8 @@ export default function MepDag() {
         <Card className="p-3 sm:p-4 bg-card shadow-sm">
           <Progress value={voortgang} className="h-2" />
         </Card>
+
+        <PrintStatusBalk />
 
         {/* Taak toevoegen — inline */}
         <MepTaakToevoegen

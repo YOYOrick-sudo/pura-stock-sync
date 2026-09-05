@@ -2977,9 +2977,31 @@ export type Database = {
           },
         ]
       }
+      print_bridge_status: {
+        Row: {
+          laatste_claim: string | null
+          laatste_print: string | null
+          updated_at: string
+          vestiging: string
+        }
+        Insert: {
+          laatste_claim?: string | null
+          laatste_print?: string | null
+          updated_at?: string
+          vestiging: string
+        }
+        Update: {
+          laatste_claim?: string | null
+          laatste_print?: string | null
+          updated_at?: string
+          vestiging?: string
+        }
+        Relationships: []
+      }
       print_jobs: {
         Row: {
           aangemaakt_door: string | null
+          bron: string | null
           created_at: string
           foutmelding: string | null
           geprint_op: string | null
@@ -2987,10 +3009,12 @@ export type Database = {
           label_omschrijving: string | null
           recipe_id: string | null
           status: string
+          vestiging: string | null
           zpl: string
         }
         Insert: {
           aangemaakt_door?: string | null
+          bron?: string | null
           created_at?: string
           foutmelding?: string | null
           geprint_op?: string | null
@@ -2998,10 +3022,12 @@ export type Database = {
           label_omschrijving?: string | null
           recipe_id?: string | null
           status?: string
+          vestiging?: string | null
           zpl: string
         }
         Update: {
           aangemaakt_door?: string | null
+          bron?: string | null
           created_at?: string
           foutmelding?: string | null
           geprint_op?: string | null
@@ -3009,6 +3035,7 @@ export type Database = {
           label_omschrijving?: string | null
           recipe_id?: string | null
           status?: string
+          vestiging?: string | null
           zpl?: string
         }
         Relationships: [
@@ -4502,6 +4529,10 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      print_bridge_mark_printed: {
+        Args: { _vestiging: string }
+        Returns: undefined
       }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
