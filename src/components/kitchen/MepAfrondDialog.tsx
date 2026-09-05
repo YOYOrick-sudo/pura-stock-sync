@@ -102,11 +102,12 @@ export function MepAfrondDialog({ taak, onOpenChange, onAfronden }: Props) {
             datum2: stickerType === 'vrij' ? undefined : fmtDatum(addDays(vandaag, thtDagen)),
             tht_dagen: stickerType === 'vrij' ? null : thtDagen,
             aantal: stickerAantal,
+            bron: 'mep',
           });
           toast.success(
             stickerAantal > 1
-              ? `${stickerAantal} stickers naar printer gestuurd`
-              : 'Sticker naar printer gestuurd',
+              ? `${stickerAantal} stickers in de wachtrij`
+              : 'Sticker in de wachtrij — komt er niets uit, kijk dan bij de statusbalk',
           );
         } catch (e: any) {
           toast.warning(

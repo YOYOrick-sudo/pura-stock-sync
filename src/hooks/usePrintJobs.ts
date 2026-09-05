@@ -48,7 +48,9 @@ export function useCreatePrintJob() {
     },
     onSuccess: (res) => {
       toast.success(
-        res.count > 1 ? `${res.count} stickers naar printer gestuurd` : 'Sticker naar printer gestuurd',
+        res.count > 1
+          ? `${res.count} stickers in de wachtrij — check de statusbalk als er niets uitkomt`
+          : 'Sticker in de wachtrij — check de statusbalk als er niets uitkomt',
       );
     },
     onError: (e: any) => {
