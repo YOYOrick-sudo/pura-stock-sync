@@ -177,6 +177,8 @@ export default function MepDag() {
           <Progress value={voortgang} className="h-2" />
         </Card>
 
+        <PrintStatusBalk />
+
         {/* Taak toevoegen — inline */}
         <MepTaakToevoegen
           vestiging={vestiging}
