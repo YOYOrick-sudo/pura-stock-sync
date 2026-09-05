@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { useRole } from '@/hooks/useRole';
 import { useArchiveerGerecht, useGerechten, type Gerecht } from '@/hooks/useGerechten';
 import { GerechtDialog } from '@/components/kitchen/GerechtDialog';
+import { AllergeenFilter } from '@/components/kitchen/AllergeenFilter';
 import {
   GERECHT_CATEGORIEEN,
   GERECHT_LABEL_CODES,
@@ -24,6 +25,11 @@ const INHOUD_LABELS = GERECHT_LABEL_CODES.filter((c) => c !== 'vegan');
 function gesorteerdeInhoud(gerecht: Gerecht): GerechtLabel[] {
   const set = new Set((gerecht.labels ?? []).filter(isGerechtLabel));
   return INHOUD_LABELS.filter((c) => set.has(c));
+}
+
+function opsomming(delen: string[]): string {
+  if (delen.length <= 1) return delen.join('');
+  return `${delen.slice(0, -1).join(', ')} en ${delen[delen.length - 1]}`;
 }
 
 function InhoudChips({ gerecht }: { gerecht: Gerecht }) {
@@ -59,19 +65,44 @@ export default function Gerechten() {
   const [toonGearchiveerd, setToonGearchiveerd] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bewerken, setBewerken] = useState<Gerecht | null>(null);
+  const [zonder, setZonder] = useState<GerechtLabel[]>([]);
+  const [alleenVegan, setAlleenVegan] = useState(false);
 
   const { data: gerechten = [], isLoading } = useGerechten(categorie, toonGearchiveerd);
   const archiveer = useArchiveerGerecht();
 
+  const filterActief = zonder.length > 0 || alleenVegan;
+
   const gefilterd = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return gerechten;
-    return gerechten.filter(
-      (g) =>
-        g.naam.toLowerCase().includes(q) ||
-        (g.labels ?? []).some((l) => (isGerechtLabel(l) ? GERECHT_LABEL_NAAM[l].toLowerCase().includes(q) : false)),
-    );
-  }, [gerechten, search]);
+    return gerechten.filter((g) => {
+      const labels = (g.labels ?? []).filter(isGerechtLabel);
+      if (q) {
+        const match =
+          g.naam.toLowerCase().includes(q) ||
+          labels.some((l) => GERECHT_LABEL_NAAM[l].toLowerCase().includes(q));
+        if (!match) return false;
+      }
+      if (alleenVegan && !labels.includes('vegan')) return false;
+      if (zonder.some((code) => labels.includes(code))) return false;
+      return true;
+    });
+  }, [gerechten, search, zonder, alleenVegan]);
+
+  const veilig = useMemo(
+    () => (filterActief ? gefilterd.filter((g) => g.gecontroleerd) : gefilterd),
+    [gefilterd, filterActief],
+  );
+  const onzeker = useMemo(
+    () => (filterActief ? gefilterd.filter((g) => !g.gecontroleerd) : []),
+    [gefilterd, filterActief],
+  );
+
+  const filterOmschrijving = useMemo(() => {
+    const delen = zonder.map((c) => `zonder ${GERECHT_LABEL_NAAM[c].toLowerCase()}`);
+    if (alleenVegan) delen.push('vegan');
+    return opsomming(delen);
+  }, [zonder, alleenVegan]);
 
   const groepen: { key: 'standaard' | 'special'; titel: string }[] = [
     { key: 'standaard', titel: 'Standaard assortiment' },
@@ -82,6 +113,101 @@ export default function Gerechten() {
     setBewerken(null);
     setDialogOpen(true);
   };
+
+  const toggleZonder = (code: GerechtLabel) =>
+    setZonder((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]));
+
+  const wisFilter = () => {
+    setZonder([]);
+    setAlleenVegan(false);
+  };
+
+  const kolomKlasse = cn(
+    'sm:grid-cols-[minmax(180px,260px)_1fr_auto]',
+    !isManager && 'sm:grid-cols-[minmax(180px,260px)_1fr]',
+  );
+
+  const renderRij = (g: Gerecht, i: number) => {
+    const isVegan = (g.labels ?? []).includes('vegan');
+    return (
+      <div
+        key={g.id}
+        className={cn(
+          'grid px-0 py-2 sm:items-center grid-cols-1',
+          kolomKlasse,
+          'border-b border-border/50 last:border-b-0',
+          i % 2 === 1 && 'bg-muted/20',
+          g.is_gearchiveerd && 'opacity-60',
+        )}
+      >
+        <div className="min-w-0 px-4 sm:border-r border-border/50 py-1 sm:py-0">
+          <p className="font-medium text-foreground flex items-center gap-2 flex-wrap">
+            <span>{g.naam}</span>
+            {isVegan && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                <Leaf className="h-3 w-3" />
+                Vegan
+              </span>
+            )}
+            {!g.gecontroleerd && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning">
+                <AlertTriangle className="h-3 w-3" />
+                Nog te controleren
+              </span>
+            )}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {g.prijs != null ? `€ ${g.prijs.toFixed(2).replace('.', ',')}` : ''}
+            {g.notitie ? `${g.prijs != null ? ' · ' : ''}${g.notitie}` : ''}
+          </p>
+        </div>
+        <div className="min-w-0 px-4 sm:border-r border-border/50 py-1 sm:py-0">
+          <InhoudChips gerecht={g} />
+        </div>
+        {isManager && (
+          <div className="flex items-center gap-1 shrink-0 justify-end px-4 py-1 sm:py-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-11 w-11"
+              aria-label={`${g.naam} bewerken`}
+              onClick={() => {
+                setBewerken(g);
+                setDialogOpen(true);
+              }}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-11 w-11"
+              aria-label={g.is_gearchiveerd ? `${g.naam} terugzetten` : `${g.naam} archiveren`}
+              onClick={() => archiveer.mutate({ id: g.id, archiveren: !g.is_gearchiveerd })}
+            >
+              {g.is_gearchiveerd ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const Tabelkop = () => (
+    <div className={cn('hidden sm:grid items-center px-0 py-2 border-b bg-muted/10', kolomKlasse)}>
+      <span className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-r border-border/50">
+        Gerecht
+      </span>
+      <span className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-r border-border/50">
+        Bevat
+      </span>
+      {isManager && (
+        <span className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground w-[96px] text-right">
+          Acties
+        </span>
+      )}
+    </div>
+  );
 
   return (
     <SidebarLayout>
@@ -130,116 +256,82 @@ export default function Gerechten() {
               </button>
             )}
           </div>
+
+          <AllergeenFilter
+            zonder={zonder}
+            onToggle={toggleZonder}
+            alleenVegan={alleenVegan}
+            onToggleVegan={() => setAlleenVegan((v) => !v)}
+            onWissen={wisFilter}
+          />
         </Card>
+
+        {filterActief && !isLoading && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-polar bg-primary/5 border border-primary/20 px-4 py-3">
+            <p className="text-sm font-medium text-foreground">
+              {veilig.length} {veilig.length === 1 ? 'gerecht' : 'gerechten'} {filterOmschrijving}
+            </p>
+            <Button variant="outline" className="min-h-[44px]" onClick={wisFilter}>
+              Wis filter
+            </Button>
+          </div>
+        )}
 
         {isLoading ? (
           <div className="text-center py-12 text-muted-foreground">Laden…</div>
-        ) : gefilterd.length === 0 ? (
+        ) : veilig.length === 0 && onzeker.length === 0 ? (
           <EmptyState
             icon={Cookie}
             title="Geen gerechten gevonden"
-            description={search ? 'Pas je zoekopdracht aan' : 'Voeg je eerste gerecht toe'}
-            action={isManager ? { label: 'Nieuw gerecht', onClick: openNieuw } : undefined}
+            description={
+              filterActief
+                ? 'Geen enkel gerecht voldoet aan deze combinatie. Vraag na in de keuken.'
+                : search
+                  ? 'Pas je zoekopdracht aan'
+                  : 'Voeg je eerste gerecht toe'
+            }
+            action={isManager && !filterActief ? { label: 'Nieuw gerecht', onClick: openNieuw } : undefined}
           />
         ) : (
-          groepen.map((groep) => {
-            const rijen = gefilterd.filter((g) => g.groep === groep.key);
-            if (rijen.length === 0) return null;
-            return (
-              <Card key={groep.key} className="bg-card shadow-sm overflow-hidden">
-                <div className="px-5 py-3 border-b bg-muted/30">
-                  <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    {groep.titel} · {rijen.length}
+          <>
+            {veilig.length === 0 && (
+              <Card className="p-5 bg-card shadow-sm text-sm text-muted-foreground">
+                Geen gerecht dat we kunnen garanderen {filterOmschrijving}. Kijk hieronder wat nog nagevraagd moet worden.
+              </Card>
+            )}
+
+            {groepen.map((groep) => {
+              const rijen = veilig.filter((g) => g.groep === groep.key);
+              if (rijen.length === 0) return null;
+              return (
+                <Card key={groep.key} className="bg-card shadow-sm overflow-hidden">
+                  <div className="px-5 py-3 border-b bg-muted/30">
+                    <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {groep.titel} · {rijen.length}
+                    </h2>
+                  </div>
+                  <Tabelkop />
+                  {rijen.map(renderRij)}
+                </Card>
+              );
+            })}
+
+            {onzeker.length > 0 && (
+              <Card className="bg-card shadow-sm overflow-hidden border-warning/40">
+                <div className="px-5 py-3 border-b bg-warning/10 flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-warning" />
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-warning">
+                    Niet te garanderen — eerst navragen in de keuken · {onzeker.length}
                   </h2>
                 </div>
-
-                {/* Tabelkop (alleen vanaf sm) */}
-                <div
-                  className={cn(
-                    'hidden sm:grid items-center px-0 py-2 border-b bg-muted/10',
-                    'grid-cols-[minmax(180px,260px)_1fr_auto]',
-                    !isManager && 'grid-cols-[minmax(180px,260px)_1fr]',
-                  )}
-                >
-                  <span className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-r border-border/50">Gerecht</span>
-                  <span className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-r border-border/50">Bevat</span>
-                  {isManager && (
-                    <span className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground w-[96px] text-right">Acties</span>
-                  )}
-                </div>
-
-                {rijen.map((g, i) => {
-                  const isVegan = (g.labels ?? []).includes('vegan');
-                  return (
-                    <div
-                      key={g.id}
-                      className={cn(
-                        'grid px-0 py-2 sm:items-center',
-                        'sm:grid-cols-[minmax(180px,260px)_1fr_auto] grid-cols-1',
-                        !isManager && 'sm:grid-cols-[minmax(180px,260px)_1fr]',
-                        'border-b border-border/50 last:border-b-0',
-                        i % 2 === 1 && 'bg-muted/20',
-                        g.is_gearchiveerd && 'opacity-60',
-                      )}
-                    >
-                      <div className="min-w-0 px-4 sm:border-r border-border/50 py-1 sm:py-0">
-                        <p className="font-medium text-foreground flex items-center gap-2 flex-wrap">
-                          <span>{g.naam}</span>
-                          {isVegan && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                              <Leaf className="h-3 w-3" />
-                              Vegan
-                            </span>
-                          )}
-                          {!g.gecontroleerd && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning">
-                              <AlertTriangle className="h-3 w-3" />
-                              Nog te controleren
-                            </span>
-                          )}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {g.prijs != null ? `€ ${g.prijs.toFixed(2).replace('.', ',')}` : ''}
-                          {g.notitie ? `${g.prijs != null ? ' · ' : ''}${g.notitie}` : ''}
-                        </p>
-                      </div>
-                      <div className="min-w-0 px-4 sm:border-r border-border/50 py-1 sm:py-0">
-                        <InhoudChips gerecht={g} />
-                      </div>
-                      {isManager && (
-                        <div className="flex items-center gap-1 shrink-0 justify-end px-4 py-1 sm:py-0">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-11 w-11"
-                            aria-label={`${g.naam} bewerken`}
-                            onClick={() => {
-                              setBewerken(g);
-                              setDialogOpen(true);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-11 w-11"
-                            aria-label={g.is_gearchiveerd ? `${g.naam} terugzetten` : `${g.naam} archiveren`}
-                            onClick={() => archiveer.mutate({ id: g.id, archiveren: !g.is_gearchiveerd })}
-                          >
-                            {g.is_gearchiveerd ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                <Tabelkop />
+                {onzeker.map(renderRij)}
               </Card>
-            );
-          })
+            )}
+          </>
         )}
 
-        <p className="text-xs text-muted-foreground">
+        <p className={cn('text-xs text-muted-foreground', filterActief && 'text-sm font-medium text-foreground')}>
           Bij twijfel is het productetiket of de keuken leidend. Meld wijzigingen in recepturen direct hier.
         </p>
       </div>
