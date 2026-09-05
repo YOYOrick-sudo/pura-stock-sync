@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useUserLocation } from '@/contexts/UserLocationContext';
 import {
   buildRecipeLabelZpl,
   buildStickerOmschrijving,
@@ -19,6 +20,7 @@ function fmtStickerDate(d: Date): string {
 }
 
 export function useCreatePrintJob() {
+  const { userLocation } = useUserLocation();
   return useMutation({
     mutationFn: async (recipe: PrintableRecipe) => {
       const zpl = buildRecipeLabelZpl(recipe);
@@ -37,6 +39,8 @@ export function useCreatePrintJob() {
         recipe_id: recipe.id,
         zpl,
         label_omschrijving,
+        vestiging: userLocation || null,
+        bron: 'recept',
       }));
       const { error } = await supabase.from('print_jobs').insert(rows);
       if (error) throw error;
