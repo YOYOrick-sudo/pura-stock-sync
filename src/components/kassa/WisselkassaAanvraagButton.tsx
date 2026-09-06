@@ -39,52 +39,59 @@ export function WisselkassaAanvraagButton() {
     }
 
     setSending(true);
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 15000)
+    );
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      let aanvrager = trimmedNaam;
-      if (!aanvrager && user) {
-        const { data: profiel } = await supabase
-          .from('profiles')
-          .select('first_name, last_name')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        aanvrager = [profiel?.first_name, profiel?.last_name].filter(Boolean).join(' ') || user.email?.split('@')[0] || 'Onbekend';
-      }
+      // Sessie uit lokale opslag — geen netwerk-aanroep die kan blijven hangen.
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user ?? null;
+      const aanvrager = trimmedNaam;
 
       const tijdstip = new Date().toLocaleString('nl-NL', {
         day: 'numeric', month: 'short', year: 'numeric',
         hour: '2-digit', minute: '2-digit',
       });
 
-      const { error: logError } = await supabase.from('wisselkassa_aanvragen').insert({
-        vestiging: userLocation,
-        aangevraagd_door: user?.id ?? null,
-        aangevraagd_door_naam: aanvrager,
-      });
-      if (logError) devError(logError);
+      const werk = (async () => {
+        const { error: logError } = await supabase.from('wisselkassa_aanvragen').insert({
+          vestiging: userLocation,
+          aangevraagd_door: user?.id ?? null,
+          aangevraagd_door_naam: aanvrager,
+        });
+        if (logError) throw logError;
 
-      const { error } = await supabase.functions.invoke('send-transactional-email', {
-        body: {
-          templateName: 'wisselkassa-aanvraag',
-          idempotencyKey: `wisselkassa-${Date.now()}`,
-          templateData: {
-            vestiging: displayLocation,
-            aanvrager,
-            tijdstip,
+        const { error } = await supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'wisselkassa-aanvraag',
+            idempotencyKey: `wisselkassa-${Date.now()}`,
+            templateData: {
+              vestiging: displayLocation,
+              aanvrager,
+              tijdstip,
+            },
           },
-        },
-      });
-      if (error) throw error;
+        });
+        if (error) throw error;
+      })();
 
-      toast.success(`Aanvraag verstuurd — Helga krijgt een mail voor ${displayLocation}.`);
+      await Promise.race([werk, timeout]);
+
+      toast.success('Aanvraag verstuurd.');
       setOpen(false);
     } catch (e: any) {
       devError(e);
-      toast.error('Versturen mislukt. Probeer het opnieuw.');
+      if (e?.message === 'timeout') {
+        toast.error('Versturen duurde te lang — probeer het opnieuw.');
+      } else {
+        toast.error('Versturen mislukt. Probeer het opnieuw.');
+      }
     } finally {
       setSending(false);
     }
   };
+
 
   return (
     <>
