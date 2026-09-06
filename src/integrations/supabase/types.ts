@@ -4217,6 +4217,36 @@ export type Database = {
         }
         Relationships: []
       }
+      wisselkassa_aanvragen: {
+        Row: {
+          aangevraagd_door: string | null
+          aangevraagd_door_naam: string | null
+          created_at: string
+          id: string
+          mail_status: string
+          toelichting: string | null
+          vestiging: string
+        }
+        Insert: {
+          aangevraagd_door?: string | null
+          aangevraagd_door_naam?: string | null
+          created_at?: string
+          id?: string
+          mail_status?: string
+          toelichting?: string | null
+          vestiging: string
+        }
+        Update: {
+          aangevraagd_door?: string | null
+          aangevraagd_door_naam?: string | null
+          created_at?: string
+          id?: string
+          mail_status?: string
+          toelichting?: string | null
+          vestiging?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       accommodation_occupancy: {
