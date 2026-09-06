@@ -4,6 +4,7 @@ import Kassa from './Kassa';
 import KassatellingOverdag from './KassatellingOverdag';
 import { KasControleContent } from './KasControle';
 import { AdminPasswordDialog } from '@/components/foh/AdminPasswordDialog';
+import { WisselkassaAanvraagButton } from '@/components/kassa/WisselkassaAanvraagButton';
 
 type Tab = 'overdag' | 'avond' | 'controle';
 
