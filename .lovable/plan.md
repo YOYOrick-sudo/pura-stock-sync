@@ -1,32 +1,22 @@
-# Knop "Nieuwe wisselkassa aanvragen" bij Kascontrole — via e-mail
+# Overdracht niet meer kwijt bij vastlopen app
 
-## Doel
-Bij Kascontrole een knop die met één druk een vast sjabloonbericht **per e-mail** naar Helga stuurt dat er een nieuwe wisselkassa moet komen. (WhatsApp-groep kan niet automatisch; e-mail gekozen door eigenaar.)
+## Probleem (bevestigd in code)
+De overdracht (HandoverCard) wordt pas opgeslagen als je uit het veld klikt of op "Opslaan" drukt. Loopt de app vast of crasht hij terwijl je typt, dan is alles wat je hebt getypt weg. De eerdere snelheidsfixes verminderen vastlopen, maar beschermen de getypte tekst niet.
 
-## Wat we bouwen
+## Oplossing: automatisch concept bewaren
 
-1. **Knop in Kascontrole** (`src/pages/KasControle.tsx`)
-   - Knop "Nieuwe wisselkassa aanvragen" in de kop van het scherm, 44px+ tikdoel.
-   - Popup: vestiging vooraf ingevuld op actieve vestiging, optioneel korte toelichting, knop "Aanvraag versturen".
-   - Bevestiging na verzenden; foutmelding met retry bij mislukken.
+1. **Concept per toetsaanslag** — elke wijziging in het overdracht-veld wordt direct (lokaal, op het apparaat) bewaard als concept, per vestiging.
+2. **Herstel na vastlopen/sluiten** — open je de app opnieuw en is er een niet-opgeslagen concept, dan staat die tekst weer in het veld, met een kleine melding "Concept hersteld".
+3. **Concept opruimen** — zodra opslaan naar de server gelukt is (of je annuleert bewust), wordt het concept gewist.
+4. **Server-tekst heeft voorrang bij vers ingericht apparaat** — is er géén concept, dan geldt zoals nu de laatst opgeslagen overdracht.
 
-2. **Verzending via bestaand mailsysteem**
-   - E-maildomain-status controleren (`notify.puravidafoodbar.nl` wordt al gebruikt voor o.a. de ideeënbus).
-   - Nieuwe e-mailsjabloon `wisselkassa-aanvraag` in de bestaande template-structuur:
-     Onderwerp: "Wisselkassa-aanvraag — [Vestiging]"
-     Inhoud: vestiging, datum/tijd, naam aanvrager, optionele toelichting.
-   - Verzenden via de bestaande `send-transactional-email` edge function met idempotency-sleutel.
-   - **Nodig van jou:** het e-mailadres van Helga (wordt als instelling/secret opgeslagen, niet hardcoded in de app).
+Bewust géén automatisch-naar-server-opslaan bij elke toetsaanslag: dat zou halve zinnen naar andere tablets sturen (realtime). Lokaal concept + opslaan bij verlaten veld dekt het probleem zonder ruis.
 
-3. **Logging**
-   - Elke aanvraag loggen (vestiging, aanvrager, tijdstip) zodat je kunt terugzien wat er is aangevraagd — in lijn met "historie is data".
-
-## Praktijk-check
-- **Wie/wanneer:** wie kascontrole doet en merkt dat het wisselgeld op is; één tik, klaar.
-- **Risico:** geen — e-mailinfra bestaat al; geen nieuwe externe dienst.
-- Helga kan zich eventueel uitschrijven via de verplichte afmeldlink onderaan; vermeld haar dat, anders stopt het stilletjes.
+## Scope
+- Alleen `src/components/HandoverCard.tsx`. Geen database- of backend-wijzigingen.
 
 ## Verificatie
-- Knop zichtbaar in Kascontrole voor beide vestigingen.
-- Testmail daadwerkelijk verzonden en in de verzendlog zichtbaar.
+- Typen → app/tab sluiten zonder opslaan → opnieuw openen → tekst staat er nog.
+- Opslaan → concept weg; annuleren → concept weg.
+- Werkt per vestiging (West/Midsland aparte concepten).
 - Build groen.
