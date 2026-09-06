@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Download, RefreshCw, Wallet } from 'lucide-react';
+import { Loader2, Download, RefreshCw, Wallet, Banknote } from 'lucide-react';
 import { toast } from 'sonner';
 import { SidebarLayout } from '@/components/SidebarLayout';
+import { useUserLocation } from '@/contexts/UserLocationContext';
 import { devError } from "@/lib/devLog";
 
 interface KassaAfdracht {
@@ -56,10 +58,16 @@ const fmtTime = (iso: string) => {
 };
 
 export const KasControleContent = ({ embedded = false }: { embedded?: boolean } = {}) => {
+  const { userLocation } = useUserLocation();
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<KassaAfdracht[]>([]);
   const [locationFilter, setLocationFilter] = useState<'all' | 'West' | 'Midsland'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'open' | 'sluit'>('all');
+
+  const [wisselOpen, setWisselOpen] = useState(false);
+  const [wisselVestiging, setWisselVestiging] = useState<string>(userLocation || 'West');
+  const [wisselToelichting, setWisselToelichting] = useState('');
+  const [wisselSending, setWisselSending] = useState(false);
 
   const today = new Date().toISOString().slice(0, 10);
   const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
@@ -142,6 +150,63 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
     URL.revokeObjectURL(url);
   };
 
+  const openWisselDialog = () => {
+    setWisselVestiging(userLocation || 'West');
+    setWisselToelichting('');
+    setWisselOpen(true);
+  };
+
+  const verstuurWisselkassaAanvraag = async () => {
+    setWisselSending(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      let naam = 'Onbekend';
+      if (user) {
+        const { data: profiel } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        naam = [profiel?.first_name, profiel?.last_name].filter(Boolean).join(' ') || user.email?.split('@')[0] || 'Onbekend';
+      }
+
+      const tijdstip = new Date().toLocaleString('nl-NL', {
+        day: 'numeric', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+      });
+
+      const { error: logError } = await supabase.from('wisselkassa_aanvragen').insert({
+        vestiging: wisselVestiging,
+        aangevraagd_door: user?.id ?? null,
+        aangevraagd_door_naam: naam,
+        toelichting: wisselToelichting.trim() || null,
+      });
+      if (logError) devError(logError);
+
+      const { error } = await supabase.functions.invoke('send-transactional-email', {
+        body: {
+          templateName: 'wisselkassa-aanvraag',
+          idempotencyKey: `wisselkassa-${Date.now()}`,
+          templateData: {
+            vestiging: wisselVestiging,
+            aanvrager: naam,
+            tijdstip,
+            toelichting: wisselToelichting.trim() || undefined,
+          },
+        },
+      });
+      if (error) throw error;
+
+      toast.success(`Aanvraag verstuurd — Helga krijgt een mail voor ${wisselVestiging}.`);
+      setWisselOpen(false);
+    } catch (e: any) {
+      devError(e);
+      toast.error('Versturen mislukt. Probeer het opnieuw.');
+    } finally {
+      setWisselSending(false);
+    }
+  };
+
   const inner = (
       <div style={{ padding: embedded ? '0' : '24px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'Inter, sans-serif' }}>
 
@@ -160,7 +225,15 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
               </p>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <Button
+              variant="outline"
+              onClick={openWisselDialog}
+              style={{ minHeight: 44 }}
+            >
+              <Banknote className="h-4 w-4 mr-2" />
+              Nieuwe wisselkassa
+            </Button>
             <Button variant="outline" onClick={load} disabled={loading}>
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Verversen
@@ -307,6 +380,53 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
             </div>
           )}
         </div>
+
+        {/* Wisselkassa-aanvraag dialog */}
+        <Dialog open={wisselOpen} onOpenChange={setWisselOpen}>
+          <DialogContent style={{ maxWidth: 650 }}>
+            <DialogHeader>
+              <DialogTitle>Nieuwe wisselkassa aanvragen</DialogTitle>
+            </DialogHeader>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 8 }}>
+              <p style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', margin: 0 }}>
+                Er gaat direct een e-mail naar Helga met deze aanvraag.
+              </p>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase' }}>Vestiging</label>
+                <select
+                  value={wisselVestiging}
+                  onChange={e => setWisselVestiging(e.target.value)}
+                  style={{
+                    width: '100%', marginTop: 4, padding: '10px 12px', minHeight: 44,
+                    border: '1px solid hsl(var(--border))', borderRadius: 14,
+                    background: 'hsl(var(--card))', color: 'hsl(var(--foreground))', fontSize: 14,
+                  }}
+                >
+                  <option value="West">Daily</option>
+                  <option value="Midsland">Foodbar</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase' }}>Toelichting (optioneel)</label>
+                <Textarea
+                  value={wisselToelichting}
+                  onChange={e => setWisselToelichting(e.target.value)}
+                  placeholder="Bijv. wisselgeld is bijna op"
+                  rows={2}
+                  style={{ marginTop: 4, borderRadius: 14 }}
+                />
+              </div>
+              <Button
+                onClick={verstuurWisselkassaAanvraag}
+                disabled={wisselSending}
+                style={{ minHeight: 44 }}
+              >
+                {wisselSending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Aanvraag versturen
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Detail dialog */}
         <Dialog open={!!detail} onOpenChange={(o) => !o && setDetail(null)}>
