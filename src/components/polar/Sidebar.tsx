@@ -186,7 +186,7 @@ export function PolarSidebar({
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-3">
-        {groups.map((g, idx) => (
+        {groups.filter(g => g.items.length > 0).map((g, idx) => (
           <div
             key={g.key}
             className={cn(

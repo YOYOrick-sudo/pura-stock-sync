@@ -19,7 +19,8 @@ const allNavigationItems = [
   { title: 'Stickers', url: '/kitchen/snel-printen', icon: Printer, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Recepten', url: '/kitchen/recipes', icon: BookOpen, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Gerechten', url: '/kitchen/gerechten', icon: Cookie, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
-  { title: 'Bestellen', url: '/voorraad', icon: ClipboardList, group: 'voorraad' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
+  // Bestellen is voorlopig verborgen voor beide vestigingen (module nog niet in gebruik).
+  { title: 'Bestellen', url: '/voorraad', icon: ClipboardList, group: 'voorraad' as const, locations: [] as string[], managerOnly: false, ownerOnly: false },
 
   { title: 'Voorraadketen', url: '/settings/keten', icon: Settings, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: true, ownerOnly: false },
   { title: 'Cijfers', url: '/cijfers', icon: BarChart3, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: true },
