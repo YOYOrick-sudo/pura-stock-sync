@@ -148,7 +148,7 @@ export const HandoverCard = () => {
         onBlur={handleSaveInline}
         onKeyDown={(e) => {
           if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); (e.target as HTMLTextAreaElement).blur(); }
-          if (e.key === 'Escape') { setMemoText(latestMemo?.message || ''); setIsEditing(false); (e.target as HTMLTextAreaElement).blur(); }
+          if (e.key === 'Escape') { setMemoText(latestMemo?.message || ''); setDraft(null); setDraftRestored(false); setIsEditing(false); (e.target as HTMLTextAreaElement).blur(); }
         }}
         placeholder="Noteer hier belangrijke informatie voor de volgende shift:&#10;• Speciale afspraken of afhalingen&#10;• Bijzonderheden van vandaag&#10;• Aandachtspunten voor straks"
         rows={3}
