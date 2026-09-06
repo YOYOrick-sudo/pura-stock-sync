@@ -68,11 +68,36 @@ export const HandoverCard = () => {
     if (!user) return;
     const { error } = await supabase.from('handover_memos').insert({ location: userLocation, message: memoText.trim(), created_by: user.id });
     if (error) { toast.error('Kon overdracht niet opslaan'); return; }
+    setDraft(null);
+    setDraftRestored(false);
     toast.success(memoText.trim() ? 'Overdracht opgeslagen' : 'Overdracht gewist');
     setIsEditing(false);
     setMemoText('');
     queryClient.invalidateQueries({ queryKey: ['handover-memo', userLocation] });
   };
+
+  // Herstel een niet-opgeslagen concept zodra de server-versie bekend is
+  const draftCheckedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (isLoading || !userLocation) return;
+    if (draftCheckedRef.current === userLocation) return;
+    draftCheckedRef.current = userLocation;
+    const draft = getDraft();
+    if (draft !== null && draft.trim() !== (latestMemo?.message || '').trim()) {
+      setMemoText(draft);
+      setIsEditing(true);
+      setDraftRestored(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, userLocation, latestMemo?.message]);
+
+  // Bewaar concept per wijziging zolang het afwijkt van de server-versie
+  useEffect(() => {
+    if (!isEditing || !userLocation) return;
+    if (memoText.trim() !== (latestMemo?.message || '').trim()) setDraft(memoText);
+    else setDraft(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memoText, isEditing, userLocation, latestMemo?.message]);
 
   // Sync memoText met server-versie zolang we niet aan het editen zijn
   useEffect(() => {
