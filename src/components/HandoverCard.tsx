@@ -157,7 +157,9 @@ export const HandoverCard = () => {
       />
 
       <div className="flex items-center justify-between min-h-[20px]">
-        {latestMemo?.message && !isEditing ? (
+        {isEditing && draftRestored ? (
+          <p className="text-xs text-muted-foreground">Concept hersteld — tik op Opslaan om te bewaren</p>
+        ) : latestMemo?.message && !isEditing ? (
           <div className="flex items-center gap-1.5">
             <Clock size={14} className="text-muted-foreground" />
             <p className="text-xs text-muted-foreground">
@@ -167,7 +169,7 @@ export const HandoverCard = () => {
         ) : <span />}
         {isEditing && (
           <div className="flex gap-2 ml-auto">
-            <Button variant="ghost" size="sm" onClick={() => { setMemoText(latestMemo?.message || ''); setIsEditing(false); }}>
+            <Button variant="ghost" size="sm" onClick={() => { setMemoText(latestMemo?.message || ''); setDraft(null); setDraftRestored(false); setIsEditing(false); }}>
               <X size={14} /> Annuleren
             </Button>
             <Button size="sm" onClick={handleSave} disabled={!dirty}>
