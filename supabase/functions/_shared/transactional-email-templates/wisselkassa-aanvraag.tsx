@@ -13,7 +13,7 @@ interface WisselkassaAanvraagProps {
   tijdstip?: string
 }
 
-const WisselkassaAanvraagEmail = ({ vestiging, aanvrager, toelichting, tijdstip }: WisselkassaAanvraagProps) => (
+const WisselkassaAanvraagEmail = ({ vestiging, aanvrager, tijdstip }: WisselkassaAanvraagProps) => (
   <Html lang="nl" dir="ltr">
     <Head />
     <Preview>Nieuwe wisselkassa nodig — {vestiging || 'vestiging onbekend'}</Preview>
@@ -30,12 +30,6 @@ const WisselkassaAanvraagEmail = ({ vestiging, aanvrager, toelichting, tijdstip 
         <Text style={value}>{aanvrager || 'Onbekend'}</Text>
         <Text style={label}>Tijdstip</Text>
         <Text style={value}>{tijdstip || 'Onbekend'}</Text>
-        {toelichting ? (
-          <>
-            <Text style={label}>Toelichting</Text>
-            <Text style={noteStyle}>{toelichting}</Text>
-          </>
-        ) : null}
         <Hr style={hr} />
         <Text style={footer}>
           Automatisch verstuurd vanuit Kascontrole in {SITE_NAME}.
