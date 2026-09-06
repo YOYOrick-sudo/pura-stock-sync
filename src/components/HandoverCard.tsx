@@ -9,10 +9,22 @@ import { toast } from 'sonner';
 
 export const HandoverCard = () => {
   const { userLocation } = useUserLocation();
+  const draftKey = `handover-draft-${userLocation || 'unknown'}`;
   const [isEditing, setIsEditing] = useState(false);
   const [memoText, setMemoText] = useState('');
+  const [draftRestored, setDraftRestored] = useState(false);
   const queryClient = useQueryClient();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const getDraft = () => {
+    try { return localStorage.getItem(draftKey); } catch { return null; }
+  };
+  const setDraft = (value: string | null) => {
+    try {
+      if (value === null) localStorage.removeItem(draftKey);
+      else localStorage.setItem(draftKey, value);
+    } catch { /* localStorage niet beschikbaar: geen concept */ }
+  };
 
   const { data: latestMemo, isLoading } = useQuery({
     queryKey: ['handover-memo', userLocation],
