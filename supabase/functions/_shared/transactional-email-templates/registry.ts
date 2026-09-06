@@ -10,7 +10,9 @@ export interface TemplateEntry {
 }
 
 import { template as ideaBoxNotification } from './idea-box-notification.tsx'
+import { template as wisselkassaAanvraag } from './wisselkassa-aanvraag.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'idea-box-notification': ideaBoxNotification,
+  'wisselkassa-aanvraag': wisselkassaAanvraag,
 }
