@@ -103,10 +103,6 @@ export function WisselkassaAanvraagButton() {
             <DialogTitle>Nieuwe wisselkassa aanvragen</DialogTitle>
           </DialogHeader>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 8 }}>
-            <p style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', margin: 0 }}>
-              Er gaat direct een e-mail naar Helga met deze aanvraag.
-            </p>
-
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase' }}>Vestiging</label>
               <div
