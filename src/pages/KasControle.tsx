@@ -144,62 +144,6 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
     URL.revokeObjectURL(url);
   };
 
-  const openWisselDialog = () => {
-    setWisselVestiging(userLocation || 'West');
-    setWisselToelichting('');
-    setWisselOpen(true);
-  };
-
-  const verstuurWisselkassaAanvraag = async () => {
-    setWisselSending(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      let naam = 'Onbekend';
-      if (user) {
-        const { data: profiel } = await supabase
-          .from('profiles')
-          .select('first_name, last_name')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        naam = [profiel?.first_name, profiel?.last_name].filter(Boolean).join(' ') || user.email?.split('@')[0] || 'Onbekend';
-      }
-
-      const tijdstip = new Date().toLocaleString('nl-NL', {
-        day: 'numeric', month: 'short', year: 'numeric',
-        hour: '2-digit', minute: '2-digit',
-      });
-
-      const { error: logError } = await supabase.from('wisselkassa_aanvragen').insert({
-        vestiging: wisselVestiging,
-        aangevraagd_door: user?.id ?? null,
-        aangevraagd_door_naam: naam,
-        toelichting: wisselToelichting.trim() || null,
-      });
-      if (logError) devError(logError);
-
-      const { error } = await supabase.functions.invoke('send-transactional-email', {
-        body: {
-          templateName: 'wisselkassa-aanvraag',
-          idempotencyKey: `wisselkassa-${Date.now()}`,
-          templateData: {
-            vestiging: wisselVestiging,
-            aanvrager: naam,
-            tijdstip,
-            toelichting: wisselToelichting.trim() || undefined,
-          },
-        },
-      });
-      if (error) throw error;
-
-      toast.success(`Aanvraag verstuurd — Helga krijgt een mail voor ${wisselVestiging}.`);
-      setWisselOpen(false);
-    } catch (e: any) {
-      devError(e);
-      toast.error('Versturen mislukt. Probeer het opnieuw.');
-    } finally {
-      setWisselSending(false);
-    }
-  };
 
   const inner = (
       <div style={{ padding: embedded ? '0' : '24px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'Inter, sans-serif' }}>
