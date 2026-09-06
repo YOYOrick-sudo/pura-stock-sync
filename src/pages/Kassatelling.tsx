@@ -4,6 +4,7 @@ import Kassa from './Kassa';
 import KassatellingOverdag from './KassatellingOverdag';
 import { KasControleContent } from './KasControle';
 import { AdminPasswordDialog } from '@/components/foh/AdminPasswordDialog';
+import { WisselkassaAanvraagButton } from '@/components/kassa/WisselkassaAanvraagButton';
 
 type Tab = 'overdag' | 'avond' | 'controle';
 
@@ -41,7 +42,7 @@ export default function Kassatelling() {
     <SidebarLayout>
       <div className="max-w-[1400px] mx-auto">
         <div className="bg-card rounded-[20px] border border-border p-6 shadow-soft">
-          <div className="flex gap-3 mb-6 flex-wrap">
+          <div className="flex gap-3 mb-6 flex-wrap items-center">
             {tabs.map(t => (
               <button
                 key={t.key}
@@ -55,6 +56,9 @@ export default function Kassatelling() {
                 {t.label}
               </button>
             ))}
+            <div className="ml-auto">
+              <WisselkassaAanvraagButton />
+            </div>
           </div>
 
           <div>
