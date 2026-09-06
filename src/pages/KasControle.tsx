@@ -64,10 +64,6 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
   const [locationFilter, setLocationFilter] = useState<'all' | 'West' | 'Midsland'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'open' | 'sluit'>('all');
 
-  const [wisselOpen, setWisselOpen] = useState(false);
-  const [wisselVestiging, setWisselVestiging] = useState<string>(userLocation || 'West');
-  const [wisselToelichting, setWisselToelichting] = useState('');
-  const [wisselSending, setWisselSending] = useState(false);
 
   const today = new Date().toISOString().slice(0, 10);
   const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
