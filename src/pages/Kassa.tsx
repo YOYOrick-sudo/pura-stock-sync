@@ -488,7 +488,8 @@ const Kassa = () => {
               {/* Opmerkingen - compacter label */}
               <div style={{ padding: '4px 0' }}>
                 <label htmlFor="opmerkingen" style={{ display: 'block', fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: 'hsl(var(--muted-foreground))', marginBottom: '6px' }}>
-                  Opmerkingen
+                  Opmerkingen (optioneel)
+
                 </label>
                 <textarea
                   id="opmerkingen"

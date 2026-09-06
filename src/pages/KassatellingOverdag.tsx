@@ -389,7 +389,8 @@ const KassatellingOverdag = () => {
                 {/* Opmerkingen */}
                 <div style={{ padding: '6px 0' }}>
                   <label style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>
-                    Opmerkingen *
+                    Opmerkingen (optioneel)
+
                   </label>
                   <textarea 
                     value={opmerkingen} 
