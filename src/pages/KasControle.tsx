@@ -164,14 +164,7 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <Button
-              variant="outline"
-              onClick={openWisselDialog}
-              style={{ minHeight: 44 }}
-            >
-              <Banknote className="h-4 w-4 mr-2" />
-              Nieuwe wisselkassa
-            </Button>
+            <WisselkassaAanvraagButton />
             <Button variant="outline" onClick={load} disabled={loading}>
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Verversen
@@ -319,52 +312,6 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
           )}
         </div>
 
-        {/* Wisselkassa-aanvraag dialog */}
-        <Dialog open={wisselOpen} onOpenChange={setWisselOpen}>
-          <DialogContent style={{ maxWidth: 650 }}>
-            <DialogHeader>
-              <DialogTitle>Nieuwe wisselkassa aanvragen</DialogTitle>
-            </DialogHeader>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 8 }}>
-              <p style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', margin: 0 }}>
-                Er gaat direct een e-mail naar Helga met deze aanvraag.
-              </p>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase' }}>Vestiging</label>
-                <select
-                  value={wisselVestiging}
-                  onChange={e => setWisselVestiging(e.target.value)}
-                  style={{
-                    width: '100%', marginTop: 4, padding: '10px 12px', minHeight: 44,
-                    border: '1px solid hsl(var(--border))', borderRadius: 14,
-                    background: 'hsl(var(--card))', color: 'hsl(var(--foreground))', fontSize: 14,
-                  }}
-                >
-                  <option value="West">Daily</option>
-                  <option value="Midsland">Foodbar</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase' }}>Toelichting (optioneel)</label>
-                <Textarea
-                  value={wisselToelichting}
-                  onChange={e => setWisselToelichting(e.target.value)}
-                  placeholder="Bijv. wisselgeld is bijna op"
-                  rows={2}
-                  style={{ marginTop: 4, borderRadius: 14 }}
-                />
-              </div>
-              <Button
-                onClick={verstuurWisselkassaAanvraag}
-                disabled={wisselSending}
-                style={{ minHeight: 44 }}
-              >
-                {wisselSending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Aanvraag versturen
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
 
         {/* Detail dialog */}
         <Dialog open={!!detail} onOpenChange={(o) => !o && setDetail(null)}>
