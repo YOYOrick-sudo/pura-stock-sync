@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, Banknote } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUserLocation } from '@/contexts/UserLocationContext';
+import { getLocationDisplayName } from '@/lib/utils';
 import { devError } from '@/lib/devLog';
 
 /**
@@ -15,29 +16,39 @@ import { devError } from '@/lib/devLog';
  */
 export function WisselkassaAanvraagButton() {
   const { userLocation } = useUserLocation();
+  const displayLocation = getLocationDisplayName(userLocation);
   const [open, setOpen] = useState(false);
-  const [vestiging, setVestiging] = useState<string>(userLocation || 'West');
-  const [toelichting, setToelichting] = useState('');
+  const [naam, setNaam] = useState('');
   const [sending, setSending] = useState(false);
 
   const openDialog = () => {
-    setVestiging(userLocation || 'West');
-    setToelichting('');
+    setNaam('');
     setOpen(true);
   };
 
   const verstuur = async () => {
+    if (!userLocation) {
+      toast.error('Geen vestiging bekend. Probeer opnieuw in te loggen.');
+      return;
+    }
+
+    const trimmedNaam = naam.trim();
+    if (trimmedNaam.length < 2) {
+      toast.error('Vul je naam in zodat Helga weet wie de aanvraag doet.');
+      return;
+    }
+
     setSending(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      let naam = 'Onbekend';
-      if (user) {
+      let aanvrager = trimmedNaam;
+      if (!aanvrager && user) {
         const { data: profiel } = await supabase
           .from('profiles')
           .select('first_name, last_name')
           .eq('user_id', user.id)
           .maybeSingle();
-        naam = [profiel?.first_name, profiel?.last_name].filter(Boolean).join(' ') || user.email?.split('@')[0] || 'Onbekend';
+        aanvrager = [profiel?.first_name, profiel?.last_name].filter(Boolean).join(' ') || user.email?.split('@')[0] || 'Onbekend';
       }
 
       const tijdstip = new Date().toLocaleString('nl-NL', {
@@ -46,10 +57,9 @@ export function WisselkassaAanvraagButton() {
       });
 
       const { error: logError } = await supabase.from('wisselkassa_aanvragen').insert({
-        vestiging,
+        vestiging: userLocation,
         aangevraagd_door: user?.id ?? null,
-        aangevraagd_door_naam: naam,
-        toelichting: toelichting.trim() || null,
+        aangevraagd_door_naam: aanvrager,
       });
       if (logError) devError(logError);
 
@@ -58,16 +68,15 @@ export function WisselkassaAanvraagButton() {
           templateName: 'wisselkassa-aanvraag',
           idempotencyKey: `wisselkassa-${Date.now()}`,
           templateData: {
-            vestiging,
-            aanvrager: naam,
+            vestiging: displayLocation,
+            aanvrager,
             tijdstip,
-            toelichting: toelichting.trim() || undefined,
           },
         },
       });
       if (error) throw error;
 
-      toast.success(`Aanvraag verstuurd — Helga krijgt een mail voor ${vestiging}.`);
+      toast.success(`Aanvraag verstuurd — Helga krijgt een mail voor ${displayLocation}.`);
       setOpen(false);
     } catch (e: any) {
       devError(e);
@@ -89,7 +98,7 @@ export function WisselkassaAanvraagButton() {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent style={{ maxWidth: 650 }}>
+        <DialogContent style={{ maxWidth: 420 }}>
           <DialogHeader>
             <DialogTitle>Nieuwe wisselkassa aanvragen</DialogTitle>
           </DialogHeader>
@@ -97,34 +106,35 @@ export function WisselkassaAanvraagButton() {
             <p style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))', margin: 0 }}>
               Er gaat direct een e-mail naar Helga met deze aanvraag.
             </p>
+
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase' }}>Vestiging</label>
-              <select
-                value={vestiging}
-                onChange={e => setVestiging(e.target.value)}
+              <div
                 style={{
                   width: '100%', marginTop: 4, padding: '10px 12px', minHeight: 44,
                   border: '1px solid hsl(var(--border))', borderRadius: 14,
-                  background: 'hsl(var(--card))', color: 'hsl(var(--foreground))', fontSize: 14,
+                  background: 'hsl(var(--muted))', color: 'hsl(var(--foreground))', fontSize: 14,
+                  display: 'flex', alignItems: 'center',
                 }}
               >
-                <option value="West">Daily</option>
-                <option value="Midsland">Foodbar</option>
-              </select>
+                {displayLocation || 'Onbekend'}
+              </div>
             </div>
+
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase' }}>Toelichting (optioneel)</label>
-              <Textarea
-                value={toelichting}
-                onChange={e => setToelichting(e.target.value)}
-                placeholder="Bijv. wisselgeld is bijna op"
-                rows={2}
-                style={{ marginTop: 4, borderRadius: 14 }}
+              <label style={{ fontSize: 12, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase' }}>Jouw naam</label>
+              <Input
+                value={naam}
+                onChange={e => setNaam(e.target.value)}
+                placeholder="Bijv. Sanne"
+                autoFocus
+                style={{ marginTop: 4, borderRadius: 14, minHeight: 44 }}
               />
             </div>
+
             <Button
               onClick={verstuur}
-              disabled={sending}
+              disabled={sending || naam.trim().length < 2}
               style={{ minHeight: 44 }}
             >
               {sending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
