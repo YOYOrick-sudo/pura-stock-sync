@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Download, RefreshCw, Wallet } from 'lucide-react';
+import { Loader2, Download, RefreshCw, Wallet, Banknote } from 'lucide-react';
 import { toast } from 'sonner';
 import { SidebarLayout } from '@/components/SidebarLayout';
+import { useUserLocation } from '@/contexts/UserLocationContext';
 import { devError } from "@/lib/devLog";
 
 interface KassaAfdracht {
@@ -56,10 +58,16 @@ const fmtTime = (iso: string) => {
 };
 
 export const KasControleContent = ({ embedded = false }: { embedded?: boolean } = {}) => {
+  const { userLocation } = useUserLocation();
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<KassaAfdracht[]>([]);
   const [locationFilter, setLocationFilter] = useState<'all' | 'West' | 'Midsland'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'open' | 'sluit'>('all');
+
+  const [wisselOpen, setWisselOpen] = useState(false);
+  const [wisselVestiging, setWisselVestiging] = useState<string>(userLocation || 'West');
+  const [wisselToelichting, setWisselToelichting] = useState('');
+  const [wisselSending, setWisselSending] = useState(false);
 
   const today = new Date().toISOString().slice(0, 10);
   const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
