@@ -1,41 +1,32 @@
-# Knop "Nieuwe wisselkassa aanvragen" bij Kascontrole
+# Knop "Nieuwe wisselkassa aanvragen" bij Kascontrole — via e-mail
 
 ## Doel
-Bij Kascontrole een knop die met één druk een vast sjabloonbericht verstuurt dat er een nieuwe wisselkassa moet komen — automatisch, zonder dat de medewerker iets hoeft te typen.
-
-## Belangrijke technische realiteit
-Automatisch posten in een WhatsApp-**groep** kan niet: de officiële WhatsApp Business API (Meta Cloud API) ondersteunt geen groepen. Alleen berichten aan individuele nummers zijn mogelijk. Daarom:
-
-- Het bericht gaat automatisch naar **Helga's eigen WhatsApp-nummer** via de Meta Cloud API.
-- Zij kan het zo doorsturen naar de groep. Volledig automatisch groepsberichten bestaan niet in WhatsApp.
+Bij Kascontrole een knop die met één druk een vast sjabloonbericht **per e-mail** naar Helga stuurt dat er een nieuwe wisselkassa moet komen. (WhatsApp-groep kan niet automatisch; e-mail gekozen door eigenaar.)
 
 ## Wat we bouwen
 
 1. **Knop in Kascontrole** (`src/pages/KasControle.tsx`)
-   - Grote knop "Nieuwe wisselkassa aanvragen" (44px+ tikdoel) in de kop van het scherm.
-   - Popup met: vestiging (vooraf ingevuld op actieve vestiging), eventueel korte toelichting (optioneel), knop "Aanvraag versturen".
-   - Na verzenden: duidelijke bevestiging "Aanvraag verstuurd naar Helga". Bij mislukken: foutmelding met retry.
+   - Knop "Nieuwe wisselkassa aanvragen" in de kop van het scherm, 44px+ tikdoel.
+   - Popup: vestiging vooraf ingevuld op actieve vestiging, optioneel korte toelichting, knop "Aanvraag versturen".
+   - Bevestiging na verzenden; foutmelding met retry bij mislukken.
 
-2. **Edge function `wisselkassa-aanvraag`**
-   - Valideert input (vestiging, optionele toelichting).
-   - Verstuurt sjabloonbericht via Meta WhatsApp Cloud API naar Helga's nummer:
-     "Wisselkassa-aanvraag — [Vestiging], [datum/tijd]. Er moet een nieuwe wisselkassa komen. Aangevraagd door [naam]. [toelichting]"
-   - Logt elke aanvraag (vestiging, aanvrager, tijdstip, status) zodat je kunt terugzien wat er is aangevraagd.
+2. **Verzending via bestaand mailsysteem**
+   - E-maildomain-status controleren (`notify.puravidafoodbar.nl` wordt al gebruikt voor o.a. de ideeënbus).
+   - Nieuwe e-mailsjabloon `wisselkassa-aanvraag` in de bestaande template-structuur:
+     Onderwerp: "Wisselkassa-aanvraag — [Vestiging]"
+     Inhoud: vestiging, datum/tijd, naam aanvrager, optionele toelichting.
+   - Verzenden via de bestaande `send-transactional-email` edge function met idempotency-sleutel.
+   - **Nodig van jou:** het e-mailadres van Helga (wordt als instelling/secret opgeslagen, niet hardcoded in de app).
 
-3. **Eenmalige Meta-setup (door eigenaar, wij begeleiden)**
-   - Meta Business-account + WhatsApp Business-app aanmaken (developers.facebook.com).
-   - Telefoonnummer koppelen (kan een los/sim-only nummer zijn, niet het bestaande winkelnummer).
-   - Berichtsjabloon indienen bij Meta (goedkeuring duurt meestal < 24 uur).
-   - Secrets toevoegen: `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, Helga's nummer.
+3. **Logging**
+   - Elke aanvraag loggen (vestiging, aanvrager, tijdstip) zodat je kunt terugzien wat er is aangevraagd — in lijn met "historie is data".
 
 ## Praktijk-check
-- **Wie/wanneer:** degene die kascontrole doet en merkt dat het wisselgeld op is; één tik, klaar.
-- **Als niemand het gebruikt:** geen risico; knop staat er alleen.
-- **Kosten:** Meta rekent per gesprek; bij dit volume (enkele aanvragen per maand) gratis.
-- **Risico:** Meta-setup is het enige struikelblok; tot die klaar is kan de knop nog niet echt versturen. Alternatief als Meta te zwaar is: Telegram-groepsbot (wél volledig automatisch groepsberichten, gratis) of e-mail.
+- **Wie/wanneer:** wie kascontrole doet en merkt dat het wisselgeld op is; één tik, klaar.
+- **Risico:** geen — e-mailinfra bestaat al; geen nieuwe externe dienst.
+- Helga kan zich eventueel uitschrijven via de verplichte afmeldlink onderaan; vermeld haar dat, anders stopt het stilletjes.
 
 ## Verificatie
 - Knop zichtbaar in Kascontrole voor beide vestigingen.
-- Testbericht daadwerkelijk ontvangen op Helga's nummer.
-- Aanvraag gelogd en terug te zien.
+- Testmail daadwerkelijk verzonden en in de verzendlog zichtbaar.
 - Build groen.
