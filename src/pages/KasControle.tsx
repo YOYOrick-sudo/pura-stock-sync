@@ -164,10 +164,10 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
       if (user) {
         const { data: profiel } = await supabase
           .from('profiles')
-          .select('full_name')
-          .eq('id', user.id)
+          .select('first_name, last_name')
+          .eq('user_id', user.id)
           .maybeSingle();
-        naam = profiel?.full_name || user.email?.split('@')[0] || 'Onbekend';
+        naam = [profiel?.first_name, profiel?.last_name].filter(Boolean).join(' ') || user.email?.split('@')[0] || 'Onbekend';
       }
 
       const tijdstip = new Date().toLocaleString('nl-NL', {
