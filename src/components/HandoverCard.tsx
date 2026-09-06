@@ -9,10 +9,22 @@ import { toast } from 'sonner';
 
 export const HandoverCard = () => {
   const { userLocation } = useUserLocation();
+  const draftKey = `handover-draft-${userLocation || 'unknown'}`;
   const [isEditing, setIsEditing] = useState(false);
   const [memoText, setMemoText] = useState('');
+  const [draftRestored, setDraftRestored] = useState(false);
   const queryClient = useQueryClient();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const getDraft = () => {
+    try { return localStorage.getItem(draftKey); } catch { return null; }
+  };
+  const setDraft = (value: string | null) => {
+    try {
+      if (value === null) localStorage.removeItem(draftKey);
+      else localStorage.setItem(draftKey, value);
+    } catch { /* localStorage niet beschikbaar: geen concept */ }
+  };
 
   const { data: latestMemo, isLoading } = useQuery({
     queryKey: ['handover-memo', userLocation],
@@ -56,11 +68,36 @@ export const HandoverCard = () => {
     if (!user) return;
     const { error } = await supabase.from('handover_memos').insert({ location: userLocation, message: memoText.trim(), created_by: user.id });
     if (error) { toast.error('Kon overdracht niet opslaan'); return; }
+    setDraft(null);
+    setDraftRestored(false);
     toast.success(memoText.trim() ? 'Overdracht opgeslagen' : 'Overdracht gewist');
     setIsEditing(false);
     setMemoText('');
     queryClient.invalidateQueries({ queryKey: ['handover-memo', userLocation] });
   };
+
+  // Herstel een niet-opgeslagen concept zodra de server-versie bekend is
+  const draftCheckedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (isLoading || !userLocation) return;
+    if (draftCheckedRef.current === userLocation) return;
+    draftCheckedRef.current = userLocation;
+    const draft = getDraft();
+    if (draft !== null && draft.trim() !== (latestMemo?.message || '').trim()) {
+      setMemoText(draft);
+      setIsEditing(true);
+      setDraftRestored(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, userLocation, latestMemo?.message]);
+
+  // Bewaar concept per wijziging zolang het afwijkt van de server-versie
+  useEffect(() => {
+    if (!isEditing || !userLocation) return;
+    if (memoText.trim() !== (latestMemo?.message || '').trim()) setDraft(memoText);
+    else setDraft(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memoText, isEditing, userLocation, latestMemo?.message]);
 
   // Sync memoText met server-versie zolang we niet aan het editen zijn
   useEffect(() => {
@@ -111,7 +148,7 @@ export const HandoverCard = () => {
         onBlur={handleSaveInline}
         onKeyDown={(e) => {
           if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); (e.target as HTMLTextAreaElement).blur(); }
-          if (e.key === 'Escape') { setMemoText(latestMemo?.message || ''); setIsEditing(false); (e.target as HTMLTextAreaElement).blur(); }
+          if (e.key === 'Escape') { setMemoText(latestMemo?.message || ''); setDraft(null); setDraftRestored(false); setIsEditing(false); (e.target as HTMLTextAreaElement).blur(); }
         }}
         placeholder="Noteer hier belangrijke informatie voor de volgende shift:&#10;• Speciale afspraken of afhalingen&#10;• Bijzonderheden van vandaag&#10;• Aandachtspunten voor straks"
         rows={3}
@@ -120,7 +157,9 @@ export const HandoverCard = () => {
       />
 
       <div className="flex items-center justify-between min-h-[20px]">
-        {latestMemo?.message && !isEditing ? (
+        {isEditing && draftRestored ? (
+          <p className="text-xs text-muted-foreground">Concept hersteld — tik op Opslaan om te bewaren</p>
+        ) : latestMemo?.message && !isEditing ? (
           <div className="flex items-center gap-1.5">
             <Clock size={14} className="text-muted-foreground" />
             <p className="text-xs text-muted-foreground">
@@ -130,7 +169,7 @@ export const HandoverCard = () => {
         ) : <span />}
         {isEditing && (
           <div className="flex gap-2 ml-auto">
-            <Button variant="ghost" size="sm" onClick={() => { setMemoText(latestMemo?.message || ''); setIsEditing(false); }}>
+            <Button variant="ghost" size="sm" onClick={() => { setMemoText(latestMemo?.message || ''); setDraft(null); setDraftRestored(false); setIsEditing(false); }}>
               <X size={14} /> Annuleren
             </Button>
             <Button size="sm" onClick={handleSave} disabled={!dirty}>
