@@ -285,28 +285,22 @@ export function MepTaakToevoegen({
       )}
 
       {favorieten.length > 0 && !zoek.trim() && (
-        <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Vaakst gemaakt
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {favorieten.map((f) => (
-              <button
-                key={f.sleutel}
-                type="button"
-                disabled={bezig}
-                onClick={() => snelToevoegen(f)}
-                className="inline-flex items-center gap-1.5 rounded-polar-md border border-border/60 bg-card px-4 min-h-[44px] text-[14px] font-medium hover:bg-primary/5 active:bg-primary/10 transition-colors disabled:opacity-50"
-              >
-                <Zap className="w-3.5 h-3.5 shrink-0 text-primary/70" />
-                {f.titel}
-                {f.handeling && (
-                  <span className="text-muted-foreground">· {f.handeling}</span>
-                )}
-                <span className="text-xs text-muted-foreground">{f.aantal_keer}×</span>
-              </button>
-            ))}
-          </div>
+        <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-0.5">
+          {favorieten.map((f) => (
+            <button
+              key={f.sleutel}
+              type="button"
+              disabled={bezig}
+              onClick={() => snelToevoegen(f)}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-polar-md border border-border/60 bg-card px-3 min-h-[44px] text-[14px] font-medium hover:bg-primary/5 active:bg-primary/10 transition-colors disabled:opacity-50"
+            >
+              <Zap className="w-3.5 h-3.5 shrink-0 text-primary/70" />
+              <span className="whitespace-nowrap">{f.titel}</span>
+              {f.handeling && (
+                <span className="whitespace-nowrap text-muted-foreground">· {f.handeling}</span>
+              )}
+            </button>
+          ))}
         </div>
       )}
     </Card>

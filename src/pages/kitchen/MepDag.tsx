@@ -10,7 +10,6 @@ import { EmptyState } from '@/components/kitchen/EmptyState';
 import { MepTaakToevoegen } from '@/components/kitchen/MepTaakToevoegen';
 import { MepAfrondDialog } from '@/components/kitchen/MepAfrondDialog';
 import { MepTaakBewerken } from '@/components/kitchen/MepTaakBewerken';
-import { PrintStatusBalk } from '@/components/kitchen/PrintStatusBalk';
 import {
   Plus,
   Check,
@@ -22,6 +21,7 @@ import {
   ChevronRight,
   Tag,
   CalendarDays,
+  ChevronDown,
 } from 'lucide-react';
 import { addDays, differenceInCalendarDays, format, parseISO } from 'date-fns';
 import { nl } from 'date-fns/locale';
@@ -73,6 +73,7 @@ export default function MepDag() {
   const [afrondTaak, setAfrondTaak] = useState<MepTaak | null>(null);
   const [bewerkTaak, setBewerkTaak] = useState<MepTaak | null>(null);
   const [weergave, setWeergave] = useState<'alles' | 'persoon' | 'handeling'>('alles');
+  const [batchesOpen, setBatchesOpen] = useState(false);
 
   const open = taken.filter((t) => t.status !== 'afgerond');
   const klaar = taken.filter((t) => t.status === 'afgerond');
@@ -176,8 +177,6 @@ export default function MepDag() {
         <Card className="p-3 sm:p-4 bg-card shadow-sm">
           <Progress value={voortgang} className="h-2" />
         </Card>
-
-        <PrintStatusBalk />
 
         {/* Taak toevoegen — inline */}
         <MepTaakToevoegen
@@ -315,11 +314,17 @@ export default function MepDag() {
 
         {/* Batches van vandaag */}
         {batches.length > 0 && (
-          <Card className="p-4 sm:p-5 bg-card shadow-sm">
-            <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground pb-3 mb-1 border-b border-border/60">
-              Vandaag gemaakt
-            </h2>
-            <ul className="divide-y divide-border/60">
+          <div>
+            <button
+              type="button"
+              onClick={() => setBatchesOpen((v) => !v)}
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ChevronDown className={cn('w-4 h-4 transition-transform', !batchesOpen && '-rotate-90')} />
+              Vandaag gemaakt ({batches.length})
+            </button>
+            {batchesOpen && (
+            <ul className="mt-1 divide-y divide-border/60">
               {batches.map((b: any) => (
                 <li key={b.id} className="flex items-center justify-between gap-4 py-2.5 text-sm">
                   <span className="inline-flex items-center gap-2 min-w-0">
@@ -336,7 +341,8 @@ export default function MepDag() {
                 </li>
               ))}
             </ul>
-          </Card>
+            )}
+          </div>
         )}
       </div>
 
