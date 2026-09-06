@@ -3,9 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Download, RefreshCw, Wallet } from 'lucide-react';
+import { Download, Loader2, RefreshCw, Wallet } from 'lucide-react';
+import { toast } from 'sonner';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { useUserLocation } from '@/contexts/UserLocationContext';
+import { devError } from "@/lib/devLog";
 import { WisselkassaAanvraagButton } from '@/components/kassa/WisselkassaAanvraagButton';
 
 interface KassaAfdracht {
