@@ -140,10 +140,8 @@ const KassatellingOverdag = () => {
       isValid = false;
     }
 
-    if (!opmerkingen || opmerkingen.trim().length < 3) {
-      newErrors.opmerkingen = 'Vul een korte opmerking in';
-      isValid = false;
-    }
+    // Opmerkingen zijn bewust optioneel: alleen naam en een getelde kassa zijn verplicht.
+
 
     if (total <= 0) {
       newErrors.total = 'Tel eerst de kassa en wisselkas';
