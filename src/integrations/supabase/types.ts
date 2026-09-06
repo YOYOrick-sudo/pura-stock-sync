@@ -4457,6 +4457,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      foh_tasks_archiveer_oud: { Args: { _dagen?: number }; Returns: number }
       generate_order_number: { Args: never; Returns: string }
       get_user_location: { Args: { _user_id: string }; Returns: string }
       get_user_role: {

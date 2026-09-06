@@ -140,10 +140,8 @@ const KassatellingOverdag = () => {
       isValid = false;
     }
 
-    if (!opmerkingen || opmerkingen.trim().length < 3) {
-      newErrors.opmerkingen = 'Vul een korte opmerking in';
-      isValid = false;
-    }
+    // Opmerkingen zijn bewust optioneel: alleen naam en een getelde kassa zijn verplicht.
+
 
     if (total <= 0) {
       newErrors.total = 'Tel eerst de kassa en wisselkas';
@@ -391,7 +389,8 @@ const KassatellingOverdag = () => {
                 {/* Opmerkingen */}
                 <div style={{ padding: '6px 0' }}>
                   <label style={{ fontSize: '12px', fontFamily: 'Inter, sans-serif', fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>
-                    Opmerkingen *
+                    Opmerkingen (optioneel)
+
                   </label>
                   <textarea 
                     value={opmerkingen} 

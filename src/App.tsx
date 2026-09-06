@@ -74,9 +74,17 @@ const queryClient = new QueryClient({
 /** Haalt data vers op zodra een tablet uit de slaapstand komt of de wifi terug is. */
 function useVersHouden() {
   useEffect(() => {
+    let laatsteSync = 0;
     const sync = () => {
-      focusManager.setFocused(document.visibilityState === "visible");
-      if (document.visibilityState === "visible") queryClient.invalidateQueries();
+      const zichtbaar = document.visibilityState === "visible";
+      focusManager.setFocused(zichtbaar);
+      if (!zichtbaar) return;
+      // Niet vaker dan eens per 30 seconden, en alleen de gegevens van het
+      // scherm waar iemand op staat — anders wordt elke wake-up een volledige
+      // laadronde over alle tabellen.
+      if (Date.now() - laatsteSync < 30_000) return;
+      laatsteSync = Date.now();
+      queryClient.invalidateQueries({ type: "active" });
     };
     document.addEventListener("visibilitychange", sync);
     window.addEventListener("online", sync);
@@ -86,6 +94,7 @@ function useVersHouden() {
     };
   }, []);
 }
+
 
 /** MEP is alleen actief voor West (Daily); Midsland-gebruikers worden teruggestuurd. */
 const RequireWest = ({ children }: { children: ReactNode }) => {

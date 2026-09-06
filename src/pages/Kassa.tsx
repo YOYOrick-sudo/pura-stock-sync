@@ -145,10 +145,8 @@ const Kassa = () => {
       isValid = false;
     }
 
-    if (!opmerkingen || opmerkingen.trim().length < 3) {
-      newErrors.opmerkingen = 'Vul een korte opmerking in';
-      isValid = false;
-    }
+    // Opmerkingen zijn bewust optioneel: alleen naam en cash-omzet zijn verplicht.
+
 
     if (cashOmzet === '' || cashOmzet <= 0) {
       newErrors.cashOmzet = 'Vul een geldige omzet in';
@@ -490,7 +488,8 @@ const Kassa = () => {
               {/* Opmerkingen - compacter label */}
               <div style={{ padding: '4px 0' }}>
                 <label htmlFor="opmerkingen" style={{ display: 'block', fontSize: '14px', fontFamily: 'Inter, sans-serif', fontWeight: 500, color: 'hsl(var(--muted-foreground))', marginBottom: '6px' }}>
-                  Opmerkingen
+                  Opmerkingen (optioneel)
+
                 </label>
                 <textarea
                   id="opmerkingen"
