@@ -20,7 +20,11 @@ export function usePrintStatus() {
   const { userLocation } = useUserLocation();
   return useQuery({
     queryKey: ['print-status', userLocation],
-    refetchInterval: 15_000,
+    // Rustiger verversen en alleen wanneer het scherm zichtbaar is: scheelt veel databasedruk.
+    refetchInterval: 45_000,
+    refetchIntervalInBackground: false,
+    staleTime: 30_000,
+
     queryFn: async () => {
       const [statusRes, jobsRes] = await Promise.all([
         (supabase as any)
