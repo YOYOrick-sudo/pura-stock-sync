@@ -9,6 +9,7 @@ In de West-takenlijst staat op de ingeklapte sectieknop momenteel "Bediening ton
 - Actieve sectie blijft uitgeklapt zoals nu.
 - Ingeklapte sectie toont alleen "Bediening" of "Keuken" + "klaar/totaal".
 - De knop blijft minimaal 48px hoog en aantikbaar.
+- De "Samen / Laatste loodjes" categorie-header blijft ongewijzigd zichtbaar, inclusief label.
 
 ## Randgevallen
 
