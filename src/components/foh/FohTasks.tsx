@@ -2710,17 +2710,17 @@ export function FohTasks() {
 
             <hr style={{ border: 'none', borderTop: '1px solid hsl(var(--border))', margin: 0 }} />
 
-            {/* West: compacte sectietabs Bediening / Keuken / Samen */}
+            {/* West: compacte sectietabs Bediening / Keuken */}
             {userLocation === 'West' && mainCategory === 'dagelijks' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <div style={{
                     flex: 1,
                     display: 'flex',
                     backgroundColor: 'hsl(var(--muted))',
-                    borderRadius: '12px',
-                    padding: '4px',
-                    gap: '4px',
+                    borderRadius: '10px',
+                    padding: '3px',
+                    gap: '3px',
                   }}>
                     {([
                       { key: 'bediening', label: 'Bediening' },
@@ -2740,33 +2740,33 @@ export function FohTasks() {
                           onClick={() => setVisibleTab(key)}
                           style={{
                             flex: 1,
-                            minHeight: '40px',
+                            minHeight: '34px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: '8px',
-                            padding: '8px 10px',
-                            borderRadius: '10px',
+                            gap: '6px',
+                            padding: '6px 8px',
+                            borderRadius: '8px',
                             border: 'none',
                             backgroundColor: isActive ? 'hsl(var(--card))' : 'transparent',
                             color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
-                            fontSize: '14px',
+                            fontSize: '13px',
                             fontWeight: isActive ? 600 : 500,
                             fontFamily: 'Inter, sans-serif',
                             cursor: 'pointer',
                             transition: 'all 0.15s ease',
-                            boxShadow: isActive ? '0 1px 3px hsl(var(--foreground) / 0.08)' : 'none',
+                            boxShadow: isActive ? '0 1px 2px hsl(var(--foreground) / 0.06)' : 'none',
                           }}
                         >
                           <span>{label}</span>
                           <span style={{
-                            fontSize: '12px',
+                            fontSize: '11px',
                             fontWeight: 600,
-                            padding: '2px 7px',
+                            padding: '1px 6px',
                             borderRadius: '999px',
                             backgroundColor: isActive ? 'hsl(var(--primary) / 0.12)' : 'hsl(var(--foreground) / 0.05)',
                             color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-                            minWidth: '34px',
+                            minWidth: '30px',
                           }}>
                             {klaar}/{sectieTaken.length}
                           </span>
