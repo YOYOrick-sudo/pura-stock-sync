@@ -8,7 +8,7 @@
 ## Wat ik ga aanpassen
 
 1. **Categorieën terug.** Bediening en Keuken tonen hun taken weer gegroepeerd per categorie, met de kopjes en de volgorde die in de instellingen is ingesteld — precies zoals eerder.
-2. **Samen in beide lijsten.** Zowel op Bediening als op Keuken komt bovenaan "Samen / Opstarten" (bij de openlijst) of "Samen / Start" (bij de sluitlijst), en onderaan "Samen / Laatste loodjes". Daartussen staan de eigen categorieën van die sectie.
+2. **Samen in beide lijsten, één gedeelde waarheid.** Zowel op Bediening als op Keuken komt bovenaan "Samen / Opstarten" (bij de openlijst) of "Samen / Start" (bij de sluitlijst), en onderaan "Samen / Laatste loodjes". Daartussen staan de eigen categorieën van die sectie. Het is op beide plekken dezelfde taak: vink je hem op de bediening-iPad af, dan staat hij op de keuken-iPad direct ook afgevinkt (realtime). Er bestaat dus niet één onafhankelijke "Samen-lijst" meer; Samen leeft ín beide lijsten en blijft altijd gelijk.
 3. **Het derde tabblad Samen vervalt.** Er blijven twee tabbladen over: Bediening en Keuken. Die zijn allebei zichtbaar en aanklikbaar, en de iPad-standaardinstelling (Bediening of Keuken) blijft werken zoals hij nu werkt.
 4. **Afvinken blijft gedeeld.** Een Samen-taak die op de ene iPad wordt afgevinkt, staat direct ook op de andere afgevinkt. De teller boven de lijst telt de Samen-taken mee in de sectie waar je op dat moment staat.
 5. **Bewerkmodus blijft ongewijzigd**: daar zie je alle secties onder elkaar, zoals nu.
