@@ -2725,9 +2725,12 @@ export function FohTasks() {
                     {([
                       { key: 'bediening', label: 'Bediening' },
                       { key: 'keuken', label: 'Keuken' },
-                      { key: 'samen', label: 'Samen' },
                     ] as { key: VisibleTab; label: string }[]).map(({ key, label }) => {
-                      const sectieTaken = currentTasks.filter((t: any) => westSectionOf(t.department) === key);
+                      // Teller per tab: eigen taken + Samen-taken (die in beide lijsten staan).
+                      const sectieTaken = currentTasks.filter((t: any) => {
+                        const sectie = westSectionOf(t.department);
+                        return sectie === key || sectie === 'samen';
+                      });
                       const klaar = sectieTaken.filter((t: any) => t.completed).length;
                       const isActive = visibleTab === key;
                       return (
