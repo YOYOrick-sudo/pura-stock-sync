@@ -3487,6 +3487,7 @@ export function FohTasks() {
                             <button
                               key={`dicht-${key}`}
                               type="button"
+                              aria-label={`${label} sectie openen`}
                               onClick={() => setZichtbareSectie(key as DeviceMode)}
                               style={{
                                 width: '100%', minHeight: '48px', marginBottom: '32px',
@@ -3497,7 +3498,7 @@ export function FohTasks() {
                               }}
                             >
                               <span style={{ fontSize: '15px', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
-                                {label} tonen
+                                {label}
                               </span>
                               <span style={{
                                 marginLeft: 'auto', fontSize: '12px', fontWeight: 600,
