@@ -3429,10 +3429,11 @@ export function FohTasks() {
                         const isOpen = activePhase === 'open';
                         const START_CATS = ['binnenkomst'];
                         const isStartCat = (c: string) => START_CATS.includes(c.toLowerCase());
+                        // Actieve sectie eerst, de andere er direct onder (ingeklapt).
                         const order = WEST_SECTIONS.filter(s => s.key !== 'samen')
                           .slice()
                           .sort((a, b) => {
-                            const w = (k: string) => (k === deviceMode ? -1 : 0);
+                            const w = (k: string) => (k === zichtbareSectie ? -1 : 0);
                             return w(a.key as string) - w(b.key as string);
                           });
                         const samenTop = renderDepartmentSection(
@@ -3447,7 +3448,67 @@ export function FohTasks() {
                           false,
                           { keyPrefix: 'bottom-', categoryFilter: (c) => !isStartCat(c) },
                         );
-                        const middle = order.map(({ key, label }) => renderDepartmentSection(label, key));
+                        const middle = order.map(({ key, label }) => {
+                          // In bewerkmodus beide secties uitklappen (anders kun je niets verplaatsen).
+                          if (isEditMode || key === zichtbareSectie) {
+                            const section = renderDepartmentSection(label, key);
+                            if (section) return section;
+                            if (isEditMode) return null;
+                            return (
+                              <div key={`leeg-${key}`} style={{ marginBottom: '32px' }}>
+                                <div style={{
+                                  display: 'flex', alignItems: 'center', gap: '12px',
+                                  padding: '12px 14px', backgroundColor: 'hsl(var(--muted))',
+                                  borderRadius: '12px', marginBottom: '12px',
+                                  border: '1px solid hsl(var(--border))',
+                                }}>
+                                  <span style={{ fontSize: '15px', fontWeight: 700, color: 'hsl(var(--foreground))', fontFamily: 'Inter, sans-serif' }}>
+                                    {label}
+                                  </span>
+                                  <span style={{
+                                    marginLeft: 'auto', fontSize: '12px', fontWeight: 600,
+                                    color: 'hsl(var(--muted-foreground))', backgroundColor: 'hsl(var(--muted) / 0.6)',
+                                    padding: '3px 10px', borderRadius: '999px', fontFamily: 'Inter, sans-serif',
+                                  }}>0/0</span>
+                                </div>
+                                <div style={{
+                                  padding: '4px 4px 8px', fontSize: '13px', fontStyle: 'italic',
+                                  color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif',
+                                }}>
+                                  Geen taken
+                                </div>
+                              </div>
+                            );
+                          }
+                          // Ingeklapte sectie: altijd zichtbaar, één tik om te openen.
+                          const sectieTaken = currentTasks.filter((t: any) => westSectionOf(t.department) === key);
+                          const klaar = sectieTaken.filter((t: any) => t.completed).length;
+                          return (
+                            <button
+                              key={`dicht-${key}`}
+                              type="button"
+                              onClick={() => setZichtbareSectie(key as DeviceMode)}
+                              style={{
+                                width: '100%', minHeight: '48px', marginBottom: '32px',
+                                display: 'flex', alignItems: 'center', gap: '12px',
+                                padding: '12px 14px', backgroundColor: 'hsl(var(--card))',
+                                borderRadius: '12px', border: '1px dashed hsl(var(--border))',
+                                cursor: 'pointer', fontFamily: 'Inter, sans-serif', textAlign: 'left',
+                              }}
+                            >
+                              <span style={{ fontSize: '15px', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
+                                {label} tonen
+                              </span>
+                              <span style={{
+                                marginLeft: 'auto', fontSize: '12px', fontWeight: 600,
+                                color: 'hsl(var(--muted-foreground))', backgroundColor: 'hsl(var(--muted))',
+                                padding: '3px 10px', borderRadius: '999px',
+                              }}>
+                                {klaar}/{sectieTaken.length}
+                              </span>
+                            </button>
+                          );
+                        });
                         const sections = [
                           samenTop,
                           ...middle,
