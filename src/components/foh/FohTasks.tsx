@@ -3926,27 +3926,26 @@ export function FohTasks() {
                     color: 'hsl(var(--muted-foreground))',
                     marginBottom: '4px',
                   }}>
-                    Apparaat-modus
+                    Deze iPad opent standaard op
                   </div>
                   <div style={{
                     fontSize: '12px',
                     color: 'hsl(var(--muted-foreground))',
                     marginBottom: '10px',
                   }}>
-                    Alle secties blijven altijd zichtbaar. Deze keuze bepaalt welke bovenaan staat. Wordt lokaal opgeslagen per iPad.
+                    Geldt alleen voor deze iPad. Beide secties blijven altijd zichtbaar en aan te tikken.
                   </div>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {([
-                      { key: 'bediening', label: 'Bediening eerst' },
-                      { key: 'keuken', label: 'Keuken eerst' },
-                      { key: 'beide', label: 'Standaard' },
+                      { key: 'bediening', label: 'Bediening' },
+                      { key: 'keuken', label: 'Keuken' },
                     ] as { key: DeviceMode; label: string }[]).map(({ key, label }) => {
                       const isActive = deviceMode === key;
                       return (
                         <button
                           key={key}
                           type="button"
-                          onClick={() => setDeviceMode(key)}
+                          onClick={() => { setDeviceMode(key); setZichtbareSectie(key); }}
                           style={{
                             flex: 1,
                             minWidth: '100px',
