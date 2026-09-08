@@ -935,8 +935,8 @@ export function FohTasks() {
   }, [deviceMode]);
 
   // Welke tab is nu actief in de West-takenlijst? Start op de vaste keuze van deze iPad.
-  // Tussendoor wisselen (ook naar Samen) verandert de opgeslagen standaard niet.
-  type VisibleTab = 'bediening' | 'keuken' | 'samen';
+  // Samen is geen eigen tab meer; die taken staan boven- en onderaan in beide lijsten.
+  type VisibleTab = 'bediening' | 'keuken';
   const [visibleTab, setVisibleTab] = useState<VisibleTab>(deviceMode);
 
   // Operationele afdeling volgt de zichtbare tab; data-operaties gebruiken deze waarde.
@@ -2725,9 +2725,12 @@ export function FohTasks() {
                     {([
                       { key: 'bediening', label: 'Bediening' },
                       { key: 'keuken', label: 'Keuken' },
-                      { key: 'samen', label: 'Samen' },
                     ] as { key: VisibleTab; label: string }[]).map(({ key, label }) => {
-                      const sectieTaken = currentTasks.filter((t: any) => westSectionOf(t.department) === key);
+                      // Teller per tab: eigen taken + Samen-taken (die in beide lijsten staan).
+                      const sectieTaken = currentTasks.filter((t: any) => {
+                        const sectie = westSectionOf(t.department);
+                        return sectie === key || sectie === 'samen';
+                      });
                       const klaar = sectieTaken.filter((t: any) => t.completed).length;
                       const isActive = visibleTab === key;
                       return (
@@ -3561,50 +3564,41 @@ export function FohTasks() {
                           return sections;
                         }
 
-                        if (visibleTab === 'samen') {
-                          const samenTop = renderDepartmentSection(
-                            isOpen ? 'Samen / Opstarten' : 'Samen / Start',
-                            'samen',
-                            false,
-                            { keyPrefix: 'top-', categoryFilter: isStartCat },
-                          );
-                          const samenBottom = renderDepartmentSection(
-                            'Samen / Laatste loodjes',
-                            'samen',
-                            false,
-                            { keyPrefix: 'bottom-', categoryFilter: (c) => !isStartCat(c) },
-                          );
-                          const sections = [samenTop, samenBottom].filter(Boolean);
-                          if (sections.length === 0) {
-                            return (
-                              <div style={{
-                                padding: '16px 4px 24px',
-                                color: 'hsl(var(--muted-foreground))',
-                                fontSize: '13px',
-                                fontStyle: 'italic',
-                                fontFamily: 'Inter, sans-serif',
-                              }}>
-                                Geen taken
-                              </div>
-                            );
-                          }
-                          return sections;
-                        }
-
-                        // Bediening of Keuken tab: toon alleen die sectie als doorlopende lijst.
-                        const label = visibleTab === 'keuken' ? 'Keuken' : 'Bediening';
-                        const section = renderDepartmentSection(label, visibleTab, true, { hideHeader: true });
-                        if (section) return section;
-                        return (
-                          <div style={{ marginBottom: '32px' }}>
+                        // Bediening- of Keuken-tab: Samen-taken boven- en onderaan,
+                        // eigen taken gegroepeerd per categorie daartussen.
+                        const samenTop = renderDepartmentSection(
+                          isOpen ? 'Samen / Opstarten' : 'Samen / Start',
+                          'samen',
+                          false,
+                          { keyPrefix: 'top-', categoryFilter: isStartCat },
+                        );
+                        const eigen = renderDepartmentSection(
+                          visibleTab === 'keuken' ? 'Keuken' : 'Bediening',
+                          visibleTab,
+                          false,
+                          { hideHeader: true },
+                        );
+                        const samenBottom = renderDepartmentSection(
+                          'Samen / Laatste loodjes',
+                          'samen',
+                          false,
+                          { keyPrefix: 'bottom-', categoryFilter: (c) => !isStartCat(c) },
+                        );
+                        const sections = [samenTop, eigen, samenBottom].filter(Boolean);
+                        if (sections.length === 0) {
+                          return (
                             <div style={{
-                              padding: '12px 4px 8px', fontSize: '13px', fontStyle: 'italic',
-                              color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif',
+                              padding: '16px 4px 24px',
+                              color: 'hsl(var(--muted-foreground))',
+                              fontSize: '13px',
+                              fontStyle: 'italic',
+                              fontFamily: 'Inter, sans-serif',
                             }}>
                               Geen taken
                             </div>
-                          </div>
-                        );
+                          );
+                        }
+                        return sections;
                       })() : (
                         renderCategoryGroups(currentTasks, 'all')
                       )}
