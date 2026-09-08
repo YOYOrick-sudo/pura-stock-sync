@@ -62,18 +62,25 @@ export function WisselkassaAanvraagButton() {
         });
         if (logError) throw logError;
 
-        const { error } = await supabase.functions.invoke('send-transactional-email', {
-          body: {
-            templateName: 'wisselkassa-aanvraag',
-            idempotencyKey: `wisselkassa-${Date.now()}`,
-            templateData: {
-              vestiging: displayLocation,
-              aanvrager,
-              tijdstip,
-            },
-          },
-        });
-        if (error) throw error;
+        const stamp = Date.now();
+        const results = await Promise.all(
+          ONTVANGERS.map(adres =>
+            supabase.functions.invoke('send-transactional-email', {
+              body: {
+                templateName: 'wisselkassa-aanvraag',
+                recipientEmail: adres,
+                idempotencyKey: `wisselkassa-${adres}-${stamp}`,
+                templateData: {
+                  vestiging: displayLocation,
+                  aanvrager,
+                  tijdstip,
+                },
+              },
+            })
+          )
+        );
+        const failed = results.find(r => r.error);
+        if (failed?.error) throw failed.error;
       })();
 
       await Promise.race([werk, timeout]);
