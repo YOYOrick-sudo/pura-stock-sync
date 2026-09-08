@@ -2710,17 +2710,17 @@ export function FohTasks() {
 
             <hr style={{ border: 'none', borderTop: '1px solid hsl(var(--border))', margin: 0 }} />
 
-            {/* West: compacte sectietabs Bediening / Keuken / Samen */}
+            {/* West: compacte sectietabs Bediening / Keuken */}
             {userLocation === 'West' && mainCategory === 'dagelijks' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <div style={{
                     flex: 1,
                     display: 'flex',
                     backgroundColor: 'hsl(var(--muted))',
-                    borderRadius: '12px',
-                    padding: '4px',
-                    gap: '4px',
+                    borderRadius: '10px',
+                    padding: '3px',
+                    gap: '3px',
                   }}>
                     {([
                       { key: 'bediening', label: 'Bediening' },
@@ -2740,33 +2740,33 @@ export function FohTasks() {
                           onClick={() => setVisibleTab(key)}
                           style={{
                             flex: 1,
-                            minHeight: '40px',
+                            minHeight: '34px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: '8px',
-                            padding: '8px 10px',
-                            borderRadius: '10px',
+                            gap: '6px',
+                            padding: '6px 8px',
+                            borderRadius: '8px',
                             border: 'none',
                             backgroundColor: isActive ? 'hsl(var(--card))' : 'transparent',
                             color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
-                            fontSize: '14px',
+                            fontSize: '13px',
                             fontWeight: isActive ? 600 : 500,
                             fontFamily: 'Inter, sans-serif',
                             cursor: 'pointer',
                             transition: 'all 0.15s ease',
-                            boxShadow: isActive ? '0 1px 3px hsl(var(--foreground) / 0.08)' : 'none',
+                            boxShadow: isActive ? '0 1px 2px hsl(var(--foreground) / 0.06)' : 'none',
                           }}
                         >
                           <span>{label}</span>
                           <span style={{
-                            fontSize: '12px',
+                            fontSize: '11px',
                             fontWeight: 600,
-                            padding: '2px 7px',
+                            padding: '1px 6px',
                             borderRadius: '999px',
                             backgroundColor: isActive ? 'hsl(var(--primary) / 0.12)' : 'hsl(var(--foreground) / 0.05)',
                             color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-                            minWidth: '34px',
+                            minWidth: '30px',
                           }}>
                             {klaar}/{sectieTaken.length}
                           </span>
@@ -2776,7 +2776,7 @@ export function FohTasks() {
                   </div>
 
                   {/* Compacte actieknoppen rechts van de tabs */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                     {/* West: lokale standaardsectie is bewust los van het afgeschermde takenbeheer. */}
                     {!isReadOnly && (
                       <button
@@ -2789,21 +2789,21 @@ export function FohTasks() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          borderRadius: '12px',
+                          borderRadius: '10px',
                           border: '1px solid hsl(var(--border))',
-                          backgroundColor: 'hsl(var(--card))',
+                          backgroundColor: 'hsl(var(--muted))',
                           color: 'hsl(var(--foreground))',
                           cursor: 'pointer',
                           transition: 'all 0.15s ease',
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
+                          e.currentTarget.style.backgroundColor = 'hsl(var(--muted) / 0.7)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
+                          e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
                         }}
                       >
-                        <Settings size={18} aria-hidden="true" />
+                        <Settings size={16} aria-hidden="true" />
                       </button>
                     )}
 
@@ -2818,51 +2818,54 @@ export function FohTasks() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          borderRadius: '12px',
+                          borderRadius: '10px',
                           border: '1px solid hsl(var(--border))',
-                          backgroundColor: 'hsl(var(--card))',
+                          backgroundColor: 'hsl(var(--muted))',
                           color: 'hsl(var(--primary))',
                           cursor: 'pointer',
                           transition: 'all 0.15s ease',
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
+                          e.currentTarget.style.backgroundColor = 'hsl(var(--muted) / 0.7)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
+                          e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
                         }}
                       >
-                        <Shield size={18} />
+                        <Shield size={16} />
                       </button>
                     )}
                   </div>
                 </div>
 
-                {/* Dunne voortgangsbalk direct onder de tabs */}
-                <div style={{
-                  height: '4px',
-                  backgroundColor: 'hsl(var(--card))',
-                  borderRadius: '2px',
-                  overflow: 'hidden',
-                }}>
-                  <div style={{
-                    height: '100%',
-                    width: `${progressPercentage}%`,
-                    backgroundColor: isComplete ? 'hsl(var(--primary))' : 'hsl(var(--primary))',
-                    transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                  }} />
-                </div>
+                {/* Dunne voortgangsbalk + status op één regel */}
                 <div style={{
                   display: 'flex',
-                  justifyContent: 'flex-end',
                   alignItems: 'center',
-                  gap: '6px',
-                  fontSize: '12px',
-                  color: 'hsl(var(--muted-foreground))',
-                  fontFamily: 'Inter, sans-serif',
+                  gap: '10px',
                 }}>
-                  <span>{completedCount}/{totalCount} klaar</span>
-                  <span style={{ fontWeight: 600, color: 'hsl(var(--foreground))' }}>{progressPercentage}%</span>
+                  <div style={{
+                    flex: 1,
+                    height: '4px',
+                    backgroundColor: 'hsl(var(--card))',
+                    borderRadius: '2px',
+                    overflow: 'hidden',
+                  }}>
+                    <div style={{
+                      height: '100%',
+                      width: `${progressPercentage}%`,
+                      backgroundColor: 'hsl(var(--primary))',
+                      transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    }} />
+                  </div>
+                  <span style={{
+                    fontSize: '11px',
+                    color: 'hsl(var(--muted-foreground))',
+                    fontFamily: 'Inter, sans-serif',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {completedCount}/{totalCount} klaar
+                  </span>
                 </div>
               </div>
             )}
