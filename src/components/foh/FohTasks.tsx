@@ -2714,6 +2714,59 @@ export function FohTasks() {
 
             <hr style={{ border: 'none', borderTop: '1px solid hsl(var(--border))', margin: 0 }} />
 
+            {/* West: sectieknoppen Bediening / Keuken — allebei altijd zichtbaar en klikbaar */}
+            {userLocation === 'West' && mainCategory === 'dagelijks' && (
+              <div style={{ display: 'flex', gap: '10px' }}>
+                {([
+                  { key: 'bediening', label: 'Bediening' },
+                  { key: 'keuken', label: 'Keuken' },
+                ] as { key: DeviceMode; label: string }[]).map(({ key, label }) => {
+                  const sectieTaken = currentTasks.filter((t: any) => westSectionOf(t.department) === key);
+                  const klaar = sectieTaken.filter((t: any) => t.completed).length;
+                  const isActive = zichtbareSectie === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setZichtbareSectie(key)}
+                      style={{
+                        flex: 1,
+                        minHeight: '48px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '10px',
+                        padding: '12px 16px',
+                        borderRadius: '14px',
+                        border: isActive ? 'none' : '1px solid hsl(var(--border))',
+                        backgroundColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--card))',
+                        color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
+                        fontSize: '15px',
+                        fontWeight: isActive ? 600 : 500,
+                        fontFamily: 'Inter, sans-serif',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <span>{label}</span>
+                      <span style={{
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        backgroundColor: isActive ? 'hsl(var(--primary-foreground) / 0.25)' : 'hsl(var(--foreground) / 0.04)',
+                        color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--muted-foreground))',
+                        minWidth: '40px',
+                      }}>
+                        {klaar}/{sectieTaken.length}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+
             {/* Full-width progress bar */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
