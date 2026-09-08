@@ -41,7 +41,7 @@ const WisselkassaAanvraagEmail = ({ vestiging, aanvrager, tijdstip }: Wisselkass
 export const template = {
   component: WisselkassaAanvraagEmail,
   subject: (d: Record<string, any>) => `Nieuwe wisselkassa nodig — ${d.vestiging || 'vestiging onbekend'}`,
-  to: Deno.env.get('WISSELKASSA_AANVRAAG_EMAIL'),
+  // Geen vaste ontvanger meer: de app bepaalt per aanvraag naar wie de mail gaat.
   displayName: 'Wisselkassa-aanvraag',
   previewData: { vestiging: 'Daily', aanvrager: 'Sanne', tijdstip: '6 sep 2026, 14:53' },
 } satisfies TemplateEntry
