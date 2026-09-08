@@ -3491,8 +3491,8 @@ export function FohTasks() {
                               style={{
                                 width: '100%', minHeight: '48px', marginBottom: '32px',
                                 display: 'flex', alignItems: 'center', gap: '12px',
-                                padding: '12px 14px', backgroundColor: 'hsl(var(--card))',
-                                borderRadius: '12px', border: '1px dashed hsl(var(--border))',
+                                padding: '12px 14px', backgroundColor: 'hsl(var(--muted))',
+                                borderRadius: '12px', border: '1px solid hsl(var(--border))',
                                 cursor: 'pointer', fontFamily: 'Inter, sans-serif', textAlign: 'left',
                               }}
                             >
@@ -3501,7 +3501,7 @@ export function FohTasks() {
                               </span>
                               <span style={{
                                 marginLeft: 'auto', fontSize: '12px', fontWeight: 600,
-                                color: 'hsl(var(--muted-foreground))', backgroundColor: 'hsl(var(--muted))',
+                                color: 'hsl(var(--muted-foreground))', backgroundColor: 'hsl(var(--foreground) / 0.04)',
                                 padding: '3px 10px', borderRadius: '999px',
                               }}>
                                 {klaar}/{sectieTaken.length}
