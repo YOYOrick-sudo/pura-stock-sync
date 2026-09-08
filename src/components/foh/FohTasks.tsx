@@ -916,20 +916,10 @@ export function FohTasks() {
   const [activePhase, setActivePhase] = useState<PhaseType>('open');
   const [isPhaseManuallySelected, setIsPhaseManuallySelected] = useState(false);
 
-  // West heeft afdelingen: Voorkant (bediening) / Achterkant (keuken).
+  // West heeft afdelingen: Voorkant (bediening) / Achterkant (keuken) / Samen.
   // Voor andere locaties altijd 'voorkant' zodat bestaande data zichtbaar blijft.
-  const [activeDepartment, setActiveDepartment] = useState<Department>(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('foh_active_department_west') : null;
-    return stored === 'keuken' || stored === 'samen' ? stored : 'bediening';
-  });
-  const effectiveDept: Department = userLocation === 'West' ? activeDepartment : 'voorkant';
   const westSectionOf = (dept: string | null | undefined): Department =>
     dept === 'keuken' || dept === 'samen' ? dept : 'bediening';
-  useEffect(() => {
-    if (userLocation === 'West') {
-      localStorage.setItem('foh_active_department_west', activeDepartment);
-    }
-  }, [activeDepartment, userLocation]);
 
   // Standaardsectie per iPad (lokaal opgeslagen, geldt alleen voor dit apparaat).
   type DeviceMode = 'bediening' | 'keuken';
@@ -944,9 +934,14 @@ export function FohTasks() {
     }
   }, [deviceMode]);
 
-  // Welke sectie staat nu open? Start altijd op de vaste keuze van deze iPad;
-  // tussendoor wisselen verandert de opgeslagen standaard niet.
-  const [zichtbareSectie, setZichtbareSectie] = useState<DeviceMode>(deviceMode);
+  // Welke tab is nu actief in de West-takenlijst? Start op de vaste keuze van deze iPad.
+  // Tussendoor wisselen (ook naar Samen) verandert de opgeslagen standaard niet.
+  type VisibleTab = 'bediening' | 'keuken' | 'samen';
+  const [visibleTab, setVisibleTab] = useState<VisibleTab>(deviceMode);
+
+  // Operationele afdeling volgt de zichtbare tab; data-operaties gebruiken deze waarde.
+  const activeDepartment: Department = userLocation === 'West' ? visibleTab : 'voorkant';
+  const effectiveDept: Department = activeDepartment;
 
   // West heeft geen tussenlijst — reset activePhase als die per ongeluk op 'tussen' staat
   useEffect(() => {
@@ -2715,150 +2710,229 @@ export function FohTasks() {
 
             <hr style={{ border: 'none', borderTop: '1px solid hsl(var(--border))', margin: 0 }} />
 
-            {/* West: sectieknoppen Bediening / Keuken — allebei altijd zichtbaar en klikbaar */}
+            {/* West: compacte sectietabs Bediening / Keuken / Samen */}
             {userLocation === 'West' && mainCategory === 'dagelijks' && (
-              <div style={{ display: 'flex', gap: '10px' }}>
-                {([
-                  { key: 'bediening', label: 'Bediening' },
-                  { key: 'keuken', label: 'Keuken' },
-                ] as { key: DeviceMode; label: string }[]).map(({ key, label }) => {
-                  const sectieTaken = currentTasks.filter((t: any) => westSectionOf(t.department) === key);
-                  const klaar = sectieTaken.filter((t: any) => t.completed).length;
-                  const isActive = zichtbareSectie === key;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setZichtbareSectie(key)}
-                      style={{
-                        flex: 1,
-                        minHeight: '48px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '10px',
-                        padding: '12px 16px',
-                        borderRadius: '14px',
-                        border: isActive ? '1px solid hsl(var(--primary) / 0.35)' : '1px solid hsl(var(--border))',
-                        backgroundColor: isActive ? 'hsl(var(--primary) / 0.10)' : 'hsl(var(--muted))',
-                        color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
-                        fontSize: '15px',
-                        fontWeight: isActive ? 600 : 500,
-                        fontFamily: 'Inter, sans-serif',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      <span>{label}</span>
-                      <span style={{
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        padding: '4px 10px',
-                        borderRadius: '6px',
-                        backgroundColor: isActive ? 'hsl(var(--primary) / 0.18)' : 'hsl(var(--foreground) / 0.04)',
-                        color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-                        minWidth: '40px',
-                      }}>
-                        {klaar}/{sectieTaken.length}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{
+                    flex: 1,
+                    display: 'flex',
+                    backgroundColor: 'hsl(var(--muted))',
+                    borderRadius: '12px',
+                    padding: '4px',
+                    gap: '4px',
+                  }}>
+                    {([
+                      { key: 'bediening', label: 'Bediening' },
+                      { key: 'keuken', label: 'Keuken' },
+                      { key: 'samen', label: 'Samen' },
+                    ] as { key: VisibleTab; label: string }[]).map(({ key, label }) => {
+                      const sectieTaken = currentTasks.filter((t: any) => westSectionOf(t.department) === key);
+                      const klaar = sectieTaken.filter((t: any) => t.completed).length;
+                      const isActive = visibleTab === key;
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setVisibleTab(key)}
+                          style={{
+                            flex: 1,
+                            minHeight: '40px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            padding: '8px 10px',
+                            borderRadius: '10px',
+                            border: 'none',
+                            backgroundColor: isActive ? 'hsl(var(--card))' : 'transparent',
+                            color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
+                            fontSize: '14px',
+                            fontWeight: isActive ? 600 : 500,
+                            fontFamily: 'Inter, sans-serif',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                            boxShadow: isActive ? '0 1px 3px hsl(var(--foreground) / 0.08)' : 'none',
+                          }}
+                        >
+                          <span>{label}</span>
+                          <span style={{
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            padding: '2px 7px',
+                            borderRadius: '999px',
+                            backgroundColor: isActive ? 'hsl(var(--primary) / 0.12)' : 'hsl(var(--foreground) / 0.05)',
+                            color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                            minWidth: '34px',
+                          }}>
+                            {klaar}/{sectieTaken.length}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
 
+                  {/* Compacte actieknoppen rechts van de tabs */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                    {/* West: lokale standaardsectie is bewust los van het afgeschermde takenbeheer. */}
+                    {!isReadOnly && (
+                      <button
+                        type="button"
+                        aria-label="Standaardsectie van deze iPad instellen"
+                        onClick={() => setDeviceModeDialogOpen(true)}
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: '12px',
+                          border: '1px solid hsl(var(--border))',
+                          backgroundColor: 'hsl(var(--card))',
+                          color: 'hsl(var(--foreground))',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
+                        }}
+                      >
+                        <Settings size={18} aria-hidden="true" />
+                      </button>
+                    )}
 
-            {/* Full-width progress bar */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* Admin Button — verborgen in read-only verleden */}
+                    {!isReadOnly && (
+                      <button
+                        onClick={() => setPasswordDialogOpen(true)}
+                        aria-label="Takenbeheer openen"
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: '12px',
+                          border: '1px solid hsl(var(--border))',
+                          backgroundColor: 'hsl(var(--card))',
+                          color: 'hsl(var(--primary))',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
+                        }}
+                      >
+                        <Shield size={18} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Dunne voortgangsbalk direct onder de tabs */}
                 <div style={{
-                  height: '8px',
+                  height: '4px',
                   backgroundColor: 'hsl(var(--card))',
-                  borderRadius: '4px',
+                  borderRadius: '2px',
                   overflow: 'hidden',
                 }}>
                   <div style={{
                     height: '100%',
                     width: `${progressPercentage}%`,
-                    backgroundColor: 'hsl(var(--primary))',
+                    backgroundColor: isComplete ? 'hsl(var(--primary))' : 'hsl(var(--primary))',
                     transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                   }} />
                 </div>
-              </div>
-              
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-                flexShrink: 0,
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '15px', color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif' }}>
-                    {completedCount}/{totalCount}
-                  </span>
-                  <span style={{
-                    fontWeight: 600,
-                    color: isComplete ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
-                    fontSize: '17px',
-                    fontFamily: 'Inter, sans-serif',
-                  }}>
-                    {progressPercentage}%
-                  </span>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '12px',
+                  color: 'hsl(var(--muted-foreground))',
+                  fontFamily: 'Inter, sans-serif',
+                }}>
+                  <span>{completedCount}/{totalCount} klaar</span>
+                  <span style={{ fontWeight: 600, color: 'hsl(var(--foreground))' }}>{progressPercentage}%</span>
                 </div>
+              </div>
+            )}
 
-                {/* Admin Button — verborgen in read-only verleden */}
-                {!isReadOnly && (
-                  <button
-                    onClick={() => setPasswordDialogOpen(true)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '12px 20px',
-                      backgroundColor: 'hsl(var(--card))',
-                      color: 'hsl(var(--primary))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '20px',
-                      fontSize: '15px',
-                      fontWeight: 500,
-                      cursor: 'pointer',
+            {/* Niet-West of West periodiek: bestaande full-width progress bar + admin + nieuwe taak */}
+            {(userLocation !== 'West' || mainCategory === 'periodiek') && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    height: '8px',
+                    backgroundColor: 'hsl(var(--card))',
+                    borderRadius: '4px',
+                    overflow: 'hidden',
+                  }}>
+                    <div style={{
+                      height: '100%',
+                      width: `${progressPercentage}%`,
+                      backgroundColor: 'hsl(var(--primary))',
+                      transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    }} />
+                  </div>
+                </div>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '16px',
+                  flexShrink: 0,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '15px', color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif' }}>
+                      {completedCount}/{totalCount}
+                    </span>
+                    <span style={{
+                      fontWeight: 600,
+                      color: isComplete ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
+                      fontSize: '17px',
                       fontFamily: 'Inter, sans-serif',
-                      transition: 'all 0.2s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
-                      e.currentTarget.style.borderColor = 'hsl(var(--border))';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
-                      e.currentTarget.style.borderColor = 'hsl(var(--border))';
-                    }}
-                  >
-                    <Settings size={18} />
-                    Admin
-                  </button>
-                )}
+                    }}>
+                      {progressPercentage}%
+                    </span>
+                  </div>
 
-                {/* West: lokale standaardsectie is bewust los van het afgeschermde takenbeheer. */}
-                {!isReadOnly && userLocation === 'West' && mainCategory === 'dagelijks' && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    aria-label="Standaardsectie van deze iPad instellen"
-                    onClick={() => setDeviceModeDialogOpen(true)}
-                    style={{
-                      minHeight: '48px',
-                      padding: '12px 16px',
-                      borderRadius: '14px',
-                      gap: '8px',
-                      color: 'hsl(var(--foreground))',
-                      fontFamily: 'Inter, sans-serif',
-                    }}
-                  >
-                    <Settings size={18} aria-hidden="true" />
-                    Deze iPad: {deviceMode === 'keuken' ? 'Keuken' : 'Bediening'}
-                  </Button>
-                )}
+                  {!isReadOnly && (
+                    <button
+                      onClick={() => setPasswordDialogOpen(true)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '12px 20px',
+                        backgroundColor: 'hsl(var(--card))',
+                        color: 'hsl(var(--primary))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '20px',
+                        fontSize: '15px',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        fontFamily: 'Inter, sans-serif',
+                        transition: 'all 0.2s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
+                        e.currentTarget.style.borderColor = 'hsl(var(--border))';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
+                        e.currentTarget.style.borderColor = 'hsl(var(--border))';
+                      }}
+                    >
+                      <Settings size={18} />
+                      Admin
+                    </button>
+                  )}
 
                 {/* New Task Button - only for periodiek (verleden heeft geen periodiek) */}
                 {!isReadOnly && mainCategory === 'periodiek' && (
@@ -3205,6 +3279,7 @@ export function FohTasks() {
                 
               </div>
             </div>
+            )}
 
             <hr style={{ border: 'none', borderTop: '1px solid hsl(var(--border))', margin: 0 }} />
 
@@ -3446,66 +3521,90 @@ export function FohTasks() {
                   >
                     <div>
                       {userLocation === 'West' ? (() => {
-                        // Secties: Samen (opstarten) → Bediening/Keuken → Samen (afronden).
-                        // 'Samen' komt dus twee keer terug: aan het begin (binnenkomst) en
-                        // helemaal aan het einde (afronden / laatste loodjes, incl. Vitrine).
+                        // Tabs: Bediening / Keuken / Samen. In bewerkmodus alles tonen.
                         const isOpen = activePhase === 'open';
                         const START_CATS = ['binnenkomst'];
                         const isStartCat = (c: string) => START_CATS.includes(c.toLowerCase());
-                        const order = WEST_SECTIONS.filter(s => s.key !== 'samen');
-                        const samenTop = renderDepartmentSection(
-                          isOpen ? 'Samen / Opstarten' : 'Samen / Start',
-                          'samen',
-                          false,
-                          { keyPrefix: 'top-', categoryFilter: isStartCat },
-                        );
-                        const samenBottom = renderDepartmentSection(
-                          'Samen / Laatste loodjes',
-                          'samen',
-                          false,
-                          { keyPrefix: 'bottom-', categoryFilter: (c) => !isStartCat(c) },
-                        );
-                        const middle = order.map(({ key, label }) => {
-                          // In bewerkmodus beide secties uitklappen (anders kun je niets verplaatsen).
-                          if (isEditMode || key === zichtbareSectie) {
-                            // Bediening en Keuken zijn ieder één doorlopende werklijst;
-                            // dubbele categorieheaders voegen hier geen informatie toe.
-                            const section = renderDepartmentSection(label, key, true, { hideHeader: !isEditMode });
-                            if (section) return section;
-                            if (isEditMode) return null;
+
+                        if (isEditMode) {
+                          const order = WEST_SECTIONS.filter(s => s.key !== 'samen');
+                          const samenTop = renderDepartmentSection(
+                            isOpen ? 'Samen / Opstarten' : 'Samen / Start',
+                            'samen',
+                            false,
+                            { keyPrefix: 'top-', categoryFilter: isStartCat },
+                          );
+                          const samenBottom = renderDepartmentSection(
+                            'Samen / Laatste loodjes',
+                            'samen',
+                            false,
+                            { keyPrefix: 'bottom-', categoryFilter: (c) => !isStartCat(c) },
+                          );
+                          const middle = order.map(({ key, label }) => {
+                            const section = renderDepartmentSection(label, key, true, { hideHeader: false });
+                            return section || null;
+                          });
+                          const sections = [samenTop, ...middle, samenBottom].filter(Boolean);
+                          if (sections.length === 0) {
                             return (
-                              <div key={`leeg-${key}`} style={{ marginBottom: '32px' }}>
-                                <div style={{
-                                  padding: '12px 4px 8px', fontSize: '13px', fontStyle: 'italic',
-                                  color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif',
-                                }}>
-                                  Geen taken
-                                </div>
+                              <div style={{
+                                padding: '16px 4px 24px',
+                                color: 'hsl(var(--muted-foreground))',
+                                fontSize: '13px',
+                                fontStyle: 'italic',
+                                fontFamily: 'Inter, sans-serif',
+                              }}>
+                                Geen taken
                               </div>
                             );
                           }
-                          // De andere sectie blijft via de vaste knop boven de lijst bereikbaar.
-                          return null;
-                        });
-                        const sections = [
-                          samenTop,
-                          ...middle,
-                          samenBottom,
-                        ].filter(Boolean);
-                        if (sections.length === 0) {
-                          return (
+                          return sections;
+                        }
+
+                        if (visibleTab === 'samen') {
+                          const samenTop = renderDepartmentSection(
+                            isOpen ? 'Samen / Opstarten' : 'Samen / Start',
+                            'samen',
+                            false,
+                            { keyPrefix: 'top-', categoryFilter: isStartCat },
+                          );
+                          const samenBottom = renderDepartmentSection(
+                            'Samen / Laatste loodjes',
+                            'samen',
+                            false,
+                            { keyPrefix: 'bottom-', categoryFilter: (c) => !isStartCat(c) },
+                          );
+                          const sections = [samenTop, samenBottom].filter(Boolean);
+                          if (sections.length === 0) {
+                            return (
+                              <div style={{
+                                padding: '16px 4px 24px',
+                                color: 'hsl(var(--muted-foreground))',
+                                fontSize: '13px',
+                                fontStyle: 'italic',
+                                fontFamily: 'Inter, sans-serif',
+                              }}>
+                                Geen taken
+                              </div>
+                            );
+                          }
+                          return sections;
+                        }
+
+                        // Bediening of Keuken tab: toon alleen die sectie als doorlopende lijst.
+                        const label = visibleTab === 'keuken' ? 'Keuken' : 'Bediening';
+                        const section = renderDepartmentSection(label, visibleTab, true, { hideHeader: true });
+                        if (section) return section;
+                        return (
+                          <div style={{ marginBottom: '32px' }}>
                             <div style={{
-                              padding: '16px 4px 24px',
-                              color: 'hsl(var(--muted-foreground))',
-                              fontSize: '13px',
-                              fontStyle: 'italic',
-                              fontFamily: 'Inter, sans-serif',
+                              padding: '12px 4px 8px', fontSize: '13px', fontStyle: 'italic',
+                              color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif',
                             }}>
                               Geen taken
                             </div>
-                          );
-                        }
-                        return sections;
+                          </div>
+                        );
                       })() : (
                         renderCategoryGroups(currentTasks, 'all')
                       )}
@@ -3894,7 +3993,7 @@ export function FohTasks() {
                   aria-pressed={isActive}
                   onClick={() => {
                     setDeviceMode(key);
-                    setZichtbareSectie(key);
+                    setVisibleTab(key);
                     setDeviceModeDialogOpen(false);
                     toast.success(`Deze iPad opent voortaan op ${label}`);
                   }}
@@ -3980,7 +4079,7 @@ export function FohTasks() {
                         <button
                           key={key}
                           type="button"
-                          onClick={() => { setDeviceMode(key); setZichtbareSectie(key); }}
+                          onClick={() => { setDeviceMode(key); setVisibleTab(key); }}
                           style={{
                             flex: 1,
                             minWidth: '100px',
