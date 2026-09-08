@@ -2738,9 +2738,9 @@ export function FohTasks() {
                         gap: '10px',
                         padding: '12px 16px',
                         borderRadius: '14px',
-                        border: isActive ? 'none' : '1px solid hsl(var(--border))',
-                        backgroundColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--card))',
-                        color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
+                        border: isActive ? '1px solid hsl(var(--primary) / 0.35)' : '1px solid hsl(var(--border))',
+                        backgroundColor: isActive ? 'hsl(var(--primary) / 0.10)' : 'hsl(var(--muted))',
+                        color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
                         fontSize: '15px',
                         fontWeight: isActive ? 600 : 500,
                         fontFamily: 'Inter, sans-serif',
@@ -2754,8 +2754,8 @@ export function FohTasks() {
                         fontWeight: 600,
                         padding: '4px 10px',
                         borderRadius: '6px',
-                        backgroundColor: isActive ? 'hsl(var(--primary-foreground) / 0.25)' : 'hsl(var(--foreground) / 0.04)',
-                        color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--muted-foreground))',
+                        backgroundColor: isActive ? 'hsl(var(--primary) / 0.18)' : 'hsl(var(--foreground) / 0.04)',
+                        color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
                         minWidth: '40px',
                       }}>
                         {klaar}/{sectieTaken.length}
