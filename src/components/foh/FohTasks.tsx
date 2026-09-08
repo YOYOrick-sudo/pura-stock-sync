@@ -3564,50 +3564,41 @@ export function FohTasks() {
                           return sections;
                         }
 
-                        if (visibleTab === 'samen') {
-                          const samenTop = renderDepartmentSection(
-                            isOpen ? 'Samen / Opstarten' : 'Samen / Start',
-                            'samen',
-                            false,
-                            { keyPrefix: 'top-', categoryFilter: isStartCat },
-                          );
-                          const samenBottom = renderDepartmentSection(
-                            'Samen / Laatste loodjes',
-                            'samen',
-                            false,
-                            { keyPrefix: 'bottom-', categoryFilter: (c) => !isStartCat(c) },
-                          );
-                          const sections = [samenTop, samenBottom].filter(Boolean);
-                          if (sections.length === 0) {
-                            return (
-                              <div style={{
-                                padding: '16px 4px 24px',
-                                color: 'hsl(var(--muted-foreground))',
-                                fontSize: '13px',
-                                fontStyle: 'italic',
-                                fontFamily: 'Inter, sans-serif',
-                              }}>
-                                Geen taken
-                              </div>
-                            );
-                          }
-                          return sections;
-                        }
-
-                        // Bediening of Keuken tab: toon alleen die sectie als doorlopende lijst.
-                        const label = visibleTab === 'keuken' ? 'Keuken' : 'Bediening';
-                        const section = renderDepartmentSection(label, visibleTab, true, { hideHeader: true });
-                        if (section) return section;
-                        return (
-                          <div style={{ marginBottom: '32px' }}>
+                        // Bediening- of Keuken-tab: Samen-taken boven- en onderaan,
+                        // eigen taken gegroepeerd per categorie daartussen.
+                        const samenTop = renderDepartmentSection(
+                          isOpen ? 'Samen / Opstarten' : 'Samen / Start',
+                          'samen',
+                          false,
+                          { keyPrefix: 'top-', categoryFilter: isStartCat },
+                        );
+                        const eigen = renderDepartmentSection(
+                          visibleTab === 'keuken' ? 'Keuken' : 'Bediening',
+                          visibleTab,
+                          false,
+                          { hideHeader: true },
+                        );
+                        const samenBottom = renderDepartmentSection(
+                          'Samen / Laatste loodjes',
+                          'samen',
+                          false,
+                          { keyPrefix: 'bottom-', categoryFilter: (c) => !isStartCat(c) },
+                        );
+                        const sections = [samenTop, eigen, samenBottom].filter(Boolean);
+                        if (sections.length === 0) {
+                          return (
                             <div style={{
-                              padding: '12px 4px 8px', fontSize: '13px', fontStyle: 'italic',
-                              color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif',
+                              padding: '16px 4px 24px',
+                              color: 'hsl(var(--muted-foreground))',
+                              fontSize: '13px',
+                              fontStyle: 'italic',
+                              fontFamily: 'Inter, sans-serif',
                             }}>
                               Geen taken
                             </div>
-                          </div>
-                        );
+                          );
+                        }
+                        return sections;
                       })() : (
                         renderCategoryGroups(currentTasks, 'all')
                       )}
