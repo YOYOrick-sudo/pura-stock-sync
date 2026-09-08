@@ -935,8 +935,8 @@ export function FohTasks() {
   }, [deviceMode]);
 
   // Welke tab is nu actief in de West-takenlijst? Start op de vaste keuze van deze iPad.
-  // Tussendoor wisselen (ook naar Samen) verandert de opgeslagen standaard niet.
-  type VisibleTab = 'bediening' | 'keuken' | 'samen';
+  // Samen is geen eigen tab meer; die taken staan boven- en onderaan in beide lijsten.
+  type VisibleTab = 'bediening' | 'keuken';
   const [visibleTab, setVisibleTab] = useState<VisibleTab>(deviceMode);
 
   // Operationele afdeling volgt de zichtbare tab; data-operaties gebruiken deze waarde.
