@@ -2574,7 +2574,7 @@ export function FohTasks() {
 
 
           {/* Single row with all buttons */}
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
 
               
               {/* Dagelijks phase buttons */}
@@ -2594,13 +2594,11 @@ export function FohTasks() {
                 onMouseEnter={(e) => {
                   if (!isActive) {
                     e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
-                    e.currentTarget.style.boxShadow = '0 2px 4px hsl(var(--foreground) / 0.08)';
                   }
                 }}
                     onMouseLeave={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
-                        e.currentTarget.style.boxShadow = 'none';
                       }
                     }}
                     style={{
@@ -2608,14 +2606,15 @@ export function FohTasks() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '8px',
-                      fontSize: '15px',
+                      gap: '6px',
+                      fontSize: '13px',
                       fontWeight: 500,
-                  padding: '14px 20px',
+                  padding: '8px 12px',
+                  minHeight: '36px',
                   backgroundColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--card))',
                   color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
                   border: isActive ? 'none' : '1px solid hsl(var(--border))',
-                  borderRadius: '20px',
+                  borderRadius: '10px',
                   cursor: 'pointer',
                   opacity: 1,
                       transition: 'all 0.15s ease',
@@ -2624,13 +2623,13 @@ export function FohTasks() {
                   >
                     <span>{labels[phase]}</span>
                     <span style={{
-                      fontSize: '13px',
+                      fontSize: '11px',
                       fontWeight: 600,
-                      padding: '4px 10px',
-                      borderRadius: '6px',
+                      padding: '1px 7px',
+                      borderRadius: '999px',
                       backgroundColor: isActive ? 'hsl(var(--primary-foreground) / 0.25)' : 'hsl(var(--foreground) / 0.04)',
                       color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--muted-foreground))',
-                      minWidth: '40px',
+                      minWidth: '30px',
                     }}>
                       {stats.completed}/{stats.total}
                     </span>
@@ -2642,9 +2641,9 @@ export function FohTasks() {
             {!isReadOnly && (
               <div style={{
                 width: '1px',
-                height: '32px',
+                height: '20px',
                 backgroundColor: 'hsl(var(--border))',
-                margin: '0 20px',
+                margin: '0 8px',
               }} />
             )}
 
@@ -2663,13 +2662,11 @@ export function FohTasks() {
                     onMouseEnter={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.backgroundColor = 'hsl(var(--muted))';
-                        e.currentTarget.style.boxShadow = '0 2px 4px hsl(var(--foreground) / 0.08)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive) {
                         e.currentTarget.style.backgroundColor = 'hsl(var(--card))';
-                        e.currentTarget.style.boxShadow = 'none';
                       }
                     }}
                     style={{
@@ -2677,14 +2674,15 @@ export function FohTasks() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '8px',
-                      fontSize: '15px',
+                      gap: '6px',
+                      fontSize: '13px',
                       fontWeight: 500,
-                    padding: '14px 20px',
+                    padding: '8px 12px',
+                    minHeight: '36px',
                     backgroundColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--card))',
                     color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
                     border: isActive ? 'none' : '1px solid hsl(var(--border))',
-                    borderRadius: '20px',
+                    borderRadius: '10px',
                     cursor: 'pointer',
                       transition: 'all 0.15s ease',
                       fontFamily: 'Inter, sans-serif',
@@ -2692,13 +2690,13 @@ export function FohTasks() {
                   >
                     <span>Periodiek</span>
                     <span style={{
-                      fontSize: '13px',
+                      fontSize: '11px',
                       fontWeight: 600,
-                      padding: '4px 10px',
-                      borderRadius: '6px',
+                      padding: '1px 7px',
+                      borderRadius: '999px',
                       backgroundColor: isActive ? 'hsl(var(--primary-foreground) / 0.25)' : 'hsl(var(--foreground) / 0.04)',
                       color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--muted-foreground))',
-                      minWidth: '40px',
+                      minWidth: '30px',
                     }}>
                       {completed}/{total}
                     </span>
