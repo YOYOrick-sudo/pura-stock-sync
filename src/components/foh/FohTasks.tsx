@@ -931,17 +931,21 @@ export function FohTasks() {
     }
   }, [activeDepartment, userLocation]);
 
-  // Apparaat-modus (per iPad). 'beide' = bediening + keuken, 'voorkant' = alleen bediening, 'achterkant' = alleen keuken.
-  type DeviceMode = 'beide' | Department;
+  // Standaardsectie per iPad (lokaal opgeslagen, geldt alleen voor dit apparaat).
+  type DeviceMode = 'bediening' | 'keuken';
   const [deviceMode, setDeviceMode] = useState<DeviceMode>(() => {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('foh_device_mode_west') : null;
-    return stored === 'bediening' || stored === 'keuken' ? stored : 'beide';
+    return stored === 'keuken' ? 'keuken' : 'bediening';
   });
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('foh_device_mode_west', deviceMode);
     }
   }, [deviceMode]);
+
+  // Welke sectie staat nu open? Start altijd op de vaste keuze van deze iPad;
+  // tussendoor wisselen verandert de opgeslagen standaard niet.
+  const [zichtbareSectie, setZichtbareSectie] = useState<DeviceMode>(deviceMode);
 
   // West heeft geen tussenlijst — reset activePhase als die per ongeluk op 'tussen' staat
   useEffect(() => {
