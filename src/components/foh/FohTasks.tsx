@@ -937,6 +937,7 @@ export function FohTasks() {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('foh_device_mode_west') : null;
     return stored === 'keuken' ? 'keuken' : 'bediening';
   });
+  const [deviceModeDialogOpen, setDeviceModeDialogOpen] = useState(false);
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('foh_device_mode_west', deviceMode);
@@ -2838,6 +2839,27 @@ export function FohTasks() {
                   </button>
                 )}
 
+                {/* West: lokale standaardsectie is bewust los van het afgeschermde takenbeheer. */}
+                {!isReadOnly && userLocation === 'West' && mainCategory === 'dagelijks' && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    aria-label="Standaardsectie van deze iPad instellen"
+                    onClick={() => setDeviceModeDialogOpen(true)}
+                    style={{
+                      minHeight: '48px',
+                      padding: '12px 16px',
+                      borderRadius: '14px',
+                      gap: '8px',
+                      color: 'hsl(var(--foreground))',
+                      fontFamily: 'Inter, sans-serif',
+                    }}
+                  >
+                    <Settings size={18} aria-hidden="true" />
+                    Deze iPad: {deviceMode === 'keuken' ? 'Keuken' : 'Bediening'}
+                  </Button>
+                )}
+
                 {/* New Task Button - only for periodiek (verleden heeft geen periodiek) */}
                 {!isReadOnly && mainCategory === 'periodiek' && (
 
@@ -3451,7 +3473,9 @@ export function FohTasks() {
                         const middle = order.map(({ key, label }) => {
                           // In bewerkmodus beide secties uitklappen (anders kun je niets verplaatsen).
                           if (isEditMode || key === zichtbareSectie) {
-                            const section = renderDepartmentSection(label, key);
+                            // Bediening en Keuken zijn ieder één doorlopende werklijst;
+                            // dubbele categorieheaders voegen hier geen informatie toe.
+                            const section = renderDepartmentSection(label, key, true);
                             if (section) return section;
                             if (isEditMode) return null;
                             return (
@@ -3885,6 +3909,63 @@ export function FohTasks() {
         password={userLocation === 'West' ? '2020' : '2017'}
         onSuccess={() => navigate('/taken/admin')}
       />
+
+      {/* Lokale West-iPadvoorkeur — geen admincode nodig, want dit wijzigt geen taken of data. */}
+      <Dialog open={deviceModeDialogOpen} onOpenChange={setDeviceModeDialogOpen}>
+        <DialogContent style={{
+          maxWidth: '420px',
+          borderRadius: '24px',
+          backgroundColor: 'hsl(var(--card))',
+          border: '1px solid hsl(var(--border))',
+          fontFamily: 'Inter, sans-serif',
+        }}>
+          <DialogHeader>
+            <DialogTitle style={{ color: 'hsl(var(--foreground))', fontFamily: 'Inter, sans-serif' }}>
+              Deze iPad instellen
+            </DialogTitle>
+          </DialogHeader>
+          <p style={{ margin: 0, fontSize: '14px', color: 'hsl(var(--muted-foreground))' }}>
+            Welke taken moet deze iPad standaard openen?
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            {([
+              { key: 'bediening', label: 'Bediening' },
+              { key: 'keuken', label: 'Keuken' },
+            ] as { key: DeviceMode; label: string }[]).map(({ key, label }) => {
+              const isActive = deviceMode === key;
+              return (
+                <Button
+                  key={key}
+                  type="button"
+                  variant="outline"
+                  aria-pressed={isActive}
+                  onClick={() => {
+                    setDeviceMode(key);
+                    setZichtbareSectie(key);
+                    setDeviceModeDialogOpen(false);
+                    toast.success(`Deze iPad opent voortaan op ${label}`);
+                  }}
+                  style={{
+                    minHeight: '56px',
+                    borderRadius: '14px',
+                    borderColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+                    backgroundColor: isActive ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--card))',
+                    color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
+                    fontWeight: isActive ? 700 : 500,
+                    fontFamily: 'Inter, sans-serif',
+                  }}
+                >
+                  {isActive && <Check size={18} aria-hidden="true" />}
+                  {label}
+                </Button>
+              );
+            })}
+          </div>
+          <p style={{ margin: 0, fontSize: '12px', color: 'hsl(var(--muted-foreground))' }}>
+            De andere sectie blijft altijd bereikbaar via de knoppen in de takenlijst.
+          </p>
+        </DialogContent>
+      </Dialog>
 
 
       {/* Admin Panel Dialog */}
