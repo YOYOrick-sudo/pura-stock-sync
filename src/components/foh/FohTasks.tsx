@@ -937,6 +937,7 @@ export function FohTasks() {
     const stored = typeof window !== 'undefined' ? localStorage.getItem('foh_device_mode_west') : null;
     return stored === 'keuken' ? 'keuken' : 'bediening';
   });
+  const [deviceModeDialogOpen, setDeviceModeDialogOpen] = useState(false);
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('foh_device_mode_west', deviceMode);
@@ -2838,6 +2839,27 @@ export function FohTasks() {
                   </button>
                 )}
 
+                {/* West: lokale standaardsectie is bewust los van het afgeschermde takenbeheer. */}
+                {!isReadOnly && userLocation === 'West' && mainCategory === 'dagelijks' && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    aria-label="Standaardsectie van deze iPad instellen"
+                    onClick={() => setDeviceModeDialogOpen(true)}
+                    style={{
+                      minHeight: '48px',
+                      padding: '12px 16px',
+                      borderRadius: '14px',
+                      gap: '8px',
+                      color: 'hsl(var(--foreground))',
+                      fontFamily: 'Inter, sans-serif',
+                    }}
+                  >
+                    <Settings size={18} aria-hidden="true" />
+                    Deze iPad: {deviceMode === 'keuken' ? 'Keuken' : 'Bediening'}
+                  </Button>
+                )}
+
                 {/* New Task Button - only for periodiek (verleden heeft geen periodiek) */}
                 {!isReadOnly && mainCategory === 'periodiek' && (
 
@@ -3359,7 +3381,7 @@ export function FohTasks() {
                   label: string,
                   dept: Department,
                   flat = false,
-                  opts?: { keyPrefix?: string; categoryFilter?: (cat: string) => boolean },
+                  opts?: { keyPrefix?: string; categoryFilter?: (cat: string) => boolean; hideHeader?: boolean },
                 ) => {
                   const isWestSection = userLocation === 'West';
                   let deptTasks = currentTasks.filter((t: any) =>
@@ -3375,40 +3397,41 @@ export function FohTasks() {
                   const completed = deptTasks.filter(t => t.completed).length;
                   return (
                     <div key={`${opts?.keyPrefix ?? ''}${dept}`} style={{ marginBottom: '32px' }}>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        padding: '12px 14px',
-                        backgroundColor: 'hsl(var(--muted))',
-                        borderRadius: '12px',
-                        marginBottom: '12px',
-                        border: '1px solid hsl(var(--border))',
-                        
-                        boxShadow: '0 1px 2px hsl(var(--foreground) / 0.03)',
-                      }}>
-                        <span style={{
-                          fontSize: '15px',
-                          fontWeight: 700,
-                          color: 'hsl(var(--foreground))',
-                          fontFamily: 'Inter, sans-serif',
-                          letterSpacing: '0.01em',
+                      {!opts?.hideHeader && (
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          padding: '12px 14px',
+                          backgroundColor: 'hsl(var(--muted))',
+                          borderRadius: '12px',
+                          marginBottom: '12px',
+                          border: '1px solid hsl(var(--border))',
+                          boxShadow: '0 1px 2px hsl(var(--foreground) / 0.03)',
                         }}>
-                          {label}
-                        </span>
-                        <span style={{
-                          marginLeft: 'auto',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          color: 'hsl(var(--muted-foreground))',
-                          backgroundColor: 'hsl(var(--muted) / 0.6)',
-                          padding: '3px 10px',
-                          borderRadius: '999px',
-                          fontFamily: 'Inter, sans-serif',
-                        }}>
-                          {completed}/{deptTasks.length}
-                        </span>
-                      </div>
+                          <span style={{
+                            fontSize: '15px',
+                            fontWeight: 700,
+                            color: 'hsl(var(--foreground))',
+                            fontFamily: 'Inter, sans-serif',
+                            letterSpacing: '0.01em',
+                          }}>
+                            {label}
+                          </span>
+                          <span style={{
+                            marginLeft: 'auto',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: 'hsl(var(--muted-foreground))',
+                            backgroundColor: 'hsl(var(--muted) / 0.6)',
+                            padding: '3px 10px',
+                            borderRadius: '999px',
+                            fontFamily: 'Inter, sans-serif',
+                          }}>
+                            {completed}/{deptTasks.length}
+                          </span>
+                        </div>
+                      )}
                       {flat ? renderFlatList(deptTasks, dept) : renderCategoryGroups(deptTasks, dept, dept)}
                     </div>
 
@@ -3429,13 +3452,7 @@ export function FohTasks() {
                         const isOpen = activePhase === 'open';
                         const START_CATS = ['binnenkomst'];
                         const isStartCat = (c: string) => START_CATS.includes(c.toLowerCase());
-                        // Actieve sectie eerst, de andere er direct onder (ingeklapt).
-                        const order = WEST_SECTIONS.filter(s => s.key !== 'samen')
-                          .slice()
-                          .sort((a, b) => {
-                            const w = (k: string) => (k === zichtbareSectie ? -1 : 0);
-                            return w(a.key as string) - w(b.key as string);
-                          });
+                        const order = WEST_SECTIONS.filter(s => s.key !== 'samen');
                         const samenTop = renderDepartmentSection(
                           isOpen ? 'Samen / Opstarten' : 'Samen / Start',
                           'samen',
@@ -3451,28 +3468,15 @@ export function FohTasks() {
                         const middle = order.map(({ key, label }) => {
                           // In bewerkmodus beide secties uitklappen (anders kun je niets verplaatsen).
                           if (isEditMode || key === zichtbareSectie) {
-                            const section = renderDepartmentSection(label, key);
+                            // Bediening en Keuken zijn ieder één doorlopende werklijst;
+                            // dubbele categorieheaders voegen hier geen informatie toe.
+                            const section = renderDepartmentSection(label, key, true, { hideHeader: !isEditMode });
                             if (section) return section;
                             if (isEditMode) return null;
                             return (
                               <div key={`leeg-${key}`} style={{ marginBottom: '32px' }}>
                                 <div style={{
-                                  display: 'flex', alignItems: 'center', gap: '12px',
-                                  padding: '12px 14px', backgroundColor: 'hsl(var(--muted))',
-                                  borderRadius: '12px', marginBottom: '12px',
-                                  border: '1px solid hsl(var(--border))',
-                                }}>
-                                  <span style={{ fontSize: '15px', fontWeight: 700, color: 'hsl(var(--foreground))', fontFamily: 'Inter, sans-serif' }}>
-                                    {label}
-                                  </span>
-                                  <span style={{
-                                    marginLeft: 'auto', fontSize: '12px', fontWeight: 600,
-                                    color: 'hsl(var(--muted-foreground))', backgroundColor: 'hsl(var(--muted) / 0.6)',
-                                    padding: '3px 10px', borderRadius: '999px', fontFamily: 'Inter, sans-serif',
-                                  }}>0/0</span>
-                                </div>
-                                <div style={{
-                                  padding: '4px 4px 8px', fontSize: '13px', fontStyle: 'italic',
+                                  padding: '12px 4px 8px', fontSize: '13px', fontStyle: 'italic',
                                   color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif',
                                 }}>
                                   Geen taken
@@ -3480,35 +3484,8 @@ export function FohTasks() {
                               </div>
                             );
                           }
-                          // Ingeklapte sectie: altijd zichtbaar, één tik om te openen.
-                          const sectieTaken = currentTasks.filter((t: any) => westSectionOf(t.department) === key);
-                          const klaar = sectieTaken.filter((t: any) => t.completed).length;
-                          return (
-                            <button
-                              key={`dicht-${key}`}
-                              type="button"
-                              aria-label={`${label} sectie openen`}
-                              onClick={() => setZichtbareSectie(key as DeviceMode)}
-                              style={{
-                                width: '100%', minHeight: '48px', marginBottom: '32px',
-                                display: 'flex', alignItems: 'center', gap: '12px',
-                                padding: '12px 14px', backgroundColor: 'hsl(var(--muted))',
-                                borderRadius: '12px', border: '1px solid hsl(var(--border))',
-                                cursor: 'pointer', fontFamily: 'Inter, sans-serif', textAlign: 'left',
-                              }}
-                            >
-                              <span style={{ fontSize: '15px', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
-                                {label}
-                              </span>
-                              <span style={{
-                                marginLeft: 'auto', fontSize: '12px', fontWeight: 600,
-                                color: 'hsl(var(--muted-foreground))', backgroundColor: 'hsl(var(--foreground) / 0.04)',
-                                padding: '3px 10px', borderRadius: '999px',
-                              }}>
-                                {klaar}/{sectieTaken.length}
-                              </span>
-                            </button>
-                          );
+                          // De andere sectie blijft via de vaste knop boven de lijst bereikbaar.
+                          return null;
                         });
                         const sections = [
                           samenTop,
@@ -3885,6 +3862,63 @@ export function FohTasks() {
         password={userLocation === 'West' ? '2020' : '2017'}
         onSuccess={() => navigate('/taken/admin')}
       />
+
+      {/* Lokale West-iPadvoorkeur — geen admincode nodig, want dit wijzigt geen taken of data. */}
+      <Dialog open={deviceModeDialogOpen} onOpenChange={setDeviceModeDialogOpen}>
+        <DialogContent style={{
+          maxWidth: '420px',
+          borderRadius: '24px',
+          backgroundColor: 'hsl(var(--card))',
+          border: '1px solid hsl(var(--border))',
+          fontFamily: 'Inter, sans-serif',
+        }}>
+          <DialogHeader>
+            <DialogTitle style={{ color: 'hsl(var(--foreground))', fontFamily: 'Inter, sans-serif' }}>
+              Deze iPad instellen
+            </DialogTitle>
+          </DialogHeader>
+          <p style={{ margin: 0, fontSize: '14px', color: 'hsl(var(--muted-foreground))' }}>
+            Welke taken moet deze iPad standaard openen?
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            {([
+              { key: 'bediening', label: 'Bediening' },
+              { key: 'keuken', label: 'Keuken' },
+            ] as { key: DeviceMode; label: string }[]).map(({ key, label }) => {
+              const isActive = deviceMode === key;
+              return (
+                <Button
+                  key={key}
+                  type="button"
+                  variant="outline"
+                  aria-pressed={isActive}
+                  onClick={() => {
+                    setDeviceMode(key);
+                    setZichtbareSectie(key);
+                    setDeviceModeDialogOpen(false);
+                    toast.success(`Deze iPad opent voortaan op ${label}`);
+                  }}
+                  style={{
+                    minHeight: '56px',
+                    borderRadius: '14px',
+                    borderColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+                    backgroundColor: isActive ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--card))',
+                    color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
+                    fontWeight: isActive ? 700 : 500,
+                    fontFamily: 'Inter, sans-serif',
+                  }}
+                >
+                  {isActive && <Check size={18} aria-hidden="true" />}
+                  {label}
+                </Button>
+              );
+            })}
+          </div>
+          <p style={{ margin: 0, fontSize: '12px', color: 'hsl(var(--muted-foreground))' }}>
+            De andere sectie blijft altijd bereikbaar via de knoppen in de takenlijst.
+          </p>
+        </DialogContent>
+      </Dialog>
 
 
       {/* Admin Panel Dialog */}
