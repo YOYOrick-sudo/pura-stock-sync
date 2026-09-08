@@ -1099,6 +1099,81 @@ export type Database = {
           },
         ]
       }
+      foh_tasks_archief: {
+        Row: {
+          archived: boolean
+          assigned_employee_id: string | null
+          category: string
+          completed: boolean
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          day_of_week: number | null
+          department: string
+          description: string | null
+          due_date: string
+          estimated_minutes: number | null
+          foto_url: string | null
+          id: string
+          location: string
+          phase: string | null
+          priority: number
+          repeat_type: string | null
+          sort_order: number | null
+          template_id: string | null
+          title: string
+          verplaatst_op: string
+        }
+        Insert: {
+          archived?: boolean
+          assigned_employee_id?: string | null
+          category?: string
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          day_of_week?: number | null
+          department?: string
+          description?: string | null
+          due_date: string
+          estimated_minutes?: number | null
+          foto_url?: string | null
+          id?: string
+          location: string
+          phase?: string | null
+          priority?: number
+          repeat_type?: string | null
+          sort_order?: number | null
+          template_id?: string | null
+          title: string
+          verplaatst_op?: string
+        }
+        Update: {
+          archived?: boolean
+          assigned_employee_id?: string | null
+          category?: string
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          day_of_week?: number | null
+          department?: string
+          description?: string | null
+          due_date?: string
+          estimated_minutes?: number | null
+          foto_url?: string | null
+          id?: string
+          location?: string
+          phase?: string | null
+          priority?: number
+          repeat_type?: string | null
+          sort_order?: number | null
+          template_id?: string | null
+          title?: string
+          verplaatst_op?: string
+        }
+        Relationships: []
+      }
       gerechten: {
         Row: {
           categorie: string
