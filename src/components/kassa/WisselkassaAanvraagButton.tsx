@@ -9,6 +9,9 @@ import { useUserLocation } from '@/contexts/UserLocationContext';
 import { getLocationDisplayName } from '@/lib/utils';
 import { devError } from '@/lib/devLog';
 
+/** Ontvangers van de wisselkassa-aanvraag. */
+const ONTVANGERS = ['helga@puravidafoodbar.nl', 'yorick@puravidafoodbar.nl'];
+
 /**
  * Knop + popup om een nieuwe wisselkassa aan te vragen.
  * Stuurt een e-mail naar Helga en logt de aanvraag in wisselkassa_aanvragen.
