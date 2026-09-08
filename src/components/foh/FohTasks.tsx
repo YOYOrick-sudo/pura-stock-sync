@@ -3476,22 +3476,7 @@ export function FohTasks() {
                             return (
                               <div key={`leeg-${key}`} style={{ marginBottom: '32px' }}>
                                 <div style={{
-                                  display: 'flex', alignItems: 'center', gap: '12px',
-                                  padding: '12px 14px', backgroundColor: 'hsl(var(--muted))',
-                                  borderRadius: '12px', marginBottom: '12px',
-                                  border: '1px solid hsl(var(--border))',
-                                }}>
-                                  <span style={{ fontSize: '15px', fontWeight: 700, color: 'hsl(var(--foreground))', fontFamily: 'Inter, sans-serif' }}>
-                                    {label}
-                                  </span>
-                                  <span style={{
-                                    marginLeft: 'auto', fontSize: '12px', fontWeight: 600,
-                                    color: 'hsl(var(--muted-foreground))', backgroundColor: 'hsl(var(--muted) / 0.6)',
-                                    padding: '3px 10px', borderRadius: '999px', fontFamily: 'Inter, sans-serif',
-                                  }}>0/0</span>
-                                </div>
-                                <div style={{
-                                  padding: '4px 4px 8px', fontSize: '13px', fontStyle: 'italic',
+                                  padding: '12px 4px 8px', fontSize: '13px', fontStyle: 'italic',
                                   color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif',
                                 }}>
                                   Geen taken
