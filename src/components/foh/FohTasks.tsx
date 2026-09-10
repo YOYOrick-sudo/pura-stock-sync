@@ -1587,6 +1587,25 @@ export function FohTasks() {
     initializeTasks();
   }, [userLocation, selectedDate, effectiveDept]);
 
+  // Terug uit de achtergrond (iPad-beginscherm): lijst opnieuw ophalen, zodat
+  // vinkjes van de andere tablet niet gemist worden. Max één keer per 15 sec.
+  useEffect(() => {
+    let laatste = 0;
+    const opWakker = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (Date.now() - laatste < 15_000) return;
+      laatste = Date.now();
+      void fetchDailyTasks();
+      if (selectedDate === getAmsterdamDateString()) void fetchExtraTasks();
+    };
+    document.addEventListener('visibilitychange', opWakker);
+    window.addEventListener('online', opWakker);
+    return () => {
+      document.removeEventListener('visibilitychange', opWakker);
+      window.removeEventListener('online', opWakker);
+    };
+  }, [userLocation, selectedDate, effectiveDept]);
+
 
   
   // Auto phase-switching disabled to maintain task order consistency
