@@ -92,13 +92,22 @@ export function MepTaakToevoegen({
       o.recept_naam,
     );
 
-  const voegVrijToe = () => {
-    const titel = zoek.trim();
+  const voegVrijToe = async () => {
+    const { titel, aantal, eenheid, aangepast } = ontleed;
     if (titel.length < 2) return;
-    return voegToe(
-      { vestiging, taak_datum: datum, titel, categorie: 'Algemeen', prioriteit: 2 },
+    await voegToe(
+      {
+        vestiging,
+        taak_datum: datum,
+        titel,
+        categorie: 'Algemeen',
+        prioriteit: 2,
+        doel_aantal: aantal ?? 1,
+        doel_eenheid: eenheid ?? 'stuks',
+      },
       titel,
     );
+    if (aangepast) toast.info(`Aantal apart gezet: ${aantal} ${eenheid}`);
   };
 
   const snelToevoegen = (f: MepFavoriet) =>
