@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 /**
@@ -14,16 +14,19 @@ export function useKanaalHerstel() {
     if (timer.current) clearTimeout(timer.current);
   }, []);
 
-  const statusHandler = (onHersteld?: () => void) => (status: string) => {
-    if (status === 'SUBSCRIBED') {
-      if (poging > 0) onHersteld?.();
-      return;
-    }
-    if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-      if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(() => setPoging((p) => p + 1), 3000);
-    }
-  };
+  const statusHandler = useCallback(
+    (onHersteld?: () => void) => (status: string) => {
+      if (status === 'SUBSCRIBED') {
+        onHersteld?.();
+        return;
+      }
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        if (timer.current) clearTimeout(timer.current);
+        timer.current = setTimeout(() => setPoging((p) => p + 1), 3000);
+      }
+    },
+    [],
+  );
 
   return { poging, statusHandler };
 }
