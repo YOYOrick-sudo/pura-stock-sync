@@ -80,17 +80,17 @@ export function useMepTaken(vestiging: string, datum: string) {
   useEffect(() => {
     if (!vestiging || !datum) return;
     const channel = supabase
-      .channel(`mep-taken-${vestiging}-${datum}`)
+      .channel(`mep-taken-${vestiging}-${datum}-${poging}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'mep_taken', filter: `vestiging=eq.${vestiging}` },
         () => qc.invalidateQueries({ queryKey: key }),
       )
-      .subscribe();
+      .subscribe(statusHandler(() => qc.invalidateQueries({ queryKey: key })));
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [vestiging, datum, qc, key]);
+  }, [vestiging, datum, qc, key, poging, statusHandler]);
 
   return query;
 }
