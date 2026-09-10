@@ -18,10 +18,15 @@ export function useKanaalHerstel() {
   const statusHandler = useCallback(
     (onHersteld?: () => void) => (status: string) => {
       if (status === 'SUBSCRIBED') {
-        onHersteld?.();
+        // Alleen ná een storing opnieuw ophalen — niet bij de eerste keer.
+        if (hadFout.current) {
+          hadFout.current = false;
+          onHersteld?.();
+        }
         return;
       }
       if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        hadFout.current = true;
         if (timer.current) clearTimeout(timer.current);
         timer.current = setTimeout(() => setPoging((p) => p + 1), 3000);
       }
