@@ -134,7 +134,7 @@ function lsDel(key: string) {
 
 export const hybridAuthStorage = {
   async getItem(key: string): Promise<string | null> {
-    const fromIdb = await idbGet(key);
+    const fromIdb = await withTimeout(idbGet(key), null);
     if (fromIdb) {
       // keep localStorage warm as fallback
       if (lsGet(key) !== fromIdb) lsSet(key, fromIdb);
@@ -150,10 +150,10 @@ export const hybridAuthStorage = {
   },
   async setItem(key: string, value: string): Promise<void> {
     lsSet(key, value);
-    await idbSet(key, value);
+    await withTimeout(idbSet(key, value), undefined);
   },
   async removeItem(key: string): Promise<void> {
     lsDel(key);
-    await idbDel(key);
+    await withTimeout(idbDel(key), undefined);
   },
 };
