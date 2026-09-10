@@ -3,9 +3,10 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Clock, Zap, Plus, Check, X } from 'lucide-react';
+import { Search, Clock, Zap, Plus, Check, X, Minus } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { MEP_EENHEDEN, splitsAantalUitTitel } from '@/lib/mep-hoeveelheid';
 import { useMepHandelingen } from '@/hooks/useMepPlanning';
 import {
   MepFavoriet,
@@ -52,6 +53,9 @@ export function MepTaakToevoegen({
 
   const toonNieuw = zoek.trim().length >= 2 && !exacteMatch;
 
+  // Aantallen horen in het vakje "Hoeveel", niet in de naam.
+  const ontleed = useMemo(() => splitsAantalUitTitel(zoek), [zoek]);
+
   const naToevoegen = (taak: MepTaak | null) => {
     setZoek('');
     setNetToegevoegd(taak && onBijwerken ? taak : null);
@@ -88,13 +92,22 @@ export function MepTaakToevoegen({
       o.recept_naam,
     );
 
-  const voegVrijToe = () => {
-    const titel = zoek.trim();
+  const voegVrijToe = async () => {
+    const { titel, aantal, eenheid, aangepast } = ontleed;
     if (titel.length < 2) return;
-    return voegToe(
-      { vestiging, taak_datum: datum, titel, categorie: 'Algemeen', prioriteit: 2 },
+    await voegToe(
+      {
+        vestiging,
+        taak_datum: datum,
+        titel,
+        categorie: 'Algemeen',
+        prioriteit: 2,
+        doel_aantal: aantal ?? 1,
+        doel_eenheid: eenheid ?? 'stuks',
+      },
       titel,
     );
+    if (aangepast) toast.info(`Aantal apart gezet: ${aantal} ${eenheid}`);
   };
 
   const snelToevoegen = (f: MepFavoriet) =>
@@ -128,6 +141,34 @@ export function MepTaakToevoegen({
     }
   };
 
+  const huidigAantal = Number(netToegevoegd?.doel_aantal ?? 1) || 1;
+
+  /** Eigen eenheid van het recept (bijvoorbeeld "bak") houden we erbij. */
+  const eenheidOpties = useMemo(() => {
+    const eigen = netToegevoegd?.doel_eenheid;
+    const lijst = [...MEP_EENHEDEN] as string[];
+    return eigen && !lijst.includes(eigen) ? [eigen, ...lijst] : lijst;
+  }, [netToegevoegd?.doel_eenheid]);
+
+  /** Aantal/eenheid direct opslaan — zonder toast, anders tikt het scherm vol. */
+  const patchStil = async (patch: Partial<MepTaak>) => {
+    if (!netToegevoegd || !onBijwerken) return;
+    const vorige = netToegevoegd;
+    setNetToegevoegd({ ...vorige, ...patch });
+    try {
+      await onBijwerken(vorige.id, patch);
+    } catch (e: any) {
+      setNetToegevoegd(vorige);
+      toast.error('Opslaan mislukt: ' + (e?.message ?? 'onbekende fout'));
+    }
+  };
+
+  const zetAantal = (waarde: number) =>
+    patchStil({ doel_aantal: Math.max(1, waarde), doel_eenheid: netToegevoegd?.doel_eenheid ?? 'stuks' });
+
+  const zetEenheid = (eenheid: string) =>
+    patchStil({ doel_eenheid: eenheid, doel_aantal: huidigAantal });
+
   return (
     <Card className="p-4 sm:p-5 bg-card shadow-sm space-y-3">
       <div className="relative">
@@ -147,6 +188,17 @@ export function MepTaakToevoegen({
           autoComplete="off"
         />
       </div>
+
+      {toonNieuw && ontleed.aangepast && (
+        <p className="text-sm text-muted-foreground">
+          Wordt opgeslagen als <span className="font-medium text-foreground">{ontleed.titel}</span> ·{' '}
+          {ontleed.aantal} {ontleed.eenheid}
+        </p>
+      )}
+      {toonNieuw && !ontleed.aangepast && ontleed.losGetal && (
+        <p className="text-sm text-muted-foreground">Zet het aantal bij Hoeveel — niet in de naam.</p>
+      )}
+
 
       {(gefilterd.length > 0 || toonNieuw) && (
         <div className="max-h-72 overflow-y-auto rounded-polar border border-border/60 divide-y divide-border/60">
@@ -215,6 +267,53 @@ export function MepTaakToevoegen({
             >
               <X className="w-4 h-4" />
             </Button>
+          </div>
+
+          <div className="space-y-1.5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Hoeveel?
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1 rounded-polar-md border border-border/60 bg-card">
+                <button
+                  type="button"
+                  disabled={bezig || huidigAantal <= 1}
+                  onClick={() => zetAantal(huidigAantal - 1)}
+                  className="h-11 w-11 inline-flex items-center justify-center rounded-polar-md text-foreground hover:bg-primary/5 active:bg-primary/10 disabled:opacity-40"
+                  aria-label="Eén minder"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="min-w-[2.5rem] text-center text-[15px] font-semibold tabular-nums">
+                  {huidigAantal}
+                </span>
+                <button
+                  type="button"
+                  disabled={bezig}
+                  onClick={() => zetAantal(huidigAantal + 1)}
+                  className="h-11 w-11 inline-flex items-center justify-center rounded-polar-md text-foreground hover:bg-primary/5 active:bg-primary/10 disabled:opacity-50"
+                  aria-label="Eén meer"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+              {eenheidOpties.map((e) => (
+                <button
+                  key={e}
+                  type="button"
+                  disabled={bezig}
+                  onClick={() => zetEenheid(e)}
+                  className={cn(
+                    'rounded-polar-md border px-3 min-h-[44px] text-[14px] font-medium transition-colors disabled:opacity-50',
+                    (netToegevoegd.doel_eenheid ?? 'stuks') === e
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border/60 bg-card hover:bg-primary/5 active:bg-primary/10',
+                  )}
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
           </div>
 
           {handelingen.length > 0 && (

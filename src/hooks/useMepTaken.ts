@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useKanaalHerstel } from '@/lib/realtime';
+import { splitsAantalUitTitel } from '@/lib/mep-hoeveelheid';
 import { format } from 'date-fns';
 
 export const ymd = (d: Date) => format(d, 'yyyy-MM-dd');
@@ -346,8 +347,10 @@ export function useMepFavorieten(vestiging: string, limiet = 6) {
 
       const map = new Map<string, MepFavoriet>();
       for (const t of (data ?? []) as any[]) {
+        // Naam zonder aantal: "Taco 4 stuks" en "Taco" horen één knop te zijn.
+        const schoon = splitsAantalUitTitel(t.titel ?? '');
         // Item + handeling samen: "Lente-ui · Snijden" is een andere knop dan "Lente-ui · Aanvullen".
-        const basis = t.methode_id ?? t.recept_id ?? `vrij:${(t.titel ?? '').toLowerCase()}`;
+        const basis = t.methode_id ?? t.recept_id ?? `vrij:${schoon.titel.toLowerCase()}`;
         const sleutel = `${basis}|${(t.handeling ?? '').toLowerCase()}`;
         const bestaand = map.get(sleutel);
         if (bestaand) {
@@ -355,13 +358,14 @@ export function useMepFavorieten(vestiging: string, limiet = 6) {
         } else {
           map.set(sleutel, {
             sleutel,
-            titel: t.titel,
+            titel: t.methode_id || t.recept_id ? t.titel : schoon.titel,
             categorie: t.categorie ?? 'Algemeen',
             recept_id: t.recept_id ?? null,
             methode_id: t.methode_id ?? null,
             handeling: t.handeling ?? null,
-            doel_aantal: t.doel_aantal ?? null,
-            doel_eenheid: t.doel_eenheid ?? null,
+            // Meest recente hoeveelheid als standaard voor de snelknop.
+            doel_aantal: t.doel_aantal ?? schoon.aantal ?? null,
+            doel_eenheid: t.doel_eenheid ?? schoon.eenheid ?? null,
             aantal_keer: 1,
           });
         }
