@@ -377,6 +377,7 @@ export function useMepFavorieten(vestiging: string, limiet = 6) {
 /** Taken over een periode (weekweergave). */
 export function useMepTakenBereik(vestiging: string, van: string, tot: string) {
   const qc = useQueryClient();
+  const { poging, statusHandler } = useKanaalHerstel();
   const key = useMemo(() => ['mep-taken-bereik', vestiging, van, tot], [vestiging, van, tot]);
 
   const query = useQuery({
@@ -401,17 +402,17 @@ export function useMepTakenBereik(vestiging: string, van: string, tot: string) {
   useEffect(() => {
     if (!vestiging) return;
     const channel = supabase
-      .channel(`mep-week-${vestiging}-${van}`)
+      .channel(`mep-week-${vestiging}-${van}-${poging}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'mep_taken', filter: `vestiging=eq.${vestiging}` },
         () => qc.invalidateQueries({ queryKey: key }),
       )
-      .subscribe();
+      .subscribe(statusHandler(() => qc.invalidateQueries({ queryKey: key })));
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [vestiging, van, tot, qc, key]);
+  }, [vestiging, van, tot, qc, key, poging, statusHandler]);
 
   return query;
 }
