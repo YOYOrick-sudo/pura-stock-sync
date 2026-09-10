@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useKanaalHerstel } from '@/lib/realtime';
 import { format } from 'date-fns';
 
 export const ymd = (d: Date) => format(d, 'yyyy-MM-dd');
@@ -56,6 +57,7 @@ export interface MepTaakInput {
 /** Taken van één vestiging op één dag, inclusief realtime sync tussen tablets. */
 export function useMepTaken(vestiging: string, datum: string) {
   const qc = useQueryClient();
+  const { poging, statusHandler } = useKanaalHerstel();
   const key = useMemo(() => ['mep-taken', vestiging, datum], [vestiging, datum]);
 
   const query = useQuery({
