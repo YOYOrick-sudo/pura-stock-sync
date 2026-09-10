@@ -241,6 +241,53 @@ export function MepTaakToevoegen({
             </Button>
           </div>
 
+          <div className="space-y-1.5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Hoeveel?
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1 rounded-polar-md border border-border/60 bg-card">
+                <button
+                  type="button"
+                  disabled={bezig || huidigAantal <= 1}
+                  onClick={() => zetAantal(huidigAantal - 1)}
+                  className="h-11 w-11 inline-flex items-center justify-center rounded-polar-md text-foreground hover:bg-primary/5 active:bg-primary/10 disabled:opacity-40"
+                  aria-label="Eén minder"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="min-w-[2.5rem] text-center text-[15px] font-semibold tabular-nums">
+                  {huidigAantal}
+                </span>
+                <button
+                  type="button"
+                  disabled={bezig}
+                  onClick={() => zetAantal(huidigAantal + 1)}
+                  className="h-11 w-11 inline-flex items-center justify-center rounded-polar-md text-foreground hover:bg-primary/5 active:bg-primary/10 disabled:opacity-50"
+                  aria-label="Eén meer"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+              {eenheidOpties.map((e) => (
+                <button
+                  key={e}
+                  type="button"
+                  disabled={bezig}
+                  onClick={() => zetEenheid(e)}
+                  className={cn(
+                    'rounded-polar-md border px-3 min-h-[44px] text-[14px] font-medium transition-colors disabled:opacity-50',
+                    (netToegevoegd.doel_eenheid ?? 'stuks') === e
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border/60 bg-card hover:bg-primary/5 active:bg-primary/10',
+                  )}
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {handelingen.length > 0 && (
             <div className="space-y-1.5">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
