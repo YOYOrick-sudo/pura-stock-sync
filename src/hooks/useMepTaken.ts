@@ -362,8 +362,9 @@ export function useMepFavorieten(vestiging: string, limiet = 6) {
             recept_id: t.recept_id ?? null,
             methode_id: t.methode_id ?? null,
             handeling: t.handeling ?? null,
-            doel_aantal: t.doel_aantal ?? null,
-            doel_eenheid: t.doel_eenheid ?? null,
+            // Meest recente hoeveelheid als standaard voor de snelknop.
+            doel_aantal: t.doel_aantal ?? schoon.aantal ?? null,
+            doel_eenheid: t.doel_eenheid ?? schoon.eenheid ?? null,
             aantal_keer: 1,
           });
         }
