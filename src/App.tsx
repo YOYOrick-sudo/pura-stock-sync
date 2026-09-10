@@ -56,6 +56,7 @@ import Bronnen from "./pages/settings/Bronnen";
 import Cijfers from "./pages/Cijfers";
 import LightspeedCallback from "./pages/LightspeedCallback";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { supabase } from "@/integrations/supabase/client";
 import { focusManager } from "@tanstack/react-query";
 import { useEffect } from "react";
 

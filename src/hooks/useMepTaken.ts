@@ -61,6 +61,7 @@ export function useMepTaken(vestiging: string, datum: string) {
   const query = useQuery({
     queryKey: key,
     enabled: !!vestiging && !!datum,
+    placeholderData: (vorige) => vorige,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('mep_taken')
