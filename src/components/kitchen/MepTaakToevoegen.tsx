@@ -141,6 +141,34 @@ export function MepTaakToevoegen({
     }
   };
 
+  const huidigAantal = Number(netToegevoegd?.doel_aantal ?? 1) || 1;
+
+  /** Eigen eenheid van het recept (bijvoorbeeld "bak") houden we erbij. */
+  const eenheidOpties = useMemo(() => {
+    const eigen = netToegevoegd?.doel_eenheid;
+    const lijst = [...MEP_EENHEDEN] as string[];
+    return eigen && !lijst.includes(eigen) ? [eigen, ...lijst] : lijst;
+  }, [netToegevoegd?.doel_eenheid]);
+
+  /** Aantal/eenheid direct opslaan — zonder toast, anders tikt het scherm vol. */
+  const patchStil = async (patch: Partial<MepTaak>) => {
+    if (!netToegevoegd || !onBijwerken) return;
+    const vorige = netToegevoegd;
+    setNetToegevoegd({ ...vorige, ...patch });
+    try {
+      await onBijwerken(vorige.id, patch);
+    } catch (e: any) {
+      setNetToegevoegd(vorige);
+      toast.error('Opslaan mislukt: ' + (e?.message ?? 'onbekende fout'));
+    }
+  };
+
+  const zetAantal = (waarde: number) =>
+    patchStil({ doel_aantal: Math.max(1, waarde), doel_eenheid: netToegevoegd?.doel_eenheid ?? 'stuks' });
+
+  const zetEenheid = (eenheid: string) =>
+    patchStil({ doel_eenheid: eenheid, doel_aantal: huidigAantal });
+
   return (
     <Card className="p-4 sm:p-5 bg-card shadow-sm space-y-3">
       <div className="relative">
