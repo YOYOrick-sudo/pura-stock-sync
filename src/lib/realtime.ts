@@ -9,6 +9,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 export function useKanaalHerstel() {
   const [poging, setPoging] = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hadFout = useRef(false);
 
   useEffect(() => () => {
     if (timer.current) clearTimeout(timer.current);
