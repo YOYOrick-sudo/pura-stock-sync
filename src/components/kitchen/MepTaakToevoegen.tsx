@@ -53,6 +53,9 @@ export function MepTaakToevoegen({
 
   const toonNieuw = zoek.trim().length >= 2 && !exacteMatch;
 
+  // Aantallen horen in het vakje "Hoeveel", niet in de naam.
+  const ontleed = useMemo(() => splitsAantalUitTitel(zoek), [zoek]);
+
   const naToevoegen = (taak: MepTaak | null) => {
     setZoek('');
     setNetToegevoegd(taak && onBijwerken ? taak : null);
