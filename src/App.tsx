@@ -84,12 +84,11 @@ function useVersHouden() {
         try { supabase.auth.stopAutoRefresh(); } catch { /* niets */ }
         return;
       }
-      // Terug op de voorgrond: inlog verversen en de live-verbinding opnieuw
-      // opbouwen. Zonder dit blijft de app na een tijdje op het iPad-beginscherm
-      // hangen op oude tokens en een dode websocket.
+      // Terug op de voorgrond: de refresh-timer weer aanzetten (die vernieuwt
+      // alleen als het nodig is — handmatig forceren logt mensen juist uit) en
+      // de live-verbinding opnieuw opbouwen.
       try {
         supabase.auth.startAutoRefresh();
-        void supabase.auth.refreshSession().catch(() => undefined);
         supabase.realtime.connect();
       } catch { /* niets */ }
       // Niet vaker dan eens per 30 seconden, en alleen de gegevens van het
