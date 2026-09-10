@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useKanaalHerstel } from '@/lib/realtime';
+import { splitsAantalUitTitel } from '@/lib/mep-hoeveelheid';
 import { format } from 'date-fns';
 
 export const ymd = (d: Date) => format(d, 'yyyy-MM-dd');
