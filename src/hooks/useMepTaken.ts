@@ -244,6 +244,7 @@ export interface MepReceptOptie {
 export function useMepRecepten(vestiging: string) {
   return useQuery({
     queryKey: ['mep-recepten', vestiging],
+    staleTime: 5 * 60_000,
     queryFn: async (): Promise<MepReceptOptie[]> => {
       const [{ data: methodes, error: e1 }, { data: koppels, error: e2 }, { data: recepten, error: e3 }] =
         await Promise.all([
