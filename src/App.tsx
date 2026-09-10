@@ -78,7 +78,19 @@ function useVersHouden() {
     const sync = () => {
       const zichtbaar = document.visibilityState === "visible";
       focusManager.setFocused(zichtbaar);
-      if (!zichtbaar) return;
+      if (!zichtbaar) {
+        // Achtergrond: geen refresh-timers laten tikken op een bevroren tablet.
+        try { supabase.auth.stopAutoRefresh(); } catch { /* niets */ }
+        return;
+      }
+      // Terug op de voorgrond: inlog verversen en de live-verbinding opnieuw
+      // opbouwen. Zonder dit blijft de app na een tijdje op het iPad-beginscherm
+      // hangen op oude tokens en een dode websocket.
+      try {
+        supabase.auth.startAutoRefresh();
+        void supabase.auth.refreshSession().catch(() => undefined);
+        supabase.realtime.connect();
+      } catch { /* niets */ }
       // Niet vaker dan eens per 30 seconden, en alleen de gegevens van het
       // scherm waar iemand op staat — anders wordt elke wake-up een volledige
       // laadronde over alle tabellen.
