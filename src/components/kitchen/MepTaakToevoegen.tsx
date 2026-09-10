@@ -161,6 +161,17 @@ export function MepTaakToevoegen({
         />
       </div>
 
+      {toonNieuw && ontleed.aangepast && (
+        <p className="text-sm text-muted-foreground">
+          Wordt opgeslagen als <span className="font-medium text-foreground">{ontleed.titel}</span> ·{' '}
+          {ontleed.aantal} {ontleed.eenheid}
+        </p>
+      )}
+      {toonNieuw && !ontleed.aangepast && ontleed.losGetal && (
+        <p className="text-sm text-muted-foreground">Zet het aantal bij Hoeveel — niet in de naam.</p>
+      )}
+
+
       {(gefilterd.length > 0 || toonNieuw) && (
         <div className="max-h-72 overflow-y-auto rounded-polar border border-border/60 divide-y divide-border/60">
           {gefilterd.map((o) => (
