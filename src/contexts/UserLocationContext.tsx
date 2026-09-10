@@ -63,7 +63,7 @@ export function UserLocationProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
-      if (event === 'SIGNED_IN' && session) {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session) {
         setUserId(session.user.id);
         setTimeout(() => {
           if (mounted) void loadLocations(session.user.id);
