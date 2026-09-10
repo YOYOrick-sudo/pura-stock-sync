@@ -56,6 +56,7 @@ import Bronnen from "./pages/settings/Bronnen";
 import Cijfers from "./pages/Cijfers";
 import LightspeedCallback from "./pages/LightspeedCallback";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { supabase } from "@/integrations/supabase/client";
 import { focusManager } from "@tanstack/react-query";
 import { useEffect } from "react";
 
@@ -78,7 +79,18 @@ function useVersHouden() {
     const sync = () => {
       const zichtbaar = document.visibilityState === "visible";
       focusManager.setFocused(zichtbaar);
-      if (!zichtbaar) return;
+      if (!zichtbaar) {
+        // Achtergrond: geen refresh-timers laten tikken op een bevroren tablet.
+        try { supabase.auth.stopAutoRefresh(); } catch { /* niets */ }
+        return;
+      }
+      // Terug op de voorgrond: de refresh-timer weer aanzetten (die vernieuwt
+      // alleen als het nodig is — handmatig forceren logt mensen juist uit) en
+      // de live-verbinding opnieuw opbouwen.
+      try {
+        supabase.auth.startAutoRefresh();
+        supabase.realtime.connect();
+      } catch { /* niets */ }
       // Niet vaker dan eens per 30 seconden, en alleen de gegevens van het
       // scherm waar iemand op staat — anders wordt elke wake-up een volledige
       // laadronde over alle tabellen.

@@ -11,6 +11,35 @@ const VERSION = 1;
 
 let dbPromise: Promise<IDBDatabase | null> | null = null;
 
+// iPadOS bevriest IndexedDB zodra de app naar de achtergrond gaat. Komt de app
+// terug, dan kan een transactie voor altijd blijven hangen — en dan blijft de
+// hele app "Laden...". Daarom: alles met een harde tijdslimiet, en bij een
+// time-out de databaseverbinding weggooien zodat de volgende poging opnieuw opent.
+const IDB_TIMEOUT_MS = 1000;
+
+function withTimeout<T>(p: Promise<T>, fallback: T): Promise<T> {
+  return new Promise<T>((resolve) => {
+    let klaar = false;
+    const timer = setTimeout(() => {
+      if (klaar) return;
+      klaar = true;
+      dbPromise = null; // verbinding is verdacht: forceer een nieuwe open()
+      resolve(fallback);
+    }, IDB_TIMEOUT_MS);
+    p.then((v) => {
+      if (klaar) return;
+      klaar = true;
+      clearTimeout(timer);
+      resolve(v);
+    }).catch(() => {
+      if (klaar) return;
+      klaar = true;
+      clearTimeout(timer);
+      resolve(fallback);
+    });
+  });
+}
+
 function openDb(): Promise<IDBDatabase | null> {
   if (dbPromise) return dbPromise;
   dbPromise = new Promise((resolve) => {
@@ -105,7 +134,7 @@ function lsDel(key: string) {
 
 export const hybridAuthStorage = {
   async getItem(key: string): Promise<string | null> {
-    const fromIdb = await idbGet(key);
+    const fromIdb = await withTimeout(idbGet(key), null);
     if (fromIdb) {
       // keep localStorage warm as fallback
       if (lsGet(key) !== fromIdb) lsSet(key, fromIdb);
@@ -121,10 +150,10 @@ export const hybridAuthStorage = {
   },
   async setItem(key: string, value: string): Promise<void> {
     lsSet(key, value);
-    await idbSet(key, value);
+    await withTimeout(idbSet(key, value), undefined);
   },
   async removeItem(key: string): Promise<void> {
     lsDel(key);
-    await idbDel(key);
+    await withTimeout(idbDel(key), undefined);
   },
 };

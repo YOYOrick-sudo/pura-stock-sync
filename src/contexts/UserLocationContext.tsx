@@ -63,7 +63,7 @@ export function UserLocationProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
-      if (event === 'SIGNED_IN' && session) {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session) {
         setUserId(session.user.id);
         setTimeout(() => {
           if (mounted) void loadLocations(session.user.id);
@@ -77,11 +77,16 @@ export function UserLocationProvider({ children }: { children: ReactNode }) {
     });
 
     (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      // Nooit oneindig wachten: hangt de sessie-opslag (iPadOS na achtergrond),
+      // dan gaan we door met "geen vestiging" en vult onAuthStateChange later aan.
+      const sessie = await Promise.race([
+        supabase.auth.getSession().then(({ data }) => data.session).catch(() => null),
+        new Promise<null>((r) => setTimeout(() => r(null), 8000)),
+      ]);
       if (!mounted) return;
-      if (session?.user) {
-        setUserId(session.user.id);
-        await loadLocations(session.user.id);
+      if (sessie?.user) {
+        setUserId(sessie.user.id);
+        await loadLocations(sessie.user.id);
       } else {
         setLoading(false);
       }

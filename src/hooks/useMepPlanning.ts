@@ -475,6 +475,7 @@ export function useKeukenMedewerkers(location: string) {
   return useQuery({
     queryKey: ['mep-medewerkers', location],
     enabled: !!location,
+    staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('foh_employees')

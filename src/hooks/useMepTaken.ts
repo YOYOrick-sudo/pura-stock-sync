@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useKanaalHerstel } from '@/lib/realtime';
 import { format } from 'date-fns';
 
 export const ymd = (d: Date) => format(d, 'yyyy-MM-dd');
@@ -56,11 +57,13 @@ export interface MepTaakInput {
 /** Taken van één vestiging op één dag, inclusief realtime sync tussen tablets. */
 export function useMepTaken(vestiging: string, datum: string) {
   const qc = useQueryClient();
+  const { poging, statusHandler } = useKanaalHerstel();
   const key = useMemo(() => ['mep-taken', vestiging, datum], [vestiging, datum]);
 
   const query = useQuery({
     queryKey: key,
     enabled: !!vestiging && !!datum,
+    placeholderData: (vorige) => vorige,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('mep_taken')
@@ -79,17 +82,17 @@ export function useMepTaken(vestiging: string, datum: string) {
   useEffect(() => {
     if (!vestiging || !datum) return;
     const channel = supabase
-      .channel(`mep-taken-${vestiging}-${datum}`)
+      .channel(`mep-taken-${vestiging}-${datum}-${poging}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'mep_taken', filter: `vestiging=eq.${vestiging}` },
         () => qc.invalidateQueries({ queryKey: key }),
       )
-      .subscribe();
+      .subscribe(statusHandler(() => qc.invalidateQueries({ queryKey: key })));
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [vestiging, datum, qc, key]);
+  }, [vestiging, datum, qc, key, poging, statusHandler]);
 
   return query;
 }
@@ -241,6 +244,7 @@ export interface MepReceptOptie {
 export function useMepRecepten(vestiging: string) {
   return useQuery({
     queryKey: ['mep-recepten', vestiging],
+    staleTime: 5 * 60_000,
     queryFn: async (): Promise<MepReceptOptie[]> => {
       const [{ data: methodes, error: e1 }, { data: koppels, error: e2 }, { data: recepten, error: e3 }] =
         await Promise.all([
@@ -374,6 +378,7 @@ export function useMepFavorieten(vestiging: string, limiet = 6) {
 /** Taken over een periode (weekweergave). */
 export function useMepTakenBereik(vestiging: string, van: string, tot: string) {
   const qc = useQueryClient();
+  const { poging, statusHandler } = useKanaalHerstel();
   const key = useMemo(() => ['mep-taken-bereik', vestiging, van, tot], [vestiging, van, tot]);
 
   const query = useQuery({
@@ -398,17 +403,17 @@ export function useMepTakenBereik(vestiging: string, van: string, tot: string) {
   useEffect(() => {
     if (!vestiging) return;
     const channel = supabase
-      .channel(`mep-week-${vestiging}-${van}`)
+      .channel(`mep-week-${vestiging}-${van}-${poging}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'mep_taken', filter: `vestiging=eq.${vestiging}` },
         () => qc.invalidateQueries({ queryKey: key }),
       )
-      .subscribe();
+      .subscribe(statusHandler(() => qc.invalidateQueries({ queryKey: key })));
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [vestiging, van, tot, qc, key]);
+  }, [vestiging, van, tot, qc, key, poging, statusHandler]);
 
   return query;
 }
