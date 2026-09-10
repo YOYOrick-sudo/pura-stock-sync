@@ -3,9 +3,10 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Clock, Zap, Plus, Check, X } from 'lucide-react';
+import { Search, Clock, Zap, Plus, Check, X, Minus } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { MEP_EENHEDEN, splitsAantalUitTitel } from '@/lib/mep-hoeveelheid';
 import { useMepHandelingen } from '@/hooks/useMepPlanning';
 import {
   MepFavoriet,
