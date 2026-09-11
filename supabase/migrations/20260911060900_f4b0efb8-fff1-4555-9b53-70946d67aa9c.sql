@@ -1,0 +1,1 @@
+UPDATE public.mep_taken SET prioriteit = 2 WHERE prioriteit = 3;

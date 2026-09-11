@@ -316,6 +316,26 @@ export function MepTaakToevoegen({
             </div>
           </div>
 
+          <div className="space-y-1.5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Prioriteit
+            </p>
+            <button
+              type="button"
+              disabled={bezig}
+              onClick={() => patchStil({ prioriteit: netToegevoegd.prioriteit === 1 ? 2 : 1 })}
+              aria-pressed={netToegevoegd.prioriteit === 1}
+              className={cn(
+                'rounded-polar-md border px-4 min-h-[44px] text-[14px] font-medium transition-colors disabled:opacity-50',
+                netToegevoegd.prioriteit === 1
+                  ? 'border-destructive bg-destructive/10 text-destructive'
+                  : 'border-border/60 bg-card hover:bg-primary/5 active:bg-primary/10',
+              )}
+            >
+              Belangrijk
+            </button>
+          </div>
+
           {handelingen.length > 0 && (
             <div className="space-y-1.5">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">

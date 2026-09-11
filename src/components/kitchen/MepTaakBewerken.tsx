@@ -16,9 +16,8 @@ import { MepTaak } from '@/hooks/useMepTaken';
 import { useMepHandelingen } from '@/hooks/useMepPlanning';
 
 const PRIO = [
-  { waarde: 1, label: 'Moet vandaag' },
   { waarde: 2, label: 'Normaal' },
-  { waarde: 3, label: 'Als er tijd is' },
+  { waarde: 1, label: 'Belangrijk' },
 ];
 
 interface Props {
@@ -78,7 +77,7 @@ export function MepTaakBewerken({
     if (!taak) return;
     setHandeling(taak.handeling);
     setPersoon(taak.toegewezen_aan);
-    setPrioriteit(taak.prioriteit);
+    setPrioriteit(taak.prioriteit === 1 ? 1 : 2);
     setAantal(taak.doel_aantal != null ? String(Number(taak.doel_aantal)) : '');
     setEenheid(taak.doel_eenheid ?? '');
     setDeadline(taak.deadline ? taak.deadline.slice(0, 5) : '');

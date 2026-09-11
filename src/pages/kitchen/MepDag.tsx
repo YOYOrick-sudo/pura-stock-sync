@@ -37,11 +37,9 @@ import {
   ymd,
 } from '@/hooks/useMepTaken';
 
-const PRIO_LABEL: Record<number, string> = { 1: 'Moet vandaag', 2: 'Normaal', 3: 'Als er tijd is' };
+const PRIO_LABEL: Record<number, string> = { 1: 'Belangrijk' };
 const PRIO_CLASS: Record<number, string> = {
   1: 'bg-destructive/10 text-destructive border-destructive/20',
-  2: 'bg-muted text-muted-foreground',
-  3: 'bg-muted/60 text-muted-foreground',
 };
 
 export default function MepDag() {
@@ -255,9 +253,11 @@ export default function MepDag() {
                                 {Number(t.doel_aantal)} {t.doel_eenheid ?? ''}
                               </Badge>
                             )}
-                            <Badge variant="outline" className={cn('font-normal', PRIO_CLASS[t.prioriteit])}>
-                              {PRIO_LABEL[t.prioriteit]}
-                            </Badge>
+                            {t.prioriteit === 1 && (
+                              <Badge variant="outline" className={cn('font-normal', PRIO_CLASS[1])}>
+                                {PRIO_LABEL[1]}
+                              </Badge>
+                            )}
                           </div>
                           <div className="mt-0.5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                             {weergave !== 'persoon' && t.toegewezen_aan && (
