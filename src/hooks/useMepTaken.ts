@@ -103,14 +103,12 @@ export function useMepTaken(vestiging: string, datum: string) {
       if (error) throw error;
 
       const rijen = (data ?? []) as MepTaak[];
-      // Achterstand bovenaan, oudste eerst; binnen elke groep de bestaande volgorde.
+      // Belangrijk eerst, dan oudste invoerdatum, dan de volgorde van invoeren.
       return rijen
         .map((t, i) => ({ t, i }))
         .sort((a, b) => {
-          const aOud = a.t.taak_datum < datum ? 0 : 1;
-          const bOud = b.t.taak_datum < datum ? 0 : 1;
-          if (aOud !== bOud) return aOud - bOud;
-          if (aOud === 0 && a.t.taak_datum !== b.t.taak_datum)
+          if (a.t.prioriteit !== b.t.prioriteit) return a.t.prioriteit - b.t.prioriteit;
+          if (a.t.taak_datum !== b.t.taak_datum)
             return a.t.taak_datum.localeCompare(b.t.taak_datum);
           return a.i - b.i;
         })
