@@ -77,7 +77,7 @@ export function MepTaakBewerken({
     if (!taak) return;
     setHandeling(taak.handeling);
     setPersoon(taak.toegewezen_aan);
-    setPrioriteit(taak.prioriteit);
+    setPrioriteit(taak.prioriteit === 1 ? 1 : 2);
     setAantal(taak.doel_aantal != null ? String(Number(taak.doel_aantal)) : '');
     setEenheid(taak.doel_eenheid ?? '');
     setDeadline(taak.deadline ? taak.deadline.slice(0, 5) : '');
