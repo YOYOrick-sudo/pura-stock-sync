@@ -266,6 +266,14 @@ export default function MepDag() {
                                 {PRIO_LABEL[1]}
                               </Badge>
                             )}
+                            {achterstandLabel(t.taak_datum, datum) && (
+                              <Badge
+                                variant="outline"
+                                className="font-normal bg-warning/10 text-warning border-warning/20"
+                              >
+                                {achterstandLabel(t.taak_datum, datum)}
+                              </Badge>
+                            )}
                           </div>
                           <div className="mt-0.5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                             {weergave !== 'persoon' && t.toegewezen_aan && (
