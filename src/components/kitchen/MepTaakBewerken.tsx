@@ -16,9 +16,8 @@ import { MepTaak } from '@/hooks/useMepTaken';
 import { useMepHandelingen } from '@/hooks/useMepPlanning';
 
 const PRIO = [
-  { waarde: 1, label: 'Moet vandaag' },
   { waarde: 2, label: 'Normaal' },
-  { waarde: 3, label: 'Als er tijd is' },
+  { waarde: 1, label: 'Belangrijk' },
 ];
 
 interface Props {
