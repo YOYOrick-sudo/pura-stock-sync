@@ -66,17 +66,40 @@ export function useMepTaken(vestiging: string, datum: string) {
     enabled: !!vestiging && !!datum,
     placeholderData: (vorige) => vorige,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const vandaag = ymd(new Date());
+      // Op vandaag nemen we openstaande taken van eerdere dagen mee: wat niet
+      // gemaakt is blijft op de lijst staan tot het klaar is.
+      const neemAchterstandMee = datum === vandaag;
+
+      let q = supabase
         .from('mep_taken')
         .select('*')
         .eq('vestiging', vestiging)
-        .eq('taak_datum', datum)
-        .neq('status', 'geannuleerd')
+        .neq('status', 'geannuleerd');
+
+      q = neemAchterstandMee
+        ? q.or(`taak_datum.eq.${datum},and(taak_datum.lt.${datum},status.in.(open,bezig))`)
+        : q.eq('taak_datum', datum);
+
+      const { data, error } = await q
         .order('prioriteit', { ascending: true })
         .order('volgorde', { ascending: true })
         .order('created_at', { ascending: true });
       if (error) throw error;
-      return (data ?? []) as MepTaak[];
+
+      const rijen = (data ?? []) as MepTaak[];
+      // Achterstand bovenaan, oudste eerst; binnen elke groep de bestaande volgorde.
+      return rijen
+        .map((t, i) => ({ t, i }))
+        .sort((a, b) => {
+          const aOud = a.t.taak_datum < datum ? 0 : 1;
+          const bOud = b.t.taak_datum < datum ? 0 : 1;
+          if (aOud !== bOud) return aOud - bOud;
+          if (aOud === 0 && a.t.taak_datum !== b.t.taak_datum)
+            return a.t.taak_datum.localeCompare(b.t.taak_datum);
+          return a.i - b.i;
+        })
+        .map(({ t }) => t);
     },
   });
 
