@@ -37,11 +37,9 @@ import {
   ymd,
 } from '@/hooks/useMepTaken';
 
-const PRIO_LABEL: Record<number, string> = { 1: 'Moet vandaag', 2: 'Normaal', 3: 'Als er tijd is' };
+const PRIO_LABEL: Record<number, string> = { 1: 'Belangrijk' };
 const PRIO_CLASS: Record<number, string> = {
   1: 'bg-destructive/10 text-destructive border-destructive/20',
-  2: 'bg-muted text-muted-foreground',
-  3: 'bg-muted/60 text-muted-foreground',
 };
 
 export default function MepDag() {
