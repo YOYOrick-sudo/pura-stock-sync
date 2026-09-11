@@ -7,6 +7,16 @@ import { format } from 'date-fns';
 
 export const ymd = (d: Date) => format(d, 'yyyy-MM-dd');
 
+/** Label voor een taak die van een eerdere dag is blijven staan. */
+export function achterstandLabel(taakDatum: string, referentieDatum: string): string | null {
+  if (taakDatum >= referentieDatum) return null;
+  const dagen = Math.round(
+    (Date.parse(`${referentieDatum}T00:00:00`) - Date.parse(`${taakDatum}T00:00:00`)) / 86_400_000,
+  );
+  if (dagen <= 0) return null;
+  return dagen === 1 ? 'van gisteren' : `${dagen} dagen open`;
+}
+
 export const MEP_CATEGORIEEN = [
   'Sauzen & dressings',
   'Snijwerk',
