@@ -32,7 +32,7 @@ import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useKeukenMedewerkers } from '@/hooks/useMepPlanning';
 import {
   MepTaak,
-  achterstandLabel,
+  
   dagenOpen,
   useMepTaakMutaties,
   useMepTaken,

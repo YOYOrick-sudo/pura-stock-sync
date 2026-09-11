@@ -15,12 +15,6 @@ export function dagenOpen(taakDatum: string, referentieDatum: string): number {
   );
 }
 
-/** Label voor een taak die van een eerdere dag is blijven staan. */
-export function achterstandLabel(taakDatum: string, referentieDatum: string): string | null {
-  const dagen = dagenOpen(taakDatum, referentieDatum);
-  if (dagen <= 0) return null;
-  return dagen === 1 ? 'van gisteren' : `${dagen} dagen open`;
-}
 
 export const MEP_CATEGORIEEN = [
   'Sauzen & dressings',
