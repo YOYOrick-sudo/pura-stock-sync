@@ -1,7 +1,7 @@
 # Mise en place: openstaande taken blijven staan
 
-## Het probleem
-Een taak die je op donderdag op de lijst zet, hoort bij donderdag. Zet je hem niet af, dan zie je hem vrijdag niet meer — hij blijft achter op de donderdaglijst. In de keuken werkt dat niet: wat niet gemaakt is, moet gewoon op de lijst blijven staan tot het klaar is.
+## Het probleem (gecontroleerd)
+Het dagscherm haalt alleen taken op met precies de gekozen datum. Op dit moment staan er in West 8 openstaande taken van donderdag 10 september en nog 6 oudere open taken (2, 3 en 8 september) die vandaag nergens zichtbaar zijn. Wat niet gemaakt is, verdwijnt dus uit beeld in plaats van te blijven staan.
 
 ## Wat er verandert
 - Op de daglijst zie je vanaf nu ook alle taken van eerdere dagen die nog open of bezig zijn.
