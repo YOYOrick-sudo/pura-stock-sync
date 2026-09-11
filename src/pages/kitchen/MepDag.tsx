@@ -253,9 +253,11 @@ export default function MepDag() {
                                 {Number(t.doel_aantal)} {t.doel_eenheid ?? ''}
                               </Badge>
                             )}
-                            <Badge variant="outline" className={cn('font-normal', PRIO_CLASS[t.prioriteit])}>
-                              {PRIO_LABEL[t.prioriteit]}
-                            </Badge>
+                            {t.prioriteit === 1 && (
+                              <Badge variant="outline" className={cn('font-normal', PRIO_CLASS[1])}>
+                                {PRIO_LABEL[1]}
+                              </Badge>
+                            )}
                           </div>
                           <div className="mt-0.5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                             {weergave !== 'persoon' && t.toegewezen_aan && (
