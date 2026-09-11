@@ -263,23 +263,14 @@ export default function MepDag() {
                                 {PRIO_LABEL[1]}
                               </Badge>
                             )}
-                            {achterstandLabel(t.taak_datum, datum) && (
-                              dagenOpen(t.taak_datum, datum) >= 7 ? (
-                                <Badge
-                                  variant="outline"
-                                  className="font-normal bg-destructive/10 text-destructive border-destructive/30 inline-flex items-center gap-1"
-                                >
-                                  <AlertTriangle className="w-3.5 h-3.5" />
-                                  7+ dagen — nog nodig?
-                                </Badge>
-                              ) : (
-                                <Badge
-                                  variant="outline"
-                                  className="font-normal bg-warning/10 text-warning border-warning/20"
-                                >
-                                  {achterstandLabel(t.taak_datum, datum)}
-                                </Badge>
-                              )
+                            {dagenOpen(t.taak_datum, datum) >= 7 && (
+                              <Badge
+                                variant="outline"
+                                className="font-normal bg-destructive/10 text-destructive border-destructive/30 inline-flex items-center gap-1"
+                              >
+                                <AlertTriangle className="w-3.5 h-3.5" />
+                                7+ dagen — nog nodig?
+                              </Badge>
                             )}
                           </div>
                           <div className="mt-0.5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
