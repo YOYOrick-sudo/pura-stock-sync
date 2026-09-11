@@ -79,7 +79,14 @@ export default function MepDag() {
   const voortgang = taken.length ? Math.round((klaar.length / taken.length) * 100) : 0;
 
   const groepen = useMemo(() => {
-    if (weergave === 'alles') return [['Alle taken', taken]] as [string, MepTaak[]][];
+    if (weergave === 'alles') {
+      const achterstand = taken.filter((t) => t.taak_datum < datum);
+      const vandaag = taken.filter((t) => t.taak_datum >= datum);
+      if (achterstand.length === 0) return [['Alle taken', taken]] as [string, MepTaak[]][];
+      const blokken: [string, MepTaak[]][] = [['Blijft staan', achterstand]];
+      if (vandaag.length > 0) blokken.push(['Vandaag', vandaag]);
+      return blokken;
+    }
     const map = new Map<string, MepTaak[]>();
     for (const t of taken) {
       const sleutel =
