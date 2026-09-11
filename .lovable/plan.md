@@ -25,3 +25,8 @@ Het dagscherm haalt alleen taken op met precies de gekozen datum. Op dit moment 
 - `src/pages/kitchen/MepDag.tsx`: badge tonen bij taken met `dagen_open > 0` en de lijst in twee blokken renderen ("Blijft staan" / "Vandaag"). Voortgangsteller telt beide blokken.
 - Realtime, afvinken, printen, bewerken en per persoon/per handeling blijven werken zoals nu — de taakrijen zelf veranderen niet.
 - Geen databasewijziging, geen nieuwe pakketten, geen routewijzigingen.
+
+## Wat ik heb nagekeken
+- Het actieve scherm is `/kitchen/mep` (`MepDag.tsx`); `/kitchen/mep/oud` is een oude versie die hier buiten valt.
+- De query in `useMepTaken` filtert hard op één datum — dat is de oorzaak, er is geen doorschuif-mechanisme.
+- In de database staan nu 14 open taken op eerdere dagen in West; die worden na deze wijziging direct zichtbaar op vandaag.
