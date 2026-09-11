@@ -31,6 +31,7 @@ import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useKeukenMedewerkers } from '@/hooks/useMepPlanning';
 import {
   MepTaak,
+  achterstandLabel,
   useMepTaakMutaties,
   useMepTaken,
   useProductieBatches,
@@ -78,7 +79,14 @@ export default function MepDag() {
   const voortgang = taken.length ? Math.round((klaar.length / taken.length) * 100) : 0;
 
   const groepen = useMemo(() => {
-    if (weergave === 'alles') return [['Alle taken', taken]] as [string, MepTaak[]][];
+    if (weergave === 'alles') {
+      const achterstand = taken.filter((t) => t.taak_datum < datum);
+      const vandaag = taken.filter((t) => t.taak_datum >= datum);
+      if (achterstand.length === 0) return [['Alle taken', taken]] as [string, MepTaak[]][];
+      const blokken: [string, MepTaak[]][] = [['Blijft staan', achterstand]];
+      if (vandaag.length > 0) blokken.push(['Vandaag', vandaag]);
+      return blokken;
+    }
     const map = new Map<string, MepTaak[]>();
     for (const t of taken) {
       const sleutel =
@@ -89,7 +97,7 @@ export default function MepDag() {
       map.get(sleutel)!.push(t);
     }
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], 'nl'));
-  }, [taken, weergave, medewerkers]);
+  }, [taken, weergave, medewerkers, datum]);
 
 
   const dagLabel =
@@ -256,6 +264,14 @@ export default function MepDag() {
                             {t.prioriteit === 1 && (
                               <Badge variant="outline" className={cn('font-normal', PRIO_CLASS[1])}>
                                 {PRIO_LABEL[1]}
+                              </Badge>
+                            )}
+                            {achterstandLabel(t.taak_datum, datum) && (
+                              <Badge
+                                variant="outline"
+                                className="font-normal bg-warning/10 text-warning border-warning/20"
+                              >
+                                {achterstandLabel(t.taak_datum, datum)}
                               </Badge>
                             )}
                           </div>
