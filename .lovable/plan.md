@@ -1,7 +1,7 @@
 # Mise en place: openstaande taken blijven staan
 
-## Het probleem
-Een taak die je op donderdag op de lijst zet, hoort bij donderdag. Zet je hem niet af, dan zie je hem vrijdag niet meer — hij blijft achter op de donderdaglijst. In de keuken werkt dat niet: wat niet gemaakt is, moet gewoon op de lijst blijven staan tot het klaar is.
+## Het probleem (gecontroleerd)
+Het dagscherm haalt alleen taken op met precies de gekozen datum. Op dit moment staan er in West 8 openstaande taken van donderdag 10 september en nog 6 oudere open taken (2, 3 en 8 september) die vandaag nergens zichtbaar zijn. Wat niet gemaakt is, verdwijnt dus uit beeld in plaats van te blijven staan.
 
 ## Wat er verandert
 - Op de daglijst zie je vanaf nu ook alle taken van eerdere dagen die nog open of bezig zijn.
@@ -25,3 +25,8 @@ Een taak die je op donderdag op de lijst zet, hoort bij donderdag. Zet je hem ni
 - `src/pages/kitchen/MepDag.tsx`: badge tonen bij taken met `dagen_open > 0` en de lijst in twee blokken renderen ("Blijft staan" / "Vandaag"). Voortgangsteller telt beide blokken.
 - Realtime, afvinken, printen, bewerken en per persoon/per handeling blijven werken zoals nu — de taakrijen zelf veranderen niet.
 - Geen databasewijziging, geen nieuwe pakketten, geen routewijzigingen.
+
+## Wat ik heb nagekeken
+- Het actieve scherm is `/kitchen/mep` (`MepDag.tsx`); `/kitchen/mep/oud` is een oude versie die hier buiten valt.
+- De query in `useMepTaken` filtert hard op één datum — dat is de oorzaak, er is geen doorschuif-mechanisme.
+- In de database staan nu 14 open taken op eerdere dagen in West; die worden na deze wijziging direct zichtbaar op vandaag.
