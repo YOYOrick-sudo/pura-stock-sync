@@ -33,6 +33,7 @@ import { useKeukenMedewerkers } from '@/hooks/useMepPlanning';
 import {
   MepTaak,
   achterstandLabel,
+  dagenOpen,
   useMepTaakMutaties,
   useMepTaken,
   useProductieBatches,
