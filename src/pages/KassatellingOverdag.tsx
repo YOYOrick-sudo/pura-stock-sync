@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { devError } from "@/lib/devLog";
+import { withTimeout, getUserIdMetTimeout } from "@/lib/withTimeout";
 
 // Always get week number reliably using ISO 8601
 const getWeekNumber = (date: Date): number => {
