@@ -438,7 +438,7 @@ const KassatellingOverdag = () => {
                   )}
                   <button 
                     onClick={handleSubmit}
-                    disabled={!canSubmit || !naam || naam.length < 2}
+                    disabled={isSubmitting || !canSubmit || !naam || naam.length < 2}
                     style={{
                       width: '100%',
                       padding: '14px 20px',
