@@ -1,47 +1,52 @@
-# Kassatelling weer betrouwbaar naar de sheet
+# Kas-controle: een overzicht waarmee je echt controleert
 
-## Vastgestelde oorzaak
-- De telling zelf werkt: recente open- en sluittellingen van **West én Midsland** staan in Kas-controle.
-- De app schrijft sinds juni alleen naar Kas-controle. Er staat nu **geen** koppeling, automatische actie of achtergrondtaak meer die deze tellingen naar een sheet stuurt.
-- De oude n8n-koppeling is destijds verwijderd nadat die onbereikbaar werd. Ik heb daarna ten onrechte aangenomen dat Kas-controle de sheet volledig mocht vervangen. Daardoor kreeg de app wel de melding “Kassatelling verzonden”, terwijl alleen Kas-controle was bijgewerkt.
+## Eerst duidelijk: er gaat niets verloren
+De tellingen komen wél binnen, voor West én Midsland. De laatste staan er gewoon in (West 12 september, Midsland 11 september). Er is geen aparte sheet-verzending meer in de app; Kas-controle is de plek. Wat ontbreekt is niet de data, maar een overzicht waarin je in één oogopslag ziet of een dag klopt.
 
-## Wat ik bouw
-1. **Rechtstreekse Google Sheets-koppeling**
-   - De app blijft de telling eerst veilig opslaan in Kas-controle.
-   - Daarna zet een beveiligde achtergrondfunctie dezelfde telling in de bestaande Google Sheet.
-   - Open- en sluittellingen, West en Midsland, krijgen ieder de juiste locatie en hetzelfde gegevensformaat als voorheen.
+## Wat ik in de database zie en wat dat betekent
+- Sluittellingen bevatten cash-omzet, afdracht en kasverschil; opentellingen niet. Nu staan die in één platte lijst door elkaar.
+- Kasverschillen staan wél vast (bijvoorbeeld -8,00, +4,25, -0,90) maar vallen nergens op.
+- Er staan dubbele tellingen in (9 september Midsland twee keer identiek, 2 september West twee keer identiek). Die zijn nu niet als dubbel herkenbaar.
+- Er zijn dagen zonder sluittelling. Dat is nu alleen te zien door zelf te tellen in de lijst.
 
-2. **Geen stille fouten meer**
-   - Per telling bewaren: `wacht op verzending`, `verzonden` of `mislukt`, plus tijdstip en foutmelding.
-   - De succesmelding zegt pas dat de sheet is bijgewerkt wanneer dit werkelijk gelukt is.
-   - Als Google tijdelijk niet bereikbaar is, blijft de telling veilig staan en wordt deze opnieuw geprobeerd; medewerkers hoeven niet opnieuw te tellen.
+## Wat ik ga bouwen
 
-3. **Controle en herstel**
-   - In Kas-controle komt een compacte verzendstatus per telling.
-   - Managers kunnen een mislukte telling opnieuw naar de sheet sturen.
-   - Dubbele regels worden voorkomen met het unieke nummer van de telling, ook bij opnieuw proberen of dubbel tikken.
+### 1. Eén regel per dag per vestiging
+In plaats van losse regels door elkaar:
+- Per dag en vestiging één regel met: openen (wie, hoe laat), sluiten (wie, hoe laat), cash-omzet, afdracht en kasverschil.
+- Klikken opent de bestaande detailweergave met alle coupures.
 
-4. **Achterstand herstellen**
-   - Na controle van de doel-sheet bepaal ik welke opgeslagen tellingen ontbreken.
-   - Alleen ontbrekende tellingen worden alsnog toegevoegd; bestaande regels worden niet blind opnieuw geplaatst.
+### 2. Kasverschil als hoofdzaak
+- Het kasverschil is de opvallendste waarde in de regel: groen bij klein verschil, oranje bij een afwijking die aandacht vraagt, rood bij een grote afwijking.
+- De grens tussen deze niveaus zet ik vast in overleg; voorstel: tot €2 groen, tot €10 oranje, daarboven rood.
 
-## Benodigd vóór de eindtest
-- De bestaande Google Sheet moet aan dit project worden gekoppeld.
-- De link van de juiste Google Sheet en de namen van de tabbladen zijn nodig. Deze informatie staat niet in de app of database en kan niet uit de oude, verwijderde n8n-koppeling worden teruggehaald.
+### 3. Signalen die je nu zelf moet opmerken
+Bovenaan een korte lijst met wat niet klopt in de gekozen periode:
+- Dag zonder sluittelling.
+- Dag zonder opentelling.
+- Twee dezelfde tellingen kort na elkaar (dubbel ingediend).
+- Kasverschil boven de grens.
+
+### 4. Samenvatting per periode
+Boven het overzicht: aantal dagen, totaal afdracht, totaal kasverschil en het aantal dagen met een verschil — per vestiging naast elkaar.
+
+### 5. Filters die passen bij controleren
+Snelkeuzes: deze week, vorige week, deze maand. Vestiging en periode blijven werken zoals nu. De CSV-export blijft en volgt de nieuwe dagregels.
 
 ## Praktijk en risico
-- **Gebruikers:** medewerkers blijven op de iPad exact hetzelfde tellen; managers zien de status in Kas-controle.
-- **Bij uitval:** de telling blijft bewaard en gaat in de wachtrij; geen gegevensverlies en niet opnieuw tellen.
-- **Grootste risico:** zonder controle van de bestaande kolommen kunnen bedragen in de verkeerde kolom terechtkomen. Daarom lees ik eerst de sheetstructuur en voer ik daarna één herkenbare testtelling per vestiging uit.
-- De bestaande Kas-controle, kassa-validatie en tellinghistorie blijven leidend en worden niet vervangen.
+- **Wie en wanneer:** jij of een manager, op laptop of tablet, meestal achteraf per week. Medewerkers merken niets; de telschermen blijven ongewijzigd.
+- **Wat als er niets wordt ingevuld:** een ontbrekende telling wordt juist zichtbaar als signaal in plaats van stil te verdwijnen.
+- **Over een maand:** het overzicht groeit per dag, niet per telling, dus het blijft leesbaar; de standaardperiode blijft de laatste 30 dagen.
+- **Risico:** dagen met dubbele tellingen kunnen totalen scheeftrekken. Ik tel per dag niet zomaar alles op, maar toon de dubbeling als signaal en gebruik de laatste telling als leidend.
+- Geen wijziging aan tellen, opslaan, rechten of de wisselkassa-knop. Bestaande gegevens blijven ongemoeid; dit is alleen een andere presentatie.
 
 ## Verificatie
-- Echte test voor **West** en **Midsland**.
-- Per vestiging controleren: telling staat in Kas-controle, precies één nieuwe sheetregel staat goed, en status is `verzonden`.
-- Geforceerde fout testen: telling blijft bewaard, status wordt `mislukt`, opnieuw proberen maakt geen duplicaat.
-- Controleren dat openen en sluiten hun volledige, juiste gegevens meesturen.
+- Controleren dat 9 september Midsland en 2 september West als dubbel worden gemeld.
+- Controleren dat een dag met alleen een opentelling het signaal "geen sluittelling" geeft.
+- Controleren dat kasverschillen van -8,00 en +4,25 de juiste kleur krijgen.
+- Controleren dat West en Midsland gescheiden totalen tonen en dat de export klopt.
 
 ## Technische details
-- Nieuwe beveiligde functie voor het toevoegen van een sheetregel; Google-toegang blijft buiten de iPad.
-- Verzendstatus en idempotentie worden in de database vastgelegd en zijn alleen voor managers zichtbaar.
-- De bestaande invoerschermen sturen na een geslaagde database-opslag het unieke tellingnummer door; geen directe Google-aanroep vanuit de browser.
+- Alleen frontend: `src/pages/KasControle.tsx` wordt omgebouwd tot dag-gegroepeerde weergave met signaal- en samenvattingsblok; de detaildialoog en `DenomTable` blijven hergebruikt.
+- Geen database-, RLS- of routewijziging; dezelfde query op `kassa_afdrachten` wordt in de browser gegroepeerd.
+- Drempelwaarden voor kasverschil komen als constante bovenin het bestand, zodat ze eenvoudig aan te passen zijn.
