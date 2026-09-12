@@ -17,6 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { devError } from "@/lib/devLog";
+import { withTimeout, getUserIdMetTimeout } from "@/lib/withTimeout";
 
 // Always get week number reliably using ISO 8601
 const getWeekNumber = (date: Date): number => {
