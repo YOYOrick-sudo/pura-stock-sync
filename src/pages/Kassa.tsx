@@ -51,6 +51,7 @@ const Kassa = () => {
   const [naam, setNaam] = useState('');
   const [canSubmit, setCanSubmit] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [beginsaldoExpanded, setBeginsaldoExpanded] = useState(false);
 
   const [counts, setCounts] = useState({
