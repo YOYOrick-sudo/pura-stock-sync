@@ -33,6 +33,7 @@ const KassatellingOverdag = () => {
   const [naam, setNaam] = useState('');
   const [canSubmit, setCanSubmit] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [kassaLade, setKassaLade] = useState({
     '500': '' as number | '',
     '200': '' as number | '',
