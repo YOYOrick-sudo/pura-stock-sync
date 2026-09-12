@@ -221,6 +221,8 @@ const Kassa = () => {
         );
       } catch {}
       toast.error(`Opslaan mislukt: ${error?.message ?? 'onbekende fout'}. Je telling is lokaal bewaard — probeer opnieuw.`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
