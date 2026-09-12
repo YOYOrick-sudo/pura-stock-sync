@@ -567,7 +567,7 @@ const Kassa = () => {
                     }
                   }}
                 >
-                  {!canSubmit ? 'Wacht alsjeblieft...' : 'Verzenden'}
+                  {isSubmitting ? 'Bezig met versturen…' : !canSubmit ? 'Wacht alsjeblieft...' : 'Verzenden'}
                 </button>
                 
                 <button
