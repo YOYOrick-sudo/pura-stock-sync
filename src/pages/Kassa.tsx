@@ -537,7 +537,7 @@ const Kassa = () => {
                 )}
                 <button 
                   onClick={handleSubmit}
-                  disabled={!canSubmit || !naam || naam.length < 2 || cashOmzet === ''}
+                  disabled={isSubmitting || !canSubmit || !naam || naam.length < 2 || cashOmzet === ''}
                   style={{
                     width: '100%',
                     padding: '20px',
