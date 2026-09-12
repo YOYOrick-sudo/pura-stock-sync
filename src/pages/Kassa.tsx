@@ -158,6 +158,7 @@ const Kassa = () => {
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
     if (!validateForm()) {
       toast.error('Vul alle verplichte velden in');
       return;
@@ -170,15 +171,16 @@ const Kassa = () => {
       toast.error(`Je kunt pas over ${mins}m ${secs}s opnieuw indienen`);
       return;
     }
+    setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const userId = await getUserIdMetTimeout(supabase);
+      if (!userId) {
         toast.error('Niet ingelogd — log opnieuw in');
         return;
       }
 
-      const { error } = await supabase.from('kassa_afdrachten').insert({
-        created_by: user.id,
+      const { error } = await withTimeout(supabase.from('kassa_afdrachten').insert({
+        created_by: userId,
         location: userLocation,
         type: 'sluit',
         week_number: weekNumber,
