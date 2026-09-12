@@ -198,7 +198,7 @@ const Kassa = () => {
           afdracht: afdracht,
           kasverschil: kasverschil,
         },
-      });
+      }));
 
       if (error) throw error;
 
