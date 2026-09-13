@@ -518,7 +518,7 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                 <thead>
                   <tr style={{ background: 'hsl(var(--muted))', borderBottom: '1px solid hsl(var(--border))' }}>
-                    {['Dag', 'Locatie', 'Openen', 'Sluiten', 'Cash omzet', 'Afdracht', 'Kasverschil', 'Opmerkingen'].map(h => (
+                    {['Dag', 'Locatie', 'Openen', 'Sluiten', 'Cash omzet', 'Afdracht', 'Kasverschil', 'Beoordeling', 'Opmerkingen'].map(h => (
                       <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em', borderRight: '1px solid hsl(var(--border) / 0.6)' }}>{h}</th>
                     ))}
                   </tr>
@@ -581,6 +581,35 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
                           ) : (
                             <span style={{ color: 'hsl(var(--muted-foreground))' }}>—</span>
                           )}
+                        </td>
+                        <td style={cel}>
+                          {(() => {
+                            const b = beleving.get(d.key);
+                            const gevuld = b && BELEVING_MOMENTEN.some(m => b[m.key]);
+                            if (!gevuld) return <span style={{ color: 'hsl(var(--muted-foreground))' }}>—</span>;
+                            return (
+                              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                                {BELEVING_MOMENTEN.map(m => {
+                                  const waarde = b[m.key];
+                                  if (!waarde) return null;
+                                  const stijl = BELEVING_STIJL[waarde];
+                                  return (
+                                    <span
+                                      key={m.key}
+                                      title={`${m.key}: ${stijl.label}`}
+                                      style={{
+                                        display: 'inline-block', padding: '2px 8px', borderRadius: 999,
+                                        fontSize: 12, fontWeight: 600,
+                                        background: stijl.bg, color: stijl.color, whiteSpace: 'nowrap',
+                                      }}
+                                    >
+                                      {m.kort}: {stijl.label}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })()}
                         </td>
                         <td style={{ padding: '10px 12px', color: 'hsl(var(--muted-foreground))', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {opmerkingen || '—'}
