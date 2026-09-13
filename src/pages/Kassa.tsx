@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { devError } from "@/lib/devLog";
 import { withTimeout, getUserIdMetTimeout } from "@/lib/withTimeout";
+import { DagBeoordelingDialog } from '@/components/kassa/DagBeoordelingDialog';
 
 // Always get week number reliably using ISO 8601
 const getWeekNumber = (date: Date): number => {
@@ -48,6 +49,7 @@ const Kassa = () => {
   const { userLocation } = useUserLocation();
   const [showInstructionsDialog, setShowInstructionsDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showBeoordeling, setShowBeoordeling] = useState(false);
   const [naam, setNaam] = useState('');
   const [canSubmit, setCanSubmit] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState(0);
