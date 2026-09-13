@@ -42,6 +42,26 @@ interface DagRegel {
   kasverschil: number | null;
 }
 
+interface DagBeleving {
+  date: string;
+  location: string;
+  ontbijt: 'rustig' | 'gemiddeld' | 'druk' | null;
+  lunch: 'rustig' | 'gemiddeld' | 'druk' | null;
+  diner: 'rustig' | 'gemiddeld' | 'druk' | null;
+}
+
+const BELEVING_STIJL: Record<string, { label: string; color: string; bg: string }> = {
+  rustig: { label: 'rustig', color: 'hsl(var(--success))', bg: 'hsl(var(--success) / 0.12)' },
+  gemiddeld: { label: 'gemiddeld', color: 'hsl(var(--warning))', bg: 'hsl(var(--warning) / 0.12)' },
+  druk: { label: 'druk', color: 'hsl(var(--destructive))', bg: 'hsl(var(--destructive) / 0.12)' },
+};
+
+const BELEVING_MOMENTEN: { key: 'ontbijt' | 'lunch' | 'diner'; kort: string }[] = [
+  { key: 'ontbijt', kort: 'O' },
+  { key: 'lunch', kort: 'L' },
+  { key: 'diner', kort: 'D' },
+];
+
 const DENOM_ORDER = ['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'];
 
 /** Drempels voor het kasverschil (in euro). Hier aanpassen als de norm verandert. */
@@ -175,6 +195,7 @@ const bouwDagRegels = (rows: KassaAfdracht[]): DagRegel[] => {
 export const KasControleContent = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<KassaAfdracht[]>([]);
+  const [beleving, setBeleving] = useState<Map<string, DagBeleving>>(new Map());
   const [locationFilter, setLocationFilter] = useState<'all' | 'West' | 'Midsland'>('all');
 
   const today = new Date();
@@ -204,6 +225,25 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
     } else {
       setRows((data ?? []) as KassaAfdracht[]);
     }
+
+    // Dagbeoordelingen ophalen voor dezelfde periode (losse tabel, zacht falen)
+    let belevingQuery = supabase
+      .from('dag_beleving')
+      .select('date, location, ontbijt, lunch, diner')
+      .gte('date', fromDate)
+      .lte('date', toDate);
+    if (locationFilter !== 'all') belevingQuery = belevingQuery.eq('location', locationFilter);
+    const { data: belevingData, error: belevingError } = await belevingQuery;
+    if (belevingError) {
+      devError(belevingError);
+    } else {
+      const map = new Map<string, DagBeleving>();
+      for (const b of (belevingData ?? []) as DagBeleving[]) {
+        map.set(`${b.date}__${b.location}`, b);
+      }
+      setBeleving(map);
+    }
+
     setLoading(false);
   };
 
@@ -478,7 +518,7 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                 <thead>
                   <tr style={{ background: 'hsl(var(--muted))', borderBottom: '1px solid hsl(var(--border))' }}>
-                    {['Dag', 'Locatie', 'Openen', 'Sluiten', 'Cash omzet', 'Afdracht', 'Kasverschil', 'Opmerkingen'].map(h => (
+                    {['Dag', 'Locatie', 'Openen', 'Sluiten', 'Cash omzet', 'Afdracht', 'Kasverschil', 'Beoordeling', 'Opmerkingen'].map(h => (
                       <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', letterSpacing: '0.05em', borderRight: '1px solid hsl(var(--border) / 0.6)' }}>{h}</th>
                     ))}
                   </tr>
@@ -541,6 +581,35 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
                           ) : (
                             <span style={{ color: 'hsl(var(--muted-foreground))' }}>—</span>
                           )}
+                        </td>
+                        <td style={cel}>
+                          {(() => {
+                            const b = beleving.get(d.key);
+                            const gevuld = b && BELEVING_MOMENTEN.some(m => b[m.key]);
+                            if (!gevuld) return <span style={{ color: 'hsl(var(--muted-foreground))' }}>—</span>;
+                            return (
+                              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                                {BELEVING_MOMENTEN.map(m => {
+                                  const waarde = b[m.key];
+                                  if (!waarde) return null;
+                                  const stijl = BELEVING_STIJL[waarde];
+                                  return (
+                                    <span
+                                      key={m.key}
+                                      title={`${m.key}: ${stijl.label}`}
+                                      style={{
+                                        display: 'inline-block', padding: '2px 8px', borderRadius: 999,
+                                        fontSize: 12, fontWeight: 600,
+                                        background: stijl.bg, color: stijl.color, whiteSpace: 'nowrap',
+                                      }}
+                                    >
+                                      {m.kort}: {stijl.label}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })()}
                         </td>
                         <td style={{ padding: '10px 12px', color: 'hsl(var(--muted-foreground))', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {opmerkingen || '—'}

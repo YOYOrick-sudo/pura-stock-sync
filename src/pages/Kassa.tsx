@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { devError } from "@/lib/devLog";
 import { withTimeout, getUserIdMetTimeout } from "@/lib/withTimeout";
+import { DagBeoordelingDialog } from '@/components/kassa/DagBeoordelingDialog';
 
 // Always get week number reliably using ISO 8601
 const getWeekNumber = (date: Date): number => {
@@ -48,6 +49,7 @@ const Kassa = () => {
   const { userLocation } = useUserLocation();
   const [showInstructionsDialog, setShowInstructionsDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showBeoordeling, setShowBeoordeling] = useState(false);
   const [naam, setNaam] = useState('');
   const [canSubmit, setCanSubmit] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -623,18 +625,29 @@ const Kassa = () => {
               {new Date().toLocaleString('nl-NL')}
             </AlertDialogDescription>
             
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={() => {
                 setShowSuccessDialog(false);
-                navigate('/dashboard');
+                setShowBeoordeling(true);
               }}
               className="mt-6 bg-primary hover:bg-primary/90"
             >
-              Terug naar Dashboard
+              Verder
             </AlertDialogAction>
           </div>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dagbeoordeling na sluiting */}
+      <DagBeoordelingDialog
+        open={showBeoordeling}
+        location={userLocation ?? ''}
+        date={new Date().toISOString().slice(0, 10)}
+        onClose={() => {
+          setShowBeoordeling(false);
+          navigate('/dashboard');
+        }}
+      />
 
       {/* Instructies Dialog */}
       <Dialog open={showInstructionsDialog} onOpenChange={setShowInstructionsDialog}>
