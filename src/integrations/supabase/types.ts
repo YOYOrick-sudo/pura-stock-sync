@@ -571,6 +571,42 @@ export type Database = {
         }
         Relationships: []
       }
+      dag_beleving: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date: string
+          diner: string | null
+          id: string
+          location: string
+          lunch: string | null
+          notitie: string | null
+          ontbijt: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date: string
+          diner?: string | null
+          id?: string
+          location: string
+          lunch?: string | null
+          notitie?: string | null
+          ontbijt?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          diner?: string | null
+          id?: string
+          location?: string
+          lunch?: string | null
+          notitie?: string | null
+          ontbijt?: string | null
+        }
+        Relationships: []
+      }
       document_templates: {
         Row: {
           accommodation_id: string | null
