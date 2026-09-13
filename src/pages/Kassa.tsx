@@ -625,18 +625,29 @@ const Kassa = () => {
               {new Date().toLocaleString('nl-NL')}
             </AlertDialogDescription>
             
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={() => {
                 setShowSuccessDialog(false);
-                navigate('/dashboard');
+                setShowBeoordeling(true);
               }}
               className="mt-6 bg-primary hover:bg-primary/90"
             >
-              Terug naar Dashboard
+              Verder
             </AlertDialogAction>
           </div>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dagbeoordeling na sluiting */}
+      <DagBeoordelingDialog
+        open={showBeoordeling}
+        location={userLocation ?? ''}
+        date={new Date().toISOString().slice(0, 10)}
+        onClose={() => {
+          setShowBeoordeling(false);
+          navigate('/dashboard');
+        }}
+      />
 
       {/* Instructies Dialog */}
       <Dialog open={showInstructionsDialog} onOpenChange={setShowInstructionsDialog}>
