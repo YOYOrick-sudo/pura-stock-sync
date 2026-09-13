@@ -17,6 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { devError } from "@/lib/devLog";
+import { withTimeout, getUserIdMetTimeout } from "@/lib/withTimeout";
 
 // Always get week number reliably using ISO 8601
 const getWeekNumber = (date: Date): number => {
@@ -50,6 +51,7 @@ const Kassa = () => {
   const [naam, setNaam] = useState('');
   const [canSubmit, setCanSubmit] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [beginsaldoExpanded, setBeginsaldoExpanded] = useState(false);
 
   const [counts, setCounts] = useState({
@@ -158,6 +160,7 @@ const Kassa = () => {
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
     if (!validateForm()) {
       toast.error('Vul alle verplichte velden in');
       return;
@@ -170,15 +173,16 @@ const Kassa = () => {
       toast.error(`Je kunt pas over ${mins}m ${secs}s opnieuw indienen`);
       return;
     }
+    setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const userId = await getUserIdMetTimeout(supabase);
+      if (!userId) {
         toast.error('Niet ingelogd — log opnieuw in');
         return;
       }
 
-      const { error } = await supabase.from('kassa_afdrachten').insert({
-        created_by: user.id,
+      const { error } = await withTimeout(supabase.from('kassa_afdrachten').insert({
+        created_by: userId,
         location: userLocation,
         type: 'sluit',
         week_number: weekNumber,
@@ -196,7 +200,7 @@ const Kassa = () => {
           afdracht: afdracht,
           kasverschil: kasverschil,
         },
-      });
+      }));
 
       if (error) throw error;
 
@@ -219,6 +223,8 @@ const Kassa = () => {
         );
       } catch {}
       toast.error(`Opslaan mislukt: ${error?.message ?? 'onbekende fout'}. Je telling is lokaal bewaard — probeer opnieuw.`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -531,7 +537,7 @@ const Kassa = () => {
                 )}
                 <button 
                   onClick={handleSubmit}
-                  disabled={!canSubmit || !naam || naam.length < 2 || cashOmzet === ''}
+                  disabled={isSubmitting || !canSubmit || !naam || naam.length < 2 || cashOmzet === ''}
                   style={{
                     width: '100%',
                     padding: '20px',
@@ -561,7 +567,7 @@ const Kassa = () => {
                     }
                   }}
                 >
-                  {!canSubmit ? 'Wacht alsjeblieft...' : 'Verzenden'}
+                  {isSubmitting ? 'Bezig met versturen…' : !canSubmit ? 'Wacht alsjeblieft...' : 'Verzenden'}
                 </button>
                 
                 <button

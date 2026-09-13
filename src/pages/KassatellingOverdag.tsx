@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { devError } from "@/lib/devLog";
+import { withTimeout, getUserIdMetTimeout } from "@/lib/withTimeout";
 
 // Always get week number reliably using ISO 8601
 const getWeekNumber = (date: Date): number => {
@@ -32,6 +33,7 @@ const KassatellingOverdag = () => {
   const [naam, setNaam] = useState('');
   const [canSubmit, setCanSubmit] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [kassaLade, setKassaLade] = useState({
     '500': '' as number | '',
     '200': '' as number | '',
@@ -153,6 +155,7 @@ const KassatellingOverdag = () => {
   };
   
   const handleSubmit = async () => {
+    if (isSubmitting) return;
     if (!validateForm()) {
       toast.error('Vul alle verplichte velden in');
       return;
@@ -165,15 +168,16 @@ const KassatellingOverdag = () => {
       toast.error(`Je kunt pas over ${mins}m ${secs}s opnieuw indienen`);
       return;
     }
+    setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const userId = await getUserIdMetTimeout(supabase);
+      if (!userId) {
         toast.error('Niet ingelogd — log opnieuw in');
         return;
       }
 
-      const { error } = await supabase.from('kassa_afdrachten').insert({
-        created_by: user.id,
+      const { error } = await withTimeout(supabase.from('kassa_afdrachten').insert({
+        created_by: userId,
         location: userLocation,
         type: 'open',
         week_number: weekNumber,
@@ -185,7 +189,7 @@ const KassatellingOverdag = () => {
         wisselkas_total: wisselkasTotal,
         total: total,
         opmerkingen: opmerkingen.trim() || null,
-      });
+      }));
 
       if (error) throw error;
 
@@ -209,6 +213,8 @@ const KassatellingOverdag = () => {
         );
       } catch {}
       toast.error(`Opslaan mislukt: ${error?.message ?? 'onbekende fout'}. Je telling is lokaal bewaard — probeer opnieuw.`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
   return (
@@ -432,7 +438,7 @@ const KassatellingOverdag = () => {
                   )}
                   <button 
                     onClick={handleSubmit}
-                    disabled={!canSubmit || !naam || naam.length < 2}
+                    disabled={isSubmitting || !canSubmit || !naam || naam.length < 2}
                     style={{
                       width: '100%',
                       padding: '14px 20px',
@@ -463,7 +469,7 @@ const KassatellingOverdag = () => {
                       }
                     }}
                   >
-                    {!canSubmit ? 'Wacht alsjeblieft...' : 'Verzenden'}
+                    {isSubmitting ? 'Bezig met versturen…' : !canSubmit ? 'Wacht alsjeblieft...' : 'Verzenden'}
                   </button>
                   
                   <button 
