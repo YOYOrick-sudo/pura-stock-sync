@@ -225,6 +225,25 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
     } else {
       setRows((data ?? []) as KassaAfdracht[]);
     }
+
+    // Dagbeoordelingen ophalen voor dezelfde periode (losse tabel, zacht falen)
+    let belevingQuery = supabase
+      .from('dag_beleving')
+      .select('date, location, ontbijt, lunch, diner')
+      .gte('date', fromDate)
+      .lte('date', toDate);
+    if (locationFilter !== 'all') belevingQuery = belevingQuery.eq('location', locationFilter);
+    const { data: belevingData, error: belevingError } = await belevingQuery;
+    if (belevingError) {
+      devError(belevingError);
+    } else {
+      const map = new Map<string, DagBeleving>();
+      for (const b of (belevingData ?? []) as DagBeleving[]) {
+        map.set(`${b.date}__${b.location}`, b);
+      }
+      setBeleving(map);
+    }
+
     setLoading(false);
   };
 
