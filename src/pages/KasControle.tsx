@@ -42,6 +42,26 @@ interface DagRegel {
   kasverschil: number | null;
 }
 
+interface DagBeleving {
+  date: string;
+  location: string;
+  ontbijt: 'rustig' | 'gemiddeld' | 'druk' | null;
+  lunch: 'rustig' | 'gemiddeld' | 'druk' | null;
+  diner: 'rustig' | 'gemiddeld' | 'druk' | null;
+}
+
+const BELEVING_STIJL: Record<string, { label: string; color: string; bg: string }> = {
+  rustig: { label: 'rustig', color: 'hsl(var(--success))', bg: 'hsl(var(--success) / 0.12)' },
+  gemiddeld: { label: 'gemiddeld', color: 'hsl(var(--warning))', bg: 'hsl(var(--warning) / 0.12)' },
+  druk: { label: 'druk', color: 'hsl(var(--destructive))', bg: 'hsl(var(--destructive) / 0.12)' },
+};
+
+const BELEVING_MOMENTEN: { key: 'ontbijt' | 'lunch' | 'diner'; kort: string }[] = [
+  { key: 'ontbijt', kort: 'O' },
+  { key: 'lunch', kort: 'L' },
+  { key: 'diner', kort: 'D' },
+];
+
 const DENOM_ORDER = ['500', '200', '100', '50', '20', '10', '5', '2', '1', '0.50', '0.20', '0.10', '0.05'];
 
 /** Drempels voor het kasverschil (in euro). Hier aanpassen als de norm verandert. */
@@ -175,6 +195,7 @@ const bouwDagRegels = (rows: KassaAfdracht[]): DagRegel[] => {
 export const KasControleContent = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<KassaAfdracht[]>([]);
+  const [beleving, setBeleving] = useState<Map<string, DagBeleving>>(new Map());
   const [locationFilter, setLocationFilter] = useState<'all' | 'West' | 'Midsland'>('all');
 
   const today = new Date();
