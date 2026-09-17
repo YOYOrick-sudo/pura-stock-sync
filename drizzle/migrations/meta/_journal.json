@@ -92,6 +92,13 @@
       "when": 1789672509454,
       "tag": "0012_voorraad_lades",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1789675793743,
+      "tag": "0013_voorraad_reserve_doel",
+      "breakpoints": true
     }
   ]
 }

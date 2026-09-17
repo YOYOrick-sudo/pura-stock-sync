@@ -11,7 +11,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
-import { Check, GripVertical, Pencil, X } from 'lucide-react';
+import { Check, GripVertical, Minus, Pencil, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -37,16 +37,56 @@ function ProductChip({ item, actief }: { item: KoelcelCheckItem; actief?: boolea
   );
 }
 
-function SleepbaarProduct({ item }: { item: KoelcelCheckItem }) {
+/** Product met sleepgreep en het aantal reservebakjes dat erachter hoort te staan. */
+function SleepbaarProduct({
+  item,
+  onReserve,
+}: {
+  item: KoelcelCheckItem;
+  onReserve?: (aantal: number) => void;
+}) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });
+  const reserve = Math.max(Number(item.reserve_doel ?? 0), 0);
+
   return (
     <div
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      className={`touch-none ${isDragging ? 'opacity-40' : ''}`}
+      className={`flex items-center gap-1.5 rounded-[12px] border border-border bg-card px-2 py-1.5 ${
+        isDragging ? 'opacity-40' : ''
+      }`}
+      style={{ minHeight: 44 }}
     >
-      <ProductChip item={item} />
+      <div
+        ref={setNodeRef}
+        {...listeners}
+        {...attributes}
+        className="flex min-w-0 flex-1 touch-none items-center gap-1.5"
+      >
+        <GripVertical size={14} className="shrink-0 text-muted-foreground" />
+        <span className="truncate text-[13px] font-medium text-foreground">{item.naam}</span>
+      </div>
+      {onReserve && (
+        <div className="flex shrink-0 items-center gap-0.5">
+          <button
+            type="button"
+            aria-label="Minder reserve"
+            onClick={() => onReserve(reserve - 1)}
+            className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-border text-muted-foreground"
+          >
+            <Minus size={14} />
+          </button>
+          <span className="w-6 text-center text-[13px] font-bold tabular-nums text-foreground">
+            {reserve}
+          </span>
+          <button
+            type="button"
+            aria-label="Meer reserve"
+            onClick={() => onReserve(reserve + 1)}
+            className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-border text-muted-foreground"
+          >
+            <Plus size={14} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -56,12 +96,17 @@ function LadeVak({
   items,
   onHernoem,
   onZetActief,
+  onZetRol,
+  onReserve,
 }: {
   lade: VoorraadLade;
   items: KoelcelCheckItem[];
   onHernoem: (naam: string) => void;
   onZetActief: (actief: boolean) => void;
+  onZetRol: (rol: 'werk' | 'reserve') => void;
+  onReserve: (itemId: string, aantal: number) => void;
 }) {
+  const isReserve = lade.rol === 'reserve';
   const { setNodeRef, isOver } = useDroppable({ id: `lade:${lade.id}`, disabled: !lade.actief });
   const [bewerk, setBewerk] = useState(false);
   const [naam, setNaam] = useState(lade.naam);
@@ -104,6 +149,7 @@ function LadeVak({
               <p className="truncate text-[14px] font-bold text-foreground">{lade.naam}</p>
               <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
                 {positieLabel(lade)}
+                {isReserve ? ' · reservelade' : ''}
               </p>
             </>
           )}
@@ -129,17 +175,32 @@ function LadeVak({
             {lade.actief ? 'Sleep hier producten naartoe' : 'Niet in gebruik'}
           </p>
         ) : (
-          items.map((i) => <SleepbaarProduct key={i.id} item={i} />)
+          items.map((i) => (
+            <SleepbaarProduct key={i.id} item={i} onReserve={(a) => onReserve(i.id, a)} />
+          ))
         )}
       </div>
 
-      <button
-        type="button"
-        onClick={() => onZetActief(!lade.actief)}
-        className="mt-2 text-left text-[11px] font-medium text-muted-foreground underline-offset-2 hover:underline"
-      >
-        {lade.actief ? 'Lade niet in gebruik' : 'Lade weer in gebruik'}
-      </button>
+      <div className="mt-2 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => onZetRol(isReserve ? 'werk' : 'reserve')}
+          className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+            isReserve
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'border-border bg-card text-muted-foreground'
+          }`}
+        >
+          {isReserve ? 'Reservelade' : 'Werklade'}
+        </button>
+        <button
+          type="button"
+          onClick={() => onZetActief(!lade.actief)}
+          className="text-left text-[11px] font-medium text-muted-foreground underline-offset-2 hover:underline"
+        >
+          {lade.actief ? 'Lade niet in gebruik' : 'Lade weer in gebruik'}
+        </button>
+      </div>
     </div>
   );
 }
@@ -148,7 +209,7 @@ function LadeVak({
 export function LadeGrid({ vestiging }: { vestiging: string }) {
   const ladesQuery = useVoorraadLades(vestiging);
   const itemsQuery = useKoelcelCheckItems(vestiging);
-  const { hernoem, zetActief, verplaatsItem } = useLadeMutaties(vestiging);
+  const { hernoem, zetActief, verplaatsItem, zetRol, zetReserveDoel } = useLadeMutaties(vestiging);
   const [sleept, setSleept] = useState<KoelcelCheckItem | null>(null);
 
   const sensors = useSensors(
@@ -214,6 +275,8 @@ export function LadeGrid({ vestiging }: { vestiging: string }) {
                     items={perLade.get(lade.id) ?? []}
                     onHernoem={(naam) => hernoem.mutate({ id: lade.id, naam })}
                     onZetActief={(actief) => zetActief.mutate({ id: lade.id, actief })}
+                    onZetRol={(rol) => zetRol.mutate({ id: lade.id, rol })}
+                    onReserve={(itemId, aantal) => zetReserveDoel.mutate({ itemId, aantal })}
                   />
                 ))}
             </div>
@@ -235,7 +298,11 @@ export function LadeGrid({ vestiging }: { vestiging: string }) {
           ) : (
             <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
               {nietIngedeeld.map((i) => (
-                <SleepbaarProduct key={i.id} item={i} />
+                <SleepbaarProduct
+                  key={i.id}
+                  item={i}
+                  onReserve={(a) => zetReserveDoel.mutate({ itemId: i.id, aantal: a })}
+                />
               ))}
             </div>
           )}

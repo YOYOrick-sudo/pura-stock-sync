@@ -11,6 +11,8 @@ export interface VoorraadLade {
   rij: number;
   volgorde: number;
   actief: boolean;
+  /** 'reserve' = hier staan de reservebakjes; die lades tel je eerst. */
+  rol?: 'werk' | 'reserve';
 }
 
 export const KOLOM_LABEL: Record<number, string> = { 1: 'Links', 2: 'Midden', 3: 'Rechts' };
@@ -116,5 +118,26 @@ export function useLadeMutaties(vestiging: string) {
     onSuccess: ververs,
   });
 
-  return { hernoem, zetActief, verplaatsItem, zetVolgorde };
+  /** Lade aanwijzen als werklade of reservelade. */
+  const zetRol = useMutation({
+    mutationFn: async ({ id, rol }: { id: string; rol: 'werk' | 'reserve' }) => {
+      const { error } = await supabase.from('voorraad_lades').update({ rol }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: ververs,
+  });
+
+  /** Hoeveel reservebakjes er van een product achter de hand horen te staan. */
+  const zetReserveDoel = useMutation({
+    mutationFn: async ({ itemId, aantal }: { itemId: string; aantal: number }) => {
+      const { error } = await supabase
+        .from('koelcel_check_items')
+        .update({ reserve_doel: Math.max(Math.round(aantal), 0) })
+        .eq('id', itemId);
+      if (error) throw error;
+    },
+    onSuccess: ververs,
+  });
+
+  return { hernoem, zetActief, verplaatsItem, zetVolgorde, zetRol, zetReserveDoel };
 }

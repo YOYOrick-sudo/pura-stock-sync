@@ -1887,6 +1887,7 @@ export type Database = {
           naam: string
           plek: string
           product_sleutel: string | null
+          reserve_doel: number
           type: string
           updated_at: string
           vestiging: string
@@ -1907,6 +1908,7 @@ export type Database = {
           naam: string
           plek?: string
           product_sleutel?: string | null
+          reserve_doel?: number
           type?: string
           updated_at?: string
           vestiging: string
@@ -1927,6 +1929,7 @@ export type Database = {
           naam?: string
           plek?: string
           product_sleutel?: string | null
+          reserve_doel?: number
           type?: string
           updated_at?: string
           vestiging?: string
@@ -4453,6 +4456,7 @@ export type Database = {
           naam: string
           plek: string
           rij: number
+          rol: string
           updated_at: string
           vestiging: string
           volgorde: number
@@ -4465,6 +4469,7 @@ export type Database = {
           naam: string
           plek?: string
           rij: number
+          rol?: string
           updated_at?: string
           vestiging: string
           volgorde?: number
@@ -4477,6 +4482,7 @@ export type Database = {
           naam?: string
           plek?: string
           rij?: number
+          rol?: string
           updated_at?: string
           vestiging?: string
           volgorde?: number
