@@ -320,6 +320,7 @@ const App = () => {
             <Route path="/kitchen/bestelbord" element={<ProtectedRoute><Bestelbord /></ProtectedRoute>} />
             <Route path="/settings/mep" element={<ProtectedRoute><MepInstellingen /></ProtectedRoute>} />
             <Route path="/settings/keten" element={<ProtectedRoute><RequireManager><KetenBeheer /></RequireManager></ProtectedRoute>} />
+            <Route path="/settings/koelwerkbank" element={<ProtectedRoute><RequireManager><KoelwerkbankIndeling /></RequireManager></ProtectedRoute>} />
 
             <Route path="/kitchen/snel-printen" element={<ProtectedRoute><SnelPrinten /></ProtectedRoute>} />
 
