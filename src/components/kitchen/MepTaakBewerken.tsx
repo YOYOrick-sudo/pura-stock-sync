@@ -113,12 +113,12 @@ export function MepTaakBewerken({
 
   return (
     <Dialog open={!!taak} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[650px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[650px] max-h-[90dvh] flex flex-col gap-3 overflow-hidden">
         <DialogHeader>
           <DialogTitle className="text-left">{taak?.titel}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-5">
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-1">
           {handelingen.length > 0 && (
             <div className="space-y-2">
               <Label>Wat moet ermee gebeuren?</Label>
@@ -153,18 +153,30 @@ export function MepTaakBewerken({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Prioriteit</Label>
-            <div className="flex flex-wrap gap-2">
-              {PRIO.map((p) => (
-                <Chip
-                  key={p.waarde}
-                  actief={prioriteit === p.waarde}
-                  onClick={() => setPrioriteit(p.waarde)}
-                >
-                  {p.label}
-                </Chip>
-              ))}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Prioriteit</Label>
+              <div className="flex flex-wrap gap-2">
+                {PRIO.map((p) => (
+                  <Chip
+                    key={p.waarde}
+                    actief={prioriteit === p.waarde}
+                    onClick={() => setPrioriteit(p.waarde)}
+                  >
+                    {p.label}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="mep-deadline">Klaar voor</Label>
+              <Input
+                id="mep-deadline"
+                type="time"
+                className="h-12"
+                value={deadline}
+                onChange={(e) => setDeadline(e.target.value)}
+              />
             </div>
           </div>
 
@@ -192,16 +204,6 @@ export function MepTaakBewerken({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="mep-deadline">Klaar voor</Label>
-            <Input
-              id="mep-deadline"
-              type="time"
-              className="h-12"
-              value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
-            />
-          </div>
 
           <div className="space-y-2">
             <Label htmlFor="mep-notitie">Notitie</Label>
@@ -215,7 +217,7 @@ export function MepTaakBewerken({
           </div>
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="shrink-0 gap-2 border-t border-border/60 pt-3 bg-background">
           <Button
             variant="outline"
             className="h-12"
@@ -224,8 +226,8 @@ export function MepTaakBewerken({
           >
             Annuleren
           </Button>
-          <Button className="h-12" onClick={opslaan} disabled={bezig}>
-            Opslaan
+          <Button className="h-12 min-w-[120px]" onClick={opslaan} disabled={bezig}>
+            {bezig ? 'Opslaan…' : 'Opslaan'}
           </Button>
         </DialogFooter>
       </DialogContent>
