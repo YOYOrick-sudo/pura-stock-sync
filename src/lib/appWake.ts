@@ -101,6 +101,12 @@ async function checkNieuweVersie() {
  * stille herlaadbeurt — beter een seconde wachten dan een dood scherm.
  */
 export async function herstelOfHerlaad(): Promise<boolean> {
+  // Zonder net heeft herstellen of herladen geen zin: dat zou de app alleen
+  // maar leeggooien. Wachten tot de verbinding terug is.
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return false;
+  }
+
   void checkNieuweVersie();
 
   const noodrem = new Promise<'timeout'>((r) => setTimeout(() => r('timeout'), NOODREM_MS));

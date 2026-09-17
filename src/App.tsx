@@ -9,6 +9,7 @@ import { RequireManager } from "@/components/RequireManager";
 import { RequireOwner } from "@/components/RequireOwner";
 import { UserLocationProvider, useUserLocation } from "@/contexts/UserLocationContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
@@ -146,6 +147,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <AuthProvider>
           <UserLocationProvider>
             <Routes>
             {/* Auth routes */}
@@ -401,6 +403,7 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
             </Routes>
           </UserLocationProvider>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
