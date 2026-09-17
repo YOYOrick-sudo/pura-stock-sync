@@ -253,6 +253,56 @@ function TelRegel({
     );
   }
 
+  // Koelwerkbank zonder reserve: je kijkt in het bakje en tikt wat je ziet.
+  if (vulling) {
+    const tekort = afwijkend && waarde < doel - 0.001;
+    return (
+      <div
+        className={`rounded-[14px] border p-3 transition-colors ${
+          tekort ? 'border-amber-400/70 bg-amber-50/70 dark:bg-amber-500/10' : 'border-border bg-card'
+        }`}
+      >
+        <div className="mb-2 flex items-center gap-2">
+          {kopRegel}
+          {afwijkend && (
+            <button
+              type="button"
+              onClick={onHerstel}
+              className="ml-auto shrink-0 text-[12px] font-medium text-muted-foreground underline-offset-2 hover:underline"
+            >
+              wissen
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-4 gap-1.5">
+          {VUL_KEUZES.map((k) => {
+            const actief = afwijkend && Math.abs(waarde - k.waarde) < 0.001;
+            return (
+              <button
+                key={k.label}
+                type="button"
+                onClick={() => onZet(k.waarde)}
+                className={`flex items-center justify-center rounded-[12px] border text-[13px] font-semibold capitalize ${
+                  actief
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border bg-card text-foreground'
+                }`}
+                style={{ minHeight: 44 }}
+              >
+                {k.label}
+              </button>
+            );
+          })}
+        </div>
+        {tekort && (
+          <p className="mt-2 text-[12px] font-medium text-amber-700 dark:text-amber-300">
+            Bijvullen tot {vulnormWaarde(item) === 0.5 ? 'de helft' : 'vol'}
+          </p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div
       className={`rounded-[14px] border transition-colors ${
