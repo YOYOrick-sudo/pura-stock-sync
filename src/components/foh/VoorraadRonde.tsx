@@ -847,25 +847,41 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                     </span>
                   </div>
                 </div>
+                {p.plek === 'werkbank' && (
+                  <KastOverzicht
+                    vakken={kastVakken.filter((v) => v.lade)}
+                    losseVakken={kastVakken.filter((v) => !v.lade)}
+                    onTik={springNaar}
+                  />
+                )}
                 <div className="space-y-2 pl-2">
                   {p.groepen.map((g) => (
-                    <CategorieBlok
+                    <div
                       key={g.sleutel}
-                      titel={g.titel}
-                      subtitel={g.subtitel}
-                      lade={g.lade}
-                      items={g.items}
-                      drukte={drukte}
-                      telling={telling}
-                      onderwegMap={onderwegMap}
-                      bestelbordMap={bestelbordMap}
-                      mepTitels={mepTitels}
-                      bevestigd={bevestigd.includes(g.sleutel)}
-                      onBevestig={() => setBevestigd((b) => [...new Set([...b, g.sleutel])])}
-                      onHeropen={() => setBevestigd((b) => b.filter((s) => s !== g.sleutel))}
-                      onZet={zet}
-                      onHerstel={herstel}
-                    />
+                      ref={(el) => {
+                        blokRefs.current[g.sleutel] = el;
+                      }}
+                      className={`scroll-mt-24 rounded-[18px] transition-shadow ${
+                        gemarkeerd === g.sleutel ? 'ring-2 ring-primary ring-offset-2' : ''
+                      }`}
+                    >
+                      <CategorieBlok
+                        titel={g.titel}
+                        subtitel={g.subtitel}
+                        lade={g.lade}
+                        items={g.items}
+                        drukte={drukte}
+                        telling={telling}
+                        onderwegMap={onderwegMap}
+                        bestelbordMap={bestelbordMap}
+                        mepTitels={mepTitels}
+                        bevestigd={bevestigd.includes(g.sleutel)}
+                        onBevestig={() => setBevestigd((b) => [...new Set([...b, g.sleutel])])}
+                        onHeropen={() => setBevestigd((b) => b.filter((s) => s !== g.sleutel))}
+                        onZet={zet}
+                        onHerstel={herstel}
+                      />
+                    </div>
                   ))}
                 </div>
               </div>
