@@ -196,6 +196,7 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<KassaAfdracht[]>([]);
   const [beleving, setBeleving] = useState<Map<string, DagBeleving>>(new Map());
+  const [actieveTab, setActieveTab] = useState<'tellingen' | 'beoordelingen'>('tellingen');
   const [locationFilter, setLocationFilter] = useState<'all' | 'West' | 'Midsland'>('all');
 
   const today = new Date();
@@ -284,6 +285,36 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
     }
     return uit;
   }, [dagen]);
+
+  /** Beoordelingen: chronologische lijst + tellers per moment, nieuwste eerst. */
+  const belevingLijst = useMemo(
+    () =>
+      Array.from(beleving.values()).sort((a, b) =>
+        a.date === b.date ? a.location.localeCompare(b.location) : a.date < b.date ? 1 : -1,
+      ),
+    [beleving],
+  );
+
+  const belevingTellers = useMemo(() => {
+    const tellers: Record<'ontbijt' | 'lunch' | 'diner', Record<'rustig' | 'gemiddeld' | 'druk', number>> = {
+      ontbijt: { rustig: 0, gemiddeld: 0, druk: 0 },
+      lunch: { rustig: 0, gemiddeld: 0, druk: 0 },
+      diner: { rustig: 0, gemiddeld: 0, druk: 0 },
+    };
+    let nietIngevuld = 0;
+    for (const b of belevingLijst) {
+      let iets = false;
+      for (const m of BELEVING_MOMENTEN) {
+        const w = b[m.key];
+        if (w) {
+          tellers[m.key][w] += 1;
+          iets = true;
+        }
+      }
+      if (!iets) nietIngevuld += 1;
+    }
+    return { tellers, nietIngevuld, totaal: belevingLijst.length };
+  }, [belevingLijst]);
 
   const zetPeriode = (soort: 'deze-week' | 'vorige-week' | 'deze-maand') => {
     const nu = new Date();
