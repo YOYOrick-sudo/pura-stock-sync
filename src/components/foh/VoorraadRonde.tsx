@@ -747,7 +747,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
         <div className="space-y-6">
           {categorieGroepen.map((p) => {
             const PlekIcoon = p.icoon;
-            const klaarHier = p.categorieen.filter(([cat]) => bevestigd.includes(`${p.plek}:${cat}`)).length;
+            const klaarHier = p.groepen.filter((g) => bevestigd.includes(g.sleutel)).length;
             return (
               <div key={p.plek}>
                 <div className="sticky top-0 z-10 -mx-1 mb-3 rounded-[14px] border border-border bg-card/95 px-3 py-2.5 backdrop-blur">
@@ -764,31 +764,30 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                       </span>
                     </span>
                     <span className="ml-auto shrink-0 rounded-full bg-muted px-2.5 py-1 text-[12px] font-semibold tabular-nums text-muted-foreground">
-                      {klaarHier}/{p.categorieen.length}
+                      {klaarHier}/{p.groepen.length}
                     </span>
                   </div>
                 </div>
                 <div className="space-y-2 pl-2">
-                  {p.categorieen.map(([cat, catItems]) => {
-                    const sleutel = `${p.plek}:${cat}`;
-                    return (
-                      <CategorieBlok
-                        key={sleutel}
-                        titel={cat}
-                        items={catItems}
-                        drukte={drukte}
-                        telling={telling}
-                        onderwegMap={onderwegMap}
-                        bestelbordMap={bestelbordMap}
-                        mepTitels={mepTitels}
-                        bevestigd={bevestigd.includes(sleutel)}
-                        onBevestig={() => setBevestigd((b) => [...new Set([...b, sleutel])])}
-                        onHeropen={() => setBevestigd((b) => b.filter((s) => s !== sleutel))}
-                        onZet={zet}
-                        onHerstel={herstel}
-                      />
-                    );
-                  })}
+                  {p.groepen.map((g) => (
+                    <CategorieBlok
+                      key={g.sleutel}
+                      titel={g.titel}
+                      subtitel={g.subtitel}
+                      lade={g.lade}
+                      items={g.items}
+                      drukte={drukte}
+                      telling={telling}
+                      onderwegMap={onderwegMap}
+                      bestelbordMap={bestelbordMap}
+                      mepTitels={mepTitels}
+                      bevestigd={bevestigd.includes(g.sleutel)}
+                      onBevestig={() => setBevestigd((b) => [...new Set([...b, g.sleutel])])}
+                      onHeropen={() => setBevestigd((b) => b.filter((s) => s !== g.sleutel))}
+                      onZet={zet}
+                      onHerstel={herstel}
+                    />
+                  ))}
                 </div>
               </div>
             );
