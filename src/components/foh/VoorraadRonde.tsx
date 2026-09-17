@@ -36,8 +36,19 @@ import {
 } from '@/hooks/useKoelcelCheck';
 import { useCreateStickerPrintJob } from '@/hooks/useStickerProducten';
 import { aantalLabel, getalLabel, formaatLabel } from '@/lib/voorraad-formaat';
+import { useVoorraadLades, positieLabel, type VoorraadLade } from '@/hooks/useVoorraadLades';
+import { LadePositie } from '@/components/voorraad/LadePositie';
 
 type ItemMetCategorie = KoelcelCheckItem & { categorie?: string | null; formaat?: string | null };
+
+/** Eén telblok binnen een opslagplek: een lade (koelwerkbank) of een categorie. */
+interface Groep {
+  sleutel: string;
+  titel: string;
+  subtitel: string | null;
+  lade: VoorraadLade | null;
+  items: ItemMetCategorie[];
+}
 
 /** De plekken in de volgorde waarin je er fysiek langsloopt. */
 const PLEK_VOLGORDE: {
@@ -273,6 +284,8 @@ function CategorieBlok({
   onHeropen,
   onZet,
   onHerstel,
+  subtitel,
+  lade,
 }: {
   titel: string;
   items: ItemMetCategorie[];
@@ -286,6 +299,8 @@ function CategorieBlok({
   onHeropen: () => void;
   onZet: (id: string, aantal: number) => void;
   onHerstel: (id: string) => void;
+  subtitel?: string | null;
+  lade?: VoorraadLade | null;
 }) {
   const afwijkingen = items.filter((i) => telling[i.id] !== undefined).length;
 
@@ -297,13 +312,14 @@ function CategorieBlok({
         className="flex w-full items-center justify-between rounded-[14px] border border-primary/30 bg-primary/5 px-3 py-3 text-left"
         style={{ minHeight: 52 }}
       >
-        <span className="flex items-center gap-2 text-[15px] font-semibold text-foreground">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
+        <span className="flex min-w-0 items-center gap-2 text-[15px] font-semibold text-foreground">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Check size={14} />
           </span>
-          {titel}
+          <span className="truncate">{titel}</span>
+          {lade && <LadePositie lade={lade} metNaam={false} className="shrink-0" />}
         </span>
-        <span className="text-[12px] text-muted-foreground">
+        <span className="shrink-0 text-[12px] text-muted-foreground">
           {afwijkingen > 0 ? `${afwijkingen} aangepast` : `${items.length} op peil`}
         </span>
       </button>
@@ -313,8 +329,16 @@ function CategorieBlok({
   return (
     <div className="rounded-[18px] border border-border bg-muted/30 p-3">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <h4 className="text-[15px] font-bold text-foreground">{titel}</h4>
-        <Badge variant="secondary" className="text-[11px]">
+        <div className="flex min-w-0 items-center gap-2">
+          {lade && <LadePositie lade={lade} metNaam={false} className="shrink-0" />}
+          <div className="min-w-0">
+            <h4 className="truncate text-[15px] font-bold text-foreground">{titel}</h4>
+            {subtitel && (
+              <p className="truncate text-[11px] uppercase tracking-wide text-muted-foreground">{subtitel}</p>
+            )}
+          </div>
+        </div>
+        <Badge variant="secondary" className="shrink-0 text-[11px]">
           {items.length} {items.length === 1 ? 'product' : 'producten'}
         </Badge>
       </div>
@@ -337,7 +361,7 @@ function CategorieBlok({
 
       <Button onClick={onBevestig} className="mt-3 h-12 w-full rounded-[14px] text-[15px] font-semibold">
         <Check size={18} className="mr-1" />
-        {afwijkingen > 0 ? 'Categorie klaar' : 'Klopt, ligt er'}
+        {afwijkingen > 0 ? 'Klaar' : 'Klopt, ligt er'}
       </Button>
     </div>
   );
@@ -375,6 +399,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const drukteQuery = useDrukteModus(vestiging);
   const drukte: DrukteModus = drukteQuery.data ?? 'rustig';
   const printSticker = useCreateStickerPrintJob();
+  const ladesQuery = useVoorraadLades(vestiging);
+  const lades = useMemo(() => ladesQuery.data ?? [], [ladesQuery.data]);
 
   const items = useMemo(
     () => (itemsQuery.data ?? []) as ItemMetCategorie[],
@@ -434,21 +460,54 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const categorieGroepen = useMemo(
     () =>
       plekken.map((p) => {
+        // Koelwerkbank tel je per lade: je trekt een lade open, niet een categorie.
+        if (p.plek === 'werkbank' && lades.length > 0) {
+          const groepen: Groep[] = [];
+          for (const lade of lades.filter((l) => l.actief)) {
+            const ladeItems = p.items.filter((i) => i.lade_id === lade.id);
+            if (!ladeItems.length) continue;
+            groepen.push({
+              sleutel: `werkbank:lade:${lade.id}`,
+              titel: lade.naam,
+              subtitel: positieLabel(lade),
+              lade,
+              items: ladeItems,
+            });
+          }
+          const rest = p.items.filter((i) => !i.lade_id || !lades.some((l) => l.actief && l.id === i.lade_id));
+          if (rest.length) {
+            groepen.push({
+              sleutel: 'werkbank:lade:geen',
+              titel: 'Nog niet ingedeeld',
+              subtitel: 'Zet deze in een lade via Beheer',
+              lade: null,
+              items: rest,
+            });
+          }
+          return { ...p, groepen };
+        }
+
         const perCategorie = new Map<string, ItemMetCategorie[]>();
         for (const item of p.items) {
           const cat = categorieVan(item);
           perCategorie.set(cat, [...(perCategorie.get(cat) ?? []), item]);
         }
-        const gesorteerd = [...perCategorie.entries()].sort(
-          (a, b) => CATEGORIE_VOLGORDE.indexOf(a[0]) - CATEGORIE_VOLGORDE.indexOf(b[0]),
-        );
-        return { ...p, categorieen: gesorteerd };
+        const groepen: Groep[] = [...perCategorie.entries()]
+          .sort((a, b) => CATEGORIE_VOLGORDE.indexOf(a[0]) - CATEGORIE_VOLGORDE.indexOf(b[0]))
+          .map(([cat, catItems]) => ({
+            sleutel: `${p.plek}:${cat}`,
+            titel: cat,
+            subtitel: null,
+            lade: null,
+            items: catItems,
+          }));
+        return { ...p, groepen };
       }),
-    [plekken],
+    [plekken, lades],
   );
 
   const alleSleutels = useMemo(
-    () => categorieGroepen.flatMap((p) => p.categorieen.map(([cat]) => `${p.plek}:${cat}`)),
+    () => categorieGroepen.flatMap((p) => p.groepen.map((g) => g.sleutel)),
     [categorieGroepen],
   );
   const klaarAantal = alleSleutels.filter((s) => bevestigd.includes(s)).length;
@@ -491,6 +550,11 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
       delete kopie[id];
       return kopie;
     });
+
+  /** In welke lade van de koelwerkbank dit product hoort (of null). */
+  const ladeVan = (item: ItemMetCategorie): VoorraadLade | null =>
+    (item.lade_id ? lades.find((l) => l.id === item.lade_id) : null) ?? null;
+
 
   const printOntdooid = (item: ItemMetCategorie, aantal: number) => {
     const vandaag = new Date();
@@ -573,7 +637,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
         <span className="block text-[12px] text-muted-foreground">
           {afgerond
             ? 'Afgerond — aanvulbon is doorgezet'
-            : `${klaarAantal}/${alleSleutels.length} categorieën geteld`}
+            : `${klaarAantal}/${alleSleutels.length} onderdelen geteld`}
         </span>
       </span>
       <ChevronDown
@@ -646,6 +710,9 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                               {getalLabel(r.doel)} nodig · {getalLabel(r.geteld)} geteld
                               {r.onderItem ? ` · uit ${HERKOMST_LABEL[r.onderItem.plek]}` : ''}
                             </span>
+                            {ladeVan(r.item) && (
+                              <LadePositie lade={ladeVan(r.item)} className="mt-0.5" />
+                            )}
                           </span>
                           <span className="shrink-0 text-[14px] font-bold tabular-nums text-primary">
                             {aantalLabel(r.tekort, r.item.eenheid)}
@@ -676,7 +743,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
     return (
       <div className="mt-2 rounded-[18px] border border-border bg-card p-4">
         <p className="mb-3 text-[13px] text-muted-foreground">
-          Loop de kasten langs en bevestig per categorie. Tik alleen een product aan als er minder ligt.
+          Koelwerkbank tel je per lade, de rest per categorie. Tik alleen een product aan als er minder ligt.
         </p>
         <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-muted">
           <div
@@ -688,7 +755,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
         <div className="space-y-6">
           {categorieGroepen.map((p) => {
             const PlekIcoon = p.icoon;
-            const klaarHier = p.categorieen.filter(([cat]) => bevestigd.includes(`${p.plek}:${cat}`)).length;
+            const klaarHier = p.groepen.filter((g) => bevestigd.includes(g.sleutel)).length;
             return (
               <div key={p.plek}>
                 <div className="sticky top-0 z-10 -mx-1 mb-3 rounded-[14px] border border-border bg-card/95 px-3 py-2.5 backdrop-blur">
@@ -705,31 +772,30 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                       </span>
                     </span>
                     <span className="ml-auto shrink-0 rounded-full bg-muted px-2.5 py-1 text-[12px] font-semibold tabular-nums text-muted-foreground">
-                      {klaarHier}/{p.categorieen.length}
+                      {klaarHier}/{p.groepen.length}
                     </span>
                   </div>
                 </div>
                 <div className="space-y-2 pl-2">
-                  {p.categorieen.map(([cat, catItems]) => {
-                    const sleutel = `${p.plek}:${cat}`;
-                    return (
-                      <CategorieBlok
-                        key={sleutel}
-                        titel={cat}
-                        items={catItems}
-                        drukte={drukte}
-                        telling={telling}
-                        onderwegMap={onderwegMap}
-                        bestelbordMap={bestelbordMap}
-                        mepTitels={mepTitels}
-                        bevestigd={bevestigd.includes(sleutel)}
-                        onBevestig={() => setBevestigd((b) => [...new Set([...b, sleutel])])}
-                        onHeropen={() => setBevestigd((b) => b.filter((s) => s !== sleutel))}
-                        onZet={zet}
-                        onHerstel={herstel}
-                      />
-                    );
-                  })}
+                  {p.groepen.map((g) => (
+                    <CategorieBlok
+                      key={g.sleutel}
+                      titel={g.titel}
+                      subtitel={g.subtitel}
+                      lade={g.lade}
+                      items={g.items}
+                      drukte={drukte}
+                      telling={telling}
+                      onderwegMap={onderwegMap}
+                      bestelbordMap={bestelbordMap}
+                      mepTitels={mepTitels}
+                      bevestigd={bevestigd.includes(g.sleutel)}
+                      onBevestig={() => setBevestigd((b) => [...new Set([...b, g.sleutel])])}
+                      onHeropen={() => setBevestigd((b) => b.filter((s) => s !== g.sleutel))}
+                      onZet={zet}
+                      onHerstel={herstel}
+                    />
+                  ))}
                 </div>
               </div>
             );
@@ -747,9 +813,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
               <ArrowRight size={20} className="ml-1" />
             </>
           ) : (
-            `Nog ${alleSleutels.length - klaarAantal} ${
-              alleSleutels.length - klaarAantal === 1 ? 'categorie' : 'categorieën'
-            } te gaan`
+            `Nog ${alleSleutels.length - klaarAantal} te gaan`
           )}
         </Button>
       </div>

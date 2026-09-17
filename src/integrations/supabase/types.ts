@@ -1883,6 +1883,7 @@ export type Database = {
           eenheid: string
           formaat: string | null
           id: string
+          lade_id: string | null
           naam: string
           plek: string
           product_sleutel: string | null
@@ -1902,6 +1903,7 @@ export type Database = {
           eenheid?: string
           formaat?: string | null
           id?: string
+          lade_id?: string | null
           naam: string
           plek?: string
           product_sleutel?: string | null
@@ -1921,6 +1923,7 @@ export type Database = {
           eenheid?: string
           formaat?: string | null
           id?: string
+          lade_id?: string | null
           naam?: string
           plek?: string
           product_sleutel?: string | null
@@ -1929,7 +1932,15 @@ export type Database = {
           vestiging?: string
           volgorde?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "koelcel_check_items_lade_id_fkey"
+            columns: ["lade_id"]
+            isOneToOne: false
+            referencedRelation: "voorraad_lades"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       koelcel_checks: {
         Row: {
@@ -4430,6 +4441,45 @@ export type Database = {
           is_open_uitzondering?: boolean
           reden?: string | null
           vestiging?: string
+        }
+        Relationships: []
+      }
+      voorraad_lades: {
+        Row: {
+          actief: boolean
+          created_at: string
+          id: string
+          kolom: number
+          naam: string
+          plek: string
+          rij: number
+          updated_at: string
+          vestiging: string
+          volgorde: number
+        }
+        Insert: {
+          actief?: boolean
+          created_at?: string
+          id?: string
+          kolom: number
+          naam: string
+          plek?: string
+          rij: number
+          updated_at?: string
+          vestiging: string
+          volgorde?: number
+        }
+        Update: {
+          actief?: boolean
+          created_at?: string
+          id?: string
+          kolom?: number
+          naam?: string
+          plek?: string
+          rij?: number
+          updated_at?: string
+          vestiging?: string
+          volgorde?: number
         }
         Relationships: []
       }

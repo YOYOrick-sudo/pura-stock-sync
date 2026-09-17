@@ -85,6 +85,13 @@
       "when": 1789671790776,
       "tag": "0011_voorraad_formaat_vulgraad_naar_doel",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789672509454,
+      "tag": "0012_voorraad_lades",
+      "breakpoints": true
     }
   ]
 }
