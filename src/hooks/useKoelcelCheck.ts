@@ -227,8 +227,10 @@ async function naarMidsland(item: KoelcelCheckItem, vestiging: string): Promise<
           to_location: 'Midsland',
           status: 'concept',
           requested_by: user.user?.id ?? null,
+          delivery_date: datumMorgen(),
+          order_number: '',
           notes: 'Automatisch aangemaakt vanuit de sluitlijst',
-        })
+        } as any)
         .select('id')
         .single(),
     );
