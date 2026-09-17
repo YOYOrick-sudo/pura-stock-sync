@@ -146,6 +146,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <AuthProvider>
           <UserLocationProvider>
             <Routes>
             {/* Auth routes */}
