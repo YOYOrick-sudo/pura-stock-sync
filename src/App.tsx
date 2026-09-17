@@ -402,6 +402,7 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
             </Routes>
           </UserLocationProvider>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
