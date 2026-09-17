@@ -52,6 +52,14 @@ Twee dingen die ik wil laten bevestigen (ik zet ze er alvast zo in):
 
 Daarna wacht ik op deel 2 en voeg die producten op dezelfde manier toe.
 
+## Seizoen: hoeveelheden snel omhoog of omlaag
+
+Elke regel krijgt twee doelaantallen: **rustig** en **druk**. Bovenin het beheerscherm staat één
+schakelaar per vestiging: Rustig / Druk. Zet je die om, dan gebruiken alle blokken op de sluitlijst
+meteen de bijbehorende hoeveelheden — je hoeft niet per product te schuiven.
+Wil je één product toch anders, dan pas je alleen dat product aan; de rest blijft staan.
+Standaard is "druk" gelijk aan "rustig" tot je het invult, zodat er nooit iets leeg raakt.
+
 ## Technisch
 
 - `koelcel_check_items` krijgt `product_sleutel` (groepeert de niveaus van één product) en
@@ -60,6 +68,8 @@ Daarna wacht ik op deel 2 en voeg die producten op dezelfde manier toe.
 - `bestemmingVoorBron` wordt `vervolgactieVoorRegel`: bestaat er een regel op het niveau eronder,
   dan wordt dát de bestemming (status `gemeld`, item verschijnt in dat blok). Anders bestelbord,
   Midsland-order of MEP zoals nu.
+- Seizoen: `doel_aantal_druk` per regel + `drukte_modus` per vestiging (instelling), waarbij de
+  sluitlijst het juiste doelaantal kiest. Historie in `koelcel_checks` blijft ongewijzigd.
 - Geen nieuwe libraries; blokken, realtime sync, 44px tikdoelen en optimistische updates blijven gelijk.
 
 ## Risico's
