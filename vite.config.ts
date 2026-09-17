@@ -18,10 +18,22 @@ export default defineConfig(({ mode }) => ({
       includeAssets: ['favicon.ico', 'icons/*.png'],
       workbox: {
         cleanupOutdatedCaches: true,
-        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+        maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
         skipWaiting: true,
         clientsClaim: true,
+        // Het zware app-script niet vooraf downloaden: dat maakt de eerste
+        // start op trage wifi onnodig zwaar. Het komt via runtimeCaching.
+        globPatterns: ['**/*.{css,html,ico,png,svg,woff,woff2}'],
         runtimeCaching: [
+          {
+            urlPattern: /\/assets\/.*\.(?:js|css)$/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'app-assets-v1',
+              expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
