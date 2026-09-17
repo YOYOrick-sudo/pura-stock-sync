@@ -255,6 +255,10 @@ const Auth = () => {
             </button>
 
           </form>
+
+          <div className="mt-4 pt-3 border-t border-border/40">
+            <HerstelKnop />
+          </div>
         </div>
       </div>
       <PWAInstallHint />
