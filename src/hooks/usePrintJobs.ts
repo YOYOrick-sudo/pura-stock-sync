@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { metHerstel } from '@/lib/appWake';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import {
   buildRecipeLabelZpl,
@@ -42,7 +43,7 @@ export function useCreatePrintJob() {
         vestiging: userLocation || null,
         bron: 'recept',
       }));
-      const { error } = await supabase.from('print_jobs').insert(rows);
+      const { error } = await metHerstel(() => supabase.from('print_jobs').insert(rows));
       if (error) throw error;
       return { count: n };
     },

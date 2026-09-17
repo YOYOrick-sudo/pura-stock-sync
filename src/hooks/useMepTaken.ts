@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { metHerstel } from '@/lib/appWake';
 import { useKanaalHerstel } from '@/lib/realtime';
 import { splitsAantalUitTitel } from '@/lib/mep-hoeveelheid';
 import { format } from 'date-fns';
@@ -209,12 +210,14 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
       temperatuur?: number | null;
       notitie?: string | null;
     }) => {
-      const { data, error } = await supabase.rpc('mep_taak_afronden', {
-        _taak_id: args.taakId,
-        _aantal_gemaakt: args.aantal,
-        _temperatuur: args.temperatuur ?? null,
-        _notitie: args.notitie ?? null,
-      });
+      const { data, error } = await metHerstel(() =>
+        supabase.rpc('mep_taak_afronden', {
+          _taak_id: args.taakId,
+          _aantal_gemaakt: args.aantal,
+          _temperatuur: args.temperatuur ?? null,
+          _notitie: args.notitie ?? null,
+        }),
+      );
       if (error) throw error;
       return data as {
         batch_id: string;
