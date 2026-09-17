@@ -512,7 +512,25 @@ interface BonRegel {
   geteld: number;
   doel: number;
   soort: BonSoort;
+  /** Alleen bij MEP: 1 = vandaag maken, 2 = mag morgen. */
+  prioriteit?: number;
+  /** Alleen bij MEP: hele batch in plaats van het rekenkundige tekort. */
+  batch?: number;
 }
+
+/**
+ * Zelf maken gaat per hele batch. Is het bakje nog half, dan mag het morgen;
+ * bij een bodempje of leeg moet het vandaag. Zo maak je nooit "een beetje bij",
+ * en grijp je ook niet mis.
+ */
+function mepOpdracht(doel: number, geteld: number, tekort: number): { prioriteit: number; batch: number } {
+  const aandeel = doel > 0 ? geteld / doel : 0;
+  return {
+    prioriteit: aandeel >= 0.5 - 0.001 ? 2 : 1,
+    batch: Math.max(Math.ceil(Math.max(tekort, doel) - 0.001), 1),
+  };
+}
+
 
 const BON_GROEPEN: { soort: BonSoort; titel: string; uitleg: string; icoon: typeof Snowflake }[] = [
   { soort: 'vriescel', titel: 'Halen uit de vriescel', uitleg: 'Eén rondje — stickers "Ontdooid" worden geprint', icoon: Snowflake },
