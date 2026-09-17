@@ -3623,6 +3623,11 @@ export function FohTasks() {
                         renderCategoryGroups(currentTasks, 'all')
                       )}
 
+                      {/* Voorraad-check koelcel/vriezer — alleen West, sluitlijst */}
+                      {userLocation === 'West' && activePhase === 'sluit' && !isEditMode && !isReadOnly && (
+                        <KoelcelCheckBlok vestiging="West" datum={selectedDate} />
+                      )}
+
                     </div>
                   </DndContext>
                 );
