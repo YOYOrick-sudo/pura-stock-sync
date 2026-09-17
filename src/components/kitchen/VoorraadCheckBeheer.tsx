@@ -29,6 +29,9 @@ import {
 
 const PLEKKEN: VoorraadPlek[] = ['vriezer', 'koelcel', 'werkbank', 'werkblad'];
 const BRONNEN: VoorraadBron[] = ['vriezer', 'koelcel_inkoop', 'magazijn', 'zelf_west', 'midsland'];
+/** Hoe verse producten bij de leverancier ingekocht worden. */
+const BESTEL_EENHEDEN = ['kist', 'doos', 'bak', 'zak', 'krat', 'tray', 'kilo'];
+
 
 /** Eén schakelaar voor de hele vestiging: rustige of drukke hoeveelheden. */
 function DrukteSchakelaar({ location }: { location: string }) {
@@ -277,6 +280,68 @@ export function VoorraadCheckBeheer({ location }: { location: string }) {
                           }}
                         />
                       )}
+                      {(item.bron === 'koelcel_inkoop' || item.bron === 'magazijn') && (
+                        <>
+                          <Input
+                            key={`${item.id}-punt-${item.bestelpunt ?? ''}`}
+                            defaultValue={item.bestelpunt !== null && item.bestelpunt !== undefined ? String(Number(item.bestelpunt)) : ''}
+                            inputMode="numeric"
+                            placeholder="bestelpunt"
+                            className="w-24 h-9 text-center"
+                            aria-label={`Bestelpunt ${item.naam}`}
+                            title="Pas melden vanaf dit aantal of minder"
+                            onBlur={(e) => {
+                              const raw = e.target.value.replace(/[^0-9]/g, '');
+                              const v = raw ? Number(raw) : null;
+                              const huidig =
+                                item.bestelpunt !== null && item.bestelpunt !== undefined
+                                  ? Number(item.bestelpunt)
+                                  : null;
+                              if (v !== huidig) {
+                                bijwerken.mutate({ id: item.id, velden: { bestelpunt: v } });
+                              }
+                            }}
+                          />
+                          <Select
+                            value={(item.bestel_eenheid ?? '') || 'geen'}
+                            onValueChange={(v) =>
+                              bijwerken.mutate({
+                                id: item.id,
+                                velden: { bestel_eenheid: v === 'geen' ? null : v },
+                              })
+                            }
+                          >
+                            <SelectTrigger className="h-9 w-32" title="Hoe je inkoopt">
+                              <SelectValue placeholder="inkoop" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="geen">per stuk</SelectItem>
+                              {BESTEL_EENHEDEN.map((b) => (
+                                <SelectItem key={b} value={b}>
+                                  {b}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            key={`${item.id}-inhoud-${item.bestel_inhoud ?? ''}`}
+                            defaultValue={item.bestel_inhoud ? String(Number(item.bestel_inhoud)) : ''}
+                            inputMode="numeric"
+                            placeholder="per kist"
+                            className="w-20 h-9 text-center"
+                            aria-label={`Inhoud besteleenheid ${item.naam}`}
+                            title={`Hoeveel ${item.eenheid || 'stuks'} er in één besteleenheid zit`}
+                            onBlur={(e) => {
+                              const raw = e.target.value.replace(/[^0-9]/g, '');
+                              const v = raw ? Number(raw) : null;
+                              if (v !== (item.bestel_inhoud ? Number(item.bestel_inhoud) : null)) {
+                                bijwerken.mutate({ id: item.id, velden: { bestel_inhoud: v } });
+                              }
+                            }}
+                          />
+                        </>
+                      )}
+
                       <Select
                         value={item.bron}
                         onValueChange={(v) =>

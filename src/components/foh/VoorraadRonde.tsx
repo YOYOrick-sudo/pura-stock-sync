@@ -36,6 +36,8 @@ import {
   vulnormWaarde,
   vulnormLabel,
   batchGrootte,
+  bestelOpdracht,
+
   HERKOMST_LABEL,
   type DrukteModus,
   type KoelcelCheckItem,
@@ -517,7 +519,10 @@ interface BonRegel {
   prioriteit?: number;
   /** Alleen bij MEP: hele batch in plaats van het rekenkundige tekort. */
   batch?: number;
+  /** Alleen bij inkoop: "2 dozen (16 st.)". */
+  bestelLabel?: string;
 }
+
 
 /**
  * Zelf maken gaat per hele batch. Is het bakje nog half, dan mag het morgen;
@@ -716,9 +721,23 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
       } else if (vervolg.soort === 'mep') {
         const { prioriteit, batch } = mepOpdracht(item, doel, geteld, tekort);
         regels.push({ item, onderItem: null, tekort, geteld, doel, soort: 'mep', prioriteit, batch });
+      } else if (vervolg.soort === 'bestelbord') {
+        // Inkoop: pas melden vanaf het bestelpunt, en in hele verpakkingen.
+        const opdracht = bestelOpdracht(item, doel, geteld, onderweg);
+        if (!opdracht.meld) continue;
+        regels.push({
+          item,
+          onderItem: null,
+          tekort,
+          geteld,
+          doel,
+          soort: 'bestelbord',
+          bestelLabel: opdracht.label,
+        });
       } else {
         regels.push({ item, onderItem: null, tekort, geteld, doel, soort: vervolg.soort as BonSoort });
       }
+
 
     }
     return regels;
@@ -915,9 +934,12 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                           >
                             {r.soort === 'mep'
                               ? `bijmaken (${r.prioriteit === 1 ? 'vandaag' : 'mag morgen'})`
-                              : telModus(r.item) === 'vulling'
-                                ? `bijvullen tot ${vulnormWaarde(r.item) === 0.5 ? 'half' : 'vol'}`
-                                : aantalLabel(r.tekort, r.item.eenheid)}
+                              : r.bestelLabel
+                                ? r.bestelLabel
+                                : telModus(r.item) === 'vulling'
+                                  ? `bijvullen tot ${vulnormWaarde(r.item) === 0.5 ? 'half' : 'vol'}`
+                                  : aantalLabel(r.tekort, r.item.eenheid)}
+
                           </span>
 
                         </div>

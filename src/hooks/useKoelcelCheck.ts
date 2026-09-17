@@ -48,6 +48,71 @@ export interface KoelcelCheckItem {
   vulnorm?: string | null;
   /** Hoeveel er in een keer gemaakt wordt (MEP-batch); leeg = standaardberekening. */
   batch_aantal?: number | null;
+  /** Vanaf welk aantal het pas op het bestelbord komt; leeg = bij elk tekort. */
+  bestelpunt?: number | null;
+  /** Hoe je inkoopt: kist, doos, bak, kilo of stuks. */
+  bestel_eenheid?: string | null;
+  /** Hoeveel er in één besteleenheid zit (kist = 12 stuks). */
+  bestel_inhoud?: number | null;
+}
+
+const MEERVOUD: Record<string, string> = {
+  kist: 'kisten',
+  doos: 'dozen',
+  bak: 'bakken',
+  zak: 'zakken',
+  krat: 'kratten',
+  tray: 'trays',
+};
+
+/** "2 dozen", "1 kist", "3 kilo". */
+function besteleenheidLabel(aantal: number, eenheid: string): string {
+  const e = eenheid.trim().toLowerCase();
+  const woord = aantal === 1 ? e : (MEERVOUD[e] ?? e);
+  return `${aantal} ${woord}`;
+}
+
+export interface BestelOpdracht {
+  /** Of het product nu op het bestelbord hoort. */
+  meld: boolean;
+  /** Hoeveel hele besteleenheden (kisten/dozen/kilo's). */
+  eenheden: number;
+  /** Wat dat in stuks is. */
+  stuks: number;
+  /** Naam van de besteleenheid. */
+  eenheidNaam: string;
+  /** "2 dozen (16 st.)" */
+  label: string;
+}
+
+/**
+ * Wat er bij de leverancier besteld wordt. Pas melden vanaf het bestelpunt, en
+ * altijd in hele inkoopverpakkingen — je bestelt geen losse aubergine.
+ */
+export function bestelOpdracht(
+  item: KoelcelCheckItem,
+  doel: number,
+  geteld: number,
+  onderweg = 0,
+): BestelOpdracht {
+  const aanwezig = Math.max(Number(geteld) || 0, 0) + Math.max(Number(onderweg) || 0, 0);
+  const punt = Number(item.bestelpunt ?? NaN);
+  const meld = Number.isFinite(punt) ? aanwezig <= punt + 0.001 : aanwezig < doel - 0.001;
+  const inhoudRuw = Number(item.bestel_inhoud ?? 0);
+  const inhoud = inhoudRuw > 0 ? inhoudRuw : 1;
+  const tekort = Math.max(doel - aanwezig, 0);
+  const eenheden = Math.max(Math.ceil(tekort / inhoud - 0.001), 1);
+  const stuks = Math.round(eenheden * inhoud * 100) / 100;
+  const eenheidNaam = (item.bestel_eenheid ?? '').trim() || item.eenheid || 'stuks';
+  const inhoudTekst = inhoud > 1 ? ` (${stuks} ${item.eenheid || 'st.'})` : '';
+  return {
+    meld,
+    eenheden,
+    stuks,
+    eenheidNaam,
+    label: `${besteleenheidLabel(eenheden, eenheidNaam)}${inhoudTekst}`,
+  };
+
 }
 
 /** Hoeveel hele reservebakjes er achter de hand horen te staan. */
@@ -406,7 +471,9 @@ async function opBestelbord(
   item: KoelcelCheckItem,
   vestiging: string,
   behoefte: number,
+  opties?: { eenheid?: string; notitie?: string },
 ): Promise<{ dubbel: boolean; aantal: number }> {
+  const eenheid = opties?.eenheid || item.eenheid;
   const { data: bestaand, error } = await supabase
     .from('bestel_signalen')
     .select('id, aantal')
@@ -419,7 +486,10 @@ async function opBestelbord(
     const huidig = Number((bestaand[0] as any).aantal ?? 0);
     if (behoefte !== huidig) {
       const { error: bijFout } = await metHerstel(() =>
-        supabase.from('bestel_signalen').update({ aantal: behoefte }).eq('id', (bestaand[0] as any).id),
+        supabase
+          .from('bestel_signalen')
+          .update({ aantal: behoefte, eenheid, notitie: opties?.notitie ?? null })
+          .eq('id', (bestaand[0] as any).id),
       );
       if (bijFout) throw bijFout;
     }
@@ -432,7 +502,8 @@ async function opBestelbord(
       vestiging,
       naam: item.naam,
       aantal: behoefte,
-      eenheid: item.eenheid,
+      eenheid,
+      notitie: opties?.notitie ?? null,
       bron: 'sluitlijst',
       gemeld_door: user.user?.id ?? null,
     }),
@@ -440,6 +511,7 @@ async function opBestelbord(
   if (invoegFout) throw invoegFout;
   return { dubbel: false, aantal: behoefte };
 }
+
 
 
 function datumMorgen(): string {
@@ -745,10 +817,17 @@ export function useKoelcelCheckMutaties(
         mepTaakId = res.id;
         dubbel = res.dubbel;
       } else if (bestemming.soort === 'bestelbord') {
-
-        const res = await opBestelbord(item, vestiging, tekort);
+        // Inkoop gaat in hele verpakkingen: geen losse aubergine bestellen.
+        const opdracht = bestelOpdracht(item, doelNu, Number(aanwezig || 0));
+        const res = await opBestelbord(item, vestiging, opdracht.eenheden, {
+          eenheid: opdracht.eenheidNaam,
+          notitie: opdracht.stuks
+            ? `${opdracht.stuks} ${item.eenheid || 'st.'} nodig tot ${doelNu}`
+            : undefined,
+        });
         dubbel = res.dubbel;
         geplaatst = res.aantal;
+
       } else {
         const res = await naarMidsland(item, vestiging, tekort);
         dubbel = res.dubbel;
