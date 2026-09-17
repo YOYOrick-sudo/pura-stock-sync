@@ -800,27 +800,29 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
           onderItem={actieOnderItem}
           doel={doelAantal(actieItem, drukte)}
           onSluit={() => setActieItem(null)}
-          onAangevuld={() => {
+          onAangevuld={(aantal) => {
             const item = actieItem;
             const onder = actieOnderItem;
             setActieItem(null);
-            if (item && onder) void handleAangevuld(item, onder);
+            if (item && onder) void handleAangevuld(item, onder, aantal);
           }}
           onOp={(aanwezig) => {
             const item = actieItem;
             const onder = actieOnderItem;
+            const tekort = Math.max(doelAantal(item, drukte) - aanwezig, 1);
             setActieItem(null);
             void (async () => {
-              if (onder && aanwezig <= 0) {
-                // Het niveau eronder is ook leeg: die regel schuift door naar de
-                // volgende bron (vriescel, bestelbord, mise-en-place of Midsland).
-                await doorzetten(onder, 0);
+              if (onder) {
+                // Het niveau eronder is ook leeg: het tekort schuift door naar de
+                // volgende bron (bestelbord, mise-en-place of Midsland).
+                await doorzetten(onder, 0, tekort);
                 zetStatus.mutate({ item, status: 'gemeld' as KoelcelCheckStatus, uit: false });
               } else {
                 await doorzetten(item, aanwezig);
               }
             })();
           }}
+
         />
       )}
     </div>
