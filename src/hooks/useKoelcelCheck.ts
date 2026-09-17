@@ -295,17 +295,29 @@ async function mepTaakVoorItem(
   datum: string,
   handeling: string,
   aantal: number,
+  /** 1 = belangrijk (vandaag maken), 2 = normaal (mag morgen). */
+  prioriteit: number = 2,
 ): Promise<{ id: string; dubbel: boolean }> {
   const { data: bestaand, error: zoekFout } = await supabase
     .from('mep_taken')
-    .select('id')
+    .select('id, prioriteit')
     .eq('vestiging', vestiging)
     .in('status', ['open', 'bezig'])
     .ilike('titel', item.naam)
     .eq('handeling', handeling)
     .limit(1);
   if (zoekFout) throw zoekFout;
-  if (bestaand?.[0]?.id) return { id: bestaand[0].id, dubbel: true };
+  if (bestaand?.[0]?.id) {
+    const huidig = Number((bestaand[0] as any).prioriteit ?? 2);
+    // Er staat al een taak: geen tweede regel, maar wel opwaarderen als het
+    // bakje inmiddels bijna leeg is.
+    if (prioriteit < huidig) {
+      await metHerstel(() =>
+        supabase.from('mep_taken').update({ prioriteit }).eq('id', bestaand[0].id),
+      );
+    }
+    return { id: bestaand[0].id, dubbel: true };
+  }
 
   const { data: openTaken } = await supabase
     .from('mep_taken')
@@ -327,7 +339,7 @@ async function mepTaakVoorItem(
         handeling,
         doel_aantal: aantal,
         doel_eenheid: item.eenheid,
-        prioriteit: 2,
+        prioriteit,
         volgorde,
         created_by: user.user?.id ?? null,
       })
@@ -337,6 +349,7 @@ async function mepTaakVoorItem(
   if (invoegFout) throw invoegFout;
   return { id: (taak as any).id, dubbel: false };
 }
+
 
 /**
  * Alles wat al voor dit product besteld is en nog niet geleverd: openstaande
