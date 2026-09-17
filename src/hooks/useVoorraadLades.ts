@@ -139,5 +139,17 @@ export function useLadeMutaties(vestiging: string) {
     onSuccess: ververs,
   });
 
-  return { hernoem, zetActief, verplaatsItem, zetVolgorde, zetRol, zetReserveDoel };
+  /** Tot hoever het werkbakje gevuld hoort te zijn: vol of half. */
+  const zetVulnorm = useMutation({
+    mutationFn: async ({ itemId, vulnorm }: { itemId: string; vulnorm: 'vol' | 'half' }) => {
+      const { error } = await supabase
+        .from('koelcel_check_items')
+        .update({ vulnorm })
+        .eq('id', itemId);
+      if (error) throw error;
+    },
+    onSuccess: ververs,
+  });
+
+  return { hernoem, zetActief, verplaatsItem, zetVolgorde, zetRol, zetReserveDoel, zetVulnorm };
 }
