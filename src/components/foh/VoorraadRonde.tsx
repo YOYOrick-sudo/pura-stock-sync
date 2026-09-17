@@ -910,8 +910,9 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
     return (
       <div className="mt-2 rounded-[18px] border border-border bg-card p-4">
         <p className="mb-3 text-[13px] text-muted-foreground">
-          Bij de koelwerkbank tel je alleen de reservebakjes, per lade. De rest per categorie. Tik alleen
-          een product aan als er minder staat dan afgesproken.
+          Koelwerkbank: per lade kijken. Bij een bakje tik je vol, half, bodempje of leeg; bij producten
+          met reserve tel je de reservebakjes. Koelcel en vriescel tel je in hele bakken — tik alleen aan
+          wat afwijkt.
         </p>
         <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-muted">
           <div
