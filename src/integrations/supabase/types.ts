@@ -496,6 +496,54 @@ export type Database = {
           },
         ]
       }
+      bestel_signalen: {
+        Row: {
+          aantal: number
+          besteld_door: string | null
+          besteld_op: string | null
+          bron: string
+          created_at: string
+          eenheid: string
+          gemeld_door: string | null
+          id: string
+          naam: string
+          notitie: string | null
+          status: string
+          updated_at: string
+          vestiging: string
+        }
+        Insert: {
+          aantal?: number
+          besteld_door?: string | null
+          besteld_op?: string | null
+          bron?: string
+          created_at?: string
+          eenheid?: string
+          gemeld_door?: string | null
+          id?: string
+          naam: string
+          notitie?: string | null
+          status?: string
+          updated_at?: string
+          vestiging: string
+        }
+        Update: {
+          aantal?: number
+          besteld_door?: string | null
+          besteld_op?: string | null
+          bron?: string
+          created_at?: string
+          eenheid?: string
+          gemeld_door?: string | null
+          id?: string
+          naam?: string
+          notitie?: string | null
+          status?: string
+          updated_at?: string
+          vestiging?: string
+        }
+        Relationships: []
+      }
       candidates: {
         Row: {
           created_at: string
@@ -1826,11 +1874,14 @@ export type Database = {
       koelcel_check_items: {
         Row: {
           actief: boolean
+          bak_maat: string | null
+          bron: string
           created_at: string
           doel_aantal: number
           eenheid: string
           id: string
           naam: string
+          plek: string
           type: string
           updated_at: string
           vestiging: string
@@ -1838,11 +1889,14 @@ export type Database = {
         }
         Insert: {
           actief?: boolean
+          bak_maat?: string | null
+          bron?: string
           created_at?: string
           doel_aantal?: number
           eenheid?: string
           id?: string
           naam: string
+          plek?: string
           type?: string
           updated_at?: string
           vestiging: string
@@ -1850,11 +1904,14 @@ export type Database = {
         }
         Update: {
           actief?: boolean
+          bak_maat?: string | null
+          bron?: string
           created_at?: string
           doel_aantal?: number
           eenheid?: string
           id?: string
           naam?: string
+          plek?: string
           type?: string
           updated_at?: string
           vestiging?: string
@@ -1867,6 +1924,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           datum: string
+          doorgezet_naar: string | null
           id: string
           item_id: string
           mep_taak_id: string | null
@@ -1878,6 +1936,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           datum: string
+          doorgezet_naar?: string | null
           id?: string
           item_id: string
           mep_taak_id?: string | null
@@ -1889,6 +1948,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           datum?: string
+          doorgezet_naar?: string | null
           id?: string
           item_id?: string
           mep_taak_id?: string | null

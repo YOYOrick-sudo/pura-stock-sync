@@ -16,6 +16,7 @@ const allNavigationItems = [
   { title: 'Taken Bediening', url: '/taken-bediening', icon: ListChecks, group: 'overzicht' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   // MEP is alleen actief voor West (Daily); niet relevant voor Midsland.
   { title: 'Mise-en-place', url: '/kitchen/mep', icon: ChefHat, group: 'keuken' as const, locations: ['West'], managerOnly: false, ownerOnly: false },
+  { title: 'Bestelbord', url: '/kitchen/bestelbord', icon: ClipboardList, group: 'keuken' as const, locations: ['West'], managerOnly: false, ownerOnly: false },
   { title: 'Stickers', url: '/kitchen/snel-printen', icon: Printer, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Recepten', url: '/kitchen/recipes', icon: BookOpen, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Gerechten', url: '/kitchen/gerechten', icon: Cookie, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },

@@ -38,6 +38,7 @@ import MepInstellingen from "./pages/settings/MepInstellingen";
 import KetenBeheer from "./pages/settings/KetenBeheer";
 
 import MepBeheer from "./pages/kitchen/MepBeheer";
+import Bestelbord from "./pages/kitchen/Bestelbord";
 // HR Module
 import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } from "./pages/hr";
 // Maintenance Module
@@ -315,6 +316,7 @@ const App = () => {
             <Route path="/kitchen/mep/week" element={<ProtectedRoute><RequireWest><MepWeek /></RequireWest></ProtectedRoute>} />
             <Route path="/kitchen/mep/oud" element={<ProtectedRoute><RequireWest><MepPlanning /></RequireWest></ProtectedRoute>} />
             <Route path="/kitchen/mep/beheer" element={<ProtectedRoute><RequireWest><MepBeheer /></RequireWest></ProtectedRoute>} />
+            <Route path="/kitchen/bestelbord" element={<ProtectedRoute><Bestelbord /></ProtectedRoute>} />
             <Route path="/settings/mep" element={<ProtectedRoute><MepInstellingen /></ProtectedRoute>} />
             <Route path="/settings/keten" element={<ProtectedRoute><RequireManager><KetenBeheer /></RequireManager></ProtectedRoute>} />
 
