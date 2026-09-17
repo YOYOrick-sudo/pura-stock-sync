@@ -1638,6 +1638,13 @@ export function FohTasks() {
     // alleen een weergavekeuze, de gegevens zijn al geladen.
   }, [userLocation, selectedDate]);
 
+  // Optimistische wijzigingen (vinkjes, slepen) ook in de cache bijwerken,
+  // zodat terugkeren naar het scherm de actuele stand toont.
+  useEffect(() => {
+    if (loading) return;
+    fohTakenCache.set(`${userLocation}|${selectedDate}`, dailyTasks);
+  }, [dailyTasks, userLocation, selectedDate, loading]);
+
   // Terug uit de achtergrond (iPad-beginscherm): lijst opnieuw ophalen, zodat
   // vinkjes van de andere tablet niet gemist worden. Max één keer per 15 sec.
   useEffect(() => {
