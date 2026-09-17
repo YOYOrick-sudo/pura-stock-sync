@@ -209,7 +209,7 @@ function LadeVak({
 export function LadeGrid({ vestiging }: { vestiging: string }) {
   const ladesQuery = useVoorraadLades(vestiging);
   const itemsQuery = useKoelcelCheckItems(vestiging);
-  const { hernoem, zetActief, verplaatsItem } = useLadeMutaties(vestiging);
+  const { hernoem, zetActief, verplaatsItem, zetRol, zetReserveDoel } = useLadeMutaties(vestiging);
   const [sleept, setSleept] = useState<KoelcelCheckItem | null>(null);
 
   const sensors = useSensors(
