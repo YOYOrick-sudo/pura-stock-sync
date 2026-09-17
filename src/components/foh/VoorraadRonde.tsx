@@ -512,7 +512,32 @@ interface BonRegel {
   geteld: number;
   doel: number;
   soort: BonSoort;
+  /** Alleen bij MEP: 1 = vandaag maken, 2 = mag morgen. */
+  prioriteit?: number;
+  /** Alleen bij MEP: hele batch in plaats van het rekenkundige tekort. */
+  batch?: number;
 }
+
+/**
+ * Zelf maken gaat per hele batch. Is het bakje nog half, dan mag het morgen;
+ * bij een bodempje of leeg moet het vandaag. Zo maak je nooit "een beetje bij",
+ * en grijp je ook niet mis.
+ */
+function mepOpdracht(
+  item: ItemMetCategorie,
+  doel: number,
+  geteld: number,
+  tekort: number,
+): { prioriteit: number; batch: number } {
+  const aandeel = doel > 0 ? geteld / doel : 0;
+  return {
+    prioriteit: aandeel >= 0.5 - 0.001 ? 2 : 1,
+    // Een werkbakje vul je met één hele batch; bij hele bakken telt het tekort.
+    batch: telModus(item) === 'vulling' ? 1 : Math.max(Math.ceil(tekort - 0.001), 1),
+  };
+}
+
+
 
 const BON_GROEPEN: { soort: BonSoort; titel: string; uitleg: string; icoon: typeof Snowflake }[] = [
   { soort: 'vriescel', titel: 'Halen uit de vriescel', uitleg: 'Eén rondje — stickers "Ontdooid" worden geprint', icoon: Snowflake },
@@ -685,9 +710,13 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           doel,
           soort: onder.plek === 'vriezer' ? 'vriescel' : 'koelcel',
         });
+      } else if (vervolg.soort === 'mep') {
+        const { prioriteit, batch } = mepOpdracht(item, doel, geteld, tekort);
+        regels.push({ item, onderItem: null, tekort, geteld, doel, soort: 'mep', prioriteit, batch });
       } else {
         regels.push({ item, onderItem: null, tekort, geteld, doel, soort: vervolg.soort as BonSoort });
       }
+
     }
     return regels;
   }, [items, telling, drukte, onderwegMap]);
@@ -737,7 +766,14 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           });
           if (regel.soort === 'vriescel') printOntdooid(regel.item, regel.tekort);
         } else {
-          await meldOp.mutateAsync({ item: regel.item, doel: regel.doel, aanwezig: regel.geteld });
+          await meldOp.mutateAsync({
+            item: regel.item,
+            doel: regel.doel,
+            aanwezig: regel.geteld,
+            mepPrioriteit: regel.prioriteit,
+            mepAantal: regel.batch,
+          });
+
         }
         telling2[regel.soort] += 1;
       }
@@ -867,11 +903,20 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                               <LadePositie lade={ladeVan(r.item)} className="mt-0.5" />
                             )}
                           </span>
-                          <span className="shrink-0 text-right text-[14px] font-bold text-primary">
-                            {telModus(r.item) === 'vulling'
-                              ? `bijvullen tot ${vulnormWaarde(r.item) === 0.5 ? 'half' : 'vol'}`
-                              : aantalLabel(r.tekort, r.item.eenheid)}
+                          <span
+                            className={`shrink-0 text-right text-[14px] font-bold ${
+                              r.soort === 'mep' && r.prioriteit === 1
+                                ? 'text-amber-600 dark:text-amber-400'
+                                : 'text-primary'
+                            }`}
+                          >
+                            {r.soort === 'mep'
+                              ? `bijmaken (${r.prioriteit === 1 ? 'vandaag' : 'mag morgen'})`
+                              : telModus(r.item) === 'vulling'
+                                ? `bijvullen tot ${vulnormWaarde(r.item) === 0.5 ? 'half' : 'vol'}`
+                                : aantalLabel(r.tekort, r.item.eenheid)}
                           </span>
+
                         </div>
                       ))}
                     </div>
