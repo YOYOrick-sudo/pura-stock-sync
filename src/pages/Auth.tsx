@@ -49,17 +49,11 @@ const Auth = () => {
   };
 
 
+  const { status: authStatus, offline: authOffline, opnieuw: authOpnieuw } = useAuthStatus();
+
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await withTimeout(supabase.auth.getSession(), 8000);
-        if (session) navigate('/dashboard');
-      } catch {
-        // Sessiecontrole hangt: gewoon het inlogscherm tonen.
-      }
-    };
-    checkSession();
-  }, [navigate]);
+    if (authStatus === 'ingelogd') navigate('/dashboard', { replace: true });
+  }, [authStatus, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
