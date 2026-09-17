@@ -715,9 +715,9 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
     );
   };
 
-  const doorzetten = async (item: KoelcelCheckItem, aanwezig: number) => {
+  const doorzetten = async (item: KoelcelCheckItem, aanwezig: number, doelOverride?: number) => {
     try {
-      const res = await meldOp.mutateAsync({ item, doel: doelAantal(item, drukte), aanwezig });
+      const res = await meldOp.mutateAsync({ item, doel: doelOverride ?? doelAantal(item, drukte), aanwezig });
       if (res.bestemming.soort === 'niveau')
         toast.success(`"${item.naam}" staat nu open bij ${res.bestemming.label}`);
       else if (res.geplaatst <= 0)
@@ -737,16 +737,19 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
     });
   };
 
-  /** "Gedaan": aangevuld vanuit het niveau eronder. */
-  const handleAangevuld = async (item: KoelcelCheckItem, onderItem: KoelcelCheckItem) => {
+  /** "Gedaan": aangevuld vanuit het niveau eronder; dat niveau wordt bijbesteld. */
+  const handleAangevuld = async (item: KoelcelCheckItem, onderItem: KoelcelCheckItem, aantal: number) => {
     try {
-      await vulAanUitNiveau.mutateAsync({ item, onderItem });
+      const res = await vulAanUitNiveau.mutateAsync({ item, onderItem, aantal });
       if (onderItem.plek === 'vriezer') printOntdooid(item);
       else toast.success(`${item.naam} bijgevuld uit ${HERKOMST_LABEL[onderItem.plek]}`);
+      if (res.geplaatst > 0)
+        toast.success(`${res.geplaatst} ${onderItem.eenheid} "${onderItem.naam}" naar ${res.bestemming.label}`);
     } catch (e: any) {
       toast.error('Niet opgeslagen: ' + (e?.message ?? 'onbekende fout'));
     }
   };
+
 
   const actieVervolg = actieItem ? vervolgactieVoorRegel(actieItem, items) : null;
   const actieOnderItem = actieVervolg && actieVervolg.soort === 'niveau' ? actieVervolg.onderItem : null;
