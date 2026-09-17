@@ -127,6 +127,13 @@
       "when": 1789682734890,
       "tag": "0017_batch_aantal_zelfgemaakt_west",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1789683142416,
+      "tag": "0018_bestelpunt_en_besteleenheid",
+      "breakpoints": true
     }
   ]
 }
