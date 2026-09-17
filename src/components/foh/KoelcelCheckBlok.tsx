@@ -23,6 +23,15 @@ import { useCreateStickerPrintJob } from '@/hooks/useStickerProducten';
 
 const lettertype = 'Inter, sans-serif';
 
+/** Wat er met een doorgezette regel gebeurd is, kort in het afgehandeld-lijstje. */
+const DOORGEZET_LABEL: Record<string, string> = {
+  mep: 'naar de mise-en-place',
+  bestelbord: 'naar het bestelbord',
+  midsland: 'naar Midsland',
+  niveau: 'doorgezet',
+};
+
+
 function stickerDatum(d: Date): string {
   return d
     .toLocaleDateString('nl-NL', { weekday: 'short', day: '2-digit', month: '2-digit' })
