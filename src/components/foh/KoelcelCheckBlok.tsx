@@ -619,8 +619,12 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
       const res = await meldOp.mutateAsync({ item, doel: doelAantal(item, drukte), aanwezig });
       if (res.bestemming.soort === 'niveau')
         toast.success(`"${item.naam}" staat nu open bij ${res.bestemming.label}`);
-      else if (res.dubbel) toast.info(`"${item.naam}" staat al op ${res.bestemming.label}`);
-      else toast.success(`${res.tekort} ${item.eenheid} "${item.naam}" naar ${res.bestemming.label}`);
+      else if (res.geplaatst <= 0)
+        toast.info(`"${item.naam}" is al besteld (${res.onderweg} ${item.eenheid} onderweg)`);
+      else if (res.dubbel)
+        toast.success(`"${item.naam}" bijgewerkt naar ${res.geplaatst} ${item.eenheid} op ${res.bestemming.label}`);
+      else toast.success(`${res.geplaatst} ${item.eenheid} "${item.naam}" naar ${res.bestemming.label}`);
+
     } catch (e: any) {
       toast.error('Doorzetten mislukt: ' + (e?.message ?? 'onbekende fout'));
     }
