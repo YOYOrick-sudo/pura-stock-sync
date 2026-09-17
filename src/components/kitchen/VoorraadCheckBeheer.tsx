@@ -257,6 +257,26 @@ export function VoorraadCheckBeheer({ location }: { location: string }) {
                           bijwerken.mutate({ id: item.id, velden: { formaat, eenheid } });
                         }}
                       />
+                      {(item.bron === 'zelf_west' ||
+                        item.bron === 'magazijn' ||
+                        item.bron === 'vriezer') && (
+                        <Input
+                          key={`${item.id}-batch-${item.batch_aantal ?? ''}`}
+                          defaultValue={item.batch_aantal ? String(Number(item.batch_aantal)) : ''}
+                          inputMode="numeric"
+                          placeholder="batch"
+                          className="w-16 h-9 text-center"
+                          aria-label={`Batchgrootte ${item.naam}`}
+                          title={`Hoeveel je in één keer maakt (${item.eenheid || 'stuks'})`}
+                          onBlur={(e) => {
+                            const raw = e.target.value.replace(/[^0-9]/g, '');
+                            const v = raw ? Number(raw) : null;
+                            if (v !== (item.batch_aantal ? Number(item.batch_aantal) : null)) {
+                              bijwerken.mutate({ id: item.id, velden: { batch_aantal: v } });
+                            }
+                          }}
+                        />
+                      )}
                       <Select
                         value={item.bron}
                         onValueChange={(v) =>
