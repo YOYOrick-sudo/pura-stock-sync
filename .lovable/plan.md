@@ -1,4 +1,6 @@
-# Overdracht: automatisch opslaan, alleen een subtiele wisknop
+# Overdracht automatisch opslaan + MEP-venster sluit met opslaan
+
+## Deel 1 — Overdracht: automatisch opslaan, alleen een subtiele wisknop
 
 ## Wat er verandert
 
