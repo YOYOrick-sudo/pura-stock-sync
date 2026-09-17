@@ -11,6 +11,7 @@ import { useHalffabricaatOverzicht } from '@/hooks/useMepTaken';
 import { useVestigingKoppelingen } from '@/hooks/useVestigingKoppeling';
 import { VestigingToggles } from '@/components/kitchen/VestigingKoppeling';
 import { OpendagenTab } from '@/pages/kitchen/MepBeheer';
+import { VoorraadCheckBeheer } from '@/components/kitchen/VoorraadCheckBeheer';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
