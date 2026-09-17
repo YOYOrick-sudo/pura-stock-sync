@@ -18,8 +18,19 @@ Zalm                 2x   [ ✓ Aanwezig ] [ + Naar MEP ]
 - Statussen zijn realtime zichtbaar op beide iPads; per dag reset de check automatisch (zelfde ritme als de takenlijst, 04:00/05:00).
 - Het blok telt mee in het voortgangsgevoel van sluiten: kleine voortgangsbalk in de blokheader.
 
-## Vriezer → ontdooien (voorbereid, items volgen)
-Zelfde mechanisme, tweede blok **"Uit de vriezer (ontdooien)"**: item afvinken betekent "uit de vriezer gehaald, in de koelcel gelegd". De bijbehorende MEP-taak krijgt handeling *Ontdooien*; bij afronden van die taak print de bestaande sticker-flow een **"Ontdooid"**-sticker. De lijst met vriezer-items voeg ik toe zodra de foto binnen is — het blok en de logica worden nu al gebouwd.
+## Vriezer → koelcel (ontdooien) — zo werkt het
+Dit zijn geen MEP-taken maar directe handelingen op de sluitlijst. Er komt een tweede blok **"Uit de vriezer (ontdooien)"**, bijvoorbeeld:
+
+```text
+Zalm     2x   [ ❄ Uit vriezer gehaald ]
+Kip      1x   [ ❄ Uit vriezer gehaald ]
+```
+
+- De sluiter tikt op de knop op het moment dat hij het product uit de vriezer in de koelcel legt.
+- Bij die ene tik print de labelprinter meteen een **"Ontdooid"**-sticker (via de bestaande printer-flow) die op de bak in de koelcel gaat — zo weet de keuken de volgende dag wat ontdooid is.
+- Het item kleurt groen; klaar. Er hoeft niets naar de MEP, want de handeling is op dat moment al gedaan.
+- Staat een product NIET in de vriezer? Dan is er een kleine "Naar MEP"-knop op dezelfde regel, zodat er alsnog een taak ontstaat (bijv. bestellen of maken).
+- De items in dit blok voeg ik toe zodra je de foto met de vriezerlijst stuurt; het blok en de logica worden nu al gebouwd.
 
 ## Beheer
 - De itemlijst (naam, doelaantal zoals 1x/2x, volgorde, actief) is beheerbaar via **Instellingen → MEP/Voorraad-check** (nieuwe tab), zodat het whiteboard nooit meer terugkomt maar de lijst wel aanpasbaar blijft.
