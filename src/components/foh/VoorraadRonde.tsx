@@ -480,7 +480,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
       }
     }
     return regels;
-  }, [items, telling, drukte]);
+  }, [items, telling, drukte, onderwegMap]);
 
   if (itemsQuery.isLoading || items.length === 0) return null;
 
@@ -528,7 +528,15 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
       }
 
       const afgehandeld = new Set(bon.map((r) => r.item.id));
-      const rest = items.filter((i) => !afgehandeld.has(i.id));
+      // Alles wat niet is geteld én niets onderweg heeft, is "ligt er". Regels met
+      // iets onderweg die overgeslagen zijn, laten we bewust open — nooit stil op
+      // "aanwezig" zetten terwijl de levering nog moet komen.
+      const rest = items.filter(
+        (i) =>
+          !afgehandeld.has(i.id) &&
+          (telling[i.id] !== undefined ||
+            (onderwegMap[i.naam.trim().toLowerCase()] ?? 0) === 0),
+      );
       if (rest.length) await zetAllesAanwezig.mutateAsync(rest);
 
       setSamenvatting(telling2);
