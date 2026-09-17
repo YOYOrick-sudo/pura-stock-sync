@@ -755,7 +755,7 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
             const onder = actieOnderItem;
             setActieItem(null);
             void (async () => {
-              if (onder) {
+              if (onder && aanwezig <= 0) {
                 // Het niveau eronder is ook leeg: die regel schuift door naar de
                 // volgende bron (vriescel, bestelbord, mise-en-place of Midsland).
                 await doorzetten(onder, 0);
