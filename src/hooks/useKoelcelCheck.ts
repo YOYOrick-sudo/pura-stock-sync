@@ -653,3 +653,41 @@ export function useKoelcelCheckMutaties(
 
   return { zetStatus, meldOp, vulAanUitNiveau, naarMep: meldOp };
 }
+
+/**
+ * Per product: hoeveel er al besteld is bij Midsland en nog niet geleverd.
+ * Wordt onder de regel getoond zodat niemand nog een keer hetzelfde bestelt.
+ */
+export function useOpenstaandeBestellingen(vestiging: string) {
+  return useQuery({
+    queryKey: ['openstaand-besteld', vestiging],
+    enabled: !!vestiging,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data: orders, error } = await supabase
+        .from('internal_orders')
+        .select('id')
+        .eq('from_location', vestiging)
+        .eq('to_location', 'Midsland')
+        .not('status', 'in', '("delivered","cancelled","geannuleerd")');
+      if (error) throw error;
+      const ids = (orders ?? []).map((o: any) => o.id);
+      const map: Record<string, number> = {};
+      if (!ids.length) return map;
+
+      const { data: regels, error: regelFout } = await supabase
+        .from('internal_order_items')
+        .select('product_name, quantity, ontvangen_aantal')
+        .in('order_id', ids);
+      if (regelFout) throw regelFout;
+
+      for (const r of (regels ?? []) as any[]) {
+        const open = Math.max(Number(r.quantity ?? 0) - Number(r.ontvangen_aantal ?? 0), 0);
+        if (open <= 0) continue;
+        const sleutel = String(r.product_name ?? '').trim().toLowerCase();
+        map[sleutel] = (map[sleutel] ?? 0) + open;
+      }
+      return map;
+    },
+  });
+}
