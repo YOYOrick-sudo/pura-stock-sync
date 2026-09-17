@@ -1586,28 +1586,49 @@ export function FohTasks() {
   };
 
   useEffect(() => {
+    let afgebroken = false;
+
     const initializeTasks = async () => {
-      const viewingToday = selectedDate === getAmsterdamDateString();
+      const vandaag = getAmsterdamDateString();
+      const viewingToday = selectedDate === vandaag;
 
-      // Generatie/reset alleen draaien voor vandaag — verleden is read-only snapshot.
-      if (viewingToday) {
-        if (shouldResetTasks()) {
-          await performClientSideReset();
-        }
-        await generateDailyTasks();
-      }
-
+      // 1) Eerst tonen: de lijst wordt direct opgehaald, zonder te wachten op
+      //    schrijfwerk. Het scherm is daarmee meteen bruikbaar.
       await fetchDailyTasks();
+      if (afgebroken) return;
 
-      // Periodieke + medewerkers altijd één keer per user/location laden
       if (viewingToday) {
         fetchExtraTasks();
         fetchEmployees();
+
+        // 2) Vangnet op de achtergrond: reset + generatie draaien maximaal één
+        //    keer per apparaat per dag. De nachtelijke automatische aanmaak
+        //    blijft leidend.
+        const guardKey = `fohGeneratieGedaan_${userLocation || 'West'}`;
+        if (localStorage.getItem(guardKey) !== vandaag) {
+          void (async () => {
+            try {
+              if (shouldResetTasks()) {
+                await performClientSideReset();
+              }
+              await generateDailyTasks();
+              localStorage.setItem(guardKey, vandaag);
+              if (!afgebroken) await fetchDailyTasks();
+            } catch (error) {
+              devError('Achtergrond-generatie takenlijst mislukt:', error);
+            }
+          })();
+        }
       }
     };
 
     initializeTasks();
-  }, [userLocation, selectedDate, effectiveDept]);
+    return () => {
+      afgebroken = true;
+    };
+    // Bewust zonder effectiveDept: wisselen tussen Bediening en Keuken is
+    // alleen een weergavekeuze, de gegevens zijn al geladen.
+  }, [userLocation, selectedDate]);
 
   // Terug uit de achtergrond (iPad-beginscherm): lijst opnieuw ophalen, zodat
   // vinkjes van de andere tablet niet gemist worden. Max één keer per 15 sec.
