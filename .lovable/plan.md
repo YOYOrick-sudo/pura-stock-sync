@@ -24,6 +24,10 @@ Elk product hoort bij één bron. Dat bepaalt wat er moet gebeuren als het op is
 
 Die laatste rij is nu nergens vastgelegd — dat zit in het hoofd van Helga. Dat is precies wat we eruit halen.
 
+## De takenlijst blijft het vertrekpunt
+
+Dit wordt geen apart scherm. De drie blokken staan in de **sluitlijst van de keuken in West**, op de plek waar nu "Bijvullen keuken" en "Ontdooien" staan. Het team opent dus gewoon de takenlijst zoals altijd; de voortgang van die blokken telt mee in de voortgangsbalk van de keuken, net als de andere taken. Alleen de manier waarop je afvinkt verandert: per product, met hoeveelheid erbij, en met een tweede knop "Op" die het doorzet naar MEP, bestelbord of Midsland. Mise en place, bestelbord en de interne bestelling zijn vervolgschermen, geen extra werk aan het eind van de dienst.
+
 ## Wat we bouwen: één productkaart per product
 
 Per product leggen we één keer vast: **naam, bron, waar het hoort te liggen, hoeveel (incl. bakmaat), en wat er gebeurt als het op is**. Daarna hoeft niemand het meer te weten — het systeem stuurt het door.
