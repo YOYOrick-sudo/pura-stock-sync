@@ -99,6 +99,11 @@ const VUL_KEUZES: { label: string; waarde: number }[] = [
 /** Hoe een product geteld wordt. */
 type TelModus = 'reserve' | 'vulling' | 'bakken';
 
+/** "half" / "bodempje" / "leeg" — wat er geteld is bij een werkbakje. */
+function vulKeuzeLabel(waarde: number): string {
+  return VUL_KEUZES.find((k) => Math.abs(k.waarde - waarde) < 0.001)?.label ?? getalLabel(waarde);
+}
+
 function telModus(item: KoelcelCheckItem): TelModus {
   if (isReserveItem(item)) return 'reserve';
   if (isVulItem(item)) return 'vulling';
