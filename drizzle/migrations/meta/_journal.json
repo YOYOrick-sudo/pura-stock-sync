@@ -71,6 +71,13 @@
       "when": 1789663034806,
       "tag": "0009_voorraadcheck_west_opschoning",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789666757961,
+      "tag": "0010_voorraadronde_categorie_en_formaat",
+      "breakpoints": true
     }
   ]
 }

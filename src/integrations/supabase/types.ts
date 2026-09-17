@@ -1876,10 +1876,12 @@ export type Database = {
           actief: boolean
           bak_maat: string | null
           bron: string
+          categorie: string | null
           created_at: string
           doel_aantal: number
           doel_aantal_druk: number | null
           eenheid: string
+          formaat: string | null
           id: string
           naam: string
           plek: string
@@ -1893,10 +1895,12 @@ export type Database = {
           actief?: boolean
           bak_maat?: string | null
           bron?: string
+          categorie?: string | null
           created_at?: string
           doel_aantal?: number
           doel_aantal_druk?: number | null
           eenheid?: string
+          formaat?: string | null
           id?: string
           naam: string
           plek?: string
@@ -1910,10 +1914,12 @@ export type Database = {
           actief?: boolean
           bak_maat?: string | null
           bron?: string
+          categorie?: string | null
           created_at?: string
           doel_aantal?: number
           doel_aantal_druk?: number | null
           eenheid?: string
+          formaat?: string | null
           id?: string
           naam?: string
           plek?: string
@@ -1932,6 +1938,7 @@ export type Database = {
           created_by: string | null
           datum: string
           doorgezet_naar: string | null
+          geteld_aantal: number | null
           id: string
           item_id: string
           mep_taak_id: string | null
@@ -1945,6 +1952,7 @@ export type Database = {
           created_by?: string | null
           datum: string
           doorgezet_naar?: string | null
+          geteld_aantal?: number | null
           id?: string
           item_id: string
           mep_taak_id?: string | null
@@ -1958,6 +1966,7 @@ export type Database = {
           created_by?: string | null
           datum?: string
           doorgezet_naar?: string | null
+          geteld_aantal?: number | null
           id?: string
           item_id?: string
           mep_taak_id?: string | null
