@@ -275,6 +275,8 @@ export function LadeGrid({ vestiging }: { vestiging: string }) {
                     items={perLade.get(lade.id) ?? []}
                     onHernoem={(naam) => hernoem.mutate({ id: lade.id, naam })}
                     onZetActief={(actief) => zetActief.mutate({ id: lade.id, actief })}
+                    onZetRol={(rol) => zetRol.mutate({ id: lade.id, rol })}
+                    onReserve={(itemId, aantal) => zetReserveDoel.mutate({ itemId, aantal })}
                   />
                 ))}
             </div>
