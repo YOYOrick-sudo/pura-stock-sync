@@ -36,6 +36,8 @@ import {
   vulnormWaarde,
   vulnormLabel,
   batchGrootte,
+  bestelOpdracht,
+
   HERKOMST_LABEL,
   type DrukteModus,
   type KoelcelCheckItem,
