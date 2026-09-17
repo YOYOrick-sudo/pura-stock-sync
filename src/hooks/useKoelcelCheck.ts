@@ -471,7 +471,9 @@ async function opBestelbord(
   item: KoelcelCheckItem,
   vestiging: string,
   behoefte: number,
+  opties?: { eenheid?: string; notitie?: string },
 ): Promise<{ dubbel: boolean; aantal: number }> {
+  const eenheid = opties?.eenheid || item.eenheid;
   const { data: bestaand, error } = await supabase
     .from('bestel_signalen')
     .select('id, aantal')
@@ -484,7 +486,10 @@ async function opBestelbord(
     const huidig = Number((bestaand[0] as any).aantal ?? 0);
     if (behoefte !== huidig) {
       const { error: bijFout } = await metHerstel(() =>
-        supabase.from('bestel_signalen').update({ aantal: behoefte }).eq('id', (bestaand[0] as any).id),
+        supabase
+          .from('bestel_signalen')
+          .update({ aantal: behoefte, eenheid, notitie: opties?.notitie ?? null })
+          .eq('id', (bestaand[0] as any).id),
       );
       if (bijFout) throw bijFout;
     }
@@ -497,7 +502,8 @@ async function opBestelbord(
       vestiging,
       naam: item.naam,
       aantal: behoefte,
-      eenheid: item.eenheid,
+      eenheid,
+      notitie: opties?.notitie ?? null,
       bron: 'sluitlijst',
       gemeld_door: user.user?.id ?? null,
     }),
@@ -505,6 +511,7 @@ async function opBestelbord(
   if (invoegFout) throw invoegFout;
   return { dubbel: false, aantal: behoefte };
 }
+
 
 
 function datumMorgen(): string {
