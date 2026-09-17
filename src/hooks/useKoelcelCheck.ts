@@ -832,8 +832,24 @@ export function useProbleemFrequentie(vestiging: string | null | undefined) {
 
 
 /**
+ * Hoeveel er voor dit product onderweg is vanuit Midsland. Alleen het niveau dat
+ * Midsland ook echt levert (de vriescelregel) kan iets onderweg hebben: de koelcel
+ * en de koelwerkbank vul je zelf bij uit het niveau eronder. Zonder deze check
+ * plakte een bestelling voor de vriescel op alle regels met dezelfde naam
+ * (wortelspread, tomatenjam, tomatenrelish, tempeh ...).
+ */
+export function onderwegVoorItem(
+  item: KoelcelCheckItem,
+  map: Record<string, number>,
+): number {
+  if (item.bron !== 'midsland') return 0;
+  return map[item.naam.trim().toLowerCase()] ?? 0;
+}
+
+/**
  * Per product: hoeveel er al besteld is bij Midsland en nog niet geleverd.
  * Wordt onder de regel getoond zodat niemand nog een keer hetzelfde bestelt.
+ * Alleen verstuurde bestellingen tellen mee; een concept staat nog in West.
  */
 export function useOpenstaandeBestellingen(vestiging: string) {
   return useQuery({
@@ -846,7 +862,7 @@ export function useOpenstaandeBestellingen(vestiging: string) {
         .select('id')
         .eq('from_location', vestiging)
         .eq('to_location', 'Midsland')
-        .not('status', 'in', '("delivered","cancelled","geannuleerd")')
+        .not('status', 'in', '("concept","delivered","cancelled","geannuleerd")')
         .gte('created_at', new Date(Date.now() - 14 * 86400_000).toISOString());
       if (error) throw error;
       const ids = (orders ?? []).map((o: any) => o.id);

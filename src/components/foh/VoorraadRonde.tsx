@@ -25,6 +25,7 @@ import {
   useKoelcelCheckMutaties,
   useDrukteModus,
   useOpenstaandeBestellingen,
+  onderwegVoorItem,
   useBestelbordOpen,
   useMepOpenNamen,
   vervolgactieVoorRegel,
@@ -486,7 +487,7 @@ function CategorieBlok({
             doel={telDoel(item, drukte)}
             modus={telModus(item)}
             geteld={telling[item.id]}
-            onderweg={onderwegMap[item.naam.trim().toLowerCase()] ?? 0}
+            onderweg={onderwegVoorItem(item, onderwegMap)}
             opBestelbord={(bestelbordMap[item.naam.trim().toLowerCase()] ?? 0) > 0}
             inMep={mepTitels.some((t) => t.includes(item.naam.trim().toLowerCase()))}
             onZet={(a) => onZet(item.id, a)}
@@ -686,7 +687,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
         const heeftTekort = g.items.some((item) => {
           const geteld = telling[item.id];
           if (geteld === undefined) return false;
-          const onderweg = onderwegMap[item.naam.trim().toLowerCase()] ?? 0;
+          const onderweg = onderwegVoorItem(item, onderwegMap);
           return tekortVoor(item, telDoel(item, drukte), geteld, onderweg) > 0;
         });
         return {
@@ -708,7 +709,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
       if (geteld === undefined) continue;
       const doel = telDoel(item, drukte);
       // Besteld-en-onderweg telt mee als voorraad: niet opnieuw bestellen.
-      const onderweg = onderwegMap[item.naam.trim().toLowerCase()] ?? 0;
+      const onderweg = onderwegVoorItem(item, onderwegMap);
       const tekort = tekortVoor(item, doel, geteld, onderweg);
       if (tekort <= 0) continue;
       const vervolg = vervolgactieVoorRegel(item, items);
@@ -787,7 +788,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
         (i) =>
           !afgehandeld.has(i.id) &&
           (telling[i.id] !== undefined ||
-            (onderwegMap[i.naam.trim().toLowerCase()] ?? 0) === 0),
+            onderwegVoorItem(i, onderwegMap) === 0),
       );
       if (rest.length) await zetAllesAanwezig.mutateAsync(rest);
 
