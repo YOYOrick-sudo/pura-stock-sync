@@ -3,8 +3,8 @@ import { LadeGrid } from '@/components/voorraad/LadeGrid';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 
 export default function KoelwerkbankIndeling() {
-  const { activeLocation } = useUserLocation();
-  const vestiging = activeLocation ?? 'West';
+  const { userLocation } = useUserLocation();
+  const vestiging = userLocation || 'West';
 
   return (
     <SidebarLayout>
