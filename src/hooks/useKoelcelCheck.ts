@@ -143,14 +143,26 @@ export function eindBestemming(
   item: KoelcelCheckItem,
   alleItems: KoelcelCheckItem[],
 ): ReturnType<typeof bestemmingVoorBron> {
+  return diepsteBron(item, alleItems).bestemming;
+}
+
+/**
+ * Loopt de keten af tot het laagste niveau dat dit product nog voert, en geeft
+ * dat item terug plus waar het bijbesteld/gemaakt moet worden.
+ */
+export function diepsteBron(
+  item: KoelcelCheckItem,
+  alleItems: KoelcelCheckItem[],
+): { item: KoelcelCheckItem; bestemming: ReturnType<typeof bestemmingVoorBron> } {
   let huidig = item;
   for (let i = 0; i < 5; i++) {
     const volgend = vervolgactieVoorRegel(huidig, alleItems);
-    if (volgend.soort !== 'niveau') return volgend;
+    if (volgend.soort !== 'niveau') return { item: huidig, bestemming: volgend };
     huidig = volgend.onderItem;
   }
-  return bestemmingVoorBron(huidig.bron);
+  return { item: huidig, bestemming: bestemmingVoorBron(huidig.bron) };
 }
+
 
 
 /** Rustig of druk: bepaalt welke hoeveelheden de sluitlijst toont. */
