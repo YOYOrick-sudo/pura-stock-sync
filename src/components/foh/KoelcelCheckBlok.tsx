@@ -72,12 +72,14 @@ function ActieDialog({
   onderItem: KoelcelCheckItem | null;
   doel: number;
   onSluit: () => void;
-  onAangevuld: () => void;
+  /** aantal = hoeveel er uit het niveau eronder gehaald is. */
+  onAangevuld: (aantal: number) => void;
   /** aanwezig = wat er nog ligt (0 = helemaal op). */
   onOp: (aanwezig: number) => void;
 }) {
-  const [stap, setStap] = useState<'keuze' | 'aantal'>('keuze');
+  const [stap, setStap] = useState<'keuze' | 'aantal' | 'aanvullen'>('keuze');
   const [aanwezig, setAanwezig] = useState(Math.max(doel - 1, 0));
+  const tekort = Math.max(doel - aanwezig, 1);
 
   const stapKnop: React.CSSProperties = {
     width: '56px',
@@ -92,6 +94,7 @@ function ActieDialog({
   };
 
   const bronNaam = onderItem ? HERKOMST_LABEL[onderItem.plek] : null;
+
 
   return (
     <div
