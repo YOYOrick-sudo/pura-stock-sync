@@ -41,6 +41,8 @@ Wat we toevoegen:
 - `useKoelcelCheck.ts`: `NIVEAU_ONDER` vervangen door een zoekvolgorde per plek (`werkbank`/`werkblad` → `koelcel` → `vriezer`) zodat `vervolgactieVoorRegel` het eerstvolgende bestaande niveau pakt in plaats van alleen het directe niveau eronder.
 - `KoelcelCheckBlok.tsx`: vriezerblok krijgt titel "Vriescel op peil (maandag)", nieuwe uitleg en `klaarLabel="Aanwezig"`, en wordt alleen gerenderd als de gekozen datum een maandag is (weekdag uit `datum`, Europe/Amsterdam). De sticker-/ontdooilogica (`handleUitVriezer`) verhuist naar een extra knop op koelcelregels die een gekoppelde vriescelregel hebben.
 - Migratie `voorraadcheck_west_opschoning`: `actief = false` voor de legacy-zoetregel en de dubbele vriescelregels; herkomst corrigeren waar nodig. Geen harde verwijderingen.
+- `meldOp` krijgt een optioneel `aanwezigAantal`; `naarMidsland`, `opBestelbord` en `mepTaakVoorItem` bestellen dan `doel − aanwezig` in plaats van het volle doel, en tellen bij een bestaande regel op in plaats van over te slaan. Nieuw compact dialoogje `VoorraadTekortDialog.tsx`; het doorgezette aantal wordt vastgelegd op `koelcel_checks` (nieuwe kolom `aantal_doorgezet`) en onder de regel getoond.
+
 
 ## Risico's
 
