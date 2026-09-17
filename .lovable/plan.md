@@ -1,42 +1,46 @@
-# App weer direct bruikbaar na lange inactiviteit
+# App werkt altijd, ook na uren stilstaan
 
 ## Wat er gisteravond gebeurde
 
-In de printwachtrij staat gisteren als laatste een sticker om 21:36 (Nederlandse tijd), netjes geprint. Daarna staat er niets meer: geen mislukte opdracht, geen wachtende opdracht. De printserver in West geeft nu ook gewoon "actief" terug.
+In de printwachtrij staat gisteren als laatste een sticker om 21:36 (Nederlandse tijd), netjes geprint. Daarna staat er niets: geen mislukte opdracht, geen wachtende opdracht. De printserver in West geeft nu ook gewoon "actief".
 
-Met andere woorden: de printopdracht die je wilde maken is nooit in het systeem aangekomen. De printer was niet het probleem — de app op de iPad was na uren slapen nog niet "wakker" en het tikken op printen liep dood.
+De printopdracht die jij wilde maken is dus nooit aangekomen. De printer was niet het probleem — de app op de iPad was na uren slapen nog niet wakker en je tik liep dood.
 
-Waarom dat kan: als de iPad urenlang slaapt, verloopt de inlogsleutel van de app. Bij het terugkeren wordt die pas vernieuwd nádat het scherm al zichtbaar is. Tik je in die eerste seconden op een knop, dan gaat het verzoek weg met een verlopen sleutel. Er is nu niets dat dat opvangt: geen melding, geen nieuwe poging, en de knop blijft in "bezig" hangen.
+Oorzaak: slaapt de iPad urenlang, dan verloopt de inlogsleutel van de app. Die wordt pas vernieuwd nádat het scherm al zichtbaar is. Tik je in die eerste seconden, dan vertrekt het verzoek met een verlopen sleutel. Er is niets dat dat opvangt: geen nieuwe poging, en de knop blijft hangen.
+
+## Uitgangspunt
+
+Geen meldingen, geen "even wachten", geen herstelbalk. Je opent de app en hij werkt. Al het herstel gebeurt onzichtbaar, achter je tik aan.
 
 ## Wat we bouwen
 
-1. **Wakker-worden-routine.** Komt de app terug op de voorgrond na langere inactiviteit, dan herstelt de app eerst in de achtergrond de verbinding: inlogsleutel vernieuwen als die verlopen is of bijna verloopt, live-verbinding opnieuw opbouwen, schermdata verversen.
+1. **Onzichtbaar wakker worden.** Zodra de app terugkomt op de voorgrond, vernieuwt hij direct en stil de inlogsleutel (als die verlopen of bijna verlopen is), bouwt de live-verbinding opnieuw op en haalt de gegevens van het scherm waar je op staat opnieuw op. Je ziet alleen je scherm, zoals je het achterliet.
 
-2. **Zichtbare statusstrip tijdens herstel.** Een smalle balk bovenin: "Verbinding herstellen…". Verdwijnt vanzelf zodra alles rond is (normaal binnen een paar seconden). Lukt het niet binnen 10 seconden, dan komt er een grote knop "Opnieuw proberen" in beeld. Niemand staat dan te tikken op een scherm dat stiekem niets doet.
+2. **Elke actie herstelt zichzelf.** Tik je op printen (of opslaan, afvinken) terwijl de app nog aan het bijkomen is, dan wacht die actie intern kort op de verse sleutel en gaat daarna gewoon door. Mislukt hij toch, dan probeert de app het één keer automatisch opnieuw met een nieuwe sleutel. In de praktijk merk je hier niets van behalve dat het werkt.
 
-3. **Acties wachten netjes op herstel, in plaats van te mislukken.** Print- en opslagacties die vlak na het wakker worden gebeuren, wachten kort op het herstel en gaan daarna alsnog door. Mislukt het toch, dan volgt één automatische nieuwe poging en anders een duidelijke melding: "Niet verstuurd — probeer opnieuw". Nooit meer een knop die eindeloos blijft draaien.
+3. **Warm blijven tijdens dienst.** Zolang het scherm aanstaat, houdt de app zichzelf fris met een lichte controle op de achtergrond. Zo kom je overdag nooit in een koude app.
 
-4. **Warm blijven tijdens dienst.** Zolang het scherm zichtbaar is, houdt de app zichzelf op de achtergrond fris (lichte controle elke paar minuten). Dat maakt de kans klein dat je overdag ooit in een koude app terechtkomt.
+4. **Nieuwe versie stil ophalen.** Draait de iPad nog op een oude versie terwijl er inmiddels gepubliceerd is, dan laadt de app die zelf bij het wakker worden, zolang er geen invoer openstaat. Scheelt handmatig afsluiten en heropenen op de tablets.
 
-5. **Nieuwe versie ophalen na lange slaap.** Draait de iPad nog op een oude versie van de app terwijl er inmiddels is gepubliceerd, dan haalt de app die bij het wakker worden zelf op. Scheelt het handmatig afsluiten en heropenen van de app op de tablets.
+5. **Alleen iets zeggen als het écht niet lukt.** Is er bijvoorbeeld geen internet, dan krijg je één korte melding "Niet verstuurd — probeer opnieuw" in plaats van een knop die eindeloos draait. Geen statusbalken, geen tussenmeldingen.
 
 ## Wat dit in de praktijk betekent
 
-- iPad urenlang uit, je opent 's avonds de app: je ziet kort "Verbinding herstellen…", daarna werkt printen gewoon.
-- Wifi even weg: dezelfde routine draait, dus ook dan geen dode knoppen.
-- Lukt herstel echt niet (bijvoorbeeld internet plat), dan zie je dat meteen in plaats van te wachten op niets.
+- iPad uren uit, je opent 's avonds de app en tikt op printen: de sticker komt eruit, zonder tussenstap.
+- Wifi even weg: zelfde routine, dus geen dode knoppen.
+- Alleen bij een echte storing zie je één duidelijke melding.
 
-Risico: klein. Er verandert niets aan de database, de printserver of de printflow zelf — alleen aan hoe de app zich gedraagt bij terugkomst en hoe knoppen met fouten omgaan. Het uitloggen-bij-wakker-worden-probleem van eerder vermijden we: de sleutel wordt alleen ververst als hij echt bijna of al verlopen is, nooit geforceerd.
+Risico klein: er verandert niets aan de database, de printserver of de printflow. Alleen hoe de app terugkomt uit slaap en hoe acties met fouten omgaan. Het eerdere probleem van uitloggen bij wakker worden vermijden we: de sleutel wordt alleen ververst als hij bijna of al verlopen is, nooit geforceerd.
 
 ## Technische uitwerking
 
-- Nieuwe `src/lib/appWake.ts`: `wachtOpHerstel()` (promise, gedeeld/gedebounced) die `supabase.auth.getSession()` leest, bij `expires_at` binnen 60s `refreshSession()` uitvoert, `supabase.realtime.connect()` aanroept en resultaat cachet tot de volgende achtergrondronde.
-- `useVersHouden` in `src/App.tsx` roept `wachtOpHerstel()` aan bij `visibilitychange`/`online` en pas daarna `queryClient.invalidateQueries({ type: 'active' })`. Bestaande 30s-throttle en `stopAutoRefresh` bij achtergrond blijven.
-- Nieuwe `HerstelBalk`-component (in bestaande layout, boven de content) die de herstelstatus uit een kleine context/store toont, met knop "Opnieuw proberen" na `TRAAG_NA_MS = 10_000`.
-- `useCreatePrintJob` (en `useCreateStickerPrintJob`, MEP-afronden): `await wachtOpHerstel()` vóór de insert, insert door `withTimeout` (15s), één retry bij netwerk-/401-fout na een geforceerde refresh, altijd `onSettled` zodat de knop vrijkomt.
-- Versiecontrole: build-hash in `index.html`/meta uitlezen bij herstel; wijkt die af van de geladen versie, dan `location.reload()` — alleen als er geen openstaande invoer is.
+- Nieuwe `src/lib/appWake.ts`: `zorgVoorSessie()` — gedeelde, gedebouncede promise die `supabase.auth.getSession()` leest, bij `expires_at` binnen 60s `refreshSession()` doet, `supabase.realtime.connect()` aanroept en het resultaat cachet tot de volgende achtergrondronde. Geen UI, geen state die rendert.
+- `useVersHouden` in `src/App.tsx` roept bij `visibilitychange`/`online` eerst `zorgVoorSessie()` aan en daarna `queryClient.invalidateQueries({ type: 'active' })`. Bestaande 30s-throttle en `stopAutoRefresh` bij achtergrond blijven.
+- `useCreatePrintJob`, `useCreateStickerPrintJob` en MEP-afronden: `await zorgVoorSessie()` vóór de insert, insert door `withTimeout` (15s), één automatische retry na geforceerde `refreshSession()` bij 401/netwerkfout, `onSettled` zodat de knop altijd vrijkomt. Toast alleen bij definitieve fout.
+- Warmhouden: interval van 4 minuten dat alleen loopt bij `visibilityState === 'visible'` en `zorgVoorSessie()` aanroept.
+- Versiecontrole: build-hash uit `index.html` ophalen bij wakker worden; wijkt die af, dan `location.reload()` mits er geen openstaande invoer/dialoog is.
 - Geen wijzigingen in database, RLS, edge functions of print-bridge.
 
 ## Verificatie
 
-Playwright als eigenaar op West: app laden, tabblad 10 minuten "verborgen" simuleren met verlopen sessie, terugkeren, herstelbalk zien verdwijnen, sticker printen en de nieuwe rij in de printwachtrij bevestigen.
+Playwright als eigenaar op West: app laden, achtergrond simuleren met een verlopen sessie, terugkeren, direct op printen tikken zonder wachten, en bevestigen dat er een nieuwe rij in de printwachtrij staat en er geen melding in beeld kwam.
