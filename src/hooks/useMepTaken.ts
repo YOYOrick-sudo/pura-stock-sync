@@ -16,6 +16,44 @@ export function dagenOpen(taakDatum: string, referentieDatum: string): number {
   );
 }
 
+/** Begin van vandaag (Amsterdamse tijd) als UTC-tijdstip, voor filters op updated_at. */
+function beginVanVandaagIso(): string {
+  const nu = new Date();
+  const [y, m, d] = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Amsterdam',
+  })
+    .format(nu)
+    .split('-')
+    .map(Number);
+
+  // Afwijking van Amsterdam t.o.v. UTC op dit moment (winter +60, zomer +120).
+  const onderdelen: Record<string, string> = {};
+  for (const deel of new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Amsterdam',
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).formatToParts(nu)) {
+    onderdelen[deel.type] = deel.value;
+  }
+  const muurKlokUtc =
+    Date.UTC(
+      +onderdelen.year,
+      +onderdelen.month - 1,
+      +onderdelen.day,
+      +onderdelen.hour % 24,
+      +onderdelen.minute,
+      +onderdelen.second,
+    ) - nu.getTime();
+  const afwijkingMin = muurKlokUtc / 60000;
+
+  return new Date(Date.UTC(y, m - 1, d) - afwijkingMin * 60000).toISOString();
+}
+
 
 export const MEP_CATEGORIEEN = [
   'Sauzen & dressings',
@@ -78,7 +116,9 @@ export function useMepTaken(vestiging: string, datum: string) {
     queryFn: async () => {
       const vandaag = ymd(new Date());
       // Op vandaag nemen we openstaande taken van eerdere dagen mee: wat niet
-      // gemaakt is blijft op de lijst staan tot het klaar is.
+      // gemaakt is blijft op de lijst staan tot het klaar is. Afgevinkte
+      // achterstand die vandaag is afgewerkt blijft die dag ook zichtbaar
+      // (onderaan), daarna hoort hij bij de dag waarop hij gemaakt is.
       const neemAchterstandMee = datum === vandaag;
 
       let q = supabase
@@ -88,20 +128,26 @@ export function useMepTaken(vestiging: string, datum: string) {
         .neq('status', 'geannuleerd');
 
       q = neemAchterstandMee
-        ? q.or(`taak_datum.eq.${datum},and(taak_datum.lt.${datum},status.in.(open,bezig))`)
+        ? q.or(
+            `taak_datum.eq.${datum},` +
+              `and(taak_datum.lt.${datum},status.in.(open,bezig)),` +
+              `and(taak_datum.lt.${datum},status.eq.afgerond,updated_at.gte.${beginVanVandaagIso()})`,
+          )
         : q.eq('taak_datum', datum);
 
-      const { data, error } = await q
-        .order('prioriteit', { ascending: true })
-        .order('volgorde', { ascending: true })
-        .order('created_at', { ascending: true });
+      const { data, error } = await q;
       if (error) throw error;
 
       const rijen = (data ?? []) as MepTaak[];
-      // Belangrijk eerst, dan oudste invoerdatum, dan de volgorde van invoeren.
+      // Openstaand eerst (belangrijk, dan oudste invoerdatum, dan invoervolgorde),
+      // daarna alles wat vandaag is afgevinkt, onderaan in de volgorde van afvinken.
       return rijen
         .map((t, i) => ({ t, i }))
         .sort((a, b) => {
+          const aKlaar = a.t.status === 'afgerond' ? 1 : 0;
+          const bKlaar = b.t.status === 'afgerond' ? 1 : 0;
+          if (aKlaar !== bKlaar) return aKlaar - bKlaar;
+          if (aKlaar === 1) return a.t.updated_at.localeCompare(b.t.updated_at);
           if (a.t.prioriteit !== b.t.prioriteit) return a.t.prioriteit - b.t.prioriteit;
           if (a.t.taak_datum !== b.t.taak_datum)
             return a.t.taak_datum.localeCompare(b.t.taak_datum);
