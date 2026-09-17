@@ -620,7 +620,7 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
               // Het niveau eronder is ook leeg: die regel schuift door naar de
               // volgende bron (vriescel, bestelbord, mise-en-place of Midsland).
               await doorzetten(paar.onderItem, 0);
-              await doorzetten(paar.item, 0);
+              zetStatus.mutate({ item: paar.item, status: 'gemeld', uit: false });
             })();
           }}
         />
