@@ -37,16 +37,56 @@ function ProductChip({ item, actief }: { item: KoelcelCheckItem; actief?: boolea
   );
 }
 
-function SleepbaarProduct({ item }: { item: KoelcelCheckItem }) {
+/** Product met sleepgreep en het aantal reservebakjes dat erachter hoort te staan. */
+function SleepbaarProduct({
+  item,
+  onReserve,
+}: {
+  item: KoelcelCheckItem;
+  onReserve?: (aantal: number) => void;
+}) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });
+  const reserve = Math.max(Number(item.reserve_doel ?? 0), 0);
+
   return (
     <div
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      className={`touch-none ${isDragging ? 'opacity-40' : ''}`}
+      className={`flex items-center gap-1.5 rounded-[12px] border border-border bg-card px-2 py-1.5 ${
+        isDragging ? 'opacity-40' : ''
+      }`}
+      style={{ minHeight: 44 }}
     >
-      <ProductChip item={item} />
+      <div
+        ref={setNodeRef}
+        {...listeners}
+        {...attributes}
+        className="flex min-w-0 flex-1 touch-none items-center gap-1.5"
+      >
+        <GripVertical size={14} className="shrink-0 text-muted-foreground" />
+        <span className="truncate text-[13px] font-medium text-foreground">{item.naam}</span>
+      </div>
+      {onReserve && (
+        <div className="flex shrink-0 items-center gap-0.5">
+          <button
+            type="button"
+            aria-label="Minder reserve"
+            onClick={() => onReserve(reserve - 1)}
+            className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-border text-muted-foreground"
+          >
+            <Minus size={14} />
+          </button>
+          <span className="w-6 text-center text-[13px] font-bold tabular-nums text-foreground">
+            {reserve}
+          </span>
+          <button
+            type="button"
+            aria-label="Meer reserve"
+            onClick={() => onReserve(reserve + 1)}
+            className="flex h-9 w-9 items-center justify-center rounded-[10px] border border-border text-muted-foreground"
+          >
+            <Plus size={14} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
