@@ -184,6 +184,53 @@ function ActieDialog({
               </button>
             </div>
           </>
+        ) : stap === 'aanvullen' && onderItem ? (
+          <>
+            <div style={{ fontSize: '15px', color: 'hsl(var(--foreground))', marginTop: '6px', lineHeight: 1.4 }}>
+              Pak <strong>{tekort} {item.eenheid}</strong> uit {bronNaam} en leg het{' '}
+              {BESTEMMING_LABEL[item.plek]}.
+            </div>
+            <div style={{ fontSize: '13px', color: 'hsl(var(--muted-foreground))', marginTop: '6px' }}>
+              {onderItem.plek === 'vriezer'
+                ? 'De "Ontdooid"-sticker wordt meteen geprint. '
+                : ''}
+              Wat je eruit haalt wordt automatisch bijbesteld.
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '18px' }}>
+              <button
+                type="button"
+                onClick={() => onAangevuld(tekort)}
+                style={{
+                  ...knop,
+                  minHeight: '54px',
+                  backgroundColor: 'hsl(var(--primary))',
+                  color: 'hsl(var(--primary-foreground))',
+                }}
+              >
+                <Check size={18} /> Gedaan, bijgevuld
+              </button>
+              <button
+                type="button"
+                onClick={() => onOp(aanwezig)}
+                style={{
+                  ...knop,
+                  minHeight: '54px',
+                  backgroundColor: 'hsl(25 95% 53% / 0.12)',
+                  color: 'hsl(25 95% 35%)',
+                  border: '1px solid hsl(25 95% 53% / 0.4)',
+                }}
+              >
+                {bronNaam} is ook leeg
+              </button>
+              <button
+                type="button"
+                onClick={() => setStap('aantal')}
+                style={{ ...knop, backgroundColor: 'transparent', color: 'hsl(var(--muted-foreground))' }}
+              >
+                Terug
+              </button>
+            </div>
+          </>
         ) : (
           <>
             <div style={{ fontSize: '14px', color: 'hsl(var(--muted-foreground))', marginTop: '4px' }}>
@@ -217,7 +264,9 @@ function ActieDialog({
                 marginBottom: '14px',
               }}
             >
-              Er wordt {Math.max(doel - aanwezig, 1)} {item.eenheid} doorgezet.
+              {onderItem
+                ? `Er moet ${tekort} ${item.eenheid} bij uit ${bronNaam}.`
+                : `Er wordt ${tekort} ${item.eenheid} doorgezet.`}
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
@@ -235,7 +284,7 @@ function ActieDialog({
               </button>
               <button
                 type="button"
-                onClick={() => onOp(aanwezig)}
+                onClick={() => (onderItem ? setStap('aanvullen') : onOp(aanwezig))}
                 style={{
                   ...knop,
                   flex: 1,
@@ -243,11 +292,12 @@ function ActieDialog({
                   color: 'hsl(var(--primary-foreground))',
                 }}
               >
-                Doorzetten
+                {onderItem ? 'Verder' : 'Doorzetten'}
               </button>
             </div>
           </>
         )}
+
       </div>
     </div>
   );
