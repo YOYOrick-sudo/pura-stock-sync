@@ -425,6 +425,7 @@ export function useKoelcelCheckMutaties(
                 status,
                 mep_taak_id: null,
                 doorgezet_naar: null,
+                aantal_doorgezet: null,
                 created_by: null,
               },
             ],
