@@ -49,12 +49,17 @@ export function doelAantal(item: KoelcelCheckItem, drukte: DrukteModus): number 
   return Number(item.doel_aantal);
 }
 
-/** Het niveau eronder: werkbank/werkblad wordt bijgevuld uit de koelcel, die uit de vriezer. */
-export const NIVEAU_ONDER: Partial<Record<VoorraadPlek, VoorraadPlek>> = {
-  werkbank: 'koelcel',
-  werkblad: 'koelcel',
-  koelcel: 'vriezer',
+/**
+ * De niveaus eronder, in volgorde: de koelwerkbank wordt bijgevuld uit de koelcel,
+ * en als daar geen regel voor is rechtstreeks uit de vriescel.
+ */
+export const NIVEAU_KETEN: Record<VoorraadPlek, VoorraadPlek[]> = {
+  werkbank: ['koelcel', 'vriezer'],
+  werkblad: ['koelcel', 'vriezer'],
+  koelcel: ['vriezer'],
+  vriezer: [],
 };
+
 
 export type KoelcelCheckStatus = 'aanwezig' | 'naar_mep' | 'uit_vriezer' | 'gemeld';
 
