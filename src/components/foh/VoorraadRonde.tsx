@@ -36,8 +36,19 @@ import {
 } from '@/hooks/useKoelcelCheck';
 import { useCreateStickerPrintJob } from '@/hooks/useStickerProducten';
 import { aantalLabel, getalLabel, formaatLabel } from '@/lib/voorraad-formaat';
+import { useVoorraadLades, positieLabel, type VoorraadLade } from '@/hooks/useVoorraadLades';
+import { LadePositie } from '@/components/voorraad/LadePositie';
 
 type ItemMetCategorie = KoelcelCheckItem & { categorie?: string | null; formaat?: string | null };
+
+/** Eén telblok binnen een opslagplek: een lade (koelwerkbank) of een categorie. */
+interface Groep {
+  sleutel: string;
+  titel: string;
+  subtitel: string | null;
+  lade: VoorraadLade | null;
+  items: ItemMetCategorie[];
+}
 
 /** De plekken in de volgorde waarin je er fysiek langsloopt. */
 const PLEK_VOLGORDE: {
