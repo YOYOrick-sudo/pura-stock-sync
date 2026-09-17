@@ -1927,6 +1927,7 @@ export type Database = {
       }
       koelcel_checks: {
         Row: {
+          aantal_doorgezet: number | null
           created_at: string
           created_by: string | null
           datum: string
@@ -1939,6 +1940,7 @@ export type Database = {
           vestiging: string
         }
         Insert: {
+          aantal_doorgezet?: number | null
           created_at?: string
           created_by?: string | null
           datum: string
@@ -1951,6 +1953,7 @@ export type Database = {
           vestiging: string
         }
         Update: {
+          aantal_doorgezet?: number | null
           created_at?: string
           created_by?: string | null
           datum?: string

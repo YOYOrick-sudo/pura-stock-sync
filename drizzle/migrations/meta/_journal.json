@@ -64,6 +64,13 @@
       "when": 1789662289910,
       "tag": "0008_voorraadcheck_west_deel4",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789663034806,
+      "tag": "0009_voorraadcheck_west_opschoning",
+      "breakpoints": true
     }
   ]
 }

@@ -49,12 +49,17 @@ export function doelAantal(item: KoelcelCheckItem, drukte: DrukteModus): number 
   return Number(item.doel_aantal);
 }
 
-/** Het niveau eronder: werkbank/werkblad wordt bijgevuld uit de koelcel, die uit de vriezer. */
-export const NIVEAU_ONDER: Partial<Record<VoorraadPlek, VoorraadPlek>> = {
-  werkbank: 'koelcel',
-  werkblad: 'koelcel',
-  koelcel: 'vriezer',
+/**
+ * De niveaus eronder, in volgorde: de koelwerkbank wordt bijgevuld uit de koelcel,
+ * en als daar geen regel voor is rechtstreeks uit de vriescel.
+ */
+export const NIVEAU_KETEN: Record<VoorraadPlek, VoorraadPlek[]> = {
+  werkbank: ['koelcel', 'vriezer'],
+  werkblad: ['koelcel', 'vriezer'],
+  koelcel: ['vriezer'],
+  vriezer: [],
 };
+
 
 export type KoelcelCheckStatus = 'aanwezig' | 'naar_mep' | 'uit_vriezer' | 'gemeld';
 
@@ -66,6 +71,7 @@ export interface KoelcelCheck {
   status: KoelcelCheckStatus;
   mep_taak_id: string | null;
   doorgezet_naar: string | null;
+  aantal_doorgezet: number | null;
   created_by: string | null;
 }
 
@@ -99,16 +105,18 @@ export function vervolgactieVoorRegel(
   item: KoelcelCheckItem,
   alleItems: KoelcelCheckItem[],
 ): { soort: 'niveau'; onderItem: KoelcelCheckItem; label: string } | ReturnType<typeof bestemmingVoorBron> {
-  const onder = NIVEAU_ONDER[item.plek];
-  if (onder && item.product_sleutel) {
-    const onderItem = alleItems.find(
-      (i) => i.product_sleutel === item.product_sleutel && i.plek === onder && i.actief,
-    );
-    if (onderItem) {
-      return { soort: 'niveau', onderItem, label: PLEK_LABEL[onder].toLowerCase() };
+  if (item.product_sleutel) {
+    for (const onder of NIVEAU_KETEN[item.plek] ?? []) {
+      const onderItem = alleItems.find(
+        (i) => i.product_sleutel === item.product_sleutel && i.plek === onder && i.actief,
+      );
+      if (onderItem) {
+        return { soort: 'niveau', onderItem, label: PLEK_LABEL[onder].toLowerCase() };
+      }
     }
   }
   return bestemmingVoorBron(item.bron);
+
 }
 
 /** Rustig of druk: bepaalt welke hoeveelheden de sluitlijst toont. */
@@ -207,6 +215,7 @@ async function mepTaakVoorItem(
   vestiging: string,
   datum: string,
   handeling: string,
+  aantal: number,
 ): Promise<{ id: string; dubbel: boolean }> {
   const { data: bestaand, error: zoekFout } = await supabase
     .from('mep_taken')
@@ -237,7 +246,7 @@ async function mepTaakVoorItem(
         categorie: 'Algemeen',
         taak_datum: datum,
         handeling,
-        doel_aantal: item.doel_aantal,
+        doel_aantal: aantal,
         doel_eenheid: item.eenheid,
         prioriteit: 2,
         volgorde,
@@ -250,23 +259,33 @@ async function mepTaakVoorItem(
   return { id: (taak as any).id, dubbel: false };
 }
 
-async function opBestelbord(item: KoelcelCheckItem, vestiging: string): Promise<boolean> {
+async function opBestelbord(item: KoelcelCheckItem, vestiging: string, aantal: number): Promise<boolean> {
   const { data: bestaand, error } = await supabase
     .from('bestel_signalen')
-    .select('id')
+    .select('id, aantal')
     .eq('vestiging', vestiging)
     .eq('status', 'open')
     .ilike('naam', item.naam)
     .limit(1);
   if (error) throw error;
-  if (bestaand?.[0]) return true;
+  if (bestaand?.[0]) {
+    // Al gemeld: hoogste tekort laten staan, niet dubbel bestellen.
+    const huidig = Number((bestaand[0] as any).aantal ?? 0);
+    if (aantal > huidig) {
+      const { error: bijFout } = await metHerstel(() =>
+        supabase.from('bestel_signalen').update({ aantal }).eq('id', (bestaand[0] as any).id),
+      );
+      if (bijFout) throw bijFout;
+    }
+    return true;
+  }
 
   const { data: user } = await supabase.auth.getUser();
   const { error: invoegFout } = await metHerstel(() =>
     supabase.from('bestel_signalen').insert({
       vestiging,
       naam: item.naam,
-      aantal: item.doel_aantal,
+      aantal,
       eenheid: item.eenheid,
       bron: 'sluitlijst',
       gemeld_door: user.user?.id ?? null,
@@ -276,13 +295,14 @@ async function opBestelbord(item: KoelcelCheckItem, vestiging: string): Promise<
   return false;
 }
 
+
 function datumMorgen(): string {
   const d = new Date();
   d.setDate(d.getDate() + 1);
   return d.toISOString().slice(0, 10);
 }
 
-async function naarMidsland(item: KoelcelCheckItem, vestiging: string): Promise<boolean> {
+async function naarMidsland(item: KoelcelCheckItem, vestiging: string, aantal: number): Promise<boolean> {
   const { data: orders, error: zoekFout } = await supabase
     .from('internal_orders')
     .select('id')
@@ -318,17 +338,27 @@ async function naarMidsland(item: KoelcelCheckItem, vestiging: string): Promise<
 
   const { data: bestaand } = await supabase
     .from('internal_order_items')
-    .select('id')
+    .select('id, quantity')
     .eq('order_id', orderId!)
     .ilike('product_name', item.naam)
     .limit(1);
-  if (bestaand?.[0]) return true;
+  if (bestaand?.[0]) {
+    // Staat er al op: het grootste tekort aanhouden in plaats van optellen.
+    const huidig = Number((bestaand[0] as any).quantity ?? 0);
+    if (aantal > huidig) {
+      const { error: bijFout } = await metHerstel(() =>
+        supabase.from('internal_order_items').update({ quantity: aantal }).eq('id', (bestaand[0] as any).id),
+      );
+      if (bijFout) throw bijFout;
+    }
+    return true;
+  }
 
   const { error: regelFout } = await metHerstel(() =>
     supabase.from('internal_order_items').insert({
       order_id: orderId!,
       product_name: item.naam,
-      quantity: item.doel_aantal,
+      quantity: aantal,
       unit: item.eenheid,
       bron: 'sluitlijst',
     }),
@@ -395,6 +425,7 @@ export function useKoelcelCheckMutaties(
                 status,
                 mep_taak_id: null,
                 doorgezet_naar: null,
+                aantal_doorgezet: null,
                 created_by: null,
               },
             ],
@@ -413,8 +444,20 @@ export function useKoelcelCheckMutaties(
    * laagste niveau gaat het naar de mise-en-place, het bestelbord of Midsland.
    */
   const meldOp = useMutation({
-    mutationFn: async (item: KoelcelCheckItem) => {
+    mutationFn: async ({
+      item,
+      doel,
+      aanwezig = 0,
+    }: {
+      item: KoelcelCheckItem;
+      /** De doelhoeveelheid van vandaag (rustig of druk). */
+      doel?: number;
+      /** Wat er nog ligt; 0 = helemaal op. */
+      aanwezig?: number;
+    }) => {
       const bestemming = vervolgactieVoorRegel(item, alleItems);
+      const doelNu = Number(doel ?? item.doel_aantal ?? 1);
+      const tekort = Math.max(doelNu - Number(aanwezig || 0), 1);
       let mepTaakId: string | null = null;
       let dubbel = false;
 
@@ -430,13 +473,13 @@ export function useKoelcelCheckMutaties(
         );
         if (error) throw error;
       } else if (bestemming.soort === 'mep') {
-        const res = await mepTaakVoorItem(item, vestiging, datum, bestemming.handeling!);
+        const res = await mepTaakVoorItem(item, vestiging, datum, bestemming.handeling!, tekort);
         mepTaakId = res.id;
         dubbel = res.dubbel;
       } else if (bestemming.soort === 'bestelbord') {
-        dubbel = await opBestelbord(item, vestiging);
+        dubbel = await opBestelbord(item, vestiging, tekort);
       } else {
-        dubbel = await naarMidsland(item, vestiging);
+        dubbel = await naarMidsland(item, vestiging, tekort);
       }
 
       const { data: user } = await supabase.auth.getUser();
@@ -449,14 +492,16 @@ export function useKoelcelCheckMutaties(
             status: 'gemeld',
             doorgezet_naar: bestemming.soort,
             mep_taak_id: mepTaakId,
+            aantal_doorgezet: bestemming.soort === 'niveau' ? null : tekort,
             created_by: user.user?.id ?? null,
-          },
+          } as any,
           { onConflict: 'item_id,datum' },
         ),
       );
       if (checkFout) throw checkFout;
-      return { dubbel, item, bestemming };
+      return { dubbel, item, bestemming, tekort };
     },
+
     onSettled: () => {
       qc.invalidateQueries({ queryKey: checksKey });
       qc.invalidateQueries({ queryKey: ['mep-taken', vestiging] });
