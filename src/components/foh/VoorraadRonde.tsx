@@ -487,13 +487,19 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
         // Koelwerkbank tel je per lade: je trekt een lade open, niet een categorie.
         if (p.plek === 'werkbank' && lades.length > 0) {
           const groepen: Groep[] = [];
-          for (const lade of lades.filter((l) => l.actief)) {
+          // Reservelades eerst: daar staat 90% van de reservebakjes.
+          const gesorteerd = [...lades.filter((l) => l.actief)].sort(
+            (a, b) =>
+              (a.rol === 'reserve' ? 0 : 1) - (b.rol === 'reserve' ? 0 : 1) ||
+              a.volgorde - b.volgorde,
+          );
+          for (const lade of gesorteerd) {
             const ladeItems = p.items.filter((i) => i.lade_id === lade.id);
             if (!ladeItems.length) continue;
             groepen.push({
               sleutel: `werkbank:lade:${lade.id}`,
               titel: lade.naam,
-              subtitel: positieLabel(lade),
+              subtitel: `${positieLabel(lade)}${lade.rol === 'reserve' ? ' · reservelade' : ''}`,
               lade,
               items: ladeItems,
             });
