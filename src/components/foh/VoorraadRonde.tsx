@@ -100,6 +100,8 @@ function TelRegel({
   doel,
   geteld,
   onderweg,
+  opBestelbord,
+  inMep,
   onZet,
   onHerstel,
 }: {
@@ -107,6 +109,8 @@ function TelRegel({
   doel: number;
   geteld: number | undefined;
   onderweg: number;
+  opBestelbord: boolean;
+  inMep: boolean;
   onZet: (aantal: number) => void;
   onHerstel: () => void;
 }) {
@@ -117,6 +121,65 @@ function TelRegel({
 
   const zetHeel = (n: number) => onZet(Math.max(n, 0) + rest);
   const zetRest = (r: number) => onZet(heel + r);
+
+  const statusChips = [
+    onderweg > 0 ? `${aantalLabel(onderweg, item.eenheid)} onderweg` : null,
+    opBestelbord ? 'op het bestelbord' : null,
+    inMep ? 'wordt gemaakt (MEP)' : null,
+  ].filter(Boolean);
+
+  const kopRegel = (
+    <span className="min-w-0">
+      <span className="block truncate text-[15px] font-semibold text-foreground">{item.naam}</span>
+      <span className="block truncate text-[12px] text-muted-foreground">
+        {formaatLabel(doel, item.eenheid, item.formaat ?? item.bak_maat)}
+      </span>
+      {statusChips.length > 0 && (
+        <span className="mt-0.5 flex flex-wrap gap-1">
+          {statusChips.map((chip) => (
+            <span
+              key={chip}
+              className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300"
+            >
+              {chip}
+            </span>
+          ))}
+        </span>
+      )}
+    </span>
+  );
+
+  // Besteld maar nog niet binnen: de rij begint niet op "ligt er", maar vraagt
+  // expliciet of de levering is aangekomen. Overslaan = niets doen.
+  if (onderweg > 0 && !afwijkend) {
+    return (
+      <div className="space-y-2 rounded-[14px] border border-amber-400/70 bg-amber-50/70 p-3 dark:bg-amber-500/10">
+        <div className="flex items-center gap-2">
+          {kopRegel}
+          <Truck size={18} className="ml-auto shrink-0 text-amber-600 dark:text-amber-300" />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => onZet(doel)}
+            className="flex items-center justify-center gap-1.5 rounded-[12px] border border-primary bg-primary text-[14px] font-semibold text-primary-foreground"
+            style={{ minHeight: 44 }}
+          >
+            <Check size={16} />
+            Binnengekomen
+          </button>
+          <button
+            type="button"
+            onClick={() => onZet(0)}
+            className="flex items-center justify-center rounded-[12px] border border-border bg-card text-[14px] font-semibold text-foreground"
+            style={{ minHeight: 44 }}
+          >
+            Nog niet binnen
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -130,13 +193,7 @@ function TelRegel({
         className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
         style={{ minHeight: 56 }}
       >
-        <span className="min-w-0">
-          <span className="block truncate text-[15px] font-semibold text-foreground">{item.naam}</span>
-          <span className="block truncate text-[12px] text-muted-foreground">
-            {formaatLabel(doel, item.eenheid, item.formaat ?? item.bak_maat)}
-            {onderweg > 0 ? ` · ${aantalLabel(onderweg, item.eenheid)} onderweg` : ''}
-          </span>
-        </span>
+        {kopRegel}
         <span
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
             afwijkend ? 'bg-amber-400/20 text-amber-700 dark:text-amber-300' : 'bg-muted text-muted-foreground'
