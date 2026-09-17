@@ -284,6 +284,8 @@ function CategorieBlok({
   onHeropen,
   onZet,
   onHerstel,
+  subtitel,
+  lade,
 }: {
   titel: string;
   items: ItemMetCategorie[];
@@ -297,6 +299,8 @@ function CategorieBlok({
   onHeropen: () => void;
   onZet: (id: string, aantal: number) => void;
   onHerstel: (id: string) => void;
+  subtitel?: string | null;
+  lade?: VoorraadLade | null;
 }) {
   const afwijkingen = items.filter((i) => telling[i.id] !== undefined).length;
 
@@ -386,6 +390,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const drukteQuery = useDrukteModus(vestiging);
   const drukte: DrukteModus = drukteQuery.data ?? 'rustig';
   const printSticker = useCreateStickerPrintJob();
+  const ladesQuery = useVoorraadLades(vestiging);
+  const lades = useMemo(() => ladesQuery.data ?? [], [ladesQuery.data]);
 
   const items = useMemo(
     () => (itemsQuery.data ?? []) as ItemMetCategorie[],
