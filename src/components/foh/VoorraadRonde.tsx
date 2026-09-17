@@ -25,6 +25,8 @@ import {
   useKoelcelCheckMutaties,
   useDrukteModus,
   useOpenstaandeBestellingen,
+  useBestelbordOpen,
+  useMepOpenNamen,
   vervolgactieVoorRegel,
   doelAantal,
   HERKOMST_LABEL,
@@ -84,9 +86,12 @@ function categorieVan(item: ItemMetCategorie): string {
   return (item.categorie ?? '').trim() || 'Droog & overig';
 }
 
-/** Hoeveel er nog gehaald moet worden: altijd hele bakken, naar boven afgerond. */
-function tekortVan(doel: number, geteld: number): number {
-  return Math.max(Math.ceil(doel - geteld - 0.001), 0);
+/**
+ * Hoeveel er nog gehaald moet worden: altijd hele bakken, naar boven afgerond.
+ * Wat er al onderweg is (besteld, nog niet geleverd) telt mee als voorraad.
+ */
+function tekortVan(doel: number, geteld: number, onderweg = 0): number {
+  return Math.max(Math.ceil(doel - geteld - onderweg - 0.001), 0);
 }
 
 /** Eén productregel: standaard "ligt er", tik om te tellen wat er écht ligt. */
@@ -95,6 +100,8 @@ function TelRegel({
   doel,
   geteld,
   onderweg,
+  opBestelbord,
+  inMep,
   onZet,
   onHerstel,
 }: {
@@ -102,6 +109,8 @@ function TelRegel({
   doel: number;
   geteld: number | undefined;
   onderweg: number;
+  opBestelbord: boolean;
+  inMep: boolean;
   onZet: (aantal: number) => void;
   onHerstel: () => void;
 }) {
@@ -112,6 +121,65 @@ function TelRegel({
 
   const zetHeel = (n: number) => onZet(Math.max(n, 0) + rest);
   const zetRest = (r: number) => onZet(heel + r);
+
+  const statusChips = [
+    onderweg > 0 ? `${aantalLabel(onderweg, item.eenheid)} onderweg` : null,
+    opBestelbord ? 'op het bestelbord' : null,
+    inMep ? 'wordt gemaakt (MEP)' : null,
+  ].filter(Boolean);
+
+  const kopRegel = (
+    <span className="min-w-0">
+      <span className="block truncate text-[15px] font-semibold text-foreground">{item.naam}</span>
+      <span className="block truncate text-[12px] text-muted-foreground">
+        {formaatLabel(doel, item.eenheid, item.formaat ?? item.bak_maat)}
+      </span>
+      {statusChips.length > 0 && (
+        <span className="mt-0.5 flex flex-wrap gap-1">
+          {statusChips.map((chip) => (
+            <span
+              key={chip}
+              className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300"
+            >
+              {chip}
+            </span>
+          ))}
+        </span>
+      )}
+    </span>
+  );
+
+  // Besteld maar nog niet binnen: de rij begint niet op "ligt er", maar vraagt
+  // expliciet of de levering is aangekomen. Overslaan = niets doen.
+  if (onderweg > 0 && !afwijkend) {
+    return (
+      <div className="space-y-2 rounded-[14px] border border-amber-400/70 bg-amber-50/70 p-3 dark:bg-amber-500/10">
+        <div className="flex items-center gap-2">
+          {kopRegel}
+          <Truck size={18} className="ml-auto shrink-0 text-amber-600 dark:text-amber-300" />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => onZet(doel)}
+            className="flex items-center justify-center gap-1.5 rounded-[12px] border border-primary bg-primary text-[14px] font-semibold text-primary-foreground"
+            style={{ minHeight: 44 }}
+          >
+            <Check size={16} />
+            Binnengekomen
+          </button>
+          <button
+            type="button"
+            onClick={() => onZet(0)}
+            className="flex items-center justify-center rounded-[12px] border border-border bg-card text-[14px] font-semibold text-foreground"
+            style={{ minHeight: 44 }}
+          >
+            Nog niet binnen
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -125,13 +193,7 @@ function TelRegel({
         className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
         style={{ minHeight: 56 }}
       >
-        <span className="min-w-0">
-          <span className="block truncate text-[15px] font-semibold text-foreground">{item.naam}</span>
-          <span className="block truncate text-[12px] text-muted-foreground">
-            {formaatLabel(doel, item.eenheid, item.formaat ?? item.bak_maat)}
-            {onderweg > 0 ? ` · ${aantalLabel(onderweg, item.eenheid)} onderweg` : ''}
-          </span>
-        </span>
+        {kopRegel}
         <span
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
             afwijkend ? 'bg-amber-400/20 text-amber-700 dark:text-amber-300' : 'bg-muted text-muted-foreground'
@@ -204,6 +266,8 @@ function CategorieBlok({
   drukte,
   telling,
   onderwegMap,
+  bestelbordMap,
+  mepTitels,
   bevestigd,
   onBevestig,
   onHeropen,
@@ -215,6 +279,8 @@ function CategorieBlok({
   drukte: DrukteModus;
   telling: Record<string, number>;
   onderwegMap: Record<string, number>;
+  bestelbordMap: Record<string, number>;
+  mepTitels: string[];
   bevestigd: boolean;
   onBevestig: () => void;
   onHeropen: () => void;
@@ -261,6 +327,8 @@ function CategorieBlok({
             doel={doelAantal(item, drukte)}
             geteld={telling[item.id]}
             onderweg={onderwegMap[item.naam.trim().toLowerCase()] ?? 0}
+            opBestelbord={(bestelbordMap[item.naam.trim().toLowerCase()] ?? 0) > 0}
+            inMep={mepTitels.some((t) => t.includes(item.naam.trim().toLowerCase()))}
             onZet={(a) => onZet(item.id, a)}
             onHerstel={() => onHerstel(item.id)}
           />
@@ -301,6 +369,8 @@ const BON_GROEPEN: { soort: BonSoort; titel: string; uitleg: string; icoon: type
 export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: string }) {
   const itemsQuery = useKoelcelCheckItems(vestiging);
   const onderwegQuery = useOpenstaandeBestellingen(vestiging);
+  const bestelbordQuery = useBestelbordOpen(vestiging);
+  const mepNamenQuery = useMepOpenNamen(vestiging);
   const checksQuery = useKoelcelChecks(vestiging, datum);
   const drukteQuery = useDrukteModus(vestiging);
   const drukte: DrukteModus = drukteQuery.data ?? 'rustig';
@@ -345,6 +415,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
 
   const maandag = isMaandag(datum);
   const onderwegMap = onderwegQuery.data ?? {};
+  const bestelbordMap = bestelbordQuery.data ?? {};
+  const mepTitels = useMemo(() => mepNamenQuery.data ?? [], [mepNamenQuery.data]);
 
   const plekken = useMemo(
     () =>
@@ -388,7 +460,9 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
       const geteld = telling[item.id];
       if (geteld === undefined) continue;
       const doel = doelAantal(item, drukte);
-      const tekort = tekortVan(doel, geteld);
+      // Besteld-en-onderweg telt mee als voorraad: niet opnieuw bestellen.
+      const onderweg = onderwegMap[item.naam.trim().toLowerCase()] ?? 0;
+      const tekort = tekortVan(doel, geteld, onderweg);
       if (tekort <= 0) continue;
       const vervolg = vervolgactieVoorRegel(item, items);
       if (vervolg.soort === 'niveau') {
@@ -406,7 +480,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
       }
     }
     return regels;
-  }, [items, telling, drukte]);
+  }, [items, telling, drukte, onderwegMap]);
 
   if (itemsQuery.isLoading || items.length === 0) return null;
 
@@ -454,7 +528,15 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
       }
 
       const afgehandeld = new Set(bon.map((r) => r.item.id));
-      const rest = items.filter((i) => !afgehandeld.has(i.id));
+      // Alles wat niet is geteld én niets onderweg heeft, is "ligt er". Regels met
+      // iets onderweg die overgeslagen zijn, laten we bewust open — nooit stil op
+      // "aanwezig" zetten terwijl de levering nog moet komen.
+      const rest = items.filter(
+        (i) =>
+          !afgehandeld.has(i.id) &&
+          (telling[i.id] !== undefined ||
+            (onderwegMap[i.naam.trim().toLowerCase()] ?? 0) === 0),
+      );
       if (rest.length) await zetAllesAanwezig.mutateAsync(rest);
 
       setSamenvatting(telling2);
@@ -638,6 +720,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                         drukte={drukte}
                         telling={telling}
                         onderwegMap={onderwegMap}
+                        bestelbordMap={bestelbordMap}
+                        mepTitels={mepTitels}
                         bevestigd={bevestigd.includes(sleutel)}
                         onBevestig={() => setBevestigd((b) => [...new Set([...b, sleutel])])}
                         onHeropen={() => setBevestigd((b) => b.filter((s) => s !== sleutel))}
