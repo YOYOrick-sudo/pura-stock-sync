@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import {
   ArrowRight,
@@ -44,7 +44,6 @@ import { useCreateStickerPrintJob } from '@/hooks/useStickerProducten';
 import { aantalLabel, getalLabel, formaatLabel, bakjeLabel } from '@/lib/voorraad-formaat';
 import { useVoorraadLades, positieLabel, type VoorraadLade } from '@/hooks/useVoorraadLades';
 import { LadePositie } from '@/components/voorraad/LadePositie';
-import { KastOverzicht, type KastVak } from '@/components/voorraad/KastOverzicht';
 
 type ItemMetCategorie = KoelcelCheckItem & { categorie?: string | null; formaat?: string | null };
 
@@ -931,15 +930,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                 </div>
                 <div className="space-y-2 pl-2">
                   {p.groepen.map((g) => (
-                    <div
-                      key={g.sleutel}
-                      ref={(el) => {
-                        blokRefs.current[g.sleutel] = el;
-                      }}
-                      className={`scroll-mt-24 rounded-[18px] transition-shadow ${
-                        gemarkeerd === g.sleutel ? 'ring-2 ring-primary ring-offset-2' : ''
-                      }`}
-                    >
+                    <div key={g.sleutel} className="scroll-mt-24 rounded-[18px]">
+
                       <CategorieBlok
                         titel={g.titel}
                         subtitel={g.subtitel}
