@@ -370,3 +370,145 @@ export default function MepDag() {
     </SidebarLayout>
   );
 }
+
+interface TaakRijProps {
+  t: MepTaak;
+  datum: string;
+  weergave: 'alles' | 'persoon' | 'handeling';
+  medewerkers: { id: string; name: string }[];
+  sleepbaar: boolean;
+  onBewerk: (t: MepTaak) => void;
+  onAfrond: (t: MepTaak) => void;
+  onHeropen: (t: MepTaak) => void;
+  onVerwijder: (t: MepTaak) => void;
+}
+
+function TaakRij({
+  t,
+  datum,
+  weergave,
+  medewerkers,
+  sleepbaar,
+  onBewerk,
+  onAfrond,
+  onHeropen,
+  onVerwijder,
+}: TaakRijProps) {
+  const isKlaar = t.status === 'afgerond';
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: t.id,
+    disabled: !sleepbaar,
+  });
+
+  return (
+    <li
+      ref={sleepbaar ? setNodeRef : undefined}
+      style={
+        sleepbaar
+          ? { transform: CSS.Transform.toString(transform), transition }
+          : undefined
+      }
+      className={cn(
+        'flex items-stretch gap-3 px-4 sm:px-5 py-3 min-h-[64px] bg-card',
+        isKlaar && 'opacity-60',
+        isDragging && 'relative z-10 shadow-md rounded-polar-md',
+      )}
+    >
+      {sleepbaar ? (
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label={`Verplaats ${t.titel}`}
+          className="-ml-2 w-8 shrink-0 flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground touch-none cursor-grab active:cursor-grabbing"
+        >
+          <GripVertical className="w-4 h-4" />
+        </button>
+      ) : null}
+      {/* Statusbalk links: groen = klaar, oranje = belangrijk, grijs = normaal */}
+      <span
+        aria-hidden
+        className={cn(
+          'w-1.5 shrink-0 rounded-full my-1',
+          isKlaar ? 'bg-success' : t.prioriteit === 1 ? 'bg-warning' : 'bg-border',
+        )}
+      />
+      <button
+        type="button"
+        onClick={() => onBewerk(t)}
+        className="min-w-0 flex-1 text-left rounded-polar-md -mx-1 px-1 py-1 hover:bg-primary/5 active:bg-primary/10 transition-colors"
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className={cn('text-[15px] font-medium', isKlaar && 'line-through text-muted-foreground')}
+          >
+            {t.titel}
+          </span>
+          {t.handeling && (
+            <Badge variant="secondary" className="font-normal">
+              {t.handeling}
+            </Badge>
+          )}
+          {t.doel_aantal != null && (
+            <Badge variant="secondary" className="font-normal">
+              {Number(t.doel_aantal)} {t.doel_eenheid ?? ''}
+            </Badge>
+          )}
+          {t.prioriteit === 1 && (
+            <Badge variant="outline" className={cn('font-normal', PRIO_CLASS[1])}>
+              {PRIO_LABEL[1]}
+            </Badge>
+          )}
+          {dagenOpen(t.taak_datum, datum) >= 7 && (
+            <Badge
+              variant="outline"
+              className="font-normal bg-destructive/10 text-destructive border-destructive/30 inline-flex items-center gap-1"
+            >
+              <AlertTriangle className="w-3.5 h-3.5" />
+              7+ dagen — nog nodig?
+            </Badge>
+          )}
+        </div>
+        <div className="mt-0.5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+          {weergave !== 'persoon' && t.toegewezen_aan && (
+            <span>{medewerkers.find((m) => m.id === t.toegewezen_aan)?.name}</span>
+          )}
+          {t.deadline && (
+            <span className="inline-flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              {t.deadline.slice(0, 5)}
+            </span>
+          )}
+          {t.notitie && <span className="truncate">{t.notitie}</span>}
+        </div>
+      </button>
+
+      {isKlaar ? (
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-11 w-11"
+          onClick={() => onHeropen(t)}
+          aria-label="Heropenen"
+        >
+          <Undo2 className="w-5 h-5" />
+        </Button>
+      ) : (
+        <>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-11 w-11 text-destructive hover:text-destructive"
+            onClick={() => onVerwijder(t)}
+            aria-label="Verwijderen"
+          >
+            <Trash2 className="w-5 h-5" />
+          </Button>
+          <Button className="h-11 min-w-[44px]" onClick={() => onAfrond(t)}>
+            <Check className="w-5 h-5" />
+          </Button>
+        </>
+      )}
+    </li>
+  );
+}
