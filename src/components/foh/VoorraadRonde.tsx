@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import {
   ArrowRight,
@@ -40,6 +40,7 @@ import { useCreateStickerPrintJob } from '@/hooks/useStickerProducten';
 import { aantalLabel, getalLabel, formaatLabel } from '@/lib/voorraad-formaat';
 import { useVoorraadLades, positieLabel, type VoorraadLade } from '@/hooks/useVoorraadLades';
 import { LadePositie } from '@/components/voorraad/LadePositie';
+import { KastOverzicht, type KastVak } from '@/components/voorraad/KastOverzicht';
 
 type ItemMetCategorie = KoelcelCheckItem & { categorie?: string | null; formaat?: string | null };
 
@@ -543,6 +544,45 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const klaarAantal = alleSleutels.filter((s) => bevestigd.includes(s)).length;
   const allesBevestigd = alleSleutels.length > 0 && klaarAantal === alleSleutels.length;
 
+  // Kastweergave koelwerkbank: tik een lade aan en spring naar dat blok in de lijst.
+  const blokRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [gemarkeerd, setGemarkeerd] = useState<string | null>(null);
+
+  const springNaar = useCallback((sleutel: string) => {
+    const el = blokRefs.current[sleutel];
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setGemarkeerd(sleutel);
+    window.setTimeout(() => setGemarkeerd((h) => (h === sleutel ? null : h)), 1200);
+  }, []);
+
+  const werkbankGroepen = useMemo(
+    () => categorieGroepen.find((p) => p.plek === 'werkbank')?.groepen ?? [],
+    [categorieGroepen],
+  );
+
+  const kastVakken = useMemo<KastVak[]>(
+    () =>
+      werkbankGroepen.map((g) => {
+        const isKlaar = bevestigd.includes(g.sleutel);
+        const heeftTekort = g.items.some((item) => {
+          const geteld = telling[item.id];
+          if (geteld === undefined) return false;
+          const onderweg = onderwegMap[item.naam.trim().toLowerCase()] ?? 0;
+          return tekortVan(telDoel(item, drukte), geteld, onderweg) > 0;
+        });
+        return {
+          sleutel: g.sleutel,
+          naam: g.titel,
+          lade: g.lade,
+          status: !isKlaar ? 'open' : heeftTekort ? 'tekort' : 'klaar',
+          aantal: g.items.length,
+        };
+      }),
+    [werkbankGroepen, bevestigd, telling, onderwegMap, drukte],
+  );
+
+
   const bon: BonRegel[] = useMemo(() => {
     const regels: BonRegel[] = [];
     for (const item of items) {
@@ -807,25 +847,41 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                     </span>
                   </div>
                 </div>
+                {p.plek === 'werkbank' && (
+                  <KastOverzicht
+                    vakken={kastVakken.filter((v) => v.lade)}
+                    losseVakken={kastVakken.filter((v) => !v.lade)}
+                    onTik={springNaar}
+                  />
+                )}
                 <div className="space-y-2 pl-2">
                   {p.groepen.map((g) => (
-                    <CategorieBlok
+                    <div
                       key={g.sleutel}
-                      titel={g.titel}
-                      subtitel={g.subtitel}
-                      lade={g.lade}
-                      items={g.items}
-                      drukte={drukte}
-                      telling={telling}
-                      onderwegMap={onderwegMap}
-                      bestelbordMap={bestelbordMap}
-                      mepTitels={mepTitels}
-                      bevestigd={bevestigd.includes(g.sleutel)}
-                      onBevestig={() => setBevestigd((b) => [...new Set([...b, g.sleutel])])}
-                      onHeropen={() => setBevestigd((b) => b.filter((s) => s !== g.sleutel))}
-                      onZet={zet}
-                      onHerstel={herstel}
-                    />
+                      ref={(el) => {
+                        blokRefs.current[g.sleutel] = el;
+                      }}
+                      className={`scroll-mt-24 rounded-[18px] transition-shadow ${
+                        gemarkeerd === g.sleutel ? 'ring-2 ring-primary ring-offset-2' : ''
+                      }`}
+                    >
+                      <CategorieBlok
+                        titel={g.titel}
+                        subtitel={g.subtitel}
+                        lade={g.lade}
+                        items={g.items}
+                        drukte={drukte}
+                        telling={telling}
+                        onderwegMap={onderwegMap}
+                        bestelbordMap={bestelbordMap}
+                        mepTitels={mepTitels}
+                        bevestigd={bevestigd.includes(g.sleutel)}
+                        onBevestig={() => setBevestigd((b) => [...new Set([...b, g.sleutel])])}
+                        onHeropen={() => setBevestigd((b) => b.filter((s) => s !== g.sleutel))}
+                        onZet={zet}
+                        onHerstel={herstel}
+                      />
+                    </div>
                   ))}
                 </div>
               </div>
