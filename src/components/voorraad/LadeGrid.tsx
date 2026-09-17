@@ -96,12 +96,17 @@ function LadeVak({
   items,
   onHernoem,
   onZetActief,
+  onZetRol,
+  onReserve,
 }: {
   lade: VoorraadLade;
   items: KoelcelCheckItem[];
   onHernoem: (naam: string) => void;
   onZetActief: (actief: boolean) => void;
+  onZetRol: (rol: 'werk' | 'reserve') => void;
+  onReserve: (itemId: string, aantal: number) => void;
 }) {
+  const isReserve = lade.rol === 'reserve';
   const { setNodeRef, isOver } = useDroppable({ id: `lade:${lade.id}`, disabled: !lade.actief });
   const [bewerk, setBewerk] = useState(false);
   const [naam, setNaam] = useState(lade.naam);
