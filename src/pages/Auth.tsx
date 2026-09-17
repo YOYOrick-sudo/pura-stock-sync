@@ -7,6 +7,8 @@ import logoOfficial from '@/assets/pura-vida-logo-sea-cropped.png';
 import { getLocationDisplayName } from '@/lib/utils';
 import { PWAInstallHint } from '@/components/PWAInstallHint';
 import { devError } from "@/lib/devLog";
+import { withTimeout } from '@/lib/withTimeout';
+import { HerstelKnop } from '@/components/auth/HerstelKnop';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -49,8 +51,12 @@ const Auth = () => {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) navigate('/dashboard');
+      try {
+        const { data: { session } } = await withTimeout(supabase.auth.getSession(), 8000);
+        if (session) navigate('/dashboard');
+      } catch {
+        // Sessiecontrole hangt: gewoon het inlogscherm tonen.
+      }
     };
     checkSession();
   }, [navigate]);
@@ -88,13 +94,26 @@ const Auth = () => {
 
       if (data.session) {
         if (mode === 'shared') {
-          const { data: userRole } = await supabase
-            .from('user_roles')
-            .select('location')
-            .eq('user_id', data.session.user.id)
-            .maybeSingle();
+          // Locatiecontrole mag het inloggen nooit laten hangen: bij een trage
+          // of vastgelopen bevraging gaan we gewoon door naar het dashboard.
+          let userRole: { location: string | null } | null = null;
+          let controleGelukt = true;
+          try {
+            const res = await withTimeout(
+              supabase
+                .from('user_roles')
+                .select('location')
+                .eq('user_id', data.session.user.id)
+                .maybeSingle(),
+              8000,
+            );
+            userRole = (res.data as { location: string | null } | null) ?? null;
+            if (res.error) controleGelukt = false;
+          } catch {
+            controleGelukt = false;
+          }
 
-          if (userRole?.location !== location) {
+          if (controleGelukt && userRole?.location !== location) {
             toast.error('Verkeerde locatie detecteerd', { description: `Deze account hoort bij ${getLocationDisplayName(userRole?.location || '')}` });
             await supabase.auth.signOut();
             return;
@@ -236,6 +255,10 @@ const Auth = () => {
             </button>
 
           </form>
+
+          <div className="mt-4 pt-3 border-t border-border/40">
+            <HerstelKnop />
+          </div>
         </div>
       </div>
       <PWAInstallHint />
