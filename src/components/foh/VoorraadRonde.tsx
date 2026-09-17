@@ -107,6 +107,14 @@ function tekortVan(doel: number, geteld: number, onderweg = 0): number {
   return Math.max(Math.ceil(doel - geteld - onderweg - 0.001), 0);
 }
 
+/**
+ * Waarop we tellen: bij de koelwerkbank alleen het aantal reservebakjes,
+ * elders het dagdoel (rustig/druk). Het bakje in de werklade telt niet mee.
+ */
+function telDoel(item: ItemMetCategorie, drukte: DrukteModus): number {
+  return isReserveItem(item) ? reserveDoel(item) : doelAantal(item, drukte);
+}
+
 /** Eén productregel: standaard "ligt er", tik om te tellen wat er écht ligt. */
 function TelRegel({
   item,
