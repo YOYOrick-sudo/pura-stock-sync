@@ -278,7 +278,7 @@ function TelRegel({
     const tekort = afwijkend && waarde < doel - 0.001;
     return (
       <div
-        className={`rounded-[14px] border bg-card transition-colors ${
+        className={`rounded-[14px] border bg-card p-3 transition-colors ${
           tekort ? 'border-amber-400/50' : 'border-border'
         }`}
       >
