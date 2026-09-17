@@ -518,14 +518,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const ladesQuery = useVoorraadLades(vestiging);
   const lades = useMemo(() => ladesQuery.data ?? [], [ladesQuery.data]);
 
-  // Koelwerkbankproducten zonder reserve-afspraak tellen we niet: die doen niet mee.
-  const items = useMemo(
-    () =>
-      ((itemsQuery.data ?? []) as ItemMetCategorie[]).filter(
-        (i) => !isReserveItem(i) || reserveDoel(i) > 0,
-      ),
-    [itemsQuery.data],
-  );
+  const items = useMemo(() => (itemsQuery.data ?? []) as ItemMetCategorie[], [itemsQuery.data]);
   const { meldOp, vulAanUitNiveau, zetAllesAanwezig } = useKoelcelCheckMutaties(vestiging, datum, items);
 
   const opslagSleutel = `voorraadronde-${vestiging}-${datum}`;
