@@ -269,8 +269,6 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
     onSettled: invalidate,
   });
 
-    },
-  });
 
   const bijwerken = useMutation({
     mutationFn: async ({ id, ...patch }: Partial<MepTaak> & { id: string }) => {
