@@ -1,17 +1,16 @@
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Snowflake, Check, ArrowRight, Minus, Plus } from 'lucide-react';
+import { Check, Minus, Plus, Search, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import {
   useKoelcelCheckItems,
   useKoelcelChecks,
   useKoelcelCheckMutaties,
   useDrukteModus,
   useOpenstaandeBestellingen,
-
+  useProbleemFrequentie,
   vervolgactieVoorRegel,
   eindBestemming,
   doelAantal,
-  BRON_LABEL,
   HERKOMST_LABEL,
   BESTEMMING_LABEL,
   type DrukteModus,
@@ -41,45 +40,44 @@ function aantalLabel(item: KoelcelCheckItem, drukte: DrukteModus): string {
   return item.bak_maat ? `${n}x ${item.bak_maat}` : `${n}x`;
 }
 
-const chip: React.CSSProperties = {
-  fontSize: '12px',
-  fontWeight: 600,
-  color: 'hsl(var(--muted-foreground))',
-  backgroundColor: 'hsl(var(--muted))',
-  padding: '2px 8px',
-  borderRadius: '999px',
-  fontFamily: lettertype,
-  whiteSpace: 'nowrap',
-};
-
-const basisKnop: React.CSSProperties = {
-  minHeight: '44px',
-  padding: '8px 14px',
-  borderRadius: '12px',
-  fontSize: '14px',
+const knop: React.CSSProperties = {
+  minHeight: '48px',
+  padding: '10px 16px',
+  borderRadius: '14px',
+  fontSize: '15px',
   fontWeight: 600,
   fontFamily: lettertype,
   display: 'inline-flex',
   alignItems: 'center',
-  gap: '6px',
+  justifyContent: 'center',
+  gap: '8px',
+  border: 'none',
+  cursor: 'pointer',
   transition: 'all 0.15s ease',
-  whiteSpace: 'nowrap',
 };
 
-/** Compact venstertje: hoeveel ligt er nog? Het systeem bestelt alleen het tekort. */
-function TekortDialog({
+/**
+ * Eén venster per product dat niet klopt. Drie uitkomsten: bijgevuld vanuit het
+ * niveau eronder, er ligt nog een deel, of het is echt helemaal op.
+ */
+function ActieDialog({
   item,
+  onderItem,
   doel,
-  onAnnuleer,
-  onBevestig,
+  onSluit,
+  onAangevuld,
+  onOp,
 }: {
   item: KoelcelCheckItem;
+  onderItem: KoelcelCheckItem | null;
   doel: number;
-  onAnnuleer: () => void;
-  onBevestig: (aanwezig: number) => void;
+  onSluit: () => void;
+  onAangevuld: () => void;
+  /** aanwezig = wat er nog ligt (0 = helemaal op). */
+  onOp: (aanwezig: number) => void;
 }) {
+  const [stap, setStap] = useState<'keuze' | 'aantal'>('keuze');
   const [aanwezig, setAanwezig] = useState(Math.max(doel - 1, 0));
-  const tekort = Math.max(doel - aanwezig, 1);
 
   const stapKnop: React.CSSProperties = {
     width: '56px',
@@ -93,9 +91,11 @@ function TekortDialog({
     cursor: 'pointer',
   };
 
+  const bronNaam = onderItem ? HERKOMST_LABEL[onderItem.plek] : null;
+
   return (
     <div
-      onClick={onAnnuleer}
+      onClick={onSluit}
       style={{
         position: 'fixed',
         inset: 0,
@@ -111,122 +111,7 @@ function TekortDialog({
         onClick={(e) => e.stopPropagation()}
         style={{
           width: '100%',
-          maxWidth: '360px',
-          backgroundColor: 'hsl(var(--card))',
-          borderRadius: '24px',
-          padding: '20px',
-          fontFamily: lettertype,
-        }}
-      >
-        <div style={{ fontSize: '17px', fontWeight: 700, color: 'hsl(var(--foreground))' }}>{item.naam}</div>
-        <div style={{ fontSize: '13px', color: 'hsl(var(--muted-foreground))', marginTop: '2px' }}>
-          Hoeveel ligt er nog? Standaard {doel} {item.eenheid}.
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '16px',
-            margin: '18px 0 10px',
-          }}
-        >
-          <button type="button" style={stapKnop} onClick={() => setAanwezig((n) => Math.max(n - 1, 0))}>
-            <Minus size={22} />
-          </button>
-          <div style={{ minWidth: '64px', textAlign: 'center' }}>
-            <div style={{ fontSize: '30px', fontWeight: 700, color: 'hsl(var(--foreground))' }}>{aanwezig}</div>
-            <div style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))' }}>{item.eenheid}</div>
-          </div>
-          <button type="button" style={stapKnop} onClick={() => setAanwezig((n) => Math.min(n + 1, doel))}>
-            <Plus size={22} />
-          </button>
-        </div>
-
-        <div
-          style={{
-            textAlign: 'center',
-            fontSize: '13px',
-            color: 'hsl(var(--muted-foreground))',
-            marginBottom: '14px',
-          }}
-        >
-          Er wordt {tekort} {item.eenheid} doorgezet.
-        </div>
-
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button
-            type="button"
-            onClick={onAnnuleer}
-            style={{
-              ...basisKnop,
-              flex: 1,
-              justifyContent: 'center',
-              backgroundColor: 'hsl(var(--card))',
-              border: '1px solid hsl(var(--border))',
-              color: 'hsl(var(--foreground))',
-              cursor: 'pointer',
-            }}
-          >
-            Annuleren
-          </button>
-          <button
-            type="button"
-            onClick={() => onBevestig(aanwezig)}
-            style={{
-              ...basisKnop,
-              flex: 1,
-              justifyContent: 'center',
-              backgroundColor: 'hsl(var(--primary))',
-              color: 'hsl(var(--primary-foreground))',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            Doorzetten
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** Eén opdracht, twee uitkomsten: gepakt, of het niveau eronder is ook leeg. */
-function AanvulDialog({
-  item,
-  onderItem,
-  aantal,
-  onAnnuleer,
-  onGedaan,
-  onOokLeeg,
-}: {
-  item: KoelcelCheckItem;
-  onderItem: KoelcelCheckItem;
-  aantal: number;
-  onAnnuleer: () => void;
-  onGedaan: () => void;
-  onOokLeeg: () => void;
-}) {
-  return (
-    <div
-      onClick={onAnnuleer}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 60,
-        backgroundColor: 'hsl(0 0% 0% / 0.45)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '16px',
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: '100%',
-          maxWidth: '360px',
+          maxWidth: '380px',
           backgroundColor: 'hsl(var(--card))',
           borderRadius: '24px',
           padding: '20px',
@@ -234,217 +119,209 @@ function AanvulDialog({
         }}
       >
         <div style={{ fontSize: '18px', fontWeight: 700, color: 'hsl(var(--foreground))', lineHeight: 1.35 }}>
-          Pak {aantal} {item.eenheid} {item.naam.toLowerCase()} uit {HERKOMST_LABEL[onderItem.plek]} en leg het{' '}
-          {BESTEMMING_LABEL[item.plek]}.
+          {item.naam}
         </div>
-        {onderItem.plek === 'vriezer' && (
-          <div style={{ fontSize: '13px', color: 'hsl(var(--muted-foreground))', marginTop: '6px' }}>
-            De "Ontdooid"-sticker wordt meteen geprint.
-          </div>
-        )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '18px' }}>
-          <button
-            type="button"
-            onClick={onGedaan}
-            style={{
-              ...basisKnop,
-              minHeight: '52px',
-              justifyContent: 'center',
-              backgroundColor: 'hsl(var(--primary))',
-              color: 'hsl(var(--primary-foreground))',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            <Check size={18} />
-            Gedaan
-          </button>
-          <button
-            type="button"
-            onClick={onOokLeeg}
-            style={{
-              ...basisKnop,
-              minHeight: '52px',
-              justifyContent: 'center',
-              backgroundColor: 'hsl(var(--card))',
-              color: 'hsl(var(--foreground))',
-              border: '1px solid hsl(var(--border))',
-              cursor: 'pointer',
-            }}
-          >
-            {HERKOMST_LABEL[onderItem.plek].replace('de ', 'De ').replace('het ', 'Het ')} is ook leeg
-          </button>
-          <button
-            type="button"
-            onClick={onAnnuleer}
-            style={{
-              ...basisKnop,
-              justifyContent: 'center',
-              backgroundColor: 'transparent',
-              color: 'hsl(var(--muted-foreground))',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            Annuleren
-          </button>
-        </div>
+        {stap === 'keuze' ? (
+          <>
+            <div style={{ fontSize: '14px', color: 'hsl(var(--muted-foreground))', marginTop: '4px' }}>
+              {onderItem
+                ? `Pak ${doel} ${item.eenheid} uit ${bronNaam} en leg het ${BESTEMMING_LABEL[item.plek]}.`
+                : `Er hoort ${doel} ${item.eenheid} te liggen.`}
+              {onderItem?.plek === 'vriezer' ? ' De "Ontdooid"-sticker wordt meteen geprint.' : ''}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '18px' }}>
+              {onderItem && (
+                <button
+                  type="button"
+                  onClick={onAangevuld}
+                  style={{
+                    ...knop,
+                    minHeight: '54px',
+                    backgroundColor: 'hsl(var(--primary))',
+                    color: 'hsl(var(--primary-foreground))',
+                  }}
+                >
+                  <Check size={18} /> Gedaan, bijgevuld
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setStap('aantal')}
+                style={{
+                  ...knop,
+                  minHeight: '54px',
+                  backgroundColor: 'hsl(var(--card))',
+                  color: 'hsl(var(--foreground))',
+                  border: '1px solid hsl(var(--border))',
+                }}
+              >
+                Er ligt nog een deel
+              </button>
+              <button
+                type="button"
+                onClick={() => onOp(0)}
+                style={{
+                  ...knop,
+                  minHeight: '54px',
+                  backgroundColor: 'hsl(25 95% 53% / 0.12)',
+                  color: 'hsl(25 95% 35%)',
+                  border: '1px solid hsl(25 95% 53% / 0.4)',
+                }}
+              >
+                {onderItem ? `${bronNaam} is ook leeg` : 'Helemaal op'}
+              </button>
+              <button
+                type="button"
+                onClick={onSluit}
+                style={{ ...knop, backgroundColor: 'transparent', color: 'hsl(var(--muted-foreground))' }}
+              >
+                Annuleren
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ fontSize: '14px', color: 'hsl(var(--muted-foreground))', marginTop: '4px' }}>
+              Hoeveel ligt er nog? Standaard {doel} {item.eenheid}.
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '16px',
+                margin: '18px 0 8px',
+              }}
+            >
+              <button type="button" style={stapKnop} onClick={() => setAanwezig((n) => Math.max(n - 1, 0))}>
+                <Minus size={22} />
+              </button>
+              <div style={{ minWidth: '64px', textAlign: 'center' }}>
+                <div style={{ fontSize: '30px', fontWeight: 700, color: 'hsl(var(--foreground))' }}>{aanwezig}</div>
+                <div style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))' }}>{item.eenheid}</div>
+              </div>
+              <button type="button" style={stapKnop} onClick={() => setAanwezig((n) => Math.min(n + 1, doel))}>
+                <Plus size={22} />
+              </button>
+            </div>
+            <div
+              style={{
+                textAlign: 'center',
+                fontSize: '13px',
+                color: 'hsl(var(--muted-foreground))',
+                marginBottom: '14px',
+              }}
+            >
+              Er wordt {Math.max(doel - aanwezig, 1)} {item.eenheid} doorgezet.
+            </div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setStap('keuze')}
+                style={{
+                  ...knop,
+                  flex: 1,
+                  backgroundColor: 'hsl(var(--card))',
+                  color: 'hsl(var(--foreground))',
+                  border: '1px solid hsl(var(--border))',
+                }}
+              >
+                Terug
+              </button>
+              <button
+                type="button"
+                onClick={() => onOp(aanwezig)}
+                style={{
+                  ...knop,
+                  flex: 1,
+                  backgroundColor: 'hsl(var(--primary))',
+                  color: 'hsl(var(--primary-foreground))',
+                }}
+              >
+                Doorzetten
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
-
-interface RijProps {
-  item: KoelcelCheckItem;
-  alleItems: KoelcelCheckItem[];
-  drukte: DrukteModus;
-  check: KoelcelCheck | null;
-  bezig: boolean;
-  klaarLabel: string;
-  klaarIcoon: 'check' | 'snowflake';
-  /** Al besteld bij Midsland en nog niet geleverd. */
-  onderweg?: number;
-  onKlaar: () => void;
-  onOp: () => void;
-  onTeWeinig: () => void;
-}
-
-function ItemRij({
+/** Eén productnaam in het raster: tik erop als het niet klopt. */
+function NaamKnop({
   item,
-  alleItems,
   drukte,
-  check,
-  bezig,
-  klaarLabel,
-  klaarIcoon,
-  onderweg = 0,
-  onKlaar,
-  onOp,
-  onTeWeinig,
-}: RijProps) {
-  const status = check?.status ?? null;
-  const isKlaar = status === 'aanwezig' || status === 'uit_vriezer';
-  const isGemeld = status === 'gemeld' || status === 'naar_mep';
-  const bestemming = vervolgactieVoorRegel(item, alleItems);
-  const eind = eindBestemming(item, alleItems);
-  const doorgezet = check?.aantal_doorgezet ?? null;
-
-  // Ligt hetzelfde product een niveau lager? Dan is de knop een opdracht: pakken en terugleggen.
-  const uitNiveau = bestemming.soort === 'niveau' ? bestemming.onderItem : null;
-  const opLabel = uitNiveau
-    ? uitNiveau.plek === 'vriezer'
-      ? 'Halen uit de vriescel'
-      : `Bijvullen uit ${HERKOMST_LABEL[uitNiveau.plek]}`
-    : 'Op';
-  const onderschrift = uitNiveau
-    ? `Aanvullen uit ${HERKOMST_LABEL[uitNiveau.plek]} · daarna ${eind.label}`
-    : `${BRON_LABEL[item.bron]} · als het op is naar ${eind.label}`;
-
-
+  gemarkeerd,
+  onderweg,
+  onTik,
+}: {
+  item: KoelcelCheckItem;
+  drukte: DrukteModus;
+  gemarkeerd: boolean;
+  onderweg: number;
+  onTik: () => void;
+}) {
   return (
-    <div
+    <button
+      type="button"
+      onClick={onTik}
+      aria-pressed={gemarkeerd}
       style={{
+        minHeight: '52px',
+        padding: '8px 12px',
+        borderRadius: '14px',
+        textAlign: 'left',
+        cursor: 'pointer',
+        fontFamily: lettertype,
         display: 'flex',
         alignItems: 'center',
         gap: '8px',
-        padding: '8px 4px',
-        borderBottom: '1px solid hsl(var(--border))',
-        flexWrap: 'wrap',
+        backgroundColor: gemarkeerd ? 'hsl(25 95% 53% / 0.12)' : 'hsl(var(--card))',
+        border: gemarkeerd ? '1px solid hsl(25 95% 53% / 0.5)' : '1px solid hsl(var(--border))',
+        transition: 'all 0.15s ease',
       }}
     >
-      <div style={{ flex: 1, minWidth: '140px' }}>
+      <span
+        style={{
+          flex: 1,
+          fontSize: '15px',
+          fontWeight: 500,
+          color: gemarkeerd ? 'hsl(25 95% 32%)' : 'hsl(var(--foreground))',
+        }}
+      >
+        {item.naam}
+      </span>
+      {onderweg > 0 && (
         <span
           style={{
-            fontSize: '15px',
-            fontWeight: 500,
-            color: isKlaar ? 'hsl(var(--muted-foreground))' : 'hsl(var(--foreground))',
-            textDecoration: isKlaar ? 'line-through' : 'none',
-            fontFamily: lettertype,
+            fontSize: '11px',
+            fontWeight: 600,
+            color: 'hsl(var(--primary))',
+            backgroundColor: 'hsl(var(--primary) / 0.1)',
+            borderRadius: '999px',
+            padding: '2px 8px',
+            whiteSpace: 'nowrap',
           }}
         >
-          {item.naam}
+          {onderweg} besteld
         </span>
-        <span style={{ ...chip, marginLeft: '8px' }}>{aantalLabel(item, drukte)}</span>
-        <div
-          style={{
-            marginTop: '2px',
-            fontSize: '12px',
-            color: 'hsl(var(--muted-foreground))',
-            fontFamily: lettertype,
-          }}
-        >
-          {onderschrift}
-          {isGemeld
-            ? doorgezet
-              ? ` · ${doorgezet} ${item.eenheid} naar ${eind.label}`
-              : ` · staat op ${eind.label}`
-            : ''}
-          {status === 'uit_vriezer' && item.plek === 'vriezer' ? ' · deze week uit gehaald' : ''}
-          {onderweg > 0 && (
-            <span style={{ color: 'hsl(var(--primary))' }}>
-              {' · '}
-              {onderweg} {item.eenheid} besteld, nog niet geleverd
-            </span>
-          )}
-        </div>
-
-      </div>
-
-      <button
-        type="button"
-        disabled={bezig}
-        onClick={onKlaar}
-        aria-pressed={isKlaar}
+      )}
+      <span
         style={{
-          ...basisKnop,
-          cursor: bezig ? 'wait' : 'pointer',
-          backgroundColor: isKlaar ? 'hsl(var(--primary))' : 'hsl(var(--card))',
-          color: isKlaar ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
-          border: isKlaar ? 'none' : '1px solid hsl(var(--border))',
-        }}
-      >
-        {klaarIcoon === 'snowflake' ? <Snowflake size={16} /> : <Check size={16} />}
-        {klaarLabel}
-      </button>
-
-      <button
-        type="button"
-        disabled={bezig || isGemeld}
-        onClick={onTeWeinig}
-        style={{
-          ...basisKnop,
-          cursor: bezig ? 'wait' : 'pointer',
-          opacity: isGemeld ? 0.4 : 1,
-          backgroundColor: 'hsl(var(--card))',
+          fontSize: '12px',
+          fontWeight: 600,
           color: 'hsl(var(--muted-foreground))',
-          border: '1px solid hsl(var(--border))',
+          whiteSpace: 'nowrap',
         }}
       >
-        Te weinig
-      </button>
-
-      <button
-        type="button"
-        disabled={bezig}
-        onClick={onOp}
-        aria-pressed={isGemeld}
-        style={{
-          ...basisKnop,
-          cursor: bezig ? 'wait' : 'pointer',
-          backgroundColor: isGemeld ? 'hsl(25 95% 53% / 0.15)' : 'hsl(var(--card))',
-          color: isGemeld ? 'hsl(25 95% 40%)' : 'hsl(var(--muted-foreground))',
-          border: isGemeld ? '1px solid hsl(25 95% 53% / 0.5)' : '1px solid hsl(var(--border))',
-        }}
-      >
-        {uitNiveau ? <Snowflake size={16} /> : <ArrowRight size={16} />}
-        {isGemeld ? 'Doorgezet' : opLabel}
-      </button>
-    </div>
+        {aantalLabel(item, drukte)}
+      </span>
+    </button>
   );
 }
-
 
 function CheckBlok({
   titel,
@@ -454,12 +331,10 @@ function CheckBlok({
   drukte,
   checks,
   bezig,
-  klaarLabel,
-  klaarIcoon,
   onderwegMap,
-  onKlaar,
-  onOp,
-  onTeWeinig,
+  frequentie,
+  onAllesOpPeil,
+  onOpen,
 }: {
   titel: string;
   uitleg: string;
@@ -468,115 +343,288 @@ function CheckBlok({
   drukte: DrukteModus;
   checks: Map<string, KoelcelCheck>;
   bezig: boolean;
-  klaarLabel: string;
-  klaarIcoon: 'check' | 'snowflake';
   onderwegMap: Record<string, number>;
-  onKlaar: (item: KoelcelCheckItem) => void;
-
-  onOp: (item: KoelcelCheckItem) => void;
-  onTeWeinig: (item: KoelcelCheckItem) => void;
+  frequentie: Record<string, number>;
+  onAllesOpPeil: (items: KoelcelCheckItem[]) => void;
+  onOpen: (item: KoelcelCheckItem) => void;
 }) {
+  const [gemarkeerd, setGemarkeerd] = useState<Set<string>>(new Set());
+  const [zoek, setZoek] = useState('');
+  const [openKlaar, setOpenKlaar] = useState(false);
+
+  const gesorteerd = useMemo(
+    () =>
+      [...items].sort((a, b) => {
+        const fa = frequentie[a.id] ?? 0;
+        const fb = frequentie[b.id] ?? 0;
+        if (fa !== fb) return fb - fa;
+        return a.volgorde - b.volgorde;
+      }),
+    [items, frequentie],
+  );
+
   if (items.length === 0) return null;
-  const gedaan = items.filter((i) => checks.has(i.id)).length;
-  const pct = items.length ? Math.round((gedaan / items.length) * 100) : 0;
+
+  const open = gesorteerd.filter((i) => !checks.has(i.id));
+  const afgehandeld = gesorteerd.filter((i) => checks.has(i.id));
+  const teTonen = zoek.trim()
+    ? open.filter((i) => i.naam.toLowerCase().includes(zoek.trim().toLowerCase()))
+    : open;
+  const problemen = open.filter((i) => gemarkeerd.has(i.id));
+  const okItems = open.filter((i) => !gemarkeerd.has(i.id));
+  const allesGedaan = open.length === 0;
+
+  const toggle = (id: string) =>
+    setGemarkeerd((vorig) => {
+      const nieuw = new Set(vorig);
+      if (nieuw.has(id)) nieuw.delete(id);
+      else nieuw.add(id);
+      return nieuw;
+    });
 
   return (
-    <div style={{ marginBottom: '32px' }}>
+    <div style={{ marginBottom: '28px' }}>
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
+          gap: '10px',
           padding: '12px 14px',
           backgroundColor: 'hsl(var(--muted))',
-          borderRadius: '12px',
-          marginBottom: '4px',
+          borderRadius: '14px',
           border: '1px solid hsl(var(--border))',
         }}
       >
-        <span style={{ fontSize: '15px', fontWeight: 700, color: 'hsl(var(--foreground))', fontFamily: lettertype }}>
+        <span style={{ fontSize: '16px', fontWeight: 700, color: 'hsl(var(--foreground))', fontFamily: lettertype }}>
           {titel}
         </span>
-        <div
+        <span
           style={{
-            flex: 1,
-            height: '4px',
-            borderRadius: '999px',
-            backgroundColor: 'hsl(var(--border))',
-            overflow: 'hidden',
-            maxWidth: '140px',
+            marginLeft: 'auto',
+            fontSize: '13px',
+            fontWeight: 600,
+            fontFamily: lettertype,
+            color: allesGedaan ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
           }}
         >
-          <div
-            style={{
-              width: `${pct}%`,
-              height: '100%',
-              backgroundColor: 'hsl(var(--primary))',
-              borderRadius: '999px',
-              transition: 'width 0.3s ease',
-            }}
-          />
-        </div>
-        <span style={{ ...chip, backgroundColor: 'hsl(var(--muted) / 0.6)', padding: '3px 10px' }}>
-          {gedaan}/{items.length}
+          {allesGedaan ? `Klaar · ${items.length} nagelopen` : `${afgehandeld.length}/${items.length}`}
         </span>
       </div>
 
-      <p
-        style={{
-          margin: '4px 4px 8px',
-          fontSize: '12px',
-          color: 'hsl(var(--muted-foreground))',
-          fontFamily: lettertype,
-        }}
-      >
-        {uitleg}
-      </p>
+      {!allesGedaan && (
+        <>
+          <p
+            style={{
+              margin: '10px 4px 10px',
+              fontSize: '13px',
+              color: 'hsl(var(--muted-foreground))',
+              fontFamily: lettertype,
+            }}
+          >
+            {uitleg} Tik alleen aan wat níét klopt.
+          </p>
 
-      <div>
-        {items.map((item) => (
-          <ItemRij
-            key={item.id}
-            item={item}
-            alleItems={alleItems}
-            drukte={drukte}
-            check={checks.get(item.id) ?? null}
-            bezig={bezig}
-            klaarLabel={klaarLabel}
-            klaarIcoon={klaarIcoon}
-            onderweg={onderwegMap[item.naam.trim().toLowerCase()] ?? 0}
-            onKlaar={() => onKlaar(item)}
-            onOp={() => onOp(item)}
-            onTeWeinig={() => onTeWeinig(item)}
-          />
-        ))}
+          {problemen.length > 0 && (
+            <div
+              style={{
+                border: '1px solid hsl(25 95% 53% / 0.4)',
+                backgroundColor: 'hsl(25 95% 53% / 0.07)',
+                borderRadius: '16px',
+                padding: '12px',
+                marginBottom: '12px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  color: 'hsl(25 95% 32%)',
+                  fontFamily: lettertype,
+                  marginBottom: '8px',
+                }}
+              >
+                <AlertTriangle size={16} /> Klopt niet ({problemen.length})
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {problemen.map((item) => {
+                  const vervolg = vervolgactieVoorRegel(item, alleItems);
+                  const eind = eindBestemming(item, alleItems);
+                  const actie =
+                    vervolg.soort === 'niveau'
+                      ? `Halen uit ${HERKOMST_LABEL[vervolg.onderItem.plek]}`
+                      : `Naar ${eind.label}`;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      disabled={bezig}
+                      onClick={() => onOpen(item)}
+                      style={{
+                        ...knop,
+                        justifyContent: 'space-between',
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        color: 'hsl(var(--foreground))',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <span>{item.naam}</span>
+                      <span style={{ fontSize: '13px', color: 'hsl(var(--primary))', fontWeight: 600 }}>{actie}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
-      </div>
+          {open.length > 20 && (
+            <div style={{ position: 'relative', marginBottom: '10px' }}>
+              <Search
+                size={16}
+                style={{
+                  position: 'absolute',
+                  left: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: 'hsl(var(--muted-foreground))',
+                }}
+              />
+              <input
+                value={zoek}
+                onChange={(e) => setZoek(e.target.value)}
+                placeholder="Zoek een product"
+                style={{
+                  width: '100%',
+                  minHeight: '48px',
+                  paddingLeft: '36px',
+                  paddingRight: '12px',
+                  borderRadius: '14px',
+                  border: '1px solid hsl(var(--border))',
+                  backgroundColor: 'hsl(var(--card))',
+                  fontSize: '15px',
+                  fontFamily: lettertype,
+                  color: 'hsl(var(--foreground))',
+                }}
+              />
+            </div>
+          )}
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+              gap: '8px',
+            }}
+          >
+            {teTonen.map((item) => (
+              <NaamKnop
+                key={item.id}
+                item={item}
+                drukte={drukte}
+                gemarkeerd={gemarkeerd.has(item.id)}
+                onderweg={onderwegMap[item.naam.trim().toLowerCase()] ?? 0}
+                onTik={() => toggle(item.id)}
+              />
+            ))}
+          </div>
+
+          {okItems.length > 0 && (
+            <button
+              type="button"
+              disabled={bezig}
+              onClick={() => onAllesOpPeil(okItems)}
+              style={{
+                ...knop,
+                width: '100%',
+                minHeight: '56px',
+                marginTop: '12px',
+                fontSize: '16px',
+                backgroundColor: 'hsl(var(--primary))',
+                color: 'hsl(var(--primary-foreground))',
+                cursor: bezig ? 'wait' : 'pointer',
+              }}
+            >
+              <Check size={20} />
+              {problemen.length > 0
+                ? `De rest ligt er (${okItems.length})`
+                : `Alles ligt er (${okItems.length})`}
+            </button>
+          )}
+        </>
+      )}
+
+      {afgehandeld.length > 0 && (
+        <div style={{ marginTop: '10px' }}>
+          <button
+            type="button"
+            onClick={() => setOpenKlaar((v) => !v)}
+            style={{
+              ...knop,
+              width: '100%',
+              minHeight: '44px',
+              justifyContent: 'space-between',
+              backgroundColor: 'transparent',
+              color: 'hsl(var(--muted-foreground))',
+              fontSize: '13px',
+              padding: '8px 4px',
+            }}
+          >
+            <span>{afgehandeld.length} afgehandeld</span>
+            {openKlaar ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+          {openKlaar && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', padding: '4px' }}>
+              {afgehandeld.map((item) => {
+                const status = checks.get(item.id)?.status;
+                const gemeld = status === 'gemeld' || status === 'naar_mep';
+                return (
+                  <span
+                    key={item.id}
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      fontFamily: lettertype,
+                      borderRadius: '999px',
+                      padding: '4px 10px',
+                      color: gemeld ? 'hsl(25 95% 32%)' : 'hsl(var(--muted-foreground))',
+                      backgroundColor: gemeld ? 'hsl(25 95% 53% / 0.12)' : 'hsl(var(--muted))',
+                    }}
+                  >
+                    {item.naam}
+                    {gemeld ? ' · doorgezet' : ''}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
 /**
  * Aanvulketen op de sluitlijst (West): vriescel → koelcel → werkbank/werkblad.
- * Wat op is gaat met één tik naar de mise-en-place, het bestelbord of de
- * bestellijst voor Midsland — afhankelijk van waar het product vandaan komt.
+ * Je meldt alleen wat níét klopt; de rest gaat met één tik op aanwezig.
  * De vriescelvoorraad wordt alleen op maandag nagelopen.
  */
 export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datum: string }) {
   const itemsQuery = useKoelcelCheckItems(vestiging);
   const checksQuery = useKoelcelChecks(vestiging, datum);
   const onderwegQuery = useOpenstaandeBestellingen(vestiging);
+  const frequentieQuery = useProbleemFrequentie(vestiging);
   const onderwegMap = onderwegQuery.data ?? {};
+  const frequentie = frequentieQuery.data ?? {};
   const items = useMemo(() => itemsQuery.data ?? [], [itemsQuery.data]);
 
-  const { zetStatus, meldOp, vulAanUitNiveau } = useKoelcelCheckMutaties(vestiging, datum, items);
+  const { zetStatus, meldOp, vulAanUitNiveau, zetAllesAanwezig } = useKoelcelCheckMutaties(vestiging, datum, items);
   const drukteQuery = useDrukteModus(vestiging);
   const drukte: DrukteModus = drukteQuery.data ?? 'rustig';
   const printSticker = useCreateStickerPrintJob();
-  const [tekortItem, setTekortItem] = useState<KoelcelCheckItem | null>(null);
-  const [aanvulItem, setAanvulItem] = useState<{ item: KoelcelCheckItem; onderItem: KoelcelCheckItem } | null>(
-    null,
-  );
+  const [actieItem, setActieItem] = useState<KoelcelCheckItem | null>(null);
 
   const checks = useMemo(() => {
     const map = new Map<string, KoelcelCheck>();
@@ -586,17 +634,12 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
 
   if (itemsQuery.isLoading || items.length === 0) return null;
 
-  const bezig = zetStatus.isPending || meldOp.isPending || vulAanUitNiveau.isPending;
+  const bezig =
+    zetStatus.isPending || meldOp.isPending || vulAanUitNiveau.isPending || zetAllesAanwezig.isPending;
   const maandag = isMaandag(datum);
 
   const perPlek = (plek: VoorraadPlek) =>
     items.filter((i) => (i.plek ?? (i.type === 'vriezer' ? 'vriezer' : 'koelcel')) === plek);
-
-  const handleKlaar = (item: KoelcelCheckItem, status: KoelcelCheckStatus) => {
-    const uit = checks.get(item.id)?.status === status;
-    zetStatus.mutate({ item, status, uit }, { onError: () => toast.error('Niet opgeslagen — probeer opnieuw') });
-    return uit;
-  };
 
   /** Ontdooisticker voor op de bak die net uit de vriescel kwam. */
   const printOntdooid = (item: KoelcelCheckItem) => {
@@ -629,48 +672,41 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
       else if (res.dubbel)
         toast.success(`"${item.naam}" bijgewerkt naar ${res.geplaatst} ${item.eenheid} op ${res.bestemming.label}`);
       else toast.success(`${res.geplaatst} ${item.eenheid} "${item.naam}" naar ${res.bestemming.label}`);
-
     } catch (e: any) {
       toast.error('Doorzetten mislukt: ' + (e?.message ?? 'onbekende fout'));
     }
   };
 
-  const handleOp = async (item: KoelcelCheckItem) => {
-    // Ongedaan maken: alleen de check weghalen; een eerdere melding blijft staan.
-    if (checks.has(item.id)) {
-      zetStatus.mutate(
-        { item, status: checks.get(item.id)!.status, uit: true },
-        { onError: () => toast.error('Niet opgeslagen — probeer opnieuw') },
-      );
-      return;
-    }
-    const vervolg = vervolgactieVoorRegel(item, items);
-    if (vervolg.soort === 'niveau') {
-      // Concrete opdracht: haal het een niveau lager vandaan.
-      setAanvulItem({ item, onderItem: vervolg.onderItem });
-      return;
-    }
-    await doorzetten(item, 0);
+  const handleAllesOpPeil = (teZetten: KoelcelCheckItem[]) => {
+    zetAllesAanwezig.mutate(teZetten, {
+      onSuccess: (r) => toast.success(`${r.aantal} regels op peil gezet`),
+      onError: () => toast.error('Niet opgeslagen — probeer opnieuw'),
+    });
   };
 
   /** "Gedaan": aangevuld vanuit het niveau eronder. */
-  const handleAangevuld = async ({
-    item,
-    onderItem,
-  }: {
-    item: KoelcelCheckItem;
-    onderItem: KoelcelCheckItem;
-  }) => {
+  const handleAangevuld = async (item: KoelcelCheckItem, onderItem: KoelcelCheckItem) => {
     try {
       await vulAanUitNiveau.mutateAsync({ item, onderItem });
-      if (onderItem.plek === 'vriezer') {
-        printOntdooid(item);
-      } else {
-        toast.success(`${item.naam} bijgevuld uit ${HERKOMST_LABEL[onderItem.plek]}`);
-      }
+      if (onderItem.plek === 'vriezer') printOntdooid(item);
+      else toast.success(`${item.naam} bijgevuld uit ${HERKOMST_LABEL[onderItem.plek]}`);
     } catch (e: any) {
       toast.error('Niet opgeslagen: ' + (e?.message ?? 'onbekende fout'));
     }
+  };
+
+  const actieVervolg = actieItem ? vervolgactieVoorRegel(actieItem, items) : null;
+  const actieOnderItem = actieVervolg && actieVervolg.soort === 'niveau' ? actieVervolg.onderItem : null;
+
+  const blokProps = {
+    alleItems: items,
+    drukte,
+    checks,
+    bezig,
+    onderwegMap,
+    frequentie,
+    onAllesOpPeil: handleAllesOpPeil,
+    onOpen: setActieItem,
   };
 
   return (
@@ -678,103 +714,59 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
       {maandag && (
         <CheckBlok
           titel="Vriescel op peil (maandag)"
-          uitleg="Weekcheck: ligt de standaardvoorraad er nog? Wat ontbreekt gaat automatisch naar de bestellijst voor Midsland."
+          uitleg="Weekcheck: ligt de standaardvoorraad er nog?"
           items={perPlek('vriezer')}
-          alleItems={items}
-          drukte={drukte}
-          checks={checks}
-          bezig={bezig}
-          klaarLabel="Aanwezig"
-          klaarIcoon="check"
-          onderwegMap={onderwegMap}
-          onKlaar={(i) => handleKlaar(i, 'aanwezig')}
-          onOp={handleOp}
-          onTeWeinig={setTekortItem}
+          {...blokProps}
         />
       )}
       <CheckBlok
         titel="Koelcel op peil"
-        uitleg="Dit moet standaard in de koelcel liggen. Ontbreekt er iets? De knop vertelt je waar je het vandaan haalt."
+        uitleg="Dit hoort standaard in de koelcel te liggen."
         items={perPlek('koelcel')}
-        alleItems={items}
-        drukte={drukte}
-        checks={checks}
-        bezig={bezig}
-        klaarLabel="Aanwezig"
-        klaarIcoon="check"
-        onderwegMap={onderwegMap}
-        onKlaar={(i) => handleKlaar(i, 'aanwezig')}
-        onOp={handleOp}
-        onTeWeinig={setTekortItem}
+        {...blokProps}
       />
       <CheckBlok
         titel="Koelwerkbank bijvullen"
-        uitleg="Vul de koelwerkbank aan vanuit de koelcel. Is de koelcel leeg, dan wijst de app je door naar de vriescel."
+        uitleg="Vul de koelwerkbank aan vanuit de koelcel."
         items={perPlek('werkbank')}
-        alleItems={items}
-        drukte={drukte}
-        checks={checks}
-        bezig={bezig}
-        klaarLabel="Bijgevuld"
-        klaarIcoon="check"
-        onderwegMap={onderwegMap}
-        onKlaar={(i) => handleKlaar(i, 'aanwezig')}
-        onOp={handleOp}
-        onTeWeinig={setTekortItem}
+        {...blokProps}
       />
       <CheckBlok
         titel="Toppings bijvullen"
         uitleg="Droogwaren uit het magazijn, geroosterd en aangevuld op het werkblad."
         items={perPlek('werkblad')}
-        alleItems={items}
-        drukte={drukte}
-        checks={checks}
-        bezig={bezig}
-        klaarLabel="Bijgevuld"
-        klaarIcoon="check"
-        onderwegMap={onderwegMap}
-        onKlaar={(i) => handleKlaar(i, 'aanwezig')}
-        onOp={handleOp}
-        onTeWeinig={setTekortItem}
+        {...blokProps}
       />
 
-      {aanvulItem && (
-        <AanvulDialog
-          item={aanvulItem.item}
-          onderItem={aanvulItem.onderItem}
-          aantal={doelAantal(aanvulItem.item, drukte)}
-          onAnnuleer={() => setAanvulItem(null)}
-          onGedaan={() => {
-            const paar = aanvulItem;
-            setAanvulItem(null);
-            void handleAangevuld(paar);
+      {actieItem && (
+        <ActieDialog
+          item={actieItem}
+          onderItem={actieOnderItem}
+          doel={doelAantal(actieItem, drukte)}
+          onSluit={() => setActieItem(null)}
+          onAangevuld={() => {
+            const item = actieItem;
+            const onder = actieOnderItem;
+            setActieItem(null);
+            if (item && onder) void handleAangevuld(item, onder);
           }}
-          onOokLeeg={() => {
-            const paar = aanvulItem;
-            setAanvulItem(null);
+          onOp={(aanwezig) => {
+            const item = actieItem;
+            const onder = actieOnderItem;
+            setActieItem(null);
             void (async () => {
-              // Het niveau eronder is ook leeg: die regel schuift door naar de
-              // volgende bron (vriescel, bestelbord, mise-en-place of Midsland).
-              await doorzetten(paar.onderItem, 0);
-              zetStatus.mutate({ item: paar.item, status: 'gemeld', uit: false });
+              if (onder) {
+                // Het niveau eronder is ook leeg: die regel schuift door naar de
+                // volgende bron (vriescel, bestelbord, mise-en-place of Midsland).
+                await doorzetten(onder, 0);
+                zetStatus.mutate({ item, status: 'gemeld' as KoelcelCheckStatus, uit: false });
+              } else {
+                await doorzetten(item, aanwezig);
+              }
             })();
-          }}
-        />
-      )}
-
-      {tekortItem && (
-        <TekortDialog
-          item={tekortItem}
-          doel={doelAantal(tekortItem, drukte)}
-          onAnnuleer={() => setTekortItem(null)}
-          onBevestig={(aanwezig) => {
-            const item = tekortItem;
-            setTekortItem(null);
-            void doorzetten(item, aanwezig);
           }}
         />
       )}
     </div>
   );
 }
-
