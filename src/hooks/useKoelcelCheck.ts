@@ -337,17 +337,27 @@ async function naarMidsland(item: KoelcelCheckItem, vestiging: string, aantal: n
 
   const { data: bestaand } = await supabase
     .from('internal_order_items')
-    .select('id')
+    .select('id, quantity')
     .eq('order_id', orderId!)
     .ilike('product_name', item.naam)
     .limit(1);
-  if (bestaand?.[0]) return true;
+  if (bestaand?.[0]) {
+    // Staat er al op: het grootste tekort aanhouden in plaats van optellen.
+    const huidig = Number((bestaand[0] as any).quantity ?? 0);
+    if (aantal > huidig) {
+      const { error: bijFout } = await metHerstel(() =>
+        supabase.from('internal_order_items').update({ quantity: aantal }).eq('id', (bestaand[0] as any).id),
+      );
+      if (bijFout) throw bijFout;
+    }
+    return true;
+  }
 
   const { error: regelFout } = await metHerstel(() =>
     supabase.from('internal_order_items').insert({
       order_id: orderId!,
       product_name: item.naam,
-      quantity: item.doel_aantal,
+      quantity: aantal,
       unit: item.eenheid,
       bron: 'sluitlijst',
     }),
