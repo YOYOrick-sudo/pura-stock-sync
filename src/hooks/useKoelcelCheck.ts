@@ -442,8 +442,20 @@ export function useKoelcelCheckMutaties(
    * laagste niveau gaat het naar de mise-en-place, het bestelbord of Midsland.
    */
   const meldOp = useMutation({
-    mutationFn: async (item: KoelcelCheckItem) => {
+    mutationFn: async ({
+      item,
+      doel,
+      aanwezig = 0,
+    }: {
+      item: KoelcelCheckItem;
+      /** De doelhoeveelheid van vandaag (rustig of druk). */
+      doel?: number;
+      /** Wat er nog ligt; 0 = helemaal op. */
+      aanwezig?: number;
+    }) => {
       const bestemming = vervolgactieVoorRegel(item, alleItems);
+      const doelNu = Number(doel ?? item.doel_aantal ?? 1);
+      const tekort = Math.max(doelNu - Number(aanwezig || 0), 1);
       let mepTaakId: string | null = null;
       let dubbel = false;
 
@@ -459,13 +471,13 @@ export function useKoelcelCheckMutaties(
         );
         if (error) throw error;
       } else if (bestemming.soort === 'mep') {
-        const res = await mepTaakVoorItem(item, vestiging, datum, bestemming.handeling!);
+        const res = await mepTaakVoorItem(item, vestiging, datum, bestemming.handeling!, tekort);
         mepTaakId = res.id;
         dubbel = res.dubbel;
       } else if (bestemming.soort === 'bestelbord') {
-        dubbel = await opBestelbord(item, vestiging);
+        dubbel = await opBestelbord(item, vestiging, tekort);
       } else {
-        dubbel = await naarMidsland(item, vestiging);
+        dubbel = await naarMidsland(item, vestiging, tekort);
       }
 
       const { data: user } = await supabase.auth.getUser();
@@ -478,14 +490,16 @@ export function useKoelcelCheckMutaties(
             status: 'gemeld',
             doorgezet_naar: bestemming.soort,
             mep_taak_id: mepTaakId,
+            aantal_doorgezet: bestemming.soort === 'niveau' ? null : tekort,
             created_by: user.user?.id ?? null,
-          },
+          } as any,
           { onConflict: 'item_id,datum' },
         ),
       );
       if (checkFout) throw checkFout;
-      return { dubbel, item, bestemming };
+      return { dubbel, item, bestemming, tekort };
     },
+
     onSettled: () => {
       qc.invalidateQueries({ queryKey: checksKey });
       qc.invalidateQueries({ queryKey: ['mep-taken', vestiging] });
