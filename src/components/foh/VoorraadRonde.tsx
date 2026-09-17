@@ -278,17 +278,22 @@ function TelRegel({
     const tekort = afwijkend && waarde < doel - 0.001;
     return (
       <div
-        className={`rounded-[14px] border p-3 transition-colors ${
-          tekort ? 'border-amber-400/70 bg-amber-50/70 dark:bg-amber-500/10' : 'border-border bg-card'
+        className={`rounded-[14px] border bg-card p-3 transition-colors ${
+          tekort ? 'border-amber-400/50' : 'border-border'
         }`}
       >
         <div className="mb-2 flex items-center gap-2">
           {kopRegel}
+          {tekort && (
+            <span className="ml-auto shrink-0 rounded-full bg-amber-400/10 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">
+              bijvullen
+            </span>
+          )}
           {afwijkend && (
             <button
               type="button"
               onClick={onHerstel}
-              className="ml-auto shrink-0 text-[12px] font-medium text-muted-foreground underline-offset-2 hover:underline"
+              className={`shrink-0 text-[12px] font-medium text-muted-foreground underline-offset-2 hover:underline ${tekort ? '' : 'ml-auto'}`}
             >
               wissen
             </button>
@@ -314,11 +319,6 @@ function TelRegel({
             );
           })}
         </div>
-        {tekort && (
-          <p className="mt-2 text-[12px] font-medium text-amber-700 dark:text-amber-300">
-            Bijvullen tot {vulnormWaarde(item) === 0.5 ? 'de helft' : 'vol'}
-          </p>
-        )}
       </div>
     );
   }
