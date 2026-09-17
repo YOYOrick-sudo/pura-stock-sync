@@ -332,7 +332,7 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         onOp={handleOp}
       />
       <CheckBlok
-        titel="Werkbank bijvullen"
+        titel="Koelwerkbank bijvullen"
         uitleg="Vul de koelwerkbank aan vanuit de koelcel. Lukt dat niet omdat de koelcel leeg is? Tik op &quot;Op&quot;."
         items={perPlek('werkbank')}
         checks={checks}
@@ -343,7 +343,7 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         onOp={handleOp}
       />
       <CheckBlok
-        titel="Werkblad bijvullen"
+        titel="Toppings bijvullen"
         uitleg="Droogwaren uit het magazijn, geroosterd en aangevuld op het werkblad."
         items={perPlek('werkblad')}
         checks={checks}

@@ -20,8 +20,8 @@ export const BRON_LABEL: Record<VoorraadBron, string> = {
 export const PLEK_LABEL: Record<VoorraadPlek, string> = {
   vriezer: 'Uit de vriezer (ontdooien)',
   koelcel: 'Koelcel op peil',
-  werkbank: 'Werkbank bijvullen',
-  werkblad: 'Werkblad bijvullen',
+  werkbank: 'Koelwerkbank bijvullen',
+  werkblad: 'Toppings bijvullen',
 };
 
 export interface KoelcelCheckItem {
