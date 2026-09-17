@@ -78,6 +78,14 @@ Later, als de bronnen kloppen, kan het bestelbord per leverancier gegroepeerd wo
 - "Op" is één tik en komt altijd op de juiste plek — extern bestellen, Midsland, of de eigen mise en place.
 - De kennis van de chef staat in het systeem in plaats van in haar hoofd.
 
+## Volgorde: eerst bouwen, daarna invullen
+
+Fase 1 (nu): ik bouw het systeem en vul het met de producten die al in de app staan (huidige sluitlijst en koelcellijst), met mijn beste inschatting van de bron.
+
+Fase 2 (jij, in het beheerscherm): je loopt de lijst één keer door en zet per product de juiste bron en hoeveelheid — dropdowns, geen typewerk. Ontbrekende producten voeg je daar toe.
+
+Zo hoef je niets vooraf te dicteren en zie je meteen waar je aan het schuiven bent.
+
 ## Wat ik van jou nodig heb
 
 Per product de bron en de hoeveelheid. Ik zet een eerste versie klaar op basis van de huidige sluitlijst en wat je hierboven beschreef (bananenpannenkoeken, relish, tomatenjam, kip, tom yum, vissoep = Midsland; mayo's = zelf maken West; toppings = magazijn/roosteren; overig = ingekocht), overal aantal 1. Jij corrigeert dat in het beheerscherm — sneller dan het nu compleet uittypen.
