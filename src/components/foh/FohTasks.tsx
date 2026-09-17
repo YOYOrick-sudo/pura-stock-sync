@@ -951,10 +951,19 @@ export function FohTasks() {
     }
   }, [userLocation, activePhase]);
   
-  const [dailyTasks, setDailyTasks] = useState<FohTaskWithEmployee[]>([]);
-  const [extraTasks, setExtraTasks] = useState<FohTaskWithEmployee[]>([]);
-  const [employees, setEmployees] = useState<FohEmployee[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Cache-sleutel: lijst wordt onthouden tussen schermwissels, zodat terugkeren
+  // meteen de vorige lijst toont in plaats van een leeg laadscherm.
+  const takenCacheKey = `${userLocation}|${selectedDateRef.current}`;
+  const [dailyTasks, setDailyTasks] = useState<FohTaskWithEmployee[]>(
+    () => fohTakenCache.get(takenCacheKey) ?? [],
+  );
+  const [extraTasks, setExtraTasks] = useState<FohTaskWithEmployee[]>(
+    () => fohExtraCache.get(userLocation) ?? [],
+  );
+  const [employees, setEmployees] = useState<FohEmployee[]>(
+    () => fohEmployeesCache.get(userLocation) ?? [],
+  );
+  const [loading, setLoading] = useState(() => !fohTakenCache.has(takenCacheKey));
 
   // ===== DAY NAVIGATOR (7 dagen terug + vandaag) =====
   const todayStr = getAmsterdamDateString();
