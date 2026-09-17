@@ -29,6 +29,9 @@ import {
 
 const PLEKKEN: VoorraadPlek[] = ['vriezer', 'koelcel', 'werkbank', 'werkblad'];
 const BRONNEN: VoorraadBron[] = ['vriezer', 'koelcel_inkoop', 'magazijn', 'zelf_west', 'midsland'];
+/** Hoe verse producten bij de leverancier ingekocht worden. */
+const BESTEL_EENHEDEN = ['kist', 'doos', 'bak', 'zak', 'krat', 'tray', 'kilo'];
+
 
 /** Eén schakelaar voor de hele vestiging: rustige of drukke hoeveelheden. */
 function DrukteSchakelaar({ location }: { location: string }) {
