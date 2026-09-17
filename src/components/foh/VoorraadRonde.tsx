@@ -720,6 +720,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                         drukte={drukte}
                         telling={telling}
                         onderwegMap={onderwegMap}
+                        bestelbordMap={bestelbordMap}
+                        mepTitels={mepTitels}
                         bevestigd={bevestigd.includes(sleutel)}
                         onBevestig={() => setBevestigd((b) => [...new Set([...b, sleutel])])}
                         onHeropen={() => setBevestigd((b) => b.filter((s) => s !== sleutel))}
