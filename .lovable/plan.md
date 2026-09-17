@@ -16,10 +16,19 @@ Dat is precies wat je ziet. Voorbeeld uit de gegevens van West: "Taco" van 16 se
 
 **Eén regel: je vinkt af op de dag dat je het maakt, dus blijft het die dag zichtbaar.**
 
-- Een meegenomen taak van een eerdere dag die je vandaag afvinkt, blijft vandaag gewoon doorgestreept in de lijst staan (met de heropen-knop erbij, zoals nu).
+- Een meegenomen taak van een eerdere dag die je vandaag afvinkt, blijft vandaag gewoon zichtbaar — maar onderaan de lijst. Wat nog gedaan moet worden staat altijd bovenin.
 - Morgen is hij weg uit de lijst; hij telt dan bij de dag waarop hij gemaakt is.
 - De voortgangsteller telt hem mee op de dag dat je hem afvinkt — "5/8 klaar" klopt dan weer met wat je ziet.
 - "Vandaag gemaakt" blijft bestaan, maar krijgt een duidelijker naam: **Geproduceerd vandaag (batches)**. Dat is niet dezelfde lijst als de taken, maar het productielogboek met aantal, eenheid, batchnummer en houdbaarheidsdatum — nuttig bij een sticker- of houdbaarheidsvraag. Hij blijft ingeklapt.
+
+**Visueel element links van elke taak — geen kale tabelrij meer.**
+
+- Links van elke taak komt een smalle, ronde statusbalk (6px breed, rond, hoogte van de rij):
+  - **Groen**: taak is afgevinkt.
+  - **Oranje/geel**: taak met prioriteit "Belangrijk" die nog open staat.
+  - **Lichtgrijs**: gewone open taak.
+- Zo zie je in één oogopslag de staat van de lijst zonder tekst of badges te lezen — vergelijkbaar met de kleurbalken in de takenlijst van Bediening.
+- Doorgestreepte tekst en de bestaande badges (handeling, aantal, prioriteit) blijven gewoon staan; de balk komt erbij, er gaat niets weg.
 
 ## Wat dit in de praktijk betekent
 
