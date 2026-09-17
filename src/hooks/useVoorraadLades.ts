@@ -164,6 +164,18 @@ export function useLadeMutaties(vestiging: string) {
     onSuccess: ververs,
   });
 
+  /** Hoeveel er in een keer gemaakt wordt (MEP-batch). */
+  const zetBatchAantal = useMutation({
+    mutationFn: async ({ itemId, aantal }: { itemId: string; aantal: number | null }) => {
+      const { error } = await supabase
+        .from('koelcel_check_items')
+        .update({ batch_aantal: aantal && aantal > 0 ? aantal : null })
+        .eq('id', itemId);
+      if (error) throw error;
+    },
+    onSuccess: ververs,
+  });
+
   return {
     hernoem,
     zetActief,
@@ -173,5 +185,6 @@ export function useLadeMutaties(vestiging: string) {
     zetReserveDoel,
     zetVulnorm,
     zetFormaat,
+    zetBatchAantal,
   };
 }

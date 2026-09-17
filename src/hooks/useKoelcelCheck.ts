@@ -46,11 +46,19 @@ export interface KoelcelCheckItem {
   reserve_doel?: number | null;
   /** Tot hoever het werkbakje gevuld hoort te zijn: 'vol' of 'half'. */
   vulnorm?: string | null;
+  /** Hoeveel er in een keer gemaakt wordt (MEP-batch); leeg = standaardberekening. */
+  batch_aantal?: number | null;
 }
 
 /** Hoeveel hele reservebakjes er achter de hand horen te staan. */
 export function reserveDoel(item: KoelcelCheckItem): number {
   return Math.max(Number(item.reserve_doel ?? 0), 0);
+}
+
+/** De vastgelegde batchgrootte, of null als die niet is ingevuld. */
+export function batchGrootte(item: KoelcelCheckItem): number | null {
+  const n = Number(item.batch_aantal ?? 0);
+  return n > 0 ? n : null;
 }
 
 /** Product met een reserve-afspraak: tellen op hele reservebakjes. */
