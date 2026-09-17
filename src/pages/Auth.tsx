@@ -135,6 +135,12 @@ const Auth = () => {
     }
   };
 
+  // Nog niet zeker of iemand ingelogd is (of net doorgestuurd): rustig
+  // startscherm in plaats van een kort zichtbaar inlogformulier.
+  if (authStatus !== 'uitgelogd' && !loading) {
+    return <StartScherm offline={authOffline} opnieuw={authOpnieuw} />;
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 md:p-8 bg-background">
       <div
