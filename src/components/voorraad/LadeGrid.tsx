@@ -298,7 +298,11 @@ export function LadeGrid({ vestiging }: { vestiging: string }) {
           ) : (
             <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
               {nietIngedeeld.map((i) => (
-                <SleepbaarProduct key={i.id} item={i} />
+                <SleepbaarProduct
+                  key={i.id}
+                  item={i}
+                  onReserve={(a) => zetReserveDoel.mutate({ itemId: i.id, aantal: a })}
+                />
               ))}
             </div>
           )}
