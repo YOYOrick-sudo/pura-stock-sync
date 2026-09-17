@@ -40,7 +40,7 @@ import {
   type VoorraadPlek,
 } from '@/hooks/useKoelcelCheck';
 import { useCreateStickerPrintJob } from '@/hooks/useStickerProducten';
-import { aantalLabel, getalLabel, formaatLabel } from '@/lib/voorraad-formaat';
+import { aantalLabel, getalLabel, formaatLabel, bakjeLabel } from '@/lib/voorraad-formaat';
 import { useVoorraadLades, positieLabel, type VoorraadLade } from '@/hooks/useVoorraadLades';
 import { LadePositie } from '@/components/voorraad/LadePositie';
 import { KastOverzicht, type KastVak } from '@/components/voorraad/KastOverzicht';
