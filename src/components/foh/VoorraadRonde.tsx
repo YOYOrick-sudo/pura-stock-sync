@@ -232,7 +232,9 @@ function TelRegel({
       {afwijkend && (
         <div className="space-y-2 border-t border-amber-400/40 px-3 py-2">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-[13px] font-medium text-foreground">Hoeveel ligt er?</span>
+            <span className="text-[13px] font-medium text-foreground">
+              {reserve ? 'Hoeveel reserve staat er?' : 'Hoeveel ligt er?'}
+            </span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -256,29 +258,31 @@ function TelRegel({
             </div>
           </div>
 
-          <div>
-            <p className="mb-1 text-[12px] text-muted-foreground">Laatste, aangebroken bak</p>
-            <div className="grid grid-cols-3 gap-2">
-              {REST_KEUZES.map((k) => {
-                const actief = rest === k.waarde;
-                return (
-                  <button
-                    key={k.label}
-                    type="button"
-                    onClick={() => zetRest(k.waarde)}
-                    className={`flex items-center justify-center rounded-[12px] border text-[14px] font-semibold capitalize ${
-                      actief
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-border bg-card text-foreground'
-                    }`}
-                    style={{ minHeight: 44 }}
-                  >
-                    {k.label}
-                  </button>
-                );
-              })}
+          {!reserve && (
+            <div>
+              <p className="mb-1 text-[12px] text-muted-foreground">Laatste, aangebroken bak</p>
+              <div className="grid grid-cols-3 gap-2">
+                {REST_KEUZES.map((k) => {
+                  const actief = rest === k.waarde;
+                  return (
+                    <button
+                      key={k.label}
+                      type="button"
+                      onClick={() => zetRest(k.waarde)}
+                      className={`flex items-center justify-center rounded-[12px] border text-[14px] font-semibold capitalize ${
+                        actief
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-border bg-card text-foreground'
+                      }`}
+                      style={{ minHeight: 44 }}
+                    >
+                      {k.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>
