@@ -1478,10 +1478,13 @@ export function FohTasks() {
 
     if (error) {
       devError('Error fetching daily tasks:', error);
+      setLoading(false);
       return;
     }
 
-    setDailyTasks((data || []) as FohTaskWithEmployee[]);
+    const rijen = (data || []) as FohTaskWithEmployee[];
+    fohTakenCache.set(`${userLocation}|${dateToFetch}`, rijen);
+    setDailyTasks(rijen);
     setLoading(false);
   };
 
@@ -1502,7 +1505,9 @@ export function FohTasks() {
       return;
     }
     
-    setExtraTasks((data || []) as FohTaskWithEmployee[]);
+    const rijen = (data || []) as FohTaskWithEmployee[];
+    fohExtraCache.set(userLocation || '', rijen);
+    setExtraTasks(rijen);
   };
 
   const fetchEmployees = async () => {
@@ -1517,6 +1522,7 @@ export function FohTasks() {
       return;
     }
     
+    fohEmployeesCache.set(userLocation || '', data || []);
     setEmployees(data || []);
   };
 
