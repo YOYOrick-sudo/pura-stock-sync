@@ -3662,7 +3662,12 @@ export function FohTasks() {
                           false,
                           { keyPrefix: 'bottom-', categoryFilter: (c) => !isStartCat(c) },
                         );
-                        const sections = [samenTop, eigen, samenBottom].filter(Boolean);
+                        // De voorraadronde hoort bij de keukentaken van de sluitlijst.
+                        const voorraad =
+                          visibleTab === 'keuken' && activePhase === 'sluit' && !isReadOnly ? (
+                            <VoorraadRonde key="voorraadronde" vestiging="West" datum={selectedDate} />
+                          ) : null;
+                        const sections = [samenTop, eigen, voorraad, samenBottom].filter(Boolean);
                         if (sections.length === 0) {
                           return (
                             <div style={{
