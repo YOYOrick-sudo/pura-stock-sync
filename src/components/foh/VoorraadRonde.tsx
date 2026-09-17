@@ -25,6 +25,8 @@ import {
   useKoelcelCheckMutaties,
   useDrukteModus,
   useOpenstaandeBestellingen,
+  useBestelbordOpen,
+  useMepOpenNamen,
   vervolgactieVoorRegel,
   doelAantal,
   HERKOMST_LABEL,
@@ -84,9 +86,12 @@ function categorieVan(item: ItemMetCategorie): string {
   return (item.categorie ?? '').trim() || 'Droog & overig';
 }
 
-/** Hoeveel er nog gehaald moet worden: altijd hele bakken, naar boven afgerond. */
-function tekortVan(doel: number, geteld: number): number {
-  return Math.max(Math.ceil(doel - geteld - 0.001), 0);
+/**
+ * Hoeveel er nog gehaald moet worden: altijd hele bakken, naar boven afgerond.
+ * Wat er al onderweg is (besteld, nog niet geleverd) telt mee als voorraad.
+ */
+function tekortVan(doel: number, geteld: number, onderweg = 0): number {
+  return Math.max(Math.ceil(doel - geteld - onderweg - 0.001), 0);
 }
 
 /** Eén productregel: standaard "ligt er", tik om te tellen wat er écht ligt. */
