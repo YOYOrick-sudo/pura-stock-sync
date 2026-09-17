@@ -67,8 +67,10 @@ Je krijgt meteen terugkoppeling: "Tom yum staat op de bestellijst voor Midsland"
 
 ### Twee lijsten waar het in terechtkomt
 
-- **Bestelbord** (Keuken → Bestelbord): wat er extern besteld moet worden. Product, wie het meldde, wanneer, vinkje "besteld". Blijft staan tot het afgevinkt is. Vervangt het whiteboard.
+- **Bestelbord** (Keuken → Bestelbord): wat er extern besteld moet worden. Product, wie het meldde, wanneer, vinkje "besteld". Blijft staan tot het afgevinkt is. Vervangt het whiteboard — niemand schrijft nog iets op. Het bord is ook zelf een invoerplek: staat iets er nog niet op, dan tik je "+ Product op bestelbord" en kies je uit de productenlijst of typ je vrij.
 - **Naar Midsland**: dezelfde manier van melden, maar de regels landen op de bestaande interne bestelling van West naar Midsland, zodat Midsland ze bij hun productie ziet. Één plek voor Helga en het team in Midsland, in plaats van losse appjes.
+
+Later, als de bronnen kloppen, kan het bestelbord per leverancier gegroepeerd worden en op besteldag automatisch als bestellijst klaarstaan. Dat bouwen we nu nog niet.
 
 ## Wat dit oplevert
 
