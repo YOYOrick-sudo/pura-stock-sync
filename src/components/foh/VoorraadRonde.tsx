@@ -935,11 +935,6 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
     // ---------- Tellen ----------
     return (
       <div className="mt-2 rounded-[18px] border border-border bg-card p-4">
-        <p className="mb-3 text-[13px] text-muted-foreground">
-          Koelwerkbank: per lade kijken. Bij een bakje tik je vol, half, bodempje of leeg; bij producten
-          met reserve tel je de reservebakjes. Koelcel en vriescel tel je in hele bakken — tik alleen aan
-          wat afwijkt.
-        </p>
         <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-muted">
           <div
             className="h-full rounded-full bg-primary transition-all"
@@ -971,13 +966,6 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                     </span>
                   </div>
                 </div>
-                {p.plek === 'werkbank' && (
-                  <KastOverzicht
-                    vakken={kastVakken.filter((v) => v.lade)}
-                    losseVakken={kastVakken.filter((v) => !v.lade)}
-                    onTik={springNaar}
-                  />
-                )}
                 <div className="space-y-2 pl-2">
                   {p.groepen.map((g) => (
                     <div
