@@ -712,6 +712,8 @@ export function useKoelcelCheckMutaties(
       qc.invalidateQueries({ queryKey: ['bestel-signalen', vestiging] });
       qc.invalidateQueries({ queryKey: ['openstaand-besteld', vestiging] });
       qc.invalidateQueries({ queryKey: ['internal-orders'] });
+      qc.invalidateQueries({ queryKey: ['bestelbord-open', vestiging] });
+      qc.invalidateQueries({ queryKey: ['mep-open-namen', vestiging] });
     },
 
   });
