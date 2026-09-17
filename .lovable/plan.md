@@ -28,7 +28,7 @@ Ongewijzigd, behalve dat de keten nu doorzoekt: is er geen koelcelregel (zoals b
 ## Technisch
 
 - `useKoelcelCheck.ts`: `NIVEAU_ONDER` vervangen door een zoekvolgorde per plek (`werkbank`/`werkblad` → `koelcel` → `vriezer`) zodat `vervolgactieVoorRegel` het eerstvolgende bestaande niveau pakt in plaats van alleen het directe niveau eronder.
-- `KoelcelCheckBlok.tsx`: vriezerblok krijgt titel "Vriescel op peil", uitleg-tekst en `klaarLabel="Aanwezig"`; de sticker-/ontdooilogica (`handleUitVriezer`) verhuist naar een extra knop op koelcelregels die een gekoppelde vriescelregel hebben.
+- `KoelcelCheckBlok.tsx`: vriezerblok krijgt titel "Vriescel op peil (maandag)", nieuwe uitleg en `klaarLabel="Aanwezig"`, en wordt alleen gerenderd als de gekozen datum een maandag is (weekdag uit `datum`, Europe/Amsterdam). De sticker-/ontdooilogica (`handleUitVriezer`) verhuist naar een extra knop op koelcelregels die een gekoppelde vriescelregel hebben.
 - Migratie `voorraadcheck_west_opschoning`: `actief = false` voor de legacy-zoetregel en de dubbele vriescelregels; herkomst corrigeren waar nodig. Geen harde verwijderingen.
 
 ## Risico's
