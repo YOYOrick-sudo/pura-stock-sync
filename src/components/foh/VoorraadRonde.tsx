@@ -551,6 +551,11 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
       return kopie;
     });
 
+  /** In welke lade van de koelwerkbank dit product hoort (of null). */
+  const ladeVan = (item: ItemMetCategorie): VoorraadLade | null =>
+    (item.lade_id ? lades.find((l) => l.id === item.lade_id) : null) ?? null;
+
+
   const printOntdooid = (item: ItemMetCategorie, aantal: number) => {
     const vandaag = new Date();
     const houdbaar = new Date(vandaag);
