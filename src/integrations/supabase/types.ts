@@ -1892,6 +1892,7 @@ export type Database = {
           updated_at: string
           vestiging: string
           volgorde: number
+          vulnorm: string
         }
         Insert: {
           actief?: boolean
@@ -1913,6 +1914,7 @@ export type Database = {
           updated_at?: string
           vestiging: string
           volgorde?: number
+          vulnorm?: string
         }
         Update: {
           actief?: boolean
@@ -1934,6 +1936,7 @@ export type Database = {
           updated_at?: string
           vestiging?: string
           volgorde?: number
+          vulnorm?: string
         }
         Relationships: [
           {

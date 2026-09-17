@@ -30,14 +30,17 @@ import {
   vervolgactieVoorRegel,
   doelAantal,
   isReserveItem,
+  isVulItem,
   reserveDoel,
+  vulnormWaarde,
+  vulnormLabel,
   HERKOMST_LABEL,
   type DrukteModus,
   type KoelcelCheckItem,
   type VoorraadPlek,
 } from '@/hooks/useKoelcelCheck';
 import { useCreateStickerPrintJob } from '@/hooks/useStickerProducten';
-import { aantalLabel, getalLabel, formaatLabel } from '@/lib/voorraad-formaat';
+import { aantalLabel, getalLabel, formaatLabel, bakjeLabel } from '@/lib/voorraad-formaat';
 import { useVoorraadLades, positieLabel, type VoorraadLade } from '@/hooks/useVoorraadLades';
 import { LadePositie } from '@/components/voorraad/LadePositie';
 import { KastOverzicht, type KastVak } from '@/components/voorraad/KastOverzicht';
@@ -60,7 +63,7 @@ const PLEK_VOLGORDE: {
   icoon: typeof Refrigerator;
   alleenMaandag?: boolean;
 }[] = [
-  { plek: 'werkbank', titel: 'Koelwerkbank — reserve', icoon: Utensils },
+  { plek: 'werkbank', titel: 'Koelwerkbank', icoon: Utensils },
   { plek: 'werkblad', titel: 'Toppings', icoon: Soup },
   { plek: 'koelcel', titel: 'Koelcel', icoon: Refrigerator },
   { plek: 'vriezer', titel: 'Vriescel', icoon: Snowflake, alleenMaandag: true },
@@ -85,6 +88,28 @@ const REST_KEUZES: { label: string; waarde: number }[] = [
   { label: 'bodempje', waarde: 0.25 },
 ];
 
+/** Hoe vol het werkbakje van de koelwerkbank erbij staat. */
+const VUL_KEUZES: { label: string; waarde: number }[] = [
+  { label: 'vol', waarde: 1 },
+  { label: 'half', waarde: 0.5 },
+  { label: 'bodempje', waarde: 0.25 },
+  { label: 'leeg', waarde: 0 },
+];
+
+/** Hoe een product geteld wordt. */
+type TelModus = 'reserve' | 'vulling' | 'bakken';
+
+/** "half" / "bodempje" / "leeg" — wat er geteld is bij een werkbakje. */
+function vulKeuzeLabel(waarde: number): string {
+  return VUL_KEUZES.find((k) => Math.abs(k.waarde - waarde) < 0.001)?.label ?? getalLabel(waarde);
+}
+
+function telModus(item: KoelcelCheckItem): TelModus {
+  if (isReserveItem(item)) return 'reserve';
+  if (isVulItem(item)) return 'vulling';
+  return 'bakken';
+}
+
 function isMaandag(datum: string): boolean {
   const d = new Date(`${datum}T12:00:00`);
   return !Number.isNaN(d.getTime()) && d.getDay() === 1;
@@ -108,12 +133,32 @@ function tekortVan(doel: number, geteld: number, onderweg = 0): number {
   return Math.max(Math.ceil(doel - geteld - onderweg - 0.001), 0);
 }
 
+/** Bij een werkbakje telt het verschil met de vulnorm, niet in hele bakken. */
+function vulTekort(doel: number, geteld: number): number {
+  return Math.max(Math.round((doel - geteld) * 100) / 100, 0);
+}
+
 /**
- * Waarop we tellen: bij de koelwerkbank alleen het aantal reservebakjes,
- * elders het dagdoel (rustig/druk). Het bakje in de werklade telt niet mee.
+ * Waarop we tellen: reservebakjes (reserve), de vulnorm van het werkbakje
+ * (koelwerkbank zonder reserve), of het dagdoel in hele bakken.
  */
 function telDoel(item: ItemMetCategorie, drukte: DrukteModus): number {
-  return isReserveItem(item) ? reserveDoel(item) : doelAantal(item, drukte);
+  const modus = telModus(item);
+  if (modus === 'reserve') return reserveDoel(item);
+  if (modus === 'vulling') return vulnormWaarde(item);
+  return doelAantal(item, drukte);
+}
+
+/** Tekort volgens de manier waarop dit product geteld wordt. */
+function tekortVoor(
+  item: ItemMetCategorie,
+  doel: number,
+  geteld: number,
+  onderweg = 0,
+): number {
+  return telModus(item) === 'vulling'
+    ? vulTekort(doel, geteld)
+    : tekortVan(doel, geteld, onderweg);
 }
 
 /** Eén productregel: standaard "ligt er", tik om te tellen wat er écht ligt. */
@@ -124,7 +169,7 @@ function TelRegel({
   onderweg,
   opBestelbord,
   inMep,
-  reserve,
+  modus,
   onZet,
   onHerstel,
 }: {
@@ -134,15 +179,17 @@ function TelRegel({
   onderweg: number;
   opBestelbord: boolean;
   inMep: boolean;
-  /** Reserveregel: hele bakjes tellen, geen vulgraad. */
-  reserve?: boolean;
+  /** Hoe dit product geteld wordt. */
+  modus: TelModus;
   onZet: (aantal: number) => void;
   onHerstel: () => void;
 }) {
+  const reserve = modus === 'reserve';
+  const vulling = modus === 'vulling';
   const afwijkend = geteld !== undefined;
   const waarde = geteld ?? doel;
   const heel = Math.floor(waarde + 0.001);
-  const rest = reserve ? 0 : Math.round((waarde - heel) * 100) / 100;
+  const rest = reserve || vulling ? 0 : Math.round((waarde - heel) * 100) / 100;
 
   const zetHeel = (n: number) => onZet(Math.max(n, 0) + rest);
   const zetRest = (r: number) => onZet(heel + r);
@@ -153,13 +200,16 @@ function TelRegel({
     inMep ? 'wordt gemaakt (MEP)' : null,
   ].filter(Boolean);
 
+  const bakje = bakjeLabel(item.formaat ?? item.bak_maat);
   const kopRegel = (
     <span className="min-w-0">
       <span className="block truncate text-[15px] font-semibold text-foreground">{item.naam}</span>
       <span className="block truncate text-[12px] text-muted-foreground">
         {reserve
           ? `reserve ${getalLabel(doel)} ${doel === 1 ? 'bakje' : 'bakjes'}`
-          : formaatLabel(doel, item.eenheid, item.formaat ?? item.bak_maat)}
+          : vulling
+            ? `${vulnormLabel(item)}${bakje ? ` · ${bakje.naam}${bakje.code ? ` (${bakje.code})` : ''}` : ''}`
+            : formaatLabel(doel, item.eenheid, item.formaat ?? item.bak_maat)}
       </span>
       {statusChips.length > 0 && (
         <span className="mt-0.5 flex flex-wrap gap-1">
@@ -204,6 +254,56 @@ function TelRegel({
             Nog niet binnen
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // Koelwerkbank zonder reserve: je kijkt in het bakje en tikt wat je ziet.
+  if (vulling) {
+    const tekort = afwijkend && waarde < doel - 0.001;
+    return (
+      <div
+        className={`rounded-[14px] border p-3 transition-colors ${
+          tekort ? 'border-amber-400/70 bg-amber-50/70 dark:bg-amber-500/10' : 'border-border bg-card'
+        }`}
+      >
+        <div className="mb-2 flex items-center gap-2">
+          {kopRegel}
+          {afwijkend && (
+            <button
+              type="button"
+              onClick={onHerstel}
+              className="ml-auto shrink-0 text-[12px] font-medium text-muted-foreground underline-offset-2 hover:underline"
+            >
+              wissen
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-4 gap-1.5">
+          {VUL_KEUZES.map((k) => {
+            const actief = afwijkend && Math.abs(waarde - k.waarde) < 0.001;
+            return (
+              <button
+                key={k.label}
+                type="button"
+                onClick={() => onZet(k.waarde)}
+                className={`flex items-center justify-center rounded-[12px] border text-[13px] font-semibold capitalize ${
+                  actief
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border bg-card text-foreground'
+                }`}
+                style={{ minHeight: 44 }}
+              >
+                {k.label}
+              </button>
+            );
+          })}
+        </div>
+        {tekort && (
+          <p className="mt-2 text-[12px] font-medium text-amber-700 dark:text-amber-300">
+            Bijvullen tot {vulnormWaarde(item) === 0.5 ? 'de helft' : 'vol'}
+          </p>
+        )}
       </div>
     );
   }
@@ -369,7 +469,7 @@ function CategorieBlok({
             key={item.id}
             item={item}
             doel={telDoel(item, drukte)}
-            reserve={isReserveItem(item)}
+            modus={telModus(item)}
             geteld={telling[item.id]}
             onderweg={onderwegMap[item.naam.trim().toLowerCase()] ?? 0}
             opBestelbord={(bestelbordMap[item.naam.trim().toLowerCase()] ?? 0) > 0}
@@ -423,14 +523,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const ladesQuery = useVoorraadLades(vestiging);
   const lades = useMemo(() => ladesQuery.data ?? [], [ladesQuery.data]);
 
-  // Koelwerkbankproducten zonder reserve-afspraak tellen we niet: die doen niet mee.
-  const items = useMemo(
-    () =>
-      ((itemsQuery.data ?? []) as ItemMetCategorie[]).filter(
-        (i) => !isReserveItem(i) || reserveDoel(i) > 0,
-      ),
-    [itemsQuery.data],
-  );
+  const items = useMemo(() => (itemsQuery.data ?? []) as ItemMetCategorie[], [itemsQuery.data]);
   const { meldOp, vulAanUitNiveau, zetAllesAanwezig } = useKoelcelCheckMutaties(vestiging, datum, items);
 
   const opslagSleutel = `voorraadronde-${vestiging}-${datum}`;
@@ -569,7 +662,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           const geteld = telling[item.id];
           if (geteld === undefined) return false;
           const onderweg = onderwegMap[item.naam.trim().toLowerCase()] ?? 0;
-          return tekortVan(telDoel(item, drukte), geteld, onderweg) > 0;
+          return tekortVoor(item, telDoel(item, drukte), geteld, onderweg) > 0;
         });
         return {
           sleutel: g.sleutel,
@@ -591,7 +684,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
       const doel = telDoel(item, drukte);
       // Besteld-en-onderweg telt mee als voorraad: niet opnieuw bestellen.
       const onderweg = onderwegMap[item.naam.trim().toLowerCase()] ?? 0;
-      const tekort = tekortVan(doel, geteld, onderweg);
+      const tekort = tekortVoor(item, doel, geteld, onderweg);
       if (tekort <= 0) continue;
       const vervolg = vervolgactieVoorRegel(item, items);
       if (vervolg.soort === 'niveau') {
@@ -777,15 +870,19 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                               {r.item.naam}
                             </span>
                             <span className="block truncate text-[12px] text-muted-foreground">
-                              {getalLabel(r.doel)} nodig · {getalLabel(r.geteld)} geteld
+                              {telModus(r.item) === 'vulling'
+                                ? `bakje ${vulKeuzeLabel(r.geteld)}`
+                                : `${getalLabel(r.doel)} nodig · ${getalLabel(r.geteld)} geteld`}
                               {r.onderItem ? ` · uit ${HERKOMST_LABEL[r.onderItem.plek]}` : ''}
                             </span>
                             {ladeVan(r.item) && (
                               <LadePositie lade={ladeVan(r.item)} className="mt-0.5" />
                             )}
                           </span>
-                          <span className="shrink-0 text-[14px] font-bold tabular-nums text-primary">
-                            {aantalLabel(r.tekort, r.item.eenheid)}
+                          <span className="shrink-0 text-right text-[14px] font-bold text-primary">
+                            {telModus(r.item) === 'vulling'
+                              ? `bijvullen tot ${vulnormWaarde(r.item) === 0.5 ? 'half' : 'vol'}`
+                              : aantalLabel(r.tekort, r.item.eenheid)}
                           </span>
                         </div>
                       ))}
@@ -813,8 +910,9 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
     return (
       <div className="mt-2 rounded-[18px] border border-border bg-card p-4">
         <p className="mb-3 text-[13px] text-muted-foreground">
-          Bij de koelwerkbank tel je alleen de reservebakjes, per lade. De rest per categorie. Tik alleen
-          een product aan als er minder staat dan afgesproken.
+          Koelwerkbank: per lade kijken. Bij een bakje tik je vol, half, bodempje of leeg; bij producten
+          met reserve tel je de reservebakjes. Koelcel en vriescel tel je in hele bakken — tik alleen aan
+          wat afwijkt.
         </p>
         <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-muted">
           <div
