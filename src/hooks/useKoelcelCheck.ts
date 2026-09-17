@@ -478,7 +478,7 @@ async function naarMidsland(
       product_name: item.naam,
       quantity: nodig,
       unit: item.eenheid,
-      bron: 'sluitlijst',
+      bron: 'systeem',
     }),
   );
   if (regelFout) throw regelFout;
