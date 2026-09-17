@@ -7,6 +7,8 @@ import logoOfficial from '@/assets/pura-vida-logo-sea-cropped.png';
 import { getLocationDisplayName } from '@/lib/utils';
 import { PWAInstallHint } from '@/components/PWAInstallHint';
 import { devError } from "@/lib/devLog";
+import { withTimeout } from '@/lib/withTimeout';
+import { HerstelKnop } from '@/components/auth/HerstelKnop';
 
 const Auth = () => {
   const navigate = useNavigate();
