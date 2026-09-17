@@ -473,6 +473,32 @@ export function useKoelcelCheckMutaties(
   });
 
   /**
+   * Aangevuld vanuit het niveau eronder: de bovenste regel is klaar, en op de
+   * onderliggende regel leggen we vast dat daar iets uit gehaald is (zodat de
+   * maandagse vriescelcheck weet waar geteld moet worden).
+   */
+  const vulAanUitNiveau = useMutation({
+    mutationFn: async ({ item, onderItem }: { item: KoelcelCheckItem; onderItem: KoelcelCheckItem }) => {
+      const { data: user } = await supabase.auth.getUser();
+      const uid = user.user?.id ?? null;
+      const { error } = await metHerstel(() =>
+        supabase.from('koelcel_checks').upsert(
+          [
+            { item_id: item.id, vestiging, datum, status: 'aanwezig' as const, created_by: uid },
+            { item_id: onderItem.id, vestiging, datum, status: 'uit_vriezer' as const, created_by: uid },
+          ],
+          { onConflict: 'item_id,datum' },
+        ),
+      );
+      if (error) throw error;
+      return { item, onderItem };
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: checksKey }),
+  });
+
+
+
+  /**
    * "Op": het product kon niet aangevuld worden. Ligt hetzelfde product ook een
    * niveau lager (koelcel, vriescel), dan schuift de melding daarheen. Pas op het
    * laagste niveau gaat het naar de mise-en-place, het bestelbord of Midsland.
