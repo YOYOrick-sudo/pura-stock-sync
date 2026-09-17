@@ -293,7 +293,51 @@ async function mepTaakVoorItem(
   return { id: (taak as any).id, dubbel: false };
 }
 
-async function opBestelbord(item: KoelcelCheckItem, vestiging: string, aantal: number): Promise<boolean> {
+/**
+ * Alles wat al voor dit product besteld is en nog niet geleverd: openstaande
+ * regels op interne bestellingen naar Midsland. Zo bestellen we nooit twee keer
+ * hetzelfde als er een week niet is aangevuld.
+ */
+async function openstaandVoorProduct(
+  vestiging: string,
+  naam: string,
+  negeerRegelId?: string,
+): Promise<number> {
+  const { data: orders, error } = await supabase
+    .from('internal_orders')
+    .select('id, status')
+    .eq('from_location', vestiging)
+    .eq('to_location', 'Midsland')
+    .not('status', 'in', '("delivered","cancelled","geannuleerd")');
+  if (error) throw error;
+  const ids = (orders ?? []).map((o: any) => o.id);
+  if (!ids.length) return 0;
+
+  const { data: regels, error: regelFout } = await supabase
+    .from('internal_order_items')
+    .select('id, quantity, ontvangen_aantal')
+    .in('order_id', ids)
+    .ilike('product_name', naam);
+  if (regelFout) throw regelFout;
+
+  return (regels ?? [])
+    .filter((r: any) => r.id !== negeerRegelId)
+    .reduce((som: number, r: any) => {
+      const besteld = Number(r.quantity ?? 0);
+      const ontvangen = Number(r.ontvangen_aantal ?? 0);
+      return som + Math.max(besteld - ontvangen, 0);
+    }, 0);
+}
+
+/**
+ * Eén open signaal per product: de nieuwste telling overschrijft het aantal,
+ * hij telt er niet bij op.
+ */
+async function opBestelbord(
+  item: KoelcelCheckItem,
+  vestiging: string,
+  behoefte: number,
+): Promise<{ dubbel: boolean; aantal: number }> {
   const { data: bestaand, error } = await supabase
     .from('bestel_signalen')
     .select('id, aantal')
@@ -303,15 +347,14 @@ async function opBestelbord(item: KoelcelCheckItem, vestiging: string, aantal: n
     .limit(1);
   if (error) throw error;
   if (bestaand?.[0]) {
-    // Al gemeld: hoogste tekort laten staan, niet dubbel bestellen.
     const huidig = Number((bestaand[0] as any).aantal ?? 0);
-    if (aantal > huidig) {
+    if (behoefte !== huidig) {
       const { error: bijFout } = await metHerstel(() =>
-        supabase.from('bestel_signalen').update({ aantal }).eq('id', (bestaand[0] as any).id),
+        supabase.from('bestel_signalen').update({ aantal: behoefte }).eq('id', (bestaand[0] as any).id),
       );
       if (bijFout) throw bijFout;
     }
-    return true;
+    return { dubbel: true, aantal: behoefte };
   }
 
   const { data: user } = await supabase.auth.getUser();
@@ -319,14 +362,14 @@ async function opBestelbord(item: KoelcelCheckItem, vestiging: string, aantal: n
     supabase.from('bestel_signalen').insert({
       vestiging,
       naam: item.naam,
-      aantal,
+      aantal: behoefte,
       eenheid: item.eenheid,
       bron: 'sluitlijst',
       gemeld_door: user.user?.id ?? null,
     }),
   );
   if (invoegFout) throw invoegFout;
-  return false;
+  return { dubbel: false, aantal: behoefte };
 }
 
 
@@ -336,7 +379,15 @@ function datumMorgen(): string {
   return d.toISOString().slice(0, 10);
 }
 
-async function naarMidsland(item: KoelcelCheckItem, vestiging: string, aantal: number): Promise<boolean> {
+/**
+ * nodig = doel − wat er ligt − wat al besteld is en nog niet geleverd.
+ * De regel op de conceptbestelling wordt bijgewerkt, nooit verdubbeld.
+ */
+async function naarMidsland(
+  item: KoelcelCheckItem,
+  vestiging: string,
+  behoefte: number,
+): Promise<{ dubbel: boolean; aantal: number; onderweg: number }> {
   const { data: orders, error: zoekFout } = await supabase
     .from('internal_orders')
     .select('id')
@@ -349,6 +400,42 @@ async function naarMidsland(item: KoelcelCheckItem, vestiging: string, aantal: n
 
   let orderId = orders?.[0]?.id ?? null;
   const { data: user } = await supabase.auth.getUser();
+
+  // Staat het al op de conceptbestelling?
+  let regel: any = null;
+  if (orderId) {
+    const { data: bestaand } = await supabase
+      .from('internal_order_items')
+      .select('id, quantity, handmatig_aangepast')
+      .eq('order_id', orderId)
+      .ilike('product_name', item.naam)
+      .limit(1);
+    regel = bestaand?.[0] ?? null;
+  }
+
+  // Wat er al onderweg is (verstuurde bestellingen en andere concepten).
+  const onderweg = await openstaandVoorProduct(vestiging, item.naam, regel?.id);
+  const nodig = Math.max(Math.round((behoefte - onderweg) * 100) / 100, 0);
+
+  if (regel) {
+    if (regel.handmatig_aangepast) return { dubbel: true, aantal: Number(regel.quantity ?? 0), onderweg };
+    if (nodig <= 0) {
+      const { error: wegFout } = await metHerstel(() =>
+        supabase.from('internal_order_items').delete().eq('id', regel.id),
+      );
+      if (wegFout) throw wegFout;
+      return { dubbel: true, aantal: 0, onderweg };
+    }
+    if (Number(regel.quantity ?? 0) !== nodig) {
+      const { error: bijFout } = await metHerstel(() =>
+        supabase.from('internal_order_items').update({ quantity: nodig }).eq('id', regel.id),
+      );
+      if (bijFout) throw bijFout;
+    }
+    return { dubbel: true, aantal: nodig, onderweg };
+  }
+
+  if (nodig <= 0) return { dubbel: true, aantal: 0, onderweg };
 
   if (!orderId) {
     const { data: nieuw, error: maakFout } = await metHerstel(() =>
@@ -370,36 +457,19 @@ async function naarMidsland(item: KoelcelCheckItem, vestiging: string, aantal: n
     orderId = (nieuw as any).id;
   }
 
-  const { data: bestaand } = await supabase
-    .from('internal_order_items')
-    .select('id, quantity')
-    .eq('order_id', orderId!)
-    .ilike('product_name', item.naam)
-    .limit(1);
-  if (bestaand?.[0]) {
-    // Staat er al op: het grootste tekort aanhouden in plaats van optellen.
-    const huidig = Number((bestaand[0] as any).quantity ?? 0);
-    if (aantal > huidig) {
-      const { error: bijFout } = await metHerstel(() =>
-        supabase.from('internal_order_items').update({ quantity: aantal }).eq('id', (bestaand[0] as any).id),
-      );
-      if (bijFout) throw bijFout;
-    }
-    return true;
-  }
-
   const { error: regelFout } = await metHerstel(() =>
     supabase.from('internal_order_items').insert({
       order_id: orderId!,
       product_name: item.naam,
-      quantity: aantal,
+      quantity: nodig,
       unit: item.eenheid,
       bron: 'sluitlijst',
     }),
   );
   if (regelFout) throw regelFout;
-  return false;
+  return { dubbel: false, aantal: nodig, onderweg };
 }
+
 
 export function useKoelcelCheckMutaties(
   vestiging: string,
@@ -520,6 +590,9 @@ export function useKoelcelCheckMutaties(
       const tekort = Math.max(doelNu - Number(aanwezig || 0), 1);
       let mepTaakId: string | null = null;
       let dubbel = false;
+      // Wat er daadwerkelijk besteld wordt (kan lager zijn: er ligt al iets onderweg).
+      let geplaatst = tekort;
+      let onderweg = 0;
 
       if (bestemming.soort === 'niveau') {
         // Het niveau eronder moet opnieuw gecontroleerd worden: haal een eerdere
@@ -537,9 +610,14 @@ export function useKoelcelCheckMutaties(
         mepTaakId = res.id;
         dubbel = res.dubbel;
       } else if (bestemming.soort === 'bestelbord') {
-        dubbel = await opBestelbord(item, vestiging, tekort);
+        const res = await opBestelbord(item, vestiging, tekort);
+        dubbel = res.dubbel;
+        geplaatst = res.aantal;
       } else {
-        dubbel = await naarMidsland(item, vestiging, tekort);
+        const res = await naarMidsland(item, vestiging, tekort);
+        dubbel = res.dubbel;
+        geplaatst = res.aantal;
+        onderweg = res.onderweg;
       }
 
       const { data: user } = await supabase.auth.getUser();
@@ -552,22 +630,64 @@ export function useKoelcelCheckMutaties(
             status: 'gemeld',
             doorgezet_naar: bestemming.soort,
             mep_taak_id: mepTaakId,
-            aantal_doorgezet: bestemming.soort === 'niveau' ? null : tekort,
+            aantal_doorgezet: bestemming.soort === 'niveau' ? null : geplaatst,
             created_by: user.user?.id ?? null,
           } as any,
           { onConflict: 'item_id,datum' },
         ),
       );
       if (checkFout) throw checkFout;
-      return { dubbel, item, bestemming, tekort };
+      return { dubbel, item, bestemming, tekort, geplaatst, onderweg };
+
     },
 
     onSettled: () => {
       qc.invalidateQueries({ queryKey: checksKey });
       qc.invalidateQueries({ queryKey: ['mep-taken', vestiging] });
       qc.invalidateQueries({ queryKey: ['bestel-signalen', vestiging] });
+      qc.invalidateQueries({ queryKey: ['openstaand-besteld', vestiging] });
+      qc.invalidateQueries({ queryKey: ['internal-orders'] });
     },
+
   });
 
   return { zetStatus, meldOp, vulAanUitNiveau, naarMep: meldOp };
+}
+
+/**
+ * Per product: hoeveel er al besteld is bij Midsland en nog niet geleverd.
+ * Wordt onder de regel getoond zodat niemand nog een keer hetzelfde bestelt.
+ */
+export function useOpenstaandeBestellingen(vestiging: string) {
+  return useQuery({
+    queryKey: ['openstaand-besteld', vestiging],
+    enabled: !!vestiging,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data: orders, error } = await supabase
+        .from('internal_orders')
+        .select('id')
+        .eq('from_location', vestiging)
+        .eq('to_location', 'Midsland')
+        .not('status', 'in', '("delivered","cancelled","geannuleerd")');
+      if (error) throw error;
+      const ids = (orders ?? []).map((o: any) => o.id);
+      const map: Record<string, number> = {};
+      if (!ids.length) return map;
+
+      const { data: regels, error: regelFout } = await supabase
+        .from('internal_order_items')
+        .select('product_name, quantity, ontvangen_aantal')
+        .in('order_id', ids);
+      if (regelFout) throw regelFout;
+
+      for (const r of (regels ?? []) as any[]) {
+        const open = Math.max(Number(r.quantity ?? 0) - Number(r.ontvangen_aantal ?? 0), 0);
+        if (open <= 0) continue;
+        const sleutel = String(r.product_name ?? '').trim().toLowerCase();
+        map[sleutel] = (map[sleutel] ?? 0) + open;
+      }
+      return map;
+    },
+  });
 }

@@ -6,6 +6,8 @@ import {
   useKoelcelChecks,
   useKoelcelCheckMutaties,
   useDrukteModus,
+  useOpenstaandeBestellingen,
+
   vervolgactieVoorRegel,
   eindBestemming,
   doelAantal,
@@ -302,6 +304,8 @@ interface RijProps {
   bezig: boolean;
   klaarLabel: string;
   klaarIcoon: 'check' | 'snowflake';
+  /** Al besteld bij Midsland en nog niet geleverd. */
+  onderweg?: number;
   onKlaar: () => void;
   onOp: () => void;
   onTeWeinig: () => void;
@@ -315,6 +319,7 @@ function ItemRij({
   bezig,
   klaarLabel,
   klaarIcoon,
+  onderweg = 0,
   onKlaar,
   onOp,
   onTeWeinig,
@@ -336,6 +341,7 @@ function ItemRij({
   const onderschrift = uitNiveau
     ? `Aanvullen uit ${HERKOMST_LABEL[uitNiveau.plek]} · daarna ${eind.label}`
     : `${BRON_LABEL[item.bron]} · als het op is naar ${eind.label}`;
+
 
   return (
     <div
@@ -376,7 +382,14 @@ function ItemRij({
               : ` · staat op ${eind.label}`
             : ''}
           {status === 'uit_vriezer' && item.plek === 'vriezer' ? ' · deze week uit gehaald' : ''}
+          {onderweg > 0 && (
+            <span style={{ color: 'hsl(var(--primary))' }}>
+              {' · '}
+              {onderweg} {item.eenheid} besteld, nog niet geleverd
+            </span>
+          )}
         </div>
+
       </div>
 
       <button
@@ -443,6 +456,7 @@ function CheckBlok({
   bezig,
   klaarLabel,
   klaarIcoon,
+  onderwegMap,
   onKlaar,
   onOp,
   onTeWeinig,
@@ -456,7 +470,9 @@ function CheckBlok({
   bezig: boolean;
   klaarLabel: string;
   klaarIcoon: 'check' | 'snowflake';
+  onderwegMap: Record<string, number>;
   onKlaar: (item: KoelcelCheckItem) => void;
+
   onOp: (item: KoelcelCheckItem) => void;
   onTeWeinig: (item: KoelcelCheckItem) => void;
 }) {
@@ -528,11 +544,13 @@ function CheckBlok({
             bezig={bezig}
             klaarLabel={klaarLabel}
             klaarIcoon={klaarIcoon}
+            onderweg={onderwegMap[item.naam.trim().toLowerCase()] ?? 0}
             onKlaar={() => onKlaar(item)}
             onOp={() => onOp(item)}
             onTeWeinig={() => onTeWeinig(item)}
           />
         ))}
+
       </div>
     </div>
   );
@@ -547,7 +565,10 @@ function CheckBlok({
 export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datum: string }) {
   const itemsQuery = useKoelcelCheckItems(vestiging);
   const checksQuery = useKoelcelChecks(vestiging, datum);
+  const onderwegQuery = useOpenstaandeBestellingen(vestiging);
+  const onderwegMap = onderwegQuery.data ?? {};
   const items = useMemo(() => itemsQuery.data ?? [], [itemsQuery.data]);
+
   const { zetStatus, meldOp, vulAanUitNiveau } = useKoelcelCheckMutaties(vestiging, datum, items);
   const drukteQuery = useDrukteModus(vestiging);
   const drukte: DrukteModus = drukteQuery.data ?? 'rustig';
@@ -603,8 +624,12 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
       const res = await meldOp.mutateAsync({ item, doel: doelAantal(item, drukte), aanwezig });
       if (res.bestemming.soort === 'niveau')
         toast.success(`"${item.naam}" staat nu open bij ${res.bestemming.label}`);
-      else if (res.dubbel) toast.info(`"${item.naam}" staat al op ${res.bestemming.label}`);
-      else toast.success(`${res.tekort} ${item.eenheid} "${item.naam}" naar ${res.bestemming.label}`);
+      else if (res.geplaatst <= 0)
+        toast.info(`"${item.naam}" is al besteld (${res.onderweg} ${item.eenheid} onderweg)`);
+      else if (res.dubbel)
+        toast.success(`"${item.naam}" bijgewerkt naar ${res.geplaatst} ${item.eenheid} op ${res.bestemming.label}`);
+      else toast.success(`${res.geplaatst} ${item.eenheid} "${item.naam}" naar ${res.bestemming.label}`);
+
     } catch (e: any) {
       toast.error('Doorzetten mislukt: ' + (e?.message ?? 'onbekende fout'));
     }
@@ -661,6 +686,7 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
           bezig={bezig}
           klaarLabel="Aanwezig"
           klaarIcoon="check"
+          onderwegMap={onderwegMap}
           onKlaar={(i) => handleKlaar(i, 'aanwezig')}
           onOp={handleOp}
           onTeWeinig={setTekortItem}
@@ -676,6 +702,7 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         bezig={bezig}
         klaarLabel="Aanwezig"
         klaarIcoon="check"
+        onderwegMap={onderwegMap}
         onKlaar={(i) => handleKlaar(i, 'aanwezig')}
         onOp={handleOp}
         onTeWeinig={setTekortItem}
@@ -690,6 +717,7 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         bezig={bezig}
         klaarLabel="Bijgevuld"
         klaarIcoon="check"
+        onderwegMap={onderwegMap}
         onKlaar={(i) => handleKlaar(i, 'aanwezig')}
         onOp={handleOp}
         onTeWeinig={setTekortItem}
@@ -704,6 +732,7 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         bezig={bezig}
         klaarLabel="Bijgevuld"
         klaarIcoon="check"
+        onderwegMap={onderwegMap}
         onKlaar={(i) => handleKlaar(i, 'aanwezig')}
         onOp={handleOp}
         onTeWeinig={setTekortItem}
