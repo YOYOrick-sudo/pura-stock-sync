@@ -7,7 +7,6 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -15,18 +14,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { KoelcelCheckItem } from '@/hooks/useKoelcelCheck';
+import {
+  BRON_LABEL,
+  PLEK_LABEL,
+  bestemmingVoorBron,
+  type KoelcelCheckItem,
+  type VoorraadBron,
+  type VoorraadPlek,
+} from '@/hooks/useKoelcelCheck';
+
+const PLEKKEN: VoorraadPlek[] = ['vriezer', 'koelcel', 'werkbank', 'werkblad'];
+const BRONNEN: VoorraadBron[] = ['vriezer', 'koelcel_inkoop', 'magazijn', 'zelf_west', 'midsland'];
 
 /**
- * Beheer van de voorraad-check op de sluitlijst: welke producten standaard in
- * de koelcel moeten liggen (of uit de vriezer gehaald moeten worden), met
- * doelaantal. Per vestiging.
+ * Beheer van de aanvulketen op de sluitlijst: welk product hoort waar te liggen,
+ * in welke hoeveelheid, en waar het vandaan komt als het op is.
  */
 export function VoorraadCheckBeheer({ location }: { location: string }) {
   const qc = useQueryClient();
   const [naam, setNaam] = useState('');
   const [aantal, setAantal] = useState('1');
-  const [type, setType] = useState<'koelcel' | 'vriezer'>('koelcel');
+  const [plek, setPlek] = useState<VoorraadPlek>('koelcel');
+  const [bron, setBron] = useState<VoorraadBron>('koelcel_inkoop');
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ['koelcel-check-beheer', location],
@@ -36,10 +45,9 @@ export function VoorraadCheckBeheer({ location }: { location: string }) {
         .from('koelcel_check_items')
         .select('*')
         .eq('vestiging', location)
-        .order('type')
         .order('volgorde');
       if (error) throw error;
-      return (data ?? []) as KoelcelCheckItem[];
+      return (data ?? []) as unknown as KoelcelCheckItem[];
     },
   });
 
@@ -54,14 +62,16 @@ export function VoorraadCheckBeheer({ location }: { location: string }) {
       if (n.length < 2) throw new Error('Vul een naam in');
       const doel = Math.max(1, Math.min(99, Number(aantal) || 1));
       const maxVolgorde = items
-        .filter((i) => i.type === type)
+        .filter((i) => i.plek === plek)
         .reduce((m, i) => Math.max(m, Number(i.volgorde ?? 0)), 0);
       const { error } = await supabase.from('koelcel_check_items').insert({
         vestiging: location,
         naam: n,
         doel_aantal: doel,
         eenheid: 'stuks',
-        type,
+        type: plek === 'vriezer' ? 'vriezer' : 'koelcel',
+        plek,
+        bron,
         volgorde: maxVolgorde + 10,
       });
       if (error) throw error;
@@ -69,54 +79,35 @@ export function VoorraadCheckBeheer({ location }: { location: string }) {
     onSuccess: () => {
       setNaam('');
       setAantal('1');
-      toast.success('Item toegevoegd');
+      toast.success('Product toegevoegd');
       ververs();
     },
     onError: (e: any) => toast.error('Toevoegen mislukt: ' + (e?.message ?? 'onbekende fout')),
   });
 
-  const wisselActief = useMutation({
-    mutationFn: async (item: KoelcelCheckItem) => {
-      const { error } = await supabase
-        .from('koelcel_check_items')
-        .update({ actief: !item.actief })
-        .eq('id', item.id);
+  const bijwerken = useMutation({
+    mutationFn: async ({ id, velden }: { id: string; velden: Record<string, unknown> }) => {
+      const { error } = await supabase.from('koelcel_check_items').update(velden).eq('id', id);
       if (error) throw error;
     },
     onSuccess: ververs,
     onError: (e: any) => toast.error('Opslaan mislukt: ' + (e?.message ?? 'onbekende fout')),
   });
-
-  const opslaanAantal = useMutation({
-    mutationFn: async ({ id, doel }: { id: string; doel: number }) => {
-      const { error } = await supabase
-        .from('koelcel_check_items')
-        .update({ doel_aantal: Math.max(1, Math.min(99, doel || 1)) })
-        .eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: ververs,
-    onError: (e: any) => toast.error('Opslaan mislukt: ' + (e?.message ?? 'onbekende fout')),
-  });
-
-  const groepen: { type: 'koelcel' | 'vriezer'; titel: string; hint: string }[] = [
-    { type: 'koelcel', titel: 'Voorraad koelcel', hint: 'Standaard backup die in de koelcel moet liggen.' },
-    { type: 'vriezer', titel: 'Uit de vriezer (ontdooien)', hint: 'Wordt bij het afvinken naar de koelcel verplaatst; er print een "Ontdooid"-sticker.' },
-  ];
 
   return (
     <div className="space-y-4">
       <Card className="p-4 space-y-3">
         <p className="text-sm text-muted-foreground">
-          Deze lijst verschijnt op de sluitlijst van {location}. Wat ontbreekt stuurt het team met
-          één tik naar de mise-en-place.
+          Deze lijsten verschijnen op de sluitlijst van {location}. Bij "Op" gaat een product
+          automatisch naar de mise-en-place, het bestelbord of de bestellijst voor Midsland —
+          afhankelijk van de bron die je hier kiest.
         </p>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Input
             value={naam}
             onChange={(e) => setNaam(e.target.value)}
-            placeholder="Bijv. Gesneden bloemkool"
-            className="flex-1"
+            placeholder="Bijv. Hüttenkäse"
+            className="h-11 flex-1 min-w-[180px]"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
@@ -128,19 +119,34 @@ export function VoorraadCheckBeheer({ location }: { location: string }) {
             value={aantal}
             onChange={(e) => setAantal(e.target.value.replace(/[^0-9]/g, ''))}
             inputMode="numeric"
-            className="w-16 text-center"
+            className="h-11 w-16 text-center"
             aria-label="Aantal"
           />
-          <Select value={type} onValueChange={(v) => setType(v as 'koelcel' | 'vriezer')}>
-            <SelectTrigger className="w-32">
+          <Select value={plek} onValueChange={(v) => setPlek(v as VoorraadPlek)}>
+            <SelectTrigger className="h-11 w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="koelcel">Koelcel</SelectItem>
-              <SelectItem value="vriezer">Vriezer</SelectItem>
+              {PLEKKEN.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {PLEK_LABEL[p]}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          <Button onClick={() => toevoegen.mutate()} disabled={toevoegen.isPending}>
+          <Select value={bron} onValueChange={(v) => setBron(v as VoorraadBron)}>
+            <SelectTrigger className="h-11 w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {BRONNEN.map((b) => (
+                <SelectItem key={b} value={b}>
+                  {BRON_LABEL[b]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button className="h-11" onClick={() => toevoegen.mutate()} disabled={toevoegen.isPending}>
             <Plus className="h-4 w-4 mr-1" /> Toevoegen
           </Button>
         </div>
@@ -149,46 +155,99 @@ export function VoorraadCheckBeheer({ location }: { location: string }) {
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Laden…</p>
       ) : (
-        groepen.map(({ type: t, titel, hint }) => {
-          const groep = items.filter((i) => i.type === t);
+        PLEKKEN.map((p) => {
+          const groep = items.filter(
+            (i) => (i.plek ?? (i.type === 'vriezer' ? 'vriezer' : 'koelcel')) === p,
+          );
           return (
-            <Card key={t} className="p-4 space-y-2">
-              <div>
-                <h3 className="font-semibold text-sm">{titel}</h3>
-                <p className="text-xs text-muted-foreground">{hint}</p>
-              </div>
+            <Card key={p} className="p-4 space-y-2">
+              <h3 className="font-semibold text-sm">{PLEK_LABEL[p]}</h3>
               {groep.length === 0 ? (
-                <p className="text-sm text-muted-foreground italic">Nog geen items</p>
+                <p className="text-sm text-muted-foreground italic">Nog geen producten</p>
               ) : (
                 <div className="divide-y divide-border">
                   {groep.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3 py-2">
+                    <div key={item.id} className="flex flex-wrap items-center gap-2 py-2">
                       <span
                         className={
-                          item.actief ? 'text-sm font-medium' : 'text-sm text-muted-foreground line-through'
+                          item.actief
+                            ? 'text-sm font-medium flex-1 min-w-[140px]'
+                            : 'text-sm text-muted-foreground line-through flex-1 min-w-[140px]'
                         }
                       >
                         {item.naam}
+                        <span className="block text-xs font-normal text-muted-foreground">
+                          Als het op is → {bestemmingVoorBron(item.bron).label}
+                        </span>
                       </span>
-                      <Badge variant="secondary" className="text-xs">
-                        {Number(item.doel_aantal)}x
-                      </Badge>
                       <Input
                         key={`${item.id}-${item.doel_aantal}`}
                         defaultValue={String(Number(item.doel_aantal))}
                         inputMode="numeric"
-                        className="w-16 h-8 text-center ml-auto"
+                        className="w-14 h-9 text-center"
                         aria-label={`Aantal ${item.naam}`}
                         onBlur={(e) => {
                           const v = Number(e.target.value.replace(/[^0-9]/g, ''));
                           if (v && v !== Number(item.doel_aantal)) {
-                            opslaanAantal.mutate({ id: item.id, doel: v });
+                            bijwerken.mutate({ id: item.id, velden: { doel_aantal: v } });
                           }
                         }}
                       />
+                      <Input
+                        key={`${item.id}-bak-${item.bak_maat ?? ''}`}
+                        defaultValue={item.bak_maat ?? ''}
+                        placeholder="bakmaat"
+                        className="w-28 h-9"
+                        aria-label={`Bakmaat ${item.naam}`}
+                        onBlur={(e) => {
+                          const v = e.target.value.trim();
+                          if (v !== (item.bak_maat ?? '')) {
+                            bijwerken.mutate({ id: item.id, velden: { bak_maat: v || null } });
+                          }
+                        }}
+                      />
+                      <Select
+                        value={item.bron}
+                        onValueChange={(v) =>
+                          bijwerken.mutate({ id: item.id, velden: { bron: v } })
+                        }
+                      >
+                        <SelectTrigger className="h-9 w-40">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {BRONNEN.map((b) => (
+                            <SelectItem key={b} value={b}>
+                              {BRON_LABEL[b]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select
+                        value={item.plek ?? p}
+                        onValueChange={(v) =>
+                          bijwerken.mutate({
+                            id: item.id,
+                            velden: { plek: v, type: v === 'vriezer' ? 'vriezer' : 'koelcel' },
+                          })
+                        }
+                      >
+                        <SelectTrigger className="h-9 w-40">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PLEKKEN.map((pp) => (
+                            <SelectItem key={pp} value={pp}>
+                              {PLEK_LABEL[pp]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <Switch
                         checked={item.actief}
-                        onCheckedChange={() => wisselActief.mutate(item)}
+                        onCheckedChange={() =>
+                          bijwerken.mutate({ id: item.id, velden: { actief: !item.actief } })
+                        }
                         aria-label={`${item.naam} actief`}
                       />
                     </div>
