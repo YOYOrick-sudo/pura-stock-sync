@@ -52,6 +52,14 @@ Twee dingen die ik wil laten bevestigen (ik zet ze er alvast zo in):
 
 Daarna wacht ik op deel 2 en voeg die producten op dezelfde manier toe.
 
+## Seizoen: hoeveelheden snel omhoog of omlaag
+
+Elke regel krijgt twee doelaantallen: **rustig** en **druk**. Bovenin het beheerscherm staat één
+schakelaar per vestiging: Rustig / Druk. Zet je die om, dan gebruiken alle blokken op de sluitlijst
+meteen de bijbehorende hoeveelheden — je hoeft niet per product te schuiven.
+Wil je één product toch anders, dan pas je alleen dat product aan; de rest blijft staan.
+Standaard is "druk" gelijk aan "rustig" tot je het invult, zodat er nooit iets leeg raakt.
+
 ## Technisch
 
 - `koelcel_check_items` krijgt `product_sleutel` (groepeert de niveaus van één product) en
