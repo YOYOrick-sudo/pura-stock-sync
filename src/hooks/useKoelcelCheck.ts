@@ -689,12 +689,18 @@ export function useKoelcelCheckMutaties(
       item,
       doel,
       aanwezig = 0,
+      mepPrioriteit,
+      mepAantal,
     }: {
       item: KoelcelCheckItem;
       /** De doelhoeveelheid van vandaag (rustig of druk). */
       doel?: number;
       /** Wat er nog ligt; 0 = helemaal op. */
       aanwezig?: number;
+      /** 1 = vandaag maken, 2 = mag morgen. Alleen voor MEP-bestemmingen. */
+      mepPrioriteit?: number;
+      /** Hele batch in plaats van het rekenkundige tekort. */
+      mepAantal?: number;
     }) => {
       const bestemming = vervolgactieVoorRegel(item, alleItems);
       const doelNu = Number(doel ?? item.doel_aantal ?? 1);
@@ -717,10 +723,21 @@ export function useKoelcelCheckMutaties(
         );
         if (error) throw error;
       } else if (bestemming.soort === 'mep') {
-        const res = await mepTaakVoorItem(item, vestiging, datum, bestemming.handeling!, tekort);
+        // Zelf maken doe je in hele batches: nooit "0,5 bakje bijmaken".
+        const batch = Math.max(Math.ceil(Number(mepAantal ?? tekort) - 0.001), 1);
+        const res = await mepTaakVoorItem(
+          item,
+          vestiging,
+          datum,
+          bestemming.handeling!,
+          batch,
+          mepPrioriteit ?? 2,
+        );
+        geplaatst = batch;
         mepTaakId = res.id;
         dubbel = res.dubbel;
       } else if (bestemming.soort === 'bestelbord') {
+
         const res = await opBestelbord(item, vestiging, tekort);
         dubbel = res.dubbel;
         geplaatst = res.aantal;
