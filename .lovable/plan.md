@@ -35,6 +35,19 @@ Alles gebeurt achter elkaar in plaats van tegelijk, en het scherm blijft leeg to
 
 Niets aan de inhoud, volgorde, categorieën, rechten of de nachtelijke aanmaak verandert. Dit geldt voor West en Midsland.
 
+### Is dit een lange-termijnoplossing?
+
+Ja. Dit is geen pleister maar een structurele wijziging in hoe de takenlijst met gegevens omgaat:
+
+- **De oorzaak wordt weggehaald, niet verzacht.** Het scherm wacht niet langer op schrijfwerk (dagtaken aanmaken) voordat het iets toont. Dat schrijfwerk hoort bij de nachtelijke automatische aanmaak; het scherm doet alleen nog een vangnet-controle op de achtergrond.
+- **Meegroeien met de data.** De lijst haalt altijd alleen de taken van één dag op, met de juiste index erachter. Of de tabel nu 20.000 of 200.000 rijen bevat: de laadtijd blijft gelijk. De archivering blijft oude taken wegzetten, dus de actieve lijst groeit niet mee.
+- **Meer schermen profiteren later.** Door de takenlijst op dezelfde gegevenslaag te zetten als de rest van de app (TanStack Query), gelden herstel na slapende iPad, offline-gedrag en stil verversen voortaan automatisch — zoals bij MEP en kassatelling.
+- **Eén patroon, minder eigen bedrading.** Het handmatige ophalen en de eigen laadvlaggen verdwijnen. Dat scheelt bij toekomstige wijzigingen en voorkomt dat dit probleem via een nieuw scherm terugkomt.
+
+Wat dit níét oplost: haperende wifi in West blijft haperende wifi. Het verschil is dat het scherm dan de laatst bekende lijst toont en stil bijwerkt, in plaats van leeg te blijven.
+
+Wat ik blijf volgen: als de takenlijst na deze wijziging nog traag aanvoelt, ligt de volgende stap bij de nachtelijke aanmaak (aantal gegenereerde taken per dag) en niet meer bij het scherm.
+
 ## Technische details
 
 - `src/components/foh/FohTasks.tsx`: de `initializeTasks`-effectketen (regels ~1567-1589) wacht sequentieel op `shouldResetTasks` → `performClientSideReset` → `generateDailyTasks` → `fetchDailyTasks`. `fetchDailyTasks` wordt naar voren gehaald; generatie/reset draait daarna zonder de render te blokkeren, gevolgd door een stille refetch.
