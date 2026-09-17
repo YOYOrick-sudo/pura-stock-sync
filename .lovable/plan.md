@@ -68,6 +68,8 @@ Standaard is "druk" gelijk aan "rustig" tot je het invult, zodat er nooit iets l
 - `bestemmingVoorBron` wordt `vervolgactieVoorRegel`: bestaat er een regel op het niveau eronder,
   dan wordt dát de bestemming (status `gemeld`, item verschijnt in dat blok). Anders bestelbord,
   Midsland-order of MEP zoals nu.
+- Seizoen: `doel_aantal_druk` per regel + `drukte_modus` per vestiging (instelling), waarbij de
+  sluitlijst het juiste doelaantal kiest. Historie in `koelcel_checks` blijft ongewijzigd.
 - Geen nieuwe libraries; blokken, realtime sync, 44px tikdoelen en optimistische updates blijven gelijk.
 
 ## Risico's
