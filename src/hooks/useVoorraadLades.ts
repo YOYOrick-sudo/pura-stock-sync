@@ -11,6 +11,8 @@ export interface VoorraadLade {
   rij: number;
   volgorde: number;
   actief: boolean;
+  /** 'reserve' = hier staan de reservebakjes; die lades tel je eerst. */
+  rol?: 'werk' | 'reserve';
 }
 
 export const KOLOM_LABEL: Record<number, string> = { 1: 'Links', 2: 'Midden', 3: 'Rechts' };
