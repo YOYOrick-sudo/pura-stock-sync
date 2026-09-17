@@ -625,6 +625,8 @@ export function useKoelcelCheckMutaties(
       qc.invalidateQueries({ queryKey: ['bestel-signalen', vestiging] });
       qc.invalidateQueries({ queryKey: ['openstaand-besteld', vestiging] });
       qc.invalidateQueries({ queryKey: ['internal-orders'] });
+      qc.invalidateQueries({ queryKey: ['bestelbord-open', vestiging] });
+      qc.invalidateQueries({ queryKey: ['mep-open-namen', vestiging] });
     },
   });
 
@@ -829,6 +831,56 @@ export function useOpenstaandeBestellingen(vestiging: string) {
         map[sleutel] = (map[sleutel] ?? 0) + open;
       }
       return map;
+    },
+  });
+}
+
+/**
+ * Per product: hoeveel er open staat op het bestelbord (inkoop). De ronde toont
+ * dit als "staat op het bestelbord" en meldt het niet nog een keer.
+ */
+export function useBestelbordOpen(vestiging: string) {
+  return useQuery({
+    queryKey: ['bestelbord-open', vestiging],
+    enabled: !!vestiging,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bestel_signalen')
+        .select('naam, aantal')
+        .eq('vestiging', vestiging)
+        .eq('status', 'open');
+      if (error) throw error;
+      const map: Record<string, number> = {};
+      for (const r of (data ?? []) as any[]) {
+        const sleutel = String(r.naam ?? '').trim().toLowerCase();
+        if (!sleutel) continue;
+        map[sleutel] = (map[sleutel] ?? 0) + Number(r.aantal ?? 0);
+      }
+      return map;
+    },
+  });
+}
+
+/**
+ * Titels van open MEP-taken (klein geschreven). De ronde herkent zo dat een
+ * product al "wordt gemaakt" en maakt geen dubbele taak.
+ */
+export function useMepOpenNamen(vestiging: string) {
+  return useQuery({
+    queryKey: ['mep-open-namen', vestiging],
+    enabled: !!vestiging,
+    staleTime: 30_000,
+    queryFn: async (): Promise<string[]> => {
+      const { data, error } = await supabase
+        .from('mep_taken')
+        .select('titel')
+        .eq('vestiging', vestiging)
+        .in('status', ['open', 'bezig']);
+      if (error) throw error;
+      return (data ?? [])
+        .map((r: any) => String(r.titel ?? '').trim().toLowerCase())
+        .filter(Boolean);
     },
   });
 }
