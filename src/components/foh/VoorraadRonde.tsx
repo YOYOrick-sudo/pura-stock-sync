@@ -766,7 +766,14 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           });
           if (regel.soort === 'vriescel') printOntdooid(regel.item, regel.tekort);
         } else {
-          await meldOp.mutateAsync({ item: regel.item, doel: regel.doel, aanwezig: regel.geteld });
+          await meldOp.mutateAsync({
+            item: regel.item,
+            doel: regel.doel,
+            aanwezig: regel.geteld,
+            mepPrioriteit: regel.prioriteit,
+            mepAantal: regel.batch,
+          });
+
         }
         telling2[regel.soort] += 1;
       }
