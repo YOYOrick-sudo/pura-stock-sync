@@ -714,6 +714,12 @@ const getCurrentPhaseByTime = (): PhaseType => {
   return 'open';
 };
 
+// Module-level cache: takenlijst blijft bewaard tussen schermwissels binnen
+// dezelfde sessie, zodat terugkeren niet op een leeg laadscherm uitkomt.
+const fohTakenCache = new Map<string, FohTaskWithEmployee[]>();
+const fohExtraCache = new Map<string, FohTaskWithEmployee[]>();
+const fohEmployeesCache = new Map<string, FohEmployee[]>();
+
 const getAmsterdamDateString = (): string => {
   const TIMEZONE = 'Europe/Amsterdam';
   const nowInAmsterdam = toZonedTime(new Date(), TIMEZONE);
