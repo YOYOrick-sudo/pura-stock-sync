@@ -1592,8 +1592,16 @@ export function FohTasks() {
       const vandaag = getAmsterdamDateString();
       const viewingToday = selectedDate === vandaag;
 
-      // 1) Eerst tonen: de lijst wordt direct opgehaald, zonder te wachten op
-      //    schrijfwerk. Het scherm is daarmee meteen bruikbaar.
+      // 1) Eerst tonen: bekende lijst meteen uit de cache, daarna stil verversen.
+      const cacheKey = `${userLocation}|${selectedDate}`;
+      const bekend = fohTakenCache.get(cacheKey);
+      if (bekend) {
+        setDailyTasks(bekend);
+        setLoading(false);
+      } else {
+        setLoading(true);
+      }
+
       await fetchDailyTasks();
       if (afgebroken) return;
 
