@@ -78,6 +78,13 @@
       "when": 1789666757961,
       "tag": "0010_voorraadronde_categorie_en_formaat",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1789671790776,
+      "tag": "0011_voorraad_formaat_vulgraad_naar_doel",
+      "breakpoints": true
     }
   ]
 }
