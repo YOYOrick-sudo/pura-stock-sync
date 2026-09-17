@@ -201,15 +201,30 @@ function TelRegel({
   ].filter(Boolean);
 
   const bakje = bakjeLabel(item.formaat ?? item.bak_maat);
+  const maatTekst = bakje?.code
+    ? bakje.hoogte
+      ? `${bakje.kort}, ${bakje.hoogte}`
+      : bakje.kort
+    : null;
   const kopRegel = (
     <span className="min-w-0">
       <span className="block truncate text-[15px] font-semibold text-foreground">{item.naam}</span>
-      <span className="block truncate text-[12px] text-muted-foreground">
-        {reserve
-          ? `reserve ${getalLabel(doel)} ${doel === 1 ? 'bakje' : 'bakjes'}`
-          : vulling
-            ? `${vulnormLabel(item)}${bakje ? ` · ${bakje.naam}${bakje.code ? ` (${bakje.code})` : ''}` : ''}`
-            : formaatLabel(doel, item.eenheid, item.formaat ?? item.bak_maat)}
+      <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground">
+        <span className="truncate">
+          {reserve
+            ? `reserve ${getalLabel(doel)} ${doel === 1 ? 'bakje' : 'bakjes'}`
+            : vulling
+              ? `${vulnormLabel(item)}${maatTekst ? ` · ${maatTekst}` : ''}`
+              : formaatLabel(doel, item.eenheid, item.formaat ?? item.bak_maat).replace(
+                  / \(GN [^)]+\)$/,
+                  '',
+                )}
+        </span>
+        {bakje?.code && (
+          <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            {bakje.code}
+          </span>
+        )}
       </span>
       {statusChips.length > 0 && (
         <span className="mt-0.5 flex flex-wrap gap-1">
