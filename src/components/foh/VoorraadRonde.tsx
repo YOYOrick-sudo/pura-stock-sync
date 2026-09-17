@@ -519,7 +519,10 @@ interface BonRegel {
   prioriteit?: number;
   /** Alleen bij MEP: hele batch in plaats van het rekenkundige tekort. */
   batch?: number;
+  /** Alleen bij inkoop: "2 dozen (16 st.)". */
+  bestelLabel?: string;
 }
+
 
 /**
  * Zelf maken gaat per hele batch. Is het bakje nog half, dan mag het morgen;
