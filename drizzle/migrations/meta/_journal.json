@@ -15,6 +15,13 @@
       "when": 1789640066282,
       "tag": "0001_mep_heropenen_verwijdert_batch",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789641043646,
+      "tag": "0002_opruimen_testregels_kassatelling",
+      "breakpoints": true
     }
   ]
 }
