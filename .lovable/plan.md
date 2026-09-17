@@ -9,8 +9,9 @@
 
 ## Wat we ervan maken
 
-**Blok 1 — "Vriescel op peil"** (was: Uit de vriezer/ontdooien)
-Een voorraadcontrole: ligt hier de standaardhoeveelheid? Knoppen "Aanwezig" en "Op". Is het zoet in de vriescel op, dan gaat het automatisch naar de interne bestellijst voor Midsland (dat werkt al zo, maar was verstopt achter het woord "ontdooien").
+**Blok 1 — "Vriescel op peil (maandag)"** (was: Uit de vriezer/ontdooien)
+Een voorraadcontrole die alleen op maandag verschijnt — de laatste open dag voor de dinsdagsluiting, en het moment dat de bestelling voor Midsland eruit kan. De rest van de week blijft dit blok verborgen, zodat de sluitlijst kort blijft. Knoppen "Aanwezig" en "Op". Is iets op, dan gaat het automatisch naar de interne bestellijst voor Midsland (dat werkte al zo, maar zat verstopt achter het woord "ontdooien"). Staat er maandag nog een regel open, dan blijft die de dinsdag erna niet hangen; de check komt de volgende maandag gewoon terug.
+
 
 **Blok 2 — "Koelcel op peil"**
 Blijft zoals het is, met één toevoeging: bij producten die ook in de vriescel liggen komt er een extra knop **"Ontdooid"** met sneeuwvlok. Die markeert de regel als geregeld én print meteen de Ontdooid-sticker. Daar hoort het ontdooien namelijk thuis: je haalt uit de vriezer omdat de koelcel aangevuld moet worden.
@@ -27,7 +28,7 @@ Ongewijzigd, behalve dat de keten nu doorzoekt: is er geen koelcelregel (zoals b
 ## Technisch
 
 - `useKoelcelCheck.ts`: `NIVEAU_ONDER` vervangen door een zoekvolgorde per plek (`werkbank`/`werkblad` → `koelcel` → `vriezer`) zodat `vervolgactieVoorRegel` het eerstvolgende bestaande niveau pakt in plaats van alleen het directe niveau eronder.
-- `KoelcelCheckBlok.tsx`: vriezerblok krijgt titel "Vriescel op peil", uitleg-tekst en `klaarLabel="Aanwezig"`; de sticker-/ontdooilogica (`handleUitVriezer`) verhuist naar een extra knop op koelcelregels die een gekoppelde vriescelregel hebben.
+- `KoelcelCheckBlok.tsx`: vriezerblok krijgt titel "Vriescel op peil (maandag)", nieuwe uitleg en `klaarLabel="Aanwezig"`, en wordt alleen gerenderd als de gekozen datum een maandag is (weekdag uit `datum`, Europe/Amsterdam). De sticker-/ontdooilogica (`handleUitVriezer`) verhuist naar een extra knop op koelcelregels die een gekoppelde vriescelregel hebben.
 - Migratie `voorraadcheck_west_opschoning`: `actief = false` voor de legacy-zoetregel en de dubbele vriescelregels; herkomst corrigeren waar nodig. Geen harde verwijderingen.
 
 ## Risico's
