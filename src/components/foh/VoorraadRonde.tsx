@@ -434,21 +434,54 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const categorieGroepen = useMemo(
     () =>
       plekken.map((p) => {
+        // Koelwerkbank tel je per lade: je trekt een lade open, niet een categorie.
+        if (p.plek === 'werkbank' && lades.length > 0) {
+          const groepen: Groep[] = [];
+          for (const lade of lades.filter((l) => l.actief)) {
+            const ladeItems = p.items.filter((i) => i.lade_id === lade.id);
+            if (!ladeItems.length) continue;
+            groepen.push({
+              sleutel: `werkbank:lade:${lade.id}`,
+              titel: lade.naam,
+              subtitel: positieLabel(lade),
+              lade,
+              items: ladeItems,
+            });
+          }
+          const rest = p.items.filter((i) => !i.lade_id || !lades.some((l) => l.actief && l.id === i.lade_id));
+          if (rest.length) {
+            groepen.push({
+              sleutel: 'werkbank:lade:geen',
+              titel: 'Nog niet ingedeeld',
+              subtitel: 'Zet deze in een lade via Beheer',
+              lade: null,
+              items: rest,
+            });
+          }
+          return { ...p, groepen };
+        }
+
         const perCategorie = new Map<string, ItemMetCategorie[]>();
         for (const item of p.items) {
           const cat = categorieVan(item);
           perCategorie.set(cat, [...(perCategorie.get(cat) ?? []), item]);
         }
-        const gesorteerd = [...perCategorie.entries()].sort(
-          (a, b) => CATEGORIE_VOLGORDE.indexOf(a[0]) - CATEGORIE_VOLGORDE.indexOf(b[0]),
-        );
-        return { ...p, categorieen: gesorteerd };
+        const groepen: Groep[] = [...perCategorie.entries()]
+          .sort((a, b) => CATEGORIE_VOLGORDE.indexOf(a[0]) - CATEGORIE_VOLGORDE.indexOf(b[0]))
+          .map(([cat, catItems]) => ({
+            sleutel: `${p.plek}:${cat}`,
+            titel: cat,
+            subtitel: null,
+            lade: null,
+            items: catItems,
+          }));
+        return { ...p, groepen };
       }),
-    [plekken],
+    [plekken, lades],
   );
 
   const alleSleutels = useMemo(
-    () => categorieGroepen.flatMap((p) => p.categorieen.map(([cat]) => `${p.plek}:${cat}`)),
+    () => categorieGroepen.flatMap((p) => p.groepen.map((g) => g.sleutel)),
     [categorieGroepen],
   );
   const klaarAantal = alleSleutels.filter((s) => bevestigd.includes(s)).length;
