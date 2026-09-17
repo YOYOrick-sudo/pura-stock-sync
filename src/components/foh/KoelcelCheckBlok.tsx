@@ -631,8 +631,10 @@ function CheckBlok({
           {openKlaar && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', padding: '4px' }}>
               {afgehandeld.map((item) => {
-                const status = checks.get(item.id)?.status;
+                const check = checks.get(item.id);
+                const status = check?.status;
                 const gemeld = status === 'gemeld' || status === 'naar_mep';
+                const bij = status === 'uit_vriezer';
                 return (
                   <span
                     key={item.id}
@@ -642,15 +644,25 @@ function CheckBlok({
                       fontFamily: lettertype,
                       borderRadius: '999px',
                       padding: '4px 10px',
-                      color: gemeld ? 'hsl(25 95% 32%)' : 'hsl(var(--muted-foreground))',
-                      backgroundColor: gemeld ? 'hsl(25 95% 53% / 0.12)' : 'hsl(var(--muted))',
+                      color: gemeld
+                        ? 'hsl(25 95% 32%)'
+                        : bij
+                          ? 'hsl(var(--primary))'
+                          : 'hsl(var(--muted-foreground))',
+                      backgroundColor: gemeld
+                        ? 'hsl(25 95% 53% / 0.12)'
+                        : bij
+                          ? 'hsl(var(--primary) / 0.1)'
+                          : 'hsl(var(--muted))',
                     }}
                   >
                     {item.naam}
-                    {gemeld ? ' · doorgezet' : ''}
+                    {gemeld ? ` · ${DOORGEZET_LABEL[check?.doorgezet_naar ?? ''] ?? 'doorgezet'}` : ''}
+                    {bij ? ' · uit voorraad gehaald' : ''}
                   </span>
                 );
               })}
+
             </div>
           )}
         </div>
