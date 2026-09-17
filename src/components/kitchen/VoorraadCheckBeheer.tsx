@@ -4,6 +4,8 @@ import { toast } from 'sonner';
 import { Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
+import { BakmaatKiezer } from '@/components/voorraad/BakmaatKiezer';
+import { eenheidUitFormaat } from '@/lib/voorraad-formaat';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
