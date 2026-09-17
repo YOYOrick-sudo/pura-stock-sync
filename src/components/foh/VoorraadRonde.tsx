@@ -663,43 +663,6 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const klaarAantal = alleSleutels.filter((s) => bevestigd.includes(s)).length;
   const allesBevestigd = alleSleutels.length > 0 && klaarAantal === alleSleutels.length;
 
-  // Kastweergave koelwerkbank: tik een lade aan en spring naar dat blok in de lijst.
-  const blokRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const [gemarkeerd, setGemarkeerd] = useState<string | null>(null);
-
-  const springNaar = useCallback((sleutel: string) => {
-    const el = blokRefs.current[sleutel];
-    if (!el) return;
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    setGemarkeerd(sleutel);
-    window.setTimeout(() => setGemarkeerd((h) => (h === sleutel ? null : h)), 1200);
-  }, []);
-
-  const werkbankGroepen = useMemo(
-    () => categorieGroepen.find((p) => p.plek === 'werkbank')?.groepen ?? [],
-    [categorieGroepen],
-  );
-
-  const kastVakken = useMemo<KastVak[]>(
-    () =>
-      werkbankGroepen.map((g) => {
-        const isKlaar = bevestigd.includes(g.sleutel);
-        const heeftTekort = g.items.some((item) => {
-          const geteld = telling[item.id];
-          if (geteld === undefined) return false;
-          const onderweg = onderwegVoorItem(item, onderwegMap);
-          return tekortVoor(item, telDoel(item, drukte), geteld, onderweg) > 0;
-        });
-        return {
-          sleutel: g.sleutel,
-          naam: g.titel,
-          lade: g.lade,
-          status: !isKlaar ? 'open' : heeftTekort ? 'tekort' : 'klaar',
-          aantal: g.items.length,
-        };
-      }),
-    [werkbankGroepen, bevestigd, telling, onderwegMap, drukte],
-  );
 
 
   const bon: BonRegel[] = useMemo(() => {
