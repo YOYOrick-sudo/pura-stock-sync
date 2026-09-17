@@ -749,7 +749,8 @@ export function useOpenstaandeBestellingen(vestiging: string) {
         .select('id')
         .eq('from_location', vestiging)
         .eq('to_location', 'Midsland')
-        .not('status', 'in', '("delivered","cancelled","geannuleerd")');
+        .not('status', 'in', '("delivered","cancelled","geannuleerd")')
+        .gte('created_at', new Date(Date.now() - 14 * 86400_000).toISOString());
       if (error) throw error;
       const ids = (orders ?? []).map((o: any) => o.id);
       const map: Record<string, number> = {};
