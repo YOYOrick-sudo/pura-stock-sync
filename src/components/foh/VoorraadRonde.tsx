@@ -705,6 +705,9 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                               {getalLabel(r.doel)} nodig · {getalLabel(r.geteld)} geteld
                               {r.onderItem ? ` · uit ${HERKOMST_LABEL[r.onderItem.plek]}` : ''}
                             </span>
+                            {ladeVan(r.item) && (
+                              <LadePositie lade={ladeVan(r.item)} className="mt-0.5" />
+                            )}
                           </span>
                           <span className="shrink-0 text-[14px] font-bold tabular-nums text-primary">
                             {aantalLabel(r.tekort, r.item.eenheid)}
