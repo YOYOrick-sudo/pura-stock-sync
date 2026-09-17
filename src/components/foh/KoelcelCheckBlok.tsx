@@ -336,9 +336,7 @@ function CheckBlok({
   bezig,
   klaarLabel,
   klaarIcoon,
-  heeftVriezerRegel,
   onKlaar,
-  onOntdooid,
   onOp,
   onTeWeinig,
 }: {
@@ -351,9 +349,7 @@ function CheckBlok({
   bezig: boolean;
   klaarLabel: string;
   klaarIcoon: 'check' | 'snowflake';
-  heeftVriezerRegel?: (item: KoelcelCheckItem) => boolean;
   onKlaar: (item: KoelcelCheckItem) => void;
-  onOntdooid: (item: KoelcelCheckItem) => void;
   onOp: (item: KoelcelCheckItem) => void;
   onTeWeinig: (item: KoelcelCheckItem) => void;
 }) {
