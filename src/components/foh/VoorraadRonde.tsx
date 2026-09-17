@@ -35,6 +35,7 @@ import {
   reserveDoel,
   vulnormWaarde,
   vulnormLabel,
+  batchGrootte,
   HERKOMST_LABEL,
   type DrukteModus,
   type KoelcelCheckItem,
