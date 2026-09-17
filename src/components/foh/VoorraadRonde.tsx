@@ -805,9 +805,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
               <ArrowRight size={20} className="ml-1" />
             </>
           ) : (
-            `Nog ${alleSleutels.length - klaarAantal} ${
-              alleSleutels.length - klaarAantal === 1 ? 'categorie' : 'categorieën'
-            } te gaan`
+            `Nog ${alleSleutels.length - klaarAantal} te gaan`
           )}
         </Button>
       </div>
