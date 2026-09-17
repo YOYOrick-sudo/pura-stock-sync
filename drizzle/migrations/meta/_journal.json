@@ -120,6 +120,13 @@
       "when": 1789679696441,
       "tag": "0016_koelwerkbank_lade_startindeling",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1789682734890,
+      "tag": "0017_batch_aantal_zelfgemaakt_west",
+      "breakpoints": true
     }
   ]
 }

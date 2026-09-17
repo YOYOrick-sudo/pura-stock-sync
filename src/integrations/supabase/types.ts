@@ -1875,6 +1875,7 @@ export type Database = {
         Row: {
           actief: boolean
           bak_maat: string | null
+          batch_aantal: number | null
           bron: string
           categorie: string | null
           created_at: string
@@ -1897,6 +1898,7 @@ export type Database = {
         Insert: {
           actief?: boolean
           bak_maat?: string | null
+          batch_aantal?: number | null
           bron?: string
           categorie?: string | null
           created_at?: string
@@ -1919,6 +1921,7 @@ export type Database = {
         Update: {
           actief?: boolean
           bak_maat?: string | null
+          batch_aantal?: number | null
           bron?: string
           categorie?: string | null
           created_at?: string
