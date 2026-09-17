@@ -9,6 +9,8 @@ import { PWAInstallHint } from '@/components/PWAInstallHint';
 import { devError } from "@/lib/devLog";
 import { withTimeout } from '@/lib/withTimeout';
 import { HerstelKnop } from '@/components/auth/HerstelKnop';
+import { StartScherm } from '@/components/auth/StartScherm';
+import { useAuthStatus } from '@/contexts/AuthContext';
 
 const Auth = () => {
   const navigate = useNavigate();
