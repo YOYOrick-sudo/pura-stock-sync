@@ -508,8 +508,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           if (rest.length) {
             groepen.push({
               sleutel: 'werkbank:lade:geen',
-              titel: 'Nog niet ingedeeld',
-              subtitel: 'Zet deze in een lade via Beheer',
+              titel: 'Overige reserve',
+              subtitel: 'Nog geen vaste lade — tel wat je ziet',
               lade: null,
               items: rest,
             });
