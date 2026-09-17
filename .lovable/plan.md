@@ -16,10 +16,19 @@ Dat is precies wat je ziet. Voorbeeld uit de gegevens van West: "Taco" van 16 se
 
 **Eén regel: je vinkt af op de dag dat je het maakt, dus blijft het die dag zichtbaar.**
 
-- Een meegenomen taak van een eerdere dag die je vandaag afvinkt, blijft vandaag gewoon doorgestreept in de lijst staan (met de heropen-knop erbij, zoals nu).
+- Een meegenomen taak van een eerdere dag die je vandaag afvinkt, blijft vandaag gewoon zichtbaar — maar onderaan de lijst. Wat nog gedaan moet worden staat altijd bovenin.
 - Morgen is hij weg uit de lijst; hij telt dan bij de dag waarop hij gemaakt is.
 - De voortgangsteller telt hem mee op de dag dat je hem afvinkt — "5/8 klaar" klopt dan weer met wat je ziet.
 - "Vandaag gemaakt" blijft bestaan, maar krijgt een duidelijker naam: **Geproduceerd vandaag (batches)**. Dat is niet dezelfde lijst als de taken, maar het productielogboek met aantal, eenheid, batchnummer en houdbaarheidsdatum — nuttig bij een sticker- of houdbaarheidsvraag. Hij blijft ingeklapt.
+
+**Visueel element links van elke taak — geen kale tabelrij meer.**
+
+- Links van elke taak komt een smalle, ronde statusbalk (6px breed, rond, hoogte van de rij):
+  - **Groen**: taak is afgevinkt.
+  - **Oranje/geel**: taak met prioriteit "Belangrijk" die nog open staat.
+  - **Lichtgrijs**: gewone open taak.
+- Zo zie je in één oogopslag de staat van de lijst zonder tekst of badges te lezen — vergelijkbaar met de kleurbalken in de takenlijst van Bediening.
+- Doorgestreepte tekst en de bestaande badges (handeling, aantal, prioriteit) blijven gewoon staan; de balk komt erbij, er gaat niets weg.
 
 ## Wat dit in de praktijk betekent
 
@@ -31,7 +40,7 @@ Dat is precies wat je ziet. Voorbeeld uit de gegevens van West: "Taco" van 16 se
 
 ## Verificatie na het bouwen
 
-1. Taak van gisteren vandaag afvinken → blijft vandaag doorgestreept in de lijst staan.
+1. Taak van gisteren vandaag afvinken → blijft vandaag zichtbaar, onderaan de lijst, met groene statusbalk en doorgestreepte tekst.
 2. Dezelfde taak morgen bekijken → staat niet meer in de lijst.
 3. Teller "x/y klaar" telt de afgevinkte achterstand mee.
 4. Heropenen van zo'n taak werkt en zet hem weer bovenaan tussen de openstaande.
@@ -40,6 +49,6 @@ Dat is precies wat je ziet. Voorbeeld uit de gegevens van West: "Taco" van 16 se
 ## Techniek
 
 - `src/hooks/useMepTaken.ts`: de `or(...)`-filter voor vandaag uitbreiden met afgeronde taken van eerdere dagen die vandaag zijn afgerond. Betrouwbaarste bron daarvoor is `mep_taak_afrondingen.afgerond_op`/`created_at`; als dat via PostgREST lastig te filteren is, `mep_taken.updated_at >= begin van vandaag (Europe/Amsterdam)` combineren met `status = 'afgerond'` en `taak_datum < vandaag`.
-- Sorteren blijft zoals nu (prioriteit, taak_datum, invoervolgorde); afgeronde taken blijven op hun plek staan en worden alleen doorgestreept weergegeven.
-- `src/pages/kitchen/MepDag.tsx`: label van het uitklapblok wijzigen naar "Geproduceerd vandaag"; verder ongewijzigd.
+- Sorteren: openstaand eerst (prioriteit, taak_datum, invoervolgorde), daarna de afgevinkte taken onderaan in de volgorde van afvinken.
+- `src/pages/kitchen/MepDag.tsx`: statusbalk links van elke taakrij (kleur afgeleid van status en prioriteit, alleen bestaande tokens uit het design system); afgevinkte taken in een apart blok onder de open taken binnen elke groep; label van het uitklapblok wijzigen naar "Geproduceerd vandaag".
 - Geen databasewijziging, geen RLS-wijziging, geen nieuwe pakketten, geen routewijziging.
