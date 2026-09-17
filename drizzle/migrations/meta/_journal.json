@@ -57,6 +57,13 @@
       "when": 1789661882808,
       "tag": "0007_voorraadcheck_west_deel3_zoet",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789662289910,
+      "tag": "0008_voorraadcheck_west_deel4",
+      "breakpoints": true
     }
   ]
 }
