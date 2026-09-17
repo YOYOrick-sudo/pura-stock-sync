@@ -1,4 +1,6 @@
-# Overdracht: automatisch opslaan, alleen een subtiele wisknop
+# Overdracht automatisch opslaan + MEP-venster sluit met opslaan
+
+## Deel 1 — Overdracht: automatisch opslaan, alleen een subtiele wisknop
 
 ## Wat er verandert
 
@@ -24,9 +26,21 @@ Nu moet je op "Opslaan" of "Annuleren" drukken (of uit het veld klikken) voordat
 - `isEditing` (focus) stuurt zowel het onderdrukken van de serversync als de zichtbaarheid van de wisknop.
 - Opslagstatus als lokale state (`idle | saving | saved`) in plaats van toasts, om ruis tijdens het typen te voorkomen.
 
+## Deel 2 — Mise en place: venster sluiten door ernaast te tikken slaat op
+
+Nu sluit het venster waarin je handeling, persoon, prioriteit en aantal instelt alleen via het kruisje of "Opslaan". Tik je ernaast, dan gaat het dicht en zijn je keuzes weg.
+
+Nieuw gedrag: tikken naast het venster (of Escape) **bewaart** eerst de gemaakte keuzes en sluit daarna. Precies hetzelfde als op "Opslaan" drukken. Het kruisje doet hetzelfde. Is er niets veranderd, dan sluit het gewoon zonder schrijfactie.
+
+Praktijk: in de keuken tikt men vaak naast een venster om het weg te krijgen. Dat mag geen werk kosten. Risico is klein — de enige verandering is dat wegtikken bewaart in plaats van weggooit; niets wordt verwijderd.
+
+Techniek: alleen `src/components/kitchen/MepTaakBewerken.tsx`. Eén gedeelde afsluitfunctie die bij wijziging `onOpslaan` aanroept en daarna sluit, aangehangen aan `onOpenChange`, `onPointerDownOutside`, `onEscapeKeyDown` en de Opslaan-knop. Dubbele opslag voorkomen met de bestaande `bezig`-vlag.
+
 ## Verificatie
 
-- Typen → niets aanraken → na pauze verschijnt "Opgeslagen"; herladen toont de tekst.
+- Typen in overdracht → niets aanraken → na pauze verschijnt "Opgeslagen"; herladen toont de tekst.
 - Wisknop alleen zichtbaar met focus in het veld en tekst aanwezig; klikken maakt leeg en slaat leeg op.
 - Tweede tablet ziet de bijgewerkte tekst; typen wordt niet onderbroken.
+- MEP-taak openen, handeling + persoon kiezen, naast het venster tikken → venster dicht, keuzes staan op de taak.
+- MEP-taak openen en direct ernaast tikken → dicht, geen wijziging.
 - Build groen.
