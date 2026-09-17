@@ -40,6 +40,18 @@ export interface KoelcelCheckItem {
   product_sleutel: string | null;
   /** In welke lade van de koelwerkbank het product ligt (null = nog niet ingedeeld). */
   lade_id?: string | null;
+  /** Hoeveel hele reservebakjes er achter de hand horen te staan (koelwerkbank). */
+  reserve_doel?: number | null;
+}
+
+/** Koelwerkbankproducten tellen we op reserve, niet op hoe vol de werkbak is. */
+export function isReserveItem(item: KoelcelCheckItem): boolean {
+  return item.plek === 'werkbank';
+}
+
+/** Het aantal waarop geteld wordt: reservebakjes bij de werkbank, anders het dagdoel. */
+export function reserveDoel(item: KoelcelCheckItem): number {
+  return Math.max(Number(item.reserve_doel ?? 0), 0);
 }
 
 export type DrukteModus = 'rustig' | 'druk';
