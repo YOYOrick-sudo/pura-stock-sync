@@ -1,0 +1,2 @@
+DELETE FROM public.kassa_afdrachten WHERE naam LIKE 'ZZ %' AND date = DATE '2026-09-17';
+DELETE FROM public.dag_beleving WHERE date = DATE '2026-09-17' AND location = 'West' AND created_by = '9b59d031-86b2-45c1-882c-ab222c6bbf66';
