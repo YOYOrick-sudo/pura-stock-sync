@@ -590,6 +590,9 @@ export function useKoelcelCheckMutaties(
       const tekort = Math.max(doelNu - Number(aanwezig || 0), 1);
       let mepTaakId: string | null = null;
       let dubbel = false;
+      // Wat er daadwerkelijk besteld wordt (kan lager zijn: er ligt al iets onderweg).
+      let geplaatst = tekort;
+      let onderweg = 0;
 
       if (bestemming.soort === 'niveau') {
         // Het niveau eronder moet opnieuw gecontroleerd worden: haal een eerdere
@@ -607,9 +610,14 @@ export function useKoelcelCheckMutaties(
         mepTaakId = res.id;
         dubbel = res.dubbel;
       } else if (bestemming.soort === 'bestelbord') {
-        dubbel = await opBestelbord(item, vestiging, tekort);
+        const res = await opBestelbord(item, vestiging, tekort);
+        dubbel = res.dubbel;
+        geplaatst = res.aantal;
       } else {
-        dubbel = await naarMidsland(item, vestiging, tekort);
+        const res = await naarMidsland(item, vestiging, tekort);
+        dubbel = res.dubbel;
+        geplaatst = res.aantal;
+        onderweg = res.onderweg;
       }
 
       const { data: user } = await supabase.auth.getUser();
@@ -622,14 +630,15 @@ export function useKoelcelCheckMutaties(
             status: 'gemeld',
             doorgezet_naar: bestemming.soort,
             mep_taak_id: mepTaakId,
-            aantal_doorgezet: bestemming.soort === 'niveau' ? null : tekort,
+            aantal_doorgezet: bestemming.soort === 'niveau' ? null : geplaatst,
             created_by: user.user?.id ?? null,
           } as any,
           { onConflict: 'item_id,datum' },
         ),
       );
       if (checkFout) throw checkFout;
-      return { dubbel, item, bestemming, tekort };
+      return { dubbel, item, bestemming, tekort, geplaatst, onderweg };
+
     },
 
     onSettled: () => {
