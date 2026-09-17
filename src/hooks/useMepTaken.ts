@@ -139,8 +139,9 @@ export function useMepTaken(vestiging: string, datum: string) {
       if (error) throw error;
 
       const rijen = (data ?? []) as MepTaak[];
-      // Openstaand eerst (belangrijk, dan oudste invoerdatum, dan invoervolgorde),
-      // daarna alles wat vandaag is afgevinkt, onderaan in de volgorde van afvinken.
+      // Openstaand eerst: handmatige sleepvolgorde wint, daarna belangrijk,
+      // oudste invoerdatum en invoervolgorde. Alles wat vandaag is afgevinkt
+      // staat onderaan, in de volgorde van afvinken.
       return rijen
         .map((t, i) => ({ t, i }))
         .sort((a, b) => {
@@ -148,12 +149,16 @@ export function useMepTaken(vestiging: string, datum: string) {
           const bKlaar = b.t.status === 'afgerond' ? 1 : 0;
           if (aKlaar !== bKlaar) return aKlaar - bKlaar;
           if (aKlaar === 1) return a.t.updated_at.localeCompare(b.t.updated_at);
+          const aV = Number(a.t.volgorde ?? 0);
+          const bV = Number(b.t.volgorde ?? 0);
+          if (aV !== bV) return aV - bV;
           if (a.t.prioriteit !== b.t.prioriteit) return a.t.prioriteit - b.t.prioriteit;
           if (a.t.taak_datum !== b.t.taak_datum)
             return a.t.taak_datum.localeCompare(b.t.taak_datum);
           return a.i - b.i;
         })
         .map(({ t }) => t);
+
     },
   });
 
@@ -191,12 +196,24 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
         throw new Error('Kies eerst een geldige vestiging en datum');
       }
       const { data: user } = await supabase.auth.getUser();
+      // Nieuwe taak sluit aan op de handmatige volgorde: belangrijk bovenaan,
+      // normaal onderaan de openstaande lijst.
+      const openstaand = (qc.getQueryData<MepTaak[]>(actieveTakenKey) ?? []).filter(
+        (t) => t.status !== 'afgerond',
+      );
+      const volgordes = openstaand.map((t) => Number(t.volgorde ?? 0));
+      const volgorde = volgordes.length
+        ? (input.prioriteit ?? 2) === 1
+          ? Math.min(...volgordes) - 10
+          : Math.max(...volgordes) + 10
+        : 0;
       const { data, error } = await supabase
         .from('mep_taken')
         .insert({
           ...input,
           vestiging,
           taak_datum: datum,
+          volgorde,
           created_by: user.user?.id ?? null,
         })
         .select('*')
@@ -212,14 +229,46 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
         if (huidig.some((taak) => taak.id === nieuweTaak.id)) return huidig;
         return [...huidig, nieuweTaak].sort(
           (a, b) =>
+            Number(a.volgorde ?? 0) - Number(b.volgorde ?? 0) ||
             a.prioriteit - b.prioriteit ||
-            a.volgorde - b.volgorde ||
             a.created_at.localeCompare(b.created_at),
         );
       });
       await invalidate();
     },
   });
+
+  /** Handmatige volgorde van de openstaande taken opslaan (slepen). */
+  const herordenen = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const resultaten = await Promise.all(
+        ids.map((id, i) =>
+          supabase.from('mep_taken').update({ volgorde: (i + 1) * 10 }).eq('id', id),
+        ),
+      );
+      const fout = resultaten.find((r) => r.error);
+      if (fout?.error) throw fout.error;
+    },
+    onMutate: async (ids: string[]) => {
+      await qc.cancelQueries({ queryKey: actieveTakenKey, exact: true });
+      const vorige = qc.getQueryData<MepTaak[]>(actieveTakenKey);
+      qc.setQueryData<MepTaak[]>(actieveTakenKey, (huidig = []) => {
+        const nieuweVolgorde = new Map(ids.map((id, i) => [id, (i + 1) * 10]));
+        const bijgewerkt = huidig.map((t) =>
+          nieuweVolgorde.has(t.id) ? { ...t, volgorde: nieuweVolgorde.get(t.id)! } : t,
+        );
+        const positie = (t: MepTaak) =>
+          t.status === 'afgerond' ? 1e9 : (nieuweVolgorde.get(t.id) ?? Number(t.volgorde ?? 0));
+        return [...bijgewerkt].sort((a, b) => positie(a) - positie(b));
+      });
+      return { vorige };
+    },
+    onError: (_e, _ids, context) => {
+      if (context?.vorige) qc.setQueryData(actieveTakenKey, context.vorige);
+    },
+    onSettled: invalidate,
+  });
+
 
   const bijwerken = useMutation({
     mutationFn: async ({ id, ...patch }: Partial<MepTaak> & { id: string }) => {
@@ -284,7 +333,7 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
     onSuccess: invalidate,
   });
 
-  return { toevoegen, bijwerken, verwijderen, afronden, heropenen, vestiging, datum };
+  return { toevoegen, bijwerken, verwijderen, afronden, heropenen, herordenen, vestiging, datum };
 }
 
 /** Batches van vandaag — voor het overzicht "wat is er gemaakt". */
