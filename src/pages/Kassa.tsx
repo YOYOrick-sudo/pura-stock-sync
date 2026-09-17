@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { devError } from "@/lib/devLog";
 import { withTimeout, getUserIdMetTimeout } from "@/lib/withTimeout";
+import { zorgVoorSessie } from "@/lib/appWake";
 import { DagBeoordelingDialog } from '@/components/kassa/DagBeoordelingDialog';
 
 // Always get week number reliably using ISO 8601
@@ -177,6 +178,7 @@ const Kassa = () => {
     }
     setIsSubmitting(true);
     try {
+      await zorgVoorSessie();
       const userId = await getUserIdMetTimeout(supabase);
       if (!userId) {
         toast.error('Niet ingelogd — log opnieuw in');
