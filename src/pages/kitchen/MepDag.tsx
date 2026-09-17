@@ -213,116 +213,142 @@ export default function MepDag() {
           />
         ) : (
           <div className="space-y-4">
-            {groepen.map(([naam, rijen]) => (
-              <Card key={naam} className="overflow-hidden bg-card shadow-sm">
-                <div className="px-4 sm:px-5 py-3 border-b border-border/60 flex items-center justify-between">
-                  <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    {naam}
-                  </h2>
-                  <span className="text-xs text-muted-foreground tabular-nums">
-                    {rijen.filter((r) => r.status === 'afgerond').length}/{rijen.length}
-                  </span>
-                </div>
-                <ul className="divide-y divide-border/60">
-                  {rijen.map((t) => {
-                    const isKlaar = t.status === 'afgerond';
-                    return (
-                      <li
-                        key={t.id}
-                        className={cn(
-                          'flex items-center gap-3 px-4 sm:px-5 py-3 min-h-[64px]',
-                          isKlaar && 'opacity-60',
-                        )}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => setBewerkTaak(t)}
-                          className="min-w-0 flex-1 text-left rounded-polar-md -mx-1 px-1 py-1 hover:bg-primary/5 active:bg-primary/10 transition-colors"
+            {groepen.map(([naam, rijen]) => {
+              const openRijen = rijen.filter((r) => r.status !== 'afgerond');
+              const klaarRijen = rijen.filter((r) => r.status === 'afgerond');
+              const rij = (t: MepTaak) => {
+                const isKlaar = t.status === 'afgerond';
+                return (
+                  <li
+                    key={t.id}
+                    className={cn(
+                      'flex items-stretch gap-3 px-4 sm:px-5 py-3 min-h-[64px]',
+                      isKlaar && 'opacity-60',
+                    )}
+                  >
+                    {/* Statusbalk links: groen = klaar, oranje = belangrijk, grijs = normaal */}
+                    <span
+                      aria-hidden
+                      className={cn(
+                        'w-1.5 shrink-0 rounded-full my-1',
+                        isKlaar ? 'bg-success' : t.prioriteit === 1 ? 'bg-warning' : 'bg-border',
+                      )}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setBewerkTaak(t)}
+                      className="min-w-0 flex-1 text-left rounded-polar-md -mx-1 px-1 py-1 hover:bg-primary/5 active:bg-primary/10 transition-colors"
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={cn(
+                            'text-[15px] font-medium',
+                            isKlaar && 'line-through text-muted-foreground',
+                          )}
                         >
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span
-                              className={cn(
-                                'text-[15px] font-medium',
-                                isKlaar && 'line-through text-muted-foreground',
-                              )}
-                            >
-                              {t.titel}
-                            </span>
-                            {t.handeling && (
-                              <Badge variant="secondary" className="font-normal">
-                                {t.handeling}
-                              </Badge>
-                            )}
-                            {t.doel_aantal != null && (
-                              <Badge variant="secondary" className="font-normal">
-                                {Number(t.doel_aantal)} {t.doel_eenheid ?? ''}
-                              </Badge>
-                            )}
-                            {t.prioriteit === 1 && (
-                              <Badge variant="outline" className={cn('font-normal', PRIO_CLASS[1])}>
-                                {PRIO_LABEL[1]}
-                              </Badge>
-                            )}
-                            {dagenOpen(t.taak_datum, datum) >= 7 && (
-                              <Badge
-                                variant="outline"
-                                className="font-normal bg-destructive/10 text-destructive border-destructive/30 inline-flex items-center gap-1"
-                              >
-                                <AlertTriangle className="w-3.5 h-3.5" />
-                                7+ dagen — nog nodig?
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="mt-0.5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                            {weergave !== 'persoon' && t.toegewezen_aan && (
-                              <span>{medewerkers.find((m) => m.id === t.toegewezen_aan)?.name}</span>
-                            )}
-
-                            {t.deadline && (
-                              <span className="inline-flex items-center gap-1">
-                                <Clock className="w-4 h-4" />
-                                {t.deadline.slice(0, 5)}
-                              </span>
-                            )}
-                            {t.notitie && <span className="truncate">{t.notitie}</span>}
-                          </div>
-                        </button>
-
-                        {isKlaar ? (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-11 w-11"
-                            onClick={() => heropen(t)}
-                            aria-label="Heropenen"
-                          >
-                            <Undo2 className="w-5 h-5" />
-                          </Button>
-                        ) : (
-                          <>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-11 w-11 text-destructive hover:text-destructive"
-                              onClick={() => verwijder(t)}
-                              aria-label="Verwijderen"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </Button>
-                            <Button
-                              className="h-11 min-w-[44px]"
-                              onClick={() => setAfrondTaak(t)}
-                            >
-                              <Check className="w-5 h-5" />
-                            </Button>
-                          </>
+                          {t.titel}
+                        </span>
+                        {t.handeling && (
+                          <Badge variant="secondary" className="font-normal">
+                            {t.handeling}
+                          </Badge>
                         )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </Card>
-            ))}
+                        {t.doel_aantal != null && (
+                          <Badge variant="secondary" className="font-normal">
+                            {Number(t.doel_aantal)} {t.doel_eenheid ?? ''}
+                          </Badge>
+                        )}
+                        {t.prioriteit === 1 && (
+                          <Badge variant="outline" className={cn('font-normal', PRIO_CLASS[1])}>
+                            {PRIO_LABEL[1]}
+                          </Badge>
+                        )}
+                        {dagenOpen(t.taak_datum, datum) >= 7 && (
+                          <Badge
+                            variant="outline"
+                            className="font-normal bg-destructive/10 text-destructive border-destructive/30 inline-flex items-center gap-1"
+                          >
+                            <AlertTriangle className="w-3.5 h-3.5" />
+                            7+ dagen — nog nodig?
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="mt-0.5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                        {weergave !== 'persoon' && t.toegewezen_aan && (
+                          <span>{medewerkers.find((m) => m.id === t.toegewezen_aan)?.name}</span>
+                        )}
+
+                        {t.deadline && (
+                          <span className="inline-flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {t.deadline.slice(0, 5)}
+                          </span>
+                        )}
+                        {t.notitie && <span className="truncate">{t.notitie}</span>}
+                      </div>
+                    </button>
+
+                    {isKlaar ? (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-11 w-11"
+                        onClick={() => heropen(t)}
+                        aria-label="Heropenen"
+                      >
+                        <Undo2 className="w-5 h-5" />
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-11 w-11 text-destructive hover:text-destructive"
+                          onClick={() => verwijder(t)}
+                          aria-label="Verwijderen"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </Button>
+                        <Button
+                          className="h-11 min-w-[44px]"
+                          onClick={() => setAfrondTaak(t)}
+                        >
+                          <Check className="w-5 h-5" />
+                        </Button>
+                      </>
+                    )}
+                  </li>
+                );
+              };
+              return (
+                <Card key={naam} className="overflow-hidden bg-card shadow-sm">
+                  <div className="px-4 sm:px-5 py-3 border-b border-border/60 flex items-center justify-between">
+                    <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      {naam}
+                    </h2>
+                    <span className="text-xs text-muted-foreground tabular-nums">
+                      {klaarRijen.length}/{rijen.length}
+                    </span>
+                  </div>
+                  <ul className="divide-y divide-border/60">
+                    {openRijen.map(rij)}
+                  </ul>
+                  {klaarRijen.length > 0 && (
+                    <>
+                      <div className="px-4 sm:px-5 pt-3 pb-1 flex items-center gap-2">
+                        <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                          Afgerond
+                        </span>
+                        <span className="h-px flex-1 bg-border/60" />
+                      </div>
+                      <ul className="divide-y divide-border/60">
+                        {klaarRijen.map(rij)}
+                      </ul>
+                    </>
+                  )}
+                </Card>
+              );
+            })}
           </div>
         )}
 
@@ -335,7 +361,7 @@ export default function MepDag() {
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronDown className={cn('w-4 h-4 transition-transform', !batchesOpen && '-rotate-90')} />
-              Vandaag gemaakt ({batches.length})
+              Geproduceerd vandaag ({batches.length})
             </button>
             {batchesOpen && (
             <ul className="mt-1 divide-y divide-border/60">
