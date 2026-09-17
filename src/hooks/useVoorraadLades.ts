@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { eenheidUitFormaat } from '@/lib/voorraad-formaat';
 
 /** Eén lade van de koelwerkbank: een fysiek vak dat je opentrekt. */
 export interface VoorraadLade {
