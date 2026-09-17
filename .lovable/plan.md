@@ -1,21 +1,37 @@
-# Koelwerkbank: falafel, forel, zalm en döner weer zichtbaar
+# Koelwerkbank: alle producten in de lades, versleepbaar
 
-## Wat er nu gebeurt
+## Wat er nu misgaat
 
-De producten staan er wél in en zijn actief (falafel, forel, gerookte zalm, döner kebab, gekookte eieren, eimengsel, tempeh en alle groenten). Ze zijn alleen onvindbaar geworden: sinds de koelwerkbank per lade wordt geteld, worden alle producten die nog geen lade hebben op één hoop gegooid onder de kop **"Overige reserve — nog geen vaste lade"**. Op dit moment heeft **geen enkel** koelwerkbankproduct een lade toegewezen, dus alle 26 producten zitten in dat ene blok met een naam die suggereert dat het alleen om reserves gaat. De negen lades erboven staan leeg.
+Falafel, forel, gerookte zalm, döner en de rest staan er wél in en zijn actief. Ze zijn alleen onvindbaar: sinds de koelwerkbank per lade wordt geteld, komt elk product zonder lade in één blok "Overige reserve — nog geen vaste lade". Op dit moment heeft géén enkel product een lade, dus alle 26 producten zitten in dat ene blok en de negen lades erboven staan leeg.
 
-## Wat we gaan doen
+## Wat we doen
 
-1. **Producten zonder lade weer per categorie tonen.** In plaats van één blok "Overige reserve" krijgen ze de vertrouwde koppen: Eiwitten, Groente & fruit, Zuivel & kaas, Spreads & mayonaises, Brood, Zoet. Zo staan falafel, forel, zalm en döner weer gewoon onder Eiwitten.
-2. **Lege lades verbergen in de telronde.** Een lade zonder producten hoort niet als leeg vakje in de lijst of in de kastweergave te staan.
-3. **Duidelijke hint bovenaan het werkbankblok**: "Nog niet ingedeeld in lades — regel dit in Koelwerkbank indelen", met een tikbare verwijzing. Zodra je producten aan lades hangt, schuiven die vanzelf naar hun lade-blok en verdwijnt de hint.
-4. **Aanvullen blijft zoals afgesproken**: is een bakje leeg of te laag, dan gaat het precies tot de standaardvoorraad op de aanvulbon (koelcel → vriescel met Ontdooid-sticker → MEP → Midsland → bestelbord).
+1. **Producten alvast over de negen lades verdelen**, als startindeling die je daarna zelf versleept:
+
+```text
+Links boven      Eiwitten: falafel, döner kebab, gekookte eieren, eimengsel
+Links midden     Eiwitten: forel, gerookte zalm, tempeh
+Links onder      Reserve eiwitten / ruimte vrij
+Midden boven     Spreads & mayonaises (werkbakjes)
+Midden midden    Reservelade: reservebakjes spreads & mayonaises
+Midden onder     Reservelade: overige reserve
+Rechts boven     Groente & fruit: paprika, rode peper, avocado, blauwe bessen
+Rechts midden    Groente & fruit: aubergine, geroosterde groenten, rode kool, granaatappel, zoetzure gember
+Rechts onder     Zuivel & kaas, brood: feta, hüttenkäse, kaas, kokosyoghurt, vegan roomkaas, broodbakken, stokbrood
+```
+
+Midden midden en Midden onder worden reservelades; de rest blijft werklade.
+
+2. **Verslepen blijft leidend.** In Koelwerkbank indelen sleep je elk product naar een andere lade; de startindeling is alleen een vertrekpunt. Je kunt ook lades hernoemen en op werk/reserve zetten.
+3. **Niets valt weg.** Een product dat (nog) geen lade heeft blijft altijd zichtbaar, maar dan netjes per categorie (Eiwitten, Groente & fruit, ...) onderaan het werkbankblok in plaats van onder de misleidende kop "Overige reserve". Lege lades worden in de telronde en de kastweergave niet getoond.
+4. **Aanvullen blijft zoals afgesproken**: leeg of te laag bakje gaat precies tot de standaardvoorraad op de aanvulbon (koelcel → vriescel met Ontdooid-sticker → MEP → Midsland → bestelbord).
 
 ## Technisch
 
-- `src/components/foh/VoorraadRonde.tsx`: in `categorieGroepen` het werkbank-restblok vervangen door groepering per `categorieVan(item)` met `CATEGORIE_VOLGORDE`-sortering en sleutels `werkbank:cat:<categorie>`; lades zonder items worden al overgeslagen, dezelfde filtering toepassen op `kastVakken` zodat de kastweergave geen lege vakken toont; hint-regel boven het werkbankblok met link naar `/settings/koelwerkbank`.
-- Geen databasewijziging, geen nieuwe libraries.
+- Migratie: `lade_id` zetten op actieve West-werkbankregels volgens bovenstaande verdeling (op naam gematcht), `rol = 'reserve'` op Midden midden en Midden onder; regel in `migratie_logboek`.
+- `src/components/foh/VoorraadRonde.tsx`: restblok zonder lade groeperen per `categorieVan(item)` met `CATEGORIE_VOLGORDE`, sleutels `werkbank:cat:<categorie>`; `kastVakken` filtert lades zonder items.
+- Geen nieuwe libraries, geen wijziging aan de telling of de aanvulroutes.
 
 ## Testen
 
-West → Sluiten → Keuken → Voorraadronde → Koelwerkbank: onder Eiwitten staan falafel, forel, gerookte zalm, döner kebab, gekookte eieren, eimengsel en tempeh; vol/half/bodempje/leeg werkt; leeg zetten zet het product op de aanvulbon.
+West → Sluiten → Keuken → Voorraadronde → Koelwerkbank: negen lades met producten, falafel/forel/zalm/döner in de eiwittenlades. Beheer → Koelwerkbank indelen: product naar een andere lade slepen, terug in de ronde staat het op de nieuwe plek.
