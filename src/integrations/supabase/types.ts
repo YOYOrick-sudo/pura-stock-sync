@@ -1823,6 +1823,96 @@ export type Database = {
         }
         Relationships: []
       }
+      koelcel_check_items: {
+        Row: {
+          actief: boolean
+          created_at: string
+          doel_aantal: number
+          eenheid: string
+          id: string
+          naam: string
+          type: string
+          updated_at: string
+          vestiging: string
+          volgorde: number
+        }
+        Insert: {
+          actief?: boolean
+          created_at?: string
+          doel_aantal?: number
+          eenheid?: string
+          id?: string
+          naam: string
+          type?: string
+          updated_at?: string
+          vestiging: string
+          volgorde?: number
+        }
+        Update: {
+          actief?: boolean
+          created_at?: string
+          doel_aantal?: number
+          eenheid?: string
+          id?: string
+          naam?: string
+          type?: string
+          updated_at?: string
+          vestiging?: string
+          volgorde?: number
+        }
+        Relationships: []
+      }
+      koelcel_checks: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          datum: string
+          id: string
+          item_id: string
+          mep_taak_id: string | null
+          status: string
+          updated_at: string
+          vestiging: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          datum: string
+          id?: string
+          item_id: string
+          mep_taak_id?: string | null
+          status: string
+          updated_at?: string
+          vestiging: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          datum?: string
+          id?: string
+          item_id?: string
+          mep_taak_id?: string | null
+          status?: string
+          updated_at?: string
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "koelcel_checks_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "koelcel_check_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "koelcel_checks_mep_taak_id_fkey"
+            columns: ["mep_taak_id"]
+            isOneToOne: false
+            referencedRelation: "mep_taken"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leave_requests: {
         Row: {
           created_at: string
