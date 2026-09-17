@@ -43,6 +43,13 @@
       "when": 1789658449115,
       "tag": "0005_aanvulketen_west_productkaarten_bestelbord",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789661410125,
+      "tag": "0006_voorraadcheck_west_deel2",
+      "breakpoints": true
     }
   ]
 }
