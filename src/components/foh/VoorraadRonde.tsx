@@ -366,7 +366,7 @@ function TelRegel({
               <button
                 type="button"
                 aria-label="Meer"
-                onClick={() => zetHeel(Math.min(heel + 1, Math.ceil(doel)))}
+                onClick={() => zetHeel(heel + 1)}
                 className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-border bg-card"
               >
                 <Plus size={18} />
