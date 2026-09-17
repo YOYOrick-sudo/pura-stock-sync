@@ -530,10 +530,12 @@ function mepOpdracht(
   tekort: number,
 ): { prioriteit: number; batch: number } {
   const aandeel = doel > 0 ? geteld / doel : 0;
+  // Is er een batchgrootte vastgelegd, dan maak je altijd die hoeveelheid.
+  const vast = batchGrootte(item);
   return {
     prioriteit: aandeel >= 0.5 - 0.001 ? 2 : 1,
     // Een werkbakje vul je met één hele batch; bij hele bakken telt het tekort.
-    batch: telModus(item) === 'vulling' ? 1 : Math.max(Math.ceil(tekort - 0.001), 1),
+    batch: vast ?? (telModus(item) === 'vulling' ? 1 : Math.max(Math.ceil(tekort - 0.001), 1)),
   };
 }
 
