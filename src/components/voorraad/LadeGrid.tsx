@@ -15,6 +15,7 @@ import { Check, GripVertical, Minus, Pencil, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { BakmaatKiezer } from '@/components/voorraad/BakmaatKiezer';
 import { useKoelcelCheckItems, type KoelcelCheckItem } from '@/hooks/useKoelcelCheck';
 import {
   positieLabel,
@@ -45,10 +46,12 @@ function SleepbaarProduct({
   item,
   onReserve,
   onVulnorm,
+  onFormaat,
 }: {
   item: KoelcelCheckItem;
   onReserve?: (aantal: number) => void;
   onVulnorm?: (vulnorm: 'vol' | 'half') => void;
+  onFormaat?: (formaat: string | null) => void;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });
   const reserve = Math.max(Number(item.reserve_doel ?? 0), 0);
@@ -96,6 +99,12 @@ function SleepbaarProduct({
         )}
       </div>
 
+      {onFormaat && (
+        <div className="mt-1">
+          <BakmaatKiezer formaat={item.formaat ?? item.bak_maat} onWijzig={onFormaat} />
+        </div>
+      )}
+
       {onVulnorm && reserve === 0 && (
         <div className="mt-1 flex items-center gap-1.5">
           <span className="text-[11px] text-muted-foreground">bakje hoort</span>
@@ -127,6 +136,7 @@ function LadeVak({
   onZetRol,
   onReserve,
   onVulnorm,
+  onFormaat,
 }: {
   lade: VoorraadLade;
   items: KoelcelCheckItem[];
@@ -135,6 +145,7 @@ function LadeVak({
   onZetRol: (rol: 'werk' | 'reserve') => void;
   onReserve: (itemId: string, aantal: number) => void;
   onVulnorm: (itemId: string, vulnorm: 'vol' | 'half') => void;
+  onFormaat: (itemId: string, formaat: string | null) => void;
 }) {
   const isReserve = lade.rol === 'reserve';
   const { setNodeRef, isOver } = useDroppable({ id: `lade:${lade.id}`, disabled: !lade.actief });
@@ -211,6 +222,7 @@ function LadeVak({
               item={i}
               onReserve={(a) => onReserve(i.id, a)}
               onVulnorm={(v) => onVulnorm(i.id, v)}
+              onFormaat={(f) => onFormaat(i.id, f)}
             />
           ))
         )}
@@ -244,7 +256,7 @@ function LadeVak({
 export function LadeGrid({ vestiging }: { vestiging: string }) {
   const ladesQuery = useVoorraadLades(vestiging);
   const itemsQuery = useKoelcelCheckItems(vestiging);
-  const { hernoem, zetActief, verplaatsItem, zetRol, zetReserveDoel, zetVulnorm } =
+  const { hernoem, zetActief, verplaatsItem, zetRol, zetReserveDoel, zetVulnorm, zetFormaat } =
     useLadeMutaties(vestiging);
   const [sleept, setSleept] = useState<KoelcelCheckItem | null>(null);
 
@@ -314,6 +326,7 @@ export function LadeGrid({ vestiging }: { vestiging: string }) {
                     onZetRol={(rol) => zetRol.mutate({ id: lade.id, rol })}
                     onReserve={(itemId, aantal) => zetReserveDoel.mutate({ itemId, aantal })}
                     onVulnorm={(itemId, vulnorm) => zetVulnorm.mutate({ itemId, vulnorm })}
+                    onFormaat={(itemId, formaat) => zetFormaat.mutate({ itemId, formaat })}
                   />
                 ))}
             </div>
@@ -340,6 +353,7 @@ export function LadeGrid({ vestiging }: { vestiging: string }) {
                   item={i}
                   onReserve={(a) => zetReserveDoel.mutate({ itemId: i.id, aantal: a })}
                   onVulnorm={(v) => zetVulnorm.mutate({ itemId: i.id, vulnorm: v })}
+                  onFormaat={(f) => zetFormaat.mutate({ itemId: i.id, formaat: f })}
                 />
               ))}
             </div>

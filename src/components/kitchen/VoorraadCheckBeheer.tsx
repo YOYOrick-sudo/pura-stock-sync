@@ -4,6 +4,8 @@ import { toast } from 'sonner';
 import { Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
+import { BakmaatKiezer } from '@/components/voorraad/BakmaatKiezer';
+import { eenheidUitFormaat } from '@/lib/voorraad-formaat';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -248,17 +250,11 @@ export function VoorraadCheckBeheer({ location }: { location: string }) {
                           }
                         }}
                       />
-                      <Input
-                        key={`${item.id}-bak-${item.bak_maat ?? ''}`}
-                        defaultValue={item.bak_maat ?? ''}
-                        placeholder="bakmaat"
-                        className="w-28 h-9"
-                        aria-label={`Bakmaat ${item.naam}`}
-                        onBlur={(e) => {
-                          const v = e.target.value.trim();
-                          if (v !== (item.bak_maat ?? '')) {
-                            bijwerken.mutate({ id: item.id, velden: { bak_maat: v || null } });
-                          }
+                      <BakmaatKiezer
+                        formaat={item.formaat ?? item.bak_maat}
+                        onWijzig={(formaat) => {
+                          const eenheid = eenheidUitFormaat(formaat, item.eenheid || 'stuks');
+                          bijwerken.mutate({ id: item.id, velden: { formaat, eenheid } });
                         }}
                       />
                       <Select

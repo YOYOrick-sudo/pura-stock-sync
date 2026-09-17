@@ -35,6 +35,8 @@ export interface KoelcelCheckItem {
   plek: VoorraadPlek;
   bron: VoorraadBron;
   bak_maat: string | null;
+  /** Genormaliseerde bakmaat: "GN 1/6 hoog". */
+  formaat?: string | null;
   volgorde: number;
   actief: boolean;
   product_sleutel: string | null;
