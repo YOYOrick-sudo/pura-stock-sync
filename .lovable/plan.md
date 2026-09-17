@@ -40,7 +40,7 @@ Dat is precies wat je ziet. Voorbeeld uit de gegevens van West: "Taco" van 16 se
 
 ## Verificatie na het bouwen
 
-1. Taak van gisteren vandaag afvinken → blijft vandaag doorgestreept in de lijst staan.
+1. Taak van gisteren vandaag afvinken → blijft vandaag zichtbaar, onderaan de lijst, met groene statusbalk en doorgestreepte tekst.
 2. Dezelfde taak morgen bekijken → staat niet meer in de lijst.
 3. Teller "x/y klaar" telt de afgevinkte achterstand mee.
 4. Heropenen van zo'n taak werkt en zet hem weer bovenaan tussen de openstaande.
