@@ -71,6 +71,7 @@ export interface KoelcelCheck {
   status: KoelcelCheckStatus;
   mep_taak_id: string | null;
   doorgezet_naar: string | null;
+  aantal_doorgezet: number | null;
   created_by: string | null;
 }
 
