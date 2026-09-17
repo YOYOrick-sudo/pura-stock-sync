@@ -542,11 +542,13 @@ function CheckBlok({
             bezig={bezig}
             klaarLabel={klaarLabel}
             klaarIcoon={klaarIcoon}
+            onderweg={onderwegMap[item.naam.trim().toLowerCase()] ?? 0}
             onKlaar={() => onKlaar(item)}
             onOp={() => onOp(item)}
             onTeWeinig={() => onTeWeinig(item)}
           />
         ))}
+
       </div>
     </div>
   );
