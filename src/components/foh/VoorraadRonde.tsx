@@ -523,13 +523,20 @@ interface BonRegel {
  * bij een bodempje of leeg moet het vandaag. Zo maak je nooit "een beetje bij",
  * en grijp je ook niet mis.
  */
-function mepOpdracht(doel: number, geteld: number, tekort: number): { prioriteit: number; batch: number } {
+function mepOpdracht(
+  item: ItemMetCategorie,
+  doel: number,
+  geteld: number,
+  tekort: number,
+): { prioriteit: number; batch: number } {
   const aandeel = doel > 0 ? geteld / doel : 0;
   return {
     prioriteit: aandeel >= 0.5 - 0.001 ? 2 : 1,
-    batch: Math.max(Math.ceil(Math.max(tekort, doel) - 0.001), 1),
+    // Een werkbakje vul je met één hele batch; bij hele bakken telt het tekort.
+    batch: telModus(item) === 'vulling' ? 1 : Math.max(Math.ceil(tekort - 0.001), 1),
   };
 }
+
 
 
 const BON_GROEPEN: { soort: BonSoort; titel: string; uitleg: string; icoon: typeof Snowflake }[] = [
