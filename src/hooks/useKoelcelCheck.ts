@@ -645,7 +645,10 @@ export function useKoelcelCheckMutaties(
       qc.invalidateQueries({ queryKey: checksKey });
       qc.invalidateQueries({ queryKey: ['mep-taken', vestiging] });
       qc.invalidateQueries({ queryKey: ['bestel-signalen', vestiging] });
+      qc.invalidateQueries({ queryKey: ['openstaand-besteld', vestiging] });
+      qc.invalidateQueries({ queryKey: ['internal-orders'] });
     },
+
   });
 
   return { zetStatus, meldOp, vulAanUitNiveau, naarMep: meldOp };
