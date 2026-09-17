@@ -953,7 +953,7 @@ export function FohTasks() {
   
   // Cache-sleutel: lijst wordt onthouden tussen schermwissels, zodat terugkeren
   // meteen de vorige lijst toont in plaats van een leeg laadscherm.
-  const takenCacheKey = `${userLocation}|${selectedDateRef.current}`;
+  const takenCacheKey = `${userLocation}|${getAmsterdamDateString()}`;
   const [dailyTasks, setDailyTasks] = useState<FohTaskWithEmployee[]>(
     () => fohTakenCache.get(takenCacheKey) ?? [],
   );
