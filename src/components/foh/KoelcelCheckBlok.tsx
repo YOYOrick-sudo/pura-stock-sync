@@ -302,6 +302,8 @@ interface RijProps {
   bezig: boolean;
   klaarLabel: string;
   klaarIcoon: 'check' | 'snowflake';
+  /** Al besteld bij Midsland en nog niet geleverd. */
+  onderweg?: number;
   onKlaar: () => void;
   onOp: () => void;
   onTeWeinig: () => void;
@@ -315,6 +317,7 @@ function ItemRij({
   bezig,
   klaarLabel,
   klaarIcoon,
+  onderweg = 0,
   onKlaar,
   onOp,
   onTeWeinig,
@@ -336,6 +339,7 @@ function ItemRij({
   const onderschrift = uitNiveau
     ? `Aanvullen uit ${HERKOMST_LABEL[uitNiveau.plek]} · daarna ${eind.label}`
     : `${BRON_LABEL[item.bron]} · als het op is naar ${eind.label}`;
+
 
   return (
     <div
