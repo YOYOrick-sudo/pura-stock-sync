@@ -7,8 +7,11 @@ import {
   useKoelcelCheckMutaties,
   useDrukteModus,
   vervolgactieVoorRegel,
+  eindBestemming,
   doelAantal,
   BRON_LABEL,
+  HERKOMST_LABEL,
+  BESTEMMING_LABEL,
   type DrukteModus,
   type KoelcelCheck,
   type KoelcelCheckItem,
@@ -187,6 +190,110 @@ function TekortDialog({
   );
 }
 
+/** Eén opdracht, twee uitkomsten: gepakt, of het niveau eronder is ook leeg. */
+function AanvulDialog({
+  item,
+  onderItem,
+  aantal,
+  onAnnuleer,
+  onGedaan,
+  onOokLeeg,
+}: {
+  item: KoelcelCheckItem;
+  onderItem: KoelcelCheckItem;
+  aantal: number;
+  onAnnuleer: () => void;
+  onGedaan: () => void;
+  onOokLeeg: () => void;
+}) {
+  return (
+    <div
+      onClick={onAnnuleer}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 60,
+        backgroundColor: 'hsl(0 0% 0% / 0.45)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: '100%',
+          maxWidth: '360px',
+          backgroundColor: 'hsl(var(--card))',
+          borderRadius: '24px',
+          padding: '20px',
+          fontFamily: lettertype,
+        }}
+      >
+        <div style={{ fontSize: '18px', fontWeight: 700, color: 'hsl(var(--foreground))', lineHeight: 1.35 }}>
+          Pak {aantal} {item.eenheid} {item.naam.toLowerCase()} uit {HERKOMST_LABEL[onderItem.plek]} en leg het{' '}
+          {BESTEMMING_LABEL[item.plek]}.
+        </div>
+        {onderItem.plek === 'vriezer' && (
+          <div style={{ fontSize: '13px', color: 'hsl(var(--muted-foreground))', marginTop: '6px' }}>
+            De "Ontdooid"-sticker wordt meteen geprint.
+          </div>
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '18px' }}>
+          <button
+            type="button"
+            onClick={onGedaan}
+            style={{
+              ...basisKnop,
+              minHeight: '52px',
+              justifyContent: 'center',
+              backgroundColor: 'hsl(var(--primary))',
+              color: 'hsl(var(--primary-foreground))',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <Check size={18} />
+            Gedaan
+          </button>
+          <button
+            type="button"
+            onClick={onOokLeeg}
+            style={{
+              ...basisKnop,
+              minHeight: '52px',
+              justifyContent: 'center',
+              backgroundColor: 'hsl(var(--card))',
+              color: 'hsl(var(--foreground))',
+              border: '1px solid hsl(var(--border))',
+              cursor: 'pointer',
+            }}
+          >
+            {HERKOMST_LABEL[onderItem.plek].replace('de ', 'De ').replace('het ', 'Het ')} is ook leeg
+          </button>
+          <button
+            type="button"
+            onClick={onAnnuleer}
+            style={{
+              ...basisKnop,
+              justifyContent: 'center',
+              backgroundColor: 'transparent',
+              color: 'hsl(var(--muted-foreground))',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            Annuleren
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 interface RijProps {
   item: KoelcelCheckItem;
   alleItems: KoelcelCheckItem[];
@@ -195,9 +302,7 @@ interface RijProps {
   bezig: boolean;
   klaarLabel: string;
   klaarIcoon: 'check' | 'snowflake';
-  toonOntdooi: boolean;
   onKlaar: () => void;
-  onOntdooid: () => void;
   onOp: () => void;
   onTeWeinig: () => void;
 }
@@ -210,9 +315,7 @@ function ItemRij({
   bezig,
   klaarLabel,
   klaarIcoon,
-  toonOntdooi,
   onKlaar,
-  onOntdooid,
   onOp,
   onTeWeinig,
 }: RijProps) {
@@ -220,7 +323,19 @@ function ItemRij({
   const isKlaar = status === 'aanwezig' || status === 'uit_vriezer';
   const isGemeld = status === 'gemeld' || status === 'naar_mep';
   const bestemming = vervolgactieVoorRegel(item, alleItems);
+  const eind = eindBestemming(item, alleItems);
   const doorgezet = check?.aantal_doorgezet ?? null;
+
+  // Ligt hetzelfde product een niveau lager? Dan is de knop een opdracht: pakken en terugleggen.
+  const uitNiveau = bestemming.soort === 'niveau' ? bestemming.onderItem : null;
+  const opLabel = uitNiveau
+    ? uitNiveau.plek === 'vriezer'
+      ? 'Halen uit de vriescel'
+      : `Bijvullen uit ${HERKOMST_LABEL[uitNiveau.plek]}`
+    : 'Op';
+  const onderschrift = uitNiveau
+    ? `Aanvullen uit ${HERKOMST_LABEL[uitNiveau.plek]} · daarna ${eind.label}`
+    : `${BRON_LABEL[item.bron]} · als het op is naar ${eind.label}`;
 
   return (
     <div
@@ -254,14 +369,13 @@ function ItemRij({
             fontFamily: lettertype,
           }}
         >
-          {bestemming.soort === 'niveau'
-            ? `Als het op is → ${bestemming.label}`
-            : BRON_LABEL[item.bron]}
+          {onderschrift}
           {isGemeld
             ? doorgezet
-              ? ` · ${doorgezet} ${item.eenheid} naar ${bestemming.label}`
-              : ` · staat op ${bestemming.label}`
+              ? ` · ${doorgezet} ${item.eenheid} naar ${eind.label}`
+              : ` · staat op ${eind.label}`
             : ''}
+          {status === 'uit_vriezer' && item.plek === 'vriezer' ? ' · deze week uit gehaald' : ''}
         </div>
       </div>
 
@@ -281,30 +395,6 @@ function ItemRij({
         {klaarIcoon === 'snowflake' ? <Snowflake size={16} /> : <Check size={16} />}
         {klaarLabel}
       </button>
-
-      {toonOntdooi && (
-        <button
-          type="button"
-          disabled={bezig}
-          onClick={onOntdooid}
-          aria-label="Uit de vriezer gehaald, sticker printen"
-          aria-pressed={status === 'uit_vriezer'}
-          style={{
-            ...basisKnop,
-            padding: '8px 12px',
-            cursor: bezig ? 'wait' : 'pointer',
-            backgroundColor: status === 'uit_vriezer' ? 'hsl(200 90% 45% / 0.15)' : 'hsl(var(--card))',
-            color: status === 'uit_vriezer' ? 'hsl(200 90% 32%)' : 'hsl(var(--muted-foreground))',
-            border:
-              status === 'uit_vriezer'
-                ? '1px solid hsl(200 90% 45% / 0.5)'
-                : '1px solid hsl(var(--border))',
-          }}
-        >
-          <Snowflake size={16} />
-          Ontdooid
-        </button>
-      )}
 
       <button
         type="button"
@@ -335,12 +425,13 @@ function ItemRij({
           border: isGemeld ? '1px solid hsl(25 95% 53% / 0.5)' : '1px solid hsl(var(--border))',
         }}
       >
-        <ArrowRight size={16} />
-        {isGemeld ? 'Doorgezet' : 'Op'}
+        {uitNiveau ? <Snowflake size={16} /> : <ArrowRight size={16} />}
+        {isGemeld ? 'Doorgezet' : opLabel}
       </button>
     </div>
   );
 }
+
 
 function CheckBlok({
   titel,
@@ -352,9 +443,7 @@ function CheckBlok({
   bezig,
   klaarLabel,
   klaarIcoon,
-  heeftVriezerRegel,
   onKlaar,
-  onOntdooid,
   onOp,
   onTeWeinig,
 }: {
@@ -367,9 +456,7 @@ function CheckBlok({
   bezig: boolean;
   klaarLabel: string;
   klaarIcoon: 'check' | 'snowflake';
-  heeftVriezerRegel?: (item: KoelcelCheckItem) => boolean;
   onKlaar: (item: KoelcelCheckItem) => void;
-  onOntdooid: (item: KoelcelCheckItem) => void;
   onOp: (item: KoelcelCheckItem) => void;
   onTeWeinig: (item: KoelcelCheckItem) => void;
 }) {
@@ -441,9 +528,7 @@ function CheckBlok({
             bezig={bezig}
             klaarLabel={klaarLabel}
             klaarIcoon={klaarIcoon}
-            toonOntdooi={heeftVriezerRegel ? heeftVriezerRegel(item) : false}
             onKlaar={() => onKlaar(item)}
-            onOntdooid={() => onOntdooid(item)}
             onOp={() => onOp(item)}
             onTeWeinig={() => onTeWeinig(item)}
           />
@@ -463,11 +548,14 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
   const itemsQuery = useKoelcelCheckItems(vestiging);
   const checksQuery = useKoelcelChecks(vestiging, datum);
   const items = useMemo(() => itemsQuery.data ?? [], [itemsQuery.data]);
-  const { zetStatus, meldOp } = useKoelcelCheckMutaties(vestiging, datum, items);
+  const { zetStatus, meldOp, vulAanUitNiveau } = useKoelcelCheckMutaties(vestiging, datum, items);
   const drukteQuery = useDrukteModus(vestiging);
   const drukte: DrukteModus = drukteQuery.data ?? 'rustig';
   const printSticker = useCreateStickerPrintJob();
   const [tekortItem, setTekortItem] = useState<KoelcelCheckItem | null>(null);
+  const [aanvulItem, setAanvulItem] = useState<{ item: KoelcelCheckItem; onderItem: KoelcelCheckItem } | null>(
+    null,
+  );
 
   const checks = useMemo(() => {
     const map = new Map<string, KoelcelCheck>();
@@ -477,15 +565,11 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
 
   if (itemsQuery.isLoading || items.length === 0) return null;
 
-  const bezig = zetStatus.isPending || meldOp.isPending;
+  const bezig = zetStatus.isPending || meldOp.isPending || vulAanUitNiveau.isPending;
   const maandag = isMaandag(datum);
 
   const perPlek = (plek: VoorraadPlek) =>
     items.filter((i) => (i.plek ?? (i.type === 'vriezer' ? 'vriezer' : 'koelcel')) === plek);
-
-  const heeftVriezerRegel = (item: KoelcelCheckItem) =>
-    !!item.product_sleutel &&
-    items.some((i) => i.plek === 'vriezer' && i.product_sleutel === item.product_sleutel);
 
   const handleKlaar = (item: KoelcelCheckItem, status: KoelcelCheckStatus) => {
     const uit = checks.get(item.id)?.status === status;
@@ -493,34 +577,8 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
     return uit;
   };
 
-  const doorzetten = async (item: KoelcelCheckItem, aanwezig: number) => {
-    try {
-      const res = await meldOp.mutateAsync({ item, doel: doelAantal(item, drukte), aanwezig });
-      if (res.bestemming.soort === 'niveau')
-        toast.success(`"${item.naam}" moet nu nagekeken worden bij ${res.bestemming.label}`);
-      else if (res.dubbel) toast.info(`"${item.naam}" staat al op ${res.bestemming.label}`);
-      else toast.success(`${res.tekort} ${item.eenheid} "${item.naam}" naar ${res.bestemming.label}`);
-    } catch (e: any) {
-      toast.error('Doorzetten mislukt: ' + (e?.message ?? 'onbekende fout'));
-    }
-  };
-
-  const handleOp = async (item: KoelcelCheckItem) => {
-    // Ongedaan maken: alleen de check weghalen; de melding zelf blijft staan.
-    if (checks.has(item.id)) {
-      zetStatus.mutate(
-        { item, status: checks.get(item.id)!.status, uit: true },
-        { onError: () => toast.error('Niet opgeslagen — probeer opnieuw') },
-      );
-      return;
-    }
-    await doorzetten(item, 0);
-  };
-
-  const handleOntdooid = (item: KoelcelCheckItem) => {
-    const ongedaan = handleKlaar(item, 'uit_vriezer');
-    if (ongedaan) return;
-    // Meteen een "Ontdooid"-sticker printen voor op de bak in de koelcel.
+  /** Ontdooisticker voor op de bak die net uit de vriescel kwam. */
+  const printOntdooid = (item: KoelcelCheckItem) => {
     const vandaag = new Date();
     const tm = new Date(vandaag);
     tm.setDate(tm.getDate() + 2);
@@ -540,6 +598,56 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
     );
   };
 
+  const doorzetten = async (item: KoelcelCheckItem, aanwezig: number) => {
+    try {
+      const res = await meldOp.mutateAsync({ item, doel: doelAantal(item, drukte), aanwezig });
+      if (res.bestemming.soort === 'niveau')
+        toast.success(`"${item.naam}" staat nu open bij ${res.bestemming.label}`);
+      else if (res.dubbel) toast.info(`"${item.naam}" staat al op ${res.bestemming.label}`);
+      else toast.success(`${res.tekort} ${item.eenheid} "${item.naam}" naar ${res.bestemming.label}`);
+    } catch (e: any) {
+      toast.error('Doorzetten mislukt: ' + (e?.message ?? 'onbekende fout'));
+    }
+  };
+
+  const handleOp = async (item: KoelcelCheckItem) => {
+    // Ongedaan maken: alleen de check weghalen; een eerdere melding blijft staan.
+    if (checks.has(item.id)) {
+      zetStatus.mutate(
+        { item, status: checks.get(item.id)!.status, uit: true },
+        { onError: () => toast.error('Niet opgeslagen — probeer opnieuw') },
+      );
+      return;
+    }
+    const vervolg = vervolgactieVoorRegel(item, items);
+    if (vervolg.soort === 'niveau') {
+      // Concrete opdracht: haal het een niveau lager vandaan.
+      setAanvulItem({ item, onderItem: vervolg.onderItem });
+      return;
+    }
+    await doorzetten(item, 0);
+  };
+
+  /** "Gedaan": aangevuld vanuit het niveau eronder. */
+  const handleAangevuld = async ({
+    item,
+    onderItem,
+  }: {
+    item: KoelcelCheckItem;
+    onderItem: KoelcelCheckItem;
+  }) => {
+    try {
+      await vulAanUitNiveau.mutateAsync({ item, onderItem });
+      if (onderItem.plek === 'vriezer') {
+        printOntdooid(item);
+      } else {
+        toast.success(`${item.naam} bijgevuld uit ${HERKOMST_LABEL[onderItem.plek]}`);
+      }
+    } catch (e: any) {
+      toast.error('Niet opgeslagen: ' + (e?.message ?? 'onbekende fout'));
+    }
+  };
+
   return (
     <div style={{ marginTop: '8px' }}>
       {maandag && (
@@ -554,14 +662,13 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
           klaarLabel="Aanwezig"
           klaarIcoon="check"
           onKlaar={(i) => handleKlaar(i, 'aanwezig')}
-          onOntdooid={handleOntdooid}
           onOp={handleOp}
           onTeWeinig={setTekortItem}
         />
       )}
       <CheckBlok
         titel="Koelcel op peil"
-        uitleg='Dit moet standaard in de koelcel liggen. Haal je iets uit de vriezer? Tik op "Ontdooid" — dan print de sticker meteen.'
+        uitleg="Dit moet standaard in de koelcel liggen. Ontbreekt er iets? De knop vertelt je waar je het vandaan haalt."
         items={perPlek('koelcel')}
         alleItems={items}
         drukte={drukte}
@@ -569,15 +676,13 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         bezig={bezig}
         klaarLabel="Aanwezig"
         klaarIcoon="check"
-        heeftVriezerRegel={heeftVriezerRegel}
         onKlaar={(i) => handleKlaar(i, 'aanwezig')}
-        onOntdooid={handleOntdooid}
         onOp={handleOp}
         onTeWeinig={setTekortItem}
       />
       <CheckBlok
         titel="Koelwerkbank bijvullen"
-        uitleg="Vul de koelwerkbank aan vanuit de koelcel. Lukt dat niet omdat de koelcel leeg is? Tik op &quot;Op&quot;."
+        uitleg="Vul de koelwerkbank aan vanuit de koelcel. Is de koelcel leeg, dan wijst de app je door naar de vriescel."
         items={perPlek('werkbank')}
         alleItems={items}
         drukte={drukte}
@@ -585,9 +690,7 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         bezig={bezig}
         klaarLabel="Bijgevuld"
         klaarIcoon="check"
-        heeftVriezerRegel={heeftVriezerRegel}
         onKlaar={(i) => handleKlaar(i, 'aanwezig')}
-        onOntdooid={handleOntdooid}
         onOp={handleOp}
         onTeWeinig={setTekortItem}
       />
@@ -602,10 +705,33 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         klaarLabel="Bijgevuld"
         klaarIcoon="check"
         onKlaar={(i) => handleKlaar(i, 'aanwezig')}
-        onOntdooid={handleOntdooid}
         onOp={handleOp}
         onTeWeinig={setTekortItem}
       />
+
+      {aanvulItem && (
+        <AanvulDialog
+          item={aanvulItem.item}
+          onderItem={aanvulItem.onderItem}
+          aantal={doelAantal(aanvulItem.item, drukte)}
+          onAnnuleer={() => setAanvulItem(null)}
+          onGedaan={() => {
+            const paar = aanvulItem;
+            setAanvulItem(null);
+            void handleAangevuld(paar);
+          }}
+          onOokLeeg={() => {
+            const paar = aanvulItem;
+            setAanvulItem(null);
+            void (async () => {
+              // Het niveau eronder is ook leeg: die regel schuift door naar de
+              // volgende bron (vriescel, bestelbord, mise-en-place of Midsland).
+              await doorzetten(paar.onderItem, 0);
+              zetStatus.mutate({ item: paar.item, status: 'gemeld', uit: false });
+            })();
+          }}
+        />
+      )}
 
       {tekortItem && (
         <TekortDialog
@@ -622,3 +748,4 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
     </div>
   );
 }
+

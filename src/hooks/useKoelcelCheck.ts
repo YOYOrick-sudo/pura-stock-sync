@@ -119,6 +119,40 @@ export function vervolgactieVoorRegel(
 
 }
 
+/** Waar je het vandaan haalt: "de koelcel" of "de vriescel". */
+export const HERKOMST_LABEL: Record<VoorraadPlek, string> = {
+  vriezer: 'de vriescel',
+  koelcel: 'de koelcel',
+  werkbank: 'de koelwerkbank',
+  werkblad: 'het werkblad',
+};
+
+/** Waar je het naartoe brengt: "in de koelcel", "in de koelwerkbank". */
+export const BESTEMMING_LABEL: Record<VoorraadPlek, string> = {
+  vriezer: 'in de vriescel',
+  koelcel: 'in de koelcel',
+  werkbank: 'in de koelwerkbank',
+  werkblad: 'op het werkblad',
+};
+
+/**
+ * Loopt de hele keten af en geeft terug waar het uiteindelijk vandaan moet komen
+ * als álle niveaus leeg zijn (bestelbord, mise-en-place of Midsland).
+ */
+export function eindBestemming(
+  item: KoelcelCheckItem,
+  alleItems: KoelcelCheckItem[],
+): ReturnType<typeof bestemmingVoorBron> {
+  let huidig = item;
+  for (let i = 0; i < 5; i++) {
+    const volgend = vervolgactieVoorRegel(huidig, alleItems);
+    if (volgend.soort !== 'niveau') return volgend;
+    huidig = volgend.onderItem;
+  }
+  return bestemmingVoorBron(huidig.bron);
+}
+
+
 /** Rustig of druk: bepaalt welke hoeveelheden de sluitlijst toont. */
 export function useDrukteModus(vestiging: string | null | undefined) {
   return useQuery({
@@ -439,6 +473,32 @@ export function useKoelcelCheckMutaties(
   });
 
   /**
+   * Aangevuld vanuit het niveau eronder: de bovenste regel is klaar, en op de
+   * onderliggende regel leggen we vast dat daar iets uit gehaald is (zodat de
+   * maandagse vriescelcheck weet waar geteld moet worden).
+   */
+  const vulAanUitNiveau = useMutation({
+    mutationFn: async ({ item, onderItem }: { item: KoelcelCheckItem; onderItem: KoelcelCheckItem }) => {
+      const { data: user } = await supabase.auth.getUser();
+      const uid = user.user?.id ?? null;
+      const { error } = await metHerstel(() =>
+        supabase.from('koelcel_checks').upsert(
+          [
+            { item_id: item.id, vestiging, datum, status: 'aanwezig' as const, created_by: uid },
+            { item_id: onderItem.id, vestiging, datum, status: 'uit_vriezer' as const, created_by: uid },
+          ],
+          { onConflict: 'item_id,datum' },
+        ),
+      );
+      if (error) throw error;
+      return { item, onderItem };
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: checksKey }),
+  });
+
+
+
+  /**
    * "Op": het product kon niet aangevuld worden. Ligt hetzelfde product ook een
    * niveau lager (koelcel, vriescel), dan schuift de melding daarheen. Pas op het
    * laagste niveau gaat het naar de mise-en-place, het bestelbord of Midsland.
@@ -509,5 +569,5 @@ export function useKoelcelCheckMutaties(
     },
   });
 
-  return { zetStatus, meldOp, naarMep: meldOp };
+  return { zetStatus, meldOp, vulAanUitNiveau, naarMep: meldOp };
 }
