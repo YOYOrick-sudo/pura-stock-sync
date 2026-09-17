@@ -563,7 +563,10 @@ function CheckBlok({
 export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datum: string }) {
   const itemsQuery = useKoelcelCheckItems(vestiging);
   const checksQuery = useKoelcelChecks(vestiging, datum);
+  const onderwegQuery = useOpenstaandeBestellingen(vestiging);
+  const onderwegMap = onderwegQuery.data ?? {};
   const items = useMemo(() => itemsQuery.data ?? [], [itemsQuery.data]);
+
   const { zetStatus, meldOp, vulAanUitNiveau } = useKoelcelCheckMutaties(vestiging, datum, items);
   const drukteQuery = useDrukteModus(vestiging);
   const drukte: DrukteModus = drukteQuery.data ?? 'rustig';
