@@ -151,5 +151,26 @@ export function useLadeMutaties(vestiging: string) {
     onSuccess: ververs,
   });
 
-  return { hernoem, zetActief, verplaatsItem, zetVolgorde, zetRol, zetReserveDoel, zetVulnorm };
+  /** Bakmaat kiezen; de eenheid volgt automatisch de maat. */
+  const zetFormaat = useMutation({
+    mutationFn: async ({ itemId, formaat }: { itemId: string; formaat: string | null }) => {
+      const { error } = await supabase
+        .from('koelcel_check_items')
+        .update({ formaat, eenheid: eenheidUitFormaat(formaat, 'stuks') })
+        .eq('id', itemId);
+      if (error) throw error;
+    },
+    onSuccess: ververs,
+  });
+
+  return {
+    hernoem,
+    zetActief,
+    verplaatsItem,
+    zetVolgorde,
+    zetRol,
+    zetReserveDoel,
+    zetVulnorm,
+    zetFormaat,
+  };
 }
