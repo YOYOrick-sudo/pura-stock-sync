@@ -59,7 +59,7 @@ const PLEK_VOLGORDE: {
   icoon: typeof Refrigerator;
   alleenMaandag?: boolean;
 }[] = [
-  { plek: 'werkbank', titel: 'Koelwerkbank', icoon: Utensils },
+  { plek: 'werkbank', titel: 'Koelwerkbank — reserve', icoon: Utensils },
   { plek: 'werkblad', titel: 'Toppings', icoon: Soup },
   { plek: 'koelcel', titel: 'Koelcel', icoon: Refrigerator },
   { plek: 'vriezer', titel: 'Vriescel', icoon: Snowflake, alleenMaandag: true },
