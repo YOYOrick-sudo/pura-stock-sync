@@ -5,8 +5,11 @@ import {
   useKoelcelCheckItems,
   useKoelcelChecks,
   useKoelcelCheckMutaties,
-  bestemmingVoorBron,
+  useDrukteModus,
+  vervolgactieVoorRegel,
+  doelAantal,
   BRON_LABEL,
+  type DrukteModus,
   type KoelcelCheckItem,
   type KoelcelCheckStatus,
   type VoorraadPlek,
@@ -21,8 +24,8 @@ function stickerDatum(d: Date): string {
     .replace('.', '');
 }
 
-function aantalLabel(item: KoelcelCheckItem): string {
-  const n = Number(item.doel_aantal);
+function aantalLabel(item: KoelcelCheckItem, drukte: DrukteModus): string {
+  const n = doelAantal(item, drukte);
   return item.bak_maat ? `${n}x ${item.bak_maat}` : `${n}x`;
 }
 
@@ -53,6 +56,8 @@ const basisKnop: React.CSSProperties = {
 
 interface RijProps {
   item: KoelcelCheckItem;
+  alleItems: KoelcelCheckItem[];
+  drukte: DrukteModus;
   status: KoelcelCheckStatus | null;
   bezig: boolean;
   klaarLabel: string;
@@ -61,10 +66,10 @@ interface RijProps {
   onOp: () => void;
 }
 
-function ItemRij({ item, status, bezig, klaarLabel, klaarIcoon, onKlaar, onOp }: RijProps) {
+function ItemRij({ item, alleItems, drukte, status, bezig, klaarLabel, klaarIcoon, onKlaar, onOp }: RijProps) {
   const isKlaar = status === 'aanwezig' || status === 'uit_vriezer';
   const isGemeld = status === 'gemeld' || status === 'naar_mep';
-  const bestemming = bestemmingVoorBron(item.bron);
+  const bestemming = vervolgactieVoorRegel(item, alleItems);
 
   return (
     <div
@@ -88,7 +93,7 @@ function ItemRij({ item, status, bezig, klaarLabel, klaarIcoon, onKlaar, onOp }:
         >
           {item.naam}
         </span>
-        <span style={{ ...chip, marginLeft: '8px' }}>{aantalLabel(item)}</span>
+        <span style={{ ...chip, marginLeft: '8px' }}>{aantalLabel(item, drukte)}</span>
         <div
           style={{
             marginTop: '2px',
@@ -97,7 +102,9 @@ function ItemRij({ item, status, bezig, klaarLabel, klaarIcoon, onKlaar, onOp }:
             fontFamily: lettertype,
           }}
         >
-          {BRON_LABEL[item.bron]}
+          {bestemming.soort === 'niveau'
+            ? `Als het op is → ${bestemming.label}`
+            : BRON_LABEL[item.bron]}
           {isGemeld ? ` · staat op ${bestemming.label}` : ''}
         </div>
       </div>
@@ -143,6 +150,8 @@ function CheckBlok({
   titel,
   uitleg,
   items,
+  alleItems,
+  drukte,
   checks,
   bezig,
   klaarLabel,
@@ -153,6 +162,8 @@ function CheckBlok({
   titel: string;
   uitleg: string;
   items: KoelcelCheckItem[];
+  alleItems: KoelcelCheckItem[];
+  drukte: DrukteModus;
   checks: Map<string, KoelcelCheckStatus>;
   bezig: boolean;
   klaarLabel: string;
@@ -222,6 +233,8 @@ function CheckBlok({
           <ItemRij
             key={item.id}
             item={item}
+            alleItems={alleItems}
+            drukte={drukte}
             status={checks.get(item.id) ?? null}
             bezig={bezig}
             klaarLabel={klaarLabel}
@@ -243,10 +256,12 @@ function CheckBlok({
 export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datum: string }) {
   const itemsQuery = useKoelcelCheckItems(vestiging);
   const checksQuery = useKoelcelChecks(vestiging, datum);
-  const { zetStatus, meldOp } = useKoelcelCheckMutaties(vestiging, datum);
+  const items = useMemo(() => itemsQuery.data ?? [], [itemsQuery.data]);
+  const { zetStatus, meldOp } = useKoelcelCheckMutaties(vestiging, datum, items);
+  const drukteQuery = useDrukteModus(vestiging);
+  const drukte: DrukteModus = drukteQuery.data ?? 'rustig';
   const printSticker = useCreateStickerPrintJob();
 
-  const items = useMemo(() => itemsQuery.data ?? [], [itemsQuery.data]);
   const checks = useMemo(() => {
     const map = new Map<string, KoelcelCheckStatus>();
     for (const c of checksQuery.data ?? []) map.set(c.item_id, c.status);
@@ -277,7 +292,9 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
     }
     try {
       const res = await meldOp.mutateAsync(item);
-      if (res.dubbel) toast.info(`"${item.naam}" staat al op ${res.bestemming.label}`);
+      if (res.bestemming.soort === 'niveau')
+        toast.success(`"${item.naam}" moet nu nagekeken worden bij ${res.bestemming.label}`);
+      else if (res.dubbel) toast.info(`"${item.naam}" staat al op ${res.bestemming.label}`);
       else toast.success(`"${item.naam}" staat op ${res.bestemming.label}`);
     } catch (e: any) {
       toast.error('Doorzetten mislukt: ' + (e?.message ?? 'onbekende fout'));
@@ -313,6 +330,8 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         titel="Uit de vriezer (ontdooien)"
         uitleg='Haal uit de vriezer wat morgen nodig is. Bij "Uit vriezer gehaald" print er meteen een Ontdooid-sticker. Is de vriezer leeg? Tik op "Op".'
         items={perPlek('vriezer')}
+        alleItems={items}
+        drukte={drukte}
         checks={checks}
         bezig={bezig}
         klaarLabel="Uit vriezer gehaald"
@@ -324,6 +343,8 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         titel="Koelcel op peil"
         uitleg='Dit moet standaard in de koelcel liggen. Ontbreekt het? Tik op "Op" — het gaat vanzelf naar de juiste lijst.'
         items={perPlek('koelcel')}
+        alleItems={items}
+        drukte={drukte}
         checks={checks}
         bezig={bezig}
         klaarLabel="Aanwezig"
@@ -335,6 +356,8 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         titel="Koelwerkbank bijvullen"
         uitleg="Vul de koelwerkbank aan vanuit de koelcel. Lukt dat niet omdat de koelcel leeg is? Tik op &quot;Op&quot;."
         items={perPlek('werkbank')}
+        alleItems={items}
+        drukte={drukte}
         checks={checks}
         bezig={bezig}
         klaarLabel="Bijgevuld"
@@ -346,6 +369,8 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         titel="Toppings bijvullen"
         uitleg="Droogwaren uit het magazijn, geroosterd en aangevuld op het werkblad."
         items={perPlek('werkblad')}
+        alleItems={items}
+        drukte={drukte}
         checks={checks}
         bezig={bezig}
         klaarLabel="Bijgevuld"

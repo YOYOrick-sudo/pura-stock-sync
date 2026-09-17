@@ -29,6 +29,7 @@ export interface KoelcelCheckItem {
   vestiging: string;
   naam: string;
   doel_aantal: number;
+  doel_aantal_druk: number | null;
   eenheid: string;
   type: 'koelcel' | 'vriezer';
   plek: VoorraadPlek;
@@ -36,7 +37,24 @@ export interface KoelcelCheckItem {
   bak_maat: string | null;
   volgorde: number;
   actief: boolean;
+  product_sleutel: string | null;
 }
+
+export type DrukteModus = 'rustig' | 'druk';
+
+/** Hoeveel er moet liggen, afhankelijk van of het rustig of druk is. */
+export function doelAantal(item: KoelcelCheckItem, drukte: DrukteModus): number {
+  const druk = Number(item.doel_aantal_druk ?? 0);
+  if (drukte === 'druk' && druk > 0) return druk;
+  return Number(item.doel_aantal);
+}
+
+/** Het niveau eronder: werkbank/werkblad wordt bijgevuld uit de koelcel, die uit de vriezer. */
+export const NIVEAU_ONDER: Partial<Record<VoorraadPlek, VoorraadPlek>> = {
+  werkbank: 'koelcel',
+  werkblad: 'koelcel',
+  koelcel: 'vriezer',
+};
 
 export type KoelcelCheckStatus = 'aanwezig' | 'naar_mep' | 'uit_vriezer' | 'gemeld';
 
@@ -70,6 +88,60 @@ export function bestemmingVoorBron(bron: VoorraadBron): {
     default:
       return { soort: 'bestelbord', label: 'het bestelbord' };
   }
+}
+
+/**
+ * Wat er gebeurt als dit product op is. Ligt hetzelfde product ook op het niveau
+ * eronder (koelcel, vriescel), dan schuift de melding daarheen. Pas op het laagste
+ * niveau gaat het naar de mise-en-place, het bestelbord of Midsland.
+ */
+export function vervolgactieVoorRegel(
+  item: KoelcelCheckItem,
+  alleItems: KoelcelCheckItem[],
+): { soort: 'niveau'; onderItem: KoelcelCheckItem; label: string } | ReturnType<typeof bestemmingVoorBron> {
+  const onder = NIVEAU_ONDER[item.plek];
+  if (onder && item.product_sleutel) {
+    const onderItem = alleItems.find(
+      (i) => i.product_sleutel === item.product_sleutel && i.plek === onder && i.actief,
+    );
+    if (onderItem) {
+      return { soort: 'niveau', onderItem, label: PLEK_LABEL[onder].toLowerCase() };
+    }
+  }
+  return bestemmingVoorBron(item.bron);
+}
+
+/** Rustig of druk: bepaalt welke hoeveelheden de sluitlijst toont. */
+export function useDrukteModus(vestiging: string | null | undefined) {
+  return useQuery({
+    queryKey: ['drukte-modus', vestiging],
+    enabled: !!vestiging,
+    staleTime: 5 * 60_000,
+    queryFn: async (): Promise<DrukteModus> => {
+      const { data, error } = await (supabase as any)
+        .from('vestiging_instellingen')
+        .select('drukte_modus')
+        .eq('vestiging', vestiging!)
+        .maybeSingle();
+      if (error) throw error;
+      return ((data as any)?.drukte_modus as DrukteModus) ?? 'rustig';
+    },
+  });
+}
+
+/** Schakelaar rustig/druk voor een vestiging. */
+export function useZetDrukteModus(vestiging: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (modus: DrukteModus) => {
+      const { error } = await (supabase as any)
+        .from('vestiging_instellingen')
+        .upsert({ vestiging, drukte_modus: modus, updated_at: new Date().toISOString() }, { onConflict: 'vestiging' });
+      if (error) throw error;
+      return modus;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['drukte-modus', vestiging] }),
+  });
 }
 
 /** Actieve productkaarten van de voorraad-check voor een vestiging. */
@@ -265,7 +337,11 @@ async function naarMidsland(item: KoelcelCheckItem, vestiging: string): Promise<
   return false;
 }
 
-export function useKoelcelCheckMutaties(vestiging: string, datum: string) {
+export function useKoelcelCheckMutaties(
+  vestiging: string,
+  datum: string,
+  alleItems: KoelcelCheckItem[] = [],
+) {
   const qc = useQueryClient();
   const checksKey = ['koelcel-checks', vestiging, datum] as const;
 
@@ -332,17 +408,28 @@ export function useKoelcelCheckMutaties(vestiging: string, datum: string) {
   });
 
   /**
-   * "Op": het product kon niet aangevuld worden. Op basis van de bron gaat het
-   * automatisch naar de mise-en-place, het bestelbord of de bestellijst voor
-   * Midsland. Dubbele meldingen worden voorkomen.
+   * "Op": het product kon niet aangevuld worden. Ligt hetzelfde product ook een
+   * niveau lager (koelcel, vriescel), dan schuift de melding daarheen. Pas op het
+   * laagste niveau gaat het naar de mise-en-place, het bestelbord of Midsland.
    */
   const meldOp = useMutation({
     mutationFn: async (item: KoelcelCheckItem) => {
-      const bestemming = bestemmingVoorBron(item.bron);
+      const bestemming = vervolgactieVoorRegel(item, alleItems);
       let mepTaakId: string | null = null;
       let dubbel = false;
 
-      if (bestemming.soort === 'mep') {
+      if (bestemming.soort === 'niveau') {
+        // Het niveau eronder moet opnieuw gecontroleerd worden: haal een eerdere
+        // "aanwezig" daar weg zodat het zichtbaar open staat.
+        const { error } = await metHerstel(() =>
+          supabase
+            .from('koelcel_checks')
+            .delete()
+            .eq('item_id', bestemming.onderItem.id)
+            .eq('datum', datum),
+        );
+        if (error) throw error;
+      } else if (bestemming.soort === 'mep') {
         const res = await mepTaakVoorItem(item, vestiging, datum, bestemming.handeling!);
         mepTaakId = res.id;
         dubbel = res.dubbel;
