@@ -42,16 +42,33 @@ export interface KoelcelCheckItem {
   lade_id?: string | null;
   /** Hoeveel hele reservebakjes er achter de hand horen te staan (koelwerkbank). */
   reserve_doel?: number | null;
+  /** Tot hoever het werkbakje gevuld hoort te zijn: 'vol' of 'half'. */
+  vulnorm?: string | null;
 }
 
-/** Koelwerkbankproducten tellen we op reserve, niet op hoe vol de werkbak is. */
-export function isReserveItem(item: KoelcelCheckItem): boolean {
-  return item.plek === 'werkbank';
-}
-
-/** Het aantal waarop geteld wordt: reservebakjes bij de werkbank, anders het dagdoel. */
+/** Hoeveel hele reservebakjes er achter de hand horen te staan. */
 export function reserveDoel(item: KoelcelCheckItem): number {
   return Math.max(Number(item.reserve_doel ?? 0), 0);
+}
+
+/** Product met een reserve-afspraak: tellen op hele reservebakjes. */
+export function isReserveItem(item: KoelcelCheckItem): boolean {
+  return item.plek === 'werkbank' && reserveDoel(item) > 0;
+}
+
+/** Koelwerkbankproduct zonder reserve: beoordelen op vol/half/bodempje/leeg. */
+export function isVulItem(item: KoelcelCheckItem): boolean {
+  return item.plek === 'werkbank' && reserveDoel(item) === 0;
+}
+
+/** De vulnorm als waarde: heel bakje (1) of half bakje (0,5). */
+export function vulnormWaarde(item: KoelcelCheckItem): number {
+  return (item.vulnorm ?? 'vol') === 'half' ? 0.5 : 1;
+}
+
+/** "hoort vol" / "hoort half". */
+export function vulnormLabel(item: KoelcelCheckItem): string {
+  return (item.vulnorm ?? 'vol') === 'half' ? 'hoort half' : 'hoort vol';
 }
 
 export type DrukteModus = 'rustig' | 'druk';
