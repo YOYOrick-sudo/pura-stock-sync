@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { metHerstel } from '@/lib/appWake';
 import { useKanaalHerstel } from '@/lib/realtime';
 import { splitsAantalUitTitel } from '@/lib/mep-hoeveelheid';
 import { format } from 'date-fns';
