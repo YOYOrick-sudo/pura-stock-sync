@@ -26,6 +26,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminPasswordDialog } from './AdminPasswordDialog';
 import { RepeatBadge } from './RepeatBadge';
 import { ListManager } from './ListManager';
+import { KoelcelCheckBlok } from './KoelcelCheckBlok';
 import { getOrderedCategories, WEST_SECTIONS, type Department } from '@/lib/foh-category-order';
 import { devLog, devError } from "@/lib/devLog";
 
@@ -3621,6 +3622,11 @@ export function FohTasks() {
                         return sections;
                       })() : (
                         renderCategoryGroups(currentTasks, 'all')
+                      )}
+
+                      {/* Voorraad-check koelcel/vriezer — alleen West, sluitlijst */}
+                      {userLocation === 'West' && activePhase === 'sluit' && !isEditMode && !isReadOnly && (
+                        <KoelcelCheckBlok vestiging="West" datum={selectedDate} />
                       )}
 
                     </div>

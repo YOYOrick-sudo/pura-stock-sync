@@ -11,6 +11,7 @@ import { useHalffabricaatOverzicht } from '@/hooks/useMepTaken';
 import { useVestigingKoppelingen } from '@/hooks/useVestigingKoppeling';
 import { VestigingToggles } from '@/components/kitchen/VestigingKoppeling';
 import { OpendagenTab } from '@/pages/kitchen/MepBeheer';
+import { VoorraadCheckBeheer } from '@/components/kitchen/VoorraadCheckBeheer';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -183,9 +184,10 @@ export default function MepInstellingen() {
         </div>
 
         <Tabs defaultValue="halffabricaten">
-          <TabsList className="w-full grid grid-cols-3">
+          <TabsList className="w-full grid grid-cols-4">
             <TabsTrigger value="halffabricaten">Halffabricaten</TabsTrigger>
             <TabsTrigger value="handelingen">Handelingen</TabsTrigger>
+            <TabsTrigger value="voorraadcheck">Voorraad-check</TabsTrigger>
             <TabsTrigger value="dagen">Openingsdagen</TabsTrigger>
           </TabsList>
           <TabsContent value="halffabricaten" className="mt-4">
@@ -193,6 +195,9 @@ export default function MepInstellingen() {
           </TabsContent>
           <TabsContent value="handelingen" className="mt-4">
             <HandelingenTab location={userLocation ?? ''} />
+          </TabsContent>
+          <TabsContent value="voorraadcheck" className="mt-4">
+            <VoorraadCheckBeheer location={userLocation ?? ''} />
           </TabsContent>
           <TabsContent value="dagen" className="mt-4">
             <OpendagenTab location={userLocation} />
