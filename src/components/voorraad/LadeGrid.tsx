@@ -149,6 +149,7 @@ function LadeVak({
               <p className="truncate text-[14px] font-bold text-foreground">{lade.naam}</p>
               <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
                 {positieLabel(lade)}
+                {isReserve ? ' · reservelade' : ''}
               </p>
             </>
           )}
@@ -174,17 +175,32 @@ function LadeVak({
             {lade.actief ? 'Sleep hier producten naartoe' : 'Niet in gebruik'}
           </p>
         ) : (
-          items.map((i) => <SleepbaarProduct key={i.id} item={i} />)
+          items.map((i) => (
+            <SleepbaarProduct key={i.id} item={i} onReserve={(a) => onReserve(i.id, a)} />
+          ))
         )}
       </div>
 
-      <button
-        type="button"
-        onClick={() => onZetActief(!lade.actief)}
-        className="mt-2 text-left text-[11px] font-medium text-muted-foreground underline-offset-2 hover:underline"
-      >
-        {lade.actief ? 'Lade niet in gebruik' : 'Lade weer in gebruik'}
-      </button>
+      <div className="mt-2 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => onZetRol(isReserve ? 'werk' : 'reserve')}
+          className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+            isReserve
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'border-border bg-card text-muted-foreground'
+          }`}
+        >
+          {isReserve ? 'Reservelade' : 'Werklade'}
+        </button>
+        <button
+          type="button"
+          onClick={() => onZetActief(!lade.actief)}
+          className="text-left text-[11px] font-medium text-muted-foreground underline-offset-2 hover:underline"
+        >
+          {lade.actief ? 'Lade niet in gebruik' : 'Lade weer in gebruik'}
+        </button>
+      </div>
     </div>
   );
 }
