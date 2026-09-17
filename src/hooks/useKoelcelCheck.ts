@@ -569,5 +569,5 @@ export function useKoelcelCheckMutaties(
     },
   });
 
-  return { zetStatus, meldOp, naarMep: meldOp };
+  return { zetStatus, meldOp, vulAanUitNiveau, naarMep: meldOp };
 }
