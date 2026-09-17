@@ -266,6 +266,8 @@ function CategorieBlok({
   drukte,
   telling,
   onderwegMap,
+  bestelbordMap,
+  mepTitels,
   bevestigd,
   onBevestig,
   onHeropen,
@@ -277,6 +279,8 @@ function CategorieBlok({
   drukte: DrukteModus;
   telling: Record<string, number>;
   onderwegMap: Record<string, number>;
+  bestelbordMap: Record<string, number>;
+  mepTitels: string[];
   bevestigd: boolean;
   onBevestig: () => void;
   onHeropen: () => void;
@@ -323,6 +327,8 @@ function CategorieBlok({
             doel={doelAantal(item, drukte)}
             geteld={telling[item.id]}
             onderweg={onderwegMap[item.naam.trim().toLowerCase()] ?? 0}
+            opBestelbord={(bestelbordMap[item.naam.trim().toLowerCase()] ?? 0) > 0}
+            inMep={mepTitels.some((t) => t.includes(item.naam.trim().toLowerCase()))}
             onZet={(a) => onZet(item.id, a)}
             onHerstel={() => onHerstel(item.id)}
           />
