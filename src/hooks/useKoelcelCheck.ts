@@ -104,16 +104,18 @@ export function vervolgactieVoorRegel(
   item: KoelcelCheckItem,
   alleItems: KoelcelCheckItem[],
 ): { soort: 'niveau'; onderItem: KoelcelCheckItem; label: string } | ReturnType<typeof bestemmingVoorBron> {
-  const onder = NIVEAU_ONDER[item.plek];
-  if (onder && item.product_sleutel) {
-    const onderItem = alleItems.find(
-      (i) => i.product_sleutel === item.product_sleutel && i.plek === onder && i.actief,
-    );
-    if (onderItem) {
-      return { soort: 'niveau', onderItem, label: PLEK_LABEL[onder].toLowerCase() };
+  if (item.product_sleutel) {
+    for (const onder of NIVEAU_KETEN[item.plek] ?? []) {
+      const onderItem = alleItems.find(
+        (i) => i.product_sleutel === item.product_sleutel && i.plek === onder && i.actief,
+      );
+      if (onderItem) {
+        return { soort: 'niveau', onderItem, label: PLEK_LABEL[onder].toLowerCase() };
+      }
     }
   }
   return bestemmingVoorBron(item.bron);
+
 }
 
 /** Rustig of druk: bepaalt welke hoeveelheden de sluitlijst toont. */
