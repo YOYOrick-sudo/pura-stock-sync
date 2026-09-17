@@ -149,6 +149,21 @@ export default function MepDag() {
     }
   };
 
+  const sleepKlaar = async (event: DragEndEvent, openRijen: MepTaak[]) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const van = openRijen.findIndex((r) => r.id === active.id);
+    const naar = openRijen.findIndex((r) => r.id === over.id);
+    if (van < 0 || naar < 0) return;
+    const nieuweIds = arrayMove(openRijen, van, naar).map((r) => r.id);
+    try {
+      await herordenen.mutateAsync(nieuweIds);
+    } catch (e: any) {
+      toast.error('Volgorde niet opgeslagen: ' + (e?.message ?? 'onbekende fout'));
+    }
+  };
+
+
   return (
     <SidebarLayout>
       <div className="space-y-4">
