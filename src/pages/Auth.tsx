@@ -94,13 +94,26 @@ const Auth = () => {
 
       if (data.session) {
         if (mode === 'shared') {
-          const { data: userRole } = await supabase
-            .from('user_roles')
-            .select('location')
-            .eq('user_id', data.session.user.id)
-            .maybeSingle();
+          // Locatiecontrole mag het inloggen nooit laten hangen: bij een trage
+          // of vastgelopen bevraging gaan we gewoon door naar het dashboard.
+          let userRole: { location: string | null } | null = null;
+          let controleGelukt = true;
+          try {
+            const res = await withTimeout(
+              supabase
+                .from('user_roles')
+                .select('location')
+                .eq('user_id', data.session.user.id)
+                .maybeSingle(),
+              8000,
+            );
+            userRole = (res.data as { location: string | null } | null) ?? null;
+            if (res.error) controleGelukt = false;
+          } catch {
+            controleGelukt = false;
+          }
 
-          if (userRole?.location !== location) {
+          if (controleGelukt && userRole?.location !== location) {
             toast.error('Verkeerde locatie detecteerd', { description: `Deze account hoort bij ${getLocationDisplayName(userRole?.location || '')}` });
             await supabase.auth.signOut();
             return;
