@@ -49,8 +49,12 @@ const Auth = () => {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) navigate('/dashboard');
+      try {
+        const { data: { session } } = await withTimeout(supabase.auth.getSession(), 8000);
+        if (session) navigate('/dashboard');
+      } catch {
+        // Sessiecontrole hangt: gewoon het inlogscherm tonen.
+      }
     };
     checkSession();
   }, [navigate]);
