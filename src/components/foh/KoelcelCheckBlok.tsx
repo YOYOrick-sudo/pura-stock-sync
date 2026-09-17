@@ -7,6 +7,7 @@ import {
   useKoelcelCheckMutaties,
   useDrukteModus,
   useOpenstaandeBestellingen,
+  onderwegVoorItem,
   useProbleemFrequentie,
   vervolgactieVoorRegel,
   eindBestemming,
@@ -587,7 +588,7 @@ function CheckBlok({
                 item={item}
                 drukte={drukte}
                 gemarkeerd={gemarkeerd.has(item.id)}
-                onderweg={onderwegMap[item.naam.trim().toLowerCase()] ?? 0}
+                onderweg={onderwegVoorItem(item, onderwegMap)}
                 onTik={() => toggle(item.id)}
               />
             ))}
