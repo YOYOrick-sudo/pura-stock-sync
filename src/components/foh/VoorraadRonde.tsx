@@ -865,15 +865,19 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                               {r.item.naam}
                             </span>
                             <span className="block truncate text-[12px] text-muted-foreground">
-                              {getalLabel(r.doel)} nodig · {getalLabel(r.geteld)} geteld
+                              {telModus(r.item) === 'vulling'
+                                ? `bakje ${vulKeuzeLabel(r.geteld)}`
+                                : `${getalLabel(r.doel)} nodig · ${getalLabel(r.geteld)} geteld`}
                               {r.onderItem ? ` · uit ${HERKOMST_LABEL[r.onderItem.plek]}` : ''}
                             </span>
                             {ladeVan(r.item) && (
                               <LadePositie lade={ladeVan(r.item)} className="mt-0.5" />
                             )}
                           </span>
-                          <span className="shrink-0 text-[14px] font-bold tabular-nums text-primary">
-                            {aantalLabel(r.tekort, r.item.eenheid)}
+                          <span className="shrink-0 text-right text-[14px] font-bold text-primary">
+                            {telModus(r.item) === 'vulling'
+                              ? `bijvullen tot ${vulnormWaarde(r.item) === 0.5 ? 'half' : 'vol'}`
+                              : aantalLabel(r.tekort, r.item.eenheid)}
                           </span>
                         </div>
                       ))}
