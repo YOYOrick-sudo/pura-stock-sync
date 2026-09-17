@@ -613,15 +613,25 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
               items: ladeItems,
             });
           }
+          // Producten zonder lade vallen nooit weg: die tel je per categorie, onderaan.
           const rest = p.items.filter((i) => !i.lade_id || !lades.some((l) => l.actief && l.id === i.lade_id));
           if (rest.length) {
-            groepen.push({
-              sleutel: 'werkbank:lade:geen',
-              titel: 'Overige reserve',
-              subtitel: 'Nog geen vaste lade — tel wat je ziet',
-              lade: null,
-              items: rest,
-            });
+            const perCat = new Map<string, ItemMetCategorie[]>();
+            for (const item of rest) {
+              const cat = categorieVan(item);
+              perCat.set(cat, [...(perCat.get(cat) ?? []), item]);
+            }
+            for (const [cat, catItems] of [...perCat.entries()].sort(
+              (a, b) => CATEGORIE_VOLGORDE.indexOf(a[0]) - CATEGORIE_VOLGORDE.indexOf(b[0]),
+            )) {
+              groepen.push({
+                sleutel: `werkbank:cat:${cat}`,
+                titel: cat,
+                subtitel: 'Nog geen vaste lade',
+                lade: null,
+                items: catItems,
+              });
+            }
           }
           return { ...p, groepen };
         }
