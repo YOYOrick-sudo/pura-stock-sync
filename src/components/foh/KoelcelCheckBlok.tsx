@@ -190,6 +190,110 @@ function TekortDialog({
   );
 }
 
+/** Eén opdracht, twee uitkomsten: gepakt, of het niveau eronder is ook leeg. */
+function AanvulDialog({
+  item,
+  onderItem,
+  aantal,
+  onAnnuleer,
+  onGedaan,
+  onOokLeeg,
+}: {
+  item: KoelcelCheckItem;
+  onderItem: KoelcelCheckItem;
+  aantal: number;
+  onAnnuleer: () => void;
+  onGedaan: () => void;
+  onOokLeeg: () => void;
+}) {
+  return (
+    <div
+      onClick={onAnnuleer}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 60,
+        backgroundColor: 'hsl(0 0% 0% / 0.45)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: '100%',
+          maxWidth: '360px',
+          backgroundColor: 'hsl(var(--card))',
+          borderRadius: '24px',
+          padding: '20px',
+          fontFamily: lettertype,
+        }}
+      >
+        <div style={{ fontSize: '18px', fontWeight: 700, color: 'hsl(var(--foreground))', lineHeight: 1.35 }}>
+          Pak {aantal} {item.eenheid} {item.naam.toLowerCase()} uit {HERKOMST_LABEL[onderItem.plek]} en leg het{' '}
+          {BESTEMMING_LABEL[item.plek]}.
+        </div>
+        {onderItem.plek === 'vriezer' && (
+          <div style={{ fontSize: '13px', color: 'hsl(var(--muted-foreground))', marginTop: '6px' }}>
+            De "Ontdooid"-sticker wordt meteen geprint.
+          </div>
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '18px' }}>
+          <button
+            type="button"
+            onClick={onGedaan}
+            style={{
+              ...basisKnop,
+              minHeight: '52px',
+              justifyContent: 'center',
+              backgroundColor: 'hsl(var(--primary))',
+              color: 'hsl(var(--primary-foreground))',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <Check size={18} />
+            Gedaan
+          </button>
+          <button
+            type="button"
+            onClick={onOokLeeg}
+            style={{
+              ...basisKnop,
+              minHeight: '52px',
+              justifyContent: 'center',
+              backgroundColor: 'hsl(var(--card))',
+              color: 'hsl(var(--foreground))',
+              border: '1px solid hsl(var(--border))',
+              cursor: 'pointer',
+            }}
+          >
+            {HERKOMST_LABEL[onderItem.plek].replace('de ', 'De ').replace('het ', 'Het ')} is ook leeg
+          </button>
+          <button
+            type="button"
+            onClick={onAnnuleer}
+            style={{
+              ...basisKnop,
+              justifyContent: 'center',
+              backgroundColor: 'transparent',
+              color: 'hsl(var(--muted-foreground))',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            Annuleren
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 interface RijProps {
   item: KoelcelCheckItem;
   alleItems: KoelcelCheckItem[];
