@@ -88,6 +88,23 @@ const REST_KEUZES: { label: string; waarde: number }[] = [
   { label: 'bodempje', waarde: 0.25 },
 ];
 
+/** Hoe vol het werkbakje van de koelwerkbank erbij staat. */
+const VUL_KEUZES: { label: string; waarde: number }[] = [
+  { label: 'vol', waarde: 1 },
+  { label: 'half', waarde: 0.5 },
+  { label: 'bodempje', waarde: 0.25 },
+  { label: 'leeg', waarde: 0 },
+];
+
+/** Hoe een product geteld wordt. */
+type TelModus = 'reserve' | 'vulling' | 'bakken';
+
+function telModus(item: KoelcelCheckItem): TelModus {
+  if (isReserveItem(item)) return 'reserve';
+  if (isVulItem(item)) return 'vulling';
+  return 'bakken';
+}
+
 function isMaandag(datum: string): boolean {
   const d = new Date(`${datum}T12:00:00`);
   return !Number.isNaN(d.getTime()) && d.getDay() === 1;
