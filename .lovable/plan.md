@@ -20,6 +20,17 @@ Blijft zoals het is, met één toevoeging: bij producten die ook in de vriescel 
 **Blok 3 en 4 — koelwerkbank en toppings**
 Ongewijzigd, behalve dat de keten nu doorzoekt: is er geen koelcelregel (zoals bij bananenpannenkoeken), dan verwijst "Op" door naar de vriescelregel.
 
+## Aantallen op de interne bestelling
+
+Zo werkt het nu: tik je op "Op", dan zet het systeem de **volle standaardhoeveelheid** op een conceptbestelling voor Midsland. Liggen er nog vier van de zes zakken rode kool, dan komen er dus zes op de lijst in plaats van twee. Staat het product er al op, dan wordt er niets dubbel bijgezet.
+
+Wat we toevoegen:
+- Naast "Op" komt er een knop **"Te weinig"**. Daarmee tik je in één klein venstertje het aantal dat er nog ligt (grote plus/min-knoppen, geschikt voor natte handen). Het systeem rekent het tekort uit en zet alleen dat aantal op de bestelling.
+- "Op" blijft bestaan voor het snelle geval: niets meer aanwezig, hele hoeveelheid bestellen.
+- Onder de regel komt te staan wat er doorgezet is, bijvoorbeeld "2 zakken naar de lijst voor Midsland", zodat het zichtbaar is zonder het scherm te verlaten.
+- Alles komt samen op de conceptbestelling voor Midsland, terug te zien onder **Voorraad**. Elke regel houdt bij dat hij uit de sluitlijst komt.
+
+
 ## Opschoning in de gegevens
 
 - "Zoet (alleen als echt op)" archiveren (niet verwijderen).
