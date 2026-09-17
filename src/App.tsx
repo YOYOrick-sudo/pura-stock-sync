@@ -58,6 +58,7 @@ import LightspeedCallback from "./pages/LightspeedCallback";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { supabase } from "@/integrations/supabase/client";
 import { focusManager } from "@tanstack/react-query";
+import { abortAlles, herstelOfHerlaad, zorgVoorSessie } from "@/lib/appWake";
 import { useEffect } from "react";
 
 const queryClient = new QueryClient({
@@ -76,33 +77,44 @@ const queryClient = new QueryClient({
 function useVersHouden() {
   useEffect(() => {
     let laatsteSync = 0;
+
     const sync = () => {
       const zichtbaar = document.visibilityState === "visible";
       focusManager.setFocused(zichtbaar);
+
       if (!zichtbaar) {
-        // Achtergrond: geen refresh-timers laten tikken op een bevroren tablet.
+        // Achtergrond: geen refresh-timers laten tikken op een bevroren tablet
+        // en lopende verzoeken afbreken, anders blijven ze straks hangen.
         try { supabase.auth.stopAutoRefresh(); } catch { /* niets */ }
+        try { queryClient.cancelQueries(); } catch { /* niets */ }
+        abortAlles();
         return;
       }
-      // Terug op de voorgrond: de refresh-timer weer aanzetten (die vernieuwt
-      // alleen als het nodig is — handmatig forceren logt mensen juist uit) en
-      // de live-verbinding opnieuw opbouwen.
-      try {
-        supabase.auth.startAutoRefresh();
-        supabase.realtime.connect();
-      } catch { /* niets */ }
-      // Niet vaker dan eens per 30 seconden, en alleen de gegevens van het
-      // scherm waar iemand op staat — anders wordt elke wake-up een volledige
-      // laadronde over alle tabellen.
-      if (Date.now() - laatsteSync < 30_000) return;
-      laatsteSync = Date.now();
-      queryClient.invalidateQueries({ type: "active" });
+
+      // Terug op de voorgrond: sleutel en live-verbinding stil herstellen.
+      try { supabase.auth.startAutoRefresh(); } catch { /* niets */ }
+      void herstelOfHerlaad().then(() => {
+        // Niet vaker dan eens per 30 seconden, en alleen de gegevens van het
+        // scherm waar iemand op staat.
+        if (Date.now() - laatsteSync < 30_000) return;
+        laatsteSync = Date.now();
+        queryClient.invalidateQueries({ type: "active" });
+      });
     };
+
+    // Warm blijven tijdens dienst: lichte controle zolang het scherm aanstaat.
+    const warm = setInterval(() => {
+      if (document.visibilityState === "visible") void zorgVoorSessie();
+    }, 4 * 60_000);
+
     document.addEventListener("visibilitychange", sync);
     window.addEventListener("online", sync);
+    window.addEventListener("pageshow", sync);
     return () => {
+      clearInterval(warm);
       document.removeEventListener("visibilitychange", sync);
       window.removeEventListener("online", sync);
+      window.removeEventListener("pageshow", sync);
     };
   }, []);
 }
