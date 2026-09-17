@@ -4,13 +4,17 @@ import {
   ArrowRight,
   Check,
   ChefHat,
+  ChevronDown,
   ClipboardList,
   Loader2,
   Minus,
   Plus,
+  Refrigerator,
   Snowflake,
+  Soup,
   ShoppingCart,
   Truck,
+  Utensils,
   PackageCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,16 +33,21 @@ import {
   type VoorraadPlek,
 } from '@/hooks/useKoelcelCheck';
 import { useCreateStickerPrintJob } from '@/hooks/useStickerProducten';
-import { aantalLabel, formaatLabel } from '@/lib/voorraad-formaat';
+import { aantalLabel, getalLabel, formaatLabel } from '@/lib/voorraad-formaat';
 
 type ItemMetCategorie = KoelcelCheckItem & { categorie?: string | null; formaat?: string | null };
 
 /** De plekken in de volgorde waarin je er fysiek langsloopt. */
-const PLEK_VOLGORDE: { plek: VoorraadPlek; titel: string; alleenMaandag?: boolean }[] = [
-  { plek: 'werkbank', titel: 'Koelwerkbank' },
-  { plek: 'werkblad', titel: 'Toppings' },
-  { plek: 'koelcel', titel: 'Koelcel' },
-  { plek: 'vriezer', titel: 'Vriescel', alleenMaandag: true },
+const PLEK_VOLGORDE: {
+  plek: VoorraadPlek;
+  titel: string;
+  icoon: typeof Refrigerator;
+  alleenMaandag?: boolean;
+}[] = [
+  { plek: 'werkbank', titel: 'Koelwerkbank', icoon: Utensils },
+  { plek: 'werkblad', titel: 'Toppings', icoon: Soup },
+  { plek: 'koelcel', titel: 'Koelcel', icoon: Refrigerator },
+  { plek: 'vriezer', titel: 'Vriescel', icoon: Snowflake, alleenMaandag: true },
 ];
 
 /** Vaste categorievolgorde. Zoet staat altijd onderaan. */
@@ -51,6 +60,13 @@ const CATEGORIE_VOLGORDE = [
   'Brood',
   'Droog & overig',
   'Zoet',
+];
+
+/** De drie toestanden van een aangebroken bak. */
+const REST_KEUZES: { label: string; waarde: number }[] = [
+  { label: 'vol', waarde: 0 },
+  { label: 'half', waarde: 0.5 },
+  { label: 'bodempje', waarde: 0.25 },
 ];
 
 function isMaandag(datum: string): boolean {
@@ -66,6 +82,11 @@ function stickerDatum(d: Date): string {
 
 function categorieVan(item: ItemMetCategorie): string {
   return (item.categorie ?? '').trim() || 'Droog & overig';
+}
+
+/** Hoeveel er nog gehaald moet worden: altijd hele bakken, naar boven afgerond. */
+function tekortVan(doel: number, geteld: number): number {
+  return Math.max(Math.ceil(doel - geteld - 0.001), 0);
 }
 
 /** Eén productregel: standaard "ligt er", tik om te tellen wat er écht ligt. */
@@ -86,6 +107,11 @@ function TelRegel({
 }) {
   const afwijkend = geteld !== undefined;
   const waarde = geteld ?? doel;
+  const heel = Math.floor(waarde + 0.001);
+  const rest = Math.round((waarde - heel) * 100) / 100;
+
+  const zetHeel = (n: number) => onZet(Math.max(n, 0) + rest);
+  const zetRest = (r: number) => onZet(heel + r);
 
   return (
     <div
@@ -116,28 +142,54 @@ function TelRegel({
       </button>
 
       {afwijkend && (
-        <div className="flex items-center justify-between gap-3 border-t border-amber-400/40 px-3 py-2">
-          <span className="text-[13px] font-medium text-foreground">Hoeveel ligt er?</span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-label="Minder"
-              onClick={() => onZet(Math.max(waarde - 1, 0))}
-              className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-border bg-card"
-            >
-              <Minus size={18} />
-            </button>
-            <span className="min-w-[56px] text-center text-[17px] font-bold tabular-nums text-foreground">
-              {waarde}
-            </span>
-            <button
-              type="button"
-              aria-label="Meer"
-              onClick={() => onZet(Math.min(waarde + 1, doel))}
-              className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-border bg-card"
-            >
-              <Plus size={18} />
-            </button>
+        <div className="space-y-2 border-t border-amber-400/40 px-3 py-2">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[13px] font-medium text-foreground">Hoeveel ligt er?</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                aria-label="Minder"
+                onClick={() => zetHeel(heel - 1)}
+                className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-border bg-card"
+              >
+                <Minus size={18} />
+              </button>
+              <span className="min-w-[64px] text-center text-[17px] font-bold tabular-nums text-foreground">
+                {getalLabel(waarde)}
+              </span>
+              <button
+                type="button"
+                aria-label="Meer"
+                onClick={() => zetHeel(Math.min(heel + 1, Math.ceil(doel)))}
+                className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-border bg-card"
+              >
+                <Plus size={18} />
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-1 text-[12px] text-muted-foreground">Laatste, aangebroken bak</p>
+            <div className="grid grid-cols-3 gap-2">
+              {REST_KEUZES.map((k) => {
+                const actief = rest === k.waarde;
+                return (
+                  <button
+                    key={k.label}
+                    type="button"
+                    onClick={() => zetRest(k.waarde)}
+                    className={`flex items-center justify-center rounded-[12px] border text-[14px] font-semibold capitalize ${
+                      actief
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border bg-card text-foreground'
+                    }`}
+                    style={{ minHeight: 44 }}
+                  >
+                    {k.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
@@ -244,7 +296,7 @@ const BON_GROEPEN: { soort: BonSoort; titel: string; uitleg: string; icoon: type
 
 /**
  * Voorraadronde West: eerst tellen (medewerker), daarna de aanvulbon (systeem rekent).
- * De aanvulbon bundelt alles wat uit de vriescel moet in één ophaallijst.
+ * Zit als blok in de keukensectie van de sluitlijst: ingeklapt tot je hem opent.
  */
 export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: string }) {
   const itemsQuery = useKoelcelCheckItems(vestiging);
@@ -261,6 +313,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const { meldOp, vulAanUitNiveau, zetAllesAanwezig } = useKoelcelCheckMutaties(vestiging, datum, items);
 
   const opslagSleutel = `voorraadronde-${vestiging}-${datum}`;
+  const [open, setOpen] = useState(false);
   const [stap, setStap] = useState<'tellen' | 'bon' | 'klaar'>('tellen');
   const [telling, setTelling] = useState<Record<string, number>>({});
   const [bevestigd, setBevestigd] = useState<string[]>([]);
@@ -275,6 +328,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
         const data = JSON.parse(ruw);
         setTelling(data.telling ?? {});
         setBevestigd(data.bevestigd ?? []);
+        if (data.klaar) setStap('klaar');
       }
     } catch {
       /* stille fallback */
@@ -334,7 +388,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
       const geteld = telling[item.id];
       if (geteld === undefined) continue;
       const doel = doelAantal(item, drukte);
-      const tekort = Math.max(doel - geteld, 0);
+      const tekort = tekortVan(doel, geteld);
       if (tekort <= 0) continue;
       const vervolg = vervolgactieVoorRegel(item, items);
       if (vervolg.soort === 'niveau') {
@@ -356,7 +410,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
 
   if (itemsQuery.isLoading || items.length === 0) return null;
 
-  const zet = (id: string, aantal: number) => setTelling((t) => ({ ...t, [id]: aantal }));
+  const zet = (id: string, aantal: number) => setTelling((t) => ({ ...t, [id]: Math.max(aantal, 0) }));
   const herstel = (id: string) =>
     setTelling((t) => {
       const kopie = { ...t };
@@ -405,7 +459,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
 
       setSamenvatting(telling2);
       setStap('klaar');
-      localStorage.removeItem(opslagSleutel);
+      localStorage.setItem(opslagSleutel, JSON.stringify({ telling: {}, bevestigd: [], klaar: true }));
     } catch (e: any) {
       toast.error('Niet alles is doorgezet: ' + (e?.message ?? 'onbekende fout'));
     } finally {
@@ -413,161 +467,215 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
     }
   };
 
-  // ---------- Klaar ----------
-  if (stap === 'klaar') {
-    return (
-      <div className="mt-4 rounded-[20px] border border-primary/30 bg-primary/5 p-5 text-center">
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
-          <Check size={24} />
-        </div>
-        <h3 className="text-[17px] font-bold text-foreground">Voorraadronde afgerond</h3>
-        <p className="mt-1 text-[14px] text-muted-foreground">
-          {samenvatting
-            ? BON_GROEPEN.filter((g) => (samenvatting[g.soort] ?? 0) > 0)
-                .map((g) => `${samenvatting[g.soort]} ${g.titel.toLowerCase()}`)
-                .join(' · ') || 'Alles lag er — niets door te zetten.'
-            : 'Alles verwerkt.'}
-        </p>
-      </div>
-    );
-  }
+  const afgerond = stap === 'klaar';
 
-  // ---------- Aanvulbon ----------
-  if (stap === 'bon') {
-    return (
-      <div className="mt-4 rounded-[20px] border border-border bg-card p-4">
-        <div className="mb-3 flex items-center gap-2">
-          <ClipboardList size={20} className="text-primary" />
-          <h3 className="text-[17px] font-bold text-foreground">Aanvulbon</h3>
-        </div>
-
-        {bon.length === 0 ? (
-          <p className="text-[14px] text-muted-foreground">
-            Alles lag er. Er hoeft niets gehaald of besteld te worden.
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {BON_GROEPEN.map((groep) => {
-              const regels = bon.filter((r) => r.soort === groep.soort);
-              if (!regels.length) return null;
-              const Icoon = groep.icoon;
-              return (
-                <div key={groep.soort} className="rounded-[16px] border border-border bg-muted/30 p-3">
-                  <div className="mb-2 flex items-center gap-2">
-                    <Icoon size={18} className="text-primary" />
-                    <div className="min-w-0">
-                      <p className="text-[15px] font-bold text-foreground">{groep.titel}</p>
-                      <p className="text-[12px] text-muted-foreground">{groep.uitleg}</p>
-                    </div>
-                    <Badge variant="secondary" className="ml-auto text-[11px]">{regels.length}</Badge>
-                  </div>
-                  <div className="space-y-1.5">
-                    {regels.map((r) => (
-                      <div
-                        key={r.item.id}
-                        className="flex items-center justify-between gap-3 rounded-[12px] bg-card px-3 py-2.5"
-                      >
-                        <span className="min-w-0">
-                          <span className="block truncate text-[14px] font-semibold text-foreground">
-                            {r.item.naam}
-                          </span>
-                          {r.onderItem && (
-                            <span className="block truncate text-[12px] text-muted-foreground">
-                              uit {HERKOMST_LABEL[r.onderItem.plek]}
-                              {r.item.formaat ? ` · ${r.item.formaat}` : ''}
-                            </span>
-                          )}
-                        </span>
-                        <span className="shrink-0 text-[14px] font-bold tabular-nums text-primary">
-                          {aantalLabel(r.tekort, r.item.eenheid)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        <div className="mt-4 flex gap-2">
-          <Button variant="outline" className="h-12 flex-1 rounded-[14px]" onClick={() => setStap('tellen')} disabled={bezig}>
-            Terug
-          </Button>
-          <Button className="h-12 flex-[2] rounded-[14px] text-[15px] font-semibold" onClick={bevestigBon} disabled={bezig}>
-            {bezig ? <Loader2 size={18} className="mr-1 animate-spin" /> : <Check size={18} className="mr-1" />}
-            {bon.length === 0 ? 'Ronde afsluiten' : 'Bevestigen en doorzetten'}
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // ---------- Tellen ----------
-  return (
-    <div className="mt-4 rounded-[20px] border border-border bg-card p-4">
-      <div className="mb-1 flex items-center justify-between gap-2">
-        <h3 className="text-[17px] font-bold text-foreground">Voorraadronde</h3>
-        <span className="text-[13px] font-semibold text-muted-foreground tabular-nums">
-          {klaarAantal}/{alleSleutels.length}
+  /** Kop die er net zo uitziet als een taakcategorie in de sluitlijst. */
+  const kop = (
+    <button
+      type="button"
+      onClick={() => setOpen((o) => !o)}
+      className={`flex w-full items-center gap-3 rounded-[14px] border px-3.5 py-3 text-left transition-colors ${
+        afgerond ? 'border-primary/30 bg-primary/5' : 'border-border bg-muted'
+      }`}
+      style={{ minHeight: 52 }}
+    >
+      <span
+        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+          afgerond ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground'
+        }`}
+      >
+        {afgerond ? <Check size={16} /> : <ClipboardList size={16} />}
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[15px] font-bold text-foreground">Voorraadronde</span>
+        <span className="block text-[12px] text-muted-foreground">
+          {afgerond
+            ? 'Afgerond — aanvulbon is doorgezet'
+            : `${klaarAantal}/${alleSleutels.length} categorieën geteld`}
         </span>
-      </div>
-      <p className="mb-3 text-[13px] text-muted-foreground">
-        Loop de kasten langs en bevestig per categorie. Tik alleen een product aan als er minder ligt.
-      </p>
-      <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-        <div
-          className="h-full rounded-full bg-primary transition-all"
-          style={{ width: `${alleSleutels.length ? (klaarAantal / alleSleutels.length) * 100 : 0}%` }}
-        />
-      </div>
+      </span>
+      <ChevronDown
+        size={20}
+        className={`ml-auto shrink-0 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`}
+      />
+    </button>
+  );
 
-      <div className="space-y-5">
-        {categorieGroepen.map((p) => (
-          <div key={p.plek}>
-            <p className="mb-2 text-[12px] font-bold uppercase tracking-wide text-muted-foreground">
-              {p.titel}
+  const inhoud = () => {
+    // ---------- Klaar ----------
+    if (stap === 'klaar') {
+      return (
+        <div className="mt-2 rounded-[18px] border border-primary/30 bg-primary/5 p-5 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <Check size={24} />
+          </div>
+          <h3 className="text-[17px] font-bold text-foreground">Voorraadronde afgerond</h3>
+          <p className="mt-1 text-[14px] text-muted-foreground">
+            {samenvatting
+              ? BON_GROEPEN.filter((g) => (samenvatting[g.soort] ?? 0) > 0)
+                  .map((g) => `${samenvatting[g.soort]} ${g.titel.toLowerCase()}`)
+                  .join(' · ') || 'Alles lag er — niets door te zetten.'
+              : 'Alles verwerkt.'}
+          </p>
+        </div>
+      );
+    }
+
+    // ---------- Aanvulbon ----------
+    if (stap === 'bon') {
+      return (
+        <div className="mt-2 rounded-[18px] border border-border bg-card p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <ClipboardList size={20} className="text-primary" />
+            <h3 className="text-[17px] font-bold text-foreground">Aanvulbon</h3>
+          </div>
+
+          {bon.length === 0 ? (
+            <p className="text-[14px] text-muted-foreground">
+              Alles lag er. Er hoeft niets gehaald of besteld te worden.
             </p>
-            <div className="space-y-2">
-              {p.categorieen.map(([cat, catItems]) => {
-                const sleutel = `${p.plek}:${cat}`;
+          ) : (
+            <div className="space-y-3">
+              {BON_GROEPEN.map((groep) => {
+                const regels = bon.filter((r) => r.soort === groep.soort);
+                if (!regels.length) return null;
+                const Icoon = groep.icoon;
                 return (
-                  <CategorieBlok
-                    key={sleutel}
-                    titel={cat}
-                    items={catItems}
-                    drukte={drukte}
-                    telling={telling}
-                    onderwegMap={onderwegMap}
-                    bevestigd={bevestigd.includes(sleutel)}
-                    onBevestig={() => setBevestigd((b) => [...new Set([...b, sleutel])])}
-                    onHeropen={() => setBevestigd((b) => b.filter((s) => s !== sleutel))}
-                    onZet={zet}
-                    onHerstel={herstel}
-                  />
+                  <div key={groep.soort} className="rounded-[16px] border border-border bg-muted/30 p-3">
+                    <div className="mb-2 flex items-center gap-2">
+                      <Icoon size={18} className="text-primary" />
+                      <div className="min-w-0">
+                        <p className="text-[15px] font-bold text-foreground">{groep.titel}</p>
+                        <p className="text-[12px] text-muted-foreground">{groep.uitleg}</p>
+                      </div>
+                      <Badge variant="secondary" className="ml-auto text-[11px]">{regels.length}</Badge>
+                    </div>
+                    <div className="space-y-1.5">
+                      {regels.map((r) => (
+                        <div
+                          key={r.item.id}
+                          className="flex items-center justify-between gap-3 rounded-[12px] bg-card px-3 py-2.5"
+                        >
+                          <span className="min-w-0">
+                            <span className="block truncate text-[14px] font-semibold text-foreground">
+                              {r.item.naam}
+                            </span>
+                            <span className="block truncate text-[12px] text-muted-foreground">
+                              {getalLabel(r.doel)} nodig · {getalLabel(r.geteld)} geteld
+                              {r.onderItem ? ` · uit ${HERKOMST_LABEL[r.onderItem.plek]}` : ''}
+                            </span>
+                          </span>
+                          <span className="shrink-0 text-[14px] font-bold tabular-nums text-primary">
+                            {aantalLabel(r.tekort, r.item.eenheid)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 );
               })}
             </div>
-          </div>
-        ))}
-      </div>
+          )}
 
-      <Button
-        className="mt-4 h-14 w-full rounded-[16px] text-[16px] font-bold"
-        disabled={!allesBevestigd}
-        onClick={() => setStap('bon')}
-      >
-        {allesBevestigd ? (
-          <>
-            Naar de aanvulbon
-            <ArrowRight size={20} className="ml-1" />
-          </>
-        ) : (
-          `Nog ${alleSleutels.length - klaarAantal} ${
-            alleSleutels.length - klaarAantal === 1 ? 'categorie' : 'categorieën'
-          } te gaan`
-        )}
-      </Button>
+          <div className="mt-4 flex gap-2">
+            <Button variant="outline" className="h-12 flex-1 rounded-[14px]" onClick={() => setStap('tellen')} disabled={bezig}>
+              Terug
+            </Button>
+            <Button className="h-12 flex-[2] rounded-[14px] text-[15px] font-semibold" onClick={bevestigBon} disabled={bezig}>
+              {bezig ? <Loader2 size={18} className="mr-1 animate-spin" /> : <Check size={18} className="mr-1" />}
+              {bon.length === 0 ? 'Ronde afsluiten' : 'Bevestigen en doorzetten'}
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    // ---------- Tellen ----------
+    return (
+      <div className="mt-2 rounded-[18px] border border-border bg-card p-4">
+        <p className="mb-3 text-[13px] text-muted-foreground">
+          Loop de kasten langs en bevestig per categorie. Tik alleen een product aan als er minder ligt.
+        </p>
+        <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full bg-primary transition-all"
+            style={{ width: `${alleSleutels.length ? (klaarAantal / alleSleutels.length) * 100 : 0}%` }}
+          />
+        </div>
+
+        <div className="space-y-6">
+          {categorieGroepen.map((p) => {
+            const PlekIcoon = p.icoon;
+            const klaarHier = p.categorieen.filter(([cat]) => bevestigd.includes(`${p.plek}:${cat}`)).length;
+            return (
+              <div key={p.plek}>
+                <div className="sticky top-0 z-10 -mx-1 mb-3 rounded-[14px] border border-border bg-card/95 px-3 py-2.5 backdrop-blur">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <PlekIcoon size={20} />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        Loop nu langs
+                      </span>
+                      <span className="block truncate text-[18px] font-bold leading-tight text-foreground">
+                        {p.titel}
+                      </span>
+                    </span>
+                    <span className="ml-auto shrink-0 rounded-full bg-muted px-2.5 py-1 text-[12px] font-semibold tabular-nums text-muted-foreground">
+                      {klaarHier}/{p.categorieen.length}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-2 pl-2">
+                  {p.categorieen.map(([cat, catItems]) => {
+                    const sleutel = `${p.plek}:${cat}`;
+                    return (
+                      <CategorieBlok
+                        key={sleutel}
+                        titel={cat}
+                        items={catItems}
+                        drukte={drukte}
+                        telling={telling}
+                        onderwegMap={onderwegMap}
+                        bevestigd={bevestigd.includes(sleutel)}
+                        onBevestig={() => setBevestigd((b) => [...new Set([...b, sleutel])])}
+                        onHeropen={() => setBevestigd((b) => b.filter((s) => s !== sleutel))}
+                        onZet={zet}
+                        onHerstel={herstel}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <Button
+          className="mt-4 h-14 w-full rounded-[16px] text-[16px] font-bold"
+          disabled={!allesBevestigd}
+          onClick={() => setStap('bon')}
+        >
+          {allesBevestigd ? (
+            <>
+              Naar de aanvulbon
+              <ArrowRight size={20} className="ml-1" />
+            </>
+          ) : (
+            `Nog ${alleSleutels.length - klaarAantal} ${
+              alleSleutels.length - klaarAantal === 1 ? 'categorie' : 'categorieën'
+            } te gaan`
+          )}
+        </Button>
+      </div>
+    );
+  };
+
+  return (
+    <div className="mb-6">
+      {kop}
+      {open && inhoud()}
     </div>
   );
 }
