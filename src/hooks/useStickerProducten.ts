@@ -85,14 +85,16 @@ export function useCreateStickerPrintJob() {
         vestiging: userLocation || null,
         bron: input.bron ?? 'snel_printen',
       }));
-      const { error: jobErr } = await supabase.from('print_jobs').insert(rows);
+      const { error: jobErr } = await metHerstel(() => supabase.from('print_jobs').insert(rows));
       if (jobErr) throw jobErr;
 
-      const { error: bumpErr } = await supabase.rpc('sticker_producten_bump', {
-        _naam: input.naam,
-        _type: input.type,
-        _tht: input.type === 'vrij' ? null : (input.tht_dagen ?? null),
-      });
+      const { error: bumpErr } = await metHerstel(() =>
+        supabase.rpc('sticker_producten_bump', {
+          _naam: input.naam,
+          _type: input.type,
+          _tht: input.type === 'vrij' ? null : (input.tht_dagen ?? null),
+        }),
+      );
       if (bumpErr) throw bumpErr;
 
       return { count: n };
