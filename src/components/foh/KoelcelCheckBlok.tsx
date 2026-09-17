@@ -195,9 +195,7 @@ interface RijProps {
   bezig: boolean;
   klaarLabel: string;
   klaarIcoon: 'check' | 'snowflake';
-  toonOntdooi: boolean;
   onKlaar: () => void;
-  onOntdooid: () => void;
   onOp: () => void;
   onTeWeinig: () => void;
 }
@@ -210,9 +208,7 @@ function ItemRij({
   bezig,
   klaarLabel,
   klaarIcoon,
-  toonOntdooi,
   onKlaar,
-  onOntdooid,
   onOp,
   onTeWeinig,
 }: RijProps) {
@@ -220,7 +216,19 @@ function ItemRij({
   const isKlaar = status === 'aanwezig' || status === 'uit_vriezer';
   const isGemeld = status === 'gemeld' || status === 'naar_mep';
   const bestemming = vervolgactieVoorRegel(item, alleItems);
+  const eind = eindBestemming(item, alleItems);
   const doorgezet = check?.aantal_doorgezet ?? null;
+
+  // Ligt hetzelfde product een niveau lager? Dan is de knop een opdracht: pakken en terugleggen.
+  const uitNiveau = bestemming.soort === 'niveau' ? bestemming.onderItem : null;
+  const opLabel = uitNiveau
+    ? uitNiveau.plek === 'vriezer'
+      ? 'Halen uit de vriescel'
+      : `Bijvullen uit ${HERKOMST_LABEL[uitNiveau.plek]}`
+    : 'Op';
+  const onderschrift = uitNiveau
+    ? `Aanvullen uit ${HERKOMST_LABEL[uitNiveau.plek]} · daarna ${eind.label}`
+    : `${BRON_LABEL[item.bron]} · als het op is naar ${eind.label}`;
 
   return (
     <div
@@ -254,14 +262,13 @@ function ItemRij({
             fontFamily: lettertype,
           }}
         >
-          {bestemming.soort === 'niveau'
-            ? `Als het op is → ${bestemming.label}`
-            : BRON_LABEL[item.bron]}
+          {onderschrift}
           {isGemeld
             ? doorgezet
-              ? ` · ${doorgezet} ${item.eenheid} naar ${bestemming.label}`
-              : ` · staat op ${bestemming.label}`
+              ? ` · ${doorgezet} ${item.eenheid} naar ${eind.label}`
+              : ` · staat op ${eind.label}`
             : ''}
+          {status === 'uit_vriezer' && item.plek === 'vriezer' ? ' · deze week uit gehaald' : ''}
         </div>
       </div>
 
@@ -281,30 +288,6 @@ function ItemRij({
         {klaarIcoon === 'snowflake' ? <Snowflake size={16} /> : <Check size={16} />}
         {klaarLabel}
       </button>
-
-      {toonOntdooi && (
-        <button
-          type="button"
-          disabled={bezig}
-          onClick={onOntdooid}
-          aria-label="Uit de vriezer gehaald, sticker printen"
-          aria-pressed={status === 'uit_vriezer'}
-          style={{
-            ...basisKnop,
-            padding: '8px 12px',
-            cursor: bezig ? 'wait' : 'pointer',
-            backgroundColor: status === 'uit_vriezer' ? 'hsl(200 90% 45% / 0.15)' : 'hsl(var(--card))',
-            color: status === 'uit_vriezer' ? 'hsl(200 90% 32%)' : 'hsl(var(--muted-foreground))',
-            border:
-              status === 'uit_vriezer'
-                ? '1px solid hsl(200 90% 45% / 0.5)'
-                : '1px solid hsl(var(--border))',
-          }}
-        >
-          <Snowflake size={16} />
-          Ontdooid
-        </button>
-      )}
 
       <button
         type="button"
@@ -335,12 +318,13 @@ function ItemRij({
           border: isGemeld ? '1px solid hsl(25 95% 53% / 0.5)' : '1px solid hsl(var(--border))',
         }}
       >
-        <ArrowRight size={16} />
-        {isGemeld ? 'Doorgezet' : 'Op'}
+        {uitNiveau ? <Snowflake size={16} /> : <ArrowRight size={16} />}
+        {isGemeld ? 'Doorgezet' : opLabel}
       </button>
     </div>
   );
 }
+
 
 function CheckBlok({
   titel,
