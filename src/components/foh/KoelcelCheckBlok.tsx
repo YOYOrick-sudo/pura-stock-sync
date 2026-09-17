@@ -454,6 +454,7 @@ function CheckBlok({
   bezig,
   klaarLabel,
   klaarIcoon,
+  onderwegMap,
   onKlaar,
   onOp,
   onTeWeinig,
@@ -467,7 +468,9 @@ function CheckBlok({
   bezig: boolean;
   klaarLabel: string;
   klaarIcoon: 'check' | 'snowflake';
+  onderwegMap: Record<string, number>;
   onKlaar: (item: KoelcelCheckItem) => void;
+
   onOp: (item: KoelcelCheckItem) => void;
   onTeWeinig: (item: KoelcelCheckItem) => void;
 }) {
