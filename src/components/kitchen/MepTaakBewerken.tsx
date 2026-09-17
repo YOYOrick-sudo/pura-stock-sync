@@ -84,8 +84,27 @@ export function MepTaakBewerken({
     setNotitie(taak.notitie ?? '');
   }, [taak]);
 
+  const isGewijzigd = () => {
+    if (!taak) return false;
+    const getal = aantal.trim() === '' ? null : Number(aantal.replace(',', '.'));
+    const huidigAantal = taak.doel_aantal != null ? Number(taak.doel_aantal) : null;
+    return (
+      handeling !== taak.handeling ||
+      persoon !== taak.toegewezen_aan ||
+      prioriteit !== (taak.prioriteit === 1 ? 1 : 2) ||
+      getal !== huidigAantal ||
+      (eenheid.trim() || null) !== (taak.doel_eenheid ?? null) ||
+      (deadline.trim() ? `${deadline}:00` : null) !== (taak.deadline ?? null) ||
+      (notitie.trim() || null) !== (taak.notitie ?? null)
+    );
+  };
+
   const opslaan = async () => {
     if (!taak || bezig) return;
+    if (!isGewijzigd()) {
+      onOpenChange(false);
+      return;
+    }
     const getal = aantal.trim() === '' ? null : Number(aantal.replace(',', '.'));
     if (getal != null && (!Number.isFinite(getal) || getal < 0)) {
       toast.error('Vul een geldig aantal in');
@@ -111,8 +130,15 @@ export function MepTaakBewerken({
     }
   };
 
+  // Buiten het venster tikken, Escape of het kruisje: eerst bewaren, dan sluiten
+  const handleOpenChange = (open: boolean) => {
+    if (open) return;
+    if (bezig) return;
+    void opslaan();
+  };
+
   return (
-    <Dialog open={!!taak} onOpenChange={onOpenChange}>
+    <Dialog open={!!taak} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-[650px] max-h-[90dvh] flex flex-col gap-3 overflow-hidden">
         <DialogHeader>
           <DialogTitle className="text-left">{taak?.titel}</DialogTitle>

@@ -1,20 +1,24 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ClipboardList, Edit2, X, Check, Clock } from 'lucide-react';
+import { ClipboardList, Clock, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserLocation } from '@/contexts/UserLocationContext';
-import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+
+type SaveState = 'idle' | 'saving' | 'saved';
 
 export const HandoverCard = () => {
   const { userLocation } = useUserLocation();
   const draftKey = `handover-draft-${userLocation || 'unknown'}`;
-  const [isEditing, setIsEditing] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const [memoText, setMemoText] = useState('');
-  const [draftRestored, setDraftRestored] = useState(false);
+  const [saveState, setSaveState] = useState<SaveState>('idle');
   const queryClient = useQueryClient();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const savedTextRef = useRef<string>('');
+  const memoTextRef = useRef<string>('');
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const getDraft = () => {
     try { return localStorage.getItem(draftKey); } catch { return null; }
@@ -42,6 +46,9 @@ export const HandoverCard = () => {
     enabled: !!userLocation,
   });
 
+  useEffect(() => { memoTextRef.current = memoText; }, [memoText]);
+  useEffect(() => { savedTextRef.current = (latestMemo?.message || '').trim(); }, [latestMemo?.message]);
+
   useLayoutEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -60,21 +67,57 @@ export const HandoverCard = () => {
     return () => { supabase.removeChannel(channel); };
   }, [userLocation, queryClient]);
 
-  const handleEdit = () => { setMemoText(latestMemo?.message || ''); setIsEditing(true); };
-  const handleCancel = () => { setIsEditing(false); setMemoText(''); };
-
-  const handleSave = async () => {
+  // Kernopslag: alleen schrijven als de tekst echt afwijkt van de laatst bewaarde versie
+  const saveNow = useCallback(async (value?: string) => {
+    if (!userLocation) return;
+    const text = (value ?? memoTextRef.current).trim();
+    if (text === savedTextRef.current) return;
+    setSaveState('saving');
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { error } = await supabase.from('handover_memos').insert({ location: userLocation, message: memoText.trim(), created_by: user.id });
-    if (error) { toast.error('Kon overdracht niet opslaan'); return; }
+    if (!user) { setSaveState('idle'); return; }
+    const { error } = await supabase
+      .from('handover_memos')
+      .insert({ location: userLocation, message: text, created_by: user.id });
+    if (error) {
+      setSaveState('idle');
+      toast.error('Kon overdracht niet opslaan');
+      return;
+    }
+    savedTextRef.current = text;
     setDraft(null);
-    setDraftRestored(false);
-    toast.success(memoText.trim() ? 'Overdracht opgeslagen' : 'Overdracht gewist');
-    setIsEditing(false);
-    setMemoText('');
+    setSaveState('saved');
     queryClient.invalidateQueries({ queryKey: ['handover-memo', userLocation] });
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userLocation, queryClient, draftKey]);
+
+  // Automatisch opslaan na een korte pauze in het typen
+  useEffect(() => {
+    if (!isFocused || !userLocation) return;
+    if (memoText.trim() === savedTextRef.current) return;
+    setSaveState('idle');
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => { void saveNow(); }, 1500);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [memoText, isFocused, userLocation, saveNow]);
+
+  // Opslaan bij wegklikken / app naar achtergrond
+  useEffect(() => {
+    const flush = () => { void saveNow(); };
+    document.addEventListener('visibilitychange', flush);
+    window.addEventListener('pagehide', flush);
+    return () => {
+      document.removeEventListener('visibilitychange', flush);
+      window.removeEventListener('pagehide', flush);
+    };
+  }, [saveNow]);
+
+  // Concept bewaren bij elke toetsaanslag zolang het afwijkt van de server-versie
+  useEffect(() => {
+    if (!isFocused || !userLocation) return;
+    if (memoText.trim() !== savedTextRef.current) setDraft(memoText);
+    else setDraft(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memoText, isFocused, userLocation]);
 
   // Herstel een niet-opgeslagen concept zodra de server-versie bekend is
   const draftCheckedRef = useRef<string | null>(null);
@@ -85,24 +128,14 @@ export const HandoverCard = () => {
     const draft = getDraft();
     if (draft !== null && draft.trim() !== (latestMemo?.message || '').trim()) {
       setMemoText(draft);
-      setIsEditing(true);
-      setDraftRestored(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, userLocation, latestMemo?.message]);
 
-  // Bewaar concept per wijziging zolang het afwijkt van de server-versie
+  // Serverversie overnemen zolang hier niemand aan het typen is
   useEffect(() => {
-    if (!isEditing || !userLocation) return;
-    if (memoText.trim() !== (latestMemo?.message || '').trim()) setDraft(memoText);
-    else setDraft(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [memoText, isEditing, userLocation, latestMemo?.message]);
-
-  // Sync memoText met server-versie zolang we niet aan het editen zijn
-  useEffect(() => {
-    if (!isEditing) setMemoText(latestMemo?.message || '');
-  }, [latestMemo?.message, isEditing]);
+    if (!isFocused) setMemoText(latestMemo?.message || '');
+  }, [latestMemo?.message, isFocused]);
 
   const cardClasses = "bg-card border border-border/60 rounded-[20px] shadow-[var(--shadow-card)]";
 
@@ -117,11 +150,12 @@ export const HandoverCard = () => {
     );
   }
 
-  const dirty = isEditing && memoText.trim() !== (latestMemo?.message || '').trim();
-
-  const handleSaveInline = async () => {
-    if (!dirty) { setIsEditing(false); return; }
-    await handleSave();
+  const handleWissen = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setMemoText('');
+    setDraft(null);
+    void saveNow('');
+    textareaRef.current?.focus();
   };
 
   return (
@@ -140,26 +174,43 @@ export const HandoverCard = () => {
         </div>
       </div>
 
-      <Textarea
-        ref={textareaRef}
-        value={memoText}
-        onChange={(e) => { setMemoText(e.target.value); if (!isEditing) setIsEditing(true); }}
-        onFocus={() => setIsEditing(true)}
-        onBlur={handleSaveInline}
-        onKeyDown={(e) => {
-          if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); (e.target as HTMLTextAreaElement).blur(); }
-          if (e.key === 'Escape') { setMemoText(latestMemo?.message || ''); setDraft(null); setDraftRestored(false); setIsEditing(false); (e.target as HTMLTextAreaElement).blur(); }
-        }}
-        placeholder="Noteer hier belangrijke informatie voor de volgende shift:&#10;• Speciale afspraken of afhalingen&#10;• Bijzonderheden van vandaag&#10;• Aandachtspunten voor straks"
-        rows={3}
-        className="resize-none overflow-hidden"
-        style={{ whiteSpace: 'pre-wrap' }}
-      />
+      <div className="relative">
+        <Textarea
+          ref={textareaRef}
+          value={memoText}
+          onChange={(e) => setMemoText(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+            void saveNow();
+            setIsFocused(false);
+          }}
+          onKeyDown={(e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+              e.preventDefault();
+              (e.target as HTMLTextAreaElement).blur();
+            }
+          }}
+          placeholder="Noteer hier belangrijke informatie voor de volgende shift:&#10;• Speciale afspraken of afhalingen&#10;• Bijzonderheden van vandaag&#10;• Aandachtspunten voor straks"
+          rows={3}
+          className="resize-none overflow-hidden pr-12"
+          style={{ whiteSpace: 'pre-wrap' }}
+        />
+        {isFocused && memoText.trim().length > 0 && (
+          <button
+            type="button"
+            aria-label="Overdracht wissen"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={handleWissen}
+            className="absolute top-1 right-1 h-11 w-11 flex items-center justify-center rounded-[14px] text-muted-foreground/70 hover:text-foreground hover:bg-muted transition-colors"
+          >
+            <Trash2 size={16} />
+          </button>
+        )}
+      </div>
 
       <div className="flex items-center justify-between min-h-[20px]">
-        {isEditing && draftRestored ? (
-          <p className="text-xs text-muted-foreground">Concept hersteld — tik op Opslaan om te bewaren</p>
-        ) : latestMemo?.message && !isEditing ? (
+        {latestMemo?.message ? (
           <div className="flex items-center gap-1.5">
             <Clock size={14} className="text-muted-foreground" />
             <p className="text-xs text-muted-foreground">
@@ -167,15 +218,10 @@ export const HandoverCard = () => {
             </p>
           </div>
         ) : <span />}
-        {isEditing && (
-          <div className="flex gap-2 ml-auto">
-            <Button variant="ghost" size="sm" onClick={() => { setMemoText(latestMemo?.message || ''); setDraft(null); setDraftRestored(false); setIsEditing(false); }}>
-              <X size={14} /> Annuleren
-            </Button>
-            <Button size="sm" onClick={handleSave} disabled={!dirty}>
-              <Check size={14} /> Opslaan
-            </Button>
-          </div>
+        {saveState !== 'idle' && (
+          <p className="text-xs text-muted-foreground ml-auto">
+            {saveState === 'saving' ? 'Opslaan…' : 'Opgeslagen'}
+          </p>
         )}
       </div>
     </div>
