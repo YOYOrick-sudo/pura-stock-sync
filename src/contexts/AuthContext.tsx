@@ -76,7 +76,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     void bepaal();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nieuweSessie) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nieuweSessie) => {
+      // Het eerste "geen sessie"-bericht komt ook als de opslag nog bevroren
+      // is. Dat is géén uitlogsignaal: de pogingen hierboven bepalen dat.
+      if (!nieuweSessie && (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED')) return;
       rondeRef.current++; // lopende pogingen zijn achterhaald
       setSession(nieuweSessie);
       setStatus(nieuweSessie ? 'ingelogd' : 'uitgelogd');
