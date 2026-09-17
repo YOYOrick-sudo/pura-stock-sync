@@ -367,7 +367,8 @@ function CategorieBlok({
           <TelRegel
             key={item.id}
             item={item}
-            doel={doelAantal(item, drukte)}
+            doel={telDoel(item, drukte)}
+            reserve={isReserveItem(item)}
             geteld={telling[item.id]}
             onderweg={onderwegMap[item.naam.trim().toLowerCase()] ?? 0}
             opBestelbord={(bestelbordMap[item.naam.trim().toLowerCase()] ?? 0) > 0}
