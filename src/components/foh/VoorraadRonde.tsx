@@ -548,7 +548,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
     for (const item of items) {
       const geteld = telling[item.id];
       if (geteld === undefined) continue;
-      const doel = doelAantal(item, drukte);
+      const doel = telDoel(item, drukte);
       // Besteld-en-onderweg telt mee als voorraad: niet opnieuw bestellen.
       const onderweg = onderwegMap[item.naam.trim().toLowerCase()] ?? 0;
       const tekort = tekortVan(doel, geteld, onderweg);
