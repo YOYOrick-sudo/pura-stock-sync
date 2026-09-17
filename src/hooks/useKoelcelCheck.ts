@@ -143,14 +143,26 @@ export function eindBestemming(
   item: KoelcelCheckItem,
   alleItems: KoelcelCheckItem[],
 ): ReturnType<typeof bestemmingVoorBron> {
+  return diepsteBron(item, alleItems).bestemming;
+}
+
+/**
+ * Loopt de keten af tot het laagste niveau dat dit product nog voert, en geeft
+ * dat item terug plus waar het bijbesteld/gemaakt moet worden.
+ */
+export function diepsteBron(
+  item: KoelcelCheckItem,
+  alleItems: KoelcelCheckItem[],
+): { item: KoelcelCheckItem; bestemming: ReturnType<typeof bestemmingVoorBron> } {
   let huidig = item;
   for (let i = 0; i < 5; i++) {
     const volgend = vervolgactieVoorRegel(huidig, alleItems);
-    if (volgend.soort !== 'niveau') return volgend;
+    if (volgend.soort !== 'niveau') return { item: huidig, bestemming: volgend };
     huidig = volgend.onderItem;
   }
-  return bestemmingVoorBron(huidig.bron);
+  return { item: huidig, bestemming: bestemmingVoorBron(huidig.bron) };
 }
+
 
 
 /** Rustig of druk: bepaalt welke hoeveelheden de sluitlijst toont. */
@@ -546,28 +558,76 @@ export function useKoelcelCheckMutaties(
   });
 
   /**
-   * Aangevuld vanuit het niveau eronder: de bovenste regel is klaar, en op de
-   * onderliggende regel leggen we vast dat daar iets uit gehaald is (zodat de
-   * maandagse vriescelcheck weet waar geteld moet worden).
+   * Aangevuld vanuit het niveau eronder: de bovenste regel is klaar, en wat er
+   * uit het onderliggende niveau gehaald is wordt daar meteen weer bijbesteld
+   * (bestelbord, Midsland of de mise-en-place), zodat die voorraad blijft kloppen.
    */
   const vulAanUitNiveau = useMutation({
-    mutationFn: async ({ item, onderItem }: { item: KoelcelCheckItem; onderItem: KoelcelCheckItem }) => {
+    mutationFn: async ({
+      item,
+      onderItem,
+      aantal = 1,
+    }: {
+      item: KoelcelCheckItem;
+      onderItem: KoelcelCheckItem;
+      /** Hoeveel er uit het niveau eronder gehaald is. */
+      aantal?: number;
+    }) => {
+      const gehaald = Math.max(Number(aantal) || 1, 1);
+      const { item: bronItem, bestemming } = diepsteBron(onderItem, alleItems);
+
+      let mepTaakId: string | null = null;
+      let dubbel = false;
+      let geplaatst = gehaald;
+      let onderweg = 0;
+
+      if (bestemming.soort === 'mep') {
+        const res = await mepTaakVoorItem(bronItem, vestiging, datum, bestemming.handeling!, gehaald);
+        mepTaakId = res.id;
+        dubbel = res.dubbel;
+      } else if (bestemming.soort === 'bestelbord') {
+        const res = await opBestelbord(bronItem, vestiging, gehaald);
+        dubbel = res.dubbel;
+        geplaatst = res.aantal;
+      } else {
+        const res = await naarMidsland(bronItem, vestiging, gehaald);
+        dubbel = res.dubbel;
+        geplaatst = res.aantal;
+        onderweg = res.onderweg;
+      }
+
       const { data: user } = await supabase.auth.getUser();
       const uid = user.user?.id ?? null;
       const { error } = await metHerstel(() =>
         supabase.from('koelcel_checks').upsert(
           [
             { item_id: item.id, vestiging, datum, status: 'aanwezig' as const, created_by: uid },
-            { item_id: onderItem.id, vestiging, datum, status: 'uit_vriezer' as const, created_by: uid },
-          ],
+            {
+              item_id: onderItem.id,
+              vestiging,
+              datum,
+              status: 'uit_vriezer' as const,
+              doorgezet_naar: bestemming.soort,
+              aantal_doorgezet: geplaatst,
+              mep_taak_id: mepTaakId,
+              created_by: uid,
+            },
+          ] as any,
           { onConflict: 'item_id,datum' },
         ),
       );
       if (error) throw error;
-      return { item, onderItem };
+      return { item, onderItem, bronItem, bestemming, gehaald, geplaatst, dubbel, onderweg };
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: checksKey }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: checksKey });
+      qc.invalidateQueries({ queryKey: ['mep-taken', vestiging] });
+      qc.invalidateQueries({ queryKey: ['bestel-signalen', vestiging] });
+      qc.invalidateQueries({ queryKey: ['openstaand-besteld', vestiging] });
+      qc.invalidateQueries({ queryKey: ['internal-orders'] });
+    },
   });
+
 
 
 

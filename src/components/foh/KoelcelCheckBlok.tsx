@@ -23,6 +23,15 @@ import { useCreateStickerPrintJob } from '@/hooks/useStickerProducten';
 
 const lettertype = 'Inter, sans-serif';
 
+/** Wat er met een doorgezette regel gebeurd is, kort in het afgehandeld-lijstje. */
+const DOORGEZET_LABEL: Record<string, string> = {
+  mep: 'naar de mise-en-place',
+  bestelbord: 'naar het bestelbord',
+  midsland: 'naar Midsland',
+  niveau: 'doorgezet',
+};
+
+
 function stickerDatum(d: Date): string {
   return d
     .toLocaleDateString('nl-NL', { weekday: 'short', day: '2-digit', month: '2-digit' })
@@ -72,12 +81,14 @@ function ActieDialog({
   onderItem: KoelcelCheckItem | null;
   doel: number;
   onSluit: () => void;
-  onAangevuld: () => void;
+  /** aantal = hoeveel er uit het niveau eronder gehaald is. */
+  onAangevuld: (aantal: number) => void;
   /** aanwezig = wat er nog ligt (0 = helemaal op). */
   onOp: (aanwezig: number) => void;
 }) {
-  const [stap, setStap] = useState<'keuze' | 'aantal'>('keuze');
+  const [stap, setStap] = useState<'keuze' | 'aantal' | 'aanvullen'>('keuze');
   const [aanwezig, setAanwezig] = useState(Math.max(doel - 1, 0));
+  const tekort = Math.max(doel - aanwezig, 1);
 
   const stapKnop: React.CSSProperties = {
     width: '56px',
@@ -92,6 +103,7 @@ function ActieDialog({
   };
 
   const bronNaam = onderItem ? HERKOMST_LABEL[onderItem.plek] : null;
+
 
   return (
     <div
@@ -135,7 +147,7 @@ function ActieDialog({
               {onderItem && (
                 <button
                   type="button"
-                  onClick={onAangevuld}
+                  onClick={() => onAangevuld(doel)}
                   style={{
                     ...knop,
                     minHeight: '54px',
@@ -181,6 +193,53 @@ function ActieDialog({
               </button>
             </div>
           </>
+        ) : stap === 'aanvullen' && onderItem ? (
+          <>
+            <div style={{ fontSize: '15px', color: 'hsl(var(--foreground))', marginTop: '6px', lineHeight: 1.4 }}>
+              Pak <strong>{tekort} {item.eenheid}</strong> uit {bronNaam} en leg het{' '}
+              {BESTEMMING_LABEL[item.plek]}.
+            </div>
+            <div style={{ fontSize: '13px', color: 'hsl(var(--muted-foreground))', marginTop: '6px' }}>
+              {onderItem.plek === 'vriezer'
+                ? 'De "Ontdooid"-sticker wordt meteen geprint. '
+                : ''}
+              Wat je eruit haalt wordt automatisch bijbesteld.
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '18px' }}>
+              <button
+                type="button"
+                onClick={() => onAangevuld(tekort)}
+                style={{
+                  ...knop,
+                  minHeight: '54px',
+                  backgroundColor: 'hsl(var(--primary))',
+                  color: 'hsl(var(--primary-foreground))',
+                }}
+              >
+                <Check size={18} /> Gedaan, bijgevuld
+              </button>
+              <button
+                type="button"
+                onClick={() => onOp(aanwezig)}
+                style={{
+                  ...knop,
+                  minHeight: '54px',
+                  backgroundColor: 'hsl(25 95% 53% / 0.12)',
+                  color: 'hsl(25 95% 35%)',
+                  border: '1px solid hsl(25 95% 53% / 0.4)',
+                }}
+              >
+                {bronNaam} is ook leeg
+              </button>
+              <button
+                type="button"
+                onClick={() => setStap('aantal')}
+                style={{ ...knop, backgroundColor: 'transparent', color: 'hsl(var(--muted-foreground))' }}
+              >
+                Terug
+              </button>
+            </div>
+          </>
         ) : (
           <>
             <div style={{ fontSize: '14px', color: 'hsl(var(--muted-foreground))', marginTop: '4px' }}>
@@ -214,7 +273,9 @@ function ActieDialog({
                 marginBottom: '14px',
               }}
             >
-              Er wordt {Math.max(doel - aanwezig, 1)} {item.eenheid} doorgezet.
+              {onderItem
+                ? `Er moet ${tekort} ${item.eenheid} bij uit ${bronNaam}.`
+                : `Er wordt ${tekort} ${item.eenheid} doorgezet.`}
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
@@ -232,7 +293,7 @@ function ActieDialog({
               </button>
               <button
                 type="button"
-                onClick={() => onOp(aanwezig)}
+                onClick={() => (onderItem ? setStap('aanvullen') : onOp(aanwezig))}
                 style={{
                   ...knop,
                   flex: 1,
@@ -240,11 +301,12 @@ function ActieDialog({
                   color: 'hsl(var(--primary-foreground))',
                 }}
               >
-                Doorzetten
+                {onderItem ? 'Verder' : 'Doorzetten'}
               </button>
             </div>
           </>
         )}
+
       </div>
     </div>
   );
@@ -578,8 +640,10 @@ function CheckBlok({
           {openKlaar && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', padding: '4px' }}>
               {afgehandeld.map((item) => {
-                const status = checks.get(item.id)?.status;
+                const check = checks.get(item.id);
+                const status = check?.status;
                 const gemeld = status === 'gemeld' || status === 'naar_mep';
+                const bij = status === 'uit_vriezer';
                 return (
                   <span
                     key={item.id}
@@ -589,15 +653,25 @@ function CheckBlok({
                       fontFamily: lettertype,
                       borderRadius: '999px',
                       padding: '4px 10px',
-                      color: gemeld ? 'hsl(25 95% 32%)' : 'hsl(var(--muted-foreground))',
-                      backgroundColor: gemeld ? 'hsl(25 95% 53% / 0.12)' : 'hsl(var(--muted))',
+                      color: gemeld
+                        ? 'hsl(25 95% 32%)'
+                        : bij
+                          ? 'hsl(var(--primary))'
+                          : 'hsl(var(--muted-foreground))',
+                      backgroundColor: gemeld
+                        ? 'hsl(25 95% 53% / 0.12)'
+                        : bij
+                          ? 'hsl(var(--primary) / 0.1)'
+                          : 'hsl(var(--muted))',
                     }}
                   >
                     {item.naam}
-                    {gemeld ? ' · doorgezet' : ''}
+                    {gemeld ? ` · ${DOORGEZET_LABEL[check?.doorgezet_naar ?? ''] ?? 'doorgezet'}` : ''}
+                    {bij ? ' · uit voorraad gehaald' : ''}
                   </span>
                 );
               })}
+
             </div>
           )}
         </div>
@@ -662,9 +736,9 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
     );
   };
 
-  const doorzetten = async (item: KoelcelCheckItem, aanwezig: number) => {
+  const doorzetten = async (item: KoelcelCheckItem, aanwezig: number, doelOverride?: number) => {
     try {
-      const res = await meldOp.mutateAsync({ item, doel: doelAantal(item, drukte), aanwezig });
+      const res = await meldOp.mutateAsync({ item, doel: doelOverride ?? doelAantal(item, drukte), aanwezig });
       if (res.bestemming.soort === 'niveau')
         toast.success(`"${item.naam}" staat nu open bij ${res.bestemming.label}`);
       else if (res.geplaatst <= 0)
@@ -684,16 +758,19 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
     });
   };
 
-  /** "Gedaan": aangevuld vanuit het niveau eronder. */
-  const handleAangevuld = async (item: KoelcelCheckItem, onderItem: KoelcelCheckItem) => {
+  /** "Gedaan": aangevuld vanuit het niveau eronder; dat niveau wordt bijbesteld. */
+  const handleAangevuld = async (item: KoelcelCheckItem, onderItem: KoelcelCheckItem, aantal: number) => {
     try {
-      await vulAanUitNiveau.mutateAsync({ item, onderItem });
+      const res = await vulAanUitNiveau.mutateAsync({ item, onderItem, aantal });
       if (onderItem.plek === 'vriezer') printOntdooid(item);
       else toast.success(`${item.naam} bijgevuld uit ${HERKOMST_LABEL[onderItem.plek]}`);
+      if (res.geplaatst > 0)
+        toast.success(`${res.geplaatst} ${onderItem.eenheid} "${onderItem.naam}" naar ${res.bestemming.label}`);
     } catch (e: any) {
       toast.error('Niet opgeslagen: ' + (e?.message ?? 'onbekende fout'));
     }
   };
+
 
   const actieVervolg = actieItem ? vervolgactieVoorRegel(actieItem, items) : null;
   const actieOnderItem = actieVervolg && actieVervolg.soort === 'niveau' ? actieVervolg.onderItem : null;
@@ -744,27 +821,29 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
           onderItem={actieOnderItem}
           doel={doelAantal(actieItem, drukte)}
           onSluit={() => setActieItem(null)}
-          onAangevuld={() => {
+          onAangevuld={(aantal) => {
             const item = actieItem;
             const onder = actieOnderItem;
             setActieItem(null);
-            if (item && onder) void handleAangevuld(item, onder);
+            if (item && onder) void handleAangevuld(item, onder, aantal);
           }}
           onOp={(aanwezig) => {
             const item = actieItem;
             const onder = actieOnderItem;
+            const tekort = Math.max(doelAantal(item, drukte) - aanwezig, 1);
             setActieItem(null);
             void (async () => {
-              if (onder && aanwezig <= 0) {
-                // Het niveau eronder is ook leeg: die regel schuift door naar de
-                // volgende bron (vriescel, bestelbord, mise-en-place of Midsland).
-                await doorzetten(onder, 0);
+              if (onder) {
+                // Het niveau eronder is ook leeg: het tekort schuift door naar de
+                // volgende bron (bestelbord, mise-en-place of Midsland).
+                await doorzetten(onder, 0, tekort);
                 zetStatus.mutate({ item, status: 'gemeld' as KoelcelCheckStatus, uit: false });
               } else {
                 await doorzetten(item, aanwezig);
               }
             })();
           }}
+
         />
       )}
     </div>
