@@ -9,7 +9,6 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import {
   SortableContext,
   arrayMove,
@@ -42,6 +41,7 @@ import {
   CalendarDays,
   ChevronDown,
   AlertTriangle,
+  GripVertical,
 } from 'lucide-react';
 import { addDays, differenceInCalendarDays, format, parseISO } from 'date-fns';
 import { nl } from 'date-fns/locale';
@@ -264,7 +264,6 @@ export default function MepDag() {
                     <DndContext
                       sensors={sensors}
                       collisionDetection={closestCenter}
-                      modifiers={[restrictToVerticalAxis, restrictToParentElement]}
                       onDragEnd={(e) => sleepKlaar(e, openRijen)}
                     >
                       <SortableContext
