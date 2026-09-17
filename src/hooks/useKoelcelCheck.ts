@@ -204,6 +204,12 @@ async function opBestelbord(item: KoelcelCheckItem, vestiging: string): Promise<
   return false;
 }
 
+function datumMorgen(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
 async function naarMidsland(item: KoelcelCheckItem, vestiging: string): Promise<boolean> {
   const { data: orders, error: zoekFout } = await supabase
     .from('internal_orders')
