@@ -36,6 +36,13 @@
       "when": 1789656620155,
       "tag": "0004_rename_vis_naar_vissoep",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789658449115,
+      "tag": "0005_aanvulketen_west_productkaarten_bestelbord",
+      "breakpoints": true
     }
   ]
 }
