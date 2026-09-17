@@ -24,7 +24,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       if (poging.current === mijnPoging) setTraag(true);
     }, TRAAG_NA_MS);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await withTimeout(supabase.auth.getSession(), 8000);
       if (poging.current !== mijnPoging) return;
       setIsAuthenticated(!!session);
       setLoading(false);
