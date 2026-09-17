@@ -657,7 +657,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           const geteld = telling[item.id];
           if (geteld === undefined) return false;
           const onderweg = onderwegMap[item.naam.trim().toLowerCase()] ?? 0;
-          return tekortVan(telDoel(item, drukte), geteld, onderweg) > 0;
+          return tekortVoor(item, telDoel(item, drukte), geteld, onderweg) > 0;
         });
         return {
           sleutel: g.sleutel,
