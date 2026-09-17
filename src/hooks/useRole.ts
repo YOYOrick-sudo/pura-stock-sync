@@ -26,7 +26,9 @@ export function useRole(): RoleState {
     let cancelled = false;
 
     const load = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await withTimeout(supabase.auth.getUser(), 8000).catch(
+        () => ({ data: { user: null } }) as { data: { user: null } },
+      );
       if (!user) {
         if (!cancelled) setState({
           loading: false, isAuthenticated: false, isStaff: false,
@@ -34,11 +36,14 @@ export function useRole(): RoleState {
         });
         return;
       }
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('is_active', true);
+      const { data } = await withTimeout(
+        supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('is_active', true),
+        8000,
+      ).catch(() => ({ data: [] as { role: string }[] }));
       const roles = (data ?? []).map(r => r.role as string);
       const isOwner = roles.some(r => ['owner', 'admin'].includes(r));
       const isManager = isOwner || roles.includes('manager');
