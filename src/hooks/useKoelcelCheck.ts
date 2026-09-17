@@ -308,7 +308,10 @@ async function openstaandVoorProduct(
     .select('id, status')
     .eq('from_location', vestiging)
     .eq('to_location', 'Midsland')
-    .not('status', 'in', '("delivered","cancelled","geannuleerd")');
+    .not('status', 'in', '("delivered","cancelled","geannuleerd")')
+    // Alleen recente bestellingen tellen als "onderweg": oude, nooit afgemelde
+    // bestellingen mogen de behoefte van vandaag niet wegdrukken.
+    .gte('created_at', new Date(Date.now() - 14 * 86400_000).toISOString());
   if (error) throw error;
   const ids = (orders ?? []).map((o: any) => o.id);
   if (!ids.length) return 0;
