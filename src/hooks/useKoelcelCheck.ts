@@ -38,6 +38,8 @@ export interface KoelcelCheckItem {
   volgorde: number;
   actief: boolean;
   product_sleutel: string | null;
+  /** In welke lade van de koelwerkbank het product ligt (null = nog niet ingedeeld). */
+  lade_id?: string | null;
 }
 
 export type DrukteModus = 'rustig' | 'druk';
