@@ -710,9 +710,13 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           doel,
           soort: onder.plek === 'vriezer' ? 'vriescel' : 'koelcel',
         });
+      } else if (vervolg.soort === 'mep') {
+        const { prioriteit, batch } = mepOpdracht(item, doel, geteld, tekort);
+        regels.push({ item, onderItem: null, tekort, geteld, doel, soort: 'mep', prioriteit, batch });
       } else {
         regels.push({ item, onderItem: null, tekort, geteld, doel, soort: vervolg.soort as BonSoort });
       }
+
     }
     return regels;
   }, [items, telling, drukte, onderwegMap]);
