@@ -817,10 +817,17 @@ export function useKoelcelCheckMutaties(
         mepTaakId = res.id;
         dubbel = res.dubbel;
       } else if (bestemming.soort === 'bestelbord') {
-
-        const res = await opBestelbord(item, vestiging, tekort);
+        // Inkoop gaat in hele verpakkingen: geen losse aubergine bestellen.
+        const opdracht = bestelOpdracht(item, doelNu, Number(aanwezig || 0));
+        const res = await opBestelbord(item, vestiging, opdracht.eenheden, {
+          eenheid: opdracht.eenheidNaam,
+          notitie: opdracht.stuks
+            ? `${opdracht.stuks} ${item.eenheid || 'st.'} nodig tot ${doelNu}`
+            : undefined,
+        });
         dubbel = res.dubbel;
         geplaatst = res.aantal;
+
       } else {
         const res = await naarMidsland(item, vestiging, tekort);
         dubbel = res.dubbel;
