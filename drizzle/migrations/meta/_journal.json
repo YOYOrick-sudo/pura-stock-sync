@@ -8,6 +8,13 @@
       "when": 1789257730416,
       "tag": "0000_dag_beleving_tabel",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789640066282,
+      "tag": "0001_mep_heropenen_verwijdert_batch",
+      "breakpoints": true
     }
   ]
 }
