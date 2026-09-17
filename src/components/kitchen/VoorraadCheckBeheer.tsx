@@ -17,7 +17,9 @@ import {
 import {
   BRON_LABEL,
   PLEK_LABEL,
-  bestemmingVoorBron,
+  vervolgactieVoorRegel,
+  useDrukteModus,
+  useZetDrukteModus,
   type KoelcelCheckItem,
   type VoorraadBron,
   type VoorraadPlek,
@@ -25,6 +27,40 @@ import {
 
 const PLEKKEN: VoorraadPlek[] = ['vriezer', 'koelcel', 'werkbank', 'werkblad'];
 const BRONNEN: VoorraadBron[] = ['vriezer', 'koelcel_inkoop', 'magazijn', 'zelf_west', 'midsland'];
+
+/** Eén schakelaar voor de hele vestiging: rustige of drukke hoeveelheden. */
+function DrukteSchakelaar({ location }: { location: string }) {
+  const { data: modus = 'rustig' } = useDrukteModus(location);
+  const zet = useZetDrukteModus(location);
+
+  return (
+    <Card className="p-4 flex flex-wrap items-center gap-3">
+      <div className="flex-1 min-w-[200px]">
+        <p className="text-sm font-semibold">Hoeveelheden: {modus === 'druk' ? 'druk' : 'rustig'}</p>
+        <p className="text-xs text-muted-foreground">
+          In een druk seizoen gebruikt de sluitlijst de drukke aantallen. Vul je die niet in, dan
+          blijft het rustige aantal gelden.
+        </p>
+      </div>
+      {(['rustig', 'druk'] as const).map((m) => (
+        <Button
+          key={m}
+          variant={modus === m ? 'default' : 'outline'}
+          className="h-11 min-w-[96px]"
+          disabled={zet.isPending}
+          onClick={() =>
+            zet.mutate(m, {
+              onSuccess: () => toast.success(m === 'druk' ? 'Drukke hoeveelheden actief' : 'Rustige hoeveelheden actief'),
+              onError: (e: any) => toast.error('Niet opgeslagen: ' + (e?.message ?? 'onbekende fout')),
+            })
+          }
+        >
+          {m === 'druk' ? 'Druk' : 'Rustig'}
+        </Button>
+      ))}
+    </Card>
+  );
+}
 
 /**
  * Beheer van de aanvulketen op de sluitlijst: welk product hoort waar te liggen,
@@ -73,7 +109,8 @@ export function VoorraadCheckBeheer({ location }: { location: string }) {
         plek,
         bron,
         volgorde: maxVolgorde + 10,
-      });
+        product_sleutel: n.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -96,11 +133,12 @@ export function VoorraadCheckBeheer({ location }: { location: string }) {
 
   return (
     <div className="space-y-4">
+      <DrukteSchakelaar location={location} />
       <Card className="p-4 space-y-3">
         <p className="text-sm text-muted-foreground">
-          Deze lijsten verschijnen op de sluitlijst van {location}. Bij "Op" gaat een product
-          automatisch naar de mise-en-place, het bestelbord of de bestellijst voor Midsland —
-          afhankelijk van de bron die je hier kiest.
+          Deze lijsten verschijnen op de sluitlijst van {location}. Bij "Op" schuift een product
+          automatisch door naar het niveau eronder (koelcel, vriescel). Op het laagste niveau gaat
+          het naar de mise-en-place, het bestelbord of de bestellijst voor Midsland.
         </p>
         <div className="flex flex-wrap gap-2">
           <Input
@@ -177,7 +215,7 @@ export function VoorraadCheckBeheer({ location }: { location: string }) {
                       >
                         {item.naam}
                         <span className="block text-xs font-normal text-muted-foreground">
-                          Als het op is → {bestemmingVoorBron(item.bron).label}
+                          Als het op is → {vervolgactieVoorRegel(item, items).label}
                         </span>
                       </span>
                       <Input
@@ -185,11 +223,28 @@ export function VoorraadCheckBeheer({ location }: { location: string }) {
                         defaultValue={String(Number(item.doel_aantal))}
                         inputMode="numeric"
                         className="w-14 h-9 text-center"
-                        aria-label={`Aantal ${item.naam}`}
+                        aria-label={`Aantal rustig ${item.naam}`}
+                        title="Aantal als het rustig is"
                         onBlur={(e) => {
                           const v = Number(e.target.value.replace(/[^0-9]/g, ''));
                           if (v && v !== Number(item.doel_aantal)) {
                             bijwerken.mutate({ id: item.id, velden: { doel_aantal: v } });
+                          }
+                        }}
+                      />
+                      <Input
+                        key={`${item.id}-druk-${item.doel_aantal_druk ?? ''}`}
+                        defaultValue={item.doel_aantal_druk ? String(Number(item.doel_aantal_druk)) : ''}
+                        inputMode="numeric"
+                        placeholder="druk"
+                        className="w-14 h-9 text-center"
+                        aria-label={`Aantal druk ${item.naam}`}
+                        title="Aantal als het druk is"
+                        onBlur={(e) => {
+                          const raw = e.target.value.replace(/[^0-9]/g, '');
+                          const v = raw ? Number(raw) : null;
+                          if (v !== (item.doel_aantal_druk ? Number(item.doel_aantal_druk) : null)) {
+                            bijwerken.mutate({ id: item.id, velden: { doel_aantal_druk: v } });
                           }
                         }}
                       />

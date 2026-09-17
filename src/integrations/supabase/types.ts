@@ -1878,10 +1878,12 @@ export type Database = {
           bron: string
           created_at: string
           doel_aantal: number
+          doel_aantal_druk: number | null
           eenheid: string
           id: string
           naam: string
           plek: string
+          product_sleutel: string | null
           type: string
           updated_at: string
           vestiging: string
@@ -1893,10 +1895,12 @@ export type Database = {
           bron?: string
           created_at?: string
           doel_aantal?: number
+          doel_aantal_druk?: number | null
           eenheid?: string
           id?: string
           naam: string
           plek?: string
+          product_sleutel?: string | null
           type?: string
           updated_at?: string
           vestiging: string
@@ -1908,10 +1912,12 @@ export type Database = {
           bron?: string
           created_at?: string
           doel_aantal?: number
+          doel_aantal_druk?: number | null
           eenheid?: string
           id?: string
           naam?: string
           plek?: string
+          product_sleutel?: string | null
           type?: string
           updated_at?: string
           vestiging?: string
@@ -4346,6 +4352,24 @@ export type Database = {
           location?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      vestiging_instellingen: {
+        Row: {
+          drukte_modus: string
+          updated_at: string
+          vestiging: string
+        }
+        Insert: {
+          drukte_modus?: string
+          updated_at?: string
+          vestiging: string
+        }
+        Update: {
+          drukte_modus?: string
+          updated_at?: string
+          vestiging?: string
         }
         Relationships: []
       }
