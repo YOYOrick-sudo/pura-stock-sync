@@ -29,6 +29,8 @@ import {
   useMepOpenNamen,
   vervolgactieVoorRegel,
   doelAantal,
+  isReserveItem,
+  reserveDoel,
   HERKOMST_LABEL,
   type DrukteModus,
   type KoelcelCheckItem,
