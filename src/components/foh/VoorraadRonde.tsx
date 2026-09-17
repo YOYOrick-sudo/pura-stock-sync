@@ -903,11 +903,20 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                               <LadePositie lade={ladeVan(r.item)} className="mt-0.5" />
                             )}
                           </span>
-                          <span className="shrink-0 text-right text-[14px] font-bold text-primary">
-                            {telModus(r.item) === 'vulling'
-                              ? `bijvullen tot ${vulnormWaarde(r.item) === 0.5 ? 'half' : 'vol'}`
-                              : aantalLabel(r.tekort, r.item.eenheid)}
+                          <span
+                            className={`shrink-0 text-right text-[14px] font-bold ${
+                              r.soort === 'mep' && r.prioriteit === 1
+                                ? 'text-amber-600 dark:text-amber-400'
+                                : 'text-primary'
+                            }`}
+                          >
+                            {r.soort === 'mep'
+                              ? `bijmaken (${r.prioriteit === 1 ? 'vandaag' : 'mag morgen'})`
+                              : telModus(r.item) === 'vulling'
+                                ? `bijvullen tot ${vulnormWaarde(r.item) === 0.5 ? 'half' : 'vol'}`
+                                : aantalLabel(r.tekort, r.item.eenheid)}
                           </span>
+
                         </div>
                       ))}
                     </div>
