@@ -651,8 +651,85 @@ export function useKoelcelCheckMutaties(
 
   });
 
-  return { zetStatus, meldOp, vulAanUitNiveau, naarMep: meldOp };
+  /**
+   * "Alles ligt er": zet in één keer alle nog niet afgevinkte regels van een blok
+   * op aanwezig. Zo is een normale sluitdienst een paar tikken in plaats van tachtig.
+   */
+  const zetAllesAanwezig = useMutation({
+    mutationFn: async (teZetten: KoelcelCheckItem[]) => {
+      if (!teZetten.length) return { aantal: 0 };
+      const { data: user } = await supabase.auth.getUser();
+      const uid = user.user?.id ?? null;
+      const rijen = teZetten.map((item) => ({
+        item_id: item.id,
+        vestiging,
+        datum,
+        status: 'aanwezig' as const,
+        created_by: uid,
+      }));
+      const { error } = await metHerstel(() =>
+        supabase.from('koelcel_checks').upsert(rijen, { onConflict: 'item_id,datum' }),
+      );
+      if (error) throw error;
+      return { aantal: rijen.length };
+    },
+    onMutate: async (teZetten: KoelcelCheckItem[]) => {
+      await qc.cancelQueries({ queryKey: checksKey });
+      const vorige = qc.getQueryData<KoelcelCheck[]>(checksKey);
+      const ids = new Set(teZetten.map((i) => i.id));
+      qc.setQueryData<KoelcelCheck[]>(checksKey, (huidig = []) => [
+        ...huidig.filter((c) => !ids.has(c.item_id)),
+        ...teZetten.map((item) => ({
+          id: `optimistisch-${item.id}`,
+          item_id: item.id,
+          vestiging,
+          datum,
+          status: 'aanwezig' as const,
+          mep_taak_id: null,
+          doorgezet_naar: null,
+          aantal_doorgezet: null,
+          created_by: null,
+        })),
+      ]);
+      return { vorige };
+    },
+    onError: (_e, _v, context: any) => {
+      if (context?.vorige) qc.setQueryData(checksKey, context.vorige);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: checksKey }),
+  });
+
+  return { zetStatus, meldOp, vulAanUitNiveau, zetAllesAanwezig, naarMep: meldOp };
 }
+
+/**
+ * Hoe vaak een product de laatste 30 dagen op of te weinig was. Producten die
+ * vaak problemen geven staan bovenaan de lijst, de rest daaronder.
+ */
+export function useProbleemFrequentie(vestiging: string | null | undefined) {
+  return useQuery({
+    queryKey: ['koelcel-probleem-frequentie', vestiging],
+    enabled: !!vestiging,
+    staleTime: 10 * 60_000,
+    queryFn: async (): Promise<Record<string, number>> => {
+      const vanaf = new Date();
+      vanaf.setDate(vanaf.getDate() - 30);
+      const { data, error } = await supabase
+        .from('koelcel_checks')
+        .select('item_id, status, datum')
+        .eq('vestiging', vestiging!)
+        .gte('datum', vanaf.toISOString().slice(0, 10));
+      if (error) throw error;
+      const map: Record<string, number> = {};
+      for (const rij of (data ?? []) as any[]) {
+        if (rij.status !== 'gemeld' && rij.status !== 'naar_mep') continue;
+        map[rij.item_id] = (map[rij.item_id] ?? 0) + 1;
+      }
+      return map;
+    },
+  });
+}
+
 
 /**
  * Per product: hoeveel er al besteld is bij Midsland en nog niet geleverd.
