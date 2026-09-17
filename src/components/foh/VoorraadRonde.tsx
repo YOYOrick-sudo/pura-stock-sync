@@ -361,7 +361,7 @@ function CategorieBlok({
 
       <Button onClick={onBevestig} className="mt-3 h-12 w-full rounded-[14px] text-[15px] font-semibold">
         <Check size={18} className="mr-1" />
-        {afwijkingen > 0 ? 'Categorie klaar' : 'Klopt, ligt er'}
+        {afwijkingen > 0 ? 'Klaar' : 'Klopt, ligt er'}
       </Button>
     </div>
   );
@@ -632,7 +632,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
         <span className="block text-[12px] text-muted-foreground">
           {afgerond
             ? 'Afgerond — aanvulbon is doorgezet'
-            : `${klaarAantal}/${alleSleutels.length} categorieën geteld`}
+            : `${klaarAantal}/${alleSleutels.length} onderdelen geteld`}
         </span>
       </span>
       <ChevronDown
@@ -735,7 +735,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
     return (
       <div className="mt-2 rounded-[18px] border border-border bg-card p-4">
         <p className="mb-3 text-[13px] text-muted-foreground">
-          Loop de kasten langs en bevestig per categorie. Tik alleen een product aan als er minder ligt.
+          Koelwerkbank tel je per lade, de rest per categorie. Tik alleen een product aan als er minder ligt.
         </p>
         <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-muted">
           <div
