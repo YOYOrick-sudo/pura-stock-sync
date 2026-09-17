@@ -49,6 +49,6 @@ Dat is precies wat je ziet. Voorbeeld uit de gegevens van West: "Taco" van 16 se
 ## Techniek
 
 - `src/hooks/useMepTaken.ts`: de `or(...)`-filter voor vandaag uitbreiden met afgeronde taken van eerdere dagen die vandaag zijn afgerond. Betrouwbaarste bron daarvoor is `mep_taak_afrondingen.afgerond_op`/`created_at`; als dat via PostgREST lastig te filteren is, `mep_taken.updated_at >= begin van vandaag (Europe/Amsterdam)` combineren met `status = 'afgerond'` en `taak_datum < vandaag`.
-- Sorteren blijft zoals nu (prioriteit, taak_datum, invoervolgorde); afgeronde taken blijven op hun plek staan en worden alleen doorgestreept weergegeven.
-- `src/pages/kitchen/MepDag.tsx`: label van het uitklapblok wijzigen naar "Geproduceerd vandaag"; verder ongewijzigd.
+- Sorteren: openstaand eerst (prioriteit, taak_datum, invoervolgorde), daarna de afgevinkte taken onderaan in de volgorde van afvinken.
+- `src/pages/kitchen/MepDag.tsx`: statusbalk links van elke taakrij (kleur afgeleid van status en prioriteit, alleen bestaande tokens uit het design system); afgevinkte taken in een apart blok onder de open taken binnen elke groep; label van het uitklapblok wijzigen naar "Geproduceerd vandaag".
 - Geen databasewijziging, geen RLS-wijziging, geen nieuwe pakketten, geen routewijziging.
