@@ -109,7 +109,7 @@ export default function SnelPrinten() {
   const [thtDagen, setThtDagen] = useState<number>(DEFAULT_THT.ontdooid);
   const [aantal, setAantal] = useState<number>(1);
   const createJob = useCreateStickerPrintJob();
-  const { data: topProducten = [] } = useTopStickerProducten(9);
+  const { data: topProducten = [] } = useTopStickerProducten(6);
 
   const today = useMemo(() => new Date(), []);
   const datum1 = fmt(today);
