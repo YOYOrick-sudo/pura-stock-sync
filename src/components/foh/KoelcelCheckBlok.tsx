@@ -380,7 +380,14 @@ function ItemRij({
               : ` · staat op ${eind.label}`
             : ''}
           {status === 'uit_vriezer' && item.plek === 'vriezer' ? ' · deze week uit gehaald' : ''}
+          {onderweg > 0 && (
+            <span style={{ color: 'hsl(var(--primary))' }}>
+              {' · '}
+              {onderweg} {item.eenheid} besteld, nog niet geleverd
+            </span>
+          )}
         </div>
+
       </div>
 
       <button
