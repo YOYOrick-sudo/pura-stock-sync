@@ -119,6 +119,40 @@ export function vervolgactieVoorRegel(
 
 }
 
+/** Waar je het vandaan haalt: "de koelcel" of "de vriescel". */
+export const HERKOMST_LABEL: Record<VoorraadPlek, string> = {
+  vriezer: 'de vriescel',
+  koelcel: 'de koelcel',
+  werkbank: 'de koelwerkbank',
+  werkblad: 'het werkblad',
+};
+
+/** Waar je het naartoe brengt: "in de koelcel", "in de koelwerkbank". */
+export const BESTEMMING_LABEL: Record<VoorraadPlek, string> = {
+  vriezer: 'in de vriescel',
+  koelcel: 'in de koelcel',
+  werkbank: 'in de koelwerkbank',
+  werkblad: 'op het werkblad',
+};
+
+/**
+ * Loopt de hele keten af en geeft terug waar het uiteindelijk vandaan moet komen
+ * als álle niveaus leeg zijn (bestelbord, mise-en-place of Midsland).
+ */
+export function eindBestemming(
+  item: KoelcelCheckItem,
+  alleItems: KoelcelCheckItem[],
+): ReturnType<typeof bestemmingVoorBron> {
+  let huidig = item;
+  for (let i = 0; i < 5; i++) {
+    const volgend = vervolgactieVoorRegel(huidig, alleItems);
+    if (volgend.soort !== 'niveau') return volgend;
+    huidig = volgend.onderItem;
+  }
+  return bestemmingVoorBron(huidig.bron);
+}
+
+
 /** Rustig of druk: bepaalt welke hoeveelheden de sluitlijst toont. */
 export function useDrukteModus(vestiging: string | null | undefined) {
   return useQuery({
