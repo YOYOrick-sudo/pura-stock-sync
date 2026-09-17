@@ -421,9 +421,7 @@ function CheckBlok({
             bezig={bezig}
             klaarLabel={klaarLabel}
             klaarIcoon={klaarIcoon}
-            toonOntdooi={heeftVriezerRegel ? heeftVriezerRegel(item) : false}
             onKlaar={() => onKlaar(item)}
-            onOntdooid={() => onOntdooid(item)}
             onOp={() => onOp(item)}
             onTeWeinig={() => onTeWeinig(item)}
           />
