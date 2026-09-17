@@ -369,6 +369,8 @@ const BON_GROEPEN: { soort: BonSoort; titel: string; uitleg: string; icoon: type
 export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: string }) {
   const itemsQuery = useKoelcelCheckItems(vestiging);
   const onderwegQuery = useOpenstaandeBestellingen(vestiging);
+  const bestelbordQuery = useBestelbordOpen(vestiging);
+  const mepNamenQuery = useMepOpenNamen(vestiging);
   const checksQuery = useKoelcelChecks(vestiging, datum);
   const drukteQuery = useDrukteModus(vestiging);
   const drukte: DrukteModus = drukteQuery.data ?? 'rustig';
@@ -413,6 +415,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
 
   const maandag = isMaandag(datum);
   const onderwegMap = onderwegQuery.data ?? {};
+  const bestelbordMap = bestelbordQuery.data ?? {};
+  const mepTitels = useMemo(() => mepNamenQuery.data ?? [], [mepNamenQuery.data]);
 
   const plekken = useMemo(
     () =>
@@ -456,7 +460,9 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
       const geteld = telling[item.id];
       if (geteld === undefined) continue;
       const doel = doelAantal(item, drukte);
-      const tekort = tekortVan(doel, geteld);
+      // Besteld-en-onderweg telt mee als voorraad: niet opnieuw bestellen.
+      const onderweg = onderwegMap[item.naam.trim().toLowerCase()] ?? 0;
+      const tekort = tekortVan(doel, geteld, onderweg);
       if (tekort <= 0) continue;
       const vervolg = vervolgactieVoorRegel(item, items);
       if (vervolg.soort === 'niveau') {
