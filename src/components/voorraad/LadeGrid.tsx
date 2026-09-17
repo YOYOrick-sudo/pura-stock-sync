@@ -126,6 +126,7 @@ function LadeVak({
   onZetActief,
   onZetRol,
   onReserve,
+  onVulnorm,
 }: {
   lade: VoorraadLade;
   items: KoelcelCheckItem[];
@@ -133,6 +134,7 @@ function LadeVak({
   onZetActief: (actief: boolean) => void;
   onZetRol: (rol: 'werk' | 'reserve') => void;
   onReserve: (itemId: string, aantal: number) => void;
+  onVulnorm: (itemId: string, vulnorm: 'vol' | 'half') => void;
 }) {
   const isReserve = lade.rol === 'reserve';
   const { setNodeRef, isOver } = useDroppable({ id: `lade:${lade.id}`, disabled: !lade.actief });
@@ -204,7 +206,12 @@ function LadeVak({
           </p>
         ) : (
           items.map((i) => (
-            <SleepbaarProduct key={i.id} item={i} onReserve={(a) => onReserve(i.id, a)} />
+            <SleepbaarProduct
+              key={i.id}
+              item={i}
+              onReserve={(a) => onReserve(i.id, a)}
+              onVulnorm={(v) => onVulnorm(i.id, v)}
+            />
           ))
         )}
       </div>
@@ -237,7 +244,8 @@ function LadeVak({
 export function LadeGrid({ vestiging }: { vestiging: string }) {
   const ladesQuery = useVoorraadLades(vestiging);
   const itemsQuery = useKoelcelCheckItems(vestiging);
-  const { hernoem, zetActief, verplaatsItem, zetRol, zetReserveDoel } = useLadeMutaties(vestiging);
+  const { hernoem, zetActief, verplaatsItem, zetRol, zetReserveDoel, zetVulnorm } =
+    useLadeMutaties(vestiging);
   const [sleept, setSleept] = useState<KoelcelCheckItem | null>(null);
 
   const sensors = useSensors(
@@ -305,6 +313,7 @@ export function LadeGrid({ vestiging }: { vestiging: string }) {
                     onZetActief={(actief) => zetActief.mutate({ id: lade.id, actief })}
                     onZetRol={(rol) => zetRol.mutate({ id: lade.id, rol })}
                     onReserve={(itemId, aantal) => zetReserveDoel.mutate({ itemId, aantal })}
+                    onVulnorm={(itemId, vulnorm) => zetVulnorm.mutate({ itemId, vulnorm })}
                   />
                 ))}
             </div>
@@ -330,6 +339,7 @@ export function LadeGrid({ vestiging }: { vestiging: string }) {
                   key={i.id}
                   item={i}
                   onReserve={(a) => zetReserveDoel.mutate({ itemId: i.id, aantal: a })}
+                  onVulnorm={(v) => zetVulnorm.mutate({ itemId: i.id, vulnorm: v })}
                 />
               ))}
             </div>
