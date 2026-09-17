@@ -88,7 +88,15 @@ export default function MepDag() {
   const { data: taken = [], isLoading } = useMepTaken(vestiging, datum);
   const { data: batches = [] } = useProductieBatches(vestiging, datum);
   const { data: medewerkers = [] } = useKeukenMedewerkers(vestiging);
-  const { toevoegen, bijwerken, verwijderen, afronden, heropenen } = useMepTaakMutaties(vestiging, datum);
+  const { toevoegen, bijwerken, verwijderen, afronden, heropenen, herordenen } =
+    useMepTaakMutaties(vestiging, datum);
+
+  // Slepen: op tablet pas na een korte druk, zodat scrollen en tikken normaal blijft.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   const [afrondTaak, setAfrondTaak] = useState<MepTaak | null>(null);
   const [bewerkTaak, setBewerkTaak] = useState<MepTaak | null>(null);
