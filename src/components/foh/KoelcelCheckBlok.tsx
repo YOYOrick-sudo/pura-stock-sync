@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Snowflake, Check, ArrowRight } from 'lucide-react';
+import { Snowflake, Check, ArrowRight, Minus, Plus } from 'lucide-react';
 import {
   useKoelcelCheckItems,
   useKoelcelChecks,
@@ -10,6 +10,7 @@ import {
   doelAantal,
   BRON_LABEL,
   type DrukteModus,
+  type KoelcelCheck,
   type KoelcelCheckItem,
   type KoelcelCheckStatus,
   type VoorraadPlek,
@@ -22,6 +23,12 @@ function stickerDatum(d: Date): string {
   return d
     .toLocaleDateString('nl-NL', { weekday: 'short', day: '2-digit', month: '2-digit' })
     .replace('.', '');
+}
+
+/** De vriescelcheck draait alleen op maandag: de laatste open dag voor de dinsdagsluiting. */
+function isMaandag(datum: string): boolean {
+  const d = new Date(`${datum}T12:00:00`);
+  return !Number.isNaN(d.getTime()) && d.getDay() === 1;
 }
 
 function aantalLabel(item: KoelcelCheckItem, drukte: DrukteModus): string {
@@ -54,34 +61,179 @@ const basisKnop: React.CSSProperties = {
   whiteSpace: 'nowrap',
 };
 
+/** Compact venstertje: hoeveel ligt er nog? Het systeem bestelt alleen het tekort. */
+function TekortDialog({
+  item,
+  doel,
+  onAnnuleer,
+  onBevestig,
+}: {
+  item: KoelcelCheckItem;
+  doel: number;
+  onAnnuleer: () => void;
+  onBevestig: (aanwezig: number) => void;
+}) {
+  const [aanwezig, setAanwezig] = useState(Math.max(doel - 1, 0));
+  const tekort = Math.max(doel - aanwezig, 1);
+
+  const stapKnop: React.CSSProperties = {
+    width: '56px',
+    height: '56px',
+    borderRadius: '16px',
+    border: '1px solid hsl(var(--border))',
+    backgroundColor: 'hsl(var(--card))',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+  };
+
+  return (
+    <div
+      onClick={onAnnuleer}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 60,
+        backgroundColor: 'hsl(0 0% 0% / 0.45)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: '100%',
+          maxWidth: '360px',
+          backgroundColor: 'hsl(var(--card))',
+          borderRadius: '24px',
+          padding: '20px',
+          fontFamily: lettertype,
+        }}
+      >
+        <div style={{ fontSize: '17px', fontWeight: 700, color: 'hsl(var(--foreground))' }}>{item.naam}</div>
+        <div style={{ fontSize: '13px', color: 'hsl(var(--muted-foreground))', marginTop: '2px' }}>
+          Hoeveel ligt er nog? Standaard {doel} {item.eenheid}.
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '16px',
+            margin: '18px 0 10px',
+          }}
+        >
+          <button type="button" style={stapKnop} onClick={() => setAanwezig((n) => Math.max(n - 1, 0))}>
+            <Minus size={22} />
+          </button>
+          <div style={{ minWidth: '64px', textAlign: 'center' }}>
+            <div style={{ fontSize: '30px', fontWeight: 700, color: 'hsl(var(--foreground))' }}>{aanwezig}</div>
+            <div style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))' }}>{item.eenheid}</div>
+          </div>
+          <button type="button" style={stapKnop} onClick={() => setAanwezig((n) => Math.min(n + 1, doel))}>
+            <Plus size={22} />
+          </button>
+        </div>
+
+        <div
+          style={{
+            textAlign: 'center',
+            fontSize: '13px',
+            color: 'hsl(var(--muted-foreground))',
+            marginBottom: '14px',
+          }}
+        >
+          Er wordt {tekort} {item.eenheid} doorgezet.
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            type="button"
+            onClick={onAnnuleer}
+            style={{
+              ...basisKnop,
+              flex: 1,
+              justifyContent: 'center',
+              backgroundColor: 'hsl(var(--card))',
+              border: '1px solid hsl(var(--border))',
+              color: 'hsl(var(--foreground))',
+              cursor: 'pointer',
+            }}
+          >
+            Annuleren
+          </button>
+          <button
+            type="button"
+            onClick={() => onBevestig(aanwezig)}
+            style={{
+              ...basisKnop,
+              flex: 1,
+              justifyContent: 'center',
+              backgroundColor: 'hsl(var(--primary))',
+              color: 'hsl(var(--primary-foreground))',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            Doorzetten
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface RijProps {
   item: KoelcelCheckItem;
   alleItems: KoelcelCheckItem[];
   drukte: DrukteModus;
-  status: KoelcelCheckStatus | null;
+  check: KoelcelCheck | null;
   bezig: boolean;
   klaarLabel: string;
   klaarIcoon: 'check' | 'snowflake';
+  toonOntdooi: boolean;
   onKlaar: () => void;
+  onOntdooid: () => void;
   onOp: () => void;
+  onTeWeinig: () => void;
 }
 
-function ItemRij({ item, alleItems, drukte, status, bezig, klaarLabel, klaarIcoon, onKlaar, onOp }: RijProps) {
+function ItemRij({
+  item,
+  alleItems,
+  drukte,
+  check,
+  bezig,
+  klaarLabel,
+  klaarIcoon,
+  toonOntdooi,
+  onKlaar,
+  onOntdooid,
+  onOp,
+  onTeWeinig,
+}: RijProps) {
+  const status = check?.status ?? null;
   const isKlaar = status === 'aanwezig' || status === 'uit_vriezer';
   const isGemeld = status === 'gemeld' || status === 'naar_mep';
   const bestemming = vervolgactieVoorRegel(item, alleItems);
+  const doorgezet = check?.aantal_doorgezet ?? null;
 
   return (
     <div
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '10px',
+        gap: '8px',
         padding: '8px 4px',
         borderBottom: '1px solid hsl(var(--border))',
+        flexWrap: 'wrap',
       }}
     >
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: 1, minWidth: '140px' }}>
         <span
           style={{
             fontSize: '15px',
@@ -105,7 +257,11 @@ function ItemRij({ item, alleItems, drukte, status, bezig, klaarLabel, klaarIcoo
           {bestemming.soort === 'niveau'
             ? `Als het op is → ${bestemming.label}`
             : BRON_LABEL[item.bron]}
-          {isGemeld ? ` · staat op ${bestemming.label}` : ''}
+          {isGemeld
+            ? doorgezet
+              ? ` · ${doorgezet} ${item.eenheid} naar ${bestemming.label}`
+              : ` · staat op ${bestemming.label}`
+            : ''}
         </div>
       </div>
 
@@ -124,6 +280,46 @@ function ItemRij({ item, alleItems, drukte, status, bezig, klaarLabel, klaarIcoo
       >
         {klaarIcoon === 'snowflake' ? <Snowflake size={16} /> : <Check size={16} />}
         {klaarLabel}
+      </button>
+
+      {toonOntdooi && (
+        <button
+          type="button"
+          disabled={bezig}
+          onClick={onOntdooid}
+          aria-label="Uit de vriezer gehaald, sticker printen"
+          aria-pressed={status === 'uit_vriezer'}
+          style={{
+            ...basisKnop,
+            padding: '8px 12px',
+            cursor: bezig ? 'wait' : 'pointer',
+            backgroundColor: status === 'uit_vriezer' ? 'hsl(200 90% 45% / 0.15)' : 'hsl(var(--card))',
+            color: status === 'uit_vriezer' ? 'hsl(200 90% 32%)' : 'hsl(var(--muted-foreground))',
+            border:
+              status === 'uit_vriezer'
+                ? '1px solid hsl(200 90% 45% / 0.5)'
+                : '1px solid hsl(var(--border))',
+          }}
+        >
+          <Snowflake size={16} />
+          Ontdooid
+        </button>
+      )}
+
+      <button
+        type="button"
+        disabled={bezig || isGemeld}
+        onClick={onTeWeinig}
+        style={{
+          ...basisKnop,
+          cursor: bezig ? 'wait' : 'pointer',
+          opacity: isGemeld ? 0.4 : 1,
+          backgroundColor: 'hsl(var(--card))',
+          color: 'hsl(var(--muted-foreground))',
+          border: '1px solid hsl(var(--border))',
+        }}
+      >
+        Te weinig
       </button>
 
       <button
@@ -156,20 +352,26 @@ function CheckBlok({
   bezig,
   klaarLabel,
   klaarIcoon,
+  heeftVriezerRegel,
   onKlaar,
+  onOntdooid,
   onOp,
+  onTeWeinig,
 }: {
   titel: string;
   uitleg: string;
   items: KoelcelCheckItem[];
   alleItems: KoelcelCheckItem[];
   drukte: DrukteModus;
-  checks: Map<string, KoelcelCheckStatus>;
+  checks: Map<string, KoelcelCheck>;
   bezig: boolean;
   klaarLabel: string;
   klaarIcoon: 'check' | 'snowflake';
+  heeftVriezerRegel?: (item: KoelcelCheckItem) => boolean;
   onKlaar: (item: KoelcelCheckItem) => void;
+  onOntdooid: (item: KoelcelCheckItem) => void;
   onOp: (item: KoelcelCheckItem) => void;
+  onTeWeinig: (item: KoelcelCheckItem) => void;
 }) {
   if (items.length === 0) return null;
   const gedaan = items.filter((i) => checks.has(i.id)).length;
@@ -235,12 +437,15 @@ function CheckBlok({
             item={item}
             alleItems={alleItems}
             drukte={drukte}
-            status={checks.get(item.id) ?? null}
+            check={checks.get(item.id) ?? null}
             bezig={bezig}
             klaarLabel={klaarLabel}
             klaarIcoon={klaarIcoon}
+            toonOntdooi={heeftVriezerRegel ? heeftVriezerRegel(item) : false}
             onKlaar={() => onKlaar(item)}
+            onOntdooid={() => onOntdooid(item)}
             onOp={() => onOp(item)}
+            onTeWeinig={() => onTeWeinig(item)}
           />
         ))}
       </div>
@@ -249,9 +454,10 @@ function CheckBlok({
 }
 
 /**
- * Aanvulketen op de sluitlijst (West): vriezer → koelcel → werkbank/werkblad.
+ * Aanvulketen op de sluitlijst (West): vriescel → koelcel → werkbank/werkblad.
  * Wat op is gaat met één tik naar de mise-en-place, het bestelbord of de
  * bestellijst voor Midsland — afhankelijk van waar het product vandaan komt.
+ * De vriescelvoorraad wordt alleen op maandag nagelopen.
  */
 export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datum: string }) {
   const itemsQuery = useKoelcelCheckItems(vestiging);
@@ -261,47 +467,57 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
   const drukteQuery = useDrukteModus(vestiging);
   const drukte: DrukteModus = drukteQuery.data ?? 'rustig';
   const printSticker = useCreateStickerPrintJob();
+  const [tekortItem, setTekortItem] = useState<KoelcelCheckItem | null>(null);
 
   const checks = useMemo(() => {
-    const map = new Map<string, KoelcelCheckStatus>();
-    for (const c of checksQuery.data ?? []) map.set(c.item_id, c.status);
+    const map = new Map<string, KoelcelCheck>();
+    for (const c of checksQuery.data ?? []) map.set(c.item_id, c);
     return map;
   }, [checksQuery.data]);
 
   if (itemsQuery.isLoading || items.length === 0) return null;
 
   const bezig = zetStatus.isPending || meldOp.isPending;
+  const maandag = isMaandag(datum);
 
   const perPlek = (plek: VoorraadPlek) =>
     items.filter((i) => (i.plek ?? (i.type === 'vriezer' ? 'vriezer' : 'koelcel')) === plek);
 
+  const heeftVriezerRegel = (item: KoelcelCheckItem) =>
+    !!item.product_sleutel &&
+    items.some((i) => i.plek === 'vriezer' && i.product_sleutel === item.product_sleutel);
+
   const handleKlaar = (item: KoelcelCheckItem, status: KoelcelCheckStatus) => {
-    const uit = checks.get(item.id) === status;
+    const uit = checks.get(item.id)?.status === status;
     zetStatus.mutate({ item, status, uit }, { onError: () => toast.error('Niet opgeslagen — probeer opnieuw') });
     return uit;
+  };
+
+  const doorzetten = async (item: KoelcelCheckItem, aanwezig: number) => {
+    try {
+      const res = await meldOp.mutateAsync({ item, doel: doelAantal(item, drukte), aanwezig });
+      if (res.bestemming.soort === 'niveau')
+        toast.success(`"${item.naam}" moet nu nagekeken worden bij ${res.bestemming.label}`);
+      else if (res.dubbel) toast.info(`"${item.naam}" staat al op ${res.bestemming.label}`);
+      else toast.success(`${res.tekort} ${item.eenheid} "${item.naam}" naar ${res.bestemming.label}`);
+    } catch (e: any) {
+      toast.error('Doorzetten mislukt: ' + (e?.message ?? 'onbekende fout'));
+    }
   };
 
   const handleOp = async (item: KoelcelCheckItem) => {
     // Ongedaan maken: alleen de check weghalen; de melding zelf blijft staan.
     if (checks.has(item.id)) {
       zetStatus.mutate(
-        { item, status: checks.get(item.id)!, uit: true },
+        { item, status: checks.get(item.id)!.status, uit: true },
         { onError: () => toast.error('Niet opgeslagen — probeer opnieuw') },
       );
       return;
     }
-    try {
-      const res = await meldOp.mutateAsync(item);
-      if (res.bestemming.soort === 'niveau')
-        toast.success(`"${item.naam}" moet nu nagekeken worden bij ${res.bestemming.label}`);
-      else if (res.dubbel) toast.info(`"${item.naam}" staat al op ${res.bestemming.label}`);
-      else toast.success(`"${item.naam}" staat op ${res.bestemming.label}`);
-    } catch (e: any) {
-      toast.error('Doorzetten mislukt: ' + (e?.message ?? 'onbekende fout'));
-    }
+    await doorzetten(item, 0);
   };
 
-  const handleUitVriezer = (item: KoelcelCheckItem) => {
+  const handleOntdooid = (item: KoelcelCheckItem) => {
     const ongedaan = handleKlaar(item, 'uit_vriezer');
     if (ongedaan) return;
     // Meteen een "Ontdooid"-sticker printen voor op de bak in de koelcel.
@@ -326,22 +542,26 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
 
   return (
     <div style={{ marginTop: '8px' }}>
-      <CheckBlok
-        titel="Uit de vriezer (ontdooien)"
-        uitleg='Haal uit de vriezer wat morgen nodig is. Bij "Uit vriezer gehaald" print er meteen een Ontdooid-sticker. Is de vriezer leeg? Tik op "Op".'
-        items={perPlek('vriezer')}
-        alleItems={items}
-        drukte={drukte}
-        checks={checks}
-        bezig={bezig}
-        klaarLabel="Uit vriezer gehaald"
-        klaarIcoon="snowflake"
-        onKlaar={handleUitVriezer}
-        onOp={handleOp}
-      />
+      {maandag && (
+        <CheckBlok
+          titel="Vriescel op peil (maandag)"
+          uitleg="Weekcheck: ligt de standaardvoorraad er nog? Wat ontbreekt gaat automatisch naar de bestellijst voor Midsland."
+          items={perPlek('vriezer')}
+          alleItems={items}
+          drukte={drukte}
+          checks={checks}
+          bezig={bezig}
+          klaarLabel="Aanwezig"
+          klaarIcoon="check"
+          onKlaar={(i) => handleKlaar(i, 'aanwezig')}
+          onOntdooid={handleOntdooid}
+          onOp={handleOp}
+          onTeWeinig={setTekortItem}
+        />
+      )}
       <CheckBlok
         titel="Koelcel op peil"
-        uitleg='Dit moet standaard in de koelcel liggen. Ontbreekt het? Tik op "Op" — het gaat vanzelf naar de juiste lijst.'
+        uitleg='Dit moet standaard in de koelcel liggen. Haal je iets uit de vriezer? Tik op "Ontdooid" — dan print de sticker meteen.'
         items={perPlek('koelcel')}
         alleItems={items}
         drukte={drukte}
@@ -349,8 +569,11 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         bezig={bezig}
         klaarLabel="Aanwezig"
         klaarIcoon="check"
+        heeftVriezerRegel={heeftVriezerRegel}
         onKlaar={(i) => handleKlaar(i, 'aanwezig')}
+        onOntdooid={handleOntdooid}
         onOp={handleOp}
+        onTeWeinig={setTekortItem}
       />
       <CheckBlok
         titel="Koelwerkbank bijvullen"
@@ -362,8 +585,11 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         bezig={bezig}
         klaarLabel="Bijgevuld"
         klaarIcoon="check"
+        heeftVriezerRegel={heeftVriezerRegel}
         onKlaar={(i) => handleKlaar(i, 'aanwezig')}
+        onOntdooid={handleOntdooid}
         onOp={handleOp}
+        onTeWeinig={setTekortItem}
       />
       <CheckBlok
         titel="Toppings bijvullen"
@@ -376,8 +602,23 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         klaarLabel="Bijgevuld"
         klaarIcoon="check"
         onKlaar={(i) => handleKlaar(i, 'aanwezig')}
+        onOntdooid={handleOntdooid}
         onOp={handleOp}
+        onTeWeinig={setTekortItem}
       />
+
+      {tekortItem && (
+        <TekortDialog
+          item={tekortItem}
+          doel={doelAantal(tekortItem, drukte)}
+          onAnnuleer={() => setTekortItem(null)}
+          onBevestig={(aanwezig) => {
+            const item = tekortItem;
+            setTekortItem(null);
+            void doorzetten(item, aanwezig);
+          }}
+        />
+      )}
     </div>
   );
 }
