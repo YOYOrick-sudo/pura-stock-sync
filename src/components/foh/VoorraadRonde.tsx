@@ -128,12 +128,32 @@ function tekortVan(doel: number, geteld: number, onderweg = 0): number {
   return Math.max(Math.ceil(doel - geteld - onderweg - 0.001), 0);
 }
 
+/** Bij een werkbakje telt het verschil met de vulnorm, niet in hele bakken. */
+function vulTekort(doel: number, geteld: number): number {
+  return Math.max(Math.round((doel - geteld) * 100) / 100, 0);
+}
+
 /**
- * Waarop we tellen: bij de koelwerkbank alleen het aantal reservebakjes,
- * elders het dagdoel (rustig/druk). Het bakje in de werklade telt niet mee.
+ * Waarop we tellen: reservebakjes (reserve), de vulnorm van het werkbakje
+ * (koelwerkbank zonder reserve), of het dagdoel in hele bakken.
  */
 function telDoel(item: ItemMetCategorie, drukte: DrukteModus): number {
-  return isReserveItem(item) ? reserveDoel(item) : doelAantal(item, drukte);
+  const modus = telModus(item);
+  if (modus === 'reserve') return reserveDoel(item);
+  if (modus === 'vulling') return vulnormWaarde(item);
+  return doelAantal(item, drukte);
+}
+
+/** Tekort volgens de manier waarop dit product geteld wordt. */
+function tekortVoor(
+  item: ItemMetCategorie,
+  doel: number,
+  geteld: number,
+  onderweg = 0,
+): number {
+  return telModus(item) === 'vulling'
+    ? vulTekort(doel, geteld)
+    : tekortVan(doel, geteld, onderweg);
 }
 
 /** Eén productregel: standaard "ligt er", tik om te tellen wat er écht ligt. */
