@@ -123,6 +123,7 @@ function TelRegel({
   onderweg,
   opBestelbord,
   inMep,
+  reserve,
   onZet,
   onHerstel,
 }: {
@@ -132,13 +133,15 @@ function TelRegel({
   onderweg: number;
   opBestelbord: boolean;
   inMep: boolean;
+  /** Reserveregel: hele bakjes tellen, geen vulgraad. */
+  reserve?: boolean;
   onZet: (aantal: number) => void;
   onHerstel: () => void;
 }) {
   const afwijkend = geteld !== undefined;
   const waarde = geteld ?? doel;
   const heel = Math.floor(waarde + 0.001);
-  const rest = Math.round((waarde - heel) * 100) / 100;
+  const rest = reserve ? 0 : Math.round((waarde - heel) * 100) / 100;
 
   const zetHeel = (n: number) => onZet(Math.max(n, 0) + rest);
   const zetRest = (r: number) => onZet(heel + r);
@@ -153,7 +156,9 @@ function TelRegel({
     <span className="min-w-0">
       <span className="block truncate text-[15px] font-semibold text-foreground">{item.naam}</span>
       <span className="block truncate text-[12px] text-muted-foreground">
-        {formaatLabel(doel, item.eenheid, item.formaat ?? item.bak_maat)}
+        {reserve
+          ? `reserve ${getalLabel(doel)} ${doel === 1 ? 'bakje' : 'bakjes'}`
+          : formaatLabel(doel, item.eenheid, item.formaat ?? item.bak_maat)}
       </span>
       {statusChips.length > 0 && (
         <span className="mt-0.5 flex flex-wrap gap-1">
