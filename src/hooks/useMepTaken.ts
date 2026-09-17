@@ -335,7 +335,7 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
     onSuccess: invalidate,
   });
 
-  return { toevoegen, bijwerken, verwijderen, afronden, heropenen, vestiging, datum };
+  return { toevoegen, bijwerken, verwijderen, afronden, heropenen, herordenen, vestiging, datum };
 }
 
 /** Batches van vandaag — voor het overzicht "wat is er gemaakt". */
