@@ -2684,7 +2684,7 @@ export function FohTasks() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '6px',
-                      fontSize: '13px',
+                      fontSize: '15px',
                       fontWeight: 500,
                   padding: '8px 12px',
                   minHeight: '36px',
@@ -2700,7 +2700,7 @@ export function FohTasks() {
                   >
                     <span>{labels[phase]}</span>
                     <span style={{
-                      fontSize: '11px',
+                      fontSize: '13px',
                       fontWeight: 600,
                       padding: '1px 7px',
                       borderRadius: '999px',
@@ -2752,7 +2752,7 @@ export function FohTasks() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '6px',
-                      fontSize: '13px',
+                      fontSize: '15px',
                       fontWeight: 500,
                     padding: '8px 12px',
                     minHeight: '36px',
@@ -2767,7 +2767,7 @@ export function FohTasks() {
                   >
                     <span>Periodiek</span>
                     <span style={{
-                      fontSize: '11px',
+                      fontSize: '13px',
                       fontWeight: 600,
                       padding: '1px 7px',
                       borderRadius: '999px',
@@ -2825,7 +2825,7 @@ export function FohTasks() {
                             border: 'none',
                             backgroundColor: isActive ? 'hsl(var(--card))' : 'transparent',
                             color: isActive ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
-                            fontSize: '13px',
+                            fontSize: '15px',
                             fontWeight: isActive ? 600 : 500,
                             fontFamily: 'Inter, sans-serif',
                             cursor: 'pointer',
@@ -2835,7 +2835,7 @@ export function FohTasks() {
                         >
                           <span>{label}</span>
                           <span style={{
-                            fontSize: '11px',
+                            fontSize: '13px',
                             fontWeight: 600,
                             padding: '1px 6px',
                             borderRadius: '999px',
