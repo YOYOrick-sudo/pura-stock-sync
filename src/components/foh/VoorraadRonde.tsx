@@ -312,13 +312,14 @@ function CategorieBlok({
         className="flex w-full items-center justify-between rounded-[14px] border border-primary/30 bg-primary/5 px-3 py-3 text-left"
         style={{ minHeight: 52 }}
       >
-        <span className="flex items-center gap-2 text-[15px] font-semibold text-foreground">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
+        <span className="flex min-w-0 items-center gap-2 text-[15px] font-semibold text-foreground">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Check size={14} />
           </span>
-          {titel}
+          <span className="truncate">{titel}</span>
+          {lade && <LadePositie lade={lade} metNaam={false} className="shrink-0" />}
         </span>
-        <span className="text-[12px] text-muted-foreground">
+        <span className="shrink-0 text-[12px] text-muted-foreground">
           {afwijkingen > 0 ? `${afwijkingen} aangepast` : `${items.length} op peil`}
         </span>
       </button>
@@ -328,8 +329,16 @@ function CategorieBlok({
   return (
     <div className="rounded-[18px] border border-border bg-muted/30 p-3">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <h4 className="text-[15px] font-bold text-foreground">{titel}</h4>
-        <Badge variant="secondary" className="text-[11px]">
+        <div className="flex min-w-0 items-center gap-2">
+          {lade && <LadePositie lade={lade} metNaam={false} className="shrink-0" />}
+          <div className="min-w-0">
+            <h4 className="truncate text-[15px] font-bold text-foreground">{titel}</h4>
+            {subtitel && (
+              <p className="truncate text-[11px] uppercase tracking-wide text-muted-foreground">{subtitel}</p>
+            )}
+          </div>
+        </div>
+        <Badge variant="secondary" className="shrink-0 text-[11px]">
           {items.length} {items.length === 1 ? 'product' : 'producten'}
         </Badge>
       </div>
