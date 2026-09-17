@@ -301,7 +301,7 @@ function datumMorgen(): string {
   return d.toISOString().slice(0, 10);
 }
 
-async function naarMidsland(item: KoelcelCheckItem, vestiging: string): Promise<boolean> {
+async function naarMidsland(item: KoelcelCheckItem, vestiging: string, aantal: number): Promise<boolean> {
   const { data: orders, error: zoekFout } = await supabase
     .from('internal_orders')
     .select('id')
