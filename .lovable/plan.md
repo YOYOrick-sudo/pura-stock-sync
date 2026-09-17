@@ -6,7 +6,7 @@ In de koelwerkbank staat "1 onderweg" bij Wortelspread. Dat klopt niet: de koelw
 
 Twee oorzaken, allebei nagekeken in de data:
 
-1. Openstaande bestellingen worden alleen op **productnaam** gekoppeld. Wortelspread bestaat drie keer (vriescel, koelcel, koelwerkbank). Een bestelling bij Midsland voor de vriescel plakt daardoor op alle drie de regels. Dit speelt bij elk product dat op meerdere plekken staat: Tempeh, Rode kool, Avocado spread enzovoort.
+1. Openstaande bestellingen worden alleen op **productnaam** gekoppeld. Wortelspread bestaat drie keer (vriescel, koelcel, koelwerkbank). Een bestelling bij Midsland voor de vriescel plakt daardoor op alle drie de regels. Dit speelt bij elk product dat op meerdere plekken staat: tomatenjam, tomatenrelish, Tempeh, Rode kool, Avocado spread enzovoort. De fix is generiek en geldt dus meteen voor al die producten.
 2. De openstaande regels die nu meetellen staan op een bestelling met status "concept" — dus nog niet eens verstuurd. Toch kleurt de regel al amber met "Binnengekomen / Nog niet binnen".
 
 ## Wat we veranderen
