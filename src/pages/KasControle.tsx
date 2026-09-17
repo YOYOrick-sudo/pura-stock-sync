@@ -196,6 +196,7 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<KassaAfdracht[]>([]);
   const [beleving, setBeleving] = useState<Map<string, DagBeleving>>(new Map());
+  const [actieveTab, setActieveTab] = useState<'tellingen' | 'beoordelingen'>('tellingen');
   const [locationFilter, setLocationFilter] = useState<'all' | 'West' | 'Midsland'>('all');
 
   const today = new Date();
@@ -284,6 +285,36 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
     }
     return uit;
   }, [dagen]);
+
+  /** Beoordelingen: chronologische lijst + tellers per moment, nieuwste eerst. */
+  const belevingLijst = useMemo(
+    () =>
+      Array.from(beleving.values()).sort((a, b) =>
+        a.date === b.date ? a.location.localeCompare(b.location) : a.date < b.date ? 1 : -1,
+      ),
+    [beleving],
+  );
+
+  const belevingTellers = useMemo(() => {
+    const tellers: Record<'ontbijt' | 'lunch' | 'diner', Record<'rustig' | 'gemiddeld' | 'druk', number>> = {
+      ontbijt: { rustig: 0, gemiddeld: 0, druk: 0 },
+      lunch: { rustig: 0, gemiddeld: 0, druk: 0 },
+      diner: { rustig: 0, gemiddeld: 0, druk: 0 },
+    };
+    let nietIngevuld = 0;
+    for (const b of belevingLijst) {
+      let iets = false;
+      for (const m of BELEVING_MOMENTEN) {
+        const w = b[m.key];
+        if (w) {
+          tellers[m.key][w] += 1;
+          iets = true;
+        }
+      }
+      if (!iets) nietIngevuld += 1;
+    }
+    return { tellers, nietIngevuld, totaal: belevingLijst.length };
+  }, [belevingLijst]);
 
   const zetPeriode = (soort: 'deze-week' | 'vorige-week' | 'deze-maand') => {
     const nu = new Date();
@@ -440,6 +471,30 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
           </div>
         </div>
 
+        {/* Tabbladen */}
+        <div style={{
+          display: 'inline-flex', gap: 4, padding: 4, marginBottom: 16,
+          background: 'hsl(var(--muted))', borderRadius: 14,
+        }}>
+          {([['tellingen', 'Tellingen'], ['beoordelingen', 'Beoordelingen']] as const).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setActieveTab(key)}
+              style={{
+                minHeight: 36, padding: '6px 18px', borderRadius: 10, fontSize: 13, fontWeight: 600,
+                border: 'none', cursor: 'pointer',
+                background: actieveTab === key ? 'hsl(var(--card))' : 'transparent',
+                color: actieveTab === key ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
+                boxShadow: actieveTab === key ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {actieveTab === 'tellingen' && (<>
         {/* Samenvatting per vestiging */}
         {Object.keys(samenvatting).length > 0 && (
           <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
@@ -622,6 +677,107 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
             </div>
           )}
         </div>
+        </>)}
+
+        {actieveTab === 'beoordelingen' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Samenvatting per moment */}
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              {BELEVING_MOMENTEN.map((m) => {
+                const t = belevingTellers.tellers[m.key];
+                const totaal = t.rustig + t.gemiddeld + t.druk;
+                const label = m.key.charAt(0).toUpperCase() + m.key.slice(1);
+                return (
+                  <div key={m.key} style={{
+                    background: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: 20, padding: '12px 16px', minWidth: 220, flex: '1 1 220px',
+                  }}>
+                    <div style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase', fontWeight: 600, marginBottom: 8 }}>
+                      {label} · {totaal}× ingevuld
+                    </div>
+                    {(['rustig', 'gemiddeld', 'druk'] as const).map((w) => (
+                      <div key={w} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, marginBottom: 4 }}>
+                        <span style={{
+                          display: 'inline-block', padding: '2px 8px', borderRadius: 999, fontWeight: 600,
+                          background: BELEVING_STIJL[w].bg, color: BELEVING_STIJL[w].color,
+                        }}>
+                          {BELEVING_STIJL[w].label}
+                        </span>
+                        <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{t[w]}×</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Chronologische lijst */}
+            <div style={{
+              background: 'hsl(var(--card))',
+              border: '1px solid hsl(var(--border))',
+              borderRadius: 20,
+              overflow: 'hidden',
+            }}>
+              {loading ? (
+                <div style={{ padding: 40, textAlign: 'center' }}>
+                  <Loader2 className="h-6 w-6 animate-spin inline" style={{ color: 'hsl(var(--primary))' }} />
+                </div>
+              ) : belevingLijst.length === 0 ? (
+                <div style={{ padding: 40, textAlign: 'center', color: 'hsl(var(--muted-foreground))' }}>
+                  Nog geen beoordelingen in deze periode. Ze verschijnen hier zodra iemand na het sluiten van de kassa "Hoe was de dag?" invult.
+                </div>
+              ) : (
+                <div>
+                  {belevingLijst.map((b, i) => (
+                    <div
+                      key={`${b.date}__${b.location}`}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+                        padding: '10px 16px',
+                        borderBottom: i < belevingLijst.length - 1 ? '1px solid hsl(var(--border) / 0.5)' : 'none',
+                        background: i % 2 === 0 ? 'transparent' : 'hsl(var(--muted) / 0.3)',
+                      }}
+                    >
+                      <div style={{ minWidth: 130, fontWeight: 500, color: 'hsl(var(--foreground))', fontSize: 14 }}>
+                        {fmtDate(b.date)}
+                      </div>
+                      <div style={{ minWidth: 80, fontSize: 13, color: 'hsl(var(--muted-foreground))' }}>
+                        {b.location}
+                      </div>
+                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                        {BELEVING_MOMENTEN.map((m) => {
+                          const w = b[m.key];
+                          if (!w) {
+                            return (
+                              <span key={m.key} style={{
+                                display: 'inline-block', padding: '2px 8px', borderRadius: 999,
+                                fontSize: 12, color: 'hsl(var(--muted-foreground))',
+                                border: '1px dashed hsl(var(--border))', whiteSpace: 'nowrap',
+                              }}>
+                                {m.kort}: —
+                              </span>
+                            );
+                          }
+                          const stijl = BELEVING_STIJL[w];
+                          return (
+                            <span key={m.key} style={{
+                              display: 'inline-block', padding: '2px 8px', borderRadius: 999,
+                              fontSize: 12, fontWeight: 600,
+                              background: stijl.bg, color: stijl.color, whiteSpace: 'nowrap',
+                            }}>
+                              {m.kort}: {stijl.label}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
 
         {/* Detail dialog */}
