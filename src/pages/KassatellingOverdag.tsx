@@ -169,6 +169,10 @@ const KassatellingOverdag = () => {
       toast.error(`Je kunt pas over ${mins}m ${secs}s opnieuw indienen`);
       return;
     }
+    if (!userLocation) {
+      toast.error('Vestiging nog niet geladen — wacht even en probeer opnieuw');
+      return;
+    }
     setIsSubmitting(true);
     try {
       await zorgVoorSessie();
@@ -214,7 +218,7 @@ const KassatellingOverdag = () => {
           JSON.stringify({ kassaLade, wisselkas, naam, opmerkingen, ts: Date.now() })
         );
       } catch {}
-      toast.error(`Opslaan mislukt: ${error?.message ?? 'onbekende fout'}. Je telling is lokaal bewaard — probeer opnieuw.`);
+      toast.error('Je telling is niet verstuurd — hij is op deze iPad bewaard. Probeer het zo nog eens.');
     } finally {
       setIsSubmitting(false);
     }
