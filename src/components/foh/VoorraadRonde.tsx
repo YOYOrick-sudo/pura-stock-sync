@@ -721,9 +721,23 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
       } else if (vervolg.soort === 'mep') {
         const { prioriteit, batch } = mepOpdracht(item, doel, geteld, tekort);
         regels.push({ item, onderItem: null, tekort, geteld, doel, soort: 'mep', prioriteit, batch });
+      } else if (vervolg.soort === 'bestelbord') {
+        // Inkoop: pas melden vanaf het bestelpunt, en in hele verpakkingen.
+        const opdracht = bestelOpdracht(item, doel, geteld, onderweg);
+        if (!opdracht.meld) continue;
+        regels.push({
+          item,
+          onderItem: null,
+          tekort,
+          geteld,
+          doel,
+          soort: 'bestelbord',
+          bestelLabel: opdracht.label,
+        });
       } else {
         regels.push({ item, onderItem: null, tekort, geteld, doel, soort: vervolg.soort as BonSoort });
       }
+
 
     }
     return regels;
