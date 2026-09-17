@@ -138,7 +138,7 @@ function ActieDialog({
               {onderItem && (
                 <button
                   type="button"
-                  onClick={onAangevuld}
+                  onClick={() => onAangevuld(doel)}
                   style={{
                     ...knop,
                     minHeight: '54px',
