@@ -681,6 +681,7 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
           bezig={bezig}
           klaarLabel="Aanwezig"
           klaarIcoon="check"
+          onderwegMap={onderwegMap}
           onKlaar={(i) => handleKlaar(i, 'aanwezig')}
           onOp={handleOp}
           onTeWeinig={setTekortItem}
@@ -696,6 +697,7 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         bezig={bezig}
         klaarLabel="Aanwezig"
         klaarIcoon="check"
+        onderwegMap={onderwegMap}
         onKlaar={(i) => handleKlaar(i, 'aanwezig')}
         onOp={handleOp}
         onTeWeinig={setTekortItem}
@@ -710,6 +712,7 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         bezig={bezig}
         klaarLabel="Bijgevuld"
         klaarIcoon="check"
+        onderwegMap={onderwegMap}
         onKlaar={(i) => handleKlaar(i, 'aanwezig')}
         onOp={handleOp}
         onTeWeinig={setTekortItem}
@@ -724,6 +727,7 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
         bezig={bezig}
         klaarLabel="Bijgevuld"
         klaarIcoon="check"
+        onderwegMap={onderwegMap}
         onKlaar={(i) => handleKlaar(i, 'aanwezig')}
         onOp={handleOp}
         onTeWeinig={setTekortItem}
