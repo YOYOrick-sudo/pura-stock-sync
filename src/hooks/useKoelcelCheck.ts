@@ -214,6 +214,7 @@ async function mepTaakVoorItem(
   vestiging: string,
   datum: string,
   handeling: string,
+  aantal: number,
 ): Promise<{ id: string; dubbel: boolean }> {
   const { data: bestaand, error: zoekFout } = await supabase
     .from('mep_taken')
@@ -244,7 +245,7 @@ async function mepTaakVoorItem(
         categorie: 'Algemeen',
         taak_datum: datum,
         handeling,
-        doel_aantal: item.doel_aantal,
+        doel_aantal: aantal,
         doel_eenheid: item.eenheid,
         prioriteit: 2,
         volgorde,
@@ -257,23 +258,33 @@ async function mepTaakVoorItem(
   return { id: (taak as any).id, dubbel: false };
 }
 
-async function opBestelbord(item: KoelcelCheckItem, vestiging: string): Promise<boolean> {
+async function opBestelbord(item: KoelcelCheckItem, vestiging: string, aantal: number): Promise<boolean> {
   const { data: bestaand, error } = await supabase
     .from('bestel_signalen')
-    .select('id')
+    .select('id, aantal')
     .eq('vestiging', vestiging)
     .eq('status', 'open')
     .ilike('naam', item.naam)
     .limit(1);
   if (error) throw error;
-  if (bestaand?.[0]) return true;
+  if (bestaand?.[0]) {
+    // Al gemeld: hoogste tekort laten staan, niet dubbel bestellen.
+    const huidig = Number((bestaand[0] as any).aantal ?? 0);
+    if (aantal > huidig) {
+      const { error: bijFout } = await metHerstel(() =>
+        supabase.from('bestel_signalen').update({ aantal }).eq('id', (bestaand[0] as any).id),
+      );
+      if (bijFout) throw bijFout;
+    }
+    return true;
+  }
 
   const { data: user } = await supabase.auth.getUser();
   const { error: invoegFout } = await metHerstel(() =>
     supabase.from('bestel_signalen').insert({
       vestiging,
       naam: item.naam,
-      aantal: item.doel_aantal,
+      aantal,
       eenheid: item.eenheid,
       bron: 'sluitlijst',
       gemeld_door: user.user?.id ?? null,
@@ -282,6 +293,7 @@ async function opBestelbord(item: KoelcelCheckItem, vestiging: string): Promise<
   if (invoegFout) throw invoegFout;
   return false;
 }
+
 
 function datumMorgen(): string {
   const d = new Date();
