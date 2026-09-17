@@ -1,0 +1,1 @@
+update public.koelcel_check_items set naam = 'Vissoep' where naam = 'Vis';

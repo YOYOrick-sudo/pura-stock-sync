@@ -714,6 +714,12 @@ const getCurrentPhaseByTime = (): PhaseType => {
   return 'open';
 };
 
+// Module-level cache: takenlijst blijft bewaard tussen schermwissels binnen
+// dezelfde sessie, zodat terugkeren niet op een leeg laadscherm uitkomt.
+const fohTakenCache = new Map<string, FohTaskWithEmployee[]>();
+const fohExtraCache = new Map<string, FohTaskWithEmployee[]>();
+const fohEmployeesCache = new Map<string, FohEmployee[]>();
+
 const getAmsterdamDateString = (): string => {
   const TIMEZONE = 'Europe/Amsterdam';
   const nowInAmsterdam = toZonedTime(new Date(), TIMEZONE);
@@ -951,10 +957,19 @@ export function FohTasks() {
     }
   }, [userLocation, activePhase]);
   
-  const [dailyTasks, setDailyTasks] = useState<FohTaskWithEmployee[]>([]);
-  const [extraTasks, setExtraTasks] = useState<FohTaskWithEmployee[]>([]);
-  const [employees, setEmployees] = useState<FohEmployee[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Cache-sleutel: lijst wordt onthouden tussen schermwissels, zodat terugkeren
+  // meteen de vorige lijst toont in plaats van een leeg laadscherm.
+  const takenCacheKey = `${userLocation}|${getAmsterdamDateString()}`;
+  const [dailyTasks, setDailyTasks] = useState<FohTaskWithEmployee[]>(
+    () => fohTakenCache.get(takenCacheKey) ?? [],
+  );
+  const [extraTasks, setExtraTasks] = useState<FohTaskWithEmployee[]>(
+    () => fohExtraCache.get(userLocation) ?? [],
+  );
+  const [employees, setEmployees] = useState<FohEmployee[]>(
+    () => fohEmployeesCache.get(userLocation) ?? [],
+  );
+  const [loading, setLoading] = useState(() => !fohTakenCache.has(takenCacheKey));
 
   // ===== DAY NAVIGATOR (7 dagen terug + vandaag) =====
   const todayStr = getAmsterdamDateString();
@@ -1463,10 +1478,13 @@ export function FohTasks() {
 
     if (error) {
       devError('Error fetching daily tasks:', error);
+      setLoading(false);
       return;
     }
 
-    setDailyTasks((data || []) as FohTaskWithEmployee[]);
+    const rijen = (data || []) as FohTaskWithEmployee[];
+    fohTakenCache.set(`${userLocation}|${dateToFetch}`, rijen);
+    setDailyTasks(rijen);
     setLoading(false);
   };
 
@@ -1487,7 +1505,9 @@ export function FohTasks() {
       return;
     }
     
-    setExtraTasks((data || []) as FohTaskWithEmployee[]);
+    const rijen = (data || []) as FohTaskWithEmployee[];
+    fohExtraCache.set(userLocation || '', rijen);
+    setExtraTasks(rijen);
   };
 
   const fetchEmployees = async () => {
@@ -1502,6 +1522,7 @@ export function FohTasks() {
       return;
     }
     
+    fohEmployeesCache.set(userLocation || '', data || []);
     setEmployees(data || []);
   };
 
@@ -1565,28 +1586,64 @@ export function FohTasks() {
   };
 
   useEffect(() => {
-    const initializeTasks = async () => {
-      const viewingToday = selectedDate === getAmsterdamDateString();
+    let afgebroken = false;
 
-      // Generatie/reset alleen draaien voor vandaag — verleden is read-only snapshot.
-      if (viewingToday) {
-        if (shouldResetTasks()) {
-          await performClientSideReset();
-        }
-        await generateDailyTasks();
+    const initializeTasks = async () => {
+      const vandaag = getAmsterdamDateString();
+      const viewingToday = selectedDate === vandaag;
+
+      // 1) Eerst tonen: bekende lijst meteen uit de cache, daarna stil verversen.
+      const cacheKey = `${userLocation}|${selectedDate}`;
+      const bekend = fohTakenCache.get(cacheKey);
+      if (bekend) {
+        setDailyTasks(bekend);
+        setLoading(false);
+      } else {
+        setLoading(true);
       }
 
       await fetchDailyTasks();
+      if (afgebroken) return;
 
-      // Periodieke + medewerkers altijd één keer per user/location laden
       if (viewingToday) {
         fetchExtraTasks();
         fetchEmployees();
+
+        // 2) Vangnet op de achtergrond: reset + generatie draaien maximaal één
+        //    keer per apparaat per dag. De nachtelijke automatische aanmaak
+        //    blijft leidend.
+        const guardKey = `fohGeneratieGedaan_${userLocation || 'West'}`;
+        if (localStorage.getItem(guardKey) !== vandaag) {
+          void (async () => {
+            try {
+              if (shouldResetTasks()) {
+                await performClientSideReset();
+              }
+              await generateDailyTasks();
+              localStorage.setItem(guardKey, vandaag);
+              if (!afgebroken) await fetchDailyTasks();
+            } catch (error) {
+              devError('Achtergrond-generatie takenlijst mislukt:', error);
+            }
+          })();
+        }
       }
     };
 
     initializeTasks();
-  }, [userLocation, selectedDate, effectiveDept]);
+    return () => {
+      afgebroken = true;
+    };
+    // Bewust zonder effectiveDept: wisselen tussen Bediening en Keuken is
+    // alleen een weergavekeuze, de gegevens zijn al geladen.
+  }, [userLocation, selectedDate]);
+
+  // Optimistische wijzigingen (vinkjes, slepen) ook in de cache bijwerken,
+  // zodat terugkeren naar het scherm de actuele stand toont.
+  useEffect(() => {
+    if (loading) return;
+    fohTakenCache.set(`${userLocation}|${selectedDate}`, dailyTasks);
+  }, [dailyTasks, userLocation, selectedDate, loading]);
 
   // Terug uit de achtergrond (iPad-beginscherm): lijst opnieuw ophalen, zodat
   // vinkjes van de andere tablet niet gemist worden. Max één keer per 15 sec.
