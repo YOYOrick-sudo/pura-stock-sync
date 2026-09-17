@@ -39,6 +39,7 @@ export function SidebarLayout({
       '/kitchen/mep/week': 'Mise-en-place · week',
       '/settings/mep': 'Mise-en-place instellingen',
       '/settings/keten': 'Voorraadketen',
+      '/settings/koelwerkbank': 'Koelwerkbank indelen',
 
       '/mep-planning': 'MEP Planning',
       '/voorraad': 'Bestellen',
