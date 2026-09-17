@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { FohTaskWithEmployee, PhaseType } from '@/types/foh';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { nl } from 'date-fns/locale';
