@@ -139,8 +139,9 @@ export function useMepTaken(vestiging: string, datum: string) {
       if (error) throw error;
 
       const rijen = (data ?? []) as MepTaak[];
-      // Openstaand eerst (belangrijk, dan oudste invoerdatum, dan invoervolgorde),
-      // daarna alles wat vandaag is afgevinkt, onderaan in de volgorde van afvinken.
+      // Openstaand eerst: handmatige sleepvolgorde wint, daarna belangrijk,
+      // oudste invoerdatum en invoervolgorde. Alles wat vandaag is afgevinkt
+      // staat onderaan, in de volgorde van afvinken.
       return rijen
         .map((t, i) => ({ t, i }))
         .sort((a, b) => {
@@ -148,12 +149,16 @@ export function useMepTaken(vestiging: string, datum: string) {
           const bKlaar = b.t.status === 'afgerond' ? 1 : 0;
           if (aKlaar !== bKlaar) return aKlaar - bKlaar;
           if (aKlaar === 1) return a.t.updated_at.localeCompare(b.t.updated_at);
+          const aV = Number(a.t.volgorde ?? 0);
+          const bV = Number(b.t.volgorde ?? 0);
+          if (aV !== bV) return aV - bV;
           if (a.t.prioriteit !== b.t.prioriteit) return a.t.prioriteit - b.t.prioriteit;
           if (a.t.taak_datum !== b.t.taak_datum)
             return a.t.taak_datum.localeCompare(b.t.taak_datum);
           return a.i - b.i;
         })
         .map(({ t }) => t);
+
     },
   });
 
