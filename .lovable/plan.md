@@ -82,7 +82,7 @@ Zelfde logica, maar geen print: de open-lijst van de volgende dag toont "Kip —
 ## Technisch (kort)
 - Nieuwe kleine tabel `bain_marie_bakken` (product, startdatum, vestiging) of kolommen op `koelcel_check_items`; migratie via de databasetool met regel in `migratie_logboek`.
 - Stickerprint hergebruikt de bestaande print-sticker-flow (datum1/datum2, print bridge) in `VoorraadRonde.tsx` / FohTasks — geen nieuwe printtechniek.
-- Geen nieuwe libraries, geen RLS-wijzigingen op bestaande tabellen; nieuwe tabel krijgt RLS + GRAND → GRANT.
+- Geen nieuwe libraries, geen RLS-wijzigingen op bestaande tabellen; nieuwe tabel krijgt RLS + GRANT.
 
 ## Praktijkcheck
 - Wie: de ochtenddienst tikt één keer per product; de sluitdienst print en plakt. Op de iPad, grote knoppen, geen typen, geen hover.
