@@ -25,29 +25,30 @@ function stickerDatum(iso: string): string {
 /** Hoeveel dagen een bak standaard meegaat (per product overschrijfbaar in de database). */
 const STANDAARD_HOUBAARHEID = 5;
 
-/** Korte status: "ma · dag 5/5". Alleen laatste dag en te oud springen eruit. */
+/** Korte status als rustig chipje: "ma · dag 5/5". Alleen laatste dag en te oud springen eruit. */
 function statusRegel(bak: BainMarieBak | undefined, vandaagIso: string) {
   const s = bakStatus(bak, vandaagIso);
   if (s.status === 'geen') {
-    return <span className="text-[12px] text-muted-foreground">—</span>;
+    return <span className="text-[12px] text-muted-foreground/70">—</span>;
   }
   const max = Math.max(Number(bak?.houdbaarheid_dagen) || STANDAARD_HOUBAARHEID, 1);
   const basis = `${dagKort(s.startDatum!)} · dag ${s.dagNr}/${max}`;
+  const chip = 'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-semibold';
   if (s.status === 'te-oud') {
     return (
-      <span className="flex items-center gap-1 text-[12px] font-semibold text-red-600">
-        <AlertTriangle size={13} /> {basis} · weggooien
+      <span className={`${chip} bg-destructive/10 text-destructive`}>
+        <AlertTriangle size={12} /> {basis} · weggooien
       </span>
     );
   }
   if (s.status === 'laatste-dag') {
     return (
-      <span className="flex items-center gap-1 text-[12px] font-semibold text-amber-600">
-        <AlertTriangle size={13} /> {basis} · laatste dag
+      <span className={`${chip} bg-amber-500/10 text-amber-700 dark:text-amber-400`}>
+        <AlertTriangle size={12} /> {basis} · laatste dag
       </span>
     );
   }
-  return <span className="text-[12px] text-muted-foreground">{basis}</span>;
+  return <span className={`${chip} bg-muted text-muted-foreground`}>{basis}</span>;
 }
 
 /** Sectiekop in de stijl van de takenlijst: klein, rustig, met info-icoon. */
@@ -94,19 +95,19 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
       <Kop
         icoon={Soup}
         titel="Au bain-marie"
-        uitleg="Noteer per product welke datum op de bak staat. Nieuwe bak vandaag? Tik “Vandaag”. Niets tikken = vandaag geen bak. Een bak gaat maximaal 5 dagen mee."
+        uitleg="Tik per product de dag die op de bak staat, zoals op de sticker van de vorige dienst. Is de bak vandaag vers gemaakt? Tik “Vandaag”. Gaat de bak vandaag niet mee of is hij op? Tik dan niets. Een bak gaat maximaal 5 dagen mee."
       />
 
       <div className="divide-y divide-border">
         {BAIN_MARIE_PRODUCTEN.map((p) => {
           const bak = bakVan(p.sleutel);
           return (
-            <div key={p.sleutel} className="py-2.5">
-              <div className="mb-1.5 flex items-baseline justify-between gap-2">
+            <div key={p.sleutel} className="py-3">
+              <div className="mb-2 flex items-center justify-between gap-2">
                 <span className="text-[15px] font-semibold text-foreground">{p.naam}</span>
                 {statusRegel(bak, datum)}
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {dagOpties.map(({ offset, iso }) => {
                   const gekozen = bak?.start_datum === iso;
                   return (
@@ -124,10 +125,10 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
                             Number(bak?.houdbaarheid_dagen) || STANDAARD_HOUBAARHEID,
                         })
                       }
-                      className={`rounded-[12px] border px-3 text-[13px] font-semibold transition-colors disabled:opacity-60 ${
+                      className={`rounded-full px-4 text-[13px] font-semibold transition-colors disabled:opacity-60 ${
                         gekozen
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-border bg-card text-foreground hover:bg-muted'
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
                       }`}
                       style={{ minHeight: 44, minWidth: 44 }}
                     >
@@ -207,7 +208,7 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
           const kanPrinten = bak && s.startDatum && s.status !== 'te-oud';
           const klaar = geprint.includes(p.sleutel);
           return (
-            <div key={p.sleutel} className="flex items-center gap-3 py-2.5" style={{ minHeight: 52 }}>
+            <div key={p.sleutel} className="flex items-center gap-3 py-3" style={{ minHeight: 52 }}>
               {klaar && (
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
                   <Check size={14} />
@@ -222,9 +223,14 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
                   type="button"
                   disabled={printSticker.isPending}
                   onClick={() => print(bak!)}
-                  className="shrink-0 rounded-[12px] border border-border bg-card px-3 text-[13px] font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-60"
+                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 text-[13px] font-semibold transition-colors disabled:opacity-60 ${
+                    klaar
+                      ? 'bg-muted/60 text-muted-foreground hover:bg-muted'
+                      : 'bg-primary/10 text-primary hover:bg-primary/15'
+                  }`}
                   style={{ minHeight: 44 }}
                 >
+                  <Printer size={15} />
                   {klaar ? 'Opnieuw' : 'Sticker'}
                 </button>
               ) : (
