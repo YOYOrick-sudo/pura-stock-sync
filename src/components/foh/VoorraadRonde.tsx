@@ -742,8 +742,10 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
     [plekken, lades],
   );
 
+  // Lades zonder telwerk tellen niet mee in de voortgang: ze blokkeren de ronde niet.
   const alleSleutels = useMemo(
-    () => categorieGroepen.flatMap((p) => p.groepen.map((g) => g.sleutel)),
+    () =>
+      categorieGroepen.flatMap((p) => p.groepen.filter((g) => !g.overslaan).map((g) => g.sleutel)),
     [categorieGroepen],
   );
   const klaarAantal = alleSleutels.filter((s) => bevestigd.includes(s)).length;
@@ -1041,7 +1043,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
         <div className="space-y-6">
           {categorieGroepen.map((p) => {
             const PlekIcoon = p.icoon;
-            const klaarHier = p.groepen.filter((g) => bevestigd.includes(g.sleutel)).length;
+            const telGroepen = p.groepen.filter((g) => !g.overslaan);
+            const klaarHier = telGroepen.filter((g) => bevestigd.includes(g.sleutel)).length;
             return (
               <div key={p.plek}>
                 <div className="sticky top-0 z-10 -mx-1 mb-3 rounded-[14px] border border-border bg-card/95 px-3 py-2.5 backdrop-blur">
