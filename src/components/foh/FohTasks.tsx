@@ -27,6 +27,7 @@ import { AdminPasswordDialog } from './AdminPasswordDialog';
 import { RepeatBadge } from './RepeatBadge';
 import { ListManager } from './ListManager';
 import { VoorraadRonde } from './VoorraadRonde';
+import { BainMarieOpen, BainMarieSluit } from './BainMarie';
 import { getOrderedCategories, WEST_SECTIONS, type Department } from '@/lib/foh-category-order';
 import { devLog, devError } from "@/lib/devLog";
 
