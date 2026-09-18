@@ -478,6 +478,7 @@ function CategorieBlok({
   onHeropen,
   onZet,
   onHerstel,
+  afgeleideTelling,
   subtitel,
   lade,
   overslaan,
@@ -495,6 +496,8 @@ function CategorieBlok({
   onHeropen: () => void;
   onZet: (id: string, aantal: number) => void;
   onHerstel: (id: string) => void;
+  /** Automatisch bijgestelde koelcelstanden door aanvullingen voor de werkbank. */
+  afgeleideTelling?: Record<string, { waarde: number; onttrokken: number }>;
   subtitel?: string | null;
   lade?: VoorraadLade | null;
   /** Gevuld als deze lade wel zichtbaar is maar niet geteld wordt. */
