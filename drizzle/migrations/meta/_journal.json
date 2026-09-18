@@ -155,6 +155,13 @@
       "when": 1789720607325,
       "tag": "0021_koelcel_items_leverancier",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1789721982406,
+      "tag": "0022_bain_marie_ontdooid_weggegooid",
+      "breakpoints": true
     }
   ]
 }

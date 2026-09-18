@@ -72,6 +72,8 @@ export interface StickerLabelInput {
   naam: string;
   datum1: string;
   datum2?: string;
+  /** Alleen bain-marie: datum op de ontdooi-sticker van de vriezer-zak. */
+  ontdooidDatum?: string;
 }
 
 export function buildStickerZpl(input: StickerLabelInput): string {
@@ -105,10 +107,20 @@ export function buildStickerZpl(input: StickerLabelInput): string {
       : zoneTop;
     lines.push(`^FO20,${naamY}^A0N,${naamFont},${naamFont}^FB408,2,4,L^FD${naam}^FS`);
 
-    // 3) Twee gelijkwaardige datumregels onderaan (beide font 30).
-    const bronLabel = input.type === 'ontdooid' ? 'Uit vriezer' : 'Bereid';
+    // 3) Datumregels onderaan. Bain-marie met zak-datum: drie compacte regels.
+  const bronLabel =
+    input.type === 'ontdooid' ? 'Uit vriezer' : input.type === 'bain' ? 'Bak van' : 'Bereid';
+  const zak = input.type === 'bain' && input.ontdooidDatum
+    ? sanitizeZpl(input.ontdooidDatum)
+    : '';
+  if (zak) {
+    lines.push(`^FO20,166^A0N,24,24^FDZak ontdooid: ${zak}^FS`);
+    lines.push(`^FO20,196^A0N,24,24^FD${bronLabel}: ${d1}^FS`);
+    lines.push(`^FO20,226^A0N,24,24^FDGebruiken t/m: ${d2}^FS`);
+  } else {
     lines.push(`^FO20,178^A0N,30,30^FD${bronLabel}: ${d1}^FS`);
     lines.push(`^FO20,214^A0N,30,30^FDGebruiken t/m: ${d2}^FS`);
+  }
   }
 
   lines.push('^XZ');

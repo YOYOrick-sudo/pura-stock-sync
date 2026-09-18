@@ -5,8 +5,8 @@ import { metHerstel } from '@/lib/appWake';
 /**
  * Bain-marie: bakken die meerdere dagen meegaan (kip, vissoep, tom-yum, ei).
  * De app onthoudt per product de startdatum (de dag waarop de bak voor het
- * laatst vers gevuld werd). Alles is standaard 5 dagen houdbaar:
- * dag 1 = startdag, dag 5 = laatste dag, daarna weggooien.
+ * laatst vers gevuld werd). Houdbaarheid verschilt per product:
+ * dag 1 = startdag, laatste dag = startdag + max - 1, daarna weggooien.
  */
 
 export interface BainMarieBak {
@@ -17,16 +17,27 @@ export interface BainMarieBak {
   start_datum: string;
   houdbaarheid_dagen: number;
   actief: boolean;
+  /** Datum op de ontdooi-sticker van de vriezer-zak (alleen zak-producten). */
+  ontdooid_datum?: string | null;
+  /** Datum waarop de bak bij sluit is weggegooid. */
+  weggegooid_op?: string | null;
 }
 
 export const BAIN_MARIE_PRODUCTEN = [
-  { sleutel: 'kip', naam: 'Kip' },
-  { sleutel: 'vissoep', naam: 'Vissoep' },
-  { sleutel: 'tom-yum', naam: 'Tomyum' },
-  { sleutel: 'ei', naam: 'Ei' },
+  { sleutel: 'kip', naam: 'Kip', houdbaarheid: 5, heeftVriesZak: true },
+  { sleutel: 'vissoep', naam: 'Vissoep', houdbaarheid: 6, heeftVriesZak: false },
+  { sleutel: 'tom-yum', naam: 'Tomyum', houdbaarheid: 6, heeftVriesZak: false },
+  { sleutel: 'ei', naam: 'Ei', houdbaarheid: 4, heeftVriesZak: false },
 ] as const;
 
 export type BainMarieSleutel = (typeof BAIN_MARIE_PRODUCTEN)[number]['sleutel'];
+
+/** Houdbaarheid in dagen voor een product (kolom blijft als toekomstige override). */
+export function houdbaarheidVan(sleutel: string): number {
+  return (
+    BAIN_MARIE_PRODUCTEN.find((p) => p.sleutel === sleutel)?.houdbaarheid ?? 5
+  );
+}
 
 /** ISO-datum (yyyy-mm-dd) voor een Date, zonder tijdzone-ellende. */
 export function isoDatum(d: Date): string {
@@ -74,7 +85,10 @@ export function bakStatus(bak: BainMarieBak | undefined, vandaagIso: string): Ba
     (datumVan(vandaagIso).getTime() - datumVan(bak.start_datum).getTime()) / 86_400_000,
   );
   const dagNr = dagen + 1;
-  const max = Math.max(Number(bak.houdbaarheid_dagen) || 5, 1);
+  const max = Math.max(
+    Number(bak.houdbaarheid_dagen) || houdbaarheidVan(bak.product),
+    1,
+  );
   const tot = datumVan(bak.start_datum);
   tot.setDate(tot.getDate() + max - 1);
   const houdbaarTot = isoDatum(tot);
@@ -83,6 +97,9 @@ export function bakStatus(bak: BainMarieBak | undefined, vandaagIso: string): Ba
   return { dagNr, startDatum: bak.start_datum, houdbaarTot, status: 'ok' };
 }
 
+const SELECT_VELDEN =
+  'id, vestiging, product, product_naam, start_datum, houdbaarheid_dagen, actief, ontdooid_datum, weggegooid_op';
+
 export function useBainMarieBakken(vestiging: string) {
   return useQuery({
     queryKey: ['bain-marie-bakken', vestiging],
@@ -90,7 +107,7 @@ export function useBainMarieBakken(vestiging: string) {
       const { data, error } = await metHerstel(() =>
         supabase
           .from('bain_marie_bakken')
-          .select('id, vestiging, product, product_naam, start_datum, houdbaarheid_dagen, actief')
+          .select(SELECT_VELDEN)
           .eq('vestiging', vestiging)
           .eq('actief', true),
       );
@@ -101,11 +118,43 @@ export function useBainMarieBakken(vestiging: string) {
 }
 
 /**
+ * Recent weggegooide bakken (laatste 2 dagen), zodat de open-lijst kan tonen
+ * dat er bewust géén bak is ("weggegooid") in plaats van stilte.
+ */
+export function useBainMarieWeggegooid(vestiging: string) {
+  return useQuery({
+    queryKey: ['bain-marie-weggegooid', vestiging],
+    queryFn: async () => {
+      const grens = new Date();
+      grens.setDate(grens.getDate() - 2);
+      const { data, error } = await metHerstel(() =>
+        supabase
+          .from('bain_marie_bakken')
+          .select(SELECT_VELDEN)
+          .eq('vestiging', vestiging)
+          .eq('actief', false)
+          .not('weggegooid_op', 'is', null)
+          .gte('weggegooid_op', isoDatum(grens))
+          .order('weggegooid_op', { ascending: false }),
+      );
+      if (error) throw error;
+      // Per product alleen de meest recente.
+      const perProduct = new Map<string, BainMarieBak>();
+      for (const rij of (data ?? []) as BainMarieBak[]) {
+        if (!perProduct.has(rij.product)) perProduct.set(rij.product, rij);
+      }
+      return perProduct;
+    },
+  });
+}
+
+/**
  * Noteer de datum van een bain-marie-bak.
  * - "Vandaag (nieuw)": de oude bak wordt gearchiveerd (niets hard verwijderen)
- *   en er komt een nieuwe bak met startdatum vandaag bij.
+ *   en er komt een nieuwe bak met startdatum vandaag bij. Bij zak-producten
+ *   kan de ontdooid-datum van de zak meegegeven worden.
  * - Een oudere dag: dezelfde bak loopt door, de startdatum wordt bijgewerkt
- *   (of aangemaakt als er nog geen bak bekend was).
+ *   (of aangemaakt als er nog geen bak bekend was). De zak blijft dezelfde.
  */
 export function useZetBainMarieStart(vestiging: string) {
   const qc = useQueryClient();
@@ -116,7 +165,8 @@ export function useZetBainMarieStart(vestiging: string) {
       productNaam,
       startDatum,
       nieuw,
-      houdbaarheidDagen = 5,
+      houdbaarheidDagen,
+      ontdooidDatum,
     }: {
       product: BainMarieSleutel;
       productNaam: string;
@@ -124,7 +174,10 @@ export function useZetBainMarieStart(vestiging: string) {
       /** true = verse bak van vandaag (oude bak archiveren). */
       nieuw: boolean;
       houdbaarheidDagen?: number;
+      /** Datum op de ontdooi-sticker van de zak (alleen bij nieuwe zak). */
+      ontdooidDatum?: string | null;
     }) => {
+      const houdbaarheid = houdbaarheidDagen ?? houdbaarheidVan(product);
       if (nieuw) {
         await metHerstel(() =>
           supabase
@@ -163,7 +216,8 @@ export function useZetBainMarieStart(vestiging: string) {
           product,
           product_naam: productNaam,
           start_datum: startDatum,
-          houdbaarheid_dagen: houdbaarheidDagen,
+          houdbaarheid_dagen: houdbaarheid,
+          ontdooid_datum: nieuw ? (ontdooidDatum ?? null) : null,
           actief: true,
           created_by: user.user?.id ?? null,
         }),
@@ -171,7 +225,7 @@ export function useZetBainMarieStart(vestiging: string) {
       if (error) throw error;
       return { product };
     },
-    onMutate: async ({ product, startDatum, nieuw }) => {
+    onMutate: async ({ product, startDatum, nieuw, ontdooidDatum }) => {
       await qc.cancelQueries({ queryKey: sleutel });
       const vorige = qc.getQueryData<BainMarieBak[]>(sleutel);
       qc.setQueryData<BainMarieBak[]>(sleutel, (huidig = []) => {
@@ -184,8 +238,11 @@ export function useZetBainMarieStart(vestiging: string) {
           product,
           product_naam: naam,
           start_datum: startDatum,
-          houdbaarheid_dagen: bestaand?.houdbaarheid_dagen ?? 5,
+          houdbaarheid_dagen: bestaand?.houdbaarheid_dagen ?? houdbaarheidVan(product),
           actief: true,
+          ontdooid_datum: nieuw
+            ? (ontdooidDatum ?? null)
+            : (bestaand?.ontdooid_datum ?? null),
         };
         return [...rest.filter((b) => b.product !== product), bak];
       });
@@ -194,6 +251,45 @@ export function useZetBainMarieStart(vestiging: string) {
     onError: (_e, _v, context) => {
       if (context?.vorige) qc.setQueryData(sleutel, context.vorige);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: sleutel }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: sleutel });
+      qc.invalidateQueries({ queryKey: ['bain-marie-weggegooid', vestiging] });
+    },
+  });
+}
+
+/**
+ * Gooi een bak weg bij sluit (laatste dag of te oud). De bak wordt
+ * afgesloten: actief = false + weggegooid_op = vandaag. Nooit hard verwijderen.
+ */
+export function useGooiBainMarieWeg(vestiging: string) {
+  const qc = useQueryClient();
+  const sleutel = ['bain-marie-bakken', vestiging] as const;
+  return useMutation({
+    mutationFn: async ({ bak }: { bak: BainMarieBak }) => {
+      const { error } = await metHerstel(() =>
+        supabase
+          .from('bain_marie_bakken')
+          .update({ actief: false, weggegooid_op: isoDatum(new Date()) })
+          .eq('id', bak.id),
+      );
+      if (error) throw error;
+      return { product: bak.product };
+    },
+    onMutate: async ({ bak }) => {
+      await qc.cancelQueries({ queryKey: sleutel });
+      const vorige = qc.getQueryData<BainMarieBak[]>(sleutel);
+      qc.setQueryData<BainMarieBak[]>(sleutel, (huidig = []) =>
+        huidig.filter((b) => b.id !== bak.id),
+      );
+      return { vorige };
+    },
+    onError: (_e, _v, context) => {
+      if (context?.vorige) qc.setQueryData(sleutel, context.vorige);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: sleutel });
+      qc.invalidateQueries({ queryKey: ['bain-marie-weggegooid', vestiging] });
+    },
   });
 }
