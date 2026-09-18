@@ -35,6 +35,14 @@ In plaats van een losse uitzondering voor rode kool komt er één systeemregel v
 - Dezelfde velden gelden meteen voor de andere Midsland-producten (o.a. oesterzwam, dukkah); daar vullen we de twee getallen per product in het beheer in.
 - Werkbank wordt bijgevuld uit de koelcelzakken.
 
+## Ook mee: stickerknop au bain-marie
+
+In de database staan twee identieke vissoep-stickers, 1,3 seconde na elkaar aangemaakt. Het zijn dus twee losse tikken die allebei doorkomen (dubbeltik op de iPad), niet één opdracht met aantal 2.
+
+- Eén tik = altijd precies één sticker: na een tik negeert de knop verdere tikken op hetzelfde product tot de opdracht klaar is, plus een korte blokkade daarna.
+- Alleen de aangetikte knop reageert: nu worden bij het printen álle stickerknoppen grijs, waardoor het lijkt of je ze allemaal indrukt. Voortaan verandert alleen de knop die je aanraakt (kort "Bezig…", daarna het vinkje).
+
+
 ## Technisch
 
 - Datawijzigingen op `koelcel_check_items` (West): nieuw werkbank-item geroosterde bloemkool (GN 1/4 midden, bron `zelf_west`), naam gegrilde groenten bijwerken, `lade_id` van de vier op "Links midden" (`94b711e5…`) met volgorde 410–413, koelcelregels aubergine + geroosterde groenten op `actief=false`.
