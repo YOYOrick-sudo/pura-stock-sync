@@ -535,6 +535,93 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
           </div>
         </>
       )}
+
+      <Dialog
+        open={correctieVoor !== null}
+        onOpenChange={(o) => {
+          if (!o) {
+            setCorrectieVoor(null);
+            setVraagZak(false);
+          }
+        }}
+      >
+        <DialogContent className="max-w-[650px] rounded-[24px]">
+          {(() => {
+            const p = BAIN_MARIE_PRODUCTEN.find((x) => x.sleutel === correctieVoor);
+            const bak = p ? bakken.find((b) => b.product === p.sleutel) : undefined;
+            if (!p || !bak) return null;
+            const s = bakStatus(bak, datum);
+            const max = Math.max(
+              Number(bak.houdbaarheid_dagen) || houdbaarheidVan(bak.product),
+              1,
+            );
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Klopt deze bak nog?</DialogTitle>
+                  <DialogDescription>
+                    {p.naam} — bak van {dagKort(s.startDatum!)}, dag {s.dagNr} van {max}.
+                  </DialogDescription>
+                </DialogHeader>
+
+                {vraagZak ? (
+                  <ZakDatumKiezer
+                    datum={datum}
+                    bezig={zetStart.isPending}
+                    onKies={(iso) => nieuweBak(p, iso)}
+                    onAnnuleer={() => setVraagZak(false)}
+                  />
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCorrectieVoor(null)}
+                      className="rounded-[14px] bg-muted/60 px-4 text-[14px] font-semibold text-foreground transition-colors hover:bg-muted"
+                      style={{ minHeight: 44 }}
+                    >
+                      Ja, zelfde bak
+                    </button>
+                    <button
+                      type="button"
+                      disabled={zetStart.isPending}
+                      onClick={() => {
+                        if (p.heeftVriesZak) {
+                          setVraagZak(true);
+                          return;
+                        }
+                        nieuweBak(p, null);
+                      }}
+                      className="rounded-[14px] bg-primary/10 px-4 text-[14px] font-semibold text-primary transition-colors hover:bg-primary/15 disabled:opacity-60"
+                      style={{ minHeight: 44 }}
+                    >
+                      Nieuwe bak van vandaag
+                    </button>
+                    <button
+                      type="button"
+                      disabled={gooiWeg.isPending}
+                      onClick={() =>
+                        gooiWeg.mutate(
+                          { bak, reden: 'op' },
+                          {
+                            onSettled: () => {
+                              wisGeprint(p.sleutel);
+                              setCorrectieVoor(null);
+                            },
+                          },
+                        )
+                      }
+                      className="rounded-[14px] bg-muted/60 px-4 text-[14px] font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-60"
+                      style={{ minHeight: 44 }}
+                    >
+                      Bak is op
+                    </button>
+                  </div>
+                )}
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
