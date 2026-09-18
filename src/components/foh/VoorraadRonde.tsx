@@ -475,7 +475,6 @@ function CategorieBlok({
   bestelbordMap: Record<string, number>;
   mepTitels: string[];
   bevestigd: boolean;
-  onBevestig: () => void;
   onHeropen: () => void;
   onZet: (id: string, aantal: number) => void;
   onHerstel: (id: string) => void;
@@ -573,11 +572,6 @@ function CategorieBlok({
           />
         ))}
       </div>
-
-      <Button onClick={onBevestig} className="mt-3 h-12 w-full rounded-[14px] text-[15px] font-semibold">
-        <Check size={18} className="mr-1" />
-        {afwijkingen > 0 ? 'Klaar' : 'Klopt, ligt er'}
-      </Button>
     </div>
   );
 }
