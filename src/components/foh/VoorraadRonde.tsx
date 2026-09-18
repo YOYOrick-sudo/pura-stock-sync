@@ -329,7 +329,12 @@ function TelRegel({
           {(statusChip || tekort || afwijkend) && (
             <span className="ml-auto flex shrink-0 items-center gap-1.5">
               {statusChip}
-              {tekort && <VoorraadChip variant="actie">bijvullen</VoorraadChip>}
+              {tekort &&
+                (tekortActie === 'mep' ? (
+                  statusTekst !== 'op de MEP' && <VoorraadChip variant="klaar">op de MEP</VoorraadChip>
+                ) : (
+                  <VoorraadChip variant="actie">bijvullen</VoorraadChip>
+                ))}
               {afwijkend && (
                 <button
                   type="button"
