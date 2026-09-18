@@ -209,6 +209,7 @@ function TelRegel({
   opBestelbord,
   inMep,
   keten,
+  tekortActie,
   modus,
   onZet,
   onHerstel,
@@ -221,6 +222,8 @@ function TelRegel({
   inMep: boolean;
   /** Waar de aanvulling vandaan komt (grijze ketenchip), of null. */
   keten: string | null;
+  /** Wat er bij een tekort gebeurt: zelf bijvullen of een MEP-taak. */
+  tekortActie?: 'bijvullen' | 'mep';
   /** Hoe dit product geteld wordt. */
   modus: TelModus;
   onZet: (aantal: number) => void;
@@ -568,6 +571,9 @@ function CategorieBlok({
             opBestelbord={(bestelbordMap[item.naam.trim().toLowerCase()] ?? 0) > 0}
             inMep={mepTitels.some((t) => t.includes(item.naam.trim().toLowerCase()))}
             keten={KETEN_PLEKKEN.includes(item.plek) ? ketenKortLabel(item, alleItems) : null}
+            tekortActie={
+              vervolgactieVoorRegel(item, alleItems).soort === 'niveau' ? 'bijvullen' : 'mep'
+            }
             onZet={(a) => onZet(item.id, a)}
             onHerstel={() => onHerstel(item.id)}
           />
