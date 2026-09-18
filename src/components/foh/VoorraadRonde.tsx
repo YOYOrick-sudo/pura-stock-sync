@@ -65,6 +65,8 @@ interface Groep {
   subtitel: string | null;
   lade: VoorraadLade | null;
   items: ItemMetCategorie[];
+  /** Lade die je wel ziet maar niet telt: leeg of bewust overgeslagen. */
+  overslaan?: { reden: string; uitleg: string };
 }
 
 /** De plekken in de volgorde waarin je er fysiek langsloopt. */
