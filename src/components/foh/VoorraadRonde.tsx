@@ -202,8 +202,14 @@ function TelRegel({
   const statusChips = [
     onderweg > 0 ? `${aantalLabel(onderweg, item.eenheid)} onderweg` : null,
     opBestelbord ? 'op het bestelbord' : null,
-    inMep ? 'wordt gemaakt (MEP)' : null,
   ].filter(Boolean);
+
+  // Mededeling, geen waarschuwing: subtiel groen chipje rechts in de kopregel.
+  const mepChip = inMep ? (
+    <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+      op de MEP
+    </span>
+  ) : null;
 
   const bakje = bakjeLabel(item.formaat ?? item.bak_maat);
   const maatTekst = bakje?.code
@@ -253,7 +259,10 @@ function TelRegel({
       <div className="space-y-2 rounded-[14px] border border-amber-400/70 bg-amber-50/70 p-3 dark:bg-amber-500/10">
         <div className="flex items-center gap-2">
           {kopRegel}
-          <Truck size={18} className="ml-auto shrink-0 text-amber-600 dark:text-amber-300" />
+          <span className="ml-auto flex shrink-0 items-center gap-1.5">
+            {mepChip}
+            <Truck size={18} className="shrink-0 text-amber-600 dark:text-amber-300" />
+          </span>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -289,19 +298,24 @@ function TelRegel({
       >
         <div className="mb-2 flex items-center gap-2">
           {kopRegel}
-          {tekort && (
-            <span className="ml-auto shrink-0 rounded-full bg-amber-400/10 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">
-              bijvullen
+          {(mepChip || tekort || afwijkend) && (
+            <span className="ml-auto flex shrink-0 items-center gap-1.5">
+              {mepChip}
+              {tekort && (
+                <span className="shrink-0 rounded-full bg-amber-400/10 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">
+                  bijvullen
+                </span>
+              )}
+              {afwijkend && (
+                <button
+                  type="button"
+                  onClick={onHerstel}
+                  className="shrink-0 text-[12px] font-medium text-muted-foreground underline-offset-2 hover:underline"
+                >
+                  wissen
+                </button>
+              )}
             </span>
-          )}
-          {afwijkend && (
-            <button
-              type="button"
-              onClick={onHerstel}
-              className={`shrink-0 text-[12px] font-medium text-muted-foreground underline-offset-2 hover:underline ${tekort ? '' : 'ml-auto'}`}
-            >
-              wissen
-            </button>
           )}
         </div>
         <div className="grid grid-cols-4 gap-1.5">
@@ -341,12 +355,15 @@ function TelRegel({
         style={{ minHeight: 56 }}
       >
         {kopRegel}
-        <span
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-            afwijkend ? 'bg-amber-400/20 text-amber-700 dark:text-amber-300' : 'bg-muted text-muted-foreground'
-          }`}
-        >
-          {afwijkend ? <Check size={18} /> : <Minus size={18} />}
+        <span className="flex shrink-0 items-center gap-2">
+          {mepChip}
+          <span
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+              afwijkend ? 'bg-amber-400/20 text-amber-700 dark:text-amber-300' : 'bg-muted text-muted-foreground'
+            }`}
+          >
+            {afwijkend ? <Check size={18} /> : <Minus size={18} />}
+          </span>
         </span>
       </button>
 
