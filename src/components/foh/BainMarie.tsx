@@ -245,7 +245,8 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
           <div className="divide-y divide-border">
         {BAIN_MARIE_PRODUCTEN.map((p) => {
           const bak = bakVan(p.sleutel);
-          const isWeggegooid = !bak && weggegooid.has(p.sleutel);
+          const afgeslotenBak = !bak ? weggegooid.get(p.sleutel) : undefined;
+          const wasOp = afgeslotenBak?.reden === 'op';
           const toonZakVraag = zakVraag === p.sleutel;
           return (
             <div key={p.sleutel} className="py-3">
@@ -253,9 +254,9 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
                 <span className="text-[15px] font-semibold text-foreground">{p.naam}</span>
                 {bak ? (
                   statusRegel(bak, datum)
-                ) : isWeggegooid ? (
+                ) : afgeslotenBak ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[12px] font-semibold text-muted-foreground">
-                    <Trash2 size={12} /> weggegooid
+                    <Trash2 size={12} /> {wasOp ? 'was op' : 'weggegooid'}
                   </span>
                 ) : (
                   statusRegel(bak, datum)
