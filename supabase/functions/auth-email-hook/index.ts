@@ -15,11 +15,36 @@ const corsHeaders = {
 }
 
 // Configuration
-const SITE_NAME = "Pura Vida app"
+const SITE_NAME = "Pura Vida Foodbar"
 const SENDER_DOMAIN = "notify.puravidafoodbar.nl"
 const ROOT_DOMAIN = "puravidafoodbar.nl"
 const FROM_DOMAIN = "puravidafoodbar.nl"
-const SITE_URL = `https://${ROOT_DOMAIN}`
+const SITE_URL = "https://intern.puravidafoodbar.nl"
+
+// Uitnodigings- en herstelmails wijzen naar het eigen wachtwoordscherm in de app.
+function buildAppConfirmationUrl(rawUrl: string, emailType: string, email?: string) {
+  if (!['invite', 'recovery'].includes(emailType)) return rawUrl
+
+  try {
+    const source = new URL(rawUrl)
+    const params = new URLSearchParams(source.search)
+    const hashParams = new URLSearchParams(source.hash.replace(/^#/, ''))
+    const pick = (key: string) => params.get(key) ?? hashParams.get(key)
+    const tokenHash = pick('token_hash')
+    const token = pick('token')
+    const type = pick('type') ?? emailType
+    const target = new URL('/auth/set-password', SITE_URL)
+
+    target.searchParams.set('type', type)
+    if (tokenHash) target.searchParams.set('token_hash', tokenHash)
+    if (token) target.searchParams.set('token', token)
+    if (email) target.searchParams.set('email', email)
+
+    return target.toString()
+  } catch {
+    return rawUrl
+  }
+}
 
 // Template mapping for preview mode
 const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
@@ -129,7 +154,7 @@ const handler = createAuthEmailHandler({
   sendUrl: Deno.env.get('LOVABLE_SEND_URL'),
   emails: {
     signup: {
-      subject: 'Confirm your email',
+      subject: 'Bevestig je Pura Vida-account',
       render: (data) =>
         React.createElement(SignupEmail, {
           siteName: SITE_NAME,
@@ -139,16 +164,16 @@ const handler = createAuthEmailHandler({
         }),
     },
     invite: {
-      subject: "You've been invited",
+      subject: 'Je bent uitgenodigd voor de Pura Vida app',
       render: (data) =>
         React.createElement(InviteEmail, {
           siteName: SITE_NAME,
           siteUrl: SITE_URL,
-          confirmationUrl: data.url,
+          confirmationUrl: buildAppConfirmationUrl(data.url, 'invite', data.email),
         }),
     },
     magiclink: {
-      subject: 'Your login link',
+      subject: 'Je inloglink voor Pura Vida',
       render: (data) =>
         React.createElement(MagicLinkEmail, {
           siteName: SITE_NAME,
@@ -156,15 +181,15 @@ const handler = createAuthEmailHandler({
         }),
     },
     recovery: {
-      subject: 'Reset your password',
+      subject: 'Wachtwoord resetten voor je Pura Vida-account',
       render: (data) =>
         React.createElement(RecoveryEmail, {
           siteName: SITE_NAME,
-          confirmationUrl: data.url,
+          confirmationUrl: buildAppConfirmationUrl(data.url, 'recovery', data.email),
         }),
     },
     email_change: {
-      subject: 'Confirm your new email',
+      subject: 'Bevestig je nieuwe e-mailadres',
       render: (data) =>
         React.createElement(EmailChangeEmail, {
           siteName: SITE_NAME,
@@ -175,7 +200,7 @@ const handler = createAuthEmailHandler({
         }),
     },
     reauthentication: {
-      subject: 'Your verification code',
+      subject: 'Je verificatiecode voor Pura Vida',
       render: (data) =>
         React.createElement(ReauthenticationEmail, { token: data.token ?? '' }),
     },
