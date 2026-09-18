@@ -323,10 +323,15 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
   const bakkenQuery = useBainMarieBakken(vestiging);
   const printSticker = useCreateStickerPrintJob();
   const gooiWeg = useGooiBainMarieWeg(vestiging);
+  const zetStart = useZetBainMarieStart(vestiging);
   const bakken = bakkenQuery.data ?? [];
 
   /** Product dat op de tweede tik van de weggooi-bevestiging wacht. */
   const [bevestigWeg, setBevestigWeg] = useState<BainMarieSleutel | null>(null);
+  /** Product waarvan het correctievenster openstaat ("Klopt deze bak nog?"). */
+  const [correctieVoor, setCorrectieVoor] = useState<BainMarieSleutel | null>(null);
+  /** In het correctievenster: zak-datum vragen voor een nieuwe bak. */
+  const [vraagZak, setVraagZak] = useState(false);
 
   const opslagSleutel = `bain-marie-geprint-${vestiging}-${datum}`;
   const [geprint, setGeprint] = useState<string[]>([]);
