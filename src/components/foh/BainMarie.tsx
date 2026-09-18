@@ -11,6 +11,13 @@ import {
 import { SectieBalk } from './SectieBalk';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import {
   BAIN_MARIE_PRODUCTEN,
@@ -81,6 +88,98 @@ const dagKnopStijl = (gekozen: boolean) =>
     : `${dagKnopBasis} bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground`;
 
 /**
+ * Datum op de ontdooi-sticker van de zak: drie snelknoppen plus een kalender
+ * die onbeperkt terug kan. Gebruikt bij een nieuwe bak, zowel 's ochtends als
+ * bij een correctie in de sluitlijst.
+ */
+function ZakDatumKiezer({
+  datum,
+  bezig,
+  onKies,
+  onAnnuleer,
+}: {
+  datum: string;
+  bezig?: boolean;
+  onKies: (iso: string) => void;
+  onAnnuleer?: () => void;
+}) {
+  const [kalenderOpen, setKalenderOpen] = useState(false);
+  const opties = [
+    { offset: 0, label: 'Vandaag' },
+    { offset: 1, label: 'Gisteren' },
+    { offset: 2, label: 'Eergisteren' },
+  ].map(({ offset, label }) => {
+    const d = new Date(`${datum}T12:00:00`);
+    d.setDate(d.getDate() - offset);
+    return { offset, label, iso: isoDatum(d) };
+  });
+
+  return (
+    <div className="mt-2 rounded-[14px] bg-primary/5 p-3">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="text-[13px] font-semibold text-foreground">
+          Datum op de zak?{' '}
+          <span className="font-normal text-muted-foreground">(ontdooi-sticker)</span>
+        </span>
+        {onAnnuleer && (
+          <button
+            type="button"
+            aria-label="Annuleren"
+            onClick={onAnnuleer}
+            className="flex items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
+            style={{ minHeight: 44, minWidth: 44 }}
+          >
+            <X size={16} />
+          </button>
+        )}
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {opties.map(({ offset, iso, label }) => (
+          <button
+            key={offset}
+            type="button"
+            disabled={bezig}
+            onClick={() => onKies(iso)}
+            className={dagKnopStijl(false)}
+            style={{ minHeight: 44, minWidth: 44 }}
+          >
+            {label}
+          </button>
+        ))}
+        <Popover open={kalenderOpen} onOpenChange={setKalenderOpen}>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              disabled={bezig}
+              className={`${dagKnopStijl(false)} flex items-center gap-1.5`}
+              style={{ minHeight: 44, minWidth: 44 }}
+            >
+              <CalendarIcon size={15} />
+              Andere datum
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              locale={nl}
+              weekStartsOn={1}
+              defaultMonth={new Date(`${datum}T12:00:00`)}
+              disabled={{ after: new Date(`${datum}T12:00:00`) }}
+              onSelect={(d) => {
+                if (!d) return;
+                setKalenderOpen(false);
+                onKies(isoDatum(d));
+              }}
+              className={cn('p-3 pointer-events-auto')}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+    </div>
+  );
+}
+
+/**
  * Ochtendblok (Open-lijst West, keuken): noteer per product welke datum op de
  * bak staat. Eén tik, geen typen. Niets tikken = vandaag geen bak.
  * Bij "Vandaag (nieuw)" op een zak-product volgt één extra vraag: de datum
@@ -95,8 +194,6 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
 
   /** Product waarvan de zak-datum nog gevraagd moet worden (na tik op "Vandaag"). */
   const [zakVraag, setZakVraag] = useState<BainMarieSleutel | null>(null);
-  /** Product waarvan de kalender openstaat. */
-  const [kalenderVoor, setKalenderVoor] = useState<BainMarieSleutel | null>(null);
 
   const bakVan = (sleutel: BainMarieSleutel) => bakken.find((b) => b.product === sleutel);
 
@@ -107,16 +204,6 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
     return { offset, iso: isoDatum(d) };
   });
 
-  /** Snelknoppen voor de zak: de drie gevallen die het vaakst voorkomen. */
-  const zakOpties = [
-    { offset: 0, label: 'Vandaag' },
-    { offset: 1, label: 'Gisteren' },
-    { offset: 2, label: 'Eergisteren' },
-  ].map(({ offset, label }) => {
-    const d = new Date(`${datum}T12:00:00`);
-    d.setDate(d.getDate() - offset);
-    return { offset, label, iso: isoDatum(d) };
-  });
 
 
   const startNieuw = (p: (typeof BAIN_MARIE_PRODUCTEN)[number], ontdooidDatum: string | null) => {
@@ -165,7 +252,8 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
           <div className="divide-y divide-border">
         {BAIN_MARIE_PRODUCTEN.map((p) => {
           const bak = bakVan(p.sleutel);
-          const isWeggegooid = !bak && weggegooid.has(p.sleutel);
+          const afgeslotenBak = !bak ? weggegooid.get(p.sleutel) : undefined;
+          const wasOp = afgeslotenBak?.reden === 'op';
           const toonZakVraag = zakVraag === p.sleutel;
           return (
             <div key={p.sleutel} className="py-3">
@@ -173,9 +261,9 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
                 <span className="text-[15px] font-semibold text-foreground">{p.naam}</span>
                 {bak ? (
                   statusRegel(bak, datum)
-                ) : isWeggegooid ? (
+                ) : afgeslotenBak ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[12px] font-semibold text-muted-foreground">
-                    <Trash2 size={12} /> weggegooid
+                    <Trash2 size={12} /> {wasOp ? 'was op' : 'weggegooid'}
                   </span>
                 ) : (
                   statusRegel(bak, datum)
@@ -214,68 +302,12 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
               </div>
 
               {toonZakVraag && (
-                <div className="mt-2 rounded-[14px] bg-primary/5 p-3">
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <span className="text-[13px] font-semibold text-foreground">
-                      Datum op de zak? <span className="font-normal text-muted-foreground">(ontdooi-sticker)</span>
-                    </span>
-                    <button
-                      type="button"
-                      aria-label="Annuleren"
-                      onClick={() => setZakVraag(null)}
-                      className="flex items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
-                      style={{ minHeight: 44, minWidth: 44 }}
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {zakOpties.map(({ offset, iso, label }) => (
-                      <button
-                        key={offset}
-                        type="button"
-                        disabled={zetStart.isPending}
-                        onClick={() => startNieuw(p, iso)}
-                        className={dagKnopStijl(false)}
-                        style={{ minHeight: 44, minWidth: 44 }}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                    <Popover
-                      open={kalenderVoor === p.sleutel}
-                      onOpenChange={(open) => setKalenderVoor(open ? p.sleutel : null)}
-                    >
-                      <PopoverTrigger asChild>
-                        <button
-                          type="button"
-                          disabled={zetStart.isPending}
-                          className={`${dagKnopStijl(false)} flex items-center gap-1.5`}
-                          style={{ minHeight: 44, minWidth: 44 }}
-                        >
-                          <CalendarIcon size={15} />
-                          Andere datum
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          locale={nl}
-                          weekStartsOn={1}
-                          defaultMonth={new Date(`${datum}T12:00:00`)}
-                          disabled={{ after: new Date(`${datum}T12:00:00`) }}
-                          onSelect={(d) => {
-                            if (!d) return;
-                            setKalenderVoor(null);
-                            startNieuw(p, isoDatum(d));
-                          }}
-                          className={cn('p-3 pointer-events-auto')}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                </div>
+                <ZakDatumKiezer
+                  datum={datum}
+                  bezig={zetStart.isPending}
+                  onKies={(iso) => startNieuw(p, iso)}
+                  onAnnuleer={() => setZakVraag(null)}
+                />
               )}
             </div>
           );
@@ -298,10 +330,15 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
   const bakkenQuery = useBainMarieBakken(vestiging);
   const printSticker = useCreateStickerPrintJob();
   const gooiWeg = useGooiBainMarieWeg(vestiging);
+  const zetStart = useZetBainMarieStart(vestiging);
   const bakken = bakkenQuery.data ?? [];
 
   /** Product dat op de tweede tik van de weggooi-bevestiging wacht. */
   const [bevestigWeg, setBevestigWeg] = useState<BainMarieSleutel | null>(null);
+  /** Product waarvan het correctievenster openstaat ("Klopt deze bak nog?"). */
+  const [correctieVoor, setCorrectieVoor] = useState<BainMarieSleutel | null>(null);
+  /** In het correctievenster: zak-datum vragen voor een nieuwe bak. */
+  const [vraagZak, setVraagZak] = useState(false);
 
   const opslagSleutel = `bain-marie-geprint-${vestiging}-${datum}`;
   const [geprint, setGeprint] = useState<string[]>([]);
@@ -348,6 +385,43 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
         onSuccess: () => markeerGeprint(bak.product),
         // Korte nablokkade zodat een na-tik van de iPad niet alsnog doorkomt.
         onSettled: () => window.setTimeout(() => setBezig(null), 1200),
+      },
+    );
+  };
+
+  /** Sticker-markering wissen: na een nieuwe bak moet de sticker opnieuw. */
+  const wisGeprint = (product: string) => {
+    setGeprint((g) => {
+      const volgend = g.filter((s) => s !== product);
+      try {
+        localStorage.setItem(opslagSleutel, JSON.stringify(volgend));
+      } catch {
+        /* stille fallback */
+      }
+      return volgend;
+    });
+  };
+
+  /** Correctie: er is tussendoor een nieuwe bak opengemaakt. */
+  const nieuweBak = (
+    p: (typeof BAIN_MARIE_PRODUCTEN)[number],
+    ontdooidDatum: string | null,
+  ) => {
+    zetStart.mutate(
+      {
+        product: p.sleutel,
+        productNaam: p.naam,
+        startDatum: datum,
+        nieuw: true,
+        houdbaarheidDagen: p.houdbaarheid,
+        ontdooidDatum,
+      },
+      {
+        onSettled: () => {
+          wisGeprint(p.sleutel);
+          setVraagZak(false);
+          setCorrectieVoor(null);
+        },
       },
     );
   };
@@ -404,7 +478,22 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
               )}
               <span className="min-w-0 flex-1">
                 <span className="block text-[15px] font-semibold text-foreground">{p.naam}</span>
-                {statusRegel(bak, datum)}
+                {bak ? (
+                  <button
+                    type="button"
+                    aria-label={`Klopt de bak ${p.naam} nog?`}
+                    onClick={() => {
+                      setVraagZak(false);
+                      setCorrectieVoor(p.sleutel);
+                    }}
+                    className="flex items-center rounded-full text-left"
+                    style={{ minHeight: 44 }}
+                  >
+                    {statusRegel(bak, datum)}
+                  </button>
+                ) : (
+                  statusRegel(bak, datum)
+                )}
               </span>
               {kanPrinten ? (
                 <button
@@ -453,6 +542,93 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
           </div>
         </>
       )}
+
+      <Dialog
+        open={correctieVoor !== null}
+        onOpenChange={(o) => {
+          if (!o) {
+            setCorrectieVoor(null);
+            setVraagZak(false);
+          }
+        }}
+      >
+        <DialogContent className="max-w-[650px] rounded-[24px]">
+          {(() => {
+            const p = BAIN_MARIE_PRODUCTEN.find((x) => x.sleutel === correctieVoor);
+            const bak = p ? bakken.find((b) => b.product === p.sleutel) : undefined;
+            if (!p || !bak) return null;
+            const s = bakStatus(bak, datum);
+            const max = Math.max(
+              Number(bak.houdbaarheid_dagen) || houdbaarheidVan(bak.product),
+              1,
+            );
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Klopt deze bak nog?</DialogTitle>
+                  <DialogDescription>
+                    {p.naam} — bak van {dagKort(s.startDatum!)}, dag {s.dagNr} van {max}.
+                  </DialogDescription>
+                </DialogHeader>
+
+                {vraagZak ? (
+                  <ZakDatumKiezer
+                    datum={datum}
+                    bezig={zetStart.isPending}
+                    onKies={(iso) => nieuweBak(p, iso)}
+                    onAnnuleer={() => setVraagZak(false)}
+                  />
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCorrectieVoor(null)}
+                      className="rounded-[14px] bg-muted/60 px-4 text-[14px] font-semibold text-foreground transition-colors hover:bg-muted"
+                      style={{ minHeight: 44 }}
+                    >
+                      Ja, zelfde bak
+                    </button>
+                    <button
+                      type="button"
+                      disabled={zetStart.isPending}
+                      onClick={() => {
+                        if (p.heeftVriesZak) {
+                          setVraagZak(true);
+                          return;
+                        }
+                        nieuweBak(p, null);
+                      }}
+                      className="rounded-[14px] bg-primary/10 px-4 text-[14px] font-semibold text-primary transition-colors hover:bg-primary/15 disabled:opacity-60"
+                      style={{ minHeight: 44 }}
+                    >
+                      Nieuwe bak van vandaag
+                    </button>
+                    <button
+                      type="button"
+                      disabled={gooiWeg.isPending}
+                      onClick={() =>
+                        gooiWeg.mutate(
+                          { bak, reden: 'op' },
+                          {
+                            onSettled: () => {
+                              wisGeprint(p.sleutel);
+                              setCorrectieVoor(null);
+                            },
+                          },
+                        )
+                      }
+                      className="rounded-[14px] bg-muted/60 px-4 text-[14px] font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-60"
+                      style={{ minHeight: 44 }}
+                    >
+                      Bak is op
+                    </button>
+                  </div>
+                )}
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
