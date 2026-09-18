@@ -506,6 +506,7 @@ export type Database = {
           ontdooid_datum: string | null
           product: string
           product_naam: string
+          reden: string
           start_datum: string
           updated_at: string
           vestiging: string
@@ -520,6 +521,7 @@ export type Database = {
           ontdooid_datum?: string | null
           product: string
           product_naam: string
+          reden?: string
           start_datum: string
           updated_at?: string
           vestiging?: string
@@ -534,6 +536,7 @@ export type Database = {
           ontdooid_datum?: string | null
           product?: string
           product_naam?: string
+          reden?: string
           start_datum?: string
           updated_at?: string
           vestiging?: string
