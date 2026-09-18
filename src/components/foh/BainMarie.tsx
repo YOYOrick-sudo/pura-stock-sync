@@ -81,6 +81,98 @@ const dagKnopStijl = (gekozen: boolean) =>
     : `${dagKnopBasis} bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground`;
 
 /**
+ * Datum op de ontdooi-sticker van de zak: drie snelknoppen plus een kalender
+ * die onbeperkt terug kan. Gebruikt bij een nieuwe bak, zowel 's ochtends als
+ * bij een correctie in de sluitlijst.
+ */
+function ZakDatumKiezer({
+  datum,
+  bezig,
+  onKies,
+  onAnnuleer,
+}: {
+  datum: string;
+  bezig?: boolean;
+  onKies: (iso: string) => void;
+  onAnnuleer?: () => void;
+}) {
+  const [kalenderOpen, setKalenderOpen] = useState(false);
+  const opties = [
+    { offset: 0, label: 'Vandaag' },
+    { offset: 1, label: 'Gisteren' },
+    { offset: 2, label: 'Eergisteren' },
+  ].map(({ offset, label }) => {
+    const d = new Date(`${datum}T12:00:00`);
+    d.setDate(d.getDate() - offset);
+    return { offset, label, iso: isoDatum(d) };
+  });
+
+  return (
+    <div className="mt-2 rounded-[14px] bg-primary/5 p-3">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="text-[13px] font-semibold text-foreground">
+          Datum op de zak?{' '}
+          <span className="font-normal text-muted-foreground">(ontdooi-sticker)</span>
+        </span>
+        {onAnnuleer && (
+          <button
+            type="button"
+            aria-label="Annuleren"
+            onClick={onAnnuleer}
+            className="flex items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
+            style={{ minHeight: 44, minWidth: 44 }}
+          >
+            <X size={16} />
+          </button>
+        )}
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {opties.map(({ offset, iso, label }) => (
+          <button
+            key={offset}
+            type="button"
+            disabled={bezig}
+            onClick={() => onKies(iso)}
+            className={dagKnopStijl(false)}
+            style={{ minHeight: 44, minWidth: 44 }}
+          >
+            {label}
+          </button>
+        ))}
+        <Popover open={kalenderOpen} onOpenChange={setKalenderOpen}>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              disabled={bezig}
+              className={`${dagKnopStijl(false)} flex items-center gap-1.5`}
+              style={{ minHeight: 44, minWidth: 44 }}
+            >
+              <CalendarIcon size={15} />
+              Andere datum
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              locale={nl}
+              weekStartsOn={1}
+              defaultMonth={new Date(`${datum}T12:00:00`)}
+              disabled={{ after: new Date(`${datum}T12:00:00`) }}
+              onSelect={(d) => {
+                if (!d) return;
+                setKalenderOpen(false);
+                onKies(isoDatum(d));
+              }}
+              className={cn('p-3 pointer-events-auto')}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+    </div>
+  );
+}
+
+/**
  * Ochtendblok (Open-lijst West, keuken): noteer per product welke datum op de
  * bak staat. Eén tik, geen typen. Niets tikken = vandaag geen bak.
  * Bij "Vandaag (nieuw)" op een zak-product volgt één extra vraag: de datum
