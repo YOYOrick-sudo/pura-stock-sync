@@ -275,7 +275,7 @@ function TelRegel({
         <div className="flex items-center gap-2">
           {kopRegel}
           <span className="ml-auto flex shrink-0 items-center gap-1.5">
-            {mepChip}
+            {statusChip}
             <Truck size={18} className="shrink-0 text-amber-600 dark:text-amber-300" />
           </span>
         </div>
@@ -313,14 +313,10 @@ function TelRegel({
       >
         <div className="mb-2 flex items-center gap-2">
           {kopRegel}
-          {(mepChip || tekort || afwijkend) && (
+          {(statusChip || tekort || afwijkend) && (
             <span className="ml-auto flex shrink-0 items-center gap-1.5">
-              {mepChip}
-              {tekort && (
-                <span className="shrink-0 rounded-full bg-amber-400/10 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">
-                  bijvullen
-                </span>
-              )}
+              {statusChip}
+              {tekort && <VoorraadChip variant="actie">bijvullen</VoorraadChip>}
               {afwijkend && (
                 <button
                   type="button"
