@@ -726,6 +726,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                 : 'koelcel',
         });
       } else if (vervolg.soort === 'mep') {
+        // Zelf maken/roosteren: pas een taak vanaf het meldpunt (halve bak mag blijven).
+        if (!meldNodig(item, geteld + onderweg)) continue;
         const { prioriteit, batch } = mepOpdracht(item, doel, geteld, tekort);
         regels.push({ item, onderItem: null, tekort, geteld, doel, soort: 'mep', prioriteit, batch });
       } else if (vervolg.soort === 'bestelbord') {
