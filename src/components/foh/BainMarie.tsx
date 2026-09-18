@@ -1,5 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Soup, Printer, Check, AlertTriangle, Trash2, X } from 'lucide-react';
+import { nl } from 'date-fns/locale';
+import {
+  Soup,
+  Printer,
+  Check,
+  AlertTriangle,
+  Trash2,
+  X,
+  Calendar as CalendarIcon,
+} from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 import {
   BAIN_MARIE_PRODUCTEN,
   bakStatus,
@@ -94,6 +106,8 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
 
   /** Product waarvan de zak-datum nog gevraagd moet worden (na tik op "Vandaag"). */
   const [zakVraag, setZakVraag] = useState<BainMarieSleutel | null>(null);
+  /** Product waarvan de kalender openstaat. */
+  const [kalenderVoor, setKalenderVoor] = useState<BainMarieSleutel | null>(null);
 
   const bakVan = (sleutel: BainMarieSleutel) => bakken.find((b) => b.product === sleutel);
 
@@ -104,12 +118,17 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
     return { offset, iso: isoDatum(d) };
   });
 
-  /** Zak kan ouder zijn: vandaag + 6 dagen terug. */
-  const zakOpties = Array.from({ length: 7 }, (_, offset) => {
+  /** Snelknoppen voor de zak: de drie gevallen die het vaakst voorkomen. */
+  const zakOpties = [
+    { offset: 0, label: 'Vandaag' },
+    { offset: 1, label: 'Gisteren' },
+    { offset: 2, label: 'Eergisteren' },
+  ].map(({ offset, label }) => {
     const d = new Date(`${datum}T12:00:00`);
     d.setDate(d.getDate() - offset);
-    return { offset, iso: isoDatum(d) };
+    return { offset, label, iso: isoDatum(d) };
   });
+
 
   const startNieuw = (p: (typeof BAIN_MARIE_PRODUCTEN)[number], ontdooidDatum: string | null) => {
     zetStart.mutate(
@@ -200,8 +219,8 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
                       <X size={16} />
                     </button>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {zakOpties.map(({ offset, iso }) => (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {zakOpties.map(({ offset, iso, label }) => (
                       <button
                         key={offset}
                         type="button"
@@ -210,10 +229,42 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
                         className={dagKnopStijl(false)}
                         style={{ minHeight: 44, minWidth: 44 }}
                       >
-                        {offset === 0 ? 'Vandaag' : dagKort(iso)}
+                        {label}
                       </button>
                     ))}
+                    <Popover
+                      open={kalenderVoor === p.sleutel}
+                      onOpenChange={(open) => setKalenderVoor(open ? p.sleutel : null)}
+                    >
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          disabled={zetStart.isPending}
+                          className={`${dagKnopStijl(false)} flex items-center gap-1.5`}
+                          style={{ minHeight: 44, minWidth: 44 }}
+                        >
+                          <CalendarIcon size={15} />
+                          Andere datum
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          locale={nl}
+                          weekStartsOn={1}
+                          defaultMonth={new Date(`${datum}T12:00:00`)}
+                          disabled={{ after: new Date(`${datum}T12:00:00`) }}
+                          onSelect={(d) => {
+                            if (!d) return;
+                            setKalenderVoor(null);
+                            startNieuw(p, isoDatum(d));
+                          }}
+                          className={cn('p-3 pointer-events-auto')}
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
+
                 </div>
               )}
             </div>
