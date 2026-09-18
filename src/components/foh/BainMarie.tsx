@@ -471,7 +471,22 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
               )}
               <span className="min-w-0 flex-1">
                 <span className="block text-[15px] font-semibold text-foreground">{p.naam}</span>
-                {statusRegel(bak, datum)}
+                {bak ? (
+                  <button
+                    type="button"
+                    aria-label={`Klopt de bak ${p.naam} nog?`}
+                    onClick={() => {
+                      setVraagZak(false);
+                      setCorrectieVoor(p.sleutel);
+                    }}
+                    className="flex items-center rounded-full text-left"
+                    style={{ minHeight: 44 }}
+                  >
+                    {statusRegel(bak, datum)}
+                  </button>
+                ) : (
+                  statusRegel(bak, datum)
+                )}
               </span>
               {kanPrinten ? (
                 <button
