@@ -813,6 +813,13 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
 
   // Een volle lade klapt bewust niet meteen in: pas als je aan de vólgende lade
   // begint (zie `zet`). Zo kun je je eigen telling nog nakijken.
+  const groepVanItem = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const g of telGroepen) for (const i of g.items) map[i.id] = g.sleutel;
+    return map;
+  }, [telGroepen]);
+
+
 
 
   /** De eerste lade die nog open staat — daar wijst de vaste balk naar. */
