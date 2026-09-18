@@ -21,6 +21,10 @@ Voorbeeld tomatenrelish:
 
 Bij producten die West zelf maakt (hummus, de mayonaises) wordt de vervolgstap geen vriescel maar een MEP-taak; bij producten uit Midsland een regel op de interne bestellijst. Telt iemand de koelcel diezelfde ronde ook, dan worden de twee regels samengevoegd — je haalt nooit dubbel.
 
+**3. Je ziet het gebeuren bij de koelcel**
+
+Tik je in de reservelade een product op 0, dan wordt de telling van datzelfde product in de koelcel meteen zichtbaar bijgesteld: het aantal gaat één omlaag en er staat een klein groen labeltje "−1 voor de werkbank" bij. Zo zie je tijdens het lopen al wat het bijvullen met de koelcel doet, in plaats van het pas op de bon te ontdekken. Tel je de koelcel daarna zelf (omdat er iets anders ligt dan verwacht), dan telt jouw eigen telling en verdwijnt de automatische bijstelling.
+
 ## In de praktijk
 
 De sluitdienst trekt de reservelade open en tikt per product aan of er een reservebakje ligt. Alles wat op nul blijft staan, staat even later op de bon: eerst bijvullen uit de koelcel, en meteen eronder wat er uit de vriescel mee terug moet. Geen mondelinge overdracht, geen gat in de voorraad de dag erna.
@@ -31,6 +35,7 @@ Risico om te kennen: het bijhouden van de koelcel wordt hierdoor scherper, maar 
 
 - `src/components/foh/VoorraadRonde.tsx`: voor lades met `rol = 'reserve'` start `TelRegel` op 0 in plaats van `telDoel` (nieuwe prop `startWaarde`), en bij het sluiten van zo'n lade via de balk worden alle nog niet aangetikte producten vastgelegd als 0 in `telling`. Lades die nooit worden afgerond blijven buiten de bon (huidig gedrag).
 - Aanvulbon: bij een bonregel met `soort: 'koelcel' | 'magazijn'` wordt de keten één stap verder doorgerekend. Het onderliggende niveau wordt verlaagd met het gehaalde aantal; komt het daardoor onder zijn doel, dan komt er een extra regel via dezelfde `vervolgactieVoorRegel`-route (vriescel met ontdooi-sticker, MEP of Midsland/bestelbord). De regels worden per item samengevoegd, zodat een eigen telling van de koelcel niet dubbel optelt.
+- Zichtbare doorwerking: een afgeleide `afgeleideTelling`-map (koelcelitem-id → aantal onttrokken voor de werkbank) wordt berekend uit de reservetellingen en aan `TelRegel` doorgegeven als voorgestelde waarde plus `VoorraadChip variant="klaar"` met "−1 voor de werkbank". Een handmatige telling in `telling` wint altijd van de afgeleide waarde; de bonberekening gebruikt dezelfde samengevoegde waarde, zodat scherm en bon nooit uiteenlopen.
 - Geen databasewijziging: `voorraad_lades.rol` en de ketenvelden bestaan al.
 
 ## Testen
