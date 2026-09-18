@@ -1,37 +1,39 @@
-# Au bain-marie: dag 5 = niet meer bewaren bij sluit
+# Au bain-marie: houdbaarheid per product, weggooien als actie bij sluit
 
-## Probleem
-Een bak gaat maximaal 5 dagen mee. In de sluitlijst kan je nu óók op dag 5 ("laatste dag") nog een sticker printen. Die bak zou dan de koeling in gaan en morgen (dag 6) weer op tafel komen — en dat mag niet. De sluitlijst vertelt nu niet wat ermee moet gebeuren.
+## Wat verandert
 
-## Oplossing
-In de sluitlijst geldt per product:
+### 1. Houdbaarheid per product
+- Kip: maximaal **5 dagen**
+- Tomyum: maximaal **6 dagen**
+- Vissoep: maximaal **6 dagen**
+- Ei: maximaal **4 dagen**
 
-| Status van de bak | Wat de sluitlijst toont |
+De app rekent per product met zijn eigen aantal dagen (dag 1 = startdag, laatste dag = startdag + max − 1).
+
+### 2. Laatste dag = weggooien bij sluit, niet nog een sticker
+De sluitlijst krijgt per product een duidelijke actie:
+
+| Status van de bak | Sluitlijst toont |
 |---|---|
-| Dag 1 t/m 4 | Knop "Sticker" (zoals nu) |
-| Dag 5 (laatste dag) | Géén printknop. In plaats daarvan oranje tekst: **"vandaag opmaken of weggooien"** |
-| Ouder dan 5 dagen | Géén printknop. Rode tekst: **"weggooien"** (zoals nu) |
+| Dag 1 t/m voorlaatste | Knop "Sticker" (zoals nu) |
+| Laatste dag | **Rode knop "Weggooien"** (prullenbak-icoon) — géén sticker meer |
+| Te oud (over de datum) | **Rode knop "Weggooien"** — géén sticker |
 
-Zo is het bij het afsluiten per product meteen duidelijk: sticker plakken en bewaren, óf de bak niet meenemen naar morgen.
+Weggooien is één tik (met korte bevestiging): de bak wordt afgesloten in de app. De sluiter hoeft niets te onthouden — de app vertelt wat ermee moet gebeuren.
 
-## Extra: ook in de open-lijst zichtbaar
-De ochtendlijst toont bij dag 5 al oranje "laatste dag" en bij ouder dan 5 dagen rood "weggooien" — dat blijft zo, dat klopt al.
+### 3. Ochtend ziet dat de bak weg is
+Staat er geen bak meer omdat hij gisteren is weggegooid, dan toont de open-lijst bij dat product een rustig grijs chipje met prullenbak-icoon: **"weggegooid"** (verdwijnt zodra er weer een dag is aangetikt). Geen lange teksten — één beeld zegt genoeg: er is nu géén bak, en dat is bewust zo afgerond. Nieuwe bak starten blijft één tik op "Vandaag".
 
-## Extra: ontdooid-datum van de zak (alleen Kip)
-De kip komt uit een gevacumeerde zak uit de vriezer; die zak ligt met een ontdooi-sticker in de koelcel en heeft dus zijn eigen datum. Die datum hoort ook op de bak-sticker.
+### 4. Ontdooid-datum van de zak (alleen Kip)
+De kip komt uit een gevacumeerde zak uit de vriezer met een eigen ontdooi-sticker. Die datum komt mee op de bak-sticker:
 
-Zo houden we het simpel:
-
-- **Alleen bij "Vandaag (nieuw)"**: wie een nieuwe bak start, maakt op dat moment ook de zak open. Na het tikken op "Vandaag" verschijnt er direct één extra vraag onder de knoppen: **"Datum op de zak?"** met dezelfde dagknoppen (de datum staat op de ontdooi-sticker van de zak). Eén tik, klaar.
-- **Bij gewone dagen (ma, di, …) geen extra vraag.** De bak gaat door, de zak blijft dezelfde, dus er verandert niets.
-- **Nieuwe zak op een later moment?** Dan is feitelijk de inhoud van de bak ververst: tik opnieuw "Vandaag (nieuw)" en geef de nieuwe zak-datum op. De app overschrijft de oude registratie, er is nooit dubbele of verouderde data.
-- Alleen voor **Kip** (en later andere producten met een vriezer-zak). Vissoep, Tomyum en Ei komen niet uit een vrieszak en krijgen de vraag dus nooit — geen ruis voor producten waar het niet geldt.
-- De datum wordt mee onthouden in dezelfde registratie als de bak, dus hij kan nooit "weg" zijn bij een volgende dienst.
-
-De houdbaarheid blijft gewoon 5 dagen vanaf de bak-start; de ontdooid-datum is informatie op de sticker, geen extra rekenregel.
+- Alleen bij **"Vandaag (nieuw)"** verschijnt één vervolgvraag: **"Datum op de zak?"** met dezelfde dagknoppen. Eén tik, klaar.
+- Bij gewone dagen (ma, di, …) géén extra vraag — de zak blijft dezelfde.
+- Nieuwe zak later? Tik opnieuw "Vandaag (nieuw)" en geef de nieuwe zak-datum op; de oude registratie wordt overschreven.
+- Alleen voor Kip. Vissoep, Tomyum en Ei krijgen de vraag nooit.
 
 ## Hoe ziet de sticker eruit
-Eigen stickertype op de bestaande labelprinter (57×32 mm), zelfde uiterlijk als de ontdooi- en bereid-stickers:
+Eigen stickertype op de bestaande labelprinter (57×32 mm), zelfde familie als de ontdooi- en bereid-stickers:
 
 ```text
 ┌──────────────────────────────┐
@@ -45,25 +47,25 @@ Eigen stickertype op de bestaande labelprinter (57×32 mm), zelfde uiterlijk als
 └──────────────────────────────┘
 ```
 
-- Het is dus géén "Bereid"-sticker (die zou een verkeerde indruk geven: de bak is niet vandaag gemaakt), maar een herkenbare eigen kop "BAIN-MARIE".
-- Eerste regel wordt nu nog als "Bereid: …" afgedrukt; dat wordt **"Bak van: …"** — dat is precies wat de volgende dienst moet weten.
-- Bij Kip komt er een regel boven: **"Zak ontdooid: …"** (de datum van de ontdooi-sticker op de zak). Bij producten zonder vrieszak valt die regel weg en schuiven de andere regels op.
-- Laatste regel "Gebruiken t/m" is startdatum + 5 dagen, dus de datum waarop hij weg moet.
-- Met drie datumregels worden de regels iets compacter gezet zodat alles netjes op het etiket past.
+- Géén "Bereid"-sticker: herkenbare eigen kop "BAIN-MARIE".
+- "Bak van" = de startdag van de bak; "Gebruiken t/m" = startdag + houdbaarheid van dat product.
+- "Zak ontdooid" verschijnt alleen bij producten met een vriezer-zak (Kip).
+- Met drie datumregels worden de regels iets compacter zodat alles netjes past.
 
 ## Technisch
-- Migratie: kolom `ontdooid_datum date null` op `bain_marie_bakken` (alleen gevuld bij producten met een vriezer-zak). Bestaande RLS en grants blijven ongewijzigd.
-- `src/hooks/useBainMarie.ts`: productlijst krijgt een vlag `heeftVriesZak` (alleen Kip = true); mutatie neemt optioneel `ontdooidDatum` mee.
+- Migratie op `bain_marie_bakken`: kolommen `ontdooid_datum date null` en `weggegooid_op date null`. Bestaande RLS en grants blijven ongewijzigd; niets wordt hard verwijderd (afsluiten = `actief = false` + `weggegooid_op = vandaag`).
+- `src/hooks/useBainMarie.ts`: houdbaarheid per product als constante (kip 5, tom-yum 6, vissoep 6, ei 4 — kolom `houdbaarheid_dagen` blijft als toekomstige override); vlag `heeftVriesZak` (alleen kip); nieuwe mutatie `useGooiBainMarieWeg`; `useZetBainMarieStart` accepteert optioneel `ontdooidDatum` en zet `weggegooid_op` weer op null bij een nieuwe bak.
 - `src/components/foh/BainMarie.tsx`:
-  - `BainMarieOpen`: na tik op "Vandaag (nieuw)" bij een zak-product verschijnt de vervolgvraag "Datum op de zak?" met dagknoppen (vandaag + 6 dagen terug); pas daarna wordt opgeslagen. Annuleren kan door de vraag weg te tikken — er is dan nog niets vastgelegd.
-  - `BainMarieSluit`: `kanPrinten` wordt `status === 'ok'` (dus alleen dag 1–4). Bij `laatste-dag` komt de tekst "opmaken of weggooien" in oranje; bij `te-oud` blijft "weggooien" in rood.
-- `src/lib/labelZpl.ts`: voor type `bain` wordt het eerste datumlabel "Bak van"; extra input `ontdooidDatum` voegt de regel "Zak ontdooid" toe; datumregels worden iets compacter zodat drie regels passen.
-- Infoteksten achter de info-iconen bijgewerkt (open: nieuwe zak = opnieuw "Vandaag" tikken; sluit: dag 5 = opmaken of weggooien, geen sticker).
+  - Status houdt rekening met houdbaarheid per product.
+  - `BainMarieOpen`: vervolgvraag "Datum op de zak?" alleen na "Vandaag" bij zak-producten; grijs "weggegooid"-chipje bij producten zonder actieve bak die recent zijn afgevoerd.
+  - `BainMarieSluit`: printknop alleen vóór de laatste dag; op laatste dag / te oud een rode "Weggooien"-knop (destructief, met bevestiging) die de bak afsluit.
+- `src/lib/labelZpl.ts`: type `bain` krijgt labels "Bak van" en optioneel "Zak ontdooid"; datumregels iets compacter voor drie regels.
+- Infoteksten achter de info-iconen bijgewerkt.
 - Geen nieuwe libraries; bestaande printflow (print jobs + bridge) blijft onaangeroerd.
 
 ## Verificatie
-- Open-lijst: "Vandaag (nieuw)" bij Kip toont de vervolgvraag "Datum op de zak?"; bij Vissoep/Tomyum/Ei niet.
-- Open-lijst: gewone dag tikken stelt geen zak-vraag en bewaart de bestaande zak-datum.
-- Sluitlijst met een bak op dag 1: printknop zichtbaar; sticker toont "Zak ontdooid" (alleen Kip), "Bak van" en "Gebruiken t/m".
-- Sluitlijst met een bak op dag 5: geen printknop, oranje "opmaken of weggooien".
-- Sluitlijst met een bak ouder dan 5 dagen: geen printknop, rood "weggooien".
+- Tomyum van maandag ingetoetst op vrijdag: sluitlijst toont rode "Weggooien"-knop, géén sticker.
+- Na weggooien: open-lijst toont grijs "weggegooid"-chipje bij dat product.
+- Kip op dag 3: sluitlijst print sticker met "Zak ontdooid", "Bak van", "Gebruiken t/m".
+- Ei van 4 dagen geleden: laatste dag; op dag 5 "te oud".
+- "Vandaag (nieuw)" bij Kip toont de zak-vraag; bij Vissoep/Tomyum/Ei niet.
