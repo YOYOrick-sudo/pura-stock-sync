@@ -934,7 +934,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
 
     }
     return regels;
-  }, [items, telling, drukte, onderwegMap]);
+  }, [items, telling, drukte, onderwegMap, afgeleideTelling]);
 
   if (itemsQuery.isLoading || items.length === 0) return null;
 
@@ -1206,6 +1206,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                         }}
                         onZet={zet}
                         onHerstel={herstel}
+                        afgeleideTelling={afgeleideTelling}
                       />
                     </div>
                   ))}
