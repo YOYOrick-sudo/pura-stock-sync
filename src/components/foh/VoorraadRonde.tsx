@@ -958,36 +958,24 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
 
   const afgerond = stap === 'klaar';
 
-  /** Kop die er net zo uitziet als een taakcategorie in de sluitlijst. */
+  /** Kop in de vaste sectiebalk van de takenlijst. */
   const kop = (
-    <button
-      type="button"
-      onClick={() => setOpen((o) => !o)}
-      className={`flex w-full items-center gap-3 rounded-[14px] border px-3.5 py-3 text-left transition-colors ${
-        afgerond ? 'border-primary/30 bg-primary/5' : 'border-border bg-muted'
-      }`}
-      style={{ minHeight: 52 }}
-    >
-      <span
-        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-          afgerond ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground'
-        }`}
-      >
-        {afgerond ? <Check size={16} /> : <ClipboardList size={16} />}
-      </span>
-      <span className="min-w-0">
-        <span className="block text-[15px] font-bold text-foreground">Voorraadronde</span>
-        <span className="block text-[12px] text-muted-foreground">
-          {afgerond
-            ? 'Afgerond — aanvulbon is doorgezet'
-            : `${klaarAantal}/${alleSleutels.length} onderdelen geteld`}
-        </span>
-      </span>
-      <ChevronDown
-        size={20}
-        className={`ml-auto shrink-0 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`}
-      />
-    </button>
+    <SectieBalk
+      titel="Voorraadronde"
+      stand={afgerond ? 'afgerond' : `${klaarAantal}/${alleSleutels.length}`}
+      afgerond={afgerond}
+      open={open}
+      onToggle={() => setOpen((o) => !o)}
+    />
+  );
+
+  /** Toelichting op de stand, binnen het uitgeklapte blok. */
+  const standRegel = (
+    <p className="mb-3 text-[12px] text-muted-foreground">
+      {afgerond
+        ? 'Afgerond — aanvulbon is doorgezet'
+        : `${klaarAantal}/${alleSleutels.length} onderdelen geteld`}
+    </p>
   );
 
   const inhoud = () => {
