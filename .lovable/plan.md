@@ -35,6 +35,7 @@ Risico om te kennen: het bijhouden van de koelcel wordt hierdoor scherper, maar 
 
 - `src/components/foh/VoorraadRonde.tsx`: voor lades met `rol = 'reserve'` start `TelRegel` op 0 in plaats van `telDoel` (nieuwe prop `startWaarde`), en bij het sluiten van zo'n lade via de balk worden alle nog niet aangetikte producten vastgelegd als 0 in `telling`. Lades die nooit worden afgerond blijven buiten de bon (huidig gedrag).
 - Aanvulbon: bij een bonregel met `soort: 'koelcel' | 'magazijn'` wordt de keten één stap verder doorgerekend. Het onderliggende niveau wordt verlaagd met het gehaalde aantal; komt het daardoor onder zijn doel, dan komt er een extra regel via dezelfde `vervolgactieVoorRegel`-route (vriescel met ontdooi-sticker, MEP of Midsland/bestelbord). De regels worden per item samengevoegd, zodat een eigen telling van de koelcel niet dubbel optelt.
+- Zichtbare doorwerking: een afgeleide `afgeleideTelling`-map (koelcelitem-id → aantal onttrokken voor de werkbank) wordt berekend uit de reservetellingen en aan `TelRegel` doorgegeven als voorgestelde waarde plus `VoorraadChip variant="klaar"` met "−1 voor de werkbank". Een handmatige telling in `telling` wint altijd van de afgeleide waarde; de bonberekening gebruikt dezelfde samengevoegde waarde, zodat scherm en bon nooit uiteenlopen.
 - Geen databasewijziging: `voorraad_lades.rol` en de ketenvelden bestaan al.
 
 ## Testen
