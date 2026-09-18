@@ -458,7 +458,6 @@ function CategorieBlok({
   bestelbordMap,
   mepTitels,
   bevestigd,
-  onBevestig,
   onHeropen,
   onZet,
   onHerstel,
@@ -476,7 +475,6 @@ function CategorieBlok({
   bestelbordMap: Record<string, number>;
   mepTitels: string[];
   bevestigd: boolean;
-  onBevestig: () => void;
   onHeropen: () => void;
   onZet: (id: string, aantal: number) => void;
   onHerstel: (id: string) => void;
@@ -574,11 +572,6 @@ function CategorieBlok({
           />
         ))}
       </div>
-
-      <Button onClick={onBevestig} className="mt-3 h-12 w-full rounded-[14px] text-[15px] font-semibold">
-        <Check size={18} className="mr-1" />
-        {afwijkingen > 0 ? 'Klaar' : 'Klopt, ligt er'}
-      </Button>
     </div>
   );
 }
@@ -657,6 +650,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const [stap, setStap] = useState<'tellen' | 'bon' | 'klaar'>('tellen');
   const [telling, setTelling] = useState<Record<string, number>>({});
   const [bevestigd, setBevestigd] = useState<string[]>([]);
+  // Bewust heropende lades klappen niet vanzelf weer dicht terwijl je erin werkt.
+  const [heropend, setHeropend] = useState<string[]>([]);
   const [bezig, setBezig] = useState(false);
   const [samenvatting, setSamenvatting] = useState<Record<BonSoort, number> | null>(null);
 
@@ -784,6 +779,48 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   );
   const klaarAantal = alleSleutels.filter((s) => bevestigd.includes(s)).length;
   const allesBevestigd = alleSleutels.length > 0 && klaarAantal === alleSleutels.length;
+
+  // Alle telbare groepen in loopvolgorde — de vaste balk werkt ze zo af.
+  const telGroepen = useMemo(
+    () => categorieGroepen.flatMap((p) => p.groepen.filter((g) => !g.overslaan)),
+    [categorieGroepen],
+  );
+
+  // Heb je bij elk product van een lade iets ingetikt, dan is die lade klaar:
+  // hij klapt vanzelf in, zonder extra tik. Heropende lades doen niet mee.
+  useEffect(() => {
+    const klaar = telGroepen
+      .filter(
+        (g) =>
+          g.items.length > 0 &&
+          !heropend.includes(g.sleutel) &&
+          g.items.every((i) => telling[i.id] !== undefined),
+      )
+      .map((g) => g.sleutel);
+    if (klaar.some((s) => !bevestigd.includes(s))) {
+      setBevestigd((b) => [...new Set([...b, ...klaar])]);
+    }
+  }, [telling, telGroepen, heropend, bevestigd]);
+
+  /** De eerste lade die nog open staat — daar wijst de vaste balk naar. */
+  const volgendeGroep = telGroepen.find((g) => !bevestigd.includes(g.sleutel)) ?? null;
+
+  /** Lade sluiten via de balk: inklappen en doorschuiven naar de volgende open lade. */
+  const sluitGroep = (sleutel: string) => {
+    setHeropend((h) => h.filter((s) => s !== sleutel));
+    setBevestigd((b) => {
+      const nieuw = [...new Set([...b, sleutel])];
+      const volgende = telGroepen.find((g) => !nieuw.includes(g.sleutel));
+      if (volgende) {
+        window.setTimeout(() => {
+          document
+            .getElementById(`vr-groep-${volgende.sleutel}`)
+            ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 60);
+      }
+      return nieuw;
+    });
+  };
 
 
 
@@ -1101,7 +1138,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                 </div>
                 <div className="space-y-2 pl-2">
                   {p.groepen.map((g) => (
-                    <div key={g.sleutel} className="scroll-mt-24 rounded-[18px]">
+                    <div key={g.sleutel} id={`vr-groep-${g.sleutel}`} className="scroll-mt-24 rounded-[18px]">
 
                       <CategorieBlok
                         titel={g.titel}
@@ -1116,8 +1153,10 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                         bestelbordMap={bestelbordMap}
                         mepTitels={mepTitels}
                         bevestigd={bevestigd.includes(g.sleutel)}
-                        onBevestig={() => setBevestigd((b) => [...new Set([...b, g.sleutel])])}
-                        onHeropen={() => setBevestigd((b) => b.filter((s) => s !== g.sleutel))}
+                        onHeropen={() => {
+                          setBevestigd((b) => b.filter((s) => s !== g.sleutel));
+                          setHeropend((h) => [...new Set([...h, g.sleutel])]);
+                        }}
                         onZet={zet}
                         onHerstel={herstel}
                       />
@@ -1129,20 +1168,29 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           })}
         </div>
 
-        <Button
-          className="mt-4 h-14 w-full rounded-[16px] text-[16px] font-bold"
-          disabled={!allesBevestigd}
-          onClick={() => setStap('bon')}
-        >
+        {/* Vaste afsluitbalk: altijd onder de duim, nooit scrollen naar een knop. */}
+        <div className="sticky bottom-3 z-20 mt-4">
           {allesBevestigd ? (
-            <>
+            <Button
+              className="h-14 w-full rounded-[16px] text-[16px] font-bold shadow-lg"
+              onClick={() => setStap('bon')}
+            >
               Naar de aanvulbon
               <ArrowRight size={20} className="ml-1" />
-            </>
-          ) : (
-            `Nog ${alleSleutels.length - klaarAantal} te gaan`
-          )}
-        </Button>
+            </Button>
+          ) : volgendeGroep ? (
+            <Button
+              className="h-14 w-full rounded-[16px] text-[16px] font-bold shadow-lg"
+              onClick={() => sluitGroep(volgendeGroep.sleutel)}
+            >
+              <Check size={20} className="mr-1.5" />
+              <span className="truncate">{volgendeGroep.titel} klaar</span>
+              <span className="ml-2 shrink-0 rounded-full bg-primary-foreground/20 px-2 py-0.5 text-[12px] font-semibold tabular-nums">
+                {klaarAantal}/{alleSleutels.length}
+              </span>
+            </Button>
+          ) : null}
+        </div>
       </div>
     );
   };
