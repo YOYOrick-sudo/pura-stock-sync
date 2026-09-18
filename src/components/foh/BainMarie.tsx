@@ -25,29 +25,30 @@ function stickerDatum(iso: string): string {
 /** Hoeveel dagen een bak standaard meegaat (per product overschrijfbaar in de database). */
 const STANDAARD_HOUBAARHEID = 5;
 
-/** Korte status: "ma · dag 5/5". Alleen laatste dag en te oud springen eruit. */
+/** Korte status als rustig chipje: "ma · dag 5/5". Alleen laatste dag en te oud springen eruit. */
 function statusRegel(bak: BainMarieBak | undefined, vandaagIso: string) {
   const s = bakStatus(bak, vandaagIso);
   if (s.status === 'geen') {
-    return <span className="text-[12px] text-muted-foreground">—</span>;
+    return <span className="text-[12px] text-muted-foreground/70">—</span>;
   }
   const max = Math.max(Number(bak?.houdbaarheid_dagen) || STANDAARD_HOUBAARHEID, 1);
   const basis = `${dagKort(s.startDatum!)} · dag ${s.dagNr}/${max}`;
+  const chip = 'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-semibold';
   if (s.status === 'te-oud') {
     return (
-      <span className="flex items-center gap-1 text-[12px] font-semibold text-red-600">
-        <AlertTriangle size={13} /> {basis} · weggooien
+      <span className={`${chip} bg-destructive/10 text-destructive`}>
+        <AlertTriangle size={12} /> {basis} · weggooien
       </span>
     );
   }
   if (s.status === 'laatste-dag') {
     return (
-      <span className="flex items-center gap-1 text-[12px] font-semibold text-amber-600">
-        <AlertTriangle size={13} /> {basis} · laatste dag
+      <span className={`${chip} bg-amber-500/10 text-amber-700 dark:text-amber-400`}>
+        <AlertTriangle size={12} /> {basis} · laatste dag
       </span>
     );
   }
-  return <span className="text-[12px] text-muted-foreground">{basis}</span>;
+  return <span className={`${chip} bg-muted text-muted-foreground`}>{basis}</span>;
 }
 
 /** Sectiekop in de stijl van de takenlijst: klein, rustig, met info-icoon. */
