@@ -40,6 +40,7 @@ import {
   meldNodig,
 
   HERKOMST_LABEL,
+  ketenKortLabel,
   type DrukteModus,
   type KoelcelCheckItem,
   type VoorraadPlek,
@@ -50,6 +51,12 @@ import { useVoorraadLades, positieLabel, type VoorraadLade } from '@/hooks/useVo
 import { LadePositie } from '@/components/voorraad/LadePositie';
 
 type ItemMetCategorie = KoelcelCheckItem & { categorie?: string | null; formaat?: string | null };
+
+/**
+ * Waar de grijze ketenchip iets toevoegt. In de koelwerkbanklades niet: daar is
+ * het bijvullen zelf al de boodschap en kost een extra label alleen ruimte.
+ */
+const KETEN_PLEKKEN: VoorraadPlek[] = ['koelcel', 'vriezer', 'magazijn', 'werkblad'];
 
 /** Eén telblok binnen een opslagplek: een lade (koelwerkbank) of een categorie. */
 interface Groep {
@@ -166,6 +173,30 @@ function tekortVoor(
     : tekortVan(doel, geteld, onderweg);
 }
 
+/**
+ * Eén chip-model voor de hele ronde:
+ * grijs = informatie, groen = hier loopt al iets, amber = jij moet nu iets doen.
+ */
+function VoorraadChip({
+  variant,
+  children,
+}: {
+  variant: 'info' | 'klaar' | 'actie';
+  children: React.ReactNode;
+}) {
+  const stijl =
+    variant === 'info'
+      ? 'bg-muted text-muted-foreground'
+      : variant === 'klaar'
+        ? 'bg-primary/10 text-primary'
+        : 'bg-amber-400/15 text-amber-700 dark:text-amber-300';
+  return (
+    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${stijl}`}>
+      {children}
+    </span>
+  );
+}
+
 /** Eén productregel: standaard "ligt er", tik om te tellen wat er écht ligt. */
 function TelRegel({
   item,
@@ -174,6 +205,7 @@ function TelRegel({
   onderweg,
   opBestelbord,
   inMep,
+  keten,
   modus,
   onZet,
   onHerstel,
@@ -184,6 +216,8 @@ function TelRegel({
   onderweg: number;
   opBestelbord: boolean;
   inMep: boolean;
+  /** Waar de aanvulling vandaan komt (grijze ketenchip), of null. */
+  keten: string | null;
   /** Hoe dit product geteld wordt. */
   modus: TelModus;
   onZet: (aantal: number) => void;
@@ -199,17 +233,16 @@ function TelRegel({
   const zetHeel = (n: number) => onZet(Math.max(n, 0) + rest);
   const zetRest = (r: number) => onZet(heel + r);
 
-  const statusChips = [
-    onderweg > 0 ? `${aantalLabel(onderweg, item.eenheid)} onderweg` : null,
-    opBestelbord ? 'op het bestelbord' : null,
-  ].filter(Boolean);
-
-  // Mededeling, geen waarschuwing: subtiel groen chipje rechts in de kopregel.
-  const mepChip = inMep ? (
-    <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
-      op de MEP
-    </span>
-  ) : null;
+  // Eén statuschip rechts: onderweg > bestelbord > MEP. Altijd "hier loopt al iets".
+  const statusTekst =
+    onderweg > 0
+      ? `${aantalLabel(onderweg, item.eenheid)} onderweg`
+      : opBestelbord
+        ? 'op het bestelbord'
+        : inMep
+          ? 'op de MEP'
+          : null;
+  const statusChip = statusTekst ? <VoorraadChip variant="klaar">{statusTekst}</VoorraadChip> : null;
 
   const bakje = bakjeLabel(item.formaat ?? item.bak_maat);
   const maatTekst = bakje?.code
@@ -236,19 +269,8 @@ function TelRegel({
             {bakje.code}
           </span>
         )}
+        {keten && <VoorraadChip variant="info">{keten}</VoorraadChip>}
       </span>
-      {statusChips.length > 0 && (
-        <span className="mt-0.5 flex flex-wrap gap-1">
-          {statusChips.map((chip) => (
-            <span
-              key={chip}
-              className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300"
-            >
-              {chip}
-            </span>
-          ))}
-        </span>
-      )}
     </span>
   );
 
@@ -260,7 +282,7 @@ function TelRegel({
         <div className="flex items-center gap-2">
           {kopRegel}
           <span className="ml-auto flex shrink-0 items-center gap-1.5">
-            {mepChip}
+            {statusChip}
             <Truck size={18} className="shrink-0 text-amber-600 dark:text-amber-300" />
           </span>
         </div>
@@ -298,14 +320,10 @@ function TelRegel({
       >
         <div className="mb-2 flex items-center gap-2">
           {kopRegel}
-          {(mepChip || tekort || afwijkend) && (
+          {(statusChip || tekort || afwijkend) && (
             <span className="ml-auto flex shrink-0 items-center gap-1.5">
-              {mepChip}
-              {tekort && (
-                <span className="shrink-0 rounded-full bg-amber-400/10 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">
-                  bijvullen
-                </span>
-              )}
+              {statusChip}
+              {tekort && <VoorraadChip variant="actie">bijvullen</VoorraadChip>}
               {afwijkend && (
                 <button
                   type="button"
@@ -356,7 +374,7 @@ function TelRegel({
       >
         {kopRegel}
         <span className="flex shrink-0 items-center gap-2">
-          {mepChip}
+          {statusChip}
           <span
             className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
               afwijkend ? 'bg-amber-400/20 text-amber-700 dark:text-amber-300' : 'bg-muted text-muted-foreground'
@@ -431,6 +449,7 @@ function TelRegel({
 function CategorieBlok({
   titel,
   items,
+  alleItems,
   drukte,
   telling,
   onderwegMap,
@@ -446,6 +465,8 @@ function CategorieBlok({
 }: {
   titel: string;
   items: ItemMetCategorie[];
+  /** Alle actieve items: nodig om de keten (waar komt het vandaan) te bepalen. */
+  alleItems: ItemMetCategorie[];
   drukte: DrukteModus;
   telling: Record<string, number>;
   onderwegMap: Record<string, number>;
@@ -511,6 +532,7 @@ function CategorieBlok({
             onderweg={onderwegVoorItem(item, onderwegMap)}
             opBestelbord={(bestelbordMap[item.naam.trim().toLowerCase()] ?? 0) > 0}
             inMep={mepTitels.some((t) => t.includes(item.naam.trim().toLowerCase()))}
+            keten={KETEN_PLEKKEN.includes(item.plek) ? ketenKortLabel(item, alleItems) : null}
             onZet={(a) => onZet(item.id, a)}
             onHerstel={() => onHerstel(item.id)}
           />
@@ -1037,6 +1059,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                         subtitel={g.subtitel}
                         lade={g.lade}
                         items={g.items}
+                        alleItems={items}
                         drukte={drukte}
                         telling={telling}
                         onderwegMap={onderwegMap}

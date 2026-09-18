@@ -262,6 +262,29 @@ export function vervolgactieVoorRegel(
 
 }
 
+/**
+ * Korte ketenchip voor tijdens het tellen: waar de aanvulling vandaan komt als
+ * dit product niet op peil is. Puur informatief, zelfde bron als de aanvulbon.
+ */
+export function ketenKortLabel(item: KoelcelCheckItem, alleItems: KoelcelCheckItem[]): string {
+  const vervolg = vervolgactieVoorRegel(item, alleItems);
+  if (vervolg.soort === 'niveau') return `uit ${HERKOMST_LABEL[vervolg.onderItem.plek]}`;
+  switch (item.bron) {
+    case 'zelf_west':
+      return 'zelf maken';
+    case 'snijden':
+      return 'snijden';
+    case 'vriezer':
+      return 'uit de vriescel';
+    case 'magazijn':
+      return 'roosteren';
+    case 'midsland':
+      return 'uit Midsland';
+    default:
+      return 'bestellen';
+  }
+}
+
 /** Waar je het vandaan haalt: "de koelcel" of "de vriescel". */
 export const HERKOMST_LABEL: Record<VoorraadPlek, string> = {
   vriezer: 'de vriescel',
