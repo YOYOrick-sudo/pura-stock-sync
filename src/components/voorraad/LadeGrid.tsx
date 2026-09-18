@@ -263,6 +263,7 @@ function LadeVak({
   const { setNodeRef, isOver } = useDroppable({ id: `lade:${lade.id}`, disabled: !lade.actief });
   const [bewerk, setBewerk] = useState(false);
   const [naam, setNaam] = useState(lade.naam);
+  const [openItem, setOpenItem] = useState<KoelcelCheckItem | null>(null);
 
   return (
     <div
@@ -331,17 +332,23 @@ function LadeVak({
           <div className="grid grid-cols-6 gap-1.5">
             {items.map((i, index) => (
               <div key={i.id} className={index < 4 ? 'col-span-3' : 'col-span-2'}>
-                <SleepbaarProduct
-                  item={i}
-                  onReserve={(a) => onReserve(i.id, a)}
-                  onVulnorm={(v) => onVulnorm(i.id, v)}
-                  onFormaat={(f) => onFormaat(i.id, f)}
-                />
+                <LadeChip item={i} onOpen={() => setOpenItem(i)} />
               </div>
             ))}
           </div>
         )}
       </div>
+
+      <ProductInstellingenDialog
+        item={openItem}
+        open={openItem !== null}
+        onOpenChange={(open) => {
+          if (!open) setOpenItem(null);
+        }}
+        onReserve={(a) => openItem && onReserve(openItem.id, a)}
+        onVulnorm={(v) => openItem && onVulnorm(openItem.id, v)}
+        onFormaat={(f) => openItem && onFormaat(openItem.id, f)}
+      />
 
       <div className="mt-2 flex flex-wrap items-center gap-3">
         <button
