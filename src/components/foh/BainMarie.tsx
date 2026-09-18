@@ -1,5 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Soup, Printer, Check, AlertTriangle, Trash2, X } from 'lucide-react';
+import { nl } from 'date-fns/locale';
+import {
+  Soup,
+  Printer,
+  Check,
+  AlertTriangle,
+  Trash2,
+  X,
+  Calendar as CalendarIcon,
+} from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 import {
   BAIN_MARIE_PRODUCTEN,
   bakStatus,
