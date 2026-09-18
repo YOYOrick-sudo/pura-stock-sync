@@ -65,6 +65,8 @@ interface Groep {
   subtitel: string | null;
   lade: VoorraadLade | null;
   items: ItemMetCategorie[];
+  /** Lade die je wel ziet maar niet telt: leeg of bewust overgeslagen. */
+  overslaan?: { reden: string; uitleg: string };
 }
 
 /** De plekken in de volgorde waarin je er fysiek langsloopt. */
@@ -462,6 +464,7 @@ function CategorieBlok({
   onHerstel,
   subtitel,
   lade,
+  overslaan,
 }: {
   titel: string;
   items: ItemMetCategorie[];
@@ -479,8 +482,41 @@ function CategorieBlok({
   onHerstel: (id: string) => void;
   subtitel?: string | null;
   lade?: VoorraadLade | null;
+  /** Gevuld als deze lade wel zichtbaar is maar niet geteld wordt. */
+  overslaan?: { reden: string; uitleg: string };
 }) {
   const afwijkingen = items.filter((i) => telling[i.id] !== undefined).length;
+  const [uitgeklapt, setUitgeklapt] = useState(false);
+
+  // Lade zonder telwerk: één rustige regel, uitklapbaar voor de reden.
+  if (overslaan) {
+    return (
+      <div className="rounded-[14px] border border-dashed border-border bg-muted/20">
+        <button
+          type="button"
+          onClick={() => setUitgeklapt((u) => !u)}
+          className="flex w-full items-center gap-2 px-3 py-3 text-left"
+          style={{ minHeight: 52 }}
+        >
+          {lade && <LadePositie lade={lade} metNaam={false} className="shrink-0" />}
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[15px] font-semibold text-muted-foreground">{titel}</span>
+          </span>
+          <VoorraadChip variant="info">{overslaan.reden}</VoorraadChip>
+          <ChevronDown
+            size={18}
+            className={`shrink-0 text-muted-foreground transition-transform ${uitgeklapt ? 'rotate-180' : ''}`}
+          />
+        </button>
+        {uitgeklapt && (
+          <p className="border-t border-border/60 px-3 py-2 text-[13px] text-muted-foreground">
+            {overslaan.uitleg}
+          </p>
+        )}
+      </div>
+    );
+  }
+
 
   if (bevestigd) {
     return (
@@ -671,21 +707,31 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
         // Koelwerkbank tel je per lade: je trekt een lade open, niet een categorie.
         if (p.plek === 'werkbank' && lades.length > 0) {
           const groepen: Groep[] = [];
-          // Reservelades eerst: daar staat 90% van de reservebakjes.
-          const gesorteerd = [...lades.filter((l) => l.actief)].sort(
-            (a, b) =>
-              (a.rol === 'reserve' ? 0 : 1) - (b.rol === 'reserve' ? 0 : 1) ||
-              a.volgorde - b.volgorde,
-          );
+          // Altijd dezelfde looproute: kolom voor kolom, van boven naar beneden.
+          const gesorteerd = [...lades.filter((l) => l.actief)].sort((a, b) => a.volgorde - b.volgorde);
           for (const lade of gesorteerd) {
             const ladeItems = p.items.filter((i) => i.lade_id === lade.id);
-            if (!ladeItems.length) continue;
+            const nietTellen = lade.rol === 'niet_tellen';
+            // Lades die je niet telt of die nog leeg zijn blijven zichtbaar,
+            // maar ingeklapt: je ziet dat ze bestaan zonder ze af te hoeven vinken.
+            const overslaan = nietTellen
+              ? {
+                  reden: 'wordt niet geteld · aangebroken bakjes',
+                  uitleg: 'Hier staan de bakjes waar je uit schept. De reserve tel je bij Midden onder.',
+                }
+              : !ladeItems.length
+                ? {
+                    reden: 'nog niets ingedeeld',
+                    uitleg: 'Deel deze lade in bij Koelwerkbank indelen, dan telt hij vanzelf mee.',
+                  }
+                : undefined;
             groepen.push({
               sleutel: `werkbank:lade:${lade.id}`,
               titel: lade.naam,
               subtitel: `${positieLabel(lade)}${lade.rol === 'reserve' ? ' · reservelade' : ''}`,
               lade,
-              items: ladeItems,
+              items: overslaan ? [] : ladeItems,
+              overslaan,
             });
           }
           // Producten zonder lade vallen nooit weg: die tel je per categorie, onderaan.
@@ -730,8 +776,10 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
     [plekken, lades],
   );
 
+  // Lades zonder telwerk tellen niet mee in de voortgang: ze blokkeren de ronde niet.
   const alleSleutels = useMemo(
-    () => categorieGroepen.flatMap((p) => p.groepen.map((g) => g.sleutel)),
+    () =>
+      categorieGroepen.flatMap((p) => p.groepen.filter((g) => !g.overslaan).map((g) => g.sleutel)),
     [categorieGroepen],
   );
   const klaarAantal = alleSleutels.filter((s) => bevestigd.includes(s)).length;
@@ -1029,7 +1077,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
         <div className="space-y-6">
           {categorieGroepen.map((p) => {
             const PlekIcoon = p.icoon;
-            const klaarHier = p.groepen.filter((g) => bevestigd.includes(g.sleutel)).length;
+            const telGroepen = p.groepen.filter((g) => !g.overslaan);
+            const klaarHier = telGroepen.filter((g) => bevestigd.includes(g.sleutel)).length;
             return (
               <div key={p.plek}>
                 <div className="sticky top-0 z-10 -mx-1 mb-3 rounded-[14px] border border-border bg-card/95 px-3 py-2.5 backdrop-blur">
@@ -1046,7 +1095,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                       </span>
                     </span>
                     <span className="ml-auto shrink-0 rounded-full bg-muted px-2.5 py-1 text-[12px] font-semibold tabular-nums text-muted-foreground">
-                      {klaarHier}/{p.groepen.length}
+                      {klaarHier}/{telGroepen.length}
                     </span>
                   </div>
                 </div>
@@ -1056,6 +1105,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
 
                       <CategorieBlok
                         titel={g.titel}
+                        overslaan={g.overslaan}
                         subtitel={g.subtitel}
                         lade={g.lade}
                         items={g.items}

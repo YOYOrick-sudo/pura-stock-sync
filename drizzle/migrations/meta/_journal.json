@@ -176,6 +176,13 @@
       "when": 1789723972591,
       "tag": "0024_gekookte_eieren_naar_rechts_onder",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1789731701514,
+      "tag": "0025_lade_rol_niet_tellen_en_reserve_naar_midden_onder",
+      "breakpoints": true
     }
   ]
 }
