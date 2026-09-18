@@ -278,12 +278,16 @@ function LadeVak({
   items: KoelcelCheckItem[];
   onHernoem: (naam: string) => void;
   onZetActief: (actief: boolean) => void;
-  onZetRol: (rol: 'werk' | 'reserve') => void;
+  onZetRol: (rol: 'werk' | 'reserve' | 'niet_tellen') => void;
   onReserve: (itemId: string, aantal: number) => void;
   onVulnorm: (itemId: string, vulnorm: 'vol' | 'half') => void;
   onFormaat: (itemId: string, formaat: string | null) => void;
 }) {
   const isReserve = lade.rol === 'reserve';
+  const nietTellen = lade.rol === 'niet_tellen';
+  // Werklade → reservelade → niet tellen → werklade.
+  const volgendeRol = isReserve ? 'niet_tellen' : nietTellen ? 'werk' : 'reserve';
+  const rolLabel = isReserve ? 'Reservelade' : nietTellen ? 'Niet tellen' : 'Werklade';
   const { setNodeRef, isOver } = useDroppable({ id: `lade:${lade.id}`, disabled: !lade.actief });
   const [bewerk, setBewerk] = useState(false);
   const [naam, setNaam] = useState(lade.naam);
