@@ -27,7 +27,7 @@ import {
   type VoorraadPlek,
 } from '@/hooks/useKoelcelCheck';
 
-const PLEKKEN: VoorraadPlek[] = ['vriezer', 'koelcel', 'werkbank', 'werkblad'];
+const PLEKKEN: VoorraadPlek[] = ['vriezer', 'koelcel', 'magazijn', 'werkbank', 'werkblad'];
 const BRONNEN: VoorraadBron[] = ['vriezer', 'koelcel_inkoop', 'magazijn', 'zelf_west', 'midsland'];
 /** Hoe verse producten bij de leverancier ingekocht worden. */
 const BESTEL_EENHEDEN = ['kist', 'doos', 'bak', 'zak', 'krat', 'tray', 'kilo'];

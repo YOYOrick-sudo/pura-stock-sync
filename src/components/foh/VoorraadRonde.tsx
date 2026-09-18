@@ -37,6 +37,7 @@ import {
   vulnormLabel,
   batchGrootte,
   bestelOpdracht,
+  meldNodig,
 
   HERKOMST_LABEL,
   type DrukteModus,
