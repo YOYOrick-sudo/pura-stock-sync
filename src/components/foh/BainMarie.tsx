@@ -94,6 +94,8 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
 
   /** Product waarvan de zak-datum nog gevraagd moet worden (na tik op "Vandaag"). */
   const [zakVraag, setZakVraag] = useState<BainMarieSleutel | null>(null);
+  /** Product waarvan de kalender openstaat. */
+  const [kalenderVoor, setKalenderVoor] = useState<BainMarieSleutel | null>(null);
 
   const bakVan = (sleutel: BainMarieSleutel) => bakken.find((b) => b.product === sleutel);
 
