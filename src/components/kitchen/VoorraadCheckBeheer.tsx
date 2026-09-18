@@ -339,8 +339,23 @@ export function VoorraadCheckBeheer({ location }: { location: string }) {
                               }
                             }}
                           />
+                          <Input
+                            key={`${item.id}-lev-${item.leverancier ?? ''}`}
+                            defaultValue={item.leverancier ?? ''}
+                            placeholder="leverancier"
+                            className="w-32 h-9"
+                            aria-label={`Leverancier ${item.naam}`}
+                            title="Bij welke leverancier dit besteld wordt"
+                            onBlur={(e) => {
+                              const v = e.target.value.trim() || null;
+                              if (v !== (item.leverancier ?? null)) {
+                                bijwerken.mutate({ id: item.id, velden: { leverancier: v } });
+                              }
+                            }}
+                          />
                         </>
                       )}
+
 
                       <Select
                         value={item.bron}
