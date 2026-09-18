@@ -4,7 +4,6 @@ import {
   BAIN_MARIE_PRODUCTEN,
   bakStatus,
   dagKort,
-  dagNaam,
   isoDatum,
   useBainMarieBakken,
   useZetBainMarieStart,
@@ -12,6 +11,7 @@ import {
   type BainMarieSleutel,
 } from '@/hooks/useBainMarie';
 import { useCreateStickerPrintJob } from '@/hooks/useStickerProducten';
+import { InfoKnop } from './InfoKnop';
 
 /** Datum op de sticker, zelfde formaat als de bestaande keukenstickers: "do 17/09". */
 function stickerDatum(iso: string): string {
@@ -25,28 +25,50 @@ function stickerDatum(iso: string): string {
 /** Hoeveel dagen een bak standaard meegaat (per product overschrijfbaar in de database). */
 const STANDAARD_HOUBAARHEID = 5;
 
+/** Korte status: "ma · dag 5/5". Alleen laatste dag en te oud springen eruit. */
 function statusRegel(bak: BainMarieBak | undefined, vandaagIso: string) {
   const s = bakStatus(bak, vandaagIso);
   if (s.status === 'geen') {
-    return <span className="text-[12px] italic text-muted-foreground">nog niets genoteerd</span>;
+    return <span className="text-[12px] text-muted-foreground">—</span>;
   }
   const max = Math.max(Number(bak?.houdbaarheid_dagen) || STANDAARD_HOUBAARHEID, 1);
-  const basis = `bak van ${dagNaam(s.startDatum!)} · dag ${s.dagNr} van ${max} · houdbaar t/m ${dagNaam(s.houdbaarTot!)}`;
+  const basis = `${dagKort(s.startDatum!)} · dag ${s.dagNr}/${max}`;
   if (s.status === 'te-oud') {
     return (
       <span className="flex items-center gap-1 text-[12px] font-semibold text-red-600">
-        <AlertTriangle size={14} /> {basis} — te oud, weggooien
+        <AlertTriangle size={13} /> {basis} · weggooien
       </span>
     );
   }
   if (s.status === 'laatste-dag') {
     return (
       <span className="flex items-center gap-1 text-[12px] font-semibold text-amber-600">
-        <AlertTriangle size={14} /> {basis} — vandaag laatste dag
+        <AlertTriangle size={13} /> {basis} · laatste dag
       </span>
     );
   }
   return <span className="text-[12px] text-muted-foreground">{basis}</span>;
+}
+
+/** Sectiekop in de stijl van de takenlijst: klein, rustig, met info-icoon. */
+function Kop({
+  icoon: Icoon,
+  titel,
+  uitleg,
+}: {
+  icoon: typeof Soup;
+  titel: string;
+  uitleg: string;
+}) {
+  return (
+    <div className="mb-2 flex items-center gap-2">
+      <Icoon size={16} className="text-primary" />
+      <h3 className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {titel}
+      </h3>
+      <InfoKnop tekst={uitleg} label={`Uitleg ${titel}`} />
+    </div>
+  );
 }
 
 /**
@@ -68,25 +90,20 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
   });
 
   return (
-    <div className="rounded-[18px] border border-border bg-card p-4">
-      <div className="mb-1 flex items-center gap-2">
-        <Soup size={20} className="text-primary" />
-        <h3 className="text-[17px] font-bold text-foreground">
-          Au bain-marie — welke datum staat op de bak?
-        </h3>
-      </div>
-      <p className="mb-3 text-[12px] text-muted-foreground">
-        Eén tik per product. Vandaag een nieuwe zak? Dan “Vandaag (nieuw)”.
-        Niets tikken = vandaag geen bak.
-      </p>
+    <div className="py-2">
+      <Kop
+        icoon={Soup}
+        titel="Au bain-marie"
+        uitleg="Noteer per product welke datum op de bak staat. Nieuwe bak vandaag? Tik “Vandaag”. Niets tikken = vandaag geen bak. Een bak gaat maximaal 5 dagen mee."
+      />
 
-      <div className="space-y-3">
+      <div className="divide-y divide-border">
         {BAIN_MARIE_PRODUCTEN.map((p) => {
           const bak = bakVan(p.sleutel);
           return (
-            <div key={p.sleutel} className="rounded-[14px] border border-border bg-muted/40 p-3">
-              <div className="mb-2 flex items-baseline justify-between gap-2">
-                <span className="text-[15px] font-bold text-foreground">{p.naam}</span>
+            <div key={p.sleutel} className="py-2.5">
+              <div className="mb-1.5 flex items-baseline justify-between gap-2">
+                <span className="text-[15px] font-semibold text-foreground">{p.naam}</span>
                 {statusRegel(bak, datum)}
               </div>
               <div className="flex flex-wrap gap-2">
@@ -110,13 +127,11 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
                       className={`rounded-[12px] border px-3 text-[13px] font-semibold transition-colors disabled:opacity-60 ${
                         gekozen
                           ? 'border-primary bg-primary text-primary-foreground'
-                          : offset === 0
-                            ? 'border-primary/40 bg-primary/10 text-primary hover:bg-primary/20'
-                            : 'border-border bg-card text-foreground hover:bg-muted'
+                          : 'border-border bg-card text-foreground hover:bg-muted'
                       }`}
                       style={{ minHeight: 44, minWidth: 44 }}
                     >
-                      {offset === 0 ? 'Vandaag (nieuw)' : dagKort(iso)}
+                      {offset === 0 ? 'Vandaag' : dagKort(iso)}
                     </button>
                   );
                 })}
@@ -178,38 +193,28 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
   };
 
   return (
-    <div className="rounded-[18px] border border-border bg-card p-4">
-      <div className="mb-1 flex items-center gap-2">
-        <Printer size={20} className="text-primary" />
-        <h3 className="text-[17px] font-bold text-foreground">Au bain-marie — sticker printen</h3>
-      </div>
-      <p className="mb-3 text-[12px] text-muted-foreground">
-        Sticker op de plastic bak plakken (koeling). De datum zet de app er zelf op.
-      </p>
+    <div className="py-2">
+      <Kop
+        icoon={Printer}
+        titel="Au bain-marie — sticker printen"
+        uitleg="Print per product een sticker en plak hem op de plastic bak in de koeling. De app zet de startdatum en houdbaar-tot er zelf op, zodat de volgende dienst weet van welke dag de bak is."
+      />
 
-      <div className="space-y-2">
+      <div className="divide-y divide-border">
         {BAIN_MARIE_PRODUCTEN.map((p) => {
           const bak = bakken.find((b) => b.product === p.sleutel);
           const s = bakStatus(bak, datum);
           const kanPrinten = bak && s.startDatum && s.status !== 'te-oud';
           const klaar = geprint.includes(p.sleutel);
           return (
-            <div
-              key={p.sleutel}
-              className={`flex items-center gap-3 rounded-[14px] border px-3 py-2.5 ${
-                klaar ? 'border-primary/30 bg-primary/5' : 'border-border bg-muted/40'
-              }`}
-              style={{ minHeight: 56 }}
-            >
-              <span
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-                  klaar ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground'
-                }`}
-              >
-                {klaar ? <Check size={16} /> : <Soup size={16} />}
-              </span>
+            <div key={p.sleutel} className="flex items-center gap-3 py-2.5" style={{ minHeight: 52 }}>
+              {klaar && (
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  <Check size={14} />
+                </span>
+              )}
               <span className="min-w-0 flex-1">
-                <span className="block text-[15px] font-bold text-foreground">{p.naam}</span>
+                <span className="block text-[15px] font-semibold text-foreground">{p.naam}</span>
                 {statusRegel(bak, datum)}
               </span>
               {kanPrinten ? (
@@ -217,14 +222,14 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
                   type="button"
                   disabled={printSticker.isPending}
                   onClick={() => print(bak!)}
-                  className="shrink-0 rounded-[12px] border border-primary/40 bg-primary/10 px-3 text-[13px] font-semibold text-primary transition-colors hover:bg-primary/20 disabled:opacity-60"
+                  className="shrink-0 rounded-[12px] border border-border bg-card px-3 text-[13px] font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-60"
                   style={{ minHeight: 44 }}
                 >
-                  {klaar ? 'Opnieuw printen' : 'Sticker printen'}
+                  {klaar ? 'Opnieuw' : 'Sticker'}
                 </button>
               ) : (
-                <span className="shrink-0 text-[12px] italic text-muted-foreground">
-                  {s.status === 'te-oud' ? 'eerst weggooien' : 'geen sticker'}
+                <span className="shrink-0 text-[12px] text-muted-foreground">
+                  {s.status === 'te-oud' ? 'weggooien' : 'geen sticker'}
                 </span>
               )}
             </div>
