@@ -49,6 +49,7 @@ import { useCreateStickerPrintJob } from '@/hooks/useStickerProducten';
 import { aantalLabel, getalLabel, formaatLabel, bakjeLabel } from '@/lib/voorraad-formaat';
 import { useVoorraadLades, positieLabel, type VoorraadLade } from '@/hooks/useVoorraadLades';
 import { LadePositie } from '@/components/voorraad/LadePositie';
+import { SectieBalk } from './SectieBalk';
 
 type ItemMetCategorie = KoelcelCheckItem & { categorie?: string | null; formaat?: string | null };
 
