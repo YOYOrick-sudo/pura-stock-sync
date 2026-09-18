@@ -367,7 +367,7 @@ function TelRegel({
       >
         {kopRegel}
         <span className="flex shrink-0 items-center gap-2">
-          {mepChip}
+          {statusChip}
           <span
             className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
               afwijkend ? 'bg-amber-400/20 text-amber-700 dark:text-amber-300' : 'bg-muted text-muted-foreground'
