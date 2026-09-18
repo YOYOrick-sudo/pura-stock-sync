@@ -7,7 +7,7 @@ import { useKanaalHerstel } from '@/lib/realtime';
 /** Waar komt het product vandaan? Bepaalt wat er gebeurt als het op is. */
 export type VoorraadBron = 'vriezer' | 'koelcel_inkoop' | 'magazijn' | 'zelf_west' | 'midsland';
 /** Waar hoort het product te liggen/staan. */
-export type VoorraadPlek = 'vriezer' | 'koelcel' | 'werkbank' | 'werkblad';
+export type VoorraadPlek = 'vriezer' | 'koelcel' | 'werkbank' | 'werkblad' | 'magazijn';
 
 export const BRON_LABEL: Record<VoorraadBron, string> = {
   vriezer: 'Uit de vriezer',
@@ -22,6 +22,7 @@ export const PLEK_LABEL: Record<VoorraadPlek, string> = {
   koelcel: 'Koelcel op peil',
   werkbank: 'Koelwerkbank bijvullen',
   werkblad: 'Toppings bijvullen',
+  magazijn: 'Magazijn op peil (maandag)',
 };
 
 export interface KoelcelCheckItem {
