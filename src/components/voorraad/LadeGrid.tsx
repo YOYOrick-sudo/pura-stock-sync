@@ -217,7 +217,10 @@ function ProductInstellingenDialog({
           </div>
           <div>
             <p className="mb-1.5 text-[13px] text-muted-foreground">Bakmaat</p>
-            <BakmaatKiezer formaat={item.formaat ?? item.bak_maat} onWijzig={onFormaat} />
+            <div className="flex items-center gap-1.5">
+              <BakmaatKiezer formaat={item.formaat ?? item.bak_maat} onWijzig={onFormaat} />
+              <BakmaatUitleg variant="link" />
+            </div>
           </div>
           {reserve === 0 && (
             <div>
