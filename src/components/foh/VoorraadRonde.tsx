@@ -1184,9 +1184,14 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   };
 
   return (
-    <div className="mb-6">
+    <div style={{ marginBottom: '32px' }}>
       {kop}
-      {open && inhoud()}
+      {open && (
+        <>
+          {standRegel}
+          {inhoud()}
+        </>
+      )}
     </div>
   );
 }
