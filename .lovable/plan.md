@@ -62,6 +62,8 @@ Eigen stickertype op de bestaande labelprinter (57×32 mm), zelfde uiterlijk als
 - Geen nieuwe libraries; bestaande printflow (print jobs + bridge) blijft onaangeroerd.
 
 ## Verificatie
-- Sluitlijst met een bak op dag 1: printknop zichtbaar en print zoals nu.
+- Open-lijst: "Vandaag (nieuw)" bij Kip toont de vervolgvraag "Datum op de zak?"; bij Vissoep/Tomyum/Ei niet.
+- Open-lijst: gewone dag tikken stelt geen zak-vraag en bewaart de bestaande zak-datum.
+- Sluitlijst met een bak op dag 1: printknop zichtbaar; sticker toont "Zak ontdooid" (alleen Kip), "Bak van" en "Gebruiken t/m".
 - Sluitlijst met een bak op dag 5: geen printknop, oranje "opmaken of weggooien".
 - Sluitlijst met een bak ouder dan 5 dagen: geen printknop, rood "weggooien".
