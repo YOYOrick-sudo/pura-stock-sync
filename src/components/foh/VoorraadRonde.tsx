@@ -210,6 +210,8 @@ function TelRegel({
   inMep,
   keten,
   tekortActie,
+  startWaarde,
+  afgeleid,
   modus,
   onZet,
   onHerstel,
@@ -224,6 +226,10 @@ function TelRegel({
   keten: string | null;
   /** Wat er bij een tekort gebeurt: zelf bijvullen of een MEP-taak. */
   tekortActie?: 'bijvullen' | 'mep';
+  /** Waarde waarop de regel begint als er nog niets geteld is (standaard het doel). */
+  startWaarde?: number;
+  /** Automatisch bijgesteld doordat er een bakje voor de werkbank uit gaat. */
+  afgeleid?: { waarde: number; onttrokken: number } | null;
   /** Hoe dit product geteld wordt. */
   modus: TelModus;
   onZet: (aantal: number) => void;
@@ -232,16 +238,18 @@ function TelRegel({
   const reserve = modus === 'reserve';
   const vulling = modus === 'vulling';
   const afwijkend = geteld !== undefined;
-  const waarde = geteld ?? doel;
+  const waarde = geteld ?? afgeleid?.waarde ?? startWaarde ?? doel;
   const heel = Math.floor(waarde + 0.001);
   const rest = reserve || vulling ? 0 : Math.round((waarde - heel) * 100) / 100;
 
   const zetHeel = (n: number) => onZet(Math.max(n, 0) + rest);
   const zetRest = (r: number) => onZet(heel + r);
 
-  // Eén statuschip rechts: onderweg > bestelbord > MEP. Altijd "hier loopt al iets".
-  const statusTekst =
-    onderweg > 0
+  // Eén statuschip rechts: bijgesteld voor de werkbank > onderweg > bestelbord > MEP.
+  const bijgesteld = !afwijkend && afgeleid && afgeleid.onttrokken > 0;
+  const statusTekst = bijgesteld
+    ? `−${getalLabel(afgeleid!.onttrokken)} voor de werkbank`
+    : onderweg > 0
       ? `${aantalLabel(onderweg, item.eenheid)} onderweg`
       : opBestelbord
         ? 'op het bestelbord'
@@ -379,7 +387,7 @@ function TelRegel({
     >
       <button
         type="button"
-        onClick={() => (afwijkend ? onHerstel() : onZet(Math.max(doel - 1, 0)))}
+        onClick={() => (afwijkend ? onHerstel() : onZet(Math.max(waarde - 1, 0)))}
         className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
         style={{ minHeight: 56 }}
       >
@@ -387,11 +395,11 @@ function TelRegel({
         <span className="flex shrink-0 items-center gap-2">
           {statusChip}
           <span
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[15px] font-bold tabular-nums ${
               afwijkend ? 'bg-amber-400/20 text-amber-700 dark:text-amber-300' : 'bg-muted text-muted-foreground'
             }`}
           >
-            {afwijkend ? <Check size={18} /> : <Minus size={18} />}
+            {afwijkend ? <Check size={18} /> : bijgesteld ? getalLabel(waarde) : <Minus size={18} />}
           </span>
         </span>
       </button>
@@ -470,6 +478,7 @@ function CategorieBlok({
   onHeropen,
   onZet,
   onHerstel,
+  afgeleideTelling,
   subtitel,
   lade,
   overslaan,
@@ -487,6 +496,8 @@ function CategorieBlok({
   onHeropen: () => void;
   onZet: (id: string, aantal: number) => void;
   onHerstel: (id: string) => void;
+  /** Automatisch bijgestelde koelcelstanden door aanvullingen voor de werkbank. */
+  afgeleideTelling?: Record<string, { waarde: number; onttrokken: number }>;
   subtitel?: string | null;
   lade?: VoorraadLade | null;
   /** Gevuld als deze lade wel zichtbaar is maar niet geteld wordt. */
@@ -579,6 +590,8 @@ function CategorieBlok({
             tekortActie={
               vervolgactieVoorRegel(item, alleItems).soort === 'niveau' ? 'bijvullen' : 'mep'
             }
+            startWaarde={lade?.rol === 'reserve' ? 0 : undefined}
+            afgeleid={afgeleideTelling?.[item.id] ?? null}
             onZet={(a) => onZet(item.id, a)}
             onHerstel={() => onHerstel(item.id)}
           />
@@ -820,6 +833,15 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   /** Lade sluiten via de balk: inklappen en doorschuiven naar de volgende open lade. */
   const sluitGroep = (sleutel: string) => {
     setHeropend((h) => h.filter((s) => s !== sleutel));
+    // Reservelade: alles wat je niet hebt aangetikt staat er niet — dus 0.
+    const groep = telGroepen.find((g) => g.sleutel === sleutel);
+    if (groep?.lade?.rol === 'reserve') {
+      setTelling((t) => {
+        const kopie = { ...t };
+        for (const i of groep.items) if (kopie[i.id] === undefined) kopie[i.id] = 0;
+        return kopie;
+      });
+    }
     setBevestigd((b) => {
       const nieuw = [...new Set([...b, sleutel])];
       const volgende = telGroepen.find((g) => !nieuw.includes(g.sleutel));
@@ -836,10 +858,35 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
 
 
 
+  /**
+   * Vul je een reservebakje bij, dan gaat er een zakje uit de koelcel. Dat zie je
+   * meteen terug in de koelcelstand — en dus ook in de keten eronder (vriescel/MEP).
+   */
+  const afgeleideTelling = useMemo(() => {
+    const map: Record<string, { waarde: number; onttrokken: number }> = {};
+    const reserveLades = new Set(lades.filter((l) => l.rol === 'reserve').map((l) => l.id));
+    for (const item of items) {
+      if (!item.lade_id || !reserveLades.has(item.lade_id)) continue;
+      const geteld = telling[item.id];
+      if (geteld === undefined) continue;
+      const tekort = Math.max(Math.ceil(telDoel(item, drukte) - geteld - 0.001), 0);
+      if (tekort <= 0) continue;
+      const vervolg = vervolgactieVoorRegel(item, items);
+      if (vervolg.soort !== 'niveau') continue;
+      const onder = vervolg.onderItem as ItemMetCategorie;
+      const onttrokken = (map[onder.id]?.onttrokken ?? 0) + tekort;
+      map[onder.id] = {
+        onttrokken,
+        waarde: Math.max(telDoel(onder, drukte) - onttrokken, 0),
+      };
+    }
+    return map;
+  }, [items, telling, drukte, lades]);
+
   const bon: BonRegel[] = useMemo(() => {
     const regels: BonRegel[] = [];
     for (const item of items) {
-      const geteld = telling[item.id];
+      const geteld = telling[item.id] ?? afgeleideTelling[item.id]?.waarde;
       if (geteld === undefined) continue;
       const doel = telDoel(item, drukte);
       // Besteld-en-onderweg telt mee als voorraad: niet opnieuw bestellen.
@@ -887,7 +934,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
 
     }
     return regels;
-  }, [items, telling, drukte, onderwegMap]);
+  }, [items, telling, drukte, onderwegMap, afgeleideTelling]);
 
   if (itemsQuery.isLoading || items.length === 0) return null;
 
@@ -1159,6 +1206,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                         }}
                         onZet={zet}
                         onHerstel={herstel}
+                        afgeleideTelling={afgeleideTelling}
                       />
                     </div>
                   ))}
