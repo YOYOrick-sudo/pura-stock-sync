@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   Trash2,
   X,
+  ChevronDown,
   Calendar as CalendarIcon,
 } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -63,23 +64,56 @@ function statusRegel(bak: BainMarieBak | undefined, vandaagIso: string) {
   return <span className={`${chip} bg-muted text-muted-foreground`}>{basis}</span>;
 }
 
-/** Sectiekop in de stijl van de takenlijst: klein, rustig, met info-icoon. */
-function Kop({
+/** Sectiebalk in dezelfde vorm als de voorraadronde: icoonbol, titel, stand, pijltje. */
+function SectieBalk({
   icoon: Icoon,
   titel,
-  uitleg,
+  stand,
+  afgerond,
+  open,
+  onToggle,
 }: {
   icoon: typeof Soup;
   titel: string;
-  uitleg: string;
+  stand: string;
+  afgerond: boolean;
+  open: boolean;
+  onToggle: () => void;
 }) {
   return (
-    <div className="mb-2 flex items-center gap-2">
-      <Icoon size={16} className="text-primary" />
-      <h3 className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {titel}
-      </h3>
-      <InfoKnop tekst={uitleg} label={`Uitleg ${titel}`} />
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`flex w-full items-center gap-3 rounded-[14px] border px-3.5 py-3 text-left transition-colors ${
+        afgerond ? 'border-primary/30 bg-primary/5' : 'border-border bg-muted'
+      }`}
+      style={{ minHeight: 52 }}
+    >
+      <span
+        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+          afgerond ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground'
+        }`}
+      >
+        {afgerond ? <Check size={16} /> : <Icoon size={16} />}
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[15px] font-bold text-foreground">{titel}</span>
+        <span className="block text-[12px] text-muted-foreground">{stand}</span>
+      </span>
+      <ChevronDown
+        size={20}
+        className={`ml-auto shrink-0 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`}
+      />
+    </button>
+  );
+}
+
+/** Info-icoon boven de lijst, zodat de balk zelf rustig blijft. */
+function Uitleg({ titel, tekst }: { titel: string; tekst: string }) {
+  return (
+    <div className="mb-1 mt-2 flex items-center gap-2">
+      <span className="text-[12px] text-muted-foreground">Hoe werkt dit?</span>
+      <InfoKnop tekst={tekst} label={`Uitleg ${titel}`} />
     </div>
   );
 }
@@ -144,15 +178,35 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
     );
   };
 
+  const totaal = BAIN_MARIE_PRODUCTEN.length;
+  const genoteerd = BAIN_MARIE_PRODUCTEN.filter(
+    (p) => bakVan(p.sleutel) || weggegooid.has(p.sleutel),
+  ).length;
+  const afgerond = genoteerd === totaal;
+  const [open, setOpen] = useState(true);
+  useEffect(() => {
+    if (afgerond) setOpen(false);
+  }, [afgerond]);
+
   return (
     <div className="py-2">
-      <Kop
+      <SectieBalk
         icoon={Soup}
         titel="Au bain-marie"
-        uitleg="Tik per product de dag die op de bak staat, zoals op de sticker van de vorige dienst. Is de bak vandaag vers gemaakt? Tik “Vandaag” — bij Kip vragen we daarna de datum van de zak. Gaat de bak vandaag niet mee of is hij op? Tik dan niets. Nieuwe zak tussendoor? Tik opnieuw “Vandaag”."
+        stand={afgerond ? 'Afgerond — alle bakken genoteerd' : `${genoteerd}/${totaal} bakken genoteerd`}
+        afgerond={afgerond}
+        open={open}
+        onToggle={() => setOpen((o) => !o)}
       />
 
-      <div className="divide-y divide-border">
+      {open && (
+        <>
+          <Uitleg
+            titel="Au bain-marie"
+            tekst="Tik per product de dag die op de bak staat, zoals op de sticker van de vorige dienst. Is de bak vandaag vers gemaakt? Tik “Vandaag” — bij Kip vragen we daarna de datum van de zak. Gaat de bak vandaag niet mee of is hij op? Tik dan niets. Nieuwe zak tussendoor? Tik opnieuw “Vandaag”."
+          />
+
+          <div className="divide-y divide-border">
         {BAIN_MARIE_PRODUCTEN.map((p) => {
           const bak = bakVan(p.sleutel);
           const isWeggegooid = !bak && weggegooid.has(p.sleutel);
@@ -270,7 +324,9 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
             </div>
           );
         })}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -341,15 +397,40 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
   };
 
 
+  // Alleen producten met een bak vragen vanavond iets: printen of weggooien.
+  const teDoen = BAIN_MARIE_PRODUCTEN.filter((p) => bakken.some((b) => b.product === p.sleutel));
+  const gedaan = teDoen.filter((p) => geprint.includes(p.sleutel)).length;
+  const afgerond = teDoen.length > 0 && gedaan === teDoen.length;
+  const [open, setOpen] = useState(true);
+  useEffect(() => {
+    if (afgerond) setOpen(false);
+  }, [afgerond]);
+
   return (
     <div className="py-2">
-      <Kop
+      <SectieBalk
         icoon={Printer}
-        titel="Au bain-marie — sticker printen"
-        uitleg="Print per product een sticker en plak hem op de plastic bak in de koeling. De app zet de startdatum en houdbaar-tot er zelf op. Is de bak vandaag voor het laatst (of over de datum)? Dan staat er geen sticker-knop maar Weggooien — de bak gaat niet meer de koeling in."
+        titel="Au bain-marie — stickers"
+        stand={
+          teDoen.length === 0
+            ? 'Geen bakken vandaag'
+            : afgerond
+              ? 'Afgerond — alle stickers geprint'
+              : `${gedaan}/${teDoen.length} stickers geprint`
+        }
+        afgerond={afgerond || teDoen.length === 0}
+        open={open}
+        onToggle={() => setOpen((o) => !o)}
       />
 
-      <div className="divide-y divide-border">
+      {open && (
+        <>
+          <Uitleg
+            titel="Au bain-marie stickers"
+            tekst="Print per product een sticker en plak hem op de plastic bak in de koeling. De app zet de startdatum en houdbaar-tot er zelf op. Is de bak vandaag voor het laatst (of over de datum)? Dan staat er geen sticker-knop maar Weggooien — de bak gaat niet meer de koeling in."
+          />
+
+          <div className="divide-y divide-border">
         {BAIN_MARIE_PRODUCTEN.map((p) => {
           const bak = bakken.find((b) => b.product === p.sleutel);
           const s = bakStatus(bak, datum);
@@ -412,7 +493,9 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
             </div>
           );
         })}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
