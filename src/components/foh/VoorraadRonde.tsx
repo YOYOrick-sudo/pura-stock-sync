@@ -458,6 +458,8 @@ function CategorieBlok({
 }: {
   titel: string;
   items: ItemMetCategorie[];
+  /** Alle actieve items: nodig om de keten (waar komt het vandaan) te bepalen. */
+  alleItems: ItemMetCategorie[];
   drukte: DrukteModus;
   telling: Record<string, number>;
   onderwegMap: Record<string, number>;
