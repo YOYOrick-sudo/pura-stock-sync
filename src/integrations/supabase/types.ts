@@ -503,11 +503,13 @@ export type Database = {
           created_by: string | null
           houdbaarheid_dagen: number
           id: string
+          ontdooid_datum: string | null
           product: string
           product_naam: string
           start_datum: string
           updated_at: string
           vestiging: string
+          weggegooid_op: string | null
         }
         Insert: {
           actief?: boolean
@@ -515,11 +517,13 @@ export type Database = {
           created_by?: string | null
           houdbaarheid_dagen?: number
           id?: string
+          ontdooid_datum?: string | null
           product: string
           product_naam: string
           start_datum: string
           updated_at?: string
           vestiging?: string
+          weggegooid_op?: string | null
         }
         Update: {
           actief?: boolean
@@ -527,11 +531,13 @@ export type Database = {
           created_by?: string | null
           houdbaarheid_dagen?: number
           id?: string
+          ontdooid_datum?: string | null
           product?: string
           product_naam?: string
           start_datum?: string
           updated_at?: string
           vestiging?: string
+          weggegooid_op?: string | null
         }
         Relationships: []
       }
