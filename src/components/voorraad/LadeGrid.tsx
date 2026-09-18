@@ -415,6 +415,7 @@ export function LadeGrid({ vestiging }: { vestiging: string }) {
 
   const onEnd = (e: DragEndEvent) => {
     setSleept(null);
+    laatsteSleepEind = Date.now();
     const over = e.over?.id;
     if (typeof over !== 'string' || !over.startsWith('lade:')) return;
     const doelId = over.slice(5);
