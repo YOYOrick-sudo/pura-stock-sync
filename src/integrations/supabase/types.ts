@@ -1918,6 +1918,7 @@ export type Database = {
       }
       koelcel_check_items: {
         Row: {
+          aanvul_tot: number | null
           actief: boolean
           bak_maat: string | null
           batch_aantal: number | null
@@ -1945,6 +1946,7 @@ export type Database = {
           vulnorm: string
         }
         Insert: {
+          aanvul_tot?: number | null
           actief?: boolean
           bak_maat?: string | null
           batch_aantal?: number | null
@@ -1972,6 +1974,7 @@ export type Database = {
           vulnorm?: string
         }
         Update: {
+          aanvul_tot?: number | null
           actief?: boolean
           bak_maat?: string | null
           batch_aantal?: number | null
