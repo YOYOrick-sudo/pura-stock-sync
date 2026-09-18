@@ -3555,39 +3555,11 @@ export function FohTasks() {
                   return (
                     <div key={`${opts?.keyPrefix ?? ''}${dept}`} style={{ marginBottom: '32px' }}>
                       {!opts?.hideHeader && (
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                          padding: '12px 14px',
-                          backgroundColor: 'hsl(var(--muted))',
-                          borderRadius: '12px',
-                          marginBottom: '12px',
-                          border: '1px solid hsl(var(--border))',
-                          boxShadow: '0 1px 2px hsl(var(--foreground) / 0.03)',
-                        }}>
-                          <span style={{
-                            fontSize: '15px',
-                            fontWeight: 700,
-                            color: 'hsl(var(--foreground))',
-                            fontFamily: 'Inter, sans-serif',
-                            letterSpacing: '0.01em',
-                          }}>
-                            {label}
-                          </span>
-                          <span style={{
-                            marginLeft: 'auto',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            color: 'hsl(var(--muted-foreground))',
-                            backgroundColor: 'hsl(var(--muted) / 0.6)',
-                            padding: '3px 10px',
-                            borderRadius: '999px',
-                            fontFamily: 'Inter, sans-serif',
-                          }}>
-                            {completed}/{deptTasks.length}
-                          </span>
-                        </div>
+                        <SectieBalk
+                          titel={label}
+                          stand={`${completed}/${deptTasks.length}`}
+                          afgerond={deptTasks.length > 0 && completed === deptTasks.length}
+                        />
                       )}
                       {flat ? renderFlatList(deptTasks, dept) : renderCategoryGroups(deptTasks, dept, dept)}
                     </div>
