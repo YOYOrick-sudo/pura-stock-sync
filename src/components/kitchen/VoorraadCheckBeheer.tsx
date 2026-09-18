@@ -280,28 +280,28 @@ export function VoorraadCheckBeheer({ location }: { location: string }) {
                           }}
                         />
                       )}
+                      <Input
+                        key={`${item.id}-punt-${item.bestelpunt ?? ''}`}
+                        defaultValue={item.bestelpunt !== null && item.bestelpunt !== undefined ? String(Number(item.bestelpunt)) : ''}
+                        inputMode="decimal"
+                        placeholder="meldpunt"
+                        className="w-24 h-9 text-center"
+                        aria-label={`Meldpunt ${item.naam}`}
+                        title="Pas melden vanaf dit aantal of minder (0,5 = halve bak, 0,25 = bodempje)"
+                        onBlur={(e) => {
+                          const raw = e.target.value.replace(',', '.').replace(/[^0-9.]/g, '');
+                          const v = raw ? Number(raw) : null;
+                          const huidig =
+                            item.bestelpunt !== null && item.bestelpunt !== undefined
+                              ? Number(item.bestelpunt)
+                              : null;
+                          if (v !== huidig && (v === null || Number.isFinite(v))) {
+                            bijwerken.mutate({ id: item.id, velden: { bestelpunt: v } });
+                          }
+                        }}
+                      />
                       {(item.bron === 'koelcel_inkoop' || item.bron === 'magazijn') && (
                         <>
-                          <Input
-                            key={`${item.id}-punt-${item.bestelpunt ?? ''}`}
-                            defaultValue={item.bestelpunt !== null && item.bestelpunt !== undefined ? String(Number(item.bestelpunt)) : ''}
-                            inputMode="numeric"
-                            placeholder="bestelpunt"
-                            className="w-24 h-9 text-center"
-                            aria-label={`Bestelpunt ${item.naam}`}
-                            title="Pas melden vanaf dit aantal of minder"
-                            onBlur={(e) => {
-                              const raw = e.target.value.replace(/[^0-9]/g, '');
-                              const v = raw ? Number(raw) : null;
-                              const huidig =
-                                item.bestelpunt !== null && item.bestelpunt !== undefined
-                                  ? Number(item.bestelpunt)
-                                  : null;
-                              if (v !== huidig) {
-                                bijwerken.mutate({ id: item.id, velden: { bestelpunt: v } });
-                              }
-                            }}
-                          />
                           <Select
                             value={(item.bestel_eenheid ?? '') || 'geen'}
                             onValueChange={(v) =>
