@@ -208,7 +208,7 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
           const kanPrinten = bak && s.startDatum && s.status !== 'te-oud';
           const klaar = geprint.includes(p.sleutel);
           return (
-            <div key={p.sleutel} className="flex items-center gap-3 py-2.5" style={{ minHeight: 52 }}>
+            <div key={p.sleutel} className="flex items-center gap-3 py-3" style={{ minHeight: 52 }}>
               {klaar && (
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
                   <Check size={14} />
@@ -223,9 +223,14 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
                   type="button"
                   disabled={printSticker.isPending}
                   onClick={() => print(bak!)}
-                  className="shrink-0 rounded-[12px] border border-border bg-card px-3 text-[13px] font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-60"
+                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 text-[13px] font-semibold transition-colors disabled:opacity-60 ${
+                    klaar
+                      ? 'bg-muted/60 text-muted-foreground hover:bg-muted'
+                      : 'bg-primary/10 text-primary hover:bg-primary/15'
+                  }`}
                   style={{ minHeight: 44 }}
                 >
+                  <Printer size={15} />
                   {klaar ? 'Opnieuw' : 'Sticker'}
                 </button>
               ) : (
