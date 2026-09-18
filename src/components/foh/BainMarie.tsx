@@ -200,8 +200,8 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
                       <X size={16} />
                     </button>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {zakOpties.map(({ offset, iso }) => (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {zakOpties.map(({ offset, iso, label }) => (
                       <button
                         key={offset}
                         type="button"
@@ -210,10 +210,42 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
                         className={dagKnopStijl(false)}
                         style={{ minHeight: 44, minWidth: 44 }}
                       >
-                        {offset === 0 ? 'Vandaag' : dagKort(iso)}
+                        {label}
                       </button>
                     ))}
+                    <Popover
+                      open={kalenderVoor === p.sleutel}
+                      onOpenChange={(open) => setKalenderVoor(open ? p.sleutel : null)}
+                    >
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          disabled={zetStart.isPending}
+                          className={`${dagKnopStijl(false)} flex items-center gap-1.5`}
+                          style={{ minHeight: 44, minWidth: 44 }}
+                        >
+                          <CalendarIcon size={15} />
+                          Andere datum
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          locale={nl}
+                          weekStartsOn={1}
+                          defaultMonth={new Date(`${datum}T12:00:00`)}
+                          disabled={{ after: new Date(`${datum}T12:00:00`) }}
+                          onSelect={(d) => {
+                            if (!d) return;
+                            setKalenderVoor(null);
+                            startNieuw(p, isoDatum(d));
+                          }}
+                          className={cn('p-3 pointer-events-auto')}
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
+
                 </div>
               )}
             </div>
