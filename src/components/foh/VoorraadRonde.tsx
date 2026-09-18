@@ -210,6 +210,8 @@ function TelRegel({
   inMep,
   keten,
   tekortActie,
+  startWaarde,
+  afgeleid,
   modus,
   onZet,
   onHerstel,
@@ -224,6 +226,10 @@ function TelRegel({
   keten: string | null;
   /** Wat er bij een tekort gebeurt: zelf bijvullen of een MEP-taak. */
   tekortActie?: 'bijvullen' | 'mep';
+  /** Waarde waarop de regel begint als er nog niets geteld is (standaard het doel). */
+  startWaarde?: number;
+  /** Automatisch bijgesteld doordat er een bakje voor de werkbank uit gaat. */
+  afgeleid?: { waarde: number; onttrokken: number } | null;
   /** Hoe dit product geteld wordt. */
   modus: TelModus;
   onZet: (aantal: number) => void;
@@ -232,7 +238,7 @@ function TelRegel({
   const reserve = modus === 'reserve';
   const vulling = modus === 'vulling';
   const afwijkend = geteld !== undefined;
-  const waarde = geteld ?? doel;
+  const waarde = geteld ?? afgeleid?.waarde ?? startWaarde ?? doel;
   const heel = Math.floor(waarde + 0.001);
   const rest = reserve || vulling ? 0 : Math.round((waarde - heel) * 100) / 100;
 
