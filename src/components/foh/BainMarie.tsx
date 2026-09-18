@@ -397,15 +397,40 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
   };
 
 
+  // Alleen producten met een bak vragen vanavond iets: printen of weggooien.
+  const teDoen = BAIN_MARIE_PRODUCTEN.filter((p) => bakken.some((b) => b.product === p.sleutel));
+  const gedaan = teDoen.filter((p) => geprint.includes(p.sleutel)).length;
+  const afgerond = teDoen.length > 0 && gedaan === teDoen.length;
+  const [open, setOpen] = useState(true);
+  useEffect(() => {
+    if (afgerond) setOpen(false);
+  }, [afgerond]);
+
   return (
     <div className="py-2">
-      <Kop
+      <SectieBalk
         icoon={Printer}
-        titel="Au bain-marie — sticker printen"
-        uitleg="Print per product een sticker en plak hem op de plastic bak in de koeling. De app zet de startdatum en houdbaar-tot er zelf op. Is de bak vandaag voor het laatst (of over de datum)? Dan staat er geen sticker-knop maar Weggooien — de bak gaat niet meer de koeling in."
+        titel="Au bain-marie — stickers"
+        stand={
+          teDoen.length === 0
+            ? 'Geen bakken vandaag'
+            : afgerond
+              ? 'Afgerond — alle stickers geprint'
+              : `${gedaan}/${teDoen.length} stickers geprint`
+        }
+        afgerond={afgerond || teDoen.length === 0}
+        open={open}
+        onToggle={() => setOpen((o) => !o)}
       />
 
-      <div className="divide-y divide-border">
+      {open && (
+        <>
+          <Uitleg
+            titel="Au bain-marie stickers"
+            tekst="Print per product een sticker en plak hem op de plastic bak in de koeling. De app zet de startdatum en houdbaar-tot er zelf op. Is de bak vandaag voor het laatst (of over de datum)? Dan staat er geen sticker-knop maar Weggooien — de bak gaat niet meer de koeling in."
+          />
+
+          <div className="divide-y divide-border">
         {BAIN_MARIE_PRODUCTEN.map((p) => {
           const bak = bakken.find((b) => b.product === p.sleutel);
           const s = bakStatus(bak, datum);
