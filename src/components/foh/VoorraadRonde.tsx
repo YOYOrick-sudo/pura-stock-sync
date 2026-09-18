@@ -673,21 +673,31 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
         // Koelwerkbank tel je per lade: je trekt een lade open, niet een categorie.
         if (p.plek === 'werkbank' && lades.length > 0) {
           const groepen: Groep[] = [];
-          // Reservelades eerst: daar staat 90% van de reservebakjes.
-          const gesorteerd = [...lades.filter((l) => l.actief)].sort(
-            (a, b) =>
-              (a.rol === 'reserve' ? 0 : 1) - (b.rol === 'reserve' ? 0 : 1) ||
-              a.volgorde - b.volgorde,
-          );
+          // Altijd dezelfde looproute: kolom voor kolom, van boven naar beneden.
+          const gesorteerd = [...lades.filter((l) => l.actief)].sort((a, b) => a.volgorde - b.volgorde);
           for (const lade of gesorteerd) {
             const ladeItems = p.items.filter((i) => i.lade_id === lade.id);
-            if (!ladeItems.length) continue;
+            const nietTellen = lade.rol === 'niet_tellen';
+            // Lades die je niet telt of die nog leeg zijn blijven zichtbaar,
+            // maar ingeklapt: je ziet dat ze bestaan zonder ze af te hoeven vinken.
+            const overslaan = nietTellen
+              ? {
+                  reden: 'wordt niet geteld · aangebroken bakjes',
+                  uitleg: 'Hier staan de bakjes waar je uit schept. De reserve tel je bij Midden onder.',
+                }
+              : !ladeItems.length
+                ? {
+                    reden: 'nog niets ingedeeld',
+                    uitleg: 'Deel deze lade in bij Koelwerkbank indelen, dan telt hij vanzelf mee.',
+                  }
+                : undefined;
             groepen.push({
               sleutel: `werkbank:lade:${lade.id}`,
               titel: lade.naam,
               subtitel: `${positieLabel(lade)}${lade.rol === 'reserve' ? ' · reservelade' : ''}`,
               lade,
-              items: ladeItems,
+              items: overslaan ? [] : ladeItems,
+              overslaan,
             });
           }
           // Producten zonder lade vallen nooit weg: die tel je per categorie, onderaan.
