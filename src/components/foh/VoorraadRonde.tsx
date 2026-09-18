@@ -1168,20 +1168,29 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           })}
         </div>
 
-        <Button
-          className="mt-4 h-14 w-full rounded-[16px] text-[16px] font-bold"
-          disabled={!allesBevestigd}
-          onClick={() => setStap('bon')}
-        >
+        {/* Vaste afsluitbalk: altijd onder de duim, nooit scrollen naar een knop. */}
+        <div className="sticky bottom-3 z-20 mt-4">
           {allesBevestigd ? (
-            <>
+            <Button
+              className="h-14 w-full rounded-[16px] text-[16px] font-bold shadow-lg"
+              onClick={() => setStap('bon')}
+            >
               Naar de aanvulbon
               <ArrowRight size={20} className="ml-1" />
-            </>
-          ) : (
-            `Nog ${alleSleutels.length - klaarAantal} te gaan`
-          )}
-        </Button>
+            </Button>
+          ) : volgendeGroep ? (
+            <Button
+              className="h-14 w-full rounded-[16px] text-[16px] font-bold shadow-lg"
+              onClick={() => sluitGroep(volgendeGroep.sleutel)}
+            >
+              <Check size={20} className="mr-1.5" />
+              <span className="truncate">{volgendeGroep.titel} klaar</span>
+              <span className="ml-2 shrink-0 rounded-full bg-primary-foreground/20 px-2 py-0.5 text-[12px] font-semibold tabular-nums">
+                {klaarAantal}/{alleSleutels.length}
+              </span>
+            </Button>
+          ) : null}
+        </div>
       </div>
     );
   };
