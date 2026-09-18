@@ -6,7 +6,7 @@
 ## Wat de gebruiker ziet
 Op de pagina "Koelwerkbank indelen" komt naast de kop een rustige knop **"Bakmaten bekijken"** (liniaal-icoon, zelfde stijl als het info-icoon). Tikken opent een venster:
 
-- **Zijaanzicht**: drie GN-bakjes naast elkaar op één vloerlijn, op schaal ten opzichte van elkaar — laag, midden, hoog. Onder elke bak: het woord, de diepte in cm en waar je het aan herkent.
+- **Zijaanzicht**: drie GN-bakjes naast elkaar op één vloerlijn, op schaal ten opzichte van elkaar — laag, midden, hoog. Elk bakje is als echt profiel getekend: iets smaller aan de bodem dan bovenaan, met de typische overstaande rand bovenop, zodat het meteen herkenbaar is als een GN-bak. Onder elke bak: het woord, de diepte in cm en waar je het aan herkent.
   - laag — 6,5 cm — plat, voor garnituur en toppings
   - midden — 10 cm — standaard, de meeste bakjes
   - hoog — 15 cm — diep, voor natte of grote producten
