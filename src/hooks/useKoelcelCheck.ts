@@ -865,7 +865,12 @@ export function useKoelcelCheckMutaties(
         geplaatst = res.aantal;
 
       } else {
-        const res = await naarMidsland(item, vestiging, tekort);
+        // Midsland: in één keer aanvullen tot het vastgelegde niveau.
+        const res = await naarMidsland(
+          item,
+          vestiging,
+          midslandAantal(item, doelNu, Number(aanwezig || 0)),
+        );
         dubbel = res.dubbel;
         geplaatst = res.aantal;
         onderweg = res.onderweg;
