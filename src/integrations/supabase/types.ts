@@ -1927,6 +1927,7 @@ export type Database = {
           formaat: string | null
           id: string
           lade_id: string | null
+          leverancier: string | null
           naam: string
           plek: string
           product_sleutel: string | null
@@ -1953,6 +1954,7 @@ export type Database = {
           formaat?: string | null
           id?: string
           lade_id?: string | null
+          leverancier?: string | null
           naam: string
           plek?: string
           product_sleutel?: string | null
@@ -1979,6 +1981,7 @@ export type Database = {
           formaat?: string | null
           id?: string
           lade_id?: string | null
+          leverancier?: string | null
           naam?: string
           plek?: string
           product_sleutel?: string | null

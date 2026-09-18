@@ -148,6 +148,13 @@
       "when": 1789717412150,
       "tag": "0020_bain_marie_bakken",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1789720607325,
+      "tag": "0021_koelcel_items_leverancier",
+      "breakpoints": true
     }
   ]
 }
