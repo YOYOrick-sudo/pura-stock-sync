@@ -458,7 +458,6 @@ function CategorieBlok({
   bestelbordMap,
   mepTitels,
   bevestigd,
-  onBevestig,
   onHeropen,
   onZet,
   onHerstel,
