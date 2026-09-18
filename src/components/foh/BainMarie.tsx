@@ -320,7 +320,7 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
               {kanPrinten ? (
                 <button
                   type="button"
-                  disabled={printSticker.isPending}
+                  disabled={bezig === p.sleutel}
                   onClick={() => print(bak!)}
                   className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 text-[13px] font-semibold transition-colors disabled:opacity-60 ${
                     klaar
@@ -330,8 +330,9 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
                   style={{ minHeight: 44 }}
                 >
                   <Printer size={15} />
-                  {klaar ? 'Opnieuw' : 'Sticker'}
+                  {bezig === p.sleutel ? 'Bezig…' : klaar ? 'Opnieuw' : 'Sticker'}
                 </button>
+
               ) : moetWeg ? (
                 <button
                   type="button"
