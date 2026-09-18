@@ -4807,15 +4807,6 @@ export type Database = {
         }[]
       }
       current_user_location: { Args: never; Returns: string }
-      delete_email: {
-        Args: { message_id: number; queue_name: string }
-        Returns: boolean
-      }
-      email_queue_dispatch: { Args: never; Returns: undefined }
-      enqueue_email: {
-        Args: { payload: Json; queue_name: string }
-        Returns: number
-      }
       f_omzet_effectief: {
         Args: { eitje_omzet: number; ls_omzet: number }
         Returns: {
@@ -4920,26 +4911,9 @@ export type Database = {
         Args: { _vestiging: string; _voor: string }
         Returns: string
       }
-      move_to_dlq: {
-        Args: {
-          dlq_name: string
-          message_id: number
-          payload: Json
-          source_queue: string
-        }
-        Returns: number
-      }
       print_bridge_mark_printed: {
         Args: { _vestiging: string }
         Returns: undefined
-      }
-      read_email_batch: {
-        Args: { batch_size: number; queue_name: string; vt: number }
-        Returns: {
-          message: Json
-          msg_id: number
-          read_ct: number
-        }[]
       }
       rpc_cijfers_heatmap: {
         Args: { p_tot: string; p_van: string; p_vestigingen: string[] }
