@@ -39,6 +39,7 @@ Eigen stickertype op de bestaande labelprinter (57×32 mm), zelfde uiterlijk als
 │                              │
 │ Kip                          │  ← productnaam, groot
 │                              │
+│ Zak ontdooid: ma 15/09       │  ← alleen als er een zak-datum is
 │ Bak van: wo 17/09            │
 │ Gebruiken t/m: di 22/09      │
 └──────────────────────────────┘
@@ -46,13 +47,19 @@ Eigen stickertype op de bestaande labelprinter (57×32 mm), zelfde uiterlijk als
 
 - Het is dus géén "Bereid"-sticker (die zou een verkeerde indruk geven: de bak is niet vandaag gemaakt), maar een herkenbare eigen kop "BAIN-MARIE".
 - Eerste regel wordt nu nog als "Bereid: …" afgedrukt; dat wordt **"Bak van: …"** — dat is precies wat de volgende dienst moet weten.
-- Tweede regel "Gebruiken t/m" is startdatum + 5 dagen, dus de datum waarop hij weg moet.
+- Bij Kip komt er een regel boven: **"Zak ontdooid: …"** (de datum van de ontdooi-sticker op de zak). Bij producten zonder vrieszak valt die regel weg en schuiven de andere regels op.
+- Laatste regel "Gebruiken t/m" is startdatum + 5 dagen, dus de datum waarop hij weg moet.
+- Met drie datumregels worden de regels iets compacter gezet zodat alles netjes op het etiket past.
 
 ## Technisch
-- `src/components/foh/BainMarie.tsx` (`BainMarieSluit`): `kanPrinten` wordt `status === 'ok'` (dus alleen dag 1–4). Bij `laatste-dag` komt de tekst "opmaken of weggooien" in oranje; bij `te-oud` blijft "weggooien" in rood.
-- `src/lib/labelZpl.ts`: voor type `bain` wordt het eerste datumlabel "Bak van" in plaats van "Bereid".
-- Infotekst achter het info-icoon bij de sluitlijst een zin aanpassen: op dag 5 print je geen sticker meer, dan moet de bak op of weg.
-- Geen database-wijzigingen, geen nieuwe libraries.
+- Migratie: kolom `ontdooid_datum date null` op `bain_marie_bakken` (alleen gevuld bij producten met een vriezer-zak). Bestaande RLS en grants blijven ongewijzigd.
+- `src/hooks/useBainMarie.ts`: productlijst krijgt een vlag `heeftVriesZak` (alleen Kip = true); mutatie neemt optioneel `ontdooidDatum` mee.
+- `src/components/foh/BainMarie.tsx`:
+  - `BainMarieOpen`: na tik op "Vandaag (nieuw)" bij een zak-product verschijnt de vervolgvraag "Datum op de zak?" met dagknoppen (vandaag + 6 dagen terug); pas daarna wordt opgeslagen. Annuleren kan door de vraag weg te tikken — er is dan nog niets vastgelegd.
+  - `BainMarieSluit`: `kanPrinten` wordt `status === 'ok'` (dus alleen dag 1–4). Bij `laatste-dag` komt de tekst "opmaken of weggooien" in oranje; bij `te-oud` blijft "weggooien" in rood.
+- `src/lib/labelZpl.ts`: voor type `bain` wordt het eerste datumlabel "Bak van"; extra input `ontdooidDatum` voegt de regel "Zak ontdooid" toe; datumregels worden iets compacter zodat drie regels passen.
+- Infoteksten achter de info-iconen bijgewerkt (open: nieuwe zak = opnieuw "Vandaag" tikken; sluit: dag 5 = opmaken of weggooien, geen sticker).
+- Geen nieuwe libraries; bestaande printflow (print jobs + bridge) blijft onaangeroerd.
 
 ## Verificatie
 - Sluitlijst met een bak op dag 1: printknop zichtbaar en print zoals nu.
