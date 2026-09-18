@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { BakmaatKiezer } from '@/components/voorraad/BakmaatKiezer';
+import { BakmaatUitleg } from '@/components/voorraad/BakmaatUitleg';
 import { useKoelcelCheckItems, type KoelcelCheckItem } from '@/hooks/useKoelcelCheck';
 import {
   positieLabel,
