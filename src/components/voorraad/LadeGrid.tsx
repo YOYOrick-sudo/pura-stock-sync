@@ -134,6 +134,111 @@ function SleepbaarProduct({
   );
 }
 
+/** Compact ladepatroon-kaartje: alleen de naam, tik opent de instellingen. */
+function LadeChip({ item, onOpen }: { item: KoelcelCheckItem; onOpen: () => void }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });
+  return (
+    <button
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      type="button"
+      onClick={onOpen}
+      title={item.naam}
+      className={`flex w-full touch-none items-start gap-1 rounded-[12px] border border-border bg-card px-1.5 py-2 text-left transition-colors active:border-primary active:bg-primary/10 ${
+        isDragging ? 'opacity-40' : ''
+      }`}
+      style={{ minHeight: 44 }}
+    >
+      <GripVertical size={13} className="mt-0.5 shrink-0 text-muted-foreground" />
+      <span className="line-clamp-2 text-[12px] font-medium leading-tight text-foreground">
+        {item.naam}
+      </span>
+    </button>
+  );
+}
+
+/** Instellingen van één product (reserve, bakmaat, vulnorm) in een dialoog. */
+function ProductInstellingenDialog({
+  item,
+  open,
+  onOpenChange,
+  onReserve,
+  onVulnorm,
+  onFormaat,
+}: {
+  item: KoelcelCheckItem | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onReserve: (aantal: number) => void;
+  onVulnorm: (vulnorm: 'vol' | 'half') => void;
+  onFormaat: (formaat: string | null) => void;
+}) {
+  if (!item) return null;
+  const reserve = Math.max(Number(item.reserve_doel ?? 0), 0);
+  const vulnorm = (item.vulnorm ?? 'vol') === 'half' ? 'half' : 'vol';
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[420px] rounded-[24px]">
+        <DialogHeader>
+          <DialogTitle className="text-[16px]">{item.naam}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 pt-1">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[13px] text-muted-foreground">Reserve achter de hand</span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                aria-label="Minder reserve"
+                onClick={() => onReserve(reserve - 1)}
+                className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-border text-muted-foreground"
+              >
+                <Minus size={16} />
+              </button>
+              <span className="w-8 text-center text-[15px] font-bold tabular-nums text-foreground">
+                {reserve}
+              </span>
+              <button
+                type="button"
+                aria-label="Meer reserve"
+                onClick={() => onReserve(reserve + 1)}
+                className="flex h-11 w-11 items-center justify-center rounded-[12px] border border-border text-muted-foreground"
+              >
+                <Plus size={16} />
+              </button>
+            </div>
+          </div>
+          <div>
+            <p className="mb-1.5 text-[13px] text-muted-foreground">Bakmaat</p>
+            <BakmaatKiezer formaat={item.formaat ?? item.bak_maat} onWijzig={onFormaat} />
+          </div>
+          {reserve === 0 && (
+            <div>
+              <p className="mb-1.5 text-[13px] text-muted-foreground">Bakje hoort</p>
+              <div className="flex gap-2">
+                {(['vol', 'half'] as const).map((keuze) => (
+                  <button
+                    key={keuze}
+                    type="button"
+                    onClick={() => onVulnorm(keuze)}
+                    className={`flex-1 rounded-[12px] border px-3 py-2.5 text-[13px] font-semibold ${
+                      vulnorm === keuze
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-card text-muted-foreground'
+                    }`}
+                  >
+                    {keuze}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function LadeVak({
   lade,
   items,
