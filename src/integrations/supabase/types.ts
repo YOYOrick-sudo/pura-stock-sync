@@ -496,6 +496,45 @@ export type Database = {
           },
         ]
       }
+      bain_marie_bakken: {
+        Row: {
+          actief: boolean
+          created_at: string
+          created_by: string | null
+          houdbaarheid_dagen: number
+          id: string
+          product: string
+          product_naam: string
+          start_datum: string
+          updated_at: string
+          vestiging: string
+        }
+        Insert: {
+          actief?: boolean
+          created_at?: string
+          created_by?: string | null
+          houdbaarheid_dagen?: number
+          id?: string
+          product: string
+          product_naam: string
+          start_datum: string
+          updated_at?: string
+          vestiging?: string
+        }
+        Update: {
+          actief?: boolean
+          created_at?: string
+          created_by?: string | null
+          houdbaarheid_dagen?: number
+          id?: string
+          product?: string
+          product_naam?: string
+          start_datum?: string
+          updated_at?: string
+          vestiging?: string
+        }
+        Relationships: []
+      }
       bestel_signalen: {
         Row: {
           aantal: number
