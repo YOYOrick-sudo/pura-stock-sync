@@ -5,7 +5,7 @@ import { metHerstel } from '@/lib/appWake';
 import { useKanaalHerstel } from '@/lib/realtime';
 
 /** Waar komt het product vandaan? Bepaalt wat er gebeurt als het op is. */
-export type VoorraadBron = 'vriezer' | 'koelcel_inkoop' | 'magazijn' | 'zelf_west' | 'midsland';
+export type VoorraadBron = 'vriezer' | 'koelcel_inkoop' | 'magazijn' | 'zelf_west' | 'midsland' | 'snijden';
 /** Waar hoort het product te liggen/staan. */
 export type VoorraadPlek = 'vriezer' | 'koelcel' | 'werkbank' | 'werkblad' | 'magazijn';
 
@@ -15,6 +15,7 @@ export const BRON_LABEL: Record<VoorraadBron, string> = {
   magazijn: 'Magazijn (roosteren)',
   zelf_west: 'Zelf maken in West',
   midsland: 'Uit Midsland',
+  snijden: 'Snijden (verse kruiden)',
 };
 
 export const PLEK_LABEL: Record<VoorraadPlek, string> = {
@@ -224,6 +225,8 @@ export function bestemmingVoorBron(bron: VoorraadBron): {
   switch (bron) {
     case 'zelf_west':
       return { soort: 'mep', handeling: 'Bereiden', label: 'de mise-en-place' };
+    case 'snijden':
+      return { soort: 'mep', handeling: 'Snijden', label: 'de mise-en-place' };
     case 'vriezer':
       return { soort: 'mep', handeling: 'Ontdooien', label: 'de ontdooilijst' };
     case 'magazijn':

@@ -28,7 +28,7 @@ import {
 } from '@/hooks/useKoelcelCheck';
 
 const PLEKKEN: VoorraadPlek[] = ['vriezer', 'koelcel', 'magazijn', 'werkbank', 'werkblad'];
-const BRONNEN: VoorraadBron[] = ['vriezer', 'koelcel_inkoop', 'magazijn', 'zelf_west', 'midsland'];
+const BRONNEN: VoorraadBron[] = ['vriezer', 'koelcel_inkoop', 'magazijn', 'zelf_west', 'midsland', 'snijden'];
 /** Hoe verse producten bij de leverancier ingekocht worden. */
 const BESTEL_EENHEDEN = ['kist', 'doos', 'bak', 'zak', 'krat', 'tray', 'kilo'];
 
@@ -261,6 +261,7 @@ export function VoorraadCheckBeheer({ location }: { location: string }) {
                         }}
                       />
                       {(item.bron === 'zelf_west' ||
+                        item.bron === 'snijden' ||
                         item.bron === 'magazijn' ||
                         item.bron === 'vriezer') && (
                         <Input
