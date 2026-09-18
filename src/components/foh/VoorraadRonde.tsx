@@ -933,7 +933,37 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
 
   if (itemsQuery.isLoading || items.length === 0) return null;
 
-  const zet = (id: string, aantal: number) => setTelling((t) => ({ ...t, [id]: Math.max(aantal, 0) }));
+  /**
+   * Tellen. Een lade die helemaal geteld is klapt pas in zodra je aan een ándere
+   * lade begint — en dan zonder dat de lijst onder je vinger wegspringt.
+   */
+  const zet = (id: string, aantal: number) => {
+    const huidige = groepVanItem[id];
+    const nieuweTelling = { ...telling, [id]: Math.max(aantal, 0) };
+    const teSluiten = telGroepen
+      .filter(
+        (g) =>
+          g.sleutel !== huidige &&
+          g.items.length > 0 &&
+          !bevestigd.includes(g.sleutel) &&
+          !heropend.includes(g.sleutel) &&
+          g.items.every((i) => nieuweTelling[i.id] !== undefined),
+      )
+      .map((g) => g.sleutel);
+
+    setTelling(nieuweTelling);
+    if (!teSluiten.length) return;
+
+    const anker = huidige ? document.getElementById(`vr-groep-${huidige}`) : null;
+    const voor = anker?.getBoundingClientRect().top ?? null;
+    setBevestigd((b) => [...new Set([...b, ...teSluiten])]);
+    if (voor === null) return;
+    requestAnimationFrame(() => {
+      const na = document.getElementById(`vr-groep-${huidige}`)?.getBoundingClientRect().top;
+      if (na !== undefined) window.scrollBy({ top: na - voor, behavior: 'instant' as ScrollBehavior });
+    });
+  };
+
   const herstel = (id: string) =>
     setTelling((t) => {
       const kopie = { ...t };
