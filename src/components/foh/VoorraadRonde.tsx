@@ -464,6 +464,7 @@ function CategorieBlok({
   onHerstel,
   subtitel,
   lade,
+  overslaan,
 }: {
   titel: string;
   items: ItemMetCategorie[];
@@ -481,8 +482,41 @@ function CategorieBlok({
   onHerstel: (id: string) => void;
   subtitel?: string | null;
   lade?: VoorraadLade | null;
+  /** Gevuld als deze lade wel zichtbaar is maar niet geteld wordt. */
+  overslaan?: { reden: string; uitleg: string };
 }) {
   const afwijkingen = items.filter((i) => telling[i.id] !== undefined).length;
+  const [uitgeklapt, setUitgeklapt] = useState(false);
+
+  // Lade zonder telwerk: één rustige regel, uitklapbaar voor de reden.
+  if (overslaan) {
+    return (
+      <div className="rounded-[14px] border border-dashed border-border bg-muted/20">
+        <button
+          type="button"
+          onClick={() => setUitgeklapt((u) => !u)}
+          className="flex w-full items-center gap-2 px-3 py-3 text-left"
+          style={{ minHeight: 52 }}
+        >
+          {lade && <LadePositie lade={lade} metNaam={false} className="shrink-0" />}
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[15px] font-semibold text-muted-foreground">{titel}</span>
+          </span>
+          <VoorraadChip variant="info">{overslaan.reden}</VoorraadChip>
+          <ChevronDown
+            size={18}
+            className={`shrink-0 text-muted-foreground transition-transform ${uitgeklapt ? 'rotate-180' : ''}`}
+          />
+        </button>
+        {uitgeklapt && (
+          <p className="border-t border-border/60 px-3 py-2 text-[13px] text-muted-foreground">
+            {overslaan.uitleg}
+          </p>
+        )}
+      </div>
+    );
+  }
+
 
   if (bevestigd) {
     return (
