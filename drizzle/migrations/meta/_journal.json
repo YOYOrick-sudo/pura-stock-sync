@@ -169,6 +169,13 @@
       "when": 1789723357655,
       "tag": "0023_koelcel_aanvul_tot_en_lade_links_midden",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1789723972591,
+      "tag": "0024_gekookte_eieren_naar_rechts_onder",
+      "breakpoints": true
     }
   ]
 }
