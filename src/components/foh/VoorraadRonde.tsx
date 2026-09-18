@@ -442,6 +442,7 @@ function TelRegel({
 function CategorieBlok({
   titel,
   items,
+  alleItems,
   drukte,
   telling,
   onderwegMap,
@@ -1048,6 +1049,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                         subtitel={g.subtitel}
                         lade={g.lade}
                         items={g.items}
+                        alleItems={items}
                         drukte={drukte}
                         telling={telling}
                         onderwegMap={onderwegMap}
