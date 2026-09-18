@@ -102,12 +102,12 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
         {BAIN_MARIE_PRODUCTEN.map((p) => {
           const bak = bakVan(p.sleutel);
           return (
-            <div key={p.sleutel} className="py-2.5">
-              <div className="mb-1.5 flex items-baseline justify-between gap-2">
+            <div key={p.sleutel} className="py-3">
+              <div className="mb-2 flex items-center justify-between gap-2">
                 <span className="text-[15px] font-semibold text-foreground">{p.naam}</span>
                 {statusRegel(bak, datum)}
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {dagOpties.map(({ offset, iso }) => {
                   const gekozen = bak?.start_datum === iso;
                   return (
@@ -125,10 +125,10 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
                             Number(bak?.houdbaarheid_dagen) || STANDAARD_HOUBAARHEID,
                         })
                       }
-                      className={`rounded-[12px] border px-3 text-[13px] font-semibold transition-colors disabled:opacity-60 ${
+                      className={`rounded-full px-4 text-[13px] font-semibold transition-colors disabled:opacity-60 ${
                         gekozen
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-border bg-card text-foreground hover:bg-muted'
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
                       }`}
                       style={{ minHeight: 44, minWidth: 44 }}
                     >
