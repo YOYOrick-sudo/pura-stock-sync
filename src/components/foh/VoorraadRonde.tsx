@@ -387,7 +387,7 @@ function TelRegel({
     >
       <button
         type="button"
-        onClick={() => (afwijkend ? onHerstel() : onZet(Math.max(doel - 1, 0)))}
+        onClick={() => (afwijkend ? onHerstel() : onZet(Math.max(waarde - 1, 0)))}
         className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
         style={{ minHeight: 56 }}
       >
@@ -395,11 +395,11 @@ function TelRegel({
         <span className="flex shrink-0 items-center gap-2">
           {statusChip}
           <span
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[15px] font-bold tabular-nums ${
               afwijkend ? 'bg-amber-400/20 text-amber-700 dark:text-amber-300' : 'bg-muted text-muted-foreground'
             }`}
           >
-            {afwijkend ? <Check size={18} /> : <Minus size={18} />}
+            {afwijkend ? <Check size={18} /> : bijgesteld ? getalLabel(waarde) : <Minus size={18} />}
           </span>
         </span>
       </button>
