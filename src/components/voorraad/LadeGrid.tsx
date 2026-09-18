@@ -135,6 +135,9 @@ function SleepbaarProduct({
   );
 }
 
+/** Tijdstip van de laatste sleep-actie: voorkomt dat loslaten een tik opent. */
+let laatsteSleepEind = 0;
+
 /** Compact ladepatroon-kaartje: alleen de naam, tik opent de instellingen. */
 function LadeChip({ item, onOpen }: { item: KoelcelCheckItem; onOpen: () => void }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });
@@ -144,7 +147,10 @@ function LadeChip({ item, onOpen }: { item: KoelcelCheckItem; onOpen: () => void
       {...listeners}
       {...attributes}
       type="button"
-      onClick={onOpen}
+      onClick={() => {
+        if (Date.now() - laatsteSleepEind < 300) return;
+        onOpen();
+      }}
       title={item.naam}
       className={`flex w-full touch-none items-start gap-1 rounded-[12px] border border-border bg-card px-1.5 py-2 text-left transition-colors active:border-primary active:bg-primary/10 ${
         isDragging ? 'opacity-40' : ''
