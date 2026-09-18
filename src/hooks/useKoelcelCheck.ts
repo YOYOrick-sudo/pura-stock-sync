@@ -5,7 +5,7 @@ import { metHerstel } from '@/lib/appWake';
 import { useKanaalHerstel } from '@/lib/realtime';
 
 /** Waar komt het product vandaan? Bepaalt wat er gebeurt als het op is. */
-export type VoorraadBron = 'vriezer' | 'koelcel_inkoop' | 'magazijn' | 'zelf_west' | 'midsland';
+export type VoorraadBron = 'vriezer' | 'koelcel_inkoop' | 'magazijn' | 'zelf_west' | 'midsland' | 'snijden';
 /** Waar hoort het product te liggen/staan. */
 export type VoorraadPlek = 'vriezer' | 'koelcel' | 'werkbank' | 'werkblad' | 'magazijn';
 
