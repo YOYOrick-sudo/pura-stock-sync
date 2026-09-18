@@ -40,6 +40,7 @@ import {
   meldNodig,
 
   HERKOMST_LABEL,
+  ketenKortLabel,
   type DrukteModus,
   type KoelcelCheckItem,
   type VoorraadPlek,
