@@ -166,6 +166,30 @@ function tekortVoor(
     : tekortVan(doel, geteld, onderweg);
 }
 
+/**
+ * Eén chip-model voor de hele ronde:
+ * grijs = informatie, groen = hier loopt al iets, amber = jij moet nu iets doen.
+ */
+function VoorraadChip({
+  variant,
+  children,
+}: {
+  variant: 'info' | 'klaar' | 'actie';
+  children: React.ReactNode;
+}) {
+  const stijl =
+    variant === 'info'
+      ? 'bg-muted text-muted-foreground'
+      : variant === 'klaar'
+        ? 'bg-primary/10 text-primary'
+        : 'bg-amber-400/15 text-amber-700 dark:text-amber-300';
+  return (
+    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${stijl}`}>
+      {children}
+    </span>
+  );
+}
+
 /** Eén productregel: standaard "ligt er", tik om te tellen wat er écht ligt. */
 function TelRegel({
   item,
@@ -174,6 +198,7 @@ function TelRegel({
   onderweg,
   opBestelbord,
   inMep,
+  keten,
   modus,
   onZet,
   onHerstel,
@@ -184,6 +209,8 @@ function TelRegel({
   onderweg: number;
   opBestelbord: boolean;
   inMep: boolean;
+  /** Waar de aanvulling vandaan komt (grijze ketenchip), of null. */
+  keten: string | null;
   /** Hoe dit product geteld wordt. */
   modus: TelModus;
   onZet: (aantal: number) => void;
