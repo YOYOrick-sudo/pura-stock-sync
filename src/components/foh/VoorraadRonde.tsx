@@ -650,6 +650,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const [stap, setStap] = useState<'tellen' | 'bon' | 'klaar'>('tellen');
   const [telling, setTelling] = useState<Record<string, number>>({});
   const [bevestigd, setBevestigd] = useState<string[]>([]);
+  // Bewust heropende lades klappen niet vanzelf weer dicht terwijl je erin werkt.
+  const [heropend, setHeropend] = useState<string[]>([]);
   const [bezig, setBezig] = useState(false);
   const [samenvatting, setSamenvatting] = useState<Record<BonSoort, number> | null>(null);
 
@@ -777,6 +779,48 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   );
   const klaarAantal = alleSleutels.filter((s) => bevestigd.includes(s)).length;
   const allesBevestigd = alleSleutels.length > 0 && klaarAantal === alleSleutels.length;
+
+  // Alle telbare groepen in loopvolgorde — de vaste balk werkt ze zo af.
+  const telGroepen = useMemo(
+    () => categorieGroepen.flatMap((p) => p.groepen.filter((g) => !g.overslaan)),
+    [categorieGroepen],
+  );
+
+  // Heb je bij elk product van een lade iets ingetikt, dan is die lade klaar:
+  // hij klapt vanzelf in, zonder extra tik. Heropende lades doen niet mee.
+  useEffect(() => {
+    const klaar = telGroepen
+      .filter(
+        (g) =>
+          g.items.length > 0 &&
+          !heropend.includes(g.sleutel) &&
+          g.items.every((i) => telling[i.id] !== undefined),
+      )
+      .map((g) => g.sleutel);
+    if (klaar.some((s) => !bevestigd.includes(s))) {
+      setBevestigd((b) => [...new Set([...b, ...klaar])]);
+    }
+  }, [telling, telGroepen, heropend, bevestigd]);
+
+  /** De eerste lade die nog open staat — daar wijst de vaste balk naar. */
+  const volgendeGroep = telGroepen.find((g) => !bevestigd.includes(g.sleutel)) ?? null;
+
+  /** Lade sluiten via de balk: inklappen en doorschuiven naar de volgende open lade. */
+  const sluitGroep = (sleutel: string) => {
+    setHeropend((h) => h.filter((s) => s !== sleutel));
+    setBevestigd((b) => {
+      const nieuw = [...new Set([...b, sleutel])];
+      const volgende = telGroepen.find((g) => !nieuw.includes(g.sleutel));
+      if (volgende) {
+        window.setTimeout(() => {
+          document
+            .getElementById(`vr-groep-${volgende.sleutel}`)
+            ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 60);
+      }
+      return nieuw;
+    });
+  };
 
 
 
