@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   Trash2,
   X,
+  ChevronDown,
   Calendar as CalendarIcon,
 } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -63,23 +64,56 @@ function statusRegel(bak: BainMarieBak | undefined, vandaagIso: string) {
   return <span className={`${chip} bg-muted text-muted-foreground`}>{basis}</span>;
 }
 
-/** Sectiekop in de stijl van de takenlijst: klein, rustig, met info-icoon. */
-function Kop({
+/** Sectiebalk in dezelfde vorm als de voorraadronde: icoonbol, titel, stand, pijltje. */
+function SectieBalk({
   icoon: Icoon,
   titel,
-  uitleg,
+  stand,
+  afgerond,
+  open,
+  onToggle,
 }: {
   icoon: typeof Soup;
   titel: string;
-  uitleg: string;
+  stand: string;
+  afgerond: boolean;
+  open: boolean;
+  onToggle: () => void;
 }) {
   return (
-    <div className="mb-2 flex items-center gap-2">
-      <Icoon size={16} className="text-primary" />
-      <h3 className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {titel}
-      </h3>
-      <InfoKnop tekst={uitleg} label={`Uitleg ${titel}`} />
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`flex w-full items-center gap-3 rounded-[14px] border px-3.5 py-3 text-left transition-colors ${
+        afgerond ? 'border-primary/30 bg-primary/5' : 'border-border bg-muted'
+      }`}
+      style={{ minHeight: 52 }}
+    >
+      <span
+        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+          afgerond ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground'
+        }`}
+      >
+        {afgerond ? <Check size={16} /> : <Icoon size={16} />}
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[15px] font-bold text-foreground">{titel}</span>
+        <span className="block text-[12px] text-muted-foreground">{stand}</span>
+      </span>
+      <ChevronDown
+        size={20}
+        className={`ml-auto shrink-0 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`}
+      />
+    </button>
+  );
+}
+
+/** Info-icoon boven de lijst, zodat de balk zelf rustig blijft. */
+function Uitleg({ titel, tekst }: { titel: string; tekst: string }) {
+  return (
+    <div className="mb-1 mt-2 flex items-center gap-2">
+      <span className="text-[12px] text-muted-foreground">Hoe werkt dit?</span>
+      <InfoKnop tekst={tekst} label={`Uitleg ${titel}`} />
     </div>
   );
 }
