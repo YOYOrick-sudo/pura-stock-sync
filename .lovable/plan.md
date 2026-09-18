@@ -1,43 +1,52 @@
-# Voorraadronde: één chip-model voor herkomst en status
+# Voorraadronde: één chip-model voor de hele keten
 
-Het groene chipje "op de MEP" werkt goed. Dat model wordt de standaard voor de hele voorraadronde, zodat elke regel in één oogopslag twee dingen vertelt: **waar het vandaan komt** en **of er al iets voor loopt**.
+Het groene chipje "op de MEP" werkt. Dat wordt nu het model voor álle meldingen in de voorraadronde, met een strakke scheiding tussen drie betekenissen.
 
-## Wat er nu is (onderzoek)
+## Wat er nu staat (onderzocht)
 
-In de ronde staan nu door elkaar:
-- amber tekstchips onder de naam: "2 bakken onderweg", "op het bestelbord"
-- groen chipje rechts: "op de MEP"
-- amber chipje rechts: "bijvullen"
-- amber kaart met vrachtwagen-icoon bij een openstaande bestelling
-- aan het einde de bonnen: bijvullen, MEP, Midsland, bestelbord, vriescel, koelcel, magazijn
+Tijdens het tellen kun je nu deze meldingen tegenkomen:
 
-Herkomst (Midsland, vriezer, zelf maken, ingekocht, snijden) is per product wél bekend, maar zie je tijdens het tellen nergens. Juist bij de koelcel- en vriesceltelling is dat de vraag die het team stelt: "moet ik dit zelf maken of komt dit uit Midsland?"
+| Melding | Nu | Waar vandaan |
+|---|---|---|
+| "2 bakken onderweg" | amber tekst onder de naam | openstaande Midsland-bestelling |
+| "op het bestelbord" | amber tekst onder de naam | open bestelbordregel |
+| "op de MEP" | groen chipje rechts | open MEP-taak van vandaag |
+| "bijvullen" | amber chipje rechts | bakje onder de vulnorm |
+| afwijkende telling | amber rand + amber vinkje | je hebt iets anders geteld dan het doel |
+| Binnengekomen / Nog niet binnen | amber kaart met vrachtwagen | er staat een bestelling open |
 
-## Het model
+Wat je **niet** ziet tijdens het tellen: waar dit product vandaan komt. Dat zit wel in het systeem (bron per product en de keten werkbank → koelcel → vriezer/magazijn), maar verschijnt pas op de aanvulbon aan het einde. Juist bij de koelcel- en vriesceltelling is dat dé vraag: "moet ik dit zelf maken, komt dit uit de vriezer, of komt het uit Midsland?"
 
-Elke productregel krijgt maximaal twee chips, altijd op dezelfde plek:
+Daarnaast is de vormgeving los gegroeid: de ronde gebruikt losse amber-kleuren, terwijl de MEP-lijst met de standaard badges werkt. Drie kleuren betekenen nu deels hetzelfde.
+
+## Het model: drie betekenissen, drie stijlen
 
 ```text
-[ Wortelspread                    uit Midsland ]   [ op de MEP ]
-  reserve 1 bakje · GN 1/6
+[ Wortelspread            uit Midsland ]              [ onderweg ]
+  1 bak · GN 1/6
 ```
 
-- **Links, direct onder/naast de naam: herkomstchip (rustig grijs).** Vast per product, verandert nooit: "uit Midsland", "uit de vriezer", "zelf maken", "snijden", "ingekocht", "uit het magazijn". Alleen zichtbaar op de niveaus waar het iets uitmaakt (koelcel, vriescel, magazijn, werkblad) — niet op elke werkbanklade, want daar is de keten al zichtbaar in de aanvulling.
-- **Rechts in de kopregel: statuschip (groen, "hier loopt al iets").** Precies één tegelijk, in deze volgorde van voorrang: "onderweg" > "op het bestelbord" > "op de MEP". Zo staan er nooit drie labels naast elkaar.
-- **Amber blijft alleen waar actie nodig is:** de "Binnengekomen / Nog niet binnen"-kaart en het chipje "bijvullen". Verder verdwijnt amber uit de kopregel.
+1. **Ketenchip — grijs, links onder de naam.** Vast per product: waar de aanvulling vandaan komt als het niet op peil is. Teksten volgen de bestaande keten: "uit de koelcel", "uit de vriescel", "uit het magazijn", "uit Midsland", "zelf maken", "snijden", "bestellen". Dit is naslag, geen actie.
+2. **Statuschip — groen, rechts in de kopregel.** "hier loopt al iets": onderweg / op het bestelbord / op de MEP. Er staat er altijd maar één, in die voorrangsvolgorde, zodat er nooit drie labels naast elkaar hangen.
+3. **Amber — alleen waar jij nu iets moet doen.** Blijft bij "Binnengekomen / Nog niet binnen", "bijvullen" en de afwijkende telling. Verdwijnt als kleur voor mededelingen.
 
-Waarom zo: groen = al geregeld, rust; grijs = naslag; amber = jij moet nu iets doen. Drie betekenissen, drie kleuren, geen uitzonderingen.
+Regel voor het systeem: **grijs = informatie, groen = al geregeld, amber = actie nodig.** Die regel gaat ook op de aanvulbon en de eindlijsten gelden, zodat "vandaag maken" daar amber blijft en de rest groen.
+
+### Waar de ketenchip wel en niet verschijnt
+
+Alleen waar hij iets toevoegt: koelcel, vriescel, magazijn en het werkblad (toppings). In de koelwerkbanklades niet — daar is de aanvulling zelf al de boodschap en zou de chip alleen ruis toevoegen op een klein scherm.
 
 ## Scheiding in de keten blijft intact
 
-- De chips zijn puur weergave. Tellen, tekorten, doorschuiven naar het volgende niveau, bonnen en bestelregels veranderen niet.
-- "onderweg" blijft alleen op het niveau waar de bestelling echt hoort (Midsland-regel), zoals nu.
-- De herkomstchip toont de bron van dát niveau, niet die van een dieper niveau — de vriescel van wortelspread blijft "zelf maken", de koelcelregel "uit de vriezer".
-- Aan het einde van de ronde blijven de aparte lijsten (bijvullen, MEP, Midsland, bestelbord) ongewijzigd; de chips zijn er zodat je tijdens het tellen al weet waar iets belandt.
+- Puur weergave. Tellen, tekorten, doorschuiven naar het niveau eronder, MEP-prioriteit, batches, bestelverpakkingen en de eindbonnen veranderen niet.
+- De ketenchip toont het niveau direct eronder, niet de diepste bron: de koelcelregel van wortelspread zegt "uit de vriescel", de vriescelregel zegt "zelf maken". Precies zoals de bon het ook doorzet.
+- "onderweg" blijft alleen op het Midsland-niveau, zoals nu.
+- Producten zonder gekoppeld niveau eronder tonen hun eigen bestemming (zelf maken / snijden / uit Midsland / bestellen).
 
 ## Technisch
 
-- Alleen `src/components/foh/VoorraadRonde.tsx`: `statusChips` vervangen door één `statusChip` (voorrangsvolgorde) in dezelfde stijl als het bestaande `mepChip`; nieuw `herkomstChip` naast de formaatregel, `bg-muted`, 11px, afgerond.
-- Herkomstteksten als korte variant naast de bestaande `BRON_LABEL` in `src/hooks/useKoelcelCheck.ts` (nieuwe constante `BRON_KORT`), zodat beheer en ronde dezelfde bron gebruiken.
-- Geen database-, RLS- of migratiewerk; geen wijziging aan bestellen, MEP of printen.
-- Verificatie: typecheck + build, en in de preview de voorraadronde doorlopen met een product uit Midsland, een product met openstaande bestelling en een product met MEP-taak van vandaag.
+- Nieuw klein hulpcomponent `VoorraadChip` in `src/components/foh/VoorraadRonde.tsx` met drie varianten (`info` = `bg-muted text-muted-foreground`, `klaar` = `bg-primary/10 text-primary`, `actie` = `bg-amber-400/15 text-amber-700 dark:text-amber-300`), 11px, afgerond — alle bestaande chips gaan hier doorheen.
+- `statusChips` wordt één `statusChip` met voorrang onderweg > bestelbord > MEP; de amber-teksten onder de naam vervallen.
+- Ketenchip afgeleid van `vervolgactieVoorRegel(item, items)` uit `src/hooks/useKoelcelCheck.ts`: bij `soort: 'niveau'` het bestaande `HERKOMST_LABEL` van het onderliggende niveau, anders een korte variant van `bestemmingVoorBron` ("zelf maken", "snijden", "uit Midsland", "bestellen"). `TelRegel` krijgt daarvoor één extra prop; de labelteksten komen als constante in de hook, zodat beheer en ronde dezelfde bron gebruiken.
+- Geen database-, RLS- of migratiewerk; geen wijziging aan bestellen, MEP-taken of printen.
+- Verificatie: typecheck + build, en in de preview de ronde doorlopen op tabletbreedte met een Midsland-product (rode kool), een product met openstaande bestelling, een product met MEP-taak van vandaag en een vriescelregel — en controleren dat de aanvulbon erna identiek is aan nu.
