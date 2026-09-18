@@ -182,6 +182,24 @@ export function meldNodig(item: KoelcelCheckItem, aanwezig: number): boolean {
   return aanwezig <= punt + 0.001;
 }
 
+/**
+ * Wat er bij Midsland besteld wordt: niet het losse tekort tot het doel, maar in
+ * één keer aanvullen tot het vastgelegde aanvulniveau. Zo komen er nooit
+ * restbestellingen van één zak. Zonder "aanvullen tot" blijft het gewone tekort.
+ */
+export function midslandAantal(
+  item: KoelcelCheckItem,
+  doel: number,
+  aanwezig: number,
+): number {
+  const tot = Number(item.aanvul_tot ?? NaN);
+  const ligt = Math.max(Number(aanwezig) || 0, 0);
+  const basis = Number.isFinite(tot) && tot > 0 ? tot : doel;
+  return Math.max(Math.round((basis - ligt) * 100) / 100, 1);
+}
+
+
+
 
 export type KoelcelCheckStatus = 'aanwezig' | 'naar_mep' | 'uit_vriezer' | 'gemeld';
 
