@@ -13,7 +13,8 @@ export interface VoorraadLade {
   volgorde: number;
   actief: boolean;
   /** 'reserve' = hier staan de reservebakjes; die lades tel je eerst. */
-  rol?: 'werk' | 'reserve';
+  /** 'niet_tellen' = aangebroken werkbakjes: zichtbaar, maar niet meetellen. */
+  rol?: 'werk' | 'reserve' | 'niet_tellen';
 }
 
 export const KOLOM_LABEL: Record<number, string> = { 1: 'Links', 2: 'Midden', 3: 'Rechts' };
@@ -121,7 +122,7 @@ export function useLadeMutaties(vestiging: string) {
 
   /** Lade aanwijzen als werklade of reservelade. */
   const zetRol = useMutation({
-    mutationFn: async ({ id, rol }: { id: string; rol: 'werk' | 'reserve' }) => {
+    mutationFn: async ({ id, rol }: { id: string; rol: 'werk' | 'reserve' | 'niet_tellen' }) => {
       const { error } = await supabase.from('voorraad_lades').update({ rol }).eq('id', id);
       if (error) throw error;
     },
