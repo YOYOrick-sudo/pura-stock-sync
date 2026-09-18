@@ -199,17 +199,16 @@ function TelRegel({
   const zetHeel = (n: number) => onZet(Math.max(n, 0) + rest);
   const zetRest = (r: number) => onZet(heel + r);
 
-  const statusChips = [
-    onderweg > 0 ? `${aantalLabel(onderweg, item.eenheid)} onderweg` : null,
-    opBestelbord ? 'op het bestelbord' : null,
-  ].filter(Boolean);
-
-  // Mededeling, geen waarschuwing: subtiel groen chipje rechts in de kopregel.
-  const mepChip = inMep ? (
-    <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
-      op de MEP
-    </span>
-  ) : null;
+  // Eén statuschip rechts: onderweg > bestelbord > MEP. Altijd "hier loopt al iets".
+  const statusTekst =
+    onderweg > 0
+      ? `${aantalLabel(onderweg, item.eenheid)} onderweg`
+      : opBestelbord
+        ? 'op het bestelbord'
+        : inMep
+          ? 'op de MEP'
+          : null;
+  const statusChip = statusTekst ? <VoorraadChip variant="klaar">{statusTekst}</VoorraadChip> : null;
 
   const bakje = bakjeLabel(item.formaat ?? item.bak_maat);
   const maatTekst = bakje?.code
@@ -236,19 +235,8 @@ function TelRegel({
             {bakje.code}
           </span>
         )}
+        {keten && <VoorraadChip variant="info">{keten}</VoorraadChip>}
       </span>
-      {statusChips.length > 0 && (
-        <span className="mt-0.5 flex flex-wrap gap-1">
-          {statusChips.map((chip) => (
-            <span
-              key={chip}
-              className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300"
-            >
-              {chip}
-            </span>
-          ))}
-        </span>
-      )}
     </span>
   );
 
