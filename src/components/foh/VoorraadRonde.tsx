@@ -718,7 +718,12 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           tekort,
           geteld,
           doel,
-          soort: onder.plek === 'vriezer' ? 'vriescel' : 'koelcel',
+          soort:
+            onder.plek === 'vriezer'
+              ? 'vriescel'
+              : onder.plek === 'magazijn'
+                ? 'magazijn'
+                : 'koelcel',
         });
       } else if (vervolg.soort === 'mep') {
         const { prioriteit, batch } = mepOpdracht(item, doel, geteld, tekort);
@@ -778,7 +783,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const bevestigBon = async () => {
     setBezig(true);
     const telling2: Record<BonSoort, number> = {
-      vriescel: 0, koelcel: 0, mep: 0, midsland: 0, bestelbord: 0,
+      vriescel: 0, koelcel: 0, magazijn: 0, mep: 0, midsland: 0, bestelbord: 0,
     };
     try {
       for (const regel of bon) {
