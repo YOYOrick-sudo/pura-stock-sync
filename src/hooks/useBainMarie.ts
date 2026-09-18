@@ -19,8 +19,10 @@ export interface BainMarieBak {
   actief: boolean;
   /** Datum op de ontdooi-sticker van de vriezer-zak (alleen zak-producten). */
   ontdooid_datum?: string | null;
-  /** Datum waarop de bak bij sluit is weggegooid. */
+  /** Datum waarop de bak bij sluit is afgesloten. */
   weggegooid_op?: string | null;
+  /** Waarom de bak is afgesloten: 'weggegooid' of 'op'. */
+  reden?: string | null;
 }
 
 export const BAIN_MARIE_PRODUCTEN = [
