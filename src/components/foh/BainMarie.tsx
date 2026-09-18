@@ -364,17 +364,10 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
   }, [afgerond]);
 
   return (
-    <div className="py-2">
+    <div style={{ marginBottom: '32px' }}>
       <SectieBalk
-        icoon={Printer}
         titel="Au bain-marie — stickers"
-        stand={
-          teDoen.length === 0
-            ? 'Geen bakken vandaag'
-            : afgerond
-              ? 'Afgerond — alle stickers geprint'
-              : `${gedaan}/${teDoen.length} stickers geprint`
-        }
+        stand={teDoen.length === 0 ? 'geen bakken' : afgerond ? 'afgerond' : `${gedaan}/${teDoen.length}`}
         afgerond={afgerond || teDoen.length === 0}
         open={open}
         onToggle={() => setOpen((o) => !o)}
@@ -384,8 +377,16 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
         <>
           <Uitleg
             titel="Au bain-marie stickers"
+            stand={
+              teDoen.length === 0
+                ? 'Geen bakken vandaag'
+                : afgerond
+                  ? 'Alle stickers geprint'
+                  : `${gedaan}/${teDoen.length} stickers geprint`
+            }
             tekst="Print per product een sticker en plak hem op de plastic bak in de koeling. De app zet de startdatum en houdbaar-tot er zelf op. Is de bak vandaag voor het laatst (of over de datum)? Dan staat er geen sticker-knop maar Weggooien — de bak gaat niet meer de koeling in."
           />
+
 
           <div className="divide-y divide-border">
         {BAIN_MARIE_PRODUCTEN.map((p) => {
