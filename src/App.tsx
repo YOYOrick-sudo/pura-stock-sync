@@ -45,7 +45,6 @@ import Bestelbord from "./pages/kitchen/Bestelbord";
 import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } from "./pages/hr";
 // Maintenance Module
 import Onderhoud from "./pages/maintenance/Onderhoud";
-import Unsubscribe from "./pages/Unsubscribe";
 // Personeel Module
 import PersoneelLayout from "./pages/personeel/PersoneelLayout";
 import Tijdlijn from "./pages/personeel/Tijdlijn";
@@ -272,7 +271,6 @@ const App = () => {
             />
             {/* Public Design System route - no login needed */}
             <Route path="/design-system" element={<DesignSystem />} />
-            <Route path="/unsubscribe" element={<Unsubscribe />} />
 
             {/* Kas-controle — alleen managers/owners/admins */}
             <Route
