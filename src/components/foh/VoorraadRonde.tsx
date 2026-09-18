@@ -506,7 +506,7 @@ function CategorieBlok({
   );
 }
 
-type BonSoort = 'vriescel' | 'koelcel' | 'mep' | 'midsland' | 'bestelbord';
+type BonSoort = 'vriescel' | 'koelcel' | 'magazijn' | 'mep' | 'midsland' | 'bestelbord';
 
 interface BonRegel {
   item: ItemMetCategorie;
@@ -550,6 +550,7 @@ function mepOpdracht(
 const BON_GROEPEN: { soort: BonSoort; titel: string; uitleg: string; icoon: typeof Snowflake }[] = [
   { soort: 'vriescel', titel: 'Halen uit de vriescel', uitleg: 'Eén rondje — stickers "Ontdooid" worden geprint', icoon: Snowflake },
   { soort: 'koelcel', titel: 'Halen uit de koelcel', uitleg: 'Bijvullen vanuit de koelcel', icoon: PackageCheck },
+  { soort: 'magazijn', titel: 'Halen uit het magazijn', uitleg: 'Bijvullen vanuit het magazijn', icoon: PackageCheck },
   { soort: 'mep', titel: 'Zelf maken (mise-en-place)', uitleg: 'Komt op de MEP-lijst', icoon: ChefHat },
   { soort: 'midsland', titel: 'Bestellen bij Midsland', uitleg: 'Gaat naar de interne bestellijst', icoon: Truck },
   { soort: 'bestelbord', titel: 'Op het bestelbord', uitleg: 'Inkoop pakt dit op', icoon: ShoppingCart },
