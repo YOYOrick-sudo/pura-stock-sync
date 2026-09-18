@@ -1,27 +1,27 @@
-# Voorraadronde: laden in vaste volgorde, ook de lege
+# Voorraadronde: laden in vaste volgorde, lege laden zichtbaar, Midden boven niet meer tellen
 
 ## Wat er nu misgaat
 
-- **Volgorde.** De telronde zet reservelades eerst en pas daarna de rest op volgorde. Daardoor begint de koelwerkbank nu met "Links onder" in plaats van linksboven.
-- **Midden onder ontbreekt.** De lade bestaat wel (reservelade, middenkolom, onderste rij), maar er ligt nog geen product in — en laden zonder producten worden in de telronde overgeslagen. Vandaar dat hij "weg" leek.
-- Ook "Midden midden" is nu leeg en daardoor onzichtbaar tijdens het tellen.
+- **Volgorde.** De telronde zet reservelades eerst en daarna pas de rest. Daardoor begint de koelwerkbank met "Links onder" in plaats van linksboven.
+- **Midden onder ontbreekt.** Die lade bestaat wel (reservelade, middenkolom onder), maar er ligt nog geen product in — en lege laden worden in de telronde overgeslagen. Vandaar dat hij "weg" leek.
+- **Midden boven telt nu 9 aangebroken bakjes** (cranberry compote, avocado spread, tomatenrelish, tomatenjam, wortelspread, de drie mayonaises en hummus), allemaal als "1 bakje vol". Dat zijn de werkbakjes waar je uit schept — die hoef je niet te tellen; de reservebakjes liggen midden onder.
 
 ## Wat er verandert
 
-1. **Vaste looproute door de werkbank**, altijd dezelfde, kolom voor kolom van boven naar beneden:
-   Links boven → Links midden → Links onder → Midden boven → Midden midden → Midden onder → Rechts boven → Rechts midden → Rechts onder.
-   De voorrang voor reservelades vervalt; de reservelade is nog steeds herkenbaar aan het label "reservelade" onder de naam.
-2. **Lege laden staan er ook in.** Een lade zonder producten toont een rustig blokje met de naam, de positie en de regel "nog niets ingedeeld", plus een verwijzing dat je dit op "Koelwerkbank indelen" vult. Hij telt niet mee in de voortgang (X/Y onderdelen) en hoeft niet bevestigd te worden — zo blokkeert een lege lade de ronde niet, maar zie je wel meteen dat er iets mist.
-3. **De reserveladen blijven zoals ze zijn:** Links onder is de reservelade voor de opzetkoeling (lente-ui, peterselie, tomaatjes, kiemen); Midden onder is de reservelade van de koelwerkbank en wacht op producten.
+1. **Vaste looproute door de werkbank**, altijd dezelfde: Links boven → Links midden → Links onder → Midden boven → Midden midden → Midden onder → Rechts boven → Rechts midden → Rechts onder. De voorrang voor reservelades vervalt; het label "reservelade" blijft staan.
+2. **Die 9 producten verhuizen naar Midden onder** en blijven daar als reservebakjes geteld — precies waar de reserve echt ligt. Er gaat niets verloren: dezelfde producten, dezelfde doelen, dezelfde aanvulketen.
+3. **Midden boven wordt een lade die je niet telt.** Hij staat wel in de ronde, maar ingeklapt op één regel: naam, positie en het grijze label "wordt niet geteld · aangebroken bakjes". Tik je hem open, dan zie je één zin: "Hier staan de bakjes waar je uit schept. De reserve tel je bij Midden onder." Geen telregels, geen bevestigknop, telt niet mee in de voortgang.
+4. **Lege laden verdwijnen niet meer.** Een lade zonder producten (nu Midden midden) staat ingeklapt in de ronde met "nog niets ingedeeld" en een verwijzing naar Koelwerkbank indelen. Ook die blokkeert de voortgang niet.
+5. **Links onder blijft de reservelade voor de opzetkoeling** (lente-ui, peterselie, tomaatjes, kiemen).
 
 ## Vooruitkijken
 
-Zolang Midden onder en Midden midden leeg zijn, zie je tijdens elke ronde twee lege blokjes. Dat is de bedoeling: het is een zichtbare "nog in te vullen", en zodra jij die laden vult verdwijnt de melding vanzelf. Aan de telling, de aanvulbon, MEP of bestellingen verandert niets.
+De ronde wordt korter: negen tellingen minder per keer, terwijl je de reserve wél telt — dat is de telling die bestellingen en MEP stuurt. Een lade die je niet telt blijft zichtbaar, zodat een nieuw teamlid niet denkt dat er een lade ontbreekt of overgeslagen is. Blijft Midden midden lang leeg, dan is dat een zichtbare herinnering om hem in te delen. Aan de aanvulbon, MEP-taken en bestellingen verandert niets.
 
 ## Technisch
 
-- `src/components/foh/VoorraadRonde.tsx`: in `categorieGroepen` de sortering `reserve eerst` verwijderen, alleen nog op `volgorde`; lege laden niet meer overslaan maar als groep met `items: []` opnemen.
-- `CategorieBlok` krijgt een lege-staat: geen telregels en geen bevestigknop, maar één regel "nog niets ingedeeld" in de grijze informatiestijl (hetzelfde chip-model als de rest).
-- Lege groepen tellen niet mee in `alleSleutels` (voortgang en "alles bevestigd" blijven kloppen).
-- Geen database-, RLS- of migratiewerk; laden en volgorde staan al goed in de database (10 t/m 90).
-- Verificatie: typecheck + build en in de preview de ronde doorlopen — volgorde controleren en de twee lege laden zien staan zonder dat de voortgang blokkeert.
+- Data (migratie): de 9 items van Midden boven krijgen `lade_id` van Midden onder, met een volgorde die hun huidige rij aanhoudt. Midden boven krijgt `rol = 'niet_tellen'` (nieuwe waarde naast `werk` en `reserve`).
+- `src/hooks/useVoorraadLades.ts`: rol-type uitbreiden met `niet_tellen`; `LadeGrid.tsx` krijgt die keuze in het rol-menu.
+- `src/components/foh/VoorraadRonde.tsx`: in `categorieGroepen` de sortering "reserve eerst" weghalen (alleen `volgorde`), lege laden als groep meenemen en per groep een vlag meegeven voor "leeg" of "niet tellen". `CategorieBlok` krijgt die ingeklapte weergave (één regel, uitklapbaar, geen bevestigknop) in de bestaande grijze chip-stijl.
+- Lege en niet-getelde groepen tellen niet mee in de voortgang (`X/Y onderdelen geteld`) en niet in "alles bevestigd".
+- Verificatie: typecheck + build, en in de preview de ronde doorlopen: volgorde linksboven eerst, Midden boven ingeklapt, Midden onder met de 9 reservebakjes, Midden midden leeg, voortgang blijft kloppen, aanvulbon identiek.
