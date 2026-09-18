@@ -69,6 +69,7 @@ const PLEK_VOLGORDE: {
   { plek: 'werkbank', titel: 'Koelwerkbank', icoon: Utensils },
   { plek: 'werkblad', titel: 'Toppings', icoon: Soup },
   { plek: 'koelcel', titel: 'Koelcel', icoon: Refrigerator },
+  { plek: 'magazijn', titel: 'Magazijn', icoon: PackageCheck, alleenMaandag: true },
   { plek: 'vriezer', titel: 'Vriescel', icoon: Snowflake, alleenMaandag: true },
 ];
 
