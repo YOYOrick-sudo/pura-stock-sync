@@ -586,7 +586,7 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
                       className="rounded-[14px] bg-muted/60 px-4 text-[14px] font-semibold text-foreground transition-colors hover:bg-muted"
                       style={{ minHeight: 44 }}
                     >
-                      Ja, zelfde bak
+                      Klopt — zelfde bak
                     </button>
                     <button
                       type="button"
@@ -601,7 +601,7 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
                       className="rounded-[14px] bg-primary/10 px-4 text-[14px] font-semibold text-primary transition-colors hover:bg-primary/15 disabled:opacity-60"
                       style={{ minHeight: 44 }}
                     >
-                      Nieuwe bak van vandaag
+                      Vandaag een nieuwe bak opengemaakt
                     </button>
                     <button
                       type="button"
@@ -620,7 +620,7 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
                       className="rounded-[14px] bg-muted/60 px-4 text-[14px] font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-60"
                       style={{ minHeight: 44 }}
                     >
-                      Bak is op
+                      Bak is leeg — niets over
                     </button>
                   </div>
                 )}
