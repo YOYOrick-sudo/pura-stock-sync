@@ -382,6 +382,43 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
     );
   };
 
+  /** Sticker-markering wissen: na een nieuwe bak moet de sticker opnieuw. */
+  const wisGeprint = (product: string) => {
+    setGeprint((g) => {
+      const volgend = g.filter((s) => s !== product);
+      try {
+        localStorage.setItem(opslagSleutel, JSON.stringify(volgend));
+      } catch {
+        /* stille fallback */
+      }
+      return volgend;
+    });
+  };
+
+  /** Correctie: er is tussendoor een nieuwe bak opengemaakt. */
+  const nieuweBak = (
+    p: (typeof BAIN_MARIE_PRODUCTEN)[number],
+    ontdooidDatum: string | null,
+  ) => {
+    zetStart.mutate(
+      {
+        product: p.sleutel,
+        productNaam: p.naam,
+        startDatum: datum,
+        nieuw: true,
+        houdbaarheidDagen: p.houdbaarheid,
+        ontdooidDatum,
+      },
+      {
+        onSettled: () => {
+          wisGeprint(p.sleutel);
+          setVraagZak(false);
+          setCorrectieVoor(null);
+        },
+      },
+    );
+  };
+
 
   // Alleen producten met een bak vragen vanavond iets: printen of weggooien.
   const teDoen = BAIN_MARIE_PRODUCTEN.filter((p) => bakken.some((b) => b.product === p.sleutel));
