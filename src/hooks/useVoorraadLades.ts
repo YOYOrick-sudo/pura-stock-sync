@@ -20,7 +20,13 @@ export interface VoorraadLade {
 export const KOLOM_LABEL: Record<number, string> = { 1: 'Links', 2: 'Midden', 3: 'Rechts' };
 export const RIJ_LABEL: Record<number, string> = { 1: 'boven', 2: 'midden', 3: 'onder' };
 
+/** Staat deze groep buiten het 3x3-raster (bijvoorbeeld de flessen op het werkblad)? */
+export function buitenRaster(lade: Pick<VoorraadLade, 'kolom' | 'rij'>): boolean {
+  return !KOLOM_LABEL[lade.kolom] || !RIJ_LABEL[lade.rij];
+}
+
 export function positieLabel(lade: Pick<VoorraadLade, 'kolom' | 'rij'>): string {
+  if (buitenRaster(lade)) return 'op het werkblad';
   return `${KOLOM_LABEL[lade.kolom] ?? ''} ${RIJ_LABEL[lade.rij] ?? ''}`.trim();
 }
 
