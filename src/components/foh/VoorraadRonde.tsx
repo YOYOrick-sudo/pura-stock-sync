@@ -858,10 +858,35 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
 
 
 
+  /**
+   * Vul je een reservebakje bij, dan gaat er een zakje uit de koelcel. Dat zie je
+   * meteen terug in de koelcelstand — en dus ook in de keten eronder (vriescel/MEP).
+   */
+  const afgeleideTelling = useMemo(() => {
+    const map: Record<string, { waarde: number; onttrokken: number }> = {};
+    const reserveLades = new Set(lades.filter((l) => l.rol === 'reserve').map((l) => l.id));
+    for (const item of items) {
+      if (!item.lade_id || !reserveLades.has(item.lade_id)) continue;
+      const geteld = telling[item.id];
+      if (geteld === undefined) continue;
+      const tekort = Math.max(Math.ceil(telDoel(item, drukte) - geteld - 0.001), 0);
+      if (tekort <= 0) continue;
+      const vervolg = vervolgactieVoorRegel(item, items);
+      if (vervolg.soort !== 'niveau') continue;
+      const onder = vervolg.onderItem as ItemMetCategorie;
+      const onttrokken = (map[onder.id]?.onttrokken ?? 0) + tekort;
+      map[onder.id] = {
+        onttrokken,
+        waarde: Math.max(telDoel(onder, drukte) - onttrokken, 0),
+      };
+    }
+    return map;
+  }, [items, telling, drukte, lades]);
+
   const bon: BonRegel[] = useMemo(() => {
     const regels: BonRegel[] = [];
     for (const item of items) {
-      const geteld = telling[item.id];
+      const geteld = telling[item.id] ?? afgeleideTelling[item.id]?.waarde;
       if (geteld === undefined) continue;
       const doel = telDoel(item, drukte);
       // Besteld-en-onderweg telt mee als voorraad: niet opnieuw bestellen.
