@@ -162,10 +162,21 @@ export function doelAantal(item: KoelcelCheckItem, drukte: DrukteModus): number 
  */
 export const NIVEAU_KETEN: Record<VoorraadPlek, VoorraadPlek[]> = {
   werkbank: ['koelcel', 'vriezer'],
-  werkblad: ['koelcel', 'vriezer'],
+  werkblad: ['magazijn', 'koelcel', 'vriezer'],
+  magazijn: [],
   koelcel: ['vriezer'],
   vriezer: [],
 };
+
+/**
+ * Pas melden vanaf het bestelpunt: een halve bak zonnebloempitten hoeft niet
+ * geroosterd te worden, een bodempje wel. Geen bestelpunt = bij elk tekort melden.
+ */
+export function meldNodig(item: KoelcelCheckItem, aanwezig: number): boolean {
+  const punt = Number(item.bestelpunt ?? NaN);
+  if (!Number.isFinite(punt)) return true;
+  return aanwezig <= punt + 0.001;
+}
 
 
 export type KoelcelCheckStatus = 'aanwezig' | 'naar_mep' | 'uit_vriezer' | 'gemeld';
@@ -232,6 +243,7 @@ export const HERKOMST_LABEL: Record<VoorraadPlek, string> = {
   koelcel: 'de koelcel',
   werkbank: 'de koelwerkbank',
   werkblad: 'het werkblad',
+  magazijn: 'het magazijn',
 };
 
 /** Waar je het naartoe brengt: "in de koelcel", "in de koelwerkbank". */
@@ -240,6 +252,7 @@ export const BESTEMMING_LABEL: Record<VoorraadPlek, string> = {
   koelcel: 'in de koelcel',
   werkbank: 'in de koelwerkbank',
   werkblad: 'op het werkblad',
+  magazijn: 'in het magazijn',
 };
 
 /**
