@@ -51,6 +51,12 @@ import { LadePositie } from '@/components/voorraad/LadePositie';
 
 type ItemMetCategorie = KoelcelCheckItem & { categorie?: string | null; formaat?: string | null };
 
+/**
+ * Waar de grijze ketenchip iets toevoegt. In de koelwerkbanklades niet: daar is
+ * het bijvullen zelf al de boodschap en kost een extra label alleen ruimte.
+ */
+const KETEN_PLEKKEN: VoorraadPlek[] = ['koelcel', 'vriezer', 'magazijn', 'werkblad'];
+
 /** Eén telblok binnen een opslagplek: een lade (koelwerkbank) of een categorie. */
 interface Groep {
   sleutel: string;
@@ -525,6 +531,7 @@ function CategorieBlok({
             onderweg={onderwegVoorItem(item, onderwegMap)}
             opBestelbord={(bestelbordMap[item.naam.trim().toLowerCase()] ?? 0) > 0}
             inMep={mepTitels.some((t) => t.includes(item.naam.trim().toLowerCase()))}
+            keten={KETEN_PLEKKEN.includes(item.plek) ? ketenKortLabel(item, alleItems) : null}
             onZet={(a) => onZet(item.id, a)}
             onHerstel={() => onHerstel(item.id)}
           />
