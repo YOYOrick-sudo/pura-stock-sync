@@ -1138,7 +1138,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                 </div>
                 <div className="space-y-2 pl-2">
                   {p.groepen.map((g) => (
-                    <div key={g.sleutel} className="scroll-mt-24 rounded-[18px]">
+                    <div key={g.sleutel} id={`vr-groep-${g.sleutel}`} className="scroll-mt-24 rounded-[18px]">
 
                       <CategorieBlok
                         titel={g.titel}
@@ -1153,8 +1153,10 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                         bestelbordMap={bestelbordMap}
                         mepTitels={mepTitels}
                         bevestigd={bevestigd.includes(g.sleutel)}
-                        onBevestig={() => setBevestigd((b) => [...new Set([...b, g.sleutel])])}
-                        onHeropen={() => setBevestigd((b) => b.filter((s) => s !== g.sleutel))}
+                        onHeropen={() => {
+                          setBevestigd((b) => b.filter((s) => s !== g.sleutel));
+                          setHeropend((h) => [...new Set([...h, g.sleutel])]);
+                        }}
                         onZet={zet}
                         onHerstel={herstel}
                       />
