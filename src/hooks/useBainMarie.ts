@@ -100,7 +100,7 @@ export function bakStatus(bak: BainMarieBak | undefined, vandaagIso: string): Ba
 }
 
 const SELECT_VELDEN =
-  'id, vestiging, product, product_naam, start_datum, houdbaarheid_dagen, actief, ontdooid_datum, weggegooid_op';
+  'id, vestiging, product, product_naam, start_datum, houdbaarheid_dagen, actief, ontdooid_datum, weggegooid_op, reden';
 
 export function useBainMarieBakken(vestiging: string) {
   return useQuery({
@@ -261,18 +261,25 @@ export function useZetBainMarieStart(vestiging: string) {
 }
 
 /**
- * Gooi een bak weg bij sluit (laatste dag of te oud). De bak wordt
- * afgesloten: actief = false + weggegooid_op = vandaag. Nooit hard verwijderen.
+ * Sluit een bak af bij sluit: weggegooid (laatste dag of te oud) of gewoon op.
+ * De bak wordt gearchiveerd: actief = false + weggegooid_op = vandaag + reden.
+ * Nooit hard verwijderen.
  */
 export function useGooiBainMarieWeg(vestiging: string) {
   const qc = useQueryClient();
   const sleutel = ['bain-marie-bakken', vestiging] as const;
   return useMutation({
-    mutationFn: async ({ bak }: { bak: BainMarieBak }) => {
+    mutationFn: async ({
+      bak,
+      reden = 'weggegooid',
+    }: {
+      bak: BainMarieBak;
+      reden?: 'weggegooid' | 'op';
+    }) => {
       const { error } = await metHerstel(() =>
         supabase
           .from('bain_marie_bakken')
-          .update({ actief: false, weggegooid_op: isoDatum(new Date()) })
+          .update({ actief: false, weggegooid_op: isoDatum(new Date()), reden })
           .eq('id', bak.id),
       );
       if (error) throw error;
