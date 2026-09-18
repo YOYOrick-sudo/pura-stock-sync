@@ -245,9 +245,11 @@ function TelRegel({
   const zetHeel = (n: number) => onZet(Math.max(n, 0) + rest);
   const zetRest = (r: number) => onZet(heel + r);
 
-  // Eén statuschip rechts: onderweg > bestelbord > MEP. Altijd "hier loopt al iets".
-  const statusTekst =
-    onderweg > 0
+  // Eén statuschip rechts: bijgesteld voor de werkbank > onderweg > bestelbord > MEP.
+  const bijgesteld = !afwijkend && afgeleid && afgeleid.onttrokken > 0;
+  const statusTekst = bijgesteld
+    ? `−${getalLabel(afgeleid!.onttrokken)} voor de werkbank`
+    : onderweg > 0
       ? `${aantalLabel(onderweg, item.eenheid)} onderweg`
       : opBestelbord
         ? 'op het bestelbord'
