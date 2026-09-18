@@ -24,14 +24,23 @@
 - Half = geen taak (bak is nog voldoende gevuld voor de service).
 - De oude koelcelregels van aubergine en geroosterde groenten worden gearchiveerd, niet verwijderd.
 
-**Rode kool (uit Midsland)**
-- Koelcel: 4 gevacumeerde zakken op peil.
-- Bestelregel zonder gepruts met losse zakken: pas bestellen als er 2 of minder liggen, dan aanvullen tot 5. Dus altijd een bestelling van 3 zakken — nooit een transport voor 1 zakje.
-- Werkbank wordt bijgevuld uit die koelcelzakken.
+**Rode kool — via een generieke Midsland-bestelregel**
+
+In plaats van een losse uitzondering voor rode kool komt er één systeemregel voor alle producten die uit Midsland komen:
+
+- Per Midsland-product leg je twee getallen vast: *meld vanaf* (bestelpunt) en *aanvullen tot*.
+- Zolang de voorraad boven het bestelpunt is: geen bestelling.
+- Op of onder het bestelpunt: het systeem zet in één keer het verschil tot "aanvullen tot" op de interne bestellijst. Nooit losse restbestellingen van 1 stuk.
+- Rode kool krijgt: op peil 4 zakken, meld vanaf 2, aanvullen tot 5 (dus altijd 3 zakken tegelijk).
+- Dezelfde velden gelden meteen voor de andere Midsland-producten (o.a. oesterzwam, dukkah); daar vullen we de twee getallen per product in het beheer in.
+- Werkbank wordt bijgevuld uit de koelcelzakken.
 
 ## Technisch
 
 - Datawijzigingen op `koelcel_check_items` (West): nieuw werkbank-item geroosterde bloemkool (GN 1/4 midden, bron `zelf_west`), naam gegrilde groenten bijwerken, `lade_id` van de vier op "Links midden" (`94b711e5…`) met volgorde 410–413, koelcelregels aubergine + geroosterde groenten op `actief=false`.
-- Rode kool koelcel: `doel_aantal` 4, `bestelpunt` 2, `bestel_inhoud`/aanvultarget 5.
-- Geen schemawijziging nodig; bestelpunt- en batchvelden bestaan al.
-- Aanvullen tot "de helft van de bak" gebruikt de bestaande vulnorm-logica; voor deze drie zetten we `vulnorm` op half in plaats van vol.
+- Generieke Midsland-regel: hergebruik van de bestaande velden `bestelpunt` en een aanvul-doel. Als er nog geen "aanvullen tot"-veld is, komt er één migratie die `aanvul_tot` (numeric, nullable) toevoegt aan `koelcel_check_items`, met GRANT/RLS ongewijzigd.
+- De bestelberekening in `useKoelcelCheck.ts` krijgt één gedeelde functie: bron `midsland` → bestel alleen bij `ligt <= bestelpunt`, dan `aanvul_tot - ligt`. Geldt voor elk Midsland-product, niet alleen rode kool.
+- Beheer (`VoorraadCheckBeheer.tsx`) krijgt de twee velden zichtbaar per product, met korte uitleg achter een info-icoon.
+- Rode kool: `doel_aantal` 4, `bestelpunt` 2, `aanvul_tot` 5.
+- Aanvullen tot "de helft van de bak" voor de zelfgemaakte producten gebruikt de bestaande vulnorm-logica; voor die drie zetten we `vulnorm` op half.
+
