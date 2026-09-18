@@ -304,7 +304,9 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
             </div>
           );
         })}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
