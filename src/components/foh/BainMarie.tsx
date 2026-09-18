@@ -245,7 +245,7 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
           <Uitleg
             titel="Au bain-marie"
             stand={afgerond ? 'Alle bakken genoteerd' : `${genoteerd}/${totaal} bakken genoteerd`}
-            tekst="Tik per product de dag die op de bak staat, zoals op de sticker van de vorige dienst. Is de bak vandaag vers gemaakt? Tik “Vandaag” — bij Kip vragen we daarna de datum van de zak. Gaat de bak vandaag niet mee of is hij op? Tik dan niets. Nieuwe zak tussendoor? Tik opnieuw “Vandaag”."
+            tekst="Tik per product de dag die op de bak staat, zoals op de sticker van de vorige dienst. Is de bak van vandaag (nieuw gestart vanuit een zak)? Tik “Vandaag” — bij Kip vragen we daarna de datum op de zak. Gaat de bak vandaag niet mee of is hij op? Tik dan niets. Tussendoor een nieuwe zak opengemaakt? Tik opnieuw “Vandaag”."
           />
 
 
@@ -279,7 +279,7 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
                       disabled={zetStart.isPending}
                       onClick={() => {
                         if (offset === 0 && p.heeftVriesZak) {
-                          // Nieuwe bak = nieuwe zak: eerst de zak-datum vragen.
+                          // Nieuwe zak geopend → nieuwe bak: eerst de zak-datum vragen.
                           setZakVraag(toonZakVraag ? null : p.sleutel);
                           return;
                         }
@@ -402,7 +402,7 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
     });
   };
 
-  /** Correctie: er is tussendoor een nieuwe bak opengemaakt. */
+  /** Correctie: vandaag een nieuwe zak geopend → de bak start opnieuw van vandaag. */
   const nieuweBak = (
     p: (typeof BAIN_MARIE_PRODUCTEN)[number],
     ontdooidDatum: string | null,
@@ -601,7 +601,7 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
                       className="rounded-[14px] bg-primary/10 px-4 text-[14px] font-semibold text-primary transition-colors hover:bg-primary/15 disabled:opacity-60"
                       style={{ minHeight: 44 }}
                     >
-                      Vandaag een nieuwe bak opengemaakt
+                      Vandaag een nieuwe zak opengemaakt
                     </button>
                     <button
                       type="button"
