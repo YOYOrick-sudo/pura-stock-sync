@@ -134,6 +134,13 @@
       "when": 1789683142416,
       "tag": "0018_bestelpunt_en_besteleenheid",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1789715946548,
+      "tag": "0019_toppings_west_en_magazijn",
+      "breakpoints": true
     }
   ]
 }

@@ -37,6 +37,7 @@ import {
   vulnormLabel,
   batchGrootte,
   bestelOpdracht,
+  meldNodig,
 
   HERKOMST_LABEL,
   type DrukteModus,
@@ -69,6 +70,7 @@ const PLEK_VOLGORDE: {
   { plek: 'werkbank', titel: 'Koelwerkbank', icoon: Utensils },
   { plek: 'werkblad', titel: 'Toppings', icoon: Soup },
   { plek: 'koelcel', titel: 'Koelcel', icoon: Refrigerator },
+  { plek: 'magazijn', titel: 'Magazijn', icoon: PackageCheck, alleenMaandag: true },
   { plek: 'vriezer', titel: 'Vriescel', icoon: Snowflake, alleenMaandag: true },
 ];
 
@@ -506,7 +508,7 @@ function CategorieBlok({
   );
 }
 
-type BonSoort = 'vriescel' | 'koelcel' | 'mep' | 'midsland' | 'bestelbord';
+type BonSoort = 'vriescel' | 'koelcel' | 'magazijn' | 'mep' | 'midsland' | 'bestelbord';
 
 interface BonRegel {
   item: ItemMetCategorie;
@@ -550,6 +552,7 @@ function mepOpdracht(
 const BON_GROEPEN: { soort: BonSoort; titel: string; uitleg: string; icoon: typeof Snowflake }[] = [
   { soort: 'vriescel', titel: 'Halen uit de vriescel', uitleg: 'Eén rondje — stickers "Ontdooid" worden geprint', icoon: Snowflake },
   { soort: 'koelcel', titel: 'Halen uit de koelcel', uitleg: 'Bijvullen vanuit de koelcel', icoon: PackageCheck },
+  { soort: 'magazijn', titel: 'Halen uit het magazijn', uitleg: 'Bijvullen vanuit het magazijn', icoon: PackageCheck },
   { soort: 'mep', titel: 'Zelf maken (mise-en-place)', uitleg: 'Komt op de MEP-lijst', icoon: ChefHat },
   { soort: 'midsland', titel: 'Bestellen bij Midsland', uitleg: 'Gaat naar de interne bestellijst', icoon: Truck },
   { soort: 'bestelbord', titel: 'Op het bestelbord', uitleg: 'Inkoop pakt dit op', icoon: ShoppingCart },
@@ -716,9 +719,16 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           tekort,
           geteld,
           doel,
-          soort: onder.plek === 'vriezer' ? 'vriescel' : 'koelcel',
+          soort:
+            onder.plek === 'vriezer'
+              ? 'vriescel'
+              : onder.plek === 'magazijn'
+                ? 'magazijn'
+                : 'koelcel',
         });
       } else if (vervolg.soort === 'mep') {
+        // Zelf maken/roosteren: pas een taak vanaf het meldpunt (halve bak mag blijven).
+        if (!meldNodig(item, geteld + onderweg)) continue;
         const { prioriteit, batch } = mepOpdracht(item, doel, geteld, tekort);
         regels.push({ item, onderItem: null, tekort, geteld, doel, soort: 'mep', prioriteit, batch });
       } else if (vervolg.soort === 'bestelbord') {
@@ -776,7 +786,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const bevestigBon = async () => {
     setBezig(true);
     const telling2: Record<BonSoort, number> = {
-      vriescel: 0, koelcel: 0, mep: 0, midsland: 0, bestelbord: 0,
+      vriescel: 0, koelcel: 0, magazijn: 0, mep: 0, midsland: 0, bestelbord: 0,
     };
     try {
       for (const regel of bon) {
