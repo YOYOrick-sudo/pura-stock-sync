@@ -145,11 +145,10 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
   }, [afgerond]);
 
   return (
-    <div className="py-2">
+    <div style={{ marginBottom: '32px' }}>
       <SectieBalk
-        icoon={Soup}
         titel="Au bain-marie"
-        stand={afgerond ? 'Afgerond — alle bakken genoteerd' : `${genoteerd}/${totaal} bakken genoteerd`}
+        stand={afgerond ? 'afgerond' : `${genoteerd}/${totaal}`}
         afgerond={afgerond}
         open={open}
         onToggle={() => setOpen((o) => !o)}
@@ -159,8 +158,10 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
         <>
           <Uitleg
             titel="Au bain-marie"
+            stand={afgerond ? 'Alle bakken genoteerd' : `${genoteerd}/${totaal} bakken genoteerd`}
             tekst="Tik per product de dag die op de bak staat, zoals op de sticker van de vorige dienst. Is de bak vandaag vers gemaakt? Tik “Vandaag” — bij Kip vragen we daarna de datum van de zak. Gaat de bak vandaag niet mee of is hij op? Tik dan niets. Nieuwe zak tussendoor? Tik opnieuw “Vandaag”."
           />
+
 
           <div className="divide-y divide-border">
         {BAIN_MARIE_PRODUCTEN.map((p) => {
