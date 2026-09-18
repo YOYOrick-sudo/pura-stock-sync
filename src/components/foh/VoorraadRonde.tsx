@@ -833,6 +833,15 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   /** Lade sluiten via de balk: inklappen en doorschuiven naar de volgende open lade. */
   const sluitGroep = (sleutel: string) => {
     setHeropend((h) => h.filter((s) => s !== sleutel));
+    // Reservelade: alles wat je niet hebt aangetikt staat er niet — dus 0.
+    const groep = telGroepen.find((g) => g.sleutel === sleutel);
+    if (groep?.lade?.rol === 'reserve') {
+      setTelling((t) => {
+        const kopie = { ...t };
+        for (const i of groep.items) if (kopie[i.id] === undefined) kopie[i.id] = 0;
+        return kopie;
+      });
+    }
     setBevestigd((b) => {
       const nieuw = [...new Set([...b, sleutel])];
       const volgende = telGroepen.find((g) => !nieuw.includes(g.sleutel));
