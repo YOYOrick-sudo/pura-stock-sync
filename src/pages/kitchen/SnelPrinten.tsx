@@ -26,11 +26,13 @@ const DEFAULT_THT: Record<StickerType, number> = {
   ontdooid: 2,
   bereid: 3,
   vrij: 0,
+  bain: 5,
 };
 const THT_RANGE: Record<StickerType, { min: number; max: number }> = {
   ontdooid: { min: 1, max: 30 },
   bereid: { min: 1, max: 30 },
   vrij: { min: 0, max: 0 },
+  bain: { min: 1, max: 30 },
 };
 const AANTAL_RANGE = { min: 1, max: 20 };
 

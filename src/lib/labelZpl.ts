@@ -45,12 +45,13 @@ export function buildLabelOmschrijving(naam: string, datum?: string): string {
 
 // ============ Snel-print stickers (ontdooid / bereid / vrij) ============
 
-export type StickerType = 'ontdooid' | 'bereid' | 'vrij';
+export type StickerType = 'ontdooid' | 'bereid' | 'vrij' | 'bain';
 
 const STICKER_KOP: Record<StickerType, string> = {
   ontdooid: 'ONTDOOID',
   bereid: 'BEREID',
   vrij: '',
+  bain: 'BAIN-MARIE',
 };
 
 // Iets compacter dan fontForName omdat er 2 datumregels onder moeten.

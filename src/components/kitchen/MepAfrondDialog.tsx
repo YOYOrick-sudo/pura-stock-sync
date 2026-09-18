@@ -34,7 +34,7 @@ const TYPES: { key: StickerType; label: string; icon: typeof Snowflake }[] = [
   { key: 'ontdooid', label: 'Ontdooid', icon: Snowflake },
   { key: 'vrij', label: 'Vrij', icon: Tag },
 ];
-const DEFAULT_THT: Record<StickerType, number> = { ontdooid: 2, bereid: 3, vrij: 0 };
+const DEFAULT_THT: Record<StickerType, number> = { ontdooid: 2, bereid: 3, vrij: 0, bain: 5 };
 
 function fmtDatum(d: Date) {
   return format(d, 'EEE dd-MM', { locale: nl });

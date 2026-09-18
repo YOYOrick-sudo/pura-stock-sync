@@ -27,6 +27,7 @@ import { AdminPasswordDialog } from './AdminPasswordDialog';
 import { RepeatBadge } from './RepeatBadge';
 import { ListManager } from './ListManager';
 import { VoorraadRonde } from './VoorraadRonde';
+import { BainMarieOpen, BainMarieSluit } from './BainMarie';
 import { getOrderedCategories, WEST_SECTIONS, type Department } from '@/lib/foh-category-order';
 import { devLog, devError } from "@/lib/devLog";
 
@@ -3662,12 +3663,24 @@ export function FohTasks() {
                           false,
                           { keyPrefix: 'bottom-', categoryFilter: (c) => !isStartCat(c) },
                         );
-                        // De voorraadronde hoort bij de keukentaken van de sluitlijst.
+                        // De voorraadronde en de bain-marie-stickers horen bij
+                        // de keukentaken van de sluitlijst; het datum-blok bij de open-lijst.
                         const voorraad =
                           visibleTab === 'keuken' && activePhase === 'sluit' && !isReadOnly ? (
                             <VoorraadRonde key="voorraadronde" vestiging="West" datum={selectedDate} />
                           ) : null;
-                        const sections = [samenTop, eigen, voorraad, samenBottom].filter(Boolean);
+                        const bainMarie =
+                          visibleTab === 'keuken' && !isReadOnly ? (
+                            activePhase === 'open' ? (
+                              <BainMarieOpen key="bain-open" vestiging="West" datum={selectedDate} />
+                            ) : (
+                              <BainMarieSluit key="bain-sluit" vestiging="West" datum={selectedDate} />
+                            )
+                          ) : null;
+                        const sections =
+                          activePhase === 'open'
+                            ? [samenTop, bainMarie, eigen, samenBottom].filter(Boolean)
+                            : [samenTop, eigen, voorraad, bainMarie, samenBottom].filter(Boolean);
                         if (sections.length === 0) {
                           return (
                             <div style={{
