@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react';
 import { nl } from 'date-fns/locale';
 import {
-  Soup,
   Printer,
   Check,
   AlertTriangle,
   Trash2,
   X,
-  ChevronDown,
   Calendar as CalendarIcon,
 } from 'lucide-react';
+import { SectieBalk } from './SectieBalk';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
