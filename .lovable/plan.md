@@ -1,51 +1,53 @@
 # Bain-marie: dag bijhouden van bakken die meerdere dagen meegaan (kip/vissoep/tomyum/ei)
 
 ## Het probleem
-Een gevacumeerde zak uit de koelcel wordt verwarmd en gaat in de au bain-marie. Gaat het product niet op, dan gaat de plastic bak 's avonds de koeling in. De volgende dag wordt dezelfde bak weer warm gemaakt — en nu moet je weten van welke dag hij is. Woensdag gestart en donderdag opnieuw warm gemaakt betekent: de bak is van woensdag, niet van donderdag. Wie 's avonds afsluit weet dat niet meer, want de bak wordt overdag niet bewaard met een label.
+Een gevacumeerde zak uit de koelcel wordt 's ochtends verwarmd en gaat in de au bain-marie. Gaat het product niet op, dan gaat de plastic bak 's avonds de koeling in. De volgende ochtend wordt dezelfde bak weer warm gemaakt — en nu moet je weten van welke dag hij is. Woensdag gestart en donderdag opnieuw warm gemaakt betekent: de bak is van woensdag, niet van donderdag. Niemand onthoudt dat betrouwbaar.
 
-## Kern van de oplossing
-Niemáánaal hoeft de startdatum te onthouden. De app onthoudt per bain-marie-product de **startdatum** (datum waarop de bak voor het laatst vers gevuld werd). Bij het afsluiten beantwoord je alleen één vraag:
+## Kern van de oplossing — de vraag staat in de ochtend
+De bak krijgt zijn datum op het moment dat hij gevuld wordt, niet 's avonds. In de **Open-lijst van West (Keuken-sectie)** staat per bain-marie-product één vraag met twee grote knoppen:
 
-**"Is er vandaag nieuwe bij gekomen uit een zak?" → Ja / Nee**
+**"Kip — wat gaat er vandaag in de bain-marie?"**
+- **"Nieuwe zak (van vandaag)"** → de app zet de startdatum op vandaag en print meteen een sticker: product + echte startdag + houdbaar tot.
+- **"Opgewarmd van gisteren"** → de startdatum blijft staan; de sticker toont alsnog de oorspronkelijke dag, bv. "woensdag" terwijl het donderdag is.
 
-- **Ja** → startdatum wordt vandaag, er print een nieuwe sticker met vandaag als datum.
-- **Nee** → startdatum blijft staan; de sticker (opnieuw geprint) toont alsnog de oorspronkelijke dag, bv. "woensdag" terwijl het donderdag is.
+De app onthoudt per product de startdatum (de dag waarop de bak voor het laatst vers gevuld werd). Niemand hoeft een datum te onthouden of op te schrijven. De sticker zit op de bak, dus ook iemand die de app niet open heeft, ziet meteen van welke dag hij is.
 
-De sticker op de bak toont dus altijd de échte startdag — ook al is hij al twee keer opgewarmd. Wie de volgende ochtend de bak pakt, ziet meteen: "van woensdag".
+**Geen avondstap meer.** De sluitlijst verandert niet; 's avonds is er niets extra te doen. Als er 's ochtends niets in de bain-marie gaat, tik je niets — dan verandert er ook niets.
 
-## Twee opties
+## Twee opties (locatie van de info)
 
-### Optie 1 — Startdatum in de app + datumsticker (aanbevolen)
-Vissoep, tomyum, ei en kip komen als rijen in de sluitlijst/voorraadronde van West met de ja/nee-vraag hierboven. De app onthoudt de startdatum per product; elke avond print de labelprinter een sticker met productnaam + startdag + houdbaar tot (instelbaar, bv. 3 dagen). Dezelfde printtechniek als de bestaande "Ontdooid"-stickers (datum1/datum2 via de print bridge) — die flow werkt al.
+### Optie 1 — Ochtend-vraag + datumsticker (aanbevolen)
+Zoals hierboven: één tik in de ochtend-lijst, sticker print direct mee via de bestaande print bridge (dezelfde techniek als de "Ontdooid"-stickers, datum1/datum2).
 
-- Extra werk: één tik (ja/nee) + sticker plakken. Niemand hoeft een datum te kennen of schrijven.
-- Betrouwbaar: de app weet de datum, de mens hoeft alleen te weten of er vandaag een nieuwe zak open ging — dat weet je altijd.
-- Sticker op de bak = zichtbaar voor iedereen, ook wie de app niet open heeft.
+- Extra werk: één tik + sticker plakken, 's ochtends, op het moment dat je er toch mee bezig bent.
+- Betrouwbaar: wie de bak vult weet altijd of er een nieuwe zak open ging — 's avonds is dat twijfelachtig.
+- Zichtbaar: de datum hangt fysiek op de bak, voor iedereen.
 
-### Optie 2 — Alleen in de app, zonder sticker
-Zelfde startdatum-logica, maar geen sticker: in de open-lijst van de volgende dag staat "Kip — bak van woensdag (dag 2)", en na de instelbare houdbaarheid wordt de regel oranje: "weg gooien".
+### Optie 2 — Ochtend-vraag, alleen in de app
+Zelfde logica, maar geen sticker: de open-lijst van de volgende dag toont "Kip — bak van woensdag (dag 2)", en na de instelbare houdbaarheid wordt de regel oranje: "weg gooien".
 
-- Extra werk: iets minder (geen sticker plakken), maar de foutkans is groter: wie de tik vergeet, klopt de dagtelling niet meer, en je ziet het alleen in de app — niet op de bak zelf.
+- Extra werk: iets minder (geen sticker plakken), maar de foutkans is groter: je ziet de datum alleen in de app, niet op de bak zelf.
 
 ## Advies
-**Optie 1.** De sticker zit fysiek op de bak, de app draagt de datum — samen dekt het precies het probleem "je weet niet van welke dag het is". Het kost één tik in een lijst die toch al wordt doorlopen.
+**Optie 1.** De ochtend is het natuurlijke moment (bak vullen = bak dateren), en de sticker maakt de datum zichtbaar buiten de app. De app draagt de datum, de sticker toont hem.
 
 ## Wat er concreet gebouwd wordt (bij keuze optie 1)
-1. Bain-marie-rijen (kip, vissoep, tomyum, ei — lijstje nog even checken) in de sluitlijst van West, elke sluitdienst zichtbaar.
-2. Per rij de vraag "Nieuwe zak van vandaag? Ja / Nee":
-   - Ja → startdatum = vandaag, nieuwe sticker geprint (product + datum + houdbaar tot).
-   - Nee → startdatum blijft, sticker wordt opnieuw geprint met de bestaande startdatum (op de nieuwe bak, want de oude plastic bak blijft niet bewaard met label).
-3. Per product een instelbare houdbaarheid in dagen in het voorraadbeheer; na die tijd waarschuwt de ronde: "bak van <datum> is te oud — weggooien".
-4. Verbinding met de keten: de zakken kip liggen al in de vriescel/koelcel-check (gevacumeerd, zoals döner). De vraag "nieuwe zak?" kan automatisch het koelcel-aantal verlagen, zodat voorraad en bain-marie niet uit elkaar lopen.
+1. Bain-marie-rijen (kip, vissoep, tomyum, ei — lijstje nog even checken) in de **Open-lijst** van West, Keuken-sectie, elke ochtend zichtbaar.
+2. Per rij de vraag met twee knoppen (min. 44px tikdoelen, geen typen):
+   - "Nieuwe zak (van vandaag)" → startdatum = vandaag, nieuwe sticker geprint.
+   - "Opgewarmd van gisteren" → startdatum blijft, sticker opnieuw geprint met de bestaande startdatum (op de bak die nu gevuld wordt).
+   - Niets tikken = geen bak vandaag, geen sticker, startdatum blijft staan.
+3. Per product een instelbare houdbaarheid in dagen in het voorraadbeheer; als de startdatum ouder is dan die termijn waarschuwt de ochtendvraag: "bak van <dag> is te oud — eerst weggooien".
+4. Verbinding met de keten: de zakken kip liggen al in de vriescel/koelcel-check (gevacumeerd, zoals döner). "Nieuwe zak" kan automatisch het koelcel-aantal verlagen, zodat voorraad en bain-marie niet uit elkaar lopen.
 
 ## Technisch (kort)
-- Nieuwe kleine tabel `bain_marie_bakken` (product, startdatum, vestiging) of twee kolommen op `koelcel_check_items`; migratie via de databasetool met regel in `migratie_logboek`.
-- Stickerprint hergebruikt `printOntdooid`-flow in `VoorraadRonde.tsx` (datum1/datum2, print bridge) — geen nieuwe printtechniek.
+- Nieuwe kleine tabel `bain_marie_bakken` (product, startdatum, vestiging) of kolommen op `koelcel_check_items`; migratie via de databasetool met regel in `migratie_logboek`.
+- Stickerprint hergebruikt de bestaande print-sticker-flow (datum1/datum2, print bridge) in `VoorraadRonde.tsx` / FohTasks — geen nieuwe printtechniek.
 - Geen nieuwe libraries, geen RLS-wijzigingen op bestaande tabellen; nieuwe tabel krijgt RLS + GRANT.
 
 ## Praktijkcheck
-- Wie: wie de keuken afsluit in West, op de iPad. Twee knoppen van 44px (Ja/Nee), geen typen.
+- Wie: wie 's ochtends de bain-marie vult in West, op de iPad in de open-lijst. Twee knoppen, geen typen, geen hover.
 - Printer stuk / geen wifi: de tik blijft bewaard en print alsnog zodra de bridge bereikbaar is (bestaand retry-gedrag). De datum in de app blijft sowieso kloppen.
-- Vergeten tik: geen tik = geen wijziging; de startdatum blijft dan staan, wat bij "zelfde bak doorwarmen" (het meest voorkomende geval) automatisch correct is.
-- Gesloten dag: geen sluitlijst, geen sticker — klopt, want de bain-marie draait dan niet.
-- Risico: iemand tikt "Ja" terwijl er geen nieuwe zak open ging — dan verschuift de datum een dag. Dat is het enige foutmoment, en het kost maximaal één dag datumnauwkeurigheid.
+- Vergeten tik: geen tik = geen wijziging; de startdatum blijft staan — bij "zelfde bak doorwarmen" (het meest voorkomende geval) automatisch correct.
+- Gesloten dag: geen open-lijst, geen sticker — klopt, want de bain-marie draait dan niet.
+- Risico: iemand tikt "Nieuwe zak" terwijl de bak nog van gisteren was — dan verschuift de datum een dag. Dat is het enige foutmoment en kost maximaal één dag datumnauwkeurigheid; de ochtendcontext (zak open of niet) maakt deze fout onwaarschijnlijk.
