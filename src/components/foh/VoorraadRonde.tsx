@@ -811,21 +811,9 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
     [categorieGroepen],
   );
 
-  // Heb je bij elk product van een lade iets ingetikt, dan is die lade klaar:
-  // hij klapt vanzelf in, zonder extra tik. Heropende lades doen niet mee.
-  useEffect(() => {
-    const klaar = telGroepen
-      .filter(
-        (g) =>
-          g.items.length > 0 &&
-          !heropend.includes(g.sleutel) &&
-          g.items.every((i) => telling[i.id] !== undefined),
-      )
-      .map((g) => g.sleutel);
-    if (klaar.some((s) => !bevestigd.includes(s))) {
-      setBevestigd((b) => [...new Set([...b, ...klaar])]);
-    }
-  }, [telling, telGroepen, heropend, bevestigd]);
+  // Een volle lade klapt bewust niet meteen in: pas als je aan de vólgende lade
+  // begint (zie `zet`). Zo kun je je eigen telling nog nakijken.
+
 
   /** De eerste lade die nog open staat — daar wijst de vaste balk naar. */
   const volgendeGroep = telGroepen.find((g) => !bevestigd.includes(g.sleutel)) ?? null;
