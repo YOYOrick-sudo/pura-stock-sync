@@ -468,7 +468,9 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
             </div>
           );
         })}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
