@@ -929,8 +929,11 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                               {telModus(r.item) === 'vulling'
                                 ? `bakje ${vulKeuzeLabel(r.geteld)}`
                                 : `${getalLabel(r.doel)} nodig · ${getalLabel(r.geteld)} geteld`}
-                              {r.onderItem ? ` · uit ${HERKOMST_LABEL[r.onderItem.plek]}` : ''}
-                            </span>
+                               {r.onderItem ? ` · uit ${HERKOMST_LABEL[r.onderItem.plek]}` : ''}
+                               {r.soort === 'bestelbord' && r.item.leverancier
+                                 ? ` · ${r.item.leverancier}`
+                                 : ''}
+                             </span>
                             {ladeVan(r.item) && (
                               <LadePositie lade={ladeVan(r.item)} className="mt-0.5" />
                             )}

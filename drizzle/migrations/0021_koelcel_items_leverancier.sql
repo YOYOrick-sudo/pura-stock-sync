@@ -1,0 +1,2 @@
+ALTER TABLE public.koelcel_check_items ADD COLUMN IF NOT EXISTS leverancier text;
+COMMENT ON COLUMN public.koelcel_check_items.leverancier IS 'Bij welke leverancier dit product besteld wordt; getoond op het bestelbord.';

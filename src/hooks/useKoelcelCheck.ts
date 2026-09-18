@@ -55,6 +55,8 @@ export interface KoelcelCheckItem {
   bestel_eenheid?: string | null;
   /** Hoeveel er in één besteleenheid zit (kist = 12 stuks). */
   bestel_inhoud?: number | null;
+  /** Bij welke leverancier dit besteld wordt; getoond op het bestelbord. */
+  leverancier?: string | null;
 }
 
 const MEERVOUD: Record<string, string> = {
@@ -164,7 +166,7 @@ export const NIVEAU_KETEN: Record<VoorraadPlek, VoorraadPlek[]> = {
   werkbank: ['koelcel', 'vriezer'],
   werkblad: ['magazijn', 'koelcel', 'vriezer'],
   magazijn: [],
-  koelcel: ['vriezer'],
+  koelcel: ['magazijn', 'vriezer'],
   vriezer: [],
 };
 
