@@ -331,7 +331,7 @@ function LadeVak({
               <p className="truncate text-[14px] font-bold text-foreground">{lade.naam}</p>
               <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
                 {positieLabel(lade)}
-                {isReserve ? ' · reservelade' : ''}
+                {isReserve ? ' · reservelade' : nietTellen ? ' · niet tellen' : ''}
               </p>
             </>
           )}
@@ -381,14 +381,14 @@ function LadeVak({
       <div className="mt-2 flex flex-wrap items-center gap-3">
         <button
           type="button"
-          onClick={() => onZetRol(isReserve ? 'werk' : 'reserve')}
+          onClick={() => onZetRol(volgendeRol)}
           className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
             isReserve
               ? 'border-primary bg-primary/10 text-primary'
               : 'border-border bg-card text-muted-foreground'
           }`}
         >
-          {isReserve ? 'Reservelade' : 'Werklade'}
+          {rolLabel}
         </button>
         <button
           type="button"
