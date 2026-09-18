@@ -210,21 +210,24 @@ function LadeVak({
         )}
       </div>
 
-      <div className="flex-1 space-y-1.5">
+      <div className="flex-1">
         {items.length === 0 ? (
           <p className="pt-3 text-center text-[12px] text-muted-foreground">
             {lade.actief ? 'Sleep hier producten naartoe' : 'Niet in gebruik'}
           </p>
         ) : (
-          items.map((i) => (
-            <SleepbaarProduct
-              key={i.id}
-              item={i}
-              onReserve={(a) => onReserve(i.id, a)}
-              onVulnorm={(v) => onVulnorm(i.id, v)}
-              onFormaat={(f) => onFormaat(i.id, f)}
-            />
-          ))
+          <div className="grid grid-cols-6 gap-1.5">
+            {items.map((i, index) => (
+              <div key={i.id} className={index < 4 ? 'col-span-3' : 'col-span-2'}>
+                <SleepbaarProduct
+                  item={i}
+                  onReserve={(a) => onReserve(i.id, a)}
+                  onVulnorm={(v) => onVulnorm(i.id, v)}
+                  onFormaat={(f) => onFormaat(i.id, f)}
+                />
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
