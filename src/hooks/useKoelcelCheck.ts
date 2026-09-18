@@ -51,6 +51,8 @@ export interface KoelcelCheckItem {
   batch_aantal?: number | null;
   /** Vanaf welk aantal het pas op het bestelbord komt; leeg = bij elk tekort. */
   bestelpunt?: number | null;
+  /** Tot welk aantal er in één keer wordt aangevuld zodra het bestelpunt bereikt is. */
+  aanvul_tot?: number | null;
   /** Hoe je inkoopt: kist, doos, bak, kilo of stuks. */
   bestel_eenheid?: string | null;
   /** Hoeveel er in één besteleenheid zit (kist = 12 stuks). */
