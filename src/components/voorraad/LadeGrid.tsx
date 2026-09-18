@@ -140,6 +140,20 @@ function SleepbaarProduct({
 let laatsteSleepEind = 0;
 
 /** Compact ladepatroon-kaartje: alleen de naam, tik opent de instellingen. */
+/**
+ * Kolombreedte per kaartje. De eerste 4 producten zijn 2-per-rij; daarna
+ * 3-per-rij. Gaat het niet op, dan vult de laatste rij netjes de volle
+ * breedte (1 kaart over alles, 2 kaarten elk de helft) — nooit een leeg gat.
+ */
+function chipSpan(index: number, totaal: number): string {
+  if (index < 4) return 'col-span-3';
+  const rest = totaal - 4;
+  const staart = rest % 3;
+  if (staart === 0) return 'col-span-2';
+  if (index - 4 < rest - staart) return 'col-span-2';
+  return staart === 1 ? 'col-span-6' : 'col-span-3';
+}
+
 function LadeChip({ item, onOpen }: { item: KoelcelCheckItem; onOpen: () => void }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });
   return (
@@ -153,12 +167,12 @@ function LadeChip({ item, onOpen }: { item: KoelcelCheckItem; onOpen: () => void
         onOpen();
       }}
       title={item.naam}
-      className={`flex w-full touch-none items-start gap-1 rounded-[12px] border border-border bg-card px-1.5 py-2 text-left transition-colors active:border-primary active:bg-primary/10 ${
+      className={`flex h-full w-full touch-none items-center gap-1 rounded-[12px] border border-border bg-card px-1.5 py-2 text-left transition-colors active:border-primary active:bg-primary/10 ${
         isDragging ? 'opacity-40' : ''
       }`}
       style={{ minHeight: 44 }}
     >
-      <GripVertical size={13} className="mt-0.5 shrink-0 text-muted-foreground" />
+      <GripVertical size={13} className="shrink-0 text-muted-foreground" />
       <span className="line-clamp-2 text-[12px] font-medium leading-tight text-foreground">
         {item.naam}
       </span>
@@ -341,7 +355,7 @@ function LadeVak({
         ) : (
           <div className="grid grid-cols-6 gap-1.5">
             {items.map((i, index) => (
-              <div key={i.id} className={index < 4 ? 'col-span-3' : 'col-span-2'}>
+              <div key={i.id} className={chipSpan(index, items.length)}>
                 <LadeChip item={i} onOpen={() => setOpenItem(i)} />
               </div>
             ))}
