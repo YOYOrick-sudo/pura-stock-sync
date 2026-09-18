@@ -1061,7 +1061,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                       </span>
                     </span>
                     <span className="ml-auto shrink-0 rounded-full bg-muted px-2.5 py-1 text-[12px] font-semibold tabular-nums text-muted-foreground">
-                      {klaarHier}/{p.groepen.length}
+                      {klaarHier}/{telGroepen.length}
                     </span>
                   </div>
                 </div>
@@ -1071,6 +1071,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
 
                       <CategorieBlok
                         titel={g.titel}
+                        overslaan={g.overslaan}
                         subtitel={g.subtitel}
                         lade={g.lade}
                         items={g.items}
