@@ -590,6 +590,8 @@ function CategorieBlok({
             tekortActie={
               vervolgactieVoorRegel(item, alleItems).soort === 'niveau' ? 'bijvullen' : 'mep'
             }
+            startWaarde={lade?.rol === 'reserve' ? 0 : undefined}
+            afgeleid={afgeleideTelling?.[item.id] ?? null}
             onZet={(a) => onZet(item.id, a)}
             onHerstel={() => onHerstel(item.id)}
           />
