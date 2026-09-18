@@ -187,8 +187,6 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
 
   /** Product waarvan de zak-datum nog gevraagd moet worden (na tik op "Vandaag"). */
   const [zakVraag, setZakVraag] = useState<BainMarieSleutel | null>(null);
-  /** Product waarvan de kalender openstaat. */
-  const [kalenderVoor, setKalenderVoor] = useState<BainMarieSleutel | null>(null);
 
   const bakVan = (sleutel: BainMarieSleutel) => bakken.find((b) => b.product === sleutel);
 
@@ -199,16 +197,6 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
     return { offset, iso: isoDatum(d) };
   });
 
-  /** Snelknoppen voor de zak: de drie gevallen die het vaakst voorkomen. */
-  const zakOpties = [
-    { offset: 0, label: 'Vandaag' },
-    { offset: 1, label: 'Gisteren' },
-    { offset: 2, label: 'Eergisteren' },
-  ].map(({ offset, label }) => {
-    const d = new Date(`${datum}T12:00:00`);
-    d.setDate(d.getDate() - offset);
-    return { offset, label, iso: isoDatum(d) };
-  });
 
 
   const startNieuw = (p: (typeof BAIN_MARIE_PRODUCTEN)[number], ontdooidDatum: string | null) => {
