@@ -18,48 +18,19 @@ export function IdeaBox() {
 
     setSubmitting(true);
     try {
-      const submissionId = crypto.randomUUID();
-      const { error } = await supabase
-        .from('idea_box_submissions')
-        .insert({
-          id: submissionId,
-          idea_text: idea.trim(),
-          location: userLocation,
-        });
+      const { data, error } = await supabase.functions.invoke('idee-melden', {
+        body: { ideaText: idea.trim(), location: userLocation },
+      });
 
       if (error) throw error;
 
-      // Send email to MT team
-      const recipients = [
-        'josefien@puravidafoodbar.nl',
-        'jorian@puravidafoodbar.nl',
-        'yorick@puravidafoodbar.nl',
-      ];
+      const mislukt = (data as { mislukt?: number } | null)?.mislukt ?? 0;
+      const ontvangers = (data as { ontvangers?: number } | null)?.ontvangers ?? 0;
 
-      const results = await Promise.all(
-        recipients.map((email) =>
-          supabase.functions.invoke('send-transactional-email', {
-            body: {
-              templateName: 'idea-box-notification',
-              recipientEmail: email,
-              idempotencyKey: `idea-${submissionId}-${email}`,
-              templateData: {
-                ideaText: idea.trim(),
-                location: userLocation,
-              },
-            },
-          })
-        )
-      );
-
-      const failures = results.filter((r) => r.error);
-      if (failures.length > 0) {
-        devError('Email send failures:', failures.map((f) => f.error));
-        if (failures.length === recipients.length) {
-          toast.error('Idee opgeslagen, maar versturen van mail naar MT is mislukt.');
-        } else {
-          toast.warning(`Idee verstuurd, maar ${failures.length} van ${recipients.length} mails faalden.`);
-        }
+      if (mislukt > 0 && mislukt === ontvangers) {
+        toast.error('Idee opgeslagen, maar versturen van mail naar MT is mislukt.');
+      } else if (mislukt > 0) {
+        toast.warning(`Idee verstuurd, maar ${mislukt} van ${ontvangers} mails faalden.`);
       } else {
         toast.success('Bedankt! Je idee is anoniem verstuurd naar het MT.');
       }

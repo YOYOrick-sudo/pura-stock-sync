@@ -9,9 +9,6 @@ import { useUserLocation } from '@/contexts/UserLocationContext';
 import { getLocationDisplayName } from '@/lib/utils';
 import { devError } from '@/lib/devLog';
 
-/** Ontvangers van de wisselkassa-aanvraag. */
-const ONTVANGERS = ['helga@puravidafoodbar.nl', 'yorick@puravidafoodbar.nl'];
-
 /**
  * Knop + popup om een nieuwe wisselkassa aan te vragen.
  * Stuurt een e-mail naar Helga en logt de aanvraag in wisselkassa_aanvragen.
@@ -47,9 +44,6 @@ export function WisselkassaAanvraagButton() {
     );
 
     try {
-      // Sessie uit lokale opslag — geen netwerk-aanroep die kan blijven hangen.
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user ?? null;
       const aanvrager = trimmedNaam;
 
       const tijdstip = new Date().toLocaleString('nl-NL', {
@@ -58,32 +52,14 @@ export function WisselkassaAanvraagButton() {
       });
 
       const werk = (async () => {
-        const { error: logError } = await supabase.from('wisselkassa_aanvragen').insert({
-          vestiging: userLocation,
-          aangevraagd_door: user?.id ?? null,
-          aangevraagd_door_naam: aanvrager,
+        const { error } = await supabase.functions.invoke('wisselkassa-aanvraag', {
+          body: {
+            vestiging: displayLocation || userLocation,
+            aanvrager,
+            tijdstip,
+          },
         });
-        if (logError) throw logError;
-
-        const stamp = Date.now();
-        const results = await Promise.all(
-          ONTVANGERS.map(adres =>
-            supabase.functions.invoke('send-transactional-email', {
-              body: {
-                templateName: 'wisselkassa-aanvraag',
-                recipientEmail: adres,
-                idempotencyKey: `wisselkassa-${adres}-${stamp}`,
-                templateData: {
-                  vestiging: displayLocation,
-                  aanvrager,
-                  tijdstip,
-                },
-              },
-            })
-          )
-        );
-        const failed = results.find(r => r.error);
-        if (failed?.error) throw failed.error;
+        if (error) throw error;
       })();
 
       await Promise.race([werk, timeout]);
