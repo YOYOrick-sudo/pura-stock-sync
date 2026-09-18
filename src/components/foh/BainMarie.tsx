@@ -104,12 +104,17 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
     return { offset, iso: isoDatum(d) };
   });
 
-  /** Zak kan ouder zijn: vandaag + 6 dagen terug. */
-  const zakOpties = Array.from({ length: 7 }, (_, offset) => {
+  /** Snelknoppen voor de zak: de drie gevallen die het vaakst voorkomen. */
+  const zakOpties = [
+    { offset: 0, label: 'Vandaag' },
+    { offset: 1, label: 'Gisteren' },
+    { offset: 2, label: 'Eergisteren' },
+  ].map(({ offset, label }) => {
     const d = new Date(`${datum}T12:00:00`);
     d.setDate(d.getDate() - offset);
-    return { offset, iso: isoDatum(d) };
+    return { offset, label, iso: isoDatum(d) };
   });
+
 
   const startNieuw = (p: (typeof BAIN_MARIE_PRODUCTEN)[number], ontdooidDatum: string | null) => {
     zetStart.mutate(
