@@ -51,6 +51,8 @@ export interface KoelcelCheckItem {
   batch_aantal?: number | null;
   /** Vanaf welk aantal het pas op het bestelbord komt; leeg = bij elk tekort. */
   bestelpunt?: number | null;
+  /** Tot welk aantal er in één keer wordt aangevuld zodra het bestelpunt bereikt is. */
+  aanvul_tot?: number | null;
   /** Hoe je inkoopt: kist, doos, bak, kilo of stuks. */
   bestel_eenheid?: string | null;
   /** Hoeveel er in één besteleenheid zit (kist = 12 stuks). */
@@ -179,6 +181,24 @@ export function meldNodig(item: KoelcelCheckItem, aanwezig: number): boolean {
   if (!Number.isFinite(punt)) return true;
   return aanwezig <= punt + 0.001;
 }
+
+/**
+ * Wat er bij Midsland besteld wordt: niet het losse tekort tot het doel, maar in
+ * één keer aanvullen tot het vastgelegde aanvulniveau. Zo komen er nooit
+ * restbestellingen van één zak. Zonder "aanvullen tot" blijft het gewone tekort.
+ */
+export function midslandAantal(
+  item: KoelcelCheckItem,
+  doel: number,
+  aanwezig: number,
+): number {
+  const tot = Number(item.aanvul_tot ?? NaN);
+  const ligt = Math.max(Number(aanwezig) || 0, 0);
+  const basis = Number.isFinite(tot) && tot > 0 ? tot : doel;
+  return Math.max(Math.round((basis - ligt) * 100) / 100, 1);
+}
+
+
 
 
 export type KoelcelCheckStatus = 'aanwezig' | 'naar_mep' | 'uit_vriezer' | 'gemeld';
@@ -845,7 +865,12 @@ export function useKoelcelCheckMutaties(
         geplaatst = res.aantal;
 
       } else {
-        const res = await naarMidsland(item, vestiging, tekort);
+        // Midsland: in één keer aanvullen tot het vastgelegde niveau.
+        const res = await naarMidsland(
+          item,
+          vestiging,
+          midslandAantal(item, doelNu, Number(aanwezig || 0)),
+        );
         dubbel = res.dubbel;
         geplaatst = res.aantal;
         onderweg = res.onderweg;

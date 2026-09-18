@@ -263,9 +263,15 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
     });
   };
 
+  /** Welk product nu aan het printen is (of net geprint heeft): blokkeert dubbeltikken. */
+  const [bezig, setBezig] = useState<BainMarieSleutel | null>(null);
+
   const print = (bak: BainMarieBak) => {
     const s = bakStatus(bak, datum);
     if (!s.startDatum || !s.houdbaarTot) return;
+    // Eén tik = één sticker: een tweede tik binnen de opdracht wordt genegeerd.
+    if (bezig) return;
+    setBezig(bak.product as BainMarieSleutel);
     printSticker.mutate(
       {
         type: 'bain',
@@ -275,9 +281,14 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
         ontdooidDatum: bak.ontdooid_datum ? stickerDatum(bak.ontdooid_datum) : undefined,
         bron: 'bain_marie',
       },
-      { onSuccess: () => markeerGeprint(bak.product) },
+      {
+        onSuccess: () => markeerGeprint(bak.product),
+        // Korte nablokkade zodat een na-tik van de iPad niet alsnog doorkomt.
+        onSettled: () => window.setTimeout(() => setBezig(null), 1200),
+      },
     );
   };
+
 
   return (
     <div className="py-2">
@@ -309,7 +320,7 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
               {kanPrinten ? (
                 <button
                   type="button"
-                  disabled={printSticker.isPending}
+                  disabled={bezig === p.sleutel}
                   onClick={() => print(bak!)}
                   className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 text-[13px] font-semibold transition-colors disabled:opacity-60 ${
                     klaar
@@ -319,8 +330,9 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
                   style={{ minHeight: 44 }}
                 >
                   <Printer size={15} />
-                  {klaar ? 'Opnieuw' : 'Sticker'}
+                  {bezig === p.sleutel ? 'Bezig…' : klaar ? 'Opnieuw' : 'Sticker'}
                 </button>
+
               ) : moetWeg ? (
                 <button
                   type="button"

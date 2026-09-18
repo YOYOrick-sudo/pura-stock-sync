@@ -355,6 +355,34 @@ export function VoorraadCheckBeheer({ location }: { location: string }) {
                           />
                         </>
                       )}
+                      {item.bron === 'midsland' && (
+                        <Input
+                          key={`${item.id}-tot-${item.aanvul_tot ?? ''}`}
+                          defaultValue={
+                            item.aanvul_tot !== null && item.aanvul_tot !== undefined
+                              ? String(Number(item.aanvul_tot))
+                              : ''
+                          }
+                          inputMode="decimal"
+                          placeholder="aanvullen tot"
+                          className="w-28 h-9 text-center"
+                          aria-label={`Aanvullen tot ${item.naam}`}
+                          title="Zodra het meldpunt bereikt is, wordt in één keer bijbesteld tot dit aantal"
+                          onBlur={(e) => {
+                            const raw = e.target.value.replace(',', '.').replace(/[^0-9.]/g, '');
+                            const v = raw ? Number(raw) : null;
+                            const huidig =
+                              item.aanvul_tot !== null && item.aanvul_tot !== undefined
+                                ? Number(item.aanvul_tot)
+                                : null;
+                            if (v !== huidig && (v === null || Number.isFinite(v))) {
+                              bijwerken.mutate({ id: item.id, velden: { aanvul_tot: v } });
+                            }
+                          }}
+                        />
+                      )}
+
+
 
 
                       <Select
