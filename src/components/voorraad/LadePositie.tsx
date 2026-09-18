@@ -1,4 +1,4 @@
-import { positieLabel, type VoorraadLade } from '@/hooks/useVoorraadLades';
+import { buitenRaster, positieLabel, type VoorraadLade } from '@/hooks/useVoorraadLades';
 
 /**
  * Heel subtiel 3x3 raster dat laat zien in welke lade van de koelwerkbank
@@ -14,6 +14,8 @@ export function LadePositie({
   className?: string;
 }) {
   if (!lade) return null;
+  // Groepen buiten de kast (flessen op het werkblad) hebben geen plek in het raster.
+  if (buitenRaster(lade)) return null;
   const vakjes = [1, 2, 3].flatMap((rij) => [1, 2, 3].map((kolom) => ({ rij, kolom })));
 
   return (
