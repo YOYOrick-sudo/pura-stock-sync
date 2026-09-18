@@ -95,7 +95,7 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
       <Kop
         icoon={Soup}
         titel="Au bain-marie"
-        uitleg="Noteer per product welke datum op de bak staat. Nieuwe bak vandaag? Tik “Vandaag”. Niets tikken = vandaag geen bak. Een bak gaat maximaal 5 dagen mee."
+        uitleg="Tik per product de dag die op de bak staat, zoals op de sticker van de vorige dienst. Is de bak vandaag vers gemaakt? Tik “Vandaag”. Gaat de bak vandaag niet mee of is hij op? Tik dan niets. Een bak gaat maximaal 5 dagen mee."
       />
 
       <div className="divide-y divide-border">
