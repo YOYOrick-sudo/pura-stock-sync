@@ -17,6 +17,19 @@ Zo is het bij het afsluiten per product meteen duidelijk: sticker plakken en bew
 ## Extra: ook in de open-lijst zichtbaar
 De ochtendlijst toont bij dag 5 al oranje "laatste dag" en bij ouder dan 5 dagen rood "weggooien" — dat blijft zo, dat klopt al.
 
+## Extra: ontdooid-datum van de zak (alleen Kip)
+De kip komt uit een gevacumeerde zak uit de vriezer; die zak ligt met een ontdooi-sticker in de koelcel en heeft dus zijn eigen datum. Die datum hoort ook op de bak-sticker.
+
+Zo houden we het simpel:
+
+- **Alleen bij "Vandaag (nieuw)"**: wie een nieuwe bak start, maakt op dat moment ook de zak open. Na het tikken op "Vandaag" verschijnt er direct één extra vraag onder de knoppen: **"Datum op de zak?"** met dezelfde dagknoppen (de datum staat op de ontdooi-sticker van de zak). Eén tik, klaar.
+- **Bij gewone dagen (ma, di, …) geen extra vraag.** De bak gaat door, de zak blijft dezelfde, dus er verandert niets.
+- **Nieuwe zak op een later moment?** Dan is feitelijk de inhoud van de bak ververst: tik opnieuw "Vandaag (nieuw)" en geef de nieuwe zak-datum op. De app overschrijft de oude registratie, er is nooit dubbele of verouderde data.
+- Alleen voor **Kip** (en later andere producten met een vriezer-zak). Vissoep, Tomyum en Ei komen niet uit een vrieszak en krijgen de vraag dus nooit — geen ruis voor producten waar het niet geldt.
+- De datum wordt mee onthouden in dezelfde registratie als de bak, dus hij kan nooit "weg" zijn bij een volgende dienst.
+
+De houdbaarheid blijft gewoon 5 dagen vanaf de bak-start; de ontdooid-datum is informatie op de sticker, geen extra rekenregel.
+
 ## Hoe ziet de sticker eruit
 Eigen stickertype op de bestaande labelprinter (57×32 mm), zelfde uiterlijk als de ontdooi- en bereid-stickers:
 
