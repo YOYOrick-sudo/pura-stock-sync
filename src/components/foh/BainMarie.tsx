@@ -64,55 +64,11 @@ function statusRegel(bak: BainMarieBak | undefined, vandaagIso: string) {
   return <span className={`${chip} bg-muted text-muted-foreground`}>{basis}</span>;
 }
 
-/** Sectiebalk in dezelfde vorm als de voorraadronde: icoonbol, titel, stand, pijltje. */
-function SectieBalk({
-  icoon: Icoon,
-  titel,
-  stand,
-  afgerond,
-  open,
-  onToggle,
-}: {
-  icoon: typeof Soup;
-  titel: string;
-  stand: string;
-  afgerond: boolean;
-  open: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      className={`flex w-full items-center gap-3 rounded-[14px] border px-3.5 py-3 text-left transition-colors ${
-        afgerond ? 'border-primary/30 bg-primary/5' : 'border-border bg-muted'
-      }`}
-      style={{ minHeight: 52 }}
-    >
-      <span
-        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-          afgerond ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground'
-        }`}
-      >
-        {afgerond ? <Check size={16} /> : <Icoon size={16} />}
-      </span>
-      <span className="min-w-0">
-        <span className="block text-[15px] font-bold text-foreground">{titel}</span>
-        <span className="block text-[12px] text-muted-foreground">{stand}</span>
-      </span>
-      <ChevronDown
-        size={20}
-        className={`ml-auto shrink-0 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`}
-      />
-    </button>
-  );
-}
-
 /** Info-icoon boven de lijst, zodat de balk zelf rustig blijft. */
-function Uitleg({ titel, tekst }: { titel: string; tekst: string }) {
+function Uitleg({ titel, tekst, stand }: { titel: string; tekst: string; stand: string }) {
   return (
-    <div className="mb-1 mt-2 flex items-center gap-2">
-      <span className="text-[12px] text-muted-foreground">Hoe werkt dit?</span>
+    <div className="mb-2 flex items-center gap-2">
+      <span className="text-[12px] text-muted-foreground">{stand}</span>
       <InfoKnop tekst={tekst} label={`Uitleg ${titel}`} />
     </div>
   );
