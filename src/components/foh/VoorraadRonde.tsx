@@ -6,6 +6,8 @@ import {
   ChefHat,
   ChevronDown,
   ClipboardList,
+  Clock,
+  History,
   Loader2,
   Minus,
   Plus,
