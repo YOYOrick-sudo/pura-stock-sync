@@ -1135,11 +1135,12 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
               Alles lag er. Er hoeft niets gehaald of besteld te worden.
             </p>
           ) : (
-            <p className="flex items-start gap-1.5 text-[12px] text-muted-foreground">
-              <Clock size={14} className="mt-0.5 shrink-0" />
-              Oudste eerst gebruiken (FIFO) — nieuwe voorraad achteraan zetten.
-            </p>
-            <div className="space-y-3">
+            <>
+              <p className="mb-3 flex items-start gap-1.5 text-[12px] text-muted-foreground">
+                <Clock size={14} className="mt-0.5 shrink-0" />
+                Oudste eerst gebruiken (FIFO) — nieuwe voorraad achteraan zetten.
+              </p>
+              <div className="space-y-3">
               {BON_GROEPEN.map((groep) => {
                 const regels = bon.filter((r) => r.soort === groep.soort);
                 if (!regels.length) return null;
