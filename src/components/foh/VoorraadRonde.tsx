@@ -560,9 +560,12 @@ function CategorieBlok({
     );
   }
 
+  // Aantal al getelde producten — dat zie je mee-scrollen in de sticky ladekop.
+  const geteldAantal = items.filter((i) => telling[i.id] !== undefined).length;
+
   return (
     <div className="rounded-[18px] border border-border bg-muted/30 p-3">
-      <div className="mb-2 flex items-center justify-between gap-2">
+      <div className="sticky top-[58px] z-10 -mx-3 -mt-3 mb-2 flex items-center justify-between gap-2 rounded-t-[18px] border-b border-border/60 bg-muted px-3 py-2.5 backdrop-blur">
         <div className="flex min-w-0 items-center gap-2">
           {lade && <LadePositie lade={lade} metNaam={false} className="shrink-0" />}
           <div className="min-w-0">
@@ -572,8 +575,8 @@ function CategorieBlok({
             )}
           </div>
         </div>
-        <Badge variant="secondary" className="shrink-0 text-[11px]">
-          {items.length} {items.length === 1 ? 'product' : 'producten'}
+        <Badge variant="secondary" className="shrink-0 text-[11px] tabular-nums">
+          {geteldAantal}/{items.length}
         </Badge>
       </div>
 
@@ -1094,11 +1097,19 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
 
   /** Toelichting op de stand, binnen het uitgeklapte blok. */
   const standRegel = (
-    <p className="mb-3 text-[12px] text-muted-foreground">
-      {afgerond
-        ? 'Afgerond — aanvulbon is doorgezet'
-        : `${klaarAantal}/${alleSleutels.length} onderdelen geteld`}
-    </p>
+    <>
+      <p className="mb-3 text-[12px] text-muted-foreground">
+        {afgerond
+          ? 'Afgerond — aanvulbon is doorgezet'
+          : `${klaarAantal}/${alleSleutels.length} onderdelen geteld`}
+      </p>
+      {teruggezet && !afgerond && (
+        <p className="mb-3 flex items-center gap-1.5 text-[12px] font-medium text-primary">
+          <History size={14} />
+          Telling teruggezet — ga door waar je was.
+        </p>
+      )}
+    </>
   );
 
   const inhoud = () => {
@@ -1319,7 +1330,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   };
 
   return (
-    <div style={{ marginBottom: '32px' }}>
+    <div id="voorraadronde-blok" style={{ marginBottom: '32px' }}>
       {kop}
       {open && (
         <>
