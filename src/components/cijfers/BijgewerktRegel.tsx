@@ -60,7 +60,10 @@ export function BijgewerktRegel() {
   if (q.data?.eitje?.klaar_op) tooltipParts.push(`Eitje: ${formatRelative(q.data.eitje.klaar_op)}`);
 
   const { isOwner } = useRole();
-  const text = nieuwste ? `Bijgewerkt: ${formatRelative(nieuwste as string)}` : 'Nog niet bijgewerkt';
+  const basis = nieuwste ? `Bijgewerkt: ${formatRelative(nieuwste as string)}` : 'Nog niet bijgewerkt';
+  const text = level === 'alarm'
+    ? `${basis} — cijfers lopen achter, ophalen lukt niet`
+    : basis;
   const classes = cn(
     'text-xs text-center pt-2 transition-colors',
     level === 'ok' && 'text-muted-foreground',
