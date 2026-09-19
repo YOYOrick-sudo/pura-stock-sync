@@ -1928,6 +1928,7 @@ export type Database = {
           bestel_eenheid: string | null
           bestel_inhoud: number | null
           bestelpunt: number | null
+          bon_notitie: string | null
           bron: string
           categorie: string | null
           created_at: string
@@ -1956,6 +1957,7 @@ export type Database = {
           bestel_eenheid?: string | null
           bestel_inhoud?: number | null
           bestelpunt?: number | null
+          bon_notitie?: string | null
           bron?: string
           categorie?: string | null
           created_at?: string
@@ -1984,6 +1986,7 @@ export type Database = {
           bestel_eenheid?: string | null
           bestel_inhoud?: number | null
           bestelpunt?: number | null
+          bon_notitie?: string | null
           bron?: string
           categorie?: string | null
           created_at?: string
