@@ -682,28 +682,65 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const [bezig, setBezig] = useState(false);
   const [samenvatting, setSamenvatting] = useState<Record<BonSoort, number> | null>(null);
 
-  // Tussenstand bewaren: de ronde overleeft een herstart van de iPad.
+  const [teruggezet, setTeruggezet] = useState(false);
+
+  // Tussenstand bewaren: de ronde overleeft een vergrendeld scherm of herstart.
   useEffect(() => {
     try {
       const ruw = localStorage.getItem(opslagSleutel);
       if (ruw) {
         const data = JSON.parse(ruw);
-        setTelling(data.telling ?? {});
-        setBevestigd(data.bevestigd ?? []);
+        const bewaardTelling = data.telling ?? {};
+        const bewaardBevestigd = data.bevestigd ?? [];
+        setTelling(bewaardTelling);
+        setBevestigd(bewaardBevestigd);
+        setHeropend(data.heropend ?? []);
         if (data.klaar) setStap('klaar');
+        else if (Object.keys(bewaardTelling).length > 0 || bewaardBevestigd.length > 0) {
+          setTeruggezet(true);
+        }
       }
     } catch {
       /* stille fallback */
     }
-  }, [opslagSleutel]);
-
-  useEffect(() => {
+    // Snelle ingang op de telefoon: de knop "Voorraad tellen" vraagt om direct openen.
     try {
-      localStorage.setItem(opslagSleutel, JSON.stringify({ telling, bevestigd }));
+      const startOpenSleutel = `voorraadronde-start-open-${vestiging}`;
+      if (localStorage.getItem(startOpenSleutel) === '1') {
+        localStorage.removeItem(startOpenSleutel);
+        setOpen(true);
+        window.setTimeout(() => {
+          document
+            .getElementById('voorraadronde-blok')
+            ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 120);
+      }
     } catch {
       /* stille fallback */
     }
-  }, [opslagSleutel, telling, bevestigd]);
+  }, [opslagSleutel, vestiging]);
+
+  // Al gemounte ronde: knop "Voorraad tellen" opent en scrollt er direct naartoe.
+  useEffect(() => {
+    const openBijVerzoek = () => {
+      setOpen(true);
+      window.setTimeout(() => {
+        document
+          .getElementById('voorraadronde-blok')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 120);
+    };
+    window.addEventListener('voorraadronde-open', openBijVerzoek);
+    return () => window.removeEventListener('voorraadronde-open', openBijVerzoek);
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(opslagSleutel, JSON.stringify({ telling, bevestigd, heropend }));
+    } catch {
+      /* stille fallback */
+    }
+  }, [opslagSleutel, telling, bevestigd, heropend]);
 
   const maandag = isMaandag(datum);
   const onderwegMap = onderwegQuery.data ?? {};
@@ -1098,6 +1135,10 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
               Alles lag er. Er hoeft niets gehaald of besteld te worden.
             </p>
           ) : (
+            <p className="flex items-start gap-1.5 text-[12px] text-muted-foreground">
+              <Clock size={14} className="mt-0.5 shrink-0" />
+              Oudste eerst gebruiken (FIFO) — nieuwe voorraad achteraan zetten.
+            </p>
             <div className="space-y-3">
               {BON_GROEPEN.map((groep) => {
                 const regels = bon.filter((r) => r.soort === groep.soort);
