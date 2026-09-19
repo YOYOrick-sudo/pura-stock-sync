@@ -1206,7 +1206,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                   </div>
                 );
               })}
-            </div>
+              </div>
+            </>
           )}
 
           <div className="mt-4 flex gap-2">
