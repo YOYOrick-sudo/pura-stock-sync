@@ -16,9 +16,9 @@ export function SyncStoringBlok() {
   const q = useQuery({
     queryKey: ['sync-cron-storingen'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('rpc_sync_cron_storingen');
+      const { data, error } = await (supabase.rpc as any)('rpc_sync_cron_storingen');
       if (error) throw error;
-      return (data ?? []) as Storing[];
+      return ((data ?? []) as Storing[]);
     },
     refetchInterval: 120_000,
   });
