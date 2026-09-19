@@ -166,7 +166,7 @@ export function doelAantal(item: KoelcelCheckItem, drukte: DrukteModus): number 
  * en als daar geen regel voor is rechtstreeks uit de vriescel.
  */
 export const NIVEAU_KETEN: Record<VoorraadPlek, VoorraadPlek[]> = {
-  werkbank: ['koelcel', 'vriezer'],
+  werkbank: ['koelcel', 'vriezer', 'magazijn'],
   werkblad: ['magazijn', 'koelcel', 'vriezer'],
   magazijn: [],
   koelcel: ['magazijn', 'vriezer'],
