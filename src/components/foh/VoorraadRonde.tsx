@@ -6,6 +6,8 @@ import {
   ChefHat,
   ChevronDown,
   ClipboardList,
+  Clock,
+  History,
   Loader2,
   Minus,
   Plus,
@@ -558,9 +560,12 @@ function CategorieBlok({
     );
   }
 
+  // Aantal al getelde producten — dat zie je mee-scrollen in de sticky ladekop.
+  const geteldAantal = items.filter((i) => telling[i.id] !== undefined).length;
+
   return (
     <div className="rounded-[18px] border border-border bg-muted/30 p-3">
-      <div className="mb-2 flex items-center justify-between gap-2">
+      <div className="sticky top-[58px] z-10 -mx-3 -mt-3 mb-2 flex items-center justify-between gap-2 rounded-t-[18px] border-b border-border/60 bg-muted px-3 py-2.5 backdrop-blur">
         <div className="flex min-w-0 items-center gap-2">
           {lade && <LadePositie lade={lade} metNaam={false} className="shrink-0" />}
           <div className="min-w-0">
@@ -570,8 +575,8 @@ function CategorieBlok({
             )}
           </div>
         </div>
-        <Badge variant="secondary" className="shrink-0 text-[11px]">
-          {items.length} {items.length === 1 ? 'product' : 'producten'}
+        <Badge variant="secondary" className="shrink-0 text-[11px] tabular-nums">
+          {geteldAantal}/{items.length}
         </Badge>
       </div>
 
@@ -680,28 +685,65 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const [bezig, setBezig] = useState(false);
   const [samenvatting, setSamenvatting] = useState<Record<BonSoort, number> | null>(null);
 
-  // Tussenstand bewaren: de ronde overleeft een herstart van de iPad.
+  const [teruggezet, setTeruggezet] = useState(false);
+
+  // Tussenstand bewaren: de ronde overleeft een vergrendeld scherm of herstart.
   useEffect(() => {
     try {
       const ruw = localStorage.getItem(opslagSleutel);
       if (ruw) {
         const data = JSON.parse(ruw);
-        setTelling(data.telling ?? {});
-        setBevestigd(data.bevestigd ?? []);
+        const bewaardTelling = data.telling ?? {};
+        const bewaardBevestigd = data.bevestigd ?? [];
+        setTelling(bewaardTelling);
+        setBevestigd(bewaardBevestigd);
+        setHeropend(data.heropend ?? []);
         if (data.klaar) setStap('klaar');
+        else if (Object.keys(bewaardTelling).length > 0 || bewaardBevestigd.length > 0) {
+          setTeruggezet(true);
+        }
       }
     } catch {
       /* stille fallback */
     }
-  }, [opslagSleutel]);
-
-  useEffect(() => {
+    // Snelle ingang op de telefoon: de knop "Voorraad tellen" vraagt om direct openen.
     try {
-      localStorage.setItem(opslagSleutel, JSON.stringify({ telling, bevestigd }));
+      const startOpenSleutel = `voorraadronde-start-open-${vestiging}`;
+      if (localStorage.getItem(startOpenSleutel) === '1') {
+        localStorage.removeItem(startOpenSleutel);
+        setOpen(true);
+        window.setTimeout(() => {
+          document
+            .getElementById('voorraadronde-blok')
+            ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 120);
+      }
     } catch {
       /* stille fallback */
     }
-  }, [opslagSleutel, telling, bevestigd]);
+  }, [opslagSleutel, vestiging]);
+
+  // Al gemounte ronde: knop "Voorraad tellen" opent en scrollt er direct naartoe.
+  useEffect(() => {
+    const openBijVerzoek = () => {
+      setOpen(true);
+      window.setTimeout(() => {
+        document
+          .getElementById('voorraadronde-blok')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 120);
+    };
+    window.addEventListener('voorraadronde-open', openBijVerzoek);
+    return () => window.removeEventListener('voorraadronde-open', openBijVerzoek);
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(opslagSleutel, JSON.stringify({ telling, bevestigd, heropend }));
+    } catch {
+      /* stille fallback */
+    }
+  }, [opslagSleutel, telling, bevestigd, heropend]);
 
   const maandag = isMaandag(datum);
   const onderwegMap = onderwegQuery.data ?? {};
@@ -1055,11 +1097,19 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
 
   /** Toelichting op de stand, binnen het uitgeklapte blok. */
   const standRegel = (
-    <p className="mb-3 text-[12px] text-muted-foreground">
-      {afgerond
-        ? 'Afgerond — aanvulbon is doorgezet'
-        : `${klaarAantal}/${alleSleutels.length} onderdelen geteld`}
-    </p>
+    <>
+      <p className="mb-3 text-[12px] text-muted-foreground">
+        {afgerond
+          ? 'Afgerond — aanvulbon is doorgezet'
+          : `${klaarAantal}/${alleSleutels.length} onderdelen geteld`}
+      </p>
+      {teruggezet && !afgerond && (
+        <p className="mb-3 flex items-center gap-1.5 text-[12px] font-medium text-primary">
+          <History size={14} />
+          Telling teruggezet — ga door waar je was.
+        </p>
+      )}
+    </>
   );
 
   const inhoud = () => {
@@ -1096,7 +1146,12 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
               Alles lag er. Er hoeft niets gehaald of besteld te worden.
             </p>
           ) : (
-            <div className="space-y-3">
+            <>
+              <p className="mb-3 flex items-start gap-1.5 text-[12px] text-muted-foreground">
+                <Clock size={14} className="mt-0.5 shrink-0" />
+                Oudste eerst gebruiken (FIFO) — nieuwe voorraad achteraan zetten.
+              </p>
+              <div className="space-y-3">
               {BON_GROEPEN.map((groep) => {
                 const regels = bon.filter((r) => r.soort === groep.soort);
                 if (!regels.length) return null;
@@ -1162,7 +1217,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                   </div>
                 );
               })}
-            </div>
+              </div>
+            </>
           )}
 
           <div className="mt-4 flex gap-2">
@@ -1274,7 +1330,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   };
 
   return (
-    <div style={{ marginBottom: '32px' }}>
+    <div id="voorraadronde-blok" style={{ marginBottom: '32px' }}>
       {kop}
       {open && (
         <>
