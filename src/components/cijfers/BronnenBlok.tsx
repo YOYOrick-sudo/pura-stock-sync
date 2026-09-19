@@ -9,6 +9,7 @@ import { StatusBadge, type StatusTone } from '@/components/pura/StatusBadge';
 import { EmptyState } from '@/components/pura/EmptyState';
 import { toast } from '@/hooks/use-toast';
 import { BackfillProgressDialog, type BackfillState, type WeekResult } from './BackfillProgressDialog';
+import { SyncStoringBlok } from './SyncStoringBlok';
 
 function addDaysISO(iso: string, days: number): string {
   const d = new Date(`${iso}T00:00:00Z`);
@@ -336,6 +337,8 @@ export function BronnenBlok() {
         onRetryFailed={retryFailed}
       />
       <div className="text-base font-semibold text-foreground">Bronnen</div>
+
+      <SyncStoringBlok />
 
 
 

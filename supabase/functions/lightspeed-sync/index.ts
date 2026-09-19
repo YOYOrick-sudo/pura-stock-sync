@@ -16,6 +16,9 @@ const ANON = Deno.env.get('SUPABASE_ANON_KEY')!;
 const CLIENT_ID = Deno.env.get('LIGHTSPEED_CLIENT_ID')!;
 const CLIENT_SECRET = Deno.env.get('LIGHTSPEED_CLIENT_SECRET') ?? '';
 const SYNC_TOKEN = Deno.env.get('LIGHTSPEED_SYNC_TOKEN')!;
+// Tweede geldig cron-token: staat ook in vault (cron_sync_token) zodat
+// trigger_sync_edge() de sync kan starten zonder service_role key.
+const CRON_TOKEN = Deno.env.get('CRON_SYNC_TOKEN') ?? '';
 
 const TOKEN_URL = 'https://lightspeedapis.com/resto/oauth2/v1/token';
 // Receipts endpoint: nog te bevestigen bij eerste live call (paginering + veldnamen).
@@ -75,7 +78,7 @@ export function computeWerkdagUur(iso: string): { werkdag: string; uur: number }
 async function requireAuth(req: Request): Promise<Response | null> {
   // 1) Cron header token
   const syncHeader = req.headers.get('x-sync-token');
-  if (syncHeader && syncHeader === SYNC_TOKEN) return null;
+  if (syncHeader && (syncHeader === SYNC_TOKEN || (CRON_TOKEN && syncHeader === CRON_TOKEN))) return null;
 
   const auth = req.headers.get('Authorization') ?? '';
   const jwt = auth.replace('Bearer ', '');

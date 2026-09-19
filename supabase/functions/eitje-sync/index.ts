@@ -25,6 +25,8 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const ANON = Deno.env.get('SUPABASE_ANON_KEY')!;
 const SYNC_TOKEN = Deno.env.get('EITJE_SYNC_TOKEN')!;
+// Tweede geldig cron-token (ook in vault als cron_sync_token).
+const CRON_TOKEN = Deno.env.get('CRON_SYNC_TOKEN') ?? '';
 
 const API_USERNAME = Deno.env.get('EITJE_API_USERNAME') ?? '';
 const API_PASSWORD = Deno.env.get('EITJE_API_PASSWORD') ?? '';
@@ -71,7 +73,7 @@ function chunkWindows(van: string, tot: string, size = MAX_WINDOW_DAYS): Array<{
 // ------------------------------------------------------------------
 async function requireAuth(req: Request): Promise<Response | null> {
   const syncHeader = req.headers.get('x-sync-token');
-  if (syncHeader && syncHeader === SYNC_TOKEN) return null;
+  if (syncHeader && (syncHeader === SYNC_TOKEN || (CRON_TOKEN && syncHeader === CRON_TOKEN))) return null;
 
   const auth = req.headers.get('Authorization') ?? '';
   const jwt = auth.replace('Bearer ', '');
