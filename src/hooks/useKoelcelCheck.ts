@@ -60,6 +60,8 @@ export interface KoelcelCheckItem {
   bestel_inhoud?: number | null;
   /** Bij welke leverancier dit besteld wordt; getoond op het bestelbord. */
   leverancier?: string | null;
+  /** Korte herinnering die op de aanvulbon onder het product staat (bijv. FIFO bij brood). */
+  bon_notitie?: string | null;
 }
 
 const MEERVOUD: Record<string, string> = {

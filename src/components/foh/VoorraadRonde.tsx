@@ -1130,9 +1130,14 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                                  ? ` · ${r.item.leverancier}`
                                  : ''}
                              </span>
-                            {ladeVan(r.item) && (
-                              <LadePositie lade={ladeVan(r.item)} className="mt-0.5" />
-                            )}
+                             {r.item.bon_notitie && (
+                               <span className="block text-[12px] italic text-muted-foreground">
+                                 {r.item.bon_notitie}
+                               </span>
+                             )}
+                             {ladeVan(r.item) && (
+                               <LadePositie lade={ladeVan(r.item)} className="mt-0.5" />
+                             )}
                           </span>
                           <span
                             className={`shrink-0 text-right text-[14px] font-bold ${
