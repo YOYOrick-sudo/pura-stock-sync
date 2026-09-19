@@ -5122,6 +5122,15 @@ export type Database = {
           user_id: string
         }[]
       }
+      rpc_sync_cron_storingen: {
+        Args: never
+        Returns: {
+          jobname: string
+          melding: string
+          start_time: string
+          status: string
+        }[]
+      }
       sticker_producten_bump: {
         Args: { _naam: string; _tht: number; _type: string }
         Returns: string
