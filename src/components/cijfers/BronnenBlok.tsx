@@ -337,6 +337,8 @@ export function BronnenBlok() {
       />
       <div className="text-base font-semibold text-foreground">Bronnen</div>
 
+      <SyncStoringBlok />
+
 
 
       {statusQ.isLoading ? (
