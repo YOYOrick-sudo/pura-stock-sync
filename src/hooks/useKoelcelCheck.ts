@@ -139,8 +139,12 @@ export function isReserveItem(item: KoelcelCheckItem): boolean {
   return item.plek === 'werkbank' && reserveDoel(item) > 0;
 }
 
-/** Koelwerkbankproduct zonder reserve: beoordelen op vol/half/bodempje/leeg. */
+/**
+ * Bakje dat je beoordeelt op vol/half/bodempje/leeg: de koelwerkbank zonder
+ * reserve-afspraak, en de toppingbakjes op het werkblad (de pas).
+ */
 export function isVulItem(item: KoelcelCheckItem): boolean {
+  if (item.plek === 'werkblad') return true;
   return item.plek === 'werkbank' && reserveDoel(item) === 0;
 }
 
