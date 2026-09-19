@@ -919,6 +919,7 @@ export function FohTasks() {
   const { userLocation } = useUserLocation();
   const queryClient = useQueryClient();
   const isTablet = useIsTablet();
+  const isMobiel = useIsMobile();
   const navigate = useNavigate();
   
   const [mainCategory, setMainCategory] = useState<'dagelijks' | 'periodiek'>('dagelijks');
@@ -2786,6 +2787,48 @@ export function FohTasks() {
             </div>
 
             <hr style={{ border: 'none', borderTop: '1px solid hsl(var(--border))', margin: 0 }} />
+
+            {/* Snelle ingang: op de telefoon direct de voorraadronde tellen (West). */}
+            {userLocation === 'West' && isMobiel && !isReadOnly && (
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    localStorage.setItem('voorraadronde-start-open-West', '1');
+                  } catch {
+                    /* stille fallback */
+                  }
+                  setMainCategory('dagelijks');
+                  setActivePhase('sluit');
+                  setIsPhaseManuallySelected(true);
+                  setVisibleTab('keuken');
+                  window.setTimeout(() => {
+                    window.dispatchEvent(new Event('voorraadronde-open'));
+                  }, 250);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  minHeight: '48px',
+                  padding: '10px 14px',
+                  borderRadius: '12px',
+                  border: '1px solid hsl(var(--primary) / 0.3)',
+                  backgroundColor: 'hsl(var(--primary) / 0.08)',
+                  color: 'hsl(var(--primary))',
+                  fontSize: '15px',
+                  fontWeight: 600,
+                  fontFamily: 'Inter, sans-serif',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <ClipboardList size={18} />
+                Voorraad tellen
+              </button>
+            )}
 
             {/* West: compacte sectietabs Bediening / Keuken */}
             {userLocation === 'West' && mainCategory === 'dagelijks' && (
