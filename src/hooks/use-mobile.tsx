@@ -1,6 +1,8 @@
 import * as React from "react";
 
-const MOBILE_BREAKPOINT = 600;
+// De vaste zijbalk past vanaf iPad mini-breedte; alles daaronder gebruikt de
+// compacte telefoonweergave en het uitschuifmenu.
+const MOBILE_BREAKPOINT = 744;
 const TABLET_BREAKPOINT = 1024;
 
 export function useIsMobile() {

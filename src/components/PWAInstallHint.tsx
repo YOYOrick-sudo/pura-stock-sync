@@ -47,7 +47,7 @@ export const PWAInstallHint = () => {
   };
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 max-w-[440px] w-[calc(100%-2rem)]">
+    <div className="fixed bottom-[calc(1rem+var(--safe-bottom))] left-1/2 z-50 w-[calc(100%-2rem-var(--safe-left)-var(--safe-right))] max-w-[440px] -translate-x-1/2">
       <div className="bg-card border border-border rounded-2xl shadow-elevated p-4 flex items-start gap-3">
         <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center shrink-0">
           <Share className="w-4 h-4 text-primary" />
@@ -63,7 +63,7 @@ export const PWAInstallHint = () => {
         <button
           onClick={dismiss}
           aria-label="Sluiten"
-          className="w-7 h-7 rounded-lg hover:bg-muted flex items-center justify-center shrink-0 text-muted-foreground"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] text-muted-foreground hover:bg-muted"
         >
           <X className="w-4 h-4" />
         </button>

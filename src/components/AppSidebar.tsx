@@ -33,9 +33,10 @@ const allNavigationItems = [
 
 interface AppSidebarProps {
   onNavigate?: () => void;
+  mobile?: boolean;
 }
 
-export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
+export function AppSidebar({ onNavigate, mobile = false }: AppSidebarProps = {}) {
   const location = useLocation();
   const navigate = useNavigate();
   const { userLocation } = useUserLocation();
@@ -96,6 +97,8 @@ export function AppSidebar({ onNavigate }: AppSidebarProps = {}) {
       }))}
       collapsed={collapsed}
       onToggle={() => setCollapsed(!collapsed)}
+      allowCollapse={!mobile}
+      mobile={mobile}
       footerSlot={!collapsed ? <ThemeToggle /> : undefined}
       logoutSlot={
         <Button

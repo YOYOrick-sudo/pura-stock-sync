@@ -84,9 +84,9 @@ export function SidebarLayout({
       {/* Mobile Menu Sheet */}
       {isMobile && (
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetContent side="left" className="w-[280px] p-0 bg-card">
-            <div style={{ paddingTop: '16px' }}>
-              <AppSidebar onNavigate={() => setMobileMenuOpen(false)} />
+          <SheetContent side="left" className="w-[min(86vw,320px)] border-r-border bg-card p-0 [&>button]:right-[calc(0.75rem+var(--safe-right))] [&>button]:top-[calc(0.75rem+var(--safe-top))] [&>button]:h-11 [&>button]:w-11">
+            <div className="h-full pt-[var(--safe-top)]">
+              <AppSidebar onNavigate={() => setMobileMenuOpen(false)} mobile />
             </div>
           </SheetContent>
         </Sheet>
@@ -105,7 +105,7 @@ export function SidebarLayout({
           />
         )}
         
-        <main className="px-6 md:px-10 lg:px-16 pt-2 md:pt-3 pb-6 md:pb-8 min-w-0">
+        <main className="min-w-0 px-[calc(1rem+var(--safe-left))] pb-[calc(1.5rem+var(--safe-bottom))] pt-2 md:px-10 md:pb-8 md:pt-3 lg:px-16">
           {children}
         </main>
       </div>
