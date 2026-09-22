@@ -2544,13 +2544,13 @@ export function FohTasks() {
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
       <div style={{
         backgroundColor: 'hsl(var(--card))',
-        borderRadius: '20px',
-        border: '1px solid hsl(var(--border))',
-        padding: '24px',
-        boxShadow: '0 1px 3px hsl(var(--foreground) / 0.06)',
+        borderRadius: isMobiel ? '16px' : '20px',
+        border: isMobiel ? 'none' : '1px solid hsl(var(--border))',
+        padding: isMobiel ? '14px' : '24px',
+        boxShadow: isMobiel ? 'none' : '0 1px 3px hsl(var(--foreground) / 0.06)',
         position: 'relative',
       }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: isMobiel ? '14px' : '20px' }}>
 
           {/* ===== DAY NAVIGATOR (compact) ===== */}
           {(() => {
@@ -2579,8 +2579,8 @@ export function FohTasks() {
                 disabled={!enabled}
                 aria-label={label}
                 style={{
-                  width: '40px',
-                  height: '40px',
+                  width: '44px',
+                  height: '44px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -2615,12 +2615,13 @@ export function FohTasks() {
                   title={isToday ? '' : 'Terug naar vandaag'}
                   style={{
                     flex: 1,
-                    height: '40px',
+                    minWidth: 0,
+                    height: '44px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    padding: '0 12px',
+                    padding: '0 8px',
                     backgroundColor: 'transparent',
                     border: 'none',
                     borderRadius: '14px',
@@ -2631,7 +2632,9 @@ export function FohTasks() {
                     fontWeight: isToday ? 600 : 500,
                   }}
                 >
-                  <span>{isToday ? `Vandaag · ${dateLabel}` : dateLabel}</span>
+                  <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {isToday ? `Vandaag · ${dateLabel}` : dateLabel}
+                  </span>
                   {!isToday && (
                     <span style={{
                       padding: '2px 8px',
@@ -2654,7 +2657,12 @@ export function FohTasks() {
 
 
           {/* Single row with all buttons */}
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div style={{
+            display: isMobiel ? 'grid' : 'flex',
+            gridTemplateColumns: isMobiel ? 'repeat(2, minmax(0, 1fr))' : undefined,
+            gap: '8px',
+            alignItems: 'stretch',
+          }}>
 
               
               {/* Dagelijks phase buttons */}
@@ -2682,15 +2690,15 @@ export function FohTasks() {
                       }
                     }}
                     style={{
-                      flex: 1,
+                      flex: isMobiel ? undefined : 1,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '6px',
                       fontSize: '15px',
                       fontWeight: 500,
-                  padding: '8px 12px',
-                  minHeight: '36px',
+                  padding: isMobiel ? '10px 8px' : '8px 12px',
+                  minHeight: isMobiel ? '52px' : '36px',
                   backgroundColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--card))',
                   color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
                   border: isActive ? 'none' : '1px solid hsl(var(--border))',
@@ -2718,7 +2726,7 @@ export function FohTasks() {
               })}
               
             {/* Visual separator — verborgen in read-only verleden */}
-            {!isReadOnly && (
+            {!isReadOnly && !isMobiel && (
               <div style={{
                 width: '1px',
                 height: '20px',
@@ -2750,15 +2758,15 @@ export function FohTasks() {
                       }
                     }}
                     style={{
-                      flex: 1,
+                      flex: isMobiel ? undefined : 1,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '6px',
                       fontSize: '15px',
                       fontWeight: 500,
-                    padding: '8px 12px',
-                    minHeight: '36px',
+                    padding: isMobiel ? '10px 8px' : '8px 12px',
+                    minHeight: isMobiel ? '52px' : '36px',
                     backgroundColor: isActive ? 'hsl(var(--primary))' : 'hsl(var(--card))',
                     color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
                     border: isActive ? 'none' : '1px solid hsl(var(--border))',
@@ -2809,12 +2817,12 @@ export function FohTasks() {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
+                  justifyContent: 'space-between',
                   gap: '8px',
                   width: '100%',
-                  minHeight: '48px',
-                  padding: '10px 14px',
-                  borderRadius: '12px',
+                  minHeight: '64px',
+                  padding: '10px 12px',
+                  borderRadius: '14px',
                   border: '1px solid hsl(var(--primary) / 0.3)',
                   backgroundColor: 'hsl(var(--primary) / 0.08)',
                   color: 'hsl(var(--primary))',
@@ -2825,15 +2833,30 @@ export function FohTasks() {
                   transition: 'all 0.15s ease',
                 }}
               >
-                <ClipboardList size={18} />
-                Voorraad tellen
+                <span style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                  <span style={{ width: 40, height: 40, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: 'hsl(var(--card))' }}>
+                    <ClipboardList size={20} />
+                  </span>
+                  <span style={{ minWidth: 0, textAlign: 'left' }}>
+                    <span style={{ display: 'block', fontSize: 15, fontWeight: 700 }}>Voorraadronde</span>
+                    <span style={{ display: 'block', fontSize: 12, fontWeight: 500, color: 'hsl(var(--muted-foreground))' }}>
+                      Koelwerkbank en voorraad tellen
+                    </span>
+                  </span>
+                </span>
+                <ChevronRight size={20} style={{ flexShrink: 0 }} />
               </button>
             )}
 
             {/* West: compacte sectietabs Bediening / Keuken */}
             {userLocation === 'West' && mainCategory === 'dagelijks' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: isMobiel ? 'column' : 'row',
+                  alignItems: isMobiel ? 'stretch' : 'center',
+                  gap: '6px',
+                }}>
                   <div style={{
                     flex: 1,
                     display: 'flex',
@@ -2860,7 +2883,7 @@ export function FohTasks() {
                           onClick={() => setVisibleTab(key)}
                           style={{
                             flex: 1,
-                            minHeight: '34px',
+                            minHeight: '44px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -2896,7 +2919,13 @@ export function FohTasks() {
                   </div>
 
                   {/* Compacte actieknoppen rechts van de tabs */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: isMobiel ? 'flex-end' : 'flex-start',
+                    gap: '6px',
+                    flexShrink: 0,
+                  }}>
                     {/* West: lokale standaardsectie is bewust los van het afgeschermde takenbeheer. */}
                     {!isReadOnly && (
                       <button
@@ -2904,8 +2933,8 @@ export function FohTasks() {
                         aria-label="Standaardsectie van deze iPad instellen"
                         onClick={() => setDeviceModeDialogOpen(true)}
                         style={{
-                          width: '40px',
-                          height: '40px',
+                          width: '44px',
+                          height: '44px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -2933,8 +2962,8 @@ export function FohTasks() {
                         onClick={() => setPasswordDialogOpen(true)}
                         aria-label="Takenbeheer openen"
                         style={{
-                          width: '40px',
-                          height: '40px',
+                          width: '44px',
+                          height: '44px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
