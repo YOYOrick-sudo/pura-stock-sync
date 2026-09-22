@@ -51,12 +51,12 @@ export function PolarHeader({
   const canSwitch = !!locationOptions && locationOptions.length > 1 && !!onLocationChange;
 
   return (
-    <div className="flex items-center justify-between gap-4 px-6 md:px-10 lg:px-16 py-5 md:py-6 bg-background">
+    <div className="flex items-center justify-between gap-4 bg-background px-4 pb-4 pt-[calc(1rem+var(--safe-top))] md:px-10 md:py-6 lg:px-16">
       <div className="flex items-center gap-3 min-w-0">
         {onMenuClick && (
           <button
             onClick={onMenuClick}
-            className="flex items-center justify-center w-10 h-10 rounded-lg transition-colors border border-border hover:bg-muted shrink-0"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] border border-border transition-colors hover:bg-muted"
             aria-label="Open menu"
           >
             <Menu size={20} className="text-foreground" />

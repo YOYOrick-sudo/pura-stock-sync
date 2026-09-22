@@ -26,6 +26,8 @@ export interface PolarSidebarProps {
   items: PolarSidebarItem[];
   collapsed: boolean;
   onToggle: () => void;
+  allowCollapse?: boolean;
+  mobile?: boolean;
   footerSlot?: React.ReactNode;
   logoutSlot?: React.ReactNode;
 }
@@ -51,6 +53,8 @@ export function PolarSidebar({
   items,
   collapsed,
   onToggle,
+  allowCollapse = true,
+  mobile = false,
   footerSlot,
   logoutSlot,
 }: PolarSidebarProps) {
@@ -136,15 +140,18 @@ export function PolarSidebar({
 
   return (
     <aside
-      className="polar-sidebar flex flex-col bg-card border border-border/60 rounded-[20px] overflow-hidden"
+      className={cn(
+        'polar-sidebar flex flex-col overflow-hidden bg-card',
+        mobile ? 'border-0' : 'rounded-[20px] border border-border/60',
+      )}
       style={{
-        width: collapsed ? '76px' : '230px',
-        height: 'calc(100vh - 24px)',
-        position: 'sticky',
-        top: '12px',
-        margin: '12px',
+        width: mobile ? '100%' : collapsed ? '76px' : '230px',
+        height: mobile ? '100%' : 'calc(100vh - 24px)',
+        position: mobile ? 'relative' : 'sticky',
+        top: mobile ? 0 : '12px',
+        margin: mobile ? 0 : '12px',
         transition: 'width 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-        boxShadow: 'var(--shadow-card)',
+        boxShadow: mobile ? 'none' : 'var(--shadow-card)',
       }}
     >
       {/* Header */}
@@ -159,15 +166,17 @@ export function PolarSidebar({
         {!collapsed ? (
           <>
             <div className="overflow-hidden flex items-center">{logo}</div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onToggle}
-              aria-label="Sidebar inklappen"
-              className="h-10 w-10 rounded-md hover:bg-muted shrink-0"
-            >
-              <PanelLeftClose className="h-5 w-5 text-foreground/50" strokeWidth={1.75} />
-            </Button>
+            {allowCollapse && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onToggle}
+                aria-label="Sidebar inklappen"
+                className="h-11 w-11 shrink-0 rounded-[14px] hover:bg-muted"
+              >
+                <PanelLeftClose className="h-5 w-5 text-foreground/50" strokeWidth={1.75} />
+              </Button>
+            )}
           </>
         ) : collapsedLogo ? (
           <div className="mx-auto flex items-center justify-center">
@@ -210,15 +219,15 @@ export function PolarSidebar({
         {collapsed ? (
           <div className="flex flex-col items-center gap-2">
             {logoutSlot}
-            <Button
+            {allowCollapse && <Button
               variant="ghost"
               size="icon"
               onClick={onToggle}
               aria-label="Sidebar uitklappen"
-              className="h-10 w-10 rounded-md hover:bg-muted"
+              className="h-11 w-11 rounded-[14px] hover:bg-muted"
             >
               <PanelLeft className="h-5 w-5 text-muted-foreground" strokeWidth={1.75} />
-            </Button>
+            </Button>}
           </div>
         ) : (
           <div className="flex items-center justify-between">
