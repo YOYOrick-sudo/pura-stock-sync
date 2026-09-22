@@ -357,7 +357,7 @@ function TelRegel({
             </span>
           )}
         </div>
-        <div className="grid grid-cols-4 gap-1.5">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-1.5">
           {VUL_KEUZES.map((k) => {
             const actief = afwijkend && Math.abs(waarde - k.waarde) < 0.001;
             return (
@@ -365,12 +365,12 @@ function TelRegel({
                 key={k.label}
                 type="button"
                 onClick={() => onZet(k.waarde)}
-                className={`flex items-center justify-center rounded-[12px] border text-[13px] font-semibold capitalize ${
+                className={`flex items-center justify-center rounded-[12px] border px-2 text-[14px] font-semibold capitalize ${
                   actief
                     ? 'border-primary bg-primary text-primary-foreground'
                     : 'border-border bg-card text-foreground'
                 }`}
-                style={{ minHeight: 44 }}
+                style={{ minHeight: 48 }}
               >
                 {k.label}
               </button>
@@ -564,8 +564,8 @@ function CategorieBlok({
   const geteldAantal = items.filter((i) => telling[i.id] !== undefined).length;
 
   return (
-    <div className="rounded-[18px] border border-border bg-muted/30 p-3">
-      <div className="sticky top-[58px] z-10 -mx-3 -mt-3 mb-2 flex items-center justify-between gap-2 rounded-t-[18px] border-b border-border/60 bg-muted px-3 py-2.5 backdrop-blur">
+    <div className="rounded-[14px] border border-border bg-muted/20 p-2.5 sm:rounded-[18px] sm:p-3">
+      <div className="sticky top-[calc(58px+env(safe-area-inset-top,0px))] z-10 -mx-2.5 -mt-2.5 mb-2 flex min-h-12 items-center justify-between gap-2 rounded-t-[14px] border-b border-border/60 bg-muted px-3 py-2.5 backdrop-blur sm:-mx-3 sm:-mt-3 sm:rounded-t-[18px]">
         <div className="flex min-w-0 items-center gap-2">
           {lade && <LadePositie lade={lade} metNaam={false} className="shrink-0" />}
           <div className="min-w-0">
@@ -580,7 +580,7 @@ function CategorieBlok({
         </Badge>
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid gap-2 md:grid-cols-2">
         {items.map((item) => (
           <TelRegel
             key={item.id}
@@ -1236,22 +1236,22 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
 
     // ---------- Tellen ----------
     return (
-      <div className="mt-2 rounded-[18px] border border-border bg-card p-4">
-        <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+      <div className="mt-2 bg-card px-0 py-2 sm:rounded-[18px] sm:border sm:border-border sm:p-4">
+        <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-muted sm:mb-4">
           <div
             className="h-full rounded-full bg-primary transition-all"
             style={{ width: `${alleSleutels.length ? (klaarAantal / alleSleutels.length) * 100 : 0}%` }}
           />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-5 sm:space-y-6">
           {categorieGroepen.map((p) => {
             const PlekIcoon = p.icoon;
             const telGroepen = p.groepen.filter((g) => !g.overslaan);
             const klaarHier = telGroepen.filter((g) => bevestigd.includes(g.sleutel)).length;
             return (
               <div key={p.plek}>
-                <div className="sticky top-0 z-10 -mx-1 mb-3 rounded-[14px] border border-border bg-card/95 px-3 py-2.5 backdrop-blur">
+                <div className="sticky top-[env(safe-area-inset-top,0px)] z-10 mb-3 rounded-[14px] border border-border bg-card/95 px-3 py-2.5 backdrop-blur">
                   <div className="flex items-center gap-2.5">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                       <PlekIcoon size={20} />
@@ -1269,7 +1269,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                     </span>
                   </div>
                 </div>
-                <div className="space-y-2 pl-2">
+                <div className="space-y-2">
                   {p.groepen.map((g) => (
                     <div key={g.sleutel} id={`vr-groep-${g.sleutel}`} className="scroll-mt-24 rounded-[18px]">
 
@@ -1303,7 +1303,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
         </div>
 
         {/* Vaste afsluitbalk: altijd onder de duim, nooit scrollen naar een knop. */}
-        <div className="sticky bottom-3 z-20 mt-4">
+        <div className="sticky bottom-[calc(12px+env(safe-area-inset-bottom,0px))] z-20 mt-4">
           {allesBevestigd ? (
             <Button
               className="h-14 w-full rounded-[16px] text-[16px] font-bold shadow-lg"
