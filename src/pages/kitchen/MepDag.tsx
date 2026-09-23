@@ -115,12 +115,14 @@ export default function MepDag() {
     ? dagTaken.filter((t) => t.status !== 'afgerond' && t.taak_datum < datum)
     : [];
 
+  const alleTaken = useMemo(() => [...dagTaken, ...laterTaken], [dagTaken, laterTaken]);
+
   const groepen = useMemo(() => {
     if (weergave === 'alles') {
-      return [['Alle taken', dagTaken]] as [string, MepTaak[]][];
+      return [['Alle taken', alleTaken]] as [string, MepTaak[]][];
     }
     const map = new Map<string, MepTaak[]>();
-    for (const t of dagTaken) {
+    for (const t of alleTaken) {
       const sleutel =
         weergave === 'handeling'
           ? t.handeling || 'Geen handeling'
