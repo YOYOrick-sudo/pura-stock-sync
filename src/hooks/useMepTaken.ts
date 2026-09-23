@@ -302,6 +302,7 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
       // behalve als het openstaande achterstand is die vandaag meeloopt.
       const hoortInLijst =
         bijgewerkteTaak.taak_datum === datum ||
+        (bijgewerkteTaak.taak_datum > datum && bijgewerkteTaak.status !== 'afgerond') ||
         (datum === vandaag &&
           bijgewerkteTaak.taak_datum < datum &&
           bijgewerkteTaak.status !== 'afgerond');
