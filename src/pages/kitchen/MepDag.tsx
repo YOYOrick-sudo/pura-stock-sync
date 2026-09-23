@@ -178,7 +178,8 @@ export default function MepDag() {
               {format(addDays(new Date(), dagOffset), 'EEEE d MMMM', { locale: nl })}
             </p>
             <p className="text-sm text-muted-foreground">
-              {vestiging} · {klaar.length}/{taken.length} klaar
+              {vestiging} · {klaar.length}/{dagTaken.length} klaar
+              {laterTaken.length > 0 && ` · ${laterTaken.length} voor later`}
             </p>
           </div>
           <div className="flex items-center gap-2">
