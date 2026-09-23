@@ -723,6 +723,13 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
     }
   }, [opslagSleutel, vestiging]);
 
+  // Hervatmelding blijft kort zichtbaar en neemt daarna geen vaste ruimte meer in.
+  useEffect(() => {
+    if (!teruggezet) return;
+    const timer = window.setTimeout(() => setTeruggezet(false), 5000);
+    return () => window.clearTimeout(timer);
+  }, [teruggezet]);
+
   // Al gemounte ronde: knop "Voorraad tellen" opent en scrollt er direct naartoe.
   useEffect(() => {
     const openBijVerzoek = () => {
@@ -1104,9 +1111,9 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           : `${klaarAantal}/${alleSleutels.length} onderdelen geteld`}
       </p>
       {teruggezet && !afgerond && (
-        <p className="mb-3 flex items-center gap-1.5 text-[12px] font-medium text-primary">
+        <p role="status" className="mb-3 flex items-center gap-1.5 text-[12px] font-medium text-primary">
           <History size={14} />
-          Telling teruggezet — ga door waar je was.
+          Telling hervat op dit apparaat.
         </p>
       )}
     </>
