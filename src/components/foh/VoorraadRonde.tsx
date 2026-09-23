@@ -723,6 +723,13 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
     }
   }, [opslagSleutel, vestiging]);
 
+  // Hervatmelding blijft kort zichtbaar en neemt daarna geen vaste ruimte meer in.
+  useEffect(() => {
+    if (!teruggezet) return;
+    const timer = window.setTimeout(() => setTeruggezet(false), 5000);
+    return () => window.clearTimeout(timer);
+  }, [teruggezet]);
+
   // Al gemounte ronde: knop "Voorraad tellen" opent en scrollt er direct naartoe.
   useEffect(() => {
     const openBijVerzoek = () => {
@@ -1104,9 +1111,9 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           : `${klaarAantal}/${alleSleutels.length} onderdelen geteld`}
       </p>
       {teruggezet && !afgerond && (
-        <p className="mb-3 flex items-center gap-1.5 text-[12px] font-medium text-primary">
+        <p role="status" className="mb-3 flex items-center gap-1.5 text-[12px] font-medium text-primary">
           <History size={14} />
-          Telling teruggezet — ga door waar je was.
+          Telling hervat op dit apparaat.
         </p>
       )}
     </>
@@ -1135,7 +1142,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
     // ---------- Aanvulbon ----------
     if (stap === 'bon') {
       return (
-        <div className="mt-2 rounded-[18px] border border-border bg-card p-4">
+        <div className="mt-2 bg-card px-0 py-2 sm:rounded-[18px] sm:border sm:border-border sm:p-4">
           <div className="mb-3 flex items-center gap-2">
             <ClipboardList size={20} className="text-primary" />
             <h3 className="text-[17px] font-bold text-foreground">Aanvulbon</h3>
@@ -1157,7 +1164,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                 if (!regels.length) return null;
                 const Icoon = groep.icoon;
                 return (
-                  <div key={groep.soort} className="rounded-[16px] border border-border bg-muted/30 p-3">
+                  <section key={groep.soort} className="border-t border-border py-3 first:border-t-0 first:pt-0">
                     <div className="mb-2 flex items-center gap-2">
                       <Icoon size={18} className="text-primary" />
                       <div className="min-w-0">
@@ -1166,17 +1173,17 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                       </div>
                       <Badge variant="secondary" className="ml-auto text-[11px]">{regels.length}</Badge>
                     </div>
-                    <div className="space-y-1.5">
+                    <div className="divide-y divide-border">
                       {regels.map((r) => (
                         <div
                           key={r.item.id}
-                          className="flex items-center justify-between gap-3 rounded-[12px] bg-card px-3 py-2.5"
+                          className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-3"
                         >
                           <span className="min-w-0">
-                            <span className="block truncate text-[14px] font-semibold text-foreground">
+                             <span className="block text-[14px] font-semibold leading-snug text-foreground">
                               {r.item.naam}
                             </span>
-                            <span className="block truncate text-[12px] text-muted-foreground">
+                             <span className="block text-[12px] leading-snug text-muted-foreground">
                               {telModus(r.item) === 'vulling'
                                 ? `bakje ${vulKeuzeLabel(r.geteld)}`
                                 : `${getalLabel(r.doel)} nodig · ${getalLabel(r.geteld)} geteld`}
@@ -1195,7 +1202,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                              )}
                           </span>
                           <span
-                            className={`shrink-0 text-right text-[14px] font-bold ${
+                            className={`shrink-0 text-left text-[14px] font-bold sm:text-right ${
                               r.soort === 'mep' && r.prioriteit === 1
                                 ? 'text-amber-600 dark:text-amber-400'
                                 : 'text-primary'
@@ -1214,14 +1221,14 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </section>
                 );
               })}
               </div>
             </>
           )}
 
-          <div className="mt-4 flex gap-2">
+          <div className="sticky bottom-[calc(8px+env(safe-area-inset-bottom,0px))] z-20 mt-4 flex gap-2 rounded-[16px] border border-border bg-card/95 p-2 backdrop-blur">
             <Button variant="outline" className="h-12 flex-1 rounded-[14px]" onClick={() => setStap('tellen')} disabled={bezig}>
               Terug
             </Button>
