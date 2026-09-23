@@ -288,8 +288,18 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
       return data as MepTaak;
     },
     onSuccess: async (bijgewerkteTaak) => {
+      const vandaag = ymd(new Date());
+      // Naar een andere dag verplaatst? Dan hoort de taak niet meer in deze lijst,
+      // behalve als het openstaande achterstand is die vandaag meeloopt.
+      const hoortInLijst =
+        bijgewerkteTaak.taak_datum === datum ||
+        (datum === vandaag &&
+          bijgewerkteTaak.taak_datum < datum &&
+          bijgewerkteTaak.status !== 'afgerond');
       qc.setQueryData<MepTaak[]>(actieveTakenKey, (huidig = []) =>
-        huidig.map((taak) => (taak.id === bijgewerkteTaak.id ? bijgewerkteTaak : taak)),
+        hoortInLijst
+          ? huidig.map((taak) => (taak.id === bijgewerkteTaak.id ? bijgewerkteTaak : taak))
+          : huidig.filter((taak) => taak.id !== bijgewerkteTaak.id),
       );
       await invalidate();
     },
