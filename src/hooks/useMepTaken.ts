@@ -120,6 +120,9 @@ export function useMepTaken(vestiging: string, datum: string) {
       // achterstand die vandaag is afgewerkt blijft die dag ook zichtbaar
       // (onderaan), daarna hoort hij bij de dag waarop hij gemaakt is.
       const neemAchterstandMee = datum === vandaag;
+      // Taken die vooruit gepland zijn blijven zichtbaar op de dag die je bekijkt,
+      // duidelijk gemarkeerd als "voor een andere dag" (tot 14 dagen vooruit).
+      const tot = ymd(new Date(new Date(`${datum}T12:00:00`).getTime() + 14 * 86400000));
 
       let q = supabase
         .from('mep_taken')
@@ -127,28 +130,33 @@ export function useMepTaken(vestiging: string, datum: string) {
         .eq('vestiging', vestiging)
         .neq('status', 'geannuleerd');
 
+      const vooruit = `and(taak_datum.gt.${datum},taak_datum.lte.${tot},status.in.(open,bezig))`;
+
       q = neemAchterstandMee
         ? q.or(
             `taak_datum.eq.${datum},` +
               `and(taak_datum.lt.${datum},status.in.(open,bezig)),` +
-              `and(taak_datum.lt.${datum},status.eq.afgerond,updated_at.gte.${beginVanVandaagIso()})`,
+              `and(taak_datum.lt.${datum},status.eq.afgerond,updated_at.gte.${beginVanVandaagIso()}),` +
+              vooruit,
           )
-        : q.eq('taak_datum', datum);
+        : q.or(`taak_datum.eq.${datum},${vooruit}`);
 
       const { data, error } = await q;
       if (error) throw error;
 
       const rijen = (data ?? []) as MepTaak[];
-      // Openstaand eerst: handmatige sleepvolgorde wint, daarna belangrijk,
-      // oudste invoerdatum en invoervolgorde. Alles wat vandaag is afgevinkt
-      // staat onderaan, in de volgorde van afvinken.
+      // Openstaand voor deze dag eerst, dan afgerond, dan wat vooruit gepland is.
+      const bak = (t: MepTaak) =>
+        t.taak_datum > datum ? 2 : t.status === 'afgerond' ? 1 : 0;
       return rijen
         .map((t, i) => ({ t, i }))
         .sort((a, b) => {
-          const aKlaar = a.t.status === 'afgerond' ? 1 : 0;
-          const bKlaar = b.t.status === 'afgerond' ? 1 : 0;
-          if (aKlaar !== bKlaar) return aKlaar - bKlaar;
-          if (aKlaar === 1) return a.t.updated_at.localeCompare(b.t.updated_at);
+          const aB = bak(a.t);
+          const bB = bak(b.t);
+          if (aB !== bB) return aB - bB;
+          if (aB === 1) return a.t.updated_at.localeCompare(b.t.updated_at);
+          if (aB === 2 && a.t.taak_datum !== b.t.taak_datum)
+            return a.t.taak_datum.localeCompare(b.t.taak_datum);
           const aV = Number(a.t.volgorde ?? 0);
           const bV = Number(b.t.volgorde ?? 0);
           if (aV !== bV) return aV - bV;
@@ -158,6 +166,7 @@ export function useMepTaken(vestiging: string, datum: string) {
           return a.i - b.i;
         })
         .map(({ t }) => t);
+
 
     },
   });
@@ -228,7 +237,7 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
     onSuccess: async (nieuweTaak) => {
       // Zet de opgeslagen rij direct in de zichtbare daglijst. Dit voorkomt dat
       // trage wifi of een vertraagde realtime-event een geslaagde insert verbergt.
-      if (nieuweTaak.taak_datum === datum) {
+      if (nieuweTaak.taak_datum >= datum) {
         qc.setQueryData<MepTaak[]>(actieveTakenKey, (huidig = []) => {
           if (huidig.some((taak) => taak.id === nieuweTaak.id)) return huidig;
           return [...huidig, nieuweTaak].sort(
@@ -293,6 +302,7 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
       // behalve als het openstaande achterstand is die vandaag meeloopt.
       const hoortInLijst =
         bijgewerkteTaak.taak_datum === datum ||
+        (bijgewerkteTaak.taak_datum > datum && bijgewerkteTaak.status !== 'afgerond') ||
         (datum === vandaag &&
           bijgewerkteTaak.taak_datum < datum &&
           bijgewerkteTaak.status !== 'afgerond');

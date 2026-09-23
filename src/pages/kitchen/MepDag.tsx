@@ -103,16 +103,20 @@ export default function MepDag() {
   const [weergave, setWeergave] = useState<'alles' | 'persoon' | 'handeling'>('alles');
   const [batchesOpen, setBatchesOpen] = useState(false);
 
-  const open = taken.filter((t) => t.status !== 'afgerond');
-  const klaar = taken.filter((t) => t.status === 'afgerond');
-  const voortgang = taken.length ? Math.round((klaar.length / taken.length) * 100) : 0;
+  // Taken die vooruit gepland zijn blijven zichtbaar, maar apart: ze tellen niet
+  // mee in de voortgang van deze dag.
+  const dagTaken = useMemo(() => taken.filter((t) => t.taak_datum <= datum), [taken, datum]);
+  const laterTaken = useMemo(() => taken.filter((t) => t.taak_datum > datum), [taken, datum]);
+
+  const klaar = dagTaken.filter((t) => t.status === 'afgerond');
+  const voortgang = dagTaken.length ? Math.round((klaar.length / dagTaken.length) * 100) : 0;
 
   const groepen = useMemo(() => {
     if (weergave === 'alles') {
-      return [['Alle taken', taken]] as [string, MepTaak[]][];
+      return [['Alle taken', dagTaken]] as [string, MepTaak[]][];
     }
     const map = new Map<string, MepTaak[]>();
-    for (const t of taken) {
+    for (const t of dagTaken) {
       const sleutel =
         weergave === 'handeling'
           ? t.handeling || 'Geen handeling'
@@ -121,7 +125,7 @@ export default function MepDag() {
       map.get(sleutel)!.push(t);
     }
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], 'nl'));
-  }, [taken, weergave, medewerkers, datum]);
+  }, [dagTaken, weergave, medewerkers]);
 
 
   const dagLabel =
@@ -174,7 +178,8 @@ export default function MepDag() {
               {format(addDays(new Date(), dagOffset), 'EEEE d MMMM', { locale: nl })}
             </p>
             <p className="text-sm text-muted-foreground">
-              {vestiging} · {klaar.length}/{taken.length} klaar
+              {vestiging} · {klaar.length}/{dagTaken.length} klaar
+              {laterTaken.length > 0 && ` · ${laterTaken.length} voor later`}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -316,6 +321,35 @@ export default function MepDag() {
               );
             })}
 
+            {laterTaken.length > 0 && (
+              <Card className="overflow-hidden bg-muted/30 border-dashed shadow-none">
+                <div className="px-4 sm:px-5 py-3 border-b border-border/60 flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                  <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Gepland voor een andere dag
+                  </h2>
+                  <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+                    {laterTaken.length}
+                  </span>
+                </div>
+                <ul className="divide-y divide-border/60">
+                  {laterTaken.map((t) => (
+                    <TaakRij
+                      key={t.id}
+                      t={t}
+                      datum={datum}
+                      weergave={weergave}
+                      medewerkers={medewerkers}
+                      sleepbaar={false}
+                      onBewerk={setBewerkTaak}
+                      onAfrond={setAfrondTaak}
+                      onHeropen={heropen}
+                      onVerwijder={verwijder}
+                    />
+                  ))}
+                </ul>
+              </Card>
+            )}
           </div>
         )}
 
@@ -395,6 +429,11 @@ function TaakRij({
   onVerwijder,
 }: TaakRijProps) {
   const isKlaar = t.status === 'afgerond';
+  // Taak staat gepland op een latere dag: zichtbaar, maar duidelijk anders.
+  const isLater = t.taak_datum > datum;
+  const laterLabel = isLater
+    ? format(parseISO(t.taak_datum), 'EEEE d MMM', { locale: nl })
+    : '';
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: t.id,
     disabled: !sleepbaar,
@@ -409,7 +448,8 @@ function TaakRij({
           : undefined
       }
       className={cn(
-        'flex items-stretch gap-3 px-4 sm:px-5 py-3 min-h-[64px] bg-card',
+        'flex items-stretch gap-3 px-4 sm:px-5 py-3 min-h-[64px]',
+        isLater ? 'bg-transparent' : 'bg-card',
         isKlaar && 'opacity-60',
         isDragging && 'relative z-10 shadow-md rounded-polar-md',
       )}
@@ -440,10 +480,23 @@ function TaakRij({
       >
         <div className="flex flex-wrap items-center gap-2">
           <span
-            className={cn('text-[15px] font-medium', isKlaar && 'line-through text-muted-foreground')}
+            className={cn(
+              'text-[15px] font-medium',
+              isKlaar && 'line-through text-muted-foreground',
+              isLater && 'text-muted-foreground',
+            )}
           >
             {t.titel}
           </span>
+          {isLater && (
+            <Badge
+              variant="outline"
+              className="font-normal bg-primary/10 text-primary border-primary/20 inline-flex items-center gap-1 capitalize"
+            >
+              <CalendarDays className="w-3.5 h-3.5" />
+              {laterLabel}
+            </Badge>
+          )}
           {t.handeling && (
             <Badge variant="secondary" className="font-normal">
               {t.handeling}
