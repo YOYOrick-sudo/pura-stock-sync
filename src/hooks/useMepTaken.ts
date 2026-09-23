@@ -185,6 +185,8 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
   const actieveTakenKey = ['mep-taken', vestiging, datum] as const;
   const invalidate = async () => {
     await qc.invalidateQueries({ queryKey: actieveTakenKey, exact: true });
+    // Ook de andere daglijsten: een taak kan naar een andere dag verplaatst zijn.
+    qc.invalidateQueries({ queryKey: ['mep-taken'] });
     qc.invalidateQueries({ queryKey: ['mep-taken-bereik'] });
     qc.invalidateQueries({ queryKey: ['mep-batches'] });
     qc.invalidateQueries({ queryKey: ['mep-favorieten'] });
@@ -212,7 +214,8 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
         .insert({
           ...input,
           vestiging,
-          taak_datum: datum,
+          // Een taak mag vooruit gepland worden op een andere dag.
+          taak_datum: input.taak_datum || datum,
           volgorde,
           created_by: user.user?.id ?? null,
         })
@@ -225,15 +228,17 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
     onSuccess: async (nieuweTaak) => {
       // Zet de opgeslagen rij direct in de zichtbare daglijst. Dit voorkomt dat
       // trage wifi of een vertraagde realtime-event een geslaagde insert verbergt.
-      qc.setQueryData<MepTaak[]>(actieveTakenKey, (huidig = []) => {
-        if (huidig.some((taak) => taak.id === nieuweTaak.id)) return huidig;
-        return [...huidig, nieuweTaak].sort(
-          (a, b) =>
-            Number(a.volgorde ?? 0) - Number(b.volgorde ?? 0) ||
-            a.prioriteit - b.prioriteit ||
-            a.created_at.localeCompare(b.created_at),
-        );
-      });
+      if (nieuweTaak.taak_datum === datum) {
+        qc.setQueryData<MepTaak[]>(actieveTakenKey, (huidig = []) => {
+          if (huidig.some((taak) => taak.id === nieuweTaak.id)) return huidig;
+          return [...huidig, nieuweTaak].sort(
+            (a, b) =>
+              Number(a.volgorde ?? 0) - Number(b.volgorde ?? 0) ||
+              a.prioriteit - b.prioriteit ||
+              a.created_at.localeCompare(b.created_at),
+          );
+        });
+      }
       await invalidate();
     },
   });
@@ -283,8 +288,18 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
       return data as MepTaak;
     },
     onSuccess: async (bijgewerkteTaak) => {
+      const vandaag = ymd(new Date());
+      // Naar een andere dag verplaatst? Dan hoort de taak niet meer in deze lijst,
+      // behalve als het openstaande achterstand is die vandaag meeloopt.
+      const hoortInLijst =
+        bijgewerkteTaak.taak_datum === datum ||
+        (datum === vandaag &&
+          bijgewerkteTaak.taak_datum < datum &&
+          bijgewerkteTaak.status !== 'afgerond');
       qc.setQueryData<MepTaak[]>(actieveTakenKey, (huidig = []) =>
-        huidig.map((taak) => (taak.id === bijgewerkteTaak.id ? bijgewerkteTaak : taak)),
+        hoortInLijst
+          ? huidig.map((taak) => (taak.id === bijgewerkteTaak.id ? bijgewerkteTaak : taak))
+          : huidig.filter((taak) => taak.id !== bijgewerkteTaak.id),
       );
       await invalidate();
     },

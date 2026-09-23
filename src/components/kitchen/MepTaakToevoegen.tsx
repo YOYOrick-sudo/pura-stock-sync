@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { MEP_EENHEDEN, splitsAantalUitTitel } from '@/lib/mep-hoeveelheid';
 import { useMepHandelingen } from '@/hooks/useMepPlanning';
+import { MepDagKiezer } from '@/components/kitchen/MepDagKiezer';
 import {
   MepFavoriet,
   MepReceptOptie,
@@ -169,6 +170,9 @@ export function MepTaakToevoegen({
   const zetEenheid = (eenheid: string) =>
     patchStil({ doel_eenheid: eenheid, doel_aantal: huidigAantal });
 
+  /** Taak naar een andere dag zetten; de bevestigingsbalk blijft staan. */
+  const verplaatsNieuweTaak = (dag: string) => patchStil({ taak_datum: dag });
+
   return (
     <Card className="p-4 sm:p-5 bg-card shadow-sm space-y-3">
       <div className="relative">
@@ -268,6 +272,14 @@ export function MepTaakToevoegen({
               <X className="w-4 h-4" />
             </Button>
           </div>
+
+          <MepDagKiezer
+            vestiging={vestiging}
+            waarde={netToegevoegd.taak_datum}
+            bekekenDatum={datum}
+            disabled={bezig}
+            onKies={(dag) => verplaatsNieuweTaak(dag)}
+          />
 
           <div className="space-y-1.5">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">

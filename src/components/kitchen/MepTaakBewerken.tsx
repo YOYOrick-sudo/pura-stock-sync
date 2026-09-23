@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { MepTaak } from '@/hooks/useMepTaken';
 import { useMepHandelingen } from '@/hooks/useMepPlanning';
+import { MepDagKiezer } from '@/components/kitchen/MepDagKiezer';
 
 const PRIO = [
   { waarde: 2, label: 'Normaal' },
@@ -64,6 +65,8 @@ export function MepTaakBewerken({
   onOpslaan,
 }: Props) {
   const { data: handelingen = [] } = useMepHandelingen(vestiging);
+  const [titel, setTitel] = useState('');
+  const [dag, setDag] = useState('');
   const [handeling, setHandeling] = useState<string | null>(null);
   const [persoon, setPersoon] = useState<string | null>(null);
   const [prioriteit, setPrioriteit] = useState(2);
@@ -75,6 +78,8 @@ export function MepTaakBewerken({
 
   useEffect(() => {
     if (!taak) return;
+    setTitel(taak.titel);
+    setDag(taak.taak_datum);
     setHandeling(taak.handeling);
     setPersoon(taak.toegewezen_aan);
     setPrioriteit(taak.prioriteit === 1 ? 1 : 2);
@@ -89,6 +94,8 @@ export function MepTaakBewerken({
     const getal = aantal.trim() === '' ? null : Number(aantal.replace(',', '.'));
     const huidigAantal = taak.doel_aantal != null ? Number(taak.doel_aantal) : null;
     return (
+      titel.trim() !== taak.titel ||
+      dag !== taak.taak_datum ||
       handeling !== taak.handeling ||
       persoon !== taak.toegewezen_aan ||
       prioriteit !== (taak.prioriteit === 1 ? 1 : 2) ||
@@ -110,9 +117,15 @@ export function MepTaakBewerken({
       toast.error('Vul een geldig aantal in');
       return;
     }
+    if (titel.trim().length < 2) {
+      toast.error('Geef de taak een naam');
+      return;
+    }
     setBezig(true);
     try {
       await onOpslaan(taak.id, {
+        titel: titel.trim(),
+        taak_datum: dag || taak.taak_datum,
         handeling,
         toegewezen_aan: persoon,
         prioriteit,
@@ -121,7 +134,9 @@ export function MepTaakBewerken({
         deadline: deadline.trim() ? `${deadline}:00` : null,
         notitie: notitie.trim() || null,
       });
-      toast.success('Taak bijgewerkt');
+      toast.success(
+        dag && taak.taak_datum !== dag ? 'Taak verplaatst naar een andere dag' : 'Taak bijgewerkt',
+      );
       onOpenChange(false);
     } catch (e: any) {
       toast.error('Opslaan mislukt: ' + (e?.message ?? 'onbekende fout'));
@@ -145,6 +160,27 @@ export function MepTaakBewerken({
         </DialogHeader>
 
         <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-1">
+          <div className="space-y-2">
+            <Label htmlFor="mep-titel">Naam van de taak</Label>
+            <Input
+              id="mep-titel"
+              className="h-12"
+              value={titel}
+              onChange={(e) => setTitel(e.target.value)}
+            />
+          </div>
+
+          {taak && (
+            <MepDagKiezer
+              vestiging={vestiging}
+              waarde={dag || taak.taak_datum}
+              bekekenDatum={taak.taak_datum}
+              disabled={bezig}
+              onKies={setDag}
+              label="Op welke dag?"
+            />
+          )}
+
           {handelingen.length > 0 && (
             <div className="space-y-2">
               <Label>Wat moet ermee gebeuren?</Label>
