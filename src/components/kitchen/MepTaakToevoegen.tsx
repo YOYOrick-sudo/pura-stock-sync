@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { MEP_EENHEDEN, splitsAantalUitTitel } from '@/lib/mep-hoeveelheid';
 import { useMepHandelingen } from '@/hooks/useMepPlanning';
+import { MepDagKiezer } from '@/components/kitchen/MepDagKiezer';
 import {
   MepFavoriet,
   MepReceptOptie,
