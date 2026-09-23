@@ -110,6 +110,10 @@ export default function MepDag() {
 
   const klaar = dagTaken.filter((t) => t.status === 'afgerond');
   const voortgang = dagTaken.length ? Math.round((klaar.length / dagTaken.length) * 100) : 0;
+  const isVandaag = datum === ymd(new Date());
+  const teLaat = isVandaag
+    ? dagTaken.filter((t) => t.status !== 'afgerond' && t.taak_datum < datum)
+    : [];
 
   const groepen = useMemo(() => {
     if (weergave === 'alles') {
@@ -180,6 +184,11 @@ export default function MepDag() {
             <p className="text-sm text-muted-foreground">
               {vestiging} · {klaar.length}/{dagTaken.length} klaar
               {laterTaken.length > 0 && ` · ${laterTaken.length} voor later`}
+              {teLaat.length > 0 && (
+                <span className="text-destructive font-medium">
+                  {' '}· {teLaat.length} te laat
+                </span>
+              )}
             </p>
           </div>
           <div className="flex items-center gap-2">
