@@ -237,7 +237,7 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
     onSuccess: async (nieuweTaak) => {
       // Zet de opgeslagen rij direct in de zichtbare daglijst. Dit voorkomt dat
       // trage wifi of een vertraagde realtime-event een geslaagde insert verbergt.
-      if (nieuweTaak.taak_datum === datum) {
+      if (nieuweTaak.taak_datum >= datum) {
         qc.setQueryData<MepTaak[]>(actieveTakenKey, (huidig = []) => {
           if (huidig.some((taak) => taak.id === nieuweTaak.id)) return huidig;
           return [...huidig, nieuweTaak].sort(
