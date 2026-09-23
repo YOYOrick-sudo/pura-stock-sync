@@ -103,16 +103,20 @@ export default function MepDag() {
   const [weergave, setWeergave] = useState<'alles' | 'persoon' | 'handeling'>('alles');
   const [batchesOpen, setBatchesOpen] = useState(false);
 
-  const open = taken.filter((t) => t.status !== 'afgerond');
-  const klaar = taken.filter((t) => t.status === 'afgerond');
-  const voortgang = taken.length ? Math.round((klaar.length / taken.length) * 100) : 0;
+  // Taken die vooruit gepland zijn blijven zichtbaar, maar apart: ze tellen niet
+  // mee in de voortgang van deze dag.
+  const dagTaken = useMemo(() => taken.filter((t) => t.taak_datum <= datum), [taken, datum]);
+  const laterTaken = useMemo(() => taken.filter((t) => t.taak_datum > datum), [taken, datum]);
+
+  const klaar = dagTaken.filter((t) => t.status === 'afgerond');
+  const voortgang = dagTaken.length ? Math.round((klaar.length / dagTaken.length) * 100) : 0;
 
   const groepen = useMemo(() => {
     if (weergave === 'alles') {
-      return [['Alle taken', taken]] as [string, MepTaak[]][];
+      return [['Alle taken', dagTaken]] as [string, MepTaak[]][];
     }
     const map = new Map<string, MepTaak[]>();
-    for (const t of taken) {
+    for (const t of dagTaken) {
       const sleutel =
         weergave === 'handeling'
           ? t.handeling || 'Geen handeling'
