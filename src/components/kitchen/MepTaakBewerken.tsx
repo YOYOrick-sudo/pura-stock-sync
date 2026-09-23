@@ -159,6 +159,27 @@ export function MepTaakBewerken({
         </DialogHeader>
 
         <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-1">
+          <div className="space-y-2">
+            <Label htmlFor="mep-titel">Naam van de taak</Label>
+            <Input
+              id="mep-titel"
+              className="h-12"
+              value={titel}
+              onChange={(e) => setTitel(e.target.value)}
+            />
+          </div>
+
+          {taak && (
+            <MepDagKiezer
+              vestiging={vestiging}
+              waarde={dag || taak.taak_datum}
+              bekekenDatum={taak.taak_datum}
+              disabled={bezig}
+              onKies={setDag}
+              label="Op welke dag?"
+            />
+          )}
+
           {handelingen.length > 0 && (
             <div className="space-y-2">
               <Label>Wat moet ermee gebeuren?</Label>
