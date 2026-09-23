@@ -12,15 +12,18 @@ Bij het toevoegen van een MEP-taak op `/kitchen/mep` kies je op welke dag de taa
 
 ## Wat we bouwen
 
-### 1. "Wanneer?" in het toevoegscherm
-- Na het toevoegen (in het groene bevestigingsblok, naast Hoeveel/Prioriteit/Handeling/Wie) komt een rij **Wanneer?** met knoppen: de dag die je bekijkt, plus de eerstvolgende open dagen (bijv. "Vandaag", "Morgen", "Do 25 sep"), 44px tikvlakken.
-- Daarnaast een knop "Kies datum…" met een kalender tot 60 dagen vooruit. Gesloten dagen zijn herkenbaar (grijs + reden), maar wél te kiezen met een duidelijke waarschuwing — soms wil je bewust prep op een gesloten dag (bijv. opbouwdag).
-- Standaard staat de bekeken dag gekozen; alleen de gekozen optie is gekleurd.
+### 1. "Wanneer?" in het toevoegscherm — in het bestaande ritme
+Het toevoegen werkt nu zo: je typt, tikt op de taak, die staat er meteen op, en daarna verfijn je in het groene blok Hoeveel / Prioriteit / Wat moet ermee gebeuren / Wie doet het. Eén tik = klaar, de rest is optioneel. Dat ritme houden we vast.
+
+- **Wanneer?** wordt de eerste rij in datzelfde groene blok, met dezelfde knoppen en 44px tikvlakken als de andere rijen. Niets extra's vóór het toevoegen, dus de snelste route (typen, tikken, klaar) blijft één tik.
+- De knoppen tonen: de dag die je bekijkt (gekleurd, dus je ziet meteen waar de taak staat), plus "Morgen" en de twee volgende open dagen met dagnaam, plus "Andere dag…" voor een kalender.
+- Alleen de gekozen dag is gevuld; de rest is rustig. Kiest niemand iets, dan gebeurt precies wat nu gebeurt.
 
 ### 2. Opslaan op de gekozen dag
-- De taak krijgt `taak_datum` = gekozen dag (in plaats van altijd de bekeken dag).
-- Bij een andere dag dan de bekeken: de taak verschijnt níét in de huidige lijst, maar de lijsten van beide dagen en het weekoverzicht verversen direct, en de melding zegt "Gepland op [dag]". De bevestigingsbalk blijft staan zodat aantal/handeling/persoon alsnog aangepast kunnen worden.
-- Doppeltikken wordt geneutraliseerd (bestaande `bezig`-blokkade), dus geen dubbele taken bij haperende wifi.
+- Kies je een andere dag, dan verhuist de zojuist toegevoegde taak naar die dag — net zoals het aantal of de prioriteit direct wordt opgeslagen.
+- Het groene blok blijft staan en zegt zichtbaar "Staat op donderdag 25 sep", zodat het nooit verwarrend is dat de taak uit de lijst eronder verdwijnt. Dat zinnetje is het verschil tussen "handig" en "waar is mijn taak gebleven".
+- Beide daglijsten en het weekoverzicht verversen direct; op een andere tablet kan de taak heel even op vandaag verschijnen voordat hij verhuist. Dat is een seconde en de eindsituatie klopt altijd.
+- Dubbeltikken blijft geblokkeerd, dus geen dubbele taken bij haperende wifi.
 
 ### 3. Bestaande taken aanpassen en verplaatsen
 - Bestaande taken zijn nu al aan te passen via het bewerkscherm: handeling, wie het doet, prioriteit, klaar voor, aantal, eenheid en notitie. De naam van de taak en de dag kun je nu níét wijzigen.
