@@ -285,7 +285,7 @@ export default function MepDag() {
                   datum={datum}
                   weergave={weergave}
                   medewerkers={medewerkers}
-                  sleepbaar={kanSlepen && t.status !== 'afgerond'}
+                  sleepbaar={kanSlepen && t.status !== 'afgerond' && t.taak_datum <= datum}
                   onBewerk={setBewerkTaak}
                   onAfrond={setAfrondTaak}
                   onHeropen={heropen}
@@ -299,17 +299,17 @@ export default function MepDag() {
                       {naam}
                     </h2>
                     <span className="text-xs text-muted-foreground tabular-nums">
-                      {klaarRijen.length}/{rijen.length}
+                      {dagKlaar.length}/{dagRijen.length}
                     </span>
                   </div>
                   {kanSlepen ? (
                     <DndContext
                       sensors={sensors}
                       collisionDetection={closestCenter}
-                      onDragEnd={(e) => sleepKlaar(e, openRijen)}
+                      onDragEnd={(e) => sleepKlaar(e, sleepRijen)}
                     >
                       <SortableContext
-                        items={openRijen.map((r) => r.id)}
+                        items={sleepRijen.map((r) => r.id)}
                         strategy={verticalListSortingStrategy}
                       >
                         <ul className="divide-y divide-border/60">{openRijen.map(rij)}</ul>
@@ -335,35 +335,6 @@ export default function MepDag() {
               );
             })}
 
-            {laterTaken.length > 0 && (
-              <Card className="overflow-hidden bg-muted/30 border-dashed shadow-none">
-                <div className="px-4 sm:px-5 py-3 border-b border-border/60 flex items-center gap-2">
-                  <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                  <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Gepland voor een andere dag
-                  </h2>
-                  <span className="ml-auto text-xs text-muted-foreground tabular-nums">
-                    {laterTaken.length}
-                  </span>
-                </div>
-                <ul className="divide-y divide-border/60">
-                  {laterTaken.map((t) => (
-                    <TaakRij
-                      key={t.id}
-                      t={t}
-                      datum={datum}
-                      weergave={weergave}
-                      medewerkers={medewerkers}
-                      sleepbaar={false}
-                      onBewerk={setBewerkTaak}
-                      onAfrond={setAfrondTaak}
-                      onHeropen={heropen}
-                      onVerwijder={verwijder}
-                    />
-                  ))}
-                </ul>
-              </Card>
-            )}
           </div>
         )}
 
