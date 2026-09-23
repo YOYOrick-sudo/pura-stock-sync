@@ -116,9 +116,15 @@ export function MepTaakBewerken({
       toast.error('Vul een geldig aantal in');
       return;
     }
+    if (titel.trim().length < 2) {
+      toast.error('Geef de taak een naam');
+      return;
+    }
     setBezig(true);
     try {
       await onOpslaan(taak.id, {
+        titel: titel.trim(),
+        taak_datum: dag || taak.taak_datum,
         handeling,
         toegewezen_aan: persoon,
         prioriteit,
@@ -127,7 +133,9 @@ export function MepTaakBewerken({
         deadline: deadline.trim() ? `${deadline}:00` : null,
         notitie: notitie.trim() || null,
       });
-      toast.success('Taak bijgewerkt');
+      toast.success(
+        dag && taak.taak_datum !== dag ? 'Taak verplaatst naar een andere dag' : 'Taak bijgewerkt',
+      );
       onOpenChange(false);
     } catch (e: any) {
       toast.error('Opslaan mislukt: ' + (e?.message ?? 'onbekende fout'));
