@@ -214,7 +214,8 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
         .insert({
           ...input,
           vestiging,
-          taak_datum: datum,
+          // Een taak mag vooruit gepland worden op een andere dag.
+          taak_datum: input.taak_datum || datum,
           volgorde,
           created_by: user.user?.id ?? null,
         })
@@ -227,15 +228,17 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
     onSuccess: async (nieuweTaak) => {
       // Zet de opgeslagen rij direct in de zichtbare daglijst. Dit voorkomt dat
       // trage wifi of een vertraagde realtime-event een geslaagde insert verbergt.
-      qc.setQueryData<MepTaak[]>(actieveTakenKey, (huidig = []) => {
-        if (huidig.some((taak) => taak.id === nieuweTaak.id)) return huidig;
-        return [...huidig, nieuweTaak].sort(
-          (a, b) =>
-            Number(a.volgorde ?? 0) - Number(b.volgorde ?? 0) ||
-            a.prioriteit - b.prioriteit ||
-            a.created_at.localeCompare(b.created_at),
-        );
-      });
+      if (nieuweTaak.taak_datum === datum) {
+        qc.setQueryData<MepTaak[]>(actieveTakenKey, (huidig = []) => {
+          if (huidig.some((taak) => taak.id === nieuweTaak.id)) return huidig;
+          return [...huidig, nieuweTaak].sort(
+            (a, b) =>
+              Number(a.volgorde ?? 0) - Number(b.volgorde ?? 0) ||
+              a.prioriteit - b.prioriteit ||
+              a.created_at.localeCompare(b.created_at),
+          );
+        });
+      }
       await invalidate();
     },
   });
