@@ -110,6 +110,10 @@ export default function MepDag() {
 
   const klaar = dagTaken.filter((t) => t.status === 'afgerond');
   const voortgang = dagTaken.length ? Math.round((klaar.length / dagTaken.length) * 100) : 0;
+  const isVandaag = datum === ymd(new Date());
+  const teLaat = isVandaag
+    ? dagTaken.filter((t) => t.status !== 'afgerond' && t.taak_datum < datum)
+    : [];
 
   const groepen = useMemo(() => {
     if (weergave === 'alles') {
@@ -180,6 +184,11 @@ export default function MepDag() {
             <p className="text-sm text-muted-foreground">
               {vestiging} · {klaar.length}/{dagTaken.length} klaar
               {laterTaken.length > 0 && ` · ${laterTaken.length} voor later`}
+              {teLaat.length > 0 && (
+                <span className="text-destructive font-medium">
+                  {' '}· {teLaat.length} te laat
+                </span>
+              )}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -434,6 +443,13 @@ function TaakRij({
   const laterLabel = isLater
     ? format(parseISO(t.taak_datum), 'EEEE d MMM', { locale: nl })
     : '';
+  // Taak is van een eerdere dag meegekomen en nog niet af: overtijd = meteen prio.
+  // Alleen op "vandaag" relevant (bij terugbladeren was het toen gewoon een dagtaak).
+  const isOvertijd =
+    !isKlaar && !isLater && t.taak_datum < datum && datum === ymd(new Date());
+  const dagenTeLaat = isOvertijd
+    ? differenceInCalendarDays(parseISO(datum), parseISO(t.taak_datum))
+    : 0;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: t.id,
     disabled: !sleepbaar,
@@ -450,6 +466,7 @@ function TaakRij({
       className={cn(
         'flex items-stretch gap-3 px-4 sm:px-5 py-3 min-h-[64px]',
         isLater ? 'bg-transparent' : 'bg-card',
+        isOvertijd && 'bg-destructive/5',
         isKlaar && 'opacity-60',
         isDragging && 'relative z-10 shadow-md rounded-polar-md',
       )}
@@ -465,12 +482,18 @@ function TaakRij({
           <GripVertical className="w-4 h-4" />
         </button>
       ) : null}
-      {/* Statusbalk links: groen = klaar, oranje = belangrijk, grijs = normaal */}
+      {/* Statusbalk links: groen = klaar, rood = overtijd, oranje = belangrijk, grijs = normaal */}
       <span
         aria-hidden
         className={cn(
           'w-1.5 shrink-0 rounded-full my-1',
-          isKlaar ? 'bg-success' : t.prioriteit === 1 ? 'bg-warning' : 'bg-border',
+          isKlaar
+            ? 'bg-success'
+            : isOvertijd
+              ? 'bg-destructive'
+              : t.prioriteit === 1
+                ? 'bg-warning'
+                : 'bg-border',
         )}
       />
       <button
@@ -495,6 +518,15 @@ function TaakRij({
             >
               <CalendarDays className="w-3.5 h-3.5" />
               {laterLabel}
+            </Badge>
+          )}
+          {isOvertijd && (
+            <Badge
+              variant="outline"
+              className="font-medium bg-destructive/10 text-destructive border-destructive/25 inline-flex items-center gap-1"
+            >
+              <AlertTriangle className="w-3.5 h-3.5" />
+              {dagenTeLaat > 1 ? `${dagenTeLaat} dagen te laat` : 'Overtijd'}
             </Badge>
           )}
           {t.handeling && (
