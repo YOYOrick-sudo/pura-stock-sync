@@ -480,10 +480,23 @@ function TaakRij({
       >
         <div className="flex flex-wrap items-center gap-2">
           <span
-            className={cn('text-[15px] font-medium', isKlaar && 'line-through text-muted-foreground')}
+            className={cn(
+              'text-[15px] font-medium',
+              isKlaar && 'line-through text-muted-foreground',
+              isLater && 'text-muted-foreground',
+            )}
           >
             {t.titel}
           </span>
+          {isLater && (
+            <Badge
+              variant="outline"
+              className="font-normal bg-primary/10 text-primary border-primary/20 inline-flex items-center gap-1 capitalize"
+            >
+              <CalendarDays className="w-3.5 h-3.5" />
+              {laterLabel}
+            </Badge>
+          )}
           {t.handeling && (
             <Badge variant="secondary" className="font-normal">
               {t.handeling}
