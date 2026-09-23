@@ -269,6 +269,14 @@ export function MepTaakToevoegen({
             </Button>
           </div>
 
+          <MepDagKiezer
+            vestiging={vestiging}
+            waarde={netToegevoegd.taak_datum}
+            bekekenDatum={datum}
+            disabled={bezig}
+            onKies={(dag) => verplaatsNieuweTaak(dag)}
+          />
+
           <div className="space-y-1.5">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Hoeveel?
