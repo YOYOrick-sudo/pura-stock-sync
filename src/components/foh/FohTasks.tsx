@@ -188,6 +188,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState(task.description || '');
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const isMobile = useIsMobile();
   
   // Touch feedback state (tablet only)
   const isTablet = useIsTablet();
@@ -224,10 +225,10 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         onClick={handleRowClick}
         style={{
           padding: task.completed
-            ? `${taskPadding.split(' ')[0]} 24px`
-            : taskPadding,
-          marginLeft: task.completed ? '-24px' : undefined,
-          marginRight: task.completed ? '-24px' : undefined,
+            ? `${taskPadding.split(' ')[0]} ${isMobile ? '8px' : '24px'}`
+            : isMobile ? `${taskPadding.split(' ')[0]} 8px` : taskPadding,
+          marginLeft: task.completed && !isMobile ? '-24px' : undefined,
+          marginRight: task.completed && !isMobile ? '-24px' : undefined,
           opacity: isDeleted ? 0.3 : 1,
           borderBottom: '1px solid hsl(var(--border))',
           cursor: !isEditMode && toggleTask ? 'pointer' : 'default',
@@ -280,8 +281,8 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
         )}
         <div style={{
           display: 'flex',
-          gap: '12px',
-          alignItems: 'center',
+          gap: isMobile ? '6px' : '12px',
+          alignItems: isMobile ? 'flex-start' : 'center',
         }}>
           {/* Drag Handle */}
           {isEditMode && !isDeleted && (
@@ -305,29 +306,31 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
           {/* Checkbox - compact, whole row is clickable */}
           {!isEditMode && toggleTask && (
             <div style={{
-              width: '20px',
-              height: '20px',
-              minWidth: '20px',
-              borderRadius: '6px',
-              border: task.completed ? '2px solid hsl(var(--muted-foreground) / 0.3)' : '2px solid hsl(var(--border))',
-              backgroundColor: task.completed ? 'hsl(var(--muted-foreground) / 0.15)' : 'hsl(var(--background))',
+              width: isMobile ? '44px' : '20px',
+              height: isMobile ? '44px' : '20px',
+              minWidth: isMobile ? '44px' : '20px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'all 0.1s ease',
               pointerEvents: 'none',
             }}>
-              {task.completed && (
-                <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
-                  <path
-                    d="M1 5L4.5 8.5L11 1.5"
-                    stroke="hsl(var(--muted-foreground))"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
+              <span style={{
+                width: isMobile ? '24px' : '20px',
+                height: isMobile ? '24px' : '20px',
+                borderRadius: '6px',
+                border: task.completed ? '2px solid hsl(var(--muted-foreground) / 0.3)' : '2px solid hsl(var(--border))',
+                backgroundColor: task.completed ? 'hsl(var(--muted-foreground) / 0.15)' : 'hsl(var(--background))',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.1s ease',
+              }}>
+                {task.completed && (
+                  <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                    <path d="M1 5L4.5 8.5L11 1.5" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </span>
             </div>
           )}
 
@@ -391,6 +394,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
+            flexShrink: 0,
           }}>
             {/* Time indicator - editable in edit mode */}
             {isEditMode ? (
@@ -460,10 +464,10 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                   setIsEditingDescription(true);
                 }}
                 style={{
-                  width: '26px',
-                  height: '26px',
-                  minWidth: '26px',
-                  borderRadius: '8px',
+                  width: isMobile ? '44px' : '26px',
+                  height: isMobile ? '44px' : '26px',
+                  minWidth: isMobile ? '44px' : '26px',
+                  borderRadius: isMobile ? '12px' : '8px',
                   border: '1.5px solid hsl(var(--primary) / 0.3)',
                   backgroundColor: 'hsl(var(--secondary))',
                   display: 'flex',
