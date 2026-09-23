@@ -169,6 +169,9 @@ export function MepTaakToevoegen({
   const zetEenheid = (eenheid: string) =>
     patchStil({ doel_eenheid: eenheid, doel_aantal: huidigAantal });
 
+  /** Taak naar een andere dag zetten; de bevestigingsbalk blijft staan. */
+  const verplaatsNieuweTaak = (dag: string) => patchStil({ taak_datum: dag });
+
   return (
     <Card className="p-4 sm:p-5 bg-card shadow-sm space-y-3">
       <div className="relative">
