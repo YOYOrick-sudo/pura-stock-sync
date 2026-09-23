@@ -131,7 +131,7 @@ export default function MepDag() {
       map.get(sleutel)!.push(t);
     }
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], 'nl'));
-  }, [dagTaken, weergave, medewerkers]);
+  }, [alleTaken, weergave, medewerkers]);
 
 
   const dagLabel =
@@ -274,7 +274,10 @@ export default function MepDag() {
             {groepen.map(([naam, rijen]) => {
               const openRijen = rijen.filter((r) => r.status !== 'afgerond');
               const klaarRijen = rijen.filter((r) => r.status === 'afgerond');
-              const kanSlepen = weergave === 'alles' && openRijen.length > 1;
+              const dagRijen = rijen.filter((r) => r.taak_datum <= datum);
+              const dagKlaar = dagRijen.filter((r) => r.status === 'afgerond');
+              const sleepRijen = openRijen.filter((r) => r.taak_datum <= datum);
+              const kanSlepen = weergave === 'alles' && sleepRijen.length > 1;
               const rij = (t: MepTaak) => (
                 <TaakRij
                   key={t.id}
