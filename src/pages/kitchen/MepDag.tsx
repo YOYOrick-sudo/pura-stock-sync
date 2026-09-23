@@ -434,6 +434,13 @@ function TaakRij({
   const laterLabel = isLater
     ? format(parseISO(t.taak_datum), 'EEEE d MMM', { locale: nl })
     : '';
+  // Taak is van een eerdere dag meegekomen en nog niet af: overtijd = meteen prio.
+  // Alleen op "vandaag" relevant (bij terugbladeren was het toen gewoon een dagtaak).
+  const isOvertijd =
+    !isKlaar && !isLater && t.taak_datum < datum && datum === ymd(new Date());
+  const dagenTeLaat = isOvertijd
+    ? differenceInCalendarDays(parseISO(datum), parseISO(t.taak_datum))
+    : 0;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: t.id,
     disabled: !sleepbaar,
