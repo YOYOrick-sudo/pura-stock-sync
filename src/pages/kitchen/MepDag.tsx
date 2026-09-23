@@ -429,6 +429,11 @@ function TaakRij({
   onVerwijder,
 }: TaakRijProps) {
   const isKlaar = t.status === 'afgerond';
+  // Taak staat gepland op een latere dag: zichtbaar, maar duidelijk anders.
+  const isLater = t.taak_datum > datum;
+  const laterLabel = isLater
+    ? format(parseISO(t.taak_datum), 'EEEE d MMM', { locale: nl })
+    : '';
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: t.id,
     disabled: !sleepbaar,
