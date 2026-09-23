@@ -22,8 +22,10 @@ Bij het toevoegen van een MEP-taak op `/kitchen/mep` kies je op welke dag de taa
 - Bij een andere dag dan de bekeken: de taak verschijnt níét in de huidige lijst, maar de lijsten van beide dagen en het weekoverzicht verversen direct, en de melding zegt "Gepland op [dag]". De bevestigingsbalk blijft staan zodat aantal/handeling/persoon alsnog aangepast kunnen worden.
 - Doppeltikken wordt geneutraliseerd (bestaande `bezig`-blokkade), dus geen dubbele taken bij haperende wifi.
 
-### 3. Verplaatsen vanuit bewerken
-- In het bewerkscherm van een taak komt dezelfde dagkeuze ("Verplaats naar dag"), zodat een verkeerd geplande taak zonder verwijderen en opnieuw aanmaken verzet kan worden.
+### 3. Bestaande taken aanpassen en verplaatsen
+- Bestaande taken zijn nu al aan te passen via het bewerkscherm: handeling, wie het doet, prioriteit, klaar voor, aantal, eenheid en notitie. De naam van de taak en de dag kun je nu níét wijzigen.
+- We voegen daar dezelfde dagkeuze toe ("Verplaats naar dag"), zodat een verkeerd geplande taak zonder verwijderen en opnieuw aanmaken verzet kan worden.
+- We maken ook de naam van de taak aanpasbaar, zodat een typefout niet meer betekent: verwijderen en opnieuw invoeren.
 - Verplaatsen van een afgeronde taak blijft mogelijk maar toont dezelfde gesloten-dag-waarschuwing.
 
 ### 4. Het geheel blijft kloppen
