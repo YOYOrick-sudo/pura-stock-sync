@@ -125,7 +125,7 @@ export default function MepDag() {
       map.get(sleutel)!.push(t);
     }
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], 'nl'));
-  }, [taken, weergave, medewerkers, datum]);
+  }, [dagTaken, weergave, medewerkers]);
 
 
   const dagLabel =
