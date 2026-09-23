@@ -448,7 +448,8 @@ function TaakRij({
           : undefined
       }
       className={cn(
-        'flex items-stretch gap-3 px-4 sm:px-5 py-3 min-h-[64px] bg-card',
+        'flex items-stretch gap-3 px-4 sm:px-5 py-3 min-h-[64px]',
+        isLater ? 'bg-transparent' : 'bg-card',
         isKlaar && 'opacity-60',
         isDragging && 'relative z-10 shadow-md rounded-polar-md',
       )}
