@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { MepTaak } from '@/hooks/useMepTaken';
 import { useMepHandelingen } from '@/hooks/useMepPlanning';
+import { MepDagKiezer } from '@/components/kitchen/MepDagKiezer';
 
 const PRIO = [
   { waarde: 2, label: 'Normaal' },
