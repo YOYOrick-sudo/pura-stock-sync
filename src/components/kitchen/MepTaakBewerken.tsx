@@ -64,6 +64,8 @@ export function MepTaakBewerken({
   onOpslaan,
 }: Props) {
   const { data: handelingen = [] } = useMepHandelingen(vestiging);
+  const [titel, setTitel] = useState('');
+  const [dag, setDag] = useState('');
   const [handeling, setHandeling] = useState<string | null>(null);
   const [persoon, setPersoon] = useState<string | null>(null);
   const [prioriteit, setPrioriteit] = useState(2);
@@ -75,6 +77,8 @@ export function MepTaakBewerken({
 
   useEffect(() => {
     if (!taak) return;
+    setTitel(taak.titel);
+    setDag(taak.taak_datum);
     setHandeling(taak.handeling);
     setPersoon(taak.toegewezen_aan);
     setPrioriteit(taak.prioriteit === 1 ? 1 : 2);
@@ -89,6 +93,8 @@ export function MepTaakBewerken({
     const getal = aantal.trim() === '' ? null : Number(aantal.replace(',', '.'));
     const huidigAantal = taak.doel_aantal != null ? Number(taak.doel_aantal) : null;
     return (
+      titel.trim() !== taak.titel ||
+      dag !== taak.taak_datum ||
       handeling !== taak.handeling ||
       persoon !== taak.toegewezen_aan ||
       prioriteit !== (taak.prioriteit === 1 ? 1 : 2) ||
