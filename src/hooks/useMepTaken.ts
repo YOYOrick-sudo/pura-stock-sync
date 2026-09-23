@@ -185,6 +185,8 @@ export function useMepTaakMutaties(vestiging: string, datum: string) {
   const actieveTakenKey = ['mep-taken', vestiging, datum] as const;
   const invalidate = async () => {
     await qc.invalidateQueries({ queryKey: actieveTakenKey, exact: true });
+    // Ook de andere daglijsten: een taak kan naar een andere dag verplaatst zijn.
+    qc.invalidateQueries({ queryKey: ['mep-taken'] });
     qc.invalidateQueries({ queryKey: ['mep-taken-bereik'] });
     qc.invalidateQueries({ queryKey: ['mep-batches'] });
     qc.invalidateQueries({ queryKey: ['mep-favorieten'] });
