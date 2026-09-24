@@ -42,6 +42,8 @@ export interface KoelcelCheckItem {
   volgorde: number;
   actief: boolean;
   product_sleutel: string | null;
+  /** Rubriek uit de ronde, bv. "Groente & fruit". */
+  categorie?: string | null;
   /** In welke lade van de koelwerkbank het product ligt (null = nog niet ingedeeld). */
   lade_id?: string | null;
   /** Hoeveel hele reservebakjes er achter de hand horen te staan (koelwerkbank). */
@@ -246,6 +248,16 @@ export function bestemmingVoorBron(bron: VoorraadBron): {
 }
 
 /**
+ * Vers groente en fruit ontdooi je nooit: die tel je en een tekort gaat naar
+ * het bestelbord (of de MEP / Midsland). Deze vaste regel voorkomt dat een
+ * groente- of fruitregel ooit "uit de vriescel" als vervolgactie krijgt, ook
+ * als er later per ongeluk een vriescelregel met dezelfde productsleutel bijkomt.
+ */
+export function isGroenteFruit(item: { categorie?: string | null }): boolean {
+  return (item.categorie ?? '').toLowerCase().includes('groente');
+}
+
+/**
  * Wat er gebeurt als dit product op is. Ligt hetzelfde product ook op het niveau
  * eronder (koelcel, vriescel), dan schuift de melding daarheen. Pas op het laagste
  * niveau gaat het naar de mise-en-place, het bestelbord of Midsland.
@@ -254,8 +266,11 @@ export function vervolgactieVoorRegel(
   item: KoelcelCheckItem,
   alleItems: KoelcelCheckItem[],
 ): { soort: 'niveau'; onderItem: KoelcelCheckItem; label: string } | ReturnType<typeof bestemmingVoorBron> {
+  const keten = isGroenteFruit(item)
+    ? (NIVEAU_KETEN[item.plek] ?? []).filter((p) => p !== 'vriezer')
+    : NIVEAU_KETEN[item.plek] ?? [];
   if (item.product_sleutel) {
-    for (const onder of NIVEAU_KETEN[item.plek] ?? []) {
+    for (const onder of keten) {
       const onderItem = alleItems.find(
         (i) => i.product_sleutel === item.product_sleutel && i.plek === onder && i.actief,
       );
@@ -263,6 +278,9 @@ export function vervolgactieVoorRegel(
         return { soort: 'niveau', onderItem, label: PLEK_LABEL[onder].toLowerCase() };
       }
     }
+  }
+  if (isGroenteFruit(item) && item.bron === 'vriezer') {
+    return bestemmingVoorBron('koelcel_inkoop');
   }
   return bestemmingVoorBron(item.bron);
 
@@ -275,6 +293,7 @@ export function vervolgactieVoorRegel(
 export function ketenKortLabel(item: KoelcelCheckItem, alleItems: KoelcelCheckItem[]): string {
   const vervolg = vervolgactieVoorRegel(item, alleItems);
   if (vervolg.soort === 'niveau') return `uit ${HERKOMST_LABEL[vervolg.onderItem.plek]}`;
+  if (isGroenteFruit(item) && item.bron === 'vriezer') return 'bestellen';
   switch (item.bron) {
     case 'zelf_west':
       return 'zelf maken';
