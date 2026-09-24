@@ -3715,11 +3715,29 @@ export function FohTasks() {
                           false,
                           { keyPrefix: 'top-', categoryFilter: isStartCat },
                         );
+                        // De bain-marie-stickers horen in de keuken-sluitlijst direct onder
+                        // de bain-marie-taken (als 3e item). We voegen het uitklapbare blok
+                        // daarom ín de keukenlijst in, na de laatste bain-marie-taak. Zijn die
+                        // taken (tijdelijk) hernoemd of weg, dan valt het blok terug op de
+                        // oude plek onderaan — er breekt niets.
+                        const isBainMarieTaak = (t: FohTaskWithEmployee) => /bain[ -]?marie/i.test(t.title ?? '');
+                        const heeftBainMarieTaak =
+                          visibleTab === 'keuken' &&
+                          currentTasks.some(
+                            (t) => westSectionOf(t.department) === 'keuken' && isBainMarieTaak(t),
+                          );
+                        const bainMarieSluitInline =
+                          visibleTab === 'keuken' && activePhase === 'sluit' && !isReadOnly
+                            ? {
+                                match: isBainMarieTaak,
+                                node: <BainMarieSluit key="bain-sluit" vestiging="West" datum={selectedDate} />,
+                              }
+                            : undefined;
                         const eigen = renderDepartmentSection(
                           visibleTab === 'keuken' ? 'Keuken' : 'Bediening',
                           visibleTab,
                           false,
-                          { hideHeader: true },
+                          { hideHeader: true, insertion: bainMarieSluitInline },
                         );
                         const samenBottom = renderDepartmentSection(
                           'Samen / Laatste loodjes',
@@ -3727,8 +3745,8 @@ export function FohTasks() {
                           false,
                           { keyPrefix: 'bottom-', categoryFilter: (c) => !isStartCat(c) },
                         );
-                        // De voorraadronde en de bain-marie-stickers horen bij
-                        // de keukentaken van de sluitlijst; het datum-blok bij de open-lijst.
+                        // De voorraadronde hoort bij de keukentaken van de sluitlijst;
+                        // het datum-blok bij de open-lijst.
                         const voorraad =
                           visibleTab === 'keuken' && activePhase === 'sluit' && !isReadOnly ? (
                             <VoorraadRonde key="voorraadronde" vestiging="West" datum={selectedDate} />
@@ -3737,9 +3755,9 @@ export function FohTasks() {
                           visibleTab === 'keuken' && !isReadOnly ? (
                             activePhase === 'open' ? (
                               <BainMarieOpen key="bain-open" vestiging="West" datum={selectedDate} />
-                            ) : (
+                            ) : !heeftBainMarieTaak ? (
                               <BainMarieSluit key="bain-sluit" vestiging="West" datum={selectedDate} />
-                            )
+                            ) : null
                           ) : null;
                         const sections =
                           activePhase === 'open'
