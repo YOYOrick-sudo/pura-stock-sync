@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -3450,6 +3450,7 @@ export function FohTasks() {
                   keyPrefix: string,
                   dept: Department = 'voorkant',
                   orderedCatsOverride?: string[],
+                  insertion?: { match: (task: FohTaskWithEmployee) => boolean; node: ReactNode },
                 ) => {
                   const orderedCats =
                     orderedCatsOverride
