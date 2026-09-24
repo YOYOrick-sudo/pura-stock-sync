@@ -3729,7 +3729,7 @@ export function FohTasks() {
                         const sections =
                           activePhase === 'open'
                             ? [samenTop, bainMarie, eigen, samenBottom].filter(Boolean)
-                            : [samenTop, eigen, voorraad, bainMarie, samenBottom].filter(Boolean);
+                            : [samenTop, voorraad, eigen, bainMarie, samenBottom].filter(Boolean);
                         if (sections.length === 0) {
                           return (
                             <div style={{
