@@ -3515,32 +3515,41 @@ export function FohTasks() {
                             </div>
                           ) : (
                             <SortableContext items={categoryTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-                              {categoryTasks.map((task, index) => (
-                                <SortableTaskItem
-                                  key={task.id}
-                                  task={task}
-                                  taskNumber={index + 1}
-                                  isEditMode={isEditMode}
-                                  onTitleChange={(id, title) => {
-                                    setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, title } : t));
-                                  }}
-                                  onDescriptionChange={(id, description) => {
-                                    setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, description } : t));
-                                  }}
-                                  onEstimatedMinutesChange={(id, minutes) => {
-                                    setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, estimated_minutes: minutes } : t));
-                                  }}
-                                  onDelete={(id) => {
-                                    setDeletedTaskIds(prev => [...prev, id]);
-                                  }}
-                                  toggleTask={!isEditMode ? toggleTask : undefined}
-                                  isDeleted={deletedTaskIds.includes(task.id)}
-                                  showAdminTools={false}
-                                  taskPadding={taskPadding}
-                                  isNew={!!task.template_id && newTemplateIds.has(task.template_id)}
-                                  repeatDays={getRepeatDaysForTask(task as any)}
-                                />
-                              ))}
+                              {(() => {
+                                // Eventueel extra blok (bv. bain-marie-stickers) direct na de
+                                // laatste passende taak invoegen — nummering en slepen blijven intact.
+                                const ankerIndex = insertion
+                                  ? categoryTasks.reduce((acc, t, i) => (insertion.match(t) ? i : acc), -1)
+                                  : -1;
+                                return categoryTasks.map((task, index) => (
+                                  <Fragment key={task.id}>
+                                    <SortableTaskItem
+                                      task={task}
+                                      taskNumber={index + 1}
+                                      isEditMode={isEditMode}
+                                      onTitleChange={(id, title) => {
+                                        setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, title } : t));
+                                      }}
+                                      onDescriptionChange={(id, description) => {
+                                        setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, description } : t));
+                                      }}
+                                      onEstimatedMinutesChange={(id, minutes) => {
+                                        setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, estimated_minutes: minutes } : t));
+                                      }}
+                                      onDelete={(id) => {
+                                        setDeletedTaskIds(prev => [...prev, id]);
+                                      }}
+                                      toggleTask={!isEditMode ? toggleTask : undefined}
+                                      isDeleted={deletedTaskIds.includes(task.id)}
+                                      showAdminTools={false}
+                                      taskPadding={taskPadding}
+                                      isNew={!!task.template_id && newTemplateIds.has(task.template_id)}
+                                      repeatDays={getRepeatDaysForTask(task as any)}
+                                    />
+                                    {index === ankerIndex && insertion!.node}
+                                  </Fragment>
+                                ));
+                              })()}
                             </SortableContext>
                           )}
                         </div>
