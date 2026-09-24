@@ -3625,7 +3625,12 @@ export function FohTasks() {
                   label: string,
                   dept: Department,
                   flat = false,
-                  opts?: { keyPrefix?: string; categoryFilter?: (cat: string) => boolean; hideHeader?: boolean },
+                  opts?: {
+                    keyPrefix?: string;
+                    categoryFilter?: (cat: string) => boolean;
+                    hideHeader?: boolean;
+                    insertion?: { match: (task: FohTaskWithEmployee) => boolean; node: ReactNode };
+                  },
                 ) => {
                   const isWestSection = userLocation === 'West';
                   let deptTasks = currentTasks.filter((t: any) =>
