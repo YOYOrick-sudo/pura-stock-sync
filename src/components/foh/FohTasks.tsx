@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -3450,6 +3450,7 @@ export function FohTasks() {
                   keyPrefix: string,
                   dept: Department = 'voorkant',
                   orderedCatsOverride?: string[],
+                  insertion?: { match: (task: FohTaskWithEmployee) => boolean; node: ReactNode },
                 ) => {
                   const orderedCats =
                     orderedCatsOverride
@@ -3514,32 +3515,41 @@ export function FohTasks() {
                             </div>
                           ) : (
                             <SortableContext items={categoryTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-                              {categoryTasks.map((task, index) => (
-                                <SortableTaskItem
-                                  key={task.id}
-                                  task={task}
-                                  taskNumber={index + 1}
-                                  isEditMode={isEditMode}
-                                  onTitleChange={(id, title) => {
-                                    setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, title } : t));
-                                  }}
-                                  onDescriptionChange={(id, description) => {
-                                    setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, description } : t));
-                                  }}
-                                  onEstimatedMinutesChange={(id, minutes) => {
-                                    setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, estimated_minutes: minutes } : t));
-                                  }}
-                                  onDelete={(id) => {
-                                    setDeletedTaskIds(prev => [...prev, id]);
-                                  }}
-                                  toggleTask={!isEditMode ? toggleTask : undefined}
-                                  isDeleted={deletedTaskIds.includes(task.id)}
-                                  showAdminTools={false}
-                                  taskPadding={taskPadding}
-                                  isNew={!!task.template_id && newTemplateIds.has(task.template_id)}
-                                  repeatDays={getRepeatDaysForTask(task as any)}
-                                />
-                              ))}
+                              {(() => {
+                                // Eventueel extra blok (bv. bain-marie-stickers) direct na de
+                                // laatste passende taak invoegen — nummering en slepen blijven intact.
+                                const ankerIndex = insertion
+                                  ? categoryTasks.reduce((acc, t, i) => (insertion.match(t) ? i : acc), -1)
+                                  : -1;
+                                return categoryTasks.map((task, index) => (
+                                  <Fragment key={task.id}>
+                                    <SortableTaskItem
+                                      task={task}
+                                      taskNumber={index + 1}
+                                      isEditMode={isEditMode}
+                                      onTitleChange={(id, title) => {
+                                        setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, title } : t));
+                                      }}
+                                      onDescriptionChange={(id, description) => {
+                                        setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, description } : t));
+                                      }}
+                                      onEstimatedMinutesChange={(id, minutes) => {
+                                        setEditedTasks(prev => prev.map(t => t.id === id ? { ...t, estimated_minutes: minutes } : t));
+                                      }}
+                                      onDelete={(id) => {
+                                        setDeletedTaskIds(prev => [...prev, id]);
+                                      }}
+                                      toggleTask={!isEditMode ? toggleTask : undefined}
+                                      isDeleted={deletedTaskIds.includes(task.id)}
+                                      showAdminTools={false}
+                                      taskPadding={taskPadding}
+                                      isNew={!!task.template_id && newTemplateIds.has(task.template_id)}
+                                      repeatDays={getRepeatDaysForTask(task as any)}
+                                    />
+                                    {index === ankerIndex && insertion!.node}
+                                  </Fragment>
+                                ));
+                              })()}
                             </SortableContext>
                           )}
                         </div>
@@ -3615,7 +3625,12 @@ export function FohTasks() {
                   label: string,
                   dept: Department,
                   flat = false,
-                  opts?: { keyPrefix?: string; categoryFilter?: (cat: string) => boolean; hideHeader?: boolean },
+                  opts?: {
+                    keyPrefix?: string;
+                    categoryFilter?: (cat: string) => boolean;
+                    hideHeader?: boolean;
+                    insertion?: { match: (task: FohTaskWithEmployee) => boolean; node: ReactNode };
+                  },
                 ) => {
                   const isWestSection = userLocation === 'West';
                   let deptTasks = currentTasks.filter((t: any) =>
@@ -3638,7 +3653,7 @@ export function FohTasks() {
                           afgerond={deptTasks.length > 0 && completed === deptTasks.length}
                         />
                       )}
-                      {flat ? renderFlatList(deptTasks, dept) : renderCategoryGroups(deptTasks, dept, dept)}
+                      {flat ? renderFlatList(deptTasks, dept) : renderCategoryGroups(deptTasks, dept, dept, undefined, opts?.insertion)}
                     </div>
 
                   );
@@ -3700,11 +3715,29 @@ export function FohTasks() {
                           false,
                           { keyPrefix: 'top-', categoryFilter: isStartCat },
                         );
+                        // De bain-marie-stickers horen in de keuken-sluitlijst direct onder
+                        // de bain-marie-taken (als 3e item). We voegen het uitklapbare blok
+                        // daarom ín de keukenlijst in, na de laatste bain-marie-taak. Zijn die
+                        // taken (tijdelijk) hernoemd of weg, dan valt het blok terug op de
+                        // oude plek onderaan — er breekt niets.
+                        const isBainMarieTaak = (t: FohTaskWithEmployee) => /bain[ -]?marie/i.test(t.title ?? '');
+                        const heeftBainMarieTaak =
+                          visibleTab === 'keuken' &&
+                          currentTasks.some(
+                            (t: any) => westSectionOf(t.department) === 'keuken' && isBainMarieTaak(t),
+                          );
+                        const bainMarieSluitInline =
+                          visibleTab === 'keuken' && activePhase === 'sluit' && !isReadOnly
+                            ? {
+                                match: isBainMarieTaak,
+                                node: <BainMarieSluit key="bain-sluit" vestiging="West" datum={selectedDate} />,
+                              }
+                            : undefined;
                         const eigen = renderDepartmentSection(
                           visibleTab === 'keuken' ? 'Keuken' : 'Bediening',
                           visibleTab,
                           false,
-                          { hideHeader: true },
+                          { hideHeader: true, insertion: bainMarieSluitInline },
                         );
                         const samenBottom = renderDepartmentSection(
                           'Samen / Laatste loodjes',
@@ -3712,8 +3745,8 @@ export function FohTasks() {
                           false,
                           { keyPrefix: 'bottom-', categoryFilter: (c) => !isStartCat(c) },
                         );
-                        // De voorraadronde en de bain-marie-stickers horen bij
-                        // de keukentaken van de sluitlijst; het datum-blok bij de open-lijst.
+                        // De voorraadronde hoort bij de keukentaken van de sluitlijst;
+                        // het datum-blok bij de open-lijst.
                         const voorraad =
                           visibleTab === 'keuken' && activePhase === 'sluit' && !isReadOnly ? (
                             <VoorraadRonde key="voorraadronde" vestiging="West" datum={selectedDate} />
@@ -3722,9 +3755,9 @@ export function FohTasks() {
                           visibleTab === 'keuken' && !isReadOnly ? (
                             activePhase === 'open' ? (
                               <BainMarieOpen key="bain-open" vestiging="West" datum={selectedDate} />
-                            ) : (
+                            ) : !heeftBainMarieTaak ? (
                               <BainMarieSluit key="bain-sluit" vestiging="West" datum={selectedDate} />
-                            )
+                            ) : null
                           ) : null;
                         const sections =
                           activePhase === 'open'
