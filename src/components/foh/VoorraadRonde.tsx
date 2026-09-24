@@ -676,7 +676,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const { meldOp, vulAanUitNiveau, zetAllesAanwezig } = useKoelcelCheckMutaties(vestiging, datum, items);
 
   const opslagSleutel = `voorraadronde-${vestiging}-${datum}`;
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [stap, setStap] = useState<'tellen' | 'bon' | 'klaar'>('tellen');
   const [telling, setTelling] = useState<Record<string, number>>({});
   const [bevestigd, setBevestigd] = useState<string[]>([]);
