@@ -247,17 +247,14 @@ function TelRegel({
   const zetHeel = (n: number) => onZet(Math.max(n, 0) + rest);
   const zetRest = (r: number) => onZet(heel + r);
 
-  // Eén statuschip rechts: bijgesteld voor de werkbank > onderweg > bestelbord > MEP.
-  const bijgesteld = !afwijkend && afgeleid && afgeleid.onttrokken > 0;
-  const statusTekst = bijgesteld
-    ? `−${getalLabel(afgeleid!.onttrokken)} voor de werkbank`
-    : onderweg > 0
-      ? `${aantalLabel(onderweg, item.eenheid)} onderweg`
-      : opBestelbord
-        ? 'op het bestelbord'
-        : inMep
-          ? 'op de MEP'
-          : null;
+  // Eén statuschip rechts: onderweg > bestelbord > MEP.
+  const statusTekst = onderweg > 0
+    ? `${aantalLabel(onderweg, item.eenheid)} onderweg`
+    : opBestelbord
+      ? 'op het bestelbord'
+      : inMep
+        ? 'op de MEP'
+        : null;
   const statusChip = statusTekst ? <VoorraadChip variant="klaar">{statusTekst}</VoorraadChip> : null;
 
   const bakje = bakjeLabel(item.formaat ?? item.bak_maat);
@@ -401,7 +398,7 @@ function TelRegel({
               afwijkend ? 'bg-amber-400/20 text-amber-700 dark:text-amber-300' : 'bg-muted text-muted-foreground'
             }`}
           >
-            {afwijkend ? <Check size={18} /> : bijgesteld ? getalLabel(waarde) : <Minus size={18} />}
+            {afwijkend ? <Check size={18} /> : <Minus size={18} />}
           </span>
         </span>
       </button>
