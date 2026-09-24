@@ -3653,7 +3653,7 @@ export function FohTasks() {
                           afgerond={deptTasks.length > 0 && completed === deptTasks.length}
                         />
                       )}
-                      {flat ? renderFlatList(deptTasks, dept) : renderCategoryGroups(deptTasks, dept, dept)}
+                      {flat ? renderFlatList(deptTasks, dept) : renderCategoryGroups(deptTasks, dept, dept, undefined, opts?.insertion)}
                     </div>
 
                   );
