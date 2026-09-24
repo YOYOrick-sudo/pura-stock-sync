@@ -3724,7 +3724,7 @@ export function FohTasks() {
                         const heeftBainMarieTaak =
                           visibleTab === 'keuken' &&
                           currentTasks.some(
-                            (t) => westSectionOf(t.department) === 'keuken' && isBainMarieTaak(t),
+                            (t: any) => westSectionOf(t.department) === 'keuken' && isBainMarieTaak(t),
                           );
                         const bainMarieSluitInline =
                           visibleTab === 'keuken' && activePhase === 'sluit' && !isReadOnly
