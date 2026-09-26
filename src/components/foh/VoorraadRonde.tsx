@@ -851,6 +851,43 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const bestelbordMap = bestelbordQuery.data ?? {};
   const mepTitels = useMemo(() => mepNamenQuery.data ?? [], [mepNamenQuery.data]);
 
+  // Groente & fruit tel je om de dag: ritme uit de laatste telling + openingskalender.
+  const kalender = useMepKalender(vestiging);
+  const gfItemIds = useMemo(
+    () =>
+      items
+        .filter((i) => (i.plek ?? 'koelcel') === 'koelcel' && categorieVan(i) === 'Groente & fruit')
+        .map((i) => i.id),
+    [items],
+  );
+  const laatsteGfQuery = useQuery({
+    queryKey: ['gf-laatste-telling', vestiging],
+    enabled: gfItemIds.length > 0,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('koelcel_checks')
+        .select('datum')
+        .eq('vestiging', vestiging)
+        .in('item_id', gfItemIds)
+        .lt('datum', datum)
+        .order('datum', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.datum ?? null;
+    },
+  });
+
+  const gfRitme = useMemo(() => {
+    const vandaagD = parseYmd(datum);
+    const laatste = laatsteGfQuery.data;
+    // Nog nooit geteld (of kalender laadt nog): meteen meetellen.
+    if (!laatste) return { telVandaag: true, volgende: vandaagD };
+    const volgende = naarOpenDag(plusDagen(parseYmd(laatste), 2), kalender.isOpen);
+    return { telVandaag: vandaagD >= volgende, volgende };
+  }, [laatsteGfQuery.data, datum, kalender.isOpen]);
+
   const plekken = useMemo(
     () =>
       PLEK_VOLGORDE.filter((p) => !p.alleenMaandag || maandag)
