@@ -1424,6 +1424,9 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                   {p.groepen.map((g) => (
                     <div key={g.sleutel} id={`vr-groep-${g.sleutel}`} className="scroll-mt-24 rounded-[18px]">
 
+                      {g.sleutel === GF_GROEP_SLEUTEL && (
+                        <WeekStrip vandaag={parseYmd(datum)} telDag={gfRitme.volgende} isOpen={kalender.isOpen} />
+                      )}
                       <CategorieBlok
                         titel={g.titel}
                         overslaan={g.overslaan}
