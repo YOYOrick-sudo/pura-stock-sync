@@ -135,6 +135,100 @@ function isMaandag(datum: string): boolean {
   return !Number.isNaN(d.getTime()) && d.getDay() === 1;
 }
 
+// ---------- Groente & fruit: om de dag tellen ----------
+
+/** Sleutel van de Groente & fruit-groep in de koelcel. */
+const GF_GROEP_SLEUTEL = 'koelcel:Groente & fruit';
+
+const DAG_KORT = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
+
+function parseYmd(datum: string): Date {
+  return new Date(`${datum}T12:00:00`);
+}
+
+function ymd(d: Date): string {
+  const m = `${d.getMonth() + 1}`.padStart(2, '0');
+  const dag = `${d.getDate()}`.padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${dag}`;
+}
+
+function plusDagen(d: Date, n: number): Date {
+  const kopie = new Date(d);
+  kopie.setDate(kopie.getDate() + n);
+  return kopie;
+}
+
+/** Schuift een datum door naar de eerstvolgende open dag (max 14 vooruit). */
+function naarOpenDag(d: Date, isOpen: (dag: Date) => boolean): Date {
+  let cur = d;
+  for (let i = 0; i < 14 && !isOpen(cur); i++) cur = plusDagen(cur, 1);
+  return cur;
+}
+
+const dagLangFmt = new Intl.DateTimeFormat('nl-NL', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'short',
+});
+
+/**
+ * Kleine weekstrip: 7 dagen vanaf vandaag. Tel-dag is groen, vandaag omrand,
+ * gesloten dagen grijs doorstreept. Zo zie je het ritme zonder uitleg.
+ */
+function WeekStrip({
+  vandaag,
+  telDag,
+  isOpen,
+}: {
+  vandaag: Date;
+  telDag: Date;
+  isOpen: (dag: Date) => boolean;
+}) {
+  const dagen = Array.from({ length: 7 }, (_, i) => plusDagen(vandaag, i));
+  const telYmd = ymd(telDag);
+  const vandaagYmd = ymd(vandaag);
+  return (
+    <div className="mb-2 flex gap-1" aria-label="Telritme groente en fruit">
+      {dagen.map((d) => {
+        const key = ymd(d);
+        const open = isOpen(d);
+        const isTel = key === telYmd;
+        const isVandaag = key === vandaagYmd;
+        return (
+          <div
+            key={key}
+            className={`flex min-h-[44px] flex-1 flex-col items-center justify-center rounded-[12px] border py-1 ${
+              isTel
+                ? 'border-primary bg-primary text-primary-foreground'
+                : isVandaag
+                  ? 'border-primary bg-card text-foreground'
+                  : open
+                    ? 'border-border bg-card text-muted-foreground'
+                    : 'border-border bg-muted/50 text-muted-foreground'
+            }`}
+          >
+            <span
+              className={`text-[10px] font-semibold uppercase leading-none ${
+                !open && !isTel ? 'line-through opacity-60' : ''
+              }`}
+            >
+              {DAG_KORT[d.getDay()]}
+            </span>
+            <span
+              className={`mt-0.5 text-[13px] font-bold leading-none tabular-nums ${
+                !open && !isTel ? 'line-through opacity-60' : ''
+              }`}
+            >
+              {d.getDate()}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+
 function stickerDatum(d: Date): string {
   return d
     .toLocaleDateString('nl-NL', { weekday: 'short', day: '2-digit', month: '2-digit' })
