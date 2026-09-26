@@ -964,16 +964,29 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
         }
         const groepen: Groep[] = [...perCategorie.entries()]
           .sort((a, b) => CATEGORIE_VOLGORDE.indexOf(a[0]) - CATEGORIE_VOLGORDE.indexOf(b[0]))
-          .map(([cat, catItems]) => ({
-            sleutel: `${p.plek}:${cat}`,
-            titel: cat,
-            subtitel: null,
-            lade: null,
-            items: catItems,
-          }));
+          .map(([cat, catItems]) => {
+            const sleutel = `${p.plek}:${cat}`;
+            // Groente & fruit tel je om de dag: op een vrije dag staat de groep
+            // er rustig bij, zonder mee te tellen in de voortgang.
+            const overslaan =
+              sleutel === GF_GROEP_SLEUTEL && !gfRitme.telVandaag
+                ? {
+                    reden: 'vandaag niet tellen · om de dag',
+                    uitleg: `Volgende telling ${dagLangFmt.format(gfRitme.volgende)}.`,
+                  }
+                : undefined;
+            return {
+              sleutel,
+              titel: cat,
+              subtitel: null,
+              lade: null,
+              items: overslaan ? [] : catItems,
+              overslaan,
+            };
+          });
         return { ...p, groepen };
       }),
-    [plekken, lades],
+    [plekken, lades, gfRitme],
   );
 
   // Lades zonder telwerk tellen niet mee in de voortgang: ze blokkeren de ronde niet.
