@@ -42,7 +42,18 @@ export function AppSidebar({ onNavigate, mobile = false }: AppSidebarProps = {})
   const { userLocation } = useUserLocation();
   const { isManager, isOwner } = useRole();
 
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsedState, setCollapsedState] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('sidebar-collapsed');
+      if (saved !== null) return saved === '1';
+    } catch { /* ignore */ }
+    return typeof window !== 'undefined' && window.innerWidth < 900;
+  });
+  const collapsed = !mobile && collapsedState;
+  const setCollapsed = (v: boolean) => {
+    setCollapsedState(v);
+    try { localStorage.setItem('sidebar-collapsed', v ? '1' : '0'); } catch { /* ignore */ }
+  };
 
 
   const navigationItems = (userLocation
