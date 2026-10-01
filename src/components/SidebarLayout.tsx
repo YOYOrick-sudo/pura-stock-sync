@@ -76,7 +76,7 @@ export function SidebarLayout({
     <div className="flex min-h-screen w-full" style={{ backgroundColor: 'hsl(var(--app-canvas))' }}>
       {/* Desktop Sidebar - hidden on mobile */}
       {!isMobile && (
-        <div style={{ position: 'sticky', top: 0, height: '100vh', alignSelf: 'flex-start' }}>
+        <div style={{ position: 'sticky', top: 0, height: '100dvh', alignSelf: 'flex-start' }}>
           <AppSidebar />
         </div>
       )}

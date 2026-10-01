@@ -146,10 +146,10 @@ export function PolarSidebar({
       )}
       style={{
         width: mobile ? '100%' : collapsed ? '76px' : '230px',
-        height: mobile ? '100%' : 'calc(100vh - 24px)',
+        height: mobile ? '100%' : 'calc(100dvh - 24px - var(--safe-top) - var(--safe-bottom))',
         position: mobile ? 'relative' : 'sticky',
-        top: mobile ? 0 : '12px',
-        margin: mobile ? 0 : '12px',
+        top: mobile ? 0 : 'calc(12px + var(--safe-top))',
+        margin: mobile ? 0 : 'calc(12px + var(--safe-top)) 12px calc(12px + var(--safe-bottom)) calc(12px + var(--safe-left))',
         transition: 'width 200ms cubic-bezier(0.4, 0, 0.2, 1)',
         boxShadow: mobile ? 'none' : 'var(--shadow-card)',
       }}
