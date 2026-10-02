@@ -948,6 +948,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
             const nietTellen = lade.rol === 'niet_tellen';
             // Lades die je niet telt of die nog leeg zijn blijven zichtbaar,
             // maar ingeklapt: je ziet dat ze bestaan zonder ze af te hoeven vinken.
+            const ladeRitme = ritmeVoorSleutel(`werkbank:lade:${lade.id}`);
             const overslaan = nietTellen
               ? {
                   reden: 'wordt niet geteld · aangebroken bakjes',
@@ -958,7 +959,12 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                     reden: 'nog niets ingedeeld',
                     uitleg: 'Deel deze lade in bij Koelwerkbank indelen, dan telt hij vanzelf mee.',
                   }
-                : undefined;
+                : ladeRitme && !ladeRitme.telVandaag
+                  ? {
+                      reden: 'vandaag niet tellen · elke vrijdag',
+                      uitleg: `Volgende telling ${dagLangFmt.format(ladeRitme.volgende)}.`,
+                    }
+                  : undefined;
             groepen.push({
               sleutel: `werkbank:lade:${lade.id}`,
               titel: lade.naam,
@@ -1000,13 +1006,14 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           .sort((a, b) => CATEGORIE_VOLGORDE.indexOf(a[0]) - CATEGORIE_VOLGORDE.indexOf(b[0]))
           .map(([cat, catItems]) => {
             const sleutel = `${p.plek}:${cat}`;
-            // Groente & fruit tel je om de dag: op een vrije dag staat de groep
-            // er rustig bij, zonder mee te tellen in de voortgang.
+            // Weekritme: op een vrije dag staat de groep er rustig bij,
+            // zonder mee te tellen in de voortgang.
+            const r = ritmeVoorSleutel(sleutel);
             const overslaan =
-              sleutel === GF_GROEP_SLEUTEL && !gfRitme.telVandaag
+              r && !r.telVandaag
                 ? {
-                    reden: 'vandaag niet tellen · om de dag',
-                    uitleg: `Volgende telling ${dagLangFmt.format(gfRitme.volgende)}.`,
+                    reden: 'vandaag niet tellen · elke maandag',
+                    uitleg: `Volgende telling ${dagLangFmt.format(r.volgende)}.`,
                   }
                 : undefined;
             return {
@@ -1020,7 +1027,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           });
         return { ...p, groepen };
       }),
-    [plekken, lades, gfRitme],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [plekken, lades, ritmes, linksOnderLade],
   );
 
   // Lades zonder telwerk tellen niet mee in de voortgang: ze blokkeren de ronde niet.
