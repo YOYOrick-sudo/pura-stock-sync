@@ -1466,13 +1466,16 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                   {p.groepen.map((g) => (
                     <div key={g.sleutel} id={`vr-groep-${g.sleutel}`} className="scroll-mt-24 rounded-[18px]">
 
-                      {g.sleutel === GF_GROEP_SLEUTEL && (
-                        <WeekStrip
-                          vandaag={parseYmd(datum)}
-                          telDag={gfRitme.telVandaag ? parseYmd(datum) : gfRitme.volgende}
-                          isOpen={kalender.isOpen}
-                        />
-                      )}
+                      {(() => {
+                        const r = ritmeVoorSleutel(g.sleutel);
+                        return r ? (
+                          <WeekStrip
+                            vandaag={parseYmd(datum)}
+                            telDag={r.telVandaag ? parseYmd(datum) : r.volgende}
+                            isOpen={kalender.isOpen}
+                          />
+                        ) : null;
+                      })()}
                       <CategorieBlok
                         titel={g.titel}
                         overslaan={g.overslaan}
@@ -1494,6 +1497,16 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                         onHerstel={herstel}
                         afgeleideTelling={afgeleideTelling}
                       />
+                      {!g.overslaan && g.items.length > 0 && !bevestigd.includes(g.sleutel) && (
+                        <Button
+                          variant="outline"
+                          className="mt-2 h-12 w-full rounded-[14px] border-primary/40 text-[15px] font-semibold text-primary hover:bg-primary/5"
+                          onClick={() => sluitGroep(g.sleutel)}
+                        >
+                          <Check size={18} className="mr-1.5" />
+                          {g.lade ? 'Lade klaar' : `${g.titel} klaar`}
+                        </Button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1502,7 +1515,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           })}
         </div>
 
-        {/* Vaste afsluitbalk: altijd onder de duim, nooit scrollen naar een knop. */}
+        {/* Vaste balk: voortgang, en pas aan het eind de stap naar de bon. */}
         <div className="sticky bottom-[calc(12px+env(safe-area-inset-bottom,0px))] z-20 mt-4">
           {allesBevestigd ? (
             <Button
@@ -1513,16 +1526,24 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
               <ArrowRight size={20} className="ml-1" />
             </Button>
           ) : volgendeGroep ? (
-            <Button
-              className="h-14 w-full rounded-[16px] text-[16px] font-bold shadow-lg"
-              onClick={() => sluitGroep(volgendeGroep.sleutel)}
+            <button
+              type="button"
+              className="flex h-14 w-full items-center gap-3 rounded-[16px] border border-border bg-card/95 px-4 text-left shadow-lg backdrop-blur"
+              onClick={() =>
+                document
+                  .getElementById(`vr-groep-${volgendeGroep.sleutel}`)
+                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }
             >
-              <Check size={20} className="mr-1.5" />
-              <span className="truncate">{volgendeGroep.titel} klaar</span>
-              <span className="ml-2 shrink-0 rounded-full bg-primary-foreground/20 px-2 py-0.5 text-[12px] font-semibold tabular-nums">
+              <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-[13px] font-bold tabular-nums text-primary">
                 {klaarAantal}/{alleSleutels.length}
               </span>
-            </Button>
+              <span className="min-w-0 flex-1 truncate text-[15px] text-foreground">
+                <span className="text-muted-foreground">Volgende: </span>
+                <span className="font-semibold">{volgendeGroep.titel}</span>
+              </span>
+              <ArrowRight size={18} className="shrink-0 text-muted-foreground" />
+            </button>
           ) : null}
         </div>
       </div>
