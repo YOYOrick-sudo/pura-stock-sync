@@ -1357,7 +1357,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                               : r.bestelLabel
                                 ? r.bestelLabel
                                 : telModus(r.item) === 'vulling'
-                                  ? `bijvullen tot ${vulnormWaarde(r.item) === 0.5 ? 'half' : 'vol'}`
+                                  ? `bijvullen tot ${vulnormWaarde(r.item) < 1 ? 'half' : 'vol'}`
                                   : aantalLabel(r.tekort, r.item.eenheid)}
 
                           </span>
