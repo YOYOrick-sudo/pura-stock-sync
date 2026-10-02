@@ -1,0 +1,2 @@
+ALTER TABLE public.koelcel_check_items DROP CONSTRAINT koelcel_check_items_vulnorm_check;
+ALTER TABLE public.koelcel_check_items ADD CONSTRAINT koelcel_check_items_vulnorm_check CHECK (vulnorm = ANY (ARRAY['vol'::text, 'half'::text, 'bodem'::text]));

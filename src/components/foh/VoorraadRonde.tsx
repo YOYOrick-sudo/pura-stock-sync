@@ -139,6 +139,7 @@ function isMaandag(datum: string): boolean {
 
 /** Sleutel van de Groente & fruit-groep in de koelcel. */
 const GF_GROEP_SLEUTEL = 'koelcel:Groente & fruit';
+const ZK_GROEP_SLEUTEL = 'koelcel:Zuivel & kaas';
 
 const DAG_KORT = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
 
@@ -851,42 +852,75 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const bestelbordMap = bestelbordQuery.data ?? {};
   const mepTitels = useMemo(() => mepNamenQuery.data ?? [], [mepNamenQuery.data]);
 
-  // Groente & fruit tel je om de dag: ritme uit de laatste telling + openingskalender.
+  // Weekritmes: koelcel (groente & fruit, zuivel & kaas) op maandag, reservelade
+  // Links onder op vrijdag. Gemist? Dan blijft de groep staan tot hij geteld is.
   const kalender = useMepKalender(vestiging);
-  const gfItemIds = useMemo(
-    () =>
-      items
-        .filter((i) => (i.plek ?? 'koelcel') === 'koelcel' && categorieVan(i) === 'Groente & fruit')
-        .map((i) => i.id),
-    [items],
+  const linksOnderLade = useMemo(
+    () => lades.find((l) => l.actief && l.naam.trim().toLowerCase() === 'links onder') ?? null,
+    [lades],
   );
-  const laatsteGfQuery = useQuery({
-    queryKey: ['gf-laatste-telling', vestiging],
-    enabled: gfItemIds.length > 0,
+  const ritmeIds = useMemo(() => {
+    const koelcelCat = (cat: string) =>
+      items
+        .filter((i) => (i.plek ?? 'koelcel') === 'koelcel' && categorieVan(i) === cat)
+        .map((i) => i.id);
+    return {
+      gf: koelcelCat('Groente & fruit'),
+      zk: koelcelCat('Zuivel & kaas'),
+      lo: linksOnderLade
+        ? items.filter((i) => i.plek === 'werkbank' && i.lade_id === linksOnderLade.id).map((i) => i.id)
+        : [],
+    };
+  }, [items, linksOnderLade]);
+  const laatsteTellingenQuery = useQuery({
+    queryKey: ['ritme-laatste-telling', vestiging, datum, ritmeIds],
     staleTime: 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('koelcel_checks')
-        .select('datum')
-        .eq('vestiging', vestiging)
-        .in('item_id', gfItemIds)
-        .lt('datum', datum)
-        .order('datum', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return data?.datum ?? null;
+      const laatste = async (ids: string[]) => {
+        if (!ids.length) return null;
+        const { data, error } = await supabase
+          .from('koelcel_checks')
+          .select('datum')
+          .eq('vestiging', vestiging)
+          .in('item_id', ids)
+          .lt('datum', datum)
+          .order('datum', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (error) throw error;
+        return (data?.datum as string | undefined) ?? null;
+      };
+      const [gf, zk, lo] = await Promise.all([laatste(ritmeIds.gf), laatste(ritmeIds.zk), laatste(ritmeIds.lo)]);
+      return { gf, zk, lo };
     },
   });
 
-  const gfRitme = useMemo(() => {
+  const ritmes = useMemo(() => {
     const vandaagD = parseYmd(datum);
-    const laatste = laatsteGfQuery.data;
-    // Nog nooit geteld (of kalender laadt nog): meteen meetellen.
-    if (!laatste) return { telVandaag: true, volgende: vandaagD };
-    const volgende = naarOpenDag(plusDagen(parseYmd(laatste), 2), kalender.isOpen);
-    return { telVandaag: vandaagD >= volgende, volgende };
-  }, [laatsteGfQuery.data, datum, kalender.isOpen]);
+    const bereken = (laatste: string | null | undefined, weekdag: number) => {
+      // Eerste vaste teldag na de laatste telling (of in de afgelopen week).
+      let d = laatste ? plusDagen(parseYmd(laatste), 1) : plusDagen(vandaagD, -6);
+      for (let i = 0; i < 7 && d.getDay() !== weekdag; i++) d = plusDagen(d, 1);
+      const volgende = naarOpenDag(d, kalender.isOpen);
+      return { telVandaag: vandaagD >= volgende, volgende };
+    };
+    const t = laatsteTellingenQuery.data;
+    // Nog aan het laden: niets verbergen.
+    if (!t) {
+      const open = { telVandaag: true, volgende: vandaagD };
+      return { gf: open, zk: open, lo: open };
+    }
+    return { gf: bereken(t.gf, 1), zk: bereken(t.zk, 1), lo: bereken(t.lo, 5) };
+  }, [laatsteTellingenQuery.data, datum, kalender.isOpen]);
+
+  const ritmeVoorSleutel = (sleutel: string) =>
+    sleutel === GF_GROEP_SLEUTEL
+      ? ritmes.gf
+      : sleutel === ZK_GROEP_SLEUTEL
+        ? ritmes.zk
+        : linksOnderLade && sleutel === `werkbank:lade:${linksOnderLade.id}`
+          ? ritmes.lo
+          : null;
 
   const plekken = useMemo(
     () =>
@@ -914,6 +948,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
             const nietTellen = lade.rol === 'niet_tellen';
             // Lades die je niet telt of die nog leeg zijn blijven zichtbaar,
             // maar ingeklapt: je ziet dat ze bestaan zonder ze af te hoeven vinken.
+            const ladeRitme = ritmeVoorSleutel(`werkbank:lade:${lade.id}`);
             const overslaan = nietTellen
               ? {
                   reden: 'wordt niet geteld · aangebroken bakjes',
@@ -924,7 +959,12 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                     reden: 'nog niets ingedeeld',
                     uitleg: 'Deel deze lade in bij Koelwerkbank indelen, dan telt hij vanzelf mee.',
                   }
-                : undefined;
+                : ladeRitme && !ladeRitme.telVandaag
+                  ? {
+                      reden: 'vandaag niet tellen · elke vrijdag',
+                      uitleg: `Volgende telling ${dagLangFmt.format(ladeRitme.volgende)}.`,
+                    }
+                  : undefined;
             groepen.push({
               sleutel: `werkbank:lade:${lade.id}`,
               titel: lade.naam,
@@ -966,13 +1006,14 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           .sort((a, b) => CATEGORIE_VOLGORDE.indexOf(a[0]) - CATEGORIE_VOLGORDE.indexOf(b[0]))
           .map(([cat, catItems]) => {
             const sleutel = `${p.plek}:${cat}`;
-            // Groente & fruit tel je om de dag: op een vrije dag staat de groep
-            // er rustig bij, zonder mee te tellen in de voortgang.
+            // Weekritme: op een vrije dag staat de groep er rustig bij,
+            // zonder mee te tellen in de voortgang.
+            const r = ritmeVoorSleutel(sleutel);
             const overslaan =
-              sleutel === GF_GROEP_SLEUTEL && !gfRitme.telVandaag
+              r && !r.telVandaag
                 ? {
-                    reden: 'vandaag niet tellen · om de dag',
-                    uitleg: `Volgende telling ${dagLangFmt.format(gfRitme.volgende)}.`,
+                    reden: 'vandaag niet tellen · elke maandag',
+                    uitleg: `Volgende telling ${dagLangFmt.format(r.volgende)}.`,
                   }
                 : undefined;
             return {
@@ -986,7 +1027,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           });
         return { ...p, groepen };
       }),
-    [plekken, lades, gfRitme],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [plekken, lades, ritmes, linksOnderLade],
   );
 
   // Lades zonder telwerk tellen niet mee in de voortgang: ze blokkeren de ronde niet.
@@ -1357,7 +1399,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                               : r.bestelLabel
                                 ? r.bestelLabel
                                 : telModus(r.item) === 'vulling'
-                                  ? `bijvullen tot ${vulnormWaarde(r.item) === 0.5 ? 'half' : 'vol'}`
+                                  ? `bijvullen tot ${vulnormWaarde(r.item) < 1 ? 'half' : 'vol'}`
                                   : aantalLabel(r.tekort, r.item.eenheid)}
 
                           </span>
@@ -1424,13 +1466,16 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                   {p.groepen.map((g) => (
                     <div key={g.sleutel} id={`vr-groep-${g.sleutel}`} className="scroll-mt-24 rounded-[18px]">
 
-                      {g.sleutel === GF_GROEP_SLEUTEL && (
-                        <WeekStrip
-                          vandaag={parseYmd(datum)}
-                          telDag={gfRitme.telVandaag ? parseYmd(datum) : gfRitme.volgende}
-                          isOpen={kalender.isOpen}
-                        />
-                      )}
+                      {(() => {
+                        const r = ritmeVoorSleutel(g.sleutel);
+                        return r ? (
+                          <WeekStrip
+                            vandaag={parseYmd(datum)}
+                            telDag={r.telVandaag ? parseYmd(datum) : r.volgende}
+                            isOpen={kalender.isOpen}
+                          />
+                        ) : null;
+                      })()}
                       <CategorieBlok
                         titel={g.titel}
                         overslaan={g.overslaan}
@@ -1452,6 +1497,16 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
                         onHerstel={herstel}
                         afgeleideTelling={afgeleideTelling}
                       />
+                      {!g.overslaan && g.items.length > 0 && !bevestigd.includes(g.sleutel) && (
+                        <Button
+                          variant="outline"
+                          className="mt-2 h-12 w-full rounded-[14px] border-primary/40 text-[15px] font-semibold text-primary hover:bg-primary/5"
+                          onClick={() => sluitGroep(g.sleutel)}
+                        >
+                          <Check size={18} className="mr-1.5" />
+                          {g.lade ? 'Lade klaar' : `${g.titel} klaar`}
+                        </Button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1460,7 +1515,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           })}
         </div>
 
-        {/* Vaste afsluitbalk: altijd onder de duim, nooit scrollen naar een knop. */}
+        {/* Vaste balk: voortgang, en pas aan het eind de stap naar de bon. */}
         <div className="sticky bottom-[calc(12px+env(safe-area-inset-bottom,0px))] z-20 mt-4">
           {allesBevestigd ? (
             <Button
@@ -1471,16 +1526,24 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
               <ArrowRight size={20} className="ml-1" />
             </Button>
           ) : volgendeGroep ? (
-            <Button
-              className="h-14 w-full rounded-[16px] text-[16px] font-bold shadow-lg"
-              onClick={() => sluitGroep(volgendeGroep.sleutel)}
+            <button
+              type="button"
+              className="flex h-14 w-full items-center gap-3 rounded-[16px] border border-border bg-card/95 px-4 text-left shadow-lg backdrop-blur"
+              onClick={() =>
+                document
+                  .getElementById(`vr-groep-${volgendeGroep.sleutel}`)
+                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }
             >
-              <Check size={20} className="mr-1.5" />
-              <span className="truncate">{volgendeGroep.titel} klaar</span>
-              <span className="ml-2 shrink-0 rounded-full bg-primary-foreground/20 px-2 py-0.5 text-[12px] font-semibold tabular-nums">
+              <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-[13px] font-bold tabular-nums text-primary">
                 {klaarAantal}/{alleSleutels.length}
               </span>
-            </Button>
+              <span className="min-w-0 flex-1 truncate text-[15px] text-foreground">
+                <span className="text-muted-foreground">Volgende: </span>
+                <span className="font-semibold">{volgendeGroep.titel}</span>
+              </span>
+              <ArrowRight size={18} className="shrink-0 text-muted-foreground" />
+            </button>
           ) : null}
         </div>
       </div>

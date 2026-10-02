@@ -150,14 +150,16 @@ export function isVulItem(item: KoelcelCheckItem): boolean {
   return item.plek === 'werkbank' && reserveDoel(item) === 0;
 }
 
-/** De vulnorm als waarde: heel bakje (1) of half bakje (0,5). */
+/** De vulnorm als waarde: vol (1), half (0,5) of tot bodempje (0,25 — pas leeg = actie). */
 export function vulnormWaarde(item: KoelcelCheckItem): number {
-  return (item.vulnorm ?? 'vol') === 'half' ? 0.5 : 1;
+  const n = item.vulnorm ?? 'vol';
+  return n === 'half' ? 0.5 : n === 'bodem' ? 0.25 : 1;
 }
 
-/** "hoort vol" / "hoort half". */
+/** "hoort vol" / "hoort half" / "bodempje is goed". */
 export function vulnormLabel(item: KoelcelCheckItem): string {
-  return (item.vulnorm ?? 'vol') === 'half' ? 'hoort half' : 'hoort vol';
+  const n = item.vulnorm ?? 'vol';
+  return n === 'half' ? 'hoort half' : n === 'bodem' ? 'bodempje is goed' : 'hoort vol';
 }
 
 export type DrukteModus = 'rustig' | 'druk';
