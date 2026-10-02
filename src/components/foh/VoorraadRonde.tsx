@@ -139,6 +139,7 @@ function isMaandag(datum: string): boolean {
 
 /** Sleutel van de Groente & fruit-groep in de koelcel. */
 const GF_GROEP_SLEUTEL = 'koelcel:Groente & fruit';
+const ZK_GROEP_SLEUTEL = 'koelcel:Zuivel & kaas';
 
 const DAG_KORT = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
 
@@ -851,42 +852,75 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   const bestelbordMap = bestelbordQuery.data ?? {};
   const mepTitels = useMemo(() => mepNamenQuery.data ?? [], [mepNamenQuery.data]);
 
-  // Groente & fruit tel je om de dag: ritme uit de laatste telling + openingskalender.
+  // Weekritmes: koelcel (groente & fruit, zuivel & kaas) op maandag, reservelade
+  // Links onder op vrijdag. Gemist? Dan blijft de groep staan tot hij geteld is.
   const kalender = useMepKalender(vestiging);
-  const gfItemIds = useMemo(
-    () =>
-      items
-        .filter((i) => (i.plek ?? 'koelcel') === 'koelcel' && categorieVan(i) === 'Groente & fruit')
-        .map((i) => i.id),
-    [items],
+  const linksOnderLade = useMemo(
+    () => lades.find((l) => l.actief && l.naam.trim().toLowerCase() === 'links onder') ?? null,
+    [lades],
   );
-  const laatsteGfQuery = useQuery({
-    queryKey: ['gf-laatste-telling', vestiging],
-    enabled: gfItemIds.length > 0,
+  const ritmeIds = useMemo(() => {
+    const koelcelCat = (cat: string) =>
+      items
+        .filter((i) => (i.plek ?? 'koelcel') === 'koelcel' && categorieVan(i) === cat)
+        .map((i) => i.id);
+    return {
+      gf: koelcelCat('Groente & fruit'),
+      zk: koelcelCat('Zuivel & kaas'),
+      lo: linksOnderLade
+        ? items.filter((i) => i.plek === 'werkbank' && i.lade_id === linksOnderLade.id).map((i) => i.id)
+        : [],
+    };
+  }, [items, linksOnderLade]);
+  const laatsteTellingenQuery = useQuery({
+    queryKey: ['ritme-laatste-telling', vestiging, datum, ritmeIds],
     staleTime: 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('koelcel_checks')
-        .select('datum')
-        .eq('vestiging', vestiging)
-        .in('item_id', gfItemIds)
-        .lt('datum', datum)
-        .order('datum', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return data?.datum ?? null;
+      const laatste = async (ids: string[]) => {
+        if (!ids.length) return null;
+        const { data, error } = await supabase
+          .from('koelcel_checks')
+          .select('datum')
+          .eq('vestiging', vestiging)
+          .in('item_id', ids)
+          .lt('datum', datum)
+          .order('datum', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (error) throw error;
+        return (data?.datum as string | undefined) ?? null;
+      };
+      const [gf, zk, lo] = await Promise.all([laatste(ritmeIds.gf), laatste(ritmeIds.zk), laatste(ritmeIds.lo)]);
+      return { gf, zk, lo };
     },
   });
 
-  const gfRitme = useMemo(() => {
+  const ritmes = useMemo(() => {
     const vandaagD = parseYmd(datum);
-    const laatste = laatsteGfQuery.data;
-    // Nog nooit geteld (of kalender laadt nog): meteen meetellen.
-    if (!laatste) return { telVandaag: true, volgende: vandaagD };
-    const volgende = naarOpenDag(plusDagen(parseYmd(laatste), 2), kalender.isOpen);
-    return { telVandaag: vandaagD >= volgende, volgende };
-  }, [laatsteGfQuery.data, datum, kalender.isOpen]);
+    const bereken = (laatste: string | null | undefined, weekdag: number) => {
+      // Eerste vaste teldag na de laatste telling (of in de afgelopen week).
+      let d = laatste ? plusDagen(parseYmd(laatste), 1) : plusDagen(vandaagD, -6);
+      for (let i = 0; i < 7 && d.getDay() !== weekdag; i++) d = plusDagen(d, 1);
+      const volgende = naarOpenDag(d, kalender.isOpen);
+      return { telVandaag: vandaagD >= volgende, volgende };
+    };
+    const t = laatsteTellingenQuery.data;
+    // Nog aan het laden: niets verbergen.
+    if (!t) {
+      const open = { telVandaag: true, volgende: vandaagD };
+      return { gf: open, zk: open, lo: open };
+    }
+    return { gf: bereken(t.gf, 1), zk: bereken(t.zk, 1), lo: bereken(t.lo, 5) };
+  }, [laatsteTellingenQuery.data, datum, kalender.isOpen]);
+
+  const ritmeVoorSleutel = (sleutel: string) =>
+    sleutel === GF_GROEP_SLEUTEL
+      ? ritmes.gf
+      : sleutel === ZK_GROEP_SLEUTEL
+        ? ritmes.zk
+        : linksOnderLade && sleutel === `werkbank:lade:${linksOnderLade.id}`
+          ? ritmes.lo
+          : null;
 
   const plekken = useMemo(
     () =>
