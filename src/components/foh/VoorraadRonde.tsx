@@ -855,8 +855,12 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
   // Weekritmes: koelcel (groente & fruit, zuivel & kaas) op maandag, reservelade
   // Links onder op vrijdag. Gemist? Dan blijft de groep staan tot hij geteld is.
   const kalender = useMepKalender(vestiging);
+  // Reservelade links onder herkennen we op positie + rol, niet op naam:
+  // zo blijft het vrijdag-ritme werken als de lade hernoemd wordt (bv. Opzetkoeling)
+  // en komt hij vanzelf terug zodra hij via de instellingen weer actief wordt gezet.
   const linksOnderLade = useMemo(
-    () => lades.find((l) => l.actief && l.naam.trim().toLowerCase() === 'links onder') ?? null,
+    () =>
+      lades.find((l) => l.actief && l.kolom === 1 && l.rij === 3 && l.rol === 'reserve') ?? null,
     [lades],
   );
   const ritmeIds = useMemo(() => {
