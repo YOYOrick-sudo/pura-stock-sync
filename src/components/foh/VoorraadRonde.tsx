@@ -52,7 +52,7 @@ import {
 } from '@/hooks/useKoelcelCheck';
 import { useCreateStickerPrintJob } from '@/hooks/useStickerProducten';
 import { aantalLabel, getalLabel, formaatLabel, bakjeLabel } from '@/lib/voorraad-formaat';
-import { useVoorraadLades, positieLabel, type VoorraadLade } from '@/hooks/useVoorraadLades';
+import { buitenRaster, useVoorraadLades, positieLabel, type VoorraadLade } from '@/hooks/useVoorraadLades';
 import { LadePositie } from '@/components/voorraad/LadePositie';
 import { SectieBalk } from './SectieBalk';
 
@@ -968,7 +968,9 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
             groepen.push({
               sleutel: `werkbank:lade:${lade.id}`,
               titel: lade.naam,
-              subtitel: `${positieLabel(lade)}${lade.rol === 'reserve' ? ' · reservelade' : ''}`,
+              subtitel: buitenRaster(lade)
+                ? null
+                : `${positieLabel(lade)}${lade.rol === 'reserve' ? ' · reservelade' : ''}`,
               lade,
               items: overslaan ? [] : ladeItems,
               overslaan,
