@@ -149,7 +149,7 @@ export function useLadeMutaties(vestiging: string) {
 
   /** Tot hoever het werkbakje gevuld hoort te zijn: vol of half. */
   const zetVulnorm = useMutation({
-    mutationFn: async ({ itemId, vulnorm }: { itemId: string; vulnorm: 'vol' | 'half' }) => {
+    mutationFn: async ({ itemId, vulnorm }: { itemId: string; vulnorm: 'vol' | 'half' | 'bodem' }) => {
       const { error } = await supabase
         .from('koelcel_check_items')
         .update({ vulnorm })

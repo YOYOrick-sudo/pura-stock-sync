@@ -1,6 +1,7 @@
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { LadeGrid } from '@/components/voorraad/LadeGrid';
 import { BakmaatUitleg } from '@/components/voorraad/BakmaatUitleg';
+import { PlekItemsBeheer } from '@/components/voorraad/PlekItemsBeheer';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 
 export default function KoelwerkbankIndeling() {
@@ -22,6 +23,7 @@ export default function KoelwerkbankIndeling() {
         </div>
 
         <LadeGrid vestiging={vestiging} />
+        <PlekItemsBeheer vestiging={vestiging} />
       </div>
     </SidebarLayout>
   );
