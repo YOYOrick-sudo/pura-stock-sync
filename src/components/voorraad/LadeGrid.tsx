@@ -58,12 +58,12 @@ function SleepbaarProduct({
 }: {
   item: KoelcelCheckItem;
   onReserve?: (aantal: number) => void;
-  onVulnorm?: (vulnorm: 'vol' | 'half') => void;
+  onVulnorm?: (vulnorm: 'vol' | 'half' | 'bodem') => void;
   onFormaat?: (formaat: string | null) => void;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });
   const reserve = Math.max(Number(item.reserve_doel ?? 0), 0);
-  const vulnorm = (item.vulnorm ?? 'vol') === 'half' ? 'half' : 'vol';
+  const vulnorm = (item.vulnorm ?? 'vol') as 'vol' | 'half' | 'bodem';
 
   return (
     <div
@@ -116,7 +116,7 @@ function SleepbaarProduct({
       {onVulnorm && reserve === 0 && (
         <div className="mt-1 flex items-center gap-1.5">
           <span className="text-[11px] text-muted-foreground">bakje hoort</span>
-          {(['vol', 'half'] as const).map((keuze) => (
+          {(['vol', 'half', 'bodem'] as const).map((keuze) => (
             <button
               key={keuze}
               type="button"
@@ -127,7 +127,7 @@ function SleepbaarProduct({
                   : 'border-border bg-card text-muted-foreground'
               }`}
             >
-              {keuze}
+              {keuze === 'bodem' ? 'bodempje' : keuze}
             </button>
           ))}
         </div>
@@ -193,12 +193,12 @@ function ProductInstellingenDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onReserve: (aantal: number) => void;
-  onVulnorm: (vulnorm: 'vol' | 'half') => void;
+  onVulnorm: (vulnorm: 'vol' | 'half' | 'bodem') => void;
   onFormaat: (formaat: string | null) => void;
 }) {
   if (!item) return null;
   const reserve = Math.max(Number(item.reserve_doel ?? 0), 0);
-  const vulnorm = (item.vulnorm ?? 'vol') === 'half' ? 'half' : 'vol';
+  const vulnorm = (item.vulnorm ?? 'vol') as 'vol' | 'half' | 'bodem';
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[420px] rounded-[24px]">
@@ -241,7 +241,7 @@ function ProductInstellingenDialog({
             <div>
               <p className="mb-1.5 text-[13px] text-muted-foreground">Bakje hoort</p>
               <div className="flex gap-2">
-                {(['vol', 'half'] as const).map((keuze) => (
+                {(['vol', 'half', 'bodem'] as const).map((keuze) => (
                   <button
                     key={keuze}
                     type="button"
@@ -252,7 +252,7 @@ function ProductInstellingenDialog({
                         : 'border-border bg-card text-muted-foreground'
                     }`}
                   >
-                    {keuze}
+                    {keuze === 'bodem' ? 'bodempje' : keuze}
                   </button>
                 ))}
               </div>
@@ -280,7 +280,7 @@ function LadeVak({
   onZetActief: (actief: boolean) => void;
   onZetRol: (rol: 'werk' | 'reserve' | 'niet_tellen') => void;
   onReserve: (itemId: string, aantal: number) => void;
-  onVulnorm: (itemId: string, vulnorm: 'vol' | 'half') => void;
+  onVulnorm: (itemId: string, vulnorm: 'vol' | 'half' | 'bodem') => void;
   onFormaat: (itemId: string, formaat: string | null) => void;
 }) {
   const isReserve = lade.rol === 'reserve';
