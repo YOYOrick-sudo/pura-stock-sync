@@ -944,6 +944,7 @@ export function FohTasks() {
   useEffect(() => {
     localStorage.setItem('foh-list-language', listLanguage);
   }, [listLanguage]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isPhaseManuallySelected, setIsPhaseManuallySelected] = useState(false);
 
   // West heeft afdelingen: Voorkant (bediening) / Achterkant (keuken) / Samen.
@@ -2835,39 +2836,58 @@ export function FohTasks() {
             </div>
 
             {mainCategory === 'dagelijks' && (
-              <div
-                role="group"
-                aria-label="Taal van de takenlijst"
-                style={{
-                  alignSelf: 'flex-end',
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(2, 52px)',
-                  padding: '3px',
-                  borderRadius: '14px',
-                  border: '1px solid hsl(var(--border))',
-                  backgroundColor: 'hsl(var(--muted))',
-                }}
-              >
-                {(['nl', 'en'] as const).map((language) => {
-                  const active = listLanguage === language;
-                  return (
-                    <Button
-                      key={language}
-                      type="button"
-                      variant="ghost"
-                      aria-pressed={active}
-                      onClick={() => setListLanguage(language)}
-                      className="h-11 min-h-11 rounded-[11px] px-0 text-sm font-semibold uppercase"
-                      style={{
-                        backgroundColor: active ? 'hsl(var(--card))' : 'transparent',
-                        color: active ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-                        boxShadow: active ? '0 1px 2px hsl(var(--foreground) / 0.08)' : 'none',
-                      }}
-                    >
-                      {language}
-                    </Button>
-                  );
-                })}
+              <div style={{ alignSelf: 'flex-end', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+                <div
+                  role="group"
+                  aria-label="Taal van de takenlijst"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 52px)',
+                    padding: '3px',
+                    borderRadius: '14px',
+                    border: '1px solid hsl(var(--border))',
+                    backgroundColor: 'hsl(var(--muted))',
+                  }}
+                >
+                  {(['nl', 'en'] as const).map((language) => {
+                    const active = listLanguage === language;
+                    return (
+                      <Button
+                        key={language}
+                        type="button"
+                        variant="ghost"
+                        aria-pressed={active}
+                        onClick={() => setListLanguage(language)}
+                        className="h-11 min-h-11 rounded-[11px] px-0 text-sm font-semibold uppercase"
+                        style={{
+                          backgroundColor: active ? 'hsl(var(--card))' : 'transparent',
+                          color: active ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                          boxShadow: active ? '0 1px 2px hsl(var(--foreground) / 0.08)' : 'none',
+                        }}
+                      >
+                        {language}
+                      </Button>
+                    );
+                  })}
+                </div>
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={listLanguage === 'en' ? 'Search tasks…' : 'Zoek een taak…'}
+                  aria-label={listLanguage === 'en' ? 'Search tasks' : 'Zoek een taak'}
+                  style={{
+                    width: '100%',
+                    minHeight: '44px',
+                    padding: '0 14px',
+                    borderRadius: '14px',
+                    border: '1px solid hsl(var(--border))',
+                    backgroundColor: 'hsl(var(--card))',
+                    color: 'hsl(var(--foreground))',
+                    fontSize: '14px',
+                    fontFamily: 'Inter, sans-serif',
+                  }}
+                />
               </div>
             )}
 
@@ -3717,6 +3737,21 @@ export function FohTasks() {
                   );
                   if (opts?.categoryFilter) {
                     deptTasks = deptTasks.filter((t: any) => opts.categoryFilter!((t.category ?? '').trim()));
+                  }
+                  const query = searchQuery.trim().toLowerCase();
+                  if (query) {
+                    deptTasks = deptTasks.filter((t: any) => {
+                      const title = listLanguage === 'en'
+                        ? (t.title_en?.trim() || englishTaskFallback(t.title))
+                        : t.title;
+                      const description = listLanguage === 'en'
+                        ? (t.description_en?.trim() || (t.description ? englishTaskFallback(t.description) : ''))
+                        : (t.description ?? '');
+                      return (
+                        (title ?? '').toLowerCase().includes(query) ||
+                        description.toLowerCase().includes(query)
+                      );
+                    });
                   }
                   if (isWestSection && deptTasks.length === 0) return null;
 
