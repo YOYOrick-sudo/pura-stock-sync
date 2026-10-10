@@ -2834,7 +2834,7 @@ export function FohTasks() {
 
             </div>
 
-            {mainCategory === 'dagelijks' && (activePhase === 'open' || activePhase === 'sluit') && (
+            {mainCategory === 'dagelijks' && (
               <div
                 role="group"
                 aria-label="Taal van de takenlijst"
