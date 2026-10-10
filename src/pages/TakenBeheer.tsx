@@ -155,17 +155,24 @@ function TakenBeheerInner() {
     return getMidslandCategories(phase);
   };
 
-  const buildCategoryRows = (dept: Department): { category: string; sort_order: number | null }[] => {
+  const buildCategoryRows = (dept: Department): { category: string; category_en: string | null; sort_order: number | null }[] => {
     if (!isManaged) return [];
     const ordered = buildAvailableCategories(dept);
-    const map = new Map<string, number>();
+    const map = new Map<string, { sort_order: number; category_en: string | null }>();
     for (const r of westCategoryOrder?.[dept] ?? []) {
-      map.set(r.category.trim().toLowerCase(), r.sort_order);
+      map.set(r.category.trim().toLowerCase(), {
+        sort_order: r.sort_order,
+        category_en: r.category_en ?? null,
+      });
     }
-    return ordered.map(cat => ({
-      category: cat,
-      sort_order: map.has(cat.trim().toLowerCase()) ? (map.get(cat.trim().toLowerCase()) as number) : null,
-    }));
+    return ordered.map(cat => {
+      const saved = map.get(cat.trim().toLowerCase());
+      return {
+        category: cat,
+        category_en: saved?.category_en ?? null,
+        sort_order: saved?.sort_order ?? null,
+      };
+    });
   };
 
   const invalidate = () => {

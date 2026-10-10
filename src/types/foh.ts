@@ -12,6 +12,7 @@ export interface FohTask {
   template_id: string | null;
   phase: 'open' | 'tussen' | 'borrel' | 'sluit' | null;
   category: string;
+  department?: string | null;
   created_at: string;
   estimated_minutes: number | null;
   sort_order?: number;
