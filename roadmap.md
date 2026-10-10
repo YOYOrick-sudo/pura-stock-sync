@@ -4,3 +4,4 @@
 - [x] 2. Groente & fruit om de dag tellen met weekstrip — gebouwd en live getest (tel-dag + niet-tel-dag + gesloten dinsdag)
 - [ ] 3. Mayo GN-liter-telling + avocado spread per pot (plan 2026-09-24 goedgekeurd)
 - [x] 4. Flessengroep hernoemen + olijfolie, zonnebloemolie en Japanse mayonaise toevoegen
+- [x] 5. Open- en sluitlijsten wisselbaar maken tussen NL en EN per apparaat
