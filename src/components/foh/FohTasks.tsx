@@ -31,7 +31,6 @@ import { BainMarieOpen, BainMarieSluit } from './BainMarie';
 import { SectieBalk } from './SectieBalk';
 import { getOrderedCategories, WEST_SECTIONS, type Department } from '@/lib/foh-category-order';
 import { devLog, devError } from "@/lib/devLog";
-import { englishTaskFallback } from '@/lib/foh-list-language';
 
 // Phase time windows (minutes-based)
 const PHASE_WINDOWS = [
@@ -191,10 +190,10 @@ function SortableTaskItem({ task, language = 'nl', isEditMode, onTitleChange, on
   const [descriptionValue, setDescriptionValue] = useState(task.description || '');
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const visibleTitle = language === 'en'
-    ? task.title_en?.trim() || englishTaskFallback(task.title)
+    ? task.title_en?.trim() || task.title
     : task.title;
   const visibleDescription = language === 'en'
-    ? task.description_en?.trim() || (task.description ? englishTaskFallback(task.description) : null)
+    ? task.description_en?.trim() || task.description
     : task.description;
   const isMobile = useIsMobile();
   
@@ -944,7 +943,6 @@ export function FohTasks() {
   useEffect(() => {
     localStorage.setItem('foh-list-language', listLanguage);
   }, [listLanguage]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [isPhaseManuallySelected, setIsPhaseManuallySelected] = useState(false);
 
   // West heeft afdelingen: Voorkant (bediening) / Achterkant (keuken) / Samen.
@@ -2870,24 +2868,6 @@ export function FohTasks() {
                     );
                   })}
                 </div>
-                <input
-                  type="search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={listLanguage === 'en' ? 'Search tasks…' : 'Zoek een taak…'}
-                  aria-label={listLanguage === 'en' ? 'Search tasks' : 'Zoek een taak'}
-                  style={{
-                    width: '100%',
-                    minHeight: '44px',
-                    padding: '0 14px',
-                    borderRadius: '14px',
-                    border: '1px solid hsl(var(--border))',
-                    backgroundColor: 'hsl(var(--card))',
-                    color: 'hsl(var(--foreground))',
-                    fontSize: '14px',
-                    fontFamily: 'Inter, sans-serif',
-                  }}
-                />
               </div>
             )}
 
@@ -3737,21 +3717,6 @@ export function FohTasks() {
                   );
                   if (opts?.categoryFilter) {
                     deptTasks = deptTasks.filter((t: any) => opts.categoryFilter!((t.category ?? '').trim()));
-                  }
-                  const query = searchQuery.trim().toLowerCase();
-                  if (query) {
-                    deptTasks = deptTasks.filter((t: any) => {
-                      const title = listLanguage === 'en'
-                        ? (t.title_en?.trim() || englishTaskFallback(t.title))
-                        : t.title;
-                      const description = listLanguage === 'en'
-                        ? (t.description_en?.trim() || (t.description ? englishTaskFallback(t.description) : ''))
-                        : (t.description ?? '');
-                      return (
-                        (title ?? '').toLowerCase().includes(query) ||
-                        description.toLowerCase().includes(query)
-                      );
-                    });
                   }
                   if (isWestSection && deptTasks.length === 0) return null;
 
