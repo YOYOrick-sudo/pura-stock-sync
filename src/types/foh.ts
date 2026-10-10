@@ -16,6 +16,8 @@ export interface FohTask {
   estimated_minutes: number | null;
   sort_order?: number;
   description?: string | null;
+  title_en?: string | null;
+  description_en?: string | null;
   foto_url?: string | null;
 }
 
@@ -41,6 +43,8 @@ export interface FohDailyTemplate {
   estimated_minutes: number | null;
   sort_order?: number;
   description?: string | null;
+  title_en?: string | null;
+  description_en?: string | null;
   foto_url?: string | null;
 }
 

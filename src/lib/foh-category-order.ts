@@ -22,7 +22,7 @@ export const WEST_SECTIONS: { key: Department; label: string }[] = [
 
 ];
 
-export type OrderRow = { category: string; sort_order: number };
+export type OrderRow = { category: string; category_en?: string | null; sort_order: number };
 
 export type WestCategoryOrder = Partial<Record<Department, OrderRow[]>>;
 export type WestSubcats = Partial<Record<Department, string[]>>;

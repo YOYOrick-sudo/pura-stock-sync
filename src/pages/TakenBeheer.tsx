@@ -34,7 +34,7 @@ import {
 
 type Phase = 'open' | 'tussen' | 'borrel' | 'sluit';
 
-type OrderRow = { category: string; sort_order: number };
+type OrderRow = { category: string; category_en?: string | null; sort_order: number };
 type OrderMap = WestCategoryOrder;
 
 const CATEGORY_ORDER_FALLBACK = ['Algemeen'];
@@ -79,7 +79,7 @@ function TakenBeheerInner() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('foh_category_order')
-        .select('department, category, sort_order')
+        .select('department, category, category_en, sort_order')
         .eq('location', location)
         .eq('phase', phase)
         .order('sort_order', { ascending: true });
@@ -87,7 +87,7 @@ function TakenBeheerInner() {
       const out: OrderMap = {};
       for (const r of (data as any[]) || []) {
         const d = (r.department || 'voorkant') as Department;
-        (out[d] ||= []).push({ category: r.category, sort_order: r.sort_order });
+        (out[d] ||= []).push({ category: r.category, category_en: r.category_en, sort_order: r.sort_order });
       }
       return out;
     },
