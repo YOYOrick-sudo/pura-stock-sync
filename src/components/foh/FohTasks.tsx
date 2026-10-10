@@ -4734,6 +4734,7 @@ export function FohTasks() {
                   <SortableTaskItem
                     key={task.id}
                     task={task as any}
+                    language="nl"
                     isEditMode={true}
                     onTitleChange={(id, title) => {
                       setEditingTemplate(prev => prev.map(t => t.id === id ? { ...t, title } : t));

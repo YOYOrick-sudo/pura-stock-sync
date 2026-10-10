@@ -199,7 +199,12 @@ function TakenBeheerInner() {
     const list = rows.map(r => r.category);
     [list[idx], list[newIdx]] = [list[newIdx], list[idx]];
     const upsertRows = list.map((cat, i) => ({
-      location, department: dept, phase, category: cat, sort_order: (i + 1) * 10,
+      location,
+      department: dept,
+      phase,
+      category: cat,
+      category_en: rows.find(row => row.category === cat)?.category_en ?? null,
+      sort_order: (i + 1) * 10,
     }));
 
     const nextMap: OrderMap = { ...(prev ?? {}) };
@@ -239,12 +244,12 @@ function TakenBeheerInner() {
     if (!renameState) return;
     const { dept, oldName } = renameState;
     const trimmed = renameValue.trim();
-    if (!trimmed || trimmed === oldName) {
+    if (!trimmed) {
       setRenameState(null);
       return;
     }
     const existing = new Set((westCategoryOrder?.[dept] ?? []).map(r => r.category));
-    if (existing.has(trimmed)) {
+    if (trimmed !== oldName && existing.has(trimmed)) {
       toast.error(`"${trimmed}" bestaat al.`);
       return;
     }
@@ -259,9 +264,11 @@ function TakenBeheerInner() {
     }
 
     setRenameSaving(true);
-    const { error } = await supabase.rpc('foh_rename_category', {
-      _location: location, _department: dept, _phase: phase, _old: oldName, _new: trimmed,
-    });
+    const { error } = trimmed === oldName
+      ? { error: null }
+      : await supabase.rpc('foh_rename_category', {
+          _location: location, _department: dept, _phase: phase, _old: oldName, _new: trimmed,
+        });
     setRenameSaving(false);
     if (error) {
       if (prev) queryClient.setQueryData(orderKey, prev);
