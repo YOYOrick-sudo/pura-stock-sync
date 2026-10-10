@@ -159,6 +159,7 @@ function CategoryPicker({ value, onChange, options, allowCreate = true, triggerS
 // ===== SORTABLE TASK ITEM COMPONENT =====
 interface SortableTaskItemProps {
   task: FohTaskWithEmployee;
+  language?: 'nl' | 'en';
   isEditMode: boolean;
   onTitleChange: (id: string, title: string) => void;
   onDescriptionChange?: (id: string, description: string) => void;
@@ -175,7 +176,7 @@ interface SortableTaskItemProps {
   repeatDays?: (number | null)[];
 }
 
-function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onCategoryChange, categoryOptions, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0', taskNumber, isNew = false, repeatDays }: SortableTaskItemProps) {
+function SortableTaskItem({ task, language = 'nl', isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onCategoryChange, categoryOptions, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0', taskNumber, isNew = false, repeatDays }: SortableTaskItemProps) {
   const {
     attributes,
     listeners,
@@ -188,6 +189,8 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState(task.description || '');
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const visibleTitle = language === 'en' && task.title_en?.trim() ? task.title_en : task.title;
+  const visibleDescription = language === 'en' && task.description_en?.trim() ? task.description_en : task.description;
   const isMobile = useIsMobile();
   
   // Touch feedback state (tablet only)
@@ -376,7 +379,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                     {taskNumber}.
                   </span>
                 )}
-                <span style={{ flex: 1 }}>{task.title}</span>
+                <span style={{ flex: 1 }}>{visibleTitle}</span>
                 <RepeatBadge
                   repeatType={(task as any).repeat_type}
                   daysOfWeek={repeatDays && repeatDays.length > 0 ? repeatDays : [(task as any).day_of_week]}
@@ -457,7 +460,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
 
 
             {/* Info button - compact */}
-            {!isEditMode && (task.description || task.foto_url) && (
+            {!isEditMode && (visibleDescription || task.foto_url) && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -619,7 +622,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                     whiteSpace: 'pre-wrap',
                     lineHeight: 1.6,
                   }}>
-                    {task.description || 'Geen omschrijving beschikbaar'}
+                    {visibleDescription || (language === 'en' ? 'No instructions available' : 'Geen omschrijving beschikbaar')}
                   </div>
                 )}
               </div>
@@ -928,6 +931,14 @@ export function FohTasks() {
   
   const [mainCategory, setMainCategory] = useState<'dagelijks' | 'periodiek'>('dagelijks');
   const [activePhase, setActivePhase] = useState<PhaseType>('open');
+  type ListLanguage = 'nl' | 'en';
+  const [listLanguage, setListLanguage] = useState<ListLanguage>(() => {
+    if (typeof window === 'undefined') return 'nl';
+    return localStorage.getItem('foh-list-language') === 'en' ? 'en' : 'nl';
+  });
+  useEffect(() => {
+    localStorage.setItem('foh-list-language', listLanguage);
+  }, [listLanguage]);
   const [isPhaseManuallySelected, setIsPhaseManuallySelected] = useState(false);
 
   // West heeft afdelingen: Voorkant (bediening) / Achterkant (keuken) / Samen.
@@ -1144,16 +1155,16 @@ export function FohTasks() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('foh_category_order')
-        .select('department, category, sort_order, phase')
+        .select('department, category, category_en, sort_order, phase')
         .eq('location', userLocation)
         .eq('phase', activePhase)
         .order('sort_order', { ascending: true });
       if (error) throw error;
-      const out: Partial<Record<Department, { category: string; sort_order: number }[]>> = {};
+      const out: Partial<Record<Department, { category: string; category_en: string | null; sort_order: number }[]>> = {};
       for (const r of (data as any[]) || []) {
         const dept = (r.department || 'voorkant') as Department;
         if (!out[dept]) out[dept] = [];
-        out[dept]!.push({ category: r.category, sort_order: r.sort_order });
+        out[dept]!.push({ category: r.category, category_en: r.category_en, sort_order: r.sort_order });
       }
       return out;
     },
@@ -1434,6 +1445,7 @@ export function FohTasks() {
       .filter(template => !existingTemplateIds.has(template.id))
       .map(template => ({
         title: template.title,
+        title_en: template.title_en,
         due_date: todayDate,
         priority: template.priority,
         phase: template.phase,
@@ -1447,6 +1459,7 @@ export function FohTasks() {
         estimated_minutes: template.estimated_minutes,
         sort_order: template.sort_order,
         description: template.description,
+        description_en: template.description_en,
         foto_url: template.foto_url,
         department: (template as any).department ?? (userLocation === 'West' ? 'samen' : 'voorkant'),
       }));
