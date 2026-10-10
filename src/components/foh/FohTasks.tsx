@@ -2811,6 +2811,43 @@ export function FohTasks() {
 
             </div>
 
+            {mainCategory === 'dagelijks' && (activePhase === 'open' || activePhase === 'sluit') && (
+              <div
+                role="group"
+                aria-label="Taal van de takenlijst"
+                style={{
+                  alignSelf: 'flex-end',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 52px)',
+                  padding: '3px',
+                  borderRadius: '14px',
+                  border: '1px solid hsl(var(--border))',
+                  backgroundColor: 'hsl(var(--muted))',
+                }}
+              >
+                {(['nl', 'en'] as const).map((language) => {
+                  const active = listLanguage === language;
+                  return (
+                    <Button
+                      key={language}
+                      type="button"
+                      variant="ghost"
+                      aria-pressed={active}
+                      onClick={() => setListLanguage(language)}
+                      className="h-11 min-h-11 rounded-[11px] px-0 text-sm font-semibold uppercase"
+                      style={{
+                        backgroundColor: active ? 'hsl(var(--card))' : 'transparent',
+                        color: active ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                        boxShadow: active ? '0 1px 2px hsl(var(--foreground) / 0.08)' : 'none',
+                      }}
+                    >
+                      {language}
+                    </Button>
+                  );
+                })}
+              </div>
+            )}
+
             <hr style={{ border: 'none', borderTop: '1px solid hsl(var(--border))', margin: 0 }} />
 
             {/* Snelle ingang: op de telefoon direct de voorraadronde tellen (West). */}
@@ -3481,7 +3518,7 @@ export function FohTasks() {
                         fontStyle: 'italic',
                         fontFamily: 'Inter, sans-serif',
                       }}>
-                        Geen taken
+                        {listLanguage === 'en' ? 'No tasks' : 'Geen taken'}
                       </div>
                     );
                   }
@@ -3501,7 +3538,9 @@ export function FohTasks() {
                           alignItems: 'center',
                           gap: '8px',
                         }}>
-                          {category}
+                          {listLanguage === 'en'
+                            ? westCategoryOrder?.[westSectionOf(categoryTasks[0]?.department)]?.find((row) => row.category === category)?.category_en || category
+                            : category}
                           <span style={{
                             fontSize: '11px',
                             fontWeight: 500,
@@ -3524,7 +3563,7 @@ export function FohTasks() {
                               fontFamily: 'Inter, sans-serif',
                               animation: 'fade-in 0.3s ease-out',
                             }}>
-                              🎉 Alle taken voltooid!
+                              {listLanguage === 'en' ? 'All tasks completed!' : 'Alle taken voltooid!'}
                             </div>
                           ) : (
                             <SortableContext items={categoryTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
@@ -3538,6 +3577,7 @@ export function FohTasks() {
                                   <Fragment key={task.id}>
                                     <SortableTaskItem
                                       task={task}
+                                      language={listLanguage}
                                       taskNumber={index + 1}
                                       isEditMode={isEditMode}
                                       onTitleChange={(id, title) => {
@@ -3581,7 +3621,7 @@ export function FohTasks() {
                         fontStyle: 'italic',
                         fontFamily: 'Inter, sans-serif',
                       }}>
-                        Geen taken
+                        {listLanguage === 'en' ? 'No tasks' : 'Geen taken'}
                       </div>
                     );
                   }
@@ -3598,7 +3638,7 @@ export function FohTasks() {
                           fontFamily: 'Inter, sans-serif',
                           animation: 'fade-in 0.3s ease-out',
                         }}>
-                          🎉 Alle taken voltooid!
+                          {listLanguage === 'en' ? 'All tasks completed!' : 'Alle taken voltooid!'}
                         </div>
                       ) : (
                         <SortableContext items={tasksToRender.map(t => t.id)} strategy={verticalListSortingStrategy}>
@@ -3606,6 +3646,7 @@ export function FohTasks() {
                             <SortableTaskItem
                               key={task.id}
                               task={task}
+                              language={listLanguage}
                               taskNumber={index + 1}
                               isEditMode={isEditMode}
                               onTitleChange={(id, title) => {
@@ -3657,11 +3698,20 @@ export function FohTasks() {
                   if (isWestSection && deptTasks.length === 0) return null;
 
                   const completed = deptTasks.filter(t => t.completed).length;
+                  const visibleLabel = listLanguage === 'en'
+                    ? ({
+                        'Samen / Opstarten': 'Together / Setup',
+                        'Samen / Start': 'Together / Start',
+                        'Samen / Laatste loodjes': 'Together / Final tasks',
+                        'Keuken': 'Kitchen',
+                        'Bediening': 'Front of house',
+                      }[label] ?? label)
+                    : label;
                   return (
                     <div key={`${opts?.keyPrefix ?? ''}${dept}`} style={{ marginBottom: '32px' }}>
                       {!opts?.hideHeader && (
                         <SectieBalk
-                          titel={label}
+                          titel={visibleLabel}
                           stand={`${completed}/${deptTasks.length}`}
                           afgerond={deptTasks.length > 0 && completed === deptTasks.length}
                         />
@@ -3713,7 +3763,7 @@ export function FohTasks() {
                                 fontStyle: 'italic',
                                 fontFamily: 'Inter, sans-serif',
                               }}>
-                                Geen taken
+                                {listLanguage === 'en' ? 'No tasks' : 'Geen taken'}
                               </div>
                             );
                           }
@@ -3785,7 +3835,7 @@ export function FohTasks() {
                               fontStyle: 'italic',
                               fontFamily: 'Inter, sans-serif',
                             }}>
-                              Geen taken
+                              {listLanguage === 'en' ? 'No tasks' : 'Geen taken'}
                             </div>
                           );
                         }
