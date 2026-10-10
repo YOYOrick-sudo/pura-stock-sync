@@ -2688,6 +2688,45 @@ export function FohTasks() {
                 </button>
 
                 {arrowBtn(canNext, () => canNext && shift(1), '›', 'Volgende dag')}
+
+                {/* NL/EN schakelaar — rechts in de dagregel */}
+                {mainCategory === 'dagelijks' && (
+                  <div
+                    role="group"
+                    aria-label="Taal van de takenlijst"
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(2, 44px)',
+                      padding: '3px',
+                      borderRadius: '12px',
+                      border: '1px solid hsl(var(--border))',
+                      backgroundColor: 'hsl(var(--muted))',
+                      marginLeft: 'auto',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {(['nl', 'en'] as const).map((language) => {
+                      const active = listLanguage === language;
+                      return (
+                        <Button
+                          key={language}
+                          type="button"
+                          variant="ghost"
+                          aria-pressed={active}
+                          onClick={() => setListLanguage(language)}
+                          className="min-h-11 rounded-[10px] px-0 text-[13px] font-semibold uppercase"
+                          style={{
+                            backgroundColor: active ? 'hsl(var(--card))' : 'transparent',
+                            color: active ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                            boxShadow: active ? '0 1px 2px hsl(var(--foreground) / 0.08)' : 'none',
+                          }}
+                        >
+                          {language}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })()}
@@ -2833,43 +2872,6 @@ export function FohTasks() {
 
             </div>
 
-            {mainCategory === 'dagelijks' && (
-              <div style={{ alignSelf: 'flex-end', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
-                <div
-                  role="group"
-                  aria-label="Taal van de takenlijst"
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 52px)',
-                    padding: '3px',
-                    borderRadius: '14px',
-                    border: '1px solid hsl(var(--border))',
-                    backgroundColor: 'hsl(var(--muted))',
-                  }}
-                >
-                  {(['nl', 'en'] as const).map((language) => {
-                    const active = listLanguage === language;
-                    return (
-                      <Button
-                        key={language}
-                        type="button"
-                        variant="ghost"
-                        aria-pressed={active}
-                        onClick={() => setListLanguage(language)}
-                        className="h-11 min-h-11 rounded-[11px] px-0 text-sm font-semibold uppercase"
-                        style={{
-                          backgroundColor: active ? 'hsl(var(--card))' : 'transparent',
-                          color: active ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-                          boxShadow: active ? '0 1px 2px hsl(var(--foreground) / 0.08)' : 'none',
-                        }}
-                      >
-                        {language}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
 
             <hr style={{ border: 'none', borderTop: '1px solid hsl(var(--border))', margin: 0 }} />
 
