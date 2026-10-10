@@ -431,6 +431,14 @@ function TakenBeheerInner() {
             onKeyDown={(e) => { if (e.key === 'Enter') performRename(); }}
             placeholder="Nieuwe naam"
           />
+          <Input
+            value={renameEnglishValue}
+            onChange={(e) => setRenameEnglishValue(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') performRename(); }}
+            placeholder="Engelse naam (optioneel)"
+            aria-label="Engelse onderdeelnaam"
+            className="min-h-11"
+          />
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setRenameState(null)} disabled={renameSaving}>
               Annuleren
