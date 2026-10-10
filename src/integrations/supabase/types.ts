@@ -997,6 +997,7 @@ export type Database = {
       foh_category_order: {
         Row: {
           category: string
+          category_en: string | null
           created_at: string
           department: string
           id: string
@@ -1007,6 +1008,7 @@ export type Database = {
         }
         Insert: {
           category: string
+          category_en?: string | null
           created_at?: string
           department?: string
           id?: string
@@ -1017,6 +1019,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          category_en?: string | null
           created_at?: string
           department?: string
           id?: string
@@ -1070,6 +1073,7 @@ export type Database = {
           day_of_week: number | null
           department: string
           description: string | null
+          description_en: string | null
           estimated_minutes: number | null
           foto_url: string | null
           id: string
@@ -1081,6 +1085,7 @@ export type Database = {
           sort_order: number | null
           template_name: string
           title: string
+          title_en: string | null
         }
         Insert: {
           category?: string
@@ -1088,6 +1093,7 @@ export type Database = {
           day_of_week?: number | null
           department?: string
           description?: string | null
+          description_en?: string | null
           estimated_minutes?: number | null
           foto_url?: string | null
           id?: string
@@ -1099,6 +1105,7 @@ export type Database = {
           sort_order?: number | null
           template_name?: string
           title: string
+          title_en?: string | null
         }
         Update: {
           category?: string
@@ -1106,6 +1113,7 @@ export type Database = {
           day_of_week?: number | null
           department?: string
           description?: string | null
+          description_en?: string | null
           estimated_minutes?: number | null
           foto_url?: string | null
           id?: string
@@ -1117,6 +1125,7 @@ export type Database = {
           sort_order?: number | null
           template_name?: string
           title?: string
+          title_en?: string | null
         }
         Relationships: []
       }
@@ -1156,6 +1165,7 @@ export type Database = {
           day_of_week: number | null
           department: string
           description: string | null
+          description_en: string | null
           due_date: string
           estimated_minutes: number | null
           foto_url: string | null
@@ -1167,6 +1177,7 @@ export type Database = {
           sort_order: number | null
           template_id: string | null
           title: string
+          title_en: string | null
         }
         Insert: {
           archived?: boolean
@@ -1179,6 +1190,7 @@ export type Database = {
           day_of_week?: number | null
           department?: string
           description?: string | null
+          description_en?: string | null
           due_date: string
           estimated_minutes?: number | null
           foto_url?: string | null
@@ -1190,6 +1202,7 @@ export type Database = {
           sort_order?: number | null
           template_id?: string | null
           title: string
+          title_en?: string | null
         }
         Update: {
           archived?: boolean
@@ -1202,6 +1215,7 @@ export type Database = {
           day_of_week?: number | null
           department?: string
           description?: string | null
+          description_en?: string | null
           due_date?: string
           estimated_minutes?: number | null
           foto_url?: string | null
@@ -1213,6 +1227,7 @@ export type Database = {
           sort_order?: number | null
           template_id?: string | null
           title?: string
+          title_en?: string | null
         }
         Relationships: [
           {
