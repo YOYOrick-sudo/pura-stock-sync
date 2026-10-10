@@ -1,0 +1,1 @@
+Task-list localization uses nullable English snapshot fields with a Dutch fallback, because task identity and operational logic must remain language-independent.

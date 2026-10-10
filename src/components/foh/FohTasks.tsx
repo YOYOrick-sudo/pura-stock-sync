@@ -31,6 +31,7 @@ import { BainMarieOpen, BainMarieSluit } from './BainMarie';
 import { SectieBalk } from './SectieBalk';
 import { getOrderedCategories, WEST_SECTIONS, type Department } from '@/lib/foh-category-order';
 import { devLog, devError } from "@/lib/devLog";
+import { englishTaskFallback } from '@/lib/foh-list-language';
 
 // Phase time windows (minutes-based)
 const PHASE_WINDOWS = [
@@ -189,8 +190,12 @@ function SortableTaskItem({ task, language = 'nl', isEditMode, onTitleChange, on
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState(task.description || '');
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const visibleTitle = language === 'en' && task.title_en?.trim() ? task.title_en : task.title;
-  const visibleDescription = language === 'en' && task.description_en?.trim() ? task.description_en : task.description;
+  const visibleTitle = language === 'en'
+    ? task.title_en?.trim() || englishTaskFallback(task.title)
+    : task.title;
+  const visibleDescription = language === 'en'
+    ? task.description_en?.trim() || (task.description ? englishTaskFallback(task.description) : null)
+    : task.description;
   const isMobile = useIsMobile();
   
   // Touch feedback state (tablet only)
