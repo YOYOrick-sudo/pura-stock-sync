@@ -1912,9 +1912,11 @@ export function FohTasks() {
           .from('foh_tasks')
           .update({
             title: task.title,
+            title_en: task.title_en,
             sort_order: task.sort_order,
             category: task.category,
             description: task.description,
+            description_en: task.description_en,
             foto_url: task.foto_url,
           })
           .eq('id', task.id);
@@ -2051,11 +2053,13 @@ export function FohTasks() {
         location: task.location,
         phase: task.phase,
         title: task.title,
+        title_en: task.title_en,
         category: task.category,
         priority: task.priority,
         estimated_minutes: task.estimated_minutes,
         sort_order: task.sort_order,
         description: task.description,
+        description_en: task.description_en,
         foto_url: task.foto_url,
         repeat_type: 'daily',
         template_name: currentTemplateName,
@@ -2200,11 +2204,13 @@ export function FohTasks() {
           location: task.location,
           phase: task.phase,
           title: task.title,
+          title_en: task.title_en,
           category: task.category,
           priority: task.priority,
           estimated_minutes: task.estimated_minutes,
           sort_order: task.sort_order,
           description: task.description,
+          description_en: task.description_en,
           foto_url: task.foto_url,
           repeat_type: 'daily',
           template_name: newTemplateName.trim(),
@@ -2321,9 +2327,11 @@ export function FohTasks() {
           .from('foh_daily_templates')
           .update({
             title: task.title,
+            title_en: task.title_en,
             sort_order: task.sort_order,
             category: task.category,
             description: task.description,
+            description_en: task.description_en,
             foto_url: task.foto_url,
             estimated_minutes: task.estimated_minutes,
           })
@@ -2341,9 +2349,11 @@ export function FohTasks() {
           .from('foh_tasks')
           .update({
             title: task.title,
+            title_en: task.title_en,
             sort_order: task.sort_order,
             category: task.category,
             description: task.description,
+            description_en: task.description_en,
             foto_url: task.foto_url,
             estimated_minutes: task.estimated_minutes,
           })
@@ -2368,6 +2378,7 @@ export function FohTasks() {
             location: task.location,
             phase: task.phase,
             title: task.title,
+            title_en: task.title_en,
             priority: task.priority,
             category: task.category,
             repeat_type: task.repeat_type,
@@ -2376,6 +2387,7 @@ export function FohTasks() {
             estimated_minutes: task.estimated_minutes,
             sort_order: task.sort_order,
             description: task.description,
+            description_en: task.description_en,
             foto_url: task.foto_url,
             department: task.department ?? effectiveDept,
           })
@@ -2396,12 +2408,14 @@ export function FohTasks() {
               location: task.location,
               phase: task.phase,
               title: task.title,
+              title_en: task.title_en,
               priority: task.priority,
               category: task.category,
               template_id: inserted.id,
               estimated_minutes: task.estimated_minutes,
               sort_order: task.sort_order,
               description: task.description,
+              description_en: task.description_en,
               foto_url: task.foto_url,
               department: task.department ?? effectiveDept,
               due_date: todayNL,
