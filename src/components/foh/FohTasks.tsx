@@ -2289,10 +2289,12 @@ export function FohTasks() {
     const newTask = {
       id: tempId,
       title: newTemplateTaskInput,
+      title_en: null,
       category: newTemplateTaskCategory,
       sort_order: maxSortOrder + 10,
       estimated_minutes: null,
       description: null,
+      description_en: null,
       foto_url: null,
       phase: editingTemplate[0]?.phase || activePhase,
       location: editingTemplate[0]?.location || userLocation,

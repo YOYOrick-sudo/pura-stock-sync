@@ -225,11 +225,14 @@ function TakenBeheerInner() {
   // Rename dialog state
   const [renameState, setRenameState] = useState<{ dept: Department; oldName: string } | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const [renameEnglishValue, setRenameEnglishValue] = useState('');
   const [renameSaving, setRenameSaving] = useState(false);
 
   const makeRenameHandler = (dept: Department) => (oldName: string) => {
     setRenameState({ dept, oldName });
     setRenameValue(oldName);
+    const current = (westCategoryOrder?.[dept] ?? []).find(row => row.category === oldName);
+    setRenameEnglishValue(current?.category_en ?? '');
   };
 
   const performRename = async () => {
@@ -264,6 +267,16 @@ function TakenBeheerInner() {
       if (prev) queryClient.setQueryData(orderKey, prev);
       toast.error('Hernoemen mislukt');
       return;
+    }
+    const { error: englishError } = await supabase
+      .from('foh_category_order')
+      .update({ category_en: renameEnglishValue.trim() || null })
+      .eq('location', location)
+      .eq('department', dept)
+      .eq('phase', phase)
+      .eq('category', trimmed);
+    if (englishError) {
+      toast.error('Nederlandse naam opgeslagen; Engelse naam niet opgeslagen');
     }
     toast.success('Onderdeel hernoemd');
     setRenameState(null);

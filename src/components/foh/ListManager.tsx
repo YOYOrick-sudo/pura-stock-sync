@@ -197,7 +197,8 @@ function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowP
     >
       <div
         style={{
-          display: 'flex',
+          display: 'grid',
+          gridTemplateColumns: '32px minmax(150px, 1fr) minmax(150px, 1fr) auto auto auto',
           alignItems: 'center',
           gap: '8px',
           padding: '10px 8px',
@@ -284,7 +285,7 @@ function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowP
             fontSize: '14px',
             color: 'hsl(var(--foreground))',
             padding: '6px 10px',
-            minHeight: '40px',
+            minHeight: '44px',
             borderRadius: '10px',
             fontFamily: 'Inter, sans-serif',
             boxShadow: 'none',
