@@ -31,6 +31,7 @@ import { BainMarieOpen, BainMarieSluit } from './BainMarie';
 import { SectieBalk } from './SectieBalk';
 import { getOrderedCategories, WEST_SECTIONS, type Department } from '@/lib/foh-category-order';
 import { devLog, devError } from "@/lib/devLog";
+import { englishTaskFallback } from '@/lib/foh-list-language';
 
 // Phase time windows (minutes-based)
 const PHASE_WINDOWS = [
@@ -159,6 +160,7 @@ function CategoryPicker({ value, onChange, options, allowCreate = true, triggerS
 // ===== SORTABLE TASK ITEM COMPONENT =====
 interface SortableTaskItemProps {
   task: FohTaskWithEmployee;
+  language?: 'nl' | 'en';
   isEditMode: boolean;
   onTitleChange: (id: string, title: string) => void;
   onDescriptionChange?: (id: string, description: string) => void;
@@ -175,7 +177,7 @@ interface SortableTaskItemProps {
   repeatDays?: (number | null)[];
 }
 
-function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onCategoryChange, categoryOptions, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0', taskNumber, isNew = false, repeatDays }: SortableTaskItemProps) {
+function SortableTaskItem({ task, language = 'nl', isEditMode, onTitleChange, onDescriptionChange, onEstimatedMinutesChange, onCategoryChange, categoryOptions, onDelete, toggleTask, isDeleted, showAdminTools = false, taskPadding = '14px 0', taskNumber, isNew = false, repeatDays }: SortableTaskItemProps) {
   const {
     attributes,
     listeners,
@@ -188,6 +190,12 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState(task.description || '');
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const visibleTitle = language === 'en'
+    ? task.title_en?.trim() || englishTaskFallback(task.title)
+    : task.title;
+  const visibleDescription = language === 'en'
+    ? task.description_en?.trim() || (task.description ? englishTaskFallback(task.description) : null)
+    : task.description;
   const isMobile = useIsMobile();
   
   // Touch feedback state (tablet only)
@@ -376,7 +384,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                     {taskNumber}.
                   </span>
                 )}
-                <span style={{ flex: 1 }}>{task.title}</span>
+                <span style={{ flex: 1 }}>{visibleTitle}</span>
                 <RepeatBadge
                   repeatType={(task as any).repeat_type}
                   daysOfWeek={repeatDays && repeatDays.length > 0 ? repeatDays : [(task as any).day_of_week]}
@@ -457,7 +465,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
 
 
             {/* Info button - compact */}
-            {!isEditMode && (task.description || task.foto_url) && (
+            {!isEditMode && (visibleDescription || task.foto_url) && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -619,7 +627,7 @@ function SortableTaskItem({ task, isEditMode, onTitleChange, onDescriptionChange
                     whiteSpace: 'pre-wrap',
                     lineHeight: 1.6,
                   }}>
-                    {task.description || 'Geen omschrijving beschikbaar'}
+                    {visibleDescription || (language === 'en' ? 'No instructions available' : 'Geen omschrijving beschikbaar')}
                   </div>
                 )}
               </div>
@@ -928,6 +936,14 @@ export function FohTasks() {
   
   const [mainCategory, setMainCategory] = useState<'dagelijks' | 'periodiek'>('dagelijks');
   const [activePhase, setActivePhase] = useState<PhaseType>('open');
+  type ListLanguage = 'nl' | 'en';
+  const [listLanguage, setListLanguage] = useState<ListLanguage>(() => {
+    if (typeof window === 'undefined') return 'nl';
+    return localStorage.getItem('foh-list-language') === 'en' ? 'en' : 'nl';
+  });
+  useEffect(() => {
+    localStorage.setItem('foh-list-language', listLanguage);
+  }, [listLanguage]);
   const [isPhaseManuallySelected, setIsPhaseManuallySelected] = useState(false);
 
   // West heeft afdelingen: Voorkant (bediening) / Achterkant (keuken) / Samen.
@@ -1144,16 +1160,16 @@ export function FohTasks() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('foh_category_order')
-        .select('department, category, sort_order, phase')
+        .select('department, category, category_en, sort_order, phase')
         .eq('location', userLocation)
         .eq('phase', activePhase)
         .order('sort_order', { ascending: true });
       if (error) throw error;
-      const out: Partial<Record<Department, { category: string; sort_order: number }[]>> = {};
+      const out: Partial<Record<Department, { category: string; category_en: string | null; sort_order: number }[]>> = {};
       for (const r of (data as any[]) || []) {
         const dept = (r.department || 'voorkant') as Department;
         if (!out[dept]) out[dept] = [];
-        out[dept]!.push({ category: r.category, sort_order: r.sort_order });
+        out[dept]!.push({ category: r.category, category_en: r.category_en, sort_order: r.sort_order });
       }
       return out;
     },
@@ -1434,6 +1450,7 @@ export function FohTasks() {
       .filter(template => !existingTemplateIds.has(template.id))
       .map(template => ({
         title: template.title,
+        title_en: template.title_en,
         due_date: todayDate,
         priority: template.priority,
         phase: template.phase,
@@ -1447,6 +1464,7 @@ export function FohTasks() {
         estimated_minutes: template.estimated_minutes,
         sort_order: template.sort_order,
         description: template.description,
+        description_en: template.description_en,
         foto_url: template.foto_url,
         department: (template as any).department ?? (userLocation === 'West' ? 'samen' : 'voorkant'),
       }));
@@ -1894,9 +1912,11 @@ export function FohTasks() {
           .from('foh_tasks')
           .update({
             title: task.title,
+            title_en: task.title_en,
             sort_order: task.sort_order,
             category: task.category,
             description: task.description,
+            description_en: task.description_en,
             foto_url: task.foto_url,
           })
           .eq('id', task.id);
@@ -2033,11 +2053,13 @@ export function FohTasks() {
         location: task.location,
         phase: task.phase,
         title: task.title,
+        title_en: task.title_en,
         category: task.category,
         priority: task.priority,
         estimated_minutes: task.estimated_minutes,
         sort_order: task.sort_order,
         description: task.description,
+        description_en: task.description_en,
         foto_url: task.foto_url,
         repeat_type: 'daily',
         template_name: currentTemplateName,
@@ -2182,11 +2204,13 @@ export function FohTasks() {
           location: task.location,
           phase: task.phase,
           title: task.title,
+          title_en: task.title_en,
           category: task.category,
           priority: task.priority,
           estimated_minutes: task.estimated_minutes,
           sort_order: task.sort_order,
           description: task.description,
+          description_en: task.description_en,
           foto_url: task.foto_url,
           repeat_type: 'daily',
           template_name: newTemplateName.trim(),
@@ -2265,10 +2289,12 @@ export function FohTasks() {
     const newTask = {
       id: tempId,
       title: newTemplateTaskInput,
+      title_en: null,
       category: newTemplateTaskCategory,
       sort_order: maxSortOrder + 10,
       estimated_minutes: null,
       description: null,
+      description_en: null,
       foto_url: null,
       phase: editingTemplate[0]?.phase || activePhase,
       location: editingTemplate[0]?.location || userLocation,
@@ -2303,9 +2329,11 @@ export function FohTasks() {
           .from('foh_daily_templates')
           .update({
             title: task.title,
+            title_en: task.title_en,
             sort_order: task.sort_order,
             category: task.category,
             description: task.description,
+            description_en: task.description_en,
             foto_url: task.foto_url,
             estimated_minutes: task.estimated_minutes,
           })
@@ -2323,9 +2351,11 @@ export function FohTasks() {
           .from('foh_tasks')
           .update({
             title: task.title,
+            title_en: task.title_en,
             sort_order: task.sort_order,
             category: task.category,
             description: task.description,
+            description_en: task.description_en,
             foto_url: task.foto_url,
             estimated_minutes: task.estimated_minutes,
           })
@@ -2350,6 +2380,7 @@ export function FohTasks() {
             location: task.location,
             phase: task.phase,
             title: task.title,
+            title_en: task.title_en,
             priority: task.priority,
             category: task.category,
             repeat_type: task.repeat_type,
@@ -2358,6 +2389,7 @@ export function FohTasks() {
             estimated_minutes: task.estimated_minutes,
             sort_order: task.sort_order,
             description: task.description,
+            description_en: task.description_en,
             foto_url: task.foto_url,
             department: task.department ?? effectiveDept,
           })
@@ -2378,12 +2410,14 @@ export function FohTasks() {
               location: task.location,
               phase: task.phase,
               title: task.title,
+              title_en: task.title_en,
               priority: task.priority,
               category: task.category,
               template_id: inserted.id,
               estimated_minutes: task.estimated_minutes,
               sort_order: task.sort_order,
               description: task.description,
+              description_en: task.description_en,
               foto_url: task.foto_url,
               department: task.department ?? effectiveDept,
               due_date: todayNL,
@@ -2673,7 +2707,9 @@ export function FohTasks() {
               {getPhasesForLocation(userLocation).map((phase) => {
                 const stats = getDailyListStats(phase);
                 const isActive = mainCategory === 'dagelijks' && activePhase === phase;
-                const labels: Record<PhaseType, string> = { open: 'Openen', tussen: 'Tussen', borrel: 'Borrel', sluit: 'Sluiten' };
+                const labels: Record<PhaseType, string> = listLanguage === 'en'
+                  ? { open: 'Open', tussen: 'Midday', borrel: 'Drinks', sluit: 'Close' }
+                  : { open: 'Openen', tussen: 'Tussen', borrel: 'Borrel', sluit: 'Sluiten' };
                 
                 return (
                   <button
@@ -2797,6 +2833,43 @@ export function FohTasks() {
               })()}
 
             </div>
+
+            {mainCategory === 'dagelijks' && (activePhase === 'open' || activePhase === 'sluit') && (
+              <div
+                role="group"
+                aria-label="Taal van de takenlijst"
+                style={{
+                  alignSelf: 'flex-end',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 52px)',
+                  padding: '3px',
+                  borderRadius: '14px',
+                  border: '1px solid hsl(var(--border))',
+                  backgroundColor: 'hsl(var(--muted))',
+                }}
+              >
+                {(['nl', 'en'] as const).map((language) => {
+                  const active = listLanguage === language;
+                  return (
+                    <Button
+                      key={language}
+                      type="button"
+                      variant="ghost"
+                      aria-pressed={active}
+                      onClick={() => setListLanguage(language)}
+                      className="h-11 min-h-11 rounded-[11px] px-0 text-sm font-semibold uppercase"
+                      style={{
+                        backgroundColor: active ? 'hsl(var(--card))' : 'transparent',
+                        color: active ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                        boxShadow: active ? '0 1px 2px hsl(var(--foreground) / 0.08)' : 'none',
+                      }}
+                    >
+                      {language}
+                    </Button>
+                  );
+                })}
+              </div>
+            )}
 
             <hr style={{ border: 'none', borderTop: '1px solid hsl(var(--border))', margin: 0 }} />
 
@@ -3468,7 +3541,7 @@ export function FohTasks() {
                         fontStyle: 'italic',
                         fontFamily: 'Inter, sans-serif',
                       }}>
-                        Geen taken
+                        {listLanguage === 'en' ? 'No tasks' : 'Geen taken'}
                       </div>
                     );
                   }
@@ -3488,7 +3561,9 @@ export function FohTasks() {
                           alignItems: 'center',
                           gap: '8px',
                         }}>
-                          {category}
+                          {listLanguage === 'en'
+                            ? westCategoryOrder?.[westSectionOf(categoryTasks[0]?.department)]?.find((row) => row.category === category)?.category_en || category
+                            : category}
                           <span style={{
                             fontSize: '11px',
                             fontWeight: 500,
@@ -3511,7 +3586,7 @@ export function FohTasks() {
                               fontFamily: 'Inter, sans-serif',
                               animation: 'fade-in 0.3s ease-out',
                             }}>
-                              🎉 Alle taken voltooid!
+                              {listLanguage === 'en' ? 'All tasks completed!' : 'Alle taken voltooid!'}
                             </div>
                           ) : (
                             <SortableContext items={categoryTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
@@ -3525,6 +3600,7 @@ export function FohTasks() {
                                   <Fragment key={task.id}>
                                     <SortableTaskItem
                                       task={task}
+                                      language={listLanguage}
                                       taskNumber={index + 1}
                                       isEditMode={isEditMode}
                                       onTitleChange={(id, title) => {
@@ -3568,7 +3644,7 @@ export function FohTasks() {
                         fontStyle: 'italic',
                         fontFamily: 'Inter, sans-serif',
                       }}>
-                        Geen taken
+                        {listLanguage === 'en' ? 'No tasks' : 'Geen taken'}
                       </div>
                     );
                   }
@@ -3585,7 +3661,7 @@ export function FohTasks() {
                           fontFamily: 'Inter, sans-serif',
                           animation: 'fade-in 0.3s ease-out',
                         }}>
-                          🎉 Alle taken voltooid!
+                          {listLanguage === 'en' ? 'All tasks completed!' : 'Alle taken voltooid!'}
                         </div>
                       ) : (
                         <SortableContext items={tasksToRender.map(t => t.id)} strategy={verticalListSortingStrategy}>
@@ -3593,6 +3669,7 @@ export function FohTasks() {
                             <SortableTaskItem
                               key={task.id}
                               task={task}
+                              language={listLanguage}
                               taskNumber={index + 1}
                               isEditMode={isEditMode}
                               onTitleChange={(id, title) => {
@@ -3644,11 +3721,20 @@ export function FohTasks() {
                   if (isWestSection && deptTasks.length === 0) return null;
 
                   const completed = deptTasks.filter(t => t.completed).length;
+                  const visibleLabel = listLanguage === 'en'
+                    ? ({
+                        'Samen / Opstarten': 'Together / Setup',
+                        'Samen / Start': 'Together / Start',
+                        'Samen / Laatste loodjes': 'Together / Final tasks',
+                        'Keuken': 'Kitchen',
+                        'Bediening': 'Front of house',
+                      }[label] ?? label)
+                    : label;
                   return (
                     <div key={`${opts?.keyPrefix ?? ''}${dept}`} style={{ marginBottom: '32px' }}>
                       {!opts?.hideHeader && (
                         <SectieBalk
-                          titel={label}
+                          titel={visibleLabel}
                           stand={`${completed}/${deptTasks.length}`}
                           afgerond={deptTasks.length > 0 && completed === deptTasks.length}
                         />
@@ -3700,7 +3786,7 @@ export function FohTasks() {
                                 fontStyle: 'italic',
                                 fontFamily: 'Inter, sans-serif',
                               }}>
-                                Geen taken
+                                {listLanguage === 'en' ? 'No tasks' : 'Geen taken'}
                               </div>
                             );
                           }
@@ -3772,7 +3858,7 @@ export function FohTasks() {
                               fontStyle: 'italic',
                               fontFamily: 'Inter, sans-serif',
                             }}>
-                              Geen taken
+                              {listLanguage === 'en' ? 'No tasks' : 'Geen taken'}
                             </div>
                           );
                         }
@@ -4650,6 +4736,7 @@ export function FohTasks() {
                   <SortableTaskItem
                     key={task.id}
                     task={task as any}
+                    language="nl"
                     isEditMode={true}
                     onTitleChange={(id, title) => {
                       setEditingTemplate(prev => prev.map(t => t.id === id ? { ...t, title } : t));

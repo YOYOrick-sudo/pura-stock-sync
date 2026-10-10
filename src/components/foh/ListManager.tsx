@@ -75,6 +75,8 @@ interface TemplateTask {
   estimated_minutes: number | null;
   sort_order: number | null;
   description: string | null;
+  title_en: string | null;
+  description_en: string | null;
   repeat_type: string | null;
   day_of_week: number | null;
   template_name: string;
@@ -151,6 +153,7 @@ function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowP
   });
 
   const [title, setTitle] = useState(task.title);
+  const [titleEn, setTitleEn] = useState(task.title_en || '');
   const [hovered, setHovered] = useState(false);
   const [showRepeat, setShowRepeat] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -158,7 +161,8 @@ function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowP
   // Keep input in sync if external value changes
   useEffect(() => {
     setTitle(task.title);
-  }, [task.title]);
+    setTitleEn(task.title_en || '');
+  }, [task.title, task.title_en]);
 
   const commitTitle = (next: string) => {
     if (next.trim() === task.title) return;
@@ -193,7 +197,8 @@ function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowP
     >
       <div
         style={{
-          display: 'flex',
+          display: 'grid',
+          gridTemplateColumns: '32px minmax(150px, 1fr) minmax(150px, 1fr) auto auto auto',
           alignItems: 'center',
           gap: '8px',
           padding: '10px 8px',
@@ -259,6 +264,29 @@ function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowP
             color: 'hsl(var(--foreground))',
             padding: '4px 8px',
             height: 'auto',
+            fontFamily: 'Inter, sans-serif',
+            boxShadow: 'none',
+          }}
+        />
+
+        <Input
+          value={titleEn}
+          onChange={(e) => setTitleEn(e.target.value)}
+          onBlur={() => {
+            const next = titleEn.trim();
+            if (next !== (task.title_en || '')) onUpdate(task.id, { title_en: next || null });
+          }}
+          placeholder="Engelse taaknaam (optioneel)"
+          aria-label={`Engelse taaknaam voor ${task.title}`}
+          style={{
+            flex: 1,
+            border: 'none',
+            background: 'hsl(var(--muted) / 0.45)',
+            fontSize: '14px',
+            color: 'hsl(var(--foreground))',
+            padding: '6px 10px',
+            minHeight: '44px',
+            borderRadius: '10px',
             fontFamily: 'Inter, sans-serif',
             boxShadow: 'none',
           }}
@@ -636,6 +664,8 @@ export function ListManager({
     if (patch.category !== undefined) updateFields.category = patch.category;
     if (patch.sort_order !== undefined) updateFields.sort_order = patch.sort_order;
     if (patch.description !== undefined) updateFields.description = patch.description;
+    if (patch.title_en !== undefined) updateFields.title_en = patch.title_en;
+    if (patch.description_en !== undefined) updateFields.description_en = patch.description_en;
     if (patch.estimated_minutes !== undefined) updateFields.estimated_minutes = patch.estimated_minutes;
     if (Object.keys(updateFields).length === 0) return;
 

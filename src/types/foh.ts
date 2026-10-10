@@ -12,10 +12,13 @@ export interface FohTask {
   template_id: string | null;
   phase: 'open' | 'tussen' | 'borrel' | 'sluit' | null;
   category: string;
+  department?: string | null;
   created_at: string;
   estimated_minutes: number | null;
   sort_order?: number;
   description?: string | null;
+  title_en?: string | null;
+  description_en?: string | null;
   foto_url?: string | null;
 }
 
@@ -41,6 +44,8 @@ export interface FohDailyTemplate {
   estimated_minutes: number | null;
   sort_order?: number;
   description?: string | null;
+  title_en?: string | null;
+  description_en?: string | null;
   foto_url?: string | null;
 }
 

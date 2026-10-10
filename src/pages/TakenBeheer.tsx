@@ -34,7 +34,7 @@ import {
 
 type Phase = 'open' | 'tussen' | 'borrel' | 'sluit';
 
-type OrderRow = { category: string; sort_order: number };
+type OrderRow = { category: string; category_en?: string | null; sort_order: number };
 type OrderMap = WestCategoryOrder;
 
 const CATEGORY_ORDER_FALLBACK = ['Algemeen'];
@@ -79,7 +79,7 @@ function TakenBeheerInner() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('foh_category_order')
-        .select('department, category, sort_order')
+        .select('department, category, category_en, sort_order')
         .eq('location', location)
         .eq('phase', phase)
         .order('sort_order', { ascending: true });
@@ -87,7 +87,7 @@ function TakenBeheerInner() {
       const out: OrderMap = {};
       for (const r of (data as any[]) || []) {
         const d = (r.department || 'voorkant') as Department;
-        (out[d] ||= []).push({ category: r.category, sort_order: r.sort_order });
+        (out[d] ||= []).push({ category: r.category, category_en: r.category_en, sort_order: r.sort_order });
       }
       return out;
     },
@@ -155,17 +155,24 @@ function TakenBeheerInner() {
     return getMidslandCategories(phase);
   };
 
-  const buildCategoryRows = (dept: Department): { category: string; sort_order: number | null }[] => {
+  const buildCategoryRows = (dept: Department): { category: string; category_en: string | null; sort_order: number | null }[] => {
     if (!isManaged) return [];
     const ordered = buildAvailableCategories(dept);
-    const map = new Map<string, number>();
+    const map = new Map<string, { sort_order: number; category_en: string | null }>();
     for (const r of westCategoryOrder?.[dept] ?? []) {
-      map.set(r.category.trim().toLowerCase(), r.sort_order);
+      map.set(r.category.trim().toLowerCase(), {
+        sort_order: r.sort_order,
+        category_en: r.category_en ?? null,
+      });
     }
-    return ordered.map(cat => ({
-      category: cat,
-      sort_order: map.has(cat.trim().toLowerCase()) ? (map.get(cat.trim().toLowerCase()) as number) : null,
-    }));
+    return ordered.map(cat => {
+      const saved = map.get(cat.trim().toLowerCase());
+      return {
+        category: cat,
+        category_en: saved?.category_en ?? null,
+        sort_order: saved?.sort_order ?? null,
+      };
+    });
   };
 
   const invalidate = () => {
@@ -199,7 +206,12 @@ function TakenBeheerInner() {
     const list = rows.map(r => r.category);
     [list[idx], list[newIdx]] = [list[newIdx], list[idx]];
     const upsertRows = list.map((cat, i) => ({
-      location, department: dept, phase, category: cat, sort_order: (i + 1) * 10,
+      location,
+      department: dept,
+      phase,
+      category: cat,
+      category_en: rows.find(row => row.category === cat)?.category_en ?? null,
+      sort_order: (i + 1) * 10,
     }));
 
     const nextMap: OrderMap = { ...(prev ?? {}) };
@@ -225,23 +237,26 @@ function TakenBeheerInner() {
   // Rename dialog state
   const [renameState, setRenameState] = useState<{ dept: Department; oldName: string } | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const [renameEnglishValue, setRenameEnglishValue] = useState('');
   const [renameSaving, setRenameSaving] = useState(false);
 
   const makeRenameHandler = (dept: Department) => (oldName: string) => {
     setRenameState({ dept, oldName });
     setRenameValue(oldName);
+    const current = (westCategoryOrder?.[dept] ?? []).find(row => row.category === oldName);
+    setRenameEnglishValue(current?.category_en ?? '');
   };
 
   const performRename = async () => {
     if (!renameState) return;
     const { dept, oldName } = renameState;
     const trimmed = renameValue.trim();
-    if (!trimmed || trimmed === oldName) {
+    if (!trimmed) {
       setRenameState(null);
       return;
     }
     const existing = new Set((westCategoryOrder?.[dept] ?? []).map(r => r.category));
-    if (existing.has(trimmed)) {
+    if (trimmed !== oldName && existing.has(trimmed)) {
       toast.error(`"${trimmed}" bestaat al.`);
       return;
     }
@@ -256,14 +271,26 @@ function TakenBeheerInner() {
     }
 
     setRenameSaving(true);
-    const { error } = await supabase.rpc('foh_rename_category', {
-      _location: location, _department: dept, _phase: phase, _old: oldName, _new: trimmed,
-    });
+    const { error } = trimmed === oldName
+      ? { error: null }
+      : await supabase.rpc('foh_rename_category', {
+          _location: location, _department: dept, _phase: phase, _old: oldName, _new: trimmed,
+        });
     setRenameSaving(false);
     if (error) {
       if (prev) queryClient.setQueryData(orderKey, prev);
       toast.error('Hernoemen mislukt');
       return;
+    }
+    const { error: englishError } = await supabase
+      .from('foh_category_order')
+      .update({ category_en: renameEnglishValue.trim() || null })
+      .eq('location', location)
+      .eq('department', dept)
+      .eq('phase', phase)
+      .eq('category', trimmed);
+    if (englishError) {
+      toast.error('Nederlandse naam opgeslagen; Engelse naam niet opgeslagen');
     }
     toast.success('Onderdeel hernoemd');
     setRenameState(null);
@@ -417,6 +444,14 @@ function TakenBeheerInner() {
             onChange={(e) => setRenameValue(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') performRename(); }}
             placeholder="Nieuwe naam"
+          />
+          <Input
+            value={renameEnglishValue}
+            onChange={(e) => setRenameEnglishValue(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') performRename(); }}
+            placeholder="Engelse naam (optioneel)"
+            aria-label="Engelse onderdeelnaam"
+            className="min-h-11"
           />
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setRenameState(null)} disabled={renameSaving}>
