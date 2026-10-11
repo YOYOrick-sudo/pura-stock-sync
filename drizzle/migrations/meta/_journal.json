@@ -211,6 +211,13 @@
       "when": 1791662437342,
       "tag": "0029_add_english_foh_list_content",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1791729050300,
+      "tag": "0030_foh_location_trigger_insert_only",
+      "breakpoints": true
     }
   ]
 }
