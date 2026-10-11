@@ -142,12 +142,9 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 md:p-8 bg-background">
+    <div className="min-h-dvh flex items-center justify-center p-[calc(1rem+var(--safe-top))] md:p-8 bg-background">
       <div
-        className="w-full max-w-[420px] bg-card border border-border/60 rounded-[20px] overflow-hidden"
-        style={{
-          boxShadow: '0 20px 40px -12px rgba(0,0,0,0.08), 0 8px 16px -8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
-        }}
+        className="w-full max-w-[420px] bg-card border border-border/60 rounded-polar-xl overflow-hidden shadow-[var(--shadow-card)]"
       >
         {/* Header */}
         <div className="px-8 pt-10 pb-2">

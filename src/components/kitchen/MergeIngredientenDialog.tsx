@@ -50,7 +50,7 @@ export function MergeIngredientenDialog({ open, onOpenChange, selected, onDone }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[650px] rounded-[24px]">
+      <DialogContent className="max-w-[650px]">
         <DialogHeader>
           <DialogTitle>Ingrediënten samenvoegen</DialogTitle>
           <DialogDescription>

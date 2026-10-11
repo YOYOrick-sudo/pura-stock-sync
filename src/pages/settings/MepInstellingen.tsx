@@ -175,21 +175,20 @@ export default function MepInstellingen() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Mise-en-place</h1>
-          <p className="text-sm text-muted-foreground">
-            Halffabricaten en keukendagen voor {userLocation}
-          </p>
-        </div>
+      <div className="page-stack max-w-5xl">
+        <p className="text-sm text-muted-foreground">
+          Halffabricaten en keukendagen voor {userLocation}
+        </p>
 
         <Tabs defaultValue="halffabricaten">
-          <TabsList className="w-full grid grid-cols-4">
+          <div className="-mx-4 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0">
+          <TabsList className="h-11 min-w-max justify-start">
             <TabsTrigger value="halffabricaten">Halffabricaten</TabsTrigger>
             <TabsTrigger value="handelingen">Handelingen</TabsTrigger>
             <TabsTrigger value="voorraadcheck">Voorraad-check</TabsTrigger>
             <TabsTrigger value="dagen">Openingsdagen</TabsTrigger>
           </TabsList>
+          </div>
           <TabsContent value="halffabricaten" className="mt-4">
             <HalffabricatenTab />
           </TabsContent>

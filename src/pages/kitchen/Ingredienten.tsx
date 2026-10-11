@@ -329,7 +329,7 @@ export default function Ingredienten() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-5xl mx-auto space-y-4">
+      <div className="page-stack">
 
 
         <Card className="p-4 sm:p-5 bg-card shadow-sm">
@@ -423,7 +423,7 @@ export default function Ingredienten() {
               Geen ingrediënten gevonden voor "{search}".
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-polar-lg border border-border/60">
               <Table>
                 <TableHeader>
                   <TableRow>
