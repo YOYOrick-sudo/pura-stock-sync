@@ -228,7 +228,7 @@ const KassatellingOverdag = () => {
       {/* Main Content */}
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 400px', gap: '24px', alignItems: 'start' }}>
+        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_400px] xl:gap-6">
           {/* Kassa Lade */}
           <div style={{
             backgroundColor: 'hsl(var(--card))',
@@ -256,6 +256,7 @@ const KassatellingOverdag = () => {
                       <td style={{ padding: '6px 12px', textAlign: 'center' }}>
                         <input type="number" value={kassaLade[denom as keyof typeof kassaLade]} onChange={e => updateKassaLade(denom, e.target.value === '' ? '' : parseInt(e.target.value))} min={0} style={{
                           width: '80px',
+                          minHeight: '44px',
                           padding: '6px 8px',
                           textAlign: 'center',
                           border: '1px solid hsl(var(--border))',
@@ -309,6 +310,7 @@ const KassatellingOverdag = () => {
                       <td style={{ padding: '6px 12px', textAlign: 'center' }}>
                         <input type="number" value={wisselkas[denom as keyof typeof wisselkas]} onChange={e => updateWisselkas(denom, e.target.value === '' ? '' : parseInt(e.target.value))} min={0} style={{
                           width: '80px',
+                          minHeight: '44px',
                           padding: '6px 8px',
                           textAlign: 'center',
                           border: '1px solid hsl(var(--border))',
@@ -336,7 +338,7 @@ const KassatellingOverdag = () => {
           </div>
 
           {/* Right side: Summary card */}
-          <div style={{ position: 'sticky', top: '24px' }}>
+          <div className="xl:sticky xl:top-6">
             <div style={{
               backgroundColor: 'hsl(var(--card))',
               borderRadius: '20px',

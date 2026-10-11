@@ -22,11 +22,7 @@ interface DashboardCardProps {
 
 const DashboardCard = ({ title, count, onClick, isLoading, icon }: DashboardCardProps) => {
   return (
-    <div
-      onClick={onClick}
-      className="cursor-pointer group"
-      style={{ borderRadius: '20px' }}
-    >
+    <div onClick={onClick} className="cursor-pointer group rounded-polar-xl">
       <PolarKPICard
         compact
         title={title}

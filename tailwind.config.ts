@@ -5,6 +5,13 @@ export default {
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
   prefix: "",
   theme: {
+    screens: {
+      sm: "640px",
+      md: "744px",
+      lg: "1024px",
+      xl: "1280px",
+      "2xl": "1536px",
+    },
     container: {
       center: true,
       padding: "2rem",
@@ -95,6 +102,7 @@ export default {
       },
       borderRadius: {
         // Polar UI radius system
+        'polar': '14px',
         'polar-sm': '8px',
         'polar-md': '12px',
         'polar-lg': '16px',

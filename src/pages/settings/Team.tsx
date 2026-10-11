@@ -92,7 +92,7 @@ export default function Team() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-7xl mx-auto space-y-6 p-4 md:p-6">
+      <div className="page-stack">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-semibold">Team</h1>

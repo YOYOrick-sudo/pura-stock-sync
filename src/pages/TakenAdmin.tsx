@@ -124,24 +124,9 @@ function TakenAdminInner() {
 
   return (
     <div style={{ fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column', gap: 24, paddingTop: 8 }}>
-      {/* Intro */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{
-          width: 40, height: 40, borderRadius: 12,
-          background: 'hsl(var(--primary) / 0.1)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <Shield size={20} style={{ color: 'hsl(var(--primary))' }} />
-        </div>
-        <div>
-          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600, color: 'hsl(var(--foreground))' }}>
-            Takenlijsten beheren
-          </h2>
-          <p style={{ margin: 0, fontSize: 13, color: 'hsl(var(--muted-foreground))' }}>
-            Kies een lijst om te bewerken — taken en onderdelen per lijst apart.
-          </p>
-        </div>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        Kies een lijst om te bewerken — taken en onderdelen per lijst apart.
+      </p>
 
       {/* Lijstkaarten */}
       {isLoading ? (

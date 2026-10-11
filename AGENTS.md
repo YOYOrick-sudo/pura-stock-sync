@@ -1,1 +1,2 @@
 Task-list localization uses nullable English snapshot fields with a Dutch fallback, because task identity and operational logic must remain language-independent.
+All module pages use SidebarLayout with the shared page-container/page-stack patterns, because one shell and width rhythm prevent mobile/desktop drift.
