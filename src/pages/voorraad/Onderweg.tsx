@@ -26,11 +26,8 @@ export default function VoorraadOnderweg() {
 
   return (
     <SidebarLayout>
-      <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto pb-24">
-        <div>
-          <h1 className="text-2xl font-semibold">Onderweg</h1>
-          <p className="text-sm text-muted-foreground">Verstuurde bestellingen en wat er binnenkomt.</p>
-        </div>
+      <div className="page-stack max-w-5xl pb-24">
+        <p className="text-sm text-muted-foreground">Verstuurde bestellingen en wat er binnenkomt.</p>
 
         {isLoading && <Card className="p-4 text-sm">Laden…</Card>}
         {!isLoading && lopend.length === 0 && (
@@ -117,7 +114,7 @@ function OrderKaart({ order, open, onToggle }: { order: OnderwegOrder; open: boo
       {open && (
         <div className="space-y-2">
           {order.regels.map((r) => (
-            <div key={r.id} className="flex items-center gap-3 border-b border-border last:border-0 py-2">
+            <div key={r.id} className="flex flex-wrap items-center gap-3 border-b border-border py-2 last:border-0 sm:flex-nowrap">
               <div className="flex-1 min-w-0">
                 <div className="truncate">{r.omschrijving}</div>
                 <div className="text-xs text-muted-foreground">
@@ -133,7 +130,7 @@ function OrderKaart({ order, open, onToggle }: { order: OnderwegOrder; open: boo
                   placeholder={String(r.aantal)}
                   value={waarden[r.id] ?? ''}
                   onChange={(e) => setWaarden((w) => ({ ...w, [r.id]: e.target.value }))}
-                  className="w-24 h-12 text-lg text-right"
+                  className="ml-auto h-12 w-24 text-right text-lg"
                 />
               )}
             </div>

@@ -61,7 +61,7 @@ function RecipesPopover({ ingredient }: { ingredient: IngredientStat }) {
           type="button"
           disabled={ingredient.aantal_recepten === 0}
           className={cn(
-            'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium min-h-[32px]',
+            'inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium',
             ingredient.aantal_recepten > 0
               ? 'bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer'
               : 'bg-muted text-muted-foreground cursor-default',
@@ -86,7 +86,7 @@ function RecipesPopover({ ingredient }: { ingredient: IngredientStat }) {
             <button
               key={r.id}
               onClick={() => navigate(`/kitchen/recipes/${r.id}`)}
-              className="w-full text-left px-2 py-2 rounded-md hover:bg-muted text-sm min-h-[40px]"
+              className="min-h-[44px] w-full rounded-md px-2 py-2 text-left text-sm hover:bg-muted"
             >
               {r.name}
             </button>
@@ -112,7 +112,7 @@ function AllergenenCell({
       <button
         type="button"
         onClick={onEdit}
-        className="flex flex-wrap items-center gap-1 text-left min-h-[36px] rounded-md px-1 hover:bg-muted transition-colors"
+        className="flex min-h-[44px] flex-wrap items-center gap-1 rounded-md px-2 text-left transition-colors hover:bg-muted"
         title="Allergenen bewerken"
       >
         {codes.length === 0 ? (
@@ -137,7 +137,7 @@ function AllergenenCell({
         <button
           type="button"
           onClick={() => info && confirmMut.mutate(info.id)}
-          className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary hover:bg-primary/20 min-h-[28px]"
+          className="min-h-[44px] rounded-full bg-primary/10 px-3 py-0.5 text-[11px] font-medium text-primary hover:bg-primary/20"
         >
           Klopt
         </button>
@@ -204,19 +204,19 @@ function IngredientRow({
                 if (e.key === 'Enter') save();
                 if (e.key === 'Escape') cancel();
               }}
-              className="h-9"
+              className="h-11"
             />
             <button
               onClick={save}
               disabled={rename.isPending}
-              className="h-9 w-9 rounded-md hover:bg-primary/10 flex items-center justify-center text-primary"
+              className="flex h-11 w-11 items-center justify-center rounded-md text-primary hover:bg-primary/10"
               aria-label="Opslaan"
             >
               <Check className="h-4 w-4" />
             </button>
             <button
               onClick={cancel}
-              className="h-9 w-9 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground"
+              className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
               aria-label="Annuleren"
             >
               <X className="h-4 w-4" />
@@ -250,7 +250,7 @@ function IngredientRow({
         {!editing && (
           <button
             onClick={startEdit}
-            className="h-10 w-10 rounded-md hover:bg-muted inline-flex items-center justify-center text-muted-foreground"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
             aria-label="Hernoemen"
           >
             <Pencil className="h-4 w-4" />
@@ -423,7 +423,52 @@ export default function Ingredienten() {
               Geen ingrediënten gevonden voor "{search}".
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-polar-lg border border-border/60">
+            <div className="space-y-2 md:hidden">
+              {filtered.map((ing) => (
+                <Card key={ing.id} className="space-y-3 p-4 shadow-none">
+                  <div className="flex items-start gap-3">
+                    <div className="flex min-h-11 items-center">
+                      <Checkbox
+                        checked={selectedIds.has(ing.id)}
+                        onCheckedChange={(v) => toggleSelect(ing.id, Boolean(v))}
+                        aria-label={`${ing.naam} selecteren`}
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="break-words text-sm font-semibold text-foreground">{ing.naam}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {ing.laatst_gebruikt
+                          ? `Laatst gebruikt ${format(new Date(ing.laatst_gebruikt), 'd MMM yyyy', { locale: nl })}`
+                          : 'Nog niet gebruikt'}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-11 w-11 shrink-0"
+                      onClick={() => setArtikelDialog({ open: true, id: ing.id })}
+                      aria-label={`${ing.naam} bewerken`}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-3">
+                    <AllergenenCell
+                      info={allergenenMap.get(ing.id)}
+                      onEdit={() => setEditAllergenenId(ing.id)}
+                    />
+                    <RecipesPopover ingredient={ing} />
+                  </div>
+                  <VestigingToggles
+                    soort="ingredient"
+                    id={ing.id}
+                    actieve={ingKoppelingen?.get(ing.id) ?? LEEG}
+                    disabled={!isManager}
+                  />
+                </Card>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto rounded-polar-lg border border-border/60 md:block">
               <Table>
                 <TableHeader>
                   <TableRow>

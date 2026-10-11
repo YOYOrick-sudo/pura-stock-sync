@@ -109,7 +109,7 @@ export default function ApplicantForm() {
 
   return (
     <SidebarLayout>
-      <div className="p-6 max-w-2xl mx-auto">
+      <div className="page-stack max-w-2xl">
         <Button 
           variant="ghost" 
           size="sm" 
@@ -120,16 +120,12 @@ export default function ApplicantForm() {
           Terug
         </Button>
 
-        <h1 className="text-2xl font-heading font-bold text-foreground mb-6">
-          Nieuwe Kandidaat
-        </h1>
-
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Personal Info */}
           <Card className="p-4">
             <h2 className="font-semibold text-foreground mb-4">Persoonlijke Gegevens</h2>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="first_name">Voornaam *</Label>
                 <Input

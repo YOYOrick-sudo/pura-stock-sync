@@ -51,7 +51,7 @@ export default function HousingForm() {
 
   return (
     <SidebarLayout>
-      <div className="p-6 max-w-2xl mx-auto">
+      <div className="page-stack max-w-2xl">
         <Button 
           variant="ghost" 
           size="sm" 
@@ -61,10 +61,6 @@ export default function HousingForm() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Terug
         </Button>
-
-        <h1 className="text-2xl font-heading font-bold text-foreground mb-6">
-          Nieuwe Woonruimte
-        </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <Card className="p-4">

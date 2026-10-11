@@ -95,7 +95,6 @@ export default function Team() {
       <div className="page-stack">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-2xl font-semibold">Team</h1>
             <p className="text-muted-foreground text-sm">
               Beheer teamleden, rollen en toegang.
             </p>
