@@ -423,6 +423,7 @@ export default function Ingredienten() {
               Geen ingrediënten gevonden voor "{search}".
             </div>
           ) : (
+            <>
             <div className="space-y-2 md:hidden">
               {filtered.map((ing) => (
                 <Card key={ing.id} className="space-y-3 p-4 shadow-none">
@@ -515,6 +516,7 @@ export default function Ingredienten() {
                 </TableBody>
               </Table>
             </div>
+            </>
           )}
         </Card>
       </div>
