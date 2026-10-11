@@ -406,8 +406,8 @@ function TakenBeheerInner() {
         aria-live="polite"
         style={{
           position: 'fixed',
-          top: 24,
-          right: 24,
+          top: 'calc(24px + var(--safe-top))',
+          right: 'calc(24px + var(--safe-right))',
           display: 'flex',
           alignItems: 'center',
           gap: 6,

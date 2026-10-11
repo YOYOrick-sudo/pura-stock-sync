@@ -240,7 +240,7 @@ const Kassa = () => {
     <div style={{ fontFamily: 'Inter, sans-serif' }}>
       {/* Main Content */}
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px', alignItems: 'start' }}>
+        <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_400px] xl:gap-6">
           {/* Denomination table */}
           <div style={{
             backgroundColor: 'hsl(var(--card))',
@@ -274,6 +274,7 @@ const Kassa = () => {
                           min={0} 
                           style={{
                             width: '80px',
+                            minHeight: '44px',
                             padding: '6px 8px',
                             textAlign: 'center',
                             border: '1px solid hsl(var(--border))',
@@ -302,7 +303,7 @@ const Kassa = () => {
           </div>
 
           {/* Right side: Summary card */}
-          <div style={{ position: 'sticky', top: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="flex flex-col gap-4 xl:sticky xl:top-6">
             {/* Beginsaldo Reference - Collapsible */}
             <Collapsible open={beginsaldoExpanded} onOpenChange={setBeginsaldoExpanded}>
               <div style={{

@@ -92,13 +92,10 @@ export default function Bestelbord() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-3xl mx-auto px-4 py-6 space-y-5">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Bestelbord</h1>
-          <p className="text-sm text-muted-foreground">
-            Wat op is in {vestiging || 'deze keuken'}. Blijft staan tot het besteld is.
-          </p>
-        </div>
+      <div className="page-stack max-w-3xl">
+        <p className="text-sm text-muted-foreground">
+          Wat op is in {vestiging || 'deze keuken'}. Blijft staan tot het besteld is.
+        </p>
 
         <Card className="p-4">
           <div className="flex gap-2">

@@ -5,3 +5,4 @@
 - [ ] 3. Mayo GN-liter-telling + avocado spread per pot (plan 2026-09-24 goedgekeurd)
 - [x] 4. Flessengroep hernoemen + olijfolie, zonnebloemolie en Japanse mayonaise toevoegen
 - [x] 5. Open- en sluitlijsten wisselbaar maken tussen NL en EN per apparaat
+- [ ] 6. Volledige visuele kwaliteitsronde mobiel, iPad en desktop — gedeelde basis en P0/P1-correcties in uitvoering

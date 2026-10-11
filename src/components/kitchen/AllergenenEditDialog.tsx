@@ -75,7 +75,7 @@ export function AllergenenEditDialog({ ingredient, open, onOpenChange }: Props) 
                   type="button"
                   onClick={() => toggle(codes, setCodes, c)}
                   className={cn(
-                    'min-h-[40px] rounded-polar-md border px-3 text-sm transition-colors',
+                    'min-h-[44px] rounded-polar-md border px-3 text-sm transition-colors',
                     codes.includes(c)
                       ? 'border-destructive bg-destructive/10 text-destructive font-medium'
                       : 'border-input hover:bg-muted text-foreground',
@@ -98,7 +98,7 @@ export function AllergenenEditDialog({ ingredient, open, onOpenChange }: Props) 
                   type="button"
                   onClick={() => toggle(sporen, setSporen, c)}
                   className={cn(
-                    'min-h-[40px] rounded-polar-md border px-3 text-sm transition-colors',
+                    'min-h-[44px] rounded-polar-md border px-3 text-sm transition-colors',
                     sporen.includes(c)
                       ? 'border-foreground/30 bg-muted font-medium'
                       : 'border-input hover:bg-muted text-muted-foreground',

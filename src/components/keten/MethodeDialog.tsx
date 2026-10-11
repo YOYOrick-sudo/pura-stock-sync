@@ -163,7 +163,7 @@ export function MethodeDialog({ receptId, receptNaam, open, onOpenChange }: Prop
               className="h-11 mt-1"
             />
           </div>
-          <div className="sm:col-span-2 flex items-center justify-between gap-3 rounded-polar border border-border/60 px-4 py-3">
+          <div className="sm:col-span-2 flex items-center justify-between gap-3 rounded-polar-lg border border-border/60 px-4 py-3">
             <div>
               <Label>Output gaat op voorraad</Label>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -177,7 +177,7 @@ export function MethodeDialog({ receptId, receptNaam, open, onOpenChange }: Prop
         </div>
 
         {regelCount === 0 && (
-          <div className="flex items-start gap-2 rounded-polar bg-warning/10 px-3 py-2 text-xs text-warning">
+          <div className="flex items-start gap-2 rounded-polar-lg bg-warning/10 px-3 py-2 text-xs text-warning">
             <AlertTriangle className="h-4 w-4 shrink-0 mt-px" />
             <span>Dit recept heeft nog geen ingrediëntregels — het verbruik kan straks niet geboekt worden.</span>
           </div>

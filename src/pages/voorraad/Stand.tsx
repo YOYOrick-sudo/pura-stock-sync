@@ -35,13 +35,10 @@ export default function VoorraadStand() {
 
   return (
     <SidebarLayout>
-      <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto pb-24">
-        <div>
-          <h1 className="text-2xl font-semibold">Voorraadstand</h1>
-          <p className="text-sm text-muted-foreground">
-            Wat er bij de laatste telling stond. Dit is geen live voorraad — verbruik wordt niet bijgehouden.
-          </p>
-        </div>
+      <div className="page-stack max-w-5xl pb-24">
+        <p className="text-sm text-muted-foreground">
+          Wat er bij de laatste telling stond. Dit is geen live voorraad — verbruik wordt niet bijgehouden.
+        </p>
 
         <Input
           placeholder="Zoek artikel…"

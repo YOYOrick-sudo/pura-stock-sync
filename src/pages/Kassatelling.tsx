@@ -40,14 +40,14 @@ export default function Kassatelling() {
   // van de kassatelling triggert.
   return (
     <SidebarLayout>
-      <div className="max-w-[1400px] mx-auto">
-        <div className="bg-card rounded-[20px] border border-border p-6 shadow-soft">
-          <div className="flex gap-3 mb-6 flex-wrap items-center">
+      <div className="page-container">
+        <div>
+          <div className="mb-4 flex flex-wrap items-center gap-2 md:mb-6 md:gap-3">
             {tabs.map(t => (
               <button
                 key={t.key}
                 onClick={() => handleTabClick(t.key)}
-                className={`min-w-[120px] flex items-center justify-center text-sm font-medium px-4 py-2.5 rounded-[20px] transition-all cursor-pointer
+                className={`min-h-11 min-w-[88px] flex flex-1 items-center justify-center text-sm font-medium px-4 py-2.5 rounded-polar-lg transition-all cursor-pointer sm:flex-none sm:min-w-[120px]
                   ${activeTab === t.key
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-card text-foreground border border-border hover:bg-muted'

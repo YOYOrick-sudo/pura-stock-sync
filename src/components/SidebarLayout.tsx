@@ -73,7 +73,7 @@ export function SidebarLayout({
   };
 
   return (
-    <div className="flex min-h-screen w-full" style={{ backgroundColor: 'hsl(var(--app-canvas))' }}>
+    <div className="flex min-h-dvh w-full" style={{ backgroundColor: 'hsl(var(--app-canvas))' }}>
       {/* Desktop Sidebar - hidden on mobile */}
       {!isMobile && (
         <div style={{ position: 'sticky', top: 0, height: '100dvh', alignSelf: 'flex-start' }}>

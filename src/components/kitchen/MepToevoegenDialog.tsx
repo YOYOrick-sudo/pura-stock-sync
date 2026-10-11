@@ -100,13 +100,13 @@ export function MepToevoegenDialog({ open, onOpenChange, location, dagOpties, st
           {/* Dag-toggle */}
           <div className="space-y-2">
             <Label>Dag</Label>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:flex">
               {dagOpties.map((o) => (
                 <Button
                   key={o.waarde}
                   type="button"
                   variant={dag === o.waarde ? 'default' : 'outline'}
-                  className="flex-1 h-11"
+                  className="h-11 sm:flex-1"
                   onClick={() => setDag(o.waarde)}
                 >
                   {o.label}
@@ -134,7 +134,7 @@ export function MepToevoegenDialog({ open, onOpenChange, location, dagOpties, st
                   <button
                     key={s.titel}
                     type="button"
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-muted flex items-center justify-between"
+                    className="flex min-h-11 w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-muted"
                     onClick={() => {
                       setTitel(s.titel);
                       setRecipeId(s.recipe_id);

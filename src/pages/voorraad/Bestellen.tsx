@@ -77,7 +77,7 @@ export default function VoorraadBestellen() {
 
   return (
     <SidebarLayout>
-      <div className="p-4 md:p-6 space-y-4 max-w-4xl mx-auto pb-24">
+      <div className="page-stack max-w-5xl pb-24">
         <div className="flex items-center gap-3">
           {route && (
             <Button variant="ghost" size="icon" onClick={() => setRouteKey(null)} aria-label="Terug">
@@ -85,7 +85,7 @@ export default function VoorraadBestellen() {
             </Button>
           )}
           <div className="flex-1">
-            <h1 className="text-2xl font-semibold">{route ? route.naam : 'Bestellen'}</h1>
+            {route && <h2 className="text-lg font-semibold text-foreground">{route.naam}</h2>}
             <p className="text-sm text-muted-foreground">
               {userLocation} ·{' '}
               {new Date(`${datum}T12:00:00`).toLocaleDateString('nl-NL', {

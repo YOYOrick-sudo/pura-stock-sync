@@ -23,10 +23,9 @@ export default function HrInbox() {
 
   return (
     <SidebarLayout>
-      <div className="p-6 space-y-6">
+      <div className="page-stack">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div />
+        <div className="flex items-center justify-end">
           <Button onClick={() => navigate('/hr/applicants/new')}>
             <Plus className="h-4 w-4 mr-2" />
             Nieuwe Kandidaat
@@ -34,7 +33,7 @@ export default function HrInbox() {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 xl:gap-4">
           <Card className="p-4 flex items-center gap-3 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => navigate('/hr/applicants')}>
             <div className="p-2 rounded-lg bg-primary/10">
               <Users className="h-5 w-5 text-primary" />

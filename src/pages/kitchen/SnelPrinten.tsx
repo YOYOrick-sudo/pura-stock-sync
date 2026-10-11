@@ -174,9 +174,9 @@ export default function SnelPrinten() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-5xl mx-auto space-y-4">
+      <div className="page-stack max-w-5xl">
         <PrintStatusBalk />
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_280px] lg:grid-cols-[minmax(0,1fr)_320px]">
           {/* Linker kolom */}
           <div className="space-y-3">
             {/* Snelkeuzes */}
@@ -296,7 +296,7 @@ export default function SnelPrinten() {
                     type="button"
                     onClick={() => setAantal((n) => Math.max(AANTAL_RANGE.min, n - 1))}
                     disabled={aantal <= AANTAL_RANGE.min}
-                    className="h-9 w-9 rounded-polar-md hover:bg-muted disabled:opacity-40 disabled:hover:bg-transparent flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="h-11 w-11 rounded-polar-md hover:bg-muted disabled:opacity-40 disabled:hover:bg-transparent flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     aria-label="Minder stickers"
                   >
                     <Minus className="h-4 w-4" />
@@ -309,7 +309,7 @@ export default function SnelPrinten() {
                     type="button"
                     onClick={() => setAantal((n) => Math.min(AANTAL_RANGE.max, n + 1))}
                     disabled={aantal >= AANTAL_RANGE.max}
-                    className="h-9 w-9 rounded-polar-md hover:bg-muted disabled:opacity-40 disabled:hover:bg-transparent flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="h-11 w-11 rounded-polar-md hover:bg-muted disabled:opacity-40 disabled:hover:bg-transparent flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     aria-label="Meer stickers"
                   >
                     <Plus className="h-4 w-4" />
@@ -331,7 +331,7 @@ export default function SnelPrinten() {
           </div>
 
           {/* Rechter kolom */}
-          <div className="lg:sticky lg:top-4 h-fit">
+          <div className="h-fit md:sticky md:top-4">
             <Card className="p-4 bg-card shadow-sm">
               <SectionTitle label="Voorbeeld" />
               <div className="aspect-[57/32] bg-white rounded-polar-md border border-border flex items-center justify-center overflow-hidden">

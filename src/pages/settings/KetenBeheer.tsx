@@ -9,22 +9,21 @@ import { ArtikelLocatiesTab } from '@/components/keten/ArtikelLocatiesTab';
 export default function KetenBeheer() {
   return (
     <SidebarLayout>
-      <div className="max-w-7xl mx-auto space-y-4">
-        <div>
-          <h1 className="text-xl font-semibold text-foreground">Voorraadketen</h1>
-          <p className="text-sm text-muted-foreground">
-            Artikelen per vestiging, leveranciers, interne leverdagen en de laatste invulpunten.
-          </p>
-        </div>
+      <div className="page-stack">
+        <p className="text-sm text-muted-foreground">
+          Artikelen per vestiging, leveranciers, interne leverdagen en de laatste invulpunten.
+        </p>
 
         <Tabs defaultValue="artikelen">
-          <TabsList className="flex-wrap h-auto">
+          <div className="-mx-4 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0">
+          <TabsList className="h-11 min-w-max justify-start">
             <TabsTrigger value="artikelen">Artikelen per vestiging</TabsTrigger>
             <TabsTrigger value="leveranciers">Leveranciers</TabsTrigger>
             <TabsTrigger value="leverdagen">Interne leverdagen</TabsTrigger>
             <TabsTrigger value="methodes">Methodes</TabsTrigger>
             <TabsTrigger value="fixlijst">Fixlijst</TabsTrigger>
           </TabsList>
+          </div>
 
           <TabsContent value="artikelen" className="mt-4"><ArtikelLocatiesTab /></TabsContent>
           <TabsContent value="leveranciers" className="mt-4"><LeveranciersTab /></TabsContent>
