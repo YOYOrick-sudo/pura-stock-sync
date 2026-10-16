@@ -33,7 +33,17 @@ Elke dag de checklist uit optie 1. Alleen op maandag tel je de vriescel, het mag
 - Wat moet anders in het team: "afvinken" betekent "het ligt er, of ik heb het aangevuld". Wie zonder te kijken afvinkt, zie je pas op maandag terug.
 - Als iemand het vergeet: de regels blijven die avond open staan en verdwijnen de volgende dag. Er stapelt niets op.
 
-## Technisch (na keuze)
-- Een nieuwe checklistweergave in de voorraadronde. De regels komen uit de bestaande producten en lades, met de bron en de aanvulregel als tekst.
-- Afvinken wordt opgeslagen als "aanwezig" en "Op" gebruikt de bestaande ketenroute. Het opslag-schema verandert niet.
-- De huidige telweergave blijft alleen voor maandag (optie 3).
+## Stap 1: drie voorbeelden om uit te proberen
+Er komt een proefpagina "Sluitronde: kies een vorm" met drie tabbladen: Checklist, Uitzonderingen en Checklist + maandag.
+- Alle drie gebruiken de echte producten en lades van West, dus je ziet je eigen lijst.
+- Het zijn alleen voorbeelden. Afvinken wordt niet opgeslagen, er gaat niets naar de mise-en-place of naar een bestelling en er wordt niets geprint. Bovenaan staat duidelijk "Voorbeeld, wordt niet opgeslagen".
+- Alleen managers en eigenaren kunnen de pagina zien. Je komt er via Instellingen.
+- De huidige sluitlijst blijft gewoon werken tot jij kiest.
+
+## Stap 2: na jouw keuze
+- De gekozen vorm komt in de echte sluitlijst. Afvinken wordt opgeslagen als "aanwezig" en "Op" volgt de bestaande ketenroute. De manier van opslaan verandert niet.
+- De twee andere voorbeelden en de proefpagina gaan weer weg.
+
+## Technisch
+- Er komt één nieuwe proefpagina met drie weergaven. Die lezen de bestaande producten via de bestaande gegevenskoppeling, maar schrijven niets weg.
+- De pagina is alleen voor managers bereikbaar. De database, de beveiliging, de printer en de keten blijven onaangeroerd.
