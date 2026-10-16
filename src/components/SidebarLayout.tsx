@@ -40,6 +40,7 @@ export function SidebarLayout({
       '/settings/mep': 'Mise-en-place instellingen',
       '/settings/keten': 'Voorraadketen',
       '/settings/koelwerkbank': 'Koelwerkbank indelen',
+      '/settings/sluitronde-proef': 'Sluitronde: kies een vorm',
 
       '/mep-planning': 'MEP Planning',
       '/voorraad': 'Bestellen',
