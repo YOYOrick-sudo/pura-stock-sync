@@ -30,6 +30,8 @@ const EIND_KORT: Record<string, string> = {
 /** "Lade → Koelcel → Magazijn → Bestelbord" */
 function ketenStappen(item: KoelcelCheckItem, alle: KoelcelCheckItem[]): string[] {
   const stappen = [PLEK_KORT[item.plek] ?? item.plek];
+  // Snijwerk en zelf maken gaan altijd rechtstreeks naar de MEP.
+  if (soortVanBron(item.bron) !== 'pakken') return [...stappen, 'MEP'];
   let huidig = item;
   for (let i = 0; i < 5; i++) {
     const v = vervolgactieVoorRegel(huidig, alle);
