@@ -486,14 +486,20 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
           const klaar = geprint.includes(p.sleutel);
           const bevestigt = bevestigWeg === p.sleutel;
           return (
-            <div key={p.sleutel} className="flex items-center gap-3 py-3" style={{ minHeight: 52 }}>
-              {klaar && (
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                  <Check size={14} />
-                </span>
-              )}
+            <div key={p.sleutel} className="flex items-center gap-3 py-2.5" style={{ minHeight: 56 }}>
+              <span
+                aria-hidden
+                className={cn(
+                  'flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[6px] border-2 transition-colors sm:h-6 sm:w-6',
+                  klaar
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border bg-background',
+                  !bak && 'opacity-40',
+                )}
+              >
+                {klaar && <Check size={14} strokeWidth={3} />}
+              </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[15px] font-semibold text-foreground">{p.naam}</span>
                 {bak ? (
                   <button
                     type="button"
@@ -502,13 +508,19 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
                       setVraagZak(false);
                       setCorrectieVoor(p.sleutel);
                     }}
-                    className="flex items-center rounded-full text-left"
+                    className="block w-full text-left"
                     style={{ minHeight: 44 }}
                   >
+                    <span className={cn('block text-[16px] font-medium', klaar ? 'text-muted-foreground line-through' : 'text-foreground')}>
+                      {p.naam}
+                    </span>
                     {statusRegel(bak, datum)}
                   </button>
                 ) : (
-                  statusRegel(bak, datum)
+                  <>
+                    <span className="block text-[16px] font-medium text-muted-foreground">{p.naam}</span>
+                    {statusRegel(bak, datum)}
+                  </>
                 )}
               </span>
               {kanPrinten ? (
