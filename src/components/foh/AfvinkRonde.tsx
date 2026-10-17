@@ -237,7 +237,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                         >
                           <span
                             className={cn(
-                              'flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors',
+                              'flex h-7 w-7 items-center justify-center rounded-[6px] border-2 transition-colors',
                               afgevinkt
                                 ? 'border-primary bg-primary text-primary-foreground'
                                 : doorgezet
