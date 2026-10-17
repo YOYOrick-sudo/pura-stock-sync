@@ -16,7 +16,7 @@ import {
 } from '@/hooks/useKoelcelCheck';
 import { useVoorraadLades, positieLabel } from '@/hooks/useVoorraadLades';
 import { useMepKalender } from '@/hooks/useMepPlanning';
-import { soortVanBron, volgendeOpenDag, aanvulTekst, herkomstLabel, peilBlokjes } from '@/lib/sluitronde';
+import { soortVanBron, volgendeOpenDag, aanvulTekst, herkomstLabel, peilBlokjes, peilKort } from '@/lib/sluitronde';
 import { VulPeil } from './VulPeil';
 
 interface Groep {
@@ -172,7 +172,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
       {open && (
         <div>
           <div className="mb-3 flex items-center gap-2 px-1 text-xs text-muted-foreground">
-            <InfoKnop tekst="Het bakje laat zien hoe vol het minstens moet zijn: helemaal groen = vol, half groen = half vol, alleen onderin = bodempje is genoeg. Genoeg of aangevuld: vink af. Moet gesneden of gemaakt worden: Naar MEP. Is het ook in de koelcel of het magazijn op: Bron op." />
+            <InfoKnop tekst="De stippellijn in het bakje is het minimum: zo vol moet de bak minstens zijn. Komt de bak tot de streep? Vink af. Komt hij er niet tot: vul aan uit de koelcel of het magazijn, of tik Naar MEP als het gesneden of gemaakt moet worden. Is de voorraad daar ook op: Bron op." />
             <span>Hoe werkt dit?</span>
           </div>
 
@@ -223,7 +223,10 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                     const bron = soort === 'pakken' ? diepsteBron(i, items) : null;
                     const uitleg = (
                       <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <VulPeil procent={peilBlokjes(i.vulnorm)} label={aanvulTekst(i.vulnorm)} />
+                        <span className="inline-flex items-center gap-1.5">
+                          <VulPeil procent={peilBlokjes(i.vulnorm)} label={aanvulTekst(i.vulnorm)} />
+                          <span className="text-[13px] font-semibold text-foreground">{peilKort(i.vulnorm)}</span>
+                        </span>
                         <span className="inline-flex items-center gap-1">
                           <span>Te weinig:</span>
                           <span className={cn('rounded-full px-2 py-px text-[12px] font-medium', soort === 'pakken' ? 'bg-muted text-foreground/80' : 'bg-primary/10 text-primary')}>
