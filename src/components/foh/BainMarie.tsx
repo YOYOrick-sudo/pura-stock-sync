@@ -44,30 +44,46 @@ function stickerDatum(iso: string): string {
     .replace('.', '');
 }
 
-/** Korte status als rustig chipje: "ma · dag 5/6". Alleen laatste dag en te oud springen eruit. */
+function plusDagen(iso: string, n: number): string {
+  const d = new Date(`${iso}T12:00:00`);
+  d.setDate(d.getDate() + n);
+  return isoDatum(d);
+}
+
+/** Status: "Houdbaar t/m za" + rustige houdbaarheidsmeter + "nog 2 dagen". */
 function statusRegel(bak: BainMarieBak | undefined, vandaagIso: string) {
   const s = bakStatus(bak, vandaagIso);
   if (s.status === 'geen') {
-    return <span className="text-[12px] text-muted-foreground/70">—</span>;
+    return <span className="text-[13px] text-muted-foreground/70">Geen bak</span>;
   }
   const max = Math.max(Number(bak?.houdbaarheid_dagen) || houdbaarheidVan(bak!.product), 1);
-  const basis = `${dagKort(s.startDatum!)} · dag ${s.dagNr}/${max}`;
-  const chip = 'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-semibold';
-  if (s.status === 'te-oud') {
-    return (
-      <span className={`${chip} bg-destructive/10 text-destructive`}>
-        <AlertTriangle size={12} /> {basis} · weggooien
+  const dagNr = Math.max(1, Number(s.dagNr) || 1);
+  const totIso = plusDagen(s.startDatum!, max - 1);
+  const over = Math.max(0, max - dagNr);
+  const pct = Math.max(0, Math.min(100, (over / max) * 100));
+  const weg = s.status === 'te-oud' || s.status === 'laatste-dag';
+  const tekst =
+    s.status === 'te-oud'
+      ? 'Over de datum'
+      : s.status === 'laatste-dag'
+        ? 'Vandaag laatste dag'
+        : over === 1
+          ? 'nog 1 dag'
+          : `nog ${over} dagen`;
+  return (
+    <span className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px]">
+      <span className="text-muted-foreground">
+        Houdbaar t/m <span className="font-semibold text-foreground">{dagKort(totIso)}</span>
       </span>
-    );
-  }
-  if (s.status === 'laatste-dag') {
-    return (
-      <span className={`${chip} bg-amber-500/10 text-amber-700 dark:text-amber-400`}>
-        <AlertTriangle size={12} /> {basis} · laatste dag
+      <span className="relative h-1.5 w-20 overflow-hidden rounded-full bg-muted" aria-hidden>
+        <span
+          className={cn('absolute inset-y-0 left-0 rounded-full', weg ? 'bg-destructive/70' : 'bg-primary/50')}
+          style={{ width: `${weg ? 100 : pct}%` }}
+        />
       </span>
-    );
-  }
-  return <span className={`${chip} bg-muted text-muted-foreground`}>{basis}</span>;
+      <span className={cn(weg ? 'font-semibold text-destructive' : 'text-muted-foreground')}>{tekst}</span>
+    </span>
+  );
 }
 
 /** Info-icoon boven de lijst, zodat de balk zelf rustig blijft. */
@@ -470,14 +486,20 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
           const klaar = geprint.includes(p.sleutel);
           const bevestigt = bevestigWeg === p.sleutel;
           return (
-            <div key={p.sleutel} className="flex items-center gap-3 py-3" style={{ minHeight: 52 }}>
-              {klaar && (
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                  <Check size={14} />
-                </span>
-              )}
+            <div key={p.sleutel} className="flex items-center gap-3 py-2.5" style={{ minHeight: 56 }}>
+              <span
+                aria-hidden
+                className={cn(
+                  'flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[6px] border-2 transition-colors sm:h-6 sm:w-6',
+                  klaar
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border bg-background',
+                  !bak && 'opacity-40',
+                )}
+              >
+                {klaar && <Check size={14} strokeWidth={3} />}
+              </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[15px] font-semibold text-foreground">{p.naam}</span>
                 {bak ? (
                   <button
                     type="button"
@@ -486,13 +508,19 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
                       setVraagZak(false);
                       setCorrectieVoor(p.sleutel);
                     }}
-                    className="flex items-center rounded-full text-left"
+                    className="block w-full text-left"
                     style={{ minHeight: 44 }}
                   >
+                    <span className={cn('block text-[16px] font-medium', klaar ? 'text-muted-foreground line-through' : 'text-foreground')}>
+                      {p.naam}
+                    </span>
                     {statusRegel(bak, datum)}
                   </button>
                 ) : (
-                  statusRegel(bak, datum)
+                  <>
+                    <span className="block text-[16px] font-medium text-muted-foreground">{p.naam}</span>
+                    {statusRegel(bak, datum)}
+                  </>
                 )}
               </span>
               {kanPrinten ? (
