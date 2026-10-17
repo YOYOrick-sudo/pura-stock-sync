@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Check, ChefHat, ChevronDown, Loader2, PackageX, RotateCcw, WifiOff } from 'lucide-react';
+import { Check, ChefHat, Loader2, PackageX, RotateCcw, WifiOff } from 'lucide-react';
+import { SectieBalk } from './SectieBalk';
+import { InfoKnop } from './InfoKnop';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -158,40 +160,24 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
   if (!alle.length) return null;
 
   return (
-    <section id="afvinkronde-blok" className="mb-6 rounded-[20px] border border-border bg-card">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex min-h-[56px] w-full items-center gap-3 px-4 text-left"
-      >
-        <span className="flex-1">
-          <span className="block text-base font-semibold text-foreground">Sluitronde keuken</span>
-          <span className="block text-sm text-muted-foreground">
-            Vink af wat er ligt of wat je hebt aangevuld
-          </span>
-        </span>
-        <span
-          className={cn(
-            'text-sm font-semibold',
-            klaar === alle.length ? 'text-primary' : 'text-muted-foreground',
-          )}
-        >
-          {klaar}/{alle.length}
-        </span>
-        <ChevronDown className={cn('h-5 w-5 text-muted-foreground transition-transform', open && 'rotate-180')} />
-      </button>
+    <div id="afvinkronde-blok" style={{ marginBottom: '32px' }}>
+      <SectieBalk
+        titel="Sluitronde keuken"
+        stand={`${klaar}/${alle.length}`}
+        afgerond={klaar === alle.length}
+        open={open}
+        onToggle={() => setOpen((o) => !o)}
+      />
 
       {open && (
-        <div className="space-y-4 px-3 pb-4 sm:px-4">
-          <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full bg-primary transition-all"
-              style={{ width: `${alle.length ? (klaar / alle.length) * 100 : 0}%` }}
-            />
+        <div>
+          <div className="mb-3 flex items-center gap-2 px-1 text-xs text-muted-foreground">
+            <InfoKnop tekst="Vink af wat er ligt of wat je net hebt aangevuld. Bron op: ook de voorraad erachter is leeg. Naar MEP: moet gesneden of gemaakt worden." />
+            <span>Hoe werkt dit?</span>
           </div>
 
           {openFouten.length > 0 && (
-            <div className="flex items-center gap-3 rounded-[14px] border border-warning/40 bg-warning/10 p-3">
+            <div className="mb-3 flex items-center gap-3 rounded-[14px] border border-warning/40 bg-warning/10 p-3">
               <WifiOff className="h-4 w-4 shrink-0" />
               <span className="flex-1 text-sm">{openFouten.length} nog niet opgeslagen</span>
               <Button
@@ -206,20 +192,27 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
 
           {groepen.map((g) => {
             const gedaan = g.items.filter((i) => checks.has(i.id)).length;
+            const af = gedaan === g.items.length;
             return (
-              <div key={g.id} className="rounded-[16px] border border-border">
-                <div className="flex items-center justify-between rounded-t-[16px] bg-muted px-4 py-3">
-                  <h3 className="text-[15px] font-semibold text-foreground">{g.titel}</h3>
+              <div key={g.id} style={{ marginBottom: '24px' }}>
+                <h3
+                  className={cn(
+                    'mb-3 flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.05em]',
+                    af ? 'text-primary' : 'text-muted-foreground',
+                  )}
+                >
+                  {g.titel}
                   <span
                     className={cn(
-                      'text-sm font-medium',
-                      gedaan === g.items.length ? 'text-primary' : 'text-muted-foreground',
+                      'rounded px-1.5 py-0.5 text-[11px] font-medium normal-case tracking-normal',
+                      af ? 'bg-primary/10 text-primary' : 'bg-muted-foreground/10 text-muted-foreground',
                     )}
                   >
-                    {gedaan === g.items.length ? 'Klaar' : `${gedaan}/${g.items.length}`}
+                    {gedaan}/{g.items.length}
                   </span>
-                </div>
-                <ul className="divide-y divide-border">
+                </h3>
+                <ul className="divide-y divide-border border-b border-border pb-2">
+
                   {g.items.map((i) => {
                     const c = checks.get(i.id);
                     const soort = soortVanBron(i.bron);
@@ -320,7 +313,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
           })}
         </div>
       )}
-    </section>
+    </div>
   );
 }
 
