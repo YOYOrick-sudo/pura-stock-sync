@@ -172,7 +172,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
       {open && (
         <div>
           <div className="mb-3 flex items-center gap-2 px-1 text-xs text-muted-foreground">
-            <InfoKnop tekst="De stippellijn in het bakje is het minimum: zo vol moet de bak minstens zijn. Komt de bak tot de streep? Vink af. Komt hij er niet tot: vul aan uit de koelcel of het magazijn, of tik Naar MEP als het gesneden of gemaakt moet worden. Is de voorraad daar ook op: Bron op." />
+            <InfoKnop tekst="De drie bakjes zijn bodem, half en vol. Het groene bakje is het minimum: zo vol moet de bak minstens zijn. Genoeg? Vink af. Te weinig: vul aan uit de koelcel of het magazijn, of tik Naar MEP als het gesneden of gemaakt moet worden. Is de voorraad daar ook op: Bron op." />
             <span>Hoe werkt dit?</span>
           </div>
 
