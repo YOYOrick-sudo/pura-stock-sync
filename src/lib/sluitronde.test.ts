@@ -1,6 +1,6 @@
 // @ts-ignore bun test runner
-import { aanvulTekst, herkomstLabel,  describe, expect, test } from 'bun:test';
-import { bronVoorSoort, isTeldag, soortVanBron, volgendeOpenDag } from './sluitronde';
+import { describe, expect, test } from 'bun:test';
+import { aanvulTekst, herkomstLabel, bronVoorSoort, isTeldag, soortVanBron, volgendeOpenDag } from './sluitronde';
 
 const dinsdagDicht = (d: Date) => d.getDay() !== 2;
 
