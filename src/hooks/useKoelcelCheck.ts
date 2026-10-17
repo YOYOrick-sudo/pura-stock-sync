@@ -1010,7 +1010,104 @@ export function useKoelcelCheckMutaties(
     onSettled: () => qc.invalidateQueries({ queryKey: checksKey }),
   });
 
-  return { zetStatus, meldOp, vulAanUitNiveau, zetAllesAanwezig, naarMep: meldOp };
+  const naInvalidatie = () => {
+    qc.invalidateQueries({ queryKey: checksKey });
+    qc.invalidateQueries({ queryKey: ['mep-taken', vestiging] });
+    qc.invalidateQueries({ queryKey: ['bestel-signalen', vestiging] });
+    qc.invalidateQueries({ queryKey: ['openstaand-besteld', vestiging] });
+    qc.invalidateQueries({ queryKey: ['internal-orders'] });
+    qc.invalidateQueries({ queryKey: ['bestelbord-open', vestiging] });
+    qc.invalidateQueries({ queryKey: ['mep-open-namen', vestiging] });
+  };
+
+  const schrijfCheck = async (rij: Record<string, unknown>) => {
+    const { data: user } = await supabase.auth.getUser();
+    const { error } = await metHerstel(() =>
+      supabase
+        .from('koelcel_checks')
+        .upsert({ vestiging, datum, created_by: user.user?.id ?? null, ...rij } as any, {
+          onConflict: 'item_id,datum',
+        }),
+    );
+    if (error) throw error;
+  };
+
+  /**
+   * Afvinkronde: vers snijwerk of zelf maken gaat met één tik naar de MEP van
+   * de eerstvolgende open dag. Staat er al een open taak, dan geen tweede.
+   */
+  const naarMepDirect = useMutation({
+    mutationFn: async ({ item, taakDatum }: { item: KoelcelCheckItem; taakDatum: string }) => {
+      const handeling = item.bron === 'snijden' ? 'Snijden' : 'Bereiden';
+      const aantal = batchGrootte(item) ?? 1;
+      const res = await mepTaakVoorItem(item, vestiging, taakDatum, handeling, aantal, 2);
+      await schrijfCheck({
+        item_id: item.id,
+        status: 'naar_mep',
+        doorgezet_naar: 'mep',
+        mep_taak_id: res.id,
+        aantal_doorgezet: aantal,
+      });
+      return { item, dubbel: res.dubbel, aantal };
+    },
+    onSettled: naInvalidatie,
+  });
+
+  /**
+   * Afvinkronde: "Bron op". De voorraad waar je uit pakt is ook leeg. Het
+   * systeem loopt de keten af en meldt het op het laagste niveau
+   * (bestelbord, Midsland of de mise-en-place).
+   */
+  const bronOp = useMutation({
+    mutationFn: async ({ item, taakDatum }: { item: KoelcelCheckItem; taakDatum: string }) => {
+      const { item: bronItem, bestemming } = diepsteBron(item, alleItems);
+      let dubbel = false;
+      let mepTaakId: string | null = null;
+      let geplaatst = 1;
+      if (bestemming.soort === 'mep') {
+        const aantal = batchGrootte(bronItem) ?? 1;
+        const res = await mepTaakVoorItem(bronItem, vestiging, taakDatum, bestemming.handeling!, aantal, 2);
+        dubbel = res.dubbel;
+        mepTaakId = res.id;
+        geplaatst = aantal;
+      } else if (bestemming.soort === 'bestelbord') {
+        const doel = Number(bronItem.doel_aantal ?? 1);
+        const opdracht = bestelOpdracht(bronItem, doel, 0);
+        const res = await opBestelbord(bronItem, vestiging, opdracht.eenheden, {
+          eenheid: opdracht.eenheidNaam,
+        });
+        dubbel = res.dubbel;
+        geplaatst = res.aantal;
+      } else {
+        const res = await naarMidsland(
+          bronItem,
+          vestiging,
+          midslandAantal(bronItem, Number(bronItem.doel_aantal ?? 1), 0),
+        );
+        dubbel = res.dubbel;
+        geplaatst = res.aantal;
+      }
+      await schrijfCheck({
+        item_id: item.id,
+        status: 'gemeld',
+        doorgezet_naar: bestemming.soort,
+        mep_taak_id: mepTaakId,
+        aantal_doorgezet: geplaatst,
+      });
+      return { item, bronItem, bestemming, dubbel };
+    },
+    onSettled: naInvalidatie,
+  });
+
+  return {
+    zetStatus,
+    meldOp,
+    vulAanUitNiveau,
+    zetAllesAanwezig,
+    naarMep: meldOp,
+    naarMepDirect,
+    bronOp,
+  };
 }
 
 /**
