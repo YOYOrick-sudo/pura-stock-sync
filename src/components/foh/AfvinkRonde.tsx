@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Check, ChefHat, ChevronDown, Loader2, PackageX, RotateCcw, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -48,6 +48,25 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
   const [bezig, setBezig] = useState<Set<string>>(new Set());
   const [mislukt, setMislukt] = useState<Record<string, () => void>>({});
 
+  // Snelknop "Sluitronde keuken": openen en ernaartoe scrollen.
+  useEffect(() => {
+    const ga = () => {
+      setOpen(true);
+      window.setTimeout(
+        () => document.getElementById('afvinkronde-blok')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+        150,
+      );
+    };
+    try {
+      const k = `voorraadronde-start-open-${vestiging}`;
+      if (localStorage.getItem(k) === '1') ga();
+    } catch {
+      /* stil */
+    }
+    window.addEventListener('voorraadronde-open', ga);
+    return () => window.removeEventListener('voorraadronde-open', ga);
+  }, [vestiging]);
+
   const checks = useMemo(() => {
     const m = new Map<string, KoelcelCheck>();
     for (const c of checksLijst) m.set(c.item_id, c);
@@ -62,7 +81,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
       if (l.rol === 'niet_tellen') continue;
       if (l.rol === 'reserve' && !vrijdag) continue;
       const g = items.filter((i) => i.plek === 'werkbank' && i.lade_id === l.id);
-      if (g.length) out.push({ id: l.id, titel: `${l.naam || 'Lade'} · ${positieLabel(l)}`, items: g });
+      if (g.length) out.push({ id: l.id, titel: l.naam && l.naam !== positieLabel(l) ? `${l.naam} · ${positieLabel(l)}` : positieLabel(l), items: g });
     }
     const los = items.filter(
       (i) => i.plek === 'werkbank' && !lades.some((l) => l.id === i.lade_id),
@@ -139,7 +158,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
   if (!alle.length) return null;
 
   return (
-    <section id="voorraadronde-blok" className="mb-6 rounded-[20px] border border-border bg-card">
+    <section id="afvinkronde-blok" className="mb-6 rounded-[20px] border border-border bg-card">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -212,7 +231,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                     const uitleg =
                       soort === 'pakken'
                         ? `${vulnormLabel(i)} · ${ketenKortLabel(i, items)}`
-                        : `${vulnormLabel(i)} · anders ${soort === 'snijden' ? 'snijden' : 'maken'}`;
+                        : `${vulnormLabel(i)} · op? ${soort === 'snijden' ? 'snijden' : 'maken'} via MEP`;
                     return (
                       <li key={i.id} className="flex items-center gap-2 px-2 py-1.5">
                         <button
@@ -264,7 +283,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                               className="h-11 shrink-0 px-3"
                               disabled={laden}
                               onClick={() => op(i)}
-                              aria-label={`${i.naam}: bron is op`}
+                              aria-label={`Bron op: ${i.naam}`}
                               title={bron ? `Gaat naar ${bron.bestemming.label}` : undefined}
                             >
                               <PackageX className="h-4 w-4" /> Bron op
