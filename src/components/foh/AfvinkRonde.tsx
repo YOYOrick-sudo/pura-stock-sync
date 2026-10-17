@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Check, ChefHat, Loader2, PackageX, RotateCcw, WifiOff } from 'lucide-react';
 import { SectieBalk } from './SectieBalk';
-import { InfoKnop } from './InfoKnop';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -171,10 +170,6 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
 
       {open && (
         <div>
-          <div className="mb-3 flex items-center gap-2 px-1 text-xs text-muted-foreground">
-            <InfoKnop tekst="De meter loopt van leeg (links) naar vol (rechts). De streep is het minimum: zo vol moet de bak minstens zijn. Genoeg? Vink af. Te weinig: vul aan uit de koelcel of het magazijn, of tik Naar MEP als het gesneden of gemaakt moet worden. Is de voorraad daar ook op: Bron op." />
-            <span>Hoe werkt dit?</span>
-          </div>
 
           {openFouten.length > 0 && (
             <div className="mb-3 flex items-center gap-3 rounded-[14px] border border-warning/40 bg-warning/10 p-3">
