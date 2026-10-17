@@ -211,7 +211,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                     {gedaan}/{g.items.length}
                   </span>
                 </h3>
-                <ul className="divide-y divide-border border-b border-border pb-2">
+                <ul className="border-t border-border">
 
                   {g.items.map((i) => {
                     const c = checks.get(i.id);
@@ -226,44 +226,44 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                         ? `${vulnormLabel(i)} · ${ketenKortLabel(i, items)}`
                         : `${vulnormLabel(i)} · op? ${soort === 'snijden' ? 'snijden' : 'maken'} via MEP`;
                     return (
-                      <li key={i.id} className="flex items-center gap-2 px-2 py-1.5">
+                      <li key={i.id} className="flex items-center gap-1.5 border-b border-border py-1 sm:gap-3">
                         <button
                           type="button"
                           aria-label={`${i.naam} afvinken`}
                           aria-pressed={afgevinkt}
                           disabled={laden || !!doorgezet}
                           onClick={() => vink(i)}
-                          className="flex h-12 w-12 shrink-0 items-center justify-center"
+                          className="-ml-3 flex h-11 w-11 shrink-0 items-center justify-center sm:-ml-3"
                         >
                           <span
                             className={cn(
-                              'flex h-7 w-7 items-center justify-center rounded-[6px] border-2 transition-colors',
+                              'flex h-6 w-6 items-center justify-center rounded-[6px] border-2 bg-background transition-colors sm:h-5 sm:w-5',
                               afgevinkt
-                                ? 'border-primary bg-primary text-primary-foreground'
+                                ? 'border-muted-foreground/30 bg-muted-foreground/15 text-muted-foreground'
                                 : doorgezet
                                   ? 'border-warning bg-warning/15'
                                   : fout
                                     ? 'border-destructive'
-                                    : 'border-input',
+                                    : 'border-border',
                             )}
                           >
                             {laden ? (
                               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                             ) : afgevinkt ? (
-                              <Check className="h-4 w-4" />
+                              <Check className="h-3 w-3" strokeWidth={3} />
                             ) : null}
                           </span>
                         </button>
-                        <div className="min-w-0 flex-1 py-1">
+                        <div className="min-w-0 flex-1 py-1.5">
                           <p
                             className={cn(
-                              'text-[15px] font-medium leading-tight text-foreground',
-                              afgevinkt && 'text-muted-foreground line-through',
+                              'text-[15px] font-medium leading-snug text-foreground',
+                              afgevinkt && 'text-muted-foreground line-through opacity-55',
                             )}
                           >
                             {i.naam}
                           </p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
+                          <p className="text-xs leading-snug text-muted-foreground">
                             {doorgezet
                               ? `Staat ${UITKOMST[c!.doorgezet_naar ?? ''] ?? 'gemeld'}`
                               : uitleg}
@@ -272,8 +272,8 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                         {!afgevinkt && !doorgezet && (
                           soort === 'pakken' ? (
                             <Button
-                              variant="outline"
-                              className="h-11 shrink-0 px-3"
+                              variant="ghost"
+                              className="h-11 shrink-0 gap-1.5 px-2 text-[13px] font-medium text-muted-foreground hover:text-foreground"
                               disabled={laden}
                               onClick={() => op(i)}
                               aria-label={`Bron op: ${i.naam}`}
@@ -283,8 +283,8 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                             </Button>
                           ) : (
                             <Button
-                              variant="outline"
-                              className="h-11 shrink-0 px-3"
+                              variant="ghost"
+                              className="h-11 shrink-0 gap-1.5 px-2 text-[13px] font-medium text-muted-foreground hover:text-foreground"
                               disabled={laden}
                               onClick={() => mep(i)}
                             >
@@ -295,7 +295,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                         {doorgezet && (
                           <Button
                             variant="ghost"
-                            className="h-11 shrink-0 px-3 text-muted-foreground"
+                            className="h-11 shrink-0 px-2 text-[13px] text-muted-foreground"
                             disabled={laden}
                             onClick={() =>
                               metStatus(i.id, () => zetStatus.mutateAsync({ item: i, status: 'aanwezig', uit: true }), () => {})
