@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Check, ChefHat, ChevronDown, Loader2, PackageX, RotateCcw, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -47,6 +47,25 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
   const [open, setOpen] = useState(true);
   const [bezig, setBezig] = useState<Set<string>>(new Set());
   const [mislukt, setMislukt] = useState<Record<string, () => void>>({});
+
+  // Snelknop "Sluitronde keuken": openen en ernaartoe scrollen.
+  useEffect(() => {
+    const ga = () => {
+      setOpen(true);
+      window.setTimeout(
+        () => document.getElementById('afvinkronde-blok')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+        150,
+      );
+    };
+    try {
+      const k = `voorraadronde-start-open-${vestiging}`;
+      if (localStorage.getItem(k) === '1') ga();
+    } catch {
+      /* stil */
+    }
+    window.addEventListener('voorraadronde-open', ga);
+    return () => window.removeEventListener('voorraadronde-open', ga);
+  }, [vestiging]);
 
   const checks = useMemo(() => {
     const m = new Map<string, KoelcelCheck>();
@@ -139,7 +158,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
   if (!alle.length) return null;
 
   return (
-    <section id="voorraadronde-blok" className="mb-6 rounded-[20px] border border-border bg-card">
+    <section id="afvinkronde-blok" className="mb-6 rounded-[20px] border border-border bg-card">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}

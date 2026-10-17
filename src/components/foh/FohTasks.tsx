@@ -2917,9 +2917,9 @@ export function FohTasks() {
                     <ClipboardList size={20} />
                   </span>
                   <span style={{ minWidth: 0, textAlign: 'left' }}>
-                    <span style={{ display: 'block', fontSize: 15, fontWeight: 700 }}>Voorraadronde</span>
+                    <span style={{ display: 'block', fontSize: 15, fontWeight: 700 }}>Sluitronde keuken</span>
                     <span style={{ display: 'block', fontSize: 12, fontWeight: 500, color: 'hsl(var(--muted-foreground))' }}>
-                      Koelwerkbank en voorraad tellen
+                      Afvinken wat er ligt
                     </span>
                   </span>
                 </span>
