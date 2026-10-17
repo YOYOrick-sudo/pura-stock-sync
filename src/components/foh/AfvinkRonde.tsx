@@ -48,7 +48,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
   const [bezig, setBezig] = useState<Set<string>>(new Set());
   const [mislukt, setMislukt] = useState<Record<string, () => void>>({});
 
-  // Snelknop "Sluitronde keuken": openen en ernaartoe scrollen.
+  // Snelknop "Bijvullen" op het dashboard: ernaartoe scrollen.
   useEffect(() => {
     const ga = () => {
       window.setTimeout(
@@ -159,7 +159,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
   return (
     <div id="afvinkronde-blok" style={{ marginBottom: '32px' }}>
       <SectieBalk
-        titel="Sluitronde keuken"
+        titel="Bijvullen"
         stand={`${klaar}/${alle.length}`}
         afgerond={klaar === alle.length}
       />
