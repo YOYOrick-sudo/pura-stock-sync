@@ -172,7 +172,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
       {open && (
         <div>
           <div className="mb-3 flex items-center gap-2 px-1 text-xs text-muted-foreground">
-            <InfoKnop tekst="Vink af wat er ligt of wat je net hebt aangevuld. Altijd vol: bijvullen zodra het niet vol is. Vullen onder ½: pas bijvullen als het minder dan half is. Vullen als leeg: pas bij leeg. Het label ernaast zegt waar je het pakt. Bron op: ook daar is het leeg. Naar MEP: moet gesneden of gemaakt worden." />
+            <InfoKnop tekst="Kijk of de bak minstens zo vol is als aangegeven. Genoeg of aangevuld: vink af. Moet gesneden of gemaakt worden: Naar MEP. Is het ook in de koelcel of het magazijn op: Bron op." />
             <span>Hoe werkt dit?</span>
           </div>
 
@@ -227,8 +227,11 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                           <VulPeil gevuld={peilBlokjes(i.vulnorm)} />
                           {aanvulTekst(i.vulnorm)}
                         </span>
-                        <span className={cn('rounded-full px-2 py-px text-[12px] font-medium', soort === 'pakken' ? 'bg-muted text-foreground/80' : 'bg-primary/10 text-primary')}>
-                          {herkomstLabel(soort, ketenKortLabel(i, items))}
+                        <span className="inline-flex items-center gap-1">
+                          <span>Te weinig:</span>
+                          <span className={cn('rounded-full px-2 py-px text-[12px] font-medium', soort === 'pakken' ? 'bg-muted text-foreground/80' : 'bg-primary/10 text-primary')}>
+                            {herkomstLabel(soort, ketenKortLabel(i, items))}
+                          </span>
                         </span>
                       </span>
                     );

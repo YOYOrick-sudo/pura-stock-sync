@@ -72,23 +72,24 @@ export function volgendeOpenDag(datum: string, isOpen: (d: Date) => boolean): st
   return ymdLokaal(morgen);
 }
 
-/** Wanneer je aanvult, als korte opdracht. */
+/** Hoe vol het minstens moet zijn. */
 export function aanvulTekst(vulnorm: string | null | undefined): string {
-  if (vulnorm === 'half') return 'Vullen onder ½';
-  if (vulnorm === 'bodem') return 'Vullen als leeg';
-  return 'Altijd vol';
+  if (vulnorm === 'half') return 'Minstens half vol';
+  if (vulnorm === 'bodem') return 'Bodempje is genoeg';
+  return 'Moet vol zijn';
 }
 
 /** Aantal gevulde blokjes (van 3) voor het peilstreepje. */
 export function peilBlokjes(vulnorm: string | null | undefined): number {
-  return vulnorm === 'half' ? 1 : vulnorm === 'bodem' ? 0 : 3;
+  return vulnorm === 'half' ? 2 : vulnorm === 'bodem' ? 1 : 3;
 }
 
-/** Korte plek: "uit de koelcel" → "Koelcel"; snijwerk/maken → "MEP: …". */
+/** Wat je doet als het te weinig is. */
 export function herkomstLabel(soort: SluitSoort, ketenKort: string): string {
-  if (soort === 'snijden') return 'MEP: snijden';
-  if (soort === 'maken') return 'MEP: maken';
-  const kaal = ketenKort.replace(/^uit (de |het )?/, '');
-  if (kaal === 'vriescel') return 'Vriescel · ontdooien';
-  return kaal.charAt(0).toUpperCase() + kaal.slice(1);
+  if (soort === 'snijden') return 'Naar MEP (snijden)';
+  if (soort === 'maken') return 'Naar MEP (maken)';
+  const kaal = ketenKort.replace(/^uit (de |het )?/, '').toLowerCase();
+  if (kaal.includes('vries')) return 'Ontdooien uit vriescel';
+  if (kaal.includes('midsland')) return 'Bestellen bij Midsland';
+  return `Aanvullen uit ${kaal}`;
 }
