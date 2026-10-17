@@ -30,6 +30,8 @@ const EIND_KORT: Record<string, string> = {
 /** "Lade → Koelcel → Magazijn → Bestelbord" */
 function ketenStappen(item: KoelcelCheckItem, alle: KoelcelCheckItem[]): string[] {
   const stappen = [PLEK_KORT[item.plek] ?? item.plek];
+  // Snijwerk en zelf maken gaan altijd rechtstreeks naar de MEP.
+  if (soortVanBron(item.bron) !== 'pakken') return [...stappen, 'MEP'];
   let huidig = item;
   for (let i = 0; i < 5; i++) {
     const v = vervolgactieVoorRegel(huidig, alle);
@@ -110,7 +112,19 @@ export function KetenPerProduct({ vestiging }: { vestiging: string }) {
                     key={s}
                     type="button"
                     onClick={() =>
-                      s !== soort && wijzig.mutate({ id: i.id, patch: { bron: bronVoorSoort(s, i.bron) } })
+                      s !== soort &&
+                      wijzig.mutate({
+                        id: i.id,
+                        patch: {
+                          bron: bronVoorSoort(
+                            s,
+                            i.bron,
+                            items
+                              .filter((o) => o.id !== i.id && o.actief && o.product_sleutel && o.product_sleutel === i.product_sleutel)
+                              .map((o) => o.plek),
+                          ),
+                        },
+                      })
                     }
                     className={cn(
                       'min-h-[44px] rounded-[14px] border px-2 text-xs font-semibold',
@@ -146,7 +160,13 @@ export function KetenPerProduct({ vestiging }: { vestiging: string }) {
                       defaultValue={i.batch_aantal ?? 1}
                       className="h-11 w-20"
                       onBlur={(e) => {
-                        const n = Number(e.target.value);
+                        const raw = e.target.value.trim();
+                        if (raw === '') {
+                          // Leeg = standaard (1), niets apart opgeslagen.
+                          if (i.batch_aantal != null) wijzig.mutate({ id: i.id, patch: { batch_aantal: null } });
+                          return;
+                        }
+                        const n = Number(raw);
                         if (n > 0 && n !== Number(i.batch_aantal ?? 1)) {
                           wijzig.mutate({ id: i.id, patch: { batch_aantal: n } });
                         }
