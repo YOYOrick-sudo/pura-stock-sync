@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Check, ChefHat, ChevronDown, Loader2, PackageX, RotateCcw, WifiOff } from 'lucide-react';
+import { Check, ChefHat, Loader2, PackageX, RotateCcw, WifiOff } from 'lucide-react';
+import { SectieBalk } from './SectieBalk';
+import { InfoKnop } from './InfoKnop';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -311,7 +313,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
           })}
         </div>
       )}
-    </section>
+    </div>
   );
 }
 

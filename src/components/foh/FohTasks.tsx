@@ -3825,7 +3825,10 @@ export function FohTasks() {
                           visibleTab === 'keuken' ? 'Keuken' : 'Bediening',
                           visibleTab,
                           false,
-                          { hideHeader: true, insertion: bainMarieSluitInline },
+                          {
+                            hideHeader: !(visibleTab === 'keuken' && activePhase === 'sluit' && !isReadOnly),
+                            insertion: bainMarieSluitInline,
+                          },
                         );
                         const samenBottom = renderDepartmentSection(
                           'Samen / Laatste loodjes',
