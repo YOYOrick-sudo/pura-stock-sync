@@ -71,3 +71,24 @@ export function volgendeOpenDag(datum: string, isOpen: (d: Date) => boolean): st
   morgen.setDate(morgen.getDate() + 1);
   return ymdLokaal(morgen);
 }
+
+/** Wanneer je aanvult, als korte opdracht. */
+export function aanvulTekst(vulnorm: string | null | undefined): string {
+  if (vulnorm === 'half') return 'Vullen onder ½';
+  if (vulnorm === 'bodem') return 'Vullen als leeg';
+  return 'Altijd vol';
+}
+
+/** Aantal gevulde blokjes (van 3) voor het peilstreepje. */
+export function peilBlokjes(vulnorm: string | null | undefined): number {
+  return vulnorm === 'half' ? 1 : vulnorm === 'bodem' ? 0 : 3;
+}
+
+/** Korte plek: "uit de koelcel" → "Koelcel"; snijwerk/maken → "MEP: …". */
+export function herkomstLabel(soort: SluitSoort, ketenKort: string): string {
+  if (soort === 'snijden') return 'MEP: snijden';
+  if (soort === 'maken') return 'MEP: maken';
+  const kaal = ketenKort.replace(/^uit (de |het )?/, '');
+  if (kaal === 'vriescel') return 'Vriescel · ontdooien';
+  return kaal.charAt(0).toUpperCase() + kaal.slice(1);
+}
