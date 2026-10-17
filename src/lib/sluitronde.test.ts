@@ -1,5 +1,5 @@
 // @ts-ignore bun test runner
-import { describe, expect, test } from 'bun:test';
+import { aanvulTekst, herkomstLabel,  describe, expect, test } from 'bun:test';
 import { bronVoorSoort, isTeldag, soortVanBron, volgendeOpenDag } from './sluitronde';
 
 const dinsdagDicht = (d: Date) => d.getDay() !== 2;
@@ -41,4 +41,19 @@ test('terug naar pakken herstelt bron uit de keten', () => {
   expect(bronVoorSoort('pakken', 'snijden', ['magazijn', 'koelcel'])).toBe('koelcel_inkoop');
   expect(bronVoorSoort('pakken', 'zelf_west', [])).toBe('koelcel_inkoop');
   expect(bronVoorSoort('pakken', 'midsland', ['magazijn'])).toBe('midsland');
+});
+
+test('aanvultekst per vulnorm', () => {
+  expect(aanvulTekst('vol')).toBe('Altijd vol');
+  expect(aanvulTekst(null)).toBe('Altijd vol');
+  expect(aanvulTekst('half')).toBe('Vullen onder ½');
+  expect(aanvulTekst('bodem')).toBe('Vullen als leeg');
+});
+
+test('herkomst kort', () => {
+  expect(herkomstLabel('pakken', 'uit de koelcel')).toBe('Koelcel');
+  expect(herkomstLabel('pakken', 'uit het magazijn')).toBe('Magazijn');
+  expect(herkomstLabel('pakken', 'uit de vriescel')).toBe('Vriescel · ontdooien');
+  expect(herkomstLabel('snijden', 'snijden')).toBe('MEP: snijden');
+  expect(herkomstLabel('maken', 'zelf maken')).toBe('MEP: maken');
 });

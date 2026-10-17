@@ -10,14 +10,14 @@ import {
   useKoelcelChecks,
   useKoelcelCheckMutaties,
   ketenKortLabel,
-  vulnormLabel,
   diepsteBron,
   type KoelcelCheck,
   type KoelcelCheckItem,
 } from '@/hooks/useKoelcelCheck';
 import { useVoorraadLades, positieLabel } from '@/hooks/useVoorraadLades';
 import { useMepKalender } from '@/hooks/useMepPlanning';
-import { soortVanBron, volgendeOpenDag } from '@/lib/sluitronde';
+import { soortVanBron, volgendeOpenDag, aanvulTekst, herkomstLabel, peilBlokjes } from '@/lib/sluitronde';
+import { VulPeil } from './VulPeil';
 
 interface Groep {
   id: string;
@@ -26,9 +26,9 @@ interface Groep {
 }
 
 const UITKOMST: Record<string, string> = {
-  mep: 'op de MEP',
-  bestelbord: 'op het bestelbord',
-  midsland: 'op de bestellijst voor Midsland',
+  mep: 'Op de MEP voor morgen',
+  bestelbord: 'Op het bestelbord',
+  midsland: 'Op de bestellijst Midsland',
 };
 
 function isVrijdag(datum: string) {
@@ -142,7 +142,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
       item.id,
       async () => {
         const r = await bronOp.mutateAsync({ item, taakDatum });
-        toast.success(`${r.bronItem.naam} staat ${UITKOMST[r.bestemming.soort] ?? 'gemeld'}`);
+        toast.success(`${r.bronItem.naam}: ${(UITKOMST[r.bestemming.soort] ?? 'gemeld').toLowerCase()}`);
       },
       () => op(item),
     );
@@ -172,7 +172,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
       {open && (
         <div>
           <div className="mb-3 flex items-center gap-2 px-1 text-xs text-muted-foreground">
-            <InfoKnop tekst="Vink af wat er ligt of wat je net hebt aangevuld. Bron op: ook de voorraad erachter is leeg. Naar MEP: moet gesneden of gemaakt worden." />
+            <InfoKnop tekst="Vink af wat er ligt of wat je net hebt aangevuld. Altijd vol: bijvullen zodra het niet vol is. Vullen onder ½: pas bijvullen als het minder dan half is. Vullen als leeg: pas bij leeg. Het label ernaast zegt waar je het pakt. Bron op: ook daar is het leeg. Naar MEP: moet gesneden of gemaakt worden." />
             <span>Hoe werkt dit?</span>
           </div>
 
@@ -221,10 +221,17 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                     const laden = bezig.has(i.id);
                     const fout = !!mislukt[i.id];
                     const bron = soort === 'pakken' ? diepsteBron(i, items) : null;
-                    const uitleg =
-                      soort === 'pakken'
-                        ? `${vulnormLabel(i)} · ${ketenKortLabel(i, items)}`
-                        : `${vulnormLabel(i)} · op? ${soort === 'snijden' ? 'snijden' : 'maken'} via MEP`;
+                    const uitleg = (
+                      <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <span className="inline-flex items-center gap-1.5">
+                          <VulPeil gevuld={peilBlokjes(i.vulnorm)} />
+                          {aanvulTekst(i.vulnorm)}
+                        </span>
+                        <span className={cn('rounded-full px-2 py-px text-[12px] font-medium', soort === 'pakken' ? 'bg-muted text-foreground/80' : 'bg-primary/10 text-primary')}>
+                          {herkomstLabel(soort, ketenKortLabel(i, items))}
+                        </span>
+                      </span>
+                    );
                     return (
                       <li key={i.id} className="flex items-center gap-1.5 border-b border-border py-1 sm:gap-3">
                         <button
@@ -263,11 +270,11 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                           >
                             {i.naam}
                           </p>
-                          <p className="text-[13px] leading-snug text-muted-foreground">
+                          <div className="mt-0.5 text-[13px] leading-snug text-muted-foreground">
                             {doorgezet
-                              ? `Staat ${UITKOMST[c!.doorgezet_naar ?? ''] ?? 'gemeld'}`
+                              ? (UITKOMST[c!.doorgezet_naar ?? ''] ?? 'Gemeld')
                               : uitleg}
-                          </p>
+                          </div>
                         </div>
                         {!afgevinkt && !doorgezet && (
                           soort === 'pakken' ? (
