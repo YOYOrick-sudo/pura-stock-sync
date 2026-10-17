@@ -3549,9 +3549,15 @@ export function FohTasks() {
                   }
                   return entries.map(([category, categoryTasks]) => {
                     const progress = getCategoryProgress(categoryTasks);
+                    // Dubbele kop vermijden: West-sectiebalk toont al dezelfde naam (bv. "Keuken").
+                    const kopDubbel =
+                      userLocation === 'West' &&
+                      entries.length === 1 &&
+                      category.trim().toLowerCase() === String(dept).trim().toLowerCase();
                     return (
                       <div key={`${keyPrefix}-${category}`} style={{ marginBottom: '24px' }}>
                         <h3 style={{
+                          ...(kopDubbel ? { display: 'none' } : {}),
                           fontSize: '13px',
                           fontWeight: 600,
                           textTransform: 'uppercase',
