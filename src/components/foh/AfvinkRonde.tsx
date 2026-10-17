@@ -45,14 +45,12 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
   const { data: checksLijst = [] } = useKoelcelChecks(vestiging, datum);
   const kalender = useMepKalender(vestiging);
   const { zetStatus, naarMepDirect, bronOp } = useKoelcelCheckMutaties(vestiging, datum, items);
-  const [open, setOpen] = useState(true);
   const [bezig, setBezig] = useState<Set<string>>(new Set());
   const [mislukt, setMislukt] = useState<Record<string, () => void>>({});
 
   // Snelknop "Sluitronde keuken": openen en ernaartoe scrollen.
   useEffect(() => {
     const ga = () => {
-      setOpen(true);
       window.setTimeout(
         () => document.getElementById('afvinkronde-blok')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
         150,
@@ -164,12 +162,10 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
         titel="Sluitronde keuken"
         stand={`${klaar}/${alle.length}`}
         afgerond={klaar === alle.length}
-        open={open}
-        onToggle={() => setOpen((o) => !o)}
       />
 
-      {open && (
-        <div>
+      <div>
+
 
           {openFouten.length > 0 && (
             <div className="mb-3 flex items-center gap-3 rounded-[14px] border border-warning/40 bg-warning/10 p-3">
@@ -316,8 +312,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
               </div>
             );
           })}
-        </div>
-      )}
+      </div>
     </div>
   );
 }
