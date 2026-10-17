@@ -172,7 +172,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
       {open && (
         <div>
           <div className="mb-3 flex items-center gap-2 px-1 text-xs text-muted-foreground">
-            <InfoKnop tekst="Kijk of de bak minstens zo vol is als aangegeven. Genoeg of aangevuld: vink af. Moet gesneden of gemaakt worden: Naar MEP. Is het ook in de koelcel of het magazijn op: Bron op." />
+            <InfoKnop tekst="Het bakje laat zien hoe vol het minstens moet zijn: helemaal groen = vol, half groen = half vol, alleen onderin = bodempje is genoeg. Genoeg of aangevuld: vink af. Moet gesneden of gemaakt worden: Naar MEP. Is het ook in de koelcel of het magazijn op: Bron op." />
             <span>Hoe werkt dit?</span>
           </div>
 
@@ -223,10 +223,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                     const bron = soort === 'pakken' ? diepsteBron(i, items) : null;
                     const uitleg = (
                       <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <span className="inline-flex items-center gap-1.5">
-                          <VulPeil gevuld={peilBlokjes(i.vulnorm)} />
-                          {aanvulTekst(i.vulnorm)}
-                        </span>
+                        <VulPeil procent={peilBlokjes(i.vulnorm)} label={aanvulTekst(i.vulnorm)} />
                         <span className="inline-flex items-center gap-1">
                           <span>Te weinig:</span>
                           <span className={cn('rounded-full px-2 py-px text-[12px] font-medium', soort === 'pakken' ? 'bg-muted text-foreground/80' : 'bg-primary/10 text-primary')}>
