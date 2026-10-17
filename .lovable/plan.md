@@ -9,6 +9,7 @@ De afvinkronde is een eigen witte kaart met een grote kop, een uitlegregel, een 
 - **Rijen zoals taken**: zelfde rondje om af te vinken, zelfde letter en tussenruimte als een gewone taakrij. "Bron op" en "Naar MEP" blijven rechts, iets compacter.
 - **Keukentaken krijgen weer een kop**: onder de sluitronde komt een balk "Keuken" met stand ("0/32"), zodat duidelijk is dat dat een eigen blok is dat ook af moet.
 - Zelfde ruimte tussen alle blokken (32px), zodat de lijst één ritme heeft.
+- **Eenheid door de hele lijst**: elke afvinkbare regel (gewone taak, sluitronde-product, au bain-marie, maandagtelling-kop) begint op dezelfde lijn links, heeft hetzelfde rondje op dezelfde plek, dezelfde letter voor de naam en dezelfde kleine grijze regel eronder. Knoppen rechts ("Bron op", "Naar MEP", "Weggooien", "Sticker") krijgen één vorm en hoogte. Afgevinkt ziet er overal hetzelfde uit (doorgestreept, grijs).
 
 Volgorde blijft: Samen / Start → (maandag: telling) → Sluitronde keuken → Keuken → au bain-marie → Samen / Laatste loodjes.
 
