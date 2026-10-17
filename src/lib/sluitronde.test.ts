@@ -1,6 +1,6 @@
 // @ts-ignore bun test runner
 import { describe, expect, test } from 'bun:test';
-import { aanvulTekst, herkomstLabel, bronVoorSoort, isTeldag, soortVanBron, volgendeOpenDag } from './sluitronde';
+import { aanvulTekst, herkomstLabel, peilBlokjes, bronVoorSoort, isTeldag, soortVanBron, volgendeOpenDag } from './sluitronde';
 
 const dinsdagDicht = (d: Date) => d.getDay() !== 2;
 
@@ -43,17 +43,24 @@ test('terug naar pakken herstelt bron uit de keten', () => {
   expect(bronVoorSoort('pakken', 'midsland', ['magazijn'])).toBe('midsland');
 });
 
-test('aanvultekst per vulnorm', () => {
-  expect(aanvulTekst('vol')).toBe('Altijd vol');
-  expect(aanvulTekst(null)).toBe('Altijd vol');
-  expect(aanvulTekst('half')).toBe('Vullen onder ½');
-  expect(aanvulTekst('bodem')).toBe('Vullen als leeg');
+test('minimum per vulnorm', () => {
+  expect(aanvulTekst('vol')).toBe('Moet vol zijn');
+  expect(aanvulTekst(null)).toBe('Moet vol zijn');
+  expect(aanvulTekst('half')).toBe('Minstens half vol');
+  expect(aanvulTekst('bodem')).toBe('Bodempje is genoeg');
 });
 
-test('herkomst kort', () => {
-  expect(herkomstLabel('pakken', 'uit de koelcel')).toBe('Koelcel');
-  expect(herkomstLabel('pakken', 'uit het magazijn')).toBe('Magazijn');
-  expect(herkomstLabel('pakken', 'uit de vriescel')).toBe('Vriescel · ontdooien');
-  expect(herkomstLabel('snijden', 'snijden')).toBe('MEP: snijden');
-  expect(herkomstLabel('maken', 'zelf maken')).toBe('MEP: maken');
+test('peilblokjes per vulnorm', () => {
+  expect(peilBlokjes('vol')).toBe(3);
+  expect(peilBlokjes('half')).toBe(2);
+  expect(peilBlokjes('bodem')).toBe(1);
+});
+
+test('actie bij te weinig', () => {
+  expect(herkomstLabel('pakken', 'uit de koelcel')).toBe('Aanvullen uit koelcel');
+  expect(herkomstLabel('pakken', 'uit het magazijn')).toBe('Aanvullen uit magazijn');
+  expect(herkomstLabel('pakken', 'uit de vriescel')).toBe('Ontdooien uit vriescel');
+  expect(herkomstLabel('pakken', 'uit Midsland')).toBe('Bestellen bij Midsland');
+  expect(herkomstLabel('snijden', 'snijden')).toBe('Naar MEP (snijden)');
+  expect(herkomstLabel('maken', 'zelf maken')).toBe('Naar MEP (maken)');
 });
