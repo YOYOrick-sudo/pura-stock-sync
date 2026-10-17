@@ -64,3 +64,11 @@ test('actie bij te weinig', () => {
   expect(herkomstLabel('snijden', 'snijden')).toBe('Naar MEP (snijden)');
   expect(herkomstLabel('maken', 'zelf maken')).toBe('Naar MEP (maken)');
 });
+
+// @ts-ignore
+import { peilKort } from './sluitronde';
+test('peilKort per vulnorm', () => {
+  expect(peilKort('vol')).toBe('Vol');
+  expect(peilKort('half')).toBe('Min. ½');
+  expect(peilKort('bodem')).toBe('Bodem');
+});
