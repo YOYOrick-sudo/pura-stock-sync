@@ -81,7 +81,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
       if (l.rol === 'niet_tellen') continue;
       if (l.rol === 'reserve' && !vrijdag) continue;
       const g = items.filter((i) => i.plek === 'werkbank' && i.lade_id === l.id);
-      if (g.length) out.push({ id: l.id, titel: `${l.naam || 'Lade'} · ${positieLabel(l)}`, items: g });
+      if (g.length) out.push({ id: l.id, titel: l.naam && l.naam !== positieLabel(l) ? `${l.naam} · ${positieLabel(l)}` : positieLabel(l), items: g });
     }
     const los = items.filter(
       (i) => i.plek === 'werkbank' && !lades.some((l) => l.id === i.lade_id),
@@ -231,7 +231,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                     const uitleg =
                       soort === 'pakken'
                         ? `${vulnormLabel(i)} · ${ketenKortLabel(i, items)}`
-                        : `${vulnormLabel(i)} · anders ${soort === 'snijden' ? 'snijden' : 'maken'}`;
+                        : `${vulnormLabel(i)} · op? ${soort === 'snijden' ? 'snijden' : 'maken'} via MEP`;
                     return (
                       <li key={i.id} className="flex items-center gap-2 px-2 py-1.5">
                         <button
