@@ -93,3 +93,10 @@ export function herkomstLabel(soort: SluitSoort, ketenKort: string): string {
   if (kaal.includes('midsland')) return 'Bestellen bij Midsland';
   return `Aanvullen uit ${kaal}`;
 }
+
+/** Kort woord naast het bakje. */
+export function peilKort(vulnorm: string | null | undefined): string {
+  if (vulnorm === 'half') return 'Min. ½';
+  if (vulnorm === 'bodem') return 'Bodem';
+  return 'Vol';
+}
