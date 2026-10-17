@@ -44,30 +44,46 @@ function stickerDatum(iso: string): string {
     .replace('.', '');
 }
 
-/** Korte status als rustig chipje: "ma · dag 5/6". Alleen laatste dag en te oud springen eruit. */
+function plusDagen(iso: string, n: number): string {
+  const d = new Date(`${iso}T12:00:00`);
+  d.setDate(d.getDate() + n);
+  return isoDatum(d);
+}
+
+/** Status: "Houdbaar t/m za" + rustige houdbaarheidsmeter + "nog 2 dagen". */
 function statusRegel(bak: BainMarieBak | undefined, vandaagIso: string) {
   const s = bakStatus(bak, vandaagIso);
   if (s.status === 'geen') {
-    return <span className="text-[12px] text-muted-foreground/70">—</span>;
+    return <span className="text-[13px] text-muted-foreground/70">Geen bak</span>;
   }
   const max = Math.max(Number(bak?.houdbaarheid_dagen) || houdbaarheidVan(bak!.product), 1);
-  const basis = `${dagKort(s.startDatum!)} · dag ${s.dagNr}/${max}`;
-  const chip = 'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-semibold';
-  if (s.status === 'te-oud') {
-    return (
-      <span className={`${chip} bg-destructive/10 text-destructive`}>
-        <AlertTriangle size={12} /> {basis} · weggooien
+  const dagNr = Math.max(1, Number(s.dagNr) || 1);
+  const totIso = plusDagen(s.startDatum!, max - 1);
+  const over = Math.max(0, max - dagNr);
+  const pct = Math.max(0, Math.min(100, (over / max) * 100));
+  const weg = s.status === 'te-oud' || s.status === 'laatste-dag';
+  const tekst =
+    s.status === 'te-oud'
+      ? 'Over de datum'
+      : s.status === 'laatste-dag'
+        ? 'Vandaag laatste dag'
+        : over === 1
+          ? 'nog 1 dag'
+          : `nog ${over} dagen`;
+  return (
+    <span className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px]">
+      <span className="text-muted-foreground">
+        Houdbaar t/m <span className="font-semibold text-foreground">{dagKort(totIso)}</span>
       </span>
-    );
-  }
-  if (s.status === 'laatste-dag') {
-    return (
-      <span className={`${chip} bg-amber-500/10 text-amber-700 dark:text-amber-400`}>
-        <AlertTriangle size={12} /> {basis} · laatste dag
+      <span className="relative h-1.5 w-20 overflow-hidden rounded-full bg-muted" aria-hidden>
+        <span
+          className={cn('absolute inset-y-0 left-0 rounded-full', weg ? 'bg-destructive/70' : 'bg-primary/50')}
+          style={{ width: `${weg ? 100 : pct}%` }}
+        />
       </span>
-    );
-  }
-  return <span className={`${chip} bg-muted text-muted-foreground`}>{basis}</span>;
+      <span className={cn(weg ? 'font-semibold text-destructive' : 'text-muted-foreground')}>{tekst}</span>
+    </span>
+  );
 }
 
 /** Info-icoon boven de lijst, zodat de balk zelf rustig blijft. */
