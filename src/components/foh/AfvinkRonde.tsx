@@ -237,7 +237,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                         >
                           <span
                             className={cn(
-                              'flex h-6 w-6 items-center justify-center rounded-[6px] border-2 bg-background transition-colors sm:h-5 sm:w-5',
+                              'flex h-[26px] w-[26px] items-center justify-center rounded-[6px] border-2 bg-background transition-colors sm:h-6 sm:w-6',
                               afgevinkt
                                 ? 'border-muted-foreground/30 bg-muted-foreground/15 text-muted-foreground'
                                 : doorgezet
@@ -250,20 +250,20 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                             {laden ? (
                               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                             ) : afgevinkt ? (
-                              <Check className="h-3 w-3" strokeWidth={3} />
+                              <Check className="h-3.5 w-3.5" strokeWidth={3} />
                             ) : null}
                           </span>
                         </button>
                         <div className="min-w-0 flex-1 py-1.5">
                           <p
                             className={cn(
-                              'text-[15px] font-medium leading-snug text-foreground',
+                              'text-[16px] font-medium leading-snug text-foreground',
                               afgevinkt && 'text-muted-foreground line-through opacity-55',
                             )}
                           >
                             {i.naam}
                           </p>
-                          <p className="text-xs leading-snug text-muted-foreground">
+                          <p className="text-[13px] leading-snug text-muted-foreground">
                             {doorgezet
                               ? `Staat ${UITKOMST[c!.doorgezet_naar ?? ''] ?? 'gemeld'}`
                               : uitleg}
@@ -273,7 +273,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                           soort === 'pakken' ? (
                             <Button
                               variant="ghost"
-                              className="h-11 shrink-0 gap-1.5 px-2 text-[13px] font-medium text-muted-foreground hover:text-foreground"
+                              className="h-11 shrink-0 gap-1.5 rounded-[14px] border border-border bg-muted/60 px-3 text-[13px] font-medium text-foreground hover:bg-muted"
                               disabled={laden}
                               onClick={() => op(i)}
                               aria-label={`Bron op: ${i.naam}`}
@@ -284,7 +284,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                           ) : (
                             <Button
                               variant="ghost"
-                              className="h-11 shrink-0 gap-1.5 px-2 text-[13px] font-medium text-muted-foreground hover:text-foreground"
+                              className="h-11 shrink-0 gap-1.5 rounded-[14px] border border-primary/20 bg-primary/10 px-3 text-[13px] font-medium text-primary hover:bg-primary/15 hover:text-primary"
                               disabled={laden}
                               onClick={() => mep(i)}
                             >

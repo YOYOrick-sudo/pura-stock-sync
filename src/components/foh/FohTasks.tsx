@@ -313,17 +313,17 @@ function SortableTaskItem({ task, language = 'nl', isEditMode, onTitleChange, on
           {/* Checkbox - compact, whole row is clickable */}
           {!isEditMode && toggleTask && (
             <div style={{
-              width: isMobile ? '44px' : '20px',
-              height: isMobile ? '44px' : '20px',
-              minWidth: isMobile ? '44px' : '20px',
+              width: isMobile ? '44px' : '24px',
+              height: isMobile ? '44px' : '24px',
+              minWidth: isMobile ? '44px' : '24px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               pointerEvents: 'none',
             }}>
               <span style={{
-                width: isMobile ? '24px' : '20px',
-                height: isMobile ? '24px' : '20px',
+                width: isMobile ? '26px' : '24px',
+                height: isMobile ? '26px' : '24px',
                 borderRadius: '6px',
                 border: task.completed ? '2px solid hsl(var(--muted-foreground) / 0.3)' : '2px solid hsl(var(--border))',
                 backgroundColor: task.completed ? 'hsl(var(--muted-foreground) / 0.15)' : 'hsl(var(--background))',
@@ -333,7 +333,7 @@ function SortableTaskItem({ task, language = 'nl', isEditMode, onTitleChange, on
                 transition: 'all 0.1s ease',
               }}>
                 {task.completed && (
-                  <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                  <svg width="14" height="12" viewBox="0 0 12 10" fill="none">
                     <path d="M1 5L4.5 8.5L11 1.5" stroke="hsl(var(--muted-foreground))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}
@@ -374,7 +374,7 @@ function SortableTaskItem({ task, language = 'nl', isEditMode, onTitleChange, on
                 color: toggleTask && task.completed ? 'hsl(var(--muted-foreground))' : 'hsl(var(--foreground))',
                 opacity: toggleTask && task.completed ? 0.55 : 1,
                 fontWeight: 500,
-                fontSize: '15px',
+                fontSize: '16px',
                 fontFamily: 'Inter, sans-serif',
                 transition: 'opacity 0.15s ease, color 0.15s ease',
               }}>
@@ -3955,7 +3955,7 @@ export function FohTasks() {
                                   pointerEvents: 'none',
                                 }}>
                                   {task.completed && (
-                                    <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                                    <svg width="14" height="12" viewBox="0 0 12 10" fill="none">
                                       <path
                                         d="M1 5L4.5 8.5L11 1.5"
                                         stroke="hsl(var(--muted-foreground))"
