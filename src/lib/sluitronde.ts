@@ -13,10 +13,23 @@ export function soortVanBron(bron: string | null | undefined): SluitSoort {
 }
 
 /** Welke bron hoort bij een gekozen soort. Pakken houdt zijn huidige bron. */
-export function bronVoorSoort(soort: SluitSoort, huidigeBron: string): string {
+/**
+ * Bron die hoort bij een gekozen soort. Terug naar "pakken" leidt de bron af
+ * uit waar hetzelfde product verder in de keten ligt (koelcel → vriezer → magazijn),
+ * zodat de oorspronkelijke keten terugkomt.
+ */
+export function bronVoorSoort(
+  soort: SluitSoort,
+  huidigeBron: string,
+  ketenPlekken: string[] = [],
+): string {
   if (soort === 'snijden') return 'snijden';
   if (soort === 'maken') return 'zelf_west';
-  return huidigeBron === 'snijden' || huidigeBron === 'zelf_west' ? 'koelcel_inkoop' : huidigeBron;
+  if (huidigeBron !== 'snijden' && huidigeBron !== 'zelf_west') return huidigeBron;
+  if (ketenPlekken.includes('koelcel')) return 'koelcel_inkoop';
+  if (ketenPlekken.includes('vriezer')) return 'vriezer';
+  if (ketenPlekken.includes('magazijn')) return 'magazijn';
+  return 'koelcel_inkoop';
 }
 
 export const SOORT_LABEL: Record<SluitSoort, string> = {
