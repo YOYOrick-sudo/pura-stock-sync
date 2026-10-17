@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Check, ChefHat, Loader2, PackageX, RotateCcw, WifiOff } from 'lucide-react';
 import { SectieBalk } from './SectieBalk';
-import { InfoKnop } from './InfoKnop';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
