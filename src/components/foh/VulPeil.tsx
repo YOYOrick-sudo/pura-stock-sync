@@ -10,7 +10,7 @@ export function VulPeil({ procent, label }: { procent: number; label?: string })
       role="img"
       aria-label={label}
       title={label}
-      className="relative inline-flex h-[6px] w-[56px] shrink-0 overflow-visible rounded-full bg-muted-foreground/18"
+      className="relative inline-flex h-[6px] w-[56px] shrink-0 overflow-visible rounded-full bg-muted-foreground/15"
     >
       <span
         className="absolute inset-y-0 left-0 rounded-full bg-primary/55"
