@@ -223,9 +223,9 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                     const bron = soort === 'pakken' ? diepsteBron(i, items) : null;
                     const uitleg = (
                       <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <span className="inline-flex items-center gap-1.5">
+                        <span className="inline-flex items-center gap-2">
                           <VulPeil procent={peilBlokjes(i.vulnorm)} label={aanvulTekst(i.vulnorm)} />
-                          <span className="text-[13px] font-semibold text-foreground">{peilKort(i.vulnorm)}</span>
+                          <span className="text-[13px] font-medium text-foreground">{peilKort(i.vulnorm)}</span>
                         </span>
                         <span className="inline-flex items-center gap-1">
                           <span>Te weinig:</span>
