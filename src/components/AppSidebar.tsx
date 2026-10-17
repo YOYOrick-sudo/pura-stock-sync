@@ -25,7 +25,6 @@ const allNavigationItems = [
 
   { title: 'Voorraadketen', url: '/settings/keten', icon: Settings, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: true, ownerOnly: false },
   { title: 'Koelwerkbank indelen', url: '/settings/koelwerkbank', icon: Settings, group: 'beheer' as const, locations: ['West'], managerOnly: true, ownerOnly: false },
-  { title: 'Sluitronde proef', url: '/settings/sluitronde-proef', icon: Settings, group: 'beheer' as const, locations: ['West'], managerOnly: true, ownerOnly: false },
   { title: 'Cijfers', url: '/cijfers', icon: BarChart3, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: true },
   { title: 'Kassatelling', url: '/kassatelling', icon: Calculator, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Onderhoud', url: '/onderhoud', icon: ClipboardList, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },

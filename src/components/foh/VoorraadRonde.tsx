@@ -755,7 +755,16 @@ const BON_GROEPEN: { soort: BonSoort; titel: string; uitleg: string; icoon: type
  * Voorraadronde West: eerst tellen (medewerker), daarna de aanvulbon (systeem rekent).
  * Zit als blok in de keukensectie van de sluitlijst: ingeklapt tot je hem opent.
  */
-export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: string }) {
+export function VoorraadRonde({
+  vestiging,
+  datum,
+  alleenPlekken,
+}: {
+  vestiging: string;
+  datum: string;
+  /** Alleen deze plekken tellen (teldag in de afvinkronde). */
+  alleenPlekken?: VoorraadPlek[];
+}) {
   const itemsQuery = useKoelcelCheckItems(vestiging);
   const onderwegQuery = useOpenstaandeBestellingen(vestiging);
   const bestelbordQuery = useBestelbordOpen(vestiging);
@@ -928,7 +937,8 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
 
   const plekken = useMemo(
     () =>
-      PLEK_VOLGORDE.filter((p) => !p.alleenMaandag || maandag)
+      PLEK_VOLGORDE.filter((p) => !p.alleenMaandag || maandag || !!alleenPlekken)
+        .filter((p) => !alleenPlekken || alleenPlekken.includes(p.plek))
         .map((p) => ({
           ...p,
           items: items.filter(
@@ -936,7 +946,7 @@ export function VoorraadRonde({ vestiging, datum }: { vestiging: string; datum: 
           ),
         }))
         .filter((p) => p.items.length > 0),
-    [items, maandag],
+    [items, maandag, alleenPlekken],
   );
 
   const categorieGroepen = useMemo(

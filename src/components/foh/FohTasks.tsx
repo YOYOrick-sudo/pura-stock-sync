@@ -26,7 +26,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AdminPasswordDialog } from './AdminPasswordDialog';
 import { RepeatBadge } from './RepeatBadge';
 import { ListManager } from './ListManager';
-import { VoorraadRonde } from './VoorraadRonde';
+import { SluitRondeWest } from './SluitRondeWest';
 import { BainMarieOpen, BainMarieSluit } from './BainMarie';
 import { SectieBalk } from './SectieBalk';
 import { getOrderedCategories, WEST_SECTIONS, type Department } from '@/lib/foh-category-order';
@@ -3837,7 +3837,7 @@ export function FohTasks() {
                         // het datum-blok bij de open-lijst.
                         const voorraad =
                           visibleTab === 'keuken' && activePhase === 'sluit' && !isReadOnly ? (
-                            <VoorraadRonde key="voorraadronde" vestiging="West" datum={selectedDate} />
+                            <SluitRondeWest key="voorraadronde" vestiging="West" datum={selectedDate} />
                           ) : null;
                         const bainMarie =
                           visibleTab === 'keuken' && !isReadOnly ? (
