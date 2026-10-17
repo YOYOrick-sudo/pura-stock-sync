@@ -51,9 +51,9 @@ test('minimum per vulnorm', () => {
 });
 
 test('peilblokjes per vulnorm', () => {
-  expect(peilBlokjes('vol')).toBe(3);
-  expect(peilBlokjes('half')).toBe(2);
-  expect(peilBlokjes('bodem')).toBe(1);
+  expect(peilBlokjes('vol')).toBe(100);
+  expect(peilBlokjes('half')).toBe(50);
+  expect(peilBlokjes('bodem')).toBe(20);
 });
 
 test('actie bij te weinig', () => {
