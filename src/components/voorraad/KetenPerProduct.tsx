@@ -160,7 +160,13 @@ export function KetenPerProduct({ vestiging }: { vestiging: string }) {
                       defaultValue={i.batch_aantal ?? 1}
                       className="h-11 w-20"
                       onBlur={(e) => {
-                        const n = Number(e.target.value);
+                        const raw = e.target.value.trim();
+                        if (raw === '') {
+                          // Leeg = standaard (1), niets apart opgeslagen.
+                          if (i.batch_aantal != null) wijzig.mutate({ id: i.id, patch: { batch_aantal: null } });
+                          return;
+                        }
+                        const n = Number(raw);
                         if (n > 0 && n !== Number(i.batch_aantal ?? 1)) {
                           wijzig.mutate({ id: i.id, patch: { batch_aantal: n } });
                         }
