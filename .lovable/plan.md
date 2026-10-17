@@ -1,4 +1,6 @@
-# Sluitronde-regels precies gelijk aan gewone taakregels
+# Eén stijl voor de hele takenlijst
+
+Doel: geen stijlbreuk meer. Elke afvinkbare regel in de lijst (gewone taak, sluitronde-product, au bain-marie, maandagtelling) gebruikt dezelfde rij: zelfde vakje, inspringing, letter, lijntje, afgevinkt-stijl en knopvorm. Hiervoor komt één gedeelde taakrij die alle blokken gebruiken, zodat ze ook later niet meer uit elkaar lopen.
 
 ## Wat nu nog anders is (uit jouw screenshots)
 - Vinkvakje is groter en dikker (28px, zwarte rand) dan bij taken (20px, lichte rand).
