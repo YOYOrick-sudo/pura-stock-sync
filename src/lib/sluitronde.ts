@@ -79,9 +79,9 @@ export function aanvulTekst(vulnorm: string | null | undefined): string {
   return 'Moet vol zijn';
 }
 
-/** Aantal gevulde blokjes (van 3) voor het peilstreepje. */
+/** Vulpercentage van het bakje-icoon. */
 export function peilBlokjes(vulnorm: string | null | undefined): number {
-  return vulnorm === 'half' ? 2 : vulnorm === 'bodem' ? 1 : 3;
+  return vulnorm === 'half' ? 50 : vulnorm === 'bodem' ? 20 : 100;
 }
 
 /** Wat je doet als het te weinig is. */
