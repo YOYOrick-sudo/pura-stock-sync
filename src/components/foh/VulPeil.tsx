@@ -1,33 +1,18 @@
-import { cn } from '@/lib/utils';
-
-const STANDEN = [
-  { procent: 20, naam: 'bodem' },
-  { procent: 50, naam: 'half' },
-  { procent: 100, naam: 'vol' },
-];
-
-/** Drie bakjes (bodem, half, vol) naast elkaar; alleen het minimum is gevuld. */
+/** Liggende meter (leeg → vol), groen tot het minimum met een dikke streep, zoals een brandstofmeter. */
 export function VulPeil({ procent, label }: { procent: number; label?: string }) {
-  const actief = STANDEN.reduce((b, s) => (Math.abs(s.procent - procent) < Math.abs(b.procent - procent) ? s : b));
+  const p = Math.max(0, Math.min(100, procent));
   return (
-    <span role="img" aria-label={label} title={label} className="inline-flex shrink-0 items-end gap-1">
-      {STANDEN.map((s) => {
-        const aan = s === actief;
-        return (
-          <span
-            key={s.naam}
-            className={cn(
-              'relative inline-flex h-[20px] w-[18px] overflow-hidden rounded-b-[4px] rounded-t-[1px] border-2 border-t-0',
-              aan ? 'border-primary' : 'border-muted-foreground/40',
-            )}
-          >
-            <span
-              className={cn('absolute inset-x-0 bottom-0', aan ? 'bg-primary' : 'bg-muted-foreground/20')}
-              style={{ height: `${s.procent}%` }}
-            />
-          </span>
-        );
-      })}
+    <span
+      role="img"
+      aria-label={label}
+      title={label}
+      className="relative inline-flex h-[10px] w-[64px] shrink-0 overflow-visible rounded-full bg-muted-foreground/20"
+    >
+      <span className="absolute inset-y-0 left-0 rounded-full bg-primary" style={{ width: `${p}%` }} />
+      <span
+        className="absolute -top-[3px] -bottom-[3px] w-[3px] -translate-x-1/2 rounded-full bg-foreground"
+        style={{ left: `${Math.min(p, 98)}%` }}
+      />
     </span>
   );
 }
