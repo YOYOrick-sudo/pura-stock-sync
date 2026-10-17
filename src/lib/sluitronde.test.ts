@@ -35,3 +35,10 @@ describe('sluitronde', () => {
     expect(volgendeOpenDag('2026-10-17', dinsdagDicht)).toBe('2026-10-18');
   });
 });
+
+test('terug naar pakken herstelt bron uit de keten', () => {
+  expect(bronVoorSoort('pakken', 'snijden', ['magazijn'])).toBe('magazijn');
+  expect(bronVoorSoort('pakken', 'snijden', ['magazijn', 'koelcel'])).toBe('koelcel_inkoop');
+  expect(bronVoorSoort('pakken', 'zelf_west', [])).toBe('koelcel_inkoop');
+  expect(bronVoorSoort('pakken', 'midsland', ['magazijn'])).toBe('midsland');
+});

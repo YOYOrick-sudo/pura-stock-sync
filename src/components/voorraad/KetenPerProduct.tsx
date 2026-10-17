@@ -112,7 +112,19 @@ export function KetenPerProduct({ vestiging }: { vestiging: string }) {
                     key={s}
                     type="button"
                     onClick={() =>
-                      s !== soort && wijzig.mutate({ id: i.id, patch: { bron: bronVoorSoort(s, i.bron) } })
+                      s !== soort &&
+                      wijzig.mutate({
+                        id: i.id,
+                        patch: {
+                          bron: bronVoorSoort(
+                            s,
+                            i.bron,
+                            items
+                              .filter((o) => o.id !== i.id && o.actief && o.product_sleutel && o.product_sleutel === i.product_sleutel)
+                              .map((o) => o.plek),
+                          ),
+                        },
+                      })
                     }
                     className={cn(
                       'min-h-[44px] rounded-[14px] border px-2 text-xs font-semibold',
