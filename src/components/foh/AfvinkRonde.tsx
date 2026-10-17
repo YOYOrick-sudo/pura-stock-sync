@@ -283,7 +283,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                               className="h-11 shrink-0 px-3"
                               disabled={laden}
                               onClick={() => op(i)}
-                              aria-label={`${i.naam}: bron is op`}
+                              aria-label={`Bron op: ${i.naam}`}
                               title={bron ? `Gaat naar ${bron.bestemming.label}` : undefined}
                             >
                               <PackageX className="h-4 w-4" /> Bron op
