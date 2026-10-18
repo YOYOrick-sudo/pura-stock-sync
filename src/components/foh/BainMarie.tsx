@@ -241,10 +241,7 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
     (p) => bakVan(p.sleutel) || weggegooid.has(p.sleutel),
   ).length;
   const afgerond = genoteerd === totaal;
-  const [open, setOpen] = useState(true);
-  useEffect(() => {
-    if (afgerond) setOpen(false);
-  }, [afgerond]);
+  const open = true;
 
   return (
     <div style={{ marginBottom: '32px' }}>
@@ -252,40 +249,50 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
         titel="Au bain-marie"
         stand={afgerond ? 'afgerond' : `${genoteerd}/${totaal}`}
         afgerond={afgerond}
-        open={open}
-        onToggle={() => setOpen((o) => !o)}
       />
 
       {open && (
         <>
           <Uitleg
             titel="Au bain-marie"
-            stand={afgerond ? 'Alle bakken genoteerd' : `${genoteerd}/${totaal} bakken genoteerd`}
+            stand={afgerond ? 'Alle bakken genoteerd' : `Welke dag staat op de bak? · ${genoteerd}/${totaal}`}
             tekst="Tik per product de dag die op de bak staat, zoals op de sticker van de vorige dienst. Is de bak van vandaag (nieuw gestart vanuit een zak)? Tik “Vandaag” — bij Kip vragen we daarna de datum op de zak. Gaat de bak vandaag niet mee of is hij op? Tik dan niets. Tussendoor een nieuwe zak opengemaakt? Tik opnieuw “Vandaag”."
           />
 
 
-          <div className="divide-y divide-border">
+          <div className="mt-2 space-y-2">
         {BAIN_MARIE_PRODUCTEN.map((p) => {
           const bak = bakVan(p.sleutel);
           const afgeslotenBak = !bak ? weggegooid.get(p.sleutel) : undefined;
           const wasOp = afgeslotenBak?.reden === 'op';
           const toonZakVraag = zakVraag === p.sleutel;
           return (
-            <div key={p.sleutel} className="py-3">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <span className="text-[15px] font-semibold text-foreground">{p.naam}</span>
-                {bak ? (
-                  statusRegel(bak, datum)
-                ) : afgeslotenBak ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[12px] font-semibold text-muted-foreground">
-                    <Trash2 size={12} /> {wasOp ? 'was op' : 'weggegooid'}
+            <div
+              key={p.sleutel}
+              className={`rounded-[14px] border px-3 py-2.5 transition-colors ${bak ? 'border-primary/30 bg-primary/5' : 'border-border bg-card'}`}
+            >
+              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <span
+                    className={`flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-md border-2 ${bak ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/40'}`}
+                    aria-hidden
+                  >
+                    {bak && <Check size={16} strokeWidth={3} />}
                   </span>
-                ) : (
-                  statusRegel(bak, datum)
-                )}
-              </div>
-              <div className="flex flex-wrap gap-1.5">
+                  <div className="min-w-0">
+                    <div className="text-[16px] font-semibold text-foreground">{p.naam}</div>
+                    <div className="mt-0.5">
+                      {afgeslotenBak && !bak ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[12px] font-semibold text-muted-foreground">
+                          <Trash2 size={12} /> {wasOp ? 'was op' : 'weggegooid'}
+                        </span>
+                      ) : (
+                        statusRegel(bak, datum)
+                      )}
+                    </div>
+                  </div>
+                </div>
+              <div className="flex flex-wrap gap-1.5 md:justify-end">
                 {dagOpties.map(({ offset, iso }) => {
                   const gekozen = bak?.start_datum === iso;
                   return (
@@ -316,6 +323,8 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
                   );
                 })}
               </div>
+              </div>
+
 
               {toonZakVraag && (
                 <ZakDatumKiezer
@@ -447,10 +456,7 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
   const teDoen = BAIN_MARIE_PRODUCTEN.filter((p) => bakken.some((b) => b.product === p.sleutel));
   const gedaan = teDoen.filter((p) => geprint.includes(p.sleutel)).length;
   const afgerond = teDoen.length > 0 && gedaan === teDoen.length;
-  const [open, setOpen] = useState(true);
-  useEffect(() => {
-    if (afgerond) setOpen(false);
-  }, [afgerond]);
+  const open = true;
 
   return (
     <div style={{ marginBottom: '32px' }}>
@@ -458,8 +464,6 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
         titel="Au bain-marie — stickers"
         stand={teDoen.length === 0 ? 'geen bakken' : afgerond ? 'afgerond' : `${gedaan}/${teDoen.length}`}
         afgerond={afgerond || teDoen.length === 0}
-        open={open}
-        onToggle={() => setOpen((o) => !o)}
       />
 
       {open && (
