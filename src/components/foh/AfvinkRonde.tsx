@@ -282,10 +282,10 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                               className="h-11 shrink-0 gap-1.5 rounded-[14px] border border-border bg-muted/60 px-3 text-[13px] font-medium text-foreground hover:bg-muted"
                               disabled={laden}
                               onClick={() => op(i)}
-                              aria-label={`Bron op: ${i.naam}`}
+                              aria-label={`Bijbestellen: ${i.naam}`}
                               title={bron ? `Gaat naar ${bron.bestemming.label}` : undefined}
                             >
-                              <PackageX className="h-4 w-4" /> Bron op
+                              <PackageX className="h-4 w-4" /> Bijbestellen
                             </Button>
                           ) : (
                             <Button

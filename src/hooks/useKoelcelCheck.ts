@@ -1054,7 +1054,7 @@ export function useKoelcelCheckMutaties(
   });
 
   /**
-   * Afvinkronde: "Bron op". De voorraad waar je uit pakt is ook leeg. Het
+   * Afvinkronde: "Bijbestellen". De voorraad waar je uit pakt is ook leeg. Het
    * systeem loopt de keten af en meldt het op het laagste niveau
    * (bestelbord, Midsland of de mise-en-place).
    */
