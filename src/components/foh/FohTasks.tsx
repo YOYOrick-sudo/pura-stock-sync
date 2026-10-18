@@ -3809,11 +3809,8 @@ export function FohTasks() {
                           false,
                           { keyPrefix: 'top-', categoryFilter: isStartCat },
                         );
-                        // De bain-marie-stickers horen in de keuken-sluitlijst direct onder
-                        // de bain-marie-taken (als 3e item). We voegen het uitklapbare blok
-                        // daarom ín de keukenlijst in, na de laatste bain-marie-taak. Zijn die
-                        // taken (tijdelijk) hernoemd of weg, dan valt het blok terug op de
-                        // oude plek onderaan — er breekt niets.
+                        // Bain-marie-stickers staan vast onder Bijvullen in de sluitlijst,
+                        // los van de taken — zo verdwijnen ze niet als alles is afgevinkt.
                         const eigen = renderDepartmentSection(
                           visibleTab === 'keuken' ? 'Keuken' : 'Bediening',
                           visibleTab,
