@@ -202,7 +202,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                     {gedaan}/{g.items.length}
                   </span>
                 </h3>
-                <ul className="border-t border-border">
+                <ul className="space-y-1.5">
 
                   {g.items.map((i) => {
                     const c = checks.get(i.id);
@@ -213,28 +213,33 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                     const fout = !!mislukt[i.id];
                     const bron = soort === 'pakken' ? diepsteBron(i, items) : null;
                     const uitleg = (
-                      <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
                         <span className="inline-flex items-center gap-2">
                           <VulPeil procent={peilBlokjes(i.vulnorm)} label={aanvulTekst(i.vulnorm)} />
                           <span className="text-[13px] font-medium text-foreground">{peilKort(i.vulnorm)}</span>
                         </span>
-                        <span className="inline-flex items-center gap-1">
-                          <span>Te weinig:</span>
-                          <span className={cn('rounded-full px-2 py-px text-[12px] font-medium', soort === 'pakken' ? 'bg-muted text-foreground/80' : 'bg-primary/10 text-primary')}>
-                            {herkomstLabel(soort, ketenKortLabel(i, items))}
-                          </span>
+                        <span className="text-muted-foreground/60" aria-hidden>·</span>
+                        <span className={cn('text-[13px]', soort === 'pakken' ? 'text-muted-foreground' : 'font-medium text-primary')}>
+                          {herkomstLabel(soort, ketenKortLabel(i, items))}
                         </span>
                       </span>
                     );
+                    const naam = /flessen/i.test(g.titel) ? i.naam.replace(/\s*\(fles\)\s*$/i, '') : i.naam;
                     return (
-                      <li key={i.id} className="flex items-center gap-1.5 border-b border-border py-1 sm:gap-3">
+                      <li
+                        key={i.id}
+                        className={cn(
+                          'flex items-center gap-1.5 rounded-[14px] border px-2 py-1 transition-colors sm:gap-3',
+                          afgevinkt ? 'border-transparent bg-muted/40' : doorgezet ? 'border-warning/30 bg-warning/5' : 'border-border bg-card',
+                        )}
+                      >
                         <button
                           type="button"
                           aria-label={`${i.naam} afvinken`}
                           aria-pressed={afgevinkt}
                           disabled={laden || !!doorgezet}
                           onClick={() => vink(i)}
-                          className="-ml-3 flex h-11 w-11 shrink-0 items-center justify-center sm:-ml-3"
+                          className="flex h-11 w-11 shrink-0 items-center justify-center"
                         >
                           <span
                             className={cn(
@@ -262,7 +267,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                               afgevinkt && 'text-muted-foreground line-through opacity-55',
                             )}
                           >
-                            {i.naam}
+                            {naam}
                           </p>
                           <div className="mt-0.5 text-[13px] leading-snug text-muted-foreground">
                             {doorgezet
