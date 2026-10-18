@@ -24,10 +24,18 @@ interface Groep {
   items: KoelcelCheckItem[];
 }
 
+/** Wat er onder de regel staat nadat je hebt doorgezet. */
 const UITKOMST: Record<string, string> = {
   mep: 'Op de MEP voor morgen',
-  bestelbord: 'Op het bestelbord',
-  midsland: 'Op de bestellijst Midsland',
+  bestelbord: 'Bijbesteld · op het bestelbord',
+  midsland: 'Bijbesteld · op de bestellijst Midsland',
+};
+
+/** Wat de groene melding zegt na je tik. */
+const BEVESTIG: Record<string, string> = {
+  mep: 'staat op de MEP',
+  bestelbord: 'is bijbesteld · op het bestelbord',
+  midsland: 'is bijbesteld · op de bestellijst Midsland',
 };
 
 function isVrijdag(datum: string) {
@@ -139,7 +147,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
       item.id,
       async () => {
         const r = await bronOp.mutateAsync({ item, taakDatum });
-        toast.success(`${r.bronItem.naam}: ${(UITKOMST[r.bestemming.soort] ?? 'gemeld').toLowerCase()}`);
+        toast.success(`${r.bronItem.naam} ${BEVESTIG[r.bestemming.soort] ?? 'is gemeld'}`);
       },
       () => op(item),
     );
