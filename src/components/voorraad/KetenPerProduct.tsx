@@ -82,7 +82,7 @@ export function KetenPerProduct({ vestiging }: { vestiging: string }) {
       <div>
         <h2 className="text-base font-semibold text-foreground">Keten per product</h2>
         <p className="text-sm text-muted-foreground">
-          Bepaalt de knop in de sluitronde: pakken uit de keten geeft "Bron op", snijden of maken geeft "Naar MEP".
+          Bepaalt de knop in de sluitronde: pakken uit de keten geeft "Bijbestellen", snijden of maken geeft "Naar MEP".
         </p>
       </div>
       <div className="relative">
