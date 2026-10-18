@@ -260,83 +260,87 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
           />
 
 
-          <div className="mt-2 space-y-2">
-        {BAIN_MARIE_PRODUCTEN.map((p) => {
-          const bak = bakVan(p.sleutel);
-          const afgeslotenBak = !bak ? weggegooid.get(p.sleutel) : undefined;
-          const wasOp = afgeslotenBak?.reden === 'op';
-          const toonZakVraag = zakVraag === p.sleutel;
-          return (
-            <div
-              key={p.sleutel}
-              className={`rounded-[14px] border px-3 py-2.5 transition-colors ${bak ? 'border-primary/30 bg-primary/5' : 'border-border bg-card'}`}
-            >
-              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                <div className="flex min-w-0 items-center gap-2.5">
-                  <span
-                    className={`flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-md border-2 ${bak ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/40'}`}
-                    aria-hidden
-                  >
-                    {bak && <Check size={16} strokeWidth={3} />}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="text-[16px] font-semibold text-foreground">{p.naam}</div>
-                    <div className="mt-0.5">
+         <div className="divide-y divide-border">
+            {BAIN_MARIE_PRODUCTEN.map((p) => {
+              const bak = bakVan(p.sleutel);
+              const afgeslotenBak = !bak ? weggegooid.get(p.sleutel) : undefined;
+              const wasOp = afgeslotenBak?.reden === 'op';
+              const toonZakVraag = zakVraag === p.sleutel;
+              return (
+                <div key={p.sleutel} className="py-2.5">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-2" style={{ minHeight: 56 }}>
+                    <span
+                      aria-hidden
+                      className={cn(
+                        'flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[6px] border-2 transition-colors sm:h-6 sm:w-6',
+                        bak
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-border bg-background',
+                      )}
+                    >
+                      {bak && <Check size={14} strokeWidth={3} />}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div
+                        className={cn(
+                          'text-[16px] font-medium',
+                          bak ? 'text-muted-foreground line-through' : 'text-foreground',
+                        )}
+                      >
+                        {p.naam}
+                      </div>
                       {afgeslotenBak && !bak ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[12px] font-semibold text-muted-foreground">
+                        <span className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[12px] font-semibold text-muted-foreground">
                           <Trash2 size={12} /> {wasOp ? 'was op' : 'weggegooid'}
                         </span>
                       ) : (
                         statusRegel(bak, datum)
                       )}
                     </div>
+                    <div className="flex w-full flex-wrap gap-1.5 md:ml-auto md:w-auto md:shrink-0 md:justify-end">
+                      {dagOpties.map(({ offset, iso }) => {
+                        const gekozen = bak?.start_datum === iso;
+                        return (
+                          <button
+                            key={offset}
+                            type="button"
+                            disabled={zetStart.isPending}
+                            onClick={() => {
+                              if (offset === 0 && p.heeftVriesZak) {
+                                // Nieuwe zak geopend → nieuwe bak: eerst de zak-datum vragen.
+                                setZakVraag(toonZakVraag ? null : p.sleutel);
+                                return;
+                              }
+                              setZakVraag(null);
+                              zetStart.mutate({
+                                product: p.sleutel,
+                                productNaam: p.naam,
+                                startDatum: iso,
+                                nieuw: offset === 0,
+                                houdbaarheidDagen: p.houdbaarheid,
+                              });
+                            }}
+                            className={dagKnopStijl(gekozen)}
+                            style={{ minHeight: 44, minWidth: 44 }}
+                          >
+                            {offset === 0 ? 'Vandaag' : dagKort(iso)}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
+
+                  {toonZakVraag && (
+                    <ZakDatumKiezer
+                      datum={datum}
+                      bezig={zetStart.isPending}
+                      onKies={(iso) => startNieuw(p, iso)}
+                      onAnnuleer={() => setZakVraag(null)}
+                    />
+                  )}
                 </div>
-              <div className="flex flex-wrap gap-1.5 md:justify-end">
-                {dagOpties.map(({ offset, iso }) => {
-                  const gekozen = bak?.start_datum === iso;
-                  return (
-                    <button
-                      key={offset}
-                      type="button"
-                      disabled={zetStart.isPending}
-                      onClick={() => {
-                        if (offset === 0 && p.heeftVriesZak) {
-                          // Nieuwe zak geopend → nieuwe bak: eerst de zak-datum vragen.
-                          setZakVraag(toonZakVraag ? null : p.sleutel);
-                          return;
-                        }
-                        setZakVraag(null);
-                        zetStart.mutate({
-                          product: p.sleutel,
-                          productNaam: p.naam,
-                          startDatum: iso,
-                          nieuw: offset === 0,
-                          houdbaarheidDagen: p.houdbaarheid,
-                        });
-                      }}
-                      className={dagKnopStijl(gekozen)}
-                      style={{ minHeight: 44, minWidth: 44 }}
-                    >
-                      {offset === 0 ? 'Vandaag' : dagKort(iso)}
-                    </button>
-                  );
-                })}
-              </div>
-              </div>
-
-
-              {toonZakVraag && (
-                <ZakDatumKiezer
-                  datum={datum}
-                  bezig={zetStart.isPending}
-                  onKies={(iso) => startNieuw(p, iso)}
-                  onAnnuleer={() => setZakVraag(null)}
-                />
-              )}
-            </div>
-          );
-        })}
+              );
+            })}
           </div>
         </>
       )}
