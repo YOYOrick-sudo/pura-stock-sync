@@ -679,24 +679,21 @@ function CategorieBlok({
   const geteldAantal = items.filter((i) => telling[i.id] !== undefined).length;
 
   return (
-    <div className="rounded-[14px] border border-border bg-muted/20 p-2.5 sm:rounded-[18px] sm:p-3">
-      <div className="sticky top-[calc(58px+env(safe-area-inset-top,0px))] z-10 -mx-2.5 -mt-2.5 mb-2 flex min-h-12 items-center justify-between gap-2 rounded-t-[14px] border-b border-border/60 bg-muted px-3 py-2.5 backdrop-blur sm:-mx-3 sm:-mt-3 sm:rounded-t-[18px]">
-        <div className="flex min-w-0 items-center gap-2">
-          {lade && <LadePositie lade={lade} metNaam={false} className="shrink-0" />}
-          <div className="min-w-0">
-            <h4 className="truncate text-[15px] font-bold text-foreground">{titel}</h4>
-            {subtitel && (
-              <p className="truncate text-[11px] uppercase tracking-wide text-muted-foreground">{subtitel}</p>
-            )}
-          </div>
-        </div>
-        <Badge variant="secondary" className="shrink-0 text-[11px] tabular-nums">
+    <div style={{ marginBottom: '24px' }}>
+      <h3 className="sticky top-[calc(58px+env(safe-area-inset-top,0px))] z-10 mb-3 flex items-center gap-2 bg-background/95 py-1 text-[13px] font-semibold uppercase tracking-[0.05em] text-muted-foreground backdrop-blur">
+        {lade && <LadePositie lade={lade} metNaam={false} className="shrink-0" />}
+        <span className="truncate">
+          {titel}
+          {subtitel ? ` · ${subtitel}` : ''}
+        </span>
+        <span className="rounded bg-muted-foreground/10 px-1.5 py-0.5 text-[11px] font-medium normal-case tracking-normal text-muted-foreground">
           {geteldAantal}/{items.length}
-        </Badge>
-      </div>
+        </span>
+      </h3>
 
-      <div className="grid gap-2 md:grid-cols-2">
+      <ul className="space-y-1.5">
         {items.map((item) => (
+          <li key={item.id}>
           <TelRegel
             key={item.id}
             item={item}
