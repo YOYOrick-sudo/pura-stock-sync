@@ -395,15 +395,15 @@ function TelRegel({
   // expliciet of de levering is aangekomen. Overslaan = niets doen.
   if (onderweg > 0 && !afwijkend) {
     return (
-      <div className="space-y-2 rounded-[14px] border border-amber-400/70 bg-amber-50/70 p-3 dark:bg-amber-500/10">
-        <div className="flex items-center gap-2">
-          {kopRegel}
-          <span className="ml-auto flex shrink-0 items-center gap-1.5">
-            {statusChip}
-            <Truck size={18} className="shrink-0 text-amber-600 dark:text-amber-300" />
+      <div className="rounded-[14px] border border-warning/30 bg-warning/5 px-2 py-1">
+        <div className="flex items-center gap-1.5 sm:gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center">
+            <Truck size={18} className="text-amber-600 dark:text-amber-300" />
           </span>
+          <div className="min-w-0 flex-1 py-1.5">{kopRegel}</div>
+          {statusChip}
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2 px-2 pb-2">
           <button
             type="button"
             onClick={() => onZet(doel)}
