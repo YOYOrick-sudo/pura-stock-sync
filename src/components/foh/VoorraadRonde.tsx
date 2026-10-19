@@ -363,8 +363,14 @@ function TelRegel({
     : null;
   const kopRegel = (
     <span className="min-w-0">
-      <span className="block truncate text-[15px] font-semibold text-foreground">{item.naam}</span>
-      <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground">
+      <span
+        className={`block truncate text-[16px] font-medium leading-snug ${
+          afwijkend ? 'text-muted-foreground line-through opacity-55' : 'text-foreground'
+        }`}
+      >
+        {item.naam}
+      </span>
+      <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[13px] leading-snug text-muted-foreground">
         <span className="truncate">
           {reserve
             ? `reserve ${getalLabel(doel)} ${doel === 1 ? 'bakje' : 'bakjes'}`
