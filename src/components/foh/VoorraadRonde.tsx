@@ -495,28 +495,31 @@ function TelRegel({
 
   return (
     <div
-      className={`rounded-[14px] border transition-colors ${
-        afwijkend ? 'border-amber-400/70 bg-amber-50/70 dark:bg-amber-500/10' : 'border-border bg-card'
+      className={`rounded-[14px] border px-2 py-1 transition-colors ${
+        afwijkend ? 'border-warning/30 bg-warning/5' : 'border-border bg-card'
       }`}
     >
-      <button
-        type="button"
-        onClick={() => (afwijkend ? onHerstel() : onZet(Math.max(waarde - 1, 0)))}
-        className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
-        style={{ minHeight: 56 }}
-      >
-        {kopRegel}
-        <span className="flex shrink-0 items-center gap-2">
-          {statusChip}
+      <div className="flex items-center gap-1.5 sm:gap-3">
+        <button
+          type="button"
+          aria-label={`${item.naam} tellen`}
+          aria-pressed={afwijkend}
+          onClick={() => (afwijkend ? onHerstel() : onZet(Math.max(waarde - 1, 0)))}
+          className="flex h-11 w-11 shrink-0 items-center justify-center"
+        >
           <span
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[15px] font-bold tabular-nums ${
-              afwijkend ? 'bg-amber-400/20 text-amber-700 dark:text-amber-300' : 'bg-muted text-muted-foreground'
+            className={`flex h-[26px] w-[26px] items-center justify-center rounded-[6px] border-2 bg-background transition-colors sm:h-6 sm:w-6 ${
+              afwijkend
+                ? 'border-muted-foreground/30 bg-muted-foreground/15 text-muted-foreground'
+                : 'border-border'
             }`}
           >
-            {afwijkend ? <Check size={18} /> : <Minus size={18} />}
+            {afwijkend && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
           </span>
-        </span>
-      </button>
+        </button>
+        <div className="min-w-0 flex-1 py-1.5">{kopRegel}</div>
+        {statusChip}
+      </div>
 
       {afwijkend && (
         <div className="space-y-2 border-t border-amber-400/40 px-3 py-2">
