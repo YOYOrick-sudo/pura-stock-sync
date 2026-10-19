@@ -1477,23 +1477,12 @@ export function VoorraadRonde({
             const klaarHier = telGroepen.filter((g) => bevestigd.includes(g.sleutel)).length;
             return (
               <div key={p.plek}>
-                <div className="sticky top-[env(safe-area-inset-top,0px)] z-10 mb-3 rounded-[14px] border border-border bg-card/95 px-3 py-2.5 backdrop-blur">
-                  <div className="flex items-center gap-2.5">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      <PlekIcoon size={20} />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                        Loop nu langs
-                      </span>
-                      <span className="block truncate text-[18px] font-bold leading-tight text-foreground">
-                        {p.titel}
-                      </span>
-                    </span>
-                    <span className="ml-auto shrink-0 rounded-full bg-muted px-2.5 py-1 text-[12px] font-semibold tabular-nums text-muted-foreground">
-                      {klaarHier}/{telGroepen.length}
-                    </span>
-                  </div>
+                <div className="sticky top-[env(safe-area-inset-top,0px)] z-10 mb-3 flex items-center gap-2 border-b border-border bg-background/95 py-2 backdrop-blur">
+                  <PlekIcoon size={18} className="shrink-0 text-primary" />
+                  <span className="truncate text-[16px] font-semibold text-foreground">{p.titel}</span>
+                  <span className="ml-auto shrink-0 rounded bg-muted-foreground/10 px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-muted-foreground">
+                    {klaarHier}/{telGroepen.length}
+                  </span>
                 </div>
                 <div className="space-y-2">
                   {p.groepen.map((g) => (
