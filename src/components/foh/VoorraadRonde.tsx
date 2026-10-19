@@ -1462,7 +1462,7 @@ export function VoorraadRonde({
 
     // ---------- Tellen ----------
     return (
-      <div className="mt-2 bg-card px-0 py-2 sm:rounded-[18px] sm:border sm:border-border sm:p-4">
+      <div className="mt-2">
         <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-muted sm:mb-4">
           <div
             className="h-full rounded-full bg-primary transition-all"
