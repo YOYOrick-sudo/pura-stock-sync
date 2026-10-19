@@ -694,26 +694,26 @@ function CategorieBlok({
       <ul className="space-y-1.5">
         {items.map((item) => (
           <li key={item.id}>
-          <TelRegel
-            key={item.id}
-            item={item}
-            doel={telDoel(item, drukte)}
-            modus={telModus(item)}
-            geteld={telling[item.id]}
-            onderweg={onderwegVoorItem(item, onderwegMap)}
-            opBestelbord={(bestelbordMap[item.naam.trim().toLowerCase()] ?? 0) > 0}
-            inMep={mepTitels.some((t) => t.includes(item.naam.trim().toLowerCase()))}
-            keten={KETEN_PLEKKEN.includes(item.plek) ? ketenKortLabel(item, alleItems) : null}
-            tekortActie={
-              vervolgactieVoorRegel(item, alleItems).soort === 'niveau' ? 'bijvullen' : 'mep'
-            }
-            startWaarde={lade?.rol === 'reserve' ? 0 : undefined}
-            afgeleid={afgeleideTelling?.[item.id] ?? null}
-            onZet={(a) => onZet(item.id, a)}
-            onHerstel={() => onHerstel(item.id)}
-          />
+            <TelRegel
+              item={item}
+              doel={telDoel(item, drukte)}
+              modus={telModus(item)}
+              geteld={telling[item.id]}
+              onderweg={onderwegVoorItem(item, onderwegMap)}
+              opBestelbord={(bestelbordMap[item.naam.trim().toLowerCase()] ?? 0) > 0}
+              inMep={mepTitels.some((t) => t.includes(item.naam.trim().toLowerCase()))}
+              keten={KETEN_PLEKKEN.includes(item.plek) ? ketenKortLabel(item, alleItems) : null}
+              tekortActie={
+                vervolgactieVoorRegel(item, alleItems).soort === 'niveau' ? 'bijvullen' : 'mep'
+              }
+              startWaarde={lade?.rol === 'reserve' ? 0 : undefined}
+              afgeleid={afgeleideTelling?.[item.id] ?? null}
+              onZet={(a) => onZet(item.id, a)}
+              onHerstel={() => onHerstel(item.id)}
+            />
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
