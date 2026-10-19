@@ -431,14 +431,25 @@ function TelRegel({
     const tekort = afwijkend && waarde < doel - 0.001;
     return (
       <div
-        className={`rounded-[14px] border bg-card p-3 transition-colors ${
-          tekort ? 'border-amber-400/50' : 'border-border'
+        className={`rounded-[14px] border px-2 py-1 transition-colors ${
+          tekort ? 'border-warning/30 bg-warning/5' : afwijkend ? 'border-transparent bg-muted/40' : 'border-border bg-card'
         }`}
       >
-        <div className="mb-2 flex items-center gap-2">
-          {kopRegel}
+        <div className="flex items-center gap-1.5 sm:gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center">
+            <span
+              className={`flex h-[26px] w-[26px] items-center justify-center rounded-[6px] border-2 transition-colors sm:h-6 sm:w-6 ${
+                afwijkend
+                  ? 'border-muted-foreground/30 bg-muted-foreground/15 text-muted-foreground'
+                  : 'border-border bg-background'
+              }`}
+            >
+              {afwijkend && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+            </span>
+          </span>
+          <div className="min-w-0 flex-1 py-1.5">{kopRegel}</div>
           {(statusChip || tekort || afwijkend) && (
-            <span className="ml-auto flex shrink-0 items-center gap-1.5">
+            <span className="flex shrink-0 items-center gap-1.5">
               {statusChip}
               {tekort &&
                 (tekortActie === 'mep' ? (
@@ -458,7 +469,7 @@ function TelRegel({
             </span>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-1.5">
+        <div className="grid grid-cols-2 gap-2 px-2 pb-2 sm:grid-cols-4 sm:gap-1.5">
           {VUL_KEUZES.map((k) => {
             const actief = afwijkend && Math.abs(waarde - k.waarde) < 0.001;
             return (
