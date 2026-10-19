@@ -363,8 +363,14 @@ function TelRegel({
     : null;
   const kopRegel = (
     <span className="min-w-0">
-      <span className="block truncate text-[15px] font-semibold text-foreground">{item.naam}</span>
-      <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground">
+      <span
+        className={`block truncate text-[16px] font-medium leading-snug ${
+          afwijkend ? 'text-muted-foreground line-through opacity-55' : 'text-foreground'
+        }`}
+      >
+        {item.naam}
+      </span>
+      <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[13px] leading-snug text-muted-foreground">
         <span className="truncate">
           {reserve
             ? `reserve ${getalLabel(doel)} ${doel === 1 ? 'bakje' : 'bakjes'}`
@@ -389,15 +395,15 @@ function TelRegel({
   // expliciet of de levering is aangekomen. Overslaan = niets doen.
   if (onderweg > 0 && !afwijkend) {
     return (
-      <div className="space-y-2 rounded-[14px] border border-amber-400/70 bg-amber-50/70 p-3 dark:bg-amber-500/10">
-        <div className="flex items-center gap-2">
-          {kopRegel}
-          <span className="ml-auto flex shrink-0 items-center gap-1.5">
-            {statusChip}
-            <Truck size={18} className="shrink-0 text-amber-600 dark:text-amber-300" />
+      <div className="rounded-[14px] border border-warning/30 bg-warning/5 px-2 py-1">
+        <div className="flex items-center gap-1.5 sm:gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center">
+            <Truck size={18} className="text-amber-600 dark:text-amber-300" />
           </span>
+          <div className="min-w-0 flex-1 py-1.5">{kopRegel}</div>
+          {statusChip}
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2 px-2 pb-2">
           <button
             type="button"
             onClick={() => onZet(doel)}
@@ -425,14 +431,25 @@ function TelRegel({
     const tekort = afwijkend && waarde < doel - 0.001;
     return (
       <div
-        className={`rounded-[14px] border bg-card p-3 transition-colors ${
-          tekort ? 'border-amber-400/50' : 'border-border'
+        className={`rounded-[14px] border px-2 py-1 transition-colors ${
+          tekort ? 'border-warning/30 bg-warning/5' : afwijkend ? 'border-transparent bg-muted/40' : 'border-border bg-card'
         }`}
       >
-        <div className="mb-2 flex items-center gap-2">
-          {kopRegel}
+        <div className="flex items-center gap-1.5 sm:gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center">
+            <span
+              className={`flex h-[26px] w-[26px] items-center justify-center rounded-[6px] border-2 transition-colors sm:h-6 sm:w-6 ${
+                afwijkend
+                  ? 'border-muted-foreground/30 bg-muted-foreground/15 text-muted-foreground'
+                  : 'border-border bg-background'
+              }`}
+            >
+              {afwijkend && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+            </span>
+          </span>
+          <div className="min-w-0 flex-1 py-1.5">{kopRegel}</div>
           {(statusChip || tekort || afwijkend) && (
-            <span className="ml-auto flex shrink-0 items-center gap-1.5">
+            <span className="flex shrink-0 items-center gap-1.5">
               {statusChip}
               {tekort &&
                 (tekortActie === 'mep' ? (
@@ -452,7 +469,7 @@ function TelRegel({
             </span>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-1.5">
+        <div className="grid grid-cols-2 gap-2 px-2 pb-2 sm:grid-cols-4 sm:gap-1.5">
           {VUL_KEUZES.map((k) => {
             const actief = afwijkend && Math.abs(waarde - k.waarde) < 0.001;
             return (
@@ -478,28 +495,31 @@ function TelRegel({
 
   return (
     <div
-      className={`rounded-[14px] border transition-colors ${
-        afwijkend ? 'border-amber-400/70 bg-amber-50/70 dark:bg-amber-500/10' : 'border-border bg-card'
+      className={`rounded-[14px] border px-2 py-1 transition-colors ${
+        afwijkend ? 'border-warning/30 bg-warning/5' : 'border-border bg-card'
       }`}
     >
-      <button
-        type="button"
-        onClick={() => (afwijkend ? onHerstel() : onZet(Math.max(waarde - 1, 0)))}
-        className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
-        style={{ minHeight: 56 }}
-      >
-        {kopRegel}
-        <span className="flex shrink-0 items-center gap-2">
-          {statusChip}
+      <div className="flex items-center gap-1.5 sm:gap-3">
+        <button
+          type="button"
+          aria-label={`${item.naam} tellen`}
+          aria-pressed={afwijkend}
+          onClick={() => (afwijkend ? onHerstel() : onZet(Math.max(waarde - 1, 0)))}
+          className="flex h-11 w-11 shrink-0 items-center justify-center"
+        >
           <span
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[15px] font-bold tabular-nums ${
-              afwijkend ? 'bg-amber-400/20 text-amber-700 dark:text-amber-300' : 'bg-muted text-muted-foreground'
+            className={`flex h-[26px] w-[26px] items-center justify-center rounded-[6px] border-2 bg-background transition-colors sm:h-6 sm:w-6 ${
+              afwijkend
+                ? 'border-muted-foreground/30 bg-muted-foreground/15 text-muted-foreground'
+                : 'border-border'
             }`}
           >
-            {afwijkend ? <Check size={18} /> : <Minus size={18} />}
+            {afwijkend && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
           </span>
-        </span>
-      </button>
+        </button>
+        <div className="min-w-0 flex-1 py-1.5">{kopRegel}</div>
+        {statusChip}
+      </div>
 
       {afwijkend && (
         <div className="space-y-2 border-t border-amber-400/40 px-3 py-2">
@@ -659,44 +679,41 @@ function CategorieBlok({
   const geteldAantal = items.filter((i) => telling[i.id] !== undefined).length;
 
   return (
-    <div className="rounded-[14px] border border-border bg-muted/20 p-2.5 sm:rounded-[18px] sm:p-3">
-      <div className="sticky top-[calc(58px+env(safe-area-inset-top,0px))] z-10 -mx-2.5 -mt-2.5 mb-2 flex min-h-12 items-center justify-between gap-2 rounded-t-[14px] border-b border-border/60 bg-muted px-3 py-2.5 backdrop-blur sm:-mx-3 sm:-mt-3 sm:rounded-t-[18px]">
-        <div className="flex min-w-0 items-center gap-2">
-          {lade && <LadePositie lade={lade} metNaam={false} className="shrink-0" />}
-          <div className="min-w-0">
-            <h4 className="truncate text-[15px] font-bold text-foreground">{titel}</h4>
-            {subtitel && (
-              <p className="truncate text-[11px] uppercase tracking-wide text-muted-foreground">{subtitel}</p>
-            )}
-          </div>
-        </div>
-        <Badge variant="secondary" className="shrink-0 text-[11px] tabular-nums">
+    <div style={{ marginBottom: '24px' }}>
+      <h3 className="sticky top-[calc(58px+env(safe-area-inset-top,0px))] z-10 mb-3 flex items-center gap-2 bg-background/95 py-1 text-[13px] font-semibold uppercase tracking-[0.05em] text-muted-foreground backdrop-blur">
+        {lade && <LadePositie lade={lade} metNaam={false} className="shrink-0" />}
+        <span className="truncate">
+          {titel}
+          {subtitel ? ` · ${subtitel}` : ''}
+        </span>
+        <span className="rounded bg-muted-foreground/10 px-1.5 py-0.5 text-[11px] font-medium normal-case tracking-normal text-muted-foreground">
           {geteldAantal}/{items.length}
-        </Badge>
-      </div>
+        </span>
+      </h3>
 
-      <div className="grid gap-2 md:grid-cols-2">
+      <ul className="space-y-1.5">
         {items.map((item) => (
-          <TelRegel
-            key={item.id}
-            item={item}
-            doel={telDoel(item, drukte)}
-            modus={telModus(item)}
-            geteld={telling[item.id]}
-            onderweg={onderwegVoorItem(item, onderwegMap)}
-            opBestelbord={(bestelbordMap[item.naam.trim().toLowerCase()] ?? 0) > 0}
-            inMep={mepTitels.some((t) => t.includes(item.naam.trim().toLowerCase()))}
-            keten={KETEN_PLEKKEN.includes(item.plek) ? ketenKortLabel(item, alleItems) : null}
-            tekortActie={
-              vervolgactieVoorRegel(item, alleItems).soort === 'niveau' ? 'bijvullen' : 'mep'
-            }
-            startWaarde={lade?.rol === 'reserve' ? 0 : undefined}
-            afgeleid={afgeleideTelling?.[item.id] ?? null}
-            onZet={(a) => onZet(item.id, a)}
-            onHerstel={() => onHerstel(item.id)}
-          />
+          <li key={item.id}>
+            <TelRegel
+              item={item}
+              doel={telDoel(item, drukte)}
+              modus={telModus(item)}
+              geteld={telling[item.id]}
+              onderweg={onderwegVoorItem(item, onderwegMap)}
+              opBestelbord={(bestelbordMap[item.naam.trim().toLowerCase()] ?? 0) > 0}
+              inMep={mepTitels.some((t) => t.includes(item.naam.trim().toLowerCase()))}
+              keten={KETEN_PLEKKEN.includes(item.plek) ? ketenKortLabel(item, alleItems) : null}
+              tekortActie={
+                vervolgactieVoorRegel(item, alleItems).soort === 'niveau' ? 'bijvullen' : 'mep'
+              }
+              startWaarde={lade?.rol === 'reserve' ? 0 : undefined}
+              afgeleid={afgeleideTelling?.[item.id] ?? null}
+              onZet={(a) => onZet(item.id, a)}
+              onHerstel={() => onHerstel(item.id)}
+            />
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
@@ -1445,7 +1462,7 @@ export function VoorraadRonde({
 
     // ---------- Tellen ----------
     return (
-      <div className="mt-2 bg-card px-0 py-2 sm:rounded-[18px] sm:border sm:border-border sm:p-4">
+      <div className="mt-2">
         <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-muted sm:mb-4">
           <div
             className="h-full rounded-full bg-primary transition-all"
@@ -1460,23 +1477,12 @@ export function VoorraadRonde({
             const klaarHier = telGroepen.filter((g) => bevestigd.includes(g.sleutel)).length;
             return (
               <div key={p.plek}>
-                <div className="sticky top-[env(safe-area-inset-top,0px)] z-10 mb-3 rounded-[14px] border border-border bg-card/95 px-3 py-2.5 backdrop-blur">
-                  <div className="flex items-center gap-2.5">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      <PlekIcoon size={20} />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                        Loop nu langs
-                      </span>
-                      <span className="block truncate text-[18px] font-bold leading-tight text-foreground">
-                        {p.titel}
-                      </span>
-                    </span>
-                    <span className="ml-auto shrink-0 rounded-full bg-muted px-2.5 py-1 text-[12px] font-semibold tabular-nums text-muted-foreground">
-                      {klaarHier}/{telGroepen.length}
-                    </span>
-                  </div>
+                <div className="sticky top-[env(safe-area-inset-top,0px)] z-10 mb-3 flex items-center gap-2 border-b border-border bg-background/95 py-2 backdrop-blur">
+                  <PlekIcoon size={18} className="shrink-0 text-primary" />
+                  <span className="truncate text-[16px] font-semibold text-foreground">{p.titel}</span>
+                  <span className="ml-auto shrink-0 rounded bg-muted-foreground/10 px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-muted-foreground">
+                    {klaarHier}/{telGroepen.length}
+                  </span>
                 </div>
                 <div className="space-y-2">
                   {p.groepen.map((g) => (
