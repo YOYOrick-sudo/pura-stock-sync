@@ -1,13 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { nl } from 'date-fns/locale';
-import {
-  Printer,
-  Check,
-  AlertTriangle,
-  Trash2,
-  X,
-  Calendar as CalendarIcon,
-} from 'lucide-react';
+import { Printer, Check, Trash2, Calendar as CalendarIcon, PackageOpen } from 'lucide-react';
 import { SectieBalk } from './SectieBalk';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -19,10 +12,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { buildStickerOmschrijving } from '@/lib/labelZpl';
 import {
   BAIN_MARIE_PRODUCTEN,
   bakStatus,
-  dagKort,
   houdbaarheidVan,
   isoDatum,
   useBainMarieBakken,
@@ -33,15 +27,15 @@ import {
   type BainMarieSleutel,
 } from '@/hooks/useBainMarie';
 import { useCreateStickerPrintJob } from '@/hooks/useStickerProducten';
-import { InfoKnop } from './InfoKnop';
 
-/** Datum op de sticker, zelfde formaat als de bestaande keukenstickers: "do 17/09". */
-function stickerDatum(iso: string): string {
+type Product = (typeof BAIN_MARIE_PRODUCTEN)[number];
+
+/** Datum met dag erbij, bv. "do 22/10". */
+export function korteDatum(iso: string): string {
   const d = new Date(`${iso}T12:00:00`);
   if (Number.isNaN(d.getTime())) return iso;
-  return d
-    .toLocaleDateString('nl-NL', { weekday: 'short', day: '2-digit', month: '2-digit' })
-    .replace('.', '');
+  const dag = d.toLocaleDateString('nl-NL', { weekday: 'short' }).replace('.', '');
+  return `${dag} ${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
 function plusDagen(iso: string, n: number): string {
@@ -50,13 +44,18 @@ function plusDagen(iso: string, n: number): string {
   return isoDatum(d);
 }
 
-/** Status: "Houdbaar t/m za" + rustige houdbaarheidsmeter + "nog 2 dagen". */
+const maxVan = (bak: BainMarieBak) =>
+  Math.max(Number(bak.houdbaarheid_dagen) || houdbaarheidVan(bak.product), 1);
+
+const zakWoord = (p: Product) => (p.heeftVriesZak ? 'zak' : 'bak');
+
+/** "Geopend za 24/10 · t/m wo 28/10" + meter + "nog 4 dagen". */
 function statusRegel(bak: BainMarieBak | undefined, vandaagIso: string) {
   const s = bakStatus(bak, vandaagIso);
-  if (s.status === 'geen') {
-    return <span className="text-[13px] text-muted-foreground/70">Geen bak</span>;
+  if (s.status === 'geen' || !bak) {
+    return <span className="text-[13px] text-muted-foreground/70">Geen bak open</span>;
   }
-  const max = Math.max(Number(bak?.houdbaarheid_dagen) || houdbaarheidVan(bak!.product), 1);
+  const max = maxVan(bak);
   const dagNr = Math.max(1, Number(s.dagNr) || 1);
   const totIso = plusDagen(s.startDatum!, max - 1);
   const over = Math.max(0, max - dagNr);
@@ -73,7 +72,8 @@ function statusRegel(bak: BainMarieBak | undefined, vandaagIso: string) {
   return (
     <span className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px]">
       <span className="text-muted-foreground">
-        Houdbaar t/m <span className="font-semibold text-foreground">{dagKort(totIso)}</span>
+        Geopend <span className="font-semibold text-foreground">{korteDatum(s.startDatum!)}</span>
+        {' · '}t/m <span className="font-semibold text-foreground">{korteDatum(totIso)}</span>
       </span>
       <span className="relative h-1.5 w-20 overflow-hidden rounded-full bg-muted" aria-hidden>
         <span
@@ -86,583 +86,390 @@ function statusRegel(bak: BainMarieBak | undefined, vandaagIso: string) {
   );
 }
 
-/** Info-icoon boven de lijst, zodat de balk zelf rustig blijft. */
-function Uitleg({ titel, tekst, stand }: { titel: string; tekst: string; stand: string }) {
+const knopBasis =
+  'flex shrink-0 items-center gap-1.5 rounded-full px-4 text-[13px] font-semibold transition-colors disabled:opacity-60';
+const knopNeutraal = `${knopBasis} bg-muted/60 text-foreground hover:bg-muted`;
+const knopPrimair = `${knopBasis} bg-primary/10 text-primary hover:bg-primary/15`;
+
+function Vakje({ aan, zwak }: { aan: boolean; zwak?: boolean }) {
   return (
-    <div className="mb-2 flex items-center gap-2">
-      <span className="text-[12px] text-muted-foreground">{stand}</span>
-      <InfoKnop tekst={tekst} label={`Uitleg ${titel}`} />
-    </div>
-  );
-}
-
-const dagKnopBasis =
-  'rounded-full px-4 text-[13px] font-semibold transition-colors disabled:opacity-60';
-const dagKnopStijl = (gekozen: boolean) =>
-  gekozen
-    ? `${dagKnopBasis} bg-primary text-primary-foreground shadow-sm`
-    : `${dagKnopBasis} bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground`;
-
-/**
- * Datum op de ontdooi-sticker van de zak: drie snelknoppen plus een kalender
- * die onbeperkt terug kan. Gebruikt bij een nieuwe bak, zowel 's ochtends als
- * bij een correctie in de sluitlijst.
- */
-function ZakDatumKiezer({
-  datum,
-  bezig,
-  onKies,
-  onAnnuleer,
-}: {
-  datum: string;
-  bezig?: boolean;
-  onKies: (iso: string) => void;
-  onAnnuleer?: () => void;
-}) {
-  const [kalenderOpen, setKalenderOpen] = useState(false);
-  const opties = [
-    { offset: 0, label: 'Vandaag' },
-    { offset: 1, label: 'Gisteren' },
-    { offset: 2, label: 'Eergisteren' },
-  ].map(({ offset, label }) => {
-    const d = new Date(`${datum}T12:00:00`);
-    d.setDate(d.getDate() - offset);
-    return { offset, label, iso: isoDatum(d) };
-  });
-
-  return (
-    <div className="mt-2 rounded-[14px] bg-primary/5 p-3">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-[13px] font-semibold text-foreground">
-          Datum op de zak?{' '}
-          <span className="font-normal text-muted-foreground">(ontdooi-sticker)</span>
-        </span>
-        {onAnnuleer && (
-          <button
-            type="button"
-            aria-label="Annuleren"
-            onClick={onAnnuleer}
-            className="flex items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
-            style={{ minHeight: 44, minWidth: 44 }}
-          >
-            <X size={16} />
-          </button>
-        )}
-      </div>
-      <div className="flex flex-wrap items-center gap-1.5">
-        {opties.map(({ offset, iso, label }) => (
-          <button
-            key={offset}
-            type="button"
-            disabled={bezig}
-            onClick={() => onKies(iso)}
-            className={dagKnopStijl(false)}
-            style={{ minHeight: 44, minWidth: 44 }}
-          >
-            {label}
-          </button>
-        ))}
-        <Popover open={kalenderOpen} onOpenChange={setKalenderOpen}>
-          <PopoverTrigger asChild>
-            <button
-              type="button"
-              disabled={bezig}
-              className={`${dagKnopStijl(false)} flex items-center gap-1.5`}
-              style={{ minHeight: 44, minWidth: 44 }}
-            >
-              <CalendarIcon size={15} />
-              Andere datum
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              locale={nl}
-              weekStartsOn={1}
-              defaultMonth={new Date(`${datum}T12:00:00`)}
-              disabled={{ after: new Date(`${datum}T12:00:00`) }}
-              onSelect={(d) => {
-                if (!d) return;
-                setKalenderOpen(false);
-                onKies(isoDatum(d));
-              }}
-              className={cn('p-3 pointer-events-auto')}
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Ochtendblok (Open-lijst West, keuken): noteer per product welke datum op de
- * bak staat. Eén tik, geen typen. Niets tikken = vandaag geen bak.
- * Bij "Vandaag (nieuw)" op een zak-product volgt één extra vraag: de datum
- * op de ontdooi-sticker van de zak.
- */
-export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: string }) {
-  const bakkenQuery = useBainMarieBakken(vestiging);
-  const weggegooidQuery = useBainMarieWeggegooid(vestiging);
-  const zetStart = useZetBainMarieStart(vestiging);
-  const bakken = bakkenQuery.data ?? [];
-  const weggegooid = weggegooidQuery.data ?? new Map<string, BainMarieBak>();
-
-  /** Product waarvan de zak-datum nog gevraagd moet worden (na tik op "Vandaag"). */
-  const [zakVraag, setZakVraag] = useState<BainMarieSleutel | null>(null);
-
-  const bakVan = (sleutel: BainMarieSleutel) => bakken.find((b) => b.product === sleutel);
-
-  /** Dagnaam-knoppen: vandaag + de 4 dagen ervoor (leesbaar van de sticker). */
-  const dagOpties = Array.from({ length: 5 }, (_, offset) => {
-    const d = new Date(`${datum}T12:00:00`);
-    d.setDate(d.getDate() - offset);
-    return { offset, iso: isoDatum(d) };
-  });
-
-
-
-  const startNieuw = (p: (typeof BAIN_MARIE_PRODUCTEN)[number], ontdooidDatum: string | null) => {
-    zetStart.mutate(
-      {
-        product: p.sleutel,
-        productNaam: p.naam,
-        startDatum: datum,
-        nieuw: true,
-        houdbaarheidDagen: p.houdbaarheid,
-        ontdooidDatum,
-      },
-      { onSettled: () => setZakVraag(null) },
-    );
-  };
-
-  const totaal = BAIN_MARIE_PRODUCTEN.length;
-  const genoteerd = BAIN_MARIE_PRODUCTEN.filter(
-    (p) => bakVan(p.sleutel) || weggegooid.has(p.sleutel),
-  ).length;
-  const afgerond = genoteerd === totaal;
-  const open = true;
-
-  return (
-    <div style={{ marginBottom: '32px' }}>
-      <SectieBalk
-        titel="Au bain-marie"
-        stand={afgerond ? 'afgerond' : `${genoteerd}/${totaal}`}
-        afgerond={afgerond}
-      />
-
-      {open && (
-        <>
-          <Uitleg
-            titel="Au bain-marie"
-            stand={afgerond ? 'Alle bakken genoteerd' : `Welke dag staat op de bak? · ${genoteerd}/${totaal}`}
-            tekst="Tik per product de dag die op de bak staat, zoals op de sticker van de vorige dienst. Is de bak van vandaag (nieuw gestart vanuit een zak)? Tik “Vandaag” — bij Kip vragen we daarna de datum op de zak. Gaat de bak vandaag niet mee of is hij op? Tik dan niets. Tussendoor een nieuwe zak opengemaakt? Tik opnieuw “Vandaag”."
-          />
-
-
-         <div className="divide-y divide-border">
-            {BAIN_MARIE_PRODUCTEN.map((p) => {
-              const bak = bakVan(p.sleutel);
-              const afgeslotenBak = !bak ? weggegooid.get(p.sleutel) : undefined;
-              const wasOp = afgeslotenBak?.reden === 'op';
-              const toonZakVraag = zakVraag === p.sleutel;
-              return (
-                <div key={p.sleutel} className="py-2.5">
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-2" style={{ minHeight: 56 }}>
-                    <span
-                      aria-hidden
-                      className={cn(
-                        'flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[6px] border-2 transition-colors sm:h-6 sm:w-6',
-                        bak
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-border bg-background',
-                      )}
-                    >
-                      {bak && <Check size={14} strokeWidth={3} />}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div
-                        className={cn(
-                          'text-[16px] font-medium',
-                          bak ? 'text-muted-foreground line-through' : 'text-foreground',
-                        )}
-                      >
-                        {p.naam}
-                      </div>
-                      {afgeslotenBak && !bak ? (
-                        <span className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[12px] font-semibold text-muted-foreground">
-                          <Trash2 size={12} /> {wasOp ? 'was op' : 'weggegooid'}
-                        </span>
-                      ) : (
-                        statusRegel(bak, datum)
-                      )}
-                    </div>
-                    <div className="flex w-full flex-wrap gap-1.5 md:ml-auto md:w-auto md:shrink-0 md:justify-end">
-                      {dagOpties.map(({ offset, iso }) => {
-                        const gekozen = bak?.start_datum === iso;
-                        return (
-                          <button
-                            key={offset}
-                            type="button"
-                            disabled={zetStart.isPending}
-                            onClick={() => {
-                              if (offset === 0 && p.heeftVriesZak) {
-                                // Nieuwe zak geopend → nieuwe bak: eerst de zak-datum vragen.
-                                setZakVraag(toonZakVraag ? null : p.sleutel);
-                                return;
-                              }
-                              setZakVraag(null);
-                              zetStart.mutate({
-                                product: p.sleutel,
-                                productNaam: p.naam,
-                                startDatum: iso,
-                                nieuw: offset === 0,
-                                houdbaarheidDagen: p.houdbaarheid,
-                              });
-                            }}
-                            className={dagKnopStijl(gekozen)}
-                            style={{ minHeight: 44, minWidth: 44 }}
-                          >
-                            {offset === 0 ? 'Vandaag' : dagKort(iso)}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {toonZakVraag && (
-                    <ZakDatumKiezer
-                      datum={datum}
-                      bezig={zetStart.isPending}
-                      onKies={(iso) => startNieuw(p, iso)}
-                      onAnnuleer={() => setZakVraag(null)}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </>
+    <span
+      aria-hidden
+      className={cn(
+        'flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[6px] border-2 transition-colors sm:h-6 sm:w-6',
+        aan ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background',
+        zwak && 'opacity-40',
       )}
-    </div>
+    >
+      {aan && <Check size={14} strokeWidth={3} />}
+    </span>
   );
 }
 
 /**
- * Avondblok (Sluitlijst West, keuken): print de sticker voor de plastic
- * koelbak. De app zet de juiste startdatum erop — de afsluiter hoeft de
- * datum niet te weten, hij plakt hem alleen op de bak.
- * Op de laatste dag (of over de datum) is er géén sticker meer: dan staat
- * er een rode "Weggooien"-knop die de bak afsluit.
+ * Print één bain-marie-sticker. Vangnet: dezelfde sticker (zelfde product
+ * en datums) wordt binnen 15 seconden niet nog eens naar de printer gestuurd.
  */
-export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum: string }) {
-  const bakkenQuery = useBainMarieBakken(vestiging);
+function useBainSticker() {
   const printSticker = useCreateStickerPrintJob();
-  const gooiWeg = useGooiBainMarieWeg(vestiging);
-  const zetStart = useZetBainMarieStart(vestiging);
-  const bakken = bakkenQuery.data ?? [];
+  const bezigRef = useRef<Set<string>>(new Set());
+  const [bezig, setBezig] = useState<string | null>(null);
 
-  /** Product dat op de tweede tik van de weggooi-bevestiging wacht. */
-  const [bevestigWeg, setBevestigWeg] = useState<BainMarieSleutel | null>(null);
-  /** Product waarvan het correctievenster openstaat ("Klopt deze bak nog?"). */
-  const [correctieVoor, setCorrectieVoor] = useState<BainMarieSleutel | null>(null);
-  /** In het correctievenster: zak-datum vragen voor een nieuwe bak. */
-  const [vraagZak, setVraagZak] = useState(false);
-
-  const opslagSleutel = `bain-marie-geprint-${vestiging}-${datum}`;
-  const [geprint, setGeprint] = useState<string[]>([]);
-  useEffect(() => {
+  const print = async (product: string, naam: string, startIso: string, max: number) => {
+    const input = {
+      type: 'bain' as const,
+      naam,
+      datum1: korteDatum(startIso),
+      datum2: korteDatum(plusDagen(startIso, max - 1)),
+    };
+    const sleutel = `${product}|${input.datum1}|${input.datum2}`;
+    if (bezigRef.current.has(sleutel)) return false;
+    bezigRef.current.add(sleutel);
+    setBezig(product);
     try {
-      const ruw = localStorage.getItem(opslagSleutel);
-      if (ruw) setGeprint(JSON.parse(ruw));
+      const grens = new Date(Date.now() - 15_000).toISOString();
+      const { data: recent } = await supabase
+        .from('print_jobs')
+        .select('id')
+        .eq('bron', 'bain_marie')
+        .eq('label_omschrijving', buildStickerOmschrijving(input))
+        .gte('created_at', grens)
+        .limit(1);
+      if (recent && recent.length > 0) return true;
+      await printSticker.mutateAsync({ ...input, bron: 'bain_marie' });
+      return true;
     } catch {
-      /* stille fallback */
+      return false;
+    } finally {
+      window.setTimeout(() => {
+        bezigRef.current.delete(sleutel);
+        setBezig((b) => (b === product ? null : b));
+      }, 15_000);
+      setBezig((b) => (b === product ? null : b));
     }
-  }, [opslagSleutel]);
-
-  const markeerGeprint = (product: string) => {
-    setGeprint((g) => {
-      const volgend = g.includes(product) ? g : [...g, product];
-      try {
-        localStorage.setItem(opslagSleutel, JSON.stringify(volgend));
-      } catch {
-        /* stille fallback */
-      }
-      return volgend;
-    });
   };
+  return { print, bezig };
+}
 
-  /** Welk product nu aan het printen is (of net geprint heeft): blokkeert dubbeltikken. */
-  const [bezig, setBezig] = useState<BainMarieSleutel | null>(null);
+/** Venster "Wanneer geopend?" → nieuwe zak/bak + direct de sticker. */
+function NieuweZakDialog({
+  product,
+  vestiging,
+  datum,
+  onKlaar,
+  onSluit,
+}: {
+  product: Product | null;
+  vestiging: string;
+  datum: string;
+  onKlaar?: (p: Product) => void;
+  onSluit: () => void;
+}) {
+  const zetStart = useZetBainMarieStart(vestiging);
+  const { print } = useBainSticker();
+  const [kalenderOpen, setKalenderOpen] = useState(false);
+  const [bezig, setBezig] = useState(false);
 
-  const print = (bak: BainMarieBak) => {
-    const s = bakStatus(bak, datum);
-    if (!s.startDatum || !s.houdbaarTot) return;
-    // Eén tik = één sticker: een tweede tik binnen de opdracht wordt genegeerd.
-    if (bezig) return;
-    setBezig(bak.product as BainMarieSleutel);
-    printSticker.mutate(
-      {
-        type: 'bain',
-        naam: bak.product_naam,
-        datum1: stickerDatum(s.startDatum),
-        datum2: stickerDatum(s.houdbaarTot),
-        ontdooidDatum: bak.ontdooid_datum ? stickerDatum(bak.ontdooid_datum) : undefined,
-        bron: 'bain_marie',
-      },
-      {
-        onSuccess: () => markeerGeprint(bak.product),
-        // Korte nablokkade zodat een na-tik van de iPad niet alsnog doorkomt.
-        onSettled: () => window.setTimeout(() => setBezig(null), 1200),
-      },
-    );
-  };
-
-  /** Sticker-markering wissen: na een nieuwe bak moet de sticker opnieuw. */
-  const wisGeprint = (product: string) => {
-    setGeprint((g) => {
-      const volgend = g.filter((s) => s !== product);
-      try {
-        localStorage.setItem(opslagSleutel, JSON.stringify(volgend));
-      } catch {
-        /* stille fallback */
-      }
-      return volgend;
-    });
-  };
-
-  /** Correctie: vandaag een nieuwe zak geopend → de bak start opnieuw van vandaag. */
-  const nieuweBak = (
-    p: (typeof BAIN_MARIE_PRODUCTEN)[number],
-    ontdooidDatum: string | null,
-  ) => {
+  const kies = (iso: string) => {
+    if (!product || bezig) return;
+    setBezig(true);
     zetStart.mutate(
       {
-        product: p.sleutel,
-        productNaam: p.naam,
-        startDatum: datum,
+        product: product.sleutel,
+        productNaam: product.naam,
+        startDatum: iso,
         nieuw: true,
-        houdbaarheidDagen: p.houdbaarheid,
-        ontdooidDatum,
+        houdbaarheidDagen: product.houdbaarheid,
       },
       {
+        onSuccess: async () => {
+          await print(product.sleutel, product.naam, iso, product.houdbaarheid);
+          onKlaar?.(product);
+        },
         onSettled: () => {
-          wisGeprint(p.sleutel);
-          setVraagZak(false);
-          setCorrectieVoor(null);
+          setBezig(false);
+          onSluit();
         },
       },
     );
   };
 
+  const opties = [
+    { label: 'Vandaag', iso: datum },
+    { label: 'Gisteren', iso: plusDagen(datum, -1) },
+  ];
 
-  // Alleen producten met een bak vragen vanavond iets: printen of weggooien.
+  return (
+    <Dialog open={product !== null} onOpenChange={(o) => !o && onSluit()}>
+      <DialogContent className="max-w-[650px] rounded-[24px]">
+        {product && (
+          <>
+            <DialogHeader>
+              <DialogTitle>Nieuwe {zakWoord(product)} {product.naam}</DialogTitle>
+              <DialogDescription>
+                Wanneer is de {zakWoord(product)} geopend? De sticker komt er direct uit.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-wrap gap-2">
+              {opties.map((o) => (
+                <button
+                  key={o.label}
+                  type="button"
+                  disabled={bezig}
+                  onClick={() => kies(o.iso)}
+                  className={knopNeutraal}
+                  style={{ minHeight: 48 }}
+                >
+                  {o.label} · {korteDatum(o.iso)}
+                </button>
+              ))}
+              <Popover open={kalenderOpen} onOpenChange={setKalenderOpen}>
+                <PopoverTrigger asChild>
+                  <button type="button" disabled={bezig} className={knopNeutraal} style={{ minHeight: 48 }}>
+                    <CalendarIcon size={15} />
+                    Andere datum
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    locale={nl}
+                    weekStartsOn={1}
+                    defaultMonth={new Date(`${datum}T12:00:00`)}
+                    disabled={{ after: new Date(`${datum}T12:00:00`) }}
+                    onSelect={(d) => {
+                      if (!d) return;
+                      setKalenderOpen(false);
+                      kies(isoDatum(d));
+                    }}
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            {bezig && <p className="text-[13px] text-muted-foreground">Sticker wordt geprint…</p>}
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * Ochtendblok (Open-lijst West, keuken): de app weet al wanneer elke zak/bak
+ * geopend is. Je ziet alleen de stand; open je een nieuwe, tik "Nieuwe zak".
+ */
+export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: string }) {
+  const bakken = useBainMarieBakken(vestiging).data ?? [];
+  const weggegooid = useBainMarieWeggegooid(vestiging).data ?? new Map<string, BainMarieBak>();
+  const [nieuwVoor, setNieuwVoor] = useState<Product | null>(null);
+
+  const open = BAIN_MARIE_PRODUCTEN.filter((p) => bakken.some((b) => b.product === p.sleutel)).length;
+
+  return (
+    <div style={{ marginBottom: '32px' }}>
+      <SectieBalk titel="Au bain-marie" stand={`${open}/${BAIN_MARIE_PRODUCTEN.length} open`} afgerond={false} />
+      <div className="divide-y divide-border">
+        {BAIN_MARIE_PRODUCTEN.map((p) => {
+          const bak = bakken.find((b) => b.product === p.sleutel);
+          const afgesloten = !bak ? weggegooid.get(p.sleutel) : undefined;
+          return (
+            <div key={p.sleutel} className="flex items-center gap-3 py-2.5" style={{ minHeight: 56 }}>
+              <Vakje aan={!!bak} />
+              <div className="min-w-0 flex-1">
+                <div className="text-[16px] font-medium text-foreground">{p.naam}</div>
+                {afgesloten ? (
+                  <span className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[12px] font-semibold text-muted-foreground">
+                    <Trash2 size={12} /> {afgesloten.reden === 'op' ? 'was op' : 'weggegooid'}
+                  </span>
+                ) : (
+                  statusRegel(bak, datum)
+                )}
+              </div>
+              <button type="button" onClick={() => setNieuwVoor(p)} className={knopNeutraal} style={{ minHeight: 44 }}>
+                <PackageOpen size={15} />
+                Nieuwe {zakWoord(p)}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+      <NieuweZakDialog product={nieuwVoor} vestiging={vestiging} datum={datum} onSluit={() => setNieuwVoor(null)} />
+    </div>
+  );
+}
+
+/**
+ * Avondblok (Sluitlijst West, keuken): controleren, niet opnieuw printen.
+ * Vakje = "sticker zit erop en klopt". Nieuwe zak geopend → sticker direct.
+ * Laatste dag of over de datum → Weggooien.
+ */
+export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum: string }) {
+  const bakken = useBainMarieBakken(vestiging).data ?? [];
+  const gooiWeg = useGooiBainMarieWeg(vestiging);
+  const { print, bezig } = useBainSticker();
+
+  const [bevestigWeg, setBevestigWeg] = useState<BainMarieSleutel | null>(null);
+  const [nieuwVoor, setNieuwVoor] = useState<Product | null>(null);
+  const [menuVoor, setMenuVoor] = useState<BainMarieSleutel | null>(null);
+
+  const opslagSleutel = `bain-marie-gecontroleerd-${vestiging}-${datum}`;
+  const [gecheckt, setGecheckt] = useState<string[]>([]);
+  useEffect(() => {
+    try {
+      const ruw = localStorage.getItem(opslagSleutel);
+      setGecheckt(ruw ? JSON.parse(ruw) : []);
+    } catch {
+      setGecheckt([]);
+    }
+  }, [opslagSleutel]);
+
+  const zet = (product: string, aan: boolean) =>
+    setGecheckt((g) => {
+      const volgend = aan ? (g.includes(product) ? g : [...g, product]) : g.filter((x) => x !== product);
+      try {
+        localStorage.setItem(opslagSleutel, JSON.stringify(volgend));
+      } catch {
+        /* stille fallback */
+      }
+      return volgend;
+    });
+
   const teDoen = BAIN_MARIE_PRODUCTEN.filter((p) => bakken.some((b) => b.product === p.sleutel));
-  const gedaan = teDoen.filter((p) => geprint.includes(p.sleutel)).length;
+  const gedaan = teDoen.filter((p) => gecheckt.includes(p.sleutel)).length;
   const afgerond = teDoen.length > 0 && gedaan === teDoen.length;
-  const open = true;
+  const menuProduct = BAIN_MARIE_PRODUCTEN.find((x) => x.sleutel === menuVoor);
+  const menuBak = menuProduct ? bakken.find((b) => b.product === menuProduct.sleutel) : undefined;
 
   return (
     <div style={{ marginBottom: '32px' }}>
       <SectieBalk
-        titel="Au bain-marie — stickers"
+        titel="Au bain-marie — controleren"
         stand={teDoen.length === 0 ? 'geen bakken' : afgerond ? 'afgerond' : `${gedaan}/${teDoen.length}`}
         afgerond={afgerond || teDoen.length === 0}
       />
-
-      {open && (
-        <>
-          <Uitleg
-            titel="Au bain-marie stickers"
-            stand={
-              teDoen.length === 0
-                ? 'Geen bakken vandaag'
-                : afgerond
-                  ? 'Alle stickers geprint'
-                  : `${gedaan}/${teDoen.length} stickers geprint`
-            }
-            tekst="Print per product een sticker en plak hem op de plastic bak in de koeling. De app zet de startdatum en houdbaar-tot er zelf op. Is de bak vandaag voor het laatst (of over de datum)? Dan staat er geen sticker-knop maar Weggooien — de bak gaat niet meer de koeling in."
-          />
-
-
-          <div className="divide-y divide-border">
+      <div className="divide-y divide-border">
         {BAIN_MARIE_PRODUCTEN.map((p) => {
           const bak = bakken.find((b) => b.product === p.sleutel);
           const s = bakStatus(bak, datum);
-          const kanPrinten = bak && s.status === 'ok';
           const moetWeg = bak && (s.status === 'laatste-dag' || s.status === 'te-oud');
-          const klaar = geprint.includes(p.sleutel);
+          const klaar = gecheckt.includes(p.sleutel);
           const bevestigt = bevestigWeg === p.sleutel;
           return (
-            <div key={p.sleutel} className="flex items-center gap-3 py-2.5" style={{ minHeight: 56 }}>
-              <span
-                aria-hidden
-                className={cn(
-                  'flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[6px] border-2 transition-colors sm:h-6 sm:w-6',
-                  klaar
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border bg-background',
-                  !bak && 'opacity-40',
-                )}
+            <div key={p.sleutel} className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5" style={{ minHeight: 56 }}>
+              <button
+                type="button"
+                disabled={!bak}
+                aria-label={`${p.naam} gecontroleerd`}
+                onClick={() => zet(p.sleutel, !klaar)}
+                className="-m-2.5 flex items-center justify-center p-2.5"
               >
-                {klaar && <Check size={14} strokeWidth={3} />}
-              </span>
-              <span className="min-w-0 flex-1">
-                {bak ? (
+                <Vakje aan={klaar} zwak={!bak} />
+              </button>
+              <button
+                type="button"
+                disabled={!bak}
+                onClick={() => setMenuVoor(p.sleutel)}
+                className="min-w-0 flex-1 text-left"
+                style={{ minHeight: 44 }}
+              >
+                <span
+                  className={cn(
+                    'block text-[16px] font-medium',
+                    klaar ? 'text-muted-foreground line-through' : bak ? 'text-foreground' : 'text-muted-foreground',
+                  )}
+                >
+                  {p.naam}
+                </span>
+                {statusRegel(bak, datum)}
+              </button>
+              <div className="flex shrink-0 gap-1.5">
+                {moetWeg ? (
                   <button
                     type="button"
-                    aria-label={`Klopt de bak ${p.naam} nog?`}
+                    disabled={gooiWeg.isPending}
                     onClick={() => {
-                      setVraagZak(false);
-                      setCorrectieVoor(p.sleutel);
+                      if (!bevestigt) return setBevestigWeg(p.sleutel);
+                      setBevestigWeg(null);
+                      gooiWeg.mutate({ bak: bak! }, { onSuccess: () => zet(p.sleutel, false) });
                     }}
-                    className="block w-full text-left"
+                    className={cn(
+                      knopBasis,
+                      bevestigt
+                        ? 'bg-destructive text-destructive-foreground shadow-sm'
+                        : 'bg-destructive/10 text-destructive hover:bg-destructive/15',
+                    )}
                     style={{ minHeight: 44 }}
                   >
-                    <span className={cn('block text-[16px] font-medium', klaar ? 'text-muted-foreground line-through' : 'text-foreground')}>
-                      {p.naam}
-                    </span>
-                    {statusRegel(bak, datum)}
+                    <Trash2 size={15} />
+                    {bevestigt ? 'Zeker?' : 'Weggooien'}
                   </button>
-                ) : (
-                  <>
-                    <span className="block text-[16px] font-medium text-muted-foreground">{p.naam}</span>
-                    {statusRegel(bak, datum)}
-                  </>
-                )}
-              </span>
-              {kanPrinten ? (
+                ) : null}
                 <button
                   type="button"
-                  disabled={bezig === p.sleutel}
-                  onClick={() => print(bak!)}
-                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 text-[13px] font-semibold transition-colors disabled:opacity-60 ${
-                    klaar
-                      ? 'bg-muted/60 text-muted-foreground hover:bg-muted'
-                      : 'bg-primary/10 text-primary hover:bg-primary/15'
-                  }`}
+                  onClick={() => setNieuwVoor(p)}
+                  className={moetWeg ? knopNeutraal : knopPrimair}
                   style={{ minHeight: 44 }}
                 >
-                  <Printer size={15} />
-                  {bezig === p.sleutel ? 'Bezig…' : klaar ? 'Opnieuw' : 'Sticker'}
+                  <PackageOpen size={15} />
+                  Nieuwe {zakWoord(p)}
                 </button>
-
-              ) : moetWeg ? (
-                <button
-                  type="button"
-                  disabled={gooiWeg.isPending}
-                  onClick={() => {
-                    if (!bevestigt) {
-                      setBevestigWeg(p.sleutel);
-                      return;
-                    }
-                    setBevestigWeg(null);
-                    gooiWeg.mutate({ bak: bak! });
-                  }}
-                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 text-[13px] font-semibold transition-colors disabled:opacity-60 ${
-                    bevestigt
-                      ? 'bg-destructive text-destructive-foreground shadow-sm'
-                      : 'bg-destructive/10 text-destructive hover:bg-destructive/15'
-                  }`}
-                  style={{ minHeight: 44 }}
-                >
-                  <Trash2 size={15} />
-                  {bevestigt ? 'Zeker?' : 'Weggooien'}
-                </button>
-              ) : (
-                <span className="shrink-0 text-[12px] text-muted-foreground">geen sticker</span>
-              )}
+              </div>
             </div>
           );
         })}
-          </div>
-        </>
-      )}
+      </div>
 
-      <Dialog
-        open={correctieVoor !== null}
-        onOpenChange={(o) => {
-          if (!o) {
-            setCorrectieVoor(null);
-            setVraagZak(false);
-          }
-        }}
-      >
+      <NieuweZakDialog
+        product={nieuwVoor}
+        vestiging={vestiging}
+        datum={datum}
+        onKlaar={(p) => zet(p.sleutel, true)}
+        onSluit={() => setNieuwVoor(null)}
+      />
+
+      <Dialog open={!!menuBak} onOpenChange={(o) => !o && setMenuVoor(null)}>
         <DialogContent className="max-w-[650px] rounded-[24px]">
-          {(() => {
-            const p = BAIN_MARIE_PRODUCTEN.find((x) => x.sleutel === correctieVoor);
-            const bak = p ? bakken.find((b) => b.product === p.sleutel) : undefined;
-            if (!p || !bak) return null;
-            const s = bakStatus(bak, datum);
-            const max = Math.max(
-              Number(bak.houdbaarheid_dagen) || houdbaarheidVan(bak.product),
-              1,
-            );
-            return (
-              <>
-                <DialogHeader>
-                  <DialogTitle>Klopt deze bak nog?</DialogTitle>
-                  <DialogDescription>
-                    {p.naam} — bak van {dagKort(s.startDatum!)}, dag {s.dagNr} van {max}.
-                  </DialogDescription>
-                </DialogHeader>
-
-                {vraagZak ? (
-                  <ZakDatumKiezer
-                    datum={datum}
-                    bezig={zetStart.isPending}
-                    onKies={(iso) => nieuweBak(p, iso)}
-                    onAnnuleer={() => setVraagZak(false)}
-                  />
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setCorrectieVoor(null)}
-                      className="rounded-[14px] bg-muted/60 px-4 text-[14px] font-semibold text-foreground transition-colors hover:bg-muted"
-                      style={{ minHeight: 44 }}
-                    >
-                      Klopt — zelfde bak
-                    </button>
-                    <button
-                      type="button"
-                      disabled={zetStart.isPending}
-                      onClick={() => {
-                        if (p.heeftVriesZak) {
-                          setVraagZak(true);
-                          return;
-                        }
-                        nieuweBak(p, null);
-                      }}
-                      className="rounded-[14px] bg-primary/10 px-4 text-[14px] font-semibold text-primary transition-colors hover:bg-primary/15 disabled:opacity-60"
-                      style={{ minHeight: 44 }}
-                    >
-                      Vandaag een nieuwe zak opengemaakt
-                    </button>
-                    <button
-                      type="button"
-                      disabled={gooiWeg.isPending}
-                      onClick={() =>
-                        gooiWeg.mutate(
-                          { bak, reden: 'op' },
-                          {
-                            onSettled: () => {
-                              wisGeprint(p.sleutel);
-                              setCorrectieVoor(null);
-                            },
-                          },
-                        )
-                      }
-                      className="rounded-[14px] bg-muted/60 px-4 text-[14px] font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-60"
-                      style={{ minHeight: 44 }}
-                    >
-                      Bak is leeg — niets over
-                    </button>
-                  </div>
-                )}
-              </>
-            );
-          })()}
+          {menuProduct && menuBak && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{menuProduct.naam}</DialogTitle>
+                <DialogDescription>
+                  Geopend {korteDatum(menuBak.start_datum)} · t/m{' '}
+                  {korteDatum(plusDagen(menuBak.start_datum, maxVan(menuBak) - 1))}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  disabled={bezig === menuProduct.sleutel}
+                  onClick={async () => {
+                    await print(menuProduct.sleutel, menuProduct.naam, menuBak.start_datum, maxVan(menuBak));
+                    setMenuVoor(null);
+                  }}
+                  className={`${knopNeutraal} justify-center`}
+                  style={{ minHeight: 48 }}
+                >
+                  <Printer size={15} />
+                  Sticker opnieuw printen
+                </button>
+                <button
+                  type="button"
+                  disabled={gooiWeg.isPending}
+                  onClick={() =>
+                    gooiWeg.mutate(
+                      { bak: menuBak, reden: 'op' },
+                      { onSettled: () => { zet(menuProduct.sleutel, false); setMenuVoor(null); } },
+                    )
+                  }
+                  className={`${knopNeutraal} justify-center`}
+                  style={{ minHeight: 48 }}
+                >
+                  {menuProduct.heeftVriesZak ? 'Zak' : 'Bak'} is op — niets over
+                </button>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>

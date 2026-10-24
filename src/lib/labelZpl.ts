@@ -107,16 +107,12 @@ export function buildStickerZpl(input: StickerLabelInput): string {
       : zoneTop;
     lines.push(`^FO20,${naamY}^A0N,${naamFont},${naamFont}^FB408,2,4,L^FD${naam}^FS`);
 
-    // 3) Datumregels onderaan. Bain-marie met zak-datum: drie compacte regels.
+    // 3) Datumregels onderaan. Bain-marie: openingsdatum van de zak + t/m.
   const bronLabel =
-    input.type === 'ontdooid' ? 'Uit vriezer' : input.type === 'bain' ? 'Bak van' : 'Bereid';
-  const zak = input.type === 'bain' && input.ontdooidDatum
-    ? sanitizeZpl(input.ontdooidDatum)
-    : '';
-  if (zak) {
-    lines.push(`^FO20,166^A0N,24,24^FDZak ontdooid: ${zak}^FS`);
-    lines.push(`^FO20,196^A0N,24,24^FD${bronLabel}: ${d1}^FS`);
-    lines.push(`^FO20,226^A0N,24,24^FDGebruiken t/m: ${d2}^FS`);
+    input.type === 'ontdooid' ? 'Uit vriezer' : input.type === 'bain' ? 'Geopend' : 'Bereid';
+  if (input.type === 'bain') {
+    lines.push(`^FO20,172^A0N,30,30^FD${bronLabel}: ${d1}^FS`);
+    lines.push(`^FO20,208^A0N,36,36^FDT/m: ${d2}^FS`);
   } else {
     lines.push(`^FO20,178^A0N,30,30^FD${bronLabel}: ${d1}^FS`);
     lines.push(`^FO20,214^A0N,30,30^FDGebruiken t/m: ${d2}^FS`);
