@@ -8,6 +8,7 @@ import {
   closestCenter,
   useSensor,
   useSensors,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -117,9 +118,32 @@ export default function MepDag() {
 
   const alleTaken = useMemo(() => [...dagTaken, ...laterTaken], [dagTaken, laterTaken]);
 
-  const groepen = useMemo(() => {
+  // Blokken: in "Alle taken" één blok per dag; anders per persoon/handeling.
+  type Blok = { key: string; naam: string; rijen: MepTaak[]; doelDatum: string | null; rood?: boolean };
+  const groepen = useMemo<Blok[]>(() => {
     if (weergave === 'alles') {
-      return [['Alle taken', alleTaken]] as [string, MepTaak[]][];
+      const teLaatRijen = alleTaken.filter((t) => t.taak_datum < datum && t.status !== 'afgerond');
+      const dezeDag = alleTaken.filter(
+        (t) => t.taak_datum === datum || (t.taak_datum < datum && t.status === 'afgerond'),
+      );
+      const blokken: Blok[] = [];
+      if (teLaatRijen.length) blokken.push({ key: 'telaat', naam: 'Te laat', rijen: teLaatRijen, doelDatum: null, rood: true });
+      blokken.push({
+        key: datum,
+        naam: datum === ymd(new Date()) ? 'Vandaag' : format(parseISO(datum), 'EEEE d MMM', { locale: nl }),
+        rijen: dezeDag,
+        doelDatum: datum,
+      });
+      const perDag = new Map<string, MepTaak[]>();
+      for (const t of laterTaken) {
+        if (!perDag.has(t.taak_datum)) perDag.set(t.taak_datum, []);
+        perDag.get(t.taak_datum)!.push(t);
+      }
+      for (const [d, rijen] of [...perDag.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+        const naam = d === ymd(addDays(new Date(), 1)) ? 'Morgen' : format(parseISO(d), 'EEEE d MMM', { locale: nl });
+        blokken.push({ key: d, naam, rijen, doelDatum: d });
+      }
+      return blokken;
     }
     const map = new Map<string, MepTaak[]>();
     for (const t of alleTaken) {
@@ -130,9 +154,10 @@ export default function MepDag() {
       if (!map.has(sleutel)) map.set(sleutel, []);
       map.get(sleutel)!.push(t);
     }
-    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0], 'nl'));
-  }, [alleTaken, weergave, medewerkers]);
-
+    return [...map.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0], 'nl'))
+      .map(([naam, rijen]) => ({ key: naam, naam, rijen, doelDatum: null }));
+  }, [alleTaken, laterTaken, weergave, medewerkers, datum]);
 
   const dagLabel =
     dagOffset === 0
@@ -159,20 +184,54 @@ export default function MepDag() {
     }
   };
 
-  const sleepKlaar = async (event: DragEndEvent, openRijen: MepTaak[]) => {
+  const blokVan = (id: string) => groepen.find((g) => g.rijen.some((r) => r.id === id));
+
+  const sleepKlaar = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const van = openRijen.findIndex((r) => r.id === active.id);
-    const naar = openRijen.findIndex((r) => r.id === over.id);
-    if (van < 0 || naar < 0) return;
-    const nieuweIds = arrayMove(openRijen, van, naar).map((r) => r.id);
+    const taakId = String(active.id);
+    const overId = String(over.id);
+    const bron = blokVan(taakId);
+    const doel = overId.startsWith('blok-')
+      ? groepen.find((g) => `blok-${g.key}` === overId)
+      : blokVan(overId);
+    if (!bron || !doel) return;
+    const doelOpen = doel.rijen.filter((r) => r.status !== 'afgerond');
+
+    if (bron.key === doel.key) {
+      const van = doelOpen.findIndex((r) => r.id === taakId);
+      const naar = doelOpen.findIndex((r) => r.id === overId);
+      if (van < 0 || naar < 0) return;
+      try {
+        await herordenen.mutateAsync(arrayMove(doelOpen, van, naar).map((r) => r.id));
+      } catch (e: any) {
+        toast.error('Volgorde niet opgeslagen: ' + (e?.message ?? 'onbekende fout'));
+      }
+      return;
+    }
+
+    if (!doel.doelDatum) return; // naar "Te laat" kan niet
+    const taak = alleTaken.find((t) => t.id === taakId);
+    if (!taak) return;
+    const oud = { taak_datum: taak.taak_datum, volgorde: taak.volgorde };
+    const plek = doelOpen.findIndex((r) => r.id === overId);
+    const ids = doelOpen.map((r) => r.id);
+    ids.splice(plek < 0 ? ids.length : plek, 0, taakId);
     try {
-      await herordenen.mutateAsync(nieuweIds);
+      await bijwerken.mutateAsync({ id: taakId, taak_datum: doel.doelDatum });
+      await herordenen.mutateAsync(ids);
+      toast.success(`${taak.titel} staat nu op ${doel.naam.toLowerCase()}`, {
+        action: {
+          label: 'Ongedaan maken',
+          onClick: () => {
+            bijwerken.mutate({ id: taakId, ...oud });
+          },
+        },
+      });
     } catch (e: any) {
-      toast.error('Volgorde niet opgeslagen: ' + (e?.message ?? 'onbekende fout'));
+      toast.error('Verplaatsen mislukt: ' + (e?.message ?? 'onbekende fout'));
     }
   };
-
 
   return (
     <SidebarLayout>
@@ -270,72 +329,64 @@ export default function MepDag() {
             description="Gebruik het zoekveld hierboven om halffabricaten of vrije taken toe te voegen."
           />
         ) : (
-          <div className="space-y-4">
-            {groepen.map(([naam, rijen]) => {
-              const openRijen = rijen.filter((r) => r.status !== 'afgerond');
-              const klaarRijen = rijen.filter((r) => r.status === 'afgerond');
-              const dagRijen = rijen.filter((r) => r.taak_datum <= datum);
-              const dagKlaar = dagRijen.filter((r) => r.status === 'afgerond');
-              const sleepRijen = openRijen.filter((r) => r.taak_datum <= datum);
-              const kanSlepen = weergave === 'alles' && sleepRijen.length > 1;
-              const rij = (t: MepTaak) => (
-                <TaakRij
-                  key={t.id}
-                  t={t}
-                  datum={datum}
-                  weergave={weergave}
-                  medewerkers={medewerkers}
-                  sleepbaar={kanSlepen && t.status !== 'afgerond' && t.taak_datum <= datum}
-                  onBewerk={setBewerkTaak}
-                  onAfrond={setAfrondTaak}
-                  onHeropen={heropen}
-                  onVerwijder={verwijder}
-                />
-              );
-              return (
-                <Card key={naam} className="overflow-hidden bg-card shadow-sm">
-                  <div className="px-4 sm:px-5 py-3 border-b border-border/60 flex items-center justify-between">
-                    <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      {naam}
-                    </h2>
-                    <span className="text-xs text-muted-foreground tabular-nums">
-                      {dagKlaar.length}/{dagRijen.length}
-                    </span>
-                  </div>
-                  {kanSlepen ? (
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={(e) => sleepKlaar(e, sleepRijen)}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={sleepKlaar}
+          >
+            <div className="space-y-4">
+              {groepen.map((g) => {
+                const openRijen = g.rijen.filter((r) => r.status !== 'afgerond');
+                const klaarRijen = g.rijen.filter((r) => r.status === 'afgerond');
+                const sleepbaar = weergave === 'alles';
+                const rij = (t: MepTaak) => (
+                  <TaakRij
+                    key={t.id}
+                    t={t}
+                    datum={datum}
+                    weergave={weergave}
+                    medewerkers={medewerkers}
+                    sleepbaar={sleepbaar && t.status !== 'afgerond'}
+                    onBewerk={setBewerkTaak}
+                    onAfrond={setAfrondTaak}
+                    onHeropen={heropen}
+                    onVerwijder={verwijder}
+                  />
+                );
+                return (
+                  <DagBlok
+                    key={g.key}
+                    id={`blok-${g.key}`}
+                    naam={g.naam}
+                    rood={g.rood}
+                    stand={`${klaarRijen.length}/${g.rijen.length}`}
+                    dropbaar={sleepbaar && !!g.doelDatum}
+                  >
+                    <SortableContext
+                      items={openRijen.map((r) => r.id)}
+                      strategy={verticalListSortingStrategy}
                     >
-                      <SortableContext
-                        items={sleepRijen.map((r) => r.id)}
-                        strategy={verticalListSortingStrategy}
-                      >
-                        <ul className="divide-y divide-border/60">{openRijen.map(rij)}</ul>
-                      </SortableContext>
-                    </DndContext>
-                  ) : (
-                    <ul className="divide-y divide-border/60">{openRijen.map(rij)}</ul>
-                  )}
-                  {klaarRijen.length > 0 && (
-                    <>
-                      <div className="px-4 sm:px-5 pt-3 pb-1 flex items-center gap-2">
-                        <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                          Afgerond
-                        </span>
-                        <span className="h-px flex-1 bg-border/60" />
-                      </div>
-                      <ul className="divide-y divide-border/60">
-                        {klaarRijen.map(rij)}
-                      </ul>
-                    </>
-                  )}
-                </Card>
-              );
-            })}
-
-          </div>
+                      <ul className="divide-y divide-border/60">{openRijen.map(rij)}</ul>
+                    </SortableContext>
+                    {openRijen.length === 0 && klaarRijen.length === 0 && (
+                      <p className="px-5 py-4 text-sm text-muted-foreground">Sleep hier een taak naartoe</p>
+                    )}
+                    {klaarRijen.length > 0 && (
+                      <>
+                        <div className="px-4 sm:px-5 pt-3 pb-1 flex items-center gap-2">
+                          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                            Afgerond
+                          </span>
+                          <span className="h-px flex-1 bg-border/60" />
+                        </div>
+                        <ul className="divide-y divide-border/60">{klaarRijen.map(rij)}</ul>
+                      </>
+                    )}
+                  </DagBlok>
+                );
+              })}
+            </div>
+          </DndContext>
         )}
 
         {/* Batches van vandaag */}
@@ -390,6 +441,45 @@ export default function MepDag() {
   );
 }
 
+function DagBlok({
+  id,
+  naam,
+  rood,
+  stand,
+  dropbaar,
+  children,
+}: {
+  id: string;
+  naam: string;
+  rood?: boolean;
+  stand: string;
+  dropbaar: boolean;
+  children: React.ReactNode;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id, disabled: !dropbaar });
+  return (
+    <Card
+      ref={setNodeRef}
+      className={cn('overflow-hidden bg-card shadow-sm', isOver && 'ring-2 ring-primary/40')}
+    >
+      <div className="px-4 sm:px-5 py-3 border-b border-border/60 flex items-center justify-between bg-muted/30">
+        <h2
+          className={cn(
+            'text-[15px] font-semibold capitalize',
+            rood ? 'text-destructive' : 'text-foreground',
+          )}
+        >
+          {naam}
+        </h2>
+        <span className="text-xs font-medium text-muted-foreground tabular-nums rounded-full bg-muted px-2.5 py-0.5">
+          {stand}
+        </span>
+      </div>
+      {children}
+    </Card>
+  );
+}
+
 interface TaakRijProps {
   t: MepTaak;
   datum: string;
@@ -441,7 +531,7 @@ function TaakRij({
       }
       className={cn(
         'flex items-stretch gap-3 px-4 sm:px-5 py-3 min-h-[64px]',
-        isLater ? 'bg-transparent' : 'bg-card',
+        'bg-card',
         isOvertijd && 'bg-destructive/5',
         isKlaar && 'opacity-60',
         isDragging && 'relative z-10 shadow-md rounded-polar-md',
@@ -480,14 +570,13 @@ function TaakRij({
         <div className="flex flex-wrap items-center gap-2">
           <span
             className={cn(
-              'text-[15px] font-medium',
+              'text-[16px] font-semibold text-foreground',
               isKlaar && 'line-through text-muted-foreground',
-              isLater && 'text-muted-foreground',
             )}
           >
             {t.titel}
           </span>
-          {isLater && (
+          {isLater && weergave !== 'alles' && (
             <Badge
               variant="outline"
               className="font-normal bg-primary/10 text-primary border-primary/20 inline-flex items-center gap-1 capitalize"
@@ -505,16 +594,6 @@ function TaakRij({
               {dagenTeLaat > 1 ? `${dagenTeLaat} dagen te laat` : 'Overtijd'}
             </Badge>
           )}
-          {t.handeling && (
-            <Badge variant="secondary" className="font-normal">
-              {t.handeling}
-            </Badge>
-          )}
-          {t.doel_aantal != null && (
-            <Badge variant="secondary" className="font-normal">
-              {Number(t.doel_aantal)} {t.doel_eenheid ?? ''}
-            </Badge>
-          )}
           {t.prioriteit === 1 && (
             <Badge variant="outline" className={cn('font-normal', PRIO_CLASS[1])}>
               {PRIO_LABEL[1]}
@@ -530,7 +609,10 @@ function TaakRij({
             </Badge>
           )}
         </div>
-        <div className="mt-0.5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+          {[t.handeling, t.doel_aantal != null ? `${Number(t.doel_aantal)} ${t.doel_eenheid ?? ''}`.trim() : null]
+            .filter(Boolean)
+            .join(' · ')}
           {weergave !== 'persoon' && t.toegewezen_aan && (
             <span>{medewerkers.find((m) => m.id === t.toegewezen_aan)?.name}</span>
           )}
@@ -559,11 +641,11 @@ function TaakRij({
           <Button
             size="icon"
             variant="ghost"
-            className="h-11 w-11 text-destructive hover:text-destructive"
+            className="h-11 w-11 text-muted-foreground/60 hover:text-destructive"
             onClick={() => onVerwijder(t)}
             aria-label="Verwijderen"
           >
-            <Trash2 className="w-5 h-5" />
+            <Trash2 className="w-4 h-4" />
           </Button>
           <Button className="h-11 min-w-[44px]" onClick={() => onAfrond(t)}>
             <Check className="w-5 h-5" />
