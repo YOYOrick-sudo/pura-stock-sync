@@ -138,3 +138,4 @@ export function buildStickerOmschrijving(input: StickerLabelInput): string {
 export function labelaryPreviewUrl(zpl: string): string {
   return `https://api.labelary.com/v1/printers/8dpmm/labels/2.24x1.26/0/${encodeURIComponent(zpl)}`;
 }
+
