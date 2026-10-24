@@ -55,3 +55,13 @@ Houdbaarheid (kip 5, vissoep/tomyum 6, ei 4 dagen, geopend = dag 1), labelprinte
 - `src/components/foh/BainMarie.tsx`: open-lijst dagknoppen vervangen door statusregel + Nieuwe zak; sluit-lijst: vinkje = gecontroleerd (lokaal per dag, zoals nu `geprint`), knoppen Nieuwe zak / Opnieuw printen / Weggooien; `ZakDatumKiezer` → "Wanneer geopend?" en de gekozen datum wordt `start_datum`. Print direct na `useZetBainMarieStart` met `nieuw: true`.
 - Database: geen nieuwe kolom; `start_datum` = openingsdatum. `ontdooid_datum` blijft bestaan maar wordt niet meer gevraagd.
 - Controle: labelvoorbeeld via Labelary, open- en sluitlijst op iPad- en telefoonformaat, testbak opruimen.
+
+## Sticker print twee keer
+Gevonden in de printhistorie: elke au bain-marie-sticker van vandaag staat er twee keer in, 1 à 2 seconden na elkaar (Vissoep, Kip, Ei). Snel printen heeft dit niet. De knop blokkeert een tweede tik nu maar 1,2 seconde en toont tussendoor niet dat de sticker al onderweg is — dus een tweede tik (of een na-tik van de iPad) komt erdoor.
+
+Oplossing:
+- Na een tik verandert de knop direct in "Geprint ✓" en blijft dat; opnieuw printen kan alleen via de aparte knop **Opnieuw printen**.
+- Vangnet in de app: dezelfde sticker (zelfde product, zelfde datums) wordt binnen 15 seconden niet nog eens naar de printer gestuurd.
+- De printer zelf en de printroute blijven ongewijzigd.
+
+Technisch: in `BainMarie.tsx` de `bezig`-blokkade vervangen door een blijvende geprint-status per product + een check in de print-mutatie op een recente `print_jobs`-rij met `bron = 'bain_marie'` en dezelfde `label_omschrijving` binnen 15 s.
