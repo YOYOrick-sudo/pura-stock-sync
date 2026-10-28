@@ -1539,6 +1539,7 @@ export function FohTasks() {
       .from('foh_employees')
       .select('*')
       .eq('location', userLocation)
+      .eq('archived', false)
       .order('name', { ascending: true });
     
     if (error) {
