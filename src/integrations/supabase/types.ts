@@ -1132,6 +1132,7 @@ export type Database = {
       foh_employees: {
         Row: {
           afdeling: string
+          archived: boolean
           created_at: string
           id: string
           location: string
@@ -1139,6 +1140,7 @@ export type Database = {
         }
         Insert: {
           afdeling?: string
+          archived?: boolean
           created_at?: string
           id?: string
           location: string
@@ -1146,6 +1148,7 @@ export type Database = {
         }
         Update: {
           afdeling?: string
+          archived?: boolean
           created_at?: string
           id?: string
           location?: string

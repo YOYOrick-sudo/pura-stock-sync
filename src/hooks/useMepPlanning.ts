@@ -481,6 +481,7 @@ export function useKeukenMedewerkers(location: string) {
         .from('foh_employees')
         .select('id, name')
         .eq('location', location)
+        .eq('archived', false)
         .order('name');
       if (error) throw error;
       return data ?? [];
