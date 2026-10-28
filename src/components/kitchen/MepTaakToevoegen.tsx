@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +26,8 @@ interface Props {
   onToevoegen: (input: MepTaakInput) => Promise<unknown>;
   /** Optioneel: taak bijwerken ná toevoegen (handeling / persoon). */
   onBijwerken?: (taakId: string, patch: Partial<MepTaak>) => Promise<unknown>;
+  /** Optioneel: iets naast het zoekveld (bv. weergave-tabs). */
+  rechts?: React.ReactNode;
 }
 
 export function MepTaakToevoegen({
@@ -35,6 +36,7 @@ export function MepTaakToevoegen({
   medewerkers,
   onToevoegen,
   onBijwerken,
+  rechts,
 }: Props) {
   const { data: opties = [] } = useMepRecepten(vestiging);
   const { data: favorieten = [] } = useMepFavorieten(vestiging);
@@ -183,8 +185,9 @@ export function MepTaakToevoegen({
   const verplaatsNieuweTaak = (dag: string) => patchStil({ taak_datum: dag });
 
   return (
-    <Card className="p-4 sm:p-5 bg-card shadow-sm space-y-3">
-      <div className="relative">
+    <div className="space-y-2">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center">
+      <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
           className="h-12 pl-9 text-[15px]"
@@ -200,6 +203,8 @@ export function MepTaakToevoegen({
           }}
           autoComplete="off"
         />
+      </div>
+      {rechts && <div className="shrink-0">{rechts}</div>}
       </div>
 
       {toonNieuw && ontleed.aangepast && (
@@ -443,6 +448,6 @@ export function MepTaakToevoegen({
           ))}
         </div>
       )}
-    </Card>
+    </div>
   );
 }
