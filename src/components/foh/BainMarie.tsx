@@ -299,6 +299,95 @@ export function BainMarieOpen({ vestiging, datum }: { vestiging: string; datum: 
   );
 }
 
+type Stap = { id: string; tekst: string; belangrijk?: boolean };
+
+const OPZET_STAPPEN: Stap[] = [
+  { id: 'verkleinen', tekst: 'Bakjes verkleinen' },
+  { id: 'sla', tekst: 'Sla en rucola aanvullen in opzetkoeling' },
+];
+
+const BAIN_STAPPEN: Stap[] = [
+  { id: 'uit', tekst: 'Au bain-marie uitzetten' },
+  { id: 'vaat', tekst: 'Inhoud eruit halen en door de vaat' },
+  { id: 'water', tekst: 'Water + scheutje azijn verversen indien vies' },
+  { id: 'peil', tekst: 'Genoeg water, tot onderkant bakjes', belangrijk: true },
+];
+
+/** Afvinkstatus per dag, bewaard op het apparaat. */
+function useDagVinkjes(sleutel: string) {
+  const [lijst, setLijst] = useState<string[]>([]);
+  useEffect(() => {
+    try {
+      const ruw = localStorage.getItem(sleutel);
+      setLijst(ruw ? JSON.parse(ruw) : []);
+    } catch {
+      setLijst([]);
+    }
+  }, [sleutel]);
+  const zet = (id: string, aan: boolean) =>
+    setLijst((g) => {
+      const v = aan ? (g.includes(id) ? g : [...g, id]) : g.filter((x) => x !== id);
+      try {
+        localStorage.setItem(sleutel, JSON.stringify(v));
+      } catch {
+        /* stille fallback */
+      }
+      return v;
+    });
+  return [lijst, zet] as const;
+}
+
+function StappenRijen({ stappen, klaar, zet }: { stappen: Stap[]; klaar: string[]; zet: (id: string, aan: boolean) => void }) {
+  return (
+    <>
+      {stappen.map((st) => {
+        const aan = klaar.includes(st.id);
+        return (
+          <button
+            key={st.id}
+            type="button"
+            onClick={() => zet(st.id, !aan)}
+            className="flex w-full items-center gap-3 py-2.5 text-left"
+            style={{ minHeight: 56 }}
+          >
+            <span className="-m-2.5 flex items-center justify-center p-2.5">
+              <Vakje aan={aan} />
+            </span>
+            <span
+              className={cn(
+                'text-[16px] font-medium',
+                aan ? 'text-muted-foreground line-through' : 'text-foreground',
+              )}
+            >
+              {st.tekst}
+            </span>
+            {st.belangrijk && !aan && (
+              <span className="ml-auto shrink-0 rounded-full bg-warning/10 px-2 py-0.5 text-[12px] font-semibold text-warning">
+                Belangrijk
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </>
+  );
+}
+
+/** Eerste blok van de keuken-sluitlijst West. */
+export function OpzetkoelingSluit({ vestiging, datum }: { vestiging: string; datum: string }) {
+  const [klaar, zet] = useDagVinkjes(`opzetkoeling-sluit-${vestiging}-${datum}`);
+  const n = OPZET_STAPPEN.filter((s) => klaar.includes(s.id)).length;
+  const af = n === OPZET_STAPPEN.length;
+  return (
+    <div style={{ marginBottom: '32px' }}>
+      <SectieBalk titel="Opzetkoeling" stand={af ? 'afgerond' : `${n}/${OPZET_STAPPEN.length}`} afgerond={af} />
+      <div className="divide-y divide-border">
+        <StappenRijen stappen={OPZET_STAPPEN} klaar={klaar} zet={zet} />
+      </div>
+    </div>
+  );
+}
+
 /**
  * Avondblok (Sluitlijst West, keuken): controleren, niet opnieuw printen.
  * Vakje = "sticker zit erop en klopt". Nieuwe zak geopend → sticker direct.
@@ -337,18 +426,24 @@ export function BainMarieSluit({ vestiging, datum }: { vestiging: string; datum:
 
   const teDoen = BAIN_MARIE_PRODUCTEN.filter((p) => bakken.some((b) => b.product === p.sleutel));
   const gedaan = teDoen.filter((p) => gecheckt.includes(p.sleutel)).length;
-  const afgerond = teDoen.length > 0 && gedaan === teDoen.length;
+  const [stappenKlaar, zetStap] = useDagVinkjes(`bain-marie-stappen-${vestiging}-${datum}`);
+  const stappenGedaan = BAIN_STAPPEN.filter((s) => stappenKlaar.includes(s.id)).length;
+  const totaal = BAIN_STAPPEN.length + teDoen.length;
+  const totaalGedaan = stappenGedaan + gedaan;
+  const afgerond = totaalGedaan === totaal;
   const menuProduct = BAIN_MARIE_PRODUCTEN.find((x) => x.sleutel === menuVoor);
   const menuBak = menuProduct ? bakken.find((b) => b.product === menuProduct.sleutel) : undefined;
 
   return (
     <div style={{ marginBottom: '32px' }}>
       <SectieBalk
-        titel="Au bain-marie — controleren"
-        stand={teDoen.length === 0 ? 'geen bakken' : afgerond ? 'afgerond' : `${gedaan}/${teDoen.length}`}
-        afgerond={afgerond || teDoen.length === 0}
+        titel="Au bain-marie"
+        stand={afgerond ? 'afgerond' : `${totaalGedaan}/${totaal}`}
+        afgerond={afgerond}
       />
       <div className="divide-y divide-border">
+        <StappenRijen stappen={BAIN_STAPPEN} klaar={stappenKlaar} zet={zetStap} />
+        <div className="pt-3 pb-1 text-[13px] font-semibold text-muted-foreground">Stickers controleren</div>
         {BAIN_MARIE_PRODUCTEN.map((p) => {
           const bak = bakken.find((b) => b.product === p.sleutel);
           const s = bakStatus(bak, datum);

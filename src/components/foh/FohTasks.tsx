@@ -27,7 +27,7 @@ import { AdminPasswordDialog } from './AdminPasswordDialog';
 import { RepeatBadge } from './RepeatBadge';
 import { ListManager } from './ListManager';
 import { SluitRondeWest } from './SluitRondeWest';
-import { BainMarieOpen, BainMarieSluit } from './BainMarie';
+import { BainMarieOpen, BainMarieSluit, OpzetkoelingSluit } from './BainMarie';
 import { SectieBalk } from './SectieBalk';
 import { getOrderedCategories, WEST_SECTIONS, type Department } from '@/lib/foh-category-order';
 import { devLog, devError } from "@/lib/devLog";
@@ -3843,7 +3843,16 @@ export function FohTasks() {
                         const sections =
                           activePhase === 'open'
                             ? [samenTop, bainMarie, eigen, samenBottom].filter(Boolean)
-                            : [samenTop, voorraad, bainMarie, eigen, samenBottom].filter(Boolean);
+                              : [
+                                samenTop,
+                                visibleTab === 'keuken' && !isReadOnly ? (
+                                  <OpzetkoelingSluit key="opzetkoeling" vestiging="West" datum={selectedDate} />
+                                ) : null,
+                                bainMarie,
+                                voorraad,
+                                eigen,
+                                samenBottom,
+                              ].filter(Boolean);
                         if (sections.length === 0) {
                           return (
                             <div style={{
