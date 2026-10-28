@@ -271,16 +271,95 @@ export function MepTaakToevoegen({
               </Badge>
             )}
             <span className="text-muted-foreground shrink-0 hidden sm:inline">toegevoegd</span>
+            <button
+              type="button"
+              disabled={bezig}
+              onClick={() => patchStil({ prioriteit: netToegevoegd.prioriteit === 1 ? 2 : 1 })}
+              aria-pressed={netToegevoegd.prioriteit === 1}
+              className={cn(
+                'ml-auto shrink-0 rounded-polar-md border px-3 min-h-[44px] text-[14px] font-medium transition-colors disabled:opacity-50',
+                netToegevoegd.prioriteit === 1
+                  ? 'border-destructive bg-destructive/10 text-destructive'
+                  : 'border-border/60 bg-card hover:bg-primary/5 active:bg-primary/10',
+              )}
+            >
+              ! Belangrijk
+            </button>
             <Button
               size="icon"
               variant="ghost"
-              className="ml-auto h-9 w-9 shrink-0"
+              className="h-11 w-11 shrink-0"
               onClick={() => setNetToegevoegd(null)}
               aria-label="Klaar"
             >
               <X className="w-4 h-4" />
             </Button>
           </div>
+
+          {medewerkers.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Wie doet het?
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {medewerkers.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    disabled={bezig}
+                    onClick={() =>
+                      patchNieuweTaak(
+                        {
+                          toegewezen_aan:
+                            netToegevoegd.toegewezen_aan === m.id ? null : m.id,
+                        },
+                        `${netToegevoegd.titel} → ${m.name}`,
+                      )
+                    }
+                    className={cn(
+                      'rounded-polar-md border px-4 min-h-[44px] text-[14px] font-medium transition-colors disabled:opacity-50',
+                      netToegevoegd.toegewezen_aan === m.id
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border/60 bg-card hover:bg-primary/5 active:bg-primary/10',
+                    )}
+                  >
+                    {m.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {handelingen.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Wat moet ermee gebeuren?
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {handelingen.map((h: { id: string; naam: string }) => (
+                  <button
+                    key={h.id}
+                    type="button"
+                    disabled={bezig}
+                    onClick={() =>
+                      patchNieuweTaak(
+                        { handeling: netToegevoegd.handeling === h.naam ? null : h.naam },
+                        `${netToegevoegd.titel} · ${h.naam}`,
+                      )
+                    }
+                    className={cn(
+                      'rounded-polar-md border px-4 min-h-[44px] text-[14px] font-medium transition-colors disabled:opacity-50',
+                      netToegevoegd.handeling === h.naam
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border/60 bg-card hover:bg-primary/5 active:bg-primary/10',
+                    )}
+                  >
+                    {h.naam}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
 
           <MepDagKiezer
             vestiging={vestiging}
@@ -337,90 +416,11 @@ export function MepTaakToevoegen({
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Prioriteit
-            </p>
-            <button
-              type="button"
-              disabled={bezig}
-              onClick={() => patchStil({ prioriteit: netToegevoegd.prioriteit === 1 ? 2 : 1 })}
-              aria-pressed={netToegevoegd.prioriteit === 1}
-              className={cn(
-                'rounded-polar-md border px-4 min-h-[44px] text-[14px] font-medium transition-colors disabled:opacity-50',
-                netToegevoegd.prioriteit === 1
-                  ? 'border-destructive bg-destructive/10 text-destructive'
-                  : 'border-border/60 bg-card hover:bg-primary/5 active:bg-primary/10',
-              )}
-            >
-              Belangrijk
-            </button>
-          </div>
 
-          {handelingen.length > 0 && (
-            <div className="space-y-1.5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Wat moet ermee gebeuren?
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {handelingen.map((h: { id: string; naam: string }) => (
-                  <button
-                    key={h.id}
-                    type="button"
-                    disabled={bezig}
-                    onClick={() =>
-                      patchNieuweTaak(
-                        { handeling: netToegevoegd.handeling === h.naam ? null : h.naam },
-                        `${netToegevoegd.titel} · ${h.naam}`,
-                      )
-                    }
-                    className={cn(
-                      'rounded-polar-md border px-4 min-h-[44px] text-[14px] font-medium transition-colors disabled:opacity-50',
-                      netToegevoegd.handeling === h.naam
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-border/60 bg-card hover:bg-primary/5 active:bg-primary/10',
-                    )}
-                  >
-                    {h.naam}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          <Button className="h-12 w-full" onClick={() => setNetToegevoegd(null)}>
+            Klaar
+          </Button>
 
-          {medewerkers.length > 0 && (
-            <div className="space-y-1.5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Wie doet het?
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {medewerkers.map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    disabled={bezig}
-                    onClick={() =>
-                      patchNieuweTaak(
-                        {
-                          toegewezen_aan:
-                            netToegevoegd.toegewezen_aan === m.id ? null : m.id,
-                        },
-                        `${netToegevoegd.titel} → ${m.name}`,
-                      )
-                    }
-                    className={cn(
-                      'rounded-polar-md border px-4 min-h-[44px] text-[14px] font-medium transition-colors disabled:opacity-50',
-                      netToegevoegd.toegewezen_aan === m.id
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-border/60 bg-card hover:bg-primary/5 active:bg-primary/10',
-                    )}
-                  >
-                    {m.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
 
