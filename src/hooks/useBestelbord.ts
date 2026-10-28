@@ -11,7 +11,7 @@ export interface BestelSignaal {
   aantal: number;
   eenheid: string;
   notitie: string | null;
-  status: 'open' | 'besteld';
+  status: 'open' | 'besteld' | 'vervallen';
   bron: string;
   created_at: string;
   besteld_op: string | null;
@@ -100,11 +100,34 @@ export function useBestelbordMutaties(vestiging: string) {
 
   const verwijderen = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await metHerstel(() => supabase.from('bestel_signalen').delete().eq('id', id));
+      // Archiveren, niet wissen: historie blijft bewaard.
+      const { error } = await metHerstel(() =>
+        supabase.from('bestel_signalen').update({ status: 'vervallen' }).eq('id', id),
+      );
       if (error) throw error;
     },
     onSettled: ververs,
   });
 
-  return { toevoegen, zetBesteld, verwijderen };
+  const herstel = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await metHerstel(() =>
+        supabase.from('bestel_signalen').update({ status: 'open' }).eq('id', id),
+      );
+      if (error) throw error;
+    },
+    onSettled: ververs,
+  });
+
+  const wijzig = useMutation({
+    mutationFn: async ({ id, aantal, eenheid }: { id: string; aantal: number; eenheid: string }) => {
+      const { error } = await metHerstel(() =>
+        supabase.from('bestel_signalen').update({ aantal, eenheid }).eq('id', id),
+      );
+      if (error) throw error;
+    },
+    onSettled: ververs,
+  });
+
+  return { toevoegen, zetBesteld, verwijderen, herstel, wijzig };
 }
