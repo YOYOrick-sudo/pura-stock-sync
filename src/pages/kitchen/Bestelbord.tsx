@@ -1,6 +1,8 @@
 import { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Check, Minus, Plus, Undo2, X } from 'lucide-react';
+import { Check, ChevronDown, Minus, Plus, X } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -72,7 +74,18 @@ function Rij({
 }) {
   const besteld = signaal.status === 'besteld';
   return (
-    <div className="flex items-center gap-2 p-3 min-h-[60px]">
+    <div className="flex items-center gap-2 px-2 py-1.5 min-h-[56px]">
+      <button
+        type="button"
+        onClick={() => onBesteld(!besteld)}
+        aria-label={besteld ? 'Terug naar open' : 'Besteld'}
+        className="flex h-11 w-11 shrink-0 items-center justify-center"
+      >
+        <span className={cn('flex h-7 w-7 items-center justify-center rounded-full border-2 transition-colors',
+          besteld ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/40')}>
+          {besteld && <Check className="h-4 w-4" />}
+        </span>
+      </button>
       <button type="button" disabled={!onBewerk} onClick={onBewerk} className="min-w-0 flex-1 text-left" style={{ minHeight: 44 }}>
         <span className={besteld ? 'text-[15px] text-muted-foreground line-through' : 'text-[16px] font-medium'}>
           {signaal.naam}
@@ -82,9 +95,7 @@ function Rij({
         </span>
         <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
           <span>{datumLabel(signaal.created_at)}</span>
-          {signaal.bron === 'sluitlijst' && (
-            <Badge variant="secondary" className="font-normal">Sluitlijst</Badge>
-          )}
+          {signaal.bron === 'sluitlijst' && <Badge variant="secondary" className="font-normal">Sluitlijst</Badge>}
         </div>
       </button>
       {onVervallen && (
@@ -92,9 +103,6 @@ function Rij({
           <X className="h-4 w-4" />
         </Button>
       )}
-      <Button variant={besteld ? 'outline' : 'default'} className="h-11 min-w-[44px]" onClick={() => onBesteld(!besteld)} aria-label={besteld ? 'Terug naar open' : 'Besteld'}>
-        {besteld ? <Undo2 className="h-4 w-4" /> : <><Check className="h-4 w-4 mr-1" />Besteld</>}
-      </Button>
     </div>
   );
 }
@@ -197,57 +205,58 @@ export default function Bestelbord() {
 
   return (
     <SidebarLayout>
-      <div className="page-stack max-w-3xl">
-        <p className="text-sm text-muted-foreground">
-          Wat op is in {vestiging || 'deze keuken'}. Blijft staan tot het besteld is.
-        </p>
+      <div className="space-y-4">
+        <div>
+          <p className="text-[15px] font-medium">Bestellijst</p>
+          <p className="text-sm text-muted-foreground">
+            {vestiging || 'Keuken'} · {open.length} nog bestellen
+            {besteld.length > 0 && ` · ${besteld.length} besteld`}
+          </p>
+        </div>
 
-        <Card className="p-4 space-y-3">
-          <Input
-            ref={invoer}
-            value={naam}
-            onChange={(e) => setNaam(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                voegToe();
-              }
-            }}
-            placeholder="Wat is op? Bijv. Hüttenkäse"
-            className="h-12 text-[16px]"
-          />
-          {suggesties.length > 0 && (
-            <div className="flex gap-1.5 overflow-x-auto pb-1">
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              ref={invoer}
+              value={naam}
+              onChange={(e) => setNaam(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  voegToe();
+                }
+              }}
+              placeholder="Wat is op?"
+              className="h-11 min-w-[200px] flex-1 text-[16px]"
+            />
+            <Stepper waarde={aantal} onChange={setAantal} />
+            <Select value={soort ?? 'stuks'} onValueChange={setSoort}>
+              <SelectTrigger className="h-11 w-[110px]" aria-label="Verpakking"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {SOORTEN.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button className="h-11" onClick={voegToe} disabled={naam.trim().length < 2}>
+              <Plus className="h-4 w-4 mr-1" /> Erbij
+            </Button>
+          </div>
+          {naam.trim().length > 0 && suggesties.length > 0 && (
+            <div className="flex gap-1.5 overflow-x-auto">
               {suggesties.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => kies(s)}
-                  className="h-10 shrink-0 rounded-full bg-muted px-3.5 text-[14px] text-foreground hover:bg-muted/70"
-                >
-                  {s.naam}
+                <button key={s.id} type="button" onClick={() => kies(s)}
+                  className="h-9 shrink-0 rounded-full bg-muted px-3 text-[14px] text-foreground hover:bg-muted/70">
+                  {s.naam} · {Number(s.aantal)} {s.eenheid}
                 </button>
               ))}
             </div>
           )}
-          <div className="flex flex-wrap items-center gap-3">
-            <Stepper waarde={aantal} onChange={setAantal} />
-            <SoortKeuze waarde={soort} onChange={setSoort} />
-          </div>
-          <Button className="h-12 w-full sm:w-auto" onClick={voegToe} disabled={naam.trim().length < 2}>
-            <Plus className="h-4 w-4 mr-1" /> Erbij
-          </Button>
-        </Card>
+        </div>
 
         {isLoading ? (
           <p className="py-10 text-center text-sm text-muted-foreground">Laden…</p>
         ) : (
           <>
             <Card className="divide-y divide-border/60 overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-2 bg-muted/60">
-                <span className="text-sm font-semibold">Nog bestellen</span>
-                <span className="text-xs text-muted-foreground">{open.length}</span>
-              </div>
               {open.length === 0 ? (
                 <p className="p-4 text-sm text-muted-foreground">Niets openstaand.</p>
               ) : (
@@ -258,12 +267,19 @@ export default function Bestelbord() {
             </Card>
 
             {besteld.length > 0 && (
-              <Card className="divide-y divide-border/60 overflow-hidden">
-                <div className="px-4 py-2 bg-muted/40 text-sm font-semibold text-muted-foreground">Besteld</div>
-                {besteld.map((s) => (
-                  <Rij key={s.id} signaal={s} onBesteld={(b) => markeerBesteld(s, b)} />
-                ))}
-              </Card>
+              <Collapsible>
+                <CollapsibleTrigger className="group flex h-11 w-full items-center gap-2 px-1 text-sm font-medium text-muted-foreground">
+                  <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
+                  Besteld ({besteld.length})
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <Card className="divide-y divide-border/60 overflow-hidden">
+                    {besteld.map((s) => (
+                      <Rij key={s.id} signaal={s} onBesteld={(b) => markeerBesteld(s, b)} />
+                    ))}
+                  </Card>
+                </CollapsibleContent>
+              </Collapsible>
             )}
           </>
         )}
