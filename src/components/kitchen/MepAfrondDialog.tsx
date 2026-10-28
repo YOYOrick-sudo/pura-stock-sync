@@ -22,6 +22,8 @@ import type { StickerType } from '@/lib/labelZpl';
 interface Props {
   taak: MepTaak | null;
   onOpenChange: (v: boolean) => void;
+  /** false = locatie zonder stickerprinter (Midsland): geen sticker-stap. */
+  printen?: boolean;
   onAfronden: (args: {
     taakId: string;
     aantal: number;
@@ -40,7 +42,7 @@ function fmtDatum(d: Date) {
   return format(d, 'EEE dd-MM', { locale: nl });
 }
 
-export function MepAfrondDialog({ taak, onOpenChange, onAfronden }: Props) {
+export function MepAfrondDialog({ taak, onOpenChange, onAfronden, printen = true }: Props) {
   const [aantal, setAantal] = useState(1);
   const [temperatuur, setTemperatuur] = useState('');
   const [sticker, setSticker] = useState(true);
@@ -55,7 +57,7 @@ export function MepAfrondDialog({ taak, onOpenChange, onAfronden }: Props) {
     if (taak) {
       setAantal(Number(taak.doel_aantal ?? 1));
       setTemperatuur('');
-      setSticker(true);
+      setSticker(printen);
       setStickerType('bereid');
       setStickerNaam(taak.titel);
       setThtDagen(DEFAULT_THT.bereid);
@@ -176,7 +178,7 @@ export function MepAfrondDialog({ taak, onOpenChange, onAfronden }: Props) {
           </div>
 
           {/* Sticker */}
-          <div className="rounded-polar border border-border/60">
+          <div className={printen ? 'rounded-polar border border-border/60' : 'hidden'}>
             <div className="flex items-center justify-between px-3 py-2.5">
               <div className="flex items-center gap-2">
                 <Printer className="w-4 h-4 text-muted-foreground" />

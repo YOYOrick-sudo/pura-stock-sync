@@ -119,7 +119,7 @@ export default function MepDag() {
   const alleTaken = useMemo(() => [...dagTaken, ...laterTaken], [dagTaken, laterTaken]);
 
   // Blokken: in "Alle taken" één blok per dag; anders per persoon/handeling.
-  type Blok = { key: string; naam: string; rijen: MepTaak[]; doelDatum: string | null; rood?: boolean };
+  type Blok = { key: string; naam: string; rijen: MepTaak[]; doelDatum: string | null; rood?: boolean; persoon?: string | null };
   const groepen = useMemo<Blok[]>(() => {
     if (weergave === 'alles') {
       const teLaatRijen = alleTaken.filter((t) => t.taak_datum < datum && t.status !== 'afgerond');
@@ -143,6 +143,15 @@ export default function MepDag() {
         const naam = d === ymd(addDays(new Date(), 1)) ? 'Morgen' : format(parseISO(d), 'EEEE d MMM', { locale: nl });
         blokken.push({ key: d, naam, rijen, doelDatum: d });
       }
+      return blokken;
+    }
+    if (weergave === 'persoon') {
+      const blokken: Blok[] = [
+        { key: 'iedereen', naam: 'Iedereen', rijen: alleTaken.filter((t) => !t.toegewezen_aan || !medewerkers.some((m) => m.id === t.toegewezen_aan)), doelDatum: null, persoon: null },
+        ...[...medewerkers]
+          .sort((a, b) => a.name.localeCompare(b.name, 'nl'))
+          .map((m) => ({ key: m.id, naam: m.name, rijen: alleTaken.filter((t) => t.toegewezen_aan === m.id), doelDatum: null, persoon: m.id })),
+      ];
       return blokken;
     }
     const map = new Map<string, MepTaak[]>();
@@ -210,9 +219,21 @@ export default function MepDag() {
       return;
     }
 
-    if (!doel.doelDatum) return; // naar "Te laat" kan niet
     const taak = alleTaken.find((t) => t.id === taakId);
     if (!taak) return;
+    if (weergave === 'persoon') {
+      const oudPersoon = taak.toegewezen_aan;
+      try {
+        await bijwerken.mutateAsync({ id: taakId, toegewezen_aan: doel.persoon ?? null });
+        toast.success(`${taak.titel} staat nu bij ${doel.naam}`, {
+          action: { label: 'Ongedaan maken', onClick: () => { bijwerken.mutate({ id: taakId, toegewezen_aan: oudPersoon }); } },
+        });
+      } catch (e: any) {
+        toast.error('Verplaatsen mislukt: ' + (e?.message ?? 'onbekende fout'));
+      }
+      return;
+    }
+    if (!doel.doelDatum) return; // naar "Te laat" kan niet
     const oud = { taak_datum: taak.taak_datum, volgorde: taak.volgorde };
     const plek = doelOpen.findIndex((r) => r.id === overId);
     const ids = doelOpen.map((r) => r.id);
@@ -275,7 +296,7 @@ export default function MepDag() {
             <Button
               size="icon"
               variant="outline"
-              className="h-11 w-11"
+              className={vestiging === 'Midsland' ? 'hidden' : 'h-11 w-11'}
               onClick={() => navigate('/kitchen/mep/week')}
               aria-label="Weekweergave"
             >
@@ -338,7 +359,7 @@ export default function MepDag() {
               {groepen.map((g) => {
                 const openRijen = g.rijen.filter((r) => r.status !== 'afgerond');
                 const klaarRijen = g.rijen.filter((r) => r.status === 'afgerond');
-                const sleepbaar = weergave === 'alles';
+                const sleepbaar = weergave !== 'handeling';
                 const rij = (t: MepTaak) => (
                   <TaakRij
                     key={t.id}
@@ -360,7 +381,7 @@ export default function MepDag() {
                     naam={g.naam}
                     rood={g.rood}
                     stand={`${klaarRijen.length}/${g.rijen.length}`}
-                    dropbaar={sleepbaar && !!g.doelDatum}
+                    dropbaar={weergave === 'persoon' || (sleepbaar && !!g.doelDatum)}
                   >
                     <SortableContext
                       items={openRijen.map((r) => r.id)}
@@ -427,6 +448,7 @@ export default function MepDag() {
         taak={afrondTaak}
         onOpenChange={(v) => !v && setAfrondTaak(null)}
         onAfronden={(args) => afronden.mutateAsync(args)}
+        printen={vestiging !== 'Midsland'}
       />
 
       <MepTaakBewerken
