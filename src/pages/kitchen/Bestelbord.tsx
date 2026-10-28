@@ -207,9 +207,8 @@ export default function Bestelbord() {
     <SidebarLayout>
       <div className="space-y-4">
         <div>
-          <p className="text-[15px] font-medium">Bestellijst</p>
           <p className="text-sm text-muted-foreground">
-            {vestiging || 'Keuken'} · {open.length} nog bestellen
+            {open.length} nog bestellen
             {besteld.length > 0 && ` · ${besteld.length} besteld`}
           </p>
         </div>

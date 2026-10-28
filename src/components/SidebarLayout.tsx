@@ -37,6 +37,7 @@ export function SidebarLayout({
       '/kitchen/snel-printen': 'Stickers',
       '/kitchen/mep': 'Mise-en-place',
       '/kitchen/mep/week': 'Mise-en-place · week',
+      '/kitchen/bestelbord': 'Bestellijst',
       '/settings/mep': 'Mise-en-place instellingen',
       '/settings/keten': 'Voorraadketen',
       '/settings/koelwerkbank': 'Koelwerkbank indelen',
