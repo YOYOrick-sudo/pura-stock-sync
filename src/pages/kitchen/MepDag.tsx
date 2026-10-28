@@ -44,6 +44,7 @@ import {
   CalendarDays,
   ChevronDown,
   AlertTriangle,
+  ArrowRight,
   GripVertical,
 } from 'lucide-react';
 import { addDays, differenceInCalendarDays, format, parseISO } from 'date-fns';
@@ -419,10 +420,16 @@ export default function MepDag() {
                     rood={g.rood}
                     stand={`${klaarRijen.length}/${g.rijen.length}`}
                     dropbaar={weergave === 'persoon' || (sleepbaar && !!g.doelDatum)}
+                    hint={
+                      g.key === 'telaat'
+                        ? 'Deze taken zijn van een eerdere dag. Tik op “Vandaag” bij een taak om hem op de lijst van vandaag te zetten.'
+                        : undefined
+                    }
                     acties={
                       g.key === 'telaat' && openRijen.length > 0 ? (
                         <>
-                          <Button size="sm" variant="outline" className="h-11" onClick={() => opruimen(openRijen, 'vandaag')}>
+                          <Button size="sm" className="h-11" onClick={() => opruimen(openRijen, 'vandaag')}>
+                            <ArrowRight className="w-4 h-4" />
                             Alles naar vandaag
                           </Button>
                           <Button size="sm" variant="ghost" className="h-11 text-muted-foreground" onClick={() => opruimen(openRijen, 'wissen')}>
