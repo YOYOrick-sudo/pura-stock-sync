@@ -44,6 +44,8 @@ import {
   CalendarDays,
   ChevronDown,
   AlertTriangle,
+  ArrowRight,
+  Info,
   GripVertical,
 } from 'lucide-react';
 import { addDays, differenceInCalendarDays, format, parseISO } from 'date-fns';
@@ -407,8 +409,9 @@ export default function MepDag() {
                     onBewerk={setBewerkTaak}
                     onAfrond={setAfrondTaak}
                     onHeropen={heropen}
-                    onVerwijder={verwijder}
+                     onVerwijder={verwijder}
                     onToewijzen={toewijzen}
+                    onNaarVandaag={(t) => opruimen([t], 'vandaag')}
                   />
                 );
                 return (
@@ -419,10 +422,16 @@ export default function MepDag() {
                     rood={g.rood}
                     stand={`${klaarRijen.length}/${g.rijen.length}`}
                     dropbaar={weergave === 'persoon' || (sleepbaar && !!g.doelDatum)}
+                    hint={
+                      g.key === 'telaat'
+                        ? 'Deze taken zijn van een eerdere dag. Tik op “Vandaag” bij een taak om hem op de lijst van vandaag te zetten.'
+                        : undefined
+                    }
                     acties={
                       g.key === 'telaat' && openRijen.length > 0 ? (
                         <>
-                          <Button size="sm" variant="outline" className="h-11" onClick={() => opruimen(openRijen, 'vandaag')}>
+                          <Button size="sm" className="h-11" onClick={() => opruimen(openRijen, 'vandaag')}>
+                            <ArrowRight className="w-4 h-4" />
                             Alles naar vandaag
                           </Button>
                           <Button size="sm" variant="ghost" className="h-11 text-muted-foreground" onClick={() => opruimen(openRijen, 'wissen')}>
@@ -524,9 +533,11 @@ function DagBlok({
   stand,
   dropbaar,
   acties,
+  hint,
   children,
 }: {
   acties?: React.ReactNode;
+  hint?: string;
   id: string;
   naam: string;
   rood?: boolean;
@@ -556,6 +567,12 @@ function DagBlok({
           </span>
         </div>
       </div>
+      {hint && (
+        <div className="px-4 sm:px-5 py-2.5 text-[13px] leading-snug text-muted-foreground bg-muted/20 border-b border-border/60 flex items-start gap-2">
+          <Info className="w-4 h-4 shrink-0 mt-0.5" />
+          {hint}
+        </div>
+      )}
       {children}
     </Card>
   );
@@ -572,6 +589,7 @@ interface TaakRijProps {
   onHeropen: (t: MepTaak) => void;
   onVerwijder: (t: MepTaak) => void;
   onToewijzen: (t: MepTaak, persoonId: string | null) => void;
+  onNaarVandaag: (t: MepTaak) => void;
 }
 
 function TaakRij({
@@ -585,6 +603,7 @@ function TaakRij({
   onHeropen,
   onVerwijder,
   onToewijzen,
+  onNaarVandaag,
 }: TaakRijProps) {
   const isKlaar = t.status === 'afgerond';
   // Taak staat gepland op een latere dag: zichtbaar, maar duidelijk anders.
@@ -718,6 +737,17 @@ function TaakRij({
         </Button>
       ) : (
         <>
+          {isOvertijd && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-11 shrink-0 rounded-full border-destructive/30 text-destructive hover:bg-destructive/10"
+              onClick={() => onNaarVandaag(t)}
+            >
+              <ArrowRight className="w-4 h-4" />
+              Vandaag
+            </Button>
+          )}
           <PersoonKiezer
             persoon={medewerkers.find((m) => m.id === t.toegewezen_aan) ?? null}
             medewerkers={medewerkers}
