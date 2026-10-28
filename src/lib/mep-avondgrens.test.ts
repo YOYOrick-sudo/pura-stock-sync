@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+// @ts-ignore bun test runner
+import { describe, expect, it } from 'bun:test';
 import { naarVolgendeDag } from './mep-avondgrens';
 
 // 28 okt 2026 is wintertijd: Amsterdam = UTC+1
