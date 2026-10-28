@@ -296,7 +296,7 @@ export default function MepDag() {
             <Button
               size="icon"
               variant="outline"
-              className="h-11 w-11"
+              className={vestiging === 'Midsland' ? 'hidden' : 'h-11 w-11'}
               onClick={() => navigate('/kitchen/mep/week')}
               aria-label="Weekweergave"
             >
