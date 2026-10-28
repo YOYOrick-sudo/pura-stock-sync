@@ -218,6 +218,13 @@
       "when": 1791729050300,
       "tag": "0030_foh_location_trigger_insert_only",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1793225643630,
+      "tag": "0031_foh_employees_archived",
+      "breakpoints": true
     }
   ]
 }
