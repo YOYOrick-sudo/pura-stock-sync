@@ -193,6 +193,25 @@ export default function MepDag() {
     }
   };
 
+  // Te laat opruimen: naar vandaag of laten vervallen (status geannuleerd, niets verwijderd).
+  const opruimen = async (rijen: MepTaak[], actie: 'vandaag' | 'wissen') => {
+    const oud = rijen.map((t) => ({ id: t.id, taak_datum: t.taak_datum, status: t.status }));
+    const nu = ymd(new Date());
+    try {
+      await Promise.all(
+        rijen.map((t) =>
+          bijwerken.mutateAsync(actie === 'vandaag' ? { id: t.id, taak_datum: nu } : { id: t.id, status: 'geannuleerd' }),
+        ),
+      );
+      toast.success(
+        actie === 'vandaag' ? `${rijen.length} taken staan nu op vandaag` : `${rijen.length} taken vervallen`,
+        { action: { label: 'Ongedaan maken', onClick: () => { oud.forEach((o) => bijwerken.mutate(o)); } } },
+      );
+    } catch (e: any) {
+      toast.error('Opruimen mislukt: ' + (e?.message ?? 'onbekende fout'));
+    }
+  };
+
   const blokVan = (id: string) => groepen.find((g) => g.rijen.some((r) => r.id === id));
 
   const sleepKlaar = async (event: DragEndEvent) => {
@@ -382,6 +401,18 @@ export default function MepDag() {
                     rood={g.rood}
                     stand={`${klaarRijen.length}/${g.rijen.length}`}
                     dropbaar={weergave === 'persoon' || (sleepbaar && !!g.doelDatum)}
+                    acties={
+                      g.key === 'telaat' && openRijen.length > 0 ? (
+                        <>
+                          <Button size="sm" variant="outline" className="h-11" onClick={() => opruimen(openRijen, 'vandaag')}>
+                            Alles naar vandaag
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-11 text-muted-foreground" onClick={() => opruimen(openRijen, 'wissen')}>
+                            Wissen
+                          </Button>
+                        </>
+                      ) : undefined
+                    }
                   >
                     <SortableContext
                       items={openRijen.map((r) => r.id)}
@@ -469,8 +500,10 @@ function DagBlok({
   rood,
   stand,
   dropbaar,
+  acties,
   children,
 }: {
+  acties?: React.ReactNode;
   id: string;
   naam: string;
   rood?: boolean;
@@ -493,9 +526,12 @@ function DagBlok({
         >
           {naam}
         </h2>
-        <span className="text-xs font-medium text-muted-foreground tabular-nums rounded-full bg-muted px-2.5 py-0.5">
-          {stand}
-        </span>
+        <div className="flex items-center gap-2">
+          {acties}
+          <span className="text-xs font-medium text-muted-foreground tabular-nums rounded-full bg-muted px-2.5 py-0.5">
+            {stand}
+          </span>
+        </div>
       </div>
       {children}
     </Card>

@@ -8,6 +8,8 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { MEP_EENHEDEN, splitsAantalUitTitel } from '@/lib/mep-hoeveelheid';
 import { useMepHandelingen } from '@/hooks/useMepPlanning';
+import { supabase } from '@/integrations/supabase/client';
+import { naarVolgendeDag } from '@/lib/mep-avondgrens';
 import { MepDagKiezer } from '@/components/kitchen/MepDagKiezer';
 import {
   MepFavoriet,
@@ -66,9 +68,16 @@ export function MepTaakToevoegen({
     if (bezig) return;
     setBezig(true);
     try {
+      const n = new Date();
+      const vandaag = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+      let naMorgen = false;
+      if (naarVolgendeDag(vestiging, input.taak_datum, vandaag, n)) {
+        const { data } = await supabase.rpc('mep_volgende_open_dag', { _vestiging: vestiging, _vanaf: vandaag });
+        if (data) { input = { ...input, taak_datum: data as string }; naMorgen = true; }
+      }
       const taak = (await onToevoegen(input)) as MepTaak;
       if (!taak?.id) throw new Error('De taak is niet opgeslagen');
-      toast.success(`${label} toegevoegd`);
+      toast.success(naMorgen ? `${label} staat op de MEP voor de volgende open dag` : `${label} toegevoegd`);
       naToevoegen(taak);
     } catch (e: any) {
       toast.error('Toevoegen mislukt: ' + (e?.message ?? 'onbekende fout'));
