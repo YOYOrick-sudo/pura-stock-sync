@@ -52,6 +52,9 @@ import { addDays, differenceInCalendarDays, format, parseISO } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { naarVolgendeDag } from '@/lib/mep-avondgrens';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useKeukenMedewerkers } from '@/hooks/useMepPlanning';
 import {
@@ -119,6 +122,25 @@ export default function MepDag() {
   const teLaat = isVandaag
     ? dagTaken.filter((t) => t.status !== 'afgerond' && t.taak_datum < datum)
     : [];
+
+  // Na de avondgrens (Midsland 17:00) schuift "te laat" door naar de volgende open dag.
+  const vandaagYmd = ymd(new Date());
+  const naAvond = naarVolgendeDag(vestiging, datum, vandaagYmd, new Date());
+  const { data: volgendeDag } = useQuery({
+    queryKey: ['mep-volgende-open-dag', vestiging, vandaagYmd],
+    enabled: naAvond,
+    queryFn: async () => {
+      const { data } = await supabase.rpc('mep_volgende_open_dag', { _vestiging: vestiging, _vanaf: vandaagYmd });
+      return (data as string | null) ?? null;
+    },
+  });
+  const doorschuifDatum = naAvond && volgendeDag ? volgendeDag : vandaagYmd;
+  const doorschuifLabel =
+    doorschuifDatum === vandaagYmd
+      ? 'vandaag'
+      : doorschuifDatum === ymd(addDays(new Date(), 1))
+        ? 'morgen'
+        : format(parseISO(doorschuifDatum), 'EEE', { locale: nl });
 
   const alleTaken = useMemo(() => [...dagTaken, ...laterTaken], [dagTaken, laterTaken]);
 
@@ -200,7 +222,7 @@ export default function MepDag() {
   // Te laat opruimen: naar vandaag of laten vervallen (status geannuleerd, niets verwijderd).
   const opruimen = async (rijen: MepTaak[], actie: 'vandaag' | 'wissen') => {
     const oud = rijen.map((t) => ({ id: t.id, taak_datum: t.taak_datum, status: t.status }));
-    const nu = ymd(new Date());
+    const nu = doorschuifDatum;
     try {
       await Promise.all(
         rijen.map((t) =>
@@ -208,7 +230,7 @@ export default function MepDag() {
         ),
       );
       toast.success(
-        actie === 'vandaag' ? `${rijen.length} taken staan nu op vandaag` : `${rijen.length} taken vervallen`,
+        actie === 'vandaag' ? `${rijen.length} taken staan nu op ${doorschuifLabel}` : `${rijen.length} taken vervallen`,
         { action: { label: 'Ongedaan maken', onClick: () => { oud.forEach((o) => bijwerken.mutate(o)); } } },
       );
     } catch (e: any) {
@@ -412,6 +434,7 @@ export default function MepDag() {
                      onVerwijder={verwijder}
                     onToewijzen={toewijzen}
                     onNaarVandaag={(t) => opruimen([t], 'vandaag')}
+                    doorschuifLabel={doorschuifLabel}
                   />
                 );
                 return (
@@ -422,17 +445,12 @@ export default function MepDag() {
                     rood={g.rood}
                     stand={`${klaarRijen.length}/${g.rijen.length}`}
                     dropbaar={weergave === 'persoon' || (sleepbaar && !!g.doelDatum)}
-                    hint={
-                      g.key === 'telaat'
-                        ? 'Deze taken zijn van een eerdere dag. Tik op “Vandaag” bij een taak om hem op de lijst van vandaag te zetten.'
-                        : undefined
-                    }
                     acties={
                       g.key === 'telaat' && openRijen.length > 0 ? (
                         <>
-                          <Button size="sm" className="h-11" onClick={() => opruimen(openRijen, 'vandaag')}>
+                          <Button size="sm" variant="outline" className="h-11" onClick={() => opruimen(openRijen, 'vandaag')}>
                             <ArrowRight className="w-4 h-4" />
-                            Alles naar vandaag
+                            Alles naar {doorschuifLabel}
                           </Button>
                           <Button size="sm" variant="ghost" className="h-11 text-muted-foreground" onClick={() => opruimen(openRijen, 'wissen')}>
                             Wissen
@@ -590,6 +608,7 @@ interface TaakRijProps {
   onVerwijder: (t: MepTaak) => void;
   onToewijzen: (t: MepTaak, persoonId: string | null) => void;
   onNaarVandaag: (t: MepTaak) => void;
+  doorschuifLabel: string;
 }
 
 function TaakRij({
@@ -604,6 +623,7 @@ function TaakRij({
   onVerwijder,
   onToewijzen,
   onNaarVandaag,
+  doorschuifLabel,
 }: TaakRijProps) {
   const isKlaar = t.status === 'afgerond';
   // Taak staat gepland op een latere dag: zichtbaar, maar duidelijk anders.
@@ -693,7 +713,7 @@ function TaakRij({
               className="font-medium bg-destructive/10 text-destructive border-destructive/25 inline-flex items-center gap-1"
             >
               <AlertTriangle className="w-3.5 h-3.5" />
-              {dagenTeLaat > 1 ? `${dagenTeLaat} dagen te laat` : 'Overtijd'}
+              {dagenTeLaat > 1 ? `${dagenTeLaat} dagen` : 'Gisteren'}
             </Badge>
           )}
           {t.prioriteit === 1 && (
@@ -741,11 +761,11 @@ function TaakRij({
             <Button
               size="sm"
               variant="outline"
-              className="h-11 shrink-0 rounded-full border-destructive/30 text-destructive hover:bg-destructive/10"
+              className="h-11 shrink-0 rounded-full text-muted-foreground capitalize"
               onClick={() => onNaarVandaag(t)}
             >
               <ArrowRight className="w-4 h-4" />
-              Vandaag
+              {doorschuifLabel}
             </Button>
           )}
           <PersoonKiezer
