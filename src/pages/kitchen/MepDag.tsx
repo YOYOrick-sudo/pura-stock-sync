@@ -123,9 +123,9 @@ export default function MepDag() {
     ? dagTaken.filter((t) => t.status !== 'afgerond' && t.taak_datum < datum)
     : [];
 
-  // Na de avondgrens (Midsland 17:00) schuift "te laat" door naar de volgende open dag.
+  // Na de avondgrens (17:00) schuift "te laat" in beide vestigingen door naar de volgende open dag.
   const vandaagYmd = ymd(new Date());
-  const naAvond = naarVolgendeDag(vestiging, datum, vandaagYmd, new Date());
+  const naAvond = naarVolgendeDag(datum, vandaagYmd, new Date());
   const { data: volgendeDag } = useQuery({
     queryKey: ['mep-volgende-open-dag', vestiging, vandaagYmd],
     enabled: naAvond,

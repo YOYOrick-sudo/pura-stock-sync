@@ -73,7 +73,7 @@ export function MepTaakToevoegen({
       const n = new Date();
       const vandaag = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
       let naMorgen = false;
-      if (naarVolgendeDag(vestiging, input.taak_datum, vandaag, n)) {
+      if (naarVolgendeDag(input.taak_datum, vandaag, n)) {
         const { data } = await supabase.rpc('mep_volgende_open_dag', { _vestiging: vestiging, _vanaf: vandaag });
         if (data) { input = { ...input, taak_datum: data as string }; naMorgen = true; }
       }
