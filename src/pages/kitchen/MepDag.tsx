@@ -737,6 +737,17 @@ function TaakRij({
         </Button>
       ) : (
         <>
+          {isOvertijd && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-11 shrink-0 rounded-full border-destructive/30 text-destructive hover:bg-destructive/10"
+              onClick={() => onNaarVandaag(t)}
+            >
+              <ArrowRight className="w-4 h-4" />
+              Vandaag
+            </Button>
+          )}
           <PersoonKiezer
             persoon={medewerkers.find((m) => m.id === t.toegewezen_aan) ?? null}
             medewerkers={medewerkers}
