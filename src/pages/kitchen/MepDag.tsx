@@ -352,10 +352,7 @@ export default function MepDag() {
           </div>
         </div>
 
-        {/* Voortgang */}
-        <Card className="p-3 sm:p-4 bg-card shadow-sm">
-          <Progress value={voortgang} className="h-2" />
-        </Card>
+        {totaal > 0 && <Progress value={voortgang} className="h-1 -mt-2" />}
 
         {/* Taak toevoegen — inline */}
         <MepTaakToevoegen
@@ -364,8 +361,7 @@ export default function MepDag() {
           medewerkers={medewerkers}
           onToevoegen={(input) => toevoegen.mutateAsync(input)}
           onBijwerken={(taakId, patch) => bijwerken.mutateAsync({ id: taakId, ...patch })}
-        />
-
+          rechts={
         <Tabs
           value={weergave}
           onValueChange={(v) => setWeergave(v as 'alles' | 'persoon' | 'handeling')}
@@ -377,6 +373,8 @@ export default function MepDag() {
             <TabsTrigger value="handeling">Per handeling</TabsTrigger>
           </TabsList>
         </Tabs>
+          }
+        />
 
 
         {isLoading ? (
