@@ -825,22 +825,20 @@ function PersoonKiezer({
           type="button"
           aria-label={persoon ? `Toegewezen aan ${persoon.name}, wijzigen` : 'Toewijzen'}
           className={cn(
-            'h-11 shrink-0 inline-flex items-center gap-2 rounded-full border pl-1.5 pr-3 text-[14px] font-medium transition-colors',
+            'h-11 shrink-0 inline-flex items-center gap-2 rounded-full border text-[14px] font-medium transition-colors',
             persoon
-              ? 'border-primary/25 bg-primary/5 text-primary hover:bg-primary/10'
-              : 'border-dashed border-muted-foreground/40 text-muted-foreground hover:bg-muted',
+              ? 'pl-1.5 pr-3 border-primary/25 bg-primary/5 text-primary hover:bg-primary/10'
+              : 'w-11 justify-center border-dashed border-muted-foreground/40 text-muted-foreground hover:bg-muted',
           )}
         >
           {persoon ? (
-            <Initiaal naam={persoon.name} actief />
+            <>
+              <Initiaal naam={persoon.name} actief />
+              <span className="hidden sm:inline max-w-[90px] truncate">{persoon.name}</span>
+            </>
           ) : (
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-muted">
-              <User className="w-4 h-4" />
-            </span>
+            <User className="w-5 h-5" />
           )}
-          <span className="hidden sm:inline max-w-[90px] truncate">
-            {persoon ? persoon.name : 'Toewijzen'}
-          </span>
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-56 p-1.5">
