@@ -45,6 +45,7 @@ import {
   ChevronDown,
   AlertTriangle,
   ArrowRight,
+  Info,
   GripVertical,
 } from 'lucide-react';
 import { addDays, differenceInCalendarDays, format, parseISO } from 'date-fns';
@@ -588,6 +589,7 @@ interface TaakRijProps {
   onHeropen: (t: MepTaak) => void;
   onVerwijder: (t: MepTaak) => void;
   onToewijzen: (t: MepTaak, persoonId: string | null) => void;
+  onNaarVandaag: (t: MepTaak) => void;
 }
 
 function TaakRij({
