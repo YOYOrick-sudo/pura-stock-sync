@@ -408,8 +408,9 @@ export default function MepDag() {
                     onBewerk={setBewerkTaak}
                     onAfrond={setAfrondTaak}
                     onHeropen={heropen}
-                    onVerwijder={verwijder}
+                     onVerwijder={verwijder}
                     onToewijzen={toewijzen}
+                    onNaarVandaag={(t) => opruimen([t], 'vandaag')}
                   />
                 );
                 return (
@@ -531,9 +532,11 @@ function DagBlok({
   stand,
   dropbaar,
   acties,
+  hint,
   children,
 }: {
   acties?: React.ReactNode;
+  hint?: string;
   id: string;
   naam: string;
   rood?: boolean;
@@ -563,6 +566,12 @@ function DagBlok({
           </span>
         </div>
       </div>
+      {hint && (
+        <div className="px-4 sm:px-5 py-2.5 text-[13px] leading-snug text-muted-foreground bg-muted/20 border-b border-border/60 flex items-start gap-2">
+          <Info className="w-4 h-4 shrink-0 mt-0.5" />
+          {hint}
+        </div>
+      )}
       {children}
     </Card>
   );
