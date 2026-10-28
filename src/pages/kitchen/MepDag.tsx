@@ -23,6 +23,7 @@ import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmptyState } from '@/components/kitchen/EmptyState';
@@ -273,6 +274,23 @@ export default function MepDag() {
     }
   };
 
+  const toewijzen = async (t: MepTaak, persoonId: string | null) => {
+    const oud = t.toegewezen_aan;
+    if (oud === persoonId) return;
+    const naam = persoonId ? medewerkers.find((m) => m.id === persoonId)?.name ?? '' : 'niemand';
+    try {
+      await bijwerken.mutateAsync({ id: t.id, toegewezen_aan: persoonId });
+      toast.success(`${t.titel} → ${naam}`, {
+        action: { label: 'Ongedaan maken', onClick: () => { bijwerken.mutate({ id: t.id, toegewezen_aan: oud }); } },
+      });
+    } catch (e: any) {
+      toast.error('Toewijzen mislukt: ' + (e?.message ?? 'onbekende fout'));
+    }
+  };
+  const nietToegewezen = alleTaken.filter(
+    (t) => t.status !== 'afgerond' && (!t.toegewezen_aan || !medewerkers.some((m) => m.id === t.toegewezen_aan)),
+  ).length;
+
   return (
     <SidebarLayout>
       <div className="space-y-4">
@@ -391,6 +409,7 @@ export default function MepDag() {
                     onAfrond={setAfrondTaak}
                     onHeropen={heropen}
                     onVerwijder={verwijder}
+                    onToewijzen={toewijzen}
                   />
                 );
                 return (
@@ -438,6 +457,11 @@ export default function MepDag() {
                 );
               })}
             </div>
+            {nietToegewezen > 0 && (
+              <p className="mt-3 text-right text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">{nietToegewezen}</span> niet toegewezen
+              </p>
+            )}
           </DndContext>
         )}
 
@@ -548,6 +572,7 @@ interface TaakRijProps {
   onAfrond: (t: MepTaak) => void;
   onHeropen: (t: MepTaak) => void;
   onVerwijder: (t: MepTaak) => void;
+  onToewijzen: (t: MepTaak, persoonId: string | null) => void;
 }
 
 function TaakRij({
@@ -560,6 +585,7 @@ function TaakRij({
   onAfrond,
   onHeropen,
   onVerwijder,
+  onToewijzen,
 }: TaakRijProps) {
   const isKlaar = t.status === 'afgerond';
   // Taak staat gepland op een latere dag: zichtbaar, maar duidelijk anders.
@@ -671,9 +697,6 @@ function TaakRij({
           {[t.handeling, t.doel_aantal != null ? `${Number(t.doel_aantal)} ${t.doel_eenheid ?? ''}`.trim() : null]
             .filter(Boolean)
             .join(' · ')}
-          {weergave !== 'persoon' && t.toegewezen_aan && (
-            <span>{medewerkers.find((m) => m.id === t.toegewezen_aan)?.name}</span>
-          )}
           {t.deadline && (
             <span className="inline-flex items-center gap-1">
               <Clock className="w-4 h-4" />
@@ -696,6 +719,11 @@ function TaakRij({
         </Button>
       ) : (
         <>
+          <PersoonKiezer
+            persoon={medewerkers.find((m) => m.id === t.toegewezen_aan) ?? null}
+            medewerkers={medewerkers}
+            onKies={(id) => onToewijzen(t, id)}
+          />
           <Button
             size="icon"
             variant="ghost"
@@ -711,5 +739,86 @@ function TaakRij({
         </>
       )}
     </li>
+  );
+}
+
+function Initiaal({ naam, actief }: { naam: string; actief?: boolean }) {
+  return (
+    <span
+      className={cn(
+        'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold uppercase',
+        actief ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground',
+      )}
+    >
+      {naam.trim().charAt(0) || '?'}
+    </span>
+  );
+}
+
+function PersoonKiezer({
+  persoon,
+  medewerkers,
+  onKies,
+}: {
+  persoon: { id: string; name: string } | null;
+  medewerkers: { id: string; name: string }[];
+  onKies: (id: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const kies = (id: string | null) => {
+    setOpen(false);
+    onKies(id);
+  };
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label={persoon ? `Toegewezen aan ${persoon.name}, wijzigen` : 'Toewijzen'}
+          className="h-11 w-11 shrink-0 inline-flex items-center justify-center rounded-full"
+        >
+          {persoon ? (
+            <Initiaal naam={persoon.name} actief />
+          ) : (
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-dashed border-muted-foreground/50 text-muted-foreground">
+              <User className="w-4 h-4" />
+            </span>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-56 p-1.5">
+        <div className="max-h-72 overflow-y-auto">
+          {persoon && (
+            <button
+              type="button"
+              onClick={() => kies(null)}
+              className="flex w-full items-center gap-3 rounded-polar-md px-2 min-h-[44px] text-[15px] text-muted-foreground hover:bg-primary/5 active:bg-primary/10"
+            >
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-dashed border-muted-foreground/50">
+                <User className="w-4 h-4" />
+              </span>
+              Niemand
+            </button>
+          )}
+          {medewerkers.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => kies(m.id)}
+              className={cn(
+                'flex w-full items-center gap-3 rounded-polar-md px-2 min-h-[44px] text-[15px] hover:bg-primary/5 active:bg-primary/10',
+                persoon?.id === m.id && 'bg-primary/10 font-medium',
+              )}
+            >
+              <Initiaal naam={m.name} actief={persoon?.id === m.id} />
+              <span className="truncate">{m.name}</span>
+            </button>
+          ))}
+          {medewerkers.length === 0 && (
+            <p className="px-2 py-3 text-sm text-muted-foreground">Nog geen keukenmedewerkers.</p>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
