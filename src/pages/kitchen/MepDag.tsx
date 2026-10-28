@@ -352,7 +352,7 @@ export default function MepDag() {
           </div>
         </div>
 
-        {totaal > 0 && <Progress value={voortgang} className="h-1 -mt-2" />}
+        {dagTaken.length > 0 && <Progress value={voortgang} className="h-1 -mt-2" />}
 
         {/* Taak toevoegen — inline */}
         <MepTaakToevoegen
