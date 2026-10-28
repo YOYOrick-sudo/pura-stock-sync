@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +26,8 @@ interface Props {
   onToevoegen: (input: MepTaakInput) => Promise<unknown>;
   /** Optioneel: taak bijwerken ná toevoegen (handeling / persoon). */
   onBijwerken?: (taakId: string, patch: Partial<MepTaak>) => Promise<unknown>;
+  /** Optioneel: iets naast het zoekveld (bv. weergave-tabs). */
+  rechts?: React.ReactNode;
 }
 
 export function MepTaakToevoegen({
@@ -35,6 +36,7 @@ export function MepTaakToevoegen({
   medewerkers,
   onToevoegen,
   onBijwerken,
+  rechts,
 }: Props) {
   const { data: opties = [] } = useMepRecepten(vestiging);
   const { data: favorieten = [] } = useMepFavorieten(vestiging);
