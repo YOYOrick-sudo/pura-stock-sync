@@ -603,6 +603,7 @@ function TaakRij({
   onHeropen,
   onVerwijder,
   onToewijzen,
+  onNaarVandaag,
 }: TaakRijProps) {
   const isKlaar = t.status === 'afgerond';
   // Taak staat gepland op een latere dag: zichtbaar, maar duidelijk anders.
