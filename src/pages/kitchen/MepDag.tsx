@@ -35,6 +35,7 @@ import {
   Check,
   Undo2,
   Trash2,
+  User,
   Clock,
   Settings,
   ChevronLeft,
