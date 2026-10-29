@@ -7,8 +7,8 @@ interface SegmentedTabsProps<T extends string> {
   className?: string;
 }
 
-/** @deprecated Voor nieuw werk: TabsList met segmentTabsKlasse (components/pura/patronen).
- */
+/**
+ * @deprecated Voor nieuw werk: TabsList met segmentTabsKlasse (components/pura/patronen).
  * SegmentedTabs — losse pill-knoppen naar Taken-referentie.
  * Actief = groen gevuld met witte tekst + teller-badge.
  * Inactief = witte pill met border.
