@@ -469,11 +469,12 @@ export default function Bestelbord() {
             </TabsList>
             <Button className="min-h-11 gap-1" onClick={() => { setTabKeuze('bord'); requestAnimationFrame(() => invoer.current?.focus()); }}><Plus className="h-4 w-4" /><span>Product</span></Button>
           </div>
-          <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="min-w-0 space-y-4">
               <div className="lg:hidden"><InklapGroep titel="Overzicht">{overzicht}</InklapGroep></div>
               <TabsContent value="bord" className="mt-0 space-y-4">
-        <div className="space-y-2">
+                <LijstKaart>
+        <div className="space-y-2 border-b border-border bg-muted/30 p-2">
           <Invoerbalk>
             <div className="relative min-w-0 basis-full sm:flex-1 sm:basis-auto">
               <Input
@@ -539,9 +540,9 @@ export default function Bestelbord() {
                 {SOORTEN.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button variant="outline" size="touch" className="ml-auto gap-1 px-3" aria-label="Erbij zetten" onClick={voegToe} disabled={naam.trim().length < 2 || !vestiging || isLoading}>
-              <Check className="h-4 w-4" /><span className="sm:hidden">Erbij</span>
-            </Button>
+            {naam.trim().length >= 2 && <Button size="touch" className="ml-auto gap-1 px-3" aria-label="Erbij zetten" onClick={voegToe} disabled={!vestiging || isLoading}>
+              <Check className="h-4 w-4" /><span>Erbij</span>
+            </Button>}
           </Invoerbalk>
           {eerderSuggesties.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
@@ -563,7 +564,9 @@ export default function Bestelbord() {
           )}
         </div>
 
-                <LijstKaart kop={<KaartKop icoon={ClipboardList} titel="Op het bord" />}>{isLoading ? <LaadRijen /> : open.length ? <BordTabel regels={open} {...bordProps} /> : <LegeStaat tekst="Niets openstaand." />}</LijstKaart>
+                {isLoading ? <LaadRijen /> : open.length ? <BordTabel regels={open} {...bordProps} /> : <LegeStaat tekst="Niets openstaand." />}
+                {!isLoading && open.length > 0 && <TabelVoet links={`${open.length} ${open.length === 1 ? 'product' : 'producten'}`} rechts={openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : undefined} />}
+                </LijstKaart>
               </TabsContent>
               <TabsContent value="advies" className="mt-0 space-y-4">
                 <LijstKaart kop={<KaartKop icoon={Sparkles} titel={advies.data?.leverdag ? `Voor ${leverDatumLabel(advies.data.leverdag)}` : 'Advies'} />}>
