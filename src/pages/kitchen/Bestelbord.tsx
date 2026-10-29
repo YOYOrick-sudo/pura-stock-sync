@@ -337,6 +337,10 @@ export default function Bestelbord() {
       leeg();
       return;
     }
+    const onderwegMatch = besteld.find((s) => norm(s.naam) === norm(n));
+    if (onderwegMatch) {
+      toast(`Let op: al onderweg, verwacht ${leverDatumLabel(onderwegMatch.verwachte_levering)}`);
+    }
     toevoegen.mutate(
       { naam: n, aantal, eenheid },
       {
