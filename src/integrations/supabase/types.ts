@@ -3540,6 +3540,8 @@ export type Database = {
           created_at: string
           deadline_tijd: string | null
           deleted_at: string | null
+          geldig_tot: string | null
+          geldig_vanaf: string | null
           id: string
           leverancier_id: string
           leverdag_offset: number
@@ -3552,6 +3554,8 @@ export type Database = {
           created_at?: string
           deadline_tijd?: string | null
           deleted_at?: string | null
+          geldig_tot?: string | null
+          geldig_vanaf?: string | null
           id?: string
           leverancier_id: string
           leverdag_offset?: number
@@ -3564,6 +3568,8 @@ export type Database = {
           created_at?: string
           deadline_tijd?: string | null
           deleted_at?: string | null
+          geldig_tot?: string | null
+          geldig_vanaf?: string | null
           id?: string
           leverancier_id?: string
           leverdag_offset?: number
@@ -7350,6 +7356,46 @@ export type Database = {
       }
     }
     Functions: {
+      bestel_besteldag_regel: {
+        Args: {
+          _besteldag: string
+          _leverancier_id: string
+          _vestiging: string
+        }
+        Returns: {
+          actief: boolean
+          created_at: string
+          deadline_tijd: string | null
+          deleted_at: string | null
+          geldig_tot: string | null
+          geldig_vanaf: string | null
+          id: string
+          leverancier_id: string
+          leverdag_offset: number
+          updated_at: string
+          vestiging: string | null
+          weekdag: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "leverancier_besteldagen"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      bestel_eerste_open_dag: {
+        Args: { _datum: string; _vestiging: string }
+        Returns: string
+      }
+      bestel_leverdatum_leverancier: {
+        Args: {
+          _leverancier_id: string
+          _tijd?: string
+          _vanaf: string
+          _vestiging: string
+        }
+        Returns: string
+      }
       bestel_verwachte_levering: {
         Args: {
           _besteld_op: string
