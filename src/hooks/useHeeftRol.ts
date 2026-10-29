@@ -8,21 +8,20 @@ import { useAuthStatus } from '@/contexts/AuthContext';
  * dan wordt niemand weggestuurd.
  */
 export function useHeeftRol() {
-  const { status } = useAuthStatus();
+  const { status, session } = useAuthStatus();
+  const userId = session?.user?.id ?? null;
   const query = useQuery({
-    queryKey: ['heeft-actieve-rol'],
+    queryKey: ['heeft-actieve-rol', userId],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
       const { count, error } = await supabase
         .from('user_roles')
         .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
+        .eq('user_id', userId!)
         .eq('is_active', true);
       if (error) throw error;
       return (count ?? 0) > 0;
     },
-    enabled: status === 'ingelogd',
+    enabled: status === 'ingelogd' && !!userId,
     staleTime: 5 * 60 * 1000,
     retry: 1,
   });
