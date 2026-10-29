@@ -119,24 +119,27 @@ function VormKeuze({
 }
 
 function AdviesRij({ a, bezig, onOpBord }: { a: BestelAdvies; bezig: boolean; onOpBord: () => void }) {
+  const [heel, setHeel] = useState(false);
+  const nul = Number(a.hoeveelheid) <= 0;
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 min-h-[56px]">
-      <div className="min-w-0 flex-1">
-        <span className="block text-[15px] font-medium">
-          {Number(a.hoeveelheid)} {a.eenheid ?? ''} {a.artikel}
+    <div className={cn('flex min-h-12 items-center gap-2 px-3 py-1', nul && 'opacity-60')}>
+      <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setHeel((h) => !h)} title={a.reden ?? undefined}>
+        <span className="flex items-center gap-1.5">
+          <span className="min-w-0 truncate text-[15px] font-medium">
+            <span className="tabular-nums">{Number(a.hoeveelheid)}</span> {a.eenheid ?? ''} {a.artikel}
+          </span>
+          {nul && <Badge variant="outline" className="shrink-0 font-normal">niet nodig</Badge>}
+          {a.onzeker && <Badge variant="outline" className="shrink-0 font-normal">onzeker</Badge>}
         </span>
-        <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
-          {a.onzeker && <Badge variant="secondary" className="font-normal">onzeker</Badge>}
-          {a.reden && <span>{a.reden}</span>}
-        </div>
-      </div>
+        {a.reden && <span className={cn('block text-[12px] text-muted-foreground', !heel && 'truncate')}>{a.reden}</span>}
+      </button>
       {a.op_bord_regel_id ? (
-        <span className="flex h-11 shrink-0 items-center gap-1 px-2 text-[14px] text-primary">
-          op bord <Check className="h-4 w-4" />
+        <span className="flex h-9 shrink-0 items-center gap-1 px-2 text-[13px] text-primary">
+          op bord <Check className="h-3.5 w-3.5" />
         </span>
       ) : (
-        <Button variant="outline" className="h-11 shrink-0" disabled={bezig} onClick={onOpBord}>
-          Op bord zetten
+        <Button variant="outline" size="sm" className="h-9 shrink-0 text-[13px]" disabled={bezig} onClick={onOpBord}>
+          Op bord
         </Button>
       )}
     </div>
@@ -146,21 +149,78 @@ function AdviesRij({ a, bezig, onOpBord }: { a: BestelAdvies; bezig: boolean; on
 function AdviesGroepen({ regels, bezig, onOpBord }: { regels: BestelAdvies[]; bezig: boolean; onOpBord: (a: BestelAdvies) => void }) {
   const groepen = new Map<string, BestelAdvies[]>();
   for (const a of regels) {
-    const k = a.leverancier ?? 'Onbekende leverancier';
+    const k = a.leverancier ?? '';
     if (!groepen.has(k)) groepen.set(k, []);
     groepen.get(k)!.push(a);
   }
+  const nodig = (a: BestelAdvies) => (Number(a.hoeveelheid) > 0 ? 0 : 1);
   return (
     <>
       {[...groepen.entries()].map(([lev, rs]) => (
         <div key={lev}>
-          <p className="px-3 pt-2 text-[13px] font-semibold text-muted-foreground">{lev}</p>
+          <p className={cn('bg-muted/40 px-3 py-1 text-[12px] font-semibold uppercase tracking-wide text-muted-foreground', !lev && 'font-normal normal-case')}>
+            {lev || 'Leverancier onbekend'}
+          </p>
           <div className="divide-y divide-border/60">
-            {rs.map((a) => <AdviesRij key={a.id} a={a} bezig={bezig} onOpBord={() => onOpBord(a)} />)}
+            {[...rs].sort((x, y) => nodig(x) - nodig(y)).map((a) => <AdviesRij key={a.id} a={a} bezig={bezig} onOpBord={() => onOpBord(a)} />)}
           </div>
         </div>
       ))}
     </>
+  );
+}
+
+type Bak = { totaal: number; zonder: number; regels: number };
+type Opvallend = { id: string; naam: string; eenheid: string | null; sig: PrijsSignaal; waarschuwing: string | null };
+type LeverancierTotaal = { titel: string; open: Bak; onderweg: Bak; geleverd: Bak; opvallend: Opvallend[] };
+
+function bedrag(b: Bak): string {
+  if (b.regels === 0) return '';
+  if (b.zonder === b.regels) return '–';
+  return euro(b.totaal);
+}
+
+/** Eén leverancier: bedragen rechts; prijs ontbreekt en prijswaarschuwingen samengevat. */
+function TotaalRij({ t }: { t: LeverancierTotaal }) {
+  const zonder = t.open.zonder + t.onderweg.zonder;
+  const waarschuwingen = t.opvallend.filter((o) => o.waarschuwing);
+  const duurder = t.opvallend.filter((o) => pijlRichting(o.sig) === 'omhoog').length;
+  const goedkoper = t.opvallend.filter((o) => pijlRichting(o.sig) === 'omlaag').length;
+  const onbekend = t.titel === 'Onbekende leverancier';
+  return (
+    <div className="px-3 py-1.5">
+      <div className="flex min-h-9 items-center gap-2 text-[14px]">
+        <span className={cn('min-w-0 flex-1 truncate font-medium', onbekend && 'font-normal text-muted-foreground')}>
+          {onbekend ? 'Leverancier onbekend' : t.titel}
+        </span>
+        <span className="w-20 text-right tabular-nums">{bedrag(t.open)}</span>
+        <span className="w-20 text-right tabular-nums text-muted-foreground">{bedrag(t.onderweg)}</span>
+      </div>
+      {zonder > 0 && (
+        <p className="text-[12px] text-muted-foreground">prijs ontbreekt bij {zonder} {zonder === 1 ? 'regel' : 'regels'}</p>
+      )}
+      {waarschuwingen.length > 0 && (
+        <Collapsible>
+          <CollapsibleTrigger className="group flex min-h-9 items-center gap-1 text-[12px] font-medium text-warning">
+            <ChevronDown className="h-3.5 w-3.5 transition-transform group-data-[state=open]:rotate-180" />
+            {[duurder > 0 && `${duurder} duurder`, goedkoper > 0 && `${goedkoper} goedkoper`].filter(Boolean).join(', ') || 'prijs afwijkend'}
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <ul className="space-y-0.5 pb-1">
+              {t.opvallend.map((o) => (
+                <li key={o.id} className="text-[12px]">
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    <PrijsPijl signaal={o.sig} eenheid={o.eenheid} />
+                    <span className="truncate">{o.naam}</span>
+                  </span>
+                  {o.waarschuwing && <span className="block font-medium text-warning">{o.waarschuwing}</span>}
+                </li>
+              ))}
+            </ul>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+    </div>
   );
 }
 
@@ -243,29 +303,27 @@ function OnderwegRij({
   onDeelsGeleverd: () => void;
 }) {
   return (
-    <div className="flex items-center gap-2 px-2 py-1.5 min-h-[56px]">
+    <div className="flex min-h-12 items-center gap-1 px-1 py-0.5">
       <button
         type="button"
         onClick={onGeleverd}
         aria-label="Geleverd"
         className="flex h-11 w-11 shrink-0 items-center justify-center"
       >
-        <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-muted-foreground/40 transition-colors" />
+        <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-muted-foreground/40 transition-colors" />
       </button>
-      <div className="min-w-0 flex-1">
-        <span className="block text-[16px] font-medium">{signaal.naam}</span>
-        <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
-          <span>{Number(signaal.aantal)} {signaal.eenheid}</span>
-          <button
-            type="button"
-            onClick={onDatum}
-            className="rounded-full border border-border px-2 py-0.5 text-[13px] hover:bg-muted"
-            aria-label="Verwachte leverdatum aanpassen"
-          >
-            {leverDatumLabel(signaal.verwachte_levering)}
-          </button>
-          {teLaat > 0 && <Badge variant="destructive" className="font-normal">{teLaat} {teLaat === 1 ? 'dag' : 'dagen'} te laat</Badge>}
-        </div>
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        <span className="min-w-0 flex-1 truncate text-[15px] font-medium">{signaal.naam}</span>
+        <span className="shrink-0 text-[13px] tabular-nums text-muted-foreground">{Number(signaal.aantal)} {signaal.eenheid}</span>
+        <button
+          type="button"
+          onClick={onDatum}
+          className="h-8 shrink-0 rounded-full border border-border px-2 text-[12px] text-muted-foreground hover:bg-muted"
+          aria-label="Verwachte leverdatum aanpassen"
+        >
+          {leverDatumLabel(signaal.verwachte_levering)}
+        </button>
+        {teLaat > 0 && <Badge variant="destructive" className="shrink-0 font-normal">{teLaat}d te laat</Badge>}
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -304,18 +362,19 @@ function LeveringGroep({
 }) {
   const besteldOp = regels[0]?.besteld_op;
   const referentie = regels[0]?.bestelreferentie;
+  const onbekend = titel === 'Onbekende leverancier';
   return (
     <Card className="overflow-hidden">
-      <div className="flex items-center gap-2 border-b border-border/60 px-3 py-2">
+      <div className="flex min-h-12 items-center gap-2 border-b border-border/60 px-3 py-1">
         <Truck className="h-4 w-4 shrink-0 text-muted-foreground" />
-        <div className="min-w-0 flex-1">
-          <span className="block truncate text-[15px] font-semibold">{titel}</span>
-          <span className="block text-[13px] text-muted-foreground">
-            {besteldOp ? `besteld ${datumLabel(besteldOp)}` : 'besteld'}
+        <span className="min-w-0 flex-1 truncate text-[14px]">
+          <span className={cn('font-semibold', onbekend && 'font-normal text-muted-foreground')}>{onbekend ? 'Leverancier onbekend' : titel}</span>
+          <span className="text-muted-foreground">
+            {' · '}{besteldOp ? `besteld ${datumLabel(besteldOp)}` : 'besteld'}
             {referentie ? ` · ${referentie}` : ''}
           </span>
-        </div>
-        <Button variant="outline" className="h-11 shrink-0" onClick={() => onAllesGeleverd(regels.map((r) => r.id))}>
+        </span>
+        <Button variant="ghost" size="sm" className="h-11 shrink-0 px-2 text-[13px]" onClick={() => onAllesGeleverd(regels.map((r) => r.id))}>
           <Check className="h-4 w-4 mr-1" /> Alles geleverd
         </Button>
       </div>
@@ -368,6 +427,7 @@ export default function Bestelbord() {
   const [vormId, setVormId] = useState<string | null>(null);
   const [bewerkVormId, setBewerkVormId] = useState<string | null>(null);
   const zoekNr = useRef(0);
+  const { standen } = useVoorraadproef(vestiging);
   const vandaagStr = ymd(new Date());
   const advies = useBestelAdvies(vestiging || null, vandaagStr);
   const [adviesBezig, setAdviesBezig] = useState(false);
@@ -584,11 +644,9 @@ export default function Bestelbord() {
       vorm: s.artikel_vorm_id ? vormById.get(s.artikel_vorm_id)?.vorm ?? null : null,
     });
 
-  const totalen = useMemo(() => {
-    type Bak = { totaal: number; zonder: number; regels: number };
-    type Opvallend = { id: string; naam: string; eenheid: string | null; sig: PrijsSignaal; waarschuwing: string | null };
+  const totalen = useMemo((): LeverancierTotaal[] => {
     const nieuw = (): Bak => ({ totaal: 0, zonder: 0, regels: 0 });
-    const m = new Map<string, { titel: string; open: Bak; onderweg: Bak; geleverd: Bak; opvallend: Opvallend[] }>();
+    const m = new Map<string, LeverancierTotaal>();
     const tel = (lijst: BestelSignaal[], k: 'open' | 'onderweg' | 'geleverd') => {
       for (const s of lijst) {
         const id = s.leverancier_id ?? '';
@@ -690,59 +748,33 @@ export default function Bestelbord() {
     setBewerkVormId(s.artikel_vorm_id);
   };
 
+  const adviesRegels = advies.data?.regels ?? [];
+  const tellenAantal = (standen.data ?? []).filter((a) => a.tellen_nodig).length;
+  const naar = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const chips: { id: string; label: string; n: number }[] = [
+    { id: 'blok-bord', label: 'Op het bord', n: open.length },
+    { id: 'blok-advies', label: 'Advies', n: adviesRegels.length },
+    { id: 'blok-tellen', label: 'Tellen', n: tellenAantal },
+    { id: 'blok-onderweg', label: 'Onderweg', n: besteld.length },
+  ];
+  const kop = (titel: string, n?: number) => (
+    <p className="px-1 text-[13px] font-semibold text-muted-foreground">{titel}{n != null && ` (${n})`}</p>
+  );
+
   return (
     <SidebarLayout>
       <div className="space-y-4">
-        <div>
-          <p className="text-sm text-muted-foreground">
-            {open.length} nog bestellen
-            {besteld.length > 0 && ` · ${besteld.length} besteld`}
-          </p>
+        <div className="flex gap-1.5 overflow-x-auto" aria-label="Samenvatting">
+          {chips.map((c) => (
+            <button key={c.id} type="button" onClick={() => naar(c.id)}
+              className="flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-[13px] text-muted-foreground hover:bg-muted">
+              {c.label} <span className="font-semibold tabular-nums text-foreground">{c.n}</span>
+            </button>
+          ))}
         </div>
 
-        <Card className="overflow-hidden">
-          <Collapsible>
-            <CollapsibleTrigger className="group flex min-h-[48px] w-full items-center gap-2 px-3 py-2 text-left">
-              <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-              <span className="min-w-0 flex-1">
-                <span className="block text-[15px] font-semibold">Advies (nog niet besteld)</span>
-                <span className="block text-[13px] text-muted-foreground">
-                  {advies.isLoading
-                    ? 'Laden…'
-                    : advies.data?.leverdag
-                    ? `Advies voor ${leverDatumLabel(advies.data.leverdag)} · ${advies.data.regels.length} ${advies.data.regels.length === 1 ? 'regel' : 'regels'}`
-                    : 'Nog geen advies'}
-                </span>
-              </span>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="border-t border-border/60 pb-2">
-                {!advies.data?.leverdag ? (
-                  <p className="p-3 text-sm text-muted-foreground">Nog geen advies</p>
-                ) : (
-                  <>
-                    <AdviesGroepen regels={advies.data.regels.filter((a) => Number(a.hoeveelheid) > 0)} bezig={adviesBezig} onOpBord={adviesOpBord} />
-                    {advies.data.regels.some((a) => Number(a.hoeveelheid) <= 0) && (
-                      <Collapsible>
-                        <CollapsibleTrigger className="group flex h-11 w-full items-center gap-2 px-3 text-sm font-medium text-muted-foreground">
-                          <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
-                          Laag verbruik ({advies.data.regels.filter((a) => Number(a.hoeveelheid) <= 0).length})
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <AdviesGroepen regels={advies.data.regels.filter((a) => Number(a.hoeveelheid) <= 0)} bezig={adviesBezig} onOpBord={adviesOpBord} />
-                        </CollapsibleContent>
-                      </Collapsible>
-                    )}
-                  </>
-                )}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        </Card>
-
-        <Voorraadproef key={vestiging} vestiging={vestiging} />
-
-        <div className="space-y-2">
+        <section id="blok-bord" className="scroll-mt-20 space-y-2">
+          {kop('Op het bord', open.length)}
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative min-w-[200px] flex-1">
               <Input
@@ -830,71 +862,121 @@ export default function Bestelbord() {
               onKies={(v) => { setVormId(v.id); setSoort(v.eenheid); }}
             />
           )}
-        </div>
-
-        {isLoading ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">Laden…</p>
-        ) : (
-          <>
+          {isLoading ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">Laden…</p>
+          ) : (
             <Card className="divide-y divide-border/60 overflow-hidden">
               {open.length === 0 ? (
-                <p className="p-4 text-sm text-muted-foreground">Niets openstaand.</p>
+                <p className="px-3 py-3 text-sm text-muted-foreground">Niets openstaand.</p>
               ) : (
                 open.map((s) => (
                   <Rij key={s.id} signaal={s} prijs={prijsVan(s)} prijsSignaal={signaalVan(s)} onBesteld={(b) => markeerBesteld(s, b)} onVervallen={() => vervallen(s)} onBewerk={() => openBewerk(s)} />
                 ))
               )}
             </Card>
+          )}
+        </section>
 
-            {besteld.length > 0 && (
-              <div className="space-y-3">
-                {teChecken.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="px-1 text-sm font-semibold">Vandaag te checken ({teChecken.length})</p>
-                    {groepeer(teChecken).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}
+        <section id="blok-advies" className="scroll-mt-20">
+          <Card className="overflow-hidden">
+            <Collapsible key={adviesRegels.length > 0 ? 'met' : 'zonder'} defaultOpen={adviesRegels.length > 0}>
+              <CollapsibleTrigger className="group flex min-h-12 w-full items-center gap-2 px-3 py-2 text-left">
+                <span className="min-w-0 flex-1 truncate text-[15px] font-semibold">
+                  {advies.isLoading
+                    ? 'Advies laden…'
+                    : advies.data?.leverdag
+                    ? `Advies voor ${leverDatumLabel(advies.data.leverdag)}`
+                    : 'Nog geen advies'}
+                </span>
+                {adviesRegels.length > 0 && <Badge variant="secondary" className="font-normal tabular-nums">{adviesRegels.length}</Badge>}
+                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+              </CollapsibleTrigger>
+              {adviesRegels.length > 0 && (
+                <CollapsibleContent>
+                  <div className="border-t border-border/60 pb-1">
+                    <AdviesGroepen regels={adviesRegels} bezig={adviesBezig} onOpBord={adviesOpBord} />
                   </div>
-                )}
-                {onderweg.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="px-1 text-sm font-semibold">Onderweg ({onderweg.length})</p>
-                    {groepeer(onderweg).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}
+                </CollapsibleContent>
+              )}
+            </Collapsible>
+          </Card>
+        </section>
+
+        <section id="blok-tellen" className="scroll-mt-20">
+          <Voorraadproef key={vestiging} vestiging={vestiging} />
+        </section>
+
+        {!isLoading && (
+          <>
+            <section id="blok-onderweg" className="scroll-mt-20 space-y-3">
+              {besteld.length === 0 ? (
+                <>
+                  {kop('Onderweg', 0)}
+                  <p className="px-1 text-sm text-muted-foreground">Niets onderweg.</p>
+                </>
+              ) : (
+                <>
+                  {teChecken.length > 0 && (
+                    <div className="space-y-2">
+                      {kop('Vandaag te checken', teChecken.length)}
+                      {groepeer(teChecken).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}
+                    </div>
+                  )}
+                  {onderweg.length > 0 && (
+                    <div className="space-y-2">
+                      {kop('Onderweg', onderweg.length)}
+                      {groepeer(onderweg).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}
+                    </div>
+                  )}
+                  {zonderDatum.length > 0 && (
+                    <div className="space-y-2">
+                      {kop('Zonder datum', zonderDatum.length)}
+                      {groepeer(zonderDatum).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}
+                    </div>
+                  )}
+                </>
+              )}
+            </section>
+
+            {totalen.length > 0 && (
+              <section className="space-y-2">
+                <div className="flex items-center gap-2 px-1">
+                  <p className="flex-1 text-[13px] font-semibold text-muted-foreground">Per leverancier (indicatie)</p>
+                  <span className="text-[12px] text-muted-foreground">excl. btw</span>
+                </div>
+                <Card className="overflow-hidden">
+                  <div className="flex items-center gap-2 border-b border-border/60 px-3 py-1.5 text-[12px] text-muted-foreground">
+                    <span className="flex-1">Leverancier</span>
+                    <span className="w-20 text-right">Open</span>
+                    <span className="w-20 text-right">Onderweg</span>
                   </div>
-                )}
-                {zonderDatum.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="px-1 text-sm font-semibold text-muted-foreground">Zonder datum ({zonderDatum.length})</p>
-                    {groepeer(zonderDatum).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}
+                  <div className="divide-y divide-border/60">
+                    {totalen.map((t) => <TotaalRij key={t.titel} t={t} />)}
                   </div>
-                )}
-              </div>
+                </Card>
+              </section>
             )}
 
             {geleverd.length > 0 && (
               <Collapsible>
-                <CollapsibleTrigger className="group flex h-11 w-full items-center gap-2 px-1 text-sm font-medium text-muted-foreground">
+                <CollapsibleTrigger className="group flex h-11 w-full items-center gap-2 px-1 text-[13px] font-semibold text-muted-foreground">
                   <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
                   Geleverd ({geleverd.length})
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <Card className="divide-y divide-border/60 overflow-hidden">
                     {geleverd.map((s) => (
-                      <div key={s.id} className="flex items-center gap-2 px-2 py-1.5 min-h-[56px]">
-                        <span className="flex h-11 w-11 shrink-0 items-center justify-center">
-                          <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-primary bg-primary text-primary-foreground">
-                            <Check className="h-4 w-4" />
-                          </span>
-                        </span>
+                      <div key={s.id} className="flex min-h-12 items-center gap-2 px-3 py-1">
+                        <Check className="h-4 w-4 shrink-0 text-primary" />
                         <div className="min-w-0 flex-1">
-                          <span className="block text-[15px] text-muted-foreground line-through">{s.naam}</span>
-                          <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
-                            <span>
-                              {Number(s.aantal)} {s.eenheid}
-                              {s.geleverd_op && ` · ${datumLabel(s.geleverd_op)}`}
-                              {s.geleverd_door && namen?.get(s.geleverd_door) ? ` · ${namen.get(s.geleverd_door)}` : ''}
-                            </span>
-                            {s.levering_status === 'deels' && <Badge variant="secondary" className="font-normal">Deels</Badge>}
-                            {s.levering_opmerking && <span className="truncate">{s.levering_opmerking}</span>}
-                          </div>
+                          <span className="block truncate text-[14px] text-muted-foreground line-through">{s.naam}</span>
+                          <span className="block truncate text-[12px] text-muted-foreground">
+                            {Number(s.aantal)} {s.eenheid}
+                            {s.geleverd_op && ` · ${datumLabel(s.geleverd_op)}`}
+                            {s.geleverd_door && namen?.get(s.geleverd_door) ? ` · ${namen.get(s.geleverd_door)}` : ''}
+                            {s.levering_status === 'deels' ? ' · deels' : ''}
+                            {s.levering_opmerking ? ` · ${s.levering_opmerking}` : ''}
+                          </span>
                         </div>
                         <Button
                           variant="ghost"
@@ -910,49 +992,10 @@ export default function Bestelbord() {
                 </CollapsibleContent>
               </Collapsible>
             )}
-
-            {totalen.length > 0 && (
-              <Card className="overflow-hidden">
-                <div className="border-b border-border/60 px-3 py-2">
-                  <span className="block text-[15px] font-semibold">Indicatie per leverancier</span>
-                  <span className="block text-[13px] text-muted-foreground">Prijzen zijn een indicatie (laatst betaalde prijs, excl. btw).</span>
-                </div>
-                <div className="divide-y divide-border/60">
-                  {totalen.map((t) => (
-                    <div key={t.titel} className="px-3 py-2">
-                      <span className="block text-[15px] font-medium">{t.titel}</span>
-                      <div className="mt-0.5 flex flex-wrap gap-x-4 gap-y-0.5 text-[13px] text-muted-foreground">
-                        {(['open', 'onderweg', 'geleverd'] as const).map((k) =>
-                          t[k].regels > 0 ? (
-                            <span key={k}>
-                              {k === 'open' ? 'Open' : k === 'onderweg' ? 'Onderweg' : 'Geleverd'}:{' '}
-                              <span className="font-medium text-foreground">{euro(t[k].totaal)}</span>
-                              {t[k].zonder > 0 && ` · ${t[k].zonder} ${t[k].zonder === 1 ? 'regel' : 'regels'} zonder prijs`}
-                            </span>
-                          ) : null,
-                        )}
-                      </div>
-                      {t.opvallend.length > 0 && (
-                        <ul className="mt-1 space-y-0.5">
-                          {t.opvallend.map((o) => (
-                            <li key={o.id} className="text-[13px]">
-                              <span className="flex items-center gap-1.5 text-muted-foreground">
-                                <PrijsPijl signaal={o.sig} eenheid={o.eenheid} />
-                                <span className="truncate">{o.naam}</span>
-                              </span>
-                              {o.waarschuwing && <span className="block font-medium text-warning">{o.waarschuwing}</span>}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            )}
           </>
         )}
       </div>
+
 
       <Dialog open={!!bewerk} onOpenChange={(o) => !o && setBewerk(null)}>
         <DialogContent className="max-w-[650px] rounded-[24px]">
