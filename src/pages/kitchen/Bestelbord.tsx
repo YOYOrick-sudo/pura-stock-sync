@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ChevronDown, Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Building2, Check, AlertCircle } from 'lucide-react';
-import { Kengetal, OverzichtKaart } from '@/components/layout/Paginapatronen';
+import { Invoerbalk, Kengetal, OverzichtKaart, segmentTabsKlasse } from '@/components/layout/Paginapatronen';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Textarea } from '@/components/ui/textarea';
@@ -40,7 +40,7 @@ const norm = (s: string) => s.trim().toLowerCase();
 function Stepper({ waarde, onChange }: { waarde: number; onChange: (n: number) => void }) {
   return (
     <div className="flex items-center gap-1">
-      <Button type="button" variant="outline" className="h-11 w-11 p-0" aria-label="Minder" onClick={() => onChange(Math.max(1, waarde - 1))}>
+      <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Minder" onClick={() => onChange(Math.max(1, waarde - 1))}>
         <Minus className="h-4 w-4" />
       </Button>
       <Input
@@ -50,7 +50,7 @@ function Stepper({ waarde, onChange }: { waarde: number; onChange: (n: number) =
         className="h-11 w-14 text-center text-base font-semibold"
         aria-label="Aantal"
       />
-      <Button type="button" variant="outline" className="h-11 w-11 p-0" aria-label="Meer" onClick={() => onChange(waarde + 1)}>
+      <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Meer" onClick={() => onChange(waarde + 1)}>
         <Plus className="h-4 w-4" />
       </Button>
     </div>
@@ -459,8 +459,8 @@ export default function Bestelbord() {
       <div className="space-y-4">
         <Tabs value={tab} onValueChange={setTabKeuze}>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <TabsList className="grid h-auto min-w-0 flex-1 grid-cols-4 lg:flex-none">
-              {[{ id: 'bord', naam: 'Op het bord', Icoon: ClipboardList, n: open.length }, { id: 'advies', naam: 'Advies', Icoon: Sparkles, n: positieveAdviezen.length }, { id: 'tellen', naam: 'Tellen', Icoon: Calculator, n: telOverzicht.open }, { id: 'onderweg', naam: 'Onderweg', Icoon: Truck, n: besteld.length }].map(({ id, naam, Icoon, n }) => <TabsTrigger key={id} value={id} aria-label={`${naam} (${n})`} className="min-h-11 min-w-0 gap-1 px-1 sm:gap-2 sm:px-3"><Icoon className="h-4 w-4 shrink-0" /><span className="hidden sm:inline">{naam}</span><span className="tabular-nums">{n}</span></TabsTrigger>)}
+            <TabsList className={segmentTabsKlasse}>
+              {[{ id: 'bord', naam: 'Op het bord', Icoon: ClipboardList, n: open.length }, { id: 'advies', naam: 'Advies', Icoon: Sparkles, n: positieveAdviezen.length }, { id: 'tellen', naam: 'Tellen', Icoon: Calculator, n: telOverzicht.open }, { id: 'onderweg', naam: 'Onderweg', Icoon: Truck, n: besteld.length }].map(({ id, naam, Icoon, n }) => <TabsTrigger key={id} value={id} aria-label={`${naam} (${n})`} className="min-w-0"><Icoon className="h-4 w-4 shrink-0" /><span className="hidden sm:inline">{naam}</span><span className="tabular-nums text-muted-foreground">{n}</span></TabsTrigger>)}
             </TabsList>
             <Button className="min-h-11 gap-1" onClick={() => { setTabKeuze('bord'); requestAnimationFrame(() => invoer.current?.focus()); }}><Plus className="h-4 w-4" /><span>Product</span></Button>
           </div>
@@ -468,7 +468,7 @@ export default function Bestelbord() {
             <div className="min-w-0">
               <TabsContent value="bord" className="mt-0 space-y-4">
         <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
+          <Invoerbalk>
             <div className="relative min-w-0 basis-full sm:flex-1 sm:basis-auto">
               <Input
                 ref={invoer}
@@ -528,15 +528,15 @@ export default function Bestelbord() {
             </div>
             <Stepper waarde={aantal} onChange={setAantal} />
             <Select value={soort ?? 'stuks'} onValueChange={setSoort}>
-              <SelectTrigger className="h-11 w-[110px]" aria-label="Verpakking"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-11 w-[110px] border-0 shadow-none" aria-label="Verpakking"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {SOORTEN.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button variant="outline" className="h-11 w-11 p-0" aria-label="Erbij zetten" onClick={voegToe} disabled={naam.trim().length < 2 || !vestiging || isLoading}>
+            <Button className="ml-auto h-11 w-11 p-0" aria-label="Erbij zetten" onClick={voegToe} disabled={naam.trim().length < 2 || !vestiging || isLoading}>
               <Check className="h-4 w-4" />
             </Button>
-          </div>
+          </Invoerbalk>
           {eerderSuggesties.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {eerderSuggesties.map((s) => (
