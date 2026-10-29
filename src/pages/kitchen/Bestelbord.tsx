@@ -17,8 +17,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { dagenTeLaat, parseYmd, ymd } from '@/lib/leverdatum';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import {
-  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useVestigingOpenDagen, useArtikelVormen, zoekBordSuggesties,
-  type BestelSignaal, type ArtikelVorm, type BordSuggestie,
+  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useVestigingOpenDagen, useArtikelVormen, zoekBordSuggesties, useBestelAdvies,
+  type BestelSignaal, type ArtikelVorm, type BordSuggestie, type BestelAdvies,
 } from '@/hooks/useBestelbord';
 import { BestelLeverancierLabel } from '@/components/kitchen/BestelLeverancierLabel';
 
@@ -110,6 +110,52 @@ function VormKeuze({
         );
       })}
     </div>
+  );
+}
+
+function AdviesRij({ a, bezig, onOpBord }: { a: BestelAdvies; bezig: boolean; onOpBord: () => void }) {
+  return (
+    <div className="flex items-center gap-2 px-3 py-1.5 min-h-[56px]">
+      <div className="min-w-0 flex-1">
+        <span className="block text-[15px] font-medium">
+          {Number(a.hoeveelheid)} {a.eenheid ?? ''} {a.artikel}
+        </span>
+        <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
+          {a.onzeker && <Badge variant="secondary" className="font-normal">onzeker</Badge>}
+          {a.reden && <span>{a.reden}</span>}
+        </div>
+      </div>
+      {a.op_bord_regel_id ? (
+        <span className="flex h-11 shrink-0 items-center gap-1 px-2 text-[14px] text-primary">
+          op bord <Check className="h-4 w-4" />
+        </span>
+      ) : (
+        <Button variant="outline" className="h-11 shrink-0" disabled={bezig} onClick={onOpBord}>
+          Op bord zetten
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function AdviesGroepen({ regels, bezig, onOpBord }: { regels: BestelAdvies[]; bezig: boolean; onOpBord: (a: BestelAdvies) => void }) {
+  const groepen = new Map<string, BestelAdvies[]>();
+  for (const a of regels) {
+    const k = a.leverancier ?? 'Onbekende leverancier';
+    if (!groepen.has(k)) groepen.set(k, []);
+    groepen.get(k)!.push(a);
+  }
+  return (
+    <>
+      {[...groepen.entries()].map(([lev, rs]) => (
+        <div key={lev}>
+          <p className="px-3 pt-2 text-[13px] font-semibold text-muted-foreground">{lev}</p>
+          <div className="divide-y divide-border/60">
+            {rs.map((a) => <AdviesRij key={a.id} a={a} bezig={bezig} onOpBord={() => onOpBord(a)} />)}
+          </div>
+        </div>
+      ))}
+    </>
   );
 }
 
@@ -310,6 +356,9 @@ export default function Bestelbord() {
   const [vormId, setVormId] = useState<string | null>(null);
   const [bewerkVormId, setBewerkVormId] = useState<string | null>(null);
   const zoekNr = useRef(0);
+  const vandaagStr = ymd(new Date());
+  const advies = useBestelAdvies(vestiging || null, vandaagStr);
+  const [adviesBezig, setAdviesBezig] = useState(false);
 
   const vandaag = useMemo(() => new Date(), []);
   const teLaatVan = (s: BestelSignaal) => dagenTeLaat(s.verwachte_levering, vandaag, isOpen);
@@ -467,6 +516,43 @@ export default function Bestelbord() {
     leeg();
   };
 
+  /** Advies op het bord: gewone open regel (of ophogen bij dezelfde naam), nooit besteld. */
+  const adviesOpBord = async (a: BestelAdvies) => {
+    if (!vestiging || isLoading || adviesBezig) return;
+    const v = a.artikel_vorm_id ? vormById.get(a.artikel_vorm_id) : undefined;
+    const eenheid = v?.eenheid ?? a.eenheid ?? 'stuks';
+    const aantalA = Number(a.hoeveelheid) > 0 ? Number(a.hoeveelheid) : 1;
+    setAdviesBezig(true);
+    try {
+      const bestaand = open.find((s) => norm(s.naam) === norm(a.artikel));
+      if (bestaand) {
+        const oud = Number(bestaand.aantal);
+        await wijzig.mutateAsync({ id: bestaand.id, aantal: oud + aantalA, eenheid: bestaand.eenheid });
+        await advies.zetOpBord.mutateAsync({ id: a.id, regelId: bestaand.id });
+        toast.success(`${a.artikel}: +${aantalA} erbij`, {
+          action: {
+            label: 'Ongedaan maken',
+            onClick: () => {
+              wijzig.mutate({ id: bestaand.id, aantal: oud, eenheid: bestaand.eenheid });
+              advies.zetOpBord.mutate({ id: a.id, regelId: null });
+            },
+          },
+        });
+      } else {
+        const koppeling = v
+          ? { artikel_id: v.artikel_id, leverancier_id: v.leverancier_id, artikel_vorm_id: v.id }
+          : { artikel_id: a.artikel_id, leverancier_id: a.leverancier_id, artikel_vorm_id: null };
+        const id = await toevoegen.mutateAsync({ naam: a.artikel, aantal: aantalA, eenheid, koppeling });
+        await advies.zetOpBord.mutateAsync({ id: a.id, regelId: id });
+        toast.success(`${a.artikel} — ${aantalA} ${eenheid} staat erop`);
+      }
+    } catch (e: any) {
+      toast.error('Niet opgeslagen: ' + (e?.message ?? 'onbekende fout'));
+    } finally {
+      setAdviesBezig(false);
+    }
+  };
+
   // Indicatieprijs per regel.
   const vormById = useMemo(() => new Map((vormen ?? []).map((v) => [v.id, v])), [vormen]);
   const prijsVan = (s: BestelSignaal): { vorm: ArtikelVorm; totaal: number } | null => {
@@ -589,6 +675,44 @@ export default function Bestelbord() {
             {besteld.length > 0 && ` · ${besteld.length} besteld`}
           </p>
         </div>
+
+        <Card className="overflow-hidden">
+          <Collapsible>
+            <CollapsibleTrigger className="group flex min-h-[48px] w-full items-center gap-2 px-3 py-2 text-left">
+              <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-[15px] font-semibold">Advies (nog niet besteld)</span>
+                <span className="block text-[13px] text-muted-foreground">
+                  {advies.data?.leverdag
+                    ? `Advies voor ${leverDatumLabel(advies.data.leverdag)} · ${advies.data.regels.length} ${advies.data.regels.length === 1 ? 'regel' : 'regels'}`
+                    : 'Nog geen advies'}
+                </span>
+              </span>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="border-t border-border/60 pb-2">
+                {!advies.data?.leverdag ? (
+                  <p className="p-3 text-sm text-muted-foreground">Nog geen advies</p>
+                ) : (
+                  <>
+                    <AdviesGroepen regels={advies.data.regels.filter((a) => Number(a.hoeveelheid) > 0)} bezig={adviesBezig} onOpBord={adviesOpBord} />
+                    {advies.data.regels.some((a) => Number(a.hoeveelheid) <= 0) && (
+                      <Collapsible>
+                        <CollapsibleTrigger className="group flex h-11 w-full items-center gap-2 px-3 text-sm font-medium text-muted-foreground">
+                          <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
+                          Laag verbruik ({advies.data.regels.filter((a) => Number(a.hoeveelheid) <= 0).length})
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <AdviesGroepen regels={advies.data.regels.filter((a) => Number(a.hoeveelheid) <= 0)} bezig={adviesBezig} onOpBord={adviesOpBord} />
+                        </CollapsibleContent>
+                      </Collapsible>
+                    )}
+                  </>
+                )}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
 
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
