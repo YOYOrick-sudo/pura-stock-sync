@@ -7,7 +7,7 @@ export function CompacteTabel({ kinderen, onderweg = false, advies = false }: { 
       {!advies && <TableHead className="w-12"><span className="sr-only">Status</span></TableHead>}
       <TableHead>Product</TableHead>
       <TableHead className="w-24 text-right">{advies ? 'Advies' : 'Aantal'}</TableHead>
-      <TableHead className="hidden w-28 text-right sm:table-cell">{onderweg ? 'Leverdatum' : advies ? '' : 'Prijs'}</TableHead>
+      <TableHead className={advies ? 'w-12' : 'hidden w-28 text-right sm:table-cell'}>{onderweg ? 'Leverdatum' : advies ? <span className="sr-only">Toelichting</span> : 'Prijs'}</TableHead>
       <TableHead className="w-12"><span className="sr-only">Acties</span></TableHead>
     </TableRow></TableHeader>{kinderen}
   </Table>;

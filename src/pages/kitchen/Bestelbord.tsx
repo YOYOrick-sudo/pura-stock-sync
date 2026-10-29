@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Check, ChevronDown, Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Building2 } from 'lucide-react';
+import { ChevronDown, Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Building2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Textarea } from '@/components/ui/textarea';
@@ -66,10 +66,7 @@ function SoortKeuze({ waarde, onChange }: { waarde: string | null; onChange: (s:
           key={s}
           type="button"
           onClick={() => onChange(s)}
-          className={cn(
-            'h-11 px-3.5',
-            
-          )}
+          className="h-11 px-3.5"
         >
           {s}
         </Button>
@@ -108,10 +105,7 @@ function VormKeuze({
             role="radio"
             aria-checked={gekozen === v.id}
             onClick={() => onKies(v)}
-            className={cn(
-              'min-h-11 h-auto whitespace-normal px-3 py-1.5 text-left text-sm',
-              
-            )}
+            className="min-h-11 h-auto whitespace-normal px-3 py-1.5 text-left text-sm"
           >
             {[v.vorm, lev, v.prijs != null ? `${euro(Number(v.prijs))} excl.` : '–'].filter(Boolean).join(' · ')}
           </Button>
