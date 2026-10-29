@@ -683,7 +683,9 @@ export default function Bestelbord() {
               <span className="min-w-0 flex-1">
                 <span className="block text-[15px] font-semibold">Advies (nog niet besteld)</span>
                 <span className="block text-[13px] text-muted-foreground">
-                  {advies.data?.leverdag
+                  {advies.isLoading
+                    ? 'Laden…'
+                    : advies.data?.leverdag
                     ? `Advies voor ${leverDatumLabel(advies.data.leverdag)} · ${advies.data.regels.length} ${advies.data.regels.length === 1 ? 'regel' : 'regels'}`
                     : 'Nog geen advies'}
                 </span>
