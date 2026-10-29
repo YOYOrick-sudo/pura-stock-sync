@@ -452,6 +452,11 @@ export default function Bestelbord() {
   const zonderPrijs = [...open, ...besteld].filter((s) => !prijsVan(s)).length;
   const leveranciersTabel = <LeveranciersOverzicht open={open} onderweg={besteld} leverancier={leverancier} prijsVan={prijsVan} />;
   const bordProps = { leverancier, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen };
+  const overzicht = <OverzichtKaart kengetallen={<>
+    <Kengetal icoon={Building2} label="Open" waarde={openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : '—'} />
+    <Kengetal icoon={Truck} label="Checken" waarde={teChecken.length} />
+    <Kengetal icoon={AlertCircle} label="Geen prijs" waarde={zonderPrijs} toon={zonderPrijs ? 'let-op' : 'neutraal'} />
+  </>}>{leveranciersTabel}</OverzichtKaart>;
 
   return (
     <SidebarLayout>
@@ -572,19 +577,14 @@ export default function Bestelbord() {
                 {!!geleverd.length && <InklapGroep titel="Geleverd" aantal={geleverd.length}><LijstKaart><BordTabel regels={geleverd} {...bordProps} geleverd onTerug={(s) => terugNaarBesteld.mutate(s.id)} detail={(s) => [s.geleverd_op ? datumLabel(s.geleverd_op) : '', s.geleverd_door ? namen?.get(s.geleverd_door) : '', s.levering_status === 'deels' ? 'Deels' : '', s.levering_opmerking].filter(Boolean).join(' · ')} /></LijstKaart></InklapGroep>}
               </TabsContent>
             </div>
-            <aside className="hidden min-w-0 space-y-3 lg:block">
-              <OverzichtKaart kengetallen={<>
-                <Kengetal icoon={Building2} label="Open" waarde={openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : '—'} />
-                <Kengetal icoon={Truck} label="Checken" waarde={teChecken.length} />
-                <Kengetal icoon={AlertCircle} label="Geen prijs" waarde={zonderPrijs} toon={zonderPrijs ? 'let-op' : 'neutraal'} />
-              </>}>{leveranciersTabel}</OverzichtKaart>
-            </aside>
+            <aside className="hidden min-w-0 space-y-4 lg:block">{overzicht}</aside>
           </div>
         </Tabs>
       </div>
 
       <DetailLade open={!!bewerk} onOpenChange={(o) => !o && setBewerk(null)} titel={bewerk?.naam}>
-          <div className="space-y-3">
+          <div className="space-y-4">
+            {bewerk && <Stappen stappen={['Op bord', 'Besteld', 'Geleverd']} huidig={bewerk.status === 'geleverd' ? 2 : bewerk.status === 'besteld' ? 1 : 0} />}
             <Stepper waarde={bewerkAantal} onChange={setBewerkAantal} />
             {bewerkVormen.length > 1 && (
               <VormKeuze
