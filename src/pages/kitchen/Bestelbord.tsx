@@ -234,22 +234,72 @@ export default function Bestelbord() {
   const { userLocation } = useUserLocation();
   const vestiging = userLocation ?? '';
   const { data: signalen = [], isLoading } = useBestelSignalen(vestiging || null);
-  const { toevoegen, zetBesteld, verwijderen, herstel, wijzig } = useBestelbordMutaties(vestiging);
+  const {
+    toevoegen, zetBesteld, verwijderen, herstel, wijzig,
+    markeerGeleverd, nietGeleverd, deelsGeleverd, terugNaarBesteld, zetVerwachteLevering,
+  } = useBestelbordMutaties(vestiging);
+  const { data: leveranciers } = useLeveranciers();
+  const { isOpen } = useVestigingOpenDagen(vestiging || null);
   const [naam, setNaam] = useState('');
   const [aantal, setAantal] = useState(1);
   const [soort, setSoort] = useState<string | null>(null);
   const [bewerk, setBewerk] = useState<BestelSignaal | null>(null);
   const [bewerkAantal, setBewerkAantal] = useState(1);
   const [bewerkSoort, setBewerkSoort] = useState<string | null>(null);
+  const [datumVoor, setDatumVoor] = useState<BestelSignaal | null>(null);
+  const [datumKeuze, setDatumKeuze] = useState('');
+  const [leveringActie, setLeveringActie] = useState<{ signaal: BestelSignaal; type: 'niet' | 'deels' } | null>(null);
+  const [leveringOpmerking, setLeveringOpmerking] = useState('');
+  const [deelsOntvangen, setDeelsOntvangen] = useState(1);
   const invoer = useRef<HTMLInputElement>(null);
 
-  const { open, besteld } = useMemo(
+  const vandaag = useMemo(() => new Date(), []);
+  const teLaatVan = (s: BestelSignaal) => dagenTeLaat(s.verwachte_levering, vandaag, isOpen);
+
+  const { open, besteld, geleverd } = useMemo(
     () => ({
       open: signalen.filter((s) => s.status === 'open'),
-      besteld: signalen.filter((s) => s.status === 'besteld').slice(0, 30),
+      besteld: signalen.filter((s) => s.status === 'besteld'),
+      geleverd: signalen.filter((s) => s.status === 'geleverd').slice(0, 30),
     }),
     [signalen],
   );
+
+  // Namen van wie leveringen heeft afgevinkt.
+  const geleverdDoorIds = useMemo(
+    () => [...new Set(geleverd.map((s) => s.geleverd_door).filter((x): x is string => !!x))],
+    [geleverd],
+  );
+  const { data: namen } = useQuery({
+    queryKey: ['namen', geleverdDoorIds],
+    enabled: geleverdDoorIds.length > 0,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase.rpc('rpc_namen_voor_users', { _ids: geleverdDoorIds });
+      return new Map((data ?? []).map((r: { user_id: string; naam: string | null }) => [r.user_id, r.naam ?? '']));
+    },
+  });
+
+  /** Groepeer bestelde regels per leverancier + ordernummer. */
+  const groepeer = (regels: BestelSignaal[]) => {
+    const m = new Map<string, BestelSignaal[]>();
+    for (const s of regels) {
+      const lev = (s.leverancier_id && leveranciers?.get(s.leverancier_id)) || 'Onbekende leverancier';
+      const key = `${lev}|${s.bestelreferentie ?? ''}`;
+      if (!m.has(key)) m.set(key, []);
+      m.get(key)!.push(s);
+    }
+    return [...m.entries()].map(([key, r]) => ({ titel: key.split('|')[0], regels: r }));
+  };
+
+  const { teChecken, onderweg, zonderDatum } = useMemo(() => {
+    const vandaagYmd = ymd(vandaag);
+    return {
+      teChecken: besteld.filter((s) => s.verwachte_levering && s.verwachte_levering <= vandaagYmd),
+      onderweg: besteld.filter((s) => s.verwachte_levering && s.verwachte_levering > vandaagYmd),
+      zonderDatum: besteld.filter((s) => !s.verwachte_levering),
+    };
+  }, [besteld, vandaag]);
 
   // Eerder gebruikte producten (laatste aantal + soort), nieuwste eerst.
   const eerder = useMemo(() => {
