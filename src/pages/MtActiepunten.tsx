@@ -28,9 +28,8 @@ export default function MtActiepunten() {
 
   return (
     <SidebarLayout>
-      <div className="page-stack max-w-4xl">
+      <div className="space-y-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">MT-actiepunten</h1>
           {data?.laatst && (
             <p className="text-sm text-muted-foreground">Bijgewerkt op {formatNlDatumTijd(data.laatst)}</p>
           )}
