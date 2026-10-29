@@ -271,7 +271,26 @@ async function getValidToken(admin: any, vestiging: string): Promise<{ token: st
 // - UTC (ISO Z) → computeWerkdagUur() bucketet naar Europe/Amsterdam vóór upsert.
 // - Filter: status === 'PAID' (alleen betaalde bonnen tellen als omzet).
 // ------------------------------------------------------------------
-type Receipt = { timestamp: string; total_incl: number; total_excl: number };
+type ReceiptItem = { product_id: string; naam: string; aantal: number; incl: number; excl: number };
+type Receipt = { timestamp: string; total_incl: number; total_excl: number; items?: ReceiptItem[] };
+
+/** Productregels uit een L-Series receipt (items[]). Sleutel: prodId → productId → naam. */
+export function extractItems(r: any): ReceiptItem[] {
+  const arr: any[] = Array.isArray(r?.items) ? r.items : [];
+  const out: ReceiptItem[] = [];
+  for (const it of arr) {
+    const id = String(it?.prodId ?? it?.productId ?? it?.productName ?? '').trim();
+    if (!id) continue;
+    out.push({
+      product_id: id,
+      naam: String(it?.productName ?? ''),
+      aantal: Number(it?.amount ?? 0) || 0,
+      incl: Number(it?.totalPrice ?? 0) || 0,
+      excl: Number(it?.totalPriceWithoutVat ?? 0) || 0,
+    });
+  }
+  return out;
+}
 
 /**
  * Kies het beste timestamp-veld van een Lightspeed receipt.
@@ -417,7 +436,7 @@ async function fetchReceiptsForDay(
       if (!iso) continue;
       const incl = Number(r?.total ?? 0);
       const excl = Number(r?.totalWithoutTax ?? r?.totalExcludingTax ?? 0);
-      kept.push({ timestamp: iso, total_incl: incl, total_excl: excl });
+      kept.push({ timestamp: iso, total_incl: incl, total_excl: excl, items: extractItems(r) });
     }
 
     console.log(`[epoch-scan] page=${page} n_paid=${pagePaid} n_closing_epoch=${pageClosingEpoch} n_closing_real=${pageClosingReal} n_creation_real=${pageCreationReal} n_mod_real=${pageModReal}`);
@@ -512,6 +531,63 @@ async function aggregateAndUpsert(
 
 
 // ------------------------------------------------------------------
+// Verkoop per product per werkdag (kassa_verkoop_dag)
+// Idempotent: alle opgegeven werkdagen volledig herberekend; upsert + daarna
+// rijen van die dagen die niet meer voorkomen (oude updated_at) verwijderen.
+// ------------------------------------------------------------------
+export function aggregateVerkoop(receipts: Receipt[], dagen: Set<string>) {
+  const m = new Map<string, { datum: string; pid: string; naam: string; aantal: number; incl: number; excl: number }>();
+  for (const r of receipts) {
+    const { werkdag } = computeWerkdagUur(r.timestamp);
+    if (!dagen.has(werkdag)) continue;
+    for (const it of r.items ?? []) {
+      const k = `${werkdag}|${it.product_id}`;
+      const b = m.get(k) ?? { datum: werkdag, pid: it.product_id, naam: it.naam, aantal: 0, incl: 0, excl: 0 };
+      b.aantal += it.aantal; b.incl += it.incl; b.excl += it.excl;
+      if (it.naam) b.naam = it.naam;
+      m.set(k, b);
+    }
+  }
+  return [...m.values()];
+}
+
+function dagenTussen(van: string, tot: string): string[] {
+  const out: string[] = [];
+  const end = new Date(`${tot}T00:00:00Z`);
+  for (let d = new Date(`${van}T00:00:00Z`); d <= end; d.setUTCDate(d.getUTCDate() + 1)) out.push(d.toISOString().slice(0, 10));
+  return out;
+}
+
+function plusDag(day: string, n: number): string {
+  const d = new Date(`${day}T00:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10);
+}
+
+async function upsertVerkoop(admin: any, vestiging: string, receipts: Receipt[], dagen: string[]): Promise<number> {
+  if (dagen.length === 0) return 0;
+  const stamp = new Date().toISOString();
+  const rows = aggregateVerkoop(receipts, new Set(dagen)).map((b) => ({
+    vestiging, datum: b.datum, lightspeed_product_id: b.pid, productnaam: b.naam,
+    aantal: Number(b.aantal.toFixed(3)), omzet_incl: Number(b.incl.toFixed(2)), omzet_excl: Number(b.excl.toFixed(2)),
+    updated_at: stamp,
+  }));
+  for (let i = 0; i < rows.length; i += 500) {
+    const { error } = await admin.from('kassa_verkoop_dag').upsert(rows.slice(i, i + 500), { onConflict: 'vestiging,datum,lightspeed_product_id' });
+    if (error) throw new Error(`verkoop_upsert_failed: ${error.message}`);
+  }
+  const { error: delErr } = await admin.from('kassa_verkoop_dag').delete()
+    .eq('vestiging', vestiging).in('datum', dagen).lt('updated_at', stamp);
+  if (delErr) throw new Error(`verkoop_cleanup_failed: ${delErr.message}`);
+  return rows.length;
+}
+
+/** Werkdagen die volledig in van..tot zitten: tot zelf alleen als tot >= vandaag (NL). */
+function volledigeWerkdagen(van: string, tot: string): string[] {
+  const nlToday = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Amsterdam' }).format(new Date());
+  const laatste = tot >= nlToday ? tot : plusDag(tot, -1);
+  return laatste < van ? [] : dagenTussen(van, laatste);
+}
+
+// ------------------------------------------------------------------
 // Sync-run wrapper
 // ------------------------------------------------------------------
 async function runSync(
@@ -541,9 +617,10 @@ async function runSync(
     }
 
     const bonnen = await aggregateAndUpsert(admin, vestiging, receipts);
+    const verkoopRijen = mockReceipts ? 0 : await upsertVerkoop(admin, vestiging, receipts, volledigeWerkdagen(van, tot));
 
     await admin.from('sync_runs').update({
-      status: 'ok', bonnen_verwerkt: bonnen, klaar_op: new Date().toISOString(),
+      status: 'ok', bonnen_verwerkt: bonnen, details: { verkoop_rijen: verkoopRijen }, klaar_op: new Date().toISOString(),
     }).eq('id', runId);
 
     await admin.from('lightspeed_connections').update({
@@ -564,6 +641,59 @@ async function runSync(
 }
 
 // ------------------------------------------------------------------
+// Backfill verkoop per product — hervatbaar, één chunk (7 dagen) per aanroep.
+// Voortgang: sync_runs (type 'backfill', details.doel='verkoop'), state.cursor = volgende dag.
+// Raakt omzet_uren niet aan.
+// ------------------------------------------------------------------
+const VERKOOP_BACKFILL_START = '2025-01-01';
+
+async function backfillVerkoop(admin: any, body: any): Promise<Response> {
+  const vestiging = body?.vestiging;
+  if (!['Midsland', 'West'].includes(vestiging)) return json({ error: 'invalid_vestiging' }, 400);
+  const nlToday = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Amsterdam' }).format(new Date());
+  const eind = plusDag(nlToday, -1);
+
+  const { data: last } = await admin.from('sync_runs').select('state')
+    .eq('bron', 'lightspeed').eq('vestiging', vestiging).eq('type', 'backfill').eq('status', 'ok')
+    .contains('details', { doel: 'verkoop' }).order('gestart_op', { ascending: false }).limit(1).maybeSingle();
+  const van: string = last?.state?.cursor ?? VERKOOP_BACKFILL_START;
+  if (van > eind) return json({ ok: true, klaar: true, vestiging, cursor: van });
+  const tot = plusDag(van, 6) > eind ? eind : plusDag(van, 6);
+
+  const jobKey = vestiging === 'Midsland' ? 'ls-job:midsland' : 'ls-job:west';
+  const { data: lockToken } = await admin.rpc('sync_lease_acquire', { _bron: jobKey, _holder: `verkoop-backfill:${van}`, _seconds: 540 });
+  if (!lockToken) return json({ ok: false, error: 'lease_busy', vestiging }, 200);
+
+  const { data: runRow } = await admin.from('sync_runs').insert({
+    bron: 'lightspeed', vestiging, type: 'backfill', periode_van: van, periode_tot: tot, status: 'bezig',
+    details: { doel: 'verkoop' },
+  }).select('id').single();
+  try {
+    const tok = await getValidToken(admin, vestiging);
+    if ('error' in tok) throw new Error(`${tok.error}: ${tok.detail}`);
+    const conn = await readConnection(admin, vestiging);
+    // Eén dag extra ophalen: na-middernacht-bonnen horen bij werkdag 'tot'.
+    const rx = await fetchReceipts(tok.token, conn!.merchant_id, van, plusDag(tot, 1));
+    if ('error' in rx) throw new Error(`${rx.error}: ${rx.detail}`);
+    const rijen = await upsertVerkoop(admin, vestiging, rx.receipts, dagenTussen(van, tot));
+    const cursor = plusDag(tot, 1);
+    await admin.from('sync_runs').update({
+      status: 'ok', bonnen_verwerkt: rx.meta.paid_raw, klaar_op: new Date().toISOString(),
+      details: { doel: 'verkoop', verkoop_rijen: rijen }, state: { cursor },
+    }).eq('id', runRow?.id);
+    return json({ ok: true, klaar: cursor > eind, vestiging, van, tot, rijen, cursor });
+  } catch (e) {
+    const msg = (e as Error).message;
+    await admin.from('sync_runs').update({
+      status: 'fout', foutmelding: msg.slice(0, 1000), klaar_op: new Date().toISOString(),
+    }).eq('id', runRow?.id);
+    return json({ ok: false, error: msg, vestiging, van, tot });
+  } finally {
+    await admin.rpc('sync_lease_release', { _bron: jobKey, _token: lockToken });
+  }
+}
+
+// ------------------------------------------------------------------
 // HTTP entry
 // ------------------------------------------------------------------
 Deno.serve(async (req) => {
@@ -580,22 +710,8 @@ Deno.serve(async (req) => {
 
   const type = body?.type;
 
-  // Probe: veldnamen van een PAID-bon + productregel (geen tokens, geen schrijfacties).
-  if (type === 'probe_items') {
-    if (!['Midsland', 'West'].includes(body.vestiging)) return json({ error: 'invalid_vestiging' }, 400);
-    const tok = await getValidToken(admin, body.vestiging);
-    if ('error' in tok) return json({ ok: false, error: tok.error });
-    const url = `${RECEIPTS_URL}?date=${encodeURIComponent(body.datum)}&offset=0&limit=${RECEIPTS_PAGE_SIZE}`;
-    const resp = await fetch(url, { headers: { Authorization: `Bearer ${tok.token}`, Accept: 'application/json' } });
-    const parsed = await resp.json().catch(() => null);
-    const arr: any[] = Array.isArray(parsed) ? parsed : (parsed?.results ?? []);
-    const paid = arr.filter((r) => String(r?.status ?? '').toUpperCase() === 'PAID');
-    const r0 = paid[0] ?? {};
-    const arrayFields = Object.fromEntries(Object.entries(r0).filter(([, v]) => Array.isArray(v)).map(([k, v]) => [k, (v as any[]).length]));
-    const itemKey = ['items', 'receiptItems', 'lines', 'orderItems', 'products'].find((k) => Array.isArray((r0 as any)[k]));
-    const item0 = itemKey ? (r0 as any)[itemKey][0] : null;
-    return json({ ok: resp.ok, status: resp.status, n: arr.length, n_paid: paid.length, receipt_keys: Object.keys(r0), array_fields: arrayFields, item_key: itemKey ?? null, item_keys: item0 ? Object.keys(item0) : null, item_example: item0 });
-  }
+  if (type === 'backfill_verkoop') return await backfillVerkoop(admin, body);
+
   if (!['dagelijks', 'handmatig', 'backfill', 'auto'].includes(type)) {
     return json({ error: 'invalid_type' }, 400);
   }
