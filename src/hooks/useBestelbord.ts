@@ -131,7 +131,7 @@ export function useBestelbordMutaties(vestiging: string) {
     mutationFn: async ({ naam, aantal, eenheid, koppeling }: { naam: string; aantal: number; eenheid: string; koppeling?: ArtikelKoppeling | null }) => {
       if (!vestiging) throw new Error('Vestiging nog niet geladen, probeer het zo opnieuw');
       const { data: user } = await supabase.auth.getUser();
-      const { error } = await metHerstel(() =>
+      const { data, error } = await metHerstel(() =>
         supabase.from('bestel_signalen').insert({
           vestiging,
           naam: naam.trim(),
@@ -139,12 +139,13 @@ export function useBestelbordMutaties(vestiging: string) {
           eenheid,
           bron: 'handmatig',
           gemeld_door: user.user?.id ?? null,
-          ...(koppeling?.artikel_id
+          ...(koppeling?.artikel_id || koppeling?.leverancier_id
             ? { artikel_id: koppeling.artikel_id, leverancier_id: koppeling.leverancier_id, artikel_vorm_id: koppeling.artikel_vorm_id }
             : {}),
-        }),
+        }).select('id').single(),
       );
       if (error) throw error;
+      return (data as { id: string } | null)?.id ?? null;
     },
     onSettled: ververs,
   });
@@ -338,4 +339,64 @@ export function useVestigingOpenDagen(vestiging: string | null | undefined) {
     return dag ? dag.is_open : true;
   };
   return { isOpen, geladen: !!query.data };
+}
+
+export interface BestelAdvies {
+  id: string;
+  vestiging: string;
+  datum: string;
+  leverdag: string;
+  artikel: string;
+  leverancier: string | null;
+  hoeveelheid: number;
+  eenheid: string | null;
+  verwacht_verbruik: number | null;
+  onzeker: boolean | null;
+  reden: string | null;
+  artikel_id: string | null;
+  artikel_vorm_id: string | null;
+  leverancier_id: string | null;
+  op_bord_regel_id: string | null;
+}
+
+/** Advies van de bot voor de eerstvolgende leverdag (vandaag of later). */
+export function useBestelAdvies(vestiging: string | null | undefined, vandaagYmd: string) {
+  const qc = useQueryClient();
+  const key = ['bestel-advies', vestiging, vandaagYmd];
+  const query = useQuery({
+    queryKey: key,
+    enabled: !!vestiging,
+    refetchInterval: 5 * 60 * 1000,
+    queryFn: async (): Promise<{ leverdag: string | null; regels: BestelAdvies[] }> => {
+      const { data: eerste, error: e1 } = await supabase
+        .from('bestel_advies')
+        .select('leverdag')
+        .eq('vestiging', vestiging!)
+        .gte('leverdag', vandaagYmd)
+        .order('leverdag', { ascending: true })
+        .limit(1);
+      if (e1) throw e1;
+      const leverdag = (eerste?.[0]?.leverdag as string | undefined) ?? null;
+      if (!leverdag) return { leverdag: null, regels: [] };
+      const { data, error } = await supabase
+        .from('bestel_advies')
+        .select('*')
+        .eq('vestiging', vestiging!)
+        .eq('leverdag', leverdag)
+        .order('artikel', { ascending: true })
+        .limit(1000);
+      if (error) throw error;
+      return { leverdag, regels: (data ?? []) as unknown as BestelAdvies[] };
+    },
+  });
+  const zetOpBord = useMutation({
+    mutationFn: async ({ id, regelId }: { id: string; regelId: string | null }) => {
+      const { error } = await metHerstel(() =>
+        supabase.from('bestel_advies').update({ op_bord_regel_id: regelId }).eq('id', id),
+      );
+      if (error) throw error;
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['bestel-advies', vestiging] }),
+  });
+  return { ...query, zetOpBord };
 }
