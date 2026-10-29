@@ -4,3 +4,5 @@ export { SegmentedTabs } from './SegmentedTabs';
 export { StatCard } from './StatCard';
 export { EmptyState } from './EmptyState';
 export * from './patronen';
+export * from './lijst';
+export * from './blokken';

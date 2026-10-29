@@ -19,7 +19,7 @@ export function StatCard({ label, value, icon, tone = 'neutral', className }: St
   return (
     <div
       className={cn(
-        'bg-card border border-border rounded-polar-xl shadow-card',
+        'bg-card border border-border rounded-polar-lg shadow-card',
         'flex items-center gap-3 p-4',
         className,
       )}

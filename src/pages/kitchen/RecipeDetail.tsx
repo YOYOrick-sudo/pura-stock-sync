@@ -87,7 +87,7 @@ export default function RecipeDetail() {
           <div className="p-5 sm:p-6">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="flex-1 min-w-0">
-                <h1 className="font-heading font-semibold text-2xl tracking-tight text-foreground mb-2">
+                <h1 className="font-semibold text-2xl tracking-tight text-foreground mb-2">
                   {recipe.name}
                 </h1>
                 <div className="flex items-center gap-2 flex-wrap">

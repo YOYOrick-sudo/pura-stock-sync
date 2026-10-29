@@ -522,7 +522,7 @@ const KassatellingOverdag = () => {
             <div className="text-center">
               <CheckCircle2 className="w-16 h-16 text-primary mx-auto mb-4" />
               
-              <AlertDialogTitle className="text-2xl font-heading font-bold text-foreground">
+              <AlertDialogTitle className="text-2xl font-bold text-foreground">
                 Kassatelling Verzonden!
               </AlertDialogTitle>
               
@@ -548,7 +548,7 @@ const KassatellingOverdag = () => {
         <Dialog open={showInstructionsDialog} onOpenChange={setShowInstructionsDialog}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle className="text-xl font-heading font-bold text-foreground">
+              <DialogTitle className="text-xl font-bold text-foreground">
                 Instructies Kassatelling
               </DialogTitle>
             </DialogHeader>
@@ -556,51 +556,51 @@ const KassatellingOverdag = () => {
             <div className="mt-4">
               <ol className="space-y-3">
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">1</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-bold flex items-center justify-center">1</span>
                   <div>
-                    <span className="font-heading font-medium text-foreground">Tel de kassa lade</span>
+                    <span className="font-medium text-foreground">Tel de kassa lade</span>
                     <p className="text-xs text-foreground/60 mt-0.5">Vul alle aantallen in</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">2</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-bold flex items-center justify-center">2</span>
                   <div>
-                    <span className="font-heading font-medium text-foreground">Tel de wisselkas</span>
+                    <span className="font-medium text-foreground">Tel de wisselkas</span>
                     <p className="text-xs text-foreground/60 mt-0.5">Vul alle aantallen in</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">3</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-bold flex items-center justify-center">3</span>
                   <div>
-                    <span className="font-heading font-medium text-foreground">Controleer het totaal</span>
+                    <span className="font-medium text-foreground">Controleer het totaal</span>
                     <p className="text-xs text-foreground/60 mt-0.5">Moet €157,00 zijn</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">4</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-bold flex items-center justify-center">4</span>
                   <div>
-                    <span className="font-heading font-medium text-foreground">Bij tekort/overschot</span>
+                    <span className="font-medium text-foreground">Bij tekort/overschot</span>
                     <p className="text-xs text-foreground/60 mt-0.5">Meld dit in de opmerkingen</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">5</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-bold flex items-center justify-center">5</span>
                   <div>
-                    <span className="font-heading font-medium text-foreground">Aanvullen indien nodig</span>
+                    <span className="font-medium text-foreground">Aanvullen indien nodig</span>
                     <p className="text-xs text-foreground/60 mt-0.5">Als totaal &lt; €157, vul aan vanuit wisselkassa tot €157</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">6</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-bold flex items-center justify-center">6</span>
                   <div>
-                    <span className="font-heading font-medium text-foreground">Geen wijzigingen meer</span>
+                    <span className="font-medium text-foreground">Geen wijzigingen meer</span>
                     <p className="text-xs text-foreground/60 mt-0.5">Na aanvullen niets meer wijzigen in de telling</p>
                   </div>
                 </li>
                 <li className="flex gap-3">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-heading font-bold flex items-center justify-center">7</span>
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-sm font-bold flex items-center justify-center">7</span>
                   <div>
-                    <span className="font-heading font-medium text-foreground">Verzenden</span>
+                    <span className="font-medium text-foreground">Verzenden</span>
                     <p className="text-xs text-foreground/60 mt-0.5">Druk op de verzenden knop</p>
                   </div>
                 </li>

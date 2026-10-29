@@ -63,7 +63,7 @@ export default function ApplicantDetail() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Terug
             </Button>
-            <h1 className="text-2xl font-heading font-bold text-foreground">{candidateName}</h1>
+            <h1 className="text-2xl font-bold text-foreground">{candidateName}</h1>
             <div className="flex items-center gap-3 mt-1">
               <span className="text-muted-foreground">{application.position}</span>
               {application.target_location && (

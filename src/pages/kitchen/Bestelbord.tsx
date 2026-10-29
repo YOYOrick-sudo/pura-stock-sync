@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ChevronDown, Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Building2, Check, AlertCircle } from 'lucide-react';
+import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Building2, Check, AlertCircle } from 'lucide-react';
 import { DetailLade, InklapGroep, KaartKop, LaadRijen, LegeStaat, LijstKaart, Invoerbalk, Kengetal, OverzichtKaart, segmentTabsKlasse } from '@/components/pura/patronen';
+import { Stappen } from '@/components/pura/blokken';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { SidebarLayout } from '@/components/SidebarLayout';
@@ -452,6 +453,11 @@ export default function Bestelbord() {
   const zonderPrijs = [...open, ...besteld].filter((s) => !prijsVan(s)).length;
   const leveranciersTabel = <LeveranciersOverzicht open={open} onderweg={besteld} leverancier={leverancier} prijsVan={prijsVan} />;
   const bordProps = { leverancier, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen };
+  const overzicht = <OverzichtKaart kengetallen={<>
+    <Kengetal icoon={Building2} label="Open" waarde={openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : '—'} />
+    <Kengetal icoon={Truck} label="Checken" waarde={teChecken.length} />
+    <Kengetal icoon={AlertCircle} label="Geen prijs" waarde={zonderPrijs} toon={zonderPrijs ? 'let-op' : 'neutraal'} />
+  </>}>{leveranciersTabel}</OverzichtKaart>;
 
   return (
     <SidebarLayout>
@@ -459,12 +465,13 @@ export default function Bestelbord() {
         <Tabs value={tab} onValueChange={setTabKeuze}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <TabsList className={segmentTabsKlasse}>
-              {[{ id: 'bord', naam: 'Op het bord', Icoon: ClipboardList, n: open.length }, { id: 'advies', naam: 'Advies', Icoon: Sparkles, n: positieveAdviezen.length }, { id: 'tellen', naam: 'Tellen', Icoon: Calculator, n: telOverzicht.open }, { id: 'onderweg', naam: 'Onderweg', Icoon: Truck, n: besteld.length }].map(({ id, naam, Icoon, n }) => <TabsTrigger key={id} value={id} aria-label={`${naam} (${n})`} className="min-w-0"><Icoon className="h-4 w-4 shrink-0" /><span className="hidden sm:inline">{naam}</span><span className="tabular-nums text-muted-foreground">{n}</span></TabsTrigger>)}
+              {[{ id: 'bord', naam: 'Op het bord', kort: 'Bord', Icoon: ClipboardList, n: open.length }, { id: 'advies', naam: 'Advies', kort: 'Advies', Icoon: Sparkles, n: positieveAdviezen.length }, { id: 'tellen', naam: 'Tellen', kort: 'Tellen', Icoon: Calculator, n: telOverzicht.open }, { id: 'onderweg', naam: 'Onderweg', kort: 'Onderweg', Icoon: Truck, n: besteld.length }].map(({ id, naam, kort, Icoon, n }) => <TabsTrigger key={id} value={id} aria-label={`${naam} (${n})`} className="min-w-0 px-2 sm:px-3"><Icoon className="hidden h-4 w-4 shrink-0 sm:block" /><span className="truncate sm:hidden">{kort}</span><span className="hidden sm:inline">{naam}</span>{n > 0 && <span className="tabular-nums text-muted-foreground">{n}</span>}</TabsTrigger>)}
             </TabsList>
             <Button className="min-h-11 gap-1" onClick={() => { setTabKeuze('bord'); requestAnimationFrame(() => invoer.current?.focus()); }}><Plus className="h-4 w-4" /><span>Product</span></Button>
           </div>
           <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-            <div className="min-w-0">
+            <div className="min-w-0 space-y-4">
+              <div className="lg:hidden"><InklapGroep titel="Overzicht">{overzicht}</InklapGroep></div>
               <TabsContent value="bord" className="mt-0 space-y-4">
         <div className="space-y-2">
           <Invoerbalk>
@@ -532,8 +539,8 @@ export default function Bestelbord() {
                 {SOORTEN.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button variant="secondary" className="ml-auto h-11 w-11 p-0" aria-label="Erbij zetten" onClick={voegToe} disabled={naam.trim().length < 2 || !vestiging || isLoading}>
-              <Check className="h-4 w-4" />
+            <Button variant="outline" size="touch" className="ml-auto gap-1 px-3" aria-label="Erbij zetten" onClick={voegToe} disabled={naam.trim().length < 2 || !vestiging || isLoading}>
+              <Check className="h-4 w-4" /><span className="sm:hidden">Erbij</span>
             </Button>
           </Invoerbalk>
           {eerderSuggesties.length > 0 && (
@@ -556,11 +563,10 @@ export default function Bestelbord() {
           )}
         </div>
 
-                <LijstKaart kop={<KaartKop icoon={ClipboardList} titel="Op het bord" teller={open.length} />}>{isLoading ? <LaadRijen /> : open.length ? <BordTabel regels={open} {...bordProps} /> : <LegeStaat tekst="Niets openstaand." />}</LijstKaart>
-                <div className="lg:hidden"><InklapGroep titel="Per leverancier" aantal={new Set([...open, ...besteld].map(leverancier)).size}>{leveranciersTabel}</InklapGroep></div>
+                <LijstKaart kop={<KaartKop icoon={ClipboardList} titel="Op het bord" />}>{isLoading ? <LaadRijen /> : open.length ? <BordTabel regels={open} {...bordProps} /> : <LegeStaat tekst="Niets openstaand." />}</LijstKaart>
               </TabsContent>
-              <TabsContent value="advies" className="mt-0 space-y-3">
-                <LijstKaart kop={<KaartKop icoon={Sparkles} titel={advies.data?.leverdag ? `Voor ${leverDatumLabel(advies.data.leverdag)}` : 'Advies'} teller={positieveAdviezen.length} />}>
+              <TabsContent value="advies" className="mt-0 space-y-4">
+                <LijstKaart kop={<KaartKop icoon={Sparkles} titel={advies.data?.leverdag ? `Voor ${leverDatumLabel(advies.data.leverdag)}` : 'Advies'} />}>
                   {advies.isLoading ? <LaadRijen /> : positieveAdviezen.length ? <AdviesTabel regels={positieveAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} /> : <LegeStaat tekst="Geen voorstellen." />}
                 </LijstKaart>
                 {!!nulAdviezen.length && <InklapGroep titel="Niet nodig" aantal={nulAdviezen.length}><LijstKaart><AdviesTabel regels={nulAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} nul /></LijstKaart></InklapGroep>}
@@ -572,19 +578,14 @@ export default function Bestelbord() {
                 {!!geleverd.length && <InklapGroep titel="Geleverd" aantal={geleverd.length}><LijstKaart><BordTabel regels={geleverd} {...bordProps} geleverd onTerug={(s) => terugNaarBesteld.mutate(s.id)} detail={(s) => [s.geleverd_op ? datumLabel(s.geleverd_op) : '', s.geleverd_door ? namen?.get(s.geleverd_door) : '', s.levering_status === 'deels' ? 'Deels' : '', s.levering_opmerking].filter(Boolean).join(' · ')} /></LijstKaart></InklapGroep>}
               </TabsContent>
             </div>
-            <aside className="hidden min-w-0 space-y-3 lg:block">
-              <OverzichtKaart kengetallen={<>
-                <Kengetal icoon={Building2} label="Open" waarde={openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : '—'} />
-                <Kengetal icoon={Truck} label="Checken" waarde={teChecken.length} />
-                <Kengetal icoon={AlertCircle} label="Geen prijs" waarde={zonderPrijs} toon={zonderPrijs ? 'let-op' : 'neutraal'} />
-              </>}>{leveranciersTabel}</OverzichtKaart>
-            </aside>
+            <aside className="hidden min-w-0 space-y-4 lg:block">{overzicht}</aside>
           </div>
         </Tabs>
       </div>
 
       <DetailLade open={!!bewerk} onOpenChange={(o) => !o && setBewerk(null)} titel={bewerk?.naam}>
-          <div className="space-y-3">
+          <div className="space-y-4">
+            {bewerk && <Stappen stappen={['Op bord', 'Besteld', 'Geleverd']} huidig={bewerk.status === 'geleverd' ? 2 : bewerk.status === 'besteld' ? 1 : 0} />}
             <Stepper waarde={bewerkAantal} onChange={setBewerkAantal} />
             {bewerkVormen.length > 1 && (
               <VormKeuze

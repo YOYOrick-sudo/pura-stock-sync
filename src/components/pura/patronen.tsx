@@ -64,7 +64,7 @@ export function Invoerbalk({ children }: { children: ReactNode }) {
 }
 
 /** Klasse voor TabsList als aaneengesloten segmentbalk zonder gaten. */
-export const segmentTabsKlasse = 'flex h-auto w-full min-w-0 gap-0 p-1 sm:w-auto [&>button]:min-h-10 [&>button]:flex-1 [&>button]:gap-1.5 [&>button]:px-3 sm:[&>button]:flex-none';
+export const segmentTabsKlasse = 'flex h-auto w-full min-w-0 gap-0 p-1 sm:w-auto [&>button]:min-h-11 [&>button]:flex-1 [&>button]:gap-1.5 [&>button]:px-3 sm:[&>button]:flex-none';
 
 /* ===================== Kaarten & lijsten ===================== */
 
@@ -105,11 +105,11 @@ export function FoutRegel({ tekst = 'Laden mislukt.', onOpnieuw }: { tekst?: str
 }
 
 /** Inklapgroep: één stijl voor "Geleverd (n)", "Niet nodig (n)", "Overige (n)". */
-export function InklapGroep({ titel, aantal, children, standaardOpen = false }: { titel: string; aantal: number; children: ReactNode; standaardOpen?: boolean }) {
+export function InklapGroep({ titel, aantal, children, standaardOpen = false }: { titel: string; aantal?: number; children: ReactNode; standaardOpen?: boolean }) {
   return <Collapsible defaultOpen={standaardOpen} className="group/inklap">
     <CollapsibleTrigger asChild>
       <Button variant="ghost" size="touch" className="w-full justify-between text-muted-foreground">
-        <span>{titel} <span className="tabular-nums">({aantal})</span></span>
+        <span>{titel}{aantal != null && <span className="tabular-nums"> ({aantal})</span>}</span>
         <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/inklap:rotate-180" />
       </Button>
     </CollapsibleTrigger>
