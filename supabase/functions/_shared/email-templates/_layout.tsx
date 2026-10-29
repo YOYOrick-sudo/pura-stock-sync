@@ -36,7 +36,7 @@ export const Knop = ({ href, label }: { href: string; label: string }) => (
     <table role="presentation" cellPadding={0} cellSpacing={0} border={0} style={{ margin: '8px 0 24px' }}>
       <tbody>
         <tr>
-          <td align="center" bgcolor={KLEUR_PRIMAIR} style={{ borderRadius: '14px', backgroundColor: KLEUR_PRIMAIR }}>
+          <td align="center" {...({ bgcolor: KLEUR_PRIMAIR } as Record<string, string>)} style={{ borderRadius: '14px', backgroundColor: KLEUR_PRIMAIR }}>
             <a
               href={href}
               target="_blank"
@@ -94,7 +94,7 @@ export const MailLayout = ({ preheader, titel, children, reden }: LayoutProps) =
     </Head>
     <Preview>{preheader}</Preview>
     <Body style={{ margin: 0, padding: 0, backgroundColor: KLEUR_CANVAS, fontFamily: FONT }}>
-      <table role="presentation" width="100%" cellPadding={0} cellSpacing={0} border={0} bgcolor={KLEUR_CANVAS} style={{ backgroundColor: KLEUR_CANVAS }}>
+      <table role="presentation" width="100%" cellPadding={0} cellSpacing={0} border={0} {...({ bgcolor: KLEUR_CANVAS } as Record<string, string>)} style={{ backgroundColor: KLEUR_CANVAS }}>
         <tbody>
           <tr>
             <td align="center" style={{ padding: '32px 16px' }}>
@@ -106,7 +106,7 @@ export const MailLayout = ({ preheader, titel, children, reden }: LayoutProps) =
                     </td>
                   </tr>
                   <tr>
-                    <td bgcolor="#ffffff" style={{ backgroundColor: '#ffffff', borderRadius: '20px', border: `1px solid ${KLEUR_RAND}`, padding: '36px 32px' }}>
+                    <td {...({ bgcolor: "#ffffff" } as Record<string, string>)} style={{ backgroundColor: '#ffffff', borderRadius: '20px', border: `1px solid ${KLEUR_RAND}`, padding: '36px 32px' }}>
                       <h1 style={{ margin: '0 0 16px', fontFamily: FONT, fontSize: '22px', lineHeight: '30px', fontWeight: 700, color: KLEUR_TEKST }}>
                         {titel}
                       </h1>
