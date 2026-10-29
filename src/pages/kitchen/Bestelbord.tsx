@@ -115,6 +115,121 @@ function Rij({
   );
 }
 
+function leverDatumLabel(datum: string | null): string {
+  if (!datum) return 'geen datum';
+  return parseYmd(datum).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+/** Eén bestelde regel in het Onderweg-overzicht: afvinken geleverd, datum aanpassen, niet/deels geleverd. */
+function OnderwegRij({
+  signaal,
+  teLaat,
+  onGeleverd,
+  onDatum,
+  onNietGeleverd,
+  onDeelsGeleverd,
+}: {
+  signaal: BestelSignaal;
+  teLaat: number;
+  onGeleverd: () => void;
+  onDatum: () => void;
+  onNietGeleverd: () => void;
+  onDeelsGeleverd: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-2 px-2 py-1.5 min-h-[56px]">
+      <button
+        type="button"
+        onClick={onGeleverd}
+        aria-label="Geleverd"
+        className="flex h-11 w-11 shrink-0 items-center justify-center"
+      >
+        <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-muted-foreground/40 transition-colors" />
+      </button>
+      <div className="min-w-0 flex-1">
+        <span className="block text-[16px] font-medium">{signaal.naam}</span>
+        <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
+          <span>{Number(signaal.aantal)} {signaal.eenheid}</span>
+          <button
+            type="button"
+            onClick={onDatum}
+            className="rounded-full border border-border px-2 py-0.5 text-[13px] hover:bg-muted"
+            aria-label="Verwachte leverdatum aanpassen"
+          >
+            {leverDatumLabel(signaal.verwachte_levering)}
+          </button>
+          {teLaat > 0 && <Badge variant="destructive" className="font-normal">{teLaat} {teLaat === 1 ? 'dag' : 'dagen'} te laat</Badge>}
+        </div>
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-11 w-11 p-0 text-muted-foreground" aria-label="Meer opties">
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={onNietGeleverd}>Niet geleverd</DropdownMenuItem>
+          <DropdownMenuItem onClick={onDeelsGeleverd}>Deels geleverd</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
+/** Groep bestelde regels van één leverancier + ordernummer, met "Alles geleverd". */
+function LeveringGroep({
+  titel,
+  regels,
+  dagenTeLaatVan,
+  onAllesGeleverd,
+  onGeleverd,
+  onDatum,
+  onNietGeleverd,
+  onDeelsGeleverd,
+}: {
+  titel: string;
+  regels: BestelSignaal[];
+  dagenTeLaatVan: (s: BestelSignaal) => number;
+  onAllesGeleverd: (ids: string[]) => void;
+  onGeleverd: (s: BestelSignaal) => void;
+  onDatum: (s: BestelSignaal) => void;
+  onNietGeleverd: (s: BestelSignaal) => void;
+  onDeelsGeleverd: (s: BestelSignaal) => void;
+}) {
+  const besteldOp = regels[0]?.besteld_op;
+  const referentie = regels[0]?.bestelreferentie;
+  return (
+    <Card className="overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-border/60 px-3 py-2">
+        <Truck className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <div className="min-w-0 flex-1">
+          <span className="block truncate text-[15px] font-semibold">{titel}</span>
+          <span className="block text-[13px] text-muted-foreground">
+            {besteldOp ? `besteld ${datumLabel(besteldOp)}` : 'besteld'}
+            {referentie ? ` · ${referentie}` : ''}
+          </span>
+        </div>
+        <Button variant="outline" className="h-11 shrink-0" onClick={() => onAllesGeleverd(regels.map((r) => r.id))}>
+          <Check className="h-4 w-4 mr-1" /> Alles geleverd
+        </Button>
+      </div>
+      <div className="divide-y divide-border/60">
+        {regels.map((s) => (
+          <OnderwegRij
+            key={s.id}
+            signaal={s}
+            teLaat={dagenTeLaatVan(s)}
+            onGeleverd={() => onGeleverd(s)}
+            onDatum={() => onDatum(s)}
+            onNietGeleverd={() => onNietGeleverd(s)}
+            onDeelsGeleverd={() => onDeelsGeleverd(s)}
+          />
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 export default function Bestelbord() {
   const { userLocation } = useUserLocation();
   const vestiging = userLocation ?? '';
