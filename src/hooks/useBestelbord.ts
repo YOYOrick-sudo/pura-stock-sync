@@ -11,10 +11,20 @@ export interface BestelSignaal {
   aantal: number;
   eenheid: string;
   notitie: string | null;
-  status: 'open' | 'besteld' | 'vervallen';
+  status: 'open' | 'besteld' | 'geleverd' | 'vervallen';
   bron: string;
   created_at: string;
   besteld_op: string | null;
+  bestelreferentie: string | null;
+  besteld_via: 'handmatig' | 'bot' | null;
+  leverancier_id: string | null;
+  artikel_id: string | null;
+  verwachte_levering: string | null;
+  geleverd_op: string | null;
+  geleverd_door: string | null;
+  levering_status: 'geleverd' | 'niet_geleverd' | 'deels' | null;
+  levering_opmerking: string | null;
+  restant_van: string | null;
 }
 
 /** Het digitale bestelbord: wat is op en moet besteld worden. */
@@ -91,6 +101,8 @@ export function useBestelbordMutaties(vestiging: string) {
             status: besteld ? 'besteld' : 'open',
             besteld_op: besteld ? new Date().toISOString() : null,
             besteld_door: besteld ? user.user?.id ?? null : null,
+            // De database vult verwachte_levering zelf (morgen/volgende open dag); bij terugzetten weer leeg.
+            verwachte_levering: null,
           })
           .eq('id', id),
       );
