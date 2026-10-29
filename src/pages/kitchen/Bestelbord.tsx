@@ -580,6 +580,62 @@ export default function Bestelbord() {
           </div>
         </DialogContent>
       </Dialog>
+      <Dialog open={!!datumVoor} onOpenChange={(o) => !o && setDatumVoor(null)}>
+        <DialogContent className="max-w-[650px] rounded-[24px]">
+          <DialogHeader>
+            <DialogTitle>Verwachte levering — {datumVoor?.naam}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              type="date"
+              value={datumKeuze}
+              min={ymd(new Date())}
+              onChange={(e) => setDatumKeuze(e.target.value)}
+              className="h-12 text-[16px]"
+            />
+            <Button
+              className="h-12 w-full"
+              disabled={!datumKeuze}
+              onClick={() => {
+                if (!datumVoor || !datumKeuze) return;
+                zetVerwachteLevering.mutate({ id: datumVoor.id, datum: datumKeuze });
+                setDatumVoor(null);
+              }}
+            >
+              Opslaan
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!leveringActie} onOpenChange={(o) => !o && setLeveringActie(null)}>
+        <DialogContent className="max-w-[650px] rounded-[24px]">
+          <DialogHeader>
+            <DialogTitle>
+              {leveringActie?.type === 'niet' ? 'Niet geleverd' : 'Deels geleverd'} — {leveringActie?.signaal.naam}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {leveringActie?.type === 'deels' && (
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">
+                  Hoeveel is er binnen? (besteld: {Number(leveringActie.signaal.aantal)} {leveringActie.signaal.eenheid})
+                </p>
+                <Stepper waarde={deelsOntvangen} onChange={(n) => setDeelsOntvangen(Math.min(n, Number(leveringActie.signaal.aantal) - 1))} />
+              </div>
+            )}
+            <Textarea
+              value={leveringOpmerking}
+              onChange={(e) => setLeveringOpmerking(e.target.value)}
+              placeholder="Korte opmerking (bijv. waarom niet geleverd)"
+              className="text-[16px]"
+            />
+            <Button className="h-12 w-full" onClick={bevestigLeveringActie}>
+              {leveringActie?.type === 'niet' ? 'Terug op het bord' : 'Restant terug op het bord'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </SidebarLayout>
   );
 }
