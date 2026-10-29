@@ -19,6 +19,7 @@ import {
   GERECHT_LABEL_SOORT,
   isGerechtLabel,
   voldoetAanGerechtFilter,
+  gerechtPrijzen,
   type GerechtLabel,
 } from '@/lib/gerecht-labels';
 
@@ -159,6 +160,17 @@ export default function Gerechten() {
         <DataTableCell className="hidden md:table-cell">
           {heeftLabels ? <EmptyCell /> : <GerechtReceptSporen gerecht={g} recept={recept} />}
         </DataTableCell>
+        <DataTableCell className="text-right tabular-nums">
+          {(() => {
+            const prijzen = gerechtPrijzen(g.prijs, g.prijs_varianten);
+            return prijzen.bedragen ? (
+              <>
+                <span className="whitespace-nowrap text-sm text-foreground">€ {prijzen.bedragen}</span>
+                {prijzen.namen && <p className="text-xs text-muted-foreground">{prijzen.namen}</p>}
+              </>
+            ) : <EmptyCell />;
+          })()}
+        </DataTableCell>
         {isManager && (
           <DataTableCell className="text-right">
             <div className="flex justify-end">
@@ -184,6 +196,7 @@ export default function Gerechten() {
         <DataTableHead className="w-[45%] md:w-[30%]">Gerecht</DataTableHead>
         <DataTableHead className="w-auto md:w-[38%]">Bevat</DataTableHead>
         <DataTableHead className="hidden md:table-cell w-auto">Kan bevatten</DataTableHead>
+        <DataTableHead className="w-[110px] text-right">Prijs</DataTableHead>
         {isManager && <DataTableHead className="w-[104px]"><span className="sr-only">Acties</span></DataTableHead>}
       </DataTableHeader>
       <DataTableBody>{rijen.map(renderRij)}</DataTableBody>
