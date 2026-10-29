@@ -129,7 +129,6 @@ export default function Gerechten() {
 
   const renderRij = (g: Gerecht) => {
     const isVegan = (g.labels ?? []).includes('vegan');
-    const prijzen = gerechtPrijzen(g.prijs, g.prijs_varianten);
     const heeftLabels = (g.labels ?? []).length > 0;
     const recept = receptQuery.data?.get(g.id);
     return (
@@ -149,14 +148,6 @@ export default function Gerechten() {
               {g.kaart_omschrijving || g.notitie}
             </p>
           )}
-        </DataTableCell>
-        <DataTableCell className="text-right tabular-nums">
-          {prijzen.bedragen ? (
-            <>
-              <span className="whitespace-nowrap text-sm text-foreground">€ {prijzen.bedragen}</span>
-              {prijzen.namen && <p className="text-xs text-muted-foreground">{prijzen.namen}</p>}
-            </>
-          ) : <EmptyCell />}
         </DataTableCell>
         <DataTableCell>
           {heeftLabels ? <InhoudChips gerecht={g} /> : (
@@ -192,7 +183,6 @@ export default function Gerechten() {
     <DataTable className="rounded-none border-0">
       <DataTableHeader>
         <DataTableHead className="w-auto">Gerecht</DataTableHead>
-        <DataTableHead className="w-[140px] text-right">Prijs</DataTableHead>
         <DataTableHead className="w-[34%] md:w-[26%]">Bevat</DataTableHead>
         <DataTableHead className="hidden md:table-cell w-[16%]">Kan bevatten</DataTableHead>
         {isManager && <DataTableHead className="w-[104px]"><span className="sr-only">Acties</span></DataTableHead>}
