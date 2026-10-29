@@ -564,6 +564,7 @@ const navItems = [
   { id: 'cards', label: 'Kaarten', icon: '🃏' },
   { id: 'data', label: 'Data', icon: '📊' },
   { id: 'feedback', label: 'Feedback', icon: '💬' },
+  { id: 'navigation', label: 'Navigatie', icon: '🧭' },
 ];
 
 // ==================== MAIN COMPONENT ====================
@@ -841,23 +842,6 @@ const DesignSystem = () => {
                   </div>
                 </SubSection>
 
-                <SubSection title="Interactive Demo">
-                  <p className="text-sm text-muted-foreground mb-4">Hover over deze cards om de border transitions te zien:</p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-5 rounded-polar-lg bg-card border-1.5 border-border hover:border-strong transition-colors duration-200 cursor-pointer">
-                      <p className="text-sm font-medium text-foreground">Hover Card</p>
-                      <p className="text-xs text-muted-foreground mt-1">border-border → border-strong</p>
-                    </div>
-                    <div className="p-5 rounded-polar-lg bg-card border-1.5 border-border hover:border-primary transition-colors duration-200 cursor-pointer">
-                      <p className="text-sm font-medium text-foreground">Active Card</p>
-                      <p className="text-xs text-muted-foreground mt-1">border-border → border-primary</p>
-                    </div>
-                    <div className="p-5 rounded-polar-lg bg-card border-1.5 border-accent shadow-sm">
-                      <p className="text-sm font-medium text-foreground">Selected State</p>
-                      <p className="text-xs text-muted-foreground mt-1">border-accent + shadow-sm</p>
-                    </div>
-                  </div>
-                </SubSection>
               </div>
             </Section>
 
