@@ -181,9 +181,9 @@ export default function Gerechten() {
   const GerechtTabel = ({ rijen }: { rijen: Gerecht[] }) => (
     <DataTable className="rounded-none border-0">
       <DataTableHeader>
-        <DataTableHead className="w-auto">Gerecht</DataTableHead>
-        <DataTableHead className="w-[34%] md:w-[26%]">Bevat</DataTableHead>
-        <DataTableHead className="hidden md:table-cell w-[16%]">Kan bevatten</DataTableHead>
+        <DataTableHead className="w-[45%] md:w-[30%]">Gerecht</DataTableHead>
+        <DataTableHead className="w-auto md:w-[38%]">Bevat</DataTableHead>
+        <DataTableHead className="hidden md:table-cell w-auto">Kan bevatten</DataTableHead>
         {isManager && <DataTableHead className="w-[104px]"><span className="sr-only">Acties</span></DataTableHead>}
       </DataTableHeader>
       <DataTableBody>{rijen.map(renderRij)}</DataTableBody>
