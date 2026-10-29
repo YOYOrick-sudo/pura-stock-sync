@@ -554,6 +554,7 @@ export default function Bestelbord() {
     setBewerk(s);
     setBewerkAantal(Math.max(1, Number(s.aantal) || 1));
     setBewerkSoort(s.eenheid);
+    setBewerkVormId(s.artikel_vorm_id);
   };
 
   return (
@@ -655,7 +656,7 @@ export default function Bestelbord() {
                 <p className="p-4 text-sm text-muted-foreground">Niets openstaand.</p>
               ) : (
                 open.map((s) => (
-                  <Rij key={s.id} signaal={s} onBesteld={(b) => markeerBesteld(s, b)} onVervallen={() => vervallen(s)} onBewerk={() => openBewerk(s)} />
+                  <Rij key={s.id} signaal={s} prijs={prijsVan(s)} onBesteld={(b) => markeerBesteld(s, b)} onVervallen={() => vervallen(s)} onBewerk={() => openBewerk(s)} />
                 ))
               )}
             </Card>
