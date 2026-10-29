@@ -1853,6 +1853,66 @@ export type Database = {
         }
         Relationships: []
       }
+      gerecht_allergeen_besluit: {
+        Row: {
+          besluit: string
+          bron: string
+          bron_url: string | null
+          created_at: string
+          gecontroleerd_gezet: boolean
+          gerecht_id: string
+          id: string
+          kaart_codes_na: string[] | null
+          kaart_codes_voor: string[] | null
+          labels_na: string[] | null
+          labels_voor: string[] | null
+          negeer_horeko_declaratie: boolean
+        }
+        Insert: {
+          besluit: string
+          bron: string
+          bron_url?: string | null
+          created_at?: string
+          gecontroleerd_gezet?: boolean
+          gerecht_id: string
+          id?: string
+          kaart_codes_na?: string[] | null
+          kaart_codes_voor?: string[] | null
+          labels_na?: string[] | null
+          labels_voor?: string[] | null
+          negeer_horeko_declaratie?: boolean
+        }
+        Update: {
+          besluit?: string
+          bron?: string
+          bron_url?: string | null
+          created_at?: string
+          gecontroleerd_gezet?: boolean
+          gerecht_id?: string
+          id?: string
+          kaart_codes_na?: string[] | null
+          kaart_codes_voor?: string[] | null
+          labels_na?: string[] | null
+          labels_voor?: string[] | null
+          negeer_horeko_declaratie?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gerecht_allergeen_besluit_gerecht_id_fkey"
+            columns: ["gerecht_id"]
+            isOneToOne: false
+            referencedRelation: "gerechten"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gerecht_allergeen_besluit_gerecht_id_fkey"
+            columns: ["gerecht_id"]
+            isOneToOne: false
+            referencedRelation: "v_gerecht_allergenen"
+            referencedColumns: ["gerecht_id"]
+          },
+        ]
+      }
       gerechten: {
         Row: {
           categorie: string
@@ -2038,34 +2098,43 @@ export type Database = {
       horeko_artikel_allergenen: {
         Row: {
           allergenen: Database["public"]["Enums"]["allergen"][]
+          besteldatum: string | null
           bevat_niet: Database["public"]["Enums"]["allergen"][]
           bijgewerkt_op: string
           bron: string
           bron_detail: string | null
+          bron_url: string | null
           horeko_id: number
           onbekend: Database["public"]["Enums"]["allergen"][]
+          product_gebruikt: string | null
           sporen: Database["public"]["Enums"]["allergen"][]
           status: string
         }
         Insert: {
           allergenen?: Database["public"]["Enums"]["allergen"][]
+          besteldatum?: string | null
           bevat_niet?: Database["public"]["Enums"]["allergen"][]
           bijgewerkt_op?: string
           bron: string
           bron_detail?: string | null
+          bron_url?: string | null
           horeko_id: number
           onbekend?: Database["public"]["Enums"]["allergen"][]
+          product_gebruikt?: string | null
           sporen?: Database["public"]["Enums"]["allergen"][]
           status?: string
         }
         Update: {
           allergenen?: Database["public"]["Enums"]["allergen"][]
+          besteldatum?: string | null
           bevat_niet?: Database["public"]["Enums"]["allergen"][]
           bijgewerkt_op?: string
           bron?: string
           bron_detail?: string | null
+          bron_url?: string | null
           horeko_id?: number
           onbekend?: Database["public"]["Enums"]["allergen"][]
+          product_gebruikt?: string | null
           sporen?: Database["public"]["Enums"]["allergen"][]
           status?: string
         }
@@ -6695,6 +6764,7 @@ export type Database = {
             | Database["public"]["Enums"]["allergen"][]
             | null
           horeko_bevat_niet: Database["public"]["Enums"]["allergen"][] | null
+          horeko_declaratie_genegeerd: boolean | null
           horeko_export_datum: string | null
           horeko_gedeeltelijke_export: boolean | null
           horeko_letop_onvolledig: boolean | null
