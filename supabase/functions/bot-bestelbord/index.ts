@@ -10,7 +10,7 @@ function nlVandaag(): Date {
   return new Date(s + "T00:00:00Z");
 }
 
-function verwachteLeveringGeldig(v: unknown): boolean {
+export function verwachteLeveringGeldig(v: unknown): boolean {
   if (v == null) return true;
   if (typeof v !== "string" || !DATUM.test(v)) return false;
   const d = new Date(v + "T00:00:00Z");
