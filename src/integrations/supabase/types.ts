@@ -776,6 +776,7 @@ export type Database = {
         Row: {
           aantal: number
           artikel_id: string | null
+          artikel_vorm_id: string | null
           besteld_door: string | null
           besteld_op: string | null
           besteld_via: string | null
@@ -802,6 +803,7 @@ export type Database = {
         Insert: {
           aantal?: number
           artikel_id?: string | null
+          artikel_vorm_id?: string | null
           besteld_door?: string | null
           besteld_op?: string | null
           besteld_via?: string | null
@@ -828,6 +830,7 @@ export type Database = {
         Update: {
           aantal?: number
           artikel_id?: string | null
+          artikel_vorm_id?: string | null
           besteld_door?: string | null
           besteld_op?: string | null
           besteld_via?: string | null
@@ -864,6 +867,13 @@ export type Database = {
             columns: ["artikel_id"]
             isOneToOne: false
             referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_signalen_artikel_vorm_id_fkey"
+            columns: ["artikel_vorm_id"]
+            isOneToOne: false
+            referencedRelation: "artikel_vormen"
             referencedColumns: ["id"]
           },
           {

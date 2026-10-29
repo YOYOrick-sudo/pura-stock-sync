@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Check, ChevronDown, MoreVertical, Minus, Plus, Truck, Undo2, X } from 'lucide-react';
@@ -17,11 +17,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { dagenTeLaat, parseYmd, ymd } from '@/lib/leverdatum';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import {
-  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useVestigingOpenDagen, type BestelSignaal,
+  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useVestigingOpenDagen, useArtikelVormen, zoekBordSuggesties,
+  type BestelSignaal, type ArtikelVorm, type BordSuggestie,
 } from '@/hooks/useBestelbord';
 import { BestelLeverancierLabel } from '@/components/kitchen/BestelLeverancierLabel';
 
-const SOORTEN = ['stuks', 'doos', 'zak', 'fles', 'pak', 'bak', 'emmer', 'kg'] as const;
+const SOORTEN = ['stuks', 'doos', 'zak', 'fles', 'pak', 'bak', 'emmer', 'kg', 'bos', 'tray', 'rol', 'fust'] as const;
 
 function datumLabel(iso: string): string {
   return new Date(iso).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' });
@@ -69,13 +70,58 @@ function SoortKeuze({ waarde, onChange }: { waarde: string | null; onChange: (s:
   );
 }
 
+const euroFmt = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' });
+const euro = (n: number) => euroFmt.format(n);
+
+function prijsTip(v: ArtikelVorm): string {
+  if (v.prijs == null) return '';
+  if (v.prijs_bron === 'horeko') return `Horeko-prijs · ${euro(Number(v.prijs))}`;
+  const d = v.prijs_datum ? parseYmd(v.prijs_datum).toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric' }) : null;
+  return `laatst ${euro(Number(v.prijs))}${d ? ` · ${d}` : ''}`;
+}
+
+/** Keuze tussen verpakkingsvormen van één artikel: vorm · leverancier · prijs. */
+function VormKeuze({
+  vormen, gekozen, leveranciers, onKies,
+}: {
+  vormen: ArtikelVorm[];
+  gekozen: string | null;
+  leveranciers?: Map<string, string>;
+  onKies: (v: ArtikelVorm) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Verpakkingsvorm">
+      {vormen.map((v) => {
+        const lev = v.leverancier_naam ?? (v.leverancier_id ? leveranciers?.get(v.leverancier_id) : null);
+        return (
+          <button
+            key={v.id}
+            type="button"
+            role="radio"
+            aria-checked={gekozen === v.id}
+            onClick={() => onKies(v)}
+            className={cn(
+              'min-h-11 rounded-[14px] border px-3 py-1.5 text-left text-[14px] transition-colors',
+              gekozen === v.id ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background text-foreground hover:bg-muted',
+            )}
+          >
+            {[v.vorm, lev, v.prijs != null ? `${euro(Number(v.prijs))} excl.` : '–'].filter(Boolean).join(' · ')}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function Rij({
   signaal,
+  prijs,
   onBesteld,
   onVervallen,
   onBewerk,
 }: {
   signaal: BestelSignaal;
+  prijs: { vorm: ArtikelVorm; totaal: number } | null;
   onBesteld: (besteld: boolean) => void;
   onVervallen?: () => void;
   onBewerk?: () => void;
@@ -106,6 +152,10 @@ function Rij({
           {signaal.bron === 'sluitlijst' && <Badge variant="secondary" className="font-normal">Sluitlijst</Badge>}
         </div>
       </button>
+      <div className="shrink-0 text-right" title={prijs ? prijsTip(prijs.vorm) : undefined}>
+        <span className="block text-[14px] font-medium tabular-nums">{prijs ? euro(prijs.totaal) : '–'}</span>
+        {prijs && <span className="block text-[11px] text-muted-foreground">{prijsTip(prijs.vorm)}</span>}
+      </div>
       {onVervallen && (
         <Button variant="ghost" className="h-11 w-11 p-0 text-muted-foreground" onClick={onVervallen} aria-label="Toch niet nodig">
           <X className="h-4 w-4" />
@@ -252,6 +302,14 @@ export default function Bestelbord() {
   const [leveringOpmerking, setLeveringOpmerking] = useState('');
   const [deelsOntvangen, setDeelsOntvangen] = useState(1);
   const invoer = useRef<HTMLInputElement>(null);
+  const { data: vormen } = useArtikelVormen(vestiging || null);
+  const [suggesties, setSuggesties] = useState<BordSuggestie[]>([]);
+  const [lijstOpen, setLijstOpen] = useState(false);
+  const [actief, setActief] = useState(-1);
+  const [gekozen, setGekozen] = useState<BordSuggestie | null>(null);
+  const [vormId, setVormId] = useState<string | null>(null);
+  const [bewerkVormId, setBewerkVormId] = useState<string | null>(null);
+  const zoekNr = useRef(0);
 
   const vandaag = useMemo(() => new Date(), []);
   const teLaatVan = (s: BestelSignaal) => dagenTeLaat(s.verwachte_levering, vandaag, isOpen);
@@ -301,23 +359,54 @@ export default function Bestelbord() {
     };
   }, [besteld, vandaag]);
 
-  // Eerder gebruikte producten (laatste aantal + soort), nieuwste eerst.
-  const eerder = useMemo(() => {
-    const m = new Map<string, BestelSignaal>();
-    for (const s of signalen) if (!m.has(norm(s.naam))) m.set(norm(s.naam), s);
-    return [...m.values()];
-  }, [signalen]);
+  // Keuzelijst uit de productdatabase: debounce 150 ms, oude antwoorden negeren.
+  useEffect(() => {
+    const q = naam.trim();
+    if (!q || !vestiging || gekozen) {
+      setSuggesties([]);
+      return;
+    }
+    const nr = ++zoekNr.current;
+    const t = setTimeout(() => {
+      zoekBordSuggesties(vestiging, q)
+        .then((r) => {
+          if (nr !== zoekNr.current) return;
+          setSuggesties(r);
+          setActief(-1);
+        })
+        .catch(() => nr === zoekNr.current && setSuggesties([]));
+    }, 150);
+    return () => clearTimeout(t);
+  }, [naam, vestiging, gekozen]);
 
-  const suggesties = useMemo(() => {
-    const q = norm(naam);
-    const lijst = q ? eerder.filter((s) => norm(s.naam).includes(q) && norm(s.naam) !== q) : eerder;
-    return lijst.slice(0, 8);
-  }, [naam, eerder]);
+  const wijzigNaam = (v: string) => {
+    setNaam(v);
+    setLijstOpen(true);
+    if (gekozen && v !== gekozen.naam) {
+      // Handmatig gewijzigd: koppeling met artikel/vorm vervalt.
+      setGekozen(null);
+      setVormId(null);
+    }
+  };
+
+  const kiesArtikel = (s: BordSuggestie) => {
+    const std = s.vormen.find((v) => v.is_standaard) ?? s.vormen[0] ?? null;
+    setNaam(s.naam);
+    setGekozen(s);
+    setVormId(std?.id ?? null);
+    setSoort(std?.eenheid ?? s.standaard_eenheid ?? soort);
+    setSuggesties([]);
+    setLijstOpen(false);
+    setActief(-1);
+  };
 
   const leeg = () => {
     setNaam('');
     setAantal(1);
     setSoort(null);
+    setGekozen(null);
+    setVormId(null);
+    setSuggesties([]);
     invoer.current?.focus();
   };
 
@@ -341,8 +430,12 @@ export default function Bestelbord() {
     if (onderwegMatch) {
       toast(`Let op: al onderweg, verwacht ${leverDatumLabel(onderwegMatch.verwachte_levering)}`);
     }
+    const v = gekozen && vormId ? gekozen.vormen.find((x) => x.id === vormId) : undefined;
+    const koppeling = gekozen
+      ? { artikel_id: gekozen.artikel_id, leverancier_id: v?.leverancier_id ?? gekozen.leverancier_id ?? null, artikel_vorm_id: v?.id ?? null }
+      : null;
     toevoegen.mutate(
-      { naam: n, aantal, eenheid },
+      { naam: n, aantal, eenheid, koppeling },
       {
         onSuccess: () => toast.success(`${n} — ${aantal} ${eenheid} staat erop`),
         onError: (e: any) => toast.error('Niet opgeslagen: ' + (e?.message ?? 'onbekende fout')),
@@ -351,11 +444,48 @@ export default function Bestelbord() {
     leeg();
   };
 
-  const kies = (s: BestelSignaal) => {
-    setNaam(s.naam);
-    setAantal(Math.max(1, Number(s.aantal) || 1));
-    setSoort(s.eenheid);
+  // Indicatieprijs per regel.
+  const vormById = useMemo(() => new Map((vormen ?? []).map((v) => [v.id, v])), [vormen]);
+  const prijsVan = (s: BestelSignaal): { vorm: ArtikelVorm; totaal: number } | null => {
+    let v: ArtikelVorm | undefined;
+    if (s.artikel_vorm_id) v = vormById.get(s.artikel_vorm_id);
+    else if (s.artikel_id) {
+      const kand = (vormen ?? []).filter((x) => x.artikel_id === s.artikel_id && x.eenheid === s.eenheid);
+      if (kand.length === 1) v = kand[0];
+    }
+    if (!v || v.prijs == null) return null;
+    return { vorm: v, totaal: Number(s.aantal) * Number(v.prijs) };
   };
+
+  const totalen = useMemo(() => {
+    type Bak = { totaal: number; zonder: number; regels: number };
+    const nieuw = (): Bak => ({ totaal: 0, zonder: 0, regels: 0 });
+    const m = new Map<string, { titel: string; open: Bak; onderweg: Bak; geleverd: Bak }>();
+    const tel = (lijst: BestelSignaal[], k: 'open' | 'onderweg' | 'geleverd') => {
+      for (const s of lijst) {
+        const id = s.leverancier_id ?? '';
+        const titel = (s.leverancier_id && leveranciers?.get(s.leverancier_id)) || 'Onbekende leverancier';
+        if (!m.has(id)) m.set(id, { titel, open: nieuw(), onderweg: nieuw(), geleverd: nieuw() });
+        const b = m.get(id)![k];
+        b.regels++;
+        const p = prijsVan(s);
+        if (p) b.totaal += p.totaal;
+        else b.zonder++;
+      }
+    };
+    tel(open, 'open');
+    tel(besteld, 'onderweg');
+    tel(geleverd, 'geleverd');
+    return [...m.values()].sort((a, b) =>
+      a.titel === 'Onbekende leverancier' ? 1 : b.titel === 'Onbekende leverancier' ? -1 : a.titel.localeCompare(b.titel),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, besteld, geleverd, leveranciers, vormen]);
+
+  const bewerkVormen = useMemo(
+    () => (bewerk?.artikel_id ? (vormen ?? []).filter((v) => v.artikel_id === bewerk.artikel_id) : []),
+    [bewerk, vormen],
+  );
 
   const markeerBesteld = (s: BestelSignaal, b: boolean) =>
     zetBesteld.mutate(
@@ -424,6 +554,7 @@ export default function Bestelbord() {
     setBewerk(s);
     setBewerkAantal(Math.max(1, Number(s.aantal) || 1));
     setBewerkSoort(s.eenheid);
+    setBewerkVormId(s.artikel_vorm_id);
   };
 
   return (
@@ -438,19 +569,63 @@ export default function Bestelbord() {
 
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <Input
-              ref={invoer}
-              value={naam}
-              onChange={(e) => setNaam(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  voegToe();
-                }
-              }}
-              placeholder="Wat is op?"
-              className="h-11 min-w-[200px] flex-1 text-[16px]"
-            />
+            <div className="relative min-w-[200px] flex-1">
+              <Input
+                ref={invoer}
+                value={naam}
+                onChange={(e) => wijzigNaam(e.target.value)}
+                onBlur={() => setTimeout(() => setLijstOpen(false), 150)}
+                onFocus={() => naam.trim() && setLijstOpen(true)}
+                onKeyDown={(e) => {
+                  const zichtbaar = lijstOpen && suggesties.length > 0;
+                  if (e.key === 'ArrowDown' && zichtbaar) {
+                    e.preventDefault();
+                    setActief((i) => (i + 1) % suggesties.length);
+                  } else if (e.key === 'ArrowUp' && zichtbaar) {
+                    e.preventDefault();
+                    setActief((i) => (i <= 0 ? suggesties.length - 1 : i - 1));
+                  } else if (e.key === 'Escape') {
+                    setLijstOpen(false);
+                    setActief(-1);
+                  } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (zichtbaar && actief >= 0) kiesArtikel(suggesties[actief]);
+                    else voegToe();
+                  }
+                }}
+                placeholder="Wat is op?"
+                className="h-11 w-full text-[16px]"
+                role="combobox"
+                aria-expanded={lijstOpen && suggesties.length > 0}
+                aria-autocomplete="list"
+              />
+              {lijstOpen && naam.trim().length > 0 && suggesties.length > 0 && (
+                <div role="listbox" className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-[14px] border border-border bg-popover shadow-md">
+                  {suggesties.map((s, i) => {
+                    const std = s.vormen.find((v) => v.is_standaard) ?? s.vormen[0];
+                    const levNaam = std?.leverancier_naam ?? (std?.leverancier_id ? leveranciers?.get(std.leverancier_id) : null);
+                    return (
+                      <button
+                        key={s.artikel_id}
+                        type="button"
+                        role="option"
+                        aria-selected={i === actief}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => kiesArtikel(s)}
+                        className={cn('block w-full px-3 py-2 text-left min-h-[48px]', i === actief ? 'bg-muted' : 'hover:bg-muted/60')}
+                      >
+                        <span className="block text-[15px] font-medium text-foreground">{s.naam}</span>
+                        {(std || levNaam) && (
+                          <span className="block text-[13px] text-muted-foreground">
+                            {[std?.vorm, levNaam].filter(Boolean).join(' · ')}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
             <Stepper waarde={aantal} onChange={setAantal} />
             <Select value={soort ?? 'stuks'} onValueChange={setSoort}>
               <SelectTrigger className="h-11 w-[110px]" aria-label="Verpakking"><SelectValue /></SelectTrigger>
@@ -462,15 +637,13 @@ export default function Bestelbord() {
               <Plus className="h-4 w-4 mr-1" /> Erbij
             </Button>
           </div>
-          {naam.trim().length > 0 && suggesties.length > 0 && (
-            <div className="flex gap-1.5 overflow-x-auto">
-              {suggesties.map((s) => (
-                <button key={s.id} type="button" onClick={() => kies(s)}
-                  className="h-9 shrink-0 rounded-full bg-muted px-3 text-[14px] text-foreground hover:bg-muted/70">
-                  {s.naam} · {Number(s.aantal)} {s.eenheid}
-                </button>
-              ))}
-            </div>
+          {gekozen && gekozen.vormen.length > 1 && (
+            <VormKeuze
+              vormen={gekozen.vormen}
+              gekozen={vormId}
+              leveranciers={leveranciers}
+              onKies={(v) => { setVormId(v.id); setSoort(v.eenheid); }}
+            />
           )}
         </div>
 
@@ -483,7 +656,7 @@ export default function Bestelbord() {
                 <p className="p-4 text-sm text-muted-foreground">Niets openstaand.</p>
               ) : (
                 open.map((s) => (
-                  <Rij key={s.id} signaal={s} onBesteld={(b) => markeerBesteld(s, b)} onVervallen={() => vervallen(s)} onBewerk={() => openBewerk(s)} />
+                  <Rij key={s.id} signaal={s} prijs={prijsVan(s)} onBesteld={(b) => markeerBesteld(s, b)} onVervallen={() => vervallen(s)} onBewerk={() => openBewerk(s)} />
                 ))
               )}
             </Card>
@@ -552,6 +725,33 @@ export default function Bestelbord() {
                 </CollapsibleContent>
               </Collapsible>
             )}
+
+            {totalen.length > 0 && (
+              <Card className="overflow-hidden">
+                <div className="border-b border-border/60 px-3 py-2">
+                  <span className="block text-[15px] font-semibold">Indicatie per leverancier</span>
+                  <span className="block text-[13px] text-muted-foreground">Prijzen zijn een indicatie (laatst betaalde prijs, excl. btw).</span>
+                </div>
+                <div className="divide-y divide-border/60">
+                  {totalen.map((t) => (
+                    <div key={t.titel} className="px-3 py-2">
+                      <span className="block text-[15px] font-medium">{t.titel}</span>
+                      <div className="mt-0.5 flex flex-wrap gap-x-4 gap-y-0.5 text-[13px] text-muted-foreground">
+                        {(['open', 'onderweg', 'geleverd'] as const).map((k) =>
+                          t[k].regels > 0 ? (
+                            <span key={k}>
+                              {k === 'open' ? 'Open' : k === 'onderweg' ? 'Onderweg' : 'Geleverd'}:{' '}
+                              <span className="font-medium text-foreground">{euro(t[k].totaal)}</span>
+                              {t[k].zonder > 0 && ` · ${t[k].zonder} ${t[k].zonder === 1 ? 'regel' : 'regels'} zonder prijs`}
+                            </span>
+                          ) : null,
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
           </>
         )}
       </div>
@@ -563,12 +763,24 @@ export default function Bestelbord() {
           </DialogHeader>
           <div className="space-y-3">
             <Stepper waarde={bewerkAantal} onChange={setBewerkAantal} />
+            {bewerkVormen.length > 1 && (
+              <VormKeuze
+                vormen={bewerkVormen}
+                gekozen={bewerkVormId}
+                leveranciers={leveranciers}
+                onKies={(v) => { setBewerkVormId(v.id); setBewerkSoort(v.eenheid); }}
+              />
+            )}
             <SoortKeuze waarde={bewerkSoort} onChange={setBewerkSoort} />
             <Button
               className="h-12 w-full"
               onClick={() => {
                 if (!bewerk) return;
-                wijzig.mutate({ id: bewerk.id, aantal: bewerkAantal, eenheid: bewerkSoort ?? 'stuks' });
+                const v = bewerkVormId && bewerkVormId !== bewerk.artikel_vorm_id ? vormById.get(bewerkVormId) : undefined;
+                wijzig.mutate({
+                  id: bewerk.id, aantal: bewerkAantal, eenheid: bewerkSoort ?? 'stuks',
+                  vorm: v ? { artikel_vorm_id: v.id, leverancier_id: v.leverancier_id } : undefined,
+                });
                 setBewerk(null);
               }}
             >
