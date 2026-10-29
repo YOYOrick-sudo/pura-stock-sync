@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { GerechtLabel } from '@/lib/gerecht-labels';
+import type { Tables } from '@/integrations/supabase/types';
 
 export interface Gerecht {
   id: string;
@@ -14,9 +15,35 @@ export interface Gerecht {
   is_gearchiveerd: boolean;
   sort_order: number;
   vestiging: string | null;
+  op_kaart?: boolean;
+  kaart_vestigingen?: string[] | null;
+  kaart_momenten?: string[] | null;
+  kaart_rubriek?: string | null;
+  kaart_omschrijving?: string | null;
+  kaart_codes?: string[] | null;
+  prijs_varianten?: Record<string, number> | null;
+  horeko_recept_key?: string | null;
+  horeko_match?: 'zeker' | 'onzeker' | 'geen' | null;
+  kaart_opmerking?: string | null;
 }
 
 export type GerechtInput = Omit<Gerecht, 'id'> & { id?: string };
+
+export type GerechtAllergenen = Tables<'v_gerecht_allergenen'>;
+
+export function useGerechtAllergenen(categorie: string) {
+  return useQuery({
+    queryKey: ['gerecht-allergenen', categorie],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('v_gerecht_allergenen')
+        .select('*')
+        .eq('categorie', categorie);
+      if (error) throw error;
+      return new Map((data ?? []).flatMap((rij) => rij.gerecht_id ? [[rij.gerecht_id, rij] as const] : []));
+    },
+  });
+}
 
 export function useGerechten(categorie: string, toonGearchiveerd = false) {
   return useQuery({

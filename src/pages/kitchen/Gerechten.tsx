@@ -7,7 +7,8 @@ import { Plus, Search, AlertTriangle, Pencil, Archive, ArchiveRestore, Cookie, L
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { cn } from '@/lib/utils';
 import { useRole } from '@/hooks/useRole';
-import { useArchiveerGerecht, useGerechten, type Gerecht } from '@/hooks/useGerechten';
+import { useArchiveerGerecht, useGerechten, useGerechtAllergenen, type Gerecht } from '@/hooks/useGerechten';
+import { GerechtKaartCodes, GerechtReceptAllergenen } from '@/components/kitchen/GerechtKaartInfo';
 import { GerechtDialog } from '@/components/kitchen/GerechtDialog';
 import { AllergeenFilter } from '@/components/kitchen/AllergeenFilter';
 import {
@@ -16,6 +17,8 @@ import {
   GERECHT_LABEL_NAAM,
   GERECHT_LABEL_SOORT,
   isGerechtLabel,
+  voldoetAanGerechtFilter,
+  gerechtPrijzen,
   type GerechtLabel,
 } from '@/lib/gerecht-labels';
 
@@ -63,12 +66,14 @@ export default function Gerechten() {
   const [categorie, setCategorie] = useState<string>(GERECHT_CATEGORIEEN[0]);
   const [search, setSearch] = useState('');
   const [toonGearchiveerd, setToonGearchiveerd] = useState(false);
+  const [alleenOpKaart, setAlleenOpKaart] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bewerken, setBewerken] = useState<Gerecht | null>(null);
   const [zonder, setZonder] = useState<GerechtLabel[]>([]);
   const [alleenVegan, setAlleenVegan] = useState(false);
 
-  const { data: gerechten = [], isLoading } = useGerechten(categorie, toonGearchiveerd);
+  const { data: gerechten = [], isLoading, isError, refetch } = useGerechten(categorie, toonGearchiveerd);
+  const receptQuery = useGerechtAllergenen(categorie);
   const archiveer = useArchiveerGerecht();
 
   const filterActief = zonder.length > 0 || alleenVegan;
@@ -76,6 +81,7 @@ export default function Gerechten() {
   const gefilterd = useMemo(() => {
     const q = search.trim().toLowerCase();
     return gerechten.filter((g) => {
+      if (alleenOpKaart && !g.op_kaart) return false;
       const labels = (g.labels ?? []).filter(isGerechtLabel);
       if (q) {
         const match =
@@ -83,11 +89,9 @@ export default function Gerechten() {
           labels.some((l) => GERECHT_LABEL_NAAM[l].toLowerCase().includes(q));
         if (!match) return false;
       }
-      if (alleenVegan && !labels.includes('vegan')) return false;
-      if (zonder.some((code) => labels.includes(code))) return false;
-      return true;
+      return voldoetAanGerechtFilter({ labels, gecontroleerd: g.gecontroleerd }, zonder, alleenVegan);
     });
-  }, [gerechten, search, zonder, alleenVegan]);
+  }, [gerechten, search, zonder, alleenVegan, alleenOpKaart]);
 
   const veilig = useMemo(
     () => (filterActief ? gefilterd.filter((g) => g.gecontroleerd) : gefilterd),
@@ -129,6 +133,7 @@ export default function Gerechten() {
 
   const renderRij = (g: Gerecht, i: number) => {
     const isVegan = (g.labels ?? []).includes('vegan');
+    const prijzen = gerechtPrijzen(g.prijs, g.prijs_varianten);
     return (
       <div
         key={g.id}
@@ -156,13 +161,18 @@ export default function Gerechten() {
               </span>
             )}
           </p>
-          <p className="text-xs text-muted-foreground">
-            {g.prijs != null ? `€ ${g.prijs.toFixed(2).replace('.', ',')}` : ''}
-            {g.notitie ? `${g.prijs != null ? ' · ' : ''}${g.notitie}` : ''}
+          {g.kaart_omschrijving && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{g.kaart_omschrijving}</p>}
+          {(g.kaart_codes?.length ?? 0) > 0 && <GerechtKaartCodes codes={g.kaart_codes ?? []} />}
+          <p className="text-xs text-muted-foreground tabular-nums">
+            {prijzen.bedragen ? `€ ${prijzen.bedragen}` : ''}
+            {g.notitie ? `${prijzen.bedragen ? ' · ' : ''}${g.notitie}` : ''}
           </p>
+          {prijzen.namen && <p className="text-xs text-muted-foreground">{prijzen.namen}</p>}
         </div>
         <div className="min-w-0 px-4 sm:border-r border-border/50 py-1 sm:py-0">
-          <InhoudChips gerecht={g} />
+          {(g.labels ?? []).length > 0 ? <InhoudChips gerecht={g} /> : (
+            <GerechtReceptAllergenen gerecht={g} recept={receptQuery.data?.get(g.id)} laden={receptQuery.isLoading} fout={receptQuery.isError} />
+          )}
         </div>
         {isManager && (
           <div className="flex items-center gap-1 shrink-0 justify-end px-4 py-1 sm:py-0">
@@ -233,8 +243,10 @@ export default function Gerechten() {
 
           <div className="flex flex-wrap items-center gap-2 mt-4">
             {GERECHT_CATEGORIEEN.map((c) => (
-              <button
+              <Button
                 key={c}
+                variant="ghost"
+                aria-pressed={categorie === c}
                 onClick={() => setCategorie(c)}
                 className={cn(
                   'px-4 rounded-full text-sm font-medium transition-colors min-h-[44px]',
@@ -242,10 +254,12 @@ export default function Gerechten() {
                 )}
               >
                 {c}
-              </button>
+              </Button>
             ))}
             {isManager && (
-              <button
+              <Button
+                variant="ghost"
+                aria-pressed={toonGearchiveerd}
                 onClick={() => setToonGearchiveerd((v) => !v)}
                 className={cn(
                   'ml-auto px-4 rounded-full text-sm font-medium transition-colors min-h-[44px]',
@@ -253,8 +267,14 @@ export default function Gerechten() {
                 )}
               >
                 {toonGearchiveerd ? 'Verberg gearchiveerde' : 'Toon gearchiveerde'}
-              </button>
+              </Button>
             )}
+            <Button
+              variant="ghost"
+              aria-pressed={alleenOpKaart}
+              onClick={() => setAlleenOpKaart((v) => !v)}
+              className={cn('min-h-11 rounded-full px-4 text-sm', alleenOpKaart ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground' : 'text-muted-foreground')}
+            >Alleen op de kaart</Button>
           </div>
 
           <AllergeenFilter
@@ -277,7 +297,17 @@ export default function Gerechten() {
           </div>
         )}
 
-        {isLoading ? (
+        {receptQuery.isError && <div className="flex flex-wrap items-center gap-3 text-sm text-warning" role="alert">
+          Receptallergenen konden niet worden geladen.
+          <Button variant="outline" className="min-h-11" onClick={() => receptQuery.refetch()}>Opnieuw proberen</Button>
+        </div>}
+
+        {isError ? (
+          <div className="flex flex-wrap items-center gap-3 text-sm text-warning" role="alert">
+            Gerechten konden niet worden geladen.
+            <Button variant="outline" className="min-h-11" onClick={() => refetch()}>Opnieuw proberen</Button>
+          </div>
+        ) : isLoading ? (
           <div className="text-center py-12 text-muted-foreground">Laden…</div>
         ) : veilig.length === 0 && onzeker.length === 0 ? (
           <EmptyState
