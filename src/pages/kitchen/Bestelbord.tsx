@@ -22,6 +22,7 @@ import {
 } from '@/hooks/useBestelbord';
 import { BestelLeverancierLabel } from '@/components/kitchen/BestelLeverancierLabel';
 import { Voorraadproef } from '@/components/kitchen/Voorraadproef';
+import { useVoorraadproef } from '@/hooks/useVoorraadproef';
 import { PrijsPijl } from '@/components/kitchen/PrijsPijl';
 import { usePrijsSignalen } from '@/hooks/usePrijsSignalen';
 import { useRole } from '@/hooks/useRole';
@@ -241,28 +242,28 @@ function Rij({
 }) {
   const besteld = signaal.status === 'besteld';
   return (
-    <div className="flex items-center gap-2 px-2 py-1.5 min-h-[56px]">
+    <div className="flex min-h-12 items-center gap-1 px-1 py-0.5">
       <button
         type="button"
         onClick={() => onBesteld(!besteld)}
         aria-label={besteld ? 'Terug naar open' : 'Besteld'}
         className="flex h-11 w-11 shrink-0 items-center justify-center"
       >
-        <span className={cn('flex h-7 w-7 items-center justify-center rounded-full border-2 transition-colors',
+        <span className={cn('flex h-6 w-6 items-center justify-center rounded-full border-2 transition-colors',
           besteld ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/40')}>
           {besteld && <Check className="h-4 w-4" />}
         </span>
       </button>
       <button type="button" disabled={!onBewerk} onClick={onBewerk} className="min-w-0 flex-1 text-left" style={{ minHeight: 44 }}>
-        <span className={cn('block', besteld ? 'text-[15px] text-muted-foreground line-through' : 'text-[16px] font-medium')}>
+        <span className={cn('block truncate', besteld ? 'text-[15px] text-muted-foreground line-through' : 'text-[15px] font-medium')}>
           {signaal.naam}
         </span>
         <BestelLeverancierLabel signaalId={signaal.id} vestiging={signaal.vestiging} />
-        <div className="mt-0.5 flex items-center gap-2 text-[13px] text-muted-foreground">
-          <span>
+        <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+          <span className="tabular-nums">
             {Number(signaal.aantal)} {signaal.eenheid} · {datumLabel(signaal.created_at)}
           </span>
-          {signaal.bron === 'sluitlijst' && <Badge variant="secondary" className="font-normal">Sluitlijst</Badge>}
+          {signaal.bron === 'sluitlijst' && <Badge variant="outline" className="font-normal">sluitlijst</Badge>}
         </div>
       </button>
       <div className="shrink-0 text-right" title={prijs ? prijsTip(prijs.vorm) : undefined}>
@@ -270,7 +271,6 @@ function Rij({
           {prijs && <PrijsPijl signaal={prijsSignaal ?? null} eenheid={signaal.eenheid} />}
           {prijs ? euro(prijs.totaal) : '–'}
         </span>
-        {prijs && <span className="block text-[11px] text-muted-foreground">{prijsTip(prijs.vorm)}</span>}
       </div>
       {onVervallen && (
         <Button variant="ghost" className="h-11 w-11 p-0 text-muted-foreground" onClick={onVervallen} aria-label="Toch niet nodig">
