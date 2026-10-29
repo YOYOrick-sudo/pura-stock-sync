@@ -4,3 +4,4 @@ Bestelbot additions use canonical articles and location-scoped supplier/alias ma
 Bot-only database RPCs revoke client execution and use service-role authentication, because transactional automation must not expose privileged writes to the browser.
 The supplier label is an additive display lookup separate from existing board mutations, because manual ordering behavior and historical rows must remain unchanged.
 The inventory trial uses dedicated count tables and location-checked source-reading functions; only its atomic advice wrapper invokes existing advice replacement, because counts and learning must never modify task or ordering flows.
+Dish menu allergens are read once per category from the precomputed view and never participate in safe filtering; optional menu fields keep existing dialog mutations unchanged, because unverified recipe data must not become an allergy guarantee.
