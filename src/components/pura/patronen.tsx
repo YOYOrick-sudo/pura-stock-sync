@@ -32,7 +32,7 @@ export function GroepRij({ naam, aantal, totaal, kolommen, gedimd = false, actie
 /** Kengetal: icoon + label klein, groot getal eronder. Meerdere naast elkaar in één kaart. */
 export function Kengetal({ icoon: Icoon, label, waarde, toon = 'neutraal' }: { icoon: LucideIcon; label: string; waarde: ReactNode; toon?: 'neutraal' | 'let-op' }) {
   return <div className="min-w-0 space-y-1">
-    <div className="flex items-center gap-1 text-xs text-muted-foreground"><Icoon className={cn('h-4 w-4 shrink-0', toon === 'let-op' && 'text-warning')} /><span className="truncate">{label}</span></div>
+    <div className="flex items-center gap-1 text-xs text-muted-foreground"><Icoon className={cn('h-4 w-4 shrink-0', toon === 'let-op' && 'text-warning')} /><span className="leading-tight">{label}</span></div>
     <div className="text-xl font-semibold tabular-nums text-foreground">{waarde}</div>
   </div>;
 }
