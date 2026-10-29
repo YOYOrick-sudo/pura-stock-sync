@@ -6116,6 +6116,36 @@ export type Database = {
         }
         Relationships: []
       }
+      vestiging_google_dag: {
+        Row: {
+          bron: string
+          datum: string
+          is_open: boolean
+          opgehaald_op: string
+          place_id: string | null
+          tijden: string | null
+          vestiging: string
+        }
+        Insert: {
+          bron?: string
+          datum: string
+          is_open: boolean
+          opgehaald_op?: string
+          place_id?: string | null
+          tijden?: string | null
+          vestiging: string
+        }
+        Update: {
+          bron?: string
+          datum?: string
+          is_open?: boolean
+          opgehaald_op?: string
+          place_id?: string | null
+          tijden?: string | null
+          vestiging?: string
+        }
+        Relationships: []
+      }
       vestiging_instellingen: {
         Row: {
           drukte_modus: string
@@ -7240,6 +7270,21 @@ export type Database = {
         }
         Relationships: []
       }
+      v_vestiging_open_14d: {
+        Row: {
+          bron: string | null
+          datum: string | null
+          google_open: boolean | null
+          google_tijden: string | null
+          open_advies: boolean | null
+          open_app: boolean | null
+          opgehaald_op: string | null
+          verschil_met_app: boolean | null
+          vestiging: string | null
+          weekdag: number | null
+        }
+        Relationships: []
+      }
       v_voorraad_bewegingen: {
         Row: {
           bron_ref: string | null
@@ -7791,6 +7836,10 @@ export type Database = {
           inhoud: number
           verpakking: string
         }[]
+      }
+      vestiging_open_dag: {
+        Args: { _datum: string; _vestiging: string }
+        Returns: boolean
       }
       voorraad_artikel_groep_bepalen: {
         Args: { p_id: string; p_naam: string; p_tel_eenheid: string }
