@@ -59,6 +59,7 @@ import Bronnen from "./pages/settings/Bronnen";
 import Cijfers from "./pages/Cijfers";
 import LightspeedCallback from "./pages/LightspeedCallback";
 import MtPunt from "./pages/MtPunt";
+import MtActiepunten from "./pages/MtActiepunten";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { supabase } from "@/integrations/supabase/client";
 import { focusManager } from "@tanstack/react-query";
@@ -321,6 +322,7 @@ const App = () => {
             <Route path="/kitchen/mep/beheer" element={<ProtectedRoute><RequireWest><MepBeheer /></RequireWest></ProtectedRoute>} />
             <Route path="/kitchen/bestelbord" element={<ProtectedRoute><Bestelbord /></ProtectedRoute>} />
             <Route path="/mt-punt" element={<ProtectedRoute><RequireMtLid><MtPunt /></RequireMtLid></ProtectedRoute>} />
+            <Route path="/mt-actiepunten" element={<ProtectedRoute><RequireMtLid><MtActiepunten /></RequireMtLid></ProtectedRoute>} />
             <Route path="/settings/mep" element={<ProtectedRoute><MepInstellingen /></ProtectedRoute>} />
             <Route path="/settings/keten" element={<ProtectedRoute><RequireManager><KetenBeheer /></RequireManager></ProtectedRoute>} />
             <Route path="/settings/koelwerkbank" element={<ProtectedRoute><RequireManager><KoelwerkbankIndeling /></RequireManager></ProtectedRoute>} />
