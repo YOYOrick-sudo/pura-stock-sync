@@ -499,7 +499,7 @@ export default function Bestelbord() {
   const groepeer = (regels: BestelSignaal[]) => {
     const m = new Map<string, BestelSignaal[]>();
     for (const s of regels) {
-      const lev = (s.leverancier_id && leveranciers?.get(s.leverancier_id)) || 'Onbekende leverancier';
+      const lev = (s.leverancier_id && leveranciers?.get(s.leverancier_id)) || ONBEKEND;
       const key = `${lev}|${s.bestelreferentie ?? ''}`;
       if (!m.has(key)) m.set(key, []);
       m.get(key)!.push(s);
@@ -688,7 +688,7 @@ export default function Bestelbord() {
     const tel = (lijst: BestelSignaal[], k: 'open' | 'onderweg' | 'geleverd') => {
       for (const s of lijst) {
         const id = s.leverancier_id ?? '';
-        const titel = (s.leverancier_id && leveranciers?.get(s.leverancier_id)) || 'Onbekende leverancier';
+        const titel = (s.leverancier_id && leveranciers?.get(s.leverancier_id)) || ONBEKEND;
         if (!m.has(id)) m.set(id, { titel, open: nieuw(), onderweg: nieuw(), geleverd: nieuw(), opvallend: [] });
         const b = m.get(id)![k];
         b.regels++;
@@ -706,7 +706,7 @@ export default function Bestelbord() {
     tel(besteld, 'onderweg');
     tel(geleverd, 'geleverd');
     return [...m.values()].sort((a, b) =>
-      a.titel === 'Onbekende leverancier' ? 1 : b.titel === 'Onbekende leverancier' ? -1 : a.titel.localeCompare(b.titel),
+      a.titel === ONBEKEND ? 1 : b.titel === ONBEKEND ? -1 : a.titel.localeCompare(b.titel),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, besteld, geleverd, leveranciers, vormen, prijsSignalen, isOwner]);
@@ -966,19 +966,19 @@ export default function Bestelbord() {
                   {teChecken.length > 0 && (
                     <div className="space-y-2">
                       {kop('Vandaag te checken', teChecken.length)}
-                      <Card className=\"overflow-hidden\">{groepeer(teChecken).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}</Card>
+                      <Card className="overflow-hidden">{groepeer(teChecken).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}</Card>
                     </div>
                   )}
                   {onderweg.length > 0 && (
                     <div className="space-y-2">
                       {kop('Onderweg', onderweg.length)}
-                      <Card className=\"overflow-hidden\">{groepeer(onderweg).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}</Card>
+                      <Card className="overflow-hidden">{groepeer(onderweg).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}</Card>
                     </div>
                   )}
                   {zonderDatum.length > 0 && (
                     <div className="space-y-2">
                       {kop('Zonder datum', zonderDatum.length)}
-                      <Card className=\"overflow-hidden\">{groepeer(zonderDatum).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}</Card>
+                      <Card className="overflow-hidden">{groepeer(zonderDatum).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}</Card>
                     </div>
                   )}
                 </>
