@@ -18,6 +18,6 @@ describe('mt', () => {
     expect(isVerlopen(null, '2026-10-29')).toBe(false);
   });
   it('MT-only accounts mogen alleen de twee MT-pagina\'s', () => {
-    expect(MT_ROUTES).toEqual(['/mt-punt', '/mt-actiepunten']);
+    expect(MT_ROUTES).toEqual(['/mt-punt']);
   });
 });
