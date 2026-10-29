@@ -4,7 +4,7 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const ANON = Deno.env.get('SUPABASE_ANON_KEY')!;
-const FALLBACK_ORIGIN = 'https://intern.puravidafoodbar.nl';
+const INVITE_REDIRECT = 'https://intern.puravidafoodbar.nl/auth/set-password?next=/mt-punt';
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -20,17 +20,6 @@ async function alleUsers(admin: ReturnType<typeof createClient>): Promise<AuthUs
     if (data.users.length < 200) break;
   }
   return out;
-}
-
-function veiligeOrigin(input: unknown): string {
-  if (typeof input !== 'string') return FALLBACK_ORIGIN;
-  try {
-    const u = new URL(input);
-    if (u.protocol !== 'https:' && u.hostname !== 'localhost') return FALLBACK_ORIGIN;
-    return u.origin;
-  } catch {
-    return FALLBACK_ORIGIN;
-  }
 }
 
 Deno.serve(async (req) => {
@@ -95,10 +84,9 @@ Deno.serve(async (req) => {
     const bestaand = users.find((u) => u.email?.toLowerCase() === email);
     if (bestaand?.email_confirmed_at) return json({ error: 'heeft_al_account' }, 409);
 
-    const origin = veiligeOrigin(body?.redirect_to);
     const { error: inviteErr } = await admin.auth.admin.inviteUserByEmail(email, {
       data: { first_name: lid.naam ?? undefined },
-      redirectTo: `${origin}/auth/set-password?next=/mt-punt`,
+      redirectTo: INVITE_REDIRECT,
     });
     if (inviteErr) return json({ error: inviteErr.message }, 400);
 
