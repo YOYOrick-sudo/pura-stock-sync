@@ -6810,6 +6810,10 @@ export type Database = {
         Args: { p_stand: number; p_totaal: number }
         Returns: boolean
       }
+      voorraad_kassa_dekking: {
+        Args: { p_ids: Json; p_tot: string; p_van: string; p_vestiging: string }
+        Returns: boolean
+      }
       voorraad_stand_berekenen: {
         Args: { p_artikel: string; p_exclusief?: string; p_tot: string }
         Returns: {

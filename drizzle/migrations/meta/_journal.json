@@ -323,6 +323,13 @@
       "when": 1793271239353,
       "tag": "0045_voorraadproef_leercurve",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1793271652950,
+      "tag": "0046_voorraadproef_brondekking",
+      "breakpoints": true
     }
   ]
 }
