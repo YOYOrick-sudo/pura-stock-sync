@@ -452,6 +452,8 @@ export default function Bestelbord() {
 
   const tab = tabKeuze ?? (!isLoading && telOverzicht.geladen && telOverzicht.open > 0 && open.length === 0 ? 'tellen' : 'bord');
   const adviesRegels = advies.data?.regels ?? [];
+  const leveranciersTabel = <LeveranciersOverzicht open={open} onderweg={besteld} leverancier={leverancier} prijsVan={prijsVan} />;
+  const bordProps = { leverancier, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen };
   const positieveAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) > 0);
   const nulAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) <= 0);
   const openPrijzen = open.map(prijsVan).filter((p) => p != null);
