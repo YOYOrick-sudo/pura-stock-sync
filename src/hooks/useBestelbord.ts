@@ -142,5 +142,141 @@ export function useBestelbordMutaties(vestiging: string) {
     onSettled: ververs,
   });
 
-  return { toevoegen, zetBesteld, verwijderen, herstel, wijzig };
+  const markeerGeleverd = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { data: user } = await supabase.auth.getUser();
+      const { error } = await metHerstel(() =>
+        supabase
+          .from('bestel_signalen')
+          .update({
+            status: 'geleverd',
+            geleverd_op: new Date().toISOString(),
+            geleverd_door: user.user?.id ?? null,
+            levering_status: 'geleverd',
+          })
+          .in('id', ids),
+      );
+      if (error) throw error;
+    },
+    onSettled: ververs,
+  });
+
+  /** Niet geleverd: terug naar open zodat de bot hem opnieuw meeneemt; opmerking blijft zichtbaar. */
+  const nietGeleverd = useMutation({
+    mutationFn: async ({ id, opmerking }: { id: string; opmerking: string }) => {
+      const { error } = await metHerstel(() =>
+        supabase
+          .from('bestel_signalen')
+          .update({ status: 'open', verwachte_levering: null, levering_status: 'niet_geleverd', levering_opmerking: opmerking })
+          .eq('id', id),
+      );
+      if (error) throw error;
+    },
+    onSettled: ververs,
+  });
+
+  /** Deels geleverd: origineel wordt geleverd, restant komt als nieuwe open regel terug op het bord. */
+  const deelsGeleverd = useMutation({
+    mutationFn: async ({ signaal, ontvangen, opmerking }: { signaal: BestelSignaal; ontvangen: number; opmerking: string }) => {
+      const { data: user } = await supabase.auth.getUser();
+      const restant = Number(signaal.aantal) - ontvangen;
+      const { error: e1 } = await metHerstel(() =>
+        supabase
+          .from('bestel_signalen')
+          .update({
+            status: 'geleverd',
+            geleverd_op: new Date().toISOString(),
+            geleverd_door: user.user?.id ?? null,
+            levering_status: 'deels',
+            levering_opmerking: `${ontvangen} ${signaal.eenheid} binnen${opmerking ? ` — ${opmerking}` : ''}`,
+          })
+          .eq('id', signaal.id),
+      );
+      if (e1) throw e1;
+      const { error: e2 } = await metHerstel(() =>
+        supabase.from('bestel_signalen').insert({
+          vestiging: signaal.vestiging,
+          naam: signaal.naam,
+          aantal: restant,
+          eenheid: signaal.eenheid,
+          bron: 'restant',
+          restant_van: signaal.id,
+          leverancier_id: signaal.leverancier_id,
+          artikel_id: signaal.artikel_id,
+          levering_opmerking: opmerking || null,
+          gemeld_door: user.user?.id ?? null,
+        }),
+      );
+      if (e2) throw e2;
+    },
+    onSettled: ververs,
+  });
+
+  /** Per ongeluk afgevinkt: terug naar onderweg. */
+  const terugNaarBesteld = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await metHerstel(() =>
+        supabase
+          .from('bestel_signalen')
+          .update({ status: 'besteld', geleverd_op: null, geleverd_door: null, levering_status: null, levering_opmerking: null })
+          .eq('id', id),
+      );
+      if (error) throw error;
+    },
+    onSettled: ververs,
+  });
+
+  /** Verwachte leverdatum handmatig aanpassen. */
+  const zetVerwachteLevering = useMutation({
+    mutationFn: async ({ id, datum }: { id: string; datum: string }) => {
+      const { error } = await metHerstel(() =>
+        supabase.from('bestel_signalen').update({ verwachte_levering: datum }).eq('id', id),
+      );
+      if (error) throw error;
+    },
+    onSettled: ververs,
+  });
+
+  return { toevoegen, zetBesteld, verwijderen, herstel, wijzig, markeerGeleverd, nietGeleverd, deelsGeleverd, terugNaarBesteld, zetVerwachteLevering };
+}
+
+/** Leveranciers (id -> naam) voor groepering in het Onderweg-overzicht. */
+export function useLeveranciers() {
+  return useQuery({
+    queryKey: ['leveranciers-namen'],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase.from('leveranciers').select('id, naam').is('deleted_at', null);
+      if (error) throw error;
+      return new Map((data ?? []).map((l) => [l.id as string, l.naam as string]));
+    },
+  });
+}
+
+/** Openingsdagen van een vestiging (voor "te laat" zonder dichte dagen te tellen). */
+export function useVestigingOpenDagen(vestiging: string | null | undefined) {
+  const query = useQuery({
+    queryKey: ['vestiging-opendagen', vestiging],
+    enabled: !!vestiging,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const [{ data: dagen, error: e1 }, { data: datums, error: e2 }] = await Promise.all([
+        supabase.from('vestiging_opendagen').select('weekdag, is_open').eq('vestiging', vestiging!),
+        supabase.from('vestiging_sluitdatums').select('datum, is_open_uitzondering').eq('vestiging', vestiging!),
+      ]);
+      if (e1) throw e1;
+      if (e2) throw e2;
+      return { dagen: dagen ?? [], datums: datums ?? [] };
+    },
+  });
+  const isOpen = (d: Date) => {
+    const data = query.data;
+    if (!data) return true;
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const uitzondering = data.datums.find((x) => x.datum === key);
+    if (uitzondering) return uitzondering.is_open_uitzondering;
+    const dag = data.dagen.find((x) => x.weekdag === d.getDay());
+    return dag ? dag.is_open : true;
+  };
+  return { isOpen, geladen: !!query.data };
 }
