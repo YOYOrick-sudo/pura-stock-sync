@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] 9. Alleen preview: reeds uitgevoerde deadline-SQL exact registreren en muted leveranciersdeadlinebadge in Bord/Advies/Onderweg; wacht op akkoord op het plan. Geen publicatie, database-uitvoering of rollenplan.
+- [ ] 9. Alleen preview: reeds uitgevoerde deadline-SQL exact registreren en muted leveranciersdeadlinebadge in Bord/Advies/Onderweg; plan goedgekeurd, in uitvoering. Geen publicatie, database-uitvoering of rollenplan.
 
 - [x] Voorraadproef gebouwd met momentafhankelijke daggrens; seed6/6/127, testdata0, taken count/md5 gelijk; controles en niet volledig uitgevoerde UI-regressiepaden in docs/voorraadproef-testresultaten.md; niet gepubliceerd.
 
