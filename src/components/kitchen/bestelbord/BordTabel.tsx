@@ -21,7 +21,7 @@ export function BordTabel({ regels, leverancier, prijsVan, prijsSignaal, prijsTi
   return <CompacteTabel vinkKop={geleverd ? undefined : 'Besteld'} kinderen={<TableBody>{perLeverancier(regels, leverancier).map(([lev, rs]) => {
     const prijzen = rs.map(prijsVan).filter((p) => p != null);
     return <Fragment key={lev}>
-      <GroepRij kolommen={5} naam={lev} totaal={<span className="flex gap-2"><span className="font-normal text-muted-foreground">{rs.length} {rs.length === 1 ? 'product' : 'producten'}</span>{!!prijzen.length && <span>{euro(prijzen.reduce((n, p) => n + p.totaal, 0))}</span>}</span>} gedimd={lev === 'Leverancier onbekend'} />
+      <GroepRij kolommen={5} naam={lev} aantal={rs.length} totaal={prijzen.length ? euro(prijzen.reduce((n, p) => n + p.totaal, 0)) : undefined} gedimd={lev === 'Leverancier onbekend'} />
       {rs.map((s) => {
         const prijs = prijsVan(s);
         const info = geleverd ? detail?.(s) : '';
