@@ -174,7 +174,7 @@ export default function RecipeDetail() {
                         </button>
                       </div>
                       <Button
-                        className="w-full"
+                        className={isMobile ? 'w-full h-11' : 'w-full'}
                         size="sm"
                         onClick={() => {
                           createPrintJob.mutate({
