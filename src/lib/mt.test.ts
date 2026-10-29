@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+// @ts-ignore bun test runner
+import { describe, it, expect } from 'bun:test';
 import { mtStatusLabel, sorteerOpDeadline, isVerlopen, MT_ROUTES } from './mt';
 
 describe('mt', () => {
