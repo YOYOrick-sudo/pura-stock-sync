@@ -26,6 +26,9 @@ import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { segmentTabsKlasse } from '@/components/pura/patronen';
+import { RijMenu } from '@/components/pura/lijst';
 import { EmptyState } from '@/components/kitchen/EmptyState';
 import { MepTaakToevoegen } from '@/components/kitchen/MepTaakToevoegen';
 import { MepAfrondDialog } from '@/components/kitchen/MepAfrondDialog';
@@ -312,9 +315,24 @@ export default function MepDag() {
       toast.error('Toewijzen mislukt: ' + (e?.message ?? 'onbekende fout'));
     }
   };
+  const isMobile = useIsMobile();
   const nietToegewezen = alleTaken.filter(
     (t) => t.status !== 'afgerond' && (!t.toegewezen_aan || !medewerkers.some((m) => m.id === t.toegewezen_aan)),
   ).length;
+
+  const weergaveTabs = (
+        <Tabs
+          value={weergave}
+          onValueChange={(v) => setWeergave(v as 'alles' | 'persoon' | 'handeling')}
+        >
+          <TabsList className={isMobile ? cn(segmentTabsKlasse, 'w-max min-w-full flex-nowrap [&>button]:flex-none [&>button]:whitespace-nowrap') : undefined}>
+            <TabsTrigger value="alles">Alle taken</TabsTrigger>
+            <TabsTrigger value="persoon">Per persoon</TabsTrigger>
+
+            <TabsTrigger value="handeling">Per handeling</TabsTrigger>
+          </TabsList>
+        </Tabs>
+  );
 
   return (
     <SidebarLayout>
@@ -385,20 +403,10 @@ export default function MepDag() {
           medewerkers={medewerkers}
           onToevoegen={(input) => toevoegen.mutateAsync(input)}
           onBijwerken={(taakId, patch) => bijwerken.mutateAsync({ id: taakId, ...patch })}
-          rechts={
-        <Tabs
-          value={weergave}
-          onValueChange={(v) => setWeergave(v as 'alles' | 'persoon' | 'handeling')}
-        >
-          <TabsList>
-            <TabsTrigger value="alles">Alle taken</TabsTrigger>
-            <TabsTrigger value="persoon">Per persoon</TabsTrigger>
-
-            <TabsTrigger value="handeling">Per handeling</TabsTrigger>
-          </TabsList>
-        </Tabs>
-          }
+          rechts={isMobile ? undefined : weergaveTabs}
         />
+        {/* Telefoon: weergave-tabs op één veegbare regel onder het invoerveld. */}
+        {isMobile && <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none]">{weergaveTabs}</div>}
 
 
         {isLoading ? (
@@ -638,6 +646,7 @@ function TaakRij({
   const dagenTeLaat = isOvertijd
     ? differenceInCalendarDays(parseISO(datum), parseISO(t.taak_datum))
     : 0;
+  const isMobile = useIsMobile();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: t.id,
     disabled: !sleepbaar,
@@ -652,7 +661,7 @@ function TaakRij({
           : undefined
       }
       className={cn(
-        'flex items-stretch gap-3 px-4 sm:px-5 py-3 min-h-[64px]',
+        isMobile ? 'flex items-stretch gap-2 px-3 py-2 min-h-[64px]' : 'flex items-stretch gap-3 px-4 sm:px-5 py-3 min-h-[64px]',
         'bg-card',
         isOvertijd && 'bg-destructive/5',
         isKlaar && 'opacity-60',
@@ -757,7 +766,15 @@ function TaakRij({
         </Button>
       ) : (
         <>
-          {isOvertijd && (
+          {isMobile ? (
+            <div className="flex shrink-0 items-center">
+              <RijMenu naam={t.titel} acties={[
+                ...(isOvertijd ? [{ label: doorschuifLabel.charAt(0).toUpperCase() + doorschuifLabel.slice(1), onClick: () => onNaarVandaag(t) }] : []),
+                { label: 'Verwijderen', onClick: () => onVerwijder(t), gevaar: true },
+              ]} />
+            </div>
+          ) : null}
+          {!isMobile && isOvertijd && (
             <Button
               size="sm"
               variant="outline"
@@ -773,7 +790,7 @@ function TaakRij({
             medewerkers={medewerkers}
             onKies={(id) => onToewijzen(t, id)}
           />
-          <Button
+          {!isMobile && <Button
             size="icon"
             variant="ghost"
             className="h-11 w-11 text-muted-foreground/60 hover:text-destructive"
@@ -781,7 +798,7 @@ function TaakRij({
             aria-label="Verwijderen"
           >
             <Trash2 className="w-4 h-4" />
-          </Button>
+          </Button>}
           <Button className="h-11 min-w-[44px]" onClick={() => onAfrond(t)}>
             <Check className="w-5 h-5" />
           </Button>
