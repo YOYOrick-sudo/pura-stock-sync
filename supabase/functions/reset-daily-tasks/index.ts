@@ -149,7 +149,7 @@ Deno.serve(async (req) => {
       if (tasksToInsert.length > 0) {
         const { error: insertError, count } = await supabase
           .from('foh_tasks')
-          .insert(tasksToInsert);
+          .insert(tasksToInsert, { count: 'exact' });
 
         // 23505 = taak bestond al (unieke index): gelijktijdige aanmaak, geen fout.
         if (insertError && insertError.code !== '23505') {
