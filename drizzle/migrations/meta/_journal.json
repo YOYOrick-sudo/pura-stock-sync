@@ -246,6 +246,20 @@
       "when": 1793259897084,
       "tag": "0034_besteld_levering",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1793260471293,
+      "tag": "0035_fix_rpc_zoek_artikel_alias_leverancier",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1793260484722,
+      "tag": "0036_fix_rpc_zoek_artikel_alias_leverancier_2",
+      "breakpoints": true
     }
   ]
 }
