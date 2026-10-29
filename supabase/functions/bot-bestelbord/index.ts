@@ -57,6 +57,21 @@ Deno.serve(async (req) => {
 
   if (!geldigToken) return fout(401, "Unauthorized");
   if (!toegestaan) return fout(http_status, http_status === 503 ? "Bot staat uit" : "Te veel aanroepen");
+  // Prijzen gelden per rij (vestiging leeg = beide); de andere acties vragen één vestiging.
+  if (actie === "prijzen" && req.method === "POST") {
+    const rijen = body.rijen;
+    if (!Array.isArray(rijen) || rijen.length < 1 || rijen.length > 1000 || !rijen.every((r) => r && typeof r === "object" && !Array.isArray(r))) {
+      return fout(400, "rijen: 1-1000 objecten");
+    }
+    try {
+      const { data, error } = await db.rpc("bestelbot_prijzen_opslaan", { p_rijen: rijen });
+      if (error) return fout(400, error.message);
+      await sluit(true, { http_status: 200, resultaat: data });
+      return json(200, data);
+    } catch (_e) {
+      return fout(500, "Onverwachte fout");
+    }
+  }
   if (!vestiging || !VESTIGINGEN.has(vestiging)) return fout(400, "vestiging moet West of Midsland zijn");
 
   try {

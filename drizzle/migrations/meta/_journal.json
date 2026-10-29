@@ -365,6 +365,41 @@
       "when": 1793273800301,
       "tag": "0051_voorraad_telvragen_volume_aantal",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1793276187233,
+      "tag": "0052_opslag_groepen",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1793276251201,
+      "tag": "0053_leercurve_opslag_groep",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1793276327122,
+      "tag": "0054_prijzen_basis",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1793276428859,
+      "tag": "0055_leverancierskeuze_basis",
+      "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1793276564949,
+      "tag": "0056_prijs_signaal_verpakking_sleutel",
+      "breakpoints": true
     }
   ]
 }

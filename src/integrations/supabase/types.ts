@@ -2268,8 +2268,12 @@ export type Database = {
           bevat_mogelijk: Database["public"]["Enums"]["allergen"][]
           bevat_niet: Database["public"]["Enums"]["allergen"][]
           bron: string
+          export_bestand: string | null
           export_datum: string | null
+          extra_allergenen: Json | null
+          gedeeltelijke_export: boolean
           geladen_op: string
+          horeko_letop_onvolledig: boolean | null
           onbekend: Database["public"]["Enums"]["allergen"][]
           recept_key: string
         }
@@ -2278,8 +2282,12 @@ export type Database = {
           bevat_mogelijk?: Database["public"]["Enums"]["allergen"][]
           bevat_niet?: Database["public"]["Enums"]["allergen"][]
           bron?: string
+          export_bestand?: string | null
           export_datum?: string | null
+          extra_allergenen?: Json | null
+          gedeeltelijke_export?: boolean
           geladen_op?: string
+          horeko_letop_onvolledig?: boolean | null
           onbekend?: Database["public"]["Enums"]["allergen"][]
           recept_key: string
         }
@@ -2288,8 +2296,12 @@ export type Database = {
           bevat_mogelijk?: Database["public"]["Enums"]["allergen"][]
           bevat_niet?: Database["public"]["Enums"]["allergen"][]
           bron?: string
+          export_bestand?: string | null
           export_datum?: string | null
+          extra_allergenen?: Json | null
+          gedeeltelijke_export?: boolean
           geladen_op?: string
+          horeko_letop_onvolledig?: boolean | null
           onbekend?: Database["public"]["Enums"]["allergen"][]
           recept_key?: string
         }
@@ -3434,6 +3446,105 @@ export type Database = {
           },
         ]
       }
+      leverancier_keuze_regel: {
+        Row: {
+          artikel_id: string | null
+          categorie: string | null
+          goedgekeurd_door: string | null
+          goedgekeurd_op: string | null
+          id: string
+          leverancier_id: string | null
+          reden: string
+          soort: string
+        }
+        Insert: {
+          artikel_id?: string | null
+          categorie?: string | null
+          goedgekeurd_door?: string | null
+          goedgekeurd_op?: string | null
+          id?: string
+          leverancier_id?: string | null
+          reden: string
+          soort: string
+        }
+        Update: {
+          artikel_id?: string | null
+          categorie?: string | null
+          goedgekeurd_door?: string | null
+          goedgekeurd_op?: string | null
+          id?: string
+          leverancier_id?: string | null
+          reden?: string
+          soort?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leverancier_keuze_regel_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leverancier_keuze_regel_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leverancier_keuze_regel_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leverancier_levering: {
+        Row: {
+          bezorgkosten: number | null
+          bron: string | null
+          gratis_vanaf: number | null
+          leverancier_id: string
+          leverdagen: number[] | null
+          levert: boolean
+          minimumorder: number | null
+          notitie: string | null
+          vestiging: string
+        }
+        Insert: {
+          bezorgkosten?: number | null
+          bron?: string | null
+          gratis_vanaf?: number | null
+          leverancier_id: string
+          leverdagen?: number[] | null
+          levert?: boolean
+          minimumorder?: number | null
+          notitie?: string | null
+          vestiging: string
+        }
+        Update: {
+          bezorgkosten?: number | null
+          bron?: string | null
+          gratis_vanaf?: number | null
+          leverancier_id?: string
+          leverdagen?: number[] | null
+          levert?: boolean
+          minimumorder?: number | null
+          notitie?: string | null
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leverancier_levering_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leverancier_vestiging_config: {
         Row: {
           actief: boolean
@@ -4535,6 +4646,88 @@ export type Database = {
             columns: ["location_id"]
             isOneToOne: false
             referencedRelation: "personeel_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prijs_waarneming: {
+        Row: {
+          artikel_id: string | null
+          artikelnummer: string | null
+          basis_eenheid: string | null
+          bron: string
+          created_at: string
+          eenheid: string | null
+          geverifieerd: boolean
+          id: string
+          inhoud: number | null
+          leverancier_id: string | null
+          leverancier_naam: string
+          naam: string
+          prijs_excl: number
+          prijs_per_basis: number | null
+          verpakking: string | null
+          vestiging: string | null
+          waargenomen_op: string
+        }
+        Insert: {
+          artikel_id?: string | null
+          artikelnummer?: string | null
+          basis_eenheid?: string | null
+          bron: string
+          created_at?: string
+          eenheid?: string | null
+          geverifieerd?: boolean
+          id?: string
+          inhoud?: number | null
+          leverancier_id?: string | null
+          leverancier_naam: string
+          naam: string
+          prijs_excl: number
+          prijs_per_basis?: number | null
+          verpakking?: string | null
+          vestiging?: string | null
+          waargenomen_op: string
+        }
+        Update: {
+          artikel_id?: string | null
+          artikelnummer?: string | null
+          basis_eenheid?: string | null
+          bron?: string
+          created_at?: string
+          eenheid?: string | null
+          geverifieerd?: boolean
+          id?: string
+          inhoud?: number | null
+          leverancier_id?: string | null
+          leverancier_naam?: string
+          naam?: string
+          prijs_excl?: number
+          prijs_per_basis?: number | null
+          verpakking?: string | null
+          vestiging?: string | null
+          waargenomen_op?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prijs_waarneming_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prijs_waarneming_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prijs_waarneming_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
             referencedColumns: ["id"]
           },
         ]
@@ -5650,6 +5843,36 @@ export type Database = {
         }
         Relationships: []
       }
+      verbruik_opslag_groep: {
+        Row: {
+          besteleenheden: string[] | null
+          bijgewerkt_op: string
+          categorieen: string[]
+          groep: string
+          naam: string
+          notitie: string | null
+          opslag_pct: number
+        }
+        Insert: {
+          besteleenheden?: string[] | null
+          bijgewerkt_op?: string
+          categorieen?: string[]
+          groep: string
+          naam: string
+          notitie?: string | null
+          opslag_pct: number
+        }
+        Update: {
+          besteleenheden?: string[] | null
+          bijgewerkt_op?: string
+          categorieen?: string[]
+          groep?: string
+          naam?: string
+          notitie?: string | null
+          opslag_pct?: number
+        }
+        Relationships: []
+      }
       vestiging_instellingen: {
         Row: {
           drukte_modus: string
@@ -5724,6 +5947,7 @@ export type Database = {
           id: string
           naam: string
           notitie: string | null
+          opslag_groep: string | null
           opslagplekken: Json
           tel_eenheid: string
           telmoment: string
@@ -5738,6 +5962,7 @@ export type Database = {
           id?: string
           naam: string
           notitie?: string | null
+          opslag_groep?: string | null
           opslagplekken: Json
           tel_eenheid: string
           telmoment?: string
@@ -5752,6 +5977,7 @@ export type Database = {
           id?: string
           naam?: string
           notitie?: string | null
+          opslag_groep?: string | null
           opslagplekken?: Json
           tel_eenheid?: string
           telmoment?: string
@@ -5759,7 +5985,15 @@ export type Database = {
           verbruiksopslag_pct?: number
           vestiging?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "voorraad_artikel_opslag_groep_fkey"
+            columns: ["opslag_groep"]
+            isOneToOne: false
+            referencedRelation: "verbruik_opslag_groep"
+            referencedColumns: ["groep"]
+          },
+        ]
       }
       voorraad_correctie: {
         Row: {
@@ -6460,7 +6694,10 @@ export type Database = {
           horeko_bevat_mogelijk:
             | Database["public"]["Enums"]["allergen"][]
             | null
+          horeko_bevat_niet: Database["public"]["Enums"]["allergen"][] | null
           horeko_export_datum: string | null
+          horeko_gedeeltelijke_export: boolean | null
+          horeko_letop_onvolledig: boolean | null
           horeko_match: string | null
           horeko_onbekend: Database["public"]["Enums"]["allergen"][] | null
           horeko_recept_key: string | null
@@ -6607,6 +6844,26 @@ export type Database = {
           },
         ]
       }
+      v_leverancier_opties: {
+        Row: {
+          artikel_id: string | null
+          artikel_naam: string | null
+          basis_eenheid: string | null
+          bron: string | null
+          bron_datum: string | null
+          categorie: string | null
+          geverifieerd: boolean | null
+          leverancier: string | null
+          leverancier_id: string | null
+          levert: boolean | null
+          prijs_excl: number | null
+          prijs_per_basis: number | null
+          vast: boolean | null
+          verpakking: string | null
+          vestiging: string | null
+        }
+        Relationships: []
+      }
       v_lightspeed_status: {
         Row: {
           laatste_fout: string | null
@@ -6640,6 +6897,94 @@ export type Database = {
         }
         Relationships: []
       }
+      v_prijs_aankoop: {
+        Row: {
+          aantal: number | null
+          artikel_id: string | null
+          basis_eenheid: string | null
+          bron: string | null
+          datum: string | null
+          eenheid: string | null
+          id: string | null
+          inhoud: number | null
+          leverancier: string | null
+          leverancier_id: string | null
+          naam: string | null
+          prijs_excl: number | null
+          prijs_per_basis: number | null
+          verpakking: string | null
+          vestiging: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bestel_historie_import_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_historie_import_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_historie_import_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_prijs_signaal: {
+        Row: {
+          artikel_id: string | null
+          eenheid: string | null
+          laatste_datum: string | null
+          leverancier: string | null
+          leverancier_id: string | null
+          n_vergelijk: number | null
+          naam: string | null
+          normale_prijs: number | null
+          nu_bron: string | null
+          nu_prijs: number | null
+          pijl: boolean | null
+          richting: string | null
+          tooltip: string | null
+          verpakking: string | null
+          verschil_eur: number | null
+          verschil_pct: number | null
+          vestiging: string | null
+        }
+        Relationships: []
+      }
+      v_prijsverschil_leverancier: {
+        Row: {
+          artikel_id: string | null
+          artikel_naam: string | null
+          basis_eenheid: string | null
+          categorie: string | null
+          geverifieerd: boolean | null
+          goedkoopste_leverancier: string | null
+          goedkoopste_prijs_per_basis: number | null
+          huidige_leverancier: string | null
+          huidige_prijs_per_basis: number | null
+          jaar_uitgave: number | null
+          jaarvolume_basis: number | null
+          jaarvolume_besteleenheden: number | null
+          kooyman_duurder: boolean | null
+          mogelijke_besparing_jaar: number | null
+          n_aankopen: number | null
+          periode_dagen: number | null
+          structureel: boolean | null
+          verschil_pct: number | null
+          vestiging: string | null
+        }
+        Relationships: []
+      }
       v_recept_allergenen: {
         Row: {
           allergenen: Database["public"]["Enums"]["allergen"][] | null
@@ -6669,6 +7014,7 @@ export type Database = {
           correcties: number | null
           created_at: string | null
           dagen_sinds_telling: number | null
+          effectieve_opslag_pct: number | null
           geteld: number | null
           id: string | null
           kassa: number | null
@@ -6679,6 +7025,7 @@ export type Database = {
           notitie: string | null
           ontvangen: number | null
           opslag: number | null
+          opslag_groep: string | null
           opslagplekken: Json | null
           stand: number | null
           status: string | null
@@ -6691,7 +7038,15 @@ export type Database = {
           vestiging: string | null
           volledig: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "voorraad_artikel_opslag_groep_fkey"
+            columns: ["opslag_groep"]
+            isOneToOne: false
+            referencedRelation: "verbruik_opslag_groep"
+            referencedColumns: ["groep"]
+          },
+        ]
       }
       v_voorraad_telachterstand: {
         Row: {
@@ -6806,6 +7161,8 @@ export type Database = {
         Returns: Json
       }
       bestelbot_normaliseer: { Args: { p_tekst: string }; Returns: string }
+      bestelbot_prijzen_opslaan: { Args: { p_rijen: Json }; Returns: Json }
+      besteleenheid_norm: { Args: { p: string }; Returns: string }
       claim_next_print_job: {
         Args: never
         Returns: {
@@ -6815,6 +7172,7 @@ export type Database = {
         }[]
       }
       current_user_location: { Args: never; Returns: string }
+      euro_nl: { Args: { p: number }; Returns: string }
       f_omzet_effectief: {
         Args: { eitje_omzet: number; ls_omzet: number }
         Returns: {
@@ -6920,6 +7278,61 @@ export type Database = {
       mep_vorige_open_dag: {
         Args: { _vestiging: string; _voor: string }
         Returns: string
+      }
+      opslag_groep_voor: {
+        Args: { p_artikel_id: string; p_besteleenheid: string }
+        Returns: string
+      }
+      prijs_artikel_zoeken: {
+        Args: {
+          p_artikelnummer: string
+          p_leverancier: string
+          p_naam: string
+          p_vestiging: string
+        }
+        Returns: string
+      }
+      prijs_inhoud: {
+        Args: {
+          p_artikel: string
+          p_leverancier: string
+          p_naam: string
+          p_verpakking: string
+          p_vestiging: string
+        }
+        Returns: {
+          basis: string
+          inhoud: number
+          verpakking: string
+        }[]
+      }
+      prijs_signalen_bord: {
+        Args: { p_vestiging: string }
+        Returns: {
+          artikel_id: string | null
+          eenheid: string | null
+          laatste_datum: string | null
+          leverancier: string | null
+          leverancier_id: string | null
+          n_vergelijk: number | null
+          naam: string | null
+          normale_prijs: number | null
+          nu_bron: string | null
+          nu_prijs: number | null
+          pijl: boolean | null
+          richting: string | null
+          tooltip: string | null
+          verpakking: string | null
+          verschil_eur: number | null
+          verschil_pct: number | null
+          vestiging: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "v_prijs_signaal"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       print_bridge_mark_printed: {
         Args: { _vestiging: string }
@@ -7125,6 +7538,18 @@ export type Database = {
         Args: { _body: Json; _function: string }
         Returns: number
       }
+      verpakking_naar_basis: {
+        Args: { p_naam: string; p_verpakking: string }
+        Returns: {
+          basis: string
+          inhoud: number
+          verpakking: string
+        }[]
+      }
+      voorraad_artikel_groep_bepalen: {
+        Args: { p_id: string; p_naam: string; p_tel_eenheid: string }
+        Returns: string
+      }
       voorraad_bewegingen_lezen: {
         Args: { p_vestiging: string }
         Returns: {
@@ -7140,6 +7565,10 @@ export type Database = {
       voorraad_daggrens: {
         Args: { p_datum: string; p_moment: string }
         Returns: string
+      }
+      voorraad_effectieve_opslag_pct: {
+        Args: { p_artikel: string }
+        Returns: number
       }
       voorraad_hertellen_nodig: {
         Args: { p_stand: number; p_totaal: number }

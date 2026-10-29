@@ -22,6 +22,10 @@ import {
 } from '@/hooks/useBestelbord';
 import { BestelLeverancierLabel } from '@/components/kitchen/BestelLeverancierLabel';
 import { Voorraadproef } from '@/components/kitchen/Voorraadproef';
+import { PrijsPijl } from '@/components/kitchen/PrijsPijl';
+import { usePrijsSignalen } from '@/hooks/usePrijsSignalen';
+import { useRole } from '@/hooks/useRole';
+import { duurderWaarschuwing, pijlRichting, zoekSignaal, type PrijsSignaal } from '@/lib/prijsSignaal';
 
 const SOORTEN = ['stuks', 'doos', 'zak', 'fles', 'pak', 'bak', 'emmer', 'kg', 'bos', 'tray', 'rol', 'fust'] as const;
 
@@ -163,12 +167,14 @@ function AdviesGroepen({ regels, bezig, onOpBord }: { regels: BestelAdvies[]; be
 function Rij({
   signaal,
   prijs,
+  prijsSignaal,
   onBesteld,
   onVervallen,
   onBewerk,
 }: {
   signaal: BestelSignaal;
   prijs: { vorm: ArtikelVorm; totaal: number } | null;
+  prijsSignaal?: PrijsSignaal | null;
   onBesteld: (besteld: boolean) => void;
   onVervallen?: () => void;
   onBewerk?: () => void;
@@ -200,7 +206,10 @@ function Rij({
         </div>
       </button>
       <div className="shrink-0 text-right" title={prijs ? prijsTip(prijs.vorm) : undefined}>
-        <span className="block text-[14px] font-medium tabular-nums">{prijs ? euro(prijs.totaal) : '–'}</span>
+        <span className="flex items-center justify-end gap-1 text-[14px] font-medium tabular-nums">
+          {prijs && <PrijsPijl signaal={prijsSignaal ?? null} eenheid={signaal.eenheid} />}
+          {prijs ? euro(prijs.totaal) : '–'}
+        </span>
         {prijs && <span className="block text-[11px] text-muted-foreground">{prijsTip(prijs.vorm)}</span>}
       </div>
       {onVervallen && (
@@ -350,6 +359,8 @@ export default function Bestelbord() {
   const [deelsOntvangen, setDeelsOntvangen] = useState(1);
   const invoer = useRef<HTMLInputElement>(null);
   const { data: vormen } = useArtikelVormen(vestiging || null);
+  const { data: prijsSignalen = [] } = usePrijsSignalen(vestiging || null);
+  const { isOwner } = useRole();
   const [suggesties, setSuggesties] = useState<BordSuggestie[]>([]);
   const [lijstOpen, setLijstOpen] = useState(false);
   const [actief, setActief] = useState(-1);
@@ -567,20 +578,32 @@ export default function Bestelbord() {
     return { vorm: v, totaal: Number(s.aantal) * Number(v.prijs) };
   };
 
+  const signaalVan = (s: BestelSignaal): PrijsSignaal | null =>
+    zoekSignaal(prijsSignalen, {
+      leverancier_id: s.leverancier_id, artikel_id: s.artikel_id, naam: s.naam,
+      vorm: s.artikel_vorm_id ? vormById.get(s.artikel_vorm_id)?.vorm ?? null : null,
+    });
+
   const totalen = useMemo(() => {
     type Bak = { totaal: number; zonder: number; regels: number };
+    type Opvallend = { id: string; naam: string; eenheid: string | null; sig: PrijsSignaal; waarschuwing: string | null };
     const nieuw = (): Bak => ({ totaal: 0, zonder: 0, regels: 0 });
-    const m = new Map<string, { titel: string; open: Bak; onderweg: Bak; geleverd: Bak }>();
+    const m = new Map<string, { titel: string; open: Bak; onderweg: Bak; geleverd: Bak; opvallend: Opvallend[] }>();
     const tel = (lijst: BestelSignaal[], k: 'open' | 'onderweg' | 'geleverd') => {
       for (const s of lijst) {
         const id = s.leverancier_id ?? '';
         const titel = (s.leverancier_id && leveranciers?.get(s.leverancier_id)) || 'Onbekende leverancier';
-        if (!m.has(id)) m.set(id, { titel, open: nieuw(), onderweg: nieuw(), geleverd: nieuw() });
+        if (!m.has(id)) m.set(id, { titel, open: nieuw(), onderweg: nieuw(), geleverd: nieuw(), opvallend: [] });
         const b = m.get(id)![k];
         b.regels++;
         const p = prijsVan(s);
         if (p) b.totaal += p.totaal;
         else b.zonder++;
+        if (p && k === 'open') {
+          const sig = signaalVan(s);
+          const waarschuwing = isOwner ? duurderWaarschuwing(sig, Number(s.aantal)) : null;
+          if (sig && (pijlRichting(sig) || waarschuwing)) m.get(id)!.opvallend.push({ id: s.id, naam: s.naam, eenheid: s.eenheid, sig, waarschuwing });
+        }
       }
     };
     tel(open, 'open');
@@ -590,7 +613,7 @@ export default function Bestelbord() {
       a.titel === 'Onbekende leverancier' ? 1 : b.titel === 'Onbekende leverancier' ? -1 : a.titel.localeCompare(b.titel),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, besteld, geleverd, leveranciers, vormen]);
+  }, [open, besteld, geleverd, leveranciers, vormen, prijsSignalen, isOwner]);
 
   const bewerkVormen = useMemo(
     () => (bewerk?.artikel_id ? (vormen ?? []).filter((v) => v.artikel_id === bewerk.artikel_id) : []),
@@ -818,7 +841,7 @@ export default function Bestelbord() {
                 <p className="p-4 text-sm text-muted-foreground">Niets openstaand.</p>
               ) : (
                 open.map((s) => (
-                  <Rij key={s.id} signaal={s} prijs={prijsVan(s)} onBesteld={(b) => markeerBesteld(s, b)} onVervallen={() => vervallen(s)} onBewerk={() => openBewerk(s)} />
+                  <Rij key={s.id} signaal={s} prijs={prijsVan(s)} prijsSignaal={signaalVan(s)} onBesteld={(b) => markeerBesteld(s, b)} onVervallen={() => vervallen(s)} onBewerk={() => openBewerk(s)} />
                 ))
               )}
             </Card>
@@ -909,6 +932,19 @@ export default function Bestelbord() {
                           ) : null,
                         )}
                       </div>
+                      {t.opvallend.length > 0 && (
+                        <ul className="mt-1 space-y-0.5">
+                          {t.opvallend.map((o) => (
+                            <li key={o.id} className="text-[13px]">
+                              <span className="flex items-center gap-1.5 text-muted-foreground">
+                                <PrijsPijl signaal={o.sig} eenheid={o.eenheid} />
+                                <span className="truncate">{o.naam}</span>
+                              </span>
+                              {o.waarschuwing && <span className="block font-medium text-warning">{o.waarschuwing}</span>}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   ))}
                 </div>

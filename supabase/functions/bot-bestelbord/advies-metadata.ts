@@ -12,6 +12,11 @@ export function adviesMetadataGeldig(methode: unknown, gegevens: unknown): boole
     if ('periode_van' in gegevens || 'periode_tot' in gegevens) {
       if (!datum(gegevens.periode_van) || !datum(gegevens.periode_tot) || String(gegevens.periode_van) > String(gegevens.periode_tot)) return false;
     }
+    for (const veld of ['verwacht_kassa', 'opslag_pct']) {
+      if (veld in gegevens && (typeof gegevens[veld] !== 'number' || !Number.isFinite(gegevens[veld] as number) || (gegevens[veld] as number) < 0)) return false;
+    }
+    if ('opslag_pct' in gegevens && (gegevens.opslag_pct as number) >= 100) return false;
+    if ('opslag_groep' in gegevens && (typeof gegevens.opslag_groep !== 'string' || gegevens.opslag_groep.length > 40)) return false;
     if ('kassa_ids' in gegevens) {
       if (!Array.isArray(gegevens.kassa_ids) || gegevens.kassa_ids.length > 500 || !gegevens.kassa_ids.every((k) => object(k) && typeof k.id === 'string' && !!k.id.trim() && typeof k.per_eenheid === 'number' && Number.isFinite(k.per_eenheid) && k.per_eenheid > 0)) return false;
       if (new Set(gegevens.kassa_ids.map((k) => k.id)).size !== gegevens.kassa_ids.length) return false;
