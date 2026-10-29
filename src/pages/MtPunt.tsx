@@ -102,7 +102,6 @@ export default function MtPunt() {
               </ul>
             )}
           </section>
-        </div>
       </div>
     </SidebarLayout>
   );
