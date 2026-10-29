@@ -407,6 +407,13 @@
       "when": 1793277642445,
       "tag": "0057_prijzen_vervolg_btw_ontdubbel",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1793279392915,
+      "tag": "0058_mt_punt_module",
+      "breakpoints": true
     }
   ]
 }
