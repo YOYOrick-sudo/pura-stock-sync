@@ -1447,7 +1447,7 @@ export function VoorraadRonde({
             </>
           )}
 
-          <div className="sticky bottom-[calc(8px+env(safe-area-inset-bottom,0px))] z-20 mt-4 flex gap-2 rounded-[16px] border border-border bg-card/95 p-2 backdrop-blur">
+          <div className="sticky bottom-[calc(8px+var(--onderbalk)+env(safe-area-inset-bottom,0px))] z-20 mt-4 flex gap-2 rounded-[16px] border border-border bg-card/95 p-2 backdrop-blur">
             <Button variant="outline" className="h-12 flex-1 rounded-[14px]" onClick={() => setStap('tellen')} disabled={bezig}>
               Terug
             </Button>
@@ -1538,7 +1538,7 @@ export function VoorraadRonde({
         </div>
 
         {/* Vaste balk: voortgang, en pas aan het eind de stap naar de bon. */}
-        <div className="sticky bottom-[calc(12px+env(safe-area-inset-bottom,0px))] z-20 mt-4">
+        <div className="sticky bottom-[calc(12px+var(--onderbalk)+env(safe-area-inset-bottom,0px))] z-20 mt-4">
           {allesBevestigd ? (
             <Button
               className="h-14 w-full rounded-[16px] text-[16px] font-bold shadow-lg"
