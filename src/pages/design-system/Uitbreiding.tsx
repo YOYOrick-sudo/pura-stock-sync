@@ -33,7 +33,6 @@ export function MatenSectie() {
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1 text-center"><Button size="touch">Touch 44</Button><p className="text-xs text-muted-foreground">size="touch"</p></div>
         <div className="space-y-1 text-center"><Button>Standaard 48</Button><p className="text-xs text-muted-foreground">default</p></div>
-        <div className="space-y-1 text-center"><Button size="sm" variant="ghost">Compact 36</Button><p className="text-xs text-muted-foreground">alleen in groepsrij</p></div>
         <div className="space-y-1 text-center"><div className="flex h-12 w-40 items-center rounded-polar-md border border-border px-3 text-sm">Rij 48</div><p className="text-xs text-muted-foreground">tabelrij</p></div>
       </div>
     </Blok>

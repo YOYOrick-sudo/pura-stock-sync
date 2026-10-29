@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ClipboardList, Info, LayoutDashboard, ListChecks, Plus, Settings, Truck } from 'lucide-react';
+import { Fragment, useState } from 'react';
+import { ClipboardList, Info, LayoutDashboard, ListChecks, Plus, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -56,11 +56,11 @@ export function Recepten() {
     <Recept id="lijst" titel="Lijstpagina" opbouw={['Paginabalk: tabs links, één primaire knop rechts', 'Lijstkaart met kop', 'Kolomkoppen één keer', 'Groepen als tussenrij', 'Voetregel met totaal', 'Rij tikken = lade, rest in …']}>
       <div className="space-y-4">
         <PaginaBalk links={<Tabs defaultValue="a"><TabsList className={segmentTabsKlasse}><TabsTrigger value="a">Op het bord <span className="tabular-nums text-muted-foreground">3</span></TabsTrigger><TabsTrigger value="b">Onderweg</TabsTrigger></TabsList></Tabs>} actie={<Button size="touch" className="gap-1"><Plus className="h-4 w-4" />Product</Button>} />
-        <LijstKaart kop={<KaartKop icoon={ClipboardList} titel="Op het bord" />} voet={undefined}>
+        <LijstKaart kop={<KaartKop icoon={ClipboardList} titel="Op het bord" />}>
           <Table className="table-fixed [&_td]:px-2 [&_td]:py-1 [&_th]:h-9 [&_th]:px-2 [&_th]:text-xs">
             <TableHeader><TableRow><TableHead className="w-14 text-center">Besteld</TableHead><TableHead>Product</TableHead><TableHead className="w-24 text-right">Aantal</TableHead><TableHead className="hidden w-28 text-right sm:table-cell">Prijs</TableHead><TableHead className="w-14"><span className="sr-only">Acties</span></TableHead></TableRow></TableHeader>
-            <TableBody>{rijen.map((g) => <>
-              <GroepRij key={g.lev} kolommen={5} naam={g.lev} aantal={g.items.length} />
+            <TableBody>{rijen.map((g) => <Fragment key={g.lev}>
+              <GroepRij kolommen={5} naam={g.lev} aantal={g.items.length} />
               {g.items.map(([n, a, e, p, laat]) => <TableRow key={n} className="cursor-pointer" onClick={() => toast(`${n}: lade opent`)}>
                 <TableCell onClick={(ev) => ev.stopPropagation()}><label className="mx-auto flex h-11 w-11 items-center justify-center"><Checkbox aria-label={`${n} besteld`} /></label></TableCell>
                 <TableCell><div className="flex min-h-11 flex-col justify-center"><span className="flex items-center gap-2"><span className="truncate font-medium">{n}</span>{laat > 0 && <StatusLabel toon="fout">{laat}d te laat</StatusLabel>}</span><RijMeta>{p || <StatusDot toon="let-op" label="geen prijs" />}</RijMeta></div></TableCell>
@@ -68,7 +68,7 @@ export function Recepten() {
                 <TableCell className="hidden text-right tabular-nums sm:table-cell">{p || <StatusDot toon="let-op" verborgenLabel="geen prijs" />}</TableCell>
                 <TableCell onClick={(ev) => ev.stopPropagation()}><RijMenu naam={n} acties={[{ label: 'Bewerken', onClick: () => toast('Bewerken') }, { label: 'Vervallen', onClick: () => toast('Vervallen'), gevaar: true }]} /></TableCell>
               </TableRow>)}
-            </>)}</TableBody>
+            </Fragment>)}</TableBody>
           </Table>
           <TabelVoet links="3 producten · 1 zonder prijs" rechts="€ 22,15" />
         </LijstKaart>
@@ -185,4 +185,3 @@ export function Controle() {
   return <ul className="grid gap-2 sm:grid-cols-2">{CONTROLE.map((r) => <li key={r}><label className="flex min-h-11 items-center gap-3 rounded-polar-md border border-border px-3 text-sm"><Checkbox />{r}</label></li>)}</ul>;
 }
 
-export const DEMO_ICOON = Truck;
