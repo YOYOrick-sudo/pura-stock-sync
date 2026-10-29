@@ -110,7 +110,7 @@ function Paar({ titel, doe, niet }: { titel: string; doe: React.ReactNode; niet:
 export function ExtraRegels() {
   return <div className="space-y-6">
     <Paar titel="Tabel in een kaart" doe={<p>Lijstkaart met kaartkop.</p>} niet={<p>Tabel los op de grijze achtergrond.</p>} />
-    <Paar titel="Status in eigen kolom" doe={<div className="flex justify-between"><span>Tuinkers</span><StatusDot toon="goed" label="besteld" /></div>} niet={<p>Tuinkers <Badge variant="secondary">besteld</Badge> naast de naam</p>} />
+    <Paar titel="Status in eigen kolom" doe={<div className="flex justify-between"><span>Tuinkers</span><StatusDot toon="goed" label="besteld" /></div>} niet={<div>Tuinkers <Badge variant="secondary">besteld</Badge> naast de naam</div>} />
     <Paar titel="Uitleg achter i-icoon" doe={<p className="flex items-center gap-1">Vandaag <Info className="h-4 w-4 text-muted-foreground" /></p>} niet={<p>Een alinea uitleg boven de lijst.</p>} />
     <Paar titel="Bewerken in de lade" doe={<p>Tik op rij → lade.</p>} niet={<p>Losse 'Bewerk'-knop op elke rij.</p>} />
     <Paar titel="Laden, leeg, fout altijd zichtbaar" doe={<p>Skelet · "Niets onderweg." · fout + Opnieuw.</p>} niet={<p>Lege witte kaart of stille fout.</p>} />
