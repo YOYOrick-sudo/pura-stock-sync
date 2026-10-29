@@ -1,32 +1,24 @@
 /// <reference types="npm:@types/react@18.3.1" />
 import * as React from 'npm:react@18.3.1'
-import { Body, Button, Container, Head, Heading, Html, Preview, Text } from 'npm:@react-email/components@0.0.22'
-import { main, container, brand, h1, text, button, footer } from './_shared-styles.ts'
+import { MailLayout, Paragraaf, Knop } from './_layout.tsx'
 
 interface Props {
   siteName: string
-  siteUrl: string
+  siteUrl?: string
   confirmationUrl: string
 }
 
 export const RecoveryEmail = ({ siteName, confirmationUrl }: Props) => (
-  <Html lang="nl" dir="ltr">
-    <Head />
-    <Preview>Wachtwoord resetten voor je {siteName}-account</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Text style={brand}>{siteName}</Text>
-        <Heading style={h1}>Wachtwoord resetten</Heading>
-        <Text style={text}>
-          We ontvingen een verzoek om het wachtwoord van je {siteName}-account te resetten. Klik op de knop hieronder om een nieuw wachtwoord te kiezen.
-        </Text>
-        <Button style={button} href={confirmationUrl}>Nieuw wachtwoord kiezen</Button>
-        <Text style={footer}>
-          Heb je dit niet aangevraagd? Dan kun je deze mail veilig negeren — je huidige wachtwoord blijft geldig.
-        </Text>
-      </Container>
-    </Body>
-  </Html>
+  <MailLayout
+    preheader="Kies een nieuw wachtwoord voor je Pura Vida-account."
+    titel="Wachtwoord resetten"
+    reden="Je ontvangt deze mail omdat er een nieuw wachtwoord is aangevraagd voor de interne app van Pura Vida. Niet aangevraagd? Dan kun je deze mail negeren — je huidige wachtwoord blijft geldig."
+  >
+    <Paragraaf>
+      We ontvingen een verzoek om het wachtwoord van je {siteName}-account te resetten. Klik op de knop hieronder om een nieuw wachtwoord te kiezen.
+    </Paragraaf>
+    <Knop href={confirmationUrl} label="Nieuw wachtwoord instellen" />
+  </MailLayout>
 )
 
 export default RecoveryEmail

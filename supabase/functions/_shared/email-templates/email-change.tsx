@@ -1,7 +1,6 @@
 /// <reference types="npm:@types/react@18.3.1" />
 import * as React from 'npm:react@18.3.1'
-import { Body, Button, Container, Head, Heading, Html, Preview, Text } from 'npm:@react-email/components@0.0.22'
-import { main, container, brand, h1, text, button, footer } from './_shared-styles.ts'
+import { MailLayout, Paragraaf, Knop } from './_layout.tsx'
 
 interface Props {
   siteName: string
@@ -12,23 +11,16 @@ interface Props {
 }
 
 export const EmailChangeEmail = ({ siteName, oldEmail, newEmail, confirmationUrl }: Props) => (
-  <Html lang="nl" dir="ltr">
-    <Head />
-    <Preview>Bevestig je nieuwe e-mailadres voor {siteName}</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Text style={brand}>{siteName}</Text>
-        <Heading style={h1}>Bevestig je nieuwe e-mailadres</Heading>
-        <Text style={text}>
-          Er is een verzoek gedaan om het e-mailadres van je {siteName}-account te wijzigen{oldEmail ? ` van ${oldEmail}` : ''}{newEmail ? ` naar ${newEmail}` : ''}. Klik op de knop hieronder om deze wijziging te bevestigen.
-        </Text>
-        <Button style={button} href={confirmationUrl}>E-mailwijziging bevestigen</Button>
-        <Text style={footer}>
-          Heb je dit niet aangevraagd? Neem dan contact op met je beheerder.
-        </Text>
-      </Container>
-    </Body>
-  </Html>
+  <MailLayout
+    preheader="Bevestig de wijziging van je e-mailadres voor de Pura Vida-app."
+    titel="Bevestig je nieuwe e-mailadres"
+    reden="Je ontvangt deze mail omdat er een e-mailwijziging is aangevraagd voor je account in de interne app van Pura Vida. Niet aangevraagd? Neem dan contact op met je beheerder."
+  >
+    <Paragraaf>
+      Er is een verzoek gedaan om het e-mailadres van je {siteName}-account te wijzigen{oldEmail ? ` van ${oldEmail}` : ''}{newEmail ? ` naar ${newEmail}` : ''}. Klik op de knop hieronder om deze wijziging te bevestigen.
+    </Paragraaf>
+    <Knop href={confirmationUrl} label="E-mailwijziging bevestigen" />
+  </MailLayout>
 )
 
 export default EmailChangeEmail
