@@ -91,10 +91,11 @@ Deno.serve(async (req) => {
       const regels = body.regels;
       if (!Array.isArray(regels) || regels.length < 1 || regels.length > 100 ||
         !regels.every((r) => r && typeof r === "object" && UUID.test(String(r.id)) &&
-          (r.bestelreferentie == null || (typeof r.bestelreferentie === "string" && r.bestelreferentie.length <= 200)))) {
-        return fout(400, "regels: 1-100 items met geldige id en optionele bestelreferentie");
+          (r.bestelreferentie == null || (typeof r.bestelreferentie === "string" && r.bestelreferentie.length <= 200)) &&
+          verwachteLeveringGeldig(r.verwachte_levering))) {
+        return fout(400, "regels: 1-100 items met geldige id, optionele bestelreferentie en optionele verwachte_levering (YYYY-MM-DD, vandaag t/m +30 dagen)");
       }
-      const schoon = regels.map((r) => ({ id: r.id, bestelreferentie: r.bestelreferentie ?? null }));
+      const schoon = regels.map((r) => ({ id: r.id, bestelreferentie: r.bestelreferentie ?? null, verwachte_levering: r.verwachte_levering ?? null }));
       const { data, error } = await db.rpc("bestelbot_markeer_besteld", { p_vestiging: vestiging, p_regels: schoon });
       if (error) return fout(400, error.message);
       await sluit(true, { http_status: 200, resultaat: data }, schoon.map((r) => r.id));
