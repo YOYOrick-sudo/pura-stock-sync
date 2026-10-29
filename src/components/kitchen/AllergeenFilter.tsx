@@ -78,11 +78,18 @@ export function AllergeenFilter({ zonder, onToggle, alleenVegan, onToggleVegan, 
           className={cn(
             'min-h-[44px] px-4 rounded-full text-sm font-medium border transition-colors',
             alleenVegan
-              ? 'bg-primary/10 text-primary border-primary/30'
+              ? 'bg-primary/10 text-primary border-primary/40'
               : 'bg-background text-muted-foreground border-border hover:bg-muted',
           )}
         >
-          {alleenVegan ? 'Moet vegan zijn' : 'Vegan'}
+          {alleenVegan ? (
+            <>
+              Moet vegan zijn
+              <X className="ml-1.5 -mr-1 h-3.5 w-3.5 opacity-70" aria-hidden="true" />
+            </>
+          ) : (
+            'Vegan'
+          )}
         </button>
       </div>
     </div>
