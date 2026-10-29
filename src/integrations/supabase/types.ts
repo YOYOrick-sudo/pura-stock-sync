@@ -1913,6 +1913,72 @@ export type Database = {
           },
         ]
       }
+      gerecht_kaart_vestiging: {
+        Row: {
+          bron: string | null
+          created_at: string
+          gerecht_id: string
+          kaart_codes: string[]
+          kaart_codes_gedrukt: string[]
+          kaart_momenten: string[]
+          kaart_naam: string
+          kaart_omschrijving: string | null
+          kaart_opmerking: string | null
+          kaart_rubriek: string | null
+          kaart_sleutel: string | null
+          prijs: number | null
+          prijs_varianten: Json | null
+          vestiging: string
+        }
+        Insert: {
+          bron?: string | null
+          created_at?: string
+          gerecht_id: string
+          kaart_codes?: string[]
+          kaart_codes_gedrukt?: string[]
+          kaart_momenten?: string[]
+          kaart_naam: string
+          kaart_omschrijving?: string | null
+          kaart_opmerking?: string | null
+          kaart_rubriek?: string | null
+          kaart_sleutel?: string | null
+          prijs?: number | null
+          prijs_varianten?: Json | null
+          vestiging: string
+        }
+        Update: {
+          bron?: string | null
+          created_at?: string
+          gerecht_id?: string
+          kaart_codes?: string[]
+          kaart_codes_gedrukt?: string[]
+          kaart_momenten?: string[]
+          kaart_naam?: string
+          kaart_omschrijving?: string | null
+          kaart_opmerking?: string | null
+          kaart_rubriek?: string | null
+          kaart_sleutel?: string | null
+          prijs?: number | null
+          prijs_varianten?: Json | null
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gerecht_kaart_vestiging_gerecht_id_fkey"
+            columns: ["gerecht_id"]
+            isOneToOne: false
+            referencedRelation: "gerechten"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gerecht_kaart_vestiging_gerecht_id_fkey"
+            columns: ["gerecht_id"]
+            isOneToOne: false
+            referencedRelation: "v_gerecht_allergenen"
+            referencedColumns: ["gerecht_id"]
+          },
+        ]
+      }
       gerechten: {
         Row: {
           categorie: string
@@ -6973,6 +7039,7 @@ export type Database = {
           artikel_id: string | null
           basis_eenheid: string | null
           bron: string | null
+          btw_omgerekend: boolean | null
           datum: string | null
           eenheid: string | null
           id: string | null
