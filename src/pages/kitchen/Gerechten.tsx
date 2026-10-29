@@ -8,7 +8,8 @@ import { EmptyState } from '@/components/kitchen/EmptyState';
 import { cn } from '@/lib/utils';
 import { useRole } from '@/hooks/useRole';
 import { useArchiveerGerecht, useGerechten, useGerechtAllergenen, type Gerecht } from '@/hooks/useGerechten';
-import { GerechtKaartCodes, GerechtReceptAllergenen } from '@/components/kitchen/GerechtKaartInfo';
+import { GerechtKaartCodes, GerechtReceptBevat, GerechtReceptSporen } from '@/components/kitchen/GerechtKaartInfo';
+import { DataTable, DataTableBody, DataTableCell, DataTableHead, DataTableHeader, DataTableRow, EmptyCell, StatusDot } from '@/components/ui/data-table';
 import { GerechtDialog } from '@/components/kitchen/GerechtDialog';
 import { AllergeenFilter } from '@/components/kitchen/AllergeenFilter';
 import {
@@ -38,7 +39,7 @@ function opsomming(delen: string[]): string {
 function InhoudChips({ gerecht }: { gerecht: Gerecht }) {
   const inhoud = gesorteerdeInhoud(gerecht);
   if (inhoud.length === 0) {
-    return <span className="text-sm text-muted-foreground">—</span>;
+    return <EmptyCell />;
   }
   return (
     <div className="flex flex-wrap items-center gap-1.5">
@@ -48,7 +49,7 @@ function InhoudChips({ gerecht }: { gerecht: Gerecht }) {
           <span
             key={code}
             className={cn(
-              'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap',
+              'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap',
               soort === 'allergeen' && 'bg-destructive/10 text-destructive',
               soort === 'info' && 'bg-muted text-muted-foreground',
             )}
@@ -126,97 +127,85 @@ export default function Gerechten() {
     setAlleenVegan(false);
   };
 
-  const kolomKlasse = cn(
-    'sm:grid-cols-[minmax(180px,260px)_1fr_auto]',
-    !isManager && 'sm:grid-cols-[minmax(180px,260px)_1fr]',
-  );
-
-  const renderRij = (g: Gerecht, i: number) => {
+  const renderRij = (g: Gerecht) => {
     const isVegan = (g.labels ?? []).includes('vegan');
     const prijzen = gerechtPrijzen(g.prijs, g.prijs_varianten);
+    const heeftLabels = (g.labels ?? []).length > 0;
+    const recept = receptQuery.data?.get(g.id);
     return (
-      <div
-        key={g.id}
-        className={cn(
-          'grid px-0 py-2 sm:items-center grid-cols-1',
-          kolomKlasse,
-          'border-b border-border/50 last:border-b-0',
-          i % 2 === 1 && 'bg-muted/20',
-          g.is_gearchiveerd && 'opacity-60',
-        )}
-      >
-        <div className="min-w-0 px-4 sm:border-r border-border/50 py-1 sm:py-0">
-          <p className="font-medium text-foreground flex items-center gap-2 flex-wrap">
-            <span>{g.naam}</span>
+      <DataTableRow key={g.id} className={cn(g.is_gearchiveerd && 'opacity-60')}>
+        <DataTableCell>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+            <span className="font-medium text-foreground">{g.naam}</span>
             {isVegan && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                <Leaf className="h-3 w-3" />
-                Vegan
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
+                <Leaf className="h-3 w-3" />Vegan
               </span>
             )}
-            {!g.gecontroleerd && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning">
-                <AlertTriangle className="h-3 w-3" />
-                Nog te controleren
-              </span>
-            )}
-          </p>
-          {g.kaart_omschrijving && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{g.kaart_omschrijving}</p>}
-          {(g.kaart_codes?.length ?? 0) > 0 && <GerechtKaartCodes codes={g.kaart_codes ?? []} />}
-          <p className="text-xs text-muted-foreground tabular-nums">
-            {prijzen.bedragen ? `€ ${prijzen.bedragen}` : ''}
-            {g.notitie ? `${prijzen.bedragen ? ' · ' : ''}${g.notitie}` : ''}
-          </p>
-          {prijzen.namen && <p className="text-xs text-muted-foreground">{prijzen.namen}</p>}
-        </div>
-        <div className="min-w-0 px-4 sm:border-r border-border/50 py-1 sm:py-0">
-          {(g.labels ?? []).length > 0 ? <InhoudChips gerecht={g} /> : (
-            <GerechtReceptAllergenen gerecht={g} recept={receptQuery.data?.get(g.id)} laden={receptQuery.isLoading} fout={receptQuery.isError} />
-          )}
-        </div>
-        {isManager && (
-          <div className="flex items-center gap-1 shrink-0 justify-end px-4 py-1 sm:py-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-11 w-11"
-              aria-label={`${g.naam} bewerken`}
-              onClick={() => {
-                setBewerken(g);
-                setDialogOpen(true);
-              }}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-11 w-11"
-              aria-label={g.is_gearchiveerd ? `${g.naam} terugzetten` : `${g.naam} archiveren`}
-              onClick={() => archiveer.mutate({ id: g.id, archiveren: !g.is_gearchiveerd })}
-            >
-              {g.is_gearchiveerd ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
-            </Button>
+            {!g.gecontroleerd && <span className="inline-flex items-center gap-1 text-xs text-warning"><span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden />Nog te controleren</span>}
           </div>
+          {(g.kaart_omschrijving || g.notitie) && (
+            <p className="mt-0.5 truncate text-xs text-muted-foreground" title={g.kaart_omschrijving ?? g.notitie ?? ''}>
+              {g.kaart_omschrijving || g.notitie}
+            </p>
+          )}
+          <div className="md:hidden">
+            {(g.kaart_codes?.length ?? 0) > 0 && <GerechtKaartCodes codes={g.kaart_codes ?? []} />}
+          </div>
+        </DataTableCell>
+        <DataTableCell className="hidden md:table-cell">
+          <GerechtKaartCodes codes={g.kaart_codes ?? []} />
+        </DataTableCell>
+        <DataTableCell className="text-right tabular-nums">
+          {prijzen.bedragen ? (
+            <>
+              <span className="whitespace-nowrap text-sm text-foreground">€ {prijzen.bedragen}</span>
+              {prijzen.namen && <p className="text-xs text-muted-foreground">{prijzen.namen}</p>}
+            </>
+          ) : <EmptyCell />}
+        </DataTableCell>
+        <DataTableCell>
+          {heeftLabels ? <InhoudChips gerecht={g} /> : (
+            <GerechtReceptBevat gerecht={g} recept={recept} laden={receptQuery.isLoading} fout={receptQuery.isError} />
+          )}
+          {!heeftLabels && (
+            <div className="mt-1 md:hidden"><GerechtReceptSporen gerecht={g} recept={recept} /></div>
+          )}
+        </DataTableCell>
+        <DataTableCell className="hidden md:table-cell">
+          {heeftLabels ? <EmptyCell /> : <GerechtReceptSporen gerecht={g} recept={recept} />}
+        </DataTableCell>
+        {isManager && (
+          <DataTableCell className="text-right">
+            <div className="flex justify-end">
+              <Button variant="ghost" size="icon" className="h-11 w-11" aria-label={`${g.naam} bewerken`}
+                onClick={() => { setBewerken(g); setDialogOpen(true); }}>
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-11 w-11"
+                aria-label={g.is_gearchiveerd ? `${g.naam} terugzetten` : `${g.naam} archiveren`}
+                onClick={() => archiveer.mutate({ id: g.id, archiveren: !g.is_gearchiveerd })}>
+                {g.is_gearchiveerd ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
+              </Button>
+            </div>
+          </DataTableCell>
         )}
-      </div>
+      </DataTableRow>
     );
   };
 
-  const Tabelkop = () => (
-    <div className={cn('hidden sm:grid items-center px-0 py-2 border-b bg-muted/10', kolomKlasse)}>
-      <span className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-r border-border/50">
-        Gerecht
-      </span>
-      <span className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-r border-border/50">
-        Bevat
-      </span>
-      {isManager && (
-        <span className="px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground w-[96px] text-right">
-          Acties
-        </span>
-      )}
-    </div>
+  const GerechtTabel = ({ rijen }: { rijen: Gerecht[] }) => (
+    <DataTable className="rounded-none border-0">
+      <DataTableHeader>
+        <DataTableHead className="w-auto">Gerecht</DataTableHead>
+        <DataTableHead className="hidden md:table-cell w-[170px]">Kaart</DataTableHead>
+        <DataTableHead className="w-[140px] text-right">Prijs</DataTableHead>
+        <DataTableHead className="w-[34%] md:w-[26%]">Bevat</DataTableHead>
+        <DataTableHead className="hidden md:table-cell w-[16%]">Kan bevatten</DataTableHead>
+        {isManager && <DataTableHead className="w-[104px]"><span className="sr-only">Acties</span></DataTableHead>}
+      </DataTableHeader>
+      <DataTableBody>{rijen.map(renderRij)}</DataTableBody>
+    </DataTable>
   );
 
   return (
@@ -340,8 +329,7 @@ export default function Gerechten() {
                       {groep.titel} · {rijen.length}
                     </h2>
                   </div>
-                  <Tabelkop />
-                  {rijen.map(renderRij)}
+                  <GerechtTabel rijen={rijen} />
                 </Card>
               );
             })}
@@ -354,8 +342,7 @@ export default function Gerechten() {
                     Niet te garanderen — eerst navragen in de keuken · {onzeker.length}
                   </h2>
                 </div>
-                <Tabelkop />
-                {onzeker.map(renderRij)}
+                <GerechtTabel rijen={onzeker} />
               </Card>
             )}
           </>

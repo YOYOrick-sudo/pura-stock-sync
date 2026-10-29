@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DataTable, DataTableBody, DataTableCell, DataTableHead, DataTableHeader, DataTableRow, EmptyCell, StatusDot } from "@/components/ui/data-table";
 import {
   Table,
   TableBody,
@@ -1099,33 +1100,30 @@ const DesignSystem = () => {
                   </div>
                 </SubSection>
 
-                <SubSection title="Tabel">
-                  <div className="rounded-polar-lg border border-border overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-muted hover:bg-muted">
-                          <TableHead className="font-semibold">Naam</TableHead>
-                          <TableHead className="font-semibold">Rol</TableHead>
-                          <TableHead className="font-semibold">Status</TableHead>
-                          <TableHead className="font-semibold text-right">Taken</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {[
-                          { name: "Jan Visser", role: "Bediening", status: "active" as const, tasks: 8 },
-                          { name: "Sophie Jansen", role: "Keuken", status: "pending" as const, tasks: 5 },
-                          { name: "Peter de Groot", role: "Manager", status: "active" as const, tasks: 12 },
-                        ].map((row, i) => (
-                          <TableRow key={i} className="hover:bg-muted/50">
-                            <TableCell className="font-medium">{row.name}</TableCell>
-                            <TableCell className="text-muted-foreground">{row.role}</TableCell>
-                            <TableCell><StatusBadge status={row.status} /></TableCell>
-                            <TableCell className="text-right">{row.tasks}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                <SubSection title="Tabel (standaard)">
+                  <DataTable>
+                    <DataTableHeader>
+                      <DataTableHead>Naam</DataTableHead>
+                      <DataTableHead>Categorie</DataTableHead>
+                      <DataTableHead className="text-right">Prijs</DataTableHead>
+                      <DataTableHead>Allergenen</DataTableHead>
+                    </DataTableHeader>
+                    <DataTableBody>
+                      {[
+                        { naam: "Bananencake", cat: "Zoet", prijs: "4,50", status: null },
+                        { naam: "Aardappel wedges", cat: "Fingerfood", prijs: null, status: "Onbekend" },
+                        { naam: "Tomatensoep", cat: null, prijs: "7,50", status: "Onbekend" },
+                      ].map((r) => (
+                        <DataTableRow key={r.naam}>
+                          <DataTableCell className="font-medium">{r.naam}</DataTableCell>
+                          <DataTableCell className="text-muted-foreground">{r.cat ?? <EmptyCell />}</DataTableCell>
+                          <DataTableCell className="text-right tabular-nums">{r.prijs ? `€ ${r.prijs}` : <EmptyCell />}</DataTableCell>
+                          <DataTableCell>{r.status ? <StatusDot>{r.status}</StatusDot> : <StatusDot tone="success">Gecontroleerd</StatusDot>}</DataTableCell>
+                        </DataTableRow>
+                      ))}
+                    </DataTableBody>
+                  </DataTable>
+                  <p className="mt-2 text-xs text-muted-foreground">Gebruik DataTable: lichte kop, rijen 56px, "—" voor leeg, status als stip + tekst.</p>
                 </SubSection>
 
                 <SubSection title="Progress">
