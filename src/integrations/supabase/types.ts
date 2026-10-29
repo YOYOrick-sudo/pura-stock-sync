@@ -1724,6 +1724,274 @@ export type Database = {
         }
         Relationships: []
       }
+      horeko_artikelen: {
+        Row: {
+          artikel_id: string | null
+          basis_eenheid: string | null
+          created_at: string | null
+          ean: string | null
+          horeko_id: number
+          in_gebruik: boolean | null
+          inhoud_per_product: number | null
+          leverancier: string | null
+          leverancier_artnr: string | null
+          match_methode: string | null
+          match_score: number | null
+          match_status: string | null
+          naam: string
+          prijs_per_basis: number | null
+          prijs_per_product: number | null
+        }
+        Insert: {
+          artikel_id?: string | null
+          basis_eenheid?: string | null
+          created_at?: string | null
+          ean?: string | null
+          horeko_id: number
+          in_gebruik?: boolean | null
+          inhoud_per_product?: number | null
+          leverancier?: string | null
+          leverancier_artnr?: string | null
+          match_methode?: string | null
+          match_score?: number | null
+          match_status?: string | null
+          naam: string
+          prijs_per_basis?: number | null
+          prijs_per_product?: number | null
+        }
+        Update: {
+          artikel_id?: string | null
+          basis_eenheid?: string | null
+          created_at?: string | null
+          ean?: string | null
+          horeko_id?: number
+          in_gebruik?: boolean | null
+          inhoud_per_product?: number | null
+          leverancier?: string | null
+          leverancier_artnr?: string | null
+          match_methode?: string | null
+          match_score?: number | null
+          match_status?: string | null
+          naam?: string
+          prijs_per_basis?: number | null
+          prijs_per_product?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horeko_artikelen_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horeko_artikelen_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      horeko_gerecht_verbruik: {
+        Row: {
+          artikel_id: string | null
+          eenheid: string | null
+          gerecht_key: string
+          hoeveelheid_per_portie: number
+          horeko_artikel_id: number
+          kosten_per_portie: number | null
+        }
+        Insert: {
+          artikel_id?: string | null
+          eenheid?: string | null
+          gerecht_key: string
+          hoeveelheid_per_portie: number
+          horeko_artikel_id: number
+          kosten_per_portie?: number | null
+        }
+        Update: {
+          artikel_id?: string | null
+          eenheid?: string | null
+          gerecht_key?: string
+          hoeveelheid_per_portie?: number
+          horeko_artikel_id?: number
+          kosten_per_portie?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horeko_gerecht_verbruik_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horeko_gerecht_verbruik_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horeko_gerecht_verbruik_gerecht_key_fkey"
+            columns: ["gerecht_key"]
+            isOneToOne: false
+            referencedRelation: "horeko_recepten"
+            referencedColumns: ["horeko_key"]
+          },
+          {
+            foreignKeyName: "horeko_gerecht_verbruik_horeko_artikel_id_fkey"
+            columns: ["horeko_artikel_id"]
+            isOneToOne: false
+            referencedRelation: "horeko_artikelen"
+            referencedColumns: ["horeko_id"]
+          },
+        ]
+      }
+      horeko_recept_regels: {
+        Row: {
+          component_artikel_id: number | null
+          component_recept_key: string | null
+          component_type: string | null
+          eenheid: string | null
+          hoeveelheid: number | null
+          id: number
+          match_score: number | null
+          recept_key: string
+          regel: string | null
+          volgorde: number | null
+        }
+        Insert: {
+          component_artikel_id?: number | null
+          component_recept_key?: string | null
+          component_type?: string | null
+          eenheid?: string | null
+          hoeveelheid?: number | null
+          id?: number
+          match_score?: number | null
+          recept_key: string
+          regel?: string | null
+          volgorde?: number | null
+        }
+        Update: {
+          component_artikel_id?: number | null
+          component_recept_key?: string | null
+          component_type?: string | null
+          eenheid?: string | null
+          hoeveelheid?: number | null
+          id?: number
+          match_score?: number | null
+          recept_key?: string
+          regel?: string | null
+          volgorde?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horeko_recept_regels_component_artikel_id_fkey"
+            columns: ["component_artikel_id"]
+            isOneToOne: false
+            referencedRelation: "horeko_artikelen"
+            referencedColumns: ["horeko_id"]
+          },
+          {
+            foreignKeyName: "horeko_recept_regels_component_recept_key_fkey"
+            columns: ["component_recept_key"]
+            isOneToOne: false
+            referencedRelation: "horeko_recepten"
+            referencedColumns: ["horeko_key"]
+          },
+          {
+            foreignKeyName: "horeko_recept_regels_recept_key_fkey"
+            columns: ["recept_key"]
+            isOneToOne: false
+            referencedRelation: "horeko_recepten"
+            referencedColumns: ["horeko_key"]
+          },
+        ]
+      }
+      horeko_recepten: {
+        Row: {
+          aantal_personen: number | null
+          created_at: string | null
+          dagen_houdbaar: number | null
+          gerecht_id: string | null
+          gewijzigd_in_horeko: string | null
+          horeko_key: string
+          kaartprijs: number | null
+          kassanummer: string | null
+          kosten_horeko: number | null
+          lightspeed_product_id: string | null
+          map: string | null
+          match_status: string | null
+          naam: string
+          opbrengst: number | null
+          opbrengst_eenheid: string | null
+          recipe_id: string | null
+          type: string
+        }
+        Insert: {
+          aantal_personen?: number | null
+          created_at?: string | null
+          dagen_houdbaar?: number | null
+          gerecht_id?: string | null
+          gewijzigd_in_horeko?: string | null
+          horeko_key: string
+          kaartprijs?: number | null
+          kassanummer?: string | null
+          kosten_horeko?: number | null
+          lightspeed_product_id?: string | null
+          map?: string | null
+          match_status?: string | null
+          naam: string
+          opbrengst?: number | null
+          opbrengst_eenheid?: string | null
+          recipe_id?: string | null
+          type: string
+        }
+        Update: {
+          aantal_personen?: number | null
+          created_at?: string | null
+          dagen_houdbaar?: number | null
+          gerecht_id?: string | null
+          gewijzigd_in_horeko?: string | null
+          horeko_key?: string
+          kaartprijs?: number | null
+          kassanummer?: string | null
+          kosten_horeko?: number | null
+          lightspeed_product_id?: string | null
+          map?: string | null
+          match_status?: string | null
+          naam?: string
+          opbrengst?: number | null
+          opbrengst_eenheid?: string | null
+          recipe_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horeko_recepten_gerecht_id_fkey"
+            columns: ["gerecht_id"]
+            isOneToOne: false
+            referencedRelation: "gerechten"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horeko_recepten_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horeko_recepten_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "v_recept_allergenen"
+            referencedColumns: ["recept_id"]
+          },
+        ]
+      }
       idea_box_submissions: {
         Row: {
           created_at: string
