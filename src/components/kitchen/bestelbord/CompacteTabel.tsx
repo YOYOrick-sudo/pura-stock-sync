@@ -1,14 +1,15 @@
 import type { ReactNode } from 'react';
 import { Table, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-export function CompacteTabel({ kinderen, onderweg = false, advies = false }: { kinderen: ReactNode; onderweg?: boolean; advies?: boolean }) {
-  return <Table className="table-fixed [&_td]:px-2 [&_td]:py-0 [&_th]:px-2 [&_th]:h-9">
+/** Eén tabelkop voor bord, onderweg en advies. Op telefoon blijven vinkje, product, aantal en menu. */
+export function CompacteTabel({ kinderen, onderweg = false, advies = false, vinkKop }: { kinderen: ReactNode; onderweg?: boolean; advies?: boolean; vinkKop?: string }) {
+  return <Table className="table-fixed [&_td]:px-2 [&_td]:py-1 [&_th]:h-9 [&_th]:px-2 [&_th]:text-xs">
     <TableHeader><TableRow>
-      {!advies && <TableHead className="w-14"><span className="sr-only">Status</span></TableHead>}
+      {!advies && <TableHead className="w-14 text-center">{vinkKop ?? <span className="sr-only">Status</span>}</TableHead>}
       <TableHead>Product</TableHead>
       <TableHead className="w-24 text-right">{advies ? 'Advies' : 'Aantal'}</TableHead>
       <TableHead className={advies ? 'w-12' : 'hidden w-28 text-right sm:table-cell'}>{onderweg ? 'Leverdatum' : advies ? <span className="sr-only">Toelichting</span> : 'Prijs'}</TableHead>
-      <TableHead className={advies ? 'w-20' : 'w-16'}><span className="sr-only">Acties</span></TableHead>
+      <TableHead className={advies ? 'w-24' : 'w-14'}><span className="sr-only">Acties</span></TableHead>
     </TableRow></TableHeader>{kinderen}
   </Table>;
 }
