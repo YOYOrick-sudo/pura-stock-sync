@@ -58,7 +58,7 @@ export function KitchenLayout({ children, title, subtitle, backTo = '/kitchen', 
           </div>
 
           <div className="text-center">
-            <h1 className="text-xl sm:text-2xl font-heading font-bold text-foreground mb-1">{title}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1">{title}</h1>
             {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
           </div>
         </div>

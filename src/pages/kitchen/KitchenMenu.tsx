@@ -30,7 +30,7 @@ const MenuCard = ({ to, icon: Icon, title, description, color }: MenuCardProps) 
             <Icon className="w-8 h-8" />
           </div>
           <div className="flex-1">
-            <h3 className="font-heading font-bold text-xl text-foreground mb-1 group-hover:text-primary transition-colors">
+            <h3 className="font-bold text-xl text-foreground mb-1 group-hover:text-primary transition-colors">
               {title}
             </h3>
             <p className="text-sm text-muted-foreground">

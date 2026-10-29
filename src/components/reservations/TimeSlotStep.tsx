@@ -47,7 +47,7 @@ const TimeSlotStep = ({
 
   return (
     <div className="animate-slide-up">
-      <h2 className="text-2xl font-bold font-heading text-center mb-2">
+      <h2 className="text-2xl font-bold text-center mb-2">
         Choose a Time
       </h2>
       <p className="text-center text-muted-foreground mb-8">

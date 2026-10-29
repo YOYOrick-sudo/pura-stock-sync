@@ -73,7 +73,7 @@ export const DagBeoordelingDialog = ({ open, location, date, onClose }: Props) =
     <Dialog open={open} onOpenChange={(v) => { if (!v && !isSaving) onClose(); }}>
       <DialogContent className="max-w-[650px]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-heading font-bold text-foreground">
+          <DialogTitle className="text-xl font-bold text-foreground">
             Hoe was de dag?
           </DialogTitle>
           <DialogDescription className="text-foreground/70">

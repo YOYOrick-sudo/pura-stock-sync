@@ -64,7 +64,7 @@ export function Invoerbalk({ children }: { children: ReactNode }) {
 }
 
 /** Klasse voor TabsList als aaneengesloten segmentbalk zonder gaten. */
-export const segmentTabsKlasse = 'flex h-auto w-full min-w-0 gap-0 p-1 sm:w-auto [&>button]:min-h-10 [&>button]:flex-1 [&>button]:gap-1.5 [&>button]:px-3 sm:[&>button]:flex-none';
+export const segmentTabsKlasse = 'flex h-auto w-full min-w-0 gap-0 p-1 sm:w-auto [&>button]:min-h-11 [&>button]:flex-1 [&>button]:gap-1.5 [&>button]:px-3 sm:[&>button]:flex-none';
 
 /* ===================== Kaarten & lijsten ===================== */
 

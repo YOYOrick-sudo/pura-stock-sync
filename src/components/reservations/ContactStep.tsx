@@ -50,7 +50,7 @@ const ContactStep = ({ data, onSubmit, onBack }: ContactStepProps) => {
 
   return (
     <div className="animate-slide-up max-w-md mx-auto">
-      <h2 className="text-2xl font-bold font-heading text-center mb-2">
+      <h2 className="text-2xl font-bold text-center mb-2">
         Your Details
       </h2>
       <p className="text-center text-muted-foreground mb-8">

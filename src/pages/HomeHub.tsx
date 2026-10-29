@@ -36,7 +36,7 @@ const HomeHub = () => {
         </div>
 
         {/* Title */}
-        <h2 className="text-2xl font-heading font-bold text-center text-foreground mb-6">
+        <h2 className="text-2xl font-bold text-center text-foreground mb-6">
           Dashboard
         </h2>
         
