@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ChevronDown, Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Building2 } from 'lucide-react';
+import { ChevronDown, Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Building2, Check, AlertCircle } from 'lucide-react';
+import { Kengetal, OverzichtKaart } from '@/components/layout/Paginapatronen';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Textarea } from '@/components/ui/textarea';
@@ -534,8 +535,8 @@ export default function Bestelbord() {
                 {SOORTEN.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button variant="secondary" className="h-11" onClick={voegToe} disabled={naam.trim().length < 2 || !vestiging || isLoading}>
-              <Plus className="h-4 w-4 mr-1" /> Erbij
+            <Button variant="outline" className="h-11 w-11 p-0" aria-label="Erbij zetten" onClick={voegToe} disabled={naam.trim().length < 2 || !vestiging || isLoading}>
+              <Check className="h-4 w-4" />
             </Button>
           </div>
           {eerderSuggesties.length > 0 && (
@@ -574,9 +575,11 @@ export default function Bestelbord() {
               </TabsContent>
             </div>
             <aside className="hidden min-w-0 space-y-3 lg:block">
-              <Card className="space-y-3 p-4"><div className="flex items-center gap-2 text-sm text-muted-foreground"><ClipboardList className="h-5 w-5" />Op het bord</div><div className="text-3xl font-semibold tabular-nums">{open.length}</div>{openPrijzen.length > 0 && <Badge variant="secondary">{euro(openPrijzen.reduce((n, p) => n + p.totaal, 0))}</Badge>}</Card>
-              <Card className="space-y-3 p-4"><div className="flex items-center gap-2 text-sm text-muted-foreground"><Truck className="h-5 w-5" />Onderweg</div><div className="text-3xl font-semibold tabular-nums">{besteld.length}</div>{!!teChecken.length && <Badge variant="secondary">{teChecken.length} vandaag te checken</Badge>}</Card>
-              <Card className="overflow-hidden"><div className="space-y-3 p-4"><div className="flex items-center gap-2 text-sm text-muted-foreground"><Building2 className="h-5 w-5" />Per leverancier</div><div className="text-3xl font-semibold tabular-nums">{openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : '—'}</div>{!!zonderPrijs && <Badge variant="secondary">zonder prijs {zonderPrijs}</Badge>}</div>{leveranciersTabel}</Card>
+              <OverzichtKaart kengetallen={<>
+                <Kengetal icoon={Building2} label="Open" waarde={openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : '—'} />
+                <Kengetal icoon={Truck} label="Te checken" waarde={teChecken.length} />
+                <Kengetal icoon={AlertCircle} label="Zonder prijs" waarde={zonderPrijs} toon={zonderPrijs ? 'let-op' : 'neutraal'} />
+              </>}>{leveranciersTabel}</OverzichtKaart>
             </aside>
           </div>
         </Tabs>
