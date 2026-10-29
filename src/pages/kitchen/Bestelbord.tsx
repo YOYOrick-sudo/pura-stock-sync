@@ -490,9 +490,6 @@ export default function Bestelbord() {
 
             {besteld.length > 0 && (
               <div className="space-y-3">
-                <p className="px-1 text-sm font-medium text-muted-foreground">
-                  Onderweg ({besteld.length})
-                </p>
                 {teChecken.length > 0 && (
                   <div className="space-y-2">
                     <p className="px-1 text-sm font-semibold">Vandaag te checken ({teChecken.length})</p>
