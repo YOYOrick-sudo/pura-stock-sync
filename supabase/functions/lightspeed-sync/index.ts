@@ -579,6 +579,23 @@ Deno.serve(async (req) => {
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
   const type = body?.type;
+
+  // Probe: veldnamen van een PAID-bon + productregel (geen tokens, geen schrijfacties).
+  if (type === 'probe_items') {
+    if (!['Midsland', 'West'].includes(body.vestiging)) return json({ error: 'invalid_vestiging' }, 400);
+    const tok = await getValidToken(admin, body.vestiging);
+    if ('error' in tok) return json({ ok: false, error: tok.error });
+    const url = `${RECEIPTS_URL}?date=${encodeURIComponent(body.datum)}&offset=0&limit=${RECEIPTS_PAGE_SIZE}`;
+    const resp = await fetch(url, { headers: { Authorization: `Bearer ${tok.token}`, Accept: 'application/json' } });
+    const parsed = await resp.json().catch(() => null);
+    const arr: any[] = Array.isArray(parsed) ? parsed : (parsed?.results ?? []);
+    const paid = arr.filter((r) => String(r?.status ?? '').toUpperCase() === 'PAID');
+    const r0 = paid[0] ?? {};
+    const arrayFields = Object.fromEntries(Object.entries(r0).filter(([, v]) => Array.isArray(v)).map(([k, v]) => [k, (v as any[]).length]));
+    const itemKey = ['items', 'receiptItems', 'lines', 'orderItems', 'products'].find((k) => Array.isArray((r0 as any)[k]));
+    const item0 = itemKey ? (r0 as any)[itemKey][0] : null;
+    return json({ ok: resp.ok, status: resp.status, n: arr.length, n_paid: paid.length, receipt_keys: Object.keys(r0), array_fields: arrayFields, item_key: itemKey ?? null, item_keys: item0 ? Object.keys(item0) : null, item_example: item0 });
+  }
   if (!['dagelijks', 'handmatig', 'backfill', 'auto'].includes(type)) {
     return json({ error: 'invalid_type' }, 400);
   }
