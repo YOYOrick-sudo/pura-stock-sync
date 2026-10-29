@@ -281,6 +281,13 @@
       "when": 1793265035856,
       "tag": "0039_horeko_tabellen",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1793265790931,
+      "tag": "0040_artikel_vormen_en_bord_suggesties",
+      "breakpoints": true
     }
   ]
 }

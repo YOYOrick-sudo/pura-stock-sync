@@ -487,6 +487,88 @@ export type Database = {
           },
         ]
       }
+      artikel_vormen: {
+        Row: {
+          artikel_id: string
+          artikelnummer: string | null
+          created_at: string
+          deleted_at: string | null
+          eenheid: string
+          id: string
+          is_standaard: boolean
+          keer_besteld: number
+          laatst_besteld: string | null
+          leverancier_id: string | null
+          prijs: number | null
+          prijs_bron: string | null
+          prijs_datum: string | null
+          prijs_is_indicatie: boolean
+          updated_at: string
+          vestiging: string
+          vorm: string
+        }
+        Insert: {
+          artikel_id: string
+          artikelnummer?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          eenheid: string
+          id?: string
+          is_standaard?: boolean
+          keer_besteld?: number
+          laatst_besteld?: string | null
+          leverancier_id?: string | null
+          prijs?: number | null
+          prijs_bron?: string | null
+          prijs_datum?: string | null
+          prijs_is_indicatie?: boolean
+          updated_at?: string
+          vestiging: string
+          vorm: string
+        }
+        Update: {
+          artikel_id?: string
+          artikelnummer?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          eenheid?: string
+          id?: string
+          is_standaard?: boolean
+          keer_besteld?: number
+          laatst_besteld?: string | null
+          leverancier_id?: string | null
+          prijs?: number | null
+          prijs_bron?: string | null
+          prijs_datum?: string | null
+          prijs_is_indicatie?: boolean
+          updated_at?: string
+          vestiging?: string
+          vorm?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artikel_vormen_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artikel_vormen_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artikel_vormen_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artikelen: {
         Row: {
           allergenen: Database["public"]["Enums"]["allergen"][]
@@ -5733,6 +5815,18 @@ export type Database = {
       print_bridge_mark_printed: {
         Args: { _vestiging: string }
         Returns: undefined
+      }
+      rpc_bord_suggesties: {
+        Args: { p_limit?: number; p_tekst: string; p_vestiging: string }
+        Returns: {
+          artikel_id: string
+          leverancier_id: string
+          naam: string
+          score: number
+          standaard_eenheid: string
+          standaard_vorm: string
+          vormen: Json
+        }[]
       }
       rpc_cijfers_heatmap: {
         Args: { p_tot: string; p_van: string; p_vestigingen: string[] }
