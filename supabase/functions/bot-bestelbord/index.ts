@@ -112,6 +112,35 @@ Deno.serve(async (req) => {
       return json(200, data);
     }
 
+    if (actie === "advies") {
+      const { datum, leverdag, regels } = body as Record<string, unknown>;
+      const okDatum = (v: unknown) => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(new Date(v + "T00:00:00Z").getTime());
+      const okUuid = (v: unknown) => v == null || UUID.test(String(v));
+      const okTekst = (v: unknown, max: number) => v == null || (typeof v === "string" && v.length <= max);
+      if (!okDatum(datum) || !okDatum(leverdag)) return fout(400, "datum en leverdag moeten YYYY-MM-DD zijn");
+      if (!Array.isArray(regels) || regels.length > 500 ||
+        !regels.every((r) => r && typeof r === "object" &&
+          typeof r.artikel === "string" && r.artikel.trim().length > 0 && r.artikel.length <= 200 &&
+          typeof r.hoeveelheid === "number" && Number.isFinite(r.hoeveelheid) && r.hoeveelheid >= 0 &&
+          okTekst(r.leverancier, 200) && okTekst(r.eenheid, 40) && okTekst(r.reden, 500) &&
+          (r.verwacht_verbruik == null || (typeof r.verwacht_verbruik === "number" && Number.isFinite(r.verwacht_verbruik))) &&
+          (r.onzeker == null || typeof r.onzeker === "boolean") &&
+          okUuid(r.artikel_id) && okUuid(r.artikel_vorm_id))) {
+        return fout(400, "regels: 0-500 items met artikel (tekst) en hoeveelheid (>= 0); overige velden optioneel");
+      }
+      const schoon = regels.map((r) => ({
+        artikel: r.artikel.trim(), leverancier: r.leverancier ?? null, hoeveelheid: r.hoeveelheid,
+        eenheid: r.eenheid ?? null, verwacht_verbruik: r.verwacht_verbruik ?? null, onzeker: r.onzeker ?? false,
+        reden: r.reden ?? null, artikel_id: r.artikel_id ?? null, artikel_vorm_id: r.artikel_vorm_id ?? null,
+      }));
+      const { data, error } = await db.rpc("bestelbot_advies_vervangen", {
+        p_vestiging: vestiging, p_datum: datum, p_leverdag: leverdag, p_regels: schoon,
+      });
+      if (error) return fout(400, error.message);
+      await sluit(true, { http_status: 200, resultaat: data });
+      return json(200, { ok: true, aantal: data?.aantal ?? 0, gekoppeld: data?.gekoppeld ?? 0 });
+    }
+
     return fout(400, "Onbekende actie");
   } catch (_e) {
     return fout(500, "Onverwachte fout");

@@ -72,3 +72,9 @@ Tabel `kassa_verkoop_dag`: per vestiging + werkdag (Europe/Amsterdam, kanteluur 
 - Uurlijkse sync (`lightspeed-sync`, `type: auto`, window hot) vervangt gisteren en vandaag volledig.
 - Inhaalslag: `POST lightspeed-sync {"type":"backfill_verkoop","vestiging":"West"}` verwerkt 7 dagen per aanroep vanaf 2025-01-01; voortgang in `sync_runs` (type backfill, details.doel = verkoop, state.cursor). Antwoord `klaar: true` = bij.
 - `omzet_excl/incl` = `totalPrice(WithoutVat)` van de regel; kortingen (`discountPrice`) worden niet apart verrekend.
+
+## Advies (0042) — 29 okt 2026
+- Tabel `bestel_advies`: drankadvies per vestiging + leverdag. Lezen via `heeft_vestiging`; gebruikers mogen alleen `op_bord_regel_id` bijwerken; schrijven verder alleen service role.
+- Functie `bestelbot_advies_vervangen` (alleen service_role): vervangt alle regels van vestiging+leverdag in één transactie, koppelt artikel/leverancier op exacte naam (hoofdletterongevoelig) en vorm (zelfde leverancier, anders standaard), behoudt `op_bord_regel_id` bij gelijk artikel+leverancier.
+- Bot: `POST {actie:"advies", vestiging, datum, leverdag, regels:[{artikel, leverancier?, hoeveelheid, eenheid?, verwacht_verbruik?, onzeker?, reden?, artikel_id?, artikel_vorm_id?}]}` → `{ok:true, aantal, gekoppeld}`. Max 500 regels. Maakt geen bordregels en bestelt niets.
+- UI: blok "Advies (nog niet besteld)" bovenaan het Bestelbord; "Op bord zetten" maakt een gewone open regel (of hoogt een open regel met dezelfde naam op).

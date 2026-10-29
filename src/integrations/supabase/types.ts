@@ -693,6 +693,95 @@ export type Database = {
         }
         Relationships: []
       }
+      bestel_advies: {
+        Row: {
+          artikel: string
+          artikel_id: string | null
+          artikel_vorm_id: string | null
+          created_at: string
+          datum: string
+          eenheid: string | null
+          hoeveelheid: number
+          id: string
+          leverancier: string | null
+          leverancier_id: string | null
+          leverdag: string
+          onzeker: boolean | null
+          op_bord_regel_id: string | null
+          reden: string | null
+          updated_at: string
+          verwacht_verbruik: number | null
+          vestiging: string
+        }
+        Insert: {
+          artikel: string
+          artikel_id?: string | null
+          artikel_vorm_id?: string | null
+          created_at?: string
+          datum: string
+          eenheid?: string | null
+          hoeveelheid?: number
+          id?: string
+          leverancier?: string | null
+          leverancier_id?: string | null
+          leverdag: string
+          onzeker?: boolean | null
+          op_bord_regel_id?: string | null
+          reden?: string | null
+          updated_at?: string
+          verwacht_verbruik?: number | null
+          vestiging: string
+        }
+        Update: {
+          artikel?: string
+          artikel_id?: string | null
+          artikel_vorm_id?: string | null
+          created_at?: string
+          datum?: string
+          eenheid?: string | null
+          hoeveelheid?: number
+          id?: string
+          leverancier?: string | null
+          leverancier_id?: string | null
+          leverdag?: string
+          onzeker?: boolean | null
+          op_bord_regel_id?: string | null
+          reden?: string | null
+          updated_at?: string
+          verwacht_verbruik?: number | null
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bestel_advies_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_advies_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_advies_artikel_vorm_id_fkey"
+            columns: ["artikel_vorm_id"]
+            isOneToOne: false
+            referencedRelation: "artikel_vormen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_advies_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bestel_historie_import: {
         Row: {
           aantal: number
@@ -5651,6 +5740,15 @@ export type Database = {
           http_status: number
           toegestaan: boolean
         }[]
+      }
+      bestelbot_advies_vervangen: {
+        Args: {
+          p_datum: string
+          p_leverdag: string
+          p_regels: Json
+          p_vestiging: string
+        }
+        Returns: Json
       }
       bestelbot_import_historie: {
         Args: { p_audit_id: string; p_rijen: Json; p_vestiging: string }
