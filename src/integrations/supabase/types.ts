@@ -5862,6 +5862,61 @@ export type Database = {
           },
         ]
       }
+      voorraad_telvraag: {
+        Row: {
+          created_at: string
+          datum: string
+          id: string
+          prioriteit_reden: string | null
+          status: string
+          telling_id: string | null
+          vestiging: string
+          voorraad_artikel_id: string
+        }
+        Insert: {
+          created_at?: string
+          datum: string
+          id?: string
+          prioriteit_reden?: string | null
+          status?: string
+          telling_id?: string | null
+          vestiging: string
+          voorraad_artikel_id: string
+        }
+        Update: {
+          created_at?: string
+          datum?: string
+          id?: string
+          prioriteit_reden?: string | null
+          status?: string
+          telling_id?: string | null
+          vestiging?: string
+          voorraad_artikel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voorraad_telvraag_telling_id_fkey"
+            columns: ["telling_id"]
+            isOneToOne: false
+            referencedRelation: "voorraad_telling"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voorraad_telvraag_voorraad_artikel_id_fkey"
+            columns: ["voorraad_artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_voorraad_stand"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voorraad_telvraag_voorraad_artikel_id_fkey"
+            columns: ["voorraad_artikel_id"]
+            isOneToOne: false
+            referencedRelation: "voorraad_artikel"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       voorraad_verbruik_koppeling: {
         Row: {
           factor: number
@@ -6347,9 +6402,11 @@ export type Database = {
           bestelbuffer: number | null
           correcties: number | null
           created_at: string | null
+          dagen_sinds_telling: number | null
           geteld: number | null
           id: string | null
           kassa: number | null
+          laatst_geteld_op: string | null
           laatste_telling: string | null
           laatste_telling_id: string | null
           naam: string | null
@@ -6363,9 +6420,20 @@ export type Database = {
           tellen_nodig: boolean | null
           telmoment: string | null
           telrol: string | null
+          telvraag_vandaag: boolean | null
           verbruiksopslag_pct: number | null
           vestiging: string | null
           volledig: boolean | null
+        }
+        Relationships: []
+      }
+      v_voorraad_telachterstand: {
+        Row: {
+          drie_dagen_niet_geteld: boolean | null
+          laatste_telling_op: string | null
+          opeenvolgende_dagen_niet_geteld: number | null
+          open_telvragen_vandaag: number | null
+          vestiging: string | null
         }
         Relationships: []
       }
@@ -6828,7 +6896,15 @@ export type Database = {
           volledig: boolean
         }[]
       }
+      voorraad_telachterstand_dagen: {
+        Args: { p_tot: string; p_vestiging: string }
+        Returns: number
+      }
       voorraad_teldeadline: { Args: { p_nu: string }; Returns: string }
+      voorraad_telvragen_plannen: {
+        Args: { p_datum?: string }
+        Returns: number
+      }
     }
     Enums: {
       allergen:

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { InfoKnop } from '@/components/foh/InfoKnop';
-import { amsterdamDatum, tellingTotaal, type TelPlek } from '@/lib/voorraadproef';
+import { amsterdamDatum, laatstGeteldTekst, tellingTotaal, type TelPlek } from '@/lib/voorraadproef';
 import { useVoorraadproef, type ProefStand, type ProefTelling, type TellingInvoer } from '@/hooks/useVoorraadproef';
 
 const getal = (n: number | null | undefined) => n == null ? '–' : new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 3 }).format(n);
@@ -18,6 +18,7 @@ function plekkenVan(a: ProefStand): TelPlek[] {
 export function Voorraadproef({ vestiging }: { vestiging: string }) {
   const { standen, opslaan } = useVoorraadproef(vestiging);
   const telNodig = (standen.data ?? []).some((a) => a.tellen_nodig);
+  const vandaag = (standen.data ?? []).filter((a) => a.telvraag_vandaag);
   const [open, setOpen] = useState<boolean | null>(null);
   const [rol, setRol] = useState<'bediening' | 'keuken'>('bediening');
   const [artikel, setArtikel] = useState<ProefStand | null>(null);
@@ -57,32 +58,40 @@ export function Voorraadproef({ vestiging }: { vestiging: string }) {
             <Button variant="ghost" className="group min-h-12 flex-1 justify-start gap-2 rounded-none px-3">
               <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
               <span>Even tellen</span>
-              {(standen.data ?? []).some((a) => a.tellen_nodig) && <Badge variant="secondary">tellen</Badge>}
+              {telNodig && <Badge variant="secondary">tellen</Badge>}
             </Button>
           </CollapsibleTrigger>
-          <InfoKnop tekst="Woensdag vóór opening. Koffie: alle espresso-bonen behalve decaf, ook open zakken en hopper. Fritz: koeling én magazijn. Berekend is een schatting; er wordt niets besteld." />
+          <InfoKnop tekst="Elke dag max 3 artikelen, roulerend. Tel alle plekken (ook open zakken/hopper bij koffie, koeling én magazijn bij drank). Berekend = laatste telling + ontvangen − kassaverbruik; er wordt niets besteld." />
         </div>
         <CollapsibleContent className="border-t border-border">
-          <div className="flex gap-2 p-3">
-            {(['bediening', 'keuken'] as const).map((r) => <Button key={r} variant={rol === r ? 'default' : 'outline'} className="min-h-11" onClick={() => setRol(r)} aria-pressed={rol === r}>{r === 'bediening' ? 'Bediening' : 'Keuken'}</Button>)}
-          </div>
-          {standen.isLoading ? <p className="p-3 text-sm text-muted-foreground">Laden…</p> : standen.isError ? <div role="alert" className="p-3 text-sm"><p>Voorraad niet opgehaald.</p><Button variant="outline" className="mt-2 min-h-11" onClick={() => standen.refetch()}>Opnieuw proberen</Button></div> : regels.length === 0 ? <p className="p-3 text-sm text-muted-foreground">Geen artikelen om te tellen</p> :
+          {standen.isLoading ? <p className="p-3 text-sm text-muted-foreground">Laden…</p> : standen.isError ? <div role="alert" className="p-3 text-sm"><p>Voorraad niet opgehaald.</p><Button variant="outline" className="mt-2 min-h-11" onClick={() => standen.refetch()}>Opnieuw proberen</Button></div> : <>
+            <h3 className="px-3 pt-3 text-sm font-semibold">Vandaag tellen</h3>
+            {vandaag.length === 0 ? <p className="px-3 pb-3 pt-1 text-sm text-muted-foreground">Vandaag niets te tellen</p> :
+              <div className="divide-y divide-border">{vandaag.map((a) => <div key={a.id} className="flex items-center gap-2 px-3 py-2">
+                <p className="min-w-0 flex-1 text-sm font-medium">{a.naam}</p>
+                {a.tellen_nodig ? <Button className="min-h-11 shrink-0 gap-1" onClick={() => begin(a)}><ClipboardCheck className="h-4 w-4" />Tellen</Button> : <span className="flex min-h-11 items-center gap-1 text-sm text-muted-foreground"><Check className="h-4 w-4 text-primary" />Geteld</span>}
+              </div>)}</div>}
+            <h3 className="border-t border-border px-3 pt-3 text-sm font-semibold">Voorraadlijst</h3>
+            <div className="flex gap-2 p-3">
+              {(['bediening', 'keuken'] as const).map((r) => <Button key={r} variant={rol === r ? 'default' : 'outline'} className="min-h-11" onClick={() => setRol(r)} aria-pressed={rol === r}>{r === 'bediening' ? 'Bediening' : 'Keuken'}</Button>)}
+            </div>
+            {regels.length === 0 ? <p className="p-3 text-sm text-muted-foreground">Geen artikelen om te tellen</p> :
             <div className="divide-y divide-border">
               {regels.map((a) => <div key={a.id} className="px-3 py-3">
                 <div className="flex items-start gap-2">
-                  <div className="min-w-0 flex-1"><p className="text-sm font-semibold">{a.naam}</p>{a.tellen_nodig && <Badge variant="secondary" className="mt-1">tellen</Badge>}</div>
+                  <div className="min-w-0 flex-1"><p className="text-sm font-semibold">{a.naam}</p><p className="text-xs text-muted-foreground">{laatstGeteldTekst(a.dagen_sinds_telling)}</p>{a.tellen_nodig && <Badge variant="secondary" className="mt-1">tellen</Badge>}</div>
                   <Button variant="outline" className="min-h-11 shrink-0 gap-1" onClick={() => begin(a)}><ClipboardCheck className="h-4 w-4" />Tellen</Button>
                 </div>
                 {!blind && <div className="mt-2 text-sm text-muted-foreground">
-                  {a.stand == null ? <p>{a.laatste_telling == null ? 'Begintelling nodig' : 'Voorraad onbekend'}</p> : <>
+                  {a.stand == null ? <p>Voorraad onbekend</p> : <>
                     <p className="flex flex-wrap gap-x-3 gap-y-1"><span>Geteld {getal(a.geteld)} {a.tel_eenheid}</span><span>+ ontvangen {getal(a.ontvangen)}</span><span>− kassa {getal(a.kassa)}</span><span className="font-semibold text-foreground">= {getal(a.stand)} {a.tel_eenheid}</span></p>
-                    {a.laatste_telling && <p className="mt-1 text-xs">Laatste telling {new Date(a.laatste_telling + 'T12:00:00').toLocaleDateString('nl-NL')}</p>}
                     <details className="mt-1"><summary className="min-h-11 cursor-pointer content-center">Correcties en opslag</summary><p>Correcties {getal(a.correcties)} · opslag {getal(a.opslag)} ({getal(a.verbruiksopslag_pct)}%)</p></details>
                     {!a.volledig && <Badge variant="secondary">onvolledig</Badge>}
                   </>}
                 </div>}
               </div>)}
             </div>}
+          </>}
         </CollapsibleContent>
       </Collapsible>
       <Dialog open={!!artikel} onOpenChange={(open) => { if (!open && !opslaan.isPending && !(resultaat && !resultaat.betrouwbaar)) setArtikel(null); }}>
