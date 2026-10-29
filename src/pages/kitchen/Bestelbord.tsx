@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Check, ChevronDown, MoreVertical, Minus, Plus, Truck, Undo2, X } from 'lucide-react';
+import { Check, ChevronDown, MoreVertical, Minus, Plus, Undo2, X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -20,7 +20,6 @@ import {
   useBestelSignalen, useBestelbordMutaties, useLeveranciers, useVestigingOpenDagen, useArtikelVormen, zoekBordSuggesties, useBestelAdvies,
   type BestelSignaal, type ArtikelVorm, type BordSuggestie, type BestelAdvies,
 } from '@/hooks/useBestelbord';
-import { BestelLeverancierLabel } from '@/components/kitchen/BestelLeverancierLabel';
 import { Voorraadproef } from '@/components/kitchen/Voorraadproef';
 import { useVoorraadproef } from '@/hooks/useVoorraadproef';
 import { PrijsPijl } from '@/components/kitchen/PrijsPijl';
@@ -505,7 +504,9 @@ export default function Bestelbord() {
       if (!m.has(key)) m.set(key, []);
       m.get(key)!.push(s);
     }
-    return [...m.entries()].map(([key, r]) => ({ titel: key.split('|')[0], regels: r }));
+    return [...m.entries()]
+      .map(([key, r]) => ({ titel: key.split('|')[0], regels: r }))
+      .sort((a, b) => (a.titel === ONBEKEND ? 1 : b.titel === ONBEKEND ? -1 : a.titel.localeCompare(b.titel)));
   };
 
   const { teChecken, onderweg, zonderDatum } = useMemo(() => {
@@ -776,6 +777,8 @@ export default function Bestelbord() {
     onDatum: openDatum,
     onNietGeleverd: (s: BestelSignaal) => openLeveringActie(s, 'niet'),
     onDeelsGeleverd: (s: BestelSignaal) => openLeveringActie(s, 'deels'),
+    prijsVan,
+    signaalVan,
   };
 
   const openBewerk = (s: BestelSignaal) => {
@@ -902,12 +905,19 @@ export default function Bestelbord() {
           {isLoading ? (
             <p className="py-6 text-center text-sm text-muted-foreground">Laden…</p>
           ) : (
-            <Card className="divide-y divide-border/60 overflow-hidden">
+            <Card className="overflow-hidden">
               {open.length === 0 ? (
                 <p className="px-3 py-3 text-sm text-muted-foreground">Niets openstaand.</p>
               ) : (
-                open.map((s) => (
-                  <Rij key={s.id} signaal={s} prijs={prijsVan(s)} prijsSignaal={signaalVan(s)} onBesteld={(b) => markeerBesteld(s, b)} onVervallen={() => vervallen(s)} onBewerk={() => openBewerk(s)} />
+                perLeverancier(open, leveranciers).map((g) => (
+                  <div key={g.titel}>
+                    <GroepKop titel={g.titel} regels={g.regels.length} prijzen={g.regels.map(prijsVan)} />
+                    <div className={cn('divide-y divide-border/60', g.titel === ONBEKEND && 'opacity-80')}>
+                      {g.regels.map((s) => (
+                        <Rij key={s.id} signaal={s} prijs={prijsVan(s)} prijsSignaal={signaalVan(s)} vandaagYmd={vandaagStr} onBesteld={(b) => markeerBesteld(s, b)} onVervallen={() => vervallen(s)} onBewerk={() => openBewerk(s)} />
+                      ))}
+                    </div>
+                  </div>
                 ))
               )}
             </Card>
@@ -956,19 +966,19 @@ export default function Bestelbord() {
                   {teChecken.length > 0 && (
                     <div className="space-y-2">
                       {kop('Vandaag te checken', teChecken.length)}
-                      {groepeer(teChecken).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}
+                      <Card className=\"overflow-hidden\">{groepeer(teChecken).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}</Card>
                     </div>
                   )}
                   {onderweg.length > 0 && (
                     <div className="space-y-2">
                       {kop('Onderweg', onderweg.length)}
-                      {groepeer(onderweg).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}
+                      <Card className=\"overflow-hidden\">{groepeer(onderweg).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}</Card>
                     </div>
                   )}
                   {zonderDatum.length > 0 && (
                     <div className="space-y-2">
                       {kop('Zonder datum', zonderDatum.length)}
-                      {groepeer(zonderDatum).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}
+                      <Card className=\"overflow-hidden\">{groepeer(zonderDatum).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}</Card>
                     </div>
                   )}
                 </>
@@ -1001,28 +1011,32 @@ export default function Bestelbord() {
                   Geleverd ({geleverd.length})
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <Card className="divide-y divide-border/60 overflow-hidden">
-                    {geleverd.map((s) => (
-                      <div key={s.id} className="flex min-h-12 items-center gap-2 px-3 py-1">
-                        <Check className="h-4 w-4 shrink-0 text-primary" />
-                        <div className="min-w-0 flex-1">
-                          <span className="block truncate text-[14px] text-muted-foreground line-through">{s.naam}</span>
-                          <span className="block truncate text-[12px] text-muted-foreground">
-                            {Number(s.aantal)} {s.eenheid}
-                            {s.geleverd_op && ` · ${datumLabel(s.geleverd_op)}`}
-                            {s.geleverd_door && namen?.get(s.geleverd_door) ? ` · ${namen.get(s.geleverd_door)}` : ''}
-                            {s.levering_status === 'deels' ? ' · deels' : ''}
-                            {s.levering_opmerking ? ` · ${s.levering_opmerking}` : ''}
-                          </span>
+                  <Card className="overflow-hidden">
+                    {perLeverancier(geleverd, leveranciers).map((g) => (
+                      <div key={g.titel}>
+                        <GroepKop titel={g.titel} regels={g.regels.length} prijzen={g.regels.map(prijsVan)} />
+                        <div className="divide-y divide-border/60">
+                          {g.regels.map((s) => (
+                            <TabelRij
+                              key={s.id}
+                              vinkje={<Cirkel aan label="Geleverd" />}
+                              naam={s.naam}
+                              doorgestreept
+                              titel={[s.geleverd_door && namen?.get(s.geleverd_door), s.levering_opmerking].filter(Boolean).join(' · ') || undefined}
+                              extra={s.levering_status === 'deels' ? <Badge variant="outline" className="shrink-0 px-1.5 py-0 text-[11px] font-normal">deels</Badge> : null}
+                              aantal={Number(s.aantal)}
+                              eenheid={s.eenheid}
+                              datum={s.geleverd_op ? datumLabel(s.geleverd_op) : ''}
+                              datumMobiel={false}
+                              prijs={prijsVan(s)}
+                              actie={
+                                <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-muted-foreground" aria-label="Toch niet geleverd, terug naar onderweg" onClick={() => terugNaarBesteld.mutate(s.id)}>
+                                  <Undo2 className="h-4 w-4" />
+                                </Button>
+                              }
+                            />
+                          ))}
                         </div>
-                        <Button
-                          variant="ghost"
-                          className="h-11 w-11 p-0 text-muted-foreground"
-                          aria-label="Toch niet geleverd, terug naar onderweg"
-                          onClick={() => terugNaarBesteld.mutate(s.id)}
-                        >
-                          <Undo2 className="h-4 w-4" />
-                        </Button>
                       </div>
                     ))}
                   </Card>
