@@ -1,12 +1,9 @@
 import { Fragment } from 'react';
-import { AlertCircle, Building2, Calculator, Check, ClipboardList, MoreVertical, Sparkles, Truck, Plus, Minus, X } from 'lucide-react';
+import { MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { GroepRij, Invoerbalk, Kengetal, LegeStaat, OverzichtKaart, SectieKop, StatusDot, segmentTabsKlasse } from '@/components/pura/patronen';
+import { GroepRij, StatusDot } from '@/components/pura/patronen';
 
 const rijen = [
   { lev: 'Boer & Chef', items: [['Tuinkers', '4 stuks', '€ 3,80'], ['Courgette', '5 stuks', '€ 3,20'], ['Aubergine', '1 doos', '']] },
