@@ -19,6 +19,7 @@ import {
   GERECHT_LABEL_SOORT,
   isGerechtLabel,
   voldoetAanGerechtFilter,
+  gerechtPrijzen,
   type GerechtLabel,
 } from '@/lib/gerecht-labels';
 
@@ -195,6 +196,7 @@ export default function Gerechten() {
         <DataTableHead className="w-[45%] md:w-[30%]">Gerecht</DataTableHead>
         <DataTableHead className="w-auto md:w-[38%]">Bevat</DataTableHead>
         <DataTableHead className="hidden md:table-cell w-auto">Kan bevatten</DataTableHead>
+        <DataTableHead className="w-[110px] text-right">Prijs</DataTableHead>
         {isManager && <DataTableHead className="w-[104px]"><span className="sr-only">Acties</span></DataTableHead>}
       </DataTableHeader>
       <DataTableBody>{rijen.map(renderRij)}</DataTableBody>
