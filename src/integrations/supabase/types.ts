@@ -6513,7 +6513,10 @@ export type Database = {
           horeko_bevat_mogelijk:
             | Database["public"]["Enums"]["allergen"][]
             | null
+          horeko_bevat_niet: Database["public"]["Enums"]["allergen"][] | null
           horeko_export_datum: string | null
+          horeko_gedeeltelijke_export: boolean | null
+          horeko_letop_onvolledig: boolean | null
           horeko_match: string | null
           horeko_onbekend: Database["public"]["Enums"]["allergen"][] | null
           horeko_recept_key: string | null

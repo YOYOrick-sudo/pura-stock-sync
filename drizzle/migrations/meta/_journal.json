@@ -372,6 +372,13 @@
       "when": 1793276187233,
       "tag": "0052_opslag_groepen",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1793276251201,
+      "tag": "0053_leercurve_opslag_groep",
+      "breakpoints": true
     }
   ]
 }
