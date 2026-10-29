@@ -30,6 +30,7 @@ import { BordTabel } from '@/components/kitchen/bestelbord/BordTabel';
 import { OnderwegTabel } from '@/components/kitchen/bestelbord/OnderwegTabel';
 import { AdviesTabel } from '@/components/kitchen/bestelbord/AdviesTabel';
 import { LeveranciersOverzicht } from '@/components/kitchen/bestelbord/LeveranciersOverzicht';
+import { eerderVrijeRegels, filterEerderSuggesties } from '@/lib/bordSnelkeuze';
 import { leverancierNaam } from '@/components/kitchen/bestelbord/presentatie';
 
 const SOORTEN = ['stuks', 'doos', 'zak', 'fles', 'pak', 'bak', 'emmer', 'kg', 'bos', 'tray', 'rol', 'fust'] as const;
@@ -242,17 +243,11 @@ export default function Bestelbord() {
   };
 
   // Eerder vrij getypte bordregels (zonder artikel), nieuwste eerst — snelkeuze zoals vroeger.
-  const eerderVrij = useMemo(() => {
-    const m = new Map<string, BestelSignaal>();
-    for (const s of signalen) if (!s.artikel_id && !m.has(norm(s.naam))) m.set(norm(s.naam), s);
-    return [...m.values()];
-  }, [signalen]);
-  const eerderSuggesties = useMemo(() => {
-    const q = norm(naam);
-    if (!q || gekozen) return [];
-    const inLijst = new Set(suggesties.map((s) => norm(s.naam)));
-    return eerderVrij.filter((s) => norm(s.naam).includes(q) && norm(s.naam) !== q && !inLijst.has(norm(s.naam))).slice(0, 8);
-  }, [naam, gekozen, eerderVrij, suggesties]);
+  const eerderVrij = useMemo(() => eerderVrijeRegels(signalen), [signalen]);
+  const eerderSuggesties = useMemo(
+    () => (gekozen ? [] : filterEerderSuggesties(eerderVrij, naam, suggesties.map((s) => s.naam))),
+    [naam, gekozen, eerderVrij, suggesties],
+  );
 
   const kiesEerder = (s: BestelSignaal) => {
     setNaam(s.naam);
