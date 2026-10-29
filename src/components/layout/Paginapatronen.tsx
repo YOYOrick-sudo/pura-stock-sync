@@ -13,12 +13,12 @@ export function SectieKop({ titel, teller, rechts }: { titel: ReactNode; teller?
 }
 
 /** Groepkop als tussenrij in één tabel: naam vet links, aantal en totaal rechts. */
-export function GroepRij({ naam, aantal, totaal, kolommen, gedimd = false }: { naam: ReactNode; aantal?: number; totaal?: ReactNode; kolommen: number; gedimd?: boolean }) {
+export function GroepRij({ naam, aantal, totaal, kolommen, gedimd = false, actie }: { naam: ReactNode; aantal?: number; totaal?: ReactNode; kolommen: number; gedimd?: boolean; actie?: ReactNode }) {
   return <TableRow className="bg-muted/50 hover:bg-muted/50">
     <TableCell colSpan={kolommen} className="h-9 py-0">
       <div className={cn('flex items-center justify-between gap-2 text-sm', gedimd ? 'text-muted-foreground' : 'text-foreground')}>
         <span className="min-w-0 truncate font-semibold">{naam}</span>
-        <span className="flex shrink-0 gap-3 tabular-nums text-muted-foreground">{aantal != null && <span>{aantal}</span>}{totaal != null && <span className="font-medium text-foreground">{totaal}</span>}</span>
+        <span className="flex shrink-0 gap-3 tabular-nums text-muted-foreground">{aantal != null && <span>{aantal}</span>}{totaal != null && <span className="font-medium text-foreground">{totaal}</span>}{actie}</span>
       </div>
     </TableCell>
   </TableRow>;
@@ -34,7 +34,7 @@ export function Kengetal({ icoon: Icoon, label, waarde, toon = 'neutraal' }: { i
 
 /** Eén samenvattingskaart: kengetallen in een rij, optioneel inhoud eronder. */
 export function OverzichtKaart({ kengetallen, children }: { kengetallen: ReactNode; children?: ReactNode }) {
-  return <Card className="overflow-hidden">
+  return <Card className="self-start overflow-hidden">
     <div className="grid grid-cols-3 gap-3 p-4">{kengetallen}</div>
     {children && <div className="border-t border-border">{children}</div>}
   </Card>;
@@ -43,3 +43,20 @@ export function OverzichtKaart({ kengetallen, children }: { kengetallen: ReactNo
 export function LegeStaat({ tekst }: { tekst: string }) {
   return <p className="py-6 text-center text-sm text-muted-foreground">{tekst}</p>;
 }
+
+/** Kleine stip met optioneel één woord. Toon: goed (groen), let-op (oranje), fout (rood), neutraal (grijs). */
+export function StatusDot({ toon = 'neutraal', label, verborgenLabel }: { toon?: 'goed' | 'let-op' | 'fout' | 'neutraal'; label?: string; verborgenLabel?: string }) {
+  const kleur = { goed: 'bg-primary', 'let-op': 'bg-warning', fout: 'bg-destructive', neutraal: 'bg-muted-foreground' }[toon];
+  return <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+    <span className={cn('h-2 w-2 shrink-0 rounded-full', kleur)} aria-hidden />
+    {label}{verborgenLabel && <span className="sr-only">{verborgenLabel}</span>}
+  </span>;
+}
+
+/** Invoerbalk: zoekveld, aantal en eenheid in één omlijnd vlak. Kinderen zijn randloos. */
+export function Invoerbalk({ children }: { children: ReactNode }) {
+  return <div className="flex min-w-0 flex-wrap items-center gap-1 rounded-polar-md border border-input bg-background p-1 sm:flex-nowrap [&_input]:border-0 [&_input]:shadow-none [&_input]:focus-visible:ring-0 [&_input]:focus-visible:ring-offset-0">{children}</div>;
+}
+
+/** Klasse voor TabsList als aaneengesloten segmentbalk zonder gaten. */
+export const segmentTabsKlasse = 'flex h-auto w-full min-w-0 gap-0 p-1 sm:w-auto [&>button]:min-h-10 [&>button]:flex-1 [&>button]:gap-1.5 [&>button]:px-3 sm:[&>button]:flex-none';

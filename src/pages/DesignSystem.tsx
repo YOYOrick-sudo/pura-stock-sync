@@ -1,3 +1,4 @@
+import { BasisVoorbeelden, PaginapatroonVoorbeelden, RegelVoorbeelden } from '@/components/layout/PatronenVoorbeelden';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -545,14 +546,17 @@ const ErrorState = () => (
 // ==================== NAVIGATION ITEMS ====================
 
 const navItems = [
+  { id: 'basis', label: 'Basis', icon: '◻️' },
+  { id: 'patronen', label: 'Paginapatronen', icon: '🧩' },
+  { id: 'regels', label: 'Regels', icon: '✅' },
   { id: 'colors', label: 'Kleuren', icon: '🎨' },
-  { id: 'typography', label: 'Typography', icon: '📝' },
-  { id: 'borders', label: 'Borders', icon: '🔲' },
-  { id: 'radius', label: 'Border Radius', icon: '⬜' },
-  { id: 'buttons', label: 'Buttons', icon: '🔘' },
+  { id: 'typography', label: 'Tekst', icon: '📝' },
+  { id: 'borders', label: 'Randen', icon: '🔲' },
+  { id: 'radius', label: 'Afronding', icon: '⬜' },
+  { id: 'buttons', label: 'Knoppen', icon: '🔘' },
   { id: 'forms', label: 'Formulieren', icon: '📋' },
-  { id: 'cards', label: 'Cards', icon: '🃏' },
-  { id: 'data', label: 'Data Display', icon: '📊' },
+  { id: 'cards', label: 'Kaarten', icon: '🃏' },
+  { id: 'data', label: 'Data', icon: '📊' },
   { id: 'feedback', label: 'Feedback', icon: '💬' },
   { id: 'modules', label: 'Modules', icon: '📦' },
 ];
@@ -560,7 +564,7 @@ const navItems = [
 // ==================== MAIN COMPONENT ====================
 
 const DesignSystem = () => {
-  const [activeSection, setActiveSection] = useState('colors');
+  const [activeSection, setActiveSection] = useState('basis');
 
   const scrollToSection = (id: string) => {
     setActiveSection(id);
@@ -613,7 +617,16 @@ const DesignSystem = () => {
           </nav>
 
           {/* Main Content */}
-          <main className="flex-1 space-y-12">
+          <main className="flex-1 min-w-0 space-y-12">
+            <Section id="basis" title="Basis" description="Tekstniveaus, afstand en statuskleur">
+              <BasisVoorbeelden />
+            </Section>
+            <Section id="patronen" title="Paginapatronen" description="Zo ziet een modulepagina eruit. Bouw nieuwe schermen hiermee.">
+              <PaginapatroonVoorbeelden />
+            </Section>
+            <Section id="regels" title="Regels" description="Doe en niet, naast elkaar">
+              <RegelVoorbeelden />
+            </Section>
             
             {/* ==================== COLORS ==================== */}
             <Section id="colors" title="Kleurenpalet" description="De basis van ons design systeem">
@@ -656,7 +669,7 @@ const DesignSystem = () => {
             </Section>
 
             {/* ==================== TYPOGRAPHY ==================== */}
-            <Section id="typography" title="Typography" description="Tekststijlen en hiërarchie">
+            <Section id="typography" title="Tekst" description="Tekststijlen en hiërarchie">
               <div className="space-y-6">
                 <div className="space-y-4">
                   <div className="p-4 rounded-xl bg-muted">
@@ -692,7 +705,7 @@ const DesignSystem = () => {
             </Section>
 
             {/* ==================== BORDERS ==================== */}
-            <Section id="borders" title="Borders" description="Border dikte en kleur standaarden">
+            <Section id="borders" title="Randen" description="Dikte en kleur van randen">
               <div className="space-y-8">
                 <SubSection title="Border Dikte Hiërarchie">
                   <div className="p-4 rounded-polar-lg bg-pv-success/10 border border-pv-success/25 mb-6">
@@ -829,7 +842,7 @@ const DesignSystem = () => {
             </Section>
 
             {/* ==================== BORDER RADIUS ==================== */}
-            <Section id="radius" title="Border Radius" description="Consistente afronding hiërarchie">
+            <Section id="radius" title="Afronding" description="Consistente afronding hiërarchie">
               <div className="space-y-8">
                 <SubSection title="Radius Waarden">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -920,7 +933,7 @@ const DesignSystem = () => {
             </Section>
 
             {/* ==================== BUTTONS ==================== */}
-            <Section id="buttons" title="Buttons" description="Interactieve elementen voor acties">
+            <Section id="buttons" title="Knoppen" description="Eén primaire knop per pagina">
               <div className="space-y-8">
                 <SubSection title="Varianten">
                   <div className="flex flex-wrap gap-4">
@@ -933,7 +946,7 @@ const DesignSystem = () => {
                   </div>
                 </SubSection>
 
-                <SubSection title="Sizes">
+                <SubSection title="Groottes">
                   <div className="flex flex-wrap items-center gap-4">
                     <Button size="sm">Small</Button>
                     <Button>Default</Button>
@@ -942,7 +955,7 @@ const DesignSystem = () => {
                   </div>
                 </SubSection>
 
-                <SubSection title="Met iconen">
+                <SubSection title="Met icoon">
                   <div className="flex flex-wrap gap-4">
                     <Button><Plus className="w-4 h-4" />Toevoegen</Button>
                     <Button variant="outline"><Download className="w-4 h-4" />Download</Button>
@@ -950,7 +963,7 @@ const DesignSystem = () => {
                   </div>
                 </SubSection>
 
-                <SubSection title="States">
+                <SubSection title="Toestanden">
                   <div className="flex flex-wrap gap-4">
                     <Button>Enabled</Button>
                     <Button disabled>Disabled</Button>
@@ -1027,17 +1040,8 @@ const DesignSystem = () => {
             </Section>
 
             {/* ==================== CARDS ==================== */}
-            <Section id="cards" title="Cards" description="Container componenten voor content">
+            <Section id="cards" title="Kaarten" description="Container componenten voor content">
               <div className="space-y-8">
-                <SubSection title="KPI Cards">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <KPICard title="Omzet vandaag" value="€2.847" icon={Euro} trend={{ value: "+12%", positive: true }} />
-                    <KPICard title="Gasten" value="156" icon={Users} trend={{ value: "+8%", positive: true }} subtitle="23 reserveringen" />
-                    <KPICard title="Gemiddelde tijd" value="42 min" icon={Clock} trend={{ value: "-5%", positive: true }} />
-                    <KPICard title="Open taken" value="12" icon={ClipboardList} />
-                  </div>
-                </SubSection>
-
                 <SubSection title="Content Card">
                   <div className="max-w-md">
                     <div className="bg-card rounded-polar-lg border border-border overflow-hidden hover:shadow-elevated transition-all">
@@ -1080,7 +1084,7 @@ const DesignSystem = () => {
             </Section>
 
             {/* ==================== DATA DISPLAY ==================== */}
-            <Section id="data" title="Data Display" description="Tabellen, badges en status indicators">
+            <Section id="data" title="Data" description="Tabellen, badges en status indicators">
               <div className="space-y-8">
                 <SubSection title="Badges">
                   <div className="flex flex-wrap gap-3">
