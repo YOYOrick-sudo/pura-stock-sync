@@ -23,6 +23,8 @@ import { AllergenenBadges } from '@/components/kitchen/AllergenenBadges';
 import { useReceptAllergenen } from '@/hooks/useAllergenen';
 import { MethodesKaart } from '@/components/kitchen/MethodesKaart';
 import { useRole } from '@/hooks/useRole';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 function formatIngredient(hoeveelheid?: string | null, eenheid?: string | null, naam?: string) {
   return `${hoeveelheid ?? ''} ${eenheid ?? ''} ${naam ?? ''}`.replace(/\s+/g, ' ').trim();
@@ -36,6 +38,7 @@ export default function RecipeDetail() {
   const deleteMut = useDeleteRecipe();
   const { data: allergenen } = useReceptAllergenen(id);
   const { isManager } = useRole();
+  const isMobile = useIsMobile();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
   const [printAantal, setPrintAantal] = useState(1);
@@ -76,7 +79,7 @@ export default function RecipeDetail() {
         <button
           type="button"
           onClick={() => navigate('/kitchen/recipes')}
-          className="inline-flex items-center gap-1 -mx-1 px-1 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className={cn('inline-flex items-center gap-1 -mx-1 px-1 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors', isMobile && 'min-h-11')}
         >
           <ChevronLeft className="w-4 h-4" />
           Recepten
@@ -84,12 +87,17 @@ export default function RecipeDetail() {
 
         {/* Header */}
         <Card className="bg-card shadow-sm">
-          <div className="p-5 sm:p-6">
-            <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className={isMobile ? 'p-4' : 'p-5 sm:p-6'}>
+            <div className={isMobile ? 'flex items-start justify-between gap-3 flex-wrap' : 'flex items-start justify-between gap-4 flex-wrap'}>
               <div className="flex-1 min-w-0">
-                <h1 className="font-semibold text-2xl tracking-tight text-foreground mb-2">
-                  {recipe.name}
-                </h1>
+                {/* Telefoon: naam één keer compact, geen tweede grote kop naast de app-header. */}
+                {isMobile ? (
+                  <p className="mb-2 text-base font-semibold text-foreground">{recipe.name}</p>
+                ) : (
+                  <h1 className="font-semibold text-2xl tracking-tight text-foreground mb-2">
+                    {recipe.name}
+                  </h1>
+                )}
                 <div className="flex items-center gap-2 flex-wrap">
                   {recipe.category && (
                     <Badge variant="secondary" className="text-xs rounded-full font-normal">
@@ -131,7 +139,7 @@ export default function RecipeDetail() {
                       size="icon"
                       disabled={createPrintJob.isPending}
                       title="Print sticker"
-                      className="h-10 w-10"
+                      className={isMobile ? 'h-11 w-11' : 'h-10 w-10'}
                     >
                       <Printer className="w-4 h-4" />
                     </Button>
@@ -146,7 +154,7 @@ export default function RecipeDetail() {
                           type="button"
                           onClick={() => setPrintAantal((n) => Math.max(1, n - 1))}
                           disabled={printAantal <= 1}
-                          className="h-9 w-9 rounded-polar-md border border-input bg-card hover:bg-muted disabled:opacity-40 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          className={cn(isMobile ? 'h-11 w-11' : 'h-9 w-9', 'rounded-polar-md border border-input bg-card hover:bg-muted disabled:opacity-40 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring')}
                           aria-label="Minder"
                         >
                           <Minus className="h-4 w-4" />
@@ -159,7 +167,7 @@ export default function RecipeDetail() {
                           type="button"
                           onClick={() => setPrintAantal((n) => Math.min(20, n + 1))}
                           disabled={printAantal >= 20}
-                          className="h-9 w-9 rounded-polar-md border border-input bg-card hover:bg-muted disabled:opacity-40 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          className={cn(isMobile ? 'h-11 w-11' : 'h-9 w-9', 'rounded-polar-md border border-input bg-card hover:bg-muted disabled:opacity-40 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring')}
                           aria-label="Meer"
                         >
                           <Plus className="h-4 w-4" />
@@ -191,7 +199,7 @@ export default function RecipeDetail() {
                   variant="outline"
                   onClick={() => setConfirmOpen(true)}
                   title="Verwijderen"
-                  className="h-10 w-10 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+                  className={isMobile ? 'h-11 w-11 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30' : "h-10 w-10 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
