@@ -34,7 +34,7 @@ export function Kengetal({ icoon: Icoon, label, waarde, toon = 'neutraal' }: { i
 
 /** Eén samenvattingskaart: kengetallen in een rij, optioneel inhoud eronder. */
 export function OverzichtKaart({ kengetallen, children }: { kengetallen: ReactNode; children?: ReactNode }) {
-  return <Card className="overflow-hidden">
+  return <Card className="self-start overflow-hidden">
     <div className="grid grid-cols-3 gap-3 p-4">{kengetallen}</div>
     {children && <div className="border-t border-border">{children}</div>}
   </Card>;

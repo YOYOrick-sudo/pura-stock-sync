@@ -17,7 +17,7 @@ function VoorbeeldTabel() {
   return <Table className="table-fixed [&_td]:px-2 [&_td]:py-0 [&_th]:h-9 [&_th]:px-2">
     <TableHeader><TableRow><TableHead className="w-14" /><TableHead>Product</TableHead><TableHead className="w-24 text-right">Aantal</TableHead><TableHead className="w-24 text-right">Prijs</TableHead><TableHead className="w-14" /></TableRow></TableHeader>
     <TableBody>{rijen.map((g) => <Fragment key={g.lev}>
-      <GroepRij kolommen={5} naam={g.lev} aantal={g.items.length} totaal="€ 19,40" />
+      <GroepRij kolommen={5} naam={g.lev} aantal={g.items.length} totaal={g.lev === 'Bidfood' ? '€ 12,40' : '€ 7,00'} />
       {g.items.map(([n, a, p]) => <TableRow key={n}>
         <TableCell><span className="flex h-11 w-11 items-center justify-center"><Checkbox aria-label={n} /></span></TableCell>
         <TableCell className="truncate font-medium">{n}</TableCell>
@@ -84,7 +84,7 @@ export function PaginapatroonVoorbeelden() {
           </Invoerbalk>
           <VoorbeeldTabel />
         </div>
-        <OverzichtKaart kengetallen={<><Kengetal icoon={Building2} label="Open" waarde="€ 184" /><Kengetal icoon={Truck} label="Te checken" waarde={1} /><Kengetal icoon={AlertCircle} label="Zonder prijs" waarde={4} toon="let-op" /></>} />
+        <OverzichtKaart kengetallen={<><Kengetal icoon={Building2} label="Open" waarde="€ 184" /><Kengetal icoon={Truck} label="Checken" waarde={1} /><Kengetal icoon={AlertCircle} label="Geen prijs" waarde={4} toon="let-op" /></>} />
       </div>
     </div>
     <div className="grid gap-6 sm:grid-cols-2">

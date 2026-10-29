@@ -575,8 +575,8 @@ export default function Bestelbord() {
             <aside className="hidden min-w-0 space-y-3 lg:block">
               <OverzichtKaart kengetallen={<>
                 <Kengetal icoon={Building2} label="Open" waarde={openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : '—'} />
-                <Kengetal icoon={Truck} label="Te checken" waarde={teChecken.length} />
-                <Kengetal icoon={AlertCircle} label="Zonder prijs" waarde={zonderPrijs} toon={zonderPrijs ? 'let-op' : 'neutraal'} />
+                <Kengetal icoon={Truck} label="Checken" waarde={teChecken.length} />
+                <Kengetal icoon={AlertCircle} label="Geen prijs" waarde={zonderPrijs} toon={zonderPrijs ? 'let-op' : 'neutraal'} />
               </>}>{leveranciersTabel}</OverzichtKaart>
             </aside>
           </div>
