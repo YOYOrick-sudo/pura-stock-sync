@@ -1,26 +1,33 @@
-import { useRef, useState } from 'react';
-import { ChevronDown, Check, ClipboardCheck } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Check, ChevronDown, Circle, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { InfoKnop } from '@/components/foh/InfoKnop';
-import { amsterdamDatum, laatstGeteldTekst, tellingTotaal, type TelPlek } from '@/lib/voorraadproef';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { amsterdamDatum, tellingTotaal, type TelPlek } from '@/lib/voorraadproef';
 import { useVoorraadproef, type ProefStand, type ProefTelling, type TellingInvoer } from '@/hooks/useVoorraadproef';
+import { telMoment } from './bestelbord/presentatie';
 
-const getal = (n: number | null | undefined) => n == null ? '–' : new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 3 }).format(n);
+const getal = (n: number | null | undefined) => n == null ? '—' : new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 3 }).format(n);
 function plekkenVan(a: ProefStand): TelPlek[] {
   if (!Array.isArray(a.opslagplekken)) return [];
   return a.opslagplekken.flatMap((p) => p && typeof p === 'object' && !Array.isArray(p) && typeof p.naam === 'string' && typeof p.eenheid === 'string' && typeof p.factor === 'number' ? [{ naam: p.naam, eenheid: p.eenheid, factor: p.factor }] : []);
 }
 
-export function Voorraadproef({ vestiging }: { vestiging: string }) {
+export function Voorraadproef({ vestiging, onOverzicht }: { vestiging: string; onOverzicht?: (a: { open: number; geladen: boolean }) => void }) {
   const { standen, opslaan } = useVoorraadproef(vestiging);
-  const telNodig = (standen.data ?? []).some((a) => a.tellen_nodig);
-  const vandaag = (standen.data ?? []).filter((a) => a.telvraag_vandaag);
-  const [open, setOpen] = useState<boolean | null>(null);
-  const [rol, setRol] = useState<'bediening' | 'keuken'>('bediening');
+  const artikelen = standen.data ?? [];
+  const openVragen = artikelen.filter((a) => a.tellen_nodig).length;
+  useEffect(() => { onOverzicht?.({ open: openVragen, geladen: standen.isSuccess }); }, [openVragen, standen.isSuccess, onOverzicht]);
+  const [rolKeuze, setRol] = useState<string | null>(null);
+  const rollen = ['bediening', 'keuken'].filter((r) => artikelen.some((a) => a.telrol === r));
+  const rol = rolKeuze && rollen.includes(rolKeuze) ? rolKeuze : rollen[0];
+  const regels = artikelen.filter((a) => !rol || a.telrol === rol);
+  const vandaag = regels.filter((a) => a.telvraag_vandaag);
+  const overige = regels.filter((a) => !a.telvraag_vandaag);
+  const geteld = vandaag.filter((a) => !a.tellen_nodig).length;
   const [artikel, setArtikel] = useState<ProefStand | null>(null);
   const [waarden, setWaarden] = useState<Record<string, string>>({});
   const [moment, setMoment] = useState<'voor_opening' | 'na_sluiting'>('voor_opening');
@@ -28,14 +35,15 @@ export function Voorraadproef({ vestiging }: { vestiging: string }) {
   const [ouder, setOuder] = useState<ProefTelling | null>(null);
   const [fout, setFout] = useState('');
   const pending = useRef<TellingInvoer | null>(null);
-  const regels = (standen.data ?? []).filter((a) => a.telrol === rol);
   const plekken = artikel ? plekkenVan(artikel) : [];
   const totaal = tellingTotaal(plekken, waarden);
-  const blind = !!artikel && (!resultaat || !resultaat.betrouwbaar);
+  const vergrendeld = opslaan.isPending || !!fout || !!(resultaat && !resultaat.betrouwbaar);
 
   const begin = (a: ProefStand) => {
+    if (vergrendeld) return;
+    if (artikel?.id === a.id) { setArtikel(null); return; }
     setArtikel(a); setWaarden({}); setResultaat(null); setOuder(null); setFout(''); pending.current = null;
-    setMoment(a.telmoment === 'na_sluiting' ? 'na_sluiting' : 'voor_opening');
+    setMoment(telMoment(a.telmoment));
   };
   const bewaar = async () => {
     if (!artikel?.id || totaal == null || opslaan.isPending) return;
@@ -50,61 +58,38 @@ export function Voorraadproef({ vestiging }: { vestiging: string }) {
     catch (e) { setFout(`Niet opgeslagen. Je invoer blijft staan. ${e instanceof Error ? e.message : 'Probeer opnieuw.'}`); }
   };
 
-  return (
-    <section className="overflow-hidden rounded-polar-xl border border-border bg-card">
-      <Collapsible open={open ?? telNodig} onOpenChange={setOpen}>
-        <div className="flex items-center pr-3">
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" className="group min-h-12 flex-1 justify-start gap-2 rounded-none px-3">
-              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-              <span>Even tellen</span>
-              {telNodig && <Badge variant="secondary">tellen</Badge>}
-            </Button>
-          </CollapsibleTrigger>
-          <InfoKnop tekst="Elke dag max 3 artikelen, roulerend. Tel alle plekken (ook open zakken/hopper bij koffie, koeling én magazijn bij drank). Berekend = laatste telling + ontvangen − kassaverbruik; er wordt niets besteld." />
-        </div>
-        <CollapsibleContent className="border-t border-border">
-          {standen.isLoading ? <p className="p-3 text-sm text-muted-foreground">Laden…</p> : standen.isError ? <div role="alert" className="p-3 text-sm"><p>Voorraad niet opgehaald.</p><Button variant="outline" className="mt-2 min-h-11" onClick={() => standen.refetch()}>Opnieuw proberen</Button></div> : <>
-            <h3 className="px-3 pt-3 text-sm font-semibold">Vandaag tellen</h3>
-            {vandaag.length === 0 ? <p className="px-3 pb-3 pt-1 text-sm text-muted-foreground">Vandaag niets te tellen</p> :
-              <div className="divide-y divide-border">{vandaag.map((a) => <div key={a.id} className="flex items-center gap-2 px-3 py-2">
-                <p className="min-w-0 flex-1 text-sm font-medium">{a.naam}</p>
-                {a.tellen_nodig ? <Button className="min-h-11 shrink-0 gap-1" onClick={() => begin(a)}><ClipboardCheck className="h-4 w-4" />Tellen</Button> : <span className="flex min-h-11 items-center gap-1 text-sm text-muted-foreground"><Check className="h-4 w-4 text-primary" />Geteld</span>}
-              </div>)}</div>}
-            <h3 className="border-t border-border px-3 pt-3 text-sm font-semibold">Voorraadlijst</h3>
-            <div className="flex gap-2 p-3">
-              {(['bediening', 'keuken'] as const).map((r) => <Button key={r} variant={rol === r ? 'default' : 'outline'} className="min-h-11" onClick={() => setRol(r)} aria-pressed={rol === r}>{r === 'bediening' ? 'Bediening' : 'Keuken'}</Button>)}
-            </div>
-            {regels.length === 0 ? <p className="p-3 text-sm text-muted-foreground">Geen artikelen om te tellen</p> :
-            <div className="divide-y divide-border">
-              {regels.map((a) => <div key={a.id} className="px-3 py-3">
-                <div className="flex items-start gap-2">
-                  <div className="min-w-0 flex-1"><p className="text-sm font-semibold">{a.naam}</p><p className="text-xs text-muted-foreground">{laatstGeteldTekst(a.dagen_sinds_telling)}</p>{a.tellen_nodig && <Badge variant="secondary" className="mt-1">tellen</Badge>}</div>
-                  <Button variant="outline" className="min-h-11 shrink-0 gap-1" onClick={() => begin(a)}><ClipboardCheck className="h-4 w-4" />Tellen</Button>
-                </div>
-                {!blind && <div className="mt-2 text-sm text-muted-foreground">
-                  {a.stand == null ? <p>Voorraad onbekend</p> : <>
-                    <p className="flex flex-wrap gap-x-3 gap-y-1"><span>Geteld {getal(a.geteld)} {a.tel_eenheid}</span><span>+ ontvangen {getal(a.ontvangen)}</span><span>− kassa {getal(a.kassa)}</span><span className="font-semibold text-foreground">= {getal(a.stand)} {a.tel_eenheid}</span></p>
-                    <details className="mt-1"><summary className="min-h-11 cursor-pointer content-center">Correcties en opslag</summary><p>Correcties {getal(a.correcties)} · opslag {getal(a.opslag)} ({getal(a.verbruiksopslag_pct)}%)</p></details>
-                    {!a.volledig && <Badge variant="secondary">onvolledig</Badge>}
-                  </>}
-                </div>}
-              </div>)}
-            </div>}
-          </>}
-        </CollapsibleContent>
-      </Collapsible>
-      <Dialog open={!!artikel} onOpenChange={(open) => { if (!open && !opslaan.isPending && !(resultaat && !resultaat.betrouwbaar)) setArtikel(null); }}>
-        <DialogContent className="max-w-[650px]">
-          <DialogHeader><DialogTitle>{artikel?.naam}</DialogTitle></DialogHeader>
-          {resultaat && !resultaat.betrouwbaar ? <div className="space-y-3"><p className="font-medium">Tel nog één keer</p><Button className="min-h-12 w-full" onClick={() => { setOuder(resultaat); setResultaat(null); setWaarden({}); setFout(''); pending.current = null; }}>Opnieuw tellen</Button></div> : resultaat ? <div className="space-y-3"><p className="flex items-center gap-2 font-medium"><Check className="h-4 w-4 text-primary" />Opgeslagen: {getal(resultaat.totaal)} {artikel?.tel_eenheid}</p>{resultaat.berekend_op_moment != null && <p className="text-sm text-muted-foreground">Berekend vóór telling {getal(resultaat.berekend_op_moment)} · verschil {getal(resultaat.totaal - resultaat.berekend_op_moment)}</p>}<Button className="min-h-12 w-full" onClick={() => setArtikel(null)}>Klaar</Button></div> : <div className="space-y-3">
-            {!ouder && <div className="flex flex-wrap gap-2">{(['voor_opening', 'na_sluiting'] as const).map((m) => <Button key={m} disabled={opslaan.isPending || !!pending.current} variant={moment === m ? 'default' : 'outline'} className="min-h-11" onClick={() => setMoment(m)}>{m === 'voor_opening' ? 'Vóór opening' : 'Na sluiting'}</Button>)}</div>}
-            {plekken.map((p) => <label key={p.naam} className="block text-sm font-medium">{p.naam} <span className="font-normal text-muted-foreground">({p.eenheid})</span><Input className="mt-1 h-12 text-base" inputMode="decimal" value={waarden[p.naam] ?? ''} disabled={opslaan.isPending || !!pending.current} onChange={(e) => setWaarden((w) => ({ ...w, [p.naam]: e.target.value }))} /></label>)}
-            {fout && <p role="alert" className="text-sm text-destructive">{fout}</p>}
-            <Button className="min-h-12 w-full" disabled={totaal == null || opslaan.isPending} onClick={bewaar}>{opslaan.isPending ? 'Opslaan…' : fout ? 'Opnieuw opslaan' : 'Opslaan'}</Button>
-          </div>}
-        </DialogContent>
-      </Dialog>
-    </section>
-  );
+  const rij = (a: ProefStand) => {
+    const actief = !!artikel && artikel.id === a.id;
+    const blind = actief && (!resultaat || !resultaat.betrouwbaar);
+    const gereed = actief && resultaat?.betrouwbaar;
+    const status = gereed || (a.telvraag_vandaag && !a.tellen_nodig) ? 'geteld' : a.tellen_nodig ? 'tellen' : 'onbekend';
+    return <div key={a.id} className="border-b border-border last:border-0">
+      <Button variant="ghost" className="min-h-12 h-auto w-full justify-between gap-3 rounded-none px-3 py-2 text-left" onClick={() => begin(a)} disabled={vergrendeld} aria-expanded={actief}>
+        <span className="min-w-0 break-words font-medium">{a.naam}</span>
+        <span className="flex shrink-0 items-center gap-2 text-sm">
+          {!blind && !a.tellen_nodig && (gereed || a.stand != null) ? <span className="font-semibold tabular-nums">{getal(gereed ? resultaat?.totaal : a.stand)} <span className="font-normal text-muted-foreground">{a.tel_eenheid}</span></span> : <span className="flex items-center gap-1 text-muted-foreground"><Circle className={status === 'geteld' ? 'h-2 w-2 fill-primary text-primary' : status === 'tellen' ? 'h-2 w-2 fill-warning text-warning' : 'h-2 w-2 fill-muted-foreground text-muted-foreground'} />{status}</span>}
+          <ChevronDown className={actief ? 'h-4 w-4 rotate-180 text-muted-foreground' : 'h-4 w-4 text-muted-foreground'} />
+        </span>
+      </Button>
+      {actief && <div className="space-y-3 bg-muted/30 px-3 pb-3 pt-2">
+        {resultaat && !resultaat.betrouwbaar ? <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-medium">Tel nog één keer</p><Button className="min-h-11" onClick={() => { setOuder(resultaat); setResultaat(null); setWaarden({}); setFout(''); pending.current = null; }}>Opnieuw tellen</Button></div> : resultaat ? <p className="flex items-center gap-2 font-medium"><Check className="h-4 w-4 text-primary" />Opgeslagen: {getal(resultaat.totaal)} {a.tel_eenheid}</p> : <>
+          <div className="grid gap-3 sm:grid-cols-3">{plekken.map((p) => <label key={p.naam} className="min-w-0 text-sm font-medium">{p.naam}<div className="relative mt-1"><Input aria-label={`${a.naam} ${p.naam}`} className="h-11 pr-16 text-base" inputMode="decimal" value={waarden[p.naam] ?? ''} disabled={opslaan.isPending || !!pending.current} onChange={(e) => setWaarden((w) => ({ ...w, [p.naam]: e.target.value }))} /><span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm font-normal text-muted-foreground">{p.eenheid}</span></div></label>)}</div>
+          {fout && <p role="alert" className="text-sm text-destructive">{fout}</p>}
+          <div className="flex items-center justify-between gap-3"><span className="text-sm text-muted-foreground">Totaal <span className="text-lg font-semibold tabular-nums text-foreground">{getal(totaal)}</span> {a.tel_eenheid}</span><Button className="min-h-11" disabled={totaal == null || opslaan.isPending} onClick={bewaar}>{opslaan.isPending ? 'Opslaan…' : fout ? 'Opnieuw opslaan' : 'Opslaan'}</Button></div>
+        </>}
+      </div>}
+    </div>;
+  };
+
+  return <div className="space-y-3">
+    {rollen.length > 1 && <Tabs value={rol} onValueChange={setRol}><TabsList className="h-auto"><TabsTrigger className="min-h-11" value="bediening" disabled={vergrendeld}>Bediening</TabsTrigger><TabsTrigger className="min-h-11" value="keuken" disabled={vergrendeld}>Keuken</TabsTrigger></TabsList></Tabs>}
+    {standen.isLoading ? <p className="text-sm text-muted-foreground">Laden…</p> : standen.isError ? <div role="alert"><p>Voorraad niet opgehaald.</p><Button variant="outline" className="mt-2 min-h-11" onClick={() => standen.refetch()}>Opnieuw proberen</Button></div> : <>
+      <Card className="overflow-hidden">
+        <div className="flex items-center justify-between gap-2 px-3 py-2"><div className="flex items-center gap-1"><span className="text-sm font-semibold">Vandaag</span><Tooltip><TooltipTrigger asChild><Button variant="ghost" className="h-11 w-11 p-0" aria-label="Informatie over tellen"><Info className="h-4 w-4 text-muted-foreground" /></Button></TooltipTrigger><TooltipContent className="max-w-xs">Tel wat er nu staat, per plek. Je ziet de verwachte stand pas na opslaan.</TooltipContent></Tooltip></div><span className="text-sm tabular-nums text-muted-foreground">{geteld} van {vandaag.length} geteld</span></div>
+        <div className="grid h-1 bg-muted" aria-label="Voortgang telling" role="progressbar" aria-valuemin={0} aria-valuemax={vandaag.length || 1} aria-valuenow={geteld} style={{ gridTemplateColumns: `${geteld}fr ${Math.max(0, vandaag.length - geteld)}fr` }}><span className={geteld ? 'bg-primary' : 'hidden'} /><span /></div>
+        {vandaag.length ? vandaag.map(rij) : <p className="p-3 text-sm text-muted-foreground">Vandaag niets te tellen</p>}
+      </Card>
+      {!!overige.length && <Collapsible><CollapsibleTrigger asChild><Button variant="ghost" className="min-h-11 w-full justify-between px-3"><span>Overige ({overige.length})</span><ChevronDown className="h-4 w-4" /></Button></CollapsibleTrigger><CollapsibleContent><Card className="overflow-hidden">{overige.map(rij)}</Card></CollapsibleContent></Collapsible>}
+    </>}
+  </div>;
 }
