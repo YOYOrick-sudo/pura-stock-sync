@@ -7,9 +7,11 @@ import type { BestelSignaal } from '@/hooks/useBestelbord';
 import { GroepRij } from '@/components/pura/patronen';
 import { RijMenu, RijMeta, StatusLabel } from '@/components/pura/lijst';
 import { CompacteTabel } from './CompacteTabel';
+import { DeadlineNaam } from './DeadlineNaam';
 
-export function OnderwegTabel({ groepen, dagenTeLaatVan, onAllesGeleverd, onGeleverd, onDatum, onNietGeleverd, onDeelsGeleverd, onBewerk, datumLabel, leverDatumLabel }: {
+export function OnderwegTabel({ groepen, deadlineHint, dagenTeLaatVan, onAllesGeleverd, onGeleverd, onDatum, onNietGeleverd, onDeelsGeleverd, onBewerk, datumLabel, leverDatumLabel }: {
   groepen: { key: string; titel: string; regels: BestelSignaal[] }[]; dagenTeLaatVan: (s: BestelSignaal) => number;
+  deadlineHint: (s: BestelSignaal) => string | null;
   onAllesGeleverd: (ids: string[]) => void; onGeleverd: (s: BestelSignaal) => void;
   onDatum: (s: BestelSignaal) => void; onNietGeleverd: (s: BestelSignaal) => void; onDeelsGeleverd: (s: BestelSignaal) => void;
   onBewerk: (s: BestelSignaal) => void; datumLabel: (d: string) => string; leverDatumLabel: (d: string | null) => string;
@@ -17,7 +19,7 @@ export function OnderwegTabel({ groepen, dagenTeLaatVan, onAllesGeleverd, onGele
   return <CompacteTabel onderweg vinkKop="Binnen" kinderen={<TableBody>{groepen.map(({ key, titel, regels }) => {
     const besteldOp = regels[0]?.besteld_op;
     return <Fragment key={key}>
-      <GroepRij kolommen={5} naam={`${titel}${besteldOp ? ` · ${datumLabel(besteldOp)}` : ''}`} gedimd={titel === 'Leverancier onbekend'} actie={<Button variant="ghost" size="touch" className="-my-1 gap-1 px-2" onClick={() => onAllesGeleverd(regels.map((s) => s.id))}><Check className="h-4 w-4" />Alles geleverd</Button>} />
+      <GroepRij kolommen={5} naam={<><DeadlineNaam naam={titel} hint={regels[0] ? deadlineHint(regels[0]) : null} />{besteldOp ? ` · ${datumLabel(besteldOp)}` : ''}</>} gedimd={titel === 'Leverancier onbekend'} actie={<Button variant="ghost" size="touch" className="-my-1 gap-1 px-2" onClick={() => onAllesGeleverd(regels.map((s) => s.id))}><Check className="h-4 w-4" />Alles geleverd</Button>} />
       {regels.map((s) => {
         const laat = dagenTeLaatVan(s);
         return <TableRow key={s.id} className="cursor-pointer" onClick={() => onBewerk(s)}>

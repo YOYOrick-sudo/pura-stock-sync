@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] 9. Alleen preview: reeds uitgevoerde deadline-SQL exact registreren en muted leveranciersdeadlinebadge in Bord/Advies/Onderweg; wacht op akkoord op het plan. Geen publicatie, database-uitvoering of rollenplan.
+- [x] 9a. Deadlinebadge in Bord/Advies/Onderweg, locatiegebonden read-only query en minuutklok; 32 tests geslaagd, build OK. Geen publicatie, database-uitvoering of rollenplan.
+- [ ] 9b. Exacte historische SQL-registratie — geblokkeerd: platform weigert bestanden in supabase/migrations zonder database-uitvoering; SQL niet opnieuw uitgevoerd. Visuele controle geblokkeerd: controlesessie toont Geen toegang; rollen niet aangepast.
 
 - [x] Voorraadproef gebouwd met momentafhankelijke daggrens; seed6/6/127, testdata0, taken count/md5 gelijk; controles en niet volledig uitgevoerde UI-regressiepaden in docs/voorraadproef-testresultaten.md; niet gepubliceerd.
 

@@ -3,6 +3,7 @@ All module pages use SidebarLayout with the shared page-container/page-stack pat
 Bestelbot additions use canonical articles and location-scoped supplier/alias mappings, because a supplier or alias from one location must never route another location's board item.
 Bot-only database RPCs revoke client execution and use service-role authentication, because transactional automation must not expose privileged writes to the browser.
 The supplier label is an additive display lookup separate from existing board mutations, because manual ordering behavior and historical rows must remain unchanged.
+Supplier deadline hints use a separate location-scoped read-only hook and pure Amsterdam-time helper, passed to the three board tables by supplier ID, because display hints must never change orders or leak another location's schedule.
 The inventory trial uses dedicated count tables and location-checked source-reading functions; only its atomic advice wrapper invokes existing advice replacement, because counts and learning must never modify task or ordering flows.
 Dish menu allergens are read once per category from the precomputed view and never participate in safe filtering; optional menu fields keep existing dialog mutations unchanged, because unverified recipe data must not become an allergy guarantee.
 Consumption markup is applied only through voorraad_effectieve_opslag_pct inside the stock calculation, and price signals reach the board only via a location-checked RPC, because markup must never be counted twice and staff must not read purchase history.

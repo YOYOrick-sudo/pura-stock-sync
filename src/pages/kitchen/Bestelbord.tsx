@@ -32,6 +32,7 @@ import { AdviesTabel } from '@/components/kitchen/bestelbord/AdviesTabel';
 import { LeveranciersOverzicht } from '@/components/kitchen/bestelbord/LeveranciersOverzicht';
 import { eerderVrijeRegels, filterEerderSuggesties } from '@/lib/bordSnelkeuze';
 import { leverancierNaam } from '@/components/kitchen/bestelbord/presentatie';
+import { useBesteldeadlines } from '@/hooks/useBesteldeadlines';
 
 const SOORTEN = ['stuks', 'doos', 'zak', 'fles', 'pak', 'bak', 'emmer', 'kg', 'bos', 'tray', 'rol', 'fust'] as const;
 
@@ -126,6 +127,7 @@ function leverDatumLabel(datum: string | null): string {
 export default function Bestelbord() {
   const { userLocation } = useUserLocation();
   const vestiging = userLocation ?? '';
+  const deadlineVoor = useBesteldeadlines(vestiging);
   const { data: signalen = [], isLoading } = useBestelSignalen(vestiging || null);
   const {
     toevoegen, zetBesteld, verwijderen, herstel, wijzig,
@@ -353,6 +355,7 @@ export default function Bestelbord() {
 
   // Indicatieprijs per regel.
   const vormById = useMemo(() => new Map((vormen ?? []).map((v) => [v.id, v])), [vormen]);
+  const deadlineHint = (s: BestelSignaal | BestelAdvies) => deadlineVoor(s.leverancier_id ?? (s.artikel_vorm_id ? vormById.get(s.artikel_vorm_id)?.leverancier_id : null));
   const prijsVan = (s: BestelSignaal): { vorm: ArtikelVorm; totaal: number } | null => {
     let v: ArtikelVorm | undefined;
     if (s.artikel_vorm_id) v = vormById.get(s.artikel_vorm_id);
@@ -430,6 +433,7 @@ export default function Bestelbord() {
   };
 
   const groepProps = {
+    deadlineHint,
     dagenTeLaatVan: teLaatVan,
     onAllesGeleverd: (ids: string[]) => vinkGeleverd(ids, `${ids.length} ${ids.length === 1 ? 'regel' : 'regels'}`),
     onGeleverd: (s: BestelSignaal) => vinkGeleverd([s.id], s.naam),
@@ -448,7 +452,7 @@ export default function Bestelbord() {
   const tab = tabKeuze ?? (!isLoading && telOverzicht.geladen && telOverzicht.open > 0 && open.length === 0 ? 'tellen' : 'bord');
   const adviesRegels = advies.data?.regels ?? [];
   const leveranciersTabel = <LeveranciersOverzicht open={open} onderweg={besteld} leverancier={leverancier} prijsVan={prijsVan} />;
-  const bordProps = { leverancier, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen };
+  const bordProps = { leverancier, deadlineHint, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen };
   const positieveAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) > 0);
   const nulAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) <= 0);
   const openPrijzen = open.map(prijsVan).filter((p) => p != null);
@@ -586,10 +590,10 @@ export default function Bestelbord() {
               </TabsContent>
               <TabsContent value="advies" className="mt-0 space-y-4">
                 <LijstKaart kop={<KaartKop icoon={Sparkles} titel={advies.data?.leverdag ? `Voor ${leverDatumLabel(advies.data.leverdag)}` : 'Advies'} />}>
-                  {advies.isLoading ? <LaadRijen /> : positieveAdviezen.length ? <AdviesTabel regels={positieveAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} /> : <EmptyState icon={Sparkles} title="Geen voorstellen" description="" className="border-0 shadow-none" />}
+                  {advies.isLoading ? <LaadRijen /> : positieveAdviezen.length ? <AdviesTabel regels={positieveAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} deadlineHint={deadlineHint} /> : <EmptyState icon={Sparkles} title="Geen voorstellen" description="" className="border-0 shadow-none" />}
                   {!advies.isLoading && positieveAdviezen.length > 0 && <TabelVoet links={`${positieveAdviezen.length} ${positieveAdviezen.length === 1 ? 'voorstel' : 'voorstellen'}`} />}
                 </LijstKaart>
-                {!!nulAdviezen.length && <InklapGroep titel="Niet nodig" aantal={nulAdviezen.length}><LijstKaart><AdviesTabel regels={nulAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} nul /></LijstKaart></InklapGroep>}
+                {!!nulAdviezen.length && <InklapGroep titel="Niet nodig" aantal={nulAdviezen.length}><LijstKaart><AdviesTabel regels={nulAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} deadlineHint={deadlineHint} nul /></LijstKaart></InklapGroep>}
               </TabsContent>
               <div hidden={tab !== 'tellen'}><Voorraadproef key={vestiging} vestiging={vestiging} onOverzicht={rapporteerTellen} /></div>
               <TabsContent value="onderweg" className="mt-0 space-y-4">
