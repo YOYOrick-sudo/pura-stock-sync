@@ -44,7 +44,7 @@ export function MtLedenUitnodigen() {
   const uitnodigen = useMutation({
     mutationFn: async (email: string) => {
       const { error } = await supabase.functions.invoke('mt-invite', {
-        body: { email, redirect_to: window.location.origin },
+        body: { email },
       });
       if (error) throw error;
     },
