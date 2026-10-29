@@ -26,6 +26,7 @@ import { usePrijsSignalen } from '@/hooks/usePrijsSignalen';
 import { zoekSignaal, type PrijsSignaal } from '@/lib/prijsSignaal';
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { BordTabel } from '@/components/kitchen/bestelbord/BordTabel';
 import { OnderwegTabel } from '@/components/kitchen/bestelbord/OnderwegTabel';
 import { AdviesTabel } from '@/components/kitchen/bestelbord/AdviesTabel';
@@ -449,6 +450,7 @@ export default function Bestelbord() {
     setBewerkVormId(s.artikel_vorm_id);
   };
 
+  const isMobile = useIsMobile();
   const tab = tabKeuze ?? (!isLoading && telOverzicht.geladen && telOverzicht.open > 0 && open.length === 0 ? 'tellen' : 'bord');
   const adviesRegels = advies.data?.regels ?? [];
   const leveranciersTabel = <LeveranciersOverzicht open={open} onderweg={besteld} leverancier={leverancier} prijsVan={prijsVan} />;
@@ -481,11 +483,13 @@ export default function Bestelbord() {
         ]} />
         <Tabs value={tab} onValueChange={setTabKeuze}>
           <div className="flex flex-wrap items-center gap-2">
-            <TabsList className={segmentTabsKlasse}>
+            <div className={isMobile ? '-mx-1 w-full overflow-x-auto px-1 [scrollbar-width:none]' : 'contents'}>
+            <TabsList className={isMobile ? cn(segmentTabsKlasse, 'w-max min-w-full flex-nowrap [&>button]:flex-none [&>button]:whitespace-nowrap') : segmentTabsKlasse}>
               {[{ id: 'bord', naam: 'Op het bord', kort: 'Bord', Icoon: ClipboardList, n: open.length }, { id: 'advies', naam: 'Advies', kort: 'Advies', Icoon: Sparkles, n: positieveAdviezen.length }, { id: 'tellen', naam: 'Tellen', kort: 'Tellen', Icoon: Calculator, n: telOverzicht.open }, { id: 'onderweg', naam: 'Onderweg', kort: 'Onderweg', Icoon: Truck, n: besteld.length }].map(({ id, naam, kort, Icoon, n }) => <TabsTrigger key={id} value={id} aria-label={`${naam} (${n})`} className="min-w-0 px-2 sm:px-3"><Icoon className="hidden h-4 w-4 shrink-0 sm:block" /><span className="truncate sm:hidden">{kort}</span><span className="hidden sm:inline">{naam}</span>{n > 0 && <span className="tabular-nums text-muted-foreground">{n}</span>}</TabsTrigger>)}
             </TabsList>
+            </div>
             <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-              {(tab === 'bord' || tab === 'onderweg') && <div className="w-full max-w-xs"><ZoekVeld waarde={zoek} onChange={setZoek} placeholder="Zoek product" /></div>}
+              {(tab === 'bord' || tab === 'onderweg') && <div className={isMobile ? 'min-w-0 flex-1' : 'w-full max-w-xs'}><ZoekVeld waarde={zoek} onChange={setZoek} placeholder="Zoek product" /></div>}
               <Button className="min-h-11 shrink-0 gap-1" onClick={() => { setTabKeuze('bord'); requestAnimationFrame(() => invoer.current?.focus()); }}><Plus className="h-4 w-4" /><span>Product</span></Button>
             </div>
           </div>
@@ -564,7 +568,7 @@ export default function Bestelbord() {
             </Button>}
           </Invoerbalk>
           {eerderSuggesties.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
+            <div className={isMobile ? 'flex gap-1.5 overflow-x-auto [scrollbar-width:none]' : 'flex flex-wrap gap-1.5'}>
               {eerderSuggesties.map((s) => (
                 <Button variant="ghost" key={s.id} type="button" onClick={() => kiesEerder(s)}
                   className="min-h-11 shrink-0 px-3">
