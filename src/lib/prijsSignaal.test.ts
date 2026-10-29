@@ -1,3 +1,4 @@
+// @ts-ignore vitest types are not installed in the app tsconfig
 import { describe, expect, it } from 'vitest';
 import { duurderWaarschuwing, pijlRichting, prijsTooltip, zoekSignaal, type PrijsSignaal } from './prijsSignaal';
 
