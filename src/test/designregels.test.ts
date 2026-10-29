@@ -30,7 +30,28 @@ export function afwijkingen() {
   return uit.sort();
 }
 
+// Harde regels zonder uitzonderingen: kleuren die niet bestaan, een font dat niet bestaat, tabs onder 44px.
+const HARD: [string, RegExp][] = [
+  ['niet-bestaande pv-kleur', /\b(?:bg|text|border|ring|fill)-pv-/],
+  ['niet-bestaand font-heading', /\bfont-heading\b/],
+  ['tab lager dan 44px', /\[&>button\]:min-h-(?:[0-9]|10)\b/],
+];
+// Bestaande gebruikers van de oude polar-set; deze lijst mag alleen krimpen.
+const POLAR_TOEGESTAAN = ['components/AppSidebar.tsx', 'components/SidebarLayout.tsx', 'components/dashboard/TerschellingEventsCard.tsx', 'components/foh/FohTasks.tsx', 'pages/Dashboard.tsx', 'pages/DesignPreview.tsx', 'pages/StyleGuide.tsx', 'pages/TakenBeheer.tsx'];
+
+function alleBestanden() {
+  return MAPPEN.flatMap((m) => bestanden(join(ROOT, m))).map((f) => [relative(ROOT, f), readFileSync(f, 'utf8')] as const);
+}
+
 describe('designregels', () => {
+  test('geen niet-bestaande kleuren, fonts of te lage tabs', () => {
+    const fout = alleBestanden().flatMap(([f, t]) => HARD.filter(([, re]) => re.test(t)).map(([n]) => `${f} :: ${n}`));
+    expect(fout).toEqual([]);
+  });
+  test('geen nieuwe imports uit components/polar', () => {
+    const fout = alleBestanden().filter(([f, t]) => !f.startsWith('components/polar/') && /from ['"]@\/components\/polar/.test(t) && !POLAR_TOEGESTAAN.includes(f)).map(([f]) => f);
+    expect(fout).toEqual([]);
+  });
   test('geen nieuwe vaste kleuren of losse afrondingen buiten de bestaande lijst', () => {
     const nieuw = afwijkingen().filter((a) => !BESTAANDE_AFWIJKINGEN.includes(a));
     expect(nieuw).toEqual([]);
