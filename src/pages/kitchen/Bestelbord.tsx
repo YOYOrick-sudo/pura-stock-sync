@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Building2, Check, AlertCircle } from 'lucide-react';
-import { DetailLade, InklapGroep, KaartKop, LaadRijen, LegeStaat, LijstKaart, Invoerbalk, Kengetal, OverzichtKaart, segmentTabsKlasse } from '@/components/pura/patronen';
-import { TabelVoet } from '@/components/pura/lijst';
+import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Check, AlertCircle, Search } from 'lucide-react';
+import { DetailLade, InklapGroep, KaartKop, LaadRijen, LijstKaart, Invoerbalk, segmentTabsKlasse } from '@/components/pura/patronen';
+import { TabelVoet, ZoekVeld } from '@/components/pura/lijst';
+import { EmptyState } from '@/components/pura/EmptyState';
+import { BestelKengetallen } from '@/components/kitchen/bestelbord/BestelKengetallen';
 import { Stappen } from '@/components/pura/blokken';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -155,6 +157,8 @@ export default function Bestelbord() {
   const advies = useBestelAdvies(vestiging || null, vandaagStr);
   const [adviesBezig, setAdviesBezig] = useState(false);
   const [tabKeuze, setTabKeuze] = useState<string | null>(null);
+  const [zoek, setZoek] = useState('');
+  const [alleenZonderPrijs, setAlleenZonderPrijs] = useState(false);
   const [telOverzicht, setTelOverzicht] = useState({ open: 0, geladen: false });
   const rapporteerTellen = useCallback((a: { open: number; geladen: boolean }) => setTelOverzicht(a), []);
   useEffect(() => { setTabKeuze(null); }, [vestiging]);
@@ -448,31 +452,46 @@ export default function Bestelbord() {
 
   const tab = tabKeuze ?? (!isLoading && telOverzicht.geladen && telOverzicht.open > 0 && open.length === 0 ? 'tellen' : 'bord');
   const adviesRegels = advies.data?.regels ?? [];
+  const leveranciersTabel = <LeveranciersOverzicht open={open} onderweg={besteld} leverancier={leverancier} prijsVan={prijsVan} />;
+  const bordProps = { leverancier, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen };
   const positieveAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) > 0);
   const nulAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) <= 0);
   const openPrijzen = open.map(prijsVan).filter((p) => p != null);
   const zonderPrijs = [...open, ...besteld].filter((s) => !prijsVan(s)).length;
-  const leveranciersTabel = <LeveranciersOverzicht open={open} onderweg={besteld} leverancier={leverancier} prijsVan={prijsVan} />;
-  const bordProps = { leverancier, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen };
-  const overzicht = <OverzichtKaart kengetallen={<>
-    <Kengetal icoon={Building2} label="Open" waarde={openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : '—'} />
-    <Kengetal icoon={Truck} label="Checken" waarde={teChecken.length} />
-    <Kengetal icoon={AlertCircle} label="Geen prijs" waarde={zonderPrijs} toon={zonderPrijs ? 'let-op' : 'neutraal'} />
-  </>}>{leveranciersTabel}</OverzichtKaart>;
+  const q = zoek.trim().toLowerCase();
+  const filter = (r: BestelSignaal[]) => r.filter((s) => (!q || s.naam.toLowerCase().includes(q)) && (!alleenZonderPrijs || !prijsVan(s)));
+  const openZicht = filter(open);
+  const teCheckenZicht = filter(teChecken);
+  const onderwegZicht = filter(onderweg);
+  const zonderDatumZicht = filter(zonderDatum);
+  const geleverdZicht = filter(geleverd);
+  const besteldZicht = [...teCheckenZicht, ...onderwegZicht, ...zonderDatumZicht];
+  const filterAan = !!q || alleenZonderPrijs;
+  const openTotaal = openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : '—';
+  const naarTab = (t: string) => { setAlleenZonderPrijs(false); setTabKeuze(t); };
+  const leegKaart = (titel: string) => <EmptyState icon={filterAan ? Search : ClipboardList} title={filterAan ? 'Niets gevonden' : titel} description={filterAan ? 'Pas je zoekopdracht of filter aan.' : ''} className="border-0 shadow-none" action={filterAan ? <Button variant="outline" size="touch" onClick={() => { setZoek(''); setAlleenZonderPrijs(false); }}>Filter wissen</Button> : undefined} />;
 
   return (
     <SidebarLayout>
       <div className="space-y-4">
+        <BestelKengetallen tegels={[
+          { id: 'bord', label: 'Op het bord', waarde: open.length, sub: openTotaal, icoon: ClipboardList, actief: tab === 'bord' && !alleenZonderPrijs, onKies: () => naarTab('bord') },
+          { id: 'advies', label: 'Advies', waarde: positieveAdviezen.length, sub: 'voorstellen', icoon: Sparkles, actief: tab === 'advies', onKies: () => naarTab('advies') },
+          { id: 'onderweg', label: 'Onderweg', waarde: besteld.length, sub: teChecken.length ? `${teChecken.length} te checken` : 'op schema', icoon: Truck, toon: teChecken.length ? 'let-op' : 'neutraal', actief: tab === 'onderweg' && !alleenZonderPrijs, onKies: () => naarTab('onderweg') },
+          { id: 'prijs', label: 'Geen prijs', waarde: zonderPrijs, sub: alleenZonderPrijs ? 'filter aan · tik om te wissen' : 'tik om te tonen', icoon: AlertCircle, toon: zonderPrijs ? 'let-op' : 'neutraal', actief: alleenZonderPrijs, onKies: () => { const aan = !alleenZonderPrijs; setAlleenZonderPrijs(aan); if (aan && tab !== 'onderweg') setTabKeuze('bord'); } },
+        ]} />
         <Tabs value={tab} onValueChange={setTabKeuze}>
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <TabsList className={segmentTabsKlasse}>
               {[{ id: 'bord', naam: 'Op het bord', kort: 'Bord', Icoon: ClipboardList, n: open.length }, { id: 'advies', naam: 'Advies', kort: 'Advies', Icoon: Sparkles, n: positieveAdviezen.length }, { id: 'tellen', naam: 'Tellen', kort: 'Tellen', Icoon: Calculator, n: telOverzicht.open }, { id: 'onderweg', naam: 'Onderweg', kort: 'Onderweg', Icoon: Truck, n: besteld.length }].map(({ id, naam, kort, Icoon, n }) => <TabsTrigger key={id} value={id} aria-label={`${naam} (${n})`} className="min-w-0 px-2 sm:px-3"><Icoon className="hidden h-4 w-4 shrink-0 sm:block" /><span className="truncate sm:hidden">{kort}</span><span className="hidden sm:inline">{naam}</span>{n > 0 && <span className="tabular-nums text-muted-foreground">{n}</span>}</TabsTrigger>)}
             </TabsList>
-            <Button className="min-h-11 gap-1" onClick={() => { setTabKeuze('bord'); requestAnimationFrame(() => invoer.current?.focus()); }}><Plus className="h-4 w-4" /><span>Product</span></Button>
+            <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+              {(tab === 'bord' || tab === 'onderweg') && <div className="w-full max-w-xs"><ZoekVeld waarde={zoek} onChange={setZoek} placeholder="Zoek product" /></div>}
+              <Button className="min-h-11 shrink-0 gap-1" onClick={() => { setTabKeuze('bord'); requestAnimationFrame(() => invoer.current?.focus()); }}><Plus className="h-4 w-4" /><span>Product</span></Button>
+            </div>
           </div>
-          <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="mt-4 min-w-0">
             <div className="min-w-0 space-y-4">
-              <div className="lg:hidden"><InklapGroep titel="Overzicht">{overzicht}</InklapGroep></div>
               <TabsContent value="bord" className="mt-0 space-y-4">
                 <LijstKaart>
         <div className="space-y-2 border-b border-border bg-muted/30 p-2">
@@ -565,24 +584,25 @@ export default function Bestelbord() {
           )}
         </div>
 
-                {isLoading ? <LaadRijen /> : open.length ? <BordTabel regels={open} {...bordProps} /> : <LegeStaat tekst="Niets openstaand." />}
-                {!isLoading && open.length > 0 && <TabelVoet links={`${open.length} ${open.length === 1 ? 'product' : 'producten'}`} rechts={openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : undefined} />}
+                {isLoading ? <LaadRijen /> : openZicht.length ? <BordTabel regels={openZicht} {...bordProps} /> : leegKaart('Niets openstaand')}
+                {!isLoading && openZicht.length > 0 && <TabelVoet links={`${openZicht.length} ${openZicht.length === 1 ? 'product' : 'producten'}`} rechts={openTotaal} />}
                 </LijstKaart>
+                {(open.length > 0 || besteld.length > 0) && <InklapGroep titel="Per leverancier"><LijstKaart>{leveranciersTabel}</LijstKaart></InklapGroep>}
               </TabsContent>
               <TabsContent value="advies" className="mt-0 space-y-4">
                 <LijstKaart kop={<KaartKop icoon={Sparkles} titel={advies.data?.leverdag ? `Voor ${leverDatumLabel(advies.data.leverdag)}` : 'Advies'} />}>
-                  {advies.isLoading ? <LaadRijen /> : positieveAdviezen.length ? <AdviesTabel regels={positieveAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} /> : <LegeStaat tekst="Geen voorstellen." />}
+                  {advies.isLoading ? <LaadRijen /> : positieveAdviezen.length ? <AdviesTabel regels={positieveAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} /> : <EmptyState icon={Sparkles} title="Geen voorstellen" description="" className="border-0 shadow-none" />}
+                  {!advies.isLoading && positieveAdviezen.length > 0 && <TabelVoet links={`${positieveAdviezen.length} ${positieveAdviezen.length === 1 ? 'voorstel' : 'voorstellen'}`} />}
                 </LijstKaart>
                 {!!nulAdviezen.length && <InklapGroep titel="Niet nodig" aantal={nulAdviezen.length}><LijstKaart><AdviesTabel regels={nulAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} nul /></LijstKaart></InklapGroep>}
               </TabsContent>
               <div hidden={tab !== 'tellen'}><Voorraadproef key={vestiging} vestiging={vestiging} onOverzicht={rapporteerTellen} /></div>
               <TabsContent value="onderweg" className="mt-0 space-y-4">
-                {[{ titel: 'Vandaag te checken', regels: teChecken }, { titel: 'Onderweg', regels: onderweg }, { titel: 'Zonder datum', regels: zonderDatum }].filter((g) => g.regels.length).map((groep) => <LijstKaart key={groep.titel} kop={<KaartKop icoon={Truck} titel={groep.titel} teller={groep.regels.length} />}><OnderwegTabel groepen={groepeer(groep.regels)} {...groepProps} onBewerk={openBewerk} datumLabel={datumLabel} leverDatumLabel={leverDatumLabel} /></LijstKaart>)}
-                {!besteld.length && <LijstKaart><LegeStaat tekst="Niets onderweg." /></LijstKaart>}
-                {!!geleverd.length && <InklapGroep titel="Geleverd" aantal={geleverd.length}><LijstKaart><BordTabel regels={geleverd} {...bordProps} geleverd onTerug={(s) => terugNaarBesteld.mutate(s.id)} detail={(s) => [s.geleverd_op ? datumLabel(s.geleverd_op) : '', s.geleverd_door ? namen?.get(s.geleverd_door) : '', s.levering_status === 'deels' ? 'Deels' : '', s.levering_opmerking].filter(Boolean).join(' · ')} /></LijstKaart></InklapGroep>}
+                {[{ titel: 'Vandaag te checken', regels: teCheckenZicht }, { titel: 'Onderweg', regels: onderwegZicht }, { titel: 'Zonder datum', regels: zonderDatumZicht }].filter((g) => g.regels.length).map((groep) => <LijstKaart key={groep.titel} kop={<KaartKop icoon={Truck} titel={groep.titel} teller={groep.regels.length} />}><OnderwegTabel groepen={groepeer(groep.regels)} {...groepProps} onBewerk={openBewerk} datumLabel={datumLabel} leverDatumLabel={leverDatumLabel} /><TabelVoet links={`${groep.regels.length} ${groep.regels.length === 1 ? 'product' : 'producten'}`} /></LijstKaart>)}
+                {!besteldZicht.length && <LijstKaart>{leegKaart('Niets onderweg')}</LijstKaart>}
+                {!!geleverdZicht.length && <InklapGroep titel="Geleverd" aantal={geleverdZicht.length}><LijstKaart><BordTabel regels={geleverdZicht} {...bordProps} geleverd onTerug={(s) => terugNaarBesteld.mutate(s.id)} detail={(s) => [s.geleverd_op ? datumLabel(s.geleverd_op) : '', s.geleverd_door ? namen?.get(s.geleverd_door) : '', s.levering_status === 'deels' ? 'Deels' : '', s.levering_opmerking].filter(Boolean).join(' · ')} /></LijstKaart></InklapGroep>}
               </TabsContent>
             </div>
-            <aside className="hidden min-w-0 space-y-4 lg:block">{overzicht}</aside>
           </div>
         </Tabs>
       </div>
