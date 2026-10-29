@@ -330,6 +330,13 @@
       "when": 1793271652950,
       "tag": "0046_voorraadproef_brondekking",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1793271857234,
+      "tag": "0047_voorraadproef_strikte_grants",
+      "breakpoints": true
     }
   ]
 }
