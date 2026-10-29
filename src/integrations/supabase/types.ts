@@ -4361,6 +4361,63 @@ export type Database = {
         }
         Relationships: []
       }
+      mt_leden: {
+        Row: {
+          actief: boolean
+          created_at: string
+          email: string
+          naam: string
+        }
+        Insert: {
+          actief?: boolean
+          created_at?: string
+          email: string
+          naam: string
+        }
+        Update: {
+          actief?: boolean
+          created_at?: string
+          email?: string
+          naam?: string
+        }
+        Relationships: []
+      }
+      mt_punten: {
+        Row: {
+          id: string
+          ingediend_door: string
+          ingediend_email: string | null
+          ingediend_naam: string | null
+          ingediend_op: string
+          notion_gezet_op: string | null
+          notion_page_id: string | null
+          punt: string
+          status: string
+        }
+        Insert: {
+          id?: string
+          ingediend_door?: string
+          ingediend_email?: string | null
+          ingediend_naam?: string | null
+          ingediend_op?: string
+          notion_gezet_op?: string | null
+          notion_page_id?: string | null
+          punt: string
+          status?: string
+        }
+        Update: {
+          id?: string
+          ingediend_door?: string
+          ingediend_email?: string | null
+          ingediend_naam?: string | null
+          ingediend_op?: string
+          notion_gezet_op?: string | null
+          notion_page_id?: string | null
+          punt?: string
+          status?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -7378,6 +7435,7 @@ export type Database = {
         Args: { _profile_user_id: string }
         Returns: boolean
       }
+      is_mt_lid: { Args: never; Returns: boolean }
       is_service_call: { Args: never; Returns: boolean }
       leercurve_bijwerken: { Args: never; Returns: Json }
       mag_cijfers_zien: { Args: { _uid: string }; Returns: boolean }

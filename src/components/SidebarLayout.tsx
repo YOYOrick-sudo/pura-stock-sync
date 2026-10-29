@@ -52,6 +52,7 @@ export function SidebarLayout({
       '/taken/admin': 'Takenlijsten beheren',
       '/taken/beheer': 'Lijst bewerken',
       '/onderhoud': 'Onderhoud',
+      '/mt-punt': 'MT-punt aanleveren',
       '/kas-controle': 'Kas-controle',
       '/hr': 'HR',
       '/hr/applicants/new': 'Nieuwe kandidaat',

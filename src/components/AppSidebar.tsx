@@ -1,8 +1,9 @@
-import { Home, ListChecks, Settings, BookOpen, Printer, Calculator, ClipboardList, LogOut, BarChart3, ChefHat, Cookie } from 'lucide-react';
+import { Home, ListChecks, Settings, BookOpen, Printer, Calculator, ClipboardList, LogOut, BarChart3, ChefHat, Cookie, MessageSquarePlus } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useState } from 'react';
 import { useRole } from '@/hooks/useRole';
+import { useIsMtLid } from '@/hooks/useIsMtLid';
 import { supabase } from '@/integrations/supabase/client';
 
 import { PolarSidebar } from '@/components/polar/Sidebar';
@@ -29,6 +30,7 @@ const allNavigationItems = [
   { title: 'Kassatelling', url: '/kassatelling', icon: Calculator, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Onderhoud', url: '/onderhoud', icon: ClipboardList, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Settings', url: '/settings', icon: Settings, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: true },
+  { title: 'MT-punt aanleveren', url: '/mt-punt', icon: MessageSquarePlus, group: 'overzicht' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false, mtOnly: true },
 ];
 
 interface AppSidebarProps {
@@ -41,6 +43,7 @@ export function AppSidebar({ onNavigate, mobile = false }: AppSidebarProps = {})
   const navigate = useNavigate();
   const { userLocation } = useUserLocation();
   const { isManager, isOwner } = useRole();
+  const { isMtLid } = useIsMtLid();
 
   const [collapsedState, setCollapsedState] = useState<boolean>(() => {
     try {
@@ -62,6 +65,7 @@ export function AppSidebar({ onNavigate, mobile = false }: AppSidebarProps = {})
   )
     .filter(item => !item.managerOnly || isManager)
     .filter(item => !item.ownerOnly || isOwner)
+    .filter(item => !('mtOnly' in item && item.mtOnly) || isMtLid)
     .filter(item => !(
       userLocation === 'Midsland' &&
       item.group === 'keuken' &&
