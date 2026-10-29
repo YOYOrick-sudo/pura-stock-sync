@@ -17,6 +17,8 @@ function plekkenVan(a: ProefStand): TelPlek[] {
 
 export function Voorraadproef({ vestiging }: { vestiging: string }) {
   const { standen, opslaan } = useVoorraadproef(vestiging);
+  const telNodig = (standen.data ?? []).some((a) => a.tellen_nodig);
+  const [open, setOpen] = useState<boolean | null>(null);
   const [rol, setRol] = useState<'bediening' | 'keuken'>('bediening');
   const [artikel, setArtikel] = useState<ProefStand | null>(null);
   const [waarden, setWaarden] = useState<Record<string, string>>({});
@@ -49,22 +51,22 @@ export function Voorraadproef({ vestiging }: { vestiging: string }) {
 
   return (
     <section className="overflow-hidden rounded-polar-xl border border-border bg-card">
-      <Collapsible>
+      <Collapsible open={open ?? telNodig} onOpenChange={setOpen}>
         <div className="flex items-center pr-3">
           <CollapsibleTrigger asChild>
             <Button variant="ghost" className="group min-h-12 flex-1 justify-start gap-2 rounded-none px-3">
               <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-              <span>Even tellen (proef)</span>
+              <span>Even tellen</span>
               {(standen.data ?? []).some((a) => a.tellen_nodig) && <Badge variant="secondary">tellen</Badge>}
             </Button>
           </CollapsibleTrigger>
-          <InfoKnop tekst="Woensdag vóór opening. Koffie: alle espresso-bonen behalve decaf, ook open zakken en hopper. Fritz: koeling én magazijn. Berekend is een indicatie; er wordt niets besteld." />
+          <InfoKnop tekst="Woensdag vóór opening. Koffie: alle espresso-bonen behalve decaf, ook open zakken en hopper. Fritz: koeling én magazijn. Berekend is een schatting; er wordt niets besteld." />
         </div>
         <CollapsibleContent className="border-t border-border">
           <div className="flex gap-2 p-3">
             {(['bediening', 'keuken'] as const).map((r) => <Button key={r} variant={rol === r ? 'default' : 'outline'} className="min-h-11" onClick={() => setRol(r)} aria-pressed={rol === r}>{r === 'bediening' ? 'Bediening' : 'Keuken'}</Button>)}
           </div>
-          {standen.isLoading ? <p className="p-3 text-sm text-muted-foreground">Laden…</p> : standen.isError ? <div role="alert" className="p-3 text-sm"><p>Voorraad niet opgehaald.</p><Button variant="outline" className="mt-2 min-h-11" onClick={() => standen.refetch()}>Opnieuw proberen</Button></div> : regels.length === 0 ? <p className="p-3 text-sm text-muted-foreground">Geen proefartikelen</p> :
+          {standen.isLoading ? <p className="p-3 text-sm text-muted-foreground">Laden…</p> : standen.isError ? <div role="alert" className="p-3 text-sm"><p>Voorraad niet opgehaald.</p><Button variant="outline" className="mt-2 min-h-11" onClick={() => standen.refetch()}>Opnieuw proberen</Button></div> : regels.length === 0 ? <p className="p-3 text-sm text-muted-foreground">Geen artikelen om te tellen</p> :
             <div className="divide-y divide-border">
               {regels.map((a) => <div key={a.id} className="px-3 py-3">
                 <div className="flex items-start gap-2">
@@ -72,7 +74,7 @@ export function Voorraadproef({ vestiging }: { vestiging: string }) {
                   <Button variant="outline" className="min-h-11 shrink-0 gap-1" onClick={() => begin(a)}><ClipboardCheck className="h-4 w-4" />Tellen</Button>
                 </div>
                 {!blind && <div className="mt-2 text-sm text-muted-foreground">
-                  {a.stand == null ? <p>Voorraad onbekend</p> : <>
+                  {a.stand == null ? <p>{a.laatste_telling == null ? 'Begintelling nodig' : 'Voorraad onbekend'}</p> : <>
                     <p className="flex flex-wrap gap-x-3 gap-y-1"><span>Geteld {getal(a.geteld)} {a.tel_eenheid}</span><span>+ ontvangen {getal(a.ontvangen)}</span><span>− kassa {getal(a.kassa)}</span><span className="font-semibold text-foreground">= {getal(a.stand)} {a.tel_eenheid}</span></p>
                     {a.laatste_telling && <p className="mt-1 text-xs">Laatste telling {new Date(a.laatste_telling + 'T12:00:00').toLocaleDateString('nl-NL')}</p>}
                     <details className="mt-1"><summary className="min-h-11 cursor-pointer content-center">Correcties en opslag</summary><p>Correcties {getal(a.correcties)} · opslag {getal(a.opslag)} ({getal(a.verbruiksopslag_pct)}%)</p></details>
