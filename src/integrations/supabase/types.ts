@@ -7383,6 +7383,15 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      bestel_deadline_hints: {
+        Args: { _nu?: string; _vestiging: string }
+        Returns: {
+          besteldag: string
+          deadline_tijd: string
+          leverancier_id: string
+          volgende_besteldag: string
+        }[]
+      }
       bestel_eerste_open_dag: {
         Args: { _datum: string; _vestiging: string }
         Returns: string
