@@ -30,6 +30,7 @@ import { BordTabel } from '@/components/kitchen/bestelbord/BordTabel';
 import { OnderwegTabel } from '@/components/kitchen/bestelbord/OnderwegTabel';
 import { AdviesTabel } from '@/components/kitchen/bestelbord/AdviesTabel';
 import { LeveranciersOverzicht } from '@/components/kitchen/bestelbord/LeveranciersOverzicht';
+import { eerderVrijeRegels, filterEerderSuggesties } from '@/lib/bordSnelkeuze';
 import { leverancierNaam } from '@/components/kitchen/bestelbord/presentatie';
 
 const SOORTEN = ['stuks', 'doos', 'zak', 'fles', 'pak', 'bak', 'emmer', 'kg', 'bos', 'tray', 'rol', 'fust'] as const;
