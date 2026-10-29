@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
-import { verwachteLeveringGeldig } from "./index.ts";
+import { verwachteLeveringGeldig } from "./datum.ts";
 
 Deno.test("verwachteLeveringGeldig: leeg is toegestaan (server vult zelf)", () => {
   assertEquals(verwachteLeveringGeldig(null), true);
