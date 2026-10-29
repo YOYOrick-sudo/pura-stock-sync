@@ -271,11 +271,11 @@ export default function Gerechten() {
         </Card>
 
         {filterActief && !isLoading && (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-polar bg-primary/5 border border-primary/20 px-4 py-3">
-            <p className="text-sm font-medium text-foreground">
+          <div className="flex flex-wrap items-center gap-2 px-1">
+            <p className="text-sm text-muted-foreground">
               {veilig.length} {veilig.length === 1 ? 'gerecht' : 'gerechten'} {filterOmschrijving}
             </p>
-            <Button variant="outline" className="min-h-[44px]" onClick={wisFilter}>
+            <Button variant="ghost" size="sm" className="min-h-[44px] text-primary hover:text-primary" onClick={wisFilter}>
               Wis filter
             </Button>
           </div>
