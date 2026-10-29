@@ -7,6 +7,7 @@ import { useHeeftRol } from '@/hooks/useHeeftRol';
 import { useIsMtLid } from '@/hooks/useIsMtLid';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { MT_ROUTES } from '@/lib/mt';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -49,7 +50,7 @@ const RolPoort = ({ children }: ProtectedRouteProps) => {
   const { pathname } = useLocation();
   const { heeftRol, loading } = useHeeftRol();
   const { isMtLid, loading: mtLoading } = useIsMtLid();
-  const isMtPagina = pathname === '/mt-punt';
+  const isMtPagina = MT_ROUTES.includes(pathname);
 
   if (isMtPagina) return <>{children}</>;
   if (loading) return <Laden />;
