@@ -302,6 +302,13 @@
       "when": 1793266973871,
       "tag": "0042_bestel_advies",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1793271148311,
+      "tag": "0043_voorraadproef_fundament",
+      "breakpoints": true
     }
   ]
 }
