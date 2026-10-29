@@ -2,6 +2,19 @@
 
 Kleuren, afronding en schaduw blijven precies zoals nu. Het plan maakt het systeem completer, ruimt tegenstrijdige regels op en legt het vast in werkende bouwblokken. Op de Bestellijst wordt dat getest.
 
+## Wat ik van shadcnblocks overneem (dashboard, application shell, multi-pane)
+Ik neem alleen de opbouw over, niet de kleuren of de vormen.
+1. **Kaartkop-patroon:** links een klein icoon + titel + telbadge ("Recent Orders 12"), rechts één compacte keuze of actie. Elke kaart gebruikt hetzelfde.
+2. **Kengetal met context:** een groot getal, één meta-regel eronder ("op 18 regels") en eventueel één kleine verschilbadge rechtsboven. Nooit meer dan dat.
+3. **Tabel ín een kaart:** de tabel loopt van rand tot rand, met lichte kolomkoppen en een voetregel ("1–6 van 12", of "Toon alles"). Dus geen tabellen los op de achtergrond.
+4. **Paginakop als dunne balk:** links titel + subtitel, rechts filterchips en één actie. Wij houden de titel in de app-header, dus hier komen alleen de subtitel en de acties.
+5. **Multi-pane:** de lijst links, details in een paneel rechts (iPad liggend) in plaats van een pop-up. Op smallere schermen wordt dat een zijlade.
+6. **Zijmenugroepen:** een klein groepslabel, de items met tellers rechts uitgelijnd. Dit wordt alleen een regel voor later, niet nu.
+7. **Dichtheid:** dunne randen, weinig schaduw, consequente afstand van 16px binnen een kaart en 12px tussen de rijen. De getallen staan rechts uitgelijnd en hebben gelijke breedte.
+8. **Status:** zachte badges ("Delivered", "Shipped") alleen in een vaste statuskolom, nooit naast de naam.
+
+Wat ik bewust niet overneem: zwart-wit grafieken, Engelse labels en de dichte 13px-tekst. Die past niet bij natte handen op een iPad; wij houden rijen van 44–48px.
+
 ## Analyse: wat er nu misgaat
 
 **1. Drie families onderdelen naast elkaar**
