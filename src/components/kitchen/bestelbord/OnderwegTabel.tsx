@@ -23,8 +23,8 @@ export function OnderwegTabel({ groepen, dagenTeLaatVan, onAllesGeleverd, onGele
         return <TableRow key={s.id} className="cursor-pointer" onClick={() => onBewerk(s)}>
           <TableCell onClick={(e) => e.stopPropagation()}><label className="mx-auto flex h-11 w-11 cursor-pointer items-center justify-center"><Checkbox aria-label={`${s.naam} geleverd`} checked={false} onCheckedChange={() => onGeleverd(s)} /></label></TableCell>
           <TableCell><div className="flex min-h-11 min-w-0 flex-col justify-center">
-            <span className="flex min-w-0 items-center gap-2"><span className="truncate font-medium">{s.naam}</span>{laat > 0 && <StatusLabel toon="fout">{laat}d te laat</StatusLabel>}</span>
-            {s.verwachte_levering && <RijMeta>{leverDatumLabel(s.verwachte_levering)}</RijMeta>}
+            <span className="truncate font-medium">{s.naam}</span>
+            {(laat > 0 || s.verwachte_levering) && <RijMeta altijd={laat > 0}>{laat > 0 && <StatusLabel toon="fout">{laat}d te laat</StatusLabel>}{s.verwachte_levering && <span className="sm:hidden">{leverDatumLabel(s.verwachte_levering)}</span>}</RijMeta>}
           </div></TableCell>
           <TableCell className="text-right tabular-nums"><span className="font-medium">{Number(s.aantal)}</span> <span className="text-xs text-muted-foreground">{s.eenheid || ''}</span></TableCell>
           <TableCell className="hidden text-right text-muted-foreground sm:table-cell">{s.verwachte_levering ? leverDatumLabel(s.verwachte_levering) : ''}</TableCell>
