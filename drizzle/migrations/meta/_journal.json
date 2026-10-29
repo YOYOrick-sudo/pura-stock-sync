@@ -358,6 +358,13 @@
       "when": 1793273703931,
       "tag": "0050_voorraad_telvragen_roulerend",
       "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1793273800301,
+      "tag": "0051_voorraad_telvragen_volume_aantal",
+      "breakpoints": true
     }
   ]
 }
