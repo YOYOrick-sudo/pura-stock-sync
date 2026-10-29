@@ -1,4 +1,4 @@
-import { BasisVoorbeelden, PaginapatroonVoorbeelden, RegelVoorbeelden } from '@/components/layout/PatronenVoorbeelden';
+import { BasisVoorbeelden, PaginapatroonVoorbeelden, RegelVoorbeelden } from '@/pages/design-system/PatronenVoorbeelden';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

@@ -1,4 +1,4 @@
-import { StatusDot } from '@/components/layout/Paginapatronen';
+import { StatusDot } from '@/components/pura/patronen';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';

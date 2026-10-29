@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { Check, Info, Plus } from 'lucide-react';
-import { GroepRij, StatusDot } from '@/components/layout/Paginapatronen';
+import { GroepRij, StatusDot } from '@/components/pura/patronen';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { TableBody, TableCell, TableRow } from '@/components/ui/table';
