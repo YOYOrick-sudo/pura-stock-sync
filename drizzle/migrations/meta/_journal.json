@@ -288,6 +288,13 @@
       "when": 1793265790931,
       "tag": "0040_artikel_vormen_en_bord_suggesties",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1793265985285,
+      "tag": "0041_bestel_signalen_artikel_vorm",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,1 @@
+ALTER TABLE public.bestel_signalen ADD COLUMN IF NOT EXISTS artikel_vorm_id uuid NULL REFERENCES public.artikel_vormen(id) ON DELETE SET NULL;
