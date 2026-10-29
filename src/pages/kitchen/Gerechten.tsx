@@ -250,7 +250,7 @@ export default function Gerechten() {
                 onClick={() => setCategorie(c)}
                 className={cn(
                   'px-4 rounded-full text-sm font-medium transition-colors min-h-[44px]',
-                  categorie === c ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground hover:bg-muted/80',
+                  categorie === c ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground' : 'bg-muted text-foreground hover:bg-muted/80',
                 )}
               >
                 {c}
