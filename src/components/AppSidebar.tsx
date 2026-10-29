@@ -4,6 +4,7 @@ import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useState } from 'react';
 import { useRole } from '@/hooks/useRole';
 import { useIsMtLid } from '@/hooks/useIsMtLid';
+import { useHeeftRol } from '@/hooks/useHeeftRol';
 import { supabase } from '@/integrations/supabase/client';
 
 import { PolarSidebar } from '@/components/polar/Sidebar';
@@ -44,6 +45,8 @@ export function AppSidebar({ onNavigate, mobile = false }: AppSidebarProps = {})
   const { userLocation } = useUserLocation();
   const { isManager, isOwner } = useRole();
   const { isMtLid } = useIsMtLid();
+  const { heeftRol } = useHeeftRol();
+  const isMtOnly = heeftRol === false && isMtLid;
 
   const [collapsedState, setCollapsedState] = useState<boolean>(() => {
     try {
@@ -59,7 +62,9 @@ export function AppSidebar({ onNavigate, mobile = false }: AppSidebarProps = {})
   };
 
 
-  const navigationItems = (userLocation
+  const navigationItems = isMtOnly
+    ? allNavigationItems.filter(item => item.url === '/mt-punt')
+    : (userLocation
     ? allNavigationItems.filter(item => item.locations.includes(userLocation))
     : allNavigationItems
   )
