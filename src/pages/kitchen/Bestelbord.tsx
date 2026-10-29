@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ChevronDown, Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Building2, Check, AlertCircle } from 'lucide-react';
-import { Invoerbalk, Kengetal, OverzichtKaart, segmentTabsKlasse } from '@/components/layout/Paginapatronen';
+import { SectieKop, Invoerbalk, Kengetal, OverzichtKaart, segmentTabsKlasse } from '@/components/layout/Paginapatronen';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Textarea } from '@/components/ui/textarea';
@@ -567,7 +567,7 @@ export default function Bestelbord() {
               </TabsContent>
               <div hidden={tab !== 'tellen'}><Voorraadproef key={vestiging} vestiging={vestiging} onOverzicht={rapporteerTellen} /></div>
               <TabsContent value="onderweg" className="mt-0 space-y-4">
-                {[{ titel: 'Vandaag te checken', regels: teChecken }, { titel: 'Onderweg', regels: onderweg }, { titel: 'Zonder datum', regels: zonderDatum }].filter((g) => g.regels.length).map((groep) => <div key={groep.titel} className="space-y-2"><div className="flex items-center justify-between px-3 text-sm"><span className="font-semibold">{groep.titel}</span><span className="tabular-nums text-muted-foreground">{groep.regels.length}</span></div>{groepeer(groep.regels).map(({ key, ...g }) => <OnderwegTabel key={key} {...g} {...groepProps} onBewerk={openBewerk} datumLabel={datumLabel} leverDatumLabel={leverDatumLabel} />)}</div>)}
+                {[{ titel: 'Vandaag te checken', regels: teChecken }, { titel: 'Onderweg', regels: onderweg }, { titel: 'Zonder datum', regels: zonderDatum }].filter((g) => g.regels.length).map((groep) => <div key={groep.titel} className="space-y-2"><SectieKop titel={groep.titel} teller={groep.regels.length} /><OnderwegTabel groepen={groepeer(groep.regels)} {...groepProps} onBewerk={openBewerk} datumLabel={datumLabel} leverDatumLabel={leverDatumLabel} /></div>)}
                 {!besteld.length && <p className="text-sm text-muted-foreground">Niets onderweg.</p>}
                 {!!geleverd.length && <Collapsible><CollapsibleTrigger asChild><Button variant="ghost" className="min-h-11 w-full justify-between text-muted-foreground"><span>Geleverd ({geleverd.length})</span><ChevronDown className="h-4 w-4" /></Button></CollapsibleTrigger><CollapsibleContent><BordTabel regels={geleverd} {...bordProps} geleverd onTerug={(s) => terugNaarBesteld.mutate(s.id)} detail={(s) => [s.geleverd_op ? datumLabel(s.geleverd_op) : '', s.geleverd_door ? namen?.get(s.geleverd_door) : '', s.levering_status === 'deels' ? 'Deels' : '', s.levering_opmerking].filter(Boolean).join(' · ')} /></CollapsibleContent></Collapsible>}
               </TabsContent>

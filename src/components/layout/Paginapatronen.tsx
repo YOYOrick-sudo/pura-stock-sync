@@ -13,12 +13,12 @@ export function SectieKop({ titel, teller, rechts }: { titel: ReactNode; teller?
 }
 
 /** Groepkop als tussenrij in één tabel: naam vet links, aantal en totaal rechts. */
-export function GroepRij({ naam, aantal, totaal, kolommen, gedimd = false }: { naam: ReactNode; aantal?: number; totaal?: ReactNode; kolommen: number; gedimd?: boolean }) {
+export function GroepRij({ naam, aantal, totaal, kolommen, gedimd = false, actie }: { naam: ReactNode; aantal?: number; totaal?: ReactNode; kolommen: number; gedimd?: boolean; actie?: ReactNode }) {
   return <TableRow className="bg-muted/50 hover:bg-muted/50">
     <TableCell colSpan={kolommen} className="h-9 py-0">
       <div className={cn('flex items-center justify-between gap-2 text-sm', gedimd ? 'text-muted-foreground' : 'text-foreground')}>
         <span className="min-w-0 truncate font-semibold">{naam}</span>
-        <span className="flex shrink-0 gap-3 tabular-nums text-muted-foreground">{aantal != null && <span>{aantal}</span>}{totaal != null && <span className="font-medium text-foreground">{totaal}</span>}</span>
+        <span className="flex shrink-0 gap-3 tabular-nums text-muted-foreground">{aantal != null && <span>{aantal}</span>}{totaal != null && <span className="font-medium text-foreground">{totaal}</span>}{actie}</span>
       </div>
     </TableCell>
   </TableRow>;
