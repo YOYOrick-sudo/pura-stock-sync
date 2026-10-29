@@ -8,7 +8,8 @@ import { EmptyState } from '@/components/kitchen/EmptyState';
 import { cn } from '@/lib/utils';
 import { useRole } from '@/hooks/useRole';
 import { useArchiveerGerecht, useGerechten, useGerechtAllergenen, type Gerecht } from '@/hooks/useGerechten';
-import { GerechtKaartCodes, GerechtReceptAllergenen } from '@/components/kitchen/GerechtKaartInfo';
+import { GerechtKaartCodes, GerechtReceptBevat, GerechtReceptSporen } from '@/components/kitchen/GerechtKaartInfo';
+import { DataTable, DataTableBody, DataTableCell, DataTableHead, DataTableHeader, DataTableRow, EmptyCell, StatusDot } from '@/components/ui/data-table';
 import { GerechtDialog } from '@/components/kitchen/GerechtDialog';
 import { AllergeenFilter } from '@/components/kitchen/AllergeenFilter';
 import {
@@ -38,7 +39,7 @@ function opsomming(delen: string[]): string {
 function InhoudChips({ gerecht }: { gerecht: Gerecht }) {
   const inhoud = gesorteerdeInhoud(gerecht);
   if (inhoud.length === 0) {
-    return <span className="text-sm text-muted-foreground">—</span>;
+    return <EmptyCell />;
   }
   return (
     <div className="flex flex-wrap items-center gap-1.5">
@@ -48,7 +49,7 @@ function InhoudChips({ gerecht }: { gerecht: Gerecht }) {
           <span
             key={code}
             className={cn(
-              'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap',
+              'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap',
               soort === 'allergeen' && 'bg-destructive/10 text-destructive',
               soort === 'info' && 'bg-muted text-muted-foreground',
             )}
@@ -328,8 +329,7 @@ export default function Gerechten() {
                       {groep.titel} · {rijen.length}
                     </h2>
                   </div>
-                  <Tabelkop />
-                  {rijen.map(renderRij)}
+                  <GerechtTabel rijen={rijen} />
                 </Card>
               );
             })}
@@ -342,8 +342,7 @@ export default function Gerechten() {
                     Niet te garanderen — eerst navragen in de keuken · {onzeker.length}
                   </h2>
                 </div>
-                <Tabelkop />
-                {onzeker.map(renderRij)}
+                <GerechtTabel rijen={onzeker} />
               </Card>
             )}
           </>
