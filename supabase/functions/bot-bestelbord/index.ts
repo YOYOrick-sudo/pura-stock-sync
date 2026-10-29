@@ -3,6 +3,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const VESTIGINGEN = new Set(["West", "Midsland"]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { verwachteLeveringGeldig } from "./datum.ts";
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), {
@@ -59,10 +60,14 @@ Deno.serve(async (req) => {
 
   try {
     if (req.method === "GET") {
-      const { data, error } = await db.rpc("bestelbot_lees_open", { p_vestiging: vestiging });
+      const status = url.searchParams.get("status") ?? "open";
+      if (status !== "open" && status !== "besteld") return fout(400, "status moet open of besteld zijn");
+      const { data, error } = status === "besteld"
+        ? await db.rpc("bestelbot_lees_besteld", { p_vestiging: vestiging })
+        : await db.rpc("bestelbot_lees_open", { p_vestiging: vestiging });
       if (error) return fout(500, "Lezen mislukt");
       await sluit(true, { http_status: 200, aantal: data.length });
-      return json(200, { vestiging, regels: data });
+      return json(200, { vestiging, status, regels: data });
     }
     if (req.method !== "POST") return fout(405, "Methode niet toegestaan");
 
@@ -70,10 +75,11 @@ Deno.serve(async (req) => {
       const regels = body.regels;
       if (!Array.isArray(regels) || regels.length < 1 || regels.length > 100 ||
         !regels.every((r) => r && typeof r === "object" && UUID.test(String(r.id)) &&
-          (r.bestelreferentie == null || (typeof r.bestelreferentie === "string" && r.bestelreferentie.length <= 200)))) {
-        return fout(400, "regels: 1-100 items met geldige id en optionele bestelreferentie");
+          (r.bestelreferentie == null || (typeof r.bestelreferentie === "string" && r.bestelreferentie.length <= 200)) &&
+          verwachteLeveringGeldig(r.verwachte_levering))) {
+        return fout(400, "regels: 1-100 items met geldige id, optionele bestelreferentie en optionele verwachte_levering (YYYY-MM-DD, vandaag t/m +30 dagen)");
       }
-      const schoon = regels.map((r) => ({ id: r.id, bestelreferentie: r.bestelreferentie ?? null }));
+      const schoon = regels.map((r) => ({ id: r.id, bestelreferentie: r.bestelreferentie ?? null, verwachte_levering: r.verwachte_levering ?? null }));
       const { data, error } = await db.rpc("bestelbot_markeer_besteld", { p_vestiging: vestiging, p_regels: schoon });
       if (error) return fout(400, error.message);
       await sluit(true, { http_status: 200, resultaat: data }, schoon.map((r) => r.id));

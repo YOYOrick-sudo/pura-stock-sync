@@ -239,6 +239,13 @@
       "when": 1793236642743,
       "tag": "0033_bestelbot_afronden",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793259897084,
+      "tag": "0034_besteld_levering",
+      "breakpoints": true
     }
   ]
 }

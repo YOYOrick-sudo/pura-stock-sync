@@ -55,3 +55,12 @@ Werkwijze: Bouwdiscipline.
 - `POST {vestiging, actie:"import_historie", rijen:[...]}` (max 500, dubbel overgeslagen).
 - Historie-import controleert alleen dat leverancier/artikel bij de vestiging hoort (niet of het nu actief is). Alleen de bot schrijft historie.
 - Down (0033): drop bestelbot_lees_open/markeer_besteld/koppel/aanroep_afsluiten; herstel trigger-body en policies uit 0032.
+
+## Update: Besteld & levering (0034)
+- Nieuwe bordkolommen (nullable): verwachte_levering (date), geleverd_op, geleverd_door, levering_status ('geleverd'|'niet_geleverd'|'deels'), levering_opmerking, restant_van (zelf-FK). Status-CHECK toegevoegd: open/besteld/geleverd/vervallen. Index (vestiging, status, verwachte_levering).
+- `bestel_verwachte_levering(vestiging, leverancier_id, besteld_op)`: eerstvolgende besteldag van de leverancier + leverdag_offset, anders morgen (Europe/Amsterdam); dichte dag van de vestiging → volgende open dag (via mep_is_open, max 14 vooruit). Trigger vult dit bij elke overgang naar 'besteld' als het leeg is — ook bij handmatig bestellen.
+- `POST actie:"bestellen"` accepteert per regel optioneel `verwachte_levering` (YYYY-MM-DD, niet in verleden, max +30 dagen); antwoord per regel bevat `verwachte_levering`. Achterwaarts compatibel: zonder datum vult de server.
+- `GET ?vestiging=...&status=besteld` (default `open`, andere waarde → 400) geeft bestelde regels met bestelreferentie, besteld_op, verwachte_levering, te_laat en dagen_te_laat (alleen open dagen tellen). Bot meldt achterstand, bestelt niet opnieuw. Open regels geven nu ook levering_opmerking en restant_van (herbestellingen).
+- Nieuwe service-only RPC `bestelbot_lees_besteld`; `bestelbot_lees_open` opnieuw aangemaakt met twee extra kolommen; `bestelbot_markeer_besteld` uitgebreid (zelfde signatuur).
+- App: tab 'Onderweg' op de bestellijst (Vandaag te checken / Onderweg / Zonder datum / Geleverd), per leverancier + ordernummer, 'Alles geleverd', niet/deels geleverd met opmerking; 'niet geleverd' en restant van 'deels' komen als open regel terug op het bord.
+- Down (0034): drop trigger bestel_signalen_verwachte_levering en functies bestel_signalen_vul_verwachte_levering, bestel_verwachte_levering, bestelbot_lees_besteld; herstel bestelbot_lees_open/markeer_besteld uit 0033; verwijder de zes nieuwe kolommen, twee CHECK's en de leveringsindex.

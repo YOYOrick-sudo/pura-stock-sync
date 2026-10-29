@@ -1,8 +1,11 @@
 import { useMemo, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Check, ChevronDown, Minus, Plus, X } from 'lucide-react';
+import { Check, ChevronDown, MoreVertical, Minus, Plus, Truck, Undo2, X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Textarea } from '@/components/ui/textarea';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,8 +13,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { dagenTeLaat, parseYmd, ymd } from '@/lib/leverdatum';
 import { useUserLocation } from '@/contexts/UserLocationContext';
-import { useBestelSignalen, useBestelbordMutaties, type BestelSignaal } from '@/hooks/useBestelbord';
+import {
+  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useVestigingOpenDagen, type BestelSignaal,
+} from '@/hooks/useBestelbord';
 import { BestelLeverancierLabel } from '@/components/kitchen/BestelLeverancierLabel';
 
 const SOORTEN = ['stuks', 'doos', 'zak', 'fles', 'pak', 'bak', 'emmer', 'kg'] as const;
@@ -108,26 +115,191 @@ function Rij({
   );
 }
 
+function leverDatumLabel(datum: string | null): string {
+  if (!datum) return 'geen datum';
+  return parseYmd(datum).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+/** Eén bestelde regel in het Onderweg-overzicht: afvinken geleverd, datum aanpassen, niet/deels geleverd. */
+function OnderwegRij({
+  signaal,
+  teLaat,
+  onGeleverd,
+  onDatum,
+  onNietGeleverd,
+  onDeelsGeleverd,
+}: {
+  signaal: BestelSignaal;
+  teLaat: number;
+  onGeleverd: () => void;
+  onDatum: () => void;
+  onNietGeleverd: () => void;
+  onDeelsGeleverd: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-2 px-2 py-1.5 min-h-[56px]">
+      <button
+        type="button"
+        onClick={onGeleverd}
+        aria-label="Geleverd"
+        className="flex h-11 w-11 shrink-0 items-center justify-center"
+      >
+        <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-muted-foreground/40 transition-colors" />
+      </button>
+      <div className="min-w-0 flex-1">
+        <span className="block text-[16px] font-medium">{signaal.naam}</span>
+        <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
+          <span>{Number(signaal.aantal)} {signaal.eenheid}</span>
+          <button
+            type="button"
+            onClick={onDatum}
+            className="rounded-full border border-border px-2 py-0.5 text-[13px] hover:bg-muted"
+            aria-label="Verwachte leverdatum aanpassen"
+          >
+            {leverDatumLabel(signaal.verwachte_levering)}
+          </button>
+          {teLaat > 0 && <Badge variant="destructive" className="font-normal">{teLaat} {teLaat === 1 ? 'dag' : 'dagen'} te laat</Badge>}
+        </div>
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-11 w-11 p-0 text-muted-foreground" aria-label="Meer opties">
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={onNietGeleverd}>Niet geleverd</DropdownMenuItem>
+          <DropdownMenuItem onClick={onDeelsGeleverd}>Deels geleverd</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
+/** Groep bestelde regels van één leverancier + ordernummer, met "Alles geleverd". */
+function LeveringGroep({
+  titel,
+  regels,
+  dagenTeLaatVan,
+  onAllesGeleverd,
+  onGeleverd,
+  onDatum,
+  onNietGeleverd,
+  onDeelsGeleverd,
+}: {
+  titel: string;
+  regels: BestelSignaal[];
+  dagenTeLaatVan: (s: BestelSignaal) => number;
+  onAllesGeleverd: (ids: string[]) => void;
+  onGeleverd: (s: BestelSignaal) => void;
+  onDatum: (s: BestelSignaal) => void;
+  onNietGeleverd: (s: BestelSignaal) => void;
+  onDeelsGeleverd: (s: BestelSignaal) => void;
+}) {
+  const besteldOp = regels[0]?.besteld_op;
+  const referentie = regels[0]?.bestelreferentie;
+  return (
+    <Card className="overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-border/60 px-3 py-2">
+        <Truck className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <div className="min-w-0 flex-1">
+          <span className="block truncate text-[15px] font-semibold">{titel}</span>
+          <span className="block text-[13px] text-muted-foreground">
+            {besteldOp ? `besteld ${datumLabel(besteldOp)}` : 'besteld'}
+            {referentie ? ` · ${referentie}` : ''}
+          </span>
+        </div>
+        <Button variant="outline" className="h-11 shrink-0" onClick={() => onAllesGeleverd(regels.map((r) => r.id))}>
+          <Check className="h-4 w-4 mr-1" /> Alles geleverd
+        </Button>
+      </div>
+      <div className="divide-y divide-border/60">
+        {regels.map((s) => (
+          <OnderwegRij
+            key={s.id}
+            signaal={s}
+            teLaat={dagenTeLaatVan(s)}
+            onGeleverd={() => onGeleverd(s)}
+            onDatum={() => onDatum(s)}
+            onNietGeleverd={() => onNietGeleverd(s)}
+            onDeelsGeleverd={() => onDeelsGeleverd(s)}
+          />
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 export default function Bestelbord() {
   const { userLocation } = useUserLocation();
   const vestiging = userLocation ?? '';
   const { data: signalen = [], isLoading } = useBestelSignalen(vestiging || null);
-  const { toevoegen, zetBesteld, verwijderen, herstel, wijzig } = useBestelbordMutaties(vestiging);
+  const {
+    toevoegen, zetBesteld, verwijderen, herstel, wijzig,
+    markeerGeleverd, nietGeleverd, deelsGeleverd, terugNaarBesteld, zetVerwachteLevering,
+  } = useBestelbordMutaties(vestiging);
+  const { data: leveranciers } = useLeveranciers();
+  const { isOpen } = useVestigingOpenDagen(vestiging || null);
   const [naam, setNaam] = useState('');
   const [aantal, setAantal] = useState(1);
   const [soort, setSoort] = useState<string | null>(null);
   const [bewerk, setBewerk] = useState<BestelSignaal | null>(null);
   const [bewerkAantal, setBewerkAantal] = useState(1);
   const [bewerkSoort, setBewerkSoort] = useState<string | null>(null);
+  const [datumVoor, setDatumVoor] = useState<BestelSignaal | null>(null);
+  const [datumKeuze, setDatumKeuze] = useState('');
+  const [leveringActie, setLeveringActie] = useState<{ signaal: BestelSignaal; type: 'niet' | 'deels' } | null>(null);
+  const [leveringOpmerking, setLeveringOpmerking] = useState('');
+  const [deelsOntvangen, setDeelsOntvangen] = useState(1);
   const invoer = useRef<HTMLInputElement>(null);
 
-  const { open, besteld } = useMemo(
+  const vandaag = useMemo(() => new Date(), []);
+  const teLaatVan = (s: BestelSignaal) => dagenTeLaat(s.verwachte_levering, vandaag, isOpen);
+
+  const { open, besteld, geleverd } = useMemo(
     () => ({
       open: signalen.filter((s) => s.status === 'open'),
-      besteld: signalen.filter((s) => s.status === 'besteld').slice(0, 30),
+      besteld: signalen.filter((s) => s.status === 'besteld'),
+      geleverd: signalen.filter((s) => s.status === 'geleverd').slice(0, 30),
     }),
     [signalen],
   );
+
+  // Namen van wie leveringen heeft afgevinkt.
+  const geleverdDoorIds = useMemo(
+    () => [...new Set(geleverd.map((s) => s.geleverd_door).filter((x): x is string => !!x))],
+    [geleverd],
+  );
+  const { data: namen } = useQuery({
+    queryKey: ['namen', geleverdDoorIds],
+    enabled: geleverdDoorIds.length > 0,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase.rpc('rpc_namen_voor_users', { _ids: geleverdDoorIds });
+      return new Map((data ?? []).map((r: { user_id: string; naam: string | null }) => [r.user_id, r.naam ?? '']));
+    },
+  });
+
+  /** Groepeer bestelde regels per leverancier + ordernummer. */
+  const groepeer = (regels: BestelSignaal[]) => {
+    const m = new Map<string, BestelSignaal[]>();
+    for (const s of regels) {
+      const lev = (s.leverancier_id && leveranciers?.get(s.leverancier_id)) || 'Onbekende leverancier';
+      const key = `${lev}|${s.bestelreferentie ?? ''}`;
+      if (!m.has(key)) m.set(key, []);
+      m.get(key)!.push(s);
+    }
+    return [...m.entries()].map(([key, r]) => ({ titel: key.split('|')[0], regels: r }));
+  };
+
+  const { teChecken, onderweg, zonderDatum } = useMemo(() => {
+    const vandaagYmd = ymd(vandaag);
+    return {
+      teChecken: besteld.filter((s) => s.verwachte_levering && s.verwachte_levering <= vandaagYmd),
+      onderweg: besteld.filter((s) => s.verwachte_levering && s.verwachte_levering > vandaagYmd),
+      zonderDatum: besteld.filter((s) => !s.verwachte_levering),
+    };
+  }, [besteld, vandaag]);
 
   // Eerder gebruikte producten (laatste aantal + soort), nieuwste eerst.
   const eerder = useMemo(() => {
@@ -165,6 +337,10 @@ export default function Bestelbord() {
       leeg();
       return;
     }
+    const onderwegMatch = besteld.find((s) => norm(s.naam) === norm(n));
+    if (onderwegMatch) {
+      toast(`Let op: al onderweg, verwacht ${leverDatumLabel(onderwegMatch.verwachte_levering)}`);
+    }
     toevoegen.mutate(
       { naam: n, aantal, eenheid },
       {
@@ -197,6 +373,52 @@ export default function Bestelbord() {
       onSuccess: () =>
         toast(`${s.naam} van de lijst`, { action: { label: 'Ongedaan maken', onClick: () => herstel.mutate(s.id) } }),
     });
+
+  const vinkGeleverd = (ids: string[], label: string) =>
+    markeerGeleverd.mutate(ids, {
+      onSuccess: () =>
+        toast.success(`${label} geleverd`, {
+          action: { label: 'Ongedaan maken', onClick: () => ids.forEach((id) => terugNaarBesteld.mutate(id)) },
+        }),
+      onError: (e: any) => toast.error('Niet opgeslagen: ' + (e?.message ?? 'onbekende fout')),
+    });
+
+  const openDatum = (s: BestelSignaal) => {
+    setDatumVoor(s);
+    setDatumKeuze(s.verwachte_levering ?? ymd(new Date(Date.now() + 24 * 60 * 60 * 1000)));
+  };
+
+  const openLeveringActie = (s: BestelSignaal, type: 'niet' | 'deels') => {
+    setLeveringActie({ signaal: s, type });
+    setLeveringOpmerking('');
+    setDeelsOntvangen(Math.max(1, Number(s.aantal) - 1));
+  };
+
+  const bevestigLeveringActie = () => {
+    if (!leveringActie) return;
+    const { signaal: s, type } = leveringActie;
+    if (type === 'niet') {
+      nietGeleverd.mutate({ id: s.id, opmerking: leveringOpmerking.trim() }, {
+        onSuccess: () => toast(`${s.naam} staat weer op het bord`),
+        onError: (e: any) => toast.error('Niet opgeslagen: ' + (e?.message ?? 'onbekende fout')),
+      });
+    } else {
+      deelsGeleverd.mutate({ signaal: s, ontvangen: deelsOntvangen, opmerking: leveringOpmerking.trim() }, {
+        onSuccess: () => toast.success(`${s.naam}: ${deelsOntvangen} ${s.eenheid} binnen, restant staat weer op het bord`),
+        onError: (e: any) => toast.error('Niet opgeslagen: ' + (e?.message ?? 'onbekende fout')),
+      });
+    }
+    setLeveringActie(null);
+  };
+
+  const groepProps = {
+    dagenTeLaatVan: teLaatVan,
+    onAllesGeleverd: (ids: string[]) => vinkGeleverd(ids, `${ids.length} ${ids.length === 1 ? 'regel' : 'regels'}`),
+    onGeleverd: (s: BestelSignaal) => vinkGeleverd([s.id], s.naam),
+    onDatum: openDatum,
+    onNietGeleverd: (s: BestelSignaal) => openLeveringActie(s, 'niet'),
+    onDeelsGeleverd: (s: BestelSignaal) => openLeveringActie(s, 'deels'),
+  };
 
   const openBewerk = (s: BestelSignaal) => {
     setBewerk(s);
@@ -267,15 +489,64 @@ export default function Bestelbord() {
             </Card>
 
             {besteld.length > 0 && (
+              <div className="space-y-3">
+                {teChecken.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="px-1 text-sm font-semibold">Vandaag te checken ({teChecken.length})</p>
+                    {groepeer(teChecken).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}
+                  </div>
+                )}
+                {onderweg.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="px-1 text-sm font-semibold">Onderweg ({onderweg.length})</p>
+                    {groepeer(onderweg).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}
+                  </div>
+                )}
+                {zonderDatum.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="px-1 text-sm font-semibold text-muted-foreground">Zonder datum ({zonderDatum.length})</p>
+                    {groepeer(zonderDatum).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {geleverd.length > 0 && (
               <Collapsible>
                 <CollapsibleTrigger className="group flex h-11 w-full items-center gap-2 px-1 text-sm font-medium text-muted-foreground">
                   <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
-                  Besteld ({besteld.length})
+                  Geleverd ({geleverd.length})
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <Card className="divide-y divide-border/60 overflow-hidden">
-                    {besteld.map((s) => (
-                      <Rij key={s.id} signaal={s} onBesteld={(b) => markeerBesteld(s, b)} />
+                    {geleverd.map((s) => (
+                      <div key={s.id} className="flex items-center gap-2 px-2 py-1.5 min-h-[56px]">
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center">
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-primary bg-primary text-primary-foreground">
+                            <Check className="h-4 w-4" />
+                          </span>
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <span className="block text-[15px] text-muted-foreground line-through">{s.naam}</span>
+                          <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
+                            <span>
+                              {Number(s.aantal)} {s.eenheid}
+                              {s.geleverd_op && ` · ${datumLabel(s.geleverd_op)}`}
+                              {s.geleverd_door && namen?.get(s.geleverd_door) ? ` · ${namen.get(s.geleverd_door)}` : ''}
+                            </span>
+                            {s.levering_status === 'deels' && <Badge variant="secondary" className="font-normal">Deels</Badge>}
+                            {s.levering_opmerking && <span className="truncate">{s.levering_opmerking}</span>}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          className="h-11 w-11 p-0 text-muted-foreground"
+                          aria-label="Toch niet geleverd, terug naar onderweg"
+                          onClick={() => terugNaarBesteld.mutate(s.id)}
+                        >
+                          <Undo2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     ))}
                   </Card>
                 </CollapsibleContent>
@@ -302,6 +573,62 @@ export default function Bestelbord() {
               }}
             >
               Opslaan
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!datumVoor} onOpenChange={(o) => !o && setDatumVoor(null)}>
+        <DialogContent className="max-w-[650px] rounded-[24px]">
+          <DialogHeader>
+            <DialogTitle>Verwachte levering — {datumVoor?.naam}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              type="date"
+              value={datumKeuze}
+              min={ymd(new Date())}
+              onChange={(e) => setDatumKeuze(e.target.value)}
+              className="h-12 text-[16px]"
+            />
+            <Button
+              className="h-12 w-full"
+              disabled={!datumKeuze}
+              onClick={() => {
+                if (!datumVoor || !datumKeuze) return;
+                zetVerwachteLevering.mutate({ id: datumVoor.id, datum: datumKeuze });
+                setDatumVoor(null);
+              }}
+            >
+              Opslaan
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!leveringActie} onOpenChange={(o) => !o && setLeveringActie(null)}>
+        <DialogContent className="max-w-[650px] rounded-[24px]">
+          <DialogHeader>
+            <DialogTitle>
+              {leveringActie?.type === 'niet' ? 'Niet geleverd' : 'Deels geleverd'} — {leveringActie?.signaal.naam}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {leveringActie?.type === 'deels' && (
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">
+                  Hoeveel is er binnen? (besteld: {Number(leveringActie.signaal.aantal)} {leveringActie.signaal.eenheid})
+                </p>
+                <Stepper waarde={deelsOntvangen} onChange={(n) => setDeelsOntvangen(Math.min(n, Number(leveringActie.signaal.aantal) - 1))} />
+              </div>
+            )}
+            <Textarea
+              value={leveringOpmerking}
+              onChange={(e) => setLeveringOpmerking(e.target.value)}
+              placeholder="Korte opmerking (bijv. waarom niet geleverd)"
+              className="text-[16px]"
+            />
+            <Button className="h-12 w-full" onClick={bevestigLeveringActie}>
+              {leveringActie?.type === 'niet' ? 'Terug op het bord' : 'Restant terug op het bord'}
             </Button>
           </div>
         </DialogContent>
