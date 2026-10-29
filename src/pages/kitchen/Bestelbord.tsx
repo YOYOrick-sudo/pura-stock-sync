@@ -489,15 +489,67 @@ export default function Bestelbord() {
             </Card>
 
             {besteld.length > 0 && (
+              <div className="space-y-3">
+                <p className="px-1 text-sm font-medium text-muted-foreground">
+                  Onderweg ({besteld.length})
+                </p>
+                {teChecken.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="px-1 text-sm font-semibold">Vandaag te checken ({teChecken.length})</p>
+                    {groepeer(teChecken).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}
+                  </div>
+                )}
+                {onderweg.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="px-1 text-sm font-semibold">Onderweg ({onderweg.length})</p>
+                    {groepeer(onderweg).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}
+                  </div>
+                )}
+                {zonderDatum.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="px-1 text-sm font-semibold text-muted-foreground">Zonder datum ({zonderDatum.length})</p>
+                    {groepeer(zonderDatum).map((g) => <LeveringGroep key={g.titel + (g.regels[0]?.bestelreferentie ?? '')} {...g} {...groepProps} />)}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {geleverd.length > 0 && (
               <Collapsible>
                 <CollapsibleTrigger className="group flex h-11 w-full items-center gap-2 px-1 text-sm font-medium text-muted-foreground">
                   <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
-                  Besteld ({besteld.length})
+                  Geleverd ({geleverd.length})
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <Card className="divide-y divide-border/60 overflow-hidden">
-                    {besteld.map((s) => (
-                      <Rij key={s.id} signaal={s} onBesteld={(b) => markeerBesteld(s, b)} />
+                    {geleverd.map((s) => (
+                      <div key={s.id} className="flex items-center gap-2 px-2 py-1.5 min-h-[56px]">
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center">
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-primary bg-primary text-primary-foreground">
+                            <Check className="h-4 w-4" />
+                          </span>
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <span className="block text-[15px] text-muted-foreground line-through">{s.naam}</span>
+                          <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
+                            <span>
+                              {Number(s.aantal)} {s.eenheid}
+                              {s.geleverd_op && ` · ${datumLabel(s.geleverd_op)}`}
+                              {s.geleverd_door && namen?.get(s.geleverd_door) ? ` · ${namen.get(s.geleverd_door)}` : ''}
+                            </span>
+                            {s.levering_status === 'deels' && <Badge variant="secondary" className="font-normal">Deels</Badge>}
+                            {s.levering_opmerking && <span className="truncate">{s.levering_opmerking}</span>}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          className="h-11 w-11 p-0 text-muted-foreground"
+                          aria-label="Toch niet geleverd, terug naar onderweg"
+                          onClick={() => terugNaarBesteld.mutate(s.id)}
+                        >
+                          <Undo2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     ))}
                   </Card>
                 </CollapsibleContent>
