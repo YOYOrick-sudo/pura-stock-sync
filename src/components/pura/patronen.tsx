@@ -31,16 +31,16 @@ export function GroepRij({ naam, aantal, totaal, kolommen, gedimd = false, actie
 
 /** Kengetal: icoon + label klein, groot getal eronder. Meerdere naast elkaar in één kaart. */
 export function Kengetal({ icoon: Icoon, label, waarde, toon = 'neutraal' }: { icoon: LucideIcon; label: string; waarde: ReactNode; toon?: 'neutraal' | 'let-op' }) {
-  return <div className="min-w-0 space-y-1">
-    <div className="flex items-center gap-1 text-xs text-muted-foreground"><Icoon className={cn('h-4 w-4 shrink-0', toon === 'let-op' && 'text-warning')} /><span className="leading-tight">{label}</span></div>
-    <div className="text-xl font-semibold tabular-nums text-foreground">{waarde}</div>
+  return <div className="min-w-0 space-y-1 px-3 py-4">
+    <div className="flex items-center gap-1 text-xs text-muted-foreground"><Icoon className={cn('h-4 w-4 shrink-0', toon === 'let-op' && 'text-warning')} /><span className="truncate leading-tight">{label}</span></div>
+    <div className={cn('truncate text-xl font-semibold tabular-nums', toon === 'let-op' ? 'text-warning' : 'text-foreground')}>{waarde}</div>
   </div>;
 }
 
-/** Eén samenvattingskaart: kengetallen in een rij, optioneel inhoud eronder. */
+/** Eén samenvattingskaart: kengetallen elk in een eigen vak, optioneel inhoud eronder. */
 export function OverzichtKaart({ kengetallen, children }: { kengetallen: ReactNode; children?: ReactNode }) {
   return <Card className="self-start overflow-hidden">
-    <div className="grid grid-cols-3 gap-3 p-4">{kengetallen}</div>
+    <div className="grid grid-cols-3 divide-x divide-border">{kengetallen}</div>
     {children && <div className="border-t border-border">{children}</div>}
   </Card>;
 }
