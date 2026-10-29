@@ -47,9 +47,8 @@ export default function MtPunt() {
 
   return (
     <SidebarLayout>
-      <div className="page-container">
-        <div className="page-stack max-w-2xl">
-          <h1 className="text-2xl font-semibold">MT-punt aanleveren</h1>
+      <div className="page-stack max-w-2xl">
+        <h1 className="text-2xl font-semibold">MT-punt aanleveren</h1>
 
           <Card className="p-4 md:p-6 space-y-4">
             <div className="space-y-2">
