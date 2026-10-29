@@ -8,10 +8,11 @@ import { TableBody, TableCell, TableRow } from '@/components/ui/table';
 import type { BestelAdvies, BestelSignaal } from '@/hooks/useBestelbord';
 import { CompacteTabel } from './CompacteTabel';
 import { perLeverancier } from './presentatie';
+import { DeadlineNaam } from './DeadlineNaam';
 
-export function AdviesTabel({ regels, open, bezig, onOpBord, nul = false }: { regels: BestelAdvies[]; open: BestelSignaal[]; bezig: boolean; onOpBord: (a: BestelAdvies) => void; nul?: boolean }) {
+export function AdviesTabel({ regels, open, bezig, onOpBord, deadlineHint, nul = false }: { regels: BestelAdvies[]; open: BestelSignaal[]; bezig: boolean; onOpBord: (a: BestelAdvies) => void; deadlineHint: (a: BestelAdvies) => string | null; nul?: boolean }) {
   return <div className={nul ? 'opacity-60' : undefined}><CompacteTabel advies kinderen={<TableBody>{perLeverancier(regels, (a) => a.leverancier ?? 'Leverancier onbekend').map(([lev, rs]) => <Fragment key={lev}>
-    <GroepRij kolommen={4} naam={lev} aantal={rs.length} gedimd={lev === 'Leverancier onbekend'} />
+    <GroepRij kolommen={4} naam={<DeadlineNaam naam={lev} hint={rs[0] ? deadlineHint(rs[0]) : null} />} aantal={rs.length} gedimd={lev === 'Leverancier onbekend'} />
     {rs.map((a) => {
       const opBord = (!!a.artikel_id && open.some((s) => s.artikel_id === a.artikel_id)) || !!a.op_bord_regel_id;
       return <TableRow key={a.id}>

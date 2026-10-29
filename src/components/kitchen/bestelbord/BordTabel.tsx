@@ -10,9 +10,11 @@ import { GroepRij } from '@/components/pura/patronen';
 import { RijMenu, RijMeta, StatusLabel } from '@/components/pura/lijst';
 import { CompacteTabel } from './CompacteTabel';
 import { euro, perLeverancier } from './presentatie';
+import { DeadlineNaam } from './DeadlineNaam';
 
-export function BordTabel({ regels, leverancier, prijsVan, prijsSignaal, prijsTip, onBesteld, onBewerk, onVervallen, geleverd = false, onTerug, detail }: {
+export function BordTabel({ regels, leverancier, deadlineHint, prijsVan, prijsSignaal, prijsTip, onBesteld, onBewerk, onVervallen, geleverd = false, onTerug, detail }: {
   regels: BestelSignaal[]; leverancier: (s: BestelSignaal) => string;
+  deadlineHint: (s: BestelSignaal) => string | null;
   prijsVan: (s: BestelSignaal) => { vorm: ArtikelVorm; totaal: number } | null;
   prijsSignaal: (s: BestelSignaal) => PrijsSignaal | null; prijsTip: (v: ArtikelVorm) => string;
   onBesteld: (s: BestelSignaal, b: boolean) => void; onBewerk: (s: BestelSignaal) => void; onVervallen: (s: BestelSignaal) => void;
@@ -21,7 +23,7 @@ export function BordTabel({ regels, leverancier, prijsVan, prijsSignaal, prijsTi
   return <CompacteTabel vinkKop={geleverd ? undefined : 'Besteld'} kinderen={<TableBody>{perLeverancier(regels, leverancier).map(([lev, rs]) => {
     const prijzen = rs.map(prijsVan).filter((p) => p != null);
     return <Fragment key={lev}>
-      <GroepRij kolommen={5} naam={lev} aantal={rs.length} totaal={prijzen.length ? euro(prijzen.reduce((n, p) => n + p.totaal, 0)) : undefined} gedimd={lev === 'Leverancier onbekend'} />
+      <GroepRij kolommen={5} naam={geleverd ? lev : <DeadlineNaam naam={lev} hint={rs[0] ? deadlineHint(rs[0]) : null} />} aantal={rs.length} totaal={prijzen.length ? euro(prijzen.reduce((n, p) => n + p.totaal, 0)) : undefined} gedimd={lev === 'Leverancier onbekend'} />
       {rs.map((s) => {
         const prijs = prijsVan(s);
         const info = geleverd ? detail?.(s) : '';
