@@ -94,3 +94,20 @@ Deno.test("mock-sync: aggregatie + idempotentie via 2× dezelfde mock", async ()
   const qtxt = await q.text();
   console.log("RLS-check (anon SELECT op omzet_uren):", q.status, qtxt.slice(0, 100));
 });
+
+Deno.test("verkoop: zelfde product opgeteld per werkdag, retour telt negatief, buiten-dagen genegeerd", async () => {
+  const { aggregateVerkoop, extractItems } = await import("./index.ts");
+  const mk = (ts: string, amount: number, tp: number) => ({
+    timestamp: ts, total_incl: tp, total_excl: tp,
+    items: extractItems({ items: [{ prodId: "1", productName: "Cappuccino", amount, totalPrice: tp, totalPriceWithoutVat: tp / 1.09 }] }),
+  });
+  const rows = aggregateVerkoop([
+    mk("2026-10-28T09:00:00Z", 2, 7.8),
+    mk("2026-10-28T23:30:00Z", 1, 3.9),   // 00:30 NL → nog werkdag 28
+    mk("2026-10-28T10:00:00Z", -1, -3.9), // retour
+    mk("2026-10-29T09:00:00Z", 5, 19.5),  // andere dag, niet gevraagd
+  ], new Set(["2026-10-28"]));
+  assertEquals(rows.length, 1);
+  assertEquals(rows[0].aantal, 2);
+  assertEquals(Number(rows[0].incl.toFixed(2)), 7.8);
+});
