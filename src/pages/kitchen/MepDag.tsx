@@ -661,7 +661,7 @@ function TaakRij({
           : undefined
       }
       className={cn(
-        isMobile ? 'flex items-center gap-2 px-3 py-2 min-h-[64px]' : 'flex items-stretch gap-3 px-4 sm:px-5 py-3 min-h-[64px]',
+        isMobile ? 'flex items-stretch gap-2 px-3 py-2 min-h-[64px]' : 'flex items-stretch gap-3 px-4 sm:px-5 py-3 min-h-[64px]',
         'bg-card',
         isOvertijd && 'bg-destructive/5',
         isKlaar && 'opacity-60',
