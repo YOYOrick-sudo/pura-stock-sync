@@ -15,7 +15,7 @@ const corsHeaders = {
 }
 
 // Configuration
-const SITE_NAME = "Pura Vida Foodbar"
+const SITE_NAME = "Pura Vida Collective"
 const SENDER_DOMAIN = "notify.puravidafoodbar.nl"
 const ROOT_DOMAIN = "puravidafoodbar.nl"
 const FROM_DOMAIN = "puravidafoodbar.nl"

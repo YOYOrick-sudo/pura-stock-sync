@@ -16,7 +16,7 @@ export const LOGO_URL =
   'https://intern.puravidafoodbar.nl/__l5e/assets-v1/4dc60a39-5e32-42bb-870f-f759785f20e9/pura-vida-logo-email.png'
 
 export const APP_REGEL =
-  'De Pura Vida-app is de interne app van Pura Vida Foodbar voor taken, bestellingen en planning. Je logt in via "Persoonlijk" met je eigen e-mailadres en wachtwoord.'
+  'De Pura Vida-app is de interne app van Pura Vida Collective (Daily en Foodbar) voor taken, bestellingen en planning. Je logt in via "Persoonlijk" met je eigen e-mailadres en wachtwoord.'
 
 interface LayoutProps {
   preheader: string
@@ -116,7 +116,7 @@ export const MailLayout = ({ preheader, titel, children, reden }: LayoutProps) =
                   <tr>
                     <td align="center" style={{ padding: '24px 16px 0' }}>
                       <p style={{ margin: '0 0 6px', fontFamily: FONT, fontSize: '13px', lineHeight: '20px', fontWeight: 600, color: KLEUR_TEKST_ZACHT }}>
-                        Pura Vida Foodbar · Terschelling
+                        Pura Vida Collective · Daily & Foodbar · Terschelling
                       </p>
                       <p style={{ margin: 0, fontFamily: FONT, fontSize: '12px', lineHeight: '18px', color: KLEUR_MUTED }}>
                         {reden}

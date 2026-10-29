@@ -13,7 +13,7 @@ export const SignupEmail = ({ siteName, confirmationUrl }: Props) => (
   <MailLayout
     preheader="Bevestig je e-mailadres om toegang te krijgen tot de Pura Vida-app."
     titel="Bevestig je e-mailadres"
-    reden="Je ontvangt deze mail omdat dit adres is aangemeld voor de interne app van Pura Vida. Niet aangemeld? Dan kun je deze mail negeren."
+    reden="Je ontvangt deze mail omdat dit adres is aangemeld voor de interne app van Pura Vida Collective. Niet aangemeld? Dan kun je deze mail negeren."
   >
     <Paragraaf>
       Bedankt voor je aanmelding bij {siteName}. Klik op de knop hieronder om je e-mailadres te bevestigen en toegang te krijgen tot de app.

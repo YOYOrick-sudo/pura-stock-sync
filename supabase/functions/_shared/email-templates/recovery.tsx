@@ -12,7 +12,7 @@ export const RecoveryEmail = ({ siteName, confirmationUrl }: Props) => (
   <MailLayout
     preheader="Kies een nieuw wachtwoord voor je Pura Vida-account."
     titel="Wachtwoord resetten"
-    reden="Je ontvangt deze mail omdat er een nieuw wachtwoord is aangevraagd voor de interne app van Pura Vida. Niet aangevraagd? Dan kun je deze mail negeren — je huidige wachtwoord blijft geldig."
+    reden="Je ontvangt deze mail omdat er een nieuw wachtwoord is aangevraagd voor de interne app van Pura Vida Collective. Niet aangevraagd? Dan kun je deze mail negeren — je huidige wachtwoord blijft geldig."
   >
     <Paragraaf>
       We ontvingen een verzoek om het wachtwoord van je {siteName}-account te resetten. Klik op de knop hieronder om een nieuw wachtwoord te kiezen.

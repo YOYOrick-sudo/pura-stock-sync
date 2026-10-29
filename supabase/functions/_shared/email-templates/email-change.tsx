@@ -14,7 +14,7 @@ export const EmailChangeEmail = ({ siteName, oldEmail, newEmail, confirmationUrl
   <MailLayout
     preheader="Bevestig de wijziging van je e-mailadres voor de Pura Vida-app."
     titel="Bevestig je nieuwe e-mailadres"
-    reden="Je ontvangt deze mail omdat er een e-mailwijziging is aangevraagd voor je account in de interne app van Pura Vida. Niet aangevraagd? Neem dan contact op met je beheerder."
+    reden="Je ontvangt deze mail omdat er een e-mailwijziging is aangevraagd voor je account in de interne app van Pura Vida Collective. Niet aangevraagd? Neem dan contact op met je beheerder."
   >
     <Paragraaf>
       Er is een verzoek gedaan om het e-mailadres van je {siteName}-account te wijzigen{oldEmail ? ` van ${oldEmail}` : ''}{newEmail ? ` naar ${newEmail}` : ''}. Klik op de knop hieronder om deze wijziging te bevestigen.

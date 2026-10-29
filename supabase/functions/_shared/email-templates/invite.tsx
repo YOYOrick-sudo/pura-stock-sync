@@ -12,7 +12,7 @@ export const InviteEmail = ({ siteName, confirmationUrl }: Props) => (
   <MailLayout
     preheader={`Je bent uitgenodigd voor de ${siteName} app. Kies je wachtwoord om in te loggen.`}
     titel="Je bent uitgenodigd"
-    reden="Je ontvangt deze mail omdat je bent uitgenodigd voor de interne app van Pura Vida. Niet verwacht? Dan kun je deze mail negeren."
+    reden="Je ontvangt deze mail omdat je bent uitgenodigd voor de interne app van Pura Vida Collective. Niet verwacht? Dan kun je deze mail negeren."
   >
     <Paragraaf>
       Welkom bij het interne platform van {siteName}. Klik op de knop hieronder om je persoonlijke wachtwoord in te stellen en direct in te loggen.
