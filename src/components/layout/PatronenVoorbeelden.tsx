@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { AlertCircle, Building2, Calculator, Check, ClipboardList, MoreVertical, Sparkles, Truck, Plus, Minus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,8 +16,8 @@ const rijen = [
 function VoorbeeldTabel() {
   return <Table className="table-fixed [&_td]:px-2 [&_td]:py-0 [&_th]:h-9 [&_th]:px-2">
     <TableHeader><TableRow><TableHead className="w-14" /><TableHead>Product</TableHead><TableHead className="w-24 text-right">Aantal</TableHead><TableHead className="w-24 text-right">Prijs</TableHead><TableHead className="w-14" /></TableRow></TableHeader>
-    <TableBody>{rijen.map((g) => <>
-      <GroepRij key={g.lev} kolommen={5} naam={g.lev} aantal={g.items.length} totaal="€ 19,40" />
+    <TableBody>{rijen.map((g) => <Fragment key={g.lev}>
+      <GroepRij kolommen={5} naam={g.lev} aantal={g.items.length} totaal="€ 19,40" />
       {g.items.map(([n, a, p]) => <TableRow key={n}>
         <TableCell><span className="flex h-11 w-11 items-center justify-center"><Checkbox aria-label={n} /></span></TableCell>
         <TableCell className="truncate font-medium">{n}</TableCell>
@@ -24,7 +25,7 @@ function VoorbeeldTabel() {
         <TableCell className="text-right tabular-nums">{p || <StatusDot toon="let-op" verborgenLabel="Geen prijs" />}</TableCell>
         <TableCell><Button variant="ghost" className="h-11 w-11 p-0" aria-label="Opties"><MoreVertical className="h-4 w-4 text-muted-foreground" /></Button></TableCell>
       </TableRow>)}
-    </>)}</TableBody>
+    </Fragment>)}</TableBody>
   </Table>;
 }
 
