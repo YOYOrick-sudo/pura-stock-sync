@@ -261,6 +261,7 @@ export function useBestelbordMutaties(vestiging: string) {
           restant_van: signaal.id,
           leverancier_id: signaal.leverancier_id,
           artikel_id: signaal.artikel_id,
+          artikel_vorm_id: signaal.artikel_vorm_id,
           levering_opmerking: opmerking || null,
           gemeld_door: user.user?.id ?? null,
         }),
