@@ -269,7 +269,7 @@ export default function Gerechten() {
             onWissen={wisFilter}
             aantal={filterActief && !isLoading ? veilig.length : undefined}
           />
-        </div>
+        </Card>
 
         {receptQuery.isError && <div className="flex flex-wrap items-center gap-3 text-sm text-warning" role="alert">
           Receptallergenen konden niet worden geladen.
