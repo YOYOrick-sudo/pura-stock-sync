@@ -21,6 +21,11 @@ export default function SetPassword() {
   const [confirm, setConfirm] = useState('');
   const [saving, setSaving] = useState(false);
   const [pendingLink, setPendingLink] = useState<PendingLink | null>(null);
+  // Bewaar `next` vóórdat de URL wordt opgeschoond; alleen interne paden.
+  const [nextPath] = useState<string | null>(() => {
+    const n = new URLSearchParams(window.location.search).get('next');
+    return n && n.startsWith('/') && !n.startsWith('//') ? n : null;
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -114,7 +119,7 @@ export default function SetPassword() {
     if (error) { toast.error('Instellen mislukt', { description: error.message }); return; }
     setLinkState('saved');
     toast.success('Wachtwoord ingesteld');
-    setTimeout(() => navigate('/dashboard'), 1200);
+    setTimeout(() => navigate(nextPath ?? '/dashboard'), 1200);
   };
 
   if (linkState === 'checking') {
