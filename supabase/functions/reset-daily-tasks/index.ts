@@ -130,6 +130,12 @@ Deno.serve(async (req) => {
         .map((template: DailyTemplate) => ({
           location: template.location,
           title: template.title,
+          title_en: (template as any).title_en ?? null,
+          description: (template as any).description ?? null,
+          description_en: (template as any).description_en ?? null,
+          foto_url: (template as any).foto_url ?? null,
+          repeat_type: 'daily',
+          assigned_employee_id: null,
           due_date: todayDate,
           priority: template.priority,
           category: template.category,

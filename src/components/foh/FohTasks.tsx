@@ -1469,7 +1469,9 @@ export function FohTasks() {
       }));
 
     if (tasksToInsert.length > 0) {
-      await supabase.from('foh_tasks').insert(tasksToInsert);
+      const { error } = await supabase.from('foh_tasks').insert(tasksToInsert);
+      // 23505 = al aangemaakt door een ander apparaat of de nachtelijke aanmaak.
+      if (error && error.code !== '23505') throw error;
     }
   };
 
@@ -1614,6 +1616,9 @@ export function FohTasks() {
     let afgebroken = false;
 
     const initializeTasks = async () => {
+      // Wacht tot de vestiging bekend is; anders wordt de dagvlag gezet
+      // zonder dat er taken voor de juiste vestiging zijn aangemaakt.
+      if (!userLocation) return;
       const vandaag = getAmsterdamDateString();
       const viewingToday = selectedDate === vandaag;
 
@@ -1637,7 +1642,7 @@ export function FohTasks() {
         // 2) Vangnet op de achtergrond: reset + generatie draaien maximaal één
         //    keer per apparaat per dag. De nachtelijke automatische aanmaak
         //    blijft leidend.
-        const guardKey = `fohGeneratieGedaan_${userLocation || 'West'}`;
+        const guardKey = `fohGeneratieGedaan_${userLocation}`;
         if (localStorage.getItem(guardKey) !== vandaag) {
           void (async () => {
             try {
