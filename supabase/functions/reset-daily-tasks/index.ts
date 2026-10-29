@@ -30,16 +30,22 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const authClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-    const { data: { user }, error: userError } = await authClient.auth.getUser();
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers: corsHeaders });
+    // Cron-aanroep: Bearer = service role key (uit de vault). Anders: ingelogde gebruiker.
+    const bearer = authHeader.slice('Bearer '.length).trim();
+    const isServiceCall = !!supabaseKey && bearer === supabaseKey;
+
+    if (!isServiceCall) {
+      const authClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: { user }, error: userError } = await authClient.auth.getUser();
+      if (userError || !user) {
+        return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers: corsHeaders });
+      }
     }
 
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     console.log('Starting daily task reset at', new Date().toISOString());
@@ -145,7 +151,8 @@ Deno.serve(async (req) => {
           .from('foh_tasks')
           .insert(tasksToInsert);
 
-        if (insertError) {
+        // 23505 = taak bestond al (unieke index): gelijktijdige aanmaak, geen fout.
+        if (insertError && insertError.code !== '23505') {
           console.error(`Error inserting tasks for ${location}:`, insertError);
           throw insertError;
         }
