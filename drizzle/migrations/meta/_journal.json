@@ -267,6 +267,13 @@
       "when": 1793260647763,
       "tag": "0037_kassa_verkoop_dag",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1793263907186,
+      "tag": "0038_takenlijst_fix_locatie_uniek",
+      "breakpoints": true
     }
   ]
 }
