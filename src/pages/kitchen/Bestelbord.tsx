@@ -225,135 +225,140 @@ function TotaalRij({ t }: { t: LeverancierTotaal }) {
   );
 }
 
+const ONBEKEND = 'Onbekende leverancier';
+type Prijs = { vorm: ArtikelVorm; totaal: number } | null;
+
+function kortDatum(d: Date): string {
+  return d.toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+function leverDatumLabel(datum: string | null): string {
+  if (!datum) return 'geen datum';
+  return kortDatum(parseYmd(datum));
+}
+
+/** Kop van één leveranciersgroep: naam + aantal regels, rechts het groepstotaal (als er prijzen zijn). */
+function GroepKop({ titel, regels, prijzen, sub, rechts }: { titel: string; regels: number; prijzen: Prijs[]; sub?: string; rechts?: React.ReactNode }) {
+  const onbekend = titel === ONBEKEND;
+  const bekend = prijzen.filter((p): p is NonNullable<Prijs> => !!p);
+  return (
+    <div className={cn('flex min-h-9 items-center gap-2 bg-muted/40 px-3 py-1 text-[12px]', onbekend && 'opacity-70')}>
+      <span className="min-w-0 flex-1 truncate">
+        <span className={cn('font-semibold text-foreground', onbekend && 'font-normal text-muted-foreground')}>{onbekend ? 'Leverancier onbekend' : titel}</span>
+        <span className="text-muted-foreground"> · {regels}{sub ? ` · ${sub}` : ''}</span>
+      </span>
+      {bekend.length > 0 && <span className="shrink-0 font-medium tabular-nums text-muted-foreground">{euro(bekend.reduce((t, p) => t + p.totaal, 0))}</span>}
+      {rechts}
+    </div>
+  );
+}
+
+/** Eén compacte tabelrij: vinkje | product | aantal | datum | prijs | actie. */
+function TabelRij({
+  vinkje, naam, doorgestreept, onNaam, extra, aantal, eenheid, datum, datumMobiel, onDatum, datumRood, prijs, pijl, actie, titel,
+}: {
+  vinkje: React.ReactNode;
+  naam: string;
+  doorgestreept?: boolean;
+  onNaam?: () => void;
+  extra?: React.ReactNode;
+  aantal: number;
+  eenheid: string | null;
+  datum: string;
+  datumMobiel: boolean;
+  onDatum?: () => void;
+  datumRood?: boolean;
+  prijs: Prijs;
+  pijl?: React.ReactNode;
+  actie: React.ReactNode;
+  titel?: string;
+}) {
+  const datumCls = cn('text-[12px] tabular-nums', datumRood ? 'font-medium text-destructive' : 'text-muted-foreground');
+  const datumEl = (cls: string) => onDatum
+    ? <button type="button" onClick={onDatum} aria-label="Verwachte leverdatum aanpassen" className={cn(datumCls, 'rounded-md text-left underline-offset-2 hover:underline', cls)}>{datum}</button>
+    : <span className={cn(datumCls, cls)}>{datum}</span>;
+  return (
+    <div className="flex min-h-11 items-center gap-1 pr-1" title={titel}>
+      {vinkje}
+      <div className="min-w-0 flex-1">
+        <button type="button" disabled={!onNaam} onClick={onNaam} className="flex min-h-9 w-full min-w-0 items-center gap-1.5 text-left">
+          <span className={cn('truncate text-[15px]', doorgestreept ? 'text-muted-foreground line-through' : 'font-medium')}>{naam}</span>
+          {extra}
+        </button>
+        {datumMobiel && datumEl('-mt-1.5 block sm:hidden')}
+      </div>
+      <span className="w-16 shrink-0 text-right text-[13px] tabular-nums text-muted-foreground sm:w-20">
+        {aantal} {eenheid}
+      </span>
+      {datumEl('hidden w-24 shrink-0 text-right sm:block')}
+      <span className="w-[4.5rem] shrink-0 text-right sm:w-24" title={prijs ? prijsTip(prijs.vorm) : undefined}>
+        <span className="flex items-center justify-end gap-1 text-[14px] font-medium tabular-nums">
+          {prijs && pijl}
+          {prijs ? euro(prijs.totaal) : '–'}
+        </span>
+        {prijs && <span className="hidden truncate text-[11px] leading-tight text-muted-foreground sm:block">{prijsTip(prijs.vorm)}</span>}
+      </span>
+      <span className="flex w-9 shrink-0 justify-center">{actie}</span>
+    </div>
+  );
+}
+
+function Cirkel({ aan, label, onClick }: { aan: boolean; label: string; onClick?: () => void }) {
+  const binnen = (
+    <span className={cn('flex h-6 w-6 items-center justify-center rounded-full border-2 transition-colors',
+      aan ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/40')}>
+      {aan && <Check className="h-4 w-4" />}
+    </span>
+  );
+  if (!onClick) return <span className="flex h-11 w-11 shrink-0 items-center justify-center" aria-label={label}>{binnen}</span>;
+  return (
+    <button type="button" onClick={onClick} aria-label={label} className="flex h-11 w-11 shrink-0 items-center justify-center">{binnen}</button>
+  );
+}
+
 function Rij({
-  signaal,
-  prijs,
-  prijsSignaal,
-  onBesteld,
-  onVervallen,
-  onBewerk,
+  signaal, prijs, prijsSignaal, vandaagYmd, onBesteld, onVervallen, onBewerk,
 }: {
   signaal: BestelSignaal;
-  prijs: { vorm: ArtikelVorm; totaal: number } | null;
+  prijs: Prijs;
   prijsSignaal?: PrijsSignaal | null;
+  vandaagYmd: string;
   onBesteld: (besteld: boolean) => void;
   onVervallen?: () => void;
   onBewerk?: () => void;
 }) {
   const besteld = signaal.status === 'besteld';
   return (
-    <div className="flex min-h-12 items-center gap-1 px-1 py-0.5">
-      <button
-        type="button"
-        onClick={() => onBesteld(!besteld)}
-        aria-label={besteld ? 'Terug naar open' : 'Besteld'}
-        className="flex h-11 w-11 shrink-0 items-center justify-center"
-      >
-        <span className={cn('flex h-6 w-6 items-center justify-center rounded-full border-2 transition-colors',
-          besteld ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/40')}>
-          {besteld && <Check className="h-4 w-4" />}
-        </span>
-      </button>
-      <button type="button" disabled={!onBewerk} onClick={onBewerk} className="min-w-0 flex-1 text-left" style={{ minHeight: 44 }}>
-        <span className={cn('block truncate', besteld ? 'text-[15px] text-muted-foreground line-through' : 'text-[15px] font-medium')}>
-          {signaal.naam}
-        </span>
-        <BestelLeverancierLabel signaalId={signaal.id} vestiging={signaal.vestiging} />
-        <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
-          <span className="tabular-nums">
-            {Number(signaal.aantal)} {signaal.eenheid} · {datumLabel(signaal.created_at)}
-          </span>
-          {signaal.bron === 'sluitlijst' && <Badge variant="outline" className="font-normal">sluitlijst</Badge>}
-        </div>
-      </button>
-      <div className="shrink-0 text-right" title={prijs ? prijsTip(prijs.vorm) : undefined}>
-        <span className="flex items-center justify-end gap-1 text-[14px] font-medium tabular-nums">
-          {prijs && <PrijsPijl signaal={prijsSignaal ?? null} eenheid={signaal.eenheid} />}
-          {prijs ? euro(prijs.totaal) : '–'}
-        </span>
-      </div>
-      {onVervallen && (
-        <Button variant="ghost" className="h-11 w-11 p-0 text-muted-foreground" onClick={onVervallen} aria-label="Toch niet nodig">
+    <TabelRij
+      vinkje={<Cirkel aan={besteld} label={besteld ? 'Terug naar open' : 'Besteld'} onClick={() => onBesteld(!besteld)} />}
+      naam={signaal.naam}
+      doorgestreept={besteld}
+      onNaam={onBewerk}
+      extra={signaal.bron === 'sluitlijst' ? <Badge variant="outline" className="shrink-0 px-1.5 py-0 text-[11px] font-normal">sluitlijst</Badge> : null}
+      aantal={Number(signaal.aantal)}
+      eenheid={signaal.eenheid}
+      datum={datumLabel(signaal.created_at)}
+      datumMobiel={ymd(new Date(signaal.created_at)) !== vandaagYmd}
+      prijs={prijs}
+      pijl={<PrijsPijl signaal={prijsSignaal ?? null} eenheid={signaal.eenheid} />}
+      actie={onVervallen && (
+        <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-muted-foreground" onClick={onVervallen} aria-label="Toch niet nodig">
           <X className="h-4 w-4" />
         </Button>
       )}
-    </div>
-  );
-}
-
-function leverDatumLabel(datum: string | null): string {
-  if (!datum) return 'geen datum';
-  return parseYmd(datum).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' });
-}
-
-/** Eén bestelde regel in het Onderweg-overzicht: afvinken geleverd, datum aanpassen, niet/deels geleverd. */
-function OnderwegRij({
-  signaal,
-  teLaat,
-  onGeleverd,
-  onDatum,
-  onNietGeleverd,
-  onDeelsGeleverd,
-}: {
-  signaal: BestelSignaal;
-  teLaat: number;
-  onGeleverd: () => void;
-  onDatum: () => void;
-  onNietGeleverd: () => void;
-  onDeelsGeleverd: () => void;
-}) {
-  return (
-    <div className="flex min-h-12 items-center gap-1 px-1 py-0.5">
-      <button
-        type="button"
-        onClick={onGeleverd}
-        aria-label="Geleverd"
-        className="flex h-11 w-11 shrink-0 items-center justify-center"
-      >
-        <span className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-muted-foreground/40 transition-colors" />
-      </button>
-      <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span className="min-w-0 flex-1 truncate text-[15px] font-medium">{signaal.naam}</span>
-        <span className="shrink-0 text-[13px] tabular-nums text-muted-foreground">{Number(signaal.aantal)} {signaal.eenheid}</span>
-        <button
-          type="button"
-          onClick={onDatum}
-          className="h-8 shrink-0 rounded-full border border-border px-2 text-[12px] text-muted-foreground hover:bg-muted"
-          aria-label="Verwachte leverdatum aanpassen"
-        >
-          {leverDatumLabel(signaal.verwachte_levering)}
-        </button>
-        {teLaat > 0 && <Badge variant="destructive" className="shrink-0 font-normal">{teLaat}d te laat</Badge>}
-      </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-11 w-11 p-0 text-muted-foreground" aria-label="Meer opties">
-            <MoreVertical className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={onNietGeleverd}>Niet geleverd</DropdownMenuItem>
-          <DropdownMenuItem onClick={onDeelsGeleverd}>Deels geleverd</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    />
   );
 }
 
 /** Groep bestelde regels van één leverancier + ordernummer, met "Alles geleverd". */
 function LeveringGroep({
-  titel,
-  regels,
-  dagenTeLaatVan,
-  onAllesGeleverd,
-  onGeleverd,
-  onDatum,
-  onNietGeleverd,
-  onDeelsGeleverd,
+  titel, regels, dagenTeLaatVan, prijsVan, signaalVan, onAllesGeleverd, onGeleverd, onDatum, onNietGeleverd, onDeelsGeleverd,
 }: {
   titel: string;
   regels: BestelSignaal[];
   dagenTeLaatVan: (s: BestelSignaal) => number;
+  prijsVan: (s: BestelSignaal) => Prijs;
+  signaalVan: (s: BestelSignaal) => PrijsSignaal | null;
   onAllesGeleverd: (ids: string[]) => void;
   onGeleverd: (s: BestelSignaal) => void;
   onDatum: (s: BestelSignaal) => void;
@@ -362,37 +367,69 @@ function LeveringGroep({
 }) {
   const besteldOp = regels[0]?.besteld_op;
   const referentie = regels[0]?.bestelreferentie;
-  const onbekend = titel === 'Onbekende leverancier';
+  const groepDatum = regels[0]?.verwachte_levering ?? null;
   return (
-    <Card className="overflow-hidden">
-      <div className="flex min-h-12 items-center gap-2 border-b border-border/60 px-3 py-1">
-        <Truck className="h-4 w-4 shrink-0 text-muted-foreground" />
-        <span className="min-w-0 flex-1 truncate text-[14px]">
-          <span className={cn('font-semibold', onbekend && 'font-normal text-muted-foreground')}>{onbekend ? 'Leverancier onbekend' : titel}</span>
-          <span className="text-muted-foreground">
-            {' · '}{besteldOp ? `besteld ${datumLabel(besteldOp)}` : 'besteld'}
-            {referentie ? ` · ${referentie}` : ''}
-          </span>
-        </span>
-        <Button variant="ghost" size="sm" className="h-11 shrink-0 px-2 text-[13px]" onClick={() => onAllesGeleverd(regels.map((r) => r.id))}>
-          <Check className="h-4 w-4 mr-1" /> Alles geleverd
-        </Button>
-      </div>
+    <div>
+      <GroepKop
+        titel={titel}
+        regels={regels.length}
+        prijzen={regels.map(prijsVan)}
+        sub={[besteldOp ? `besteld ${datumLabel(besteldOp)}` : 'besteld', referentie].filter(Boolean).join(' · ')}
+        rechts={
+          <Button variant="ghost" size="sm" className="h-9 shrink-0 px-2 text-[12px]" onClick={() => onAllesGeleverd(regels.map((r) => r.id))}>
+            <Check className="h-3.5 w-3.5 mr-1" /> Alles geleverd
+          </Button>
+        }
+      />
       <div className="divide-y divide-border/60">
-        {regels.map((s) => (
-          <OnderwegRij
-            key={s.id}
-            signaal={s}
-            teLaat={dagenTeLaatVan(s)}
-            onGeleverd={() => onGeleverd(s)}
-            onDatum={() => onDatum(s)}
-            onNietGeleverd={() => onNietGeleverd(s)}
-            onDeelsGeleverd={() => onDeelsGeleverd(s)}
-          />
-        ))}
+        {regels.map((s) => {
+          const teLaat = dagenTeLaatVan(s);
+          return (
+            <TabelRij
+              key={s.id}
+              vinkje={<Cirkel aan={false} label="Geleverd" onClick={() => onGeleverd(s)} />}
+              naam={s.naam}
+              aantal={Number(s.aantal)}
+              eenheid={s.eenheid}
+              datum={`${leverDatumLabel(s.verwachte_levering)}${teLaat > 0 ? ` · ${teLaat}d te laat` : ''}`}
+              datumMobiel={teLaat > 0 || s.verwachte_levering !== groepDatum}
+              datumRood={teLaat > 0}
+              onDatum={() => onDatum(s)}
+              prijs={prijsVan(s)}
+              pijl={<PrijsPijl signaal={signaalVan(s)} eenheid={s.eenheid} />}
+              actie={
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-muted-foreground" aria-label="Meer opties">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => onDatum(s)}>Leverdatum aanpassen</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onNietGeleverd(s)}>Niet geleverd</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onDeelsGeleverd(s)}>Deels geleverd</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              }
+            />
+          );
+        })}
       </div>
-    </Card>
+    </div>
   );
+}
+
+/** Groepeer regels per leverancier (onbekend onderaan). */
+function perLeverancier(regels: BestelSignaal[], leveranciers?: Map<string, string>) {
+  const m = new Map<string, BestelSignaal[]>();
+  for (const s of regels) {
+    const t = (s.leverancier_id && leveranciers?.get(s.leverancier_id)) || ONBEKEND;
+    if (!m.has(t)) m.set(t, []);
+    m.get(t)!.push(s);
+  }
+  return [...m.entries()]
+    .map(([titel, r]) => ({ titel, regels: r }))
+    .sort((a, b) => (a.titel === ONBEKEND ? 1 : b.titel === ONBEKEND ? -1 : a.titel.localeCompare(b.titel)));
 }
 
 export default function Bestelbord() {
