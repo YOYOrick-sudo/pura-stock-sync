@@ -701,14 +701,20 @@ export type Database = {
           bron: string
           created_at: string
           eenheid: string
+          geleverd_door: string | null
+          geleverd_op: string | null
           gemeld_door: string | null
           id: string
           leverancier_id: string | null
+          levering_opmerking: string | null
+          levering_status: string | null
           match_zekerheid: number | null
           naam: string
           notitie: string | null
+          restant_van: string | null
           status: string
           updated_at: string
+          verwachte_levering: string | null
           vestiging: string
         }
         Insert: {
@@ -721,14 +727,20 @@ export type Database = {
           bron?: string
           created_at?: string
           eenheid?: string
+          geleverd_door?: string | null
+          geleverd_op?: string | null
           gemeld_door?: string | null
           id?: string
           leverancier_id?: string | null
+          levering_opmerking?: string | null
+          levering_status?: string | null
           match_zekerheid?: number | null
           naam: string
           notitie?: string | null
+          restant_van?: string | null
           status?: string
           updated_at?: string
+          verwachte_levering?: string | null
           vestiging: string
         }
         Update: {
@@ -741,14 +753,20 @@ export type Database = {
           bron?: string
           created_at?: string
           eenheid?: string
+          geleverd_door?: string | null
+          geleverd_op?: string | null
           gemeld_door?: string | null
           id?: string
           leverancier_id?: string | null
+          levering_opmerking?: string | null
+          levering_status?: string | null
           match_zekerheid?: number | null
           naam?: string
           notitie?: string | null
+          restant_van?: string | null
           status?: string
           updated_at?: string
+          verwachte_levering?: string | null
           vestiging?: string
         }
         Relationships: [
@@ -771,6 +789,13 @@ export type Database = {
             columns: ["leverancier_id"]
             isOneToOne: false
             referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_signalen_restant_van_fkey"
+            columns: ["restant_van"]
+            isOneToOne: false
+            referencedRelation: "bestel_signalen"
             referencedColumns: ["id"]
           },
         ]
@@ -5203,6 +5228,14 @@ export type Database = {
       }
     }
     Functions: {
+      bestel_verwachte_levering: {
+        Args: {
+          _besteld_op: string
+          _leverancier_id: string
+          _vestiging: string
+        }
+        Returns: string
+      }
       bestelbot_aanroep_afsluiten: {
         Args: {
           p_audit_id: string
@@ -5234,6 +5267,23 @@ export type Database = {
         }
         Returns: Json
       }
+      bestelbot_lees_besteld: {
+        Args: { p_vestiging: string }
+        Returns: {
+          aantal: number
+          artikel_id: string
+          besteld_op: string
+          bestelreferentie: string
+          dagen_te_laat: number
+          eenheid: string
+          id: string
+          leverancier_id: string
+          leverancier_naam: string
+          naam: string
+          te_laat: boolean
+          verwachte_levering: string
+        }[]
+      }
       bestelbot_lees_open: {
         Args: { p_vestiging: string }
         Returns: {
@@ -5244,9 +5294,11 @@ export type Database = {
           id: string
           leverancier_id: string
           leverancier_naam: string
+          levering_opmerking: string
           match_zekerheid: number
           naam: string
           notitie: string
+          restant_van: string
         }[]
       }
       bestelbot_leverancier_actief: {
