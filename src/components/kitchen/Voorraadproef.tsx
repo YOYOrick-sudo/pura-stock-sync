@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { Check, ChevronDown, Circle, Info } from 'lucide-react';
+import { Calculator, Check, ChevronDown, Circle, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { FoutRegel, InklapGroep, KaartKop, LaadRijen, LegeStaat, LijstKaart, segmentTabsKlasse } from '@/components/pura/patronen';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { amsterdamDatum, tellingTotaal, type TelPlek } from '@/lib/voorraadproef';
 import { useVoorraadproef, type ProefStand, type ProefTelling, type TellingInvoer } from '@/hooks/useVoorraadproef';
