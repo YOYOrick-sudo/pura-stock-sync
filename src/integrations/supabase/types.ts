@@ -1859,12 +1859,23 @@ export type Database = {
           created_at: string
           gecontroleerd: boolean
           groep: string
+          horeko_match: string | null
+          horeko_recept_key: string | null
           id: string
           is_gearchiveerd: boolean
+          kaart_codes: string[]
+          kaart_momenten: string[]
+          kaart_omschrijving: string | null
+          kaart_opmerking: string | null
+          kaart_rubriek: string | null
+          kaart_sleutel: string | null
+          kaart_vestigingen: string[]
           labels: string[]
           naam: string
           notitie: string | null
+          op_kaart: boolean
           prijs: number | null
+          prijs_varianten: Json | null
           sort_order: number
           updated_at: string
           vestiging: string | null
@@ -1874,12 +1885,23 @@ export type Database = {
           created_at?: string
           gecontroleerd?: boolean
           groep?: string
+          horeko_match?: string | null
+          horeko_recept_key?: string | null
           id?: string
           is_gearchiveerd?: boolean
+          kaart_codes?: string[]
+          kaart_momenten?: string[]
+          kaart_omschrijving?: string | null
+          kaart_opmerking?: string | null
+          kaart_rubriek?: string | null
+          kaart_sleutel?: string | null
+          kaart_vestigingen?: string[]
           labels?: string[]
           naam: string
           notitie?: string | null
+          op_kaart?: boolean
           prijs?: number | null
+          prijs_varianten?: Json | null
           sort_order?: number
           updated_at?: string
           vestiging?: string | null
@@ -1889,17 +1911,36 @@ export type Database = {
           created_at?: string
           gecontroleerd?: boolean
           groep?: string
+          horeko_match?: string | null
+          horeko_recept_key?: string | null
           id?: string
           is_gearchiveerd?: boolean
+          kaart_codes?: string[]
+          kaart_momenten?: string[]
+          kaart_omschrijving?: string | null
+          kaart_opmerking?: string | null
+          kaart_rubriek?: string | null
+          kaart_sleutel?: string | null
+          kaart_vestigingen?: string[]
           labels?: string[]
           naam?: string
           notitie?: string | null
+          op_kaart?: boolean
           prijs?: number | null
+          prijs_varianten?: Json | null
           sort_order?: number
           updated_at?: string
           vestiging?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "gerechten_horeko_recept_key_fkey"
+            columns: ["horeko_recept_key"]
+            isOneToOne: false
+            referencedRelation: "horeko_recepten"
+            referencedColumns: ["horeko_key"]
+          },
+        ]
       }
       halffabricaat_methodes: {
         Row: {
@@ -1993,6 +2034,57 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      horeko_artikel_allergenen: {
+        Row: {
+          allergenen: Database["public"]["Enums"]["allergen"][]
+          bevat_niet: Database["public"]["Enums"]["allergen"][]
+          bijgewerkt_op: string
+          bron: string
+          bron_detail: string | null
+          horeko_id: number
+          onbekend: Database["public"]["Enums"]["allergen"][]
+          sporen: Database["public"]["Enums"]["allergen"][]
+          status: string
+        }
+        Insert: {
+          allergenen?: Database["public"]["Enums"]["allergen"][]
+          bevat_niet?: Database["public"]["Enums"]["allergen"][]
+          bijgewerkt_op?: string
+          bron: string
+          bron_detail?: string | null
+          horeko_id: number
+          onbekend?: Database["public"]["Enums"]["allergen"][]
+          sporen?: Database["public"]["Enums"]["allergen"][]
+          status?: string
+        }
+        Update: {
+          allergenen?: Database["public"]["Enums"]["allergen"][]
+          bevat_niet?: Database["public"]["Enums"]["allergen"][]
+          bijgewerkt_op?: string
+          bron?: string
+          bron_detail?: string | null
+          horeko_id?: number
+          onbekend?: Database["public"]["Enums"]["allergen"][]
+          sporen?: Database["public"]["Enums"]["allergen"][]
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horeko_artikel_allergenen_horeko_id_fkey"
+            columns: ["horeko_id"]
+            isOneToOne: true
+            referencedRelation: "horeko_artikelen"
+            referencedColumns: ["horeko_id"]
+          },
+          {
+            foreignKeyName: "horeko_artikel_allergenen_horeko_id_fkey"
+            columns: ["horeko_id"]
+            isOneToOne: true
+            referencedRelation: "v_horeko_artikel_allergenen_effectief"
+            referencedColumns: ["horeko_id"]
+          },
+        ]
       }
       horeko_artikelen: {
         Row: {
@@ -2117,6 +2209,98 @@ export type Database = {
             referencedRelation: "horeko_artikelen"
             referencedColumns: ["horeko_id"]
           },
+          {
+            foreignKeyName: "horeko_gerecht_verbruik_horeko_artikel_id_fkey"
+            columns: ["horeko_artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_horeko_artikel_allergenen_effectief"
+            referencedColumns: ["horeko_id"]
+          },
+        ]
+      }
+      horeko_recept_allergenen: {
+        Row: {
+          allergenen: Database["public"]["Enums"]["allergen"][]
+          berekend_op: string
+          ingredienten_bevestigd: number
+          ingredienten_onbekend: number
+          ingredienten_totaal: number
+          ingredienten_voorstel: number
+          recept_key: string
+          sporen: Database["public"]["Enums"]["allergen"][]
+          status: string
+        }
+        Insert: {
+          allergenen?: Database["public"]["Enums"]["allergen"][]
+          berekend_op?: string
+          ingredienten_bevestigd?: number
+          ingredienten_onbekend?: number
+          ingredienten_totaal?: number
+          ingredienten_voorstel?: number
+          recept_key: string
+          sporen?: Database["public"]["Enums"]["allergen"][]
+          status: string
+        }
+        Update: {
+          allergenen?: Database["public"]["Enums"]["allergen"][]
+          berekend_op?: string
+          ingredienten_bevestigd?: number
+          ingredienten_onbekend?: number
+          ingredienten_totaal?: number
+          ingredienten_voorstel?: number
+          recept_key?: string
+          sporen?: Database["public"]["Enums"]["allergen"][]
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horeko_recept_allergenen_recept_key_fkey"
+            columns: ["recept_key"]
+            isOneToOne: true
+            referencedRelation: "horeko_recepten"
+            referencedColumns: ["horeko_key"]
+          },
+        ]
+      }
+      horeko_recept_declaratie: {
+        Row: {
+          bevat: Database["public"]["Enums"]["allergen"][]
+          bevat_mogelijk: Database["public"]["Enums"]["allergen"][]
+          bevat_niet: Database["public"]["Enums"]["allergen"][]
+          bron: string
+          export_datum: string | null
+          geladen_op: string
+          onbekend: Database["public"]["Enums"]["allergen"][]
+          recept_key: string
+        }
+        Insert: {
+          bevat?: Database["public"]["Enums"]["allergen"][]
+          bevat_mogelijk?: Database["public"]["Enums"]["allergen"][]
+          bevat_niet?: Database["public"]["Enums"]["allergen"][]
+          bron?: string
+          export_datum?: string | null
+          geladen_op?: string
+          onbekend?: Database["public"]["Enums"]["allergen"][]
+          recept_key: string
+        }
+        Update: {
+          bevat?: Database["public"]["Enums"]["allergen"][]
+          bevat_mogelijk?: Database["public"]["Enums"]["allergen"][]
+          bevat_niet?: Database["public"]["Enums"]["allergen"][]
+          bron?: string
+          export_datum?: string | null
+          geladen_op?: string
+          onbekend?: Database["public"]["Enums"]["allergen"][]
+          recept_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horeko_recept_declaratie_recept_key_fkey"
+            columns: ["recept_key"]
+            isOneToOne: true
+            referencedRelation: "horeko_recepten"
+            referencedColumns: ["horeko_key"]
+          },
         ]
       }
       horeko_recept_regels: {
@@ -2162,6 +2346,13 @@ export type Database = {
             columns: ["component_artikel_id"]
             isOneToOne: false
             referencedRelation: "horeko_artikelen"
+            referencedColumns: ["horeko_id"]
+          },
+          {
+            foreignKeyName: "horeko_recept_regels_component_artikel_id_fkey"
+            columns: ["component_artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_horeko_artikel_allergenen_effectief"
             referencedColumns: ["horeko_id"]
           },
           {
@@ -2245,6 +2436,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "gerechten"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horeko_recepten_gerecht_id_fkey"
+            columns: ["gerecht_id"]
+            isOneToOne: false
+            referencedRelation: "v_gerecht_allergenen"
+            referencedColumns: ["gerecht_id"]
           },
           {
             foreignKeyName: "horeko_recepten_recipe_id_fkey"
@@ -6252,6 +6450,74 @@ export type Database = {
         }
         Relationships: []
       }
+      v_gerecht_allergenen: {
+        Row: {
+          berekend_op: string | null
+          categorie: string | null
+          gecontroleerd: boolean | null
+          gerecht_id: string | null
+          horeko_bevat: Database["public"]["Enums"]["allergen"][] | null
+          horeko_bevat_mogelijk:
+            | Database["public"]["Enums"]["allergen"][]
+            | null
+          horeko_export_datum: string | null
+          horeko_match: string | null
+          horeko_onbekend: Database["public"]["Enums"]["allergen"][] | null
+          horeko_recept_key: string | null
+          kaart_bevat: Database["public"]["Enums"]["allergen"][] | null
+          kaart_codes: string[] | null
+          kaart_glutenvrij: boolean | null
+          kaart_momenten: string[] | null
+          kaart_rubriek: string | null
+          kaart_sporen: Database["public"]["Enums"]["allergen"][] | null
+          kaart_vegan: boolean | null
+          kaart_vestigingen: string[] | null
+          labels: string[] | null
+          naam: string | null
+          op_kaart: boolean | null
+          recept_allergenen: Database["public"]["Enums"]["allergen"][] | null
+          recept_ingredienten_onbekend: number | null
+          recept_sporen: Database["public"]["Enums"]["allergen"][] | null
+          recept_status: string | null
+          vestiging: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gerechten_horeko_recept_key_fkey"
+            columns: ["horeko_recept_key"]
+            isOneToOne: false
+            referencedRelation: "horeko_recepten"
+            referencedColumns: ["horeko_key"]
+          },
+        ]
+      }
+      v_horeko_artikel_allergenen_effectief: {
+        Row: {
+          allergenen: Database["public"]["Enums"]["allergen"][] | null
+          artikel_id: string | null
+          bron: string | null
+          horeko_id: number | null
+          naam: string | null
+          sporen: Database["public"]["Enums"]["allergen"][] | null
+          status: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horeko_artikelen_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horeko_artikelen_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_ingredienten_stats: {
         Row: {
           aantal_recepten: number | null
@@ -6607,6 +6873,7 @@ export type Database = {
         Args: { _loc: string; _user_id: string }
         Returns: boolean
       }
+      herbereken_horeko_allergenen: { Args: never; Returns: number }
       ingredienten_merge: {
         Args: { _drop: string[]; _keep: string }
         Returns: number
