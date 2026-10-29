@@ -105,11 +105,11 @@ export function FoutRegel({ tekst = 'Laden mislukt.', onOpnieuw }: { tekst?: str
 }
 
 /** Inklapgroep: één stijl voor "Geleverd (n)", "Niet nodig (n)", "Overige (n)". */
-export function InklapGroep({ titel, aantal, children, standaardOpen = false }: { titel: string; aantal: number; children: ReactNode; standaardOpen?: boolean }) {
+export function InklapGroep({ titel, aantal, children, standaardOpen = false }: { titel: string; aantal?: number; children: ReactNode; standaardOpen?: boolean }) {
   return <Collapsible defaultOpen={standaardOpen} className="group/inklap">
     <CollapsibleTrigger asChild>
       <Button variant="ghost" size="touch" className="w-full justify-between text-muted-foreground">
-        <span>{titel} <span className="tabular-nums">({aantal})</span></span>
+        <span>{titel}{aantal != null && <span className="tabular-nums"> ({aantal})</span>}</span>
         <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/inklap:rotate-180" />
       </Button>
     </CollapsibleTrigger>

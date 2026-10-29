@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ChevronDown, Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Building2, Check, AlertCircle } from 'lucide-react';
 import { DetailLade, InklapGroep, KaartKop, LaadRijen, LegeStaat, LijstKaart, Invoerbalk, Kengetal, OverzichtKaart, segmentTabsKlasse } from '@/components/pura/patronen';
+import { Stappen } from '@/components/pura/blokken';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { SidebarLayout } from '@/components/SidebarLayout';
@@ -470,7 +471,7 @@ export default function Bestelbord() {
           </div>
           <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div className="min-w-0 space-y-4">
-              <div className="lg:hidden"><InklapGroep titel="Overzicht" aantal={new Set([...open, ...besteld].map(leverancier)).size}>{overzicht}</InklapGroep></div>
+              <div className="lg:hidden"><InklapGroep titel="Overzicht">{overzicht}</InklapGroep></div>
               <TabsContent value="bord" className="mt-0 space-y-4">
         <div className="space-y-2">
           <Invoerbalk>
