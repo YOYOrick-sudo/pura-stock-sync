@@ -365,6 +365,13 @@
       "when": 1793273800301,
       "tag": "0051_voorraad_telvragen_volume_aantal",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1793276187233,
+      "tag": "0052_opslag_groepen",
+      "breakpoints": true
     }
   ]
 }

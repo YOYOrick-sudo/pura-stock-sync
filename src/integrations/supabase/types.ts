@@ -2268,8 +2268,12 @@ export type Database = {
           bevat_mogelijk: Database["public"]["Enums"]["allergen"][]
           bevat_niet: Database["public"]["Enums"]["allergen"][]
           bron: string
+          export_bestand: string | null
           export_datum: string | null
+          extra_allergenen: Json | null
+          gedeeltelijke_export: boolean
           geladen_op: string
+          horeko_letop_onvolledig: boolean | null
           onbekend: Database["public"]["Enums"]["allergen"][]
           recept_key: string
         }
@@ -2278,8 +2282,12 @@ export type Database = {
           bevat_mogelijk?: Database["public"]["Enums"]["allergen"][]
           bevat_niet?: Database["public"]["Enums"]["allergen"][]
           bron?: string
+          export_bestand?: string | null
           export_datum?: string | null
+          extra_allergenen?: Json | null
+          gedeeltelijke_export?: boolean
           geladen_op?: string
+          horeko_letop_onvolledig?: boolean | null
           onbekend?: Database["public"]["Enums"]["allergen"][]
           recept_key: string
         }
@@ -2288,8 +2296,12 @@ export type Database = {
           bevat_mogelijk?: Database["public"]["Enums"]["allergen"][]
           bevat_niet?: Database["public"]["Enums"]["allergen"][]
           bron?: string
+          export_bestand?: string | null
           export_datum?: string | null
+          extra_allergenen?: Json | null
+          gedeeltelijke_export?: boolean
           geladen_op?: string
+          horeko_letop_onvolledig?: boolean | null
           onbekend?: Database["public"]["Enums"]["allergen"][]
           recept_key?: string
         }
@@ -5650,6 +5662,36 @@ export type Database = {
         }
         Relationships: []
       }
+      verbruik_opslag_groep: {
+        Row: {
+          besteleenheden: string[] | null
+          bijgewerkt_op: string
+          categorieen: string[]
+          groep: string
+          naam: string
+          notitie: string | null
+          opslag_pct: number
+        }
+        Insert: {
+          besteleenheden?: string[] | null
+          bijgewerkt_op?: string
+          categorieen?: string[]
+          groep: string
+          naam: string
+          notitie?: string | null
+          opslag_pct: number
+        }
+        Update: {
+          besteleenheden?: string[] | null
+          bijgewerkt_op?: string
+          categorieen?: string[]
+          groep?: string
+          naam?: string
+          notitie?: string | null
+          opslag_pct?: number
+        }
+        Relationships: []
+      }
       vestiging_instellingen: {
         Row: {
           drukte_modus: string
@@ -5724,6 +5766,7 @@ export type Database = {
           id: string
           naam: string
           notitie: string | null
+          opslag_groep: string | null
           opslagplekken: Json
           tel_eenheid: string
           telmoment: string
@@ -5738,6 +5781,7 @@ export type Database = {
           id?: string
           naam: string
           notitie?: string | null
+          opslag_groep?: string | null
           opslagplekken: Json
           tel_eenheid: string
           telmoment?: string
@@ -5752,6 +5796,7 @@ export type Database = {
           id?: string
           naam?: string
           notitie?: string | null
+          opslag_groep?: string | null
           opslagplekken?: Json
           tel_eenheid?: string
           telmoment?: string
@@ -5759,7 +5804,15 @@ export type Database = {
           verbruiksopslag_pct?: number
           vestiging?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "voorraad_artikel_opslag_groep_fkey"
+            columns: ["opslag_groep"]
+            isOneToOne: false
+            referencedRelation: "verbruik_opslag_groep"
+            referencedColumns: ["groep"]
+          },
+        ]
       }
       voorraad_correctie: {
         Row: {
@@ -6669,6 +6722,7 @@ export type Database = {
           correcties: number | null
           created_at: string | null
           dagen_sinds_telling: number | null
+          effectieve_opslag_pct: number | null
           geteld: number | null
           id: string | null
           kassa: number | null
@@ -6679,6 +6733,7 @@ export type Database = {
           notitie: string | null
           ontvangen: number | null
           opslag: number | null
+          opslag_groep: string | null
           opslagplekken: Json | null
           stand: number | null
           status: string | null
@@ -6691,7 +6746,15 @@ export type Database = {
           vestiging: string | null
           volledig: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "voorraad_artikel_opslag_groep_fkey"
+            columns: ["opslag_groep"]
+            isOneToOne: false
+            referencedRelation: "verbruik_opslag_groep"
+            referencedColumns: ["groep"]
+          },
+        ]
       }
       v_voorraad_telachterstand: {
         Row: {
@@ -6806,6 +6869,7 @@ export type Database = {
         Returns: Json
       }
       bestelbot_normaliseer: { Args: { p_tekst: string }; Returns: string }
+      besteleenheid_norm: { Args: { p: string }; Returns: string }
       claim_next_print_job: {
         Args: never
         Returns: {
@@ -6919,6 +6983,10 @@ export type Database = {
       }
       mep_vorige_open_dag: {
         Args: { _vestiging: string; _voor: string }
+        Returns: string
+      }
+      opslag_groep_voor: {
+        Args: { p_artikel_id: string; p_besteleenheid: string }
         Returns: string
       }
       print_bridge_mark_printed: {
@@ -7125,6 +7193,10 @@ export type Database = {
         Args: { _body: Json; _function: string }
         Returns: number
       }
+      voorraad_artikel_groep_bepalen: {
+        Args: { p_id: string; p_naam: string; p_tel_eenheid: string }
+        Returns: string
+      }
       voorraad_bewegingen_lezen: {
         Args: { p_vestiging: string }
         Returns: {
@@ -7140,6 +7212,10 @@ export type Database = {
       voorraad_daggrens: {
         Args: { p_datum: string; p_moment: string }
         Returns: string
+      }
+      voorraad_effectieve_opslag_pct: {
+        Args: { p_artikel: string }
+        Returns: number
       }
       voorraad_hertellen_nodig: {
         Args: { p_stand: number; p_totaal: number }
