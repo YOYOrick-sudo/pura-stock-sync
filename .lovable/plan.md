@@ -1,4 +1,26 @@
-# Plan: Besteld & levering (klein)
+# Plan: Gerechten met menukaart en receptallergenen
+
+## Praktijk
+Het keukenteam bekijkt op telefoon of iPad de gerechten, kaartomschrijving, prijzen en allergenen. Er is geen nieuwe invulafspraak: bestaande gecontroleerde labels blijven leidend. Niet gecontroleerde gerechten blijven bij een allergenenfilter onder **Niet te garanderen — eerst navragen in de keuken**; de keuken moet deze eerst controleren. Als receptinformatie ontbreekt of laden mislukt, wordt dit expliciet getoond, nooit als veilig. Er ontstaan geen nieuwe dagelijkse lijsten of gegevens.
+
+## Wijzigingen
+- Breid de zeven categorieën uit en voeg een standaard uitgeschakelde schakelchip **Alleen op de kaart** toe.
+- Toon kaartomschrijving, acht kaarttekens met uitleg via hover én tik, en alle prijsvarianten met hun namen.
+- Haal per categorie één extra query op uit `v_gerecht_allergenen`, gekoppeld op `gerecht_id`. Geen berekeningen in de pagina.
+- Behoud bestaande labels. Alleen bij lege labels: toon Nederlandse receptallergenen en mogelijke sporen, inclusief onvolledigheidsmelding of ontbrekende receptkoppeling.
+- Behoud de veiligheidsselectie op gecontroleerde labels; berekende allergenen of kaarttekens maken een gerecht nooit veilig.
+
+## Grenzen en risico
+Alleen de drie genoemde bestanden en eventueel één klein keukencomponent wijzigen; geen migraties, gegevenswijzigingen, nieuwe libraries of publicatie. GerechtDialog en alle andere modules blijven ongemoeid. Grootste operationele risico is een ongecontroleerd gerecht als veilig lezen: deze komen bij een actief vrij-van-filter altijd in het navraagblok, ook wanneer berekende allergenen leeg zijn. Queryfouten krijgen een zichtbare melding met opnieuw proberen.
+
+## Technisch
+Categorie: UI + bestaande leesquery; geen rollen-, RLS- of schemawijziging. Kaartvelden blijven optioneel in het bestaande Gerecht-type zodat GerechtDialog en opslaan ongewijzigd werken. Hergebruik TanStack Query, Nederlandse allergenennamen en bestaande kleuren/componenten; tikdoelen minstens 44px.
+
+## Controle
+Controleer de zeven categorieën, kaartfilter aan/uit, prijzen, tik- en hover-uitleg, bronvoorrang en ontbrekende/onvolledige recepten. Test dat ongecontroleerde gerechten bij vrij-van-filter niet veilig worden, en dat het bestaande bewerkvenster blijft openen. Controleer desktop en iPad met een ingelogde sessie, plus foutmeldingen en query-aantallen.
+
+<!-- Vorig plan hieronder behouden als referentie. -->
+# Vorig plan: Besteld & levering (klein)
 
 ## Doel
 Eén overzicht per vestiging: wat is besteld, wanneer komt het, en personeel vinkt "geleverd" af. Voorkomt open regels die blijven hangen en dubbel bestellen.
