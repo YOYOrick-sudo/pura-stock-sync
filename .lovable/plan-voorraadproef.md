@@ -1,6 +1,6 @@
 # Plan — voorraadproef + lichte leercurve
 
-**Status: alleen plan, wacht op akkoord.** Geen code, migratie, seed, testdata, cron of deployment uitgevoerd. `.lovable/plan.md` en de andere plannen blijven staan.
+**Status: goedgekeurd; uitvoering met ontvangst-daggrensaanpassing van 29 oktober 2026.** `.lovable/plan.md` en de andere plannen blijven staan.
 
 ## 1. Praktijk en harde grenzen
 
@@ -55,13 +55,13 @@ Geen ordernummermatch op NULL/lege referenties. Ontvangstkoppelingen mogen niet 
 
 `v_voorraad_stand` gebruikt de laatste betrouwbare telling (geteld_op, stabiele id-tiebreak):
 - Voor_opening: kassaverbruik vanaf teldatum inclusief; na_sluiting: vanaf de volgende werkdag.
-- Ontvangst alleen datum **> teldatum**, zoals gevraagd; correcties eveneens > teldatum omdat die alleen een datum hebben.
+- Ontvangsten en correcties bij **voor_opening: datum >= teldatum**; bij **na_sluiting: datum > teldatum**. Dezelfde grens geldt in `voorraad_periode`. Leveringen op de teldag komen na een ochtendtelling.
 - `opslag = netto_kassaverbruik × verbruiksopslag_pct / 100`.
 - `stand = geteld + ontvangen + correcties − netto_kassaverbruik − opslag`.
 - Geen betrouwbaar telanker: status **voorraad onbekend**, stand NULL. Negatieve standen niet op nul afkappen.
 - `tellen_nodig`: geen betrouwbare telling sinds het laatst verstreken woensdag-voor-opening-telmoment, in Amsterdam. Aannames: woensdag vanaf 06:00 geldt de nieuwe teldeadline; bij een gesloten woensdag blijft de badge staan, geen taak/verplaatsing. Het team telt dan vóór de volgende opening.
 
-**Daggrensbeperking:** ontvangst op de teldag telt volgens de opdracht niet mee; een levering ná de ochtendtelling kan daardoor tot de volgende telling ontbreken. Vrije momentkeuze verandert dat niet. Historische besteldatum kan bovendien vóór werkelijke levering liggen. De proef toont daarom een berekende indicatie, geen gegarandeerde fysieke voorraad. Geen automatische orderbeslissing hierop.
+**Daggrensbeperking:** na een ochtendtelling tellen ontvangsten/correcties van de teldag mee, na een sluittelling niet. Binnen een dag is geen preciezer tijdstip bekend. Historische besteldatum kan vóór werkelijke levering liggen. De proef toont daarom een berekende indicatie, geen gegarandeerde fysieke voorraad. Geen automatische orderbeslissing hierop.
 
 ## 5. Blind tellen en hertellen
 
@@ -156,4 +156,4 @@ Een gemiste levering, onjuiste factor of ongeregistreerde transfer lijkt op verl
 
 Na een maand blijven tellingen, periodes, adviezen en beoordelingen als historie staan; open voorstellen worden bijgewerkt in plaats van gestapeld. Seizoenssluiting genereert geen taken of nepverkoop; zonder recente telling blijft tellen nodig. Koffie telt als groep, niet als voorraad per merk/bonensoort. Geen externe verzending, nieuwe dashboardpagina, voorraadgestuurde automatische bestelactie of automatische goedkeuring.
 
-**Te beoordelen aannames bij akkoord:** tweede blinde telling is leidend; woensdagdeadline 06:00; datum-only ontvangst/correcties na teldag; 02:45 UTC ook tijdens zomertijd; onduidelijke deelleveringen niet kwantificeren; MAPE-drempel op werkelijk verkocht, nulverbruik apart. Dit plan kiest veilige uitkomsten zonder bestaande werkprocessen aan te passen.
+**Bevestigd bij akkoord:** tweede blinde telling is leidend; woensdagdeadline 06:00 Amsterdam; momentafhankelijke ontvangst-/correctiegrens zoals hierboven; 02:45 UTC ook tijdens zomertijd; onduidelijke deelleveringen niet kwantificeren; MAPE op later_verkocht, nulverbruik apart. Bestaande werkprocessen blijven intact.

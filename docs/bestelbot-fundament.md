@@ -78,3 +78,7 @@ Tabel `kassa_verkoop_dag`: per vestiging + werkdag (Europe/Amsterdam, kanteluur 
 - Functie `bestelbot_advies_vervangen` (alleen service_role): vervangt alle regels van vestiging+leverdag in één transactie, koppelt artikel/leverancier op exacte naam (hoofdletterongevoelig) en vorm (zelfde leverancier, anders standaard), behoudt `op_bord_regel_id` bij gelijk artikel+leverancier.
 - Bot: `POST {actie:"advies", vestiging, datum, leverdag, regels:[{artikel, leverancier?, hoeveelheid, eenheid?, verwacht_verbruik?, onzeker?, reden?, artikel_id?, artikel_vorm_id?}]}` → `{ok:true, aantal, gekoppeld}`. Max 500 regels. Maakt geen bordregels en bestelt niets.
 - UI: blok "Advies (nog niet besteld)" bovenaan het Bestelbord; "Op bord zetten" maakt een gewone open regel (of hoogt een open regel met dezelfde naam op).
+
+## Voorraadproef: optionele adviesmetadata
+Actie `advies` accepteert topniveau `methode_versie` en per regel `gegevens` met `kassa_ids: [{id, per_eenheid}]`, `periode_van`, `periode_tot`, `verwacht_verbruik`, `kalender`, `trend`, eventueel `voorraad_artikel_id`.
+De nieuwe service-only `bestelbot_advies_loggen` roept de bestaande adviesvervanging ongewijzigd aan en logt in dezelfde transactie. Antwoord blijft `{ok,aantal,gekoppeld}` met aanvullend `gelogd`. Zonder metadata ontstaat een onvolledig leerlog; bestaande vinkjes blijven behouden. Ongeldige metadata geeft 400 en wijzigt geen advies. GET/bestellen/koppel/import_historie blijven ongewijzigd. Er wordt niets automatisch besteld of verstuurd.

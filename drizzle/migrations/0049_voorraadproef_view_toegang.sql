@@ -1,0 +1,2 @@
+CREATE OR REPLACE VIEW public.v_voorraad_bewegingen WITH(security_invoker=true) AS SELECT b.* FROM(SELECT DISTINCT vestiging FROM public.voorraad_artikel WHERE public.heeft_vestiging(auth.uid(),vestiging) OR coalesce(nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'role',current_user) IN ('service_role','postgres','supabase_admin'))a CROSS JOIN LATERAL public.voorraad_bewegingen_lezen(a.vestiging)b;
+REVOKE ALL ON public.v_voorraad_bewegingen FROM PUBLIC,anon,authenticated;GRANT SELECT ON public.v_voorraad_bewegingen TO authenticated,service_role;
