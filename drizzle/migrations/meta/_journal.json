@@ -379,6 +379,13 @@
       "when": 1793276251201,
       "tag": "0053_leercurve_opslag_groep",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1793276327122,
+      "tag": "0054_prijzen_basis",
+      "breakpoints": true
     }
   ]
 }
