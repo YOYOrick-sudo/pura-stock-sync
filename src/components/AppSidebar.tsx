@@ -31,7 +31,7 @@ const allNavigationItems = [
   { title: 'Kassatelling', url: '/kassatelling', icon: Calculator, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Onderhoud', url: '/onderhoud', icon: ClipboardList, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Settings', url: '/settings', icon: Settings, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: true },
-  { title: 'MT-punt aanleveren', url: '/mt-punt', icon: MessageSquarePlus, group: 'overzicht' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false, mtOnly: true },
+  { title: 'MT-punten', url: '/mt-punt', icon: MessageSquarePlus, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false, mtOnly: true },
 ];
 
 interface AppSidebarProps {

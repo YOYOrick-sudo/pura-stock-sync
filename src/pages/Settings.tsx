@@ -9,10 +9,13 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { devError } from "@/lib/devLog";
+import { useRole } from '@/hooks/useRole';
+import { MtLedenUitnodigen } from '@/components/MtLedenUitnodigen';
 
 export default function Settings() {
   const navigate = useNavigate();
   const { displayLocation } = useUserLocation();
+  const { isOwner } = useRole();
   const [userEmail, setUserEmail] = useState<string>('');
 
   useEffect(() => {
@@ -107,6 +110,7 @@ export default function Settings() {
             </Link>
           </Card>
 
+          {isOwner && <MtLedenUitnodigen />}
 
           <Card className="p-6">
             <h3 className="font-semibold text-lg mb-4">Account</h3>

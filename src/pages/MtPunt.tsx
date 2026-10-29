@@ -8,15 +8,12 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { useRole } from '@/hooks/useRole';
-import { MtLedenUitnodigen } from '@/components/MtLedenUitnodigen';
 
 const MAX_LENGTE = 2000;
 
 export default function MtPunt() {
   const [punt, setPunt] = useState('');
   const queryClient = useQueryClient();
-  const { isOwner } = useRole();
 
   const { data: punten = [], isLoading } = useQuery({
     queryKey: ['mt-punten-eigen'],
@@ -79,8 +76,6 @@ export default function MtPunt() {
               Verstuur
             </Button>
           </Card>
-
-          {isOwner && <MtLedenUitnodigen />}
 
           <section className="space-y-3">
             <h2 className="text-sm font-medium text-muted-foreground">Mijn ingestuurde punten</h2>
