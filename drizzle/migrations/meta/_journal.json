@@ -351,6 +351,13 @@
       "when": 1793272046594,
       "tag": "0049_voorraadproef_view_toegang",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1793273703931,
+      "tag": "0050_voorraad_telvragen_roulerend",
+      "breakpoints": true
     }
   ]
 }
