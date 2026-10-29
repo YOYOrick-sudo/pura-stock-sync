@@ -1,3 +1,4 @@
+/** @deprecated Oud. Gebruik voor nieuw werk components/ui + components/pura (zie /design-system). */
 // Polar Design System - Component Index
 // Import all Polar components from here for easy access
 
