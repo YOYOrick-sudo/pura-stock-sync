@@ -389,6 +389,29 @@ export default function Bestelbord() {
     }
   };
 
+  // Eerder vrij getypte bordregels (zonder artikel), nieuwste eerst — snelkeuze zoals vroeger.
+  const eerderVrij = useMemo(() => {
+    const m = new Map<string, BestelSignaal>();
+    for (const s of signalen) if (!s.artikel_id && !m.has(norm(s.naam))) m.set(norm(s.naam), s);
+    return [...m.values()];
+  }, [signalen]);
+  const eerderSuggesties = useMemo(() => {
+    const q = norm(naam);
+    if (!q || gekozen) return [];
+    const inLijst = new Set(suggesties.map((s) => norm(s.naam)));
+    return eerderVrij.filter((s) => norm(s.naam).includes(q) && norm(s.naam) !== q && !inLijst.has(norm(s.naam))).slice(0, 8);
+  }, [naam, gekozen, eerderVrij, suggesties]);
+
+  const kiesEerder = (s: BestelSignaal) => {
+    setNaam(s.naam);
+    setAantal(Math.max(1, Number(s.aantal) || 1));
+    setSoort(s.eenheid);
+    setGekozen(null);
+    setVormId(null);
+    setSuggesties([]);
+    setLijstOpen(false);
+  };
+
   const kiesArtikel = (s: BordSuggestie) => {
     const std = s.vormen.find((v) => v.is_standaard) ?? s.vormen[0] ?? null;
     setNaam(s.naam);
@@ -432,7 +455,7 @@ export default function Bestelbord() {
     }
     const v = gekozen && vormId ? gekozen.vormen.find((x) => x.id === vormId) : undefined;
     const koppeling = gekozen
-      ? { artikel_id: gekozen.artikel_id, leverancier_id: v?.leverancier_id ?? gekozen.leverancier_id ?? null, artikel_vorm_id: v?.id ?? null }
+      ? { artikel_id: gekozen.artikel_id, leverancier_id: v?.leverancier_id ?? gekozen.leverancier_id ?? null, artikel_vorm_id: v && v.eenheid === eenheid ? v.id : null }
       : null;
     toevoegen.mutate(
       { naam: n, aantal, eenheid, koppeling },
@@ -453,7 +476,7 @@ export default function Bestelbord() {
       const kand = (vormen ?? []).filter((x) => x.artikel_id === s.artikel_id && x.eenheid === s.eenheid);
       if (kand.length === 1) v = kand[0];
     }
-    if (!v || v.prijs == null) return null;
+    if (!v || v.prijs == null || v.eenheid !== s.eenheid) return null;
     return { vorm: v, totaal: Number(s.aantal) * Number(v.prijs) };
   };
 
@@ -637,6 +660,16 @@ export default function Bestelbord() {
               <Plus className="h-4 w-4 mr-1" /> Erbij
             </Button>
           </div>
+          {eerderSuggesties.length > 0 && (
+            <div className="flex gap-1.5 overflow-x-auto">
+              {eerderSuggesties.map((s) => (
+                <button key={s.id} type="button" onClick={() => kiesEerder(s)}
+                  className="h-9 shrink-0 rounded-full bg-muted px-3 text-[14px] text-foreground hover:bg-muted/70">
+                  {s.naam} · {Number(s.aantal)} {s.eenheid}
+                </button>
+              ))}
+            </div>
+          )}
           {gekozen && gekozen.vormen.length > 1 && (
             <VormKeuze
               vormen={gekozen.vormen}
@@ -776,10 +809,18 @@ export default function Bestelbord() {
               className="h-12 w-full"
               onClick={() => {
                 if (!bewerk) return;
-                const v = bewerkVormId && bewerkVormId !== bewerk.artikel_vorm_id ? vormById.get(bewerkVormId) : undefined;
+                const eenh = bewerkSoort ?? 'stuks';
+                const v = bewerkVormId ? vormById.get(bewerkVormId) : undefined;
+                let vorm: { artikel_vorm_id: string | null; leverancier_id: string | null } | undefined;
+                if (v && v.eenheid === eenh) {
+                  if (v.id !== bewerk.artikel_vorm_id) vorm = { artikel_vorm_id: v.id, leverancier_id: v.leverancier_id };
+                } else if (bewerk.artikel_vorm_id || v) {
+                  // Eenheid past niet bij de vorm: koppeling met vorm vervalt, artikel en leverancier blijven.
+                  vorm = { artikel_vorm_id: null, leverancier_id: v?.leverancier_id ?? bewerk.leverancier_id };
+                }
                 wijzig.mutate({
                   id: bewerk.id, aantal: bewerkAantal, eenheid: bewerkSoort ?? 'stuks',
-                  vorm: v ? { artikel_vorm_id: v.id, leverancier_id: v.leverancier_id } : undefined,
+                  vorm,
                 });
                 setBewerk(null);
               }}
