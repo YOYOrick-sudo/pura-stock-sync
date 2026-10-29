@@ -176,11 +176,19 @@ const App = () => {
             />
             <Route
               path="/taken/beheer"
-              element={<TakenBeheer />}
+              element={
+                <ProtectedRoute>
+                  <TakenBeheer />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/taken/admin"
-              element={<TakenAdmin />}
+              element={
+                <ProtectedRoute>
+                  <TakenAdmin />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/taken-analyse" 
