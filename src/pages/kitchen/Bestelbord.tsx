@@ -1,8 +1,11 @@
 import { useMemo, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Check, ChevronDown, Minus, Plus, X } from 'lucide-react';
+import { Check, ChevronDown, MoreVertical, Minus, Plus, Truck, Undo2, X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Textarea } from '@/components/ui/textarea';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,8 +13,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { dagenTeLaat, parseYmd, ymd } from '@/lib/leverdatum';
 import { useUserLocation } from '@/contexts/UserLocationContext';
-import { useBestelSignalen, useBestelbordMutaties, type BestelSignaal } from '@/hooks/useBestelbord';
+import {
+  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useVestigingOpenDagen, type BestelSignaal,
+} from '@/hooks/useBestelbord';
 import { BestelLeverancierLabel } from '@/components/kitchen/BestelLeverancierLabel';
 
 const SOORTEN = ['stuks', 'doos', 'zak', 'fles', 'pak', 'bak', 'emmer', 'kg'] as const;
