@@ -19,6 +19,7 @@ export interface BestelSignaal {
   besteld_via: 'handmatig' | 'bot' | null;
   leverancier_id: string | null;
   artikel_id: string | null;
+  artikel_vorm_id: string | null;
   verwachte_levering: string | null;
   geleverd_op: string | null;
   geleverd_door: string | null;
@@ -67,13 +68,67 @@ export function useBestelSignalen(vestiging: string | null | undefined) {
   return query;
 }
 
+export interface ArtikelVorm {
+  id: string;
+  artikel_id: string;
+  vorm: string;
+  eenheid: string;
+  leverancier_id: string | null;
+  leverancier_naam?: string | null;
+  prijs: number | null;
+  prijs_datum: string | null;
+  prijs_bron: string | null;
+  is_standaard: boolean;
+}
+
+export interface BordSuggestie {
+  artikel_id: string;
+  naam: string;
+  leverancier_id: string | null;
+  score: number;
+  standaard_eenheid: string | null;
+  standaard_vorm: string | null;
+  vormen: ArtikelVorm[];
+}
+
+/** Zoeksuggesties uit de productdatabase (al vanaf 1 letter, tikfouten opgevangen). */
+export async function zoekBordSuggesties(vestiging: string, tekst: string): Promise<BordSuggestie[]> {
+  const { data, error } = await supabase.rpc('rpc_bord_suggesties', { p_vestiging: vestiging, p_tekst: tekst, p_limit: 8 });
+  if (error) throw error;
+  return ((data ?? []) as unknown[]).map((r: any) => ({ ...r, vormen: (r.vormen ?? []) as ArtikelVorm[] }));
+}
+
+/** Alle actieve verpakkingsvormen van een vestiging (voor indicatieprijzen). */
+export function useArtikelVormen(vestiging: string | null | undefined) {
+  return useQuery({
+    queryKey: ['artikel-vormen', vestiging],
+    enabled: !!vestiging,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async (): Promise<ArtikelVorm[]> => {
+      const { data, error } = await supabase
+        .from('artikel_vormen')
+        .select('id, artikel_id, vorm, eenheid, leverancier_id, prijs, prijs_datum, prijs_bron, is_standaard')
+        .eq('vestiging', vestiging!)
+        .is('deleted_at', null);
+      if (error) throw error;
+      return (data ?? []) as unknown as ArtikelVorm[];
+    },
+  });
+}
+
+export interface ArtikelKoppeling {
+  artikel_id: string | null;
+  leverancier_id: string | null;
+  artikel_vorm_id: string | null;
+}
+
 export function useBestelbordMutaties(vestiging: string) {
   const qc = useQueryClient();
   const key = ['bestel-signalen', vestiging] as const;
   const ververs = () => qc.invalidateQueries({ queryKey: key });
 
   const toevoegen = useMutation({
-    mutationFn: async ({ naam, aantal, eenheid }: { naam: string; aantal: number; eenheid: string }) => {
+    mutationFn: async ({ naam, aantal, eenheid, koppeling }: { naam: string; aantal: number; eenheid: string; koppeling?: ArtikelKoppeling | null }) => {
       if (!vestiging) throw new Error('Vestiging nog niet geladen, probeer het zo opnieuw');
       const { data: user } = await supabase.auth.getUser();
       const { error } = await metHerstel(() =>
@@ -84,6 +139,9 @@ export function useBestelbordMutaties(vestiging: string) {
           eenheid,
           bron: 'handmatig',
           gemeld_door: user.user?.id ?? null,
+          ...(koppeling?.artikel_id
+            ? { artikel_id: koppeling.artikel_id, leverancier_id: koppeling.leverancier_id, artikel_vorm_id: koppeling.artikel_vorm_id }
+            : {}),
         }),
       );
       if (error) throw error;
@@ -133,9 +191,9 @@ export function useBestelbordMutaties(vestiging: string) {
   });
 
   const wijzig = useMutation({
-    mutationFn: async ({ id, aantal, eenheid }: { id: string; aantal: number; eenheid: string }) => {
+    mutationFn: async ({ id, aantal, eenheid, vorm }: { id: string; aantal: number; eenheid: string; vorm?: { artikel_vorm_id: string; leverancier_id: string | null } }) => {
       const { error } = await metHerstel(() =>
-        supabase.from('bestel_signalen').update({ aantal, eenheid }).eq('id', id),
+        supabase.from('bestel_signalen').update({ aantal, eenheid, ...(vorm ?? {}) }).eq('id', id),
       );
       if (error) throw error;
     },
