@@ -62,11 +62,11 @@ export function Recepten() {
             <TableBody>{rijen.map((g) => <Fragment key={g.lev}>
               <GroepRij kolommen={5} naam={g.lev} aantal={g.items.length} />
               {g.items.map(([n, a, e, p, laat]) => <TableRow key={n} className="cursor-pointer" onClick={() => toast(`${n}: lade opent`)}>
-                <TableCell onClick={(ev) => ev.stopPropagation()}><label className="mx-auto flex h-11 w-11 items-center justify-center"><Checkbox aria-label={`${n} besteld`} /></label></TableCell>
+                <TableCell className="!px-0" onClick={(ev) => ev.stopPropagation()}><label className="mx-auto flex h-11 w-11 items-center justify-center"><Checkbox aria-label={`${n} besteld`} /></label></TableCell>
                 <TableCell><div className="flex min-h-11 flex-col justify-center"><span className="truncate font-medium">{n}</span><RijMeta altijd={laat > 0}>{laat > 0 && <StatusLabel toon="fout">{laat}d te laat</StatusLabel>}<span className="sm:hidden">{p || <StatusDot toon="let-op" label="geen prijs" />}</span></RijMeta></div></TableCell>
                 <TableCell className="text-right tabular-nums"><span className="font-medium">{a}</span> <span className="text-xs text-muted-foreground">{e}</span></TableCell>
                 <TableCell className="hidden text-right tabular-nums sm:table-cell">{p || <StatusDot toon="let-op" verborgenLabel="geen prijs" />}</TableCell>
-                <TableCell onClick={(ev) => ev.stopPropagation()}><RijMenu naam={n} acties={[{ label: 'Bewerken', onClick: () => toast('Bewerken') }, { label: 'Vervallen', onClick: () => toast('Vervallen'), gevaar: true }]} /></TableCell>
+                <TableCell className="!px-0" onClick={(ev) => ev.stopPropagation()}><RijMenu naam={n} acties={[{ label: 'Bewerken', onClick: () => toast('Bewerken') }, { label: 'Vervallen', onClick: () => toast('Vervallen'), gevaar: true }]} /></TableCell>
               </TableRow>)}
             </Fragment>)}</TableBody>
           </Table>
