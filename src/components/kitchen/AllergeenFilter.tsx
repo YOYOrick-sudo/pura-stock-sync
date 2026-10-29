@@ -54,16 +54,16 @@ export function AllergeenFilter({ zonder, onToggle, alleenVegan, onToggleVegan, 
               aria-pressed={aan}
               onClick={() => onToggle(code)}
               className={cn(
-                'inline-flex items-center justify-center whitespace-nowrap min-h-[44px] px-4 rounded-full text-sm font-medium border transition-colors',
+                'inline-flex items-center justify-center whitespace-nowrap min-h-[44px] rounded-full text-sm font-medium border transition-colors',
                 aan
-                  ? 'bg-destructive/10 text-destructive border-destructive/40'
-                  : 'bg-background text-muted-foreground border-border hover:bg-muted',
+                  ? 'bg-destructive/10 text-destructive border-destructive/40 pl-4 pr-3.5'
+                  : 'bg-background text-muted-foreground border-border hover:bg-muted px-4',
               )}
             >
               {aan ? (
                 <>
                   Zonder {GERECHT_LABEL_NAAM[code].toLowerCase()}
-                  <X className="ml-1.5 -mr-1 h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden="true" />
+                  <X className="ml-1.5 h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden="true" />
                 </>
               ) : (
                 GERECHT_LABEL_NAAM[code]
