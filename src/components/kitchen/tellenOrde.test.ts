@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+// @ts-ignore bun test runner
+import { describe, expect, it } from 'bun:test';
 import { deelTellenIn, telStatus } from './tellenOrde';
 
 const r = (id: string, o: Partial<Parameters<typeof telStatus>[0]> = {}) => ({
