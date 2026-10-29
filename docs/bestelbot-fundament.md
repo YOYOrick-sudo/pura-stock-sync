@@ -47,3 +47,11 @@ Geen daadwerkelijke bestellingen of advies. Geen bestaande borddata aangepast. H
 - Beheerders mogen historie rechtstreeks toevoegen/wijzigen zoals gevraagd bij D; audit is alleen gegarandeerd voor de toekomstige bot-import, niet voor rechtstreeks beheer. Er is geen client-grant voor bot-audit schrijven.
 
 Werkwijze: Bouwdiscipline.
+## Update: bot-koppeling actief
+- Functie `bot-bestelbord` staat live. Header `Authorization: Bearer <BOT_BESTELBORD_TOKEN>`.
+- `GET ?vestiging=West|Midsland` → open regels.
+- `POST {vestiging, actie:"bestellen", regels:[{id,bestelreferentie}]}` (max 100, idempotent).
+- `POST {vestiging, actie:"koppel", id, leverancier_id, artikel_id, match_zekerheid}`.
+- `POST {vestiging, actie:"import_historie", rijen:[...]}` (max 500, dubbel overgeslagen).
+- Historie-import controleert alleen dat leverancier/artikel bij de vestiging hoort (niet of het nu actief is). Alleen de bot schrijft historie.
+- Down (0033): drop bestelbot_lees_open/markeer_besteld/koppel/aanroep_afsluiten; herstel trigger-body en policies uit 0032.
