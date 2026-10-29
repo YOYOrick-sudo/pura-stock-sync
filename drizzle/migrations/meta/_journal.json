@@ -232,6 +232,13 @@
       "when": 1793235227736,
       "tag": "0032_bestelbot_fundament",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1793236642743,
+      "tag": "0033_bestelbot_afronden",
+      "breakpoints": true
     }
   ]
 }

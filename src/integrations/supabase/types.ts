@@ -5203,6 +5203,15 @@ export type Database = {
       }
     }
     Functions: {
+      bestelbot_aanroep_afsluiten: {
+        Args: {
+          p_audit_id: string
+          p_ids?: string[]
+          p_resultaat: Json
+          p_succes: boolean
+        }
+        Returns: undefined
+      }
       bestelbot_aanroep_start: {
         Args: { p_actie: string; p_ip: string; p_vestiging: string }
         Returns: {
@@ -5215,9 +5224,38 @@ export type Database = {
         Args: { p_audit_id: string; p_rijen: Json; p_vestiging: string }
         Returns: Json
       }
+      bestelbot_koppel: {
+        Args: {
+          p_artikel_id: string
+          p_id: string
+          p_leverancier_id: string
+          p_match: number
+          p_vestiging: string
+        }
+        Returns: Json
+      }
+      bestelbot_lees_open: {
+        Args: { p_vestiging: string }
+        Returns: {
+          aantal: number
+          artikel_id: string
+          created_at: string
+          eenheid: string
+          id: string
+          leverancier_id: string
+          leverancier_naam: string
+          match_zekerheid: number
+          naam: string
+          notitie: string
+        }[]
+      }
       bestelbot_leverancier_actief: {
         Args: { p_leverancier_id: string; p_vestiging: string }
         Returns: boolean
+      }
+      bestelbot_markeer_besteld: {
+        Args: { p_regels: Json; p_vestiging: string }
+        Returns: Json
       }
       bestelbot_normaliseer: { Args: { p_tekst: string }; Returns: string }
       claim_next_print_job: {
