@@ -452,27 +452,40 @@ export default function Bestelbord() {
   const nulAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) <= 0);
   const openPrijzen = open.map(prijsVan).filter((p) => p != null);
   const zonderPrijs = [...open, ...besteld].filter((s) => !prijsVan(s)).length;
-  const leveranciersTabel = <LeveranciersOverzicht open={open} onderweg={besteld} leverancier={leverancier} prijsVan={prijsVan} />;
-  const bordProps = { leverancier, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen };
-  const overzicht = <OverzichtKaart kengetallen={<>
-    <Kengetal icoon={Building2} label="Open" waarde={openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : '—'} />
-    <Kengetal icoon={Truck} label="Checken" waarde={teChecken.length} />
-    <Kengetal icoon={AlertCircle} label="Geen prijs" waarde={zonderPrijs} toon={zonderPrijs ? 'let-op' : 'neutraal'} />
-  </>}>{leveranciersTabel}</OverzichtKaart>;
+  const q = zoek.trim().toLowerCase();
+  const filter = (r: BestelSignaal[]) => r.filter((s) => (!q || s.naam.toLowerCase().includes(q)) && (!alleenZonderPrijs || !prijsVan(s)));
+  const openZicht = filter(open);
+  const teCheckenZicht = filter(teChecken);
+  const onderwegZicht = filter(onderweg);
+  const zonderDatumZicht = filter(zonderDatum);
+  const geleverdZicht = filter(geleverd);
+  const besteldZicht = [...teCheckenZicht, ...onderwegZicht, ...zonderDatumZicht];
+  const filterAan = !!q || alleenZonderPrijs;
+  const openTotaal = openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : '—';
+  const naarTab = (t: string) => { setAlleenZonderPrijs(false); setTabKeuze(t); };
+  const leegKaart = (titel: string) => <EmptyState icon={filterAan ? Search : ClipboardList} title={filterAan ? 'Niets gevonden' : titel} description={filterAan ? 'Pas je zoekopdracht of filter aan.' : ''} className="border-0 shadow-none" action={filterAan ? <Button variant="outline" size="touch" onClick={() => { setZoek(''); setAlleenZonderPrijs(false); }}>Filter wissen</Button> : undefined} />;
 
   return (
     <SidebarLayout>
       <div className="space-y-4">
+        <BestelKengetallen tegels={[
+          { id: 'bord', label: 'Op het bord', waarde: open.length, sub: openTotaal, icoon: ClipboardList, actief: tab === 'bord' && !alleenZonderPrijs, onKies: () => naarTab('bord') },
+          { id: 'advies', label: 'Advies', waarde: positieveAdviezen.length, sub: 'voorstellen', icoon: Sparkles, actief: tab === 'advies', onKies: () => naarTab('advies') },
+          { id: 'onderweg', label: 'Onderweg', waarde: besteld.length, sub: teChecken.length ? `${teChecken.length} te checken` : 'op schema', icoon: Truck, toon: teChecken.length ? 'let-op' : 'neutraal', actief: tab === 'onderweg' && !alleenZonderPrijs, onKies: () => naarTab('onderweg') },
+          { id: 'prijs', label: 'Geen prijs', waarde: zonderPrijs, sub: alleenZonderPrijs ? 'filter aan · tik om te wissen' : 'tik om te tonen', icoon: AlertCircle, toon: zonderPrijs ? 'let-op' : 'neutraal', actief: alleenZonderPrijs, onKies: () => { const aan = !alleenZonderPrijs; setAlleenZonderPrijs(aan); if (aan && tab !== 'onderweg') setTabKeuze('bord'); } },
+        ]} />
         <Tabs value={tab} onValueChange={setTabKeuze}>
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <TabsList className={segmentTabsKlasse}>
               {[{ id: 'bord', naam: 'Op het bord', kort: 'Bord', Icoon: ClipboardList, n: open.length }, { id: 'advies', naam: 'Advies', kort: 'Advies', Icoon: Sparkles, n: positieveAdviezen.length }, { id: 'tellen', naam: 'Tellen', kort: 'Tellen', Icoon: Calculator, n: telOverzicht.open }, { id: 'onderweg', naam: 'Onderweg', kort: 'Onderweg', Icoon: Truck, n: besteld.length }].map(({ id, naam, kort, Icoon, n }) => <TabsTrigger key={id} value={id} aria-label={`${naam} (${n})`} className="min-w-0 px-2 sm:px-3"><Icoon className="hidden h-4 w-4 shrink-0 sm:block" /><span className="truncate sm:hidden">{kort}</span><span className="hidden sm:inline">{naam}</span>{n > 0 && <span className="tabular-nums text-muted-foreground">{n}</span>}</TabsTrigger>)}
             </TabsList>
-            <Button className="min-h-11 gap-1" onClick={() => { setTabKeuze('bord'); requestAnimationFrame(() => invoer.current?.focus()); }}><Plus className="h-4 w-4" /><span>Product</span></Button>
+            <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+              {(tab === 'bord' || tab === 'onderweg') && <div className="w-full max-w-xs"><ZoekVeld waarde={zoek} onChange={setZoek} placeholder="Zoek product" /></div>}
+              <Button className="min-h-11 shrink-0 gap-1" onClick={() => { setTabKeuze('bord'); requestAnimationFrame(() => invoer.current?.focus()); }}><Plus className="h-4 w-4" /><span>Product</span></Button>
+            </div>
           </div>
-          <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="mt-4 min-w-0">
             <div className="min-w-0 space-y-4">
-              <div className="lg:hidden"><InklapGroep titel="Overzicht">{overzicht}</InklapGroep></div>
               <TabsContent value="bord" className="mt-0 space-y-4">
                 <LijstKaart>
         <div className="space-y-2 border-b border-border bg-muted/30 p-2">
