@@ -55,11 +55,6 @@ export default function MtPunt() {
   return (
     <SidebarLayout>
       <div className="space-y-4">
-        <div className="space-y-1">
-          <p className="text-sm text-muted-foreground">
-            Punten gaan drie keer per week (ma, wo, vr) naar de MT-agenda in Notion.
-          </p>
-        </div>
 
         <Card className="p-4 md:p-6 space-y-4">
           <div className="space-y-2">
