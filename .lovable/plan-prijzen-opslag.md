@@ -8,3 +8,8 @@
 6. Tests: SQL-controles en een vitest voor de hulpfuncties. Documentatie in docs/prijzen-en-opslag.md.
 
 Niet aanraken: foh_tasks/takenlijst, menukaart/gerechten/recepten/Horeko/allergenen, Lightspeed-sync. Bestaande flows alleen uitbreiden.
+
+## Vervolgfix (29-10)
+- bestelbot_prijzen_opslaan: meegestuurde artikel_id/inhoud/basis_eenheid gaan vóór eigen afleiding; prijs_per_basis = prijs_excl / inhoud.
+- v_prijs_aankoop: bron met 'incl btw' omgerekend (Wijn & sterke drank/Bier /1,21, anders /1,09), kolom btw_omgerekend.
+- voorraad_bewegingen_lezen: Kooyman-factuurregel telt niet als ontvangst als een Kooyman-API-order hetzelfde voorraadartikel en aantal heeft binnen 3 dagen (5 dubbelen, Midsland).
