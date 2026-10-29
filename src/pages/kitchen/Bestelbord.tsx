@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Building2, Check, AlertCircle } from 'lucide-react';
 import { DetailLade, InklapGroep, KaartKop, LaadRijen, LegeStaat, LijstKaart, Invoerbalk, Kengetal, OverzichtKaart, segmentTabsKlasse } from '@/components/pura/patronen';
+import { TabelVoet } from '@/components/pura/lijst';
 import { Stappen } from '@/components/pura/blokken';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
