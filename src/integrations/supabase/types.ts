@@ -6117,6 +6117,34 @@ export type Database = {
           },
         ]
       }
+      v_advies_nauwkeurigheid: {
+        Row: {
+          artikel: string | null
+          artikel_id: string | null
+          gemiddelde_afwijking: number | null
+          mape: number | null
+          n: number | null
+          niet_vergelijkbaar: number | null
+          nulverbruik: number | null
+          vestiging: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advies_log_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advies_log_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_bestel_historie_top: {
         Row: {
           artikel_id: string | null
@@ -6177,6 +6205,86 @@ export type Database = {
           naam: string | null
         }
         Relationships: []
+      }
+      v_leer_voorstellen_open: {
+        Row: {
+          artikel_id: string | null
+          beoordeeld_door: string | null
+          beoordeeld_op: string | null
+          bijgewerkt_op: string | null
+          created_at: string | null
+          huidige_waarde: number | null
+          id: string | null
+          onderbouwing: Json | null
+          onderwerp: string | null
+          soort: string | null
+          status: string | null
+          vestiging: string | null
+          voorgestelde_waarde: number | null
+          voorraad_artikel_id: string | null
+        }
+        Insert: {
+          artikel_id?: string | null
+          beoordeeld_door?: string | null
+          beoordeeld_op?: string | null
+          bijgewerkt_op?: string | null
+          created_at?: string | null
+          huidige_waarde?: number | null
+          id?: string | null
+          onderbouwing?: Json | null
+          onderwerp?: string | null
+          soort?: string | null
+          status?: string | null
+          vestiging?: string | null
+          voorgestelde_waarde?: number | null
+          voorraad_artikel_id?: string | null
+        }
+        Update: {
+          artikel_id?: string | null
+          beoordeeld_door?: string | null
+          beoordeeld_op?: string | null
+          bijgewerkt_op?: string | null
+          created_at?: string | null
+          huidige_waarde?: number | null
+          id?: string | null
+          onderbouwing?: Json | null
+          onderwerp?: string | null
+          soort?: string | null
+          status?: string | null
+          vestiging?: string | null
+          voorgestelde_waarde?: number | null
+          voorraad_artikel_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leer_voorstel_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leer_voorstel_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leer_voorstel_voorraad_artikel_id_fkey"
+            columns: ["voorraad_artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_voorraad_stand"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leer_voorstel_voorraad_artikel_id_fkey"
+            columns: ["voorraad_artikel_id"]
+            isOneToOne: false
+            referencedRelation: "voorraad_artikel"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       v_lightspeed_status: {
         Row: {
@@ -6287,6 +6395,16 @@ export type Database = {
           http_status: number
           toegestaan: boolean
         }[]
+      }
+      bestelbot_advies_loggen: {
+        Args: {
+          p_datum: string
+          p_leverdag: string
+          p_methode_versie?: string
+          p_regels: Json
+          p_vestiging: string
+        }
+        Returns: Json
       }
       bestelbot_advies_vervangen: {
         Args: {
@@ -6431,6 +6549,7 @@ export type Database = {
         Returns: boolean
       }
       is_service_call: { Args: never; Returns: boolean }
+      leercurve_bijwerken: { Args: never; Returns: Json }
       mag_cijfers_zien: { Args: { _uid: string }; Returns: boolean }
       mag_loonkosten_zien: { Args: { _uid: string }; Returns: boolean }
       mep_bouw_dag: {
