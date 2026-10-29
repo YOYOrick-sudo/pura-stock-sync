@@ -64,3 +64,11 @@ Werkwijze: Bouwdiscipline.
 - Nieuwe service-only RPC `bestelbot_lees_besteld`; `bestelbot_lees_open` opnieuw aangemaakt met twee extra kolommen; `bestelbot_markeer_besteld` uitgebreid (zelfde signatuur).
 - App: tab 'Onderweg' op de bestellijst (Vandaag te checken / Onderweg / Zonder datum / Geleverd), per leverancier + ordernummer, 'Alles geleverd', niet/deels geleverd met opmerking; 'niet geleverd' en restant van 'deels' komen als open regel terug op het bord.
 - Down (0034): drop trigger bestel_signalen_verwachte_levering en functies bestel_signalen_vul_verwachte_levering, bestel_verwachte_levering, bestelbot_lees_besteld; herstel bestelbot_lees_open/markeer_besteld uit 0033; verwijder de zes nieuwe kolommen, twee CHECK's en de leveringsindex.
+
+## Kassa-verkoop per product (Lightspeed) — 29 okt 2026
+
+Tabel `kassa_verkoop_dag`: per vestiging + werkdag (Europe/Amsterdam, kanteluur 06:00, gelijk aan `omzet_uren`) + `lightspeed_product_id` (= `items[].prodId`): productnaam, aantal, omzet_excl, omzet_incl. Alleen PAID-bonnen; retouren tellen negatief mee. Bron: `items[]` in `GET /resto/rest/financial/receipt`.
+
+- Uurlijkse sync (`lightspeed-sync`, `type: auto`, window hot) vervangt gisteren en vandaag volledig.
+- Inhaalslag: `POST lightspeed-sync {"type":"backfill_verkoop","vestiging":"West"}` verwerkt 7 dagen per aanroep vanaf 2025-01-01; voortgang in `sync_runs` (type backfill, details.doel = verkoop, state.cursor). Antwoord `klaar: true` = bij.
+- `omzet_excl/incl` = `totalPrice(WithoutVat)` van de regel; kortingen (`discountPrice`) worden niet apart verrekend.
