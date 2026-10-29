@@ -523,7 +523,7 @@ export default function RecipeForm() {
           />
         </Card>
 
-        <div className="flex flex-col sm:flex-row justify-end gap-3 sticky bottom-4">
+        <div className="flex flex-col sm:flex-row justify-end gap-3 sticky bottom-[calc(1rem+var(--onderbalk))]">
           <Button
             variant="outline"
             size="lg"

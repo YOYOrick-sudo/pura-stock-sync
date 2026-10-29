@@ -1,11 +1,8 @@
-import { Home, ListChecks, Settings, BookOpen, Printer, Calculator, ClipboardList, LogOut, BarChart3, ChefHat, Cookie, MessageSquarePlus } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useState } from 'react';
-import { useRole } from '@/hooks/useRole';
-import { useIsMtLid } from '@/hooks/useIsMtLid';
-import { useHeeftRol } from '@/hooks/useHeeftRol';
-import { MT_ROUTES } from '@/lib/mt';
+import { useNavigatieItems, isNavActief } from '@/hooks/useNavigatieItems';
 import { supabase } from '@/integrations/supabase/client';
 
 import { PolarSidebar } from '@/components/polar/Sidebar';
@@ -13,27 +10,6 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import puraVidaLogo from '@/assets/pura-vida-logo-sea-cropped.png';
 import puraVidaLogoIcon from '@/assets/pura-vida-logo-sea-cropped.png';
-
-const allNavigationItems = [
-  { title: 'Dashboard', url: '/dashboard', icon: Home, group: 'overzicht' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
-  { title: 'Taken Bediening', url: '/taken-bediening', icon: ListChecks, group: 'overzicht' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
-  // MEP is alleen actief voor West (Daily); niet relevant voor Midsland.
-  { title: 'Mise-en-place', url: '/kitchen/mep', icon: ChefHat, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
-  { title: 'Bestelbord', url: '/kitchen/bestelbord', icon: ClipboardList, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
-  { title: 'Stickers', url: '/kitchen/snel-printen', icon: Printer, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
-  { title: 'Recepten', url: '/kitchen/recipes', icon: BookOpen, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
-  { title: 'Gerechten', url: '/kitchen/gerechten', icon: Cookie, group: 'keuken' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
-  // Bestellen is voorlopig verborgen voor beide vestigingen (module nog niet in gebruik).
-  { title: 'Bestellen', url: '/voorraad', icon: ClipboardList, group: 'voorraad' as const, locations: [] as string[], managerOnly: false, ownerOnly: false },
-
-  { title: 'Voorraadketen', url: '/settings/keten', icon: Settings, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: true, ownerOnly: false },
-  { title: 'Koelwerkbank indelen', url: '/settings/koelwerkbank', icon: Settings, group: 'beheer' as const, locations: ['West'], managerOnly: true, ownerOnly: false },
-  { title: 'Cijfers', url: '/cijfers', icon: BarChart3, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: true },
-  { title: 'Kassatelling', url: '/kassatelling', icon: Calculator, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
-  { title: 'Onderhoud', url: '/onderhoud', icon: ClipboardList, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
-  { title: 'Settings', url: '/settings', icon: Settings, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: true },
-  { title: 'MT-punten', url: '/mt-punt', icon: MessageSquarePlus, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false, mtOnly: true },
-];
 
 interface AppSidebarProps {
   onNavigate?: () => void;
@@ -44,10 +20,6 @@ export function AppSidebar({ onNavigate, mobile = false }: AppSidebarProps = {})
   const location = useLocation();
   const navigate = useNavigate();
   const { userLocation } = useUserLocation();
-  const { isManager, isOwner } = useRole();
-  const { isMtLid } = useIsMtLid();
-  const { heeftRol } = useHeeftRol();
-  const isMtOnly = heeftRol === false && isMtLid;
 
   const [collapsedState, setCollapsedState] = useState<boolean>(() => {
     try {
@@ -63,24 +35,8 @@ export function AppSidebar({ onNavigate, mobile = false }: AppSidebarProps = {})
   };
 
 
-  const navigationItems = isMtOnly
-    ? allNavigationItems.filter(item => MT_ROUTES.includes(item.url))
-    : (userLocation
-    ? allNavigationItems.filter(item => item.locations.includes(userLocation))
-    : allNavigationItems
-  )
-    .filter(item => !item.managerOnly || isManager)
-    .filter(item => !item.ownerOnly || isOwner)
-    .filter(item => !('mtOnly' in item && item.mtOnly) || isMtLid)
-    .filter(item => !(
-      userLocation === 'Midsland' &&
-      item.group === 'keuken' &&
-      !['/kitchen/mep', '/kitchen/gerechten'].includes(item.url)
-    ));
-
-  const isActive = (url: string) =>
-    location.pathname === url ||
-    (url !== '/' && location.pathname.startsWith(url + '/'));
+  const navigationItems = useNavigatieItems();
+  const isActive = (url: string) => isNavActief(location.pathname, url);
 
   const handleNavigation = (url: string) => {
     navigate(url);

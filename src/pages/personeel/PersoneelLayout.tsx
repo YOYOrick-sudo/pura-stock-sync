@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Outlet, NavLink } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { SidebarLayout } from "@/components/SidebarLayout";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { PersonModal } from "@/components/personeel/PersonModal";
 import { PincodeNumpad } from "@/components/PincodeNumpad";
@@ -18,6 +19,7 @@ const PIN_CODE = "0000";
 const PIN_KEY = "personeel_unlocked";
 
 export default function PersoneelLayout() {
+  const isMobile = useIsMobile();
   const [showNewModal, setShowNewModal] = useState(false);
   const [unlocked, setUnlocked] = useState(
     () => typeof window !== "undefined" && sessionStorage.getItem(PIN_KEY) === "true"
@@ -44,7 +46,10 @@ export default function PersoneelLayout() {
 
   return (
     <SidebarLayout hideHeader>
-      <div className="min-h-full bg-background -m-6 md:-mx-10 md:-my-8 lg:-mx-16 lg:-my-8 min-w-0 overflow-hidden">
+      <div className={isMobile
+        // Telefoon: precies de main-marge terugnemen (px 1rem+safe, pt-2), zodat niets wegvalt.
+        ? "min-h-full bg-background -mx-[calc(1rem+var(--safe-left))] -mt-2 min-w-0 overflow-hidden"
+        : "min-h-full bg-background -m-6 md:-mx-10 md:-my-8 lg:-mx-16 lg:-my-8 min-w-0 overflow-hidden"}>
         <div className="border-b border-border bg-card">
           <div className="px-6 md:px-10 lg:px-16 pt-4">
             <div className="flex items-center justify-between mb-3 gap-3">

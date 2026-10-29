@@ -15,3 +15,5 @@
 - [x] 5. Open- en sluitlijsten wisselbaar maken tussen NL en EN per apparaat
 - [ ] 6. Volledige visuele kwaliteitsronde mobiel, iPad en desktop — gedeelde basis en P0/P1-correcties in uitvoering
 - [x] 8. Design system herzien (shadcnblocks-analyse, 18 regels, 4 recepten) + Bestellijst make-over; Bestellijst zelf niet in preview bekeken (login)
+
+- [ ] 10. Mobiel stap 1: onderbalk (<744px), ruimte onderin, Personeel-navigatie, geen zijwaarts overlopen

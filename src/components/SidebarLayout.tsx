@@ -6,6 +6,7 @@ import { getLocationDisplayName } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { useState } from 'react';
+import { MobielOnderbalk } from '@/components/MobielOnderbalk';
 
 interface SidebarLayoutProps {
   children: React.ReactNode;
@@ -75,7 +76,7 @@ export function SidebarLayout({
   };
 
   return (
-    <div className="flex min-h-dvh w-full" style={{ backgroundColor: 'hsl(var(--app-canvas))' }}>
+    <div className={isMobile ? 'flex min-h-dvh w-full overflow-x-clip' : 'flex min-h-dvh w-full'} style={{ backgroundColor: 'hsl(var(--app-canvas))' }}>
       {/* Desktop Sidebar - hidden on mobile */}
       {!isMobile && (
         <div style={{ position: 'sticky', top: 0, height: '100dvh', alignSelf: 'flex-start' }}>
@@ -107,10 +108,11 @@ export function SidebarLayout({
           />
         )}
         
-        <main className="min-w-0 px-[calc(1rem+var(--safe-left))] pb-[calc(1.5rem+var(--safe-bottom))] pt-2 md:px-10 md:pb-8 md:pt-3 lg:px-16">
+        <main className="min-w-0 px-[calc(1rem+var(--safe-left))] pb-[calc(1.5rem+var(--onderbalk)+var(--safe-bottom))] pt-2 md:px-10 md:pb-8 md:pt-3 lg:px-16">
           {children}
         </main>
       </div>
+      {isMobile && <MobielOnderbalk onMeer={() => setMobileMenuOpen(true)} />}
     </div>
   );
 }
