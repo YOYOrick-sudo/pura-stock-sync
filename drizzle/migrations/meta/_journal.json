@@ -260,6 +260,13 @@
       "when": 1793260484722,
       "tag": "0036_fix_rpc_zoek_artikel_alias_leverancier_2",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1793260647763,
+      "tag": "0037_kassa_verkoop_dag",
+      "breakpoints": true
     }
   ]
 }

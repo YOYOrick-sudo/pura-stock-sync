@@ -2124,6 +2124,45 @@ export type Database = {
         }
         Relationships: []
       }
+      kassa_verkoop_dag: {
+        Row: {
+          aantal: number
+          created_at: string
+          datum: string
+          id: string
+          lightspeed_product_id: string
+          omzet_excl: number
+          omzet_incl: number
+          productnaam: string
+          updated_at: string
+          vestiging: string
+        }
+        Insert: {
+          aantal?: number
+          created_at?: string
+          datum: string
+          id?: string
+          lightspeed_product_id: string
+          omzet_excl?: number
+          omzet_incl?: number
+          productnaam?: string
+          updated_at?: string
+          vestiging: string
+        }
+        Update: {
+          aantal?: number
+          created_at?: string
+          datum?: string
+          id?: string
+          lightspeed_product_id?: string
+          omzet_excl?: number
+          omzet_incl?: number
+          productnaam?: string
+          updated_at?: string
+          vestiging?: string
+        }
+        Relationships: []
+      }
       keten_instellingen: {
         Row: {
           created_at: string
