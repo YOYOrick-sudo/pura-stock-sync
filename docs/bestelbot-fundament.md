@@ -36,3 +36,14 @@ Geen endpoint bestaat nu, dus geen werkende URL suggereren. Verwacht contract: G
 
 ## Grenzen
 Geen daadwerkelijke bestellingen of advies. Geen bestaande borddata aangepast. Historie en audit groeien zonder automatische opschoning. Historie toont per vestiging/gekoppeld artikel (of ruwe naam als ongekoppeld) het aantal regels en de laatst bekende hoeveelheid, eenheid, verpakking en leverancier.
+
+## Uitgevoerde verificatie
+- Alle bestaande bordwaarden, bestaande policies en bordtrigger voor/na exact vergeleken: ongewijzigd. Alle tien bordregels hebben de vijf nieuwe velden nog NULL. Bestaande hook byte-identiek.
+- Zeven integratietests in `tests/bestelbot.integration.py` geslaagd: normalisatie, bestaand product via typfout, ongeldige vestiging, clientweigering voor beide bot-RPC's, audit-insert en Hanos-West-koppeling. Veertien bestaande MEP/sluitrondetests geslaagd. Geen testdata aangemaakt.
+- Falafel staat niet in de huidige canonieke artikelentabel; daarom is de positieve typfouttest `bloemko` → `Bloemkool`. Geen ontbrekend artikel aangemaakt.
+- Ingelo gd desktop/iPad bekeken; jouw sessie toonde een lege lijst. Toevoegen/afvinken en het leverancierlabel op een echte gekoppelde regel zijn niet end-to-end getest, omdat dit bestaande operationele data zou wijzigen. Geen fouten in de nieuwste previewcontrole.
+- Exacte aliasduplicaten, vestigingswissel met gekoppelde data, service-role-importtransacties en 60/61-rate-limit zijn nog niet daadwerkelijk gesimuleerd; ontbrekend token/endpoint en geen rollback-testtoegang. Niet als geslaagd gepresenteerd.
+- Import met een gekoppelde inmiddels inactieve leverancier/artikel wordt momenteel geweigerd door de nieuwe koppelingstrigger. Historie kan met NULL-koppelingen en ruwe namen worden ingelezen; deze beperking expliciet bepalen vóór gekoppelde historie wordt geladen. Niet stil guards versoepelen.
+- Beheerders mogen historie rechtstreeks toevoegen/wijzigen zoals gevraagd bij D; audit is alleen gegarandeerd voor de toekomstige bot-import, niet voor rechtstreeks beheer. Er is geen client-grant voor bot-audit schrijven.
+
+Werkwijze: Bouwdiscipline.
