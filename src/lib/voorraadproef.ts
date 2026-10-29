@@ -15,3 +15,9 @@ export function tellingTotaal(plekken: TelPlek[], waarden: Record<string, string
 export function amsterdamDatum(nu = new Date()): string {
   return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Amsterdam' }).format(nu);
 }
+export function laatstGeteldTekst(dagen: number | null | undefined): string {
+  if (dagen == null) return 'Begintelling nodig';
+  if (dagen <= 0) return 'Laatst geteld vandaag';
+  if (dagen === 1) return 'Laatst geteld gisteren';
+  return `Laatst geteld ${dagen} dagen geleden`;
+}
