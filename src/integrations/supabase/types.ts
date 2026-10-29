@@ -3446,6 +3446,105 @@ export type Database = {
           },
         ]
       }
+      leverancier_keuze_regel: {
+        Row: {
+          artikel_id: string | null
+          categorie: string | null
+          goedgekeurd_door: string | null
+          goedgekeurd_op: string | null
+          id: string
+          leverancier_id: string | null
+          reden: string
+          soort: string
+        }
+        Insert: {
+          artikel_id?: string | null
+          categorie?: string | null
+          goedgekeurd_door?: string | null
+          goedgekeurd_op?: string | null
+          id?: string
+          leverancier_id?: string | null
+          reden: string
+          soort: string
+        }
+        Update: {
+          artikel_id?: string | null
+          categorie?: string | null
+          goedgekeurd_door?: string | null
+          goedgekeurd_op?: string | null
+          id?: string
+          leverancier_id?: string | null
+          reden?: string
+          soort?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leverancier_keuze_regel_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leverancier_keuze_regel_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leverancier_keuze_regel_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leverancier_levering: {
+        Row: {
+          bezorgkosten: number | null
+          bron: string | null
+          gratis_vanaf: number | null
+          leverancier_id: string
+          leverdagen: number[] | null
+          levert: boolean
+          minimumorder: number | null
+          notitie: string | null
+          vestiging: string
+        }
+        Insert: {
+          bezorgkosten?: number | null
+          bron?: string | null
+          gratis_vanaf?: number | null
+          leverancier_id: string
+          leverdagen?: number[] | null
+          levert?: boolean
+          minimumorder?: number | null
+          notitie?: string | null
+          vestiging: string
+        }
+        Update: {
+          bezorgkosten?: number | null
+          bron?: string | null
+          gratis_vanaf?: number | null
+          leverancier_id?: string
+          leverdagen?: number[] | null
+          levert?: boolean
+          minimumorder?: number | null
+          notitie?: string | null
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leverancier_levering_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leverancier_vestiging_config: {
         Row: {
           actief: boolean
@@ -6745,6 +6844,26 @@ export type Database = {
           },
         ]
       }
+      v_leverancier_opties: {
+        Row: {
+          artikel_id: string | null
+          artikel_naam: string | null
+          basis_eenheid: string | null
+          bron: string | null
+          bron_datum: string | null
+          categorie: string | null
+          geverifieerd: boolean | null
+          leverancier: string | null
+          leverancier_id: string | null
+          levert: boolean | null
+          prijs_excl: number | null
+          prijs_per_basis: number | null
+          vast: boolean | null
+          verpakking: string | null
+          vestiging: string | null
+        }
+        Relationships: []
+      }
       v_lightspeed_status: {
         Row: {
           laatste_fout: string | null
@@ -6837,6 +6956,30 @@ export type Database = {
           tooltip: string | null
           verpakking: string | null
           verschil_eur: number | null
+          verschil_pct: number | null
+          vestiging: string | null
+        }
+        Relationships: []
+      }
+      v_prijsverschil_leverancier: {
+        Row: {
+          artikel_id: string | null
+          artikel_naam: string | null
+          basis_eenheid: string | null
+          categorie: string | null
+          geverifieerd: boolean | null
+          goedkoopste_leverancier: string | null
+          goedkoopste_prijs_per_basis: number | null
+          huidige_leverancier: string | null
+          huidige_prijs_per_basis: number | null
+          jaar_uitgave: number | null
+          jaarvolume_basis: number | null
+          jaarvolume_besteleenheden: number | null
+          kooyman_duurder: boolean | null
+          mogelijke_besparing_jaar: number | null
+          n_aankopen: number | null
+          periode_dagen: number | null
+          structureel: boolean | null
           verschil_pct: number | null
           vestiging: string | null
         }
