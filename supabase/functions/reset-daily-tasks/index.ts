@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.76.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-sync-token',
 };
 
 interface DailyTemplate {
@@ -22,24 +22,30 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Authenticate user
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
-    }
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const authClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const cronToken = Deno.env.get('CRON_SYNC_TOKEN') ?? '';
 
-    const { data: { user }, error: userError } = await authClient.auth.getUser();
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers: corsHeaders });
+    // Cron-aanroep: x-sync-token uit de vault (zelfde patroon als de syncs).
+    const syncHeader = req.headers.get('x-sync-token');
+    const isCronCall = !!cronToken && syncHeader === cronToken;
+
+    if (!isCronCall) {
+      // App-aanroep: ingelogde gebruiker vereist (ongewijzigd).
+      const authHeader = req.headers.get('authorization');
+      if (!authHeader?.startsWith('Bearer ')) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+      }
+      const authClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: { user }, error: userError } = await authClient.auth.getUser();
+      if (userError || !user) {
+        return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers: corsHeaders });
+      }
     }
 
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     console.log('Starting daily task reset at', new Date().toISOString());
@@ -124,6 +130,12 @@ Deno.serve(async (req) => {
         .map((template: DailyTemplate) => ({
           location: template.location,
           title: template.title,
+          title_en: (template as any).title_en ?? null,
+          description: (template as any).description ?? null,
+          description_en: (template as any).description_en ?? null,
+          foto_url: (template as any).foto_url ?? null,
+          repeat_type: 'daily',
+          assigned_employee_id: null,
           due_date: todayDate,
           priority: template.priority,
           category: template.category,
@@ -143,9 +155,10 @@ Deno.serve(async (req) => {
       if (tasksToInsert.length > 0) {
         const { error: insertError, count } = await supabase
           .from('foh_tasks')
-          .insert(tasksToInsert);
+          .insert(tasksToInsert, { count: 'exact' });
 
-        if (insertError) {
+        // 23505 = taak bestond al (unieke index): gelijktijdige aanmaak, geen fout.
+        if (insertError && insertError.code !== '23505') {
           console.error(`Error inserting tasks for ${location}:`, insertError);
           throw insertError;
         }
