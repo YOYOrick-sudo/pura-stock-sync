@@ -1,23 +1,30 @@
-# Bestellijst in dezelfde stijl als MEP
+# Review en dubbele simulatie van alles van vandaag
 
-Doel: de bestellijst voelt als MEP en Recepten — rustige kop, één compacte invoerregel, lijst direct zichtbaar. Werking blijft gelijk (aantal, verpakking, dubbelcheck, ongedaan maken, archiveren).
+Doel: alles wat vandaag gebouwd is twee keer doorlopen, in de preview zoals een teamlid het gebruikt (ingelogd, echte invoer, op iPad- en telefoonformaat). Eerst testen, dan pas repareren wat echt stuk blijkt.
 
-## Wat verandert
-1. **Kop zoals MEP**: links "Bestellijst" met eronder "West · 4 nog bestellen · 2 besteld". Geen losse uitlegzin meer. Zelfde breedte als MEP (geen smalle kolom).
-2. **Eén compacte invoerregel** (zoals "Taak toevoegen" bij MEP), zonder grote kaart:
-   `[Wat is op?] [− 1 +] [stuks ▾] [Erbij]`
-   - Verpakking als één knop met keuzelijstje i.p.v. 8 grote knoppen naast elkaar.
-   - Op telefoon breekt de regel netjes in twee.
-   - Eerdere producten verschijnen pas als je typt, als kleine suggesties onder het veld.
-3. **Lijst zoals MEP-taken**: rond afvinkrondje links (afvinken = besteld), naam + vet "2 doos", datum/"Sluitlijst" klein eronder, kruisje rechts (toch niet nodig). Geen grote groene "Besteld"-knop per regel meer.
-4. **Besteld**: ingeklapt blok onderaan "Besteld (12)", doorgestreept zoals afgevinkte MEP-taken; terugvinken zet hem weer open.
-5. Tikdoelen blijven minimaal 44px; bewerken via tik op de regel blijft.
+## Wat wordt getest
 
-## Praktijk
-- Sneller: product typen, Enter, klaar; lijst staat direct bovenaan in beeld.
-- Risico: afvinken in plaats van knop kan per ongeluk gebeuren — daarom blijft "Ongedaan maken" in de melding.
-- Geen wijziging aan gegevens of koppelingen; alleen het scherm.
+1. **MEP – taak toevoegen (West en Midsland)**: volgorde Wie/Wat/Wanneer/Hoeveel, prioriteit, "Klaar". Na 17:00 komt een taak voor vandaag op de volgende open dag.
+2. **MEP – toewijzen**: poppetje bij een taak zonder iemand, teamlid kiezen, "Niemand", ongedaan maken. Gearchiveerde mensen (Ezra, sd) staan niet in de lijst.
+3. **MEP – compacte kop**: lijst begint hoog in beeld op iPad en telefoon.
+4. **MEP – te laat doorschuiven**: per taak "Vandaag"/"Morgen", "Alles naar …", "Wissen" met ongedaan maken; korte badge ("Gisteren", "2 dagen"). Het tijdstip wordt nagebootst: één keer overdag, één keer na 17:00, ook met een gesloten dag erna.
+5. **Keuken-sluitlijst West**: volgorde Opzetkoeling → Au bain-marie (4 stappen, "Belangrijk") → stickers → voorraadronde → rest. Vinkjes blijven na opnieuw laden. Midsland is ongewijzigd.
+6. **Bestellijst (West en Midsland)**: toevoegen met aantal en verpakking, eerdere producten, geen dubbele regels, wijzigen, "Besteld" en "Toch niet nodig" met ongedaan maken (bewaard, niet verwijderd). Paginatitel "Bestellijst". Menu-item zichtbaar in Midsland. West en Midsland blijven gescheiden.
 
-## Technisch
-- Alleen `src/pages/kitchen/Bestelbord.tsx`; hergebruik bestaande Button/Input/Select/Collapsible en de rijstijl uit `MepDag.tsx`.
-- Hook `useBestelbord.ts` ongewijzigd.
+## Werkwijze
+
+- **Ronde 1**: alle flows doorlopen met screenshots, op iPad (staand) en telefoon, in West en Midsland. Bevindingen noteren.
+- **Code-review**: wijzigingen van vandaag nalezen op randgevallen (gesloten dagen, wifi-fout, twee tablets, dubbel tellen).
+- **Fouten repareren** die gevonden zijn, en voor elke regel die stuk ging een kleine test toevoegen.
+- **Ronde 2**: alles opnieuw doorlopen om te bevestigen dat het werkt en dat er niets anders stuk is gegaan.
+- **Opruimen**: testtaken en testbestellingen archiveren of terugzetten, zodat de echte lijsten schoon blijven.
+
+## Wat je terugkrijgt
+
+Per onderdeel: werkt / gerepareerd / bekend risico, met wat ik niet kon testen (bijvoorbeeld echt printen op de labelprinter: dat simuleer ik niet, om geen stickers te printen).
+
+## Technische details
+
+- Playwright met sessie via `puravida-auth` storage key; tijd nabootsen via `page.clock` voor 17:00-grens.
+- Bestaande Bun-tests (mep-avondgrens e.a.) draaien; nieuwe tests alleen voor gevonden fouten.
+- Geen schema- of printflow-wijzigingen zonder apart akkoord.
