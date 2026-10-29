@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Voorraadproef: goedgekeurd plan uitvoeren, momentafhankelijke daggrens, seed 6/6/127, sectie 9 testen en testdata opruimen; niet publiceren.
+
 - [x] 7a. Bestelfundament: één migratie, vijf nullable bordvelden, vijf tabellen, zes functies/view, leveranciersconfig en optioneel label; bestaande data/policies/trigger/hook vergeleken, 7 nieuwe + 14 bestaande tests geslaagd.
 - [ ] 7b. Bot-bestelbord en live bot/import/rate-limittests — geblokkeerd door ontbrekende BOT_BESTELBORD_TOKEN en expliciete keuze over bestaande updated_at-trigger; niets gedeployd/gepubliceerd.
 
