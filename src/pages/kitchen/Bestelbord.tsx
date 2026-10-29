@@ -21,6 +21,7 @@ import {
   type BestelSignaal, type ArtikelVorm, type BordSuggestie, type BestelAdvies,
 } from '@/hooks/useBestelbord';
 import { BestelLeverancierLabel } from '@/components/kitchen/BestelLeverancierLabel';
+import { Voorraadproef } from '@/components/kitchen/Voorraadproef';
 
 const SOORTEN = ['stuks', 'doos', 'zak', 'fles', 'pak', 'bak', 'emmer', 'kg', 'bos', 'tray', 'rol', 'fust'] as const;
 
@@ -715,6 +716,8 @@ export default function Bestelbord() {
             </CollapsibleContent>
           </Collapsible>
         </Card>
+
+        <Voorraadproef key={vestiging} vestiging={vestiging} />
 
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">

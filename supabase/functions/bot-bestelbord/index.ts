@@ -4,6 +4,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 const VESTIGINGEN = new Set(["West", "Midsland"]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 import { verwachteLeveringGeldig } from "./datum.ts";
+import { adviesMetadataGeldig } from "./advies-metadata.ts";
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), {
@@ -128,17 +129,22 @@ Deno.serve(async (req) => {
           okUuid(r.artikel_id) && okUuid(r.artikel_vorm_id))) {
         return fout(400, "regels: 0-500 items met artikel (tekst) en hoeveelheid (>= 0); overige velden optioneel");
       }
+      if (!regels.every((r) => adviesMetadataGeldig(body.methode_versie, r.gegevens))) {
+        return fout(400, "Ongeldige adviesmetadata: methode_versie, gegevens, periode of kassafactor");
+      }
       const schoon = regels.map((r) => ({
         artikel: r.artikel.trim(), leverancier: r.leverancier ?? null, hoeveelheid: r.hoeveelheid,
         eenheid: r.eenheid ?? null, verwacht_verbruik: r.verwacht_verbruik ?? null, onzeker: r.onzeker ?? false,
         reden: r.reden ?? null, artikel_id: r.artikel_id ?? null, artikel_vorm_id: r.artikel_vorm_id ?? null,
+        gegevens: r.gegevens ?? {},
       }));
-      const { data, error } = await db.rpc("bestelbot_advies_vervangen", {
+      const { data, error } = await db.rpc("bestelbot_advies_loggen", {
         p_vestiging: vestiging, p_datum: datum, p_leverdag: leverdag, p_regels: schoon,
+        p_methode_versie: body.methode_versie ?? null,
       });
       if (error) return fout(400, error.message);
       await sluit(true, { http_status: 200, resultaat: data });
-      return json(200, { ok: true, aantal: data?.aantal ?? 0, gekoppeld: data?.gekoppeld ?? 0 });
+      return json(200, { ok: true, aantal: data?.aantal ?? 0, gekoppeld: data?.gekoppeld ?? 0, gelogd: data?.gelogd ?? 0 });
     }
 
     return fout(400, "Onbekende actie");
