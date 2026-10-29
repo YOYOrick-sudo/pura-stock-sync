@@ -76,16 +76,16 @@ export function AllergeenFilter({ zonder, onToggle, alleenVegan, onToggleVegan, 
           aria-pressed={alleenVegan}
           onClick={onToggleVegan}
           className={cn(
-            'inline-flex items-center justify-center whitespace-nowrap min-h-[44px] px-4 rounded-full text-sm font-medium border transition-colors',
+            'inline-flex items-center justify-center whitespace-nowrap min-h-[44px] rounded-full text-sm font-medium border transition-colors',
             alleenVegan
-              ? 'bg-primary/10 text-primary border-primary/40'
-              : 'bg-background text-muted-foreground border-border hover:bg-muted',
+              ? 'bg-primary/10 text-primary border-primary/40 pl-4 pr-3.5'
+              : 'bg-background text-muted-foreground border-border hover:bg-muted px-4',
           )}
         >
           {alleenVegan ? (
             <>
               Moet vegan zijn
-              <X className="ml-1.5 -mr-1 h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden="true" />
+              <X className="ml-1.5 h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden="true" />
             </>
           ) : (
             'Vegan'
