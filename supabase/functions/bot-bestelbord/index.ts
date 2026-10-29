@@ -76,10 +76,14 @@ Deno.serve(async (req) => {
 
   try {
     if (req.method === "GET") {
-      const { data, error } = await db.rpc("bestelbot_lees_open", { p_vestiging: vestiging });
+      const status = url.searchParams.get("status") ?? "open";
+      if (status !== "open" && status !== "besteld") return fout(400, "status moet open of besteld zijn");
+      const { data, error } = status === "besteld"
+        ? await db.rpc("bestelbot_lees_besteld", { p_vestiging: vestiging })
+        : await db.rpc("bestelbot_lees_open", { p_vestiging: vestiging });
       if (error) return fout(500, "Lezen mislukt");
       await sluit(true, { http_status: 200, aantal: data.length });
-      return json(200, { vestiging, regels: data });
+      return json(200, { vestiging, status, regels: data });
     }
     if (req.method !== "POST") return fout(405, "Methode niet toegestaan");
 
