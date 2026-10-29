@@ -3,6 +3,7 @@ import { Check, ChevronDown, Circle, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { FoutRegel, InklapGroep, KaartKop, LaadRijen, LegeStaat, LijstKaart, segmentTabsKlasse } from '@/components/pura/patronen';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -82,14 +83,14 @@ export function Voorraadproef({ vestiging, onOverzicht }: { vestiging: string; o
   };
 
   return <div className="space-y-3">
-    {rollen.length > 1 && <Tabs value={rol} onValueChange={setRol}><TabsList className="h-auto"><TabsTrigger className="min-h-11" value="bediening" disabled={vergrendeld}>Bediening</TabsTrigger><TabsTrigger className="min-h-11" value="keuken" disabled={vergrendeld}>Keuken</TabsTrigger></TabsList></Tabs>}
-    {standen.isLoading ? <p className="text-sm text-muted-foreground">Laden…</p> : standen.isError ? <div role="alert"><p>Voorraad niet opgehaald.</p><Button variant="outline" className="mt-2 min-h-11" onClick={() => standen.refetch()}>Opnieuw proberen</Button></div> : <>
+    {rollen.length > 1 && <Tabs value={rol} onValueChange={setRol}><TabsList className={segmentTabsKlasse}><TabsTrigger value="bediening" disabled={vergrendeld}>Bediening</TabsTrigger><TabsTrigger value="keuken" disabled={vergrendeld}>Keuken</TabsTrigger></TabsList></Tabs>}
+    {standen.isLoading ? <LijstKaart><LaadRijen /></LijstKaart> : standen.isError ? <LijstKaart><div role="alert"><FoutRegel tekst="Voorraad niet opgehaald." onOpnieuw={() => standen.refetch()} /></div></LijstKaart> : <>
       <Card className="overflow-hidden">
-        <div className="flex items-center justify-between gap-2 px-3 py-2"><div className="flex items-center gap-1"><span className="text-sm font-semibold">Vandaag</span><Tooltip><TooltipTrigger asChild><Button variant="ghost" className="h-11 w-11 p-0" aria-label="Informatie over tellen"><Info className="h-4 w-4 text-muted-foreground" /></Button></TooltipTrigger><TooltipContent className="max-w-xs">Tel wat er nu staat, per plek. Je ziet de verwachte stand pas na opslaan.</TooltipContent></Tooltip></div><span className="text-sm tabular-nums text-muted-foreground">{geteld} van {vandaag.length} geteld</span></div>
+        <KaartKop icoon={Calculator} titel={<span className="flex items-center gap-1">Vandaag<Tooltip><TooltipTrigger asChild><Button variant="ghost" className="h-11 w-11 p-0" aria-label="Informatie over tellen"><Info className="h-4 w-4 text-muted-foreground" /></Button></TooltipTrigger><TooltipContent className="max-w-xs">Tel wat er nu staat, per plek. Je ziet de verwachte stand pas na opslaan.</TooltipContent></Tooltip></span>} rechts={<span className="text-sm tabular-nums text-muted-foreground">{geteld}/{vandaag.length}</span>} />
         <div className="flex h-1 bg-muted" aria-label="Voortgang telling" role="progressbar" aria-valuemin={0} aria-valuemax={vandaag.length || 1} aria-valuenow={geteld}>{vandaag.map((a, i) => <span key={a.id} className={i < geteld ? 'flex-1 bg-primary' : 'flex-1'} />)}</div>
-        {vandaag.length ? vandaag.map(rij) : <p className="p-3 text-sm text-muted-foreground">Vandaag niets te tellen</p>}
+        {vandaag.length ? vandaag.map(rij) : <LegeStaat tekst="Vandaag niets te tellen." />}
       </Card>
-      {!!overige.length && <Collapsible><CollapsibleTrigger asChild><Button variant="ghost" className="min-h-11 w-full justify-between px-3"><span>Overige ({overige.length})</span><ChevronDown className="h-4 w-4" /></Button></CollapsibleTrigger><CollapsibleContent><Card className="overflow-hidden">{overige.map(rij)}</Card></CollapsibleContent></Collapsible>}
+      {!!overige.length && <InklapGroep titel="Overige" aantal={overige.length}><Card className="overflow-hidden">{overige.map(rij)}</Card></InklapGroep>}
     </>}
   </div>;
 }
