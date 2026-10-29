@@ -374,6 +374,52 @@ export default function Bestelbord() {
         toast(`${s.naam} van de lijst`, { action: { label: 'Ongedaan maken', onClick: () => herstel.mutate(s.id) } }),
     });
 
+  const vinkGeleverd = (ids: string[], label: string) =>
+    markeerGeleverd.mutate(ids, {
+      onSuccess: () =>
+        toast.success(`${label} geleverd`, {
+          action: { label: 'Ongedaan maken', onClick: () => ids.forEach((id) => terugNaarBesteld.mutate(id)) },
+        }),
+      onError: (e: any) => toast.error('Niet opgeslagen: ' + (e?.message ?? 'onbekende fout')),
+    });
+
+  const openDatum = (s: BestelSignaal) => {
+    setDatumVoor(s);
+    setDatumKeuze(s.verwachte_levering ?? ymd(new Date(Date.now() + 24 * 60 * 60 * 1000)));
+  };
+
+  const openLeveringActie = (s: BestelSignaal, type: 'niet' | 'deels') => {
+    setLeveringActie({ signaal: s, type });
+    setLeveringOpmerking('');
+    setDeelsOntvangen(Math.max(1, Number(s.aantal) - 1));
+  };
+
+  const bevestigLeveringActie = () => {
+    if (!leveringActie) return;
+    const { signaal: s, type } = leveringActie;
+    if (type === 'niet') {
+      nietGeleverd.mutate({ id: s.id, opmerking: leveringOpmerking.trim() }, {
+        onSuccess: () => toast(`${s.naam} staat weer op het bord`),
+        onError: (e: any) => toast.error('Niet opgeslagen: ' + (e?.message ?? 'onbekende fout')),
+      });
+    } else {
+      deelsGeleverd.mutate({ signaal: s, ontvangen: deelsOntvangen, opmerking: leveringOpmerking.trim() }, {
+        onSuccess: () => toast.success(`${s.naam}: ${deelsOntvangen} ${s.eenheid} binnen, restant staat weer op het bord`),
+        onError: (e: any) => toast.error('Niet opgeslagen: ' + (e?.message ?? 'onbekende fout')),
+      });
+    }
+    setLeveringActie(null);
+  };
+
+  const groepProps = {
+    dagenTeLaatVan: teLaatVan,
+    onAllesGeleverd: (ids: string[]) => vinkGeleverd(ids, `${ids.length} ${ids.length === 1 ? 'regel' : 'regels'}`),
+    onGeleverd: (s: BestelSignaal) => vinkGeleverd([s.id], s.naam),
+    onDatum: openDatum,
+    onNietGeleverd: (s: BestelSignaal) => openLeveringActie(s, 'niet'),
+    onDeelsGeleverd: (s: BestelSignaal) => openLeveringActie(s, 'deels'),
+  };
+
   const openBewerk = (s: BestelSignaal) => {
     setBewerk(s);
     setBewerkAantal(Math.max(1, Number(s.aantal) || 1));
