@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.76.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-sync-token',
 };
 
 interface DailyTemplate {
@@ -22,21 +22,21 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Authenticate user
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
-    }
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const cronToken = Deno.env.get('CRON_SYNC_TOKEN') ?? '';
 
-    // Cron-aanroep: Bearer = service role key (uit de vault). Anders: ingelogde gebruiker.
-    const bearer = authHeader.slice('Bearer '.length).trim();
-    const isServiceCall = !!supabaseKey && bearer === supabaseKey;
+    // Cron-aanroep: x-sync-token uit de vault (zelfde patroon als de syncs).
+    const syncHeader = req.headers.get('x-sync-token');
+    const isCronCall = !!cronToken && syncHeader === cronToken;
 
-    if (!isServiceCall) {
+    if (!isCronCall) {
+      // App-aanroep: ingelogde gebruiker vereist (ongewijzigd).
+      const authHeader = req.headers.get('authorization');
+      if (!authHeader?.startsWith('Bearer ')) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+      }
       const authClient = createClient(supabaseUrl, anonKey, {
         global: { headers: { Authorization: authHeader } },
       });
