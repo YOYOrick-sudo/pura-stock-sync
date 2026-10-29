@@ -41,7 +41,7 @@ export function RijMenu({ naam, acties }: { naam: string; acties: RijActie[] }) 
 
 /** Voetregel onder een tabel: telling links, totaal rechts. */
 export function TabelVoet({ links, rechts }: { links?: ReactNode; rechts?: ReactNode }) {
-  return <div className="flex min-h-11 items-center justify-between gap-2 border-t border-border px-4 text-xs text-muted-foreground"><span>{links}</span><span className="font-medium tabular-nums text-foreground">{rechts}</span></div>;
+  return <div className="flex min-h-12 items-center justify-between gap-2 border-t border-border bg-muted/40 px-4 text-sm text-muted-foreground"><span>{links}</span><span className="text-base font-semibold tabular-nums text-foreground">{rechts}</span></div>;
 }
 
 /** Zoekveld met icoon, 44px. */
