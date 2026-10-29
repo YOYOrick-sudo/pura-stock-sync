@@ -30,7 +30,7 @@ export function GerechtKaartCodes({ codes }: { codes: string[] }) {
   const geldig = Array.from(new Set(codes)).filter((c) => c in KAART_CODE_UITLEG);
   if (geldig.length === 0) return <EmptyCell />;
   return (
-    <div className="-my-2 flex flex-wrap items-center">
+    <div className="-my-2 flex items-center">
       {geldig.map((code) => <KaartBadge key={code} code={code as keyof typeof KAART_CODE_UITLEG} />)}
     </div>
   );
@@ -58,7 +58,7 @@ export function GerechtReceptBevat({ gerecht, recept, laden, fout }: {
   return (
     <div className="space-y-1">
       <div className="flex flex-wrap items-center gap-1.5">
-        {bevat.length === 0 ? <EmptyCell /> : bevat.map((code) => (
+        {bevat.length === 0 ? (recept.recept_status === 'compleet' || recept.recept_status === 'voorstel' ? <EmptyCell /> : null) : bevat.map((code) => (
           <span key={code} className="rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs font-medium text-destructive">{ALLERGEEN_LABEL[code]}</span>
         ))}
       </div>

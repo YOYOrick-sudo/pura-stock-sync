@@ -142,7 +142,7 @@ export default function Gerechten() {
                 <Leaf className="h-3 w-3" />Vegan
               </span>
             )}
-            {!g.gecontroleerd && <StatusDot>Nog te controleren</StatusDot>}
+            {!g.gecontroleerd && <span className="inline-flex items-center gap-1 text-xs text-warning"><span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden />Nog te controleren</span>}
           </div>
           {(g.kaart_omschrijving || g.notitie) && (
             <p className="mt-0.5 truncate text-xs text-muted-foreground" title={g.kaart_omschrijving ?? g.notitie ?? ''}>
@@ -159,7 +159,7 @@ export default function Gerechten() {
         <DataTableCell className="text-right tabular-nums">
           {prijzen.bedragen ? (
             <>
-              <span className="text-sm text-foreground">€ {prijzen.bedragen}</span>
+              <span className="whitespace-nowrap text-sm text-foreground">€ {prijzen.bedragen}</span>
               {prijzen.namen && <p className="text-xs text-muted-foreground">{prijzen.namen}</p>}
             </>
           ) : <EmptyCell />}
@@ -198,8 +198,8 @@ export default function Gerechten() {
     <DataTable className="rounded-none border-0">
       <DataTableHeader>
         <DataTableHead className="w-auto">Gerecht</DataTableHead>
-        <DataTableHead className="hidden md:table-cell w-[150px]">Kaart</DataTableHead>
-        <DataTableHead className="w-[110px] text-right">Prijs</DataTableHead>
+        <DataTableHead className="hidden md:table-cell w-[170px]">Kaart</DataTableHead>
+        <DataTableHead className="w-[140px] text-right">Prijs</DataTableHead>
         <DataTableHead className="w-[34%] md:w-[26%]">Bevat</DataTableHead>
         <DataTableHead className="hidden md:table-cell w-[16%]">Kan bevatten</DataTableHead>
         {isManager && <DataTableHead className="w-[104px]"><span className="sr-only">Acties</span></DataTableHead>}
