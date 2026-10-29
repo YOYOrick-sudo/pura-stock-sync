@@ -87,14 +87,13 @@ function Rij({
         </span>
       </button>
       <button type="button" disabled={!onBewerk} onClick={onBewerk} className="min-w-0 flex-1 text-left" style={{ minHeight: 44 }}>
-        <span className={besteld ? 'text-[15px] text-muted-foreground line-through' : 'text-[16px] font-medium'}>
+        <span className={cn('block', besteld ? 'text-[15px] text-muted-foreground line-through' : 'text-[16px] font-medium')}>
           {signaal.naam}
-          <span className={cn('ml-2', besteld ? '' : 'font-bold')}>
-            {Number(signaal.aantal)} {signaal.eenheid}
-          </span>
         </span>
-        <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-          <span>{datumLabel(signaal.created_at)}</span>
+        <div className="mt-0.5 flex items-center gap-2 text-[13px] text-muted-foreground">
+          <span>
+            {Number(signaal.aantal)} {signaal.eenheid} · {datumLabel(signaal.created_at)}
+          </span>
           {signaal.bron === 'sluitlijst' && <Badge variant="secondary" className="font-normal">Sluitlijst</Badge>}
         </div>
       </button>
