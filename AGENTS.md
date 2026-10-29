@@ -1,2 +1,5 @@
 Task-list localization uses nullable English snapshot fields with a Dutch fallback, because task identity and operational logic must remain language-independent.
 All module pages use SidebarLayout with the shared page-container/page-stack patterns, because one shell and width rhythm prevent mobile/desktop drift.
+Bestelbot additions use canonical articles and location-scoped supplier/alias mappings, because a supplier or alias from one location must never route another location's board item.
+Bot-only database RPCs revoke client execution and use service-role authentication, because transactional automation must not expose privileged writes to the browser.
+The supplier label is an additive display lookup separate from existing board mutations, because manual ordering behavior and historical rows must remain unchanged.
