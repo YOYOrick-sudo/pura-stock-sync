@@ -154,7 +154,7 @@ const handler = createAuthEmailHandler({
   sendUrl: Deno.env.get('LOVABLE_SEND_URL'),
   emails: {
     signup: {
-      subject: 'Bevestig je Pura Vida-account',
+      subject: 'Bevestig je e-mailadres',
       render: (data) =>
         React.createElement(SignupEmail, {
           siteName: SITE_NAME,
@@ -164,7 +164,7 @@ const handler = createAuthEmailHandler({
         }),
     },
     invite: {
-      subject: 'Je bent uitgenodigd voor de Pura Vida app',
+      subject: 'Welkom bij Pura Vida',
       render: (data) =>
         React.createElement(InviteEmail, {
           siteName: SITE_NAME,
@@ -181,7 +181,7 @@ const handler = createAuthEmailHandler({
         }),
     },
     recovery: {
-      subject: 'Wachtwoord resetten voor je Pura Vida-account',
+      subject: 'Nieuw wachtwoord voor Pura Vida',
       render: (data) =>
         React.createElement(RecoveryEmail, {
           siteName: SITE_NAME,
@@ -200,7 +200,7 @@ const handler = createAuthEmailHandler({
         }),
     },
     reauthentication: {
-      subject: 'Je verificatiecode voor Pura Vida',
+      subject: 'Je verificatiecode',
       render: (data) =>
         React.createElement(ReauthenticationEmail, { token: data.token ?? '' }),
     },

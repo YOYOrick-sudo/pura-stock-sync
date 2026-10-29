@@ -15,9 +15,6 @@ const FONT = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica,
 export const LOGO_URL =
   'https://intern.puravidafoodbar.nl/__l5e/assets-v1/4dc60a39-5e32-42bb-870f-f759785f20e9/pura-vida-logo-email.png'
 
-export const APP_REGEL =
-  'De Pura Vida-app is de interne app van Pura Vida Collective (Daily en Foodbar) voor taken, bestellingen en planning. Je logt in via "Persoonlijk" met je eigen e-mailadres en wachtwoord.'
-
 interface LayoutProps {
   preheader: string
   titel: string
@@ -59,7 +56,7 @@ export const Knop = ({ href, label }: { href: string; label: string }) => (
       </tbody>
     </table>
     <p style={{ margin: '0 0 6px', fontSize: '13px', lineHeight: '20px', color: KLEUR_MUTED, fontFamily: FONT }}>
-      Werkt de knop niet? Kopieer dan deze link in je browser:
+      Of open deze link:
     </p>
     <p style={{ margin: '0 0 8px', fontSize: '13px', lineHeight: '20px', fontFamily: FONT, wordBreak: 'break-all' }}>
       <a href={href} target="_blank" style={{ color: KLEUR_PRIMAIR, textDecoration: 'underline' }}>{href}</a>

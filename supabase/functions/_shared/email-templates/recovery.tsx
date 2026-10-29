@@ -3,20 +3,19 @@ import * as React from 'npm:react@18.3.1'
 import { MailLayout, Paragraaf, Knop } from './_layout.tsx'
 
 interface Props {
-  siteName: string
+  siteName?: string
   siteUrl?: string
+  recipient?: string
   confirmationUrl: string
 }
 
-export const RecoveryEmail = ({ siteName, confirmationUrl }: Props) => (
+export const RecoveryEmail = ({ confirmationUrl }: Props) => (
   <MailLayout
-    preheader="Kies een nieuw wachtwoord voor je Pura Vida-account."
-    titel="Wachtwoord resetten"
-    reden="Je ontvangt deze mail omdat er een nieuw wachtwoord is aangevraagd voor de interne app van Pura Vida Collective. Niet aangevraagd? Dan kun je deze mail negeren — je huidige wachtwoord blijft geldig."
+    preheader="Kies een nieuw wachtwoord."
+    titel="Nieuw wachtwoord"
+    reden="Niet aangevraagd? Dan blijft je wachtwoord gewoon hetzelfde."
   >
-    <Paragraaf>
-      We ontvingen een verzoek om het wachtwoord van je {siteName}-account te resetten. Klik op de knop hieronder om een nieuw wachtwoord te kiezen.
-    </Paragraaf>
+    <Paragraaf>Klik op de knop en kies een nieuw wachtwoord voor de Pura Vida-app.</Paragraaf>
     <Knop href={confirmationUrl} label="Nieuw wachtwoord instellen" />
   </MailLayout>
 )

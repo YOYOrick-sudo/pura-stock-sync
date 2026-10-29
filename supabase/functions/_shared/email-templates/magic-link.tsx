@@ -3,19 +3,19 @@ import * as React from 'npm:react@18.3.1'
 import { MailLayout, Paragraaf, Knop } from './_layout.tsx'
 
 interface Props {
-  siteName: string
+  siteName?: string
+  siteUrl?: string
+  recipient?: string
   confirmationUrl: string
 }
 
-export const MagicLinkEmail = ({ siteName, confirmationUrl }: Props) => (
+export const MagicLinkEmail = ({ confirmationUrl }: Props) => (
   <MailLayout
     preheader="Je inloglink voor de Pura Vida-app."
-    titel="Direct inloggen"
-    reden="Je ontvangt deze mail omdat er een inloglink is aangevraagd voor de interne app van Pura Vida Collective. Niet aangevraagd? Dan kun je deze mail negeren."
+    titel="Inloggen"
+    reden="Niet aangevraagd? Dan kun je deze mail negeren."
   >
-    <Paragraaf>
-      Klik op de knop hieronder om in te loggen op {siteName}. Deze link is beperkt geldig.
-    </Paragraaf>
+    <Paragraaf>Met deze knop log je direct in bij de Pura Vida-app. De link werkt een keer.</Paragraaf>
     <Knop href={confirmationUrl} label="Inloggen" />
   </MailLayout>
 )

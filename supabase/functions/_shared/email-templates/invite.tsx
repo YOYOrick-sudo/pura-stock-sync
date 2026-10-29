@@ -1,23 +1,21 @@
 /// <reference types="npm:@types/react@18.3.1" />
 import * as React from 'npm:react@18.3.1'
-import { MailLayout, Paragraaf, Knop, APP_REGEL } from './_layout.tsx'
+import { MailLayout, Paragraaf, Knop } from './_layout.tsx'
 
 interface Props {
-  siteName: string
-  siteUrl: string
+  siteName?: string
+  siteUrl?: string
+  recipient?: string
   confirmationUrl: string
 }
 
-export const InviteEmail = ({ siteName, confirmationUrl }: Props) => (
+export const InviteEmail = ({ confirmationUrl }: Props) => (
   <MailLayout
-    preheader={`Je bent uitgenodigd voor de ${siteName} app. Kies je wachtwoord om in te loggen.`}
-    titel="Je bent uitgenodigd"
-    reden="Je ontvangt deze mail omdat je bent uitgenodigd voor de interne app van Pura Vida Collective. Niet verwacht? Dan kun je deze mail negeren."
+    preheader="Je account voor de Pura Vida-app staat klaar."
+    titel="Welkom bij Pura Vida"
+    reden="Niet verwacht? Dan kun je deze mail negeren."
   >
-    <Paragraaf>
-      Welkom bij het interne platform van {siteName}. Klik op de knop hieronder om je persoonlijke wachtwoord in te stellen en direct in te loggen.
-    </Paragraaf>
-    <Paragraaf>{APP_REGEL}</Paragraaf>
+    <Paragraaf>Je hebt toegang tot de app van Pura Vida Collective. Stel je wachtwoord in en je kunt meteen aan de slag.</Paragraaf>
     <Knop href={confirmationUrl} label="Wachtwoord instellen" />
   </MailLayout>
 )
