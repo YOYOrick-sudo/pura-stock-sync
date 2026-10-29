@@ -34,11 +34,11 @@ class BestelbotRules(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), 'eimengsel')
 
-    def test_typo_returns_falafel_for_west(self):
-        response = rpc('rpc_zoek_artikel', {'p_vestiging': 'West', 'p_tekst': 'falaf'})
+    def test_typo_returns_existing_bloemkool_for_west(self):
+        response = rpc('rpc_zoek_artikel', {'p_vestiging': 'West', 'p_tekst': 'bloemko'})
         self.assertEqual(response.status_code, 200)
         rows = response.json()
-        self.assertTrue(any('falafel' in row['naam'].lower() for row in rows))
+        self.assertTrue(any(row['naam'] == 'Bloemkool' for row in rows))
         self.assertLessEqual(len(rows), 5)
         self.assertTrue(all(0 <= float(row['score']) <= 1 for row in rows))
 
