@@ -27,7 +27,7 @@ export function OnderwegTabel({ groepen, dagenTeLaatVan, onAllesGeleverd, onGele
             {(laat > 0 || s.verwachte_levering) && <RijMeta altijd={laat > 0}>{laat > 0 && <StatusLabel toon="fout">{laat}d te laat</StatusLabel>}{s.verwachte_levering && <span className="sm:hidden">{leverDatumLabel(s.verwachte_levering)}</span>}</RijMeta>}
           </div></TableCell>
           <TableCell className="text-right tabular-nums"><span className="font-medium">{Number(s.aantal)}</span> <span className="text-xs text-muted-foreground">{s.eenheid || ''}</span></TableCell>
-          <TableCell className="hidden text-right text-muted-foreground sm:table-cell">{s.verwachte_levering ? leverDatumLabel(s.verwachte_levering) : ''}</TableCell>
+          <TableCell className="!px-0 text-right text-muted-foreground sm:!px-2"><span className="hidden sm:inline">{s.verwachte_levering ? leverDatumLabel(s.verwachte_levering) : ''}</span></TableCell>
           <TableCell className="!px-0" onClick={(e) => e.stopPropagation()}><RijMenu naam={s.naam} acties={[{ label: 'Bewerken', onClick: () => onBewerk(s) }, { label: 'Leverdatum aanpassen', onClick: () => onDatum(s) }, { label: 'Deels geleverd', onClick: () => onDeelsGeleverd(s) }, { label: 'Niet geleverd', onClick: () => onNietGeleverd(s), gevaar: true }]} /></TableCell>
         </TableRow>;
       })}
