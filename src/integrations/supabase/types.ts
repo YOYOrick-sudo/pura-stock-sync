@@ -4361,6 +4361,36 @@ export type Database = {
         }
         Relationships: []
       }
+      mt_actiepunten: {
+        Row: {
+          bijgewerkt_op: string
+          deadline: string | null
+          notion_page_id: string
+          notion_url: string | null
+          status: string | null
+          wat: string
+          wie: string | null
+        }
+        Insert: {
+          bijgewerkt_op?: string
+          deadline?: string | null
+          notion_page_id: string
+          notion_url?: string | null
+          status?: string | null
+          wat: string
+          wie?: string | null
+        }
+        Update: {
+          bijgewerkt_op?: string
+          deadline?: string | null
+          notion_page_id?: string
+          notion_url?: string | null
+          status?: string | null
+          wat?: string
+          wie?: string | null
+        }
+        Relationships: []
+      }
       mt_leden: {
         Row: {
           actief: boolean
@@ -4415,6 +4445,27 @@ export type Database = {
           notion_page_id?: string | null
           punt?: string
           status?: string
+        }
+        Relationships: []
+      }
+      mt_sync_status: {
+        Row: {
+          aantal: number | null
+          laatst_gesynchroniseerd: string
+          naam: string
+          notitie: string | null
+        }
+        Insert: {
+          aantal?: number | null
+          laatst_gesynchroniseerd: string
+          naam: string
+          notitie?: string | null
+        }
+        Update: {
+          aantal?: number | null
+          laatst_gesynchroniseerd?: string
+          naam?: string
+          notitie?: string | null
         }
         Relationships: []
       }
