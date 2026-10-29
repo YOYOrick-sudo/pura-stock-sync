@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { cn } from '@/lib/utils';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useBestelSignalen, useBestelbordMutaties, type BestelSignaal } from '@/hooks/useBestelbord';
+import { BestelLeverancierLabel } from '@/components/kitchen/BestelLeverancierLabel';
 
 const SOORTEN = ['stuks', 'doos', 'zak', 'fles', 'pak', 'bak', 'emmer', 'kg'] as const;
 
@@ -90,6 +91,7 @@ function Rij({
         <span className={cn('block', besteld ? 'text-[15px] text-muted-foreground line-through' : 'text-[16px] font-medium')}>
           {signaal.naam}
         </span>
+        <BestelLeverancierLabel signaalId={signaal.id} vestiging={signaal.vestiging} />
         <div className="mt-0.5 flex items-center gap-2 text-[13px] text-muted-foreground">
           <span>
             {Number(signaal.aantal)} {signaal.eenheid} · {datumLabel(signaal.created_at)}

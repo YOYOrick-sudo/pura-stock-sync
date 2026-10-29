@@ -296,6 +296,73 @@ export type Database = {
           },
         ]
       }
+      artikel_aliassen: {
+        Row: {
+          alias: string
+          alias_norm: string
+          artikel_id: string
+          bron: string
+          created_at: string
+          deleted_at: string | null
+          gebruik_aantal: number
+          id: string
+          laatst_gebruikt: string | null
+          leverancier_id: string | null
+          updated_at: string
+          vestiging: string
+        }
+        Insert: {
+          alias: string
+          alias_norm: string
+          artikel_id: string
+          bron?: string
+          created_at?: string
+          deleted_at?: string | null
+          gebruik_aantal?: number
+          id?: string
+          laatst_gebruikt?: string | null
+          leverancier_id?: string | null
+          updated_at?: string
+          vestiging: string
+        }
+        Update: {
+          alias?: string
+          alias_norm?: string
+          artikel_id?: string
+          bron?: string
+          created_at?: string
+          deleted_at?: string | null
+          gebruik_aantal?: number
+          id?: string
+          laatst_gebruikt?: string | null
+          leverancier_id?: string | null
+          updated_at?: string
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artikel_aliassen_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artikel_aliassen_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artikel_aliassen_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artikel_eenheden: {
         Row: {
           artikel_id: string
@@ -544,16 +611,100 @@ export type Database = {
         }
         Relationships: []
       }
+      bestel_historie_import: {
+        Row: {
+          aantal: number
+          artikel_id: string | null
+          artikel_naam_ruw: string
+          besteldatum: string
+          bonrol_flag: boolean
+          bron: string | null
+          eenheid_ruw: string | null
+          extern_ordernummer: string | null
+          geimporteerd_op: string
+          id: string
+          leverancier_id: string | null
+          leverancier_naam_ruw: string
+          prijs: number | null
+          verpakking_ruw: string | null
+          verwerkt: boolean
+          vestiging: string
+        }
+        Insert: {
+          aantal: number
+          artikel_id?: string | null
+          artikel_naam_ruw: string
+          besteldatum: string
+          bonrol_flag?: boolean
+          bron?: string | null
+          eenheid_ruw?: string | null
+          extern_ordernummer?: string | null
+          geimporteerd_op?: string
+          id?: string
+          leverancier_id?: string | null
+          leverancier_naam_ruw: string
+          prijs?: number | null
+          verpakking_ruw?: string | null
+          verwerkt?: boolean
+          vestiging: string
+        }
+        Update: {
+          aantal?: number
+          artikel_id?: string | null
+          artikel_naam_ruw?: string
+          besteldatum?: string
+          bonrol_flag?: boolean
+          bron?: string | null
+          eenheid_ruw?: string | null
+          extern_ordernummer?: string | null
+          geimporteerd_op?: string
+          id?: string
+          leverancier_id?: string | null
+          leverancier_naam_ruw?: string
+          prijs?: number | null
+          verpakking_ruw?: string | null
+          verwerkt?: boolean
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bestel_historie_import_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_historie_import_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_historie_import_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bestel_signalen: {
         Row: {
           aantal: number
+          artikel_id: string | null
           besteld_door: string | null
           besteld_op: string | null
+          besteld_via: string | null
+          bestelreferentie: string | null
           bron: string
           created_at: string
           eenheid: string
           gemeld_door: string | null
           id: string
+          leverancier_id: string | null
+          match_zekerheid: number | null
           naam: string
           notitie: string | null
           status: string
@@ -562,13 +713,18 @@ export type Database = {
         }
         Insert: {
           aantal?: number
+          artikel_id?: string | null
           besteld_door?: string | null
           besteld_op?: string | null
+          besteld_via?: string | null
+          bestelreferentie?: string | null
           bron?: string
           created_at?: string
           eenheid?: string
           gemeld_door?: string | null
           id?: string
+          leverancier_id?: string | null
+          match_zekerheid?: number | null
           naam: string
           notitie?: string | null
           status?: string
@@ -577,18 +733,96 @@ export type Database = {
         }
         Update: {
           aantal?: number
+          artikel_id?: string | null
           besteld_door?: string | null
           besteld_op?: string | null
+          besteld_via?: string | null
+          bestelreferentie?: string | null
           bron?: string
           created_at?: string
           eenheid?: string
           gemeld_door?: string | null
           id?: string
+          leverancier_id?: string | null
+          match_zekerheid?: number | null
           naam?: string
           notitie?: string | null
           status?: string
           updated_at?: string
           vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bestel_signalen_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_signalen_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_signalen_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bot_audit_log: {
+        Row: {
+          aanroeper_ip: string | null
+          actie: string
+          bestel_signaal_ids: string[]
+          id: string
+          resultaat: Json
+          succes: boolean
+          tijdstip: string
+          vestiging: string | null
+        }
+        Insert: {
+          aanroeper_ip?: string | null
+          actie: string
+          bestel_signaal_ids?: string[]
+          id?: string
+          resultaat: Json
+          succes: boolean
+          tijdstip?: string
+          vestiging?: string | null
+        }
+        Update: {
+          aanroeper_ip?: string | null
+          actie?: string
+          bestel_signaal_ids?: string[]
+          id?: string
+          resultaat?: Json
+          succes?: boolean
+          tijdstip?: string
+          vestiging?: string | null
+        }
+        Relationships: []
+      }
+      bot_instellingen: {
+        Row: {
+          sleutel: string
+          updated_at: string
+          waarde: Json
+        }
+        Insert: {
+          sleutel: string
+          updated_at?: string
+          waarde: Json
+        }
+        Update: {
+          sleutel?: string
+          updated_at?: string
+          waarde?: Json
         }
         Relationships: []
       }
@@ -2133,6 +2367,71 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      leverancier_artikel_vestiging: {
+        Row: {
+          actief: boolean
+          artikel_id: string
+          artikelnummer: string | null
+          besteleenheid_id: string | null
+          deleted_at: string | null
+          inhoud_per_besteleenheid: number | null
+          is_voorkeur: boolean
+          leverancier_id: string
+          vestiging: string
+        }
+        Insert: {
+          actief?: boolean
+          artikel_id: string
+          artikelnummer?: string | null
+          besteleenheid_id?: string | null
+          deleted_at?: string | null
+          inhoud_per_besteleenheid?: number | null
+          is_voorkeur?: boolean
+          leverancier_id: string
+          vestiging: string
+        }
+        Update: {
+          actief?: boolean
+          artikel_id?: string
+          artikelnummer?: string | null
+          besteleenheid_id?: string | null
+          deleted_at?: string | null
+          inhoud_per_besteleenheid?: number | null
+          is_voorkeur?: boolean
+          leverancier_id?: string
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leverancier_artikel_vestiging_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leverancier_artikel_vestiging_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leverancier_artikel_vestiging_besteleenheid_id_fkey"
+            columns: ["besteleenheid_id"]
+            isOneToOne: false
+            referencedRelation: "eenheden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leverancier_artikel_vestiging_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       leverancier_artikelen: {
         Row: {
@@ -4798,6 +5097,37 @@ export type Database = {
           },
         ]
       }
+      v_bestel_historie_top: {
+        Row: {
+          artikel_id: string | null
+          artikel_naam_ruw: string | null
+          bonrol_flag: boolean | null
+          hoe_vaak: number | null
+          laatst_besteld: string | null
+          laatste_aantal: number | null
+          laatste_eenheid: string | null
+          laatste_leverancier_id: string | null
+          laatste_leverancier_naam: string | null
+          laatste_verpakking: string | null
+          vestiging: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bestel_historie_import_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_historie_import_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_cijfers_dag: {
         Row: {
           aantal_bonnen: number | null
@@ -4873,6 +5203,23 @@ export type Database = {
       }
     }
     Functions: {
+      bestelbot_aanroep_start: {
+        Args: { p_actie: string; p_ip: string; p_vestiging: string }
+        Returns: {
+          audit_id: string
+          http_status: number
+          toegestaan: boolean
+        }[]
+      }
+      bestelbot_import_historie: {
+        Args: { p_audit_id: string; p_rijen: Json; p_vestiging: string }
+        Returns: Json
+      }
+      bestelbot_leverancier_actief: {
+        Args: { p_leverancier_id: string; p_vestiging: string }
+        Returns: boolean
+      }
+      bestelbot_normaliseer: { Args: { p_tekst: string }; Returns: string }
       claim_next_print_job: {
         Args: never
         Returns: {
@@ -5150,6 +5497,16 @@ export type Database = {
           melding: string
           start_time: string
           status: string
+        }[]
+      }
+      rpc_zoek_artikel: {
+        Args: { p_tekst: string; p_vestiging: string }
+        Returns: {
+          alias: string
+          artikel_id: string
+          leverancier_id: string
+          naam: string
+          score: number
         }[]
       }
       sticker_producten_bump: {

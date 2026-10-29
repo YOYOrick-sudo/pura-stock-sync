@@ -225,6 +225,13 @@
       "when": 1793225643630,
       "tag": "0031_foh_employees_archived",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793235227736,
+      "tag": "0032_bestelbot_fundament",
+      "breakpoints": true
     }
   ]
 }
