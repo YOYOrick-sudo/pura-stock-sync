@@ -28,7 +28,7 @@ export function Voorraadproef({ vestiging }: { vestiging: string }) {
   const regels = (standen.data ?? []).filter((a) => a.telrol === rol);
   const plekken = artikel ? plekkenVan(artikel) : [];
   const totaal = tellingTotaal(plekken, waarden);
-  const blind = !!artikel && !resultaat;
+  const blind = !!artikel && (!resultaat || !resultaat.betrouwbaar);
 
   const begin = (a: ProefStand) => {
     setArtikel(a); setWaarden({}); setResultaat(null); setOuder(null); setFout(''); pending.current = null;
@@ -48,7 +48,7 @@ export function Voorraadproef({ vestiging }: { vestiging: string }) {
   };
 
   return (
-    <section className="overflow-hidden rounded-polar border border-border bg-card">
+    <section className="overflow-hidden rounded-polar-xl border border-border bg-card">
       <Collapsible>
         <div className="flex items-center pr-3">
           <CollapsibleTrigger asChild>
