@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TableBody, TableCell, TableRow } from '@/components/ui/table';
 import type { BestelSignaal } from '@/hooks/useBestelbord';
-import { GroepRij } from '@/components/layout/Paginapatronen';
+import { GroepRij } from '@/components/pura/patronen';
 import { CompacteTabel } from './CompacteTabel';
 
 export function OnderwegTabel({ groepen, dagenTeLaatVan, onAllesGeleverd, onGeleverd, onDatum, onNietGeleverd, onDeelsGeleverd, onBewerk, datumLabel, leverDatumLabel }: {

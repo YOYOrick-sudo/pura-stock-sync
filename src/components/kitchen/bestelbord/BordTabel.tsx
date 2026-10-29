@@ -8,7 +8,7 @@ import { TableBody, TableCell, TableRow } from '@/components/ui/table';
 import type { ArtikelVorm, BestelSignaal } from '@/hooks/useBestelbord';
 import type { PrijsSignaal } from '@/lib/prijsSignaal';
 import { PrijsPijl } from '@/components/kitchen/PrijsPijl';
-import { GroepRij, StatusDot } from '@/components/layout/Paginapatronen';
+import { GroepRij, StatusDot } from '@/components/pura/patronen';
 import { CompacteTabel } from './CompacteTabel';
 import { euro, perLeverancier } from './presentatie';
 

@@ -1,4 +1,5 @@
-import { BasisVoorbeelden, PaginapatroonVoorbeelden, RegelVoorbeelden } from '@/components/layout/PatronenVoorbeelden';
+import { Controlelijst, ExtraRegels, MatenSectie, PatronenCompleet, StartSectie, TekstToon } from '@/pages/design-system/Uitbreiding';
+import { BasisVoorbeelden, PaginapatroonVoorbeelden, RegelVoorbeelden } from '@/pages/design-system/PatronenVoorbeelden';
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -546,9 +547,14 @@ const ErrorState = () => (
 // ==================== NAVIGATION ITEMS ====================
 
 const navItems = [
+  { id: 'start', label: 'Start', icon: '🚀' },
   { id: 'basis', label: 'Basis', icon: '◻️' },
+  { id: 'maten', label: 'Maten', icon: '📐' },
   { id: 'patronen', label: 'Paginapatronen', icon: '🧩' },
+  { id: 'blokken', label: 'Bouwblokken', icon: '🧱' },
   { id: 'regels', label: 'Regels', icon: '✅' },
+  { id: 'toon', label: 'Tekst en toon', icon: '💬' },
+  { id: 'controle', label: 'Controlelijst', icon: '☑️' },
   { id: 'colors', label: 'Kleuren', icon: '🎨' },
   { id: 'typography', label: 'Tekst', icon: '📝' },
   { id: 'borders', label: 'Randen', icon: '🔲' },
@@ -558,13 +564,13 @@ const navItems = [
   { id: 'cards', label: 'Kaarten', icon: '🃏' },
   { id: 'data', label: 'Data', icon: '📊' },
   { id: 'feedback', label: 'Feedback', icon: '💬' },
-  { id: 'modules', label: 'Modules', icon: '📦' },
+  { id: 'navigation', label: 'Navigatie', icon: '🧭' },
 ];
 
 // ==================== MAIN COMPONENT ====================
 
 const DesignSystem = () => {
-  const [activeSection, setActiveSection] = useState('basis');
+  const [activeSection, setActiveSection] = useState('start');
 
   const scrollToSection = (id: string) => {
     setActiveSection(id);
@@ -618,14 +624,29 @@ const DesignSystem = () => {
 
           {/* Main Content */}
           <main className="flex-1 min-w-0 space-y-12">
+            <Section id="start" title="Start" description="Waar begin je bij een nieuw scherm">
+              <StartSectie />
+            </Section>
             <Section id="basis" title="Basis" description="Tekstniveaus, afstand en statuskleur">
               <BasisVoorbeelden />
+            </Section>
+            <Section id="maten" title="Maten" description="Hoogte, afronding en iconen zoals ze in de app staan">
+              <MatenSectie />
             </Section>
             <Section id="patronen" title="Paginapatronen" description="Zo ziet een modulepagina eruit. Bouw nieuwe schermen hiermee.">
               <PaginapatroonVoorbeelden />
             </Section>
+            <Section id="blokken" title="Bouwblokken" description="Elk blok met wanneer je het gebruikt. Tik op een rij of knop om het te proberen.">
+              <PatronenCompleet />
+            </Section>
             <Section id="regels" title="Regels" description="Doe en niet, naast elkaar">
-              <RegelVoorbeelden />
+              <div className="space-y-6"><RegelVoorbeelden /><ExtraRegels /></div>
+            </Section>
+            <Section id="toon" title="Tekst en toon" description="Kort, vriendelijk, nuchter">
+              <TekstToon />
+            </Section>
+            <Section id="controle" title="Controlelijst" description="Loop dit na vóór oplevering">
+              <Controlelijst />
             </Section>
             
             {/* ==================== COLORS ==================== */}
@@ -821,23 +842,6 @@ const DesignSystem = () => {
                   </div>
                 </SubSection>
 
-                <SubSection title="Interactive Demo">
-                  <p className="text-sm text-muted-foreground mb-4">Hover over deze cards om de border transitions te zien:</p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-5 rounded-polar-lg bg-card border-1.5 border-border hover:border-strong transition-colors duration-200 cursor-pointer">
-                      <p className="text-sm font-medium text-foreground">Hover Card</p>
-                      <p className="text-xs text-muted-foreground mt-1">border-border → border-strong</p>
-                    </div>
-                    <div className="p-5 rounded-polar-lg bg-card border-1.5 border-border hover:border-primary transition-colors duration-200 cursor-pointer">
-                      <p className="text-sm font-medium text-foreground">Active Card</p>
-                      <p className="text-xs text-muted-foreground mt-1">border-border → border-primary</p>
-                    </div>
-                    <div className="p-5 rounded-polar-lg bg-card border-1.5 border-accent shadow-sm">
-                      <p className="text-sm font-medium text-foreground">Selected State</p>
-                      <p className="text-xs text-muted-foreground mt-1">border-accent + shadow-sm</p>
-                    </div>
-                  </div>
-                </SubSection>
               </div>
             </Section>
 
@@ -1291,39 +1295,6 @@ const DesignSystem = () => {
             </Section>
 
             {/* ==================== REAL-WORLD MODULES ==================== */}
-            <Section id="modules" title="Real-World Modules" description="Complete UI componenten uit de applicatie">
-              <div className="space-y-8">
-                <SubSection title="Order Card">
-                  <div className="max-w-md">
-                    <OrderCard />
-                  </div>
-                </SubSection>
-
-                <SubSection title="Task Cards">
-                  <div className="space-y-4">
-                    <TaskCard status="open" />
-                    <TaskCard status="progress" />
-                    <TaskCard status="done" />
-                  </div>
-                </SubSection>
-
-                <SubSection title="Reservation Card">
-                  <div className="max-w-md">
-                    <ReservationCard />
-                  </div>
-                </SubSection>
-
-                <SubSection title="Staff Card">
-                  <div className="space-y-4 max-w-lg">
-                    <StaffCard status="working" />
-                    <StaffCard status="break" />
-                    <StaffCard status="offline" />
-                  </div>
-                </SubSection>
-              </div>
-            </Section>
-
-            {/* ==================== NAVIGATION ==================== */}
             <Section id="navigation" title="Navigatie" description="Tabs, breadcrumbs en menu's">
               <div className="space-y-8">
                 <SubSection title="Tabs">

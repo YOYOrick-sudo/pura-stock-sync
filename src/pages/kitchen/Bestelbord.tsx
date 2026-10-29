@@ -2,9 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ChevronDown, Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Building2, Check, AlertCircle } from 'lucide-react';
-import { SectieKop, Invoerbalk, Kengetal, OverzichtKaart, segmentTabsKlasse } from '@/components/layout/Paginapatronen';
+import { DetailLade, InklapGroep, KaartKop, LaadRijen, LegeStaat, LijstKaart, Invoerbalk, Kengetal, OverzichtKaart, segmentTabsKlasse } from '@/components/pura/patronen';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Textarea } from '@/components/ui/textarea';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Input } from '@/components/ui/input';
@@ -557,19 +556,20 @@ export default function Bestelbord() {
           )}
         </div>
 
-                {isLoading ? <p className="text-sm text-muted-foreground">Laden…</p> : open.length ? <BordTabel regels={open} {...bordProps} /> : <p className="text-sm text-muted-foreground">Niets openstaand.</p>}
-                <Collapsible className="lg:hidden"><CollapsibleTrigger asChild><Button variant="ghost" className="min-h-11 w-full justify-between"><span>Per leverancier</span><ChevronDown className="h-4 w-4" /></Button></CollapsibleTrigger><CollapsibleContent>{leveranciersTabel}</CollapsibleContent></Collapsible>
+                <LijstKaart kop={<KaartKop icoon={ClipboardList} titel="Op het bord" teller={open.length} />}>{isLoading ? <LaadRijen /> : open.length ? <BordTabel regels={open} {...bordProps} /> : <LegeStaat tekst="Niets openstaand." />}</LijstKaart>
+                <div className="lg:hidden"><InklapGroep titel="Per leverancier" aantal={new Set([...open, ...besteld].map(leverancier)).size}>{leveranciersTabel}</InklapGroep></div>
               </TabsContent>
               <TabsContent value="advies" className="mt-0 space-y-3">
-                <div className="flex items-center justify-between gap-2 text-sm"><span className="font-semibold">{advies.data?.leverdag ? `Voor ${leverDatumLabel(advies.data.leverdag)}` : 'Advies'}</span><span className="tabular-nums text-muted-foreground">{positieveAdviezen.length} met voorstel</span></div>
-                {advies.isLoading ? <p className="text-sm text-muted-foreground">Laden…</p> : positieveAdviezen.length ? <AdviesTabel regels={positieveAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} /> : <p className="text-sm text-muted-foreground">Geen voorstellen</p>}
-                {!!nulAdviezen.length && <Collapsible><CollapsibleTrigger asChild><Button variant="ghost" className="min-h-11 w-full justify-between text-muted-foreground"><span>Niet nodig ({nulAdviezen.length})</span><ChevronDown className="h-4 w-4" /></Button></CollapsibleTrigger><CollapsibleContent><AdviesTabel regels={nulAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} nul /></CollapsibleContent></Collapsible>}
+                <LijstKaart kop={<KaartKop icoon={Sparkles} titel={advies.data?.leverdag ? `Voor ${leverDatumLabel(advies.data.leverdag)}` : 'Advies'} teller={positieveAdviezen.length} />}>
+                  {advies.isLoading ? <LaadRijen /> : positieveAdviezen.length ? <AdviesTabel regels={positieveAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} /> : <LegeStaat tekst="Geen voorstellen." />}
+                </LijstKaart>
+                {!!nulAdviezen.length && <InklapGroep titel="Niet nodig" aantal={nulAdviezen.length}><LijstKaart><AdviesTabel regels={nulAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} nul /></LijstKaart></InklapGroep>}
               </TabsContent>
               <div hidden={tab !== 'tellen'}><Voorraadproef key={vestiging} vestiging={vestiging} onOverzicht={rapporteerTellen} /></div>
               <TabsContent value="onderweg" className="mt-0 space-y-4">
-                {[{ titel: 'Vandaag te checken', regels: teChecken }, { titel: 'Onderweg', regels: onderweg }, { titel: 'Zonder datum', regels: zonderDatum }].filter((g) => g.regels.length).map((groep) => <div key={groep.titel} className="space-y-2"><SectieKop titel={groep.titel} teller={groep.regels.length} /><OnderwegTabel groepen={groepeer(groep.regels)} {...groepProps} onBewerk={openBewerk} datumLabel={datumLabel} leverDatumLabel={leverDatumLabel} /></div>)}
-                {!besteld.length && <p className="text-sm text-muted-foreground">Niets onderweg.</p>}
-                {!!geleverd.length && <Collapsible><CollapsibleTrigger asChild><Button variant="ghost" className="min-h-11 w-full justify-between text-muted-foreground"><span>Geleverd ({geleverd.length})</span><ChevronDown className="h-4 w-4" /></Button></CollapsibleTrigger><CollapsibleContent><BordTabel regels={geleverd} {...bordProps} geleverd onTerug={(s) => terugNaarBesteld.mutate(s.id)} detail={(s) => [s.geleverd_op ? datumLabel(s.geleverd_op) : '', s.geleverd_door ? namen?.get(s.geleverd_door) : '', s.levering_status === 'deels' ? 'Deels' : '', s.levering_opmerking].filter(Boolean).join(' · ')} /></CollapsibleContent></Collapsible>}
+                {[{ titel: 'Vandaag te checken', regels: teChecken }, { titel: 'Onderweg', regels: onderweg }, { titel: 'Zonder datum', regels: zonderDatum }].filter((g) => g.regels.length).map((groep) => <LijstKaart key={groep.titel} kop={<KaartKop icoon={Truck} titel={groep.titel} teller={groep.regels.length} />}><OnderwegTabel groepen={groepeer(groep.regels)} {...groepProps} onBewerk={openBewerk} datumLabel={datumLabel} leverDatumLabel={leverDatumLabel} /></LijstKaart>)}
+                {!besteld.length && <LijstKaart><LegeStaat tekst="Niets onderweg." /></LijstKaart>}
+                {!!geleverd.length && <InklapGroep titel="Geleverd" aantal={geleverd.length}><LijstKaart><BordTabel regels={geleverd} {...bordProps} geleverd onTerug={(s) => terugNaarBesteld.mutate(s.id)} detail={(s) => [s.geleverd_op ? datumLabel(s.geleverd_op) : '', s.geleverd_door ? namen?.get(s.geleverd_door) : '', s.levering_status === 'deels' ? 'Deels' : '', s.levering_opmerking].filter(Boolean).join(' · ')} /></LijstKaart></InklapGroep>}
               </TabsContent>
             </div>
             <aside className="hidden min-w-0 space-y-3 lg:block">
@@ -583,11 +583,7 @@ export default function Bestelbord() {
         </Tabs>
       </div>
 
-      <Dialog open={!!bewerk} onOpenChange={(o) => !o && setBewerk(null)}>
-        <DialogContent className="max-w-[650px] rounded-polar-xl">
-          <DialogHeader>
-            <DialogTitle>{bewerk?.naam}</DialogTitle>
-          </DialogHeader>
+      <DetailLade open={!!bewerk} onOpenChange={(o) => !o && setBewerk(null)} titel={bewerk?.naam}>
           <div className="space-y-3">
             <Stepper waarde={bewerkAantal} onChange={setBewerkAantal} />
             {bewerkVormen.length > 1 && (
@@ -622,8 +618,7 @@ export default function Bestelbord() {
               Opslaan
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+      </DetailLade>
       <Dialog open={!!datumVoor} onOpenChange={(o) => !o && setDatumVoor(null)}>
         <DialogContent className="max-w-[650px] rounded-polar-xl">
           <DialogHeader>
