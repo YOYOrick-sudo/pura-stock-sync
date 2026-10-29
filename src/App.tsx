@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RequireManager } from "@/components/RequireManager";
 import { RequireOwner } from "@/components/RequireOwner";
+import { RequireMtLid } from "@/components/RequireMtLid";
 import { UserLocationProvider, useUserLocation } from "@/contexts/UserLocationContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -57,6 +58,7 @@ import Team from "./pages/settings/Team";
 import Bronnen from "./pages/settings/Bronnen";
 import Cijfers from "./pages/Cijfers";
 import LightspeedCallback from "./pages/LightspeedCallback";
+import MtPunt from "./pages/MtPunt";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { supabase } from "@/integrations/supabase/client";
 import { focusManager } from "@tanstack/react-query";
@@ -318,6 +320,7 @@ const App = () => {
             <Route path="/kitchen/mep/oud" element={<ProtectedRoute><RequireWest><MepPlanning /></RequireWest></ProtectedRoute>} />
             <Route path="/kitchen/mep/beheer" element={<ProtectedRoute><RequireWest><MepBeheer /></RequireWest></ProtectedRoute>} />
             <Route path="/kitchen/bestelbord" element={<ProtectedRoute><Bestelbord /></ProtectedRoute>} />
+            <Route path="/mt-punt" element={<ProtectedRoute><RequireMtLid><MtPunt /></RequireMtLid></ProtectedRoute>} />
             <Route path="/settings/mep" element={<ProtectedRoute><MepInstellingen /></ProtectedRoute>} />
             <Route path="/settings/keten" element={<ProtectedRoute><RequireManager><KetenBeheer /></RequireManager></ProtectedRoute>} />
             <Route path="/settings/koelwerkbank" element={<ProtectedRoute><RequireManager><KoelwerkbankIndeling /></RequireManager></ProtectedRoute>} />
