@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] 9. Alleen preview: reeds uitgevoerde deadline-SQL exact registreren en muted leveranciersdeadlinebadge in Bord/Advies/Onderweg; wacht op akkoord op het plan. Geen publicatie, database-uitvoering of rollenplan.
+
 - [x] Voorraadproef gebouwd met momentafhankelijke daggrens; seed6/6/127, testdata0, taken count/md5 gelijk; controles en niet volledig uitgevoerde UI-regressiepaden in docs/voorraadproef-testresultaten.md; niet gepubliceerd.
 
 - [x] 7a. Bestelfundament: één migratie, vijf nullable bordvelden, vijf tabellen, zes functies/view, leveranciersconfig en optioneel label; bestaande data/policies/trigger/hook vergeleken, 7 nieuwe + 14 bestaande tests geslaagd.
