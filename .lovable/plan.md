@@ -1,50 +1,42 @@
-# Aanvulling: wie ziet wat, iPad-modus, advies simpel model
+# Ontwerpregels vastleggen + Bestellijst rustiger maken
 
-Alleen uitleg. Er wordt niets gebouwd.
+## Waar het misgaat
+1. **Regels staan alleen in tekst, niet in bouwstenen.** "Gebruik het design system" zegt niet hoe een paginakop, een sectiekop, een lijstrij of een samenvattingskaart eruit ziet. Elke module bouwt die daarom zelf, telkens net anders.
+2. **Er zijn geen paginabouwstenen.** De app heeft wel knoppen, kaarten en tabellen, maar geen vaste "paginakop", "sectie", "lijstrij", "kengetalkaart" of "lege staat". Op die laag verschillen de modules van elkaar.
+3. **Losse stijlen sluipen erin.** Ongeveer 100 schermen gebruiken eigen kleuren, radiussen of lettergroottes buiten de tokens.
+4. **Op de Bestellijst zelf** (screenshot):
+   - De kolomkoppen "Product · Aantal · Prijs" staan boven elke leveranciersgroep, dus steeds opnieuw.
+   - Groepskoppen ("Bidfood 1 —") zijn grijs en klein, en daardoor zwakker dan de rijen eronder.
+   - Hetzelfde getal staat twee keer in beeld: 18 in de tab en in de kaart, en € 184,27 in twee kaarten.
+   - Rechts staan drie kaarten met elk hun eigen opbouw. "zonder prijs" is groen terwijl het een waarschuwing is.
+   - De invoerregel heeft vijf losse vlakken, met evenveel gewicht als de primaire knop.
+   - "Bestellijst" is een grote eigen titel. Dat botst met de regel dat er geen H1 komt.
+   - De rijen zijn ongeveer 88px hoog in plaats van rond de 48px.
 
-## 1. Schermen per gebruiker (huidige stand)
+## Wat ik voorstel
 
-Z = in zijbalk, R = route bewaakt in de app. MT-only = Jorian (geen rol).
+### A. Regels concreet maken
+- Ik maak één regelblad met het paginaskelet, de typografie per niveau (paginatitel alleen in de app-header, sectiekop, groepskop, rij, meta), rijhoogte 44–48px, afstanden (4 / 8 / 12 / 16), wanneer je een kaart gebruikt en wanneer een tabel, statuskleuren (groen = goed, oranje = let op, grijs = neutraal) en "elk getal maar één keer in beeld".
+- Dat regelblad komt in de projectkennis en in het projectgeheugen. Op /design-system komt een sectie "Paginapatronen" met voorbeelden.
 
-| Scherm | Owner | Staff-iPad West | Staff-iPad Midsland | MT-only | Bewaking route |
-|---|---|---|---|---|---|
-| Dashboard, Taken Bediening | Z | Z | Z | nee | ingelogd |
-| Kassatelling, Onderhoud | Z | Z | Z | nee | ingelogd (Onderhoud: pincode) |
-| Mise-en-place, Gerechten | Z | Z | Z | nee | ingelogd |
-| Bestelbord, Stickers, Recepten | Z | Z | niet in zijbalk, URL werkt | nee | ingelogd |
-| MEP week/beheer | via URL | via URL | geblokkeerd | nee | alleen West |
-| Voorraadketen, Koelwerkbank | Z | nee | nee | nee | manager |
-| Kas-controle, Personeel | via URL | nee | nee | nee | manager |
-| Cijfers, Settings | Z | nee | nee | nee | owner |
-| HR, /taken/beheer, /taken/admin, /settings/mep | via URL | URL werkt | URL werkt | nee | alleen ingelogd |
-| MT-punten, MT-actiepunten | Z (als MT-lid) | nee | nee | Z | MT-lid |
+### B. Vaste paginabouwstenen
+- Kleine, herbruikbare onderdelen: `SectieKop` (titel + teller + i-icoon + één actie), `GroepKop` (naam, aantal, totaal), `LijstTabel` (één keer kolomkoppen, vaste rijhoogte), `KengetalKaart` (icoon, label, groot getal, max. één badge) en `LegeStaat`.
+- Alleen opgebouwd uit bestaande shadcn-onderdelen en tokens.
 
-HR-gegevens zelf zijn wel in de database afgeschermd. Taken- en MEP-beheer en instellingen zijn dat niet.
+### C. Bestellijst als eerste module ermee
+- De grote titel "Bestellijst" verdwijnt; de titel en de locatie staan alleen in de app-header.
+- Eén tabel per tab met de kolomkoppen één keer bovenaan. Leveranciers zijn tussenrijen (vet, met rechts aantal en totaal). Rijen worden 48px.
+- De invoer wordt één samengestelde balk: zoekveld + aantal met −/+ + eenheid. "Erbij" wordt een icoonknop in de balk, zodat "+ Product" de enige primaire knop blijft.
+- De rechterkolom krijgt één kaart "Overzicht" met drie getallen naast elkaar (Open €, Onderweg, Zonder prijs als oranje dot) en daaronder de leverancierstabel. Er worden geen getallen herhaald die al in de tabs staan.
+- "zonder prijs" krijgt de waarschuwingskleur in plaats van groen.
+- De tabs Advies, Tellen en Onderweg krijgen dezelfde tabelopbouw.
 
-## 2. Bediening of keuken op een iPad
+## Volgorde en grenzen
+1. Eerst A en B (regels + bouwstenen), daarna C. Andere modules volgen later één voor één, alleen op jouw verzoek.
+2. Het blijft bij de weergave: geen database, rechten, edge functions of hooks. Mutaties, telopslag en het rollenplan blijven ongemoeid. Er wordt niet gepubliceerd.
 
-- **West:** op de takenpagina kies je per iPad "bediening" of "keuken". Die keuze blijft alleen op dat apparaat bewaard (`foh_device_mode_west`). Het bepaalt alleen welke tab eerst opent, de andere tab blijft gewoon aan te tikken.
-- **Midsland:** heeft geen apparaatkeuze. De lijsten zijn per fase ingedeeld (open, tussen, borrel, sluit), niet per bediening of keuken.
-- **Verschil tussen keuken- en bediening-iPad:** er is geen verschil. Beide gebruiken hetzelfde account, dus dezelfde zijbalk, dezelfde schermen en dezelfde rechten.
-
-## 3. Advies: simpelste model
-
-**Rollen (bestaande lijst hergebruiken, verder geen nieuwe):**
-- `owner`: Yorick.
-- `manager`: Josefien en Helga. MT-lid zijn blijft via de MT-ledenlijst lopen.
-- `staff`: de bediening-iPad per locatie.
-- `kitchen_staff`: de keuken-iPad per locatie. Die rol staat al in de rollenlijst.
-- Jorian blijft MT-only, of krijgt `manager` als hij ook operationeel mee moet kijken.
-
-**Zichtbaar per rol:**
-- **Owner:** alles.
-- **MT/manager:** MT-pagina's, taken- en MEP-beheer, Voorraadketen, Kas-controle en Personeel. Geen Cijfers of loonkosten, tenzij jij die per persoon aanzet.
-- **Bediening-iPad:** Dashboard, Taken, Kassatelling, Onderhoud, Gerechten (alleen lezen).
-- **Keuken-iPad:** MEP, Bestelbord, Stickers, Recepten (alleen lezen), Gerechten, Taken (opent op de keukentab).
-
-**Drie belangrijkste aanscherpingen in de database, grootste risico eerst:**
-1. Recepten, ingrediënten, gerechten en allergenen: wijzigen alleen door owner/manager. Een iPad mag alleen lezen. Een fout hier geeft verkeerde allergeneninformatie.
-2. Takensjablonen, MEP-sjablonen, instellingen en leveranciers: wijzigen alleen door owner/manager. De schermen `/taken/beheer`, `/taken/admin` en `/settings/mep` daarnaast afschermen voor managers.
-3. Bestellingen, inkoop en voorraad: lezen en schrijven alleen voor de eigen locatie. Prijzen en inkoophistorie alleen voor owner/manager.
-
-**In de schermen regel je alleen de indeling:** welke menu-items iemand ziet en welke tab eerst opent. De echte toegang ligt altijd in de database.
+## Technisch
+- Nieuw: `src/components/layout/` (`SectieKop`, `GroepKop`, `LijstTabel`, `KengetalKaart`, `LegeStaat`), plus een sectie in `DesignSystem.tsx`.
+- Aangepast: `Bestelbord.tsx` en de componenten in `kitchen/bestelbord/`. In `Voorraadproef.tsx` alleen de weergave; `bewaar()` blijft letterlijk gelijk.
+- Een `AGENTS.md`-regel: nieuwe schermen bouwen met de paginabouwstenen uit `components/layout`.
+- Controle: build, `bun test src` en schermafdrukken op 1280 en 390.
