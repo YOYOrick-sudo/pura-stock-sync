@@ -1,7 +1,6 @@
 /// <reference types="npm:@types/react@18.3.1" />
 import * as React from 'npm:react@18.3.1'
-import { Body, Button, Container, Head, Heading, Html, Preview, Text } from 'npm:@react-email/components@0.0.22'
-import { main, container, brand, h1, text, button, footer } from './_shared-styles.ts'
+import { MailLayout, Paragraaf, Knop, APP_REGEL } from './_layout.tsx'
 
 interface Props {
   siteName: string
@@ -10,23 +9,17 @@ interface Props {
 }
 
 export const InviteEmail = ({ siteName, confirmationUrl }: Props) => (
-  <Html lang="nl" dir="ltr">
-    <Head />
-    <Preview>Je bent uitgenodigd voor de {siteName} app</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Text style={brand}>{siteName}</Text>
-        <Heading style={h1}>Je bent uitgenodigd</Heading>
-        <Text style={text}>
-          Welkom bij het interne platform van {siteName}. Klik op de knop hieronder om je persoonlijke wachtwoord in te stellen en direct in te loggen.
-        </Text>
-        <Button style={button} href={confirmationUrl}>Wachtwoord instellen</Button>
-        <Text style={footer}>
-          Heb je deze uitnodiging niet verwacht? Dan kun je deze mail negeren.
-        </Text>
-      </Container>
-    </Body>
-  </Html>
+  <MailLayout
+    preheader={`Je bent uitgenodigd voor de ${siteName} app. Kies je wachtwoord om in te loggen.`}
+    titel="Je bent uitgenodigd"
+    reden="Je ontvangt deze mail omdat je bent uitgenodigd voor de interne app van Pura Vida. Niet verwacht? Dan kun je deze mail negeren."
+  >
+    <Paragraaf>
+      Welkom bij het interne platform van {siteName}. Klik op de knop hieronder om je persoonlijke wachtwoord in te stellen en direct in te loggen.
+    </Paragraaf>
+    <Paragraaf>{APP_REGEL}</Paragraaf>
+    <Knop href={confirmationUrl} label="Wachtwoord instellen" />
+  </MailLayout>
 )
 
 export default InviteEmail

@@ -1,29 +1,21 @@
 /// <reference types="npm:@types/react@18.3.1" />
 import * as React from 'npm:react@18.3.1'
-import { Body, Container, Head, Heading, Html, Preview, Text } from 'npm:@react-email/components@0.0.22'
-import { main, container, brand, h1, text, footer, code } from './_shared-styles.ts'
+import { MailLayout, Paragraaf, Code } from './_layout.tsx'
 
 interface Props {
   siteName?: string
   token: string
 }
 
-export const ReauthenticationEmail = ({ siteName = 'Pura Vida Foodbar', token }: Props) => (
-  <Html lang="nl" dir="ltr">
-    <Head />
-    <Preview>Je verificatiecode voor {siteName}</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Text style={brand}>{siteName}</Text>
-        <Heading style={h1}>Verificatiecode</Heading>
-        <Text style={text}>Gebruik onderstaande code om je actie te bevestigen:</Text>
-        <Text style={code}>{token}</Text>
-        <Text style={footer}>
-          Heb je dit niet aangevraagd? Negeer deze mail dan.
-        </Text>
-      </Container>
-    </Body>
-  </Html>
+export const ReauthenticationEmail = ({ token }: Props) => (
+  <MailLayout
+    preheader="Je verificatiecode voor de Pura Vida-app."
+    titel="Verificatiecode"
+    reden="Je ontvangt deze mail omdat er een verificatiecode is aangevraagd voor de interne app van Pura Vida. Niet aangevraagd? Dan kun je deze mail negeren."
+  >
+    <Paragraaf>Gebruik onderstaande code om je actie te bevestigen:</Paragraaf>
+    <Code>{token}</Code>
+  </MailLayout>
 )
 
 export default ReauthenticationEmail
