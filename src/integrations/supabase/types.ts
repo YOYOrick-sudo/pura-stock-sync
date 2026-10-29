@@ -199,6 +199,13 @@ export type Database = {
             foreignKeyName: "advies_log_voorraad_artikel_id_fkey"
             columns: ["voorraad_artikel_id"]
             isOneToOne: false
+            referencedRelation: "v_voorraad_stand"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advies_log_voorraad_artikel_id_fkey"
+            columns: ["voorraad_artikel_id"]
+            isOneToOne: false
             referencedRelation: "voorraad_artikel"
             referencedColumns: ["id"]
           },
@@ -3031,6 +3038,13 @@ export type Database = {
             foreignKeyName: "leer_voorstel_voorraad_artikel_id_fkey"
             columns: ["voorraad_artikel_id"]
             isOneToOne: false
+            referencedRelation: "v_voorraad_stand"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leer_voorstel_voorraad_artikel_id_fkey"
+            columns: ["voorraad_artikel_id"]
+            isOneToOne: false
             referencedRelation: "voorraad_artikel"
             referencedColumns: ["id"]
           },
@@ -5585,6 +5599,13 @@ export type Database = {
             foreignKeyName: "voorraad_correctie_voorraad_artikel_id_fkey"
             columns: ["voorraad_artikel_id"]
             isOneToOne: false
+            referencedRelation: "v_voorraad_stand"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voorraad_correctie_voorraad_artikel_id_fkey"
+            columns: ["voorraad_artikel_id"]
+            isOneToOne: false
             referencedRelation: "voorraad_artikel"
             referencedColumns: ["id"]
           },
@@ -5679,6 +5700,13 @@ export type Database = {
             foreignKeyName: "voorraad_ontvangst_koppeling_voorraad_artikel_id_fkey"
             columns: ["voorraad_artikel_id"]
             isOneToOne: false
+            referencedRelation: "v_voorraad_stand"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voorraad_ontvangst_koppeling_voorraad_artikel_id_fkey"
+            columns: ["voorraad_artikel_id"]
+            isOneToOne: false
             referencedRelation: "voorraad_artikel"
             referencedColumns: ["id"]
           },
@@ -5755,6 +5783,13 @@ export type Database = {
             foreignKeyName: "voorraad_periode_voorraad_artikel_id_fkey"
             columns: ["voorraad_artikel_id"]
             isOneToOne: false
+            referencedRelation: "v_voorraad_stand"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voorraad_periode_voorraad_artikel_id_fkey"
+            columns: ["voorraad_artikel_id"]
+            isOneToOne: false
             referencedRelation: "voorraad_artikel"
             referencedColumns: ["id"]
           },
@@ -5815,6 +5850,13 @@ export type Database = {
             foreignKeyName: "voorraad_telling_voorraad_artikel_id_fkey"
             columns: ["voorraad_artikel_id"]
             isOneToOne: false
+            referencedRelation: "v_voorraad_stand"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voorraad_telling_voorraad_artikel_id_fkey"
+            columns: ["voorraad_artikel_id"]
+            isOneToOne: false
             referencedRelation: "voorraad_artikel"
             referencedColumns: ["id"]
           },
@@ -5840,6 +5882,13 @@ export type Database = {
           voorraad_artikel_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "voorraad_verbruik_koppeling_voorraad_artikel_id_fkey"
+            columns: ["voorraad_artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_voorraad_stand"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "voorraad_verbruik_koppeling_voorraad_artikel_id_fkey"
             columns: ["voorraad_artikel_id"]
@@ -6169,6 +6218,46 @@ export type Database = {
           onbekende_ingredienten: number | null
           recept_id: string | null
           sporen: Database["public"]["Enums"]["allergen"][] | null
+        }
+        Relationships: []
+      }
+      v_voorraad_bewegingen: {
+        Row: {
+          bron_ref: string | null
+          bronkwaliteit: string | null
+          datum: string | null
+          hoeveelheid: number | null
+          soort: string | null
+          vestiging: string | null
+          voorraad_artikel_id: string | null
+        }
+        Relationships: []
+      }
+      v_voorraad_stand: {
+        Row: {
+          actief: boolean | null
+          bestelbuffer: number | null
+          correcties: number | null
+          created_at: string | null
+          geteld: number | null
+          id: string | null
+          kassa: number | null
+          laatste_telling: string | null
+          laatste_telling_id: string | null
+          naam: string | null
+          notitie: string | null
+          ontvangen: number | null
+          opslag: number | null
+          opslagplekken: Json | null
+          stand: number | null
+          status: string | null
+          tel_eenheid: string | null
+          tellen_nodig: boolean | null
+          telmoment: string | null
+          telrol: string | null
+          verbruiksopslag_pct: number | null
+          vestiging: string | null
+          volledig: boolean | null
         }
         Relationships: []
       }
@@ -6582,6 +6671,41 @@ export type Database = {
         Args: { _body: Json; _function: string }
         Returns: number
       }
+      voorraad_bewegingen_lezen: {
+        Args: { p_vestiging: string }
+        Returns: {
+          bron_ref: string
+          bronkwaliteit: string
+          datum: string
+          hoeveelheid: number
+          soort: string
+          vestiging: string
+          voorraad_artikel_id: string
+        }[]
+      }
+      voorraad_daggrens: {
+        Args: { p_datum: string; p_moment: string }
+        Returns: string
+      }
+      voorraad_hertellen_nodig: {
+        Args: { p_stand: number; p_totaal: number }
+        Returns: boolean
+      }
+      voorraad_stand_berekenen: {
+        Args: { p_artikel: string; p_exclusief?: string; p_tot: string }
+        Returns: {
+          correcties: number
+          geteld: number
+          kassa: number
+          laatste_telling: string
+          laatste_telling_id: string
+          ontvangen: number
+          opslag: number
+          stand: number
+          volledig: boolean
+        }[]
+      }
+      voorraad_teldeadline: { Args: { p_nu: string }; Returns: string }
     }
     Enums: {
       allergen:
