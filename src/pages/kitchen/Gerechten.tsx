@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/kitchen/EmptyState';
 import { cn } from '@/lib/utils';
 import { useRole } from '@/hooks/useRole';
 import { useArchiveerGerecht, useGerechten, useGerechtAllergenen, type Gerecht } from '@/hooks/useGerechten';
-import { GerechtKaartCodes, GerechtReceptBevat, GerechtReceptSporen } from '@/components/kitchen/GerechtKaartInfo';
+import { GerechtReceptBevat, GerechtReceptSporen } from '@/components/kitchen/GerechtKaartInfo';
 import { DataTable, DataTableBody, DataTableCell, DataTableHead, DataTableHeader, DataTableRow, EmptyCell, StatusDot } from '@/components/ui/data-table';
 import { GerechtDialog } from '@/components/kitchen/GerechtDialog';
 import { AllergeenFilter } from '@/components/kitchen/AllergeenFilter';
@@ -149,12 +149,6 @@ export default function Gerechten() {
               {g.kaart_omschrijving || g.notitie}
             </p>
           )}
-          <div className="md:hidden">
-            {(g.kaart_codes?.length ?? 0) > 0 && <GerechtKaartCodes codes={g.kaart_codes ?? []} />}
-          </div>
-        </DataTableCell>
-        <DataTableCell className="hidden md:table-cell">
-          <GerechtKaartCodes codes={g.kaart_codes ?? []} />
         </DataTableCell>
         <DataTableCell className="text-right tabular-nums">
           {prijzen.bedragen ? (
@@ -198,7 +192,6 @@ export default function Gerechten() {
     <DataTable className="rounded-none border-0">
       <DataTableHeader>
         <DataTableHead className="w-auto">Gerecht</DataTableHead>
-        <DataTableHead className="hidden md:table-cell w-[170px]">Kaart</DataTableHead>
         <DataTableHead className="w-[140px] text-right">Prijs</DataTableHead>
         <DataTableHead className="w-[34%] md:w-[26%]">Bevat</DataTableHead>
         <DataTableHead className="hidden md:table-cell w-[16%]">Kan bevatten</DataTableHead>
