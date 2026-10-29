@@ -267,19 +267,9 @@ export default function Gerechten() {
             alleenVegan={alleenVegan}
             onToggleVegan={() => setAlleenVegan((v) => !v)}
             onWissen={wisFilter}
+            aantal={filterActief && !isLoading ? veilig.length : undefined}
           />
         </Card>
-
-        {filterActief && !isLoading && (
-          <div className="flex flex-wrap items-center gap-2 px-1">
-            <p className="text-sm text-muted-foreground">
-              {veilig.length} {veilig.length === 1 ? 'gerecht' : 'gerechten'} {filterOmschrijving}
-            </p>
-            <Button variant="ghost" size="sm" className="min-h-[44px] text-primary hover:text-primary" onClick={wisFilter}>
-              Wis filter
-            </Button>
-          </div>
-        )}
 
         {receptQuery.isError && <div className="flex flex-wrap items-center gap-3 text-sm text-warning" role="alert">
           Receptallergenen konden niet worden geladen.
