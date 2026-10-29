@@ -8,7 +8,7 @@ import { TableBody, TableCell, TableRow } from '@/components/ui/table';
 import type { ArtikelVorm, BestelSignaal } from '@/hooks/useBestelbord';
 import type { PrijsSignaal } from '@/lib/prijsSignaal';
 import { PrijsPijl } from '@/components/kitchen/PrijsPijl';
-import { GroepRij } from '@/components/layout/Paginapatronen';
+import { GroepRij, StatusDot } from '@/components/layout/Paginapatronen';
 import { CompacteTabel } from './CompacteTabel';
 import { euro, perLeverancier } from './presentatie';
 
@@ -29,8 +29,8 @@ export function BordTabel({ regels, leverancier, prijsVan, prijsSignaal, prijsTi
           <TableCell onClick={(e) => e.stopPropagation()}>{geleverd ? <div className="flex h-11 w-11 items-center justify-center"><Check className="h-4 w-4 text-primary" /></div> : <label className="flex h-11 w-11 cursor-pointer items-center justify-center"><Checkbox checked={s.status === 'besteld'} aria-label={`${s.naam} besteld`} onCheckedChange={(b) => onBesteld(s, b === true)} /></label>}</TableCell>
           <TableCell className="truncate font-medium">{geleverd ? <Tooltip><TooltipTrigger asChild><span>{s.naam}</span></TooltipTrigger><TooltipContent className="max-w-xs">{detail?.(s) || 'Geleverd'}</TooltipContent></Tooltip> : s.naam}</TableCell>
           <TableCell className="text-right tabular-nums"><span className="font-medium">{Number(s.aantal)}</span> <span className="text-muted-foreground">{s.eenheid || ''}</span></TableCell>
-          <TableCell className="hidden text-right sm:table-cell" onClick={(e) => e.stopPropagation()}><Tooltip><TooltipTrigger asChild><span className="inline-flex h-11 items-center justify-end gap-1 tabular-nums">{prijs && <PrijsPijl signaal={prijsSignaal(s)} eenheid={s.eenheid} />}{prijs ? euro(prijs.totaal) : <span className="text-muted-foreground">—</span>}</span></TooltipTrigger><TooltipContent>{prijs ? prijsTip(prijs.vorm) : 'Geen prijs bekend'}</TooltipContent></Tooltip></TableCell>
-          <TableCell onClick={(e) => e.stopPropagation()}>{geleverd ? <Button variant="ghost" className="h-11 w-11 p-0" aria-label={`${s.naam} terug naar onderweg`} onClick={() => onTerug?.(s)}><Undo2 className="h-4 w-4" /></Button> : <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" className="h-11 w-11 p-0" aria-label={`Opties ${s.naam}`}><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => onBewerk(s)}>Bewerken</DropdownMenuItem><DropdownMenuItem onClick={() => onVervallen(s)}>Vervallen</DropdownMenuItem></DropdownMenuContent></DropdownMenu>}</TableCell>
+          <TableCell className="hidden text-right sm:table-cell" onClick={(e) => e.stopPropagation()}><Tooltip><TooltipTrigger asChild><span className="inline-flex h-11 items-center justify-end gap-1 tabular-nums">{prijs && <PrijsPijl signaal={prijsSignaal(s)} eenheid={s.eenheid} alleenDuurder />}{prijs ? euro(prijs.totaal) : <StatusDot toon="let-op" verborgenLabel="Geen prijs" />}</span></TooltipTrigger><TooltipContent>{prijs ? prijsTip(prijs.vorm) : 'Geen prijs bekend'}</TooltipContent></Tooltip></TableCell>
+          <TableCell onClick={(e) => e.stopPropagation()}>{geleverd ? <Button variant="ghost" className="h-11 w-11 p-0" aria-label={`${s.naam} terug naar onderweg`} onClick={() => onTerug?.(s)}><Undo2 className="h-4 w-4" /></Button> : <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" className="h-11 w-11 p-0" aria-label={`Opties ${s.naam}`}><MoreVertical className="h-4 w-4 text-muted-foreground" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={() => onBewerk(s)}>Bewerken</DropdownMenuItem><DropdownMenuItem onClick={() => onVervallen(s)}>Vervallen</DropdownMenuItem></DropdownMenuContent></DropdownMenu>}</TableCell>
         </TableRow>;
       })}
     </Fragment>;

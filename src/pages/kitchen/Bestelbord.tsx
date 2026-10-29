@@ -533,7 +533,7 @@ export default function Bestelbord() {
                 {SOORTEN.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button className="ml-auto h-11 w-11 p-0" aria-label="Erbij zetten" onClick={voegToe} disabled={naam.trim().length < 2 || !vestiging || isLoading}>
+            <Button variant="secondary" className="ml-auto h-11 w-11 p-0" aria-label="Erbij zetten" onClick={voegToe} disabled={naam.trim().length < 2 || !vestiging || isLoading}>
               <Check className="h-4 w-4" />
             </Button>
           </Invoerbalk>

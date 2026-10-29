@@ -5,10 +5,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { pijlRichting, prijsTooltip, type PrijsSignaal } from '@/lib/prijsSignaal';
 
 /** Klein, rustig prijsicoon: alleen zichtbaar als de prijs duidelijk afwijkt van normaal. */
-export function PrijsPijl({ signaal, eenheid }: { signaal: PrijsSignaal | null; eenheid?: string | null }) {
+export function PrijsPijl({ signaal, eenheid, alleenDuurder = false }: { signaal: PrijsSignaal | null; eenheid?: string | null; alleenDuurder?: boolean }) {
   const [open, setOpen] = useState(false);
   const richting = pijlRichting(signaal);
-  if (!signaal || !richting) return null;
+  if (!signaal || !richting || (alleenDuurder && richting === 'omlaag')) return null;
   const tekst = prijsTooltip(signaal);
   const inhoud = (
     <span className="block text-sm">
@@ -28,7 +28,7 @@ export function PrijsPijl({ signaal, eenheid }: { signaal: PrijsSignaal | null; 
               aria-label={`Prijs ${richting === 'omlaag' ? 'gedaald' : 'gestegen'}: ${tekst}`}
               className="-m-2 inline-flex items-center justify-center p-2"
             >
-              <Icoon className={richting === 'omlaag' ? 'h-3.5 w-3.5 text-primary' : 'h-3.5 w-3.5 text-destructive'} />
+              <Icoon className={richting === 'omlaag' ? 'h-3.5 w-3.5 text-primary' : (alleenDuurder ? 'h-3.5 w-3.5 text-warning' : 'h-3.5 w-3.5 text-destructive')} />
             </button>
           </TooltipTrigger>
         </PopoverTrigger>
