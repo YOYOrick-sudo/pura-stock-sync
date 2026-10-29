@@ -1,6 +1,6 @@
 // @ts-ignore bun test runner
 import { expect, test } from 'bun:test';
-import { amsterdamDatum, tellingTotaal } from './voorraadproef';
+import { amsterdamDatum, laatstGeteldTekst, tellingTotaal } from './voorraadproef';
 
 test('niet ingevuld is onbekend, expliciet nul is nul', () => {
   const plekken = [{ naam: 'dozen', eenheid: 'doos', factor: 24 }];
@@ -15,4 +15,10 @@ test('Fritz telt doos24, koeling en magazijn samen', () => {
 });
 test('datum volgt Amsterdam, ook over UTC-middernacht', () => {
   expect(amsterdamDatum(new Date('2026-10-28T23:30:00Z'))).toBe('2026-10-29');
+});
+test('laatst geteld: nooit geteld is begintelling, nooit nul dagen', () => {
+  expect(laatstGeteldTekst(null)).toBe('Begintelling nodig');
+  expect(laatstGeteldTekst(0)).toBe('Laatst geteld vandaag');
+  expect(laatstGeteldTekst(1)).toBe('Laatst geteld gisteren');
+  expect(laatstGeteldTekst(4)).toBe('Laatst geteld 4 dagen geleden');
 });
