@@ -1,0 +1,2 @@
+CREATE POLICY mt_leden_lees_owner ON public.mt_leden FOR SELECT TO authenticated
+USING (EXISTS (SELECT 1 FROM public.user_roles r WHERE r.user_id = auth.uid() AND r.is_active AND r.role IN ('owner','admin')));
