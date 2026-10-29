@@ -442,6 +442,13 @@
       "when": 1793307979876,
       "tag": "0062_seizoen_leverdagen",
       "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1793308031045,
+      "tag": "0063_seizoen_leverdagen_herstel",
+      "breakpoints": true
     }
   ]
 }
