@@ -64,6 +64,7 @@ export function useBestelbordMutaties(vestiging: string) {
 
   const toevoegen = useMutation({
     mutationFn: async ({ naam, aantal, eenheid }: { naam: string; aantal: number; eenheid: string }) => {
+      if (!vestiging) throw new Error('Vestiging nog niet geladen, probeer het zo opnieuw');
       const { data: user } = await supabase.auth.getUser();
       const { error } = await metHerstel(() =>
         supabase.from('bestel_signalen').insert({

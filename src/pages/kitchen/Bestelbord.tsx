@@ -150,7 +150,7 @@ export default function Bestelbord() {
 
   const voegToe = () => {
     const n = naam.trim();
-    if (n.length < 2) return;
+    if (n.length < 2 || !vestiging || isLoading) return;
     const eenheid = soort ?? 'stuks';
     const bestaand = open.find((s) => norm(s.naam) === norm(n));
     if (bestaand) {
@@ -235,7 +235,7 @@ export default function Bestelbord() {
                 {SOORTEN.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button className="h-11" onClick={voegToe} disabled={naam.trim().length < 2}>
+            <Button className="h-11" onClick={voegToe} disabled={naam.trim().length < 2 || !vestiging || isLoading}>
               <Plus className="h-4 w-4 mr-1" /> Erbij
             </Button>
           </div>
