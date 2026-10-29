@@ -435,6 +435,13 @@
       "when": 1793307099595,
       "tag": "0061_besteldeadline_leveranciers",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1793307979876,
+      "tag": "0062_seizoen_leverdagen",
+      "breakpoints": true
     }
   ]
 }
