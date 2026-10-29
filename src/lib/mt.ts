@@ -14,7 +14,7 @@ export function mtStatusLabel(status: string | null | undefined): string {
 }
 
 /** Routes die een account zonder rol (alleen MT-lid) mag openen. */
-export const MT_ROUTES = ['/mt-punt', '/mt-actiepunten'];
+export const MT_ROUTES = ['/mt-punt'];
 
 export function formatNlDatumTijd(iso: string): string {
   return new Date(iso).toLocaleString('nl-NL', {
