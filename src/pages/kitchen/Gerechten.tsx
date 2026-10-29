@@ -19,7 +19,6 @@ import {
   GERECHT_LABEL_SOORT,
   isGerechtLabel,
   voldoetAanGerechtFilter,
-  gerechtPrijzen,
   type GerechtLabel,
 } from '@/lib/gerecht-labels';
 
