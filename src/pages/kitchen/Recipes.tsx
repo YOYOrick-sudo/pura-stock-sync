@@ -16,6 +16,8 @@ import { useRole } from '@/hooks/useRole';
 import { useAlleMethodes } from '@/hooks/useHalffabricaatMethodes';
 import { MethodeDialog } from '@/components/keten/MethodeDialog';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { RijMenu } from '@/components/pura/lijst';
 
 const LEEG = new Set<string>();
 
@@ -52,6 +54,7 @@ export default function Recipes() {
     return alleRecipes.filter((r) => koppelingen?.get(r.id)?.has(vestiging));
   }, [alleRecipes, vestiging, koppelingen]);
 
+  const isMobile = useIsMobile();
   const chips = useMemo(() => ['Alle', ...categories], [categories]);
 
 
@@ -61,7 +64,7 @@ export default function Recipes() {
       <div className="space-y-6">
         {/* Search & add */}
         <Card className="p-4 bg-card shadow-sm">
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className={isMobile ? 'flex flex-row gap-2' : 'flex flex-col sm:flex-row gap-3'}>
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -85,7 +88,7 @@ export default function Recipes() {
 
 
           {chips.length > 1 && (
-            <div className="flex flex-wrap gap-2 mt-4">
+            <div className={isMobile ? '-mx-1 mt-4 flex gap-2 overflow-x-auto px-1 [scrollbar-width:none]' : 'flex flex-wrap gap-2 mt-4'}>
               {chips.map((c) => {
                 const active = c === 'Alle' ? category === null : category === c;
                 return (
@@ -93,7 +96,7 @@ export default function Recipes() {
                     key={c}
                     onClick={() => setCategory(c === 'Alle' ? null : c)}
                     className={cn(
-                      'px-4 py-2 rounded-full text-sm font-medium transition-colors min-h-[40px]',
+                      isMobile ? 'shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors min-h-11' : 'px-4 py-2 rounded-full text-sm font-medium transition-colors min-h-[40px]',
                       active
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted text-foreground hover:bg-muted/80',
@@ -196,31 +199,25 @@ export default function Recipes() {
                   onClick={() => navigate(`/kitchen/recipes/${recipe.id}`)}
                   className="px-4 py-3 cursor-pointer active:bg-muted/40"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-foreground">{recipe.name}</h3>
-                    {recipe.type === 'halffabricaat' && (
-                      <Badge variant="outline" className="text-xs shrink-0">Halffabricaat</Badge>
-                    )}
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="min-w-0 truncate font-semibold text-foreground">{recipe.name}</h3>
+                    <div className="flex shrink-0 items-center gap-1">
+                      {recipe.type === 'halffabricaat' && (
+                        <Badge variant="outline" className="text-xs shrink-0">Halffabricaat</Badge>
+                      )}
+                      {isManager && (
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <RijMenu naam={recipe.name} acties={[{ label: methodeIds.has(recipe.id) ? 'Methode ✓' : 'Methode', onClick: () => setMethodeRecept({ id: recipe.id, naam: recipe.name }) }]} />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap mt-1">
                     {recipe.category && <Badge variant="secondary" className="text-xs">{recipe.category}</Badge>}
                     <span className="text-xs text-muted-foreground">
                       {recipe.ingredient_count ?? 0} ingrediënten
                     </span>
-                    {isManager ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 px-2 text-xs"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setMethodeRecept({ id: recipe.id, naam: recipe.name });
-                        }}
-                      >
-                        <ChefHat className="h-4 w-4 mr-1" />
-                        {methodeIds.has(recipe.id) ? 'Methode ✓' : 'Methode'}
-                      </Button>
-                    ) : methodeIds.has(recipe.id) ? (
+                    {!isManager && methodeIds.has(recipe.id) ? (
                       <Badge variant="secondary" className="text-xs">Methode ✓</Badge>
                     ) : null}
                   </div>
