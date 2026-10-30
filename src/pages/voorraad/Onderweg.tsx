@@ -7,8 +7,10 @@ import { Input } from '@/components/ui/input';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { toast } from 'sonner';
 import { OnderwegOrder, useOnderweg, useOntvangstVastleggen } from '@/hooks/useVoorraadModule';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function VoorraadOnderweg() {
+  const isMobile = useIsMobile();
   const { userLocation } = useUserLocation();
   const { data: orders = [], isLoading } = useOnderweg(userLocation ?? undefined);
   const [open, setOpen] = useState<string | null>(null);
@@ -26,7 +28,7 @@ export default function VoorraadOnderweg() {
 
   return (
     <SidebarLayout>
-      <div className="page-stack max-w-5xl pb-24">
+      <div className={isMobile ? 'page-stack min-w-0 max-w-full !p-0 pb-24' : 'page-stack max-w-5xl pb-24'}>
         <p className="text-sm text-muted-foreground">Verstuurde bestellingen en wat er binnenkomt.</p>
 
         {isLoading && <Card className="p-4 text-sm">Laden…</Card>}
@@ -66,6 +68,7 @@ export default function VoorraadOnderweg() {
 }
 
 function OrderKaart({ order, open, onToggle }: { order: OnderwegOrder; open: boolean; onToggle: () => void }) {
+  const isMobile = useIsMobile();
   const vastleggen = useOntvangstVastleggen();
   const [waarden, setWaarden] = useState<Record<string, string>>({});
 
@@ -92,11 +95,11 @@ function OrderKaart({ order, open, onToggle }: { order: OnderwegOrder; open: boo
   const afgehandeld = order.historie;
 
   return (
-    <Card className="p-4 space-y-3">
-      <button onClick={onToggle} className="w-full flex items-center gap-3 text-left min-h-[48px]">
+    <Card className={isMobile ? 'min-w-0 space-y-2 p-3' : 'p-4 space-y-3'}>
+      <button onClick={onToggle} className={isMobile ? 'flex min-h-12 w-full min-w-0 items-center gap-2 text-left' : 'w-full flex items-center gap-3 text-left min-h-[48px]'}>
         <div className="flex-1 min-w-0">
           <div className="font-medium truncate">{order.titel}</div>
-          <div className="text-xs text-muted-foreground">
+          <div className={isMobile ? 'break-words text-xs text-muted-foreground' : 'text-xs text-muted-foreground'}>
             {order.nummer} · {order.regels.length} regels
             {order.leverdatum
               ? ` · ${new Date(`${order.leverdatum}T12:00:00`).toLocaleDateString('nl-NL', {
@@ -108,13 +111,13 @@ function OrderKaart({ order, open, onToggle }: { order: OnderwegOrder; open: boo
             {order.aangevraagdDoor ? ` · door ${order.aangevraagdDoor}` : ''}
           </div>
         </div>
-        <Badge variant="secondary">{order.statusLabel}</Badge>
+        <Badge variant="secondary" className={isMobile ? 'shrink-0 whitespace-nowrap' : undefined}>{order.statusLabel}</Badge>
       </button>
 
       {open && (
         <div className="space-y-2">
           {order.regels.map((r) => (
-            <div key={r.id} className="flex flex-wrap items-center gap-3 border-b border-border py-2 last:border-0 sm:flex-nowrap">
+            <div key={r.id} className={isMobile ? 'flex min-h-12 min-w-0 flex-nowrap items-center gap-2 border-b border-border py-2 last:border-0' : 'flex flex-wrap items-center gap-3 border-b border-border py-2 last:border-0 sm:flex-nowrap'}>
               <div className="flex-1 min-w-0">
                 <div className="truncate">{r.omschrijving}</div>
                 <div className="text-xs text-muted-foreground">
@@ -130,14 +133,14 @@ function OrderKaart({ order, open, onToggle }: { order: OnderwegOrder; open: boo
                   placeholder={String(r.aantal)}
                   value={waarden[r.id] ?? ''}
                   onChange={(e) => setWaarden((w) => ({ ...w, [r.id]: e.target.value }))}
-                  className="ml-auto h-12 w-24 text-right text-lg"
+                  className={isMobile ? 'ml-auto h-11 w-20 shrink-0 text-right text-base tabular-nums' : 'ml-auto h-12 w-24 text-right text-lg'}
                 />
               )}
             </div>
           ))}
 
           {!afgehandeld && (
-            <div className="flex flex-col sm:flex-row gap-2 pt-1">
+            <div className={isMobile ? 'flex flex-col gap-2 pt-1 [&_button]:h-auto [&_button]:min-h-11 [&_button]:whitespace-normal [&_button]:py-3' : 'flex flex-col sm:flex-row gap-2 pt-1'}>
               <Button size="lg" className="h-14 flex-1" disabled={vastleggen.isPending} onClick={() => bevestig(true)}>
                 Alles ontvangen
               </Button>

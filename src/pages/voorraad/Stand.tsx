@@ -5,8 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useLaatstGeteld } from '@/hooks/useVoorraadModule';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { KaartKop, LijstKaart } from '@/components/pura';
 
 export default function VoorraadStand() {
+  const isMobile = useIsMobile();
   const { userLocation } = useUserLocation();
   const { data: regels = [], isLoading } = useLaatstGeteld(userLocation ?? undefined);
   const [zoek, setZoek] = useState('');
@@ -35,7 +38,7 @@ export default function VoorraadStand() {
 
   return (
     <SidebarLayout>
-      <div className="page-stack max-w-5xl pb-24">
+      <div className={isMobile ? 'page-stack min-w-0 max-w-full !p-0 pb-24' : 'page-stack max-w-5xl pb-24'}>
         <p className="text-sm text-muted-foreground">
           Wat er bij de laatste telling stond. Dit is geen live voorraad — verbruik wordt niet bijgehouden.
         </p>
@@ -44,7 +47,7 @@ export default function VoorraadStand() {
           placeholder="Zoek artikel…"
           value={zoek}
           onChange={(e) => setZoek(e.target.value)}
-          className="h-12"
+          className={isMobile ? 'h-11 min-w-0 text-base' : 'h-12'}
         />
 
         {isLoading && <Card className="p-4 text-sm">Laden…</Card>}
@@ -53,6 +56,26 @@ export default function VoorraadStand() {
         )}
 
         {gegroepeerd.map(([categorie, items]) => (
+          isMobile ? <LijstKaart key={categorie} kop={<KaartKop titel={categorie} />}>
+            <div className="divide-y divide-border">
+              {items.map((r) => (
+                <div key={r.artikel_id} className="flex min-h-12 min-w-0 items-center gap-2 px-3 py-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-medium">{r.naam}</div>
+                    <div className="truncate text-xs text-muted-foreground">
+                      {r.route}
+                      {r.datum ? ` · geteld ${new Date(`${r.datum}T12:00:00`).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}` : ' · nog nooit geteld'}
+                    </div>
+                  </div>
+                  {r.aantal === null ? <Badge variant="secondary">—</Badge> : (
+                    <div className="shrink-0 text-right font-semibold tabular-nums">
+                      {r.aantal} <span className="text-xs font-normal text-muted-foreground">{r.eenheid}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </LijstKaart> :
           <div key={categorie} className="space-y-2">
             <h2 className="text-sm font-medium text-muted-foreground pt-2">{categorie}</h2>
             {items.map((r) => (

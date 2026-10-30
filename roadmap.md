@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Mobiel stap 11: Bestellen, Onderweg en Voorraadstand — compacte mobiele rijen en 44px tikvlakken; 90 tests geslaagd, 2 bekende Deno-fouten, build OK; queries/berekeningen onveranderd.
+- [ ] Mobiel stap 11 visuele controle — alle drie routes tonen Geen toegang in controlesessie; geen rechten, orders of tellingen gewijzigd.
+
 - [x] Mobiel stap 10: Onderhoud — mobiele layout, 44px tikvlakken, compacte meldingen en foto's; 90 tests geslaagd, 2 bekende Deno-fouten, build OK.
 - [ ] Mobiel stap 10 visuele controle — controlesessie krijgt geen toegang; geen rechten of gegevens aangepast.
 
