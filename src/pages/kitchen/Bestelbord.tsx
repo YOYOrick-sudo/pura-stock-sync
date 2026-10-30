@@ -43,24 +43,51 @@ function datumLabel(iso: string): string {
 
 const norm = (s: string) => s.trim().toLowerCase();
 
-function Stepper({ waarde, onChange }: { waarde: number | null; onChange: (n: number | null) => void }) {
+function Stepper({ waarde, onChange, eenheid, uit }: { waarde: number | null; onChange: (n: number | null) => void; eenheid?: string; uit?: boolean }) {
   return (
     <div className="flex items-center gap-1">
-      <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Minder" onClick={() => onChange(Math.max(1, (waarde ?? 1) - 1))}>
+      <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Minder" disabled={uit} onClick={() => onChange(Math.max(1, (waarde ?? 1) - 1))}>
         <Minus className="h-4 w-4" />
       </Button>
-      <Input
-        value={waarde == null ? '' : String(waarde)}
-        onChange={(e) => { const d = e.target.value.replace(/[^0-9]/g, ''); onChange(d ? Math.max(1, Number(d) || 1) : null); }}
-        inputMode="numeric"
-        className="h-11 w-14 text-center text-base font-semibold"
-        aria-label="Aantal"
-      />
-      <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Meer" onClick={() => onChange((waarde ?? 0) + 1)}>
+      {eenheid !== undefined ? (
+        <label className={cn('flex h-11 min-w-[7rem] items-center justify-center gap-1.5 rounded-polar-md border border-input bg-background px-2', uit && 'opacity-50')}>
+          {uit ? <span className="text-sm text-muted-foreground">kies verpakking</span> : <>
+            <Input
+              value={waarde == null ? '' : String(waarde)}
+              onChange={(e) => { const d = e.target.value.replace(/[^0-9]/g, ''); onChange(d ? Math.max(1, Number(d) || 1) : null); }}
+              inputMode="numeric"
+              className="h-9 w-10 border-0 p-0 text-right text-base font-semibold shadow-none focus-visible:ring-0"
+              aria-label="Aantal"
+            />
+            <span className="text-base font-medium text-foreground">{eenheid}</span>
+          </>}
+        </label>
+      ) : (
+        <Input
+          value={waarde == null ? '' : String(waarde)}
+          onChange={(e) => { const d = e.target.value.replace(/[^0-9]/g, ''); onChange(d ? Math.max(1, Number(d) || 1) : null); }}
+          inputMode="numeric"
+          className="h-11 w-14 text-center text-base font-semibold"
+          aria-label="Aantal"
+        />
+      )}
+      <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Meer" disabled={uit} onClick={() => onChange((waarde ?? 0) + 1)}>
         <Plus className="h-4 w-4" />
       </Button>
     </div>
   );
+}
+
+/** Eén rustige regel: wat je met dit aantal krijgt. */
+function VerpakkingRegel({ vorm, aantal }: { vorm: ArtikelVorm; aantal: number | null }) {
+  const w = verpakkingWeergave(vorm, aantal);
+  const delen = [
+    w.inhoud ? `${aantal ?? 1} ${w.eenheid} = ${aantal && aantal > 1 ? `${aantal} × ` : ''}${w.inhoud}` : null,
+    w.totaal ? `${w.totaal} totaal` : null,
+    w.prijs,
+  ].filter(Boolean);
+  if (!delen.length) return null;
+  return <p className="text-sm text-muted-foreground tabular-nums">{delen.join('  ·  ')}</p>;
 }
 
 function SoortKeuze({ waarde, onChange }: { waarde: string | null; onChange: (s: string) => void }) {
@@ -100,27 +127,43 @@ function VormKeuze({
   onKies: (v: ArtikelVorm) => void;
 }) {
   return (
-    <div className="grid w-full grid-cols-2 gap-2" role="radiogroup" aria-label="Verpakkingsvorm">
-      {vormen.map((v) => {
-        const lev = v.leverancier_naam ?? (v.leverancier_id ? leveranciers?.get(v.leverancier_id) : null);
-        const geblokkeerd = !!v.geblokkeerd;
-        return (
-          <Button variant={gekozen === v.id ? 'default' : 'outline'}
-            key={v.id}
-            type="button"
-            role="radio"
-            aria-checked={gekozen === v.id}
-            disabled={geblokkeerd}
-            onClick={() => onKies(v)}
-            className="flex h-auto min-h-14 w-full flex-col items-start justify-center gap-0.5 whitespace-normal px-3 py-2 text-left"
-          >
-            <span className="text-base font-semibold leading-tight">{v.vorm}</span>
-            <span className={cn('text-xs font-normal', gekozen === v.id ? 'opacity-80' : 'text-muted-foreground')}>
-              {geblokkeerd ? 'controleren' : [lev, v.prijs != null ? `${euro(Number(v.prijs))} excl.` : '–'].filter(Boolean).join(' · ')}
-            </span>
-          </Button>
-        );
-      })}
+    <div className="w-full space-y-1.5">
+      <p className="text-sm font-medium text-foreground">Bestellen per</p>
+      <div className="grid w-full grid-cols-2 gap-2" role="radiogroup" aria-label="Verpakkingsvorm">
+        {vormen.map((v) => {
+          const lev = v.leverancier_naam ?? (v.leverancier_id ? leveranciers?.get(v.leverancier_id) : null);
+          const geblokkeerd = !!v.geblokkeerd;
+          const actief = gekozen === v.id;
+          const w = verpakkingWeergave(v, 1);
+          const titel = v.eenheid.charAt(0).toUpperCase() + v.eenheid.slice(1);
+          return (
+            <button
+              key={v.id}
+              type="button"
+              role="radio"
+              aria-checked={actief}
+              disabled={geblokkeerd}
+              onClick={() => onKies(v)}
+              className={cn(
+                'flex min-h-14 w-full flex-col items-start gap-0.5 rounded-polar-md border px-3 py-2.5 text-left transition-colors duration-150',
+                actief ? 'border-primary bg-primary/10 ring-1 ring-primary' : 'border-border bg-card hover:bg-muted/60',
+                geblokkeerd && 'cursor-not-allowed opacity-50',
+              )}
+            >
+              <span className="flex w-full items-center justify-between gap-2">
+                <span className="text-base font-semibold leading-tight text-foreground">{titel}</span>
+                {actief && <Check className="h-4 w-4 text-primary" />}
+              </span>
+              <span className="text-sm text-foreground tabular-nums">
+                {[w.inhoud, w.totaal && w.inhoud !== w.totaal ? `= ${w.totaal}` : null].filter(Boolean).join(' ') || '—'}
+              </span>
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {geblokkeerd ? 'controleren' : [w.prijs, w.perBasis, lev].filter(Boolean).join(' · ') || '–'}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
