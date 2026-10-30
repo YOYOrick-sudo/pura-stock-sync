@@ -3,8 +3,10 @@ import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PolarKPICard } from '@/components/polar/KPICard';
 import { ModernKPICard } from '@/components/polar/ModernKPICard';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const DesignPreview = () => {
+  const isMobile = useIsMobile();
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
@@ -12,18 +14,18 @@ const DesignPreview = () => {
         <div className="max-w-7xl mx-auto flex items-center gap-4">
           <Link 
             to="/dashboard" 
-            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+            className={`p-2 hover:bg-slate-100 rounded-lg transition-colors ${isMobile ? 'min-h-11 min-w-11 shrink-0 inline-flex items-center justify-center' : ''}`}
           >
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </Link>
-          <div>
+          <div className={isMobile ? 'min-w-0 break-words' : undefined}>
             <h1 className="text-2xl font-bold text-slate-900">Design Preview</h1>
             <p className="text-sm text-slate-500">Vergelijk de huidige en nieuwe moderne stijl</p>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className={`max-w-7xl mx-auto px-6 py-8 ${isMobile ? 'min-w-0 [&_.grid>div]:min-w-0 [&_.grid>div]:max-w-full [&_.grid>div]:overflow-x-auto' : ''}`}>
         {/* Intro */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 mb-8">
           <h2 className="text-lg font-semibold text-slate-900 mb-2">Wat zie je hier?</h2>

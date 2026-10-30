@@ -10,8 +10,10 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useState } from 'react';
 import { Copy, Check, AlertCircle, CheckCircle2, Info, AlertTriangle } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function StyleGuide() {
+  const isMobile = useIsMobile();
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [checkboxValue, setCheckboxValue] = useState(false);
   const [radioValue, setRadioValue] = useState('option1');
@@ -43,7 +45,7 @@ export default function StyleGuide() {
   );
 
   const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div style={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '16px', padding: '32px', marginBottom: '24px' }}>
+    <div className={isMobile ? '!p-4 min-w-0 max-w-full break-words [&_pre]:max-w-full [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:min-h-11 [&_input]:min-w-0 [&_input]:text-base' : undefined} style={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '16px', padding: '32px', marginBottom: '24px' }}>
       <h2 style={{ fontFamily: 'Inter, sans-serif', fontSize: '24px', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: '24px' }}>{title}</h2>
       {children}
     </div>
@@ -51,12 +53,12 @@ export default function StyleGuide() {
 
   return (
     <SidebarLayout>
-      <div style={{ maxWidth: '1200px' }}>
-        <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: '32px', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: '8px' }}>Pura Vida Design System</h1>
+      <div className={isMobile ? 'min-w-0 max-w-full' : undefined} style={{ maxWidth: '1200px' }}>
+        <h1 className={isMobile ? 'hidden' : undefined} style={{ fontFamily: 'Inter, sans-serif', fontSize: '32px', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: '8px' }}>Pura Vida Design System</h1>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '16px', color: 'hsl(var(--muted-foreground))', marginBottom: '32px' }}>Complete styling guide voor consistente UI ontwikkeling</p>
 
         <Section title="Kleuren Palet">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '24px' }}>
+          <div className={isMobile ? '!grid-cols-1' : undefined} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '24px' }}>
             <ColorBlock color="hsl(var(--card))" name="Cream" hex="hsl(var(--card))" />
             <ColorBlock color="hsl(var(--secondary))" name="Moonlight" hex="hsl(var(--secondary))" />
             <ColorBlock color="hsl(var(--foreground))" name="Midnight" hex="hsl(var(--foreground))" />
@@ -294,7 +296,7 @@ className="border-polar-border"`}
 
               <div style={{ marginTop: '32px' }}>
                 <div style={{ fontWeight: 600, fontSize: '18px', marginBottom: '16px' }}>Toggle States</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
+                <div className={isMobile ? '!grid-cols-2' : undefined} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px' }}>
                   <div>
                     <div style={{ fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: '8px' }}>Off</div>
                     <Switch checked={false} />
@@ -480,7 +482,7 @@ className="space-x-2"   // 8px horizontal spacing`}
                 <DialogTrigger asChild>
                   <Button>Open Voorbeeld Dialog</Button>
                 </DialogTrigger>
-                <DialogContent style={{
+                <DialogContent className={isMobile ? '!w-[calc(100vw-2rem)] !p-4 max-h-[calc(100dvh-2rem)] overflow-y-auto [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:min-h-11 [&_input]:text-base' : undefined} style={{
                   backgroundColor: 'hsl(var(--card))',
                   borderRadius: '20px',
                   border: '1px solid hsl(var(--border))',

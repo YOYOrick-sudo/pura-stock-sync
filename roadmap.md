@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Mobiel stap 19: vijf restschermen — kleine mobiele aanpassingen voor overlopen, 44px tikvlakken en dubbele StyleGuide-kop; 90 tests geslaagd, 2 bekende Deno-fouten, automatische build OK; desktop en functies behouden.
+- [ ] Mobiel stap 19 afgeschermde visuele controle — StyleGuide/DesignPreview blijven laden in controlesessie; openbare restschermen gecontroleerd op 320/390/743/744/768/1280px; wachtwoord niet gewijzigd.
+
 - [x] Mobiel stap 18: zes instellingenschermen — ellipsis, 44px invoer/selects, veegbare tabs, lokale tabelscroll met vaste eerste kolom en passende ladeproducten; 90 tests geslaagd, 2 bekende Deno-fouten, automatische build OK; rollen/rechten, opslaan en desktopklassen behouden.
 - [ ] Mobiel stap 18 visuele controle — eigen controlesessie toont Geen toegang op alle zes routes bij 390/744px; geen rechten of gegevens gewijzigd.
 
