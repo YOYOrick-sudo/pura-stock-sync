@@ -1596,6 +1596,36 @@ export type Database = {
         }
         Relationships: []
       }
+      fase2_vlag: {
+        Row: {
+          aan: boolean
+          aan_vanaf: string | null
+          gewijzigd_door: string | null
+          gewijzigd_op: string
+          notitie: string | null
+          vestiging: string
+          vlag: string
+        }
+        Insert: {
+          aan?: boolean
+          aan_vanaf?: string | null
+          gewijzigd_door?: string | null
+          gewijzigd_op?: string
+          notitie?: string | null
+          vestiging: string
+          vlag: string
+        }
+        Update: {
+          aan?: boolean
+          aan_vanaf?: string | null
+          gewijzigd_door?: string | null
+          gewijzigd_op?: string
+          notitie?: string | null
+          vestiging?: string
+          vlag?: string
+        }
+        Relationships: []
+      }
       foh_category_order: {
         Row: {
           category: string
@@ -2595,6 +2625,7 @@ export type Database = {
       horeko_recept_regels: {
         Row: {
           artikel_id: string | null
+          artikel_ontkoppeld: boolean
           component_artikel_id: number | null
           component_recept_key: string | null
           component_type: string | null
@@ -2610,6 +2641,7 @@ export type Database = {
         }
         Insert: {
           artikel_id?: string | null
+          artikel_ontkoppeld?: boolean
           component_artikel_id?: number | null
           component_recept_key?: string | null
           component_type?: string | null
@@ -2625,6 +2657,7 @@ export type Database = {
         }
         Update: {
           artikel_id?: string | null
+          artikel_ontkoppeld?: boolean
           component_artikel_id?: number | null
           component_recept_key?: string | null
           component_type?: string | null
@@ -3250,6 +3283,122 @@ export type Database = {
         }
         Relationships: []
       }
+      keuken_telartikel: {
+        Row: {
+          actief: boolean
+          artikel_id: string
+          artikel_vorm_id: string | null
+          basis_eenheid: string
+          bron_vestiging: string
+          created_at: string
+          id: string
+          leverancier_id: string | null
+          notitie: string | null
+          opslag_pct: number
+          tel_factor: number
+          tel_label: string
+          tel_moment: string
+          vaste_teller: string | null
+          vestiging: string
+        }
+        Insert: {
+          actief?: boolean
+          artikel_id: string
+          artikel_vorm_id?: string | null
+          basis_eenheid: string
+          bron_vestiging: string
+          created_at?: string
+          id?: string
+          leverancier_id?: string | null
+          notitie?: string | null
+          opslag_pct?: number
+          tel_factor?: number
+          tel_label?: string
+          tel_moment?: string
+          vaste_teller?: string | null
+          vestiging: string
+        }
+        Update: {
+          actief?: boolean
+          artikel_id?: string
+          artikel_vorm_id?: string | null
+          basis_eenheid?: string
+          bron_vestiging?: string
+          created_at?: string
+          id?: string
+          leverancier_id?: string | null
+          notitie?: string | null
+          opslag_pct?: number
+          tel_factor?: number
+          tel_label?: string
+          tel_moment?: string
+          vaste_teller?: string | null
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "keuken_telartikel_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      keuken_telling: {
+        Row: {
+          aantal: number
+          basis: number
+          betrouwbaar: boolean
+          datum: string
+          geteld_door: string | null
+          geteld_op: string
+          id: string
+          moment: string
+          telartikel_id: string
+          vervangt: string | null
+        }
+        Insert: {
+          aantal: number
+          basis: number
+          betrouwbaar?: boolean
+          datum: string
+          geteld_door?: string | null
+          geteld_op?: string
+          id?: string
+          moment: string
+          telartikel_id: string
+          vervangt?: string | null
+        }
+        Update: {
+          aantal?: number
+          basis?: number
+          betrouwbaar?: boolean
+          datum?: string
+          geteld_door?: string | null
+          geteld_op?: string
+          id?: string
+          moment?: string
+          telartikel_id?: string
+          vervangt?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "keuken_telling_telartikel_id_fkey"
+            columns: ["telartikel_id"]
+            isOneToOne: false
+            referencedRelation: "keuken_telartikel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "keuken_telling_vervangt_fkey"
+            columns: ["vervangt"]
+            isOneToOne: false
+            referencedRelation: "keuken_telling"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kitchen_tasks: {
         Row: {
           assigned_to: string | null
@@ -3824,6 +3973,7 @@ export type Database = {
       }
       leverancier_levering: {
         Row: {
+          bezorg_vestiging: string | null
           bezorgkosten: number | null
           bron: string | null
           gratis_vanaf: number | null
@@ -3835,6 +3985,7 @@ export type Database = {
           vestiging: string
         }
         Insert: {
+          bezorg_vestiging?: string | null
           bezorgkosten?: number | null
           bron?: string | null
           gratis_vanaf?: number | null
@@ -3846,6 +3997,7 @@ export type Database = {
           vestiging: string
         }
         Update: {
+          bezorg_vestiging?: string | null
           bezorgkosten?: number | null
           bron?: string | null
           gratis_vanaf?: number | null
@@ -4726,6 +4878,433 @@ export type Database = {
           werkdag?: string
         }
         Relationships: []
+      }
+      ontvangst_backorder: {
+        Row: {
+          aantal: number | null
+          afgehandeld_op: string | null
+          artikelnummer: string
+          bestel_signaal_id: string | null
+          bo_sleutel: string | null
+          eerst_gemeld: string
+          extern_id: string | null
+          id: string
+          laatst_gezien: string
+          leverancier_id: string
+          omschrijving: string | null
+          ordernummer: string | null
+          verwacht_op: string | null
+          vestiging: string
+        }
+        Insert: {
+          aantal?: number | null
+          afgehandeld_op?: string | null
+          artikelnummer: string
+          bestel_signaal_id?: string | null
+          bo_sleutel?: string | null
+          eerst_gemeld?: string
+          extern_id?: string | null
+          id?: string
+          laatst_gezien?: string
+          leverancier_id: string
+          omschrijving?: string | null
+          ordernummer?: string | null
+          verwacht_op?: string | null
+          vestiging: string
+        }
+        Update: {
+          aantal?: number | null
+          afgehandeld_op?: string | null
+          artikelnummer?: string
+          bestel_signaal_id?: string | null
+          bo_sleutel?: string | null
+          eerst_gemeld?: string
+          extern_id?: string | null
+          id?: string
+          laatst_gezien?: string
+          leverancier_id?: string
+          omschrijving?: string | null
+          ordernummer?: string | null
+          verwacht_op?: string | null
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ontvangst_backorder_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ontvangst_factuur_koppeling: {
+        Row: {
+          aangemaakt_op: string
+          historie_id: string
+          id: string
+          methode: string
+          ontvangst_regel_id: string
+        }
+        Insert: {
+          aangemaakt_op?: string
+          historie_id: string
+          id?: string
+          methode: string
+          ontvangst_regel_id: string
+        }
+        Update: {
+          aangemaakt_op?: string
+          historie_id?: string
+          id?: string
+          methode?: string
+          ontvangst_regel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ontvangst_factuur_koppeling_ontvangst_regel_id_fkey"
+            columns: ["ontvangst_regel_id"]
+            isOneToOne: false
+            referencedRelation: "ontvangst_regel"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ontvangst_instelling: {
+        Row: {
+          notitie: string | null
+          sleutel: string
+          waarde: Json
+        }
+        Insert: {
+          notitie?: string | null
+          sleutel: string
+          waarde: Json
+        }
+        Update: {
+          notitie?: string | null
+          sleutel?: string
+          waarde?: Json
+        }
+        Relationships: []
+      }
+      ontvangst_opvolging: {
+        Row: {
+          bijgewerkt_door: string | null
+          bijgewerkt_op: string
+          credit_status: string
+          factuur_check: string
+          factuur_ref: string | null
+          notitie: string | null
+          ontvangst_regel_id: string
+        }
+        Insert: {
+          bijgewerkt_door?: string | null
+          bijgewerkt_op?: string
+          credit_status?: string
+          factuur_check?: string
+          factuur_ref?: string | null
+          notitie?: string | null
+          ontvangst_regel_id: string
+        }
+        Update: {
+          bijgewerkt_door?: string | null
+          bijgewerkt_op?: string
+          credit_status?: string
+          factuur_check?: string
+          factuur_ref?: string | null
+          notitie?: string | null
+          ontvangst_regel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ontvangst_opvolging_ontvangst_regel_id_fkey"
+            columns: ["ontvangst_regel_id"]
+            isOneToOne: true
+            referencedRelation: "ontvangst_regel"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ontvangst_pakbon_regel: {
+        Row: {
+          aantal_geleverd: number | null
+          aantal_pakbon: number | null
+          actief: boolean
+          afgesloten_door_regel: string | null
+          afgesloten_op: string | null
+          artikelnummer: string | null
+          bijgewerkt_op: string
+          eerst_gezien: string
+          gewicht_kg: number | null
+          id: string
+          leverancier_id: string
+          notitie: string | null
+          notitie_type: string | null
+          omschrijving: string | null
+          ordernummer: string
+          pakbon_datum: string | null
+          regelsleutel: string
+          restant_van: string[] | null
+          short: number | null
+          vervangt_artikelnummer: string | null
+          vestiging: string
+        }
+        Insert: {
+          aantal_geleverd?: number | null
+          aantal_pakbon?: number | null
+          actief?: boolean
+          afgesloten_door_regel?: string | null
+          afgesloten_op?: string | null
+          artikelnummer?: string | null
+          bijgewerkt_op?: string
+          eerst_gezien?: string
+          gewicht_kg?: number | null
+          id?: string
+          leverancier_id: string
+          notitie?: string | null
+          notitie_type?: string | null
+          omschrijving?: string | null
+          ordernummer: string
+          pakbon_datum?: string | null
+          regelsleutel: string
+          restant_van?: string[] | null
+          short?: number | null
+          vervangt_artikelnummer?: string | null
+          vestiging: string
+        }
+        Update: {
+          aantal_geleverd?: number | null
+          aantal_pakbon?: number | null
+          actief?: boolean
+          afgesloten_door_regel?: string | null
+          afgesloten_op?: string | null
+          artikelnummer?: string | null
+          bijgewerkt_op?: string
+          eerst_gezien?: string
+          gewicht_kg?: number | null
+          id?: string
+          leverancier_id?: string
+          notitie?: string | null
+          notitie_type?: string | null
+          omschrijving?: string | null
+          ordernummer?: string
+          pakbon_datum?: string | null
+          regelsleutel?: string
+          restant_van?: string[] | null
+          short?: number | null
+          vervangt_artikelnummer?: string | null
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ontvangst_pakbon_regel_afgesloten_door_regel_fkey"
+            columns: ["afgesloten_door_regel"]
+            isOneToOne: false
+            referencedRelation: "ontvangst_regel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ontvangst_pakbon_regel_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ontvangst_pilot: {
+        Row: {
+          actief: boolean
+          backorder_api: boolean
+          created_at: string
+          leverancier_id: string
+          notitie: string | null
+        }
+        Insert: {
+          actief?: boolean
+          backorder_api?: boolean
+          created_at?: string
+          leverancier_id: string
+          notitie?: string | null
+        }
+        Update: {
+          actief?: boolean
+          backorder_api?: boolean
+          created_at?: string
+          leverancier_id?: string
+          notitie?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ontvangst_pilot_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: true
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ontvangst_regel: {
+        Row: {
+          aantal: number
+          afgehandeld_door: string | null
+          afgehandeld_door_regel: string | null
+          afgehandeld_op: string | null
+          afhandeling: string | null
+          ander_product: string | null
+          artikel_id: string | null
+          artikel_vorm_id: string | null
+          artikelnummer: string | null
+          basis_eenheid: string | null
+          besluit_door: string | null
+          besluit_notitie: string | null
+          besluit_op: string | null
+          bestel_signaal_id: string | null
+          besteld_aantal: number | null
+          bron: string
+          bron_vestiging: string
+          controle_op: string | null
+          eenheid: string | null
+          extern_ordernummer: string | null
+          geregistreerd_door: string | null
+          geregistreerd_op: string
+          id: string
+          inhoud_per_verpakking: number | null
+          laatste_besluit: string | null
+          leverancier_id: string | null
+          levering_id: string
+          omschrijving: string
+          ontvangen_op: string
+          opmerking: string | null
+          opnieuw_besteld_op: string | null
+          pakbon_regel_id: string | null
+          rest_bron: string | null
+          rest_notitie: string | null
+          sleutel: string
+          telt_voorraad: boolean | null
+          uitkomst: string
+          vervallen_op: string | null
+          vervangen_door: string | null
+          verwacht_op: string | null
+          vestiging: string
+        }
+        Insert: {
+          aantal: number
+          afgehandeld_door?: string | null
+          afgehandeld_door_regel?: string | null
+          afgehandeld_op?: string | null
+          afhandeling?: string | null
+          ander_product?: string | null
+          artikel_id?: string | null
+          artikel_vorm_id?: string | null
+          artikelnummer?: string | null
+          basis_eenheid?: string | null
+          besluit_door?: string | null
+          besluit_notitie?: string | null
+          besluit_op?: string | null
+          bestel_signaal_id?: string | null
+          besteld_aantal?: number | null
+          bron: string
+          bron_vestiging: string
+          controle_op?: string | null
+          eenheid?: string | null
+          extern_ordernummer?: string | null
+          geregistreerd_door?: string | null
+          geregistreerd_op?: string
+          id?: string
+          inhoud_per_verpakking?: number | null
+          laatste_besluit?: string | null
+          leverancier_id?: string | null
+          levering_id: string
+          omschrijving: string
+          ontvangen_op: string
+          opmerking?: string | null
+          opnieuw_besteld_op?: string | null
+          pakbon_regel_id?: string | null
+          rest_bron?: string | null
+          rest_notitie?: string | null
+          sleutel: string
+          telt_voorraad?: boolean | null
+          uitkomst: string
+          vervallen_op?: string | null
+          vervangen_door?: string | null
+          verwacht_op?: string | null
+          vestiging: string
+        }
+        Update: {
+          aantal?: number
+          afgehandeld_door?: string | null
+          afgehandeld_door_regel?: string | null
+          afgehandeld_op?: string | null
+          afhandeling?: string | null
+          ander_product?: string | null
+          artikel_id?: string | null
+          artikel_vorm_id?: string | null
+          artikelnummer?: string | null
+          basis_eenheid?: string | null
+          besluit_door?: string | null
+          besluit_notitie?: string | null
+          besluit_op?: string | null
+          bestel_signaal_id?: string | null
+          besteld_aantal?: number | null
+          bron?: string
+          bron_vestiging?: string
+          controle_op?: string | null
+          eenheid?: string | null
+          extern_ordernummer?: string | null
+          geregistreerd_door?: string | null
+          geregistreerd_op?: string
+          id?: string
+          inhoud_per_verpakking?: number | null
+          laatste_besluit?: string | null
+          leverancier_id?: string | null
+          levering_id?: string
+          omschrijving?: string
+          ontvangen_op?: string
+          opmerking?: string | null
+          opnieuw_besteld_op?: string | null
+          pakbon_regel_id?: string | null
+          rest_bron?: string | null
+          rest_notitie?: string | null
+          sleutel?: string
+          telt_voorraad?: boolean | null
+          uitkomst?: string
+          vervallen_op?: string | null
+          vervangen_door?: string | null
+          verwacht_op?: string | null
+          vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ontvangst_regel_afgehandeld_door_regel_fkey"
+            columns: ["afgehandeld_door_regel"]
+            isOneToOne: false
+            referencedRelation: "ontvangst_regel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ontvangst_regel_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ontvangst_regel_pakbon_regel_id_fkey"
+            columns: ["pakbon_regel_id"]
+            isOneToOne: false
+            referencedRelation: "ontvangst_pakbon_regel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ontvangst_regel_vervangen_door_fkey"
+            columns: ["vervangen_door"]
+            isOneToOne: false
+            referencedRelation: "ontvangst_regel"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       personeel_history: {
         Row: {
@@ -7752,6 +8331,16 @@ export type Database = {
       }
     }
     Functions: {
+      bestel_backorder_melden: {
+        Args: {
+          p_bron_vestiging?: string
+          p_leverancier_id: string
+          p_regels: Json
+          p_vestiging: string
+          p_volledig?: boolean
+        }
+        Returns: Json
+      }
       bestel_besteldag_regel: {
         Args: {
           _besteldag: string
@@ -7997,6 +8586,23 @@ export type Database = {
           prev_van: string
         }[]
       }
+      fase2_mag_vestiging: {
+        Args: { _uid: string; _vestiging: string }
+        Returns: boolean
+      }
+      fase2_schakelaars: {
+        Args: never
+        Returns: {
+          aan: boolean
+          mag_beslissen: boolean
+          vestiging: string
+          vlag: string
+        }[]
+      }
+      fase2_vlag_aan: {
+        Args: { _vestiging: string; _vlag: string }
+        Returns: boolean
+      }
       foh_rename_category: {
         Args: {
           _department: string
@@ -8009,6 +8615,32 @@ export type Database = {
       }
       foh_tasks_archiveer_oud: { Args: { _dagen?: number }; Returns: number }
       generate_order_number: { Args: never; Returns: string }
+      gerecht_kostprijs_lezen: {
+        Args: never
+        Returns: {
+          dekking_pct: number | null
+          gerecht_id: string | null
+          gerecht_naam: string | null
+          kosten_horeko_portie: number | null
+          kostprijs_bekend: number | null
+          nieuwste_prijsdatum: string | null
+          oudste_prijsdatum: string | null
+          prijsbronnen: string | null
+          recept_gecontroleerd: boolean | null
+          recept_key: string | null
+          regels: number | null
+          regels_met_prijs: number | null
+          regels_volledig: number | null
+          verkoopprijs: number | null
+          volledig: boolean | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "v_gerecht_kostprijs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_user_location: { Args: { _user_id: string }; Returns: string }
       get_user_role: {
         Args: { uid: string }
@@ -8038,6 +8670,42 @@ export type Database = {
       }
       is_mt_lid: { Args: never; Returns: boolean }
       is_service_call: { Args: never; Returns: boolean }
+      keuken_advies: {
+        Args: { p_nu?: string; p_vestiging: string }
+        Returns: {
+          advies_vormen: number
+          basis_eenheid: string
+          behoefte: number
+          deze_levering: string
+          inhoud_vorm: number
+          leverancier_naam: string
+          naam: string
+          onderweg_op_tijd: number
+          onderweg_restant: number
+          opslag: number
+          reden: string
+          stand: number
+          status: string
+          telartikel_id: string
+          verwacht_verbruik: number
+          volgende_levering: string
+          vorm: string
+        }[]
+      }
+      keuken_artikel_verbruik: {
+        Args: {
+          p_artikel_id: string
+          p_tot: string
+          p_van: string
+          p_vestiging: string
+        }
+        Returns: {
+          datum: string
+          gerechten: number
+          verbruik: number
+          volledig: boolean
+        }[]
+      }
       keuken_basis_vorig_jaar: {
         Args: { p_tot: string; p_van: string; p_vestiging: string }
         Returns: {
@@ -8060,6 +8728,15 @@ export type Database = {
         Args: { p_datum: string; p_vestiging: string }
         Returns: string
       }
+      keuken_telling_opslaan: {
+        Args: {
+          p_aantal: number
+          p_datum?: string
+          p_moment?: string
+          p_telartikel_id: string
+        }
+        Returns: string
+      }
       keuken_verwachte_verkoop: {
         Args: { p_tot: string; p_van: string; p_vestiging: string }
         Returns: {
@@ -8074,6 +8751,23 @@ export type Database = {
           trend: number
           verwacht: number
           vestiging: string
+        }[]
+      }
+      keuken_voorraad_stand: {
+        Args: { p_tot?: string; p_vestiging: string }
+        Returns: {
+          artikel_id: string
+          basis_eenheid: string
+          geteld: number
+          laatste_telling: string
+          naam: string
+          ontvangen: number
+          opslag: number
+          reden: string
+          stand: number
+          telartikel_id: string
+          verbruik: number
+          volledig: boolean
         }[]
       }
       leercurve_bijwerken: { Args: never; Returns: Json }
@@ -8112,6 +8806,259 @@ export type Database = {
       mep_vorige_open_dag: {
         Args: { _vestiging: string; _voor: string }
         Returns: string
+      }
+      ontvangst_afwijkingen: {
+        Args: { p_alleen_open?: boolean; p_van?: string; p_vestiging: string }
+        Returns: {
+          aantal: number
+          afgehandeld: boolean
+          ander_product: string
+          besteld_aantal: number
+          credit_status: string
+          factuur_aantal: number
+          factuur_check: string
+          factuur_refs: string
+          leverancier_naam: string
+          naam: string
+          ontvangen_op: string
+          ontvangst_regel_id: string
+          opmerking: string
+          ordernummer: string
+          uitkomst: string
+        }[]
+      }
+      ontvangst_controle_standaard: {
+        Args: { p_dag: string; p_leverancier_id: string; p_vestiging: string }
+        Returns: string
+      }
+      ontvangst_factuur_koppelen: {
+        Args: { p_tot: string; p_van: string; p_vestiging: string }
+        Returns: Json
+      }
+      ontvangst_levering_afronden: {
+        Args: {
+          p_levering_id: string
+          p_ontvangen_op?: string
+          p_regels: Json
+          p_vestiging: string
+        }
+        Returns: Json
+      }
+      ontvangst_mandje_vragen: {
+        Args: { p_bron_vestiging?: string; p_nu?: string; p_vestiging: string }
+        Returns: {
+          aantal: number
+          bron: string
+          controle_op: string
+          deadline: string
+          eenheid: string
+          leverancier_id: string
+          leverancier_naam: string
+          naam: string
+          notitie: string
+          reden: string
+          regel_id: string
+          sinds: string
+          soort: string
+        }[]
+      }
+      ontvangst_naar_tel_eenheid: {
+        Args: {
+          _aantal: number
+          _basis: string
+          _eenheid: string
+          _factor: number
+          _inhoud: number
+          _tel_eenheid: string
+          _tel_inhoud_basis: number
+          _tel_inhoud_eenheid: string
+          _vorm: string
+          _vorm_eenheid: string
+        }
+        Returns: number
+      }
+      ontvangst_nalevering_kandidaten: {
+        Args: {
+          p_artikel_id?: string
+          p_artikelnummer?: string
+          p_bron_vestiging: string
+          p_leverancier_id: string
+          p_vestiging: string
+        }
+        Returns: {
+          aantal: number
+          eenheid: string
+          naam: string
+          opnieuw_besteld: boolean
+          ordernummer: string
+          regel_id: string
+          sinds: string
+          soort: string
+        }[]
+      }
+      ontvangst_opvolging_zetten: {
+        Args: {
+          p_credit_status?: string
+          p_factuur_check?: string
+          p_factuur_ref?: string
+          p_notitie?: string
+          p_regel_id: string
+        }
+        Returns: undefined
+      }
+      ontvangst_ordernummer: {
+        Args: { _leverancier?: string; _ref: string }
+        Returns: string
+      }
+      ontvangst_pakbon_kooyman: {
+        Args: {
+          p_leverancier_id: string
+          p_levering: Json
+          p_vestiging: string
+        }
+        Returns: Json
+      }
+      ontvangst_pakbon_opslaan: {
+        Args: {
+          p_leverancier_id: string
+          p_ordernummer: string
+          p_pakbon_datum: string
+          p_regels: Json
+          p_vestiging: string
+        }
+        Returns: Json
+      }
+      ontvangst_restant_beslissen: {
+        Args: {
+          p_bron?: string
+          p_controle_op?: string
+          p_keuze: string
+          p_notitie?: string
+          p_regel_id: string
+        }
+        Returns: Json
+      }
+      ontvangst_restanten: {
+        Args: { p_bron_vestiging?: string; p_vestiging: string }
+        Returns: {
+          aantal: number
+          api_backorder_id: string
+          artikel_id: string
+          bestel_signaal_id: string
+          bron: string
+          controle_op: string
+          eenheid: string
+          leverancier_id: string
+          leverancier_naam: string
+          naam: string
+          notitie: string
+          opnieuw_besteld: boolean
+          regel_id: string
+          sinds: string
+          soort: string
+          telt_als_onderweg: boolean
+          verwacht_op: string
+        }[]
+      }
+      ontvangst_vandaag: {
+        Args: {
+          p_bron_vestiging?: string
+          p_datum?: string
+          p_ook_geleverd?: boolean
+          p_vestiging: string
+        }
+        Returns: {
+          artikelnummer: string
+          basis_eenheid: string
+          besteld_aantal: number
+          besteld_basis: number
+          eenheid: string
+          eenheid_verschil: string
+          geleverd_basis: number
+          geleverd_vorm: string
+          geleverd_vorm_id: string
+          leverancier_id: string
+          leverancier_naam: string
+          naam: string
+          open_regel_id: string
+          ordernummer: string
+          pakbon_aantal: number
+          pakbon_artikelnummer: string
+          pakbon_notitie: string
+          pakbon_regel_id: string
+          pakbon_status: string
+          signaal_id: string
+          soort: string
+          te_laat: boolean
+          verwachte_levering: string
+          voorstel_aantal: number
+        }[]
+      }
+      ontvangst_vorm_bij_nummer: {
+        Args: {
+          p_artikel_hint?: string
+          p_artikelnummer: string
+          p_leverancier_id: string
+          p_vestiging: string
+        }
+        Returns: {
+          artikel_id: string
+          artikelnummer: string | null
+          created_at: string
+          deleted_at: string | null
+          eenheid: string
+          geblokkeerd: boolean
+          geblokkeerd_reden: string | null
+          id: string
+          inhoud_basis: number | null
+          inhoud_bron: string | null
+          inhoud_eenheid: string | null
+          inhoud_gecontroleerd_op: string | null
+          is_standaard: boolean
+          keer_besteld: number
+          laatst_besteld: string | null
+          leverancier_id: string | null
+          prijs: number | null
+          prijs_bron: string | null
+          prijs_datum: string | null
+          prijs_is_indicatie: boolean
+          updated_at: string
+          variant_code: string | null
+          vestiging: string
+          vorm: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "artikel_vormen"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      ontvangst_waarschuwingen: {
+        Args: { p_bron_vestiging?: string; p_vestiging: string }
+        Returns: {
+          aantal: number
+          dagen: number
+          leverancier_id: string
+          leverancier_naam: string
+          naam: string
+          ordernummer: string
+          ref: string
+          sinds: string
+          soort: string
+          volgende_deadline: string
+        }[]
+      }
+      ontvangst_zonder_order: {
+        Args: {
+          p_bron_vestiging?: string
+          p_leverancier_id: string
+          p_levering_id: string
+          p_ontvangen_op?: string
+          p_regels: Json
+          p_vestiging: string
+        }
+        Returns: Json
       }
       opslag_groep_voor: {
         Args: { p_artikel_id: string; p_besteleenheid: string }
@@ -8400,6 +9347,18 @@ export type Database = {
           voorraad_artikel_id: string
         }[]
       }
+      voorraad_bewegingen_lezen_v2: {
+        Args: { p_ontvangst_vestiging?: string; p_vestiging: string }
+        Returns: {
+          bron_ref: string
+          bronkwaliteit: string
+          datum: string
+          hoeveelheid: number
+          soort: string
+          vestiging: string
+          voorraad_artikel_id: string
+        }[]
+      }
       voorraad_daggrens: {
         Args: { p_datum: string; p_moment: string }
         Returns: string
@@ -8418,6 +9377,25 @@ export type Database = {
       }
       voorraad_stand_berekenen: {
         Args: { p_artikel: string; p_exclusief?: string; p_tot: string }
+        Returns: {
+          correcties: number
+          geteld: number
+          kassa: number
+          laatste_telling: string
+          laatste_telling_id: string
+          ontvangen: number
+          opslag: number
+          stand: number
+          volledig: boolean
+        }[]
+      }
+      voorraad_stand_berekenen_v2: {
+        Args: {
+          p_artikel: string
+          p_exclusief?: string
+          p_ontvangst_vestiging?: string
+          p_tot: string
+        }
         Returns: {
           correcties: number
           geteld: number

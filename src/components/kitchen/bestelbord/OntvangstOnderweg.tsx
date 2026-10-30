@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import { CompacteTabel } from './CompacteTabel';
 import { zoekBordSuggesties, type BordSuggestie } from '@/hooks/useBestelbord';
 import { useOntvangstMutaties, type NaleveringKandidaat, type OntvangstRestant, type OntvangstVandaag } from '@/hooks/useOntvangstV2';
-import { bouwRegel, eindcheckFout, kortDatum, restantVan, restSoortLabel, type EindcheckInvoer, type OntvangstModus, type RestBron } from '@/lib/ontvangstV2';
+import { isAutomatisch, bouwRegel, eindcheckFout, kortDatum, restantVan, restSoortLabel, type EindcheckInvoer, type OntvangstModus, type RestBron } from '@/lib/ontvangstV2';
 
 const BRONNEN: { id: RestBron; naam: string }[] = [{ id: 'pakbon', naam: 'Pakbon' }, { id: 'mail', naam: 'Mail' }, { id: 'orderbevestiging', naam: 'Bevestiging' }];
 const sleutelVan = (r: OntvangstVandaag) => r.open_regel_id ?? r.signaal_id ?? r.pakbon_regel_id ?? r.naam;
@@ -29,12 +29,12 @@ function Aantal({ waarde, onChange, min = 0 }: { waarde: number; onChange: (n: n
   </div>;
 }
 
-function startInvoer(r: OntvangstVandaag): EindcheckInvoer {
+function startInvoer(r: OntvangstVandaag, restanten: OntvangstRestant[]): EindcheckInvoer {
   const besteld = Number(r.besteld_aantal ?? r.pakbon_aantal ?? 0);
   return {
     soort: r.soort, signaal_id: r.signaal_id, open_regel_id: r.open_regel_id, pakbon_regel_id: r.pakbon_regel_id, geleverd_vorm_id: r.geleverd_vorm_id,
     besteld, binnen: Number(r.voorstel_aantal ?? r.pakbon_aantal ?? besteld), kapot: 0, ander_product: false, ander_product_tekst: '',
-    nageleverd: false, rest_bron: null, rest_notitie: '', verwacht_op: '', opmerking: '', automatisch: !!r.pakbon_regel_id,
+    nageleverd: false, rest_bron: null, rest_notitie: '', verwacht_op: '', opmerking: '', automatisch: isAutomatisch(r, restanten),
   };
 }
 
@@ -56,7 +56,7 @@ export function NageleverdKaart({ regels }: { regels: OntvangstRestant[] }) {
 }
 
 /** 5.3 Eindcheck: wat is er vandaag binnen; restant standaard 'Mist'. */
-export function EindcheckKaart({ modus, regels, laden, leveranciers }: { modus: OntvangstModus; regels: OntvangstVandaag[]; laden: boolean; leveranciers?: Map<string, string> }) {
+export function EindcheckKaart({ modus, regels, restanten, laden, leveranciers }: { modus: OntvangstModus; regels: OntvangstVandaag[]; restanten: OntvangstRestant[]; laden: boolean; leveranciers?: Map<string, string> }) {
   const { afronden } = useOntvangstMutaties(modus);
   const [invoer, setInvoer] = useState<Record<string, EindcheckInvoer>>({});
   const [gekozen, setGekozen] = useState<Set<string>>(new Set());
@@ -64,9 +64,9 @@ export function EindcheckKaart({ modus, regels, laden, leveranciers }: { modus: 
   const [zonderOrder, setZonderOrder] = useState(false);
 
   useEffect(() => {
-    setInvoer((oud) => Object.fromEntries(regels.map((r) => [sleutelVan(r), oud[sleutelVan(r)] ?? startInvoer(r)])));
+    setInvoer((oud) => Object.fromEntries(regels.map((r) => [sleutelVan(r), { ...(oud[sleutelVan(r)] ?? startInvoer(r, restanten)), automatisch: isAutomatisch(r, restanten) }])));
     setGekozen((oud) => new Set([...oud].filter((k) => regels.some((r) => sleutelVan(r) === k))));
-  }, [regels]);
+  }, [regels, restanten]);
 
   const groepen = useMemo(() => {
     const m = new Map<string, OntvangstVandaag[]>();

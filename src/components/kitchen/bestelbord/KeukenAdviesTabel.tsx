@@ -8,8 +8,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import type { KeukenAdviesRegel } from '@/hooks/useOntvangstV2';
 
 const getal = (n: number | null | undefined) => (n == null ? '—' : String(Math.round(Number(n) * 10) / 10));
-const variant = (s: string | null): 'success' | 'warning' | 'error' | 'secondary' =>
-  s === 'ok' || s === 'genoeg' ? 'success' : s === 'bestellen' ? 'warning' : s === 'tekort' ? 'error' : 'secondary';
+const STATUS: Record<string, { label: string; variant: 'success' | 'warning' | 'secondary' }> = {
+  advies: { label: 'Advies', variant: 'success' },
+  gedeeltelijk: { label: 'Deels', variant: 'warning' },
+  geen_advies: { label: 'Geen advies', variant: 'secondary' },
+};
 
 /** 8.2 Advies keuken: alleen lezen. */
 export function KeukenAdviesTabel({ regels, laden }: { regels: KeukenAdviesRegel[]; laden: boolean }) {
@@ -34,7 +37,7 @@ export function KeukenAdviesTabel({ regels, laden }: { regels: KeukenAdviesRegel
               <TableCell className="text-right tabular-nums">{getal(r.behoefte)}</TableCell>
               <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex items-center gap-1.5"><span className="rounded-full bg-muted px-2 text-sm font-semibold">{r.advies_vormen ?? 0}</span>{r.vorm && <span className="text-xs text-muted-foreground">{r.vorm}</span>}</span></TableCell>
               <TableCell><div className="flex items-center justify-end gap-1">
-                {r.status && <Badge variant={variant(r.status)}>{r.status}</Badge>}
+                {r.status && <Badge variant={STATUS[r.status]?.variant ?? 'secondary'}>{STATUS[r.status]?.label ?? r.status}</Badge>}
                 {r.reden && <Popover><PopoverTrigger asChild><Button variant="ghost" size="touch-icon" aria-label={`Reden voor ${r.naam}`}><Info className="h-4 w-4 text-muted-foreground" /></Button></PopoverTrigger><PopoverContent className="max-w-xs text-sm">{r.reden}</PopoverContent></Popover>}
               </div></TableCell>
             </TableRow>;
