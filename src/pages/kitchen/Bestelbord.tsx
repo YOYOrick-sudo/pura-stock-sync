@@ -494,7 +494,7 @@ export default function Bestelbord() {
           { id: 'bord', label: 'Op het bord', waarde: open.length, sub: openTotaal, icoon: ClipboardList, actief: tab === 'bord' && !alleenZonderPrijs, onKies: () => naarTab('bord') },
           { id: 'advies', label: 'Advies', waarde: positieveAdviezen.length, sub: 'voorstellen', icoon: Sparkles, actief: tab === 'advies', onKies: () => naarTab('advies') },
           { id: 'onderweg', label: 'Onderweg', waarde: besteld.length, sub: teChecken.length ? `${teChecken.length} te checken` : 'op schema', icoon: Truck, toon: teChecken.length ? 'let-op' : 'neutraal', actief: tab === 'onderweg' && !alleenZonderPrijs, onKies: () => naarTab('onderweg') },
-          { id: 'prijs', label: 'Geen prijs', waarde: zonderPrijs, sub: alleenZonderPrijs ? 'filter aan · tik om te wissen' : 'tik om te tonen', icoon: AlertCircle, toon: zonderPrijs ? 'let-op' : 'neutraal', actief: alleenZonderPrijs, onKies: () => { const aan = !alleenZonderPrijs; setAlleenZonderPrijs(aan); if (aan && tab !== 'onderweg') setTabKeuze('bord'); } },
+          { id: 'prijs', label: 'Geen prijs', waarde: zonderPrijs, sub: alleenZonderPrijs ? 'filter aan' : undefined, icoon: AlertCircle, toon: zonderPrijs ? 'let-op' : 'neutraal', actief: alleenZonderPrijs, onKies: () => { const aan = !alleenZonderPrijs; setAlleenZonderPrijs(aan); if (aan && tab !== 'onderweg') setTabKeuze('bord'); } },
         ]} /></InklapGroep>
         <Tabs value={tab} onValueChange={setTabKeuze}>
           <div className="flex flex-wrap items-center gap-2">
