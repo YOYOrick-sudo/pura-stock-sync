@@ -6960,6 +6960,59 @@ export type Database = {
           },
         ]
       }
+      v_bestel_advies_basis: {
+        Row: {
+          advies_tekst: string | null
+          artikel: string | null
+          artikel_id: string | null
+          artikel_vorm_id: string | null
+          datum: string | null
+          eenheid: string | null
+          geblokkeerd: boolean | null
+          hoeveelheid: number | null
+          hoeveelheid_basis: number | null
+          id: string | null
+          inhoud_basis: number | null
+          inhoud_eenheid: string | null
+          leverancier_id: string | null
+          leverdag: string | null
+          onzeker: boolean | null
+          op_bord_regel_id: string | null
+          verwacht_verbruik: number | null
+          vestiging: string | null
+          vorm: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bestel_advies_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_advies_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_advies_artikel_vorm_id_fkey"
+            columns: ["artikel_vorm_id"]
+            isOneToOne: false
+            referencedRelation: "artikel_vormen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_advies_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_bestel_historie_top: {
         Row: {
           artikel_id: string | null
@@ -6994,6 +7047,7 @@ export type Database = {
       v_bord_regel_bestel: {
         Row: {
           aantal: number | null
+          afwijking_tekst: string | null
           artikel_id: string | null
           artikel_vorm_id: string | null
           artikelnummer: string | null
@@ -7622,6 +7676,7 @@ export type Database = {
         Args: { p_vestiging: string }
         Returns: {
           aantal: number | null
+          afwijking_tekst: string | null
           artikel_id: string | null
           artikel_vorm_id: string | null
           artikelnummer: string | null
@@ -7668,6 +7723,16 @@ export type Database = {
       bestelbot_normaliseer: { Args: { p_tekst: string }; Returns: string }
       bestelbot_prijzen_opslaan: { Args: { p_rijen: Json }; Returns: Json }
       besteleenheid_norm: { Args: { p: string }; Returns: string }
+      bord_afwijking: {
+        Args: {
+          p_artikel_id: string
+          p_basis_eenheid: string
+          p_excl?: string
+          p_totaal_basis: number
+          p_vestiging: string
+        }
+        Returns: string
+      }
       claim_next_print_job: {
         Args: never
         Returns: {
