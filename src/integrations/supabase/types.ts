@@ -1326,6 +1326,36 @@ export type Database = {
           },
         ]
       }
+      drukte_kalender: {
+        Row: {
+          bron: string
+          created_at: string
+          datum: string
+          factor: number
+          id: string
+          reden: string | null
+          vestiging: string
+        }
+        Insert: {
+          bron: string
+          created_at?: string
+          datum: string
+          factor: number
+          id?: string
+          reden?: string | null
+          vestiging: string
+        }
+        Update: {
+          bron?: string
+          created_at?: string
+          datum?: string
+          factor?: number
+          id?: string
+          reden?: string | null
+          vestiging?: string
+        }
+        Relationships: []
+      }
       eenheden: {
         Row: {
           basis_code: string
@@ -2027,7 +2057,7 @@ export type Database = {
           bron: string
           created_at: string
           created_by: string | null
-          factor: number
+          factor: number | null
           geldig_tot: string | null
           geldig_vanaf: string | null
           gerecht_id: string | null
@@ -2043,7 +2073,7 @@ export type Database = {
           bron: string
           created_at?: string
           created_by?: string | null
-          factor?: number
+          factor?: number | null
           geldig_tot?: string | null
           geldig_vanaf?: string | null
           gerecht_id?: string | null
@@ -2059,7 +2089,7 @@ export type Database = {
           bron?: string
           created_at?: string
           created_by?: string | null
-          factor?: number
+          factor?: number | null
           geldig_tot?: string | null
           geldig_vanaf?: string | null
           gerecht_id?: string | null
@@ -7290,6 +7320,50 @@ export type Database = {
           },
         ]
       }
+      v_gerecht_kostprijs: {
+        Row: {
+          dekking_pct: number | null
+          gerecht_id: string | null
+          gerecht_naam: string | null
+          kosten_horeko_portie: number | null
+          kostprijs_bekend: number | null
+          nieuwste_prijsdatum: string | null
+          oudste_prijsdatum: string | null
+          recept_gecontroleerd: boolean | null
+          recept_key: string | null
+          regels: number | null
+          regels_met_prijs: number | null
+          regels_volledig: number | null
+          verkoopprijs: number | null
+          volledig: boolean | null
+        }
+        Relationships: []
+      }
+      v_gerecht_verbruik_portie: {
+        Row: {
+          artikel_bron: string | null
+          artikel_id: string | null
+          artikel_naam: string | null
+          basis_eenheid: string | null
+          component_type: string | null
+          diepte: number | null
+          eenheid: string | null
+          gerecht_id: string | null
+          gerecht_naam: string | null
+          hoeveelheid_basis: number | null
+          hoeveelheid_portie: number | null
+          pad: string | null
+          probleem: string | null
+          recept_gecontroleerd: boolean | null
+          recept_key: string | null
+          regel: string | null
+          regel_id: number | null
+          regel_volledig: boolean | null
+          volledig: boolean | null
+          wortel_key: string | null
+        }
+        Relationships: []
+      }
       v_horeko_artikel_allergenen_effectief: {
         Row: {
           allergenen: Database["public"]["Enums"]["allergen"][] | null
@@ -7961,6 +8035,44 @@ export type Database = {
       }
       is_mt_lid: { Args: never; Returns: boolean }
       is_service_call: { Args: never; Returns: boolean }
+      keuken_basis_vorig_jaar: {
+        Args: { p_tot: string; p_van: string; p_vestiging: string }
+        Returns: {
+          basis: number
+          datum: string
+          gerecht_id: string
+          ref_open: number
+          referentiedagen: string
+        }[]
+      }
+      keuken_gerecht_verkoop_dag: {
+        Args: { p_tot: string; p_van: string; p_vestiging: string }
+        Returns: {
+          datum: string
+          gerecht_id: string
+          stuks: number
+        }[]
+      }
+      keuken_referentiedag: {
+        Args: { p_datum: string; p_vestiging: string }
+        Returns: string
+      }
+      keuken_verwachte_verkoop: {
+        Args: { p_tot: string; p_van: string; p_vestiging: string }
+        Returns: {
+          basis_vorig_jaar: number
+          datum: string
+          gerecht_id: string
+          gerecht_naam: string
+          is_open: boolean
+          kalender_factor: number
+          opmerking: string
+          referentiedagen: string
+          trend: number
+          verwacht: number
+          vestiging: string
+        }[]
+      }
       leercurve_bijwerken: { Args: never; Returns: Json }
       mag_cijfers_zien: { Args: { _uid: string }; Returns: boolean }
       mag_loonkosten_zien: { Args: { _uid: string }; Returns: boolean }

@@ -26,11 +26,11 @@ export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsV
   return <CompacteTabel zonderKop vinkKop={geleverd ? undefined : 'Besteld'} kinderen={<TableBody>{perLeverancier(regels, leverancier).map(([lev, rs]) => {
     const prijzen = rs.map(prijsVan).filter((p) => p != null);
     return <Fragment key={lev}>
-      <GroepRij kolommen={5} naam={geleverd ? lev : <DeadlineNaam naam={lev} hint={rs[0] ? deadlineHint(rs[0]) : null} />} aantal={rs.length} totaal={prijzen.length ? euro(prijzen.reduce((n, p) => n + p.totaal, 0)) : undefined} gedimd={lev === 'Leverancier onbekend'} />
+      <GroepRij kolommen={5} naam={geleverd ? lev : <DeadlineNaam naam={lev} hint={rs[0] ? deadlineHint(rs[0]) : null} />} aantal={rs.length} totaal={prijzen.length ? euro(prijzen.reduce((n, p) => n + p.totaal, 0)) : undefined} gedimd={lev === 'Leverancier onbekend'} actie={<span className="w-8" aria-hidden />} />
       {rs.map((s) => {
         const prijs = prijsVan(s);
         const info = geleverd ? detail?.(s) : '';
-        return <TableRow key={s.id} className={geleverd ? 'text-muted-foreground' : 'cursor-pointer'} onClick={() => !geleverd && onBewerk(s)}>
+        return <TableRow key={s.id} className={geleverd || s.status === 'besteld' ? 'text-muted-foreground' : 'cursor-pointer'} onClick={() => !geleverd && onBewerk(s)}>
           <TableCell className="!px-0" onClick={(e) => e.stopPropagation()}>{geleverd ? <div className="mx-auto flex h-11 w-11 items-center justify-center"><Check className="h-4 w-4 text-primary" aria-label="Geleverd" /></div> : <label className="mx-auto flex h-11 w-11 cursor-pointer items-center justify-center"><Checkbox checked={s.status === 'besteld'} aria-label={`${s.naam} besteld`} onCheckedChange={(b) => onBesteld(s, b === true)} /></label>}</TableCell>
           <TableCell><div className="flex min-h-11 min-w-0 flex-col justify-center">
             <span className="flex min-w-0 items-center gap-1.5"><span className="truncate font-medium">{s.naam}</span><RegelInfo info={regelInfo?.(s)} /></span>
