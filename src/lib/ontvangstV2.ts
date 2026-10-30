@@ -153,8 +153,14 @@ export function mandjeRedenLabel(reden: string | null | undefined): string {
   return reden ?? '';
 }
 
-/** Waarschuwingen uit ontvangst_levering_afronden. */
+/** Waarschuwingen uit ontvangst_levering_afronden die personeel moet zien: alleen 'ook opnieuw besteld'. Objecten ({naam, waarschuwing}) en strings. */
 export function afrondWaarschuwingen(res: unknown): string[] {
   const w = (res as { waarschuwingen?: unknown } | null)?.waarschuwingen;
-  return Array.isArray(w) ? w.filter((x): x is string => typeof x === 'string') : [];
+  if (!Array.isArray(w)) return [];
+  return w.flatMap((x) => {
+    const tekst = typeof x === 'string' ? x : typeof (x as { waarschuwing?: unknown })?.waarschuwing === 'string' ? (x as { waarschuwing: string }).waarschuwing : '';
+    if (!tekst.includes('ook opnieuw besteld')) return [];
+    const naam = typeof x === 'object' && x && typeof (x as { naam?: unknown }).naam === 'string' ? (x as { naam: string }).naam : '';
+    return [naam ? `${naam}: ${tekst}` : tekst];
+  });
 }

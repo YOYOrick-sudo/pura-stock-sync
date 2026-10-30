@@ -106,6 +106,10 @@ describe('onderweg-blokken en badges', () => {
   });
   test('waarschuwing opnieuw besteld wordt gelezen', () => {
     expect(afrondWaarschuwingen({ waarschuwingen: ['let op: ook opnieuw besteld'] })).toEqual(['let op: ook opnieuw besteld']);
+    expect(afrondWaarschuwingen({ waarschuwingen: [
+      { regel: 'r1', naam: 'Oatly Barista Light', waarschuwing: 'let op: ook opnieuw besteld' },
+      { regel: 'r2', naam: 'Melk', waarschuwing: 'geen inhoud per verpakking: telt niet in voorraad' },
+    ] })).toEqual(['Oatly Barista Light: let op: ook opnieuw besteld']);
     expect(afrondWaarschuwingen(null)).toEqual([]);
   });
 });
