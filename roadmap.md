@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Mobiel stap 13: MEP-week, beheer en oude planning — passende weekbalk, veegbare tabs, 44px knoppen en één mobiele app-kop.
+- [x] Mobiel stap 13: MEP-week, beheer en oude planning — passende weekbalk, veegbare tabs, 44px knoppen en één mobiele app-kop; 90 tests geslaagd, 2 bekende Deno-fouten, build OK; verwerking onveranderd.
+- [ ] Mobiel stap 13 visuele controle — controlesessie toont Geen toegang op alle drie routes; geen rechten of taken gewijzigd.
 
 - [x] Mobiel stap 12: Gerechten, Ingrediënten en Receptformulier — namen/invoer meer ruimte, 44px tikvlakken, opslaanbalk boven onderbalk; 90 tests geslaagd, 2 bekende Deno-fouten, build OK; verwerking ongewijzigd.
 - [ ] Mobiel stap 12 visuele controle — controlesessie toont Geen toegang op de drie schermen; geen rechten of gegevens gewijzigd.

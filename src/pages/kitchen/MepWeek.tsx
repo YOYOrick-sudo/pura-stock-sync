@@ -71,7 +71,7 @@ export default function MepWeek() {
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
-            <span className={isMobile ? 'min-w-0 flex-1 text-center text-sm font-medium' : 'min-w-[130px] text-center text-[15px] font-medium'}>{weekLabel}</span>
+            <span className={isMobile ? 'min-w-0 flex-1 truncate text-center text-sm font-medium' : 'min-w-[130px] text-center text-[15px] font-medium'} title={isMobile ? weekLabel : undefined}>{weekLabel}</span>
             <Button
               size="icon"
               variant="outline"
