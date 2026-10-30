@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
+import { SidebarLayout } from '@/components/SidebarLayout';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { RijMenu, segmentTabsKlasse } from '@/components/pura';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -81,6 +84,7 @@ function MepRij({
   verplaatsLabel: string;
   verplaatsTerug: boolean;
 }) {
+  const isMobile = useIsMobile();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: regel.id });
   const klaar = !!regel.completed_at;
   const totaal = regel.quantity ?? 1;
@@ -91,6 +95,7 @@ function MepRij({
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
         'p-3 flex items-center gap-3 bg-card shadow-sm',
+        isMobile && 'min-w-0 !gap-2 flex-wrap [&>button]:min-h-11 [&>button]:min-w-11',
         werkview && 'p-4',
         klaar && 'opacity-60',
         isDragging && 'ring-2 ring-primary/40',
@@ -114,7 +119,7 @@ function MepRij({
         {klaar && <Check className={werkview ? 'h-7 w-7' : 'h-5 w-5'} />}
       </button>
 
-      <div className="flex-1 min-w-0">
+      <div className={isMobile ? 'min-w-0 flex-1 basis-24 break-words [overflow-wrap:anywhere]' : 'flex-1 min-w-0'}>
         <div className="flex items-center gap-2 flex-wrap">
           <span className={cn('font-semibold text-foreground', werkview && 'text-lg', klaar && 'line-through')}>
             {regel.titel}
@@ -135,7 +140,7 @@ function MepRij({
         )}
       </div>
 
-      <div className="flex items-center gap-1 shrink-0">
+      <div className={isMobile ? 'ml-auto flex shrink-0 items-center gap-1 [&>button]:min-w-11' : 'flex items-center gap-1 shrink-0'}>
         <button
           onClick={() => onVoortgang(-1)}
           className={cn('rounded-polar border border-border text-muted-foreground', werkview ? 'h-14 w-11 text-lg' : 'h-11 w-9')}
@@ -157,6 +162,11 @@ function MepRij({
       </div>
 
       {!werkview && (
+        isMobile ? <RijMenu naam={regel.titel} acties={[
+          { label: 'Opslaan als template', onClick: onTemplate },
+          { label: verplaatsLabel, onClick: onVerplaats },
+          { label: 'Verwijderen', onClick: onVerwijder, gevaar: true },
+        ]} /> :
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" onClick={onTemplate} title="Opslaan als template" className="h-10 w-10">
             <CalendarPlus className="h-4 w-4 text-muted-foreground" />
@@ -174,6 +184,8 @@ function MepRij({
 }
 
 export default function MepPlanning() {
+  const isMobile = useIsMobile();
+  const Layout = isMobile ? SidebarLayout : KitchenLayout;
   const { userLocation } = useUserLocation();
   const navigate = useNavigate();
   const kalender = useMepKalender(userLocation);
@@ -249,17 +261,17 @@ export default function MepPlanning() {
   ];
 
   return (
-    <KitchenLayout title="Mise-en-place" subtitle={`${format(kalender.vandaag, 'EEEE d MMMM', { locale: nl })}`}>
-      <div className="space-y-5">
+    <Layout title="Mise-en-place" subtitle={`${format(kalender.vandaag, 'EEEE d MMMM', { locale: nl })}`}>
+      <div className={isMobile ? 'min-w-0 max-w-full space-y-4 [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:text-base' : 'space-y-5'}>
         <MepVerbindingBanner
           realtimeOk={planning.verbinding.realtimeOk}
           wachtrij={planning.verbinding.wachtrij}
           onOpnieuw={planning.verbinding.opnieuwProberen}
         />
 
-        <div className="flex items-center gap-2">
-          <Tabs value={tab} onValueChange={(v) => setTab(v as 'vandaag' | 'volgende')} className="flex-1">
-            <TabsList className="w-full grid grid-cols-2">
+        <div className={isMobile ? 'flex min-w-0 flex-wrap items-center gap-2' : 'flex items-center gap-2'}>
+          <Tabs value={tab} onValueChange={(v) => setTab(v as 'vandaag' | 'volgende')} className={isMobile ? 'w-full min-w-0 basis-full' : 'flex-1'}>
+            <TabsList className={isMobile ? `${segmentTabsKlasse} !w-full flex-nowrap overflow-x-auto [&>button]:shrink-0 [&>button]:whitespace-nowrap` : 'w-full grid grid-cols-2'}>
               <TabsTrigger value="vandaag">{kalender.dagLabel(kalender.vandaag)}</TabsTrigger>
               <TabsTrigger value="volgende">{kalender.dagLabel(kalender.volgendeDag)}</TabsTrigger>
             </TabsList>
@@ -288,7 +300,7 @@ export default function MepPlanning() {
         </div>
 
         <Card className="p-4 bg-card shadow-sm space-y-3">
-          <div className="flex items-center justify-between gap-3">
+          <div className={isMobile ? 'flex min-w-0 flex-wrap items-center justify-between gap-2' : 'flex items-center justify-between gap-3'}>
             <div>
               <p className="text-sm font-semibold text-foreground">
                 {klaarAantal} van {regels.length} klaar
@@ -309,7 +321,7 @@ export default function MepPlanning() {
         {!werkview && chips.length > 0 && (
           <div className="space-y-2">
             <p className="text-xs font-medium text-muted-foreground">Vaak op deze dag</p>
-            <div className="flex flex-wrap gap-2">
+            <div className={isMobile ? 'flex min-w-0 flex-nowrap gap-2 overflow-x-auto [&>button]:shrink-0 [&>button]:whitespace-nowrap' : 'flex flex-wrap gap-2'}>
               {chips.map((c) => (
                 <Button
                   key={`${c.titel}-${c.handeling ?? ''}`}
@@ -412,6 +424,6 @@ export default function MepPlanning() {
           )
         }
       />
-    </KitchenLayout>
+    </Layout>
   );
 }

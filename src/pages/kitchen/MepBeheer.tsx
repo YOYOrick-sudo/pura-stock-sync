@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
+import { SidebarLayout } from '@/components/SidebarLayout';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { segmentTabsKlasse } from '@/components/pura';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -300,12 +303,14 @@ function OpendagenTab({ location }: { location: string }) {
 export { OpendagenTab };
 
 export default function MepBeheer() {
+  const isMobile = useIsMobile();
+  const Layout = isMobile ? SidebarLayout : KitchenLayout;
   const { userLocation } = useUserLocation();
 
   return (
-    <KitchenLayout title="Mise-en-place beheren" subtitle={userLocation} backTo="/kitchen/mep" backLabel="Mise-en-place">
-      <Tabs defaultValue="templates">
-        <TabsList className="w-full grid grid-cols-3">
+    <Layout title="Mise-en-place beheren" subtitle={userLocation} backTo="/kitchen/mep" backLabel="Mise-en-place">
+      <Tabs defaultValue="templates" className={isMobile ? 'min-w-0 max-w-full [&_input]:h-11 [&_input]:min-w-0 [&_input]:max-w-full [&_input]:text-base [&_button]:min-h-11 [&_button]:min-w-11 [&_button]:shrink-0 [&_button[role=switch]]:!h-11 [&_button[role=switch]]:!w-11 [&_button[role=switch]]:shrink-0 [&_[data-radix-select-trigger]]:min-w-0 [&_p]:break-words' : undefined}>
+        <TabsList className={isMobile ? `${segmentTabsKlasse} !w-full flex-nowrap overflow-x-auto [&>button]:!flex-none [&>button]:shrink-0 [&>button]:whitespace-nowrap` : 'w-full grid grid-cols-3'}>
           <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="handelingen">Handelingen</TabsTrigger>
           <TabsTrigger value="dagen">Openingsdagen</TabsTrigger>
@@ -314,6 +319,6 @@ export default function MepBeheer() {
         <TabsContent value="handelingen" className="mt-4"><HandelingenTab location={userLocation} /></TabsContent>
         <TabsContent value="dagen" className="mt-4"><OpendagenTab location={userLocation} /></TabsContent>
       </Tabs>
-    </KitchenLayout>
+    </Layout>
   );
 }
