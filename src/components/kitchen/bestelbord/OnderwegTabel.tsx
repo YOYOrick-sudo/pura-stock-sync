@@ -8,13 +8,16 @@ import { GroepRij } from '@/components/pura/patronen';
 import { RijMenu, RijMeta, StatusLabel } from '@/components/pura/lijst';
 import { CompacteTabel } from './CompacteTabel';
 import { DeadlineNaam } from './DeadlineNaam';
+import { RegelInfo } from './RegelInfo';
+import type { BordRegelInfo } from '@/hooks/useBestelbord';
 
-export function OnderwegTabel({ groepen, deadlineHint, dagenTeLaatVan, onAllesGeleverd, onGeleverd, onDatum, onNietGeleverd, onDeelsGeleverd, onBewerk, datumLabel, leverDatumLabel }: {
+export function OnderwegTabel({ groepen, regelInfo, deadlineHint, dagenTeLaatVan, onAllesGeleverd, onGeleverd, onDatum, onNietGeleverd, onDeelsGeleverd, onBewerk, datumLabel, leverDatumLabel }: {
   groepen: { key: string; titel: string; regels: BestelSignaal[] }[]; dagenTeLaatVan: (s: BestelSignaal) => number;
   deadlineHint: (s: BestelSignaal) => string | null;
   onAllesGeleverd: (ids: string[]) => void; onGeleverd: (s: BestelSignaal) => void;
   onDatum: (s: BestelSignaal) => void; onNietGeleverd: (s: BestelSignaal) => void; onDeelsGeleverd: (s: BestelSignaal) => void;
   onBewerk: (s: BestelSignaal) => void; datumLabel: (d: string) => string; leverDatumLabel: (d: string | null) => string;
+  regelInfo?: (s: BestelSignaal) => BordRegelInfo | undefined;
 }) {
   return <CompacteTabel onderweg vinkKop="Binnen" kinderen={<TableBody>{groepen.map(({ key, titel, regels }) => {
     const besteldOp = regels[0]?.besteld_op;
@@ -28,7 +31,7 @@ export function OnderwegTabel({ groepen, deadlineHint, dagenTeLaatVan, onAllesGe
             <span className="truncate font-medium">{s.naam}</span>
             {(laat > 0 || s.verwachte_levering) && <RijMeta altijd={laat > 0}>{laat > 0 && <StatusLabel toon="fout">{laat}d te laat</StatusLabel>}{s.verwachte_levering && <span className="sm:hidden">{leverDatumLabel(s.verwachte_levering)}</span>}</RijMeta>}
           </div></TableCell>
-          <TableCell className="text-right tabular-nums"><span className="font-medium">{Number(s.aantal)}</span> <span className="text-xs text-muted-foreground">{s.eenheid || ''}</span></TableCell>
+          <TableCell className="text-right tabular-nums"><span className="font-medium">{Number(s.aantal)}</span> <span className="text-xs text-muted-foreground">{s.eenheid || ''}</span><RegelInfo info={regelInfo?.(s)} /></TableCell>
           <TableCell className="!px-0 text-right text-muted-foreground sm:!px-2"><span className="hidden sm:inline">{s.verwachte_levering ? leverDatumLabel(s.verwachte_levering) : ''}</span></TableCell>
           <TableCell className="!px-0" onClick={(e) => e.stopPropagation()}><RijMenu naam={s.naam} acties={[{ label: 'Bewerken', onClick: () => onBewerk(s) }, { label: 'Leverdatum aanpassen', onClick: () => onDatum(s) }, { label: 'Deels geleverd', onClick: () => onDeelsGeleverd(s) }, { label: 'Niet geleverd', onClick: () => onNietGeleverd(s), gevaar: true }]} /></TableCell>
         </TableRow>;

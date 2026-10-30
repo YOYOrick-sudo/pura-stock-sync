@@ -11,14 +11,17 @@ import { RijMenu, RijMeta, StatusLabel } from '@/components/pura/lijst';
 import { CompacteTabel } from './CompacteTabel';
 import { euro, perLeverancier } from './presentatie';
 import { DeadlineNaam } from './DeadlineNaam';
+import { RegelInfo } from './RegelInfo';
+import type { BordRegelInfo } from '@/hooks/useBestelbord';
 
-export function BordTabel({ regels, leverancier, deadlineHint, prijsVan, prijsSignaal, prijsTip, onBesteld, onBewerk, onVervallen, geleverd = false, onTerug, detail }: {
+export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal, prijsTip, onBesteld, onBewerk, onVervallen, geleverd = false, onTerug, detail }: {
   regels: BestelSignaal[]; leverancier: (s: BestelSignaal) => string;
   deadlineHint: (s: BestelSignaal) => string | null;
   prijsVan: (s: BestelSignaal) => { vorm: ArtikelVorm; totaal: number } | null;
   prijsSignaal: (s: BestelSignaal) => PrijsSignaal | null; prijsTip: (v: ArtikelVorm) => string;
   onBesteld: (s: BestelSignaal, b: boolean) => void; onBewerk: (s: BestelSignaal) => void; onVervallen: (s: BestelSignaal) => void;
   geleverd?: boolean; onTerug?: (s: BestelSignaal) => void; detail?: (s: BestelSignaal) => string;
+  regelInfo?: (s: BestelSignaal) => BordRegelInfo | undefined;
 }) {
   return <CompacteTabel vinkKop={geleverd ? undefined : 'Besteld'} kinderen={<TableBody>{perLeverancier(regels, leverancier).map(([lev, rs]) => {
     const prijzen = rs.map(prijsVan).filter((p) => p != null);
@@ -33,7 +36,7 @@ export function BordTabel({ regels, leverancier, deadlineHint, prijsVan, prijsSi
             <span className="truncate font-medium">{s.naam}</span>
             {info ? <RijMeta altijd>{info}</RijMeta> : <RijMeta>{prijs ? euro(prijs.totaal) : <StatusLabel toon="let-op">Geen prijs</StatusLabel>}</RijMeta>}
           </div></TableCell>
-          <TableCell className="text-right tabular-nums"><span className="font-medium">{Number(s.aantal)}</span> <span className="text-xs text-muted-foreground">{s.eenheid || ''}</span></TableCell>
+          <TableCell className="text-right tabular-nums"><span className="font-medium">{Number(s.aantal)}</span> <span className="text-xs text-muted-foreground">{s.eenheid || ''}</span><RegelInfo info={regelInfo?.(s)} /></TableCell>
           <TableCell className="!px-0 text-right sm:!px-2" onClick={(e) => e.stopPropagation()}><div className="hidden sm:block">{prijs ? <Tooltip><TooltipTrigger asChild><span className="inline-flex h-11 items-center justify-end gap-1 tabular-nums" tabIndex={0}><PrijsPijl signaal={prijsSignaal(s)} eenheid={s.eenheid} alleenDuurder />{euro(prijs.totaal)}</span></TooltipTrigger><TooltipContent>{prijsTip(prijs.vorm)}</TooltipContent></Tooltip> : <StatusLabel toon="let-op">Geen prijs</StatusLabel>}</div></TableCell>
           <TableCell className="!px-0" onClick={(e) => e.stopPropagation()}><RijMenu naam={s.naam} acties={geleverd ? [{ label: 'Terug naar onderweg', onClick: () => onTerug?.(s) }] : [{ label: 'Bewerken', onClick: () => onBewerk(s) }, { label: 'Vervallen', onClick: () => onVervallen(s), gevaar: true }]} /></TableCell>
         </TableRow>;
