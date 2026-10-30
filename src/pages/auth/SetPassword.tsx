@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import logoOfficial from '@/assets/pura-vida-logo-official.png';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type LinkState = 'checking' | 'ready' | 'invalid' | 'saved';
 type PendingLink = {
@@ -14,6 +15,7 @@ type PendingLink = {
 };
 
 export default function SetPassword() {
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [linkState, setLinkState] = useState<LinkState>('checking');
   const [errorMessage, setErrorMessage] = useState('Vraag een nieuwe invite- of wachtwoord-resetmail aan.');
@@ -136,7 +138,7 @@ export default function SetPassword() {
   if (linkState === 'invalid') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="w-full max-w-[420px] bg-card border border-border/60 rounded-[20px] p-8 shadow-sm text-center space-y-4">
+        <div className={`w-full max-w-[420px] bg-card border border-border/60 rounded-[20px] p-8 shadow-sm text-center space-y-4 ${isMobile ? '!p-5 min-w-0 break-words [overflow-wrap:anywhere]' : ''}`}>
           <img src={logoOfficial} alt="Pura Vida" className="h-14 w-auto mx-auto" />
           <AlertCircle className="w-8 h-8 text-destructive mx-auto" />
           <h1 className="text-xl font-semibold">Ongeldige of verlopen link</h1>
@@ -144,7 +146,7 @@ export default function SetPassword() {
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="h-11 px-5 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90"
+            className={`h-11 px-5 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 ${isMobile ? 'w-full h-auto min-h-11 py-2' : ''}`}
           >
             Naar persoonlijk inloggen
           </button>
@@ -156,7 +158,7 @@ export default function SetPassword() {
   if (linkState === 'saved') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="w-full max-w-[420px] bg-card border border-border/60 rounded-[20px] p-8 shadow-sm text-center space-y-4">
+        <div className={`w-full max-w-[420px] bg-card border border-border/60 rounded-[20px] p-8 shadow-sm text-center space-y-4 ${isMobile ? '!p-5 min-w-0 break-words' : ''}`}>
           <img src={logoOfficial} alt="Pura Vida" className="h-14 w-auto mx-auto" />
           <CheckCircle2 className="w-9 h-9 text-primary mx-auto" />
           <h1 className="text-xl font-semibold">Wachtwoord ingesteld</h1>
@@ -168,7 +170,7 @@ export default function SetPassword() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-[420px] bg-card border border-border/60 rounded-[20px] p-8 shadow-sm">
+      <div className={`w-full max-w-[420px] bg-card border border-border/60 rounded-[20px] p-8 shadow-sm ${isMobile ? '!p-5 min-w-0 [&_input]:min-w-0 [&_input]:text-base' : ''}`}>
         <img src={logoOfficial} alt="Pura Vida" className="h-14 w-auto mx-auto mb-6" />
         <h1 className="text-lg font-semibold text-center mb-1">Kies je nieuwe wachtwoord</h1>
         <p className="text-sm text-muted-foreground text-center mb-6">Voor je persoonlijke Pura Vida account</p>

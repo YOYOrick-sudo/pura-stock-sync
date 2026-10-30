@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { MatenSectie, PatronenCompleet, TekstToon } from '@/pages/design-system/Uitbreiding';
 import { BasisVoorbeelden } from '@/pages/design-system/PatronenVoorbeelden';
 import { Controle, NieuweBlokken, Recepten, Regels, StartKeuze } from '@/pages/design-system/Regelboek';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const SECTIES = [
   { id: 'start', label: 'Start', titel: 'Start', uitleg: 'Welk type pagina bouw je?' },
@@ -31,13 +32,14 @@ function Inhoud({ id }: { id: string }) {
 
 /** Openbare naslag voor iedereen die schermen bouwt. Bron: components/pura. */
 export default function DesignSystem() {
+  const isMobile = useIsMobile();
   const [actief, setActief] = useState('start');
   const ga = (id: string) => { setActief(id); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); };
   return <div className="min-h-screen bg-background">
     <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:px-6">
-        <div><h1 className="text-lg font-semibold text-foreground">Pura Vida Design System</h1><p className="text-xs text-muted-foreground">Eén bron voor elke module</p></div>
-        <Button variant="outline" size="touch" asChild><a href="/dashboard"><Home className="h-4 w-4" />Naar app</a></Button>
+        <div className={isMobile ? 'min-w-0 break-words' : undefined}><h1 className="text-lg font-semibold text-foreground">Pura Vida Design System</h1><p className="text-xs text-muted-foreground">Eén bron voor elke module</p></div>
+        <Button variant="outline" size="touch" className={isMobile ? 'shrink-0' : undefined} asChild><a href="/dashboard"><Home className="h-4 w-4" />Naar app</a></Button>
       </div>
       <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4 pb-2 sm:px-6 lg:hidden">{SECTIES.map((s) => <Button key={s.id} variant={actief === s.id ? 'secondary' : 'ghost'} size="touch" className="shrink-0" onClick={() => ga(s.id)}>{s.label}</Button>)}</nav>
     </header>
@@ -45,7 +47,7 @@ export default function DesignSystem() {
       <nav className="hidden w-48 shrink-0 lg:block"><div className="sticky top-24 space-y-1">{SECTIES.map((s) => <Button key={s.id} variant={actief === s.id ? 'secondary' : 'ghost'} size="touch" className="w-full justify-start" onClick={() => ga(s.id)}>{s.label}</Button>)}</div></nav>
       <main className="min-w-0 flex-1 space-y-10">{SECTIES.map((s) => <section key={s.id} id={s.id} className="scroll-mt-32 space-y-4">
         <div><h2 className="text-xl font-semibold text-foreground">{s.titel}</h2><p className="text-sm text-muted-foreground">{s.uitleg}</p></div>
-        <div className="rounded-polar-lg border border-border bg-card p-4 sm:p-6"><Inhoud id={s.id} /></div>
+        <div className={`rounded-polar-lg border border-border bg-card p-4 sm:p-6 ${isMobile ? 'min-w-0 max-w-full overflow-x-auto [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:min-h-11 [&_input]:text-base' : ''}`}><Inhoud id={s.id} /></div>
       </section>)}</main>
     </div>
   </div>;
