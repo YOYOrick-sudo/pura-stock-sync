@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Mobiel stap 15: vijf HR-schermen — veegbare tabs, passende formulieren, 44px acties en één mobiele kop; uitsluitend opmaak onder 744px.
+- [x] Mobiel stap 15: vijf HR-schermen — veegbare tabs, passende formulieren, 44px acties en één mobiele kop; 90 tests geslaagd, 2 bekende Deno-fouten, automatische build OK; bestaande functies en desktopklassen vergeleken en ongewijzigd.
+- [ ] Mobiel stap 15 visuele controle — eigen controlesessie toont Geen toegang op HR, kandidaat toevoegen, huisvesting en woonruimte toevoegen bij 390/744px; detail daardoor niet bereikbaar, geen rechten of gegevens gewijzigd.
 
 - [x] Mobiel stap 14: Takenbeheer, admin en analyse — één mobiele kop, rijmenu's, 44px filters en passende grafiekcontainers; 90 tests geslaagd, 2 bekende Deno-fouten, build OK; verwerking onveranderd.
 - [ ] Mobiel stap 14 visuele controle — controlesessie toont Geen toegang op alle drie routes; geen rechten of taken gewijzigd.
