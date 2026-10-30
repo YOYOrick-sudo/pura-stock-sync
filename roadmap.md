@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Mobiel stap 16: Personeel — veegbare tabs, 44px acties, passende instellingen en scrollende tijdlijn onder 744px; pincode en verwerking ongemoeid.
+
 - [x] Mobiel stap 15: vijf HR-schermen — veegbare tabs, passende formulieren, 44px acties en één mobiele kop; 90 tests geslaagd, 2 bekende Deno-fouten, automatische build OK; bestaande functies en desktopklassen vergeleken en ongewijzigd.
 - [ ] Mobiel stap 15 visuele controle — eigen controlesessie toont Geen toegang op HR, kandidaat toevoegen, huisvesting en woonruimte toevoegen bij 390/744px; detail daardoor niet bereikbaar, geen rechten of gegevens gewijzigd.
 

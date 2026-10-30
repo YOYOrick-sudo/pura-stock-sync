@@ -51,13 +51,13 @@ export default function PersoneelLayout() {
         ? "min-h-full bg-background -mx-[calc(1rem+var(--safe-left))] -mt-2 min-w-0 overflow-hidden"
         : "min-h-full bg-background -m-6 md:-mx-10 md:-my-8 lg:-mx-16 lg:-my-8 min-w-0 overflow-hidden"}>
         <div className="border-b border-border bg-card">
-          <div className="px-6 md:px-10 lg:px-16 pt-4">
-            <div className="flex items-center justify-between mb-3 gap-3">
+          <div className={isMobile ? 'px-4 md:px-10 lg:px-16 pt-4 min-w-0' : 'px-6 md:px-10 lg:px-16 pt-4'}>
+            <div className={isMobile ? 'flex flex-wrap items-center justify-between mb-3 gap-3' : 'flex items-center justify-between mb-3 gap-3'}>
               <h1 className="text-2xl font-semibold">{copy.module}</h1>
               <Button
                 size="sm"
                 onClick={() => setShowNewModal(true)}
-                className="rounded-[14px]"
+                className={isMobile ? 'rounded-polar-lg min-h-11 min-w-11' : 'rounded-[14px]'}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 {copy.nieuweCollega}
