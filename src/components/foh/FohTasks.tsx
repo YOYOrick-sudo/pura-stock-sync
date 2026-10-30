@@ -379,7 +379,7 @@ function SortableTaskItem({ task, language = 'nl', isEditMode, onTitleChange, on
                 fontSize: '16px',
                 fontFamily: 'Inter, sans-serif',
                 transition: 'opacity 0.15s ease, color 0.15s ease',
-              }}>
+              }} className={isMobile ? 'min-w-0' : undefined}>
                 {taskNumber != null && (
                   <span style={{ color: 'hsl(var(--muted-foreground))', fontWeight: 600, marginRight: '6px', fontSize: '13px', opacity: toggleTask && task.completed ? 0.7 : 1 }}>
                     {taskNumber}.
@@ -3006,7 +3006,7 @@ export function FohTasks() {
                   </div>
 
                   {/* Compacte actieknoppen rechts van de tabs */}
-                  <div className={isMobiel ? '[&>button]:hidden' : undefined} style={{
+                  <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: isMobiel ? 'flex-end' : 'flex-start',
@@ -3024,6 +3024,7 @@ export function FohTasks() {
                       <button
                         type="button"
                         aria-label="Standaardsectie van deze iPad instellen"
+                        className={isMobiel ? 'hidden' : undefined}
                         onClick={() => setDeviceModeDialogOpen(true)}
                         style={{
                           width: '44px',
@@ -3054,6 +3055,7 @@ export function FohTasks() {
                       <button
                         onClick={() => setPasswordDialogOpen(true)}
                         aria-label="Takenbeheer openen"
+                        className={isMobiel ? 'hidden' : undefined}
                         style={{
                           width: '44px',
                           height: '44px',
