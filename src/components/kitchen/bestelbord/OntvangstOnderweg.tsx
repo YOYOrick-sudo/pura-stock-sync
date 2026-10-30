@@ -69,7 +69,7 @@ export function NageleverdKaart({ modus, regels }: { modus: OntvangstModus; rege
 
 /** Waarschuwingen na afronden als toast. */
 export function toonWaarschuwingen(res: unknown) {
-  afrondWaarschuwingen(res).forEach((w) => toast.warning(w.charAt(0).toUpperCase() + w.slice(1)));
+  afrondWaarschuwingen(res).forEach((w) => toast.warning(w));
 }
 
 /** 5.3 Eindcheck: wat is er vandaag binnen; restant standaard 'Mist'. */
