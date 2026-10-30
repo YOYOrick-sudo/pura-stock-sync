@@ -1,15 +1,22 @@
 import type { ReactNode } from 'react';
 import { Table, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-/** Eén tabelkop voor bord, onderweg en advies. Op telefoon blijven vinkje, product, aantal en menu. */
+/** Eén rij-opbouw voor bord, onderweg en advies: vink links, naam vult, aantal/prijs/menu vast rechts. Kolombreedtes via colgroup, zodat de verborgen kop niets verschuift. */
 export function CompacteTabel({ kinderen, onderweg = false, advies = false, vinkKop, zonderKop = false }: { kinderen: ReactNode; onderweg?: boolean; advies?: boolean; vinkKop?: string; zonderKop?: boolean }) {
   return <Table className="table-fixed [&_td]:px-2 [&_td]:py-1 [&_th]:h-9 [&_th]:px-2 [&_th]:text-xs">
-    <TableHeader className={zonderKop ? 'sr-only' : undefined}><TableRow>
-      {!advies && <TableHead className="w-16 text-center">{vinkKop ?? <span className="sr-only">Status</span>}</TableHead>}
+    <colgroup>
+      {!advies && <col className="w-14" />}
+      <col />
+      <col className="w-24 sm:w-28" />
+      <col className={advies ? 'w-12' : 'w-0 sm:w-28'} />
+      <col className={advies ? 'w-24' : 'w-12'} />
+    </colgroup>
+    {!zonderKop && <TableHeader><TableRow>
+      {!advies && <TableHead className="text-center">{vinkKop ?? <span className="sr-only">Status</span>}</TableHead>}
       <TableHead>Product</TableHead>
-      <TableHead className="w-20 text-right sm:w-24">{advies ? 'Advies' : 'Aantal'}</TableHead>
-      <TableHead className={advies ? 'w-12' : 'w-0 !px-0 text-right sm:w-28 sm:!px-2'}>{advies ? <span className="sr-only">Toelichting</span> : <span className="hidden sm:inline">{onderweg ? 'Leverdatum' : 'Prijs'}</span>}</TableHead>
-      <TableHead className={advies ? 'w-24' : 'w-12'}><span className="sr-only">Acties</span></TableHead>
-    </TableRow></TableHeader>{kinderen}
+      <TableHead className="text-right">{advies ? 'Advies' : 'Aantal'}</TableHead>
+      <TableHead className={advies ? undefined : '!px-0 text-right sm:!px-2'}>{advies ? <span className="sr-only">Toelichting</span> : <span className="hidden sm:inline">{onderweg ? 'Leverdatum' : 'Prijs'}</span>}</TableHead>
+      <TableHead><span className="sr-only">Acties</span></TableHead>
+    </TableRow></TableHeader>}{kinderen}
   </Table>;
 }
