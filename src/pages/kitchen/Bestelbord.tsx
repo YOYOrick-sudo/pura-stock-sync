@@ -46,21 +46,22 @@ const norm = (s: string) => s.trim().toLowerCase();
 
 function Stepper({ waarde, onChange, eenheid, uit }: { waarde: number | null; onChange: (n: number | null) => void; eenheid?: string; uit?: boolean }) {
   return (
-    <div className="flex items-center gap-1">
+    <div className={cn('flex items-center gap-1', eenheid !== undefined && 'gap-0 rounded-polar-lg border border-input bg-background')}>
       <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Minder" disabled={uit} onClick={() => onChange(Math.max(1, (waarde ?? 1) - 1))}>
         <Minus className="h-4 w-4" />
       </Button>
       {eenheid !== undefined ? (
-        <label className={cn('flex h-11 min-w-[7rem] items-center justify-center gap-1.5 rounded-polar-md border border-input bg-background px-2', uit && 'opacity-50')}>
-          {uit ? <span className="text-sm text-muted-foreground">kies verpakking</span> : <>
-            <Input
+        <label className={cn('flex h-11 min-w-[6.5rem] cursor-text items-baseline justify-center gap-1 px-1', uit && 'opacity-50')}>
+          {uit ? <span className="self-center text-sm text-muted-foreground">kies verpakking</span> : <>
+            <input
               value={waarde == null ? '' : String(waarde)}
               onChange={(e) => { const d = e.target.value.replace(/[^0-9]/g, ''); onChange(d ? Math.max(1, Number(d) || 1) : null); }}
               inputMode="numeric"
-              className="h-9 w-10 border-0 p-0 text-right text-base font-semibold shadow-none focus-visible:ring-0"
+              style={{ width: `${Math.max(1, String(waarde ?? '').length)}ch` }}
+              className="self-center bg-transparent p-0 text-center text-lg font-semibold tabular-nums text-foreground outline-none"
               aria-label="Aantal"
             />
-            <span className="text-base font-medium text-foreground">{eenheid}</span>
+            <span className="self-center text-sm text-muted-foreground">{eenheid}</span>
           </>}
         </label>
       ) : (
