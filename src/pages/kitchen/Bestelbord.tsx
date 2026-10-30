@@ -46,7 +46,7 @@ const norm = (s: string) => s.trim().toLowerCase();
 
 function Stepper({ waarde, onChange, eenheid, uit }: { waarde: number | null; onChange: (n: number | null) => void; eenheid?: string; uit?: boolean }) {
   return (
-    <div className="flex items-center gap-1">
+    <div className={cn('flex items-center gap-1', eenheid !== undefined && 'gap-0 rounded-polar-lg border border-input bg-background')}>
       <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Minder" disabled={uit} onClick={() => onChange(Math.max(1, (waarde ?? 1) - 1))}>
         <Minus className="h-4 w-4" />
       </Button>
