@@ -10,6 +10,7 @@ import { EmptyState } from '@/components/pura/EmptyState';
 import { toast } from '@/hooks/use-toast';
 import { BackfillProgressDialog, type BackfillState, type WeekResult } from './BackfillProgressDialog';
 import { SyncStoringBlok } from './SyncStoringBlok';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 function addDaysISO(iso: string, days: number): string {
   const d = new Date(`${iso}T00:00:00Z`);
@@ -509,6 +510,7 @@ function SyncPopover({
   pending: boolean;
   onSubmit: (van: string, tot: string) => void;
 }) {
+  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [van, setVan] = useState(isoYesterday());
   const [tot, setTot] = useState(isoYesterday());
@@ -522,7 +524,7 @@ function SyncPopover({
           <RefreshCw className={`w-3.5 h-3.5 mr-2 ${pending ? 'animate-spin' : ''}`} /> Sync nu
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-72 p-3 space-y-3">
+      <PopoverContent align="start" className={isMobile ? 'w-72 max-w-[calc(100vw-2rem)] p-3 space-y-3 [&_input]:min-h-11 [&_input]:min-w-0 [&_input]:text-base [&_button]:min-h-11 [&_button]:min-w-11 [&_button]:whitespace-normal [&_.flex]:flex-wrap' : 'w-72 p-3 space-y-3'}>
         <div className="text-xs font-semibold">Sync {vestiging}</div>
         <div className="space-y-2">
           <label className="block text-[11px] text-muted-foreground">
