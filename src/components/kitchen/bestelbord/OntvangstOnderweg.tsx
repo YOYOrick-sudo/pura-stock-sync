@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Hourglass, Minus, PackageCheck, Plus, Truck } from 'lucide-react';
 import { DetailLade, GroepRij, KaartKop, LaadRijen, LijstKaart } from '@/components/pura/patronen';
-import { RijMeta, TabelVoet } from '@/components/pura/lijst';
+import { RijMeta } from '@/components/pura/lijst';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -199,4 +199,3 @@ function ZonderOrderLade({ open, onOpenChange, modus, leveranciers }: { open: bo
   </DetailLade>;
 }
 
-export { TabelVoet };
