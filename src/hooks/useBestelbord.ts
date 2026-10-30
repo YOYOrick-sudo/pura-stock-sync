@@ -79,6 +79,9 @@ export interface ArtikelVorm {
   prijs_datum: string | null;
   prijs_bron: string | null;
   is_standaard: boolean;
+  inhoud_basis?: number | null;
+  inhoud_eenheid?: 'g' | 'ml' | 'stuk' | null;
+  geblokkeerd?: boolean | null;
 }
 
 export interface BordSuggestie {
@@ -107,11 +110,42 @@ export function useArtikelVormen(vestiging: string | null | undefined) {
     queryFn: async (): Promise<ArtikelVorm[]> => {
       const { data, error } = await supabase
         .from('artikel_vormen')
-        .select('id, artikel_id, vorm, eenheid, leverancier_id, prijs, prijs_datum, prijs_bron, is_standaard')
+        .select('id, artikel_id, vorm, eenheid, leverancier_id, prijs, prijs_datum, prijs_bron, is_standaard, inhoud_basis, inhoud_eenheid, geblokkeerd')
         .eq('vestiging', vestiging!)
         .is('deleted_at', null);
       if (error) throw error;
       return (data ?? []) as unknown as ArtikelVorm[];
+    },
+  });
+}
+
+export interface BordRegelInfo {
+  id: string;
+  totaal_tekst: string | null;
+  bestelbaar: boolean | null;
+  reden_niet_bestelbaar: string | null;
+  afwijking_tekst: string | null;
+  eenheid_controleren: boolean | null;
+}
+
+/**
+ * Bestelinfo per bordregel (totaal, afwijking, eenheid controleren) uit v_bord_regel_bestel.
+ * De sleutel begint met ['bestel-signalen', vestiging], zodat elke bestaande invalidatie van
+ * de bestel-signalen-query deze automatisch meeneemt.
+ */
+export function useBordRegelInfo(vestiging: string | null | undefined) {
+  return useQuery({
+    queryKey: ['bestel-signalen', vestiging, 'regel-info'],
+    enabled: !!vestiging,
+    placeholderData: (vorige) => vorige,
+    queryFn: async (): Promise<Map<string, BordRegelInfo>> => {
+      const { data, error } = await (supabase as any)
+        .from('v_bord_regel_bestel')
+        .select('id, totaal_tekst, bestelbaar, reden_niet_bestelbaar, afwijking_tekst, eenheid_controleren')
+        .eq('vestiging', vestiging!)
+        .in('status', ['open', 'besteld']);
+      if (error) throw error;
+      return new Map(((data ?? []) as BordRegelInfo[]).map((r) => [r.id, r]));
     },
   });
 }
