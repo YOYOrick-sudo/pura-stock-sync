@@ -5,7 +5,6 @@ import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Check, AlertCi
 import { DetailLade, InklapGroep, KaartKop, LaadRijen, LijstKaart, Invoerbalk, segmentTabsKlasse } from '@/components/pura/patronen';
 import { TabelVoet } from '@/components/pura/lijst';
 import { EmptyState } from '@/components/pura/EmptyState';
-import { BestelKengetallen } from '@/components/kitchen/bestelbord/BestelKengetallen';
 import { Stappen } from '@/components/pura/blokken';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -472,10 +471,11 @@ export default function Bestelbord() {
   const positieveAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) > 0);
   const nulAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) <= 0);
   const openPrijzen = open.map(prijsVan).filter((p) => p != null);
-  const zonderPrijs = [...open, ...besteld].filter((s) => !prijsVan(s)).length;
+    const zonderPrijs = [...open, ...besteld].filter((s) => !prijsVan(s)).length;
   const q = zoek.trim().toLowerCase();
   const filter = (r: BestelSignaal[]) => r.filter((s) => (!q || s.naam.toLowerCase().includes(q)) && (!alleenZonderPrijs || !prijsVan(s)));
-  const openZicht = filter(open);
+  const onbekendZicht = filter(open).filter((s) => leverancier(s) === 'Leverancier onbekend');
+  const openZicht = filter(open).filter((s) => leverancier(s) !== 'Leverancier onbekend');
   const teCheckenZicht = filter(teChecken);
   const onderwegZicht = filter(onderweg);
   const zonderDatumZicht = filter(zonderDatum);
@@ -483,25 +483,19 @@ export default function Bestelbord() {
   const besteldZicht = [...teCheckenZicht, ...onderwegZicht, ...zonderDatumZicht];
   const filterAan = !!q || alleenZonderPrijs;
   const openTotaal = openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : '—';
-  const naarTab = (t: string) => { setAlleenZonderPrijs(false); setTabKeuze(t); };
-  const leegKaart = (titel: string) => <EmptyState icon={filterAan ? Search : ClipboardList} title={filterAan ? 'Niets gevonden' : titel} description={filterAan ? 'Pas je zoekopdracht of filter aan.' : ''} className="border-0 shadow-none" action={filterAan ? <Button variant="outline" size="touch" onClick={() => { setAlleenZonderPrijs(false); }}>Filter wissen</Button> : undefined} />;
+    const leegKaart = (titel: string) => <EmptyState icon={filterAan ? Search : ClipboardList} title={filterAan ? 'Niets gevonden' : titel} description={filterAan ? 'Pas je zoekopdracht of filter aan.' : ''} className="border-0 shadow-none" action={filterAan ? <Button variant="outline" size="touch" onClick={() => { setAlleenZonderPrijs(false); }}>Filter wissen</Button> : undefined} />;
 
   return (
     <SidebarLayout>
       <div className="space-y-4">
-        <InklapGroep titel="Overzicht"><BestelKengetallen tegels={[
-          { id: 'bord', label: 'Op het bord', waarde: open.length, sub: openTotaal, icoon: ClipboardList, actief: tab === 'bord' && !alleenZonderPrijs, onKies: () => naarTab('bord') },
-          { id: 'advies', label: 'Advies', waarde: positieveAdviezen.length, sub: 'voorstellen', icoon: Sparkles, actief: tab === 'advies', onKies: () => naarTab('advies') },
-          { id: 'onderweg', label: 'Onderweg', waarde: besteld.length, sub: teChecken.length ? `${teChecken.length} te checken` : 'op schema', icoon: Truck, toon: teChecken.length ? 'let-op' : 'neutraal', actief: tab === 'onderweg' && !alleenZonderPrijs, onKies: () => naarTab('onderweg') },
-          { id: 'prijs', label: 'Geen prijs', waarde: zonderPrijs, sub: alleenZonderPrijs ? 'filter aan' : undefined, icoon: AlertCircle, toon: zonderPrijs ? 'let-op' : 'neutraal', actief: alleenZonderPrijs, onKies: () => { const aan = !alleenZonderPrijs; setAlleenZonderPrijs(aan); if (aan && tab !== 'onderweg') setTabKeuze('bord'); } },
-        ]} /></InklapGroep>
         <Tabs value={tab} onValueChange={setTabKeuze}>
           <div className="flex flex-wrap items-center gap-2">
             <div className={isMobile ? '-mx-1 w-full overflow-x-auto px-1 [scrollbar-width:none]' : 'contents'}>
             <TabsList className={isMobile ? cn(segmentTabsKlasse, 'w-max min-w-full flex-nowrap [&>button]:flex-none [&>button]:whitespace-nowrap') : segmentTabsKlasse}>
-              {[{ id: 'bord', naam: 'Op het bord', kort: 'Bord', Icoon: ClipboardList, n: open.length }, { id: 'advies', naam: 'Advies', kort: 'Advies', Icoon: Sparkles, n: positieveAdviezen.length }, { id: 'tellen', naam: 'Tellen', kort: 'Tellen', Icoon: Calculator, n: telOverzicht.open }, { id: 'onderweg', naam: 'Onderweg', kort: 'Onderweg', Icoon: Truck, n: besteld.length }].map(({ id, naam, kort, Icoon, n }) => <TabsTrigger key={id} value={id} aria-label={`${naam} (${n})`} className="min-w-0 px-2 sm:px-3"><Icoon className="hidden h-4 w-4 shrink-0 sm:block" /><span className="truncate sm:hidden">{kort}</span><span className="hidden sm:inline">{naam}</span>{n > 0 && <span className="tabular-nums text-muted-foreground">{n}</span>}</TabsTrigger>)}
+              {[{ id: 'bord', naam: 'Op het bord', kort: 'Bord', Icoon: ClipboardList, n: open.length }, { id: 'advies', naam: 'Advies', kort: 'Advies', Icoon: Sparkles, n: positieveAdviezen.length }, { id: 'tellen', naam: 'Tellen', kort: 'Tellen', Icoon: Calculator, n: telOverzicht.open }, { id: 'onderweg', naam: 'Onderweg', kort: 'Onderweg', Icoon: Truck, n: besteld.length }].map(({ id, naam, kort, Icoon, n }) => <TabsTrigger key={id} value={id} aria-label={`${naam} (${n})`} className="min-w-0 px-2 sm:px-3"><Icoon className="hidden h-4 w-4 shrink-0 sm:block" /><span className="truncate sm:hidden">{kort}</span><span className="hidden sm:inline">{naam}</span>{n > 0 && <span className="tabular-nums text-muted-foreground">{n}</span>}{id === 'onderweg' && teChecken.length > 0 && <span className="h-2 w-2 shrink-0 rounded-full bg-warning" aria-label={`${teChecken.length} te checken`} />}</TabsTrigger>)}
             </TabsList>
             </div>
+            {zonderPrijs > 0 && (tab === 'bord' || tab === 'onderweg') && <Button variant={alleenZonderPrijs ? 'default' : 'outline'} className="ml-auto min-h-11 shrink-0 gap-1.5" aria-pressed={alleenZonderPrijs} onClick={() => setAlleenZonderPrijs((v) => !v)}><AlertCircle className={cn('h-4 w-4', !alleenZonderPrijs && 'text-warning')} /><span className="tabular-nums">{zonderPrijs}</span><span>zonder prijs</span></Button>}
           </div>
           <div className="mt-4 min-w-0">
             <div className="min-w-0 space-y-4">
@@ -603,9 +597,10 @@ export default function Bestelbord() {
           )}
         </div>
 
-                {isLoading ? <LaadRijen /> : openZicht.length ? <BordTabel regels={openZicht} {...bordProps} /> : leegKaart('Niets openstaand')}
+                {isLoading ? <LaadRijen /> : openZicht.length ? <BordTabel regels={openZicht} {...bordProps} /> : onbekendZicht.length ? null : leegKaart('Niets openstaand')}
                 {!isLoading && openZicht.length > 0 && <TabelVoet links={`${openZicht.length} ${openZicht.length === 1 ? 'product' : 'producten'}`} rechts={openTotaal} />}
                 </LijstKaart>
+                {!isLoading && onbekendZicht.length > 0 && <InklapGroep titel="Leverancier kiezen" aantal={onbekendZicht.length}><LijstKaart><BordTabel regels={onbekendZicht} {...bordProps} /></LijstKaart></InklapGroep>}
                 {(open.length > 0 || besteld.length > 0) && <InklapGroep titel="Per leverancier"><LijstKaart>{leveranciersTabel}</LijstKaart></InklapGroep>}
               </TabsContent>
               <TabsContent value="advies" className="mt-0 space-y-4">
