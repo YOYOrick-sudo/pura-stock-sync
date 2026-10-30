@@ -12,7 +12,8 @@ import { nl } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import { StatusBadge, toneColor, type StatusTone } from '@/components/pura';
+import { StatusBadge, toneColor, type StatusTone, RijMenu } from '@/components/pura';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TicketDetailProps {
   ticketId: string;
@@ -49,6 +50,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 export function TicketDetail({ ticketId, actor, onBack }: TicketDetailProps) {
+  const isMobile = useIsMobile();
   const { data: ticket, isLoading } = useMaintenanceTicket(ticketId);
   const { data: comments } = useTicketComments(ticketId);
   const { data: isAdmin = false } = useIsMaintenanceAdmin();
@@ -59,8 +61,8 @@ export function TicketDetail({ ticketId, actor, onBack }: TicketDetailProps) {
 
   if (isLoading || !ticket) {
     return (
-      <div className="space-y-6 max-w-[700px]">
-        <Button variant="ghost" size="sm" onClick={onBack} className="-ml-3">
+      <div className={isMobile ? 'min-w-0 max-w-full space-y-4' : 'space-y-6 max-w-[700px]'}>
+        <Button variant="ghost" size={isMobile ? 'touch' : 'sm'} onClick={onBack} className={isMobile ? '' : '-ml-3'}>
           <ArrowLeft className="h-4 w-4" />
           Terug
         </Button>
@@ -99,8 +101,8 @@ export function TicketDetail({ ticketId, actor, onBack }: TicketDetailProps) {
   };
 
   return (
-    <div className="space-y-6 max-w-[700px]">
-      <Button variant="ghost" size="sm" onClick={onBack} className="-ml-3">
+    <div className={isMobile ? 'min-w-0 max-w-full space-y-4 [&>div]:!p-4 [&_p]:break-words [&_p]:[overflow-wrap:anywhere] [&_h2]:break-words [&_h2]:[overflow-wrap:anywhere]' : 'space-y-6 max-w-[700px]'}>
+      <Button variant="ghost" size={isMobile ? 'touch' : 'sm'} onClick={onBack} className={isMobile ? '' : '-ml-3'}>
         <ArrowLeft className="h-4 w-4" />
         Terug
       </Button>
@@ -135,7 +137,7 @@ export function TicketDetail({ ticketId, actor, onBack }: TicketDetailProps) {
               <img
                 src={photoUrl}
                 alt="Foto bij melding"
-                className="w-full max-h-[480px] object-cover block"
+                className={isMobile ? 'block max-h-80 w-full object-contain' : 'w-full max-h-[480px] object-cover block'}
               />
             ) : (
               <div className="h-[200px]" />
@@ -158,7 +160,10 @@ export function TicketDetail({ ticketId, actor, onBack }: TicketDetailProps) {
       {isAdmin && ticket.status !== 'afgehandeld' && (
         <div className="bg-card border border-border rounded-polar-xl shadow-card p-6">
           <SectionLabel>Status wijzigen</SectionLabel>
-          <div className="flex gap-3">
+          {isMobile ? (
+            updateStatus.isPending ? <Button variant="ghost" size="touch-icon" disabled aria-label="Status wijzigen"><Clock className="h-4 w-4" /></Button> :
+            <RijMenu naam={ticket.titel} acties={statusFlow.filter((s) => s !== ticket.status).map((s) => ({ label: statusConfig[s].label, onClick: () => handleStatusChange(s) }))} />
+          ) : <div className="flex gap-3">
             {statusFlow.map((s) => {
               const cfg = statusConfig[s];
               const isActive = ticket.status === s;
@@ -188,7 +193,7 @@ export function TicketDetail({ ticketId, actor, onBack }: TicketDetailProps) {
                 </button>
               );
             })}
-          </div>
+          </div>}
         </div>
       )}
 
@@ -200,7 +205,7 @@ export function TicketDetail({ ticketId, actor, onBack }: TicketDetailProps) {
           <div className="space-y-3 mb-4">
             {comments.map((comment) => (
               <div key={comment.id} className="rounded-polar-md bg-muted px-4 py-3">
-                <div className="flex items-center gap-2 mb-1">
+                <div className={isMobile ? 'mb-1 flex flex-wrap items-center gap-2' : 'flex items-center gap-2 mb-1'}>
                   <span className="text-[13px] font-semibold text-foreground">
                     {comment.auteur_naam ?? comment.auteur?.naam ?? 'Onbekend'}
                   </span>
@@ -223,12 +228,12 @@ export function TicketDetail({ ticketId, actor, onBack }: TicketDetailProps) {
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Voeg een notitie toe..."
               rows={2}
-              className="flex-1 rounded-polar-md resize-none text-sm"
+              className={isMobile ? 'min-w-0 flex-1 rounded-polar-md resize-none text-base' : 'flex-1 rounded-polar-md resize-none text-sm'}
             />
             <Button
               onClick={handleComment}
               disabled={!commentText.trim() || createComment.isPending}
-              size="icon"
+              size={isMobile ? 'touch-icon' : 'icon'}
               aria-label="Notitie plaatsen"
               className="self-end"
             >
