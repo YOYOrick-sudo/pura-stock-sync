@@ -31,6 +31,7 @@ import { BainMarieOpen, BainMarieSluit, OpzetkoelingSluit } from './BainMarie';
 import { SectieBalk } from './SectieBalk';
 import { getOrderedCategories, WEST_SECTIONS, type Department } from '@/lib/foh-category-order';
 import { devLog, devError } from "@/lib/devLog";
+import { RijMenu } from '@/components/pura';
 
 // Phase time windows (minutes-based)
 const PHASE_WINDOWS = [
@@ -230,6 +231,7 @@ function SortableTaskItem({ task, language = 'nl', isEditMode, onTitleChange, on
     <div ref={setNodeRef} style={style}>
       <div 
         onClick={handleRowClick}
+        className={isMobile && !isEditMode ? '!py-2 min-h-12 min-w-0' : undefined}
         style={{
           padding: task.completed
             ? `${taskPadding.split(' ')[0]} ${isMobile ? '8px' : '24px'}`
@@ -348,7 +350,7 @@ function SortableTaskItem({ task, language = 'nl', isEditMode, onTitleChange, on
             alignItems: 'center', 
             gap: '8px',
             flex: 1 
-          }}>
+          }} className={isMobile ? 'min-w-0 min-h-11' : undefined}>
             {isEditMode ? (
               <Input
                 value={task.title}
@@ -383,7 +385,7 @@ function SortableTaskItem({ task, language = 'nl', isEditMode, onTitleChange, on
                     {taskNumber}.
                   </span>
                 )}
-                <span style={{ flex: 1 }}>{visibleTitle}</span>
+                <span style={{ flex: 1 }} className={isMobile ? 'min-w-0 break-words [overflow-wrap:anywhere]' : undefined}>{visibleTitle}</span>
                 <RepeatBadge
                   repeatType={(task as any).repeat_type}
                   daysOfWeek={repeatDays && repeatDays.length > 0 ? repeatDays : [(task as any).day_of_week]}
@@ -402,7 +404,7 @@ function SortableTaskItem({ task, language = 'nl', isEditMode, onTitleChange, on
             alignItems: 'center',
             gap: '6px',
             flexShrink: 0,
-          }}>
+          }} className={isMobile && !isEditMode ? 'max-w-24 flex-col' : undefined}>
             {/* Time indicator - editable in edit mode */}
             {isEditMode ? (
               <Select 
@@ -563,7 +565,7 @@ function SortableTaskItem({ task, language = 'nl', isEditMode, onTitleChange, on
         {isEditingDescription && (
           <Dialog open={isEditingDescription} onOpenChange={setIsEditingDescription}>
             <DialogContent 
-              className="data-[state=open]:duration-300 data-[state=open]:ease-out data-[state=closed]:duration-200"
+              className={cn('data-[state=open]:duration-300 data-[state=open]:ease-out data-[state=closed]:duration-200', isMobile && 'min-w-0 break-words [overflow-wrap:anywhere] [&_button]:min-h-11 [&_button]:min-w-11 [&_textarea]:text-base [&>div:last-of-type]:gap-2')}
               style={{
                 backgroundColor: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
@@ -2583,7 +2585,7 @@ export function FohTasks() {
   const groupedCurrentTasks = groupTasksByCategory(currentTasks);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', fontFamily: 'Inter, sans-serif' }}>
+    <div className={isMobiel ? 'min-w-0 max-w-full [&_button]:min-h-11' : undefined} style={{ minHeight: '100vh', backgroundColor: 'hsl(var(--background))', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
       <div style={{
         backgroundColor: 'hsl(var(--card))',
@@ -2644,7 +2646,7 @@ export function FohTasks() {
             );
 
             return (
-              <div style={{
+              <div className={isMobiel ? 'flex-wrap [&>div[role=group]]:!ml-auto' : undefined} style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
@@ -2739,7 +2741,7 @@ export function FohTasks() {
 
 
           {/* Single row with all buttons */}
-          <div style={{
+          <div className={isMobiel ? '!flex flex-nowrap overflow-x-auto [&>button]:shrink-0 [&>button]:whitespace-nowrap [&>button]:!min-h-11' : undefined} style={{
             display: isMobiel ? 'grid' : 'flex',
             gridTemplateColumns: isMobiel ? 'repeat(2, minmax(0, 1fr))' : undefined,
             gap: '8px',
@@ -2949,7 +2951,7 @@ export function FohTasks() {
                     borderRadius: '10px',
                     padding: '3px',
                     gap: '3px',
-                  }}>
+                  }} className={isMobiel ? 'min-w-0 overflow-x-auto [&>button]:shrink-0 [&>button]:whitespace-nowrap' : undefined}>
                     {([
                       { key: 'bediening', label: 'Bediening' },
                       { key: 'keuken', label: 'Keuken' },
@@ -3004,13 +3006,19 @@ export function FohTasks() {
                   </div>
 
                   {/* Compacte actieknoppen rechts van de tabs */}
-                  <div style={{
+                  <div className={isMobiel ? '[&>button]:hidden' : undefined} style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: isMobiel ? 'flex-end' : 'flex-start',
                     gap: '6px',
                     flexShrink: 0,
                   }}>
+                    {isMobiel && !isReadOnly && (
+                      <RijMenu naam="Taken" acties={[
+                        { label: 'Standaardsectie van deze iPad instellen', onClick: () => setDeviceModeDialogOpen(true) },
+                        { label: 'Takenbeheer openen', onClick: () => setPasswordDialogOpen(true) },
+                      ]} />
+                    )}
                     {/* West: lokale standaardsectie is bewust los van het afgeschermde takenbeheer. */}
                     {!isReadOnly && (
                       <button
@@ -3106,7 +3114,7 @@ export function FohTasks() {
 
             {/* Niet-West of West periodiek: bestaande full-width progress bar + admin + nieuwe taak */}
             {(userLocation !== 'West' || mainCategory === 'periodiek') && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div className={isMobiel ? 'min-w-0 !gap-2' : undefined} style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
                     height: '8px',
@@ -3127,7 +3135,7 @@ export function FohTasks() {
                   alignItems: 'center',
                   gap: '16px',
                   flexShrink: 0,
-                }}>
+                }} className={isMobiel ? '!gap-2' : undefined}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '15px', color: 'hsl(var(--muted-foreground))', fontFamily: 'Inter, sans-serif' }}>
                       {completedCount}/{totalCount}
@@ -3144,6 +3152,7 @@ export function FohTasks() {
 
                   {!isReadOnly && (
                     <button
+                      className={isMobiel ? 'hidden' : undefined}
                       onClick={() => setPasswordDialogOpen(true)}
                       style={{
                         display: 'flex',
@@ -3172,6 +3181,9 @@ export function FohTasks() {
                       <Settings size={18} />
                       Admin
                     </button>
+                  )}
+                  {isMobiel && !isReadOnly && (
+                    <RijMenu naam="Taken" acties={[{ label: 'Admin', onClick: () => setPasswordDialogOpen(true) }]} />
                   )}
 
                 {/* New Task Button - only for periodiek (verleden heeft geen periodiek) */}
@@ -3212,7 +3224,7 @@ export function FohTasks() {
                         <Plus size={24} />
                       </button>
                     </DialogTrigger>
-                    <DialogContent style={{
+                    <DialogContent className={isMobiel ? '!w-[calc(100%-2rem)] min-w-0 [&_button]:!min-h-11 [&_input]:!min-h-11 [&_input]:!text-base [&_textarea]:!text-base' : undefined} style={{
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '20px',
@@ -4234,7 +4246,7 @@ export function FohTasks() {
 
       {/* Lokale West-iPadvoorkeur — geen admincode nodig, want dit wijzigt geen taken of data. */}
       <Dialog open={deviceModeDialogOpen} onOpenChange={setDeviceModeDialogOpen}>
-        <DialogContent style={{
+        <DialogContent className={isMobiel ? '!w-[calc(100%-2rem)] min-w-0 [&_button]:min-h-11' : undefined} style={{
           maxWidth: '420px',
           borderRadius: '24px',
           backgroundColor: 'hsl(var(--card))',
