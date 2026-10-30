@@ -147,7 +147,7 @@ const Auth = () => {
         className="w-full max-w-[420px] bg-card border border-border/60 rounded-polar-xl overflow-hidden shadow-[var(--shadow-card)]"
       >
         {/* Header */}
-        <div className="px-8 pt-10 pb-2">
+        <div className="px-5 md:px-8 pt-10 pb-2">
           <div className="text-center mb-4">
             <img 
               src={logoOfficial} 
@@ -165,13 +165,13 @@ const Auth = () => {
         </div>
 
         {/* Login Form */}
-        <div className="px-8 pt-6 pb-8">
+        <div className="px-5 md:px-8 pt-6 pb-8">
           <form onSubmit={handleLogin} className="flex flex-col gap-5">
             <div>
               <label className="text-[11px] font-medium text-foreground/45 block mb-2">
                 Kies inlogmethode
               </label>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2 md:gap-3">
                 {([
                   { key: 'daily' as const, label: 'Daily', icon: Building2 },
                   { key: 'foodbar' as const, label: 'Foodbar', icon: Store },
@@ -182,14 +182,14 @@ const Auth = () => {
                     key={key}
                     onClick={() => !loading && setSelection(key)}
                     disabled={loading}
-                    className={`flex flex-col items-center justify-center gap-2 py-5 px-2 rounded-[16px] transition-all duration-200 active:scale-[0.98]
+                    className={`flex flex-col items-center justify-center gap-2 min-h-[44px] py-4 px-1 md:py-5 md:px-2 rounded-[16px] transition-all duration-200 active:scale-[0.98]
                       ${selection === key
                         ? 'bg-primary/10 text-primary ring-1 ring-primary/20 shadow-[0_2px_8px_-2px_rgba(22,163,74,0.15)]'
                         : 'bg-card/60 text-muted-foreground border border-border/30 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:text-foreground hover:bg-card/80 hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.06)] hover:-translate-y-[1px]'
                       } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                   >
                     <Icon className="w-6 h-6" />
-                    <span className="text-[14px] font-semibold">{label}</span>
+                    <span className="text-[13px] md:text-[14px] font-semibold">{label}</span>
                   </button>
                 ))}
               </div>
