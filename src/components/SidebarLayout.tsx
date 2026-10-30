@@ -4,8 +4,6 @@ import { useLocation } from 'react-router-dom';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { getLocationDisplayName } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { useState } from 'react';
 import { MobielOnderbalk } from '@/components/MobielOnderbalk';
 
 interface SidebarLayoutProps {
@@ -20,7 +18,6 @@ export function SidebarLayout({
   const location = useLocation();
   const { userLocation, displayLocation, availableLocations, setActiveLocation } = useUserLocation();
   const isMobile = useIsMobile();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const getPageTitle = (pathname: string) => {
     if (isMobile && pathname === '/kitchen/mep/beheer') return 'Mise-en-place beheren';
@@ -86,16 +83,6 @@ export function SidebarLayout({
         </div>
       )}
 
-      {/* Mobile Menu Sheet */}
-      {isMobile && (
-        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetContent side="left" className="w-[min(86vw,320px)] border-r-border bg-card p-0 [&>button]:right-[calc(0.75rem+var(--safe-right))] [&>button]:top-[calc(0.75rem+var(--safe-top))] [&>button]:h-11 [&>button]:w-11">
-            <div className="h-full pt-[var(--safe-top)]">
-              <AppSidebar onNavigate={() => setMobileMenuOpen(false)} mobile />
-            </div>
-          </SheetContent>
-        </Sheet>
-      )}
       
       <div className="flex flex-col flex-1 min-w-0 overflow-x-hidden">
         {!hideHeader && (
@@ -103,10 +90,10 @@ export function SidebarLayout({
             title={getPageTitle(location.pathname)} 
             showStatusIndicator={false} 
             location={displayLocation}
-            locationOptions={availableLocations.map(loc => ({ value: loc, label: getLocationDisplayName(loc) }))}
+            locationOptions={isMobile ? undefined : availableLocations.map(loc => ({ value: loc, label: getLocationDisplayName(loc) }))}
             activeLocationValue={userLocation}
             onLocationChange={setActiveLocation}
-            onMenuClick={isMobile ? () => setMobileMenuOpen(true) : undefined}
+            onMenuClick={undefined}
           />
         )}
         
@@ -114,7 +101,7 @@ export function SidebarLayout({
           {children}
         </main>
       </div>
-      {isMobile && <MobielOnderbalk onMeer={() => setMobileMenuOpen(true)} />}
+      {isMobile && <MobielOnderbalk />}
     </div>
   );
 }
