@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Check, AlertCircle, Search } from 'lucide-react';
+import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Check, AlertCircle, Search, ChefHat, Hourglass } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { useOntvangstModus, useOntvangstData, useKeukenAdvies } from '@/hooks/useOntvangstV2';
+import { NageleverdKaart, EindcheckKaart } from '@/components/kitchen/bestelbord/OntvangstOnderweg';
+import { MandjeVragen } from '@/components/kitchen/bestelbord/MandjeVragen';
+import { KeukenAdviesTabel } from '@/components/kitchen/bestelbord/KeukenAdviesTabel';
 import { DetailLade, KaartKop, LaadRijen, LijstKaart, Invoerbalk, segmentTabsKlasse } from '@/components/pura/patronen';
 import { TabelVoet } from '@/components/pura/lijst';
 import { EmptyState } from '@/components/pura/EmptyState';
@@ -185,6 +190,15 @@ export default function Bestelbord() {
     markeerGeleverd, nietGeleverd, deelsGeleverd, terugNaarBesteld, zetVerwachteLevering,
   } = useBestelbordMutaties(vestiging);
   const { data: leveranciers } = useLeveranciers();
+  // Ontvangst v2: alleen actief bij schakelaar aan of testmodus; uit = huidig gedrag.
+  const modus = useOntvangstModus(vestiging);
+  const v2 = modus.ontvangstV2;
+  const test = modus.test;
+  const ontvangst = useOntvangstData(modus);
+  const keukenAdvies = useKeukenAdvies(modus);
+  const restanten = v2 ? ontvangst.restanten.data ?? [] : [];
+  const nageleverdIds = new Set(restanten.filter((x) => x.telt_als_onderweg && x.bestel_signaal_id).map((x) => x.bestel_signaal_id as string));
+  const nageleverdArtikelen = new Set(restanten.filter((x) => x.telt_als_onderweg && x.artikel_id).map((x) => x.artikel_id as string));
   const { isOpen } = useVestigingOpenDagen(vestiging || null);
   const [naam, setNaam] = useState('');
   const [aantal, setAantal] = useState<number | null>(1);
@@ -341,7 +355,7 @@ export default function Bestelbord() {
 
   const voegToe = () => {
     const n = naam.trim();
-    if (n.length < 2 || !vestiging || isLoading || aantal == null || vormNodig) return;
+    if (test || n.length < 2 || !vestiging || isLoading || aantal == null || vormNodig) return;
     const eenheid = soort ?? 'stuks';
     const v = gekozen && vormId ? gekozen.vormen.find((x) => x.id === vormId) : undefined;
     const koppeling = gekozen
@@ -375,7 +389,7 @@ export default function Bestelbord() {
 
   /** Advies op het bord: gewone open regel (of ophogen bij dezelfde naam), nooit besteld. */
   const adviesOpBord = async (a: BestelAdvies) => {
-    if (!vestiging || isLoading || adviesBezig) return;
+    if (test || !vestiging || isLoading || adviesBezig) return;
     const v = a.artikel_vorm_id ? vormById.get(a.artikel_vorm_id) : undefined;
     const eenheid = v?.eenheid ?? a.eenheid ?? 'stuks';
     const aantalA = Number(a.hoeveelheid) > 0 ? Number(a.hoeveelheid) : 1;
@@ -436,7 +450,7 @@ export default function Bestelbord() {
   );
 
   const markeerBesteld = (s: BestelSignaal, b: boolean) =>
-    zetBesteld.mutate(
+    !test && zetBesteld.mutate(
       { id: s.id, besteld: b },
       {
         onSuccess: () =>
@@ -447,13 +461,13 @@ export default function Bestelbord() {
     );
 
   const vervallen = (s: BestelSignaal) =>
-    verwijderen.mutate(s.id, {
+    !test && verwijderen.mutate(s.id, {
       onSuccess: () =>
         toast(`${s.naam} van de lijst`, { action: { label: 'Ongedaan maken', onClick: () => herstel.mutate(s.id) } }),
     });
 
   const vinkGeleverd = (ids: string[], label: string) =>
-    markeerGeleverd.mutate(ids, {
+    !test && markeerGeleverd.mutate(ids, {
       onSuccess: () =>
         toast.success(`${label} geleverd`, {
           action: { label: 'Ongedaan maken', onClick: () => ids.forEach((id) => terugNaarBesteld.mutate(id)) },
@@ -473,7 +487,7 @@ export default function Bestelbord() {
   };
 
   const bevestigLeveringActie = () => {
-    if (!leveringActie) return;
+    if (!leveringActie || test) return;
     const { signaal: s, type } = leveringActie;
     if (type === 'niet') {
       nietGeleverd.mutate({ id: s.id, opmerking: leveringOpmerking.trim() }, {
@@ -501,6 +515,7 @@ export default function Bestelbord() {
   };
 
   const openBewerk = (s: BestelSignaal) => {
+    if (test) return;
     setBewerk(s);
     setBewerkAantal(Math.max(1, Number(s.aantal) || 1));
     setBewerkSoort(s.eenheid);
@@ -512,8 +527,8 @@ export default function Bestelbord() {
   const tab = tabKeuze ?? (!isLoading && telOverzicht.geladen && telOverzicht.open > 0 && open.length === 0 ? 'tellen' : 'bord');
   const adviesRegels = advies.data?.regels ?? [];
   const leveranciersTabel = <LeveranciersOverzicht open={open} onderweg={besteld} leverancier={leverancier} prijsVan={prijsVan} />;
-  const bordProps = { regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen };
-  const positieveAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) > 0);
+  const bordProps = { ...(v2 ? { nageleverd: (s: BestelSignaal) => nageleverdIds.has(s.id), alleenLezen: test } : {}), regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen };
+  const positieveAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) > 0 && !(v2 && a.artikel_id && nageleverdArtikelen.has(a.artikel_id)));
   const nulAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) <= 0);
   const openPrijzen = open.map(prijsVan).filter((p) => p != null);
     const zonderPrijs = [...open, ...besteld].filter((s) => !prijsVan(s)).length;
@@ -537,16 +552,18 @@ export default function Bestelbord() {
           <div className="flex flex-wrap items-center gap-2">
             <div className={isMobile ? '-mx-1 w-full overflow-x-auto px-1 [scrollbar-width:none]' : 'contents'}>
             <TabsList className={isMobile ? cn(segmentTabsKlasse, 'w-max min-w-full flex-nowrap [&>button]:flex-none [&>button]:whitespace-nowrap') : segmentTabsKlasse}>
-              {[{ id: 'bord', naam: 'Op het bord', kort: 'Bord', Icoon: ClipboardList, n: open.length }, { id: 'advies', naam: 'Advies', kort: 'Advies', Icoon: Sparkles, n: positieveAdviezen.length }, { id: 'tellen', naam: 'Tellen', kort: 'Tellen', Icoon: Calculator, n: telOverzicht.open }, { id: 'onderweg', naam: 'Onderweg', kort: 'Onderweg', Icoon: Truck, n: besteld.length }].map(({ id, naam, kort, Icoon, n }) => <TabsTrigger key={id} value={id} aria-label={`${naam} (${n})`} className="min-w-0 px-2 sm:px-3"><Icoon className="hidden h-4 w-4 shrink-0 sm:block" /><span className="truncate sm:hidden">{kort}</span><span className="hidden sm:inline">{naam}</span>{n > 0 && <span className="tabular-nums text-muted-foreground">{n}</span>}{id === 'onderweg' && teChecken.length > 0 && <span className="h-2 w-2 shrink-0 rounded-full bg-warning" aria-label={`${teChecken.length} te checken`} />}</TabsTrigger>)}
+              {[{ id: 'bord', naam: 'Op het bord', kort: 'Bord', Icoon: ClipboardList, n: open.length }, { id: 'advies', naam: 'Advies', kort: 'Advies', Icoon: Sparkles, n: positieveAdviezen.length }, ...(modus.keukenadvies ? [{ id: 'keuken', naam: 'Advies keuken', kort: 'Keuken', Icoon: ChefHat, n: keukenAdvies.data?.length ?? 0 }] : []), { id: 'tellen', naam: 'Tellen', kort: 'Tellen', Icoon: Calculator, n: telOverzicht.open }, { id: 'onderweg', naam: 'Onderweg', kort: 'Onderweg', Icoon: Truck, n: besteld.length }].map(({ id, naam, kort, Icoon, n }) => <TabsTrigger key={id} value={id} aria-label={`${naam} (${n})`} className="min-w-0 px-2 sm:px-3"><Icoon className="hidden h-4 w-4 shrink-0 sm:block" /><span className="truncate sm:hidden">{kort}</span><span className="hidden sm:inline">{naam}</span>{n > 0 && <span className="tabular-nums text-muted-foreground">{n}</span>}{id === 'onderweg' && v2 && restanten.length > 0 && <span className="inline-flex items-center gap-0.5 tabular-nums text-muted-foreground"><Hourglass className="h-3 w-3" aria-hidden />{restanten.length}</span>}{id === 'onderweg' && teChecken.length > 0 && <span className="h-2 w-2 shrink-0 rounded-full bg-warning" aria-label={`${teChecken.length} te checken`} />}</TabsTrigger>)}
             </TabsList>
             </div>
+            {test && <Badge variant="secondary">Test</Badge>}
             {zonderPrijs > 0 && (tab === 'bord' || tab === 'onderweg') && <Button variant={alleenZonderPrijs ? 'default' : 'outline'} className="ml-auto min-h-11 shrink-0 gap-1.5" aria-pressed={alleenZonderPrijs} onClick={() => setAlleenZonderPrijs((v) => !v)}><AlertCircle className={cn('h-4 w-4', !alleenZonderPrijs && 'text-warning')} /><span className="tabular-nums">{zonderPrijs}</span><span>zonder prijs</span></Button>}
           </div>
           <div className="mt-4 min-w-0">
             <div className="min-w-0 space-y-4">
               <TabsContent value="bord" className="mt-0 space-y-4">
+                {v2 && modus.magBeslissen && <MandjeVragen modus={modus} vragen={ontvangst.mandje.data ?? []} />}
                 <LijstKaart>
-        <div className="space-y-3 border-b border-border bg-muted/30 p-3">
+        <div className={cn('space-y-3 border-b border-border bg-muted/30 p-3', test && 'hidden')}>
           <Invoerbalk>
             <div className="relative min-w-0 basis-full sm:flex-1 sm:basis-auto">
               <Plus className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
@@ -653,16 +670,18 @@ export default function Bestelbord() {
               </TabsContent>
               <TabsContent value="advies" className="mt-0 space-y-4">
                 <LijstKaart kop={<KaartKop icoon={Sparkles} titel={advies.data?.leverdag ? `Voor ${leverDatumLabel(advies.data.leverdag)}` : 'Advies'} />}>
-                  {advies.isLoading ? <LaadRijen /> : positieveAdviezen.length ? <AdviesTabel regels={positieveAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} deadlineHint={deadlineHint} /> : <EmptyState icon={Sparkles} title="Geen voorstellen" description="" className="border-0 shadow-none" />}
+                  {advies.isLoading ? <LaadRijen /> : positieveAdviezen.length ? <AdviesTabel regels={positieveAdviezen} open={open} bezig={adviesBezig || test} onOpBord={adviesOpBord} deadlineHint={deadlineHint} /> : <EmptyState icon={Sparkles} title="Geen voorstellen" description="" className="border-0 shadow-none" />}
                   {!advies.isLoading && positieveAdviezen.length > 0 && <TabelVoet links={`${positieveAdviezen.length} ${positieveAdviezen.length === 1 ? 'voorstel' : 'voorstellen'}`} />}
                 </LijstKaart>
                 {!!nulAdviezen.length && <LijstKaart kop={<KaartKop icoon={Check} titel="Niet nodig" teller={nulAdviezen.length} />}><AdviesTabel regels={nulAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} deadlineHint={deadlineHint} nul /></LijstKaart>}
               </TabsContent>
+              {modus.keukenadvies && <TabsContent value="keuken" className="mt-0 space-y-4"><KeukenAdviesTabel regels={keukenAdvies.data ?? []} laden={keukenAdvies.isLoading} /></TabsContent>}
               <div hidden={tab !== 'tellen'}><Voorraadproef key={vestiging} vestiging={vestiging} onOverzicht={rapporteerTellen} /></div>
               <TabsContent value="onderweg" className="mt-0 space-y-4">
-                {[{ titel: 'Vandaag te checken', regels: teCheckenZicht }, { titel: 'Onderweg', regels: onderwegZicht }, { titel: 'Zonder datum', regels: zonderDatumZicht }].filter((g) => g.regels.length).map((groep) => <LijstKaart key={groep.titel} kop={<KaartKop icoon={Truck} titel={groep.titel} teller={groep.regels.length} />}><OnderwegTabel groepen={groepeer(groep.regels)} {...groepProps} onBewerk={openBewerk} datumLabel={datumLabel} leverDatumLabel={leverDatumLabel} /><TabelVoet links={`${groep.regels.length} ${groep.regels.length === 1 ? 'product' : 'producten'}`} /></LijstKaart>)}
-                {!besteldZicht.length && <LijstKaart>{leegKaart('Niets onderweg')}</LijstKaart>}
-                {!!geleverdZicht.length && <LijstKaart kop={<KaartKop icoon={Check} titel="Geleverd" teller={geleverdZicht.length} />}><BordTabel regels={geleverdZicht} {...bordProps} geleverd onTerug={(s) => terugNaarBesteld.mutate(s.id)} detail={(s) => [s.geleverd_op ? datumLabel(s.geleverd_op) : '', s.geleverd_door ? namen?.get(s.geleverd_door) : '', s.levering_status === 'deels' ? 'Deels' : '', s.levering_opmerking].filter(Boolean).join(' · ')} /></LijstKaart>}
+                {v2 && <><NageleverdKaart regels={restanten} /><EindcheckKaart modus={modus} regels={ontvangst.vandaag.data ?? []} laden={ontvangst.vandaag.isLoading} leveranciers={leveranciers} /></>}
+                {[...(v2 ? [] : [{ titel: 'Vandaag te checken', regels: teCheckenZicht }]), { titel: 'Onderweg', regels: onderwegZicht }, { titel: 'Zonder datum', regels: zonderDatumZicht }].filter((g) => g.regels.length).map((groep) => <LijstKaart key={groep.titel} kop={<KaartKop icoon={Truck} titel={groep.titel} teller={groep.regels.length} />}><OnderwegTabel groepen={groepeer(groep.regels)} {...groepProps} onBewerk={openBewerk} datumLabel={datumLabel} leverDatumLabel={leverDatumLabel} {...(v2 ? { zonderDeels: true, alleenLezen: test } : {})} /><TabelVoet links={`${groep.regels.length} ${groep.regels.length === 1 ? 'product' : 'producten'}`} /></LijstKaart>)}
+                {!v2 && !besteldZicht.length && <LijstKaart>{leegKaart('Niets onderweg')}</LijstKaart>}
+                {!!geleverdZicht.length && <LijstKaart kop={<KaartKop icoon={Check} titel="Geleverd" teller={geleverdZicht.length} />}><BordTabel regels={geleverdZicht} {...bordProps} geleverd onTerug={(s) => !test && terugNaarBesteld.mutate(s.id)} detail={(s) => [s.geleverd_op ? datumLabel(s.geleverd_op) : '', s.geleverd_door ? namen?.get(s.geleverd_door) : '', s.levering_status === 'deels' ? 'Deels' : '', s.levering_opmerking].filter(Boolean).join(' · ')} /></LijstKaart>}
               </TabsContent>
             </div>
           </div>
