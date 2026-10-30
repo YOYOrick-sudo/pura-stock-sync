@@ -60,6 +60,8 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Department } from '@/lib/foh-category-order';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { RijMenu } from '@/components/pura';
 
 // ============================================================================
 // Types
@@ -141,13 +143,14 @@ function locationLabel(loc: string) {
 // Sortable task row
 // ============================================================================
 interface SortableRowProps {
+  mobileLayout?: boolean;
   task: TemplateTask;
   onUpdate: (id: string, patch: Partial<TemplateTask>) => void;
   onDelete: (id: string) => void;
   categoryOptions: string[];
 }
 
-function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowProps) {
+function SortableRow({ task, onUpdate, onDelete, categoryOptions, mobileLayout = false }: SortableRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
   });
@@ -196,6 +199,7 @@ function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowP
       onMouseLeave={() => setHovered(false)}
     >
       <div
+        className={mobileLayout ? 'min-w-0 !grid-cols-[44px_minmax(0,1fr)_44px] !gap-2 !px-0 [&>button]:!h-11 [&>button]:!w-11 [&>input]:min-w-0 [&>input]:!h-11 [&>input]:!text-base [&>input:nth-child(3)]:col-start-2 [&>input:nth-child(3)]:col-span-2 [&>button:nth-child(4)]:col-span-2 [&>button:nth-child(4)]:!w-auto [&>button:nth-child(4)]:justify-self-start' : undefined}
         style={{
           display: 'grid',
           gridTemplateColumns: '32px minmax(150px, 1fr) minmax(150px, 1fr) auto auto auto',
@@ -315,6 +319,7 @@ function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowP
             </button>
           </PopoverTrigger>
           <PopoverContent
+            className={mobileLayout ? '[&_button]:min-h-11 [&_button]:min-w-11' : undefined}
             align="end"
             style={{ width: 240, padding: 12, fontFamily: 'Inter, sans-serif' }}
           >
@@ -397,6 +402,7 @@ function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowP
 
         {/* Delete */}
         <button
+          className={mobileLayout ? '!hidden' : undefined}
           onClick={() => onDelete(task.id)}
           aria-label="Verwijderen"
           style={{
@@ -424,6 +430,7 @@ function SortableRow({ task, onUpdate, onDelete, categoryOptions }: SortableRowP
         >
           <Trash2 size={14} />
         </button>
+        {mobileLayout && <div className="col-start-3 row-start-1"><RijMenu naam={task.title} acties={[{ label: 'Verwijderen', gevaar: true, onClick: () => onDelete(task.id) }]} /></div>}
       </div>
     </div>
   );
@@ -554,6 +561,8 @@ export function ListManager({
   variant = 'dialog',
   embeddedSubheading,
 }: ListManagerProps) {
+  const isMobile = useIsMobile();
+  const mobileLayout = isMobile && variant === 'page';
   const queryClient = useQueryClient();
   const [selectedTemplateName, setSelectedTemplateName] = useState<string | null>(null);
   const [addingTaskInCategory, setAddingTaskInCategory] = useState<string | null>(null);
@@ -1009,6 +1018,7 @@ export function ListManager({
 
   const headerNode = (
     <div
+      className={mobileLayout ? '!px-3 !py-3 [&>button]:min-h-11 [&>button]:min-w-11 [&_h1]:hidden' : undefined}
       style={{
         padding: isPage ? '16px 32px' : '20px 24px 12px',
         borderBottom: '1px solid hsl(var(--border))',
@@ -1101,10 +1111,10 @@ export function ListManager({
 
 
         {/* Body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 24px' }}>
+        <div className={mobileLayout ? 'min-w-0 max-w-full !p-3 [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:min-w-0 [&_input]:min-h-11 [&_input]:!text-base' : undefined} style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 24px' }}>
           {/* Template selector */}
           {templateNames.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+            <div className={mobileLayout ? 'min-w-0 flex-wrap [&>button[role=combobox]]:min-w-0 [&>button[role=combobox]]:!h-11 [&>button[role=combobox]]:basis-full [&>button[role=combobox]>span]:truncate' : undefined} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
               <Select
                 value={selectedTemplateName || ''}
                 onValueChange={(v) => setSelectedTemplateName(v)}
@@ -1185,6 +1195,7 @@ export function ListManager({
                   <div key={category}>
                     {/* Category header */}
                     <div
+                      className={mobileLayout ? 'min-w-0 [&>div]:min-w-0 [&>div]:break-words' : undefined}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -1206,6 +1217,12 @@ export function ListManager({
                         {category}
                       </div>
                       {isWest && onMoveCategory && (
+                        mobileLayout ? <RijMenu naam={category} acties={[
+                          ...(canMoveUp ? [{ label: 'Categorie omhoog', onClick: () => onMoveCategory(category, -1) }] : []),
+                          ...(canMoveDown ? [{ label: 'Categorie omlaag', onClick: () => onMoveCategory(category, 1) }] : []),
+                          ...(onRenameCategory ? [{ label: 'Hernoem', onClick: () => onRenameCategory(category) }] : []),
+                          ...(onDeleteCategory && tasks.length === 0 ? [{ label: 'Verwijder categorie', gevaar: true, onClick: () => onDeleteCategory(category) }] : []),
+                        ]} /> :
                         <>
                           <button
                             onClick={() => onMoveCategory(category, -1)}
@@ -1307,6 +1324,7 @@ export function ListManager({
                       >
                         {tasks.map((task) => (
                           <SortableRow
+                            mobileLayout={mobileLayout}
                             key={task.id}
                             task={task}
                             onUpdate={updateTask}
@@ -1325,7 +1343,7 @@ export function ListManager({
 
                       {/* Add task in category */}
                       {addingTaskInCategory === category ? (
-                        <div style={{ display: 'flex', gap: 6, padding: 6 }}>
+                        <div className={mobileLayout ? 'min-w-0 flex-wrap [&>input]:basis-full' : undefined} style={{ display: 'flex', gap: 6, padding: 6 }}>
                           <Input
                             autoFocus
                             value={newTaskTitle}
@@ -1416,7 +1434,7 @@ export function ListManager({
               {isWest && (
                 <div style={{ paddingLeft: 8 }}>
                   {showNewCategory ? (
-                    <div style={{ display: 'flex', gap: 6 }}>
+                    <div className={mobileLayout ? 'min-w-0 flex-wrap [&>input]:basis-full' : undefined} style={{ display: 'flex', gap: 6 }}>
                       <Input
                         autoFocus
                         value={newCategoryName}
@@ -1545,6 +1563,7 @@ export function ListManager({
       {/* Nieuwe lijst dialog */}
       <Dialog open={newListDialogOpen} onOpenChange={setNewListDialogOpen}>
         <DialogContent
+          className={mobileLayout ? 'min-w-0 [&_button]:min-h-11 [&_input]:min-h-11 [&_input]:text-base' : undefined}
           style={{
             backgroundColor: 'hsl(var(--card))',
             border: '1px solid hsl(var(--border))',
