@@ -115,3 +115,46 @@ export function bouwRegel(r: EindcheckInvoer): Record<string, unknown> {
   if (r.opmerking.trim()) uit.opmerking = r.opmerking.trim();
   return uit;
 }
+
+/** Restant-regel zoals blokken en badges hem nodig hebben. */
+type RestRij = { soort: string; opnieuw_besteld: boolean };
+
+/** Blokken bovenaan Onderweg: actieve rijen eerst, opnieuw bestelde rijen apart (niet in teller). */
+export function onderwegBlokken<T extends RestRij>(rijen: T[]) {
+  const van = (soort: string) => ({
+    actief: rijen.filter((r) => r.soort === soort && !r.opnieuw_besteld),
+    opnieuw: rijen.filter((r) => r.soort === soort && r.opnieuw_besteld),
+  });
+  return { nageleverd: van('wordt_nageleverd'), mist: van('mist') };
+}
+
+/** Tellers op het Onderweg-tabblad: zandloper alleen voor nalevering, mist apart. */
+export function onderwegTellers(rijen: RestRij[]) {
+  const b = onderwegBlokken(rijen);
+  return { nageleverd: b.nageleverd.actief.length, mist: b.mist.actief.length };
+}
+
+/** Badge op het bestelbord: alleen voor niet opnieuw bestelde regels. */
+export function bordRestStatus(r: RestRij | null | undefined): 'nageleverd' | 'mist' | null {
+  if (!r || r.opnieuw_besteld) return null;
+  if (r.soort === 'wordt_nageleverd') return 'nageleverd';
+  if (r.soort === 'mist') return 'mist';
+  return null;
+}
+
+/** Annuleren mag pas met een bron en een notitie van minstens 3 tekens. */
+export function annuleerGeldig(bron: string | null | undefined, notitie: string): boolean {
+  return !!bron && notitie.trim().length >= 3;
+}
+
+export function mandjeRedenLabel(reden: string | null | undefined): string {
+  if (reden === 'kooyman_meldt_niet_meer') return 'Kooyman meldt hem niet meer';
+  if (reden === 'controlemoment') return 'controlemoment';
+  return reden ?? '';
+}
+
+/** Waarschuwingen uit ontvangst_levering_afronden. */
+export function afrondWaarschuwingen(res: unknown): string[] {
+  const w = (res as { waarschuwingen?: unknown } | null)?.waarschuwingen;
+  return Array.isArray(w) ? w.filter((x): x is string => typeof x === 'string') : [];
+}
