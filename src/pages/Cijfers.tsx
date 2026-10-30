@@ -23,6 +23,7 @@ import { CijfersUrenVergelijk } from '@/components/cijfers/CijfersUrenVergelijk'
 import { periodeRange, toISO, vergelijkModeVan, type Periode, type VergelijkMode, type VestKeuze } from '@/components/cijfers/types';
 import { useRole } from '@/hooks/useRole';
 import { useMagLoonkostenZien } from '@/hooks/useMagLoonkostenZien';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 /** Preset uit de popover: elke shortcut geeft periode én optionele mode-override mee,
  *  zodat de D-vergelijkingslogica correct blijft (dag/week/maand/jaar/custom). */
@@ -88,6 +89,7 @@ function rangeLabel(periode: Periode, van: string, tot: string): string {
 }
 
 export default function Cijfers() {
+  const isMobile = useIsMobile();
   const [periode, setPeriodeRaw] = useState<Periode>('week');
   const [vestKeuze, setVestKeuze] = useState<VestKeuze>('Beide');
   const [modeOverride, setModeOverride] = useState<VergelijkMode | null>(null);
@@ -124,7 +126,7 @@ export default function Cijfers() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-6xl mx-auto space-y-5 pb-8">
+      <div className={isMobile ? 'space-y-4 pb-8 min-w-0 max-w-full [&>.grid]:min-w-0 [&>.grid>div]:min-w-0 [&_.cj-card-in]:min-w-0 [&_.cj-card-in]:max-w-full [&_.cj-card-in]:!p-3 [&_.cj-card-in>div]:min-w-0 [&_.cj-card-in_.justify-between]:flex-wrap [&_.cj-card-in_.justify-between]:gap-2 [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:min-h-11 [&_input]:text-base [&_svg[viewBox]]:max-w-full' : 'max-w-6xl mx-auto space-y-5 pb-8'}>
         {/* Filters */}
         <StickyFilters
           label={label}
@@ -195,8 +197,9 @@ function useScrolled(threshold = 4) {
 function Segment<T extends string>({
   value, onChange, options,
 }: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[] }) {
+  const isMobile = useIsMobile();
   return (
-    <div style={{
+    <div className={isMobile ? 'max-w-full overflow-x-auto [&>button]:shrink-0 [&>button]:min-h-11 [&>button]:min-w-11' : undefined} style={{
       display: 'inline-flex', background: 'hsl(var(--chart-track))',
       borderRadius: 12, padding: 4, gap: 2,
     }}>
@@ -233,6 +236,7 @@ function StickyFilters(props: {
   presets: { snel: Preset[]; vergelijk: Preset[] };
   applyPresetMode: (p: Periode, override: VergelijkMode | null) => void;
 }) {
+  const isMobile = useIsMobile();
   const scrolled = useScrolled();
   return (
     <div
@@ -242,7 +246,7 @@ function StickyFilters(props: {
         scrolled ? 'border-b border-border/60' : 'border-b border-transparent',
       )}
     >
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14 }}>
+      <div className={isMobile ? 'min-w-0 [&>button]:max-w-full [&>button]:min-h-11 [&>button>span]:truncate' : undefined} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14 }}>
         <DateRangePopover
           label={props.label}
           effectiveVan={props.effectiveVan}
@@ -306,6 +310,7 @@ function DateRangePopover({
   setPeriode: (p: Periode) => void;
   applyPresetMode: (p: Periode, override: VergelijkMode | null) => void;
 }) {
+  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const parseISO = (s: string) => { const d = new Date(s); d.setHours(0,0,0,0); return d; };
   const [range, setRange] = useState<{ from?: Date; to?: Date }>(
@@ -360,6 +365,7 @@ function DateRangePopover({
         onClick={() => applyPreset(p)}
         className={cn(
           'w-full text-left px-2.5 h-8 rounded-md text-[12.5px] transition-colors',
+          isMobile && '!w-auto min-h-11 min-w-11 shrink-0 whitespace-nowrap',
           active
             ? 'bg-accent text-foreground font-medium'
             : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
@@ -373,6 +379,7 @@ function DateRangePopover({
       <PopoverTrigger asChild>
         <button
           type="button"
+          className={isMobile ? 'min-h-11 min-w-11 max-w-full [&>svg]:shrink-0 [&>span]:truncate' : undefined}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 12px',
             background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12,
@@ -385,17 +392,17 @@ function DateRangePopover({
           <ChevronDown size={13} strokeWidth={2} className="text-muted-foreground" />
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="p-0 w-auto">
-        <div className="flex" style={{ minHeight: 320 }}>
+      <PopoverContent align="start" className={isMobile ? 'p-0 w-[calc(100vw-2rem)] max-w-full max-h-[calc(100dvh-2rem)] overflow-y-auto [&_button]:min-h-11 [&_button]:min-w-11 [&_select]:min-h-11' : 'p-0 w-auto'}>
+        <div className={isMobile ? 'flex flex-col min-w-0' : 'flex'} style={{ minHeight: 320 }}>
           {/* Presets — smalle kolom links */}
-          <div className="w-[148px] border-r border-border p-1.5 flex flex-col gap-0.5 bg-muted/20">
+          <div className={isMobile ? 'w-full min-w-0 border-b border-border p-1.5 flex flex-nowrap overflow-x-auto gap-0.5 bg-muted/20 [&>div]:shrink-0' : 'w-[148px] border-r border-border p-1.5 flex flex-col gap-0.5 bg-muted/20'}>
             {presets.snel.map((p) => <PresetRow key={p.label} p={p} />)}
             <div className="h-px bg-border my-1.5 mx-1" />
             {presets.vergelijk.map((p) => <PresetRow key={p.label} p={p} />)}
           </div>
 
           {/* Kalender-kolom */}
-          <div className="flex flex-col">
+          <div className={isMobile ? 'flex flex-col min-w-0 max-w-full overflow-x-auto' : 'flex flex-col'}>
             <div className="px-3 pt-2 pb-1 text-[11px] tabular-nums text-muted-foreground">
               {rangeHeader}
             </div>
@@ -413,7 +420,7 @@ function DateRangePopover({
               fromDate={minDate}
               toDate={today}
               initialFocus locale={nl} weekStartsOn={1}
-              className="p-2 pointer-events-auto"
+              className={isMobile ? 'p-2 pointer-events-auto min-w-[20.25rem] [&_select]:text-base [&_button]:min-h-11 [&_button]:min-w-11 [&_.rdp-head_cell]:!w-11 [&_.rdp-cell]:!h-11 [&_.rdp-cell]:!w-11 [&_.rdp-day]:!h-11 [&_.rdp-day]:!w-11' : 'p-2 pointer-events-auto'}
               classNames={{
                 caption_label: 'hidden',
                 head_cell: 'text-muted-foreground rounded-md w-8 font-normal text-[0.72rem]',

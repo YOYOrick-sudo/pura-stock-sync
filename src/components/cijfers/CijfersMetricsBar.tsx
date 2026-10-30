@@ -2,7 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Banknote, Receipt, ShoppingBasket, CalendarDays, TrendingUp } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { EUR, EUR2, vestigingenVan, vergelijkModeVan, prevLabel, type Periode, type VestKeuze, type VergelijkMode } from './types';
@@ -72,6 +73,7 @@ function fmtRange(van?: string, tot?: string): string {
 }
 
 export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot, mode }: Props) {
+  const isMobile = useIsMobile();
   const vestigingen = vestigingenVan(vestigingKeuze);
   const effMode = mode ?? vergelijkModeVan(periode);
   const q = useQuery({
@@ -202,6 +204,7 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot, mode }: P
             dp={c.dp}
             intent={c.intent}
             first={i === 0}
+            icon={isMobile ? [Banknote, Receipt, ShoppingBasket, CalendarDays, TrendingUp][i] : undefined}
           />
         ))}
       </div>
@@ -223,10 +226,12 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot, mode }: P
 }
 
 function MetricCol({
-  label, value, sub, dp, intent, first,
-}: { label: string; value: React.ReactNode; sub: React.ReactNode; dp?: number | null; intent?: DeltaIntent; first: boolean }) {
+  label, value, sub, dp, intent, first, icon: Icon,
+}: { label: string; value: React.ReactNode; sub: React.ReactNode; dp?: number | null; intent?: DeltaIntent; first: boolean; icon?: typeof Banknote }) {
+  const isMobile = useIsMobile();
   return (
     <div
+      className={isMobile ? '!p-3 !border-l-0 border-b border-border last:border-b-0 [&>div:nth-child(2)]:flex-wrap [&>div:nth-child(3)]:!whitespace-normal' : undefined}
       style={{
         padding: '18px 20px',
         borderLeft: first ? undefined : '1px solid hsl(var(--border))',
@@ -236,7 +241,7 @@ function MetricCol({
       <div style={{
         fontSize: 10.5, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase',
         color: 'hsl(var(--muted-foreground))',
-      }}>{label}</div>
+      }}>{isMobile && Icon && <Icon className="inline-block h-4 w-4 mr-2 align-middle text-primary" />}{label}</div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 9 }}>
         <span style={{
           fontSize: 25, fontWeight: 700, letterSpacing: '-0.02em',
