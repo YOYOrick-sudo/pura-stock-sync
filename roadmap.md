@@ -54,4 +54,4 @@
 
 - [ ] 10. Mobiel stap 1: onderbalk (<744px), ruimte onderin, Personeel-navigatie, geen zijwaarts overlopen
 
-- [ ] Bestelbord: overzichtskaarten strakker (kaarten blijven)
+- [x] Bestelbord: overzichtskaarten strakker (kaarten blijven)
