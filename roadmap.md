@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Mobiel stap 14: Takenbeheer, admin en analyse — één mobiele kop, rijmenu's, 44px filters en passende grafiekcontainers; 90 tests geslaagd, 2 bekende Deno-fouten, build OK; verwerking onveranderd.
+- [ ] Mobiel stap 14 visuele controle — controlesessie toont Geen toegang op alle drie routes; geen rechten of taken gewijzigd.
+
 - [x] Mobiel stap 13: MEP-week, beheer en oude planning — passende weekbalk, veegbare tabs, 44px knoppen en één mobiele app-kop; 90 tests geslaagd, 2 bekende Deno-fouten, build OK; verwerking onveranderd.
 - [ ] Mobiel stap 13 visuele controle — controlesessie toont Geen toegang op alle drie routes; geen rechten of taken gewijzigd.
 

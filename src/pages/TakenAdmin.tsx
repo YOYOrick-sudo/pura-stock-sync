@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { SidebarLayout } from '@/components/SidebarLayout';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type Phase = 'open' | 'tussen' | 'borrel' | 'sluit';
 type Department = 'voorkant' | 'achterkant';
@@ -30,6 +31,7 @@ const PHASE_LABEL: Record<Phase, string> = {
 };
 
 function TakenAdminInner() {
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { userLocation } = useUserLocation();
   const isWest = userLocation === 'West';
@@ -123,7 +125,7 @@ function TakenAdminInner() {
   };
 
   return (
-    <div style={{ fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column', gap: 24, paddingTop: 8 }}>
+    <div className={isMobile ? 'page-stack min-w-0 max-w-full !gap-4 !p-0' : undefined} style={{ fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column', gap: 24, paddingTop: 8 }}>
       <p className="text-sm text-muted-foreground">
         Kies een lijst om te bewerken — taken en onderdelen per lijst apart.
       </p>
@@ -141,7 +143,7 @@ function TakenAdminInner() {
           Geen actieve lijsten gevonden voor {userLocation}.
         </div>
       ) : (
-        <div style={{
+        <div className={isMobile ? '!grid-cols-1 min-w-0' : undefined} style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
           gap: 14,
@@ -149,6 +151,7 @@ function TakenAdminInner() {
           {cards.map(card => (
             <button
               key={card.key}
+              className={isMobile ? 'min-h-11 min-w-0 !p-4 [&_span]:break-words' : undefined}
               onClick={() => openList(card)}
               style={{
                 textAlign: 'left',

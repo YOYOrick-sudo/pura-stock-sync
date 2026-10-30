@@ -15,8 +15,10 @@ import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Cell } from 'recharts';
 import { Download, TrendingUp, CheckCircle2, AlertCircle, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function FohAnalytics() {
+  const isMobile = useIsMobile();
   const { userLocation, displayLocation } = useUserLocation();
   const [dateRange, setDateRange] = useState(30); // Last 30 days
   
@@ -173,7 +175,7 @@ export default function FohAnalytics() {
   if (isLoading) {
     return (
       <SidebarLayout>
-        <div className="max-w-7xl mx-auto space-y-10 pt-12">
+        <div className={isMobile ? 'min-w-0 space-y-4 pt-4' : 'max-w-7xl mx-auto space-y-10 pt-12'}>
           <div className="text-muted-foreground">Laden...</div>
         </div>
       </SidebarLayout>
@@ -182,7 +184,7 @@ export default function FohAnalytics() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className={isMobile ? 'min-w-0 max-w-full space-y-4 [&_button]:min-h-11' : 'max-w-7xl mx-auto space-y-6'}>
         {/* Header */}
         <div className="flex items-center justify-between">
           <div />
@@ -193,7 +195,7 @@ export default function FohAnalytics() {
         </div>
 
         {/* Date Range Filter */}
-        <div className="flex gap-2">
+        <div className={isMobile ? 'flex min-w-0 flex-nowrap gap-2 overflow-x-auto [&>button]:shrink-0 [&>button]:whitespace-nowrap' : 'flex gap-2'}>
           <Button
             variant={dateRange === 7 ? 'default' : 'outline'}
             onClick={() => setDateRange(7)}
@@ -218,7 +220,7 @@ export default function FohAnalytics() {
         </div>
 
         {/* Overview Cards */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className={isMobile ? 'grid min-w-0 gap-4 [&>div]:min-w-0 [&_h3]:break-words [&_svg]:shrink-0' : 'grid gap-6 md:grid-cols-2 lg:grid-cols-4'}>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Totaal Taken</CardTitle>
@@ -275,7 +277,7 @@ export default function FohAnalytics() {
         </div>
 
         {/* Charts */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className={isMobile ? 'grid min-w-0 gap-4 [&>div]:min-w-0 [&>div>div]:min-w-0 [&>div>div]:!px-3 [&_h3]:break-words [&_.recharts-wrapper]:max-w-full' : 'grid gap-6 md:grid-cols-2'}>
           <Card>
             <CardHeader>
               <CardTitle>Taken per Fase</CardTitle>
@@ -326,7 +328,7 @@ export default function FohAnalytics() {
             <CardTitle>Probleemtaken</CardTitle>
             <CardDescription>Taken die vaak onvoltooid blijven</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className={isMobile ? 'min-w-0 !px-3 [&>div]:max-w-full [&>div]:overflow-x-auto [&_table]:min-w-max [&_th:first-child]:sticky [&_th:first-child]:left-0 [&_th:first-child]:z-10 [&_th:first-child]:bg-card [&_td:first-child]:sticky [&_td:first-child]:left-0 [&_td:first-child]:z-10 [&_td:first-child]:max-w-40 [&_td:first-child]:whitespace-normal [&_td:first-child]:break-words [&_td:first-child]:bg-card' : undefined}>
             <Table>
               <TableHeader>
                 <TableRow>

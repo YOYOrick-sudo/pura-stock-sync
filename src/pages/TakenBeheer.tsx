@@ -13,6 +13,7 @@ import { PolarDialog } from '@/components/polar/Dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   getOrderedCategories,
   getMissingCategoryRows,
@@ -48,6 +49,7 @@ function getMidslandCategories(phase: Phase): string[] {
 
 
 function TakenBeheerInner() {
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { userLocation } = useUserLocation();
@@ -356,7 +358,7 @@ function TakenBeheerInner() {
   return (
     <>
       {isWest && (
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        <div className={isMobile ? 'min-w-0 max-w-full !flex-nowrap overflow-x-auto [&>button]:shrink-0 [&>button]:whitespace-nowrap' : undefined} style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
           {WEST_SECTIONS.map(({ key, label }) => {
             const active = department === key;
             return (
@@ -437,7 +439,7 @@ function TakenBeheerInner() {
         title="Onderdeel hernoemen"
         description={renameState ? `Geef "${renameState.oldName}" een nieuwe naam.` : undefined}
       >
-        <div className="space-y-4">
+        <div className={isMobile ? 'min-w-0 space-y-4 [&_input]:min-h-11 [&_input]:text-base [&_button]:min-h-11' : 'space-y-4'}>
           <Input
             autoFocus
             value={renameValue}
