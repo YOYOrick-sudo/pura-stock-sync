@@ -11,10 +11,13 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { formatNlDatumTijd, mtStatusLabel } from '@/lib/mt';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { KaartKop, LijstKaart, StatusLabel } from '@/components/pura';
 
 const MAX_LENGTE = 2000;
 
 export default function MtPunt() {
+  const isMobile = useIsMobile();
   const [punt, setPunt] = useState('');
   const queryClient = useQueryClient();
   const { session } = useAuthStatus();
@@ -54,7 +57,7 @@ export default function MtPunt() {
 
   return (
     <SidebarLayout>
-      <div className="space-y-4">
+      <div className={isMobile ? 'min-w-0 space-y-4' : 'space-y-4'}>
 
         <Card className="p-4 md:p-6 space-y-4">
           <div className="space-y-2">
@@ -67,19 +70,42 @@ export default function MtPunt() {
               required
               rows={6}
               placeholder="Waar moet het MT over praten?"
-              className="min-h-[140px]"
+              className={isMobile ? 'min-h-[140px] text-base' : 'min-h-[140px]'}
             />
           </div>
           <Button
             onClick={() => verstuur.mutate(punt.trim())}
             disabled={!kanVersturen}
-            className="min-h-[44px] w-full sm:w-auto"
+            className={isMobile ? 'min-h-[44px] w-full' : 'min-h-[44px] w-full sm:w-auto'}
           >
             {verstuur.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             Verstuur
           </Button>
         </Card>
 
+        {isMobile ? (
+          <LijstKaart kop={<KaartKop titel="Mijn punten" />}>
+            {isLoading ? (
+              <div className="flex justify-center py-6">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : punten.length === 0 ? (
+              <p className="px-4 py-4 text-sm text-muted-foreground">Je hebt nog geen punten ingediend.</p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {punten.map((p) => (
+                  <li key={p.id} className="min-h-12 min-w-0 px-4 py-3">
+                    <div className="flex min-w-0 items-start justify-between gap-2">
+                      <p className="min-w-0 flex-1 whitespace-pre-wrap break-words text-sm [overflow-wrap:anywhere]">{p.punt}</p>
+                      {p.status && <StatusLabel>{mtStatusLabel(p.status)}</StatusLabel>}
+                    </div>
+                    <span className="mt-1 block text-xs text-muted-foreground">{formatNlDatumTijd(p.ingediend_op)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </LijstKaart>
+        ) : (
         <section className="space-y-3">
           <h2 className="text-base font-semibold">Mijn punten</h2>
           {isLoading ? (
@@ -102,6 +128,7 @@ export default function MtPunt() {
             </ul>
           )}
         </section>
+        )}
       </div>
     </SidebarLayout>
   );
