@@ -47,7 +47,7 @@ export default function DesignSystem() {
       <nav className="hidden w-48 shrink-0 lg:block"><div className="sticky top-24 space-y-1">{SECTIES.map((s) => <Button key={s.id} variant={actief === s.id ? 'secondary' : 'ghost'} size="touch" className="w-full justify-start" onClick={() => ga(s.id)}>{s.label}</Button>)}</div></nav>
       <main className="min-w-0 flex-1 space-y-10">{SECTIES.map((s) => <section key={s.id} id={s.id} className="scroll-mt-32 space-y-4">
         <div><h2 className="text-xl font-semibold text-foreground">{s.titel}</h2><p className="text-sm text-muted-foreground">{s.uitleg}</p></div>
-        <div className={`rounded-polar-lg border border-border bg-card p-4 sm:p-6 ${isMobile ? 'min-w-0 max-w-full overflow-x-auto [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:min-h-11 [&_input]:text-base' : ''}`}><Inhoud id={s.id} /></div>
+        <div className={`rounded-polar-lg border border-border bg-card p-4 sm:p-6 ${isMobile ? 'min-w-0 max-w-full overflow-x-auto [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:min-h-11 [&_input]:text-base [&_[role=tablist]]:min-w-max [&_[role=tablist]]:overflow-x-auto [&_[role=tab]]:shrink-0 [&_[role=tab]]:whitespace-nowrap [&_table]:min-w-80' : ''}`}><Inhoud id={s.id} /></div>
       </section>)}</main>
     </div>
   </div>;
