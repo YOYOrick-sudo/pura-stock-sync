@@ -78,6 +78,12 @@ Deno.serve(async (req) => {
     if (req.method === "GET") {
       const status = url.searchParams.get("status") ?? "open";
       if (status !== "open" && status !== "besteld") return fout(400, "status moet open of besteld zijn");
+      if (url.searchParams.get("versie") === "2" && status === "open") {
+        const { data: data2, error: error2 } = await db.rpc("bestelbot_lees_open_v2", { p_vestiging: vestiging });
+        if (error2) return fout(500, "Lezen mislukt");
+        await sluit(true, { http_status: 200, aantal: data2.length, versie: 2 });
+        return json(200, { vestiging, status, versie: 2, regels: data2 });
+      }
       const { data, error } = status === "besteld"
         ? await db.rpc("bestelbot_lees_besteld", { p_vestiging: vestiging })
         : await db.rpc("bestelbot_lees_open", { p_vestiging: vestiging });
@@ -96,6 +102,14 @@ Deno.serve(async (req) => {
         return fout(400, "regels: 1-100 items met geldige id, optionele bestelreferentie en optionele verwachte_levering (YYYY-MM-DD, vandaag t/m +30 dagen)");
       }
       const schoon = regels.map((r) => ({ id: r.id, bestelreferentie: r.bestelreferentie ?? null, verwachte_levering: r.verwachte_levering ?? null }));
+      if (body.versie === 2 || body.versie === "2") {
+        const schoon2 = regels.map((r) => ({ id: r.id, bestelreferentie: r.bestelreferentie ?? null, verwachte_levering: r.verwachte_levering ?? null,
+          ...(r.artikel_vorm_id != null && UUID.test(String(r.artikel_vorm_id)) ? { artikel_vorm_id: String(r.artikel_vorm_id) } : {}) }));
+        const { data: data2, error: error2 } = await db.rpc("bestelbot_markeer_besteld_v2", { p_vestiging: vestiging, p_regels: schoon2 });
+        if (error2) return fout(400, error2.message);
+        await sluit(true, { http_status: 200, resultaat: data2, versie: 2 }, schoon2.map((r) => r.id));
+        return json(200, { vestiging, versie: 2, resultaat: data2 });
+      }
       const { data, error } = await db.rpc("bestelbot_markeer_besteld", { p_vestiging: vestiging, p_regels: schoon });
       if (error) return fout(400, error.message);
       await sluit(true, { http_status: 200, resultaat: data }, schoon.map((r) => r.id));

@@ -583,7 +583,13 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           eenheid: string
+          geblokkeerd: boolean
+          geblokkeerd_reden: string | null
           id: string
+          inhoud_basis: number | null
+          inhoud_bron: string | null
+          inhoud_eenheid: string | null
+          inhoud_gecontroleerd_op: string | null
           is_standaard: boolean
           keer_besteld: number
           laatst_besteld: string | null
@@ -593,6 +599,7 @@ export type Database = {
           prijs_datum: string | null
           prijs_is_indicatie: boolean
           updated_at: string
+          variant_code: string | null
           vestiging: string
           vorm: string
         }
@@ -602,7 +609,13 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           eenheid: string
+          geblokkeerd?: boolean
+          geblokkeerd_reden?: string | null
           id?: string
+          inhoud_basis?: number | null
+          inhoud_bron?: string | null
+          inhoud_eenheid?: string | null
+          inhoud_gecontroleerd_op?: string | null
           is_standaard?: boolean
           keer_besteld?: number
           laatst_besteld?: string | null
@@ -612,6 +625,7 @@ export type Database = {
           prijs_datum?: string | null
           prijs_is_indicatie?: boolean
           updated_at?: string
+          variant_code?: string | null
           vestiging: string
           vorm: string
         }
@@ -621,7 +635,13 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           eenheid?: string
+          geblokkeerd?: boolean
+          geblokkeerd_reden?: string | null
           id?: string
+          inhoud_basis?: number | null
+          inhoud_bron?: string | null
+          inhoud_eenheid?: string | null
+          inhoud_gecontroleerd_op?: string | null
           is_standaard?: boolean
           keer_besteld?: number
           laatst_besteld?: string | null
@@ -631,6 +651,7 @@ export type Database = {
           prijs_datum?: string | null
           prijs_is_indicatie?: boolean
           updated_at?: string
+          variant_code?: string | null
           vestiging?: string
           vorm?: string
         }
@@ -955,6 +976,7 @@ export type Database = {
           aantal: number
           artikel_id: string | null
           artikel_vorm_id: string | null
+          basis_eenheid: string | null
           besteld_door: string | null
           besteld_op: string | null
           besteld_via: string | null
@@ -962,10 +984,13 @@ export type Database = {
           bron: string
           created_at: string
           eenheid: string
+          eenheid_controleren: boolean
           geleverd_door: string | null
           geleverd_op: string | null
           gemeld_door: string | null
           id: string
+          inhoud_per_verpakking: number | null
+          inhoud_vastgelegd_op: string | null
           leverancier_id: string | null
           levering_opmerking: string | null
           levering_status: string | null
@@ -974,6 +999,7 @@ export type Database = {
           notitie: string | null
           restant_van: string | null
           status: string
+          totaal_basis: number | null
           updated_at: string
           verwachte_levering: string | null
           vestiging: string
@@ -982,6 +1008,7 @@ export type Database = {
           aantal?: number
           artikel_id?: string | null
           artikel_vorm_id?: string | null
+          basis_eenheid?: string | null
           besteld_door?: string | null
           besteld_op?: string | null
           besteld_via?: string | null
@@ -989,10 +1016,13 @@ export type Database = {
           bron?: string
           created_at?: string
           eenheid?: string
+          eenheid_controleren?: boolean
           geleverd_door?: string | null
           geleverd_op?: string | null
           gemeld_door?: string | null
           id?: string
+          inhoud_per_verpakking?: number | null
+          inhoud_vastgelegd_op?: string | null
           leverancier_id?: string | null
           levering_opmerking?: string | null
           levering_status?: string | null
@@ -1001,6 +1031,7 @@ export type Database = {
           notitie?: string | null
           restant_van?: string | null
           status?: string
+          totaal_basis?: number | null
           updated_at?: string
           verwachte_levering?: string | null
           vestiging: string
@@ -1009,6 +1040,7 @@ export type Database = {
           aantal?: number
           artikel_id?: string | null
           artikel_vorm_id?: string | null
+          basis_eenheid?: string | null
           besteld_door?: string | null
           besteld_op?: string | null
           besteld_via?: string | null
@@ -1016,10 +1048,13 @@ export type Database = {
           bron?: string
           created_at?: string
           eenheid?: string
+          eenheid_controleren?: boolean
           geleverd_door?: string | null
           geleverd_op?: string | null
           gemeld_door?: string | null
           id?: string
+          inhoud_per_verpakking?: number | null
+          inhoud_vastgelegd_op?: string | null
           leverancier_id?: string | null
           levering_opmerking?: string | null
           levering_status?: string | null
@@ -1028,6 +1063,7 @@ export type Database = {
           notitie?: string | null
           restant_van?: string | null
           status?: string
+          totaal_basis?: number | null
           updated_at?: string
           verwachte_levering?: string | null
           vestiging?: string
@@ -1066,6 +1102,13 @@ export type Database = {
             columns: ["restant_van"]
             isOneToOne: false
             referencedRelation: "bestel_signalen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_signalen_restant_van_fkey"
+            columns: ["restant_van"]
+            isOneToOne: false
+            referencedRelation: "v_bord_regel_bestel"
             referencedColumns: ["id"]
           },
         ]
@@ -6229,6 +6272,8 @@ export type Database = {
           opslag_groep: string | null
           opslagplekken: Json
           tel_eenheid: string
+          tel_inhoud_basis: number | null
+          tel_inhoud_eenheid: string | null
           telmoment: string
           telrol: string
           verbruiksopslag_pct: number
@@ -6244,6 +6289,8 @@ export type Database = {
           opslag_groep?: string | null
           opslagplekken: Json
           tel_eenheid: string
+          tel_inhoud_basis?: number | null
+          tel_inhoud_eenheid?: string | null
           telmoment?: string
           telrol?: string
           verbruiksopslag_pct?: number
@@ -6259,6 +6306,8 @@ export type Database = {
           opslag_groep?: string | null
           opslagplekken?: Json
           tel_eenheid?: string
+          tel_inhoud_basis?: number | null
+          tel_inhoud_eenheid?: string | null
           telmoment?: string
           telrol?: string
           verbruiksopslag_pct?: number
@@ -6942,6 +6991,78 @@ export type Database = {
           },
         ]
       }
+      v_bord_regel_bestel: {
+        Row: {
+          aantal: number | null
+          artikel_id: string | null
+          artikel_vorm_id: string | null
+          artikelnummer: string | null
+          basis_eenheid: string | null
+          bestelbaar: boolean | null
+          created_at: string | null
+          eenheid_controleren: boolean | null
+          eenheid_ingevoerd: string | null
+          id: string | null
+          inhoud_per_verpakking: number | null
+          leverancier_id: string | null
+          leverancier_naam: string | null
+          naam: string | null
+          notitie: string | null
+          reden_niet_bestelbaar: string | null
+          restant_van: string | null
+          status: string | null
+          totaal_basis: number | null
+          totaal_tekst: string | null
+          variant_code: string | null
+          vestiging: string | null
+          vorm: string | null
+          vorm_eenheid: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bestel_signalen_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_signalen_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_signalen_artikel_vorm_id_fkey"
+            columns: ["artikel_vorm_id"]
+            isOneToOne: false
+            referencedRelation: "artikel_vormen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_signalen_leverancier_id_fkey"
+            columns: ["leverancier_id"]
+            isOneToOne: false
+            referencedRelation: "leveranciers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_signalen_restant_van_fkey"
+            columns: ["restant_van"]
+            isOneToOne: false
+            referencedRelation: "bestel_signalen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bestel_signalen_restant_van_fkey"
+            columns: ["restant_van"]
+            isOneToOne: false
+            referencedRelation: "v_bord_regel_bestel"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_cijfers_dag: {
         Row: {
           aantal_bonnen: number | null
@@ -7497,11 +7618,50 @@ export type Database = {
           restant_van: string
         }[]
       }
+      bestelbot_lees_open_v2: {
+        Args: { p_vestiging: string }
+        Returns: {
+          aantal: number | null
+          artikel_id: string | null
+          artikel_vorm_id: string | null
+          artikelnummer: string | null
+          basis_eenheid: string | null
+          bestelbaar: boolean | null
+          created_at: string | null
+          eenheid_controleren: boolean | null
+          eenheid_ingevoerd: string | null
+          id: string | null
+          inhoud_per_verpakking: number | null
+          leverancier_id: string | null
+          leverancier_naam: string | null
+          naam: string | null
+          notitie: string | null
+          reden_niet_bestelbaar: string | null
+          restant_van: string | null
+          status: string | null
+          totaal_basis: number | null
+          totaal_tekst: string | null
+          variant_code: string | null
+          vestiging: string | null
+          vorm: string | null
+          vorm_eenheid: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "v_bord_regel_bestel"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       bestelbot_leverancier_actief: {
         Args: { p_leverancier_id: string; p_vestiging: string }
         Returns: boolean
       }
       bestelbot_markeer_besteld: {
+        Args: { p_regels: Json; p_vestiging: string }
+        Returns: Json
+      }
+      bestelbot_markeer_besteld_v2: {
         Args: { p_regels: Json; p_vestiging: string }
         Returns: Json
       }
@@ -7517,6 +7677,10 @@ export type Database = {
         }[]
       }
       current_user_location: { Args: never; Returns: string }
+      eenheid_tekst: {
+        Args: { p_eenheid: string; p_waarde: number }
+        Returns: string
+      }
       euro_nl: { Args: { p: number }; Returns: string }
       f_omzet_effectief: {
         Args: { eitje_omzet: number; ls_omzet: number }
