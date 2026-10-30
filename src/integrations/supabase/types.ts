@@ -7329,6 +7329,7 @@ export type Database = {
           kostprijs_bekend: number | null
           nieuwste_prijsdatum: string | null
           oudste_prijsdatum: string | null
+          prijsbronnen: string | null
           recept_gecontroleerd: boolean | null
           recept_key: string | null
           regels: number | null
