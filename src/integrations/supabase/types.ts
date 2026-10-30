@@ -5153,6 +5153,7 @@ export type Database = {
           afgehandeld_op: string | null
           afhandeling: string | null
           ander_product: string | null
+          api_niet_meer_op: string | null
           artikel_id: string | null
           artikel_vorm_id: string | null
           artikelnummer: string | null
@@ -5196,6 +5197,7 @@ export type Database = {
           afgehandeld_op?: string | null
           afhandeling?: string | null
           ander_product?: string | null
+          api_niet_meer_op?: string | null
           artikel_id?: string | null
           artikel_vorm_id?: string | null
           artikelnummer?: string | null
@@ -5239,6 +5241,7 @@ export type Database = {
           afgehandeld_op?: string | null
           afhandeling?: string | null
           ander_product?: string | null
+          api_niet_meer_op?: string | null
           artikel_id?: string | null
           artikel_vorm_id?: string | null
           artikelnummer?: string | null
@@ -8883,6 +8886,7 @@ export type Database = {
           p_artikelnummer?: string
           p_bron_vestiging: string
           p_leverancier_id: string
+          p_naam?: string
           p_vestiging: string
         }
         Returns: {
