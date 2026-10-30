@@ -83,10 +83,10 @@ function Stepper({
         type="button"
         onClick={() => onChange(clamp(value - 1))}
         disabled={value <= min}
-        className="h-8 w-8 rounded-polar-md border border-input bg-card hover:bg-muted disabled:opacity-40 disabled:hover:bg-card flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="h-11 w-11 md:h-8 md:w-8 rounded-polar-md border border-input bg-card hover:bg-muted disabled:opacity-40 disabled:hover:bg-card flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label="Minder"
       >
-        <Minus className="h-3.5 w-3.5" />
+        <Minus className="h-4 w-4 md:h-3.5 md:w-3.5" />
       </button>
       <div className="w-10 text-center text-sm font-semibold tabular-nums">
         {value}
@@ -96,10 +96,10 @@ function Stepper({
         type="button"
         onClick={() => onChange(clamp(value + 1))}
         disabled={value >= max}
-        className="h-8 w-8 rounded-polar-md border border-input bg-card hover:bg-muted disabled:opacity-40 disabled:hover:bg-card flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="h-11 w-11 md:h-8 md:w-8 rounded-polar-md border border-input bg-card hover:bg-muted disabled:opacity-40 disabled:hover:bg-card flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label="Meer"
       >
-        <Plus className="h-3.5 w-3.5" />
+        <Plus className="h-4 w-4 md:h-3.5 md:w-3.5" />
       </button>
     </div>
   );
