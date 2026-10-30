@@ -74,7 +74,7 @@ export function TicketList({ actor, onNewTicket, onTicketClick }: TicketListProp
   return (
     <div className={isMobile ? 'min-w-0 space-y-4' : 'space-y-4'}>
       {/* KPI Tellers */}
-      <div className={isMobile ? 'grid min-w-0 grid-cols-3 gap-2 [&>div]:min-w-0 [&>div]:!p-3 [&_svg]:shrink-0 [&_p]:break-words' : 'grid grid-cols-3 gap-3 sm:gap-4'}>
+      <div className={isMobile ? 'grid min-w-0 grid-cols-3 gap-2 [&>div]:min-w-0 [&>div]:flex-col [&>div]:items-start [&>div]:!gap-2 [&>div]:!p-3 [&>div>div]:max-w-full [&_svg]:shrink-0 [&_p]:break-words' : 'grid grid-cols-3 gap-3 sm:gap-4'}>
         <StatCard
           label="Hoog"
           value={isLoading ? <Skeleton className="h-7 w-8" /> : counts.hoog}

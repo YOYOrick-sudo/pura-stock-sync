@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Mobiel stap 10: Onderhoud — alleen mobiele layout, tikvlakken en foto's; tests en controle zonder gegevens te wijzigen.
+- [x] Mobiel stap 10: Onderhoud — mobiele layout, 44px tikvlakken, compacte meldingen en foto's; 90 tests geslaagd, 2 bekende Deno-fouten, build OK.
+- [ ] Mobiel stap 10 visuele controle — controlesessie krijgt geen toegang; geen rechten of gegevens aangepast.
 
 - [x] 9a. Deadlinebadge in Bord/Advies/Onderweg, locatiegebonden read-only query en minuutklok; 32 tests geslaagd, build OK. Geen publicatie, database-uitvoering of rollenplan.
 - [ ] 9b. Exacte historische SQL-registratie — geblokkeerd: platform weigert bestanden in supabase/migrations zonder database-uitvoering; SQL niet opnieuw uitgevoerd. Visuele controle geblokkeerd: controlesessie toont Geen toegang; rollen niet aangepast.
