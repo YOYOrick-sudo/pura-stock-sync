@@ -20,3 +20,8 @@ Badges `info`/`success`/`error` bestaan al in badge.tsx, maar worden op het best
 - Schatting: 6–8 uur frontend, plus tests (1 u). Voorwaarde: de backend levert een vlag zoals `is_api_backorder` en `verwacht_op`.
 
 Niets gewijzigd of gepubliceerd.
+
+**C. Intuïtiever dan een label met kleur**
+- Aanbeveling: (1) + (2) + (3) samen, als één blok "Backorder" bovenaan Onderweg: LijstKaart met een eigen icoon (`PackageX` of `Hourglass`, groot in de kop), steeds als eerste en alleen zichtbaar bij >0. Geen extra tabblad, want tabs zijn er al genoeg en dan zie je het niet. Hetzelfde icoon staat bij het artikel op Bord en Advies, zodat het overal herkenbaar is zonder te lezen. +2 uur.
+- Tweede keus: (2) + (3), alleen het icoon en bovenaan sorteren binnen Onderweg, zonder apart blok. +1 uur.
+- Afraden: (4) melding bij openen. Die wordt na een paar dagen weggeklikt zonder te lezen, en een melding bovenop de pagina is een extra stap.
