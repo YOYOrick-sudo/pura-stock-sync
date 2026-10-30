@@ -23,6 +23,8 @@ export function SidebarLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const getPageTitle = (pathname: string) => {
+    if (isMobile && pathname === '/kitchen/mep/beheer') return 'Mise-en-place beheren';
+    if (isMobile && pathname === '/kitchen/mep/oud') return 'Mise-en-place';
     const titles: Record<string, string> = {
       '/dashboard': 'Dashboard',
       '/kassatelling': 'Kassatelling',

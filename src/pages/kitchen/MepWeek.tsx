@@ -11,6 +11,7 @@ import { nl } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useMepTakenBereik, ymd, type MepTaak } from '@/hooks/useMepTaken';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const PRIO_CLASS: Record<number, string> = {
   1: 'bg-destructive/10 text-destructive border-destructive/20',
@@ -19,6 +20,7 @@ const PRIO_CLASS: Record<number, string> = {
 };
 
 export default function MepWeek() {
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { userLocation } = useUserLocation();
   const vestiging = userLocation ?? '';
@@ -51,7 +53,7 @@ export default function MepWeek() {
 
   return (
     <SidebarLayout>
-      <div className="space-y-4">
+      <div className={isMobile ? 'min-w-0 max-w-full space-y-4' : 'space-y-4'}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <p className="text-[15px] font-medium">
@@ -59,7 +61,7 @@ export default function MepWeek() {
             </p>
             <p className="text-sm text-muted-foreground">{vestiging}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className={isMobile ? 'flex w-full min-w-0 flex-nowrap items-center gap-1 [&>button]:shrink-0 [&>button]:px-2' : 'flex items-center gap-2'}>
             <Button
               size="icon"
               variant="outline"
@@ -69,7 +71,7 @@ export default function MepWeek() {
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
-            <span className="min-w-[130px] text-center text-[15px] font-medium">{weekLabel}</span>
+            <span className={isMobile ? 'min-w-0 flex-1 text-center text-sm font-medium' : 'min-w-[130px] text-center text-[15px] font-medium'}>{weekLabel}</span>
             <Button
               size="icon"
               variant="outline"
@@ -80,9 +82,9 @@ export default function MepWeek() {
               <ChevronRight className="w-5 h-5" />
             </Button>
             {weekOffset !== 0 && (
-              <Button variant="ghost" className="h-11" onClick={() => setWeekOffset(0)}>
-                <CalendarDays className="w-4 h-4 mr-1.5" />
-                Deze week
+              <Button variant="ghost" className={isMobile ? 'h-11 w-11' : 'h-11'} onClick={() => setWeekOffset(0)} aria-label={isMobile ? 'Deze week' : undefined}>
+                <CalendarDays className={isMobile ? 'h-4 w-4' : 'w-4 h-4 mr-1.5'} />
+                {isMobile ? <span className="sr-only">Deze week</span> : 'Deze week'}
               </Button>
             )}
             <Button variant="outline" className="h-11" onClick={() => navigate('/kitchen/mep')}>
