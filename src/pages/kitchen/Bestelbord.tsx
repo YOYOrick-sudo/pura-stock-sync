@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Check, AlertCircle, Search } from 'lucide-react';
 import { DetailLade, InklapGroep, KaartKop, LaadRijen, LijstKaart, Invoerbalk, segmentTabsKlasse } from '@/components/pura/patronen';
-import { TabelVoet, ZoekVeld } from '@/components/pura/lijst';
+import { TabelVoet } from '@/components/pura/lijst';
 import { EmptyState } from '@/components/pura/EmptyState';
 import { BestelKengetallen } from '@/components/kitchen/bestelbord/BestelKengetallen';
 import { Stappen } from '@/components/pura/blokken';
@@ -160,7 +160,6 @@ export default function Bestelbord() {
   const { data: prijsSignalen = [] } = usePrijsSignalen(vestiging || null);
   const [suggesties, setSuggesties] = useState<BordSuggestie[]>([]);
   const [lijstOpen, setLijstOpen] = useState(false);
-  const [invoerOpen, setInvoerOpen] = useState(false);
   const [actief, setActief] = useState(-1);
   const [gekozen, setGekozen] = useState<BordSuggestie | null>(null);
   const [vormId, setVormId] = useState<string | null>(null);
@@ -170,7 +169,7 @@ export default function Bestelbord() {
   const advies = useBestelAdvies(vestiging || null, vandaagStr);
   const [adviesBezig, setAdviesBezig] = useState(false);
   const [tabKeuze, setTabKeuze] = useState<string | null>(null);
-  const [zoek, setZoek] = useState('');
+  const zoek = '';
   const [alleenZonderPrijs, setAlleenZonderPrijs] = useState(false);
   const [telOverzicht, setTelOverzicht] = useState({ open: 0, geladen: false });
   const rapporteerTellen = useCallback((a: { open: number; geladen: boolean }) => setTelOverzicht(a), []);
@@ -485,7 +484,7 @@ export default function Bestelbord() {
   const filterAan = !!q || alleenZonderPrijs;
   const openTotaal = openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : '—';
   const naarTab = (t: string) => { setAlleenZonderPrijs(false); setTabKeuze(t); };
-  const leegKaart = (titel: string) => <EmptyState icon={filterAan ? Search : ClipboardList} title={filterAan ? 'Niets gevonden' : titel} description={filterAan ? 'Pas je zoekopdracht of filter aan.' : ''} className="border-0 shadow-none" action={filterAan ? <Button variant="outline" size="touch" onClick={() => { setZoek(''); setAlleenZonderPrijs(false); }}>Filter wissen</Button> : undefined} />;
+  const leegKaart = (titel: string) => <EmptyState icon={filterAan ? Search : ClipboardList} title={filterAan ? 'Niets gevonden' : titel} description={filterAan ? 'Pas je zoekopdracht of filter aan.' : ''} className="border-0 shadow-none" action={filterAan ? <Button variant="outline" size="touch" onClick={() => { setAlleenZonderPrijs(false); }}>Filter wissen</Button> : undefined} />;
 
   return (
     <SidebarLayout>
@@ -503,22 +502,15 @@ export default function Bestelbord() {
               {[{ id: 'bord', naam: 'Op het bord', kort: 'Bord', Icoon: ClipboardList, n: open.length }, { id: 'advies', naam: 'Advies', kort: 'Advies', Icoon: Sparkles, n: positieveAdviezen.length }, { id: 'tellen', naam: 'Tellen', kort: 'Tellen', Icoon: Calculator, n: telOverzicht.open }, { id: 'onderweg', naam: 'Onderweg', kort: 'Onderweg', Icoon: Truck, n: besteld.length }].map(({ id, naam, kort, Icoon, n }) => <TabsTrigger key={id} value={id} aria-label={`${naam} (${n})`} className="min-w-0 px-2 sm:px-3"><Icoon className="hidden h-4 w-4 shrink-0 sm:block" /><span className="truncate sm:hidden">{kort}</span><span className="hidden sm:inline">{naam}</span>{n > 0 && <span className="tabular-nums text-muted-foreground">{n}</span>}</TabsTrigger>)}
             </TabsList>
             </div>
-            <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-              {(tab === 'bord' || tab === 'onderweg') && <div className={isMobile ? 'min-w-0 flex-1' : 'w-full max-w-xs'}><ZoekVeld waarde={zoek} onChange={setZoek} placeholder="Zoeken in deze lijst" /></div>}
-              <Button variant={invoerOpen && tab === 'bord' ? 'outline' : 'default'} className="min-h-11 shrink-0 gap-1" onClick={() => { setTabKeuze('bord'); setInvoerOpen(true); requestAnimationFrame(() => invoer.current?.focus()); }}><Plus className="h-4 w-4" /><span>{isMobile ? 'Toevoegen' : 'Product toevoegen'}</span></Button>
-            </div>
           </div>
           <div className="mt-4 min-w-0">
             <div className="min-w-0 space-y-4">
               <TabsContent value="bord" className="mt-0 space-y-4">
                 <LijstKaart>
-        <div hidden={!invoerOpen} className="space-y-3 border-b border-border bg-muted/30 p-3">
-          <div className="flex items-center justify-between gap-2">
-            <label htmlFor="bestel-product" className="text-sm font-medium">Welk product wil je bestellen?</label>
-            <Button variant="ghost" size="touch" onClick={() => setInvoerOpen(false)}>Sluiten</Button>
-          </div>
+        <div className="space-y-3 border-b border-border bg-muted/30 p-3">
           <Invoerbalk>
             <div className="relative min-w-0 basis-full sm:flex-1 sm:basis-auto">
+              <Plus className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
               <Input
                 ref={invoer}
                 id="bestel-product"
@@ -543,8 +535,9 @@ export default function Bestelbord() {
                     else voegToe();
                   }
                 }}
-                placeholder="Productnaam"
-                className="h-11 w-full text-base"
+                placeholder="Product toevoegen…"
+                aria-label="Product toevoegen"
+                className="h-11 w-full pl-9 text-base"
                 role="combobox"
                 aria-expanded={lijstOpen && suggesties.length > 0}
                 aria-autocomplete="list"
