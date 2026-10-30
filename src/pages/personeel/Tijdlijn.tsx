@@ -14,6 +14,7 @@ import { PersonModal } from "@/components/personeel/PersonModal";
 import { HousingOccupancyStrip } from "@/components/personeel/HousingOccupancyStrip";
 import { ChefHat, Utensils, Home, AlertCircle } from "lucide-react";
 import type { Person, FunctionGroup } from "@/types/personeel";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const DAYS_BEFORE = 0;
 const DAYS_AFTER = 365;
@@ -33,6 +34,7 @@ const FUNCTION_HEIGHT = 30;
 const HISTORY_ROW_HEIGHT = 24;
 
 export default function Tijdlijn() {
+  const isMobile = useIsMobile();
   const { data: people = [], isLoading } = usePeople();
   const { data: housing = [] } = useHousing();
   const { data: locations = [] } = useLocations();
@@ -286,23 +288,23 @@ export default function Tijdlijn() {
         ["--timeline-header-h" as string]: "calc(var(--timeline-date-h) + var(--timeline-density-h))",
       } as React.CSSProperties}
     >
-      <div className="flex items-center justify-between p-3 border-b border-border bg-card gap-3">
+      <div className={isMobile ? 'flex flex-wrap items-center justify-between p-3 border-b border-border bg-card gap-2 min-w-0' : 'flex items-center justify-between p-3 border-b border-border bg-card gap-3'}>
         <div className="text-sm text-muted-foreground truncate">
           {format(windowStart, "d MMM yyyy", { locale: nl })} – {format(addDays(windowStart, TOTAL_DAYS - 1), "d MMM yyyy", { locale: nl })}
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
+        <div className={isMobile ? 'flex items-center justify-between gap-3 w-full' : 'flex items-center gap-3'}>
+          <div className={isMobile ? 'flex items-center gap-2 min-h-11 [&_button]:min-h-11 [&_button]:min-w-11 [&_label]:min-h-11 [&_label]:inline-flex [&_label]:items-center' : 'flex items-center gap-2'}>
             <Switch id="show-history" checked={showHistory} onCheckedChange={setShowHistory} />
             <Label htmlFor="show-history" className="text-xs cursor-pointer select-none">Vorig jaar</Label>
           </div>
-          <Button size="sm" onClick={() => scrollToToday(true)}>Vandaag</Button>
+          <Button size="sm" className={isMobile ? 'min-h-11 min-w-11' : undefined} onClick={() => scrollToToday(true)}>Vandaag</Button>
         </div>
       </div>
 
       {/* Single scroll container — both axes scroll natively together */}
       <div
         ref={scrollRef}
-        className="overflow-auto"
+        className={isMobile ? 'overflow-auto min-w-0 max-w-full' : 'overflow-auto'}
         style={{ maxHeight: "70vh", WebkitOverflowScrolling: "touch" } as React.CSSProperties}
       >
         <div style={{ width: NAME_COL_WIDTH + totalWidth, minWidth: NAME_COL_WIDTH + totalWidth }}>

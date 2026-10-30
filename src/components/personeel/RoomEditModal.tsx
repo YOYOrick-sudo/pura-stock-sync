@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useUpsertRoom } from "@/hooks/personeel";
 import type { PersoneelRoom } from "@/types/personeel";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface RoomEditModalProps {
   open: boolean;
@@ -16,6 +17,7 @@ interface RoomEditModalProps {
 }
 
 export function RoomEditModal({ open, onClose, housingId, room, defaultSortOrder = 0 }: RoomEditModalProps) {
+  const isMobile = useIsMobile();
   const upsert = useUpsertRoom();
 
   const [name, setName] = useState("");
@@ -67,7 +69,7 @@ export function RoomEditModal({ open, onClose, housingId, room, defaultSortOrder
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-[650px]">
+      <DialogContent className={isMobile ? 'max-w-[650px] min-w-0 [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:h-11 [&_input]:min-w-0 [&_input]:text-base [&_textarea]:text-base [&_.grid]:!grid-cols-1' : 'max-w-[650px]'}>
         <DialogHeader>
           <DialogTitle>{room ? "Kamer bewerken" : "Nieuwe kamer"}</DialogTitle>
         </DialogHeader>

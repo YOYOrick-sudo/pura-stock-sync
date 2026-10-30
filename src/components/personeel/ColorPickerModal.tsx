@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getTextColorForBg } from "@/lib/personeel-utils";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const PRESETS = [
   "#4ea24a", "#d9363e", "#e58a1b", "#f4c93c",
@@ -19,12 +20,13 @@ interface ColorPickerModalProps {
 }
 
 export function ColorPickerModal({ open, initialColor, onClose, onSelect }: ColorPickerModalProps) {
+  const isMobile = useIsMobile();
   const [color, setColor] = useState(initialColor);
   const textColor = getTextColorForBg(color);
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-[500px]">
+      <DialogContent className={isMobile ? 'max-w-[500px] min-w-0 [&_.grid]:!grid-cols-4 [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:h-11 [&_input]:text-base' : 'max-w-[500px]'}>
         <DialogHeader>
           <DialogTitle>Kies een kleur</DialogTitle>
         </DialogHeader>

@@ -70,7 +70,7 @@ export default function PersoneelLayout() {
                   to={t.to}
                   end={t.end}
                   className={({ isActive }) =>
-                    `px-4 py-2 rounded-t-[12px] text-sm font-medium whitespace-nowrap transition ${
+                    `${isMobile ? 'min-h-11 min-w-11 inline-flex items-center shrink-0 ' : ''}px-4 py-2 rounded-t-[12px] text-sm font-medium whitespace-nowrap transition ${
                       isActive
                         ? "bg-background text-foreground border-b-2 border-primary"
                         : "text-muted-foreground hover:text-foreground"
@@ -83,7 +83,7 @@ export default function PersoneelLayout() {
             </nav>
           </div>
         </div>
-        <div className="px-6 md:px-10 lg:px-16 py-6 md:py-8 min-w-0">
+        <div className={isMobile ? 'px-4 md:px-10 lg:px-16 py-4 md:py-8 min-w-0 max-w-full' : 'px-6 md:px-10 lg:px-16 py-6 md:py-8 min-w-0'}>
           <Outlet />
         </div>
 
