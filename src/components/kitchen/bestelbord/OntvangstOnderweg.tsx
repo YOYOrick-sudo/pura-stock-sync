@@ -46,13 +46,10 @@ export function NageleverdKaart({ regels }: { regels: OntvangstRestant[] }) {
       <TableCell className="!px-0"><div className="mx-auto flex h-11 w-11 items-center justify-center"><Hourglass className="h-4 w-4 text-muted-foreground" aria-hidden /></div></TableCell>
       <TableCell><div className="flex min-h-11 min-w-0 flex-col justify-center">
         <span className="truncate font-medium">{r.naam}</span>
-        <RijMeta altijd>{[r.leverancier_naam, kortDatum(r.verwacht_op ?? r.controle_op)].filter(Boolean).join(' · ')}</RijMeta>
+        <RijMeta altijd><Badge variant={r.soort === 'mist' ? 'warning' : 'info'}>{restSoortLabel(r.soort)}</Badge>{r.opnieuw_besteld && <Badge variant="secondary">opnieuw besteld</Badge>}<span className="truncate">{[r.leverancier_naam, kortDatum(r.verwacht_op ?? r.controle_op)].filter(Boolean).join(' · ')}</span></RijMeta>
       </div></TableCell>
       <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex items-center gap-1.5"><span className="rounded-full bg-muted px-2 text-sm font-semibold">{Number(r.aantal)}</span>{r.eenheid && <span className="text-xs text-muted-foreground">{r.eenheid}</span>}</span></TableCell>
-      <TableCell className="!px-0 text-right sm:!px-2"><span className="inline-flex flex-wrap justify-end gap-1">
-        <Badge variant={r.soort === 'mist' ? 'warning' : 'info'}>{restSoortLabel(r.soort)}</Badge>
-        {r.opnieuw_besteld && <Badge variant="secondary">opnieuw besteld</Badge>}
-      </span></TableCell>
+      <TableCell className="!px-0" />
       <TableCell className="!px-0" />
     </TableRow>)}</TableBody>} />
   </LijstKaart>;
