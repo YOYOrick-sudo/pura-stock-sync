@@ -648,9 +648,9 @@ export default function Bestelbord() {
                 const controleren = !!regelInfo(bewerk)?.eenheid_controleren;
                 const eenh = bewerkSoort ?? 'stuks';
                 const v = bewerkVormId ? vormById.get(bewerkVormId) : undefined;
-                let vorm: { artikel_vorm_id: string | null; leverancier_id: string | null } | undefined;
+                let vorm: { artikel_vorm_id: string | null; leverancier_id: string | null; eenheid_controleren?: boolean } | undefined;
                 if (v && v.eenheid === eenh) {
-                  if (v.id !== bewerk.artikel_vorm_id || controleren) vorm = { artikel_vorm_id: v.id, leverancier_id: v.leverancier_id };
+                  if (v.id !== bewerk.artikel_vorm_id || controleren) vorm = controleren ? { artikel_vorm_id: v.id, leverancier_id: v.leverancier_id, eenheid_controleren: false } : { artikel_vorm_id: v.id, leverancier_id: v.leverancier_id };
                 } else if (bewerk.artikel_vorm_id || v) {
                   // Eenheid past niet bij de vorm: koppeling met vorm vervalt, artikel en leverancier blijven.
                   vorm = { artikel_vorm_id: null, leverancier_id: v?.leverancier_id ?? bewerk.leverancier_id };

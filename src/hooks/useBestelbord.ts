@@ -226,7 +226,7 @@ export function useBestelbordMutaties(vestiging: string) {
   });
 
   const wijzig = useMutation({
-    mutationFn: async ({ id, aantal, eenheid, vorm }: { id: string; aantal: number; eenheid: string; vorm?: { artikel_vorm_id: string | null; leverancier_id: string | null } }) => {
+    mutationFn: async ({ id, aantal, eenheid, vorm }: { id: string; aantal: number; eenheid: string; vorm?: { artikel_vorm_id: string | null; leverancier_id: string | null; eenheid_controleren?: boolean } }) => {
       const { error } = await metHerstel(() =>
         supabase.from('bestel_signalen').update({ aantal, eenheid, ...(vorm ?? {}) }).eq('id', id),
       );
