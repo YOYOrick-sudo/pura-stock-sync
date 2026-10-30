@@ -13,6 +13,7 @@ import { useCreateApplication } from '@/hooks/hr/useApplications';
 import { supabase } from '@/integrations/supabase/client';
 import { addDays } from 'date-fns';
 import { devError } from "@/lib/devLog";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const POSITIONS = [
   'Bediening',
@@ -34,6 +35,7 @@ const SOURCES = [
 ];
 
 export default function ApplicantForm() {
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const createCandidate = useCreateCandidate();
   const createApplication = useCreateApplication();
@@ -109,7 +111,7 @@ export default function ApplicantForm() {
 
   return (
     <SidebarLayout>
-      <div className="page-stack max-w-2xl">
+      <div className={isMobile ? 'page-stack min-w-0 [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:h-11 [&_input]:min-w-0 [&_input]:text-base [&_textarea]:text-base [&_.grid]:!grid-cols-1 [&_form>div.flex]:flex-wrap [&_form>div.flex>button]:flex-1 [&_form>div.flex>button]:whitespace-normal' : 'page-stack max-w-2xl'}>
         <Button 
           variant="ghost" 
           size="sm" 

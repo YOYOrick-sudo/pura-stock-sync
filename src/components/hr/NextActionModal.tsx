@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { addDays, format } from 'date-fns';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface NextActionModalProps {
   open: boolean;
@@ -32,6 +33,7 @@ export function NextActionModal({
   suggestedDays = 3,
   actionLabel,
 }: NextActionModalProps) {
+  const isMobile = useIsMobile();
   const [nextActionType, setNextActionType] = useState('follow_up');
   const [nextActionDate, setNextActionDate] = useState('');
   const [nextActionTime, setNextActionTime] = useState('10:00');
@@ -56,7 +58,7 @@ export function NextActionModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={isMobile ? 'sm:max-w-md !w-[calc(100%-2rem)] max-h-[calc(100dvh-2rem)] overflow-y-auto min-w-0 [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:h-11 [&_input]:min-w-0 [&_input]:text-base [&_textarea]:text-base [&_.grid]:!grid-cols-1' : 'sm:max-w-md'}>
         <DialogHeader>
           <DialogTitle>Volgende Actie Plannen</DialogTitle>
         </DialogHeader>

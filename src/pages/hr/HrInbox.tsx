@@ -10,8 +10,10 @@ import { useAccommodationOccupancy } from '@/hooks/hr/useAccommodations';
 import { InboxTab } from '@/types/hr';
 import { InboxCard } from '@/components/hr/InboxCard';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function HrInbox() {
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<InboxTab>('new');
   
@@ -23,7 +25,7 @@ export default function HrInbox() {
 
   return (
     <SidebarLayout>
-      <div className="page-stack">
+      <div className={isMobile ? 'page-stack min-w-0 [&_button]:min-h-11 [&_button]:min-w-11' : 'page-stack'}>
         {/* Header */}
         <div className="flex items-center justify-end">
           <Button onClick={() => navigate('/hr/applicants/new')}>
@@ -69,7 +71,8 @@ export default function HrInbox() {
 
         {/* Inbox Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as InboxTab)}>
-          <TabsList className="grid w-full grid-cols-3">
+          <div className={isMobile ? 'min-w-0 max-w-full overflow-x-auto' : undefined}>
+          <TabsList className={isMobile ? 'inline-flex w-max min-w-full h-auto flex-nowrap [&>button]:shrink-0 [&>button]:whitespace-nowrap' : 'grid w-full grid-cols-3'}>
             <TabsTrigger value="new" className="relative">
               Nieuw
               {counts && counts.new > 0 && (
@@ -95,6 +98,7 @@ export default function HrInbox() {
               )}
             </TabsTrigger>
           </TabsList>
+          </div>
 
           <TabsContent value={activeTab} className="mt-4">
             {applicationsLoading ? (
