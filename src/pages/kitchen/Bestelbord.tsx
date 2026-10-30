@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useOntvangstModus, useOntvangstData, useKeukenAdvies } from '@/hooks/useOntvangstV2';
 import { NageleverdKaart, EindcheckKaart } from '@/components/kitchen/bestelbord/OntvangstOnderweg';
 import { MandjeVragen } from '@/components/kitchen/bestelbord/MandjeVragen';
-import { bordRestStatus, onderwegTellers } from '@/lib/ontvangstV2';
+import { bordRestStatusPerSignaal, onderwegTellers } from '@/lib/ontvangstV2';
 import { KeukenAdviesTabel } from '@/components/kitchen/bestelbord/KeukenAdviesTabel';
 import { DetailLade, KaartKop, LaadRijen, LijstKaart, Invoerbalk, segmentTabsKlasse } from '@/components/pura/patronen';
 import { TabelVoet } from '@/components/pura/lijst';
@@ -198,8 +198,7 @@ export default function Bestelbord() {
   const ontvangst = useOntvangstData(modus);
   const keukenAdvies = useKeukenAdvies(modus);
   const restanten = v2 ? ontvangst.restanten.data ?? [] : [];
-  const restStatusPerSignaal = new Map<string, 'nageleverd' | 'mist'>();
-  for (const x of restanten) { const st = bordRestStatus(x); if (st && x.bestel_signaal_id && !restStatusPerSignaal.has(x.bestel_signaal_id)) restStatusPerSignaal.set(x.bestel_signaal_id, st); }
+  const restStatusPerSignaal = bordRestStatusPerSignaal(restanten);
   const nageleverdArtikelen = new Set(restanten.filter((x) => x.telt_als_onderweg && !x.opnieuw_besteld && x.artikel_id).map((x) => x.artikel_id as string));
   const restTellers = onderwegTellers(restanten);
   const { isOpen } = useVestigingOpenDagen(vestiging || null);

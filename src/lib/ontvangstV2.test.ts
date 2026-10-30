@@ -1,6 +1,6 @@
 // @ts-ignore bun test runner
 import { describe, expect, test } from 'bun:test';
-import { afrondWaarschuwingen, annuleerGeldig, bordRestStatus, onderwegBlokken, onderwegTellers, isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, type EindcheckInvoer } from './ontvangstV2';
+import { afrondWaarschuwingen, annuleerGeldig, bordRestStatus, bordRestStatusPerSignaal, onderwegBlokken, onderwegTellers, isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, type EindcheckInvoer } from './ontvangstV2';
 
 const basis: EindcheckInvoer = {
   soort: 'onderweg', signaal_id: 's1', open_regel_id: null, pakbon_regel_id: null, geleverd_vorm_id: null,
@@ -98,6 +98,18 @@ describe('onderweg-blokken en badges', () => {
     expect(bordRestStatus({ soort: 'wordt_nageleverd', opnieuw_besteld: true })).toBe(null);
     expect(bordRestStatus({ soort: 'mist', opnieuw_besteld: false })).toBe('mist');
     expect(bordRestStatus({ soort: 'mist', opnieuw_besteld: true })).toBe(null);
+  });
+  test('badge per bestel_signaal_id: nageleverd wint van mist, opnieuw besteld telt niet', () => {
+    const mist = { soort: 'mist', opnieuw_besteld: false, bestel_signaal_id: 's1' };
+    const nageleverd = { soort: 'wordt_nageleverd', opnieuw_besteld: false, bestel_signaal_id: 's1' };
+    const opnieuw = { soort: 'wordt_nageleverd', opnieuw_besteld: true, bestel_signaal_id: 's1' };
+    // beide volgordes
+    expect(bordRestStatusPerSignaal([mist, nageleverd]).get('s1')).toBe('nageleverd');
+    expect(bordRestStatusPerSignaal([nageleverd, mist]).get('s1')).toBe('nageleverd');
+    // mist + opnieuw bestelde nageleverd = mist
+    expect(bordRestStatusPerSignaal([opnieuw, mist]).get('s1')).toBe('mist');
+    // alleen opnieuw bestelde regels: geen badge
+    expect(bordRestStatusPerSignaal([opnieuw]).has('s1')).toBe(false);
   });
   test('annuleren vraagt bron en minstens 3 tekens', () => {
     expect(annuleerGeldig('mail', '  ab ')).toBe(false);

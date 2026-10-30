@@ -142,6 +142,17 @@ export function bordRestStatus(r: RestRij | null | undefined): 'nageleverd' | 'm
   return null;
 }
 
+/** Badge per bestel_signaal_id over alle restant-regels: nageleverd wint van mist (ongevolgde volgorde); opnieuw bestelde rijen tellen niet mee. */
+export function bordRestStatusPerSignaal(rijen: (RestRij & { bestel_signaal_id?: string | null })[]): Map<string, 'nageleverd' | 'mist'> {
+  const uit = new Map<string, 'nageleverd' | 'mist'>();
+  for (const r of rijen) {
+    if (!r.bestel_signaal_id) continue;
+    if (bordRestStatus(r) === 'nageleverd') uit.set(r.bestel_signaal_id, 'nageleverd');
+    else if (bordRestStatus(r) === 'mist' && !uit.has(r.bestel_signaal_id)) uit.set(r.bestel_signaal_id, 'mist');
+  }
+  return uit;
+}
+
 /** Annuleren mag pas met een bron en een notitie van minstens 3 tekens. */
 export function annuleerGeldig(bron: string | null | undefined, notitie: string): boolean {
   return !!bron && notitie.trim().length >= 3;
