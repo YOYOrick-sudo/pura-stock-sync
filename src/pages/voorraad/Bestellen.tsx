@@ -36,6 +36,7 @@ import {
 } from '@/hooks/useVoorraadModule';
 
 import { ExtraBestellenDialog } from '@/components/voorraad/ExtraBestellenDialog';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const STATUS_KLEUR: Record<string, string> = {
   te_tellen: 'bg-muted text-muted-foreground',
@@ -46,6 +47,7 @@ const STATUS_KLEUR: Record<string, string> = {
 };
 
 export default function VoorraadBestellen() {
+  const isMobile = useIsMobile();
   const { userLocation } = useUserLocation();
   const navigate = useNavigate();
   const datum = vandaagNL();
@@ -77,15 +79,15 @@ export default function VoorraadBestellen() {
 
   return (
     <SidebarLayout>
-      <div className="page-stack max-w-5xl pb-24">
-        <div className="flex items-center gap-3">
+      <div className={isMobile ? 'page-stack min-w-0 max-w-full !p-0 pb-24' : 'page-stack max-w-5xl pb-24'}>
+        <div className={isMobile ? 'flex min-w-0 items-center gap-2' : 'flex items-center gap-3'}>
           {route && (
-            <Button variant="ghost" size="icon" onClick={() => setRouteKey(null)} aria-label="Terug">
+            <Button variant="ghost" size={isMobile ? 'touch-icon' : 'icon'} onClick={() => setRouteKey(null)} aria-label="Terug">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           )}
-          <div className="flex-1">
-            {route && <h2 className="text-lg font-semibold text-foreground">{route.naam}</h2>}
+          <div className={isMobile ? 'min-w-0 flex-1' : 'flex-1'}>
+            {route && <h2 className={isMobile ? 'truncate font-semibold text-foreground' : 'text-lg font-semibold text-foreground'}>{route.naam}</h2>}
             <p className="text-sm text-muted-foreground">
               {userLocation} ·{' '}
               {new Date(`${datum}T12:00:00`).toLocaleDateString('nl-NL', {
@@ -158,9 +160,10 @@ export default function VoorraadBestellen() {
 }
 
 function RouteKaart({ route, onClick }: { route: DashboardRoute; onClick: () => void }) {
+  const isMobile = useIsMobile();
   return (
     <button onClick={onClick} className="w-full text-left">
-      <Card className="p-4 flex items-center gap-3 hover:bg-muted/40 min-h-[72px]">
+      <Card className={isMobile ? 'flex min-h-12 min-w-0 items-center gap-2 p-3 hover:bg-muted/40' : 'p-4 flex items-center gap-3 hover:bg-muted/40 min-h-[72px]'}>
         {route.type === 'leverancier' ? (
           <Truck className="h-5 w-5 text-muted-foreground shrink-0" />
         ) : (
@@ -168,14 +171,14 @@ function RouteKaart({ route, onClick }: { route: DashboardRoute; onClick: () => 
         )}
         <div className="flex-1 min-w-0">
           <div className="font-medium truncate">{route.naam}</div>
-          <div className="text-xs text-muted-foreground">
+          <div className={isMobile ? 'truncate text-xs text-muted-foreground' : 'text-xs text-muted-foreground'}>
             {route.artikelen} artikelen
             {route.deadline ? ` · deadline ${route.deadline.slice(0, 5)}` : ''}
             {route.conceptRegels > 0 ? ` · ${route.conceptRegels} op het voorstel` : ''}
             {route.onderweg > 0 ? ` · ${route.onderweg} onderweg` : ''}
           </div>
         </div>
-        <Badge className={`${STATUS_KLEUR[route.status]} border-0`}>{ROUTE_STATUS_LABEL[route.status]}</Badge>
+        <Badge className={`${STATUS_KLEUR[route.status]} border-0${isMobile ? ' shrink-0 whitespace-nowrap' : ''}`}>{ROUTE_STATUS_LABEL[route.status]}</Badge>
       </Card>
     </button>
   );
@@ -194,6 +197,7 @@ function RouteDetail({
   onVernieuw: () => void;
   onNaarOnderweg: () => void;
 }) {
+  const isMobile = useIsMobile();
   const { data: telronde } = useTelronde(vestiging, route as any, datum);
   const { data: artikelen = [], isLoading } = useRouteArtikelen(vestiging, route as any);
   const { data: regels } = useTelregels(telronde?.id);
@@ -259,9 +263,9 @@ function RouteDetail({
   };
 
   return (
-    <div className="space-y-4">
+    <div className={isMobile ? 'min-w-0 space-y-4 [&_button]:min-h-11 [&_button]:min-w-11 [&_button]:whitespace-normal' : 'space-y-4'}>
       <Card className="p-4 space-y-2">
-        <div className="flex items-center justify-between text-sm">
+        <div className={isMobile ? 'flex min-w-0 flex-wrap items-center justify-between gap-2 text-sm' : 'flex items-center justify-between text-sm'}>
           <span>
             {geteld} van {artikelen.length} geteld
           </span>
@@ -304,20 +308,20 @@ function RouteDetail({
         {artikelen.map((a) => {
           const regel = regels?.get(a.artikel_id);
           return (
-            <Card key={a.artikel_id} className="p-3 flex items-center gap-3">
+            <Card key={a.artikel_id} className={isMobile ? 'flex min-h-12 min-w-0 items-center gap-2 p-3' : 'p-3 flex items-center gap-3'}>
               <div className="flex-1 min-w-0">
                 <div className="font-medium truncate">{a.naam}</div>
                 <div className="text-xs text-muted-foreground">
                   Bestelgrens {a.min_voorraad} · aanvullen tot {a.max_voorraad} {a.basis_eenheid_code}
                 </div>
                 {a.conversie_ontbreekt && (
-                  <div className="flex items-center gap-1 text-xs text-amber-600 mt-1">
-                    <AlertTriangle className="h-4 w-4" />
+                  <div className={isMobile ? 'mt-1 flex items-center gap-1 break-words text-xs text-amber-600' : 'flex items-center gap-1 text-xs text-amber-600 mt-1'}>
+                    <AlertTriangle className={isMobile ? 'h-4 w-4 shrink-0' : 'h-4 w-4'} />
                     Omrekening ontbreekt — staat op de fixlijst
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className={isMobile ? 'flex shrink-0 items-center gap-1' : 'flex items-center gap-2'}>
                 <Input
                   type="number"
                   inputMode="decimal"
@@ -325,10 +329,10 @@ function RouteDetail({
                   disabled={afgerond && !dicht}
 
                   onBlur={(e) => e.target.value !== '' && opslaan(a, e.target.value)}
-                  className="w-24 h-12 text-lg text-right"
+                  className={isMobile ? 'h-11 w-16 text-right text-base tabular-nums' : 'w-24 h-12 text-lg text-right'}
                 />
-                <span className="w-12 text-sm text-muted-foreground">{a.tel_eenheid_code}</span>
-                {regel && <Check className="h-5 w-5 text-primary" />}
+                <span className={isMobile ? 'w-8 break-words text-xs text-muted-foreground' : 'w-12 text-sm text-muted-foreground'}>{a.tel_eenheid_code}</span>
+                {regel && <Check className={isMobile ? 'h-4 w-4 shrink-0 text-primary' : 'h-5 w-5 text-primary'} />}
               </div>
             </Card>
           );
@@ -354,7 +358,7 @@ function RouteDetail({
       {afgerond && (
       <Card className="p-4 space-y-3">
 
-        <div className="flex items-center justify-between">
+        <div className={isMobile ? 'flex flex-wrap items-center justify-between gap-2' : 'flex items-center justify-between'}>
           <h2 className="font-semibold">Wat wordt besteld</h2>
           {concept?.leverdatum && (
             <span className="text-sm text-muted-foreground">
@@ -374,7 +378,7 @@ function RouteDetail({
         )}
 
         {concept?.regels.map((r) => (
-          <div key={r.id} className="flex items-center gap-3 border-b border-border last:border-0 py-2">
+          <div key={r.id} className={isMobile ? 'flex min-h-12 min-w-0 items-center gap-2 border-b border-border py-2 last:border-0' : 'flex items-center gap-3 border-b border-border last:border-0 py-2'}>
             <div className="flex-1 min-w-0">
               <div className="truncate">{r.omschrijving}</div>
               <div className="text-xs text-muted-foreground">
@@ -386,7 +390,7 @@ function RouteDetail({
               type="number"
               inputMode="decimal"
               defaultValue={r.aantal}
-              className="w-24 h-12 text-lg text-right"
+              className={isMobile ? 'h-11 w-16 shrink-0 text-right text-base tabular-nums' : 'w-24 h-12 text-lg text-right'}
               onBlur={(e) => {
                 const waarde = Number(e.target.value.replace(',', '.'));
                 if (!Number.isFinite(waarde) || waarde === r.aantal) return;
@@ -395,11 +399,12 @@ function RouteDetail({
                   .catch((err) => toast.error('Aanpassen mislukt', { description: err.message }));
               }}
             />
-            <span className="w-12 text-sm text-muted-foreground">{r.eenheid}</span>
+            <span className={isMobile ? 'w-8 shrink-0 break-words text-xs text-muted-foreground' : 'w-12 text-sm text-muted-foreground'}>{r.eenheid}</span>
             {isBeheerder && (
               <Button
                 variant="ghost"
-                size="sm"
+                size={isMobile ? 'touch' : 'sm'}
+                className={isMobile ? 'shrink-0 px-2' : undefined}
                 onClick={() =>
                   verwijderRegel
                     .mutateAsync({ type: concept.type, regelId: r.id })
