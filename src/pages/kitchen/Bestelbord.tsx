@@ -34,6 +34,7 @@ import { eerderVrijeRegels, filterEerderSuggesties } from '@/lib/bordSnelkeuze';
 import { leverancierNaam } from '@/components/kitchen/bestelbord/presentatie';
 import { useBesteldeadlines } from '@/hooks/useBesteldeadlines';
 import { RegelInfo } from '@/components/kitchen/bestelbord/RegelInfo';
+import { verpakkingWeergave, eenheidLabel } from '@/components/kitchen/bestelbord/verpakking';
 
 const SOORTEN = ['stuks', 'doos', 'zak', 'fles', 'pak', 'bak', 'emmer', 'kg', 'bos', 'tray', 'rol', 'fust'] as const;
 
