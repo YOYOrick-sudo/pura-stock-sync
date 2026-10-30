@@ -6,6 +6,7 @@ import { TicketDetail } from '@/components/maintenance/TicketDetail';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { supabase } from '@/integrations/supabase/client';
 import type { MaintenanceActor, Vestiging } from '@/types/maintenance';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type Screen =
   | { type: 'list' }
@@ -19,6 +20,7 @@ function toVestiging(loc: string): Vestiging | null {
 }
 
 export default function Onderhoud() {
+  const isMobile = useIsMobile();
   const { userLocation } = useUserLocation();
   const [screen, setScreen] = useState<Screen>({ type: 'list' });
   const [authUser, setAuthUser] = useState<{ id: string; naam: string } | null>(null);
@@ -51,7 +53,7 @@ export default function Onderhoud() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-4xl mx-auto">
+      <div className={isMobile ? 'min-w-0 max-w-full space-y-4' : 'max-w-4xl mx-auto'}>
         {actor ? (
           <>
             {screen.type === 'list' && (

@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { StatusTone } from '@/components/pura';
 import { devError } from "@/lib/devLog";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface NewTicketFormProps {
   actor: MaintenanceActor;
@@ -32,6 +33,7 @@ function FormLabel({ children }: { children: React.ReactNode }) {
 }
 
 export function NewTicketForm({ actor, onBack, onSuccess }: NewTicketFormProps) {
+  const isMobile = useIsMobile();
   const [titel, setTitel] = useState('');
   const [prioriteit, setPrioriteit] = useState<Prioriteit | null>(null);
   const [plek, setPlek] = useState<string | null>(null);
@@ -88,10 +90,10 @@ export function NewTicketForm({ actor, onBack, onSuccess }: NewTicketFormProps) 
   };
 
   return (
-    <div className="space-y-6 max-w-[640px]">
+    <div className={isMobile ? 'min-w-0 max-w-full space-y-4 [&_input]:text-base [&_textarea]:text-base' : 'space-y-6 max-w-[640px]'}>
       {/* Terug-navigatie */}
       <div>
-        <Button variant="ghost" size="sm" onClick={onBack} className="-ml-3">
+        <Button variant="ghost" size={isMobile ? 'touch' : 'sm'} onClick={onBack} className={isMobile ? '' : '-ml-3'}>
           <ArrowLeft className="h-4 w-4" />
           Terug
         </Button>
@@ -113,7 +115,7 @@ export function NewTicketForm({ actor, onBack, onSuccess }: NewTicketFormProps) 
       {/* Urgentie */}
       <div className="space-y-2">
         <FormLabel>Hoe urgent? *</FormLabel>
-        <div className="grid grid-cols-3 gap-3">
+        <div className={isMobile ? 'grid min-w-0 grid-cols-3 gap-2 [&>button]:min-w-0 [&>button]:!px-1 [&_span]:break-words' : 'grid grid-cols-3 gap-3'}>
           {prioriteitOptions.map((opt) => {
             const active = prioriteit === opt.value;
             return (
@@ -191,16 +193,23 @@ export function NewTicketForm({ actor, onBack, onSuccess }: NewTicketFormProps) 
             <img
               src={photoPreview}
               alt="Voorbeeld"
-              className="w-full max-h-[320px] object-cover block"
+              className={isMobile ? 'block max-h-80 w-full object-contain' : 'w-full max-h-[320px] object-cover block'}
             />
-            <button
+            {isMobile ? <Button
+              type="button"
+              variant="secondary"
+              size="touch-icon"
+              onClick={clearPhoto}
+              aria-label="Foto verwijderen"
+              className="absolute right-3 top-3"
+            ><X className="h-4 w-4" /></Button> : <button
               type="button"
               onClick={clearPhoto}
               aria-label="Foto verwijderen"
               className="absolute top-3 right-3 w-9 h-9 rounded-polar-md bg-black/55 text-white flex items-center justify-center hover:bg-black/70"
             >
               <X className="h-4 w-4" />
-            </button>
+            </button>}
           </div>
         ) : (
           <button
