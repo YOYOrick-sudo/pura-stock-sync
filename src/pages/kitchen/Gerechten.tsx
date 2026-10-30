@@ -12,6 +12,8 @@ import { GerechtReceptBevat, GerechtReceptSporen } from '@/components/kitchen/Ge
 import { DataTable, DataTableBody, DataTableCell, DataTableHead, DataTableHeader, DataTableRow, EmptyCell, StatusDot } from '@/components/ui/data-table';
 import { GerechtDialog } from '@/components/kitchen/GerechtDialog';
 import { AllergeenFilter } from '@/components/kitchen/AllergeenFilter';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { RijMenu } from '@/components/pura';
 import {
   GERECHT_CATEGORIEEN,
   GERECHT_LABEL_CODES,
@@ -63,6 +65,7 @@ function InhoudChips({ gerecht }: { gerecht: Gerecht }) {
 }
 
 export default function Gerechten() {
+  const isMobile = useIsMobile();
   const { isManager } = useRole();
   const [categorie, setCategorie] = useState<string>(GERECHT_CATEGORIEEN[0]);
   const [search, setSearch] = useState('');
@@ -134,7 +137,7 @@ export default function Gerechten() {
     return (
       <DataTableRow key={g.id} className={cn(g.is_gearchiveerd && 'opacity-60')}>
         <DataTableCell>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <div className={isMobile ? 'flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 break-words [overflow-wrap:anywhere]' : 'flex flex-wrap items-center gap-x-2 gap-y-0.5'}>
             <span className="font-medium text-foreground">{g.naam}</span>
             {isVegan && (
               <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
@@ -148,8 +151,14 @@ export default function Gerechten() {
               {g.kaart_omschrijving || g.notitie}
             </p>
           )}
+          {isMobile && <div className="mt-1 min-w-0">
+            {heeftLabels ? <InhoudChips gerecht={g} /> : <>
+              <GerechtReceptBevat gerecht={g} recept={recept} laden={receptQuery.isLoading} fout={receptQuery.isError} />
+              <div className="mt-1"><GerechtReceptSporen gerecht={g} recept={recept} /></div>
+            </>}
+          </div>}
         </DataTableCell>
-        <DataTableCell>
+        <DataTableCell className={isMobile ? 'hidden' : undefined}>
           {heeftLabels ? <InhoudChips gerecht={g} /> : (
             <GerechtReceptBevat gerecht={g} recept={recept} laden={receptQuery.isLoading} fout={receptQuery.isError} />
           )}
@@ -165,7 +174,7 @@ export default function Gerechten() {
             const prijzen = gerechtPrijzen(g.prijs, g.prijs_varianten);
             return prijzen.bedragen ? (
               <>
-                <span className="whitespace-nowrap text-sm text-foreground">€ {prijzen.bedragen}</span>
+                <span className={isMobile ? 'break-words text-sm text-foreground' : 'whitespace-nowrap text-sm text-foreground'}>€ {prijzen.bedragen}</span>
                 {prijzen.namen && <p className="text-xs text-muted-foreground">{prijzen.namen}</p>}
               </>
             ) : <EmptyCell />;
@@ -173,7 +182,10 @@ export default function Gerechten() {
         </DataTableCell>
         {isManager && (
           <DataTableCell className="text-right">
-            <div className="flex justify-end">
+            {isMobile ? <RijMenu naam={g.naam} acties={[
+              { label: `${g.naam} bewerken`, onClick: () => { setBewerken(g); setDialogOpen(true); } },
+              { label: g.is_gearchiveerd ? `${g.naam} terugzetten` : `${g.naam} archiveren`, gevaar: !g.is_gearchiveerd, onClick: () => archiveer.mutate({ id: g.id, archiveren: !g.is_gearchiveerd }) },
+            ]} /> : <div className="flex justify-end">
               <Button variant="ghost" size="icon" className="h-11 w-11" aria-label={`${g.naam} bewerken`}
                 onClick={() => { setBewerken(g); setDialogOpen(true); }}>
                 <Pencil className="h-4 w-4" />
@@ -183,7 +195,7 @@ export default function Gerechten() {
                 onClick={() => archiveer.mutate({ id: g.id, archiveren: !g.is_gearchiveerd })}>
                 {g.is_gearchiveerd ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
               </Button>
-            </div>
+            </div>}
           </DataTableCell>
         )}
       </DataTableRow>
@@ -191,13 +203,13 @@ export default function Gerechten() {
   };
 
   const GerechtTabel = ({ rijen }: { rijen: Gerecht[] }) => (
-    <DataTable className="rounded-none border-0">
+    <DataTable className={isMobile ? 'rounded-none border-0 [&_td]:px-2 [&_th]:px-2' : 'rounded-none border-0'}>
       <DataTableHeader>
-        <DataTableHead className="w-[45%] md:w-[30%]">Gerecht</DataTableHead>
-        <DataTableHead className="w-auto md:w-[38%]">Bevat</DataTableHead>
+        <DataTableHead className={isMobile ? 'w-auto' : 'w-[45%] md:w-[30%]'}>Gerecht</DataTableHead>
+        <DataTableHead className={isMobile ? 'hidden' : 'w-auto md:w-[38%]'}>Bevat</DataTableHead>
         <DataTableHead className="hidden md:table-cell w-auto">Kan bevatten</DataTableHead>
-        <DataTableHead className="w-[110px] text-right">Prijs</DataTableHead>
-        {isManager && <DataTableHead className="w-[104px]"><span className="sr-only">Acties</span></DataTableHead>}
+        <DataTableHead className={isMobile ? 'w-20 text-right' : 'w-[110px] text-right'}>Prijs</DataTableHead>
+        {isManager && <DataTableHead className={isMobile ? 'w-14' : 'w-[104px]'}><span className="sr-only">Acties</span></DataTableHead>}
       </DataTableHeader>
       <DataTableBody>{rijen.map(renderRij)}</DataTableBody>
     </DataTable>
@@ -205,16 +217,16 @@ export default function Gerechten() {
 
   return (
     <SidebarLayout>
-      <div className="space-y-6">
+      <div className={isMobile ? 'min-w-0 max-w-full space-y-4 [&_button]:min-h-11' : 'space-y-6'}>
         <Card className="p-4 bg-card shadow-sm">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
+          <div className={isMobile ? 'flex min-w-0 flex-col gap-2' : 'flex flex-col sm:flex-row gap-3'}>
+            <div className={isMobile ? 'relative min-w-0 w-full' : 'relative flex-1'}>
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Zoek gerecht of allergeen…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="h-11 pl-10"
+                className={isMobile ? 'h-11 pl-10 text-base' : 'h-11 pl-10'}
               />
             </div>
             {isManager && (
@@ -225,7 +237,7 @@ export default function Gerechten() {
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 mt-4">
+          <div className={isMobile ? 'mt-4 flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto [&>button]:shrink-0 [&>button]:whitespace-nowrap' : 'flex flex-wrap items-center gap-2 mt-4'}>
             {GERECHT_CATEGORIEEN.map((c) => (
               <Button
                 key={c}
@@ -261,14 +273,19 @@ export default function Gerechten() {
             >Alleen op de kaart</Button>
           </div>
 
+          {isMobile ? <div className="min-w-0 [&>div>div:first-child]:flex-wrap [&>div>div:last-child]:flex-nowrap [&>div>div:last-child]:overflow-x-auto [&>div>div:last-child>button]:shrink-0">
           <AllergeenFilter
+            zonder={zonder} onToggle={toggleZonder} alleenVegan={alleenVegan}
+            onToggleVegan={() => setAlleenVegan((v) => !v)} onWissen={wisFilter}
+            aantal={filterActief && !isLoading ? veilig.length : undefined}
+          /></div> : <AllergeenFilter
             zonder={zonder}
             onToggle={toggleZonder}
             alleenVegan={alleenVegan}
             onToggleVegan={() => setAlleenVegan((v) => !v)}
             onWissen={wisFilter}
             aantal={filterActief && !isLoading ? veilig.length : undefined}
-          />
+          />}
         </Card>
 
         {receptQuery.isError && <div className="flex flex-wrap items-center gap-3 text-sm text-warning" role="alert">
