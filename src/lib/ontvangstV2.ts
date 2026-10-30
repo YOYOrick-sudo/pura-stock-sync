@@ -65,6 +65,16 @@ export type EindcheckInvoer = {
   automatisch: boolean;
 };
 
+/** Alleen automatisch als de leverancier zelf nalevering meldt: API-backorder of 'volgt' op de pakbon. Een pakbon alleen is niet genoeg. */
+export function isAutomatisch(
+  r: { signaal_id: string | null; pakbon_notitie: string | null },
+  restanten: { bron: string | null; api_backorder_id: string | null; bestel_signaal_id: string | null }[],
+): boolean {
+  const api = !!r.signaal_id && restanten.some((x) => x.bron === 'api' && !!x.api_backorder_id && x.bestel_signaal_id === r.signaal_id);
+  const n = (r.pakbon_notitie ?? '').toLowerCase();
+  return api || n.includes('volgt') || n.includes('follows_later');
+}
+
 const OPEN_SOORTEN = new Set(['nalevering', 'mist', 'backorder']);
 
 export function restantVan(r: Pick<EindcheckInvoer, 'besteld' | 'binnen'>): number {

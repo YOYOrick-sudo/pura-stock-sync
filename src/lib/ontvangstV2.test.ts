@@ -1,6 +1,6 @@
 // @ts-ignore bun test runner
 import { describe, expect, test } from 'bun:test';
-import { bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, type EindcheckInvoer } from './ontvangstV2';
+import { isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, type EindcheckInvoer } from './ontvangstV2';
 
 const basis: EindcheckInvoer = {
   soort: 'onderweg', signaal_id: 's1', open_regel_id: null, pakbon_regel_id: null, geleverd_vorm_id: null,
@@ -48,6 +48,19 @@ describe('eindcheck', () => {
   });
   test('automatische melding: geen rest meesturen', () => {
     expect(bouwRegel({ ...basis, automatisch: true }).rest).toBeUndefined();
+  });
+  test('Bidfood met pakbon blijft mist en kan Wordt nageleverd kiezen', () => {
+    const auto = isAutomatisch({ signaal_id: 's1', pakbon_notitie: null }, []);
+    expect(auto).toBe(false);
+    const r = { ...basis, pakbon_regel_id: 'p1', automatisch: auto };
+    expect(bouwRegel(r).rest).toBe('mist');
+    expect(eindcheckFout({ ...r, nageleverd: true })).not.toBe(null);
+    expect(bouwRegel({ ...r, nageleverd: true, rest_bron: 'pakbon', rest_notitie: 'volgt di' }).rest).toBe('backorder');
+  });
+  test('automatisch alleen bij API-backorder of volgt-melding', () => {
+    expect(isAutomatisch({ signaal_id: 's1', pakbon_notitie: null }, [{ bron: 'api', api_backorder_id: 'b1', bestel_signaal_id: 's1' }])).toBe(true);
+    expect(isAutomatisch({ signaal_id: 's1', pakbon_notitie: null }, [{ bron: 'api', api_backorder_id: 'b1', bestel_signaal_id: 's2' }])).toBe(false);
+    expect(isAutomatisch({ signaal_id: 's1', pakbon_notitie: 'follows_later' }, [])).toBe(true);
   });
   test('nalevering gebruikt open_regel_id', () => {
     const r = bouwRegel({ ...basis, soort: 'nalevering', open_regel_id: 'o1', besteld: 2, binnen: 2 });
