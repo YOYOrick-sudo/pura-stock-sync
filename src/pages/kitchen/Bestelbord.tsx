@@ -605,17 +605,19 @@ export default function Bestelbord() {
               )}
             </div>
             {naam.trim().length >= 2 && <>
-            <Stepper waarde={aantal} onChange={setAantal} />
             {gekozenVorm ? (
-              <span className="flex min-h-11 items-center text-sm text-muted-foreground">{gekozenVorm.vorm}</span>
-            ) : !gekozen || gekozen.vormen.length === 0 ? (
+              <Stepper waarde={aantal} onChange={setAantal} eenheid={eenheidLabel(gekozenVorm.eenheid, aantal)} />
+            ) : vormNodig ? (
+              <Stepper waarde={aantal} onChange={setAantal} eenheid="" uit />
+            ) : <>
+              <Stepper waarde={aantal} onChange={setAantal} />
               <Select value={soort ?? 'stuks'} onValueChange={setSoort}>
                 <SelectTrigger className="h-11 w-[110px] border-0 shadow-none" aria-label="Verpakking"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {SOORTEN.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
                 </SelectContent>
               </Select>
-            ) : null}
+            </>}
             {naam.trim().length >= 2 && !vormNodig && <Button size="touch" className="ml-auto gap-1 px-3" aria-label="Erbij zetten" onClick={voegToe} disabled={!vestiging || isLoading || aantal == null || !!gekozenVorm?.geblokkeerd || !!(gekozenVorm && vormById.get(gekozenVorm.id)?.geblokkeerd)}>
               <Check className="h-4 w-4" /><span>Toevoegen</span>
             </Button>}
@@ -639,6 +641,7 @@ export default function Bestelbord() {
               onKies={(v) => { if (vormId && v.id !== vormId) setAantal(null); setVormId(v.id); setSoort(v.eenheid); }}
             />
           )}
+          {gekozenVorm && <VerpakkingRegel vorm={gekozenVorm} aantal={aantal} />}
         </div>
 
                 {isLoading ? <LaadRijen /> : openZicht.length ? <BordTabel regels={openZicht} {...bordProps} /> : onbekendZicht.length ? null : leegKaart('Niets openstaand')}
@@ -669,9 +672,11 @@ export default function Bestelbord() {
           <div className="space-y-4">
             {bewerk && <Stappen stappen={['Op bord', 'Besteld', 'Geleverd']} huidig={bewerk.status === 'geleverd' ? 2 : bewerk.status === 'besteld' ? 1 : 0} />}
             {bewerk && <RegelInfo info={regelInfo(bewerk)} detail />}
-            <div className="flex items-center gap-1">
-              <Stepper waarde={bewerkAantal} onChange={setBewerkAantal} />
-              {bewerkVormId && vormById.get(bewerkVormId) && <span className="text-sm text-muted-foreground">{vormById.get(bewerkVormId)!.eenheid}</span>}
+            <div className="space-y-1.5">
+              {bewerkVormId && vormById.get(bewerkVormId)
+                ? <Stepper waarde={bewerkAantal} onChange={setBewerkAantal} eenheid={eenheidLabel(vormById.get(bewerkVormId)!.eenheid, bewerkAantal)} />
+                : <Stepper waarde={bewerkAantal} onChange={setBewerkAantal} {...(bewerkVormen.length > 0 ? { eenheid: '', uit: true } : {})} />}
+              {bewerkVormId && vormById.get(bewerkVormId) && <VerpakkingRegel vorm={vormById.get(bewerkVormId)!} aantal={bewerkAantal} />}
             </div>
             {(bewerkVormen.length > 1 || (bewerkVormen.length > 0 && !bewerkVormId)) && (
               <VormKeuze
