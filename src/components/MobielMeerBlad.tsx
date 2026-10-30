@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useAuthStatus } from '@/contexts/AuthContext';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { isNavActief, type allNavigationItems } from '@/hooks/useNavigatieItems';
 import { supabase } from '@/integrations/supabase/client';
 import { cn, getLocationDisplayName } from '@/lib/utils';
@@ -64,6 +65,9 @@ export function MobielMeerBlad({ open, onOpenChange, items }: {
               </div>
             )}
             <span className="min-w-0 flex-1 truncate text-sm font-medium">{naam}</span>
+            <div className="flex min-h-11 shrink-0 items-center">
+              <ThemeToggle compact />
+            </div>
             <Button variant="ghost" size="touch-icon" onClick={handleLogout} aria-label="Uitloggen">
               <LogOut className="h-5 w-5 text-muted-foreground" />
             </Button>
