@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Bestellijst verduidelijken: zoeken/toevoegen scheiden, overzicht inklappen, hoeveelheid één keer en verpakkingsdetails in lade; alleen frontend/preview.
+
 - [x] Mobiel stap 20: één onderbalk met Meer-blad van onderen, gedeelde iconen/actieve staten en rechtstreekse MT-vakken; zichtbaarheidsfilters/desktop behouden; 94 tests geslaagd, 2 bekende Deno-fouten, automatische build OK.
 - [ ] Mobiel stap 20 visuele controle — controlesessie toont Geen toegang; openen/kiezen/vegen en pixelvergelijking niet visueel bevestigd; geen rechten of gegevens aangepast.
 

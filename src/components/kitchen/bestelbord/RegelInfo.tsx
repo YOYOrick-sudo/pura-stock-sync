@@ -1,9 +1,10 @@
 import { Badge } from '@/components/ui/badge';
 import type { BordRegelInfo } from '@/hooks/useBestelbord';
 
-/** Klein onder het aantal: totaal, 'eenheid controleren' en eventuele afwijking. Alleen weergave. */
-export function RegelInfo({ info }: { info?: BordRegelInfo | null }) {
+/** Beknopte rijstatus; volledige verpakkingsinformatie alleen in de detailweergave. */
+export function RegelInfo({ info, detail = false }: { info?: BordRegelInfo | null; detail?: boolean }) {
   if (!info || (!info.totaal_tekst && !info.eenheid_controleren && !info.afwijking_tekst)) return null;
+  if (!detail) return info.eenheid_controleren ? <Badge variant="warning" className="mt-0.5 w-fit whitespace-nowrap">Controleer verpakking</Badge> : null;
   return (
     <div className="mt-0.5 flex flex-col items-end gap-0.5 text-right">
       {info.totaal_tekst && <span className="text-xs font-normal text-muted-foreground">{info.totaal_tekst}</span>}

@@ -34,6 +34,7 @@ import { LeveranciersOverzicht } from '@/components/kitchen/bestelbord/Leveranci
 import { eerderVrijeRegels, filterEerderSuggesties } from '@/lib/bordSnelkeuze';
 import { leverancierNaam } from '@/components/kitchen/bestelbord/presentatie';
 import { useBesteldeadlines } from '@/hooks/useBesteldeadlines';
+import { RegelInfo } from '@/components/kitchen/bestelbord/RegelInfo';
 
 const SOORTEN = ['stuks', 'doos', 'zak', 'fles', 'pak', 'bak', 'emmer', 'kg', 'bos', 'tray', 'rol', 'fust'] as const;
 
@@ -159,6 +160,7 @@ export default function Bestelbord() {
   const { data: prijsSignalen = [] } = usePrijsSignalen(vestiging || null);
   const [suggesties, setSuggesties] = useState<BordSuggestie[]>([]);
   const [lijstOpen, setLijstOpen] = useState(false);
+  const [invoerOpen, setInvoerOpen] = useState(false);
   const [actief, setActief] = useState(-1);
   const [gekozen, setGekozen] = useState<BordSuggestie | null>(null);
   const [vormId, setVormId] = useState<string | null>(null);
@@ -488,12 +490,12 @@ export default function Bestelbord() {
   return (
     <SidebarLayout>
       <div className="space-y-4">
-        <BestelKengetallen tegels={[
+        <InklapGroep titel="Overzicht"><BestelKengetallen tegels={[
           { id: 'bord', label: 'Op het bord', waarde: open.length, sub: openTotaal, icoon: ClipboardList, actief: tab === 'bord' && !alleenZonderPrijs, onKies: () => naarTab('bord') },
           { id: 'advies', label: 'Advies', waarde: positieveAdviezen.length, sub: 'voorstellen', icoon: Sparkles, actief: tab === 'advies', onKies: () => naarTab('advies') },
           { id: 'onderweg', label: 'Onderweg', waarde: besteld.length, sub: teChecken.length ? `${teChecken.length} te checken` : 'op schema', icoon: Truck, toon: teChecken.length ? 'let-op' : 'neutraal', actief: tab === 'onderweg' && !alleenZonderPrijs, onKies: () => naarTab('onderweg') },
           { id: 'prijs', label: 'Geen prijs', waarde: zonderPrijs, sub: alleenZonderPrijs ? 'filter aan · tik om te wissen' : 'tik om te tonen', icoon: AlertCircle, toon: zonderPrijs ? 'let-op' : 'neutraal', actief: alleenZonderPrijs, onKies: () => { const aan = !alleenZonderPrijs; setAlleenZonderPrijs(aan); if (aan && tab !== 'onderweg') setTabKeuze('bord'); } },
-        ]} />
+        ]} /></InklapGroep>
         <Tabs value={tab} onValueChange={setTabKeuze}>
           <div className="flex flex-wrap items-center gap-2">
             <div className={isMobile ? '-mx-1 w-full overflow-x-auto px-1 [scrollbar-width:none]' : 'contents'}>
@@ -502,19 +504,24 @@ export default function Bestelbord() {
             </TabsList>
             </div>
             <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-              {(tab === 'bord' || tab === 'onderweg') && <div className={isMobile ? 'min-w-0 flex-1' : 'w-full max-w-xs'}><ZoekVeld waarde={zoek} onChange={setZoek} placeholder="Zoek product" /></div>}
-              <Button className="min-h-11 shrink-0 gap-1" onClick={() => { setTabKeuze('bord'); requestAnimationFrame(() => invoer.current?.focus()); }}><Plus className="h-4 w-4" /><span>Product</span></Button>
+              {(tab === 'bord' || tab === 'onderweg') && <div className={isMobile ? 'min-w-0 flex-1' : 'w-full max-w-xs'}><ZoekVeld waarde={zoek} onChange={setZoek} placeholder="Zoeken in deze lijst" /></div>}
+              <Button variant={invoerOpen && tab === 'bord' ? 'outline' : 'default'} className="min-h-11 shrink-0 gap-1" onClick={() => { setTabKeuze('bord'); setInvoerOpen(true); requestAnimationFrame(() => invoer.current?.focus()); }}><Plus className="h-4 w-4" /><span>{isMobile ? 'Toevoegen' : 'Product toevoegen'}</span></Button>
             </div>
           </div>
           <div className="mt-4 min-w-0">
             <div className="min-w-0 space-y-4">
               <TabsContent value="bord" className="mt-0 space-y-4">
                 <LijstKaart>
-        <div className="space-y-2 border-b border-border bg-muted/30 p-2">
+        <div hidden={!invoerOpen} className="space-y-3 border-b border-border bg-muted/30 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <label htmlFor="bestel-product" className="text-sm font-medium">Welk product wil je bestellen?</label>
+            <Button variant="ghost" size="touch" onClick={() => setInvoerOpen(false)}>Sluiten</Button>
+          </div>
           <Invoerbalk>
             <div className="relative min-w-0 basis-full sm:flex-1 sm:basis-auto">
               <Input
                 ref={invoer}
+                id="bestel-product"
                 value={naam}
                 onChange={(e) => wijzigNaam(e.target.value)}
                 onBlur={() => setTimeout(() => setLijstOpen(false), 150)}
@@ -536,7 +543,7 @@ export default function Bestelbord() {
                     else voegToe();
                   }
                 }}
-                placeholder="Wat is op?"
+                placeholder="Productnaam"
                 className="h-11 w-full text-base"
                 role="combobox"
                 aria-expanded={lijstOpen && suggesties.length > 0}
@@ -566,9 +573,10 @@ export default function Bestelbord() {
                 </div>
               )}
             </div>
+            {naam.trim().length >= 2 && <>
             <Stepper waarde={aantal} onChange={setAantal} />
             {gekozenVorm ? (
-              <span className="flex h-11 items-center text-sm text-muted-foreground">{gekozenVorm.eenheid}</span>
+              <span className="flex min-h-11 items-center text-sm text-muted-foreground">{gekozenVorm.vorm}</span>
             ) : !gekozen || gekozen.vormen.length === 0 ? (
               <Select value={soort ?? 'stuks'} onValueChange={setSoort}>
                 <SelectTrigger className="h-11 w-[110px] border-0 shadow-none" aria-label="Verpakking"><SelectValue /></SelectTrigger>
@@ -578,8 +586,9 @@ export default function Bestelbord() {
               </Select>
             ) : null}
             {naam.trim().length >= 2 && !vormNodig && <Button size="touch" className="ml-auto gap-1 px-3" aria-label="Erbij zetten" onClick={voegToe} disabled={!vestiging || isLoading || aantal == null || !!gekozenVorm?.geblokkeerd || !!(gekozenVorm && vormById.get(gekozenVorm.id)?.geblokkeerd)}>
-              <Check className="h-4 w-4" /><span>Erbij</span>
+              <Check className="h-4 w-4" /><span>Toevoegen</span>
             </Button>}
+            </>}
           </Invoerbalk>
           {eerderSuggesties.length > 0 && (
             <div className={isMobile ? 'flex gap-1.5 overflow-x-auto [scrollbar-width:none]' : 'flex flex-wrap gap-1.5'}>
@@ -627,6 +636,7 @@ export default function Bestelbord() {
       <DetailLade open={!!bewerk} onOpenChange={(o) => !o && setBewerk(null)} titel={bewerk?.naam}>
           <div className="space-y-4">
             {bewerk && <Stappen stappen={['Op bord', 'Besteld', 'Geleverd']} huidig={bewerk.status === 'geleverd' ? 2 : bewerk.status === 'besteld' ? 1 : 0} />}
+            {bewerk && <RegelInfo info={regelInfo(bewerk)} detail />}
             <div className="flex items-center gap-1">
               <Stepper waarde={bewerkAantal} onChange={setBewerkAantal} />
               {bewerkVormId && vormById.get(bewerkVormId) && <span className="text-sm text-muted-foreground">{vormById.get(bewerkVormId)!.eenheid}</span>}
