@@ -2022,6 +2022,72 @@ export type Database = {
           },
         ]
       }
+      gerecht_kassa_koppeling: {
+        Row: {
+          bron: string
+          created_at: string
+          created_by: string | null
+          factor: number
+          geldig_tot: string | null
+          geldig_vanaf: string | null
+          gerecht_id: string | null
+          id: string
+          kassanaam: string | null
+          lightspeed_product_id: string
+          opmerking: string | null
+          updated_at: string
+          vestiging: string
+          zekerheid: string
+        }
+        Insert: {
+          bron: string
+          created_at?: string
+          created_by?: string | null
+          factor?: number
+          geldig_tot?: string | null
+          geldig_vanaf?: string | null
+          gerecht_id?: string | null
+          id?: string
+          kassanaam?: string | null
+          lightspeed_product_id: string
+          opmerking?: string | null
+          updated_at?: string
+          vestiging: string
+          zekerheid?: string
+        }
+        Update: {
+          bron?: string
+          created_at?: string
+          created_by?: string | null
+          factor?: number
+          geldig_tot?: string | null
+          geldig_vanaf?: string | null
+          gerecht_id?: string | null
+          id?: string
+          kassanaam?: string | null
+          lightspeed_product_id?: string
+          opmerking?: string | null
+          updated_at?: string
+          vestiging?: string
+          zekerheid?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gerecht_kassa_koppeling_gerecht_id_fkey"
+            columns: ["gerecht_id"]
+            isOneToOne: false
+            referencedRelation: "gerechten"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gerecht_kassa_koppeling_gerecht_id_fkey"
+            columns: ["gerecht_id"]
+            isOneToOne: false
+            referencedRelation: "v_gerecht_allergenen"
+            referencedColumns: ["gerecht_id"]
+          },
+        ]
+      }
       gerechten: {
         Row: {
           categorie: string
@@ -2045,6 +2111,7 @@ export type Database = {
           op_kaart: boolean
           prijs: number | null
           prijs_varianten: Json | null
+          recept_gecontroleerd: boolean
           sort_order: number
           updated_at: string
           vestiging: string | null
@@ -2071,6 +2138,7 @@ export type Database = {
           op_kaart?: boolean
           prijs?: number | null
           prijs_varianten?: Json | null
+          recept_gecontroleerd?: boolean
           sort_order?: number
           updated_at?: string
           vestiging?: string | null
@@ -2097,6 +2165,7 @@ export type Database = {
           op_kaart?: boolean
           prijs?: number | null
           prijs_varianten?: Json | null
+          recept_gecontroleerd?: boolean
           sort_order?: number
           updated_at?: string
           vestiging?: string | null
@@ -2495,42 +2564,65 @@ export type Database = {
       }
       horeko_recept_regels: {
         Row: {
+          artikel_id: string | null
           component_artikel_id: number | null
           component_recept_key: string | null
           component_type: string | null
           eenheid: string | null
+          gecontroleerd: boolean
           hoeveelheid: number | null
           id: number
           match_score: number | null
+          notitie: string | null
           recept_key: string
           regel: string | null
           volgorde: number | null
         }
         Insert: {
+          artikel_id?: string | null
           component_artikel_id?: number | null
           component_recept_key?: string | null
           component_type?: string | null
           eenheid?: string | null
+          gecontroleerd?: boolean
           hoeveelheid?: number | null
           id?: number
           match_score?: number | null
+          notitie?: string | null
           recept_key: string
           regel?: string | null
           volgorde?: number | null
         }
         Update: {
+          artikel_id?: string | null
           component_artikel_id?: number | null
           component_recept_key?: string | null
           component_type?: string | null
           eenheid?: string | null
+          gecontroleerd?: boolean
           hoeveelheid?: number | null
           id?: number
           match_score?: number | null
+          notitie?: string | null
           recept_key?: string
           regel?: string | null
           volgorde?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "horeko_recept_regels_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horeko_recept_regels_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "horeko_recept_regels_component_artikel_id_fkey"
             columns: ["component_artikel_id"]
@@ -2564,8 +2656,11 @@ export type Database = {
       horeko_recepten: {
         Row: {
           aantal_personen: number | null
+          bereiding: string | null
           created_at: string | null
           dagen_houdbaar: number | null
+          gecontroleerd_door: string | null
+          gecontroleerd_op: string | null
           gerecht_id: string | null
           gewijzigd_in_horeko: string | null
           horeko_key: string
@@ -2576,15 +2671,20 @@ export type Database = {
           map: string | null
           match_status: string | null
           naam: string
+          notitie: string | null
           opbrengst: number | null
           opbrengst_eenheid: string | null
+          opbrengst_gecontroleerd: boolean
           recipe_id: string | null
           type: string
         }
         Insert: {
           aantal_personen?: number | null
+          bereiding?: string | null
           created_at?: string | null
           dagen_houdbaar?: number | null
+          gecontroleerd_door?: string | null
+          gecontroleerd_op?: string | null
           gerecht_id?: string | null
           gewijzigd_in_horeko?: string | null
           horeko_key: string
@@ -2595,15 +2695,20 @@ export type Database = {
           map?: string | null
           match_status?: string | null
           naam: string
+          notitie?: string | null
           opbrengst?: number | null
           opbrengst_eenheid?: string | null
+          opbrengst_gecontroleerd?: boolean
           recipe_id?: string | null
           type: string
         }
         Update: {
           aantal_personen?: number | null
+          bereiding?: string | null
           created_at?: string | null
           dagen_houdbaar?: number | null
+          gecontroleerd_door?: string | null
+          gecontroleerd_op?: string | null
           gerecht_id?: string | null
           gewijzigd_in_horeko?: string | null
           horeko_key?: string
@@ -2614,8 +2719,10 @@ export type Database = {
           map?: string | null
           match_status?: string | null
           naam?: string
+          notitie?: string | null
           opbrengst?: number | null
           opbrengst_eenheid?: string | null
+          opbrengst_gecontroleerd?: boolean
           recipe_id?: string | null
           type?: string
         }
@@ -7218,6 +7325,43 @@ export type Database = {
           naam: string | null
         }
         Relationships: []
+      }
+      v_kassa_dekking_gerecht: {
+        Row: {
+          aandeel_pct: number | null
+          bronnen: string | null
+          gerechten: string | null
+          kassanaam_laatst: string | null
+          lightspeed_product_id: string | null
+          omzet_excl: number | null
+          periode_tot: string | null
+          periode_van: string | null
+          rang: number | null
+          status: string | null
+          stuks: number | null
+          suggestie_gerecht: string | null
+          suggestie_gerecht_id: string | null
+          vestiging: string | null
+          vestiging_afgedekt_pct: number | null
+          vestiging_gerecht_zeker_pct: number | null
+          vestiging_knoppen_los: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horeko_recepten_gerecht_id_fkey"
+            columns: ["suggestie_gerecht_id"]
+            isOneToOne: false
+            referencedRelation: "gerechten"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horeko_recepten_gerecht_id_fkey"
+            columns: ["suggestie_gerecht_id"]
+            isOneToOne: false
+            referencedRelation: "v_gerecht_allergenen"
+            referencedColumns: ["gerecht_id"]
+          },
+        ]
       }
       v_leer_voorstellen_open: {
         Row: {

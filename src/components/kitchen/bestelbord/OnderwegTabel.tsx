@@ -19,7 +19,7 @@ export function OnderwegTabel({ groepen, regelInfo, deadlineHint, dagenTeLaatVan
   onBewerk: (s: BestelSignaal) => void; datumLabel: (d: string) => string; leverDatumLabel: (d: string | null) => string;
   regelInfo?: (s: BestelSignaal) => BordRegelInfo | undefined;
 }) {
-  return <CompacteTabel onderweg vinkKop="Binnen" kinderen={<TableBody>{groepen.map(({ key, titel, regels }) => {
+  return <CompacteTabel zonderKop onderweg vinkKop="Binnen" kinderen={<TableBody>{groepen.map(({ key, titel, regels }) => {
     const besteldOp = regels[0]?.besteld_op;
     return <Fragment key={key}>
       <GroepRij kolommen={5} naam={<><DeadlineNaam naam={titel} hint={regels[0] ? deadlineHint(regels[0]) : null} />{besteldOp ? ` · ${datumLabel(besteldOp)}` : ''}</>} gedimd={titel === 'Leverancier onbekend'} actie={<Button variant="ghost" size="touch" className="-my-1 gap-1 px-2" onClick={() => onAllesGeleverd(regels.map((s) => s.id))}><Check className="h-4 w-4" />Alles geleverd</Button>} />
