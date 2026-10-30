@@ -15,6 +15,7 @@ import {
 import { ApplicationStatus, ACTION_CONFIGS, FINAL_STATUSES } from '@/types/hr';
 import { useUpdateApplicationStatus } from '@/hooks/hr/useApplications';
 import { NextActionModal } from './NextActionModal';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ActionBarProps {
   applicationId: string;
@@ -34,6 +35,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 export function ActionBar({ applicationId, currentStatus }: ActionBarProps) {
+  const isMobile = useIsMobile();
   const [showNextActionModal, setShowNextActionModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<{
     actionType: string;
@@ -107,6 +109,7 @@ export function ActionBar({ applicationId, currentStatus }: ActionBarProps) {
                 key={config.type}
                 variant="outline"
                 size="sm"
+                className={isMobile ? 'min-h-11 min-w-11 max-w-full whitespace-normal' : undefined}
                 onClick={() => handleAction(config)}
                 disabled={updateStatus.isPending}
               >
@@ -130,6 +133,7 @@ export function ActionBar({ applicationId, currentStatus }: ActionBarProps) {
                 key={config.type}
                 variant={variant as 'default' | 'destructive' | 'secondary'}
                 size="sm"
+                className={isMobile ? 'min-h-11 min-w-11 max-w-full whitespace-normal' : undefined}
                 onClick={() => handleAction(config)}
                 disabled={updateStatus.isPending}
               >

@@ -11,8 +11,10 @@ import { OnboardingChecklist } from '@/components/hr/OnboardingChecklist';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function ApplicantDetail() {
+  const isMobile = useIsMobile();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: application, isLoading } = useApplication(id);
@@ -34,7 +36,7 @@ export default function ApplicantDetail() {
         <div className="p-6">
           <Card className="p-8 text-center">
             <p className="text-muted-foreground">Sollicitatie niet gevonden</p>
-            <Button variant="outline" className="mt-4" onClick={() => navigate('/hr')}>
+            <Button variant="outline" className={isMobile ? 'mt-4 min-h-11 whitespace-normal' : 'mt-4'} onClick={() => navigate('/hr')}>
               Terug naar inbox
             </Button>
           </Card>
@@ -50,10 +52,10 @@ export default function ApplicantDetail() {
 
   return (
     <SidebarLayout>
-      <div className="p-6 space-y-6">
+      <div className={isMobile ? 'page-stack min-w-0 break-words [overflow-wrap:anywhere] [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:h-11 [&_input]:min-w-0 [&_input]:text-base [&_a]:min-h-11 [&_a]:inline-flex [&_a]:items-center [&_svg]:shrink-0 [&_.justify-between]:flex-wrap [&_.justify-between]:gap-2' : 'p-6 space-y-6'}>
         {/* Header */}
         <div className="flex items-start justify-between">
-          <div>
+          <div className={isMobile ? 'min-w-0 flex-1' : undefined}>
             <Button 
               variant="ghost" 
               size="sm" 
@@ -63,8 +65,8 @@ export default function ApplicantDetail() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Terug
             </Button>
-            <h1 className="text-2xl font-bold text-foreground">{candidateName}</h1>
-            <div className="flex items-center gap-3 mt-1">
+            {isMobile ? <p className="font-semibold text-foreground">{candidateName}</p> : <h1 className="text-2xl font-bold text-foreground">{candidateName}</h1>}
+            <div className={isMobile ? 'flex flex-wrap items-center gap-2 mt-1' : 'flex items-center gap-3 mt-1'}>
               <span className="text-muted-foreground">{application.position}</span>
               {application.target_location && (
                 <>
