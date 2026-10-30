@@ -53,3 +53,5 @@
 - [x] 8. Design system herzien (shadcnblocks-analyse, 18 regels, 4 recepten) + Bestellijst make-over; Bestellijst zelf niet in preview bekeken (login)
 
 - [ ] 10. Mobiel stap 1: onderbalk (<744px), ruimte onderin, Personeel-navigatie, geen zijwaarts overlopen
+
+- [x] Bestelbord: overzichtskaarten strakker (kaarten blijven)
