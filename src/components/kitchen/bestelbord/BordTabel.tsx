@@ -7,7 +7,7 @@ import type { ArtikelVorm, BestelSignaal } from '@/hooks/useBestelbord';
 import type { PrijsSignaal } from '@/lib/prijsSignaal';
 import { PrijsPijl } from '@/components/kitchen/PrijsPijl';
 import { GroepRij } from '@/components/pura/patronen';
-import { RijMenu, RijMeta, StatusLabel } from '@/components/pura/lijst';
+import { RijMenu, RijMeta } from '@/components/pura/lijst';
 import { CompacteTabel } from './CompacteTabel';
 import { euro, perLeverancier } from './presentatie';
 import { DeadlineNaam } from './DeadlineNaam';
