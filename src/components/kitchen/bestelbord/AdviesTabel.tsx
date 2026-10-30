@@ -17,7 +17,7 @@ export function AdviesTabel({ regels, open, bezig, onOpBord, deadlineHint, nul =
       const opBord = (!!a.artikel_id && open.some((s) => s.artikel_id === a.artikel_id)) || !!a.op_bord_regel_id;
       return <TableRow key={a.id}>
         <TableCell><div className="flex min-h-11 items-center gap-2"><span className="min-w-0 break-words font-medium">{a.artikel}</span>{a.onzeker && !opBord && !nul && <StatusLabel toon="let-op">Onzeker</StatusLabel>}</div></TableCell>
-        <TableCell className="text-right tabular-nums"><span className="font-semibold">{Number(a.hoeveelheid)}</span> <span className="text-xs text-muted-foreground">{a.eenheid}</span></TableCell>
+        <TableCell className="text-right tabular-nums"><span className="inline-flex min-h-6 items-center justify-end gap-1.5"><span className="inline-flex items-center rounded-full bg-muted px-2 text-sm font-semibold">{Number(a.hoeveelheid)}</span><span className="text-xs text-muted-foreground">{a.eenheid}</span></span></TableCell>
         <TableCell><Reden a={a} /></TableCell>
         <TableCell className="text-right">{nul ? null : opBord ? <StatusLabel toon="goed">Op bord</StatusLabel> : <Button variant="outline" size="touch" className="gap-1 px-3" disabled={bezig} aria-label={`${a.artikel} op bord`} onClick={() => onOpBord(a)}><Plus className="h-4 w-4" />Bord</Button>}</TableCell>
       </TableRow>;
