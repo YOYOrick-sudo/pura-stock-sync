@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Mobiel stap 12: Gerechten, Ingrediënten en Receptformulier — mobiele layout en 44px tikvlakken; opslaanbalk boven onderbalk; geen verwerking wijzigen.
+
 - [x] Mobiel stap 11: Bestellen, Onderweg en Voorraadstand — compacte mobiele rijen en 44px tikvlakken; 90 tests geslaagd, 2 bekende Deno-fouten, build OK; queries/berekeningen onveranderd.
 - [ ] Mobiel stap 11 visuele controle — alle drie routes tonen Geen toegang in controlesessie; geen rechten, orders of tellingen gewijzigd.
 

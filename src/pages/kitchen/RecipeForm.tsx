@@ -33,6 +33,7 @@ import {
 } from '@/hooks/useAllergenen';
 import type { AllergeenCode } from '@/lib/allergenen';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 
@@ -43,6 +44,7 @@ const EENHEDEN = ['g', 'kg', 'ml', 'l', 'stuks', 'el', 'tl', 'teentje', 'plak', 
 const NO_UNIT = '__none__';
 
 export default function RecipeForm() {
+  const isMobile = useIsMobile();
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = Boolean(id);
@@ -246,7 +248,7 @@ export default function RecipeForm() {
 
   return (
     <SidebarLayout>
-      <div className="space-y-4 max-w-4xl">
+      <div className={isMobile ? 'min-w-0 max-w-full space-y-4 [&>div]:!p-4 [&_input]:min-w-0 [&_input]:text-base [&_textarea]:text-base [&_button]:min-h-11 [&_button]:min-w-11 [&_button]:shrink-0' : 'space-y-4 max-w-4xl'}>
         <Card className="p-5 sm:p-6 bg-card shadow-sm space-y-5">
           <div>
             <Label className="text-sm font-medium">Naam *</Label>
@@ -313,7 +315,7 @@ export default function RecipeForm() {
 
           <div>
             <Label className="text-sm font-medium mb-2 block">Type</Label>
-            <div className="inline-flex rounded-polar-lg bg-muted p-1">
+            <div className={isMobile ? 'flex min-w-0 overflow-x-auto rounded-polar-lg bg-muted p-1 [&>button]:flex-1 [&>button]:!px-3' : 'inline-flex rounded-polar-lg bg-muted p-1'}>
               {(['gerecht', 'halffabricaat'] as RecipeType[]).map((t) => (
                 <button
                   key={t}
@@ -332,11 +334,11 @@ export default function RecipeForm() {
 
         {/* Ingredienten */}
         <Card className="p-5 sm:p-6 bg-card shadow-sm">
-          <div className="flex items-center justify-between mb-4">
+          <div className={isMobile ? 'mb-4 flex min-w-0 flex-wrap items-center justify-between gap-2' : 'flex items-center justify-between mb-4'}>
             <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
               Ingrediënten
             </h2>
-            <Button onClick={addRow} variant="outline" size="sm" className="min-h-[40px]">
+            <Button onClick={addRow} variant="outline" size={isMobile ? 'touch' : 'sm'} className={isMobile ? 'min-h-11' : 'min-h-[40px]'}>
               <Plus className="h-4 w-4 mr-1" /> Rij toevoegen
             </Button>
           </div>
@@ -352,9 +354,9 @@ export default function RecipeForm() {
               return (
               <div
                 key={idx}
-                className="flex flex-wrap items-center gap-2 rounded-polar-md border border-border/60 bg-background/40 p-2"
+                className={isMobile ? 'grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_44px] items-center gap-2 rounded-polar-md border border-border/60 bg-background/40 p-2' : 'flex flex-wrap items-center gap-2 rounded-polar-md border border-border/60 bg-background/40 p-2'}
               >
-                <div className="flex-1 min-w-[160px] space-y-1.5">
+                <div className={isMobile ? 'col-span-3 min-w-0 space-y-1.5 [&_span]:max-w-full [&_span]:break-words' : 'flex-1 min-w-[160px] space-y-1.5'}>
                   <IngredientCombobox
                     value={row.naam}
                     ingredientId={row.ingredient_id ?? null}
@@ -422,13 +424,13 @@ export default function RecipeForm() {
                   value={row.hoeveelheid}
                   onChange={(e) => updateRow(idx, 'hoeveelheid', e.target.value)}
                   placeholder="Hoeveelheid"
-                  className="h-11 w-24"
+                  className={isMobile ? 'h-11 w-full min-w-0 text-base' : 'h-11 w-24'}
                 />
                 <Select
                   value={row.eenheid && row.eenheid.length > 0 ? row.eenheid : NO_UNIT}
                   onValueChange={(v) => updateRow(idx, 'eenheid', v === NO_UNIT ? null : v)}
                 >
-                  <SelectTrigger className="h-11 w-32">
+                  <SelectTrigger className={isMobile ? 'col-span-2 h-11 w-full min-w-0 [&>span]:truncate' : 'h-11 w-32'}>
                     <SelectValue placeholder="Eenheid" />
                   </SelectTrigger>
                   <SelectContent>
@@ -440,11 +442,11 @@ export default function RecipeForm() {
                     ))}
                   </SelectContent>
                 </Select>
-                <div className="flex flex-col gap-0.5">
+                <div className={isMobile ? 'col-span-2 flex gap-2' : 'flex flex-col gap-0.5'}>
                   <button
                     type="button"
                     onClick={() => move(idx, -1)}
-                    className="h-6 w-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground disabled:opacity-30"
+                    className={isMobile ? 'flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground hover:bg-muted disabled:opacity-30' : 'h-6 w-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground disabled:opacity-30'}
                     disabled={idx === 0}
                     aria-label="Omhoog"
                   >
@@ -453,7 +455,7 @@ export default function RecipeForm() {
                   <button
                     type="button"
                     onClick={() => move(idx, 1)}
-                    className="h-6 w-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground disabled:opacity-30"
+                    className={isMobile ? 'flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground hover:bg-muted disabled:opacity-30' : 'h-6 w-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground disabled:opacity-30'}
                     disabled={idx === ingredients.length - 1}
                     aria-label="Omlaag"
                   >
@@ -523,7 +525,7 @@ export default function RecipeForm() {
           />
         </Card>
 
-        <div className="flex flex-col sm:flex-row justify-end gap-3 sticky bottom-[calc(1rem+var(--onderbalk))]">
+        <div className={isMobile ? 'sticky bottom-[calc(1rem+var(--onderbalk))] z-10 flex min-w-0 justify-end gap-2 rounded-polar-lg border border-border bg-background [&>button]:min-w-0 [&>button]:flex-1' : 'flex flex-col sm:flex-row justify-end gap-3 sticky bottom-[calc(1rem+var(--onderbalk))]'}>
           <Button
             variant="outline"
             size="lg"

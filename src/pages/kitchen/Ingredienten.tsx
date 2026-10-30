@@ -43,6 +43,7 @@ import {
   type Vestiging,
 } from '@/hooks/useVestigingKoppeling';
 import { useRole } from '@/hooks/useRole';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const LEEG = new Set<string>();
 
@@ -262,6 +263,7 @@ function IngredientRow({
 }
 
 export default function Ingredienten() {
+  const isMobile = useIsMobile();
   const { data: rows = [], isLoading } = useIngredientenStats();
   const { data: allergenenRows = [] } = useIngredientAllergenen();
   const allergenenMap = useMemo(
@@ -329,18 +331,18 @@ export default function Ingredienten() {
 
   return (
     <SidebarLayout>
-      <div className="page-stack">
+      <div className={isMobile ? 'page-stack min-w-0 max-w-full !p-0 [&_button]:min-h-11' : 'page-stack'}>
 
 
         <Card className="p-4 sm:p-5 bg-card shadow-sm">
-          <div className="flex items-center gap-3 flex-wrap mb-4">
-            <div className="relative flex-1 min-w-[220px]">
+          <div className={isMobile ? 'mb-4 flex min-w-0 flex-wrap items-center gap-2 [&>button]:max-w-full [&>button]:whitespace-normal [&>button]:text-left' : 'flex items-center gap-3 flex-wrap mb-4'}>
+            <div className={isMobile ? 'relative w-full min-w-0 basis-full' : 'relative flex-1 min-w-[220px]'}>
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Zoek ingrediënt…"
-                className="h-11 pl-10"
+                className={isMobile ? 'h-11 pl-10 text-base' : 'h-11 pl-10'}
               />
             </div>
             <Button
@@ -404,7 +406,7 @@ export default function Ingredienten() {
             )}
           </div>
 
-          <VestigingFilter waarde={vestiging} onChange={setVestiging} className="mb-4" />
+          <VestigingFilter waarde={vestiging} onChange={setVestiging} className={isMobile ? 'mb-4 max-w-full flex-nowrap overflow-x-auto [&_button]:shrink-0 [&_button]:whitespace-nowrap' : 'mb-4'} />
 
 
 
@@ -426,9 +428,9 @@ export default function Ingredienten() {
             <>
             <div className="space-y-2 md:hidden">
               {filtered.map((ing) => (
-                <Card key={ing.id} className="space-y-3 p-4 shadow-none">
+                <Card key={ing.id} className={isMobile ? 'min-w-0 space-y-2 p-3 shadow-none' : 'space-y-3 p-4 shadow-none'}>
                   <div className="flex items-start gap-3">
-                    <div className="flex min-h-11 items-center">
+                    <div className={isMobile ? 'flex h-11 w-11 shrink-0 items-center justify-center [&_button]:h-11 [&_button]:w-11 [&_button]:!min-h-11' : 'flex min-h-11 items-center'}>
                       <Checkbox
                         checked={selectedIds.has(ing.id)}
                         onCheckedChange={(v) => toggleSelect(ing.id, Boolean(v))}
