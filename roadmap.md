@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Mobiel stap 20: één onderbalk met Meer-blad van onderen, gedeelde iconen/actieve staten en rechtstreekse MT-vakken; zichtbaarheidsfilters/desktop behouden; 94 tests geslaagd, 2 bekende Deno-fouten, automatische build OK.
+- [ ] Mobiel stap 20 visuele controle — controlesessie toont Geen toegang; openen/kiezen/vegen en pixelvergelijking niet visueel bevestigd; geen rechten of gegevens aangepast.
+
 - [x] Mobiel stap 19: vijf restschermen — kleine mobiele aanpassingen voor overlopen, 44px tikvlakken en dubbele StyleGuide-kop; 90 tests geslaagd, 2 bekende Deno-fouten, automatische build OK; desktop en functies behouden.
 - [ ] Mobiel stap 19 afgeschermde visuele controle — StyleGuide/DesignPreview blijven laden in controlesessie; openbare restschermen gecontroleerd op 320/390/743/744/768/1280px; wachtwoord niet gewijzigd.
 
