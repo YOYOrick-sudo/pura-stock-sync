@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Banknote, TrendingUp, Clock } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { EUR, EUR2, vestigingenVan, vergelijkModeVan, prevLabel, type Periode, type VestKeuze, type VergelijkMode } from './types';
 import { useCountUp } from './useCountUp';
 import { DeltaPill } from './chartHelpers';
@@ -88,6 +89,7 @@ export function CijfersLoonkostenBar({ periode, vestigingKeuze, van, tot, mode }
     <div className="rounded-[20px] border border-border bg-card shadow-card cj-card-in overflow-hidden">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Col first
+          icon={Banknote}
           label="Loonkosten"
           value={<Money v={loonkosten} />}
           sub={(pctVanOmzet != null ? `${pctVanOmzet.toString().replace('.', ',')}% van omzet` : 'geen omzet in periode') + vsSub}
@@ -96,6 +98,7 @@ export function CijfersLoonkostenBar({ periode, vestigingKeuze, van, tot, mode }
           dpTitle={prevLbl ? `t.o.v. ${prevLbl}` : undefined}
         />
         <Col
+          icon={TrendingUp}
           label="Omzet / gewerkt uur"
           value={omzPerUur == null ? <span>—</span> : <Money v={omzPerUur} decimals={2} />}
           sub={`${gewerkt.toFixed(1).replace('.', ',')} u gewerkt${vsSub}`}
@@ -104,6 +107,7 @@ export function CijfersLoonkostenBar({ periode, vestigingKeuze, van, tot, mode }
           dpTitle={prevLbl ? `t.o.v. ${prevLbl}` : undefined}
         />
         <Col
+          icon={Clock}
           label="Uren gewerkt vs gepland"
           value={<span>{gewerkt.toFixed(0)} / {gepland.toFixed(0)}</span>}
           sub={
@@ -146,13 +150,15 @@ export function CijfersLoonkostenBar({ periode, vestigingKeuze, van, tot, mode }
 }
 
 function Col({
-  label, value, sub, dp, intent, dpTitle, first,
+  label, value, sub, dp, intent, dpTitle, first, icon: Icon,
 }: {
   label: string; value: React.ReactNode; sub: React.ReactNode;
   dp?: number | null; intent?: DeltaIntent; dpTitle?: string; first?: boolean;
+  icon?: typeof Banknote;
 }) {
+  const isMobile = useIsMobile();
   return (
-    <div style={{
+    <div className={isMobile ? '!p-3 !border-l-0 border-b border-border last:border-b-0 [&>div:nth-child(2)]:flex-wrap [&>div:nth-child(3)]:!whitespace-normal' : undefined} style={{
       padding: '18px 20px',
       borderLeft: first ? undefined : '1px solid hsl(var(--border))',
       minWidth: 0,
@@ -160,7 +166,7 @@ function Col({
       <div style={{
         fontSize: 10.5, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase',
         color: 'hsl(var(--muted-foreground))',
-      }}>{label}</div>
+      }}>{isMobile && Icon && <Icon className="inline-block h-4 w-4 mr-2 align-middle text-primary" />}{label}</div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 9 }}>
         <span style={{
           fontSize: 25, fontWeight: 700, letterSpacing: '-0.02em',
