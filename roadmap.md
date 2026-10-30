@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Mobiel stap 17: Cijfers — compacte periodekiezer, 44px knoppen en passende KPI's/grafieken onder 744px; toegang en berekeningen ongemoeid.
+- [x] Mobiel stap 17: Cijfers — veegbare periodekeuzes, begrensde kalender, 44px knoppen en KPI-iconen/grafiekruimte onder 744px; 90 tests geslaagd, 2 bekende Deno-fouten, automatische build OK; toegang, berekeningen en desktopopmaak behouden.
+- [ ] Mobiel stap 17 visuele controle — eigen controlesessie toont Geen toegang op /cijfers bij 390/744px; geen toegang of gegevens gewijzigd.
 
 - [x] Mobiel stap 16: Personeel — veegbare tabs, 44px pagina-/kamer-/kleuracties, passende instellingen en scrollende tijdlijn onder 744px; 90 tests geslaagd, 2 bekende Deno-fouten, automatische build OK; pincode, verwerking en desktopklassen ongewijzigd.
 - [ ] Mobiel stap 16 visuele controle — eigen controlesessie toont Geen toegang op alle personeelsroutes bij 390/744px; geen rechten of gegevens gewijzigd.
