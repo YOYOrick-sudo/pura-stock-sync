@@ -3024,7 +3024,7 @@ export function FohTasks() {
                       <button
                         type="button"
                         aria-label="Standaardsectie van deze iPad instellen"
-                        className={isMobiel ? 'hidden' : undefined}
+                        className={isMobiel ? '!hidden' : undefined}
                         onClick={() => setDeviceModeDialogOpen(true)}
                         style={{
                           width: '44px',
@@ -3055,7 +3055,7 @@ export function FohTasks() {
                       <button
                         onClick={() => setPasswordDialogOpen(true)}
                         aria-label="Takenbeheer openen"
-                        className={isMobiel ? 'hidden' : undefined}
+                        className={isMobiel ? '!hidden' : undefined}
                         style={{
                           width: '44px',
                           height: '44px',
@@ -3154,7 +3154,7 @@ export function FohTasks() {
 
                   {!isReadOnly && (
                     <button
-                      className={isMobiel ? 'hidden' : undefined}
+                      className={isMobiel ? '!hidden' : undefined}
                       onClick={() => setPasswordDialogOpen(true)}
                       style={{
                         display: 'flex',
