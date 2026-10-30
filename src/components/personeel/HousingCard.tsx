@@ -7,6 +7,7 @@ import type { Person, PersoneelHousing } from "@/types/personeel";
 import { getOverbookedDays, isActiveOn } from "@/lib/personeel-utils";
 import { format } from "date-fns";
 import { nl } from "date-fns/locale";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface HousingCardProps {
   housing: PersoneelHousing;
@@ -14,6 +15,7 @@ interface HousingCardProps {
 }
 
 export function HousingCard({ housing, people }: HousingCardProps) {
+  const isMobile = useIsMobile();
   const today = new Date();
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekEnd = addDays(weekStart, 6);
@@ -31,14 +33,14 @@ export function HousingCard({ housing, people }: HousingCardProps) {
   const isOverbooked = overbooked.length > 0;
 
   return (
-    <Link to={`/personeel/wonen/${housing.id}`} className="block">
+    <Link to={`/personeel/wonen/${housing.id}`} className={isMobile ? 'block min-w-0 min-h-11 break-words [overflow-wrap:anywhere] [&_li]:gap-2 [&_li>span:first-child]:min-w-0 [&_li>span:first-child]:flex-1 [&_li>span:last-child]:shrink-0' : 'block'}>
       <Card
         className={`rounded-[20px] transition-all hover:shadow-md ${isOverbooked ? "border-2 border-destructive" : "border-l-[6px]"}`}
         style={!isOverbooked ? { borderLeftColor: housing.color } : undefined}
       >
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between gap-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
+            <CardTitle className={isMobile ? 'flex items-center gap-2 text-lg min-w-0 flex-1 [&>span]:shrink-0' : 'flex items-center gap-2 text-lg'}>
               <span className="w-3 h-3 rounded-full inline-block" style={{ backgroundColor: housing.color }} />
               {housing.name}
             </CardTitle>

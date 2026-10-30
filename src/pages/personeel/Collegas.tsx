@@ -15,10 +15,12 @@ import { PersonModal } from "@/components/personeel/PersonModal";
 import { categorizeByDate, formatPeriod } from "@/lib/personeel-utils";
 import type { Person } from "@/types/personeel";
 import { copy } from "@/lib/personeel-copy";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type ViewKey = "actief" | "toekomstig" | "afgelopen";
 
 export default function Collegas() {
+  const isMobile = useIsMobile();
   const { data: people = [], isLoading } = usePeople();
   const { data: locations = [] } = useLocations();
   const { data: teams = [] } = useTeams();
@@ -83,7 +85,7 @@ export default function Collegas() {
     }
     return (
       <Card className="rounded-[20px] overflow-hidden">
-        <Table>
+        <Table className={isMobile ? 'min-w-[48rem] [&_tr>th:first-child]:sticky [&_tr>th:first-child]:left-0 [&_tr>th:first-child]:z-10 [&_tr>th:first-child]:bg-card [&_tr>td:first-child]:sticky [&_tr>td:first-child]:left-0 [&_tr>td:first-child]:z-10 [&_tr>td:first-child]:bg-card [&_tr>td:first-child]:max-w-48 [&_tr>td:first-child]:break-words' : undefined}>
           <TableHeader>
             <TableRow>
               <TableHead>Naam</TableHead>
@@ -143,8 +145,8 @@ export default function Collegas() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setEditing(p)}>{copy.bewerken}</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive" onClick={() => setConfirmDelete(p)}>
+                            <DropdownMenuItem className={isMobile ? 'min-h-11' : undefined} onClick={() => setEditing(p)}>{copy.bewerken}</DropdownMenuItem>
+                            <DropdownMenuItem className={isMobile ? 'text-destructive min-h-11' : 'text-destructive'} onClick={() => setConfirmDelete(p)}>
                               {copy.verwijderen}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -164,7 +166,7 @@ export default function Collegas() {
   if (isLoading) return <Skeleton className="h-64 w-full" />;
 
   return (
-    <div className="space-y-4">
+    <div className={isMobile ? 'space-y-4 min-w-0 max-w-full [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:h-11 [&_input]:min-w-0 [&_input]:text-base' : 'space-y-4'}>
       <div className="flex flex-wrap items-center gap-2">
         <Input
           placeholder={copy.zoekCollega}
@@ -177,7 +179,7 @@ export default function Collegas() {
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className={isMobile ? 'flex flex-nowrap gap-2 min-w-0 overflow-x-auto [&>.cursor-pointer]:min-h-11 [&>.cursor-pointer]:shrink-0 [&>.cursor-pointer]:whitespace-nowrap [&>button]:shrink-0' : 'flex flex-wrap gap-2'}>
         {locations.map(l => (
           <Badge
             key={l.id}
@@ -217,11 +219,13 @@ export default function Collegas() {
       </div>
 
       <Tabs value={view} onValueChange={(v) => setView(v as ViewKey)}>
-        <TabsList>
+        <div className={isMobile ? 'min-w-0 max-w-full overflow-x-auto' : undefined}>
+        <TabsList className={isMobile ? 'h-auto w-max min-w-full flex-nowrap [&>button]:shrink-0 [&>button]:whitespace-nowrap' : undefined}>
           <TabsTrigger value="actief">Actief nu ({current.length})</TabsTrigger>
           <TabsTrigger value="toekomstig">Toekomstig ({future.length})</TabsTrigger>
           <TabsTrigger value="afgelopen">Afgelopen ({past.length})</TabsTrigger>
         </TabsList>
+        </div>
         <TabsContent value="actief" className="mt-4">{renderGrouped(current)}</TabsContent>
         <TabsContent value="toekomstig" className="mt-4">{renderGrouped(future)}</TabsContent>
         <TabsContent value="afgelopen" className="mt-4">{renderGrouped(past)}</TabsContent>
@@ -231,7 +235,7 @@ export default function Collegas() {
       {editing && <PersonModal open={!!editing} onClose={() => setEditing(null)} person={editing} />}
 
       <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className={isMobile ? 'min-w-0 [&_button]:min-h-11 [&_button]:min-w-11' : undefined}>
           <AlertDialogHeader>
             <AlertDialogTitle>{copy.weet_je_zeker}</AlertDialogTitle>
             <AlertDialogDescription>{copy.archiveer_uitleg}</AlertDialogDescription>

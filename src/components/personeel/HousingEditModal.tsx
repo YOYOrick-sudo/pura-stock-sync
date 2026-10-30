@@ -10,6 +10,7 @@ import { useUpsertHousing } from "@/hooks/personeel";
 import { ColorPickerModal } from "@/components/personeel/ColorPickerModal";
 import type { PersoneelHousing } from "@/types/personeel";
 import { HOUSING_FACILITY_PRESETS } from "@/types/personeel";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface HousingEditModalProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface HousingEditModalProps {
 }
 
 export function HousingEditModal({ open, onClose, housing }: HousingEditModalProps) {
+  const isMobile = useIsMobile();
   const upsert = useUpsertHousing();
 
   const [name, setName] = useState(housing.name);
@@ -87,7 +89,7 @@ export function HousingEditModal({ open, onClose, housing }: HousingEditModalPro
   return (
     <>
       <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-        <DialogContent className="max-w-[650px] max-h-[85vh] overflow-y-auto">
+        <DialogContent className={isMobile ? 'max-w-[650px] max-h-[85vh] overflow-y-auto min-w-0 [&_.grid]:!grid-cols-1 [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:h-11 [&_input]:min-w-0 [&_input]:text-base [&_textarea]:text-base [&_.cursor-pointer]:min-h-11' : 'max-w-[650px] max-h-[85vh] overflow-y-auto'}>
           <DialogHeader>
             <DialogTitle>Slaapplek bewerken</DialogTitle>
           </DialogHeader>

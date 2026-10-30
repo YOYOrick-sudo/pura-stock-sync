@@ -14,10 +14,12 @@ import {
 import { ColorPickerModal } from "@/components/personeel/ColorPickerModal";
 import { HousingEditModal } from "@/components/personeel/HousingEditModal";
 import type { PersoneelHousing } from "@/types/personeel";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type TabKey = "vestigingen" | "teams" | "slaapplekken";
 
 export default function PersoneelSettings() {
+  const isMobile = useIsMobile();
   const { data: locations = [] } = useLocations();
   const { data: teams = [] } = useTeams();
   const { data: housing = [] } = useHousing();
@@ -31,13 +33,15 @@ export default function PersoneelSettings() {
   };
 
   return (
-    <div className="space-y-4 max-w-3xl mx-auto">
+    <div className={isMobile ? 'space-y-4 min-w-0 max-w-full [&_input]:h-11 [&_input]:min-w-0 [&_input]:text-base [&_button]:min-h-11 [&_button]:min-w-11 [&_button]:shrink-0' : 'space-y-4 max-w-3xl mx-auto'}>
       <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)}>
-        <TabsList>
+        <div className={isMobile ? 'min-w-0 max-w-full overflow-x-auto' : undefined}>
+        <TabsList className={isMobile ? 'h-auto w-max min-w-full flex-nowrap [&>button]:shrink-0 [&>button]:whitespace-nowrap' : undefined}>
           <TabsTrigger value="vestigingen">Vestigingen ({locations.length})</TabsTrigger>
           <TabsTrigger value="teams">Teams ({teams.length})</TabsTrigger>
           <TabsTrigger value="slaapplekken">Slaapplekken ({housing.length})</TabsTrigger>
         </TabsList>
+        </div>
 
         <TabsContent value="vestigingen" className="mt-4 space-y-3">
           <p className="text-sm text-muted-foreground">De fysieke locaties waar collega's werken.</p>
@@ -90,6 +94,7 @@ function LocationsSection() {
 }
 
 function TeamsSection() {
+  const isMobile = useIsMobile();
   const { data: teams = [] } = useTeams();
   const { data: locations = [] } = useLocations();
   const upsert = useUpsertTeam();
@@ -128,9 +133,9 @@ function TeamsSection() {
 
         <div className="pt-3 border-t space-y-2">
           <div className="text-xs text-muted-foreground">Nieuw team toevoegen</div>
-          <div className="flex gap-2">
+          <div className={isMobile ? 'flex flex-wrap gap-2 [&>input]:flex-1 [&>input]:basis-0' : 'flex gap-2'}>
             <Select value={newLocationId} onValueChange={setNewLocationId}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className={isMobile ? 'w-full min-w-0' : 'w-[200px]'}>
                 <SelectValue placeholder="Vestiging" />
               </SelectTrigger>
               <SelectContent>
@@ -156,6 +161,7 @@ function TeamsSection() {
 }
 
 function HousingSection() {
+  const isMobile = useIsMobile();
   const { data: housing = [] } = useHousing();
   const upsert = useUpsertHousing();
   const remove = useDeleteHousing();
@@ -168,10 +174,10 @@ function HousingSection() {
     <Card className="rounded-[20px]">
       <CardContent className="p-4 space-y-2">
         {housing.map((h, i) => (
-          <div key={h.id} className="flex items-center gap-2">
+          <div key={h.id} className={isMobile ? 'grid grid-cols-[44px_minmax(0,1fr)_44px_44px] items-center gap-2 [&>input:not([type=number])]:col-span-3 [&>input[type=number]]:col-start-2 [&>input[type=number]]:w-full' : 'flex items-center gap-2'}>
             <button
               type="button"
-              className="w-8 h-8 rounded-md border border-border shrink-0"
+              className={isMobile ? 'w-11 h-11 rounded-md border border-border shrink-0' : 'w-8 h-8 rounded-md border border-border shrink-0'}
               style={{ backgroundColor: h.color }}
               onClick={() => setPickerFor(h.id)}
               aria-label="Kies kleur"
@@ -210,7 +216,7 @@ function HousingSection() {
         <div className="flex gap-2 pt-2 border-t items-center">
           <button
             type="button"
-            className="w-8 h-8 rounded-md border border-border shrink-0"
+            className={isMobile ? 'w-11 h-11 rounded-md border border-border shrink-0' : 'w-8 h-8 rounded-md border border-border shrink-0'}
             style={{ backgroundColor: newColor }}
             onClick={() => setPickerFor("__new")}
           />

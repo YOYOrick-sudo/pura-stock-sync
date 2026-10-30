@@ -13,8 +13,10 @@ import { isActiveOn } from "@/lib/personeel-utils";
 import { HousingEditModal } from "@/components/personeel/HousingEditModal";
 import { RoomEditModal } from "@/components/personeel/RoomEditModal";
 import type { Person, PersoneelRoom } from "@/types/personeel";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function WonenDetail() {
+  const isMobile = useIsMobile();
   const { id } = useParams<{ id: string }>();
   const { data: housing = [], isLoading } = useHousing();
   const { data: people = [] } = usePeople();
@@ -68,10 +70,10 @@ export default function WonenDetail() {
   const nextSortOrder = rooms.length > 0 ? Math.max(...rooms.map(r => r.sort_order)) + 1 : 0;
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className={isMobile ? 'space-y-4 min-w-0 max-w-full break-words [overflow-wrap:anywhere] [&_button]:min-h-11 [&_button]:min-w-11 [&_button]:shrink-0 [&_a]:min-h-11 [&_svg]:shrink-0 [&_li]:min-w-0 [&_li>span:first-child]:min-w-0 [&_li>span:first-child]:flex-1 [&_li>span:last-child]:shrink-0 [&_.absolute+div_h3]:pr-12' : 'space-y-6 max-w-4xl'}>
       {/* Header */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1">
+      <div className={isMobile ? 'flex flex-wrap items-start justify-between gap-3' : 'flex items-start justify-between gap-3'}>
+        <div className={isMobile ? 'space-y-1 min-w-0 flex-1' : 'space-y-1'}>
           <Link to="/personeel/wonen" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
             <ArrowLeft className="h-4 w-4" /> Terug naar overzicht
           </Link>
