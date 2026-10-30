@@ -18,7 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { dagenTeLaat, parseYmd, ymd } from '@/lib/leverdatum';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import {
-  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useVestigingOpenDagen, useArtikelVormen, zoekBordSuggesties, useBestelAdvies,
+  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useVestigingOpenDagen, useArtikelVormen, zoekBordSuggesties, useBestelAdvies, useBordRegelInfo,
   type BestelSignaal, type ArtikelVorm, type BordSuggestie, type BestelAdvies,
 } from '@/hooks/useBestelbord';
 import { Voorraadproef } from '@/components/kitchen/Voorraadproef';
@@ -43,20 +43,20 @@ function datumLabel(iso: string): string {
 
 const norm = (s: string) => s.trim().toLowerCase();
 
-function Stepper({ waarde, onChange }: { waarde: number; onChange: (n: number) => void }) {
+function Stepper({ waarde, onChange }: { waarde: number | null; onChange: (n: number | null) => void }) {
   return (
     <div className="flex items-center gap-1">
-      <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Minder" onClick={() => onChange(Math.max(1, waarde - 1))}>
+      <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Minder" onClick={() => onChange(Math.max(1, (waarde ?? 1) - 1))}>
         <Minus className="h-4 w-4" />
       </Button>
       <Input
-        value={String(waarde)}
-        onChange={(e) => onChange(Math.max(1, Number(e.target.value.replace(/[^0-9]/g, '')) || 1))}
+        value={waarde == null ? '' : String(waarde)}
+        onChange={(e) => { const d = e.target.value.replace(/[^0-9]/g, ''); onChange(d ? Math.max(1, Number(d) || 1) : null); }}
         inputMode="numeric"
         className="h-11 w-14 text-center text-base font-semibold"
         aria-label="Aantal"
       />
-      <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Meer" onClick={() => onChange(waarde + 1)}>
+      <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Meer" onClick={() => onChange((waarde ?? 0) + 1)}>
         <Plus className="h-4 w-4" />
       </Button>
     </div>
@@ -100,19 +100,24 @@ function VormKeuze({
   onKies: (v: ArtikelVorm) => void;
 }) {
   return (
-    <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Verpakkingsvorm">
+    <div className="grid w-full grid-cols-2 gap-2" role="radiogroup" aria-label="Verpakkingsvorm">
       {vormen.map((v) => {
         const lev = v.leverancier_naam ?? (v.leverancier_id ? leveranciers?.get(v.leverancier_id) : null);
+        const geblokkeerd = !!v.geblokkeerd;
         return (
           <Button variant={gekozen === v.id ? 'default' : 'outline'}
             key={v.id}
             type="button"
             role="radio"
             aria-checked={gekozen === v.id}
+            disabled={geblokkeerd}
             onClick={() => onKies(v)}
-            className="min-h-11 h-auto whitespace-normal px-3 py-1.5 text-left text-sm"
+            className="flex h-auto min-h-14 w-full flex-col items-start justify-center gap-0.5 whitespace-normal px-3 py-2 text-left"
           >
-            {[v.vorm, lev, v.prijs != null ? `${euro(Number(v.prijs))} excl.` : '–'].filter(Boolean).join(' · ')}
+            <span className="text-base font-semibold leading-tight">{v.vorm}</span>
+            <span className={cn('text-xs font-normal', gekozen === v.id ? 'opacity-80' : 'text-muted-foreground')}>
+              {geblokkeerd ? 'controleren' : [lev, v.prijs != null ? `${euro(Number(v.prijs))} excl.` : '–'].filter(Boolean).join(' · ')}
+            </span>
           </Button>
         );
       })}
@@ -137,10 +142,10 @@ export default function Bestelbord() {
   const { data: leveranciers } = useLeveranciers();
   const { isOpen } = useVestigingOpenDagen(vestiging || null);
   const [naam, setNaam] = useState('');
-  const [aantal, setAantal] = useState(1);
+  const [aantal, setAantal] = useState<number | null>(1);
   const [soort, setSoort] = useState<string | null>(null);
   const [bewerk, setBewerk] = useState<BestelSignaal | null>(null);
-  const [bewerkAantal, setBewerkAantal] = useState(1);
+  const [bewerkAantal, setBewerkAantal] = useState<number | null>(1);
   const [bewerkSoort, setBewerkSoort] = useState<string | null>(null);
   const [datumVoor, setDatumVoor] = useState<BestelSignaal | null>(null);
   const [datumKeuze, setDatumKeuze] = useState('');
@@ -149,6 +154,8 @@ export default function Bestelbord() {
   const [deelsOntvangen, setDeelsOntvangen] = useState(1);
   const invoer = useRef<HTMLInputElement>(null);
   const { data: vormen } = useArtikelVormen(vestiging || null);
+  const { data: regelInfoMap } = useBordRegelInfo(vestiging || null);
+  const regelInfo = (s: BestelSignaal) => regelInfoMap?.get(s.id);
   const { data: prijsSignalen = [] } = usePrijsSignalen(vestiging || null);
   const [suggesties, setSuggesties] = useState<BordSuggestie[]>([]);
   const [lijstOpen, setLijstOpen] = useState(false);
@@ -254,20 +261,24 @@ export default function Bestelbord() {
 
   const kiesEerder = (s: BestelSignaal) => {
     setNaam(s.naam);
-    setAantal(Math.max(1, Number(s.aantal) || 1));
-    setSoort(s.eenheid);
+    setSoort(null);
     setGekozen(null);
     setVormId(null);
     setSuggesties([]);
     setLijstOpen(false);
   };
 
+  const vormNodig = !!gekozen && gekozen.vormen.length > 1 && !vormId;
+  const gekozenVorm = gekozen && vormId ? gekozen.vormen.find((x) => x.id === vormId) ?? null : null;
+  const metBlokkade = (vs: ArtikelVorm[]) => vs.map((v) => ({ ...v, geblokkeerd: v.geblokkeerd ?? vormById.get(v.id)?.geblokkeerd ?? false }));
+
   const kiesArtikel = (s: BordSuggestie) => {
-    const std = s.vormen.find((v) => v.is_standaard) ?? s.vormen[0] ?? null;
+    // Geen voorkeuze: alleen bij precies één vorm ligt die vast.
+    const enige = s.vormen.length === 1 ? s.vormen[0] : null;
     setNaam(s.naam);
     setGekozen(s);
-    setVormId(std?.id ?? null);
-    setSoort(std?.eenheid ?? s.standaard_eenheid ?? soort);
+    setVormId(enige?.id ?? null);
+    setSoort(enige ? enige.eenheid : s.vormen.length > 1 ? null : s.standaard_eenheid ?? soort);
     setSuggesties([]);
     setLijstOpen(false);
     setActief(-1);
@@ -285,9 +296,13 @@ export default function Bestelbord() {
 
   const voegToe = () => {
     const n = naam.trim();
-    if (n.length < 2 || !vestiging || isLoading) return;
+    if (n.length < 2 || !vestiging || isLoading || aantal == null || vormNodig) return;
     const eenheid = soort ?? 'stuks';
-    const bestaand = open.find((s) => norm(s.naam) === norm(n));
+    const v = gekozen && vormId ? gekozen.vormen.find((x) => x.id === vormId) : undefined;
+    const koppeling = gekozen
+      ? { artikel_id: gekozen.artikel_id, leverancier_id: v?.leverancier_id ?? gekozen.leverancier_id ?? null, artikel_vorm_id: v && v.eenheid === eenheid ? v.id : null }
+      : null;
+    const bestaand = open.find((s) => norm(s.naam) === norm(n) && (s.artikel_vorm_id ?? null) === (koppeling?.artikel_vorm_id ?? null));
     if (bestaand) {
       toast(`Staat er al (${Number(bestaand.aantal)} ${bestaand.eenheid})`, {
         action: {
@@ -303,10 +318,6 @@ export default function Bestelbord() {
     if (onderwegMatch) {
       toast(`Let op: al onderweg, verwacht ${leverDatumLabel(onderwegMatch.verwachte_levering)}`);
     }
-    const v = gekozen && vormId ? gekozen.vormen.find((x) => x.id === vormId) : undefined;
-    const koppeling = gekozen
-      ? { artikel_id: gekozen.artikel_id, leverancier_id: v?.leverancier_id ?? gekozen.leverancier_id ?? null, artikel_vorm_id: v && v.eenheid === eenheid ? v.id : null }
-      : null;
     toevoegen.mutate(
       { naam: n, aantal, eenheid, koppeling },
       {
@@ -325,7 +336,7 @@ export default function Bestelbord() {
     const aantalA = Number(a.hoeveelheid) > 0 ? Number(a.hoeveelheid) : 1;
     setAdviesBezig(true);
     try {
-      const bestaand = open.find((s) => norm(s.naam) === norm(a.artikel));
+      const bestaand = open.find((s) => norm(s.naam) === norm(a.artikel) && (s.artikel_vorm_id ?? null) === (v?.id ?? null));
       if (bestaand) {
         const oud = Number(bestaand.aantal);
         await wijzig.mutateAsync({ id: bestaand.id, aantal: oud + aantalA, eenheid: bestaand.eenheid });
@@ -434,6 +445,7 @@ export default function Bestelbord() {
   };
 
   const groepProps = {
+    regelInfo,
     deadlineHint,
     dagenTeLaatVan: teLaatVan,
     onAllesGeleverd: (ids: string[]) => vinkGeleverd(ids, `${ids.length} ${ids.length === 1 ? 'regel' : 'regels'}`),
@@ -447,14 +459,15 @@ export default function Bestelbord() {
     setBewerk(s);
     setBewerkAantal(Math.max(1, Number(s.aantal) || 1));
     setBewerkSoort(s.eenheid);
-    setBewerkVormId(s.artikel_vorm_id);
+    const heeftVormen = !!s.artikel_id && (vormen ?? []).some((v) => v.artikel_id === s.artikel_id);
+    setBewerkVormId(regelInfo(s)?.eenheid_controleren && heeftVormen ? null : s.artikel_vorm_id);
   };
 
   const isMobile = useIsMobile();
   const tab = tabKeuze ?? (!isLoading && telOverzicht.geladen && telOverzicht.open > 0 && open.length === 0 ? 'tellen' : 'bord');
   const adviesRegels = advies.data?.regels ?? [];
   const leveranciersTabel = <LeveranciersOverzicht open={open} onderweg={besteld} leverancier={leverancier} prijsVan={prijsVan} />;
-  const bordProps = { leverancier, deadlineHint, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen };
+  const bordProps = { regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen };
   const positieveAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) > 0);
   const nulAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) <= 0);
   const openPrijzen = open.map(prijsVan).filter((p) => p != null);
@@ -532,8 +545,9 @@ export default function Bestelbord() {
               {lijstOpen && naam.trim().length > 0 && suggesties.length > 0 && (
                 <div role="listbox" className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-polar-md border border-border bg-popover shadow-md">
                   {suggesties.map((s, i) => {
-                    const std = s.vormen.find((v) => v.is_standaard) ?? s.vormen[0];
-                    const levNaam = std?.leverancier_naam ?? (std?.leverancier_id ? leveranciers?.get(std.leverancier_id) : null);
+                    const enige = s.vormen.length === 1 ? s.vormen[0] : null;
+                    const levNaam = enige ? enige.leverancier_naam ?? (enige.leverancier_id ? leveranciers?.get(enige.leverancier_id) : null) : null;
+                    const sub = s.vormen.length > 1 ? `${s.vormen.length} verpakkingen` : [enige?.vorm, levNaam].filter(Boolean).join(' · ');
                     return (
                       <Button variant="ghost"
                         key={s.artikel_id}
@@ -545,11 +559,7 @@ export default function Bestelbord() {
                         className={cn('block w-full px-3 py-2 text-left min-h-[48px]', i === actief ? 'bg-muted' : 'hover:bg-muted/60')}
                       >
                         <span className="block text-sm font-medium text-foreground">{s.naam}</span>
-                        {(std || levNaam) && (
-                          <span className="block text-xs text-muted-foreground">
-                            {[std?.vorm, levNaam].filter(Boolean).join(' · ')}
-                          </span>
-                        )}
+                        {sub && <span className="block text-xs text-muted-foreground">{sub}</span>}
                       </Button>
                     );
                   })}
@@ -557,13 +567,17 @@ export default function Bestelbord() {
               )}
             </div>
             <Stepper waarde={aantal} onChange={setAantal} />
-            <Select value={soort ?? 'stuks'} onValueChange={setSoort}>
-              <SelectTrigger className="h-11 w-[110px] border-0 shadow-none" aria-label="Verpakking"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {SOORTEN.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            {naam.trim().length >= 2 && <Button size="touch" className="ml-auto gap-1 px-3" aria-label="Erbij zetten" onClick={voegToe} disabled={!vestiging || isLoading}>
+            {gekozenVorm ? (
+              <span className="flex h-11 items-center text-sm text-muted-foreground">{gekozenVorm.eenheid}</span>
+            ) : !gekozen || gekozen.vormen.length === 0 ? (
+              <Select value={soort ?? 'stuks'} onValueChange={setSoort}>
+                <SelectTrigger className="h-11 w-[110px] border-0 shadow-none" aria-label="Verpakking"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {SOORTEN.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            ) : null}
+            {naam.trim().length >= 2 && !vormNodig && <Button size="touch" className="ml-auto gap-1 px-3" aria-label="Erbij zetten" onClick={voegToe} disabled={!vestiging || isLoading || aantal == null || !!gekozenVorm?.geblokkeerd || !!(gekozenVorm && vormById.get(gekozenVorm.id)?.geblokkeerd)}>
               <Check className="h-4 w-4" /><span>Erbij</span>
             </Button>}
           </Invoerbalk>
@@ -579,10 +593,10 @@ export default function Bestelbord() {
           )}
           {gekozen && gekozen.vormen.length > 1 && (
             <VormKeuze
-              vormen={gekozen.vormen}
+              vormen={metBlokkade(gekozen.vormen)}
               gekozen={vormId}
               leveranciers={leveranciers}
-              onKies={(v) => { setVormId(v.id); setSoort(v.eenheid); }}
+              onKies={(v) => { if (vormId && v.id !== vormId) setAantal(null); setVormId(v.id); setSoort(v.eenheid); }}
             />
           )}
         </div>
@@ -613,25 +627,30 @@ export default function Bestelbord() {
       <DetailLade open={!!bewerk} onOpenChange={(o) => !o && setBewerk(null)} titel={bewerk?.naam}>
           <div className="space-y-4">
             {bewerk && <Stappen stappen={['Op bord', 'Besteld', 'Geleverd']} huidig={bewerk.status === 'geleverd' ? 2 : bewerk.status === 'besteld' ? 1 : 0} />}
-            <Stepper waarde={bewerkAantal} onChange={setBewerkAantal} />
-            {bewerkVormen.length > 1 && (
+            <div className="flex items-center gap-1">
+              <Stepper waarde={bewerkAantal} onChange={setBewerkAantal} />
+              {bewerkVormId && vormById.get(bewerkVormId) && <span className="text-sm text-muted-foreground">{vormById.get(bewerkVormId)!.eenheid}</span>}
+            </div>
+            {(bewerkVormen.length > 1 || (bewerkVormen.length > 0 && !bewerkVormId)) && (
               <VormKeuze
                 vormen={bewerkVormen}
                 gekozen={bewerkVormId}
                 leveranciers={leveranciers}
-                onKies={(v) => { setBewerkVormId(v.id); setBewerkSoort(v.eenheid); }}
+                onKies={(v) => { if (bewerkVormId && v.id !== bewerkVormId) setBewerkAantal(null); setBewerkVormId(v.id); setBewerkSoort(v.eenheid); }}
               />
             )}
-            <SoortKeuze waarde={bewerkSoort} onChange={setBewerkSoort} />
+            {(!bewerk?.artikel_id || bewerkVormen.length === 0) && <SoortKeuze waarde={bewerkSoort} onChange={setBewerkSoort} />}
             <Button
               className="h-12 w-full"
+              disabled={bewerkAantal == null || (bewerkVormen.length > 0 && !bewerkVormId)}
               onClick={() => {
-                if (!bewerk) return;
+                if (!bewerk || bewerkAantal == null) return;
+                const controleren = !!regelInfo(bewerk)?.eenheid_controleren;
                 const eenh = bewerkSoort ?? 'stuks';
                 const v = bewerkVormId ? vormById.get(bewerkVormId) : undefined;
                 let vorm: { artikel_vorm_id: string | null; leverancier_id: string | null } | undefined;
                 if (v && v.eenheid === eenh) {
-                  if (v.id !== bewerk.artikel_vorm_id) vorm = { artikel_vorm_id: v.id, leverancier_id: v.leverancier_id };
+                  if (v.id !== bewerk.artikel_vorm_id || controleren) vorm = { artikel_vorm_id: v.id, leverancier_id: v.leverancier_id };
                 } else if (bewerk.artikel_vorm_id || v) {
                   // Eenheid past niet bij de vorm: koppeling met vorm vervalt, artikel en leverancier blijven.
                   vorm = { artikel_vorm_id: null, leverancier_id: v?.leverancier_id ?? bewerk.leverancier_id };
@@ -688,7 +707,7 @@ export default function Bestelbord() {
                 <p className="text-sm text-muted-foreground">
                   Hoeveel is er binnen? (besteld: {Number(leveringActie.signaal.aantal)} {leveringActie.signaal.eenheid})
                 </p>
-                <Stepper waarde={deelsOntvangen} onChange={(n) => setDeelsOntvangen(Math.min(n, Number(leveringActie.signaal.aantal) - 1))} />
+                <Stepper waarde={deelsOntvangen} onChange={(n) => setDeelsOntvangen(Math.min(n ?? 1, Number(leveringActie.signaal.aantal) - 1))} />
               </div>
             )}
             <Textarea
