@@ -1,8 +1,9 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Hourglass, Minus, PackageCheck, Plus, Truck } from 'lucide-react';
+import { AlertCircle, Hourglass, Minus, PackageCheck, Plus, Truck } from 'lucide-react';
 import { DetailLade, GroepRij, KaartKop, LaadRijen, LijstKaart } from '@/components/pura/patronen';
-import { RijMeta } from '@/components/pura/lijst';
+import { RijMenu, RijMeta } from '@/components/pura/lijst';
+import { AnnuleerLade } from './MandjeVragen';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -15,7 +16,7 @@ import { cn } from '@/lib/utils';
 import { CompacteTabel } from './CompacteTabel';
 import { zoekBordSuggesties, type BordSuggestie } from '@/hooks/useBestelbord';
 import { useOntvangstMutaties, type NaleveringKandidaat, type OntvangstRestant, type OntvangstVandaag } from '@/hooks/useOntvangstV2';
-import { isAutomatisch, bouwRegel, eindcheckFout, kortDatum, restantVan, restSoortLabel, type EindcheckInvoer, type OntvangstModus, type RestBron } from '@/lib/ontvangstV2';
+import { afrondWaarschuwingen, onderwegBlokken, isAutomatisch, bouwRegel, eindcheckFout, kortDatum, restantVan, type EindcheckInvoer, type OntvangstModus, type RestBron } from '@/lib/ontvangstV2';
 
 const BRONNEN: { id: RestBron; naam: string }[] = [{ id: 'pakbon', naam: 'Pakbon' }, { id: 'mail', naam: 'Mail' }, { id: 'orderbevestiging', naam: 'Bevestiging' }];
 const sleutelVan = (r: OntvangstVandaag) => r.open_regel_id ?? r.signaal_id ?? r.pakbon_regel_id ?? r.naam;
@@ -38,21 +39,37 @@ function startInvoer(r: OntvangstVandaag, restanten: OntvangstRestant[]): Eindch
   };
 }
 
-/** Bovenaan Onderweg: wat nog moet komen of mist. Alleen zichtbaar als er iets in zit. */
-export function NageleverdKaart({ regels }: { regels: OntvangstRestant[] }) {
-  if (!regels.length) return null;
-  return <LijstKaart kop={<KaartKop icoon={Hourglass} titel="Wordt nageleverd" teller={regels.length} />}>
-    <CompacteTabel zonderKop onderweg kinderen={<TableBody>{regels.map((r) => <TableRow key={r.regel_id ?? r.api_backorder_id ?? r.naam}>
-      <TableCell className="!px-0"><div className="mx-auto flex h-11 w-11 items-center justify-center"><Hourglass className="h-4 w-4 text-muted-foreground" aria-hidden /></div></TableCell>
+/** Bovenaan Onderweg: 'Wordt nageleverd' en 'Nog niet binnen'. Elk blok alleen als het iets bevat. */
+export function NageleverdKaart({ modus, regels }: { modus: OntvangstModus; regels: OntvangstRestant[] }) {
+  const [annuleer, setAnnuleer] = useState<OntvangstRestant | null>(null);
+  const b = onderwegBlokken(regels);
+  const blok = (titel: string, icoon: typeof Hourglass, warn: boolean, d: { actief: OntvangstRestant[]; opnieuw: OntvangstRestant[] }) => {
+    if (!d.actief.length && !d.opnieuw.length) return null;
+    const Icoon = icoon;
+    const rij = (r: OntvangstRestant, licht: boolean) => <TableRow key={r.regel_id ?? r.api_backorder_id ?? r.naam} className={cn(licht && 'text-muted-foreground')}>
+      <TableCell className="!px-0"><div className="mx-auto flex h-11 w-11 items-center justify-center"><Icoon className={cn('h-4 w-4', warn && !licht ? 'text-warning' : 'text-muted-foreground')} aria-hidden /></div></TableCell>
       <TableCell><div className="flex min-h-11 min-w-0 flex-col justify-center">
         <span className="truncate font-medium">{r.naam}</span>
-        <RijMeta altijd><Badge variant={r.soort === 'mist' ? 'warning' : 'info'}>{restSoortLabel(r.soort)}</Badge>{r.opnieuw_besteld && <Badge variant="secondary">opnieuw besteld</Badge>}<span className="truncate">{[r.leverancier_naam, kortDatum(r.verwacht_op ?? r.controle_op)].filter(Boolean).join(' · ')}</span></RijMeta>
+        <RijMeta altijd>{licht ? <Badge variant="secondary">mogelijke nalevering</Badge> : warn && <Badge variant="warning">Mist</Badge>}<span className="truncate">{[r.leverancier_naam, kortDatum(r.verwacht_op ?? r.controle_op)].filter(Boolean).join(' · ')}</span></RijMeta>
       </div></TableCell>
       <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex items-center gap-1.5"><span className="rounded-full bg-muted px-2 text-sm font-semibold">{Number(r.aantal)}</span>{r.eenheid && <span className="text-xs text-muted-foreground">{r.eenheid}</span>}</span></TableCell>
       <TableCell className="!px-0" />
-      <TableCell className="!px-0" />
-    </TableRow>)}</TableBody>} />
-  </LijstKaart>;
+      <TableCell className="!px-0">{licht && modus.magBeslissen && r.regel_id && <RijMenu naam={r.naam} acties={[{ label: 'Geannuleerd door leverancier', gevaar: true, onClick: () => setAnnuleer(r) }]} />}</TableCell>
+    </TableRow>;
+    return <LijstKaart kop={<KaartKop icoon={Icoon} titel={titel} teller={d.actief.length} />}>
+      <CompacteTabel zonderKop onderweg kinderen={<TableBody>{d.actief.map((r) => rij(r, false))}{d.opnieuw.map((r) => rij(r, true))}</TableBody>} />
+    </LijstKaart>;
+  };
+  return <>
+    {blok('Wordt nageleverd', Hourglass, false, b.nageleverd)}
+    {blok('Nog niet binnen', AlertCircle, true, b.mist)}
+    <AnnuleerLade modus={modus} regel={annuleer?.regel_id ? { regel_id: annuleer.regel_id, naam: annuleer.naam } : null} onSluit={() => setAnnuleer(null)} />
+  </>;
+}
+
+/** Waarschuwingen na afronden als toast. */
+export function toonWaarschuwingen(res: unknown) {
+  afrondWaarschuwingen(res).forEach((w) => toast.warning(w.charAt(0).toUpperCase() + w.slice(1)));
 }
 
 /** 5.3 Eindcheck: wat is er vandaag binnen; restant standaard 'Mist'. */
@@ -83,7 +100,7 @@ export function EindcheckKaart({ modus, regels, restanten, laden, leveranciers }
     const f = lijst.map(eindcheckFout).find(Boolean);
     if (f) { toast.error(f); return; }
     afronden.mutate(lijst.map(bouwRegel), {
-      onSuccess: () => { toast.success(`${lijst.length} ${lijst.length === 1 ? 'regel' : 'regels'} afgerond`); setGekozen(new Set()); },
+      onSuccess: (res) => { toonWaarschuwingen(res); toast.success(`${lijst.length} ${lijst.length === 1 ? 'regel' : 'regels'} afgerond`); setGekozen(new Set()); },
       onError: fout,
     });
   };
@@ -149,35 +166,41 @@ function ZonderOrderLade({ open, onOpenChange, modus, leveranciers }: { open: bo
   const [zoek, setZoek] = useState('');
   const [opties, setOpties] = useState<BordSuggestie[]>([]);
   const [artikel, setArtikel] = useState<BordSuggestie | null>(null);
+  const [vrij, setVrij] = useState(false);
   const [aantal, setAantal] = useState(1);
-  const [kandidaat, setKandidaat] = useState<NaleveringKandidaat | null>(null);
+  const [lijst, setLijst] = useState<NaleveringKandidaat[] | null>(null);
   const [bezig, setBezig] = useState(false);
   const zoekVestiging = modus.pBron ?? modus.pVestiging;
 
-  useEffect(() => { if (!open) { setLevId(''); setZoek(''); setArtikel(null); setAantal(1); setKandidaat(null); } }, [open]);
+  useEffect(() => { if (!open) { setLevId(''); setZoek(''); setArtikel(null); setVrij(false); setAantal(1); setLijst(null); } }, [open]);
   useEffect(() => {
     const q = zoek.trim();
-    if (!q || artikel) { setOpties([]); return; }
+    if (!q || artikel || vrij) { setOpties([]); return; }
     const t = setTimeout(() => zoekBordSuggesties(zoekVestiging, q).then(setOpties).catch(() => setOpties([])), 150);
     return () => clearTimeout(t);
-  }, [zoek, artikel, zoekVestiging]);
+  }, [zoek, artikel, vrij, zoekVestiging]);
 
-  const klaar = () => { toast.success('Ontvangst vastgelegd'); onOpenChange(false); };
+  const klaar = (res?: unknown) => { toonWaarschuwingen(res); toast.success('Ontvangst vastgelegd'); onOpenChange(false); };
+  const naam = artikel?.naam ?? (vrij ? zoek.trim() : '');
   const vorm = artikel?.vormen.find((v) => v.leverancier_id === levId) ?? (artikel?.vormen.length === 1 ? artikel.vormen[0] : undefined);
-  const naarZonderOrder = () => zonderOrder.mutate({ leverancierId: levId, regels: [{ omschrijving: artikel?.naam ?? zoek.trim(), aantal, eenheid: vorm?.eenheid ?? artikel?.standaard_eenheid ?? 'stuks', ...(artikel ? { artikel_id: artikel.artikel_id } : {}), ...(vorm ? { artikel_vorm_id: vorm.id } : {}) }] }, { onSuccess: klaar, onError: fout });
+  const naarZonderOrder = () => zonderOrder.mutate({ leverancierId: levId, regels: [{ omschrijving: naam, aantal, eenheid: vorm?.eenheid ?? artikel?.standaard_eenheid ?? 'stuks', ...(artikel ? { artikel_id: artikel.artikel_id } : {}), ...(vorm ? { artikel_vorm_id: vorm.id } : {}) }] }, { onSuccess: klaar, onError: fout });
 
   const controleer = async () => {
     setBezig(true);
     try {
-      const k = await kandidaten({ leverancierId: levId, artikelId: artikel?.artikel_id ?? null });
-      if (k?.length) setKandidaat(k[0]); else naarZonderOrder();
+      const k = await kandidaten({ leverancierId: levId, artikelId: artikel?.artikel_id ?? null, naam: naam || null });
+      if (k?.length) setLijst(k); else naarZonderOrder();
     } catch (e) { fout(e); } finally { setBezig(false); }
   };
+  const klaarVoor = !!levId && (!!artikel || (vrij && zoek.trim().length >= 3));
 
   return <DetailLade open={open} onOpenChange={onOpenChange} titel="Ontvangen zonder order">
-    {kandidaat ? <div className="space-y-4">
-      <p className="text-base">Is dit de nalevering van <b>{kandidaat.naam}</b>{kandidaat.sinds ? ` (sinds ${kortDatum(kandidaat.sinds)})` : ''}?</p>
-      <Button className="h-12 w-full" disabled={afronden.isPending} onClick={() => afronden.mutate([{ open_regel_id: kandidaat.regel_id, binnen: aantal }], { onSuccess: klaar, onError: fout })}>Ja, nalevering</Button>
+    {lijst ? <div className="space-y-3">
+      <p className="text-base">Is dit een nalevering?</p>
+      <div className="divide-y divide-border rounded-polar-md border border-border">{lijst.map((k) => <Button key={k.regel_id} variant="ghost" className="flex min-h-12 w-full items-center justify-between gap-2 rounded-none px-3 text-left" disabled={afronden.isPending} onClick={() => afronden.mutate([{ open_regel_id: k.regel_id, binnen: aantal }], { onSuccess: klaar, onError: fout })}>
+        <span className="min-w-0 truncate font-medium">{k.naam}</span>
+        <span className="shrink-0 text-xs text-muted-foreground">{[`${Number(k.aantal)} ${k.eenheid ?? ''}`.trim(), k.sinds ? kortDatum(k.sinds) : ''].filter(Boolean).join(' · ')}</span>
+      </Button>)}</div>
       <Button variant="outline" className="h-12 w-full" disabled={zonderOrder.isPending} onClick={naarZonderOrder}>Nee, los ontvangen</Button>
     </div> : <div className="space-y-4">
       <Select value={levId} onValueChange={setLevId}>
@@ -185,14 +208,14 @@ function ZonderOrderLade({ open, onOpenChange, modus, leveranciers }: { open: bo
         <SelectContent>{[...(leveranciers ?? new Map()).entries()].sort((a, b) => a[1].localeCompare(b[1])).map(([id, naam]) => <SelectItem key={id} value={id}>{naam}</SelectItem>)}</SelectContent>
       </Select>
       <div className="relative">
-        <Input className="h-11 text-base" placeholder="Artikel" value={artikel?.naam ?? zoek} onChange={(e) => { setArtikel(null); setZoek(e.target.value); }} />
+        <Input className="h-11 text-base" placeholder={vrij ? 'Omschrijving' : 'Zoek artikel'} value={artikel?.naam ?? zoek} onChange={(e) => { setArtikel(null); setZoek(e.target.value); }} />
         {opties.length > 0 && <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-polar-md border border-border bg-popover shadow-md">
-          {opties.map((o) => <Button key={o.artikel_id} variant="ghost" className={cn('block min-h-12 w-full px-3 text-left')} onClick={() => { setArtikel(o); setOpties([]); }}>{o.naam}</Button>)}
+          {opties.map((o) => <Button key={o.artikel_id} variant="ghost" className="block min-h-12 w-full px-3 text-left" onClick={() => { setArtikel(o); setOpties([]); }}>{o.naam}</Button>)}
         </div>}
       </div>
+      {!artikel && <Button type="button" variant={vrij ? 'default' : 'outline'} size="touch" className="w-full" aria-pressed={vrij} onClick={() => setVrij((x) => !x)}>Niet in de lijst</Button>}
       <Veld label="Aantal"><Aantal waarde={aantal} onChange={setAantal} min={1} /></Veld>
-      <Button className="h-12 w-full gap-1" disabled={!levId || !(artikel || zoek.trim().length >= 2) || bezig || zonderOrder.isPending} onClick={controleer}><Truck className="h-4 w-4" />Vastleggen</Button>
+      <Button className="h-12 w-full gap-1" disabled={!klaarVoor || bezig || zonderOrder.isPending} onClick={controleer}><Truck className="h-4 w-4" />Vastleggen</Button>
     </div>}
   </DetailLade>;
 }
-

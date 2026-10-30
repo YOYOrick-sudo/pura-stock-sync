@@ -1,6 +1,6 @@
 // @ts-ignore bun test runner
 import { describe, expect, test } from 'bun:test';
-import { isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, type EindcheckInvoer } from './ontvangstV2';
+import { afrondWaarschuwingen, annuleerGeldig, bordRestStatus, onderwegBlokken, onderwegTellers, isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, type EindcheckInvoer } from './ontvangstV2';
 
 const basis: EindcheckInvoer = {
   soort: 'onderweg', signaal_id: 's1', open_regel_id: null, pakbon_regel_id: null, geleverd_vorm_id: null,
@@ -76,5 +76,36 @@ describe('eindcheck', () => {
   test('personeel ziet nooit backorder', () => {
     expect(restSoortLabel('backorder')).toBe('Wordt nageleverd');
     expect(restSoortLabel('mist')).toBe('Mist');
+  });
+});
+
+describe('onderweg-blokken en badges', () => {
+  const rijen = [
+    { soort: 'wordt_nageleverd', opnieuw_besteld: false },
+    { soort: 'wordt_nageleverd', opnieuw_besteld: true },
+    { soort: 'mist', opnieuw_besteld: false },
+    { soort: 'mist', opnieuw_besteld: false },
+    { soort: 'mist', opnieuw_besteld: true },
+  ];
+  test('mist apart, opnieuw besteld niet in teller', () => {
+    expect(onderwegTellers(rijen)).toEqual({ nageleverd: 1, mist: 2 });
+    const b = onderwegBlokken(rijen);
+    expect(b.nageleverd.opnieuw.length).toBe(1);
+    expect(b.mist.opnieuw.length).toBe(1);
+  });
+  test('bordbadge alleen bij niet opnieuw bestelde regels', () => {
+    expect(bordRestStatus({ soort: 'wordt_nageleverd', opnieuw_besteld: false })).toBe('nageleverd');
+    expect(bordRestStatus({ soort: 'wordt_nageleverd', opnieuw_besteld: true })).toBe(null);
+    expect(bordRestStatus({ soort: 'mist', opnieuw_besteld: false })).toBe('mist');
+    expect(bordRestStatus({ soort: 'mist', opnieuw_besteld: true })).toBe(null);
+  });
+  test('annuleren vraagt bron en minstens 3 tekens', () => {
+    expect(annuleerGeldig('mail', '  ab ')).toBe(false);
+    expect(annuleerGeldig('', 'abc')).toBe(false);
+    expect(annuleerGeldig('mail', 'abc')).toBe(true);
+  });
+  test('waarschuwing opnieuw besteld wordt gelezen', () => {
+    expect(afrondWaarschuwingen({ waarschuwingen: ['let op: ook opnieuw besteld'] })).toEqual(['let op: ook opnieuw besteld']);
+    expect(afrondWaarschuwingen(null)).toEqual([]);
   });
 });

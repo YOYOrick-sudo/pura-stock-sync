@@ -104,7 +104,7 @@ export function useOntvangstMutaties(m: OntvangstModus) {
       lees<unknown>('ontvangst_zonder_order', { p_vestiging: m.pVestiging, p_levering_id: crypto.randomUUID(), p_leverancier_id: a.leverancierId, p_regels: a.regels, p_ontvangen_op: null, p_bron_vestiging: m.pBron }),
     onSuccess: herlaad,
   });
-  const kandidaten = (a: { leverancierId: string; artikelId: string | null }) =>
-    lees<NaleveringKandidaat[]>('ontvangst_nalevering_kandidaten', { p_vestiging: m.pVestiging, p_bron_vestiging: m.pBron, p_leverancier_id: a.leverancierId, p_artikel_id: a.artikelId, p_artikelnummer: null });
+  const kandidaten = (a: { leverancierId: string; artikelId: string | null; naam: string | null }) =>
+    lees<NaleveringKandidaat[]>('ontvangst_nalevering_kandidaten', { p_vestiging: m.pVestiging, p_bron_vestiging: m.pBron, p_leverancier_id: a.leverancierId, p_artikel_id: a.artikelId, p_artikelnummer: null, p_naam: a.naam });
   return { afronden, beslissen, zonderOrder, kandidaten };
 }

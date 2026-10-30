@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import { Check, Hourglass } from 'lucide-react';
+import { AlertCircle, Check, Hourglass } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -15,7 +15,7 @@ import { DeadlineNaam } from './DeadlineNaam';
 import { RegelInfo } from './RegelInfo';
 import type { BordRegelInfo } from '@/hooks/useBestelbord';
 
-export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal, prijsTip, onBesteld, onBewerk, onVervallen, geleverd = false, onTerug, detail, nageleverd, alleenLezen = false }: {
+export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal, prijsTip, onBesteld, onBewerk, onVervallen, geleverd = false, onTerug, detail, restStatus, alleenLezen = false }: {
   regels: BestelSignaal[]; leverancier: (s: BestelSignaal) => string;
   deadlineHint: (s: BestelSignaal) => string | null;
   prijsVan: (s: BestelSignaal) => { vorm: ArtikelVorm; totaal: number } | null;
@@ -23,7 +23,7 @@ export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsV
   onBesteld: (s: BestelSignaal, b: boolean) => void; onBewerk: (s: BestelSignaal) => void; onVervallen: (s: BestelSignaal) => void;
   geleverd?: boolean; onTerug?: (s: BestelSignaal) => void; detail?: (s: BestelSignaal) => string;
   regelInfo?: (s: BestelSignaal) => BordRegelInfo | undefined;
-  nageleverd?: (s: BestelSignaal) => boolean; alleenLezen?: boolean;
+  restStatus?: (s: BestelSignaal) => 'nageleverd' | 'mist' | null; alleenLezen?: boolean;
 }) {
   return <CompacteTabel zonderKop vinkKop={geleverd ? undefined : 'Besteld'} kinderen={<TableBody>{perLeverancier(regels, leverancier).map(([lev, rs]) => {
     const prijzen = rs.map(prijsVan).filter((p) => p != null);
@@ -36,7 +36,7 @@ export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsV
           <TableCell className="!px-0" onClick={(e) => e.stopPropagation()}>{geleverd ? <div className="mx-auto flex h-11 w-11 items-center justify-center"><Check className="h-4 w-4 text-primary" aria-label="Geleverd" /></div> : <label className="mx-auto flex h-11 w-11 cursor-pointer items-center justify-center"><Checkbox disabled={alleenLezen} checked={s.status === 'besteld'} aria-label={`${s.naam} besteld`} onCheckedChange={(b) => onBesteld(s, b === true)} /></label>}</TableCell>
           <TableCell><div className="flex min-h-11 min-w-0 flex-col justify-center">
             <span className="flex min-w-0 items-center gap-1.5"><span className="truncate font-medium">{s.naam}</span><RegelInfo info={regelInfo?.(s)} /></span>
-            {nageleverd?.(s) && <RijMeta altijd><Hourglass className="h-4 w-4" aria-hidden /><Badge variant="info">al besteld, wordt nageleverd</Badge></RijMeta>}
+            {restStatus?.(s) === 'nageleverd' && <RijMeta altijd><Hourglass className="h-4 w-4" aria-hidden /><Badge variant="info">al besteld, wordt nageleverd</Badge></RijMeta>}{restStatus?.(s) === 'mist' && <RijMeta altijd><AlertCircle className="h-4 w-4 text-warning" aria-hidden /><Badge variant="warning">mist</Badge></RijMeta>}
             {info ? <RijMeta altijd>{info}</RijMeta> : <RijMeta>{prijs ? euro(prijs.totaal) : '—'}</RijMeta>}
           </div></TableCell>
           <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex min-h-6 items-center justify-end gap-1.5"><span className="inline-flex items-center rounded-full bg-muted px-2 text-sm font-semibold">{Number(s.aantal)}</span>{s.eenheid && <span className="text-xs text-muted-foreground">{s.eenheid}</span>}</span></TableCell>
