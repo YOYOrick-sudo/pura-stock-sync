@@ -17,6 +17,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useMepHandelingenBeheer } from '@/hooks/useMepPlanning';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 function HandelingenTab({ location }: { location: string }) {
   const { handelingen, loading, opslaan } = useMepHandelingenBeheer(location);
@@ -171,18 +172,19 @@ function HalffabricatenTab() {
 }
 
 export default function MepInstellingen() {
+  const isMobile = useIsMobile();
   const { userLocation } = useUserLocation();
 
   return (
     <SidebarLayout>
-      <div className="page-stack max-w-5xl">
+      <div className={isMobile ? 'page-stack min-w-0 max-w-full [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:min-h-11 [&_input]:min-w-0 [&_input]:text-base [&_.flex-1]:min-w-0 [&_.flex-1]:truncate [&_.justify-between]:flex-wrap [&_.justify-between]:gap-2 [&_svg]:shrink-0' : 'page-stack max-w-5xl'}>
         <p className="text-sm text-muted-foreground">
           Halffabricaten en keukendagen voor {userLocation}
         </p>
 
         <Tabs defaultValue="halffabricaten">
-          <div className="-mx-4 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0">
-          <TabsList className="h-11 min-w-max justify-start">
+          <div className={isMobile ? 'min-w-0 max-w-full overflow-x-auto pb-1 md:mx-0 md:px-0' : '-mx-4 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0'}>
+          <TabsList className={isMobile ? 'h-auto min-w-max justify-start flex-nowrap [&>button]:shrink-0 [&>button]:whitespace-nowrap' : 'h-11 min-w-max justify-start'}>
             <TabsTrigger value="halffabricaten">Halffabricaten</TabsTrigger>
             <TabsTrigger value="handelingen">Handelingen</TabsTrigger>
             <TabsTrigger value="voorraadcheck">Voorraad-check</TabsTrigger>

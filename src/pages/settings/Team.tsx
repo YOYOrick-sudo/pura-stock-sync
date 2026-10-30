@@ -25,6 +25,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useRole } from '@/hooks/useRole';
 import { Navigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type Role = 'staff' | 'manager' | 'owner';
 type Location = 'West' | 'Midsland';
@@ -58,6 +59,7 @@ const STATUS_VARIANTS: Record<Status, string> = {
 };
 
 export default function Team() {
+  const isMobile = useIsMobile();
   const { loading: roleLoading, isOwner, userId: myId } = useRole();
   const [team, setTeam] = useState<TeamMember[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -92,7 +94,7 @@ export default function Team() {
 
   return (
     <SidebarLayout>
-      <div className="page-stack">
+      <div className={isMobile ? 'page-stack min-w-0 max-w-full [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:min-h-11 [&_input]:text-base' : 'page-stack'}>
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
             <p className="text-muted-foreground text-sm">
@@ -111,7 +113,7 @@ export default function Team() {
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : (
-            <Table>
+            <Table className={isMobile ? 'min-w-[64rem] [&_tr>th:first-child]:sticky [&_tr>th:first-child]:left-0 [&_tr>th:first-child]:z-10 [&_tr>th:first-child]:bg-card [&_tr>td:first-child]:sticky [&_tr>td:first-child]:left-0 [&_tr>td:first-child]:z-10 [&_tr>td:first-child]:bg-card [&_tr>td:first-child]:max-w-48 [&_tr>td:first-child_button]:max-w-full [&_tr>td:first-child_button]:truncate' : undefined}>
               <TableHeader>
                 <TableRow>
                   <TableHead>Naam</TableHead>
@@ -156,6 +158,7 @@ function TeamRow({ member, isSelf, onChanged, onLocalUpdate }: {
   member: TeamMember; isSelf: boolean; onChanged: () => void;
   onLocalUpdate: (patch: Partial<TeamMember>) => void;
 }) {
+  const isMobile = useIsMobile();
   const [busy, setBusy] = useState(false);
   const [loonBusy, setLoonBusy] = useState(false);
   const [naamOpen, setNaamOpen] = useState(false);
@@ -329,7 +332,7 @@ function TeamRow({ member, isSelf, onChanged, onLocalUpdate }: {
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreVertical className="h-4 w-4" />}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className={isMobile ? '[&_[role=menuitem]]:min-h-11' : undefined}>
             <DropdownMenuItem onClick={() => setLocations(['West'])} disabled={busy}>
               Alleen West
             </DropdownMenuItem>
@@ -361,6 +364,7 @@ function TeamRow({ member, isSelf, onChanged, onLocalUpdate }: {
 function InviteDialog({ open, onOpenChange, onDone }: {
   open: boolean; onOpenChange: (v: boolean) => void; onDone: () => void;
 }) {
+  const isMobile = useIsMobile();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -410,7 +414,7 @@ function InviteDialog({ open, onOpenChange, onDone }: {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
-      <DialogContent className="max-w-[650px]">
+      <DialogContent className={isMobile ? 'max-w-[650px] min-w-0 [&_input]:min-h-11 [&_input]:min-w-0 [&_input]:text-base [&_button]:min-h-11 [&_button]:min-w-11 [&_.grid]:!grid-cols-1 [&_label.cursor-pointer]:min-h-11 [&_label.cursor-pointer]:min-w-11' : 'max-w-[650px]'}>
         <DialogHeader>
           <DialogTitle>Teamlid uitnodigen</DialogTitle>
           <DialogDescription>
