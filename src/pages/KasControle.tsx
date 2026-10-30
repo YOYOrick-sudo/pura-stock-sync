@@ -8,6 +8,8 @@ import { toast } from 'sonner';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { devError } from "@/lib/devLog";
 import { WisselkassaAanvraagButton } from '@/components/kassa/WisselkassaAanvraagButton';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { segmentTabsKlasse } from '@/components/pura';
 
 interface KassaAfdracht {
   id: string;
@@ -193,6 +195,7 @@ const bouwDagRegels = (rows: KassaAfdracht[]): DagRegel[] => {
 };
 
 export const KasControleContent = ({ embedded = false }: { embedded?: boolean } = {}) => {
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<KassaAfdracht[]>([]);
   const [beleving, setBeleving] = useState<Map<string, DagBeleving>>(new Map());
@@ -381,6 +384,7 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
   };
 
   const periodeKnop = (label: string, soort: 'deze-week' | 'vorige-week' | 'deze-maand') => (
+    isMobile ? <Button key={soort} type="button" variant="outline" size="touch" className="shrink-0" onClick={() => zetPeriode(soort)}>{label}</Button> :
     <button
       key={soort}
       type="button"
@@ -396,7 +400,7 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
   );
 
   const inner = (
-      <div style={{ padding: embedded ? '0' : '24px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'Inter, sans-serif' }}>
+      <div className={isMobile ? 'page-stack min-w-0 max-w-full !p-0 [&_input]:!min-h-11 [&_input]:!min-w-0 [&_input]:!text-base [&_select]:!min-h-11 [&_select]:!text-base [&_button]:min-h-11 [&_table]:tabular-nums' : undefined} style={{ padding: embedded ? '0' : '24px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'Inter, sans-serif' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -413,7 +417,7 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
               </p>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div className={isMobile ? 'w-full [&>button]:flex-1 [&_button]:!px-3' : undefined} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <WisselkassaAanvraagButton />
             <Button variant="outline" onClick={load} disabled={loading}>
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
@@ -427,7 +431,7 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
         </div>
 
         {/* Filters */}
-        <div style={{
+        <div className={isMobile ? '!grid-cols-2 !rounded-polar-lg [&>div]:min-w-0 [&>div:first-child]:col-span-2 [&>div:last-child]:col-span-2' : undefined} style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
           gap: 12,
@@ -463,7 +467,7 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
           </div>
           <div>
             <label style={{ fontSize: 12, fontWeight: 600, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase' }}>Snel kiezen</label>
-            <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
+            <div className={isMobile ? '!flex-nowrap overflow-x-auto' : undefined} style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
               {periodeKnop('Deze week', 'deze-week')}
               {periodeKnop('Vorige week', 'vorige-week')}
               {periodeKnop('Deze maand', 'deze-maand')}
@@ -472,12 +476,12 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
         </div>
 
         {/* Tabbladen */}
-        <div style={{
+        <div className={isMobile ? `${segmentTabsKlasse} !flex !w-full !flex-nowrap overflow-x-auto !rounded-polar-lg` : undefined} style={{
           display: 'inline-flex', gap: 4, padding: 4, marginBottom: 16,
           background: 'hsl(var(--muted))', borderRadius: 14,
         }}>
           {([['tellingen', 'Tellingen'], ['beoordelingen', 'Beoordelingen']] as const).map(([key, label]) => (
-            <button
+            isMobile ? <Button key={key} type="button" variant="ghost" size="touch" onClick={() => setActieveTab(key)} className={`shrink-0 ${actieveTab === key ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>{label}</Button> : <button
               key={key}
               type="button"
               onClick={() => setActieveTab(key)}
@@ -501,7 +505,7 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
             {Object.entries(samenvatting).map(([loc, s]) => {
               const niveau = niveauVanVerschil(s.kasverschil) ?? 'ok';
               return (
-                <div key={loc} style={{
+                <div key={loc} className={isMobile ? 'w-full !min-w-0 !rounded-polar-lg' : undefined} style={{
                   background: 'hsl(var(--card))',
                   border: '1px solid hsl(var(--border))',
                   borderRadius: 20, padding: '12px 16px', minWidth: 220,
@@ -554,7 +558,7 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
         )}
 
         {/* Dagoverzicht */}
-        <div style={{
+        <div className={isMobile ? 'min-w-0 max-w-full !rounded-polar-lg' : undefined} style={{
           background: 'hsl(var(--card))',
           border: '1px solid hsl(var(--border))',
           borderRadius: 20,
@@ -569,8 +573,8 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
               Geen tellingen gevonden in deze periode.
             </div>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+            <div className={isMobile ? 'min-w-0 max-w-full [&_th:first-child]:sticky [&_th:first-child]:left-0 [&_th:first-child]:z-10 [&_th:first-child]:bg-muted [&_td:first-child]:sticky [&_td:first-child]:left-0 [&_td:first-child]:z-10 [&_td:first-child]:bg-card' : undefined} style={{ overflowX: 'auto' }}>
+              <table className={isMobile ? 'min-w-max [&_th]:whitespace-nowrap [&_td]:whitespace-nowrap' : undefined} style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                 <thead>
                   <tr style={{ background: 'hsl(var(--muted))', borderBottom: '1px solid hsl(var(--border))' }}>
                     {['Dag', 'Locatie', 'Openen', 'Sluiten', 'Cash omzet', 'Afdracht', 'Kasverschil', 'Beoordeling', 'Opmerkingen'].map(h => (
@@ -688,7 +692,7 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
                 const totaal = t.rustig + t.gemiddeld + t.druk;
                 const label = m.key.charAt(0).toUpperCase() + m.key.slice(1);
                 return (
-                  <div key={m.key} style={{
+                  <div key={m.key} className={isMobile ? '!min-w-0 !basis-full !rounded-polar-lg' : undefined} style={{
                     background: 'hsl(var(--card))',
                     border: '1px solid hsl(var(--border))',
                     borderRadius: 20, padding: '12px 16px', minWidth: 220, flex: '1 1 220px',
@@ -713,7 +717,7 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
             </div>
 
             {/* Chronologische lijst */}
-            <div style={{
+            <div className={isMobile ? 'min-w-0 max-w-full !overflow-x-auto !rounded-polar-lg' : undefined} style={{
               background: 'hsl(var(--card))',
               border: '1px solid hsl(var(--border))',
               borderRadius: 20,
@@ -732,6 +736,7 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
                   {belevingLijst.map((b, i) => (
                     <div
                       key={`${b.date}__${b.location}`}
+                      className={isMobile ? '!min-h-12 min-w-max !flex-nowrap [&>div]:shrink-0 [&>div:first-child]:sticky [&>div:first-child]:left-0 [&>div:first-child]:z-10 [&>div:first-child]:bg-card [&>div:last-child]:!flex-nowrap' : undefined}
                       style={{
                         display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
                         padding: '10px 16px',
@@ -782,15 +787,15 @@ export const KasControleContent = ({ embedded = false }: { embedded?: boolean } 
 
         {/* Detail dialog */}
         <Dialog open={!!detail} onOpenChange={(o) => !o && setDetail(null)}>
-          <DialogContent style={{ maxWidth: 650 }}>
+          <DialogContent className={isMobile ? 'min-w-0 [&_table]:tabular-nums [&_td]:break-words' : undefined} style={{ maxWidth: 650 }}>
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className={isMobile ? 'break-words pr-8 text-left' : undefined}>
                 Telling {detail && fmtDate(detail.date)} · {detail?.location} · {detail?.type === 'open' ? 'Open' : 'Sluit'}
               </DialogTitle>
             </DialogHeader>
             {detail && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
+                <div className={isMobile ? 'flex-wrap gap-2 [&>div]:min-w-0 [&>div]:break-words' : undefined} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
                   <div><span style={{ color: 'hsl(var(--muted-foreground))' }}>Door:</span> <strong>{detail.naam}</strong></div>
                   <div><span style={{ color: 'hsl(var(--muted-foreground))' }}>Ingediend:</span> {fmtTime(detail.created_at)}</div>
                   <div><span style={{ color: 'hsl(var(--muted-foreground))' }}>Week:</span> {detail.week_number}</div>
