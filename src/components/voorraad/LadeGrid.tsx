@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { BakmaatKiezer } from '@/components/voorraad/BakmaatKiezer';
 import { BakmaatUitleg } from '@/components/voorraad/BakmaatUitleg';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useKoelcelCheckItems, type KoelcelCheckItem } from '@/hooks/useKoelcelCheck';
 import {
   positieLabel,
@@ -196,12 +197,13 @@ function ProductInstellingenDialog({
   onVulnorm: (vulnorm: 'vol' | 'half' | 'bodem') => void;
   onFormaat: (formaat: string | null) => void;
 }) {
+  const isMobile = useIsMobile();
   if (!item) return null;
   const reserve = Math.max(Number(item.reserve_doel ?? 0), 0);
   const vulnorm = (item.vulnorm ?? 'vol') as 'vol' | 'half' | 'bodem';
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[420px] rounded-[24px]">
+      <DialogContent className={isMobile ? 'max-w-[420px] rounded-polar-2xl min-w-0 [&_button]:min-h-11 [&_button]:min-w-11 [&_.justify-between]:flex-wrap [&_input]:min-h-11 [&_input]:text-base' : 'max-w-[420px] rounded-[24px]'}>
         <DialogHeader>
           <DialogTitle className="text-[16px]">{item.naam}</DialogTitle>
         </DialogHeader>

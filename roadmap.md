@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Mobiel stap 18: zes instellingenschermen — ellipsis, 44px invoer/selects, veegbare tabs, lokale tabelscroll met vaste eerste kolom en passende ladeproducten; 90 tests geslaagd, 2 bekende Deno-fouten, automatische build OK; rollen/rechten, opslaan en desktopklassen behouden.
+- [ ] Mobiel stap 18 visuele controle — eigen controlesessie toont Geen toegang op alle zes routes bij 390/744px; geen rechten of gegevens gewijzigd.
+
 - [x] Mobiel stap 17: Cijfers — veegbare periodekeuzes, begrensde kalender, 44px knoppen en KPI-iconen/grafiekruimte onder 744px; 90 tests geslaagd, 2 bekende Deno-fouten, automatische build OK; toegang, berekeningen en desktopopmaak behouden.
 - [ ] Mobiel stap 17 visuele controle — eigen controlesessie toont Geen toegang op /cijfers bij 390/744px; geen toegang of gegevens gewijzigd.
 

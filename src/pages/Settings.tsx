@@ -11,8 +11,10 @@ import { useUserLocation } from '@/contexts/UserLocationContext';
 import { devError } from "@/lib/devLog";
 import { useRole } from '@/hooks/useRole';
 import { MtLedenUitnodigen } from '@/components/MtLedenUitnodigen';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function Settings() {
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { displayLocation } = useUserLocation();
   const { isOwner } = useRole();
@@ -41,7 +43,7 @@ export default function Settings() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className={isMobile ? 'space-y-4 min-w-0 max-w-full [&_.p-6]:p-4 [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:min-h-11 [&_input]:min-w-0 [&_input]:text-base [&_svg]:shrink-0 [&_a>div]:min-h-11 [&_a>div]:gap-2 [&_a>div>div]:min-w-0 [&_a>div>div]:flex-1 [&_a>div>div>div]:min-w-0 [&_a>div>div>div]:flex-1 [&_a>div>div>div>div]:truncate [&_.justify-between]:gap-2 [&_.justify-between>span:last-child]:min-w-0 [&_.justify-between>span:last-child]:truncate' : 'max-w-7xl mx-auto space-y-6'}>
 
         <div className="grid gap-4 max-w-2xl">
           <Card className="p-6">
