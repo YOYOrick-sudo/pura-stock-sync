@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Ontvangst v2 achter schakelaar (ontvangst_v2/keukenadvies + testmodus ?locatie=Test): eindcheck Onderweg, Wordt nageleverd-blok, bordbadge, mandjevragen, Advies keuken-tab; niet publiceren.
+- [x] Ontvangst v2 achter schakelaar (ontvangst_v2/keukenadvies + testmodus ?locatie=Test): eindcheck Onderweg, Wordt nageleverd-blok, bordbadge, mandjevragen, Advies keuken-tab; niet publiceren.
+- [ ] Ontvangst v2 controle in het scherm — met ?locatie=Test en echte levering; niet zelf bekeken, Test-rij in schakelaars nodig.
 
 - [x] Bestellijst verduidelijken: zoeken/toevoegen gescheiden, overzicht ingeklapt, hoeveelheid één keer en verpakkingsdetails in lade; 94 tests geslaagd, 2 bekende Deno-fouten, automatische build OK; niet gepubliceerd.
 - [ ] Bestellijst visuele controle — controlesessie blijft op laadscherm, ook met eigen sessie; toevoegen/prijsfilter en telefoon/iPad/desktop niet end-to-end bevestigd; geen testbestelling opgeslagen.

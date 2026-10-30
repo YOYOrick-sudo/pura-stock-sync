@@ -1,3 +1,4 @@
+// @ts-ignore bun test runner
 import { describe, expect, test } from 'bun:test';
 import { bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, type EindcheckInvoer } from './ontvangstV2';
 
