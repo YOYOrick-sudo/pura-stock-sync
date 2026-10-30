@@ -1331,7 +1331,7 @@ export type Database = {
           bron: string
           created_at: string
           datum: string
-          factor: number
+          factor: number | null
           id: string
           reden: string | null
           vestiging: string
@@ -1340,7 +1340,7 @@ export type Database = {
           bron: string
           created_at?: string
           datum: string
-          factor: number
+          factor?: number | null
           id?: string
           reden?: string | null
           vestiging: string
@@ -1349,7 +1349,7 @@ export type Database = {
           bron?: string
           created_at?: string
           datum?: string
-          factor?: number
+          factor?: number | null
           id?: string
           reden?: string | null
           vestiging?: string
@@ -7414,6 +7414,8 @@ export type Database = {
           rang: number | null
           status: string | null
           stuks: number | null
+          stuks_gekoppeld_op_datum: number | null
+          stuks_zeker_op_datum: number | null
           suggestie_gerecht: string | null
           suggestie_gerecht_id: string | null
           vestiging: string | null
