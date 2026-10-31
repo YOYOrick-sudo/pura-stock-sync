@@ -73,7 +73,8 @@ export function toonWaarschuwingen(res: unknown) {
 }
 
 /** 5.3 Eindcheck: wat is er vandaag binnen; restant standaard 'Mist'. */
-export function EindcheckKaart({ modus, regels, restanten, laden, leveranciers }: { modus: OntvangstModus; regels: OntvangstVandaag[]; restanten: OntvangstRestant[]; laden: boolean; leveranciers?: Map<string, string> }) {
+export function EindcheckKaart({ modus, regels: alleRegels, restanten, laden, leveranciers }: { modus: OntvangstModus; regels: OntvangstVandaag[]; restanten: OntvangstRestant[]; laden: boolean; leveranciers?: Map<string, string> }) {
+  const regels = useMemo(() => vandaagZonderOpenRest(alleRegels), [alleRegels]);
   const { afronden } = useOntvangstMutaties(modus);
   const [invoer, setInvoer] = useState<Record<string, EindcheckInvoer>>({});
   const [gekozen, setGekozen] = useState<Set<string>>(new Set());

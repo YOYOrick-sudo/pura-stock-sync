@@ -184,3 +184,8 @@ export function afrondWaarschuwingen(res: unknown): string[] {
     return [naam ? `${naam}: ${tekst}` : tekst];
   });
 }
+
+/** Vandaag binnen: open restanten zonder pakbon (mist/backorder) staan al in de Onderweg-blokken. */
+export function vandaagZonderOpenRest<T extends { soort: string }>(regels: T[]): T[] {
+  return regels.filter((r) => r.soort !== 'mist' && r.soort !== 'backorder');
+}

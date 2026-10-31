@@ -65,6 +65,7 @@ export function AnnuleerLade({ modus, regel, onSluit }: { modus: OntvangstModus;
   return <DetailLade open={!!regel} onOpenChange={(o) => !o && onSluit()} titel={regel?.naam}>
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Bron">{BRONNEN.map((b) => <Button key={b.id} type="button" role="radio" aria-checked={bron === b.id} variant={bron === b.id ? 'default' : 'outline'} className="h-11 px-2" onClick={() => setBron(b.id)}>{b.naam}</Button>)}</div>
+      {!bron && <p className="text-xs text-muted-foreground">Kies een bron</p>}
       <div className="space-y-1">
         <Textarea className="text-base" placeholder="Notitie (verplicht)" value={notitie} onChange={(e) => setNotitie(e.target.value)} />
         {kort && <p className="text-xs text-muted-foreground">minstens 3 tekens</p>}
