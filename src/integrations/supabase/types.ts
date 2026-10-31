@@ -3296,7 +3296,9 @@ export type Database = {
           leverancier_id: string | null
           notitie: string | null
           opslag_pct: number
+          tel_afbeelding: string | null
           tel_factor: number
+          tel_hint: string | null
           tel_label: string
           tel_moment: string
           vaste_teller: string | null
@@ -3314,7 +3316,9 @@ export type Database = {
           leverancier_id?: string | null
           notitie?: string | null
           opslag_pct?: number
+          tel_afbeelding?: string | null
           tel_factor?: number
+          tel_hint?: string | null
           tel_label?: string
           tel_moment?: string
           vaste_teller?: string | null
@@ -3332,7 +3336,9 @@ export type Database = {
           leverancier_id?: string | null
           notitie?: string | null
           opslag_pct?: number
+          tel_afbeelding?: string | null
           tel_factor?: number
+          tel_hint?: string | null
           tel_label?: string
           tel_moment?: string
           vaste_teller?: string | null
@@ -8779,6 +8785,24 @@ export type Database = {
           volgorde: number
         }[]
       }
+      keuken_telpool_dag_kern: {
+        Args: { p_datum?: string; p_vestiging: string }
+        Returns: {
+          basis_eenheid: string
+          controle: boolean
+          geteld_vandaag: boolean
+          in_telpool: boolean
+          klaar: boolean
+          laatste_telling: string
+          leverancier_naam: string
+          morgen_besteldag: boolean
+          naam: string
+          reden: string
+          tel_label: string
+          telartikel_id: string
+          volgorde: number
+        }[]
+      }
       keuken_verwachte_verkoop: {
         Args: { p_tot: string; p_van: string; p_vestiging: string }
         Returns: {
@@ -8811,6 +8835,10 @@ export type Database = {
           verbruik: number
           volledig: boolean
         }[]
+      }
+      keuken_vorige_open_dag: {
+        Args: { p_dag: string; p_vestiging: string }
+        Returns: string
       }
       leercurve_bijwerken: { Args: never; Returns: Json }
       mag_cijfers_zien: { Args: { _uid: string }; Returns: boolean }
