@@ -33,7 +33,7 @@ export function KeukenAdviesTabel({ regels, laden, telinfo }: { regels: KeukenAd
             const restant = Number(r.onderweg_restant ?? 0);
             const info = telinfo?.[r.telartikel_id] ?? { tel_label: null, tel_factor: 1, basis_eenheid: r.basis_eenheid };
             return <TableRow key={r.telartikel_id}>
-              <TableCell className="sticky left-0 max-w-[10rem] bg-card"><div className="flex min-h-11 flex-col justify-center"><span className="truncate font-medium">{r.naam}</span>{r.leverancier_naam && <span className="truncate text-xs text-muted-foreground">{r.leverancier_naam}</span>}</div></TableCell>
+              <TableCell className="sticky left-0 w-40 min-w-40 whitespace-normal bg-card"><div className="flex min-h-11 min-w-0 flex-col justify-center"><span className="min-w-0 line-clamp-2 break-words font-medium">{r.naam}</span>{r.leverancier_naam && <span className="truncate text-xs text-muted-foreground">{r.leverancier_naam}</span>}</div></TableCell>
               <TableCell className="text-right tabular-nums">{formatTelHoeveelheid(r.stand, info) ?? '—'}</TableCell>
               <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex items-center gap-1">{formatTelHoeveelheid(Number(r.onderweg_op_tijd ?? 0) + restant, info) ?? '—'}{restant > 0 && <Hourglass className="h-4 w-4 text-muted-foreground" aria-label="wordt nageleverd" />}</span></TableCell>
               <TableCell className="text-right tabular-nums">{formatTelHoeveelheid(r.behoefte, info) ?? '—'}</TableCell>

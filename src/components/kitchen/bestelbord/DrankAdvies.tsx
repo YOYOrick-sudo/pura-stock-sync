@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { getal, hoeveelheid } from '@/lib/hoeveelheid';
 import { useDrankAdvies, type DrankAdviesRegel } from '@/hooks/useOntvangstV2';
 
 const groepen = [
@@ -11,17 +12,6 @@ const groepen = [
   { groep: 'D2 koffie', titel: 'Koffie' },
   { groep: 'D3 melk', titel: 'Melk' },
 ] as const;
-const getal = (waarde: number | null) => waarde == null ? '—' : new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 2 }).format(waarde);
-const meervouden: Record<string, string> = { doos: 'dozen', krat: 'kratten', zak: 'zakken', fles: 'flessen', blik: 'blikken', pak: 'pakken' };
-/** Getal plus juiste enkel/meervoudsvorm; formaat tussen haakjes ('36 pakken (1 L)'). Onbekende eenheden ongewijzigd. */
-export function hoeveelheid(aantal: number | null, eenheid: string | null) {
-  if (!eenheid) return getal(aantal);
-  const [eerste, ...rest] = eenheid.split(' ');
-  const meervoud = meervouden[eerste.toLowerCase()];
-  if (!meervoud) return `${getal(aantal)} ${eenheid}`;
-  const vorm = aantal === 1 ? eerste : meervoud;
-  return `${getal(aantal)} ${vorm}${rest.length ? ` (${rest.join(' ')})` : ''}`;
-}
 /** Korte uitleg onder de stand: telling met mutaties, of schatting zonder telling. */
 export function uitlegRegel(r: DrankAdviesRegel) {
   if (r.telling_aantal != null) {
@@ -101,9 +91,11 @@ export function DrankAdvies({ vestiging }: { vestiging: string }) {
       {advies.isLoading ? <LaadRijen /> : advies.isError
         ? <div className="flex items-center justify-between gap-3 px-4 py-3 lg:px-6">
             <p className="text-sm text-muted-foreground">Drankadvies kon niet geladen worden. Probeer het later opnieuw.</p>
-            <Button type="button" variant="outline" size="sm" onClick={() => void advies.refetch()}>Opnieuw</Button>
+            <Button type="button" variant="outline" size="touch" onClick={() => void advies.refetch()}>Opnieuw</Button>
           </div>
         : <DrankAdviesInhoud regels={advies.data ?? []} />}
     </CollapsibleContent>
   </Collapsible></LijstKaart>;
 }
+
+export { hoeveelheid };

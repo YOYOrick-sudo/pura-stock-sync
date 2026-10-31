@@ -1,3 +1,4 @@
+import { hoeveelheid } from '@/lib/hoeveelheid';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
@@ -93,7 +94,7 @@ function Stepper({ waarde, onChange, eenheid, uit }: { waarde: number | null; on
 function VerpakkingRegel({ vorm, aantal }: { vorm: ArtikelVorm; aantal: number | null }) {
   const w = verpakkingWeergave(vorm, aantal);
   const delen = [
-    w.inhoud ? `${aantal ?? 1} ${w.eenheid} = ${aantal && aantal > 1 ? `${aantal} × ` : ''}${w.inhoud}` : null,
+    w.inhoud ? `${hoeveelheid(aantal ?? 1, w.eenheid)} van ${w.inhoud}` : null,
     w.totaal ? `${w.totaal} totaal` : null,
     w.prijs,
   ].filter(Boolean);
