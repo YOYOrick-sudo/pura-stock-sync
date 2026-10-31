@@ -5175,6 +5175,7 @@ export type Database = {
           laatste_besluit: string | null
           leverancier_id: string | null
           levering_id: string
+          nog_verwachten_tot: string | null
           omschrijving: string
           ontvangen_op: string
           opmerking: string | null
@@ -5219,6 +5220,7 @@ export type Database = {
           laatste_besluit?: string | null
           leverancier_id?: string | null
           levering_id: string
+          nog_verwachten_tot?: string | null
           omschrijving: string
           ontvangen_op: string
           opmerking?: string | null
@@ -5263,6 +5265,7 @@ export type Database = {
           laatste_besluit?: string | null
           leverancier_id?: string | null
           levering_id?: string
+          nog_verwachten_tot?: string | null
           omschrijving?: string
           ontvangen_op?: string
           opmerking?: string | null

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { metHerstel } from '@/lib/appWake';
+import { registreerStickerGebruik } from '@/lib/stickerPrint';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import {
   buildStickerZpl,
@@ -89,14 +90,13 @@ export function useCreateStickerPrintJob() {
       const { error: jobErr } = await metHerstel(() => supabase.from('print_jobs').insert(rows));
       if (jobErr) throw jobErr;
 
-      const { error: bumpErr } = await metHerstel(() =>
+      await registreerStickerGebruik(input.type, (type) => metHerstel(() =>
         supabase.rpc('sticker_producten_bump', {
           _naam: input.naam,
-          _type: input.type,
+          _type: type,
           _tht: input.type === 'vrij' ? null : (input.tht_dagen ?? null),
         }),
-      );
-      if (bumpErr) throw bumpErr;
+      ));
 
       return { count: n };
     },
