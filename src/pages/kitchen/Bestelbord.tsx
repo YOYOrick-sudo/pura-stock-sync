@@ -9,10 +9,11 @@ import { useOntvangstModus, useOntvangstData, useKeukenAdvies, useKeukenStand, u
 import { NageleverdKaart, EindcheckKaart } from '@/components/kitchen/bestelbord/OntvangstOnderweg';
 import { MandjeVragen } from '@/components/kitchen/bestelbord/MandjeVragen';
 import { bordRestStatusPerSignaal, onderwegMetRest, onderwegTellers, openRestVoorArtikel, restWaarschuwing, leesTab } from '@/lib/ontvangstV2';
+import { BestelbordTabs } from '@/components/kitchen/bestelbord/BestelbordTabs';
 import { KeukenAdviesTabel } from '@/components/kitchen/bestelbord/KeukenAdviesTabel';
 import { KeukenTelblok } from '@/components/kitchen/bestelbord/KeukenTelblok';
 import { DrankAdvies } from '@/components/kitchen/bestelbord/DrankAdvies';
-import { DetailLade, KaartKop, LaadRijen, LijstKaart, Invoerbalk, segmentTabsKlasse } from '@/components/pura/patronen';
+import { DetailLade, KaartKop, LaadRijen, LijstKaart, Invoerbalk } from '@/components/pura/patronen';
 import { TabelVoet } from '@/components/pura/lijst';
 import { EmptyState } from '@/components/pura/EmptyState';
 import { Stappen } from '@/components/pura/blokken';
@@ -34,7 +35,7 @@ import { Voorraadproef } from '@/components/kitchen/Voorraadproef';
 import { usePrijsSignalen } from '@/hooks/usePrijsSignalen';
 import { zoekSignaal, type PrijsSignaal } from '@/lib/prijsSignaal';
 
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { BordTabel } from '@/components/kitchen/bestelbord/BordTabel';
 import { OnderwegTabel } from '@/components/kitchen/bestelbord/OnderwegTabel';
@@ -579,10 +580,14 @@ export default function Bestelbord() {
       <div className="space-y-4">
         <Tabs value={tab} onValueChange={setTabKeuze}>
           <div className="flex flex-wrap items-center gap-2">
-            <div className={isMobile ? 'w-full' : 'contents'}>
-            <TabsList className={isMobile ? cn(segmentTabsKlasse, 'flex-nowrap [&>button]:flex-auto [&>button]:min-w-0 [&>button]:flex-col [&>button]:gap-0 [&>button]:px-1 [&>button]:text-xs') : segmentTabsKlasse}>
-              {[{ id: 'bord', naam: 'Op het bord', kort: 'Bord', Icoon: ClipboardList, n: open.length }, { id: 'advies', naam: 'Advies', kort: 'Advies', Icoon: Sparkles, n: positieveAdviezen.length }, ...(modus.keukenadvies ? [{ id: 'keuken', naam: 'Advies keuken', kort: 'Keuken', Icoon: ChefHat, n: keukenAdvies.data?.length ?? 0 }] : []), { id: 'tellen', naam: 'Tellen', kort: 'Tellen', Icoon: Calculator, n: telOverzicht.open }, { id: 'onderweg', naam: 'Onderweg', kort: 'Onderweg', Icoon: Truck, n: besteld.length }].map(({ id, naam, kort, Icoon, n }) => <TabsTrigger key={id} value={id} aria-label={`${naam} (${n})`} className="min-w-0 px-2 sm:px-3"><Icoon className="hidden h-4 w-4 shrink-0 sm:block" /><span className="sm:hidden">{kort}</span><span className="hidden sm:inline">{naam}</span><span className="inline-flex min-h-4 items-center gap-1">{n > 0 && <span className="tabular-nums text-muted-foreground">{n}</span>}{id === 'onderweg' && v2 && restTellers.nageleverd > 0 && <span className="inline-flex items-center gap-0.5 tabular-nums text-muted-foreground"><Hourglass className="h-3 w-3" aria-hidden />{restTellers.nageleverd}</span>}{id === 'onderweg' && v2 && restTellers.mist > 0 && <span className="inline-flex items-center gap-0.5 tabular-nums text-warning" aria-label={`${restTellers.mist} mist`}><AlertCircle className="h-3 w-3" aria-hidden />{restTellers.mist}</span>}{id === 'onderweg' && teChecken.length > 0 && <span className="h-2 w-2 shrink-0 rounded-full bg-warning" aria-label={`${teChecken.length} te checken`} />}</span></TabsTrigger>)}
-            </TabsList>
+            <div className="w-full min-w-0">
+            <BestelbordTabs tabs={[
+              { id: 'bord', naam: 'Op het bord', kort: 'Bord', Icoon: ClipboardList, n: open.length },
+              { id: 'advies', naam: 'Advies', kort: 'Advies', Icoon: Sparkles, n: positieveAdviezen.length },
+              ...(modus.keukenadvies ? [{ id: 'keuken', naam: 'Advies keuken', kort: 'Keuken', Icoon: ChefHat, n: keukenAdvies.data?.length ?? 0 }] : []),
+              { id: 'tellen', naam: 'Tellen', kort: 'Tellen', Icoon: Calculator, n: telOverzicht.open },
+              { id: 'onderweg', naam: 'Onderweg', kort: 'Onderweg', Icoon: Truck, n: besteld.length, extra: <>{v2 && restTellers.nageleverd > 0 && <span className="inline-flex items-center gap-0.5 tabular-nums text-muted-foreground"><Hourglass className="h-3 w-3" aria-hidden />{restTellers.nageleverd}</span>}{v2 && restTellers.mist > 0 && <span className="inline-flex items-center gap-0.5 tabular-nums text-warning" aria-label={`${restTellers.mist} mist`}><AlertCircle className="h-3 w-3" aria-hidden />{restTellers.mist}</span>}{teChecken.length > 0 && <span className="h-2 w-2 shrink-0 rounded-full bg-warning" aria-label={`${teChecken.length} te checken`} />}</> },
+            ]} />
             </div>
             {test && <Badge variant="secondary">Test</Badge>}
             {zonderPrijs > 0 && (tab === 'bord' || tab === 'onderweg') && <Button variant={alleenZonderPrijs ? 'default' : 'outline'} className="ml-auto min-h-11 shrink-0 gap-1.5" aria-pressed={alleenZonderPrijs} onClick={() => setAlleenZonderPrijs((v) => !v)}><AlertCircle className={cn('h-4 w-4', !alleenZonderPrijs && 'text-warning')} /><span className="tabular-nums">{zonderPrijs}</span><span>zonder prijs</span></Button>}
