@@ -43,6 +43,12 @@ export type KeukenAdviesRegel = {
   vorm: string | null; advies_vormen: number | null; status: string | null; reden: string | null;
 };
 
+export type KeukenStandRegel = {
+  telartikel_id: string; artikel_id: string | null; naam: string; basis_eenheid: string | null;
+  laatste_telling: string | null; geteld: number | null; ontvangen: number | null; verbruik: number | null;
+  opslag: number | null; stand: number | null; volledig: boolean; reden: string | null;
+};
+
 async function leesFase2Schakelaars(): Promise<Schakelaar[]> {
   try { return await lees<Schakelaar[]>('fase2_schakelaars'); } catch { return []; }
 }
@@ -95,6 +101,28 @@ export function useKeukenAdvies(m: OntvangstModus) {
   return useQuery({
     queryKey: ['keuken_advies', m.pVestiging], enabled: m.keukenadvies && !!m.pVestiging,
     queryFn: () => lees<KeukenAdviesRegel[]>('keuken_advies', { p_vestiging: m.pVestiging, p_nu: null }),
+  });
+}
+
+export function useKeukenStand(m: OntvangstModus) {
+  return useQuery({
+    queryKey: ['keuken_voorraad_stand', m.pVestiging],
+    enabled: m.keukenadvies && !!m.pVestiging,
+    queryFn: () => lees<KeukenStandRegel[]>('keuken_voorraad_stand', { p_vestiging: m.pVestiging, p_tot: null }),
+  });
+}
+
+export function useKeukenTelling() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (a: { telartikelId: string; aantal: number }) =>
+      lees<string>('keuken_telling_opslaan', { p_telartikel_id: a.telartikelId, p_aantal: a.aantal, p_datum: null, p_moment: null }),
+    onSuccess: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ['keuken_voorraad_stand'] }),
+        qc.invalidateQueries({ queryKey: ['keuken_advies'] }),
+      ]);
+    },
   });
 }
 
