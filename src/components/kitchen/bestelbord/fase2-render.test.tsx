@@ -208,18 +208,24 @@ describe('fase 2 telhints en plaatje', () => {
 
 
 describe('compacte telrij en opslaggedrag', () => {
-  test('TikIcoon heeft een toegankelijk label en een onzichtbaar minimaal 44px tikvlak', () => {
+  test('TikIcoon heeft een eigen minimaal 44px tikvlak zonder negatieve marges', () => {
     const html = renderToString(createElement(TikIcoon, { 'aria-label': 'Info telregel' }, createElement(Info)));
     expect(html).toContain('aria-label="Info telregel"');
-    expect(html).toContain('after:h-11');
-    expect(html).toContain('after:min-w-11');
-    expect(html).toContain('after:absolute');
+    expect(html).toContain('h-11 w-11');
+    expect(html).toContain('min-h-11 min-w-11');
+    expect(html).not.toContain('after:');
+    expect(html).not.toContain('-translate');
+    expect(html).not.toMatch(/(?:^|\s)-m[trblxy]?-/);
     expect(html).toContain('focus-visible:ring-2');
   });
   const regel: KeukenStandRegel = { telartikel_id: 'zalm', artikel_id: null, naam: 'Zalmzijde', basis_eenheid: 'kg', laatste_telling: '2026-10-30', geteld: null, ontvangen: null, verbruik: null, opslag: null, stand: 1.5, volledig: false, reden: null };
   test('naam, aantal, eenheid en opslag aanwezig; uitleg alleen achter info', () => {
     const html = renderToString(createElement(KeukenTelblok, { regels: [regel], laden: false, bezig: false, onOpslaan: async () => {} }));
     expect(html).toContain('Zalmzijde');
+    const naam = html.match(/<p class="([^"]*)">Zalmzijde<\/p>/);
+    expect(naam?.[1]).toContain('line-clamp-2');
+    expect(naam?.[1]).toContain('break-words');
+    expect(naam?.[1]).not.toContain('truncate');
     expect(html).toContain('aria-label="Aantal Zalmzijde in kg"');
     expect(html).toContain('>kg</span>');
     expect(html).toContain('aria-label="Opslaan Zalmzijde"');
