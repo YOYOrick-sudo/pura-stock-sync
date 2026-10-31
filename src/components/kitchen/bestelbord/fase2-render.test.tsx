@@ -423,8 +423,8 @@ describe('stap 89: namen, tikvlak, eenheden en tabs', () => {
   test('naam in Wordt nageleverd niet afgekapt en 1 stuk enkelvoud', () => {
     const html = renderToString(createElement(QueryClientProvider, { client: new QueryClient() }, createElement(NageleverdKaart, { modus: { magBeslissen: false } as never, regels: [rest] })));
     const klasse = html.match(/<span class="([^"]*)">Broadbeans/)?.[1] ?? '';
-    expect(klasse).toContain('line-clamp-2');
-    expect(klasse).not.toMatch(/truncate|line-clamp-1|max-w-/);
+    expect(klasse).toContain('break-words');
+    expect(klasse).not.toMatch(/truncate|line-clamp|max-w-/);
     expect(html).toContain('>stuk<');
   });
   test('selectie op het bord heeft een tikvlak van 44 px', () => {
@@ -443,10 +443,14 @@ describe('stap 89: namen, tikvlak, eenheden en tabs', () => {
     expect(gedeeldeHoeveelheid(1, 'stuks')).toBe('1 stuk');
     expect(gedeeldeHoeveelheid(2, 'stuks')).toBe('2 stuks');
   });
-  test('tablabels zonder truncate en alle 5 aanwezig', () => {
-    const bron = readFileSync(resolve(__dirname, '../../../pages/kitchen/Bestelbord.tsx'), 'utf8');
-    const tabs = bron.slice(bron.indexOf('<TabsList'), bron.indexOf('</TabsList>'));
-    for (const kort of ['Bord', 'Advies', 'Keuken', 'Tellen', 'Onderweg']) expect(tabs).toContain(`kort: '${kort}'`);
-    expect(tabs).not.toMatch(/truncate|whitespace-nowrap|overflow-x-auto/);
+  test('tabbalk: alle 5 labels, geen truncate of overflow-hidden, volle breedte', () => {
+    const tabs = ['Bord', 'Advies', 'Keuken', 'Tellen', 'Onderweg'].map((kort) => ({ id: kort.toLowerCase(), naam: kort, kort, Icoon: Info, n: 1 }));
+    const html = renderToString(createElement(Tabs, { value: 'bord' }, createElement(BestelbordTabs, { tabs })));
+    for (const kort of ['Bord', 'Advies', 'Keuken', 'Tellen', 'Onderweg']) expect(html).toContain(`>${kort}<`);
+    expect(html).not.toMatch(/truncate|overflow-hidden|overflow-x-auto|line-clamp/);
+    expect(bestelbordTabsKlasse).toContain('justify-start');
+    expect(bestelbordTabsKlasse).toContain('sm:w-full');
+    expect(bestelbordTabsKlasse).not.toMatch(/(^| )justify-center|sm:w-auto|sm:\[&>button\]:flex-none/);
+    expect(bestelbordTabsKlasse).toContain('[&>button]:min-h-11');
   });
 });
