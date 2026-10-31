@@ -1,5 +1,6 @@
 import { Fragment } from 'react';
-import { Check } from 'lucide-react';
+import { AlertCircle, Check, Hourglass } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TableBody, TableCell, TableRow } from '@/components/ui/table';
@@ -11,13 +12,14 @@ import { DeadlineNaam } from './DeadlineNaam';
 import { RegelInfo } from './RegelInfo';
 import type { BordRegelInfo } from '@/hooks/useBestelbord';
 
-export function OnderwegTabel({ groepen, regelInfo, deadlineHint, dagenTeLaatVan, onAllesGeleverd, onGeleverd, onDatum, onNietGeleverd, onDeelsGeleverd, onBewerk, datumLabel, leverDatumLabel, zonderDeels = false, alleenLezen = false }: {
+export function OnderwegTabel({ groepen, regelInfo, deadlineHint, dagenTeLaatVan, onAllesGeleverd, onGeleverd, onDatum, onNietGeleverd, onDeelsGeleverd, onBewerk, datumLabel, leverDatumLabel, restStatus, zonderDeels = false, alleenLezen = false }: {
   groepen: { key: string; titel: string; regels: BestelSignaal[] }[]; dagenTeLaatVan: (s: BestelSignaal) => number;
   deadlineHint: (s: BestelSignaal) => string | null;
   onAllesGeleverd: (ids: string[]) => void; onGeleverd: (s: BestelSignaal) => void;
   onDatum: (s: BestelSignaal) => void; onNietGeleverd: (s: BestelSignaal) => void; onDeelsGeleverd: (s: BestelSignaal) => void;
   onBewerk: (s: BestelSignaal) => void; datumLabel: (d: string) => string; leverDatumLabel: (d: string | null) => string;
   regelInfo?: (s: BestelSignaal) => BordRegelInfo | undefined;
+  restStatus?: (s: BestelSignaal) => 'nageleverd' | 'mist' | null;
   zonderDeels?: boolean; alleenLezen?: boolean;
 }) {
   return <CompacteTabel zonderKop onderweg vinkKop="Binnen" kinderen={<TableBody>{groepen.map(({ key, titel, regels }) => {
@@ -30,6 +32,7 @@ export function OnderwegTabel({ groepen, regelInfo, deadlineHint, dagenTeLaatVan
           <TableCell className="!px-0" onClick={(e) => e.stopPropagation()}><label className="mx-auto flex h-11 w-11 cursor-pointer items-center justify-center"><Checkbox disabled={alleenLezen} aria-label={`${s.naam} geleverd`} checked={false} onCheckedChange={() => onGeleverd(s)} /></label></TableCell>
           <TableCell><div className="flex min-h-11 min-w-0 flex-col justify-center">
             <span className="truncate font-medium">{s.naam}</span>
+            {restStatus?.(s) === 'nageleverd' && <RijMeta altijd><Hourglass className="h-4 w-4" aria-hidden /><Badge variant="info">al besteld, wordt nageleverd</Badge></RijMeta>}{restStatus?.(s) === 'mist' && <RijMeta altijd><AlertCircle className="h-4 w-4 text-warning" aria-hidden /><Badge variant="warning">mist</Badge></RijMeta>}
             <RegelInfo info={regelInfo?.(s)} />
             {(laat > 0 || s.verwachte_levering) && <RijMeta altijd={laat > 0}>{laat > 0 && <StatusLabel toon="fout">{laat}d te laat</StatusLabel>}{s.verwachte_levering && <span className="sm:hidden">{leverDatumLabel(s.verwachte_levering)}</span>}</RijMeta>}
           </div></TableCell>
