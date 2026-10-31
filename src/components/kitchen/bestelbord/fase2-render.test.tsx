@@ -6,9 +6,9 @@ import { BordTabel } from './BordTabel';
 import { KeukenAdviesTabel } from './KeukenAdviesTabel';
 import { KeukenTelblok } from './KeukenTelblok';
 import { readFileSync } from 'node:fs';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { resolve } from 'node:path';
 import { NageleverdKaart } from './OntvangstOnderweg';
-import type { OntvangstRestant } from '@/hooks/useOntvangstV2';
 import { eenheidVorm, hoeveelheid as gedeeldeHoeveelheid, telwoord } from '@/lib/hoeveelheid';
 import { DrankAdvies, DrankAdviesInhoud, hoeveelheid, uitlegRegel } from './DrankAdvies';
 import { useDrankAdvies, type DrankAdviesRegel } from '@/hooks/useOntvangstV2';
@@ -421,7 +421,7 @@ describe('stap 89: namen, tikvlak, eenheden en tabs', () => {
     bron: null, notitie: null, sinds: null, verwacht_op: null, controle_op: null, opnieuw_besteld: false, telt_als_onderweg: true,
   };
   test('naam in Wordt nageleverd niet afgekapt en 1 stuk enkelvoud', () => {
-    const html = renderToString(createElement(NageleverdKaart, { modus: { magBeslissen: false } as never, regels: [rest] }));
+    const html = renderToString(createElement(QueryClientProvider, { client: new QueryClient() }, createElement(NageleverdKaart, { modus: { magBeslissen: false } as never, regels: [rest] })));
     const klasse = html.match(/<span class="([^"]*)">Broadbeans/)?.[1] ?? '';
     expect(klasse).toContain('line-clamp-2');
     expect(klasse).not.toMatch(/truncate|line-clamp-1|max-w-/);
