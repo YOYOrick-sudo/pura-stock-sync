@@ -3,10 +3,11 @@ import { describe, expect, test } from 'vitest';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { BordTabel } from './BordTabel';
+import { KeukenAdviesTabel } from './KeukenAdviesTabel';
 import { KeukenTelblok } from './KeukenTelblok';
 import { openRestVoorArtikel } from '@/lib/ontvangstV2';
 import type { BestelSignaal } from '@/hooks/useBestelbord';
-import type { KeukenStandRegel, OntvangstRestant } from '@/hooks/useOntvangstV2';
+import type { KeukenAdviesRegel, KeukenStandRegel, OntvangstRestant } from '@/hooks/useOntvangstV2';
 
 describe('fase 2 zichtbaar in HTML', () => {
   test('Wortelspread zonder artikel of leverancier toont Komt nog 2 via naam-match', () => {
@@ -44,5 +45,20 @@ describe('fase 2 zichtbaar in HTML', () => {
     expect(html.match(/nog niet geteld/g)).toHaveLength(2);
     expect(html.match(/onbekend/g)).toHaveLength(2);
     expect(html.match(/>Opslaan<\/button>/g)).toHaveLength(2);
+  });
+  test("advies keuken toont streepje bij geen advies in plaats van 0", () => {
+    const regels: KeukenAdviesRegel[] = [
+      { telartikel_id: 'a1', naam: 'Komkommer', basis_eenheid: null, leverancier_naam: null, stand: 3, onderweg_op_tijd: 0, onderweg_restant: 0, behoefte: null, vorm: null, advies_vormen: null, status: 'geen_advies', reden: 'leverdagen onbekend; bestelvorm zonder inhoud' },
+      { telartikel_id: 'a2', naam: 'Granaatappel', basis_eenheid: null, leverancier_naam: null, stand: null, onderweg_op_tijd: 0, onderweg_restant: 0, behoefte: null, vorm: null, advies_vormen: null, status: 'geen_advies', reden: null },
+      { telartikel_id: 'a3', naam: 'IJsbergsla', basis_eenheid: null, leverancier_naam: null, stand: 1, onderweg_op_tijd: 0, onderweg_restant: 0, behoefte: 3, vorm: 'stuk', advies_vormen: 2, status: 'advies', reden: null },
+    ];
+    const html = renderToString(createElement(KeukenAdviesTabel, { regels, laden: false }));
+    expect(html).toContain('>3<');
+    expect(html.match(/Geen advies/g)).toHaveLength(2);
+    const rijVan = (naam: string) => html.split('<tr>').find((r) => r.includes(naam)) ?? '';
+    expect(rijVan('Komkommer')).toContain('>—</td>');
+    expect(rijVan('Komkommer')).not.toContain('font-semibold">0<');
+    expect(rijVan('Granaatappel')).not.toContain('font-semibold">0<');
+    expect(rijVan('IJsbergsla')).toContain('font-semibold">2<');
   });
 });

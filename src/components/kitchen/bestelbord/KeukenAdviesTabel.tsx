@@ -36,7 +36,7 @@ export function KeukenAdviesTabel({ regels, laden }: { regels: KeukenAdviesRegel
               <TableCell className="text-right tabular-nums">{getal(r.stand)}</TableCell>
               <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex items-center gap-1">{getal(Number(r.onderweg_op_tijd ?? 0) + restant)}{restant > 0 && <Hourglass className="h-4 w-4 text-muted-foreground" aria-label="wordt nageleverd" />}</span></TableCell>
               <TableCell className="text-right tabular-nums">{getal(r.behoefte)}</TableCell>
-              <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex items-center gap-1.5"><span className="rounded-full bg-muted px-2 text-sm font-semibold">{r.advies_vormen ?? 0}</span>{r.vorm && <span className="text-xs text-muted-foreground">{r.vorm}</span>}</span></TableCell>
+              <TableCell className="whitespace-nowrap text-right tabular-nums">{r.advies_vormen == null ? '—' : <span className="inline-flex items-center gap-1.5"><span className="rounded-full bg-muted px-2 text-sm font-semibold">{r.advies_vormen}</span>{r.vorm && <span className="text-xs text-muted-foreground">{r.vorm}</span>}</span>}</TableCell>
               <TableCell><div className="flex items-center justify-end gap-1">
                 {r.status && <Badge variant={STATUS[r.status]?.variant ?? 'secondary'}>{STATUS[r.status]?.label ?? r.status}</Badge>}
                 {r.reden && <Popover><PopoverTrigger asChild><Button variant="ghost" size="touch-icon" aria-label={`Reden voor ${r.naam}`}><Info className="h-4 w-4 text-muted-foreground" /></Button></PopoverTrigger><PopoverContent className="max-w-xs text-sm">{r.reden}</PopoverContent></Popover>}
