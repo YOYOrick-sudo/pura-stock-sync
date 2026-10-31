@@ -1,6 +1,6 @@
 // @ts-ignore vitest types are not installed in the app tsconfig
-import { describe, expect, test } from 'vitest';
-import { createElement } from 'react';
+import { describe, expect, test, vi } from 'vitest';
+import { createElement, useState, type ReactElement, type ReactNode } from 'react';
 import { renderToString } from 'react-dom/server';
 import { BordTabel } from './BordTabel';
 import { KeukenAdviesTabel } from './KeukenAdviesTabel';
@@ -8,6 +8,11 @@ import { KeukenTelblok } from './KeukenTelblok';
 import { openRestVoorArtikel } from '@/lib/ontvangstV2';
 import type { BestelSignaal } from '@/hooks/useBestelbord';
 import type { KeukenAdviesRegel, KeukenStandRegel, KeukenTelpoolRegel, OntvangstRestant } from '@/hooks/useOntvangstV2';
+
+vi.mock('react', async (origineel) => {
+  const react = await origineel<typeof import('react')>();
+  return { ...react, useState: vi.fn(react.useState) };
+});
 
 describe('fase 2 zichtbaar in HTML', () => {
   test('Wortelspread zonder artikel of leverancier toont Komt nog 2 via naam-match', () => {
@@ -39,12 +44,13 @@ describe('fase 2 zichtbaar in HTML', () => {
       geteld: null, ontvangen: null, verbruik: null, opslag: null, stand: null, volledig: false, reden: null,
     }));
     const html = renderToString(createElement(KeukenTelblok, { regels, laden: false, bezig: false, onOpslaan: async () => {} }));
-    expect(html).toContain('Tellen');
+    expect(html).toContain('Vanavond tellen');
     expect(html).toContain('Granaatappel');
     expect(html).toContain('Komkommer');
-    expect(html.match(/nog niet geteld/g)).toHaveLength(2);
-    expect(html.match(/onbekend/g)).toHaveLength(2);
-    expect(html.match(/>Opslaan<\/button>/g)).toHaveLength(2);
+    expect(html).not.toContain('nog niet geteld');
+    expect(html).not.toContain('onbekend');
+    expect(html).toContain('aria-label="Opslaan Granaatappel"');
+    expect(html).toContain('aria-label="Opslaan Komkommer"');
   });
   test("advies keuken toont streepje bij geen advies in plaats van 0", () => {
     const regels: KeukenAdviesRegel[] = [
@@ -80,15 +86,15 @@ describe('fase 2 teleenheden in HTML', () => {
   test('telblok toont stand in zakken en zichtbare teleenheid naast het veld', () => {
     const regels: KeukenStandRegel[] = [{ telartikel_id: 'rucola', artikel_id: null, naam: 'Rucola', basis_eenheid: 'g', stand: 500, laatste_telling: null, geteld: null, ontvangen: null, verbruik: null, opslag: null, volledig: false, reden: null }];
     const html = renderToString(createElement(KeukenTelblok, { regels, telinfo, laden: false, bezig: false, onOpslaan: async () => {} }));
-    expect(html).toContain('2 zak (500 g)');
+    expect(html).not.toContain('2 zak (500 g)');
     expect(html).toContain('placeholder="Aantal"');
-    expect(html).toMatch(/<span class="whitespace-nowrap text-sm text-muted-foreground">zak<\/span>/);
+    expect(html).toMatch(/<span class="shrink-0 whitespace-nowrap text-sm text-muted-foreground">zak<\/span>/);
     expect(html).toContain('aria-label="Aantal Rucola in zak"');
   });
   test('telblok toont basiseenheid naast het veld zonder telinfo', () => {
     const regels: KeukenStandRegel[] = [{ telartikel_id: 'komkommer', artikel_id: null, naam: 'Komkommer', basis_eenheid: 'st', stand: 3, laatste_telling: null, geteld: null, ontvangen: null, verbruik: null, opslag: null, volledig: false, reden: null }];
     const html = renderToString(createElement(KeukenTelblok, { regels, laden: false, bezig: false, onOpslaan: async () => {} }));
-    expect(html).toMatch(/<span class="whitespace-nowrap text-sm text-muted-foreground">st<\/span>/);
+    expect(html).toMatch(/<span class="shrink-0 whitespace-nowrap text-sm text-muted-foreground">st<\/span>/);
     expect(html).toContain('placeholder="Aantal"');
     expect(html).toContain('aria-label="Aantal Komkommer in st"');
   });
@@ -113,12 +119,13 @@ describe('fase 2 telblok met telpool', () => {
     const html = renderToString(createElement(KeukenTelblok, { regels, pool, laden: false, bezig: false, onOpslaan: async () => {} }));
     expect(html).toContain('Ananas');
     expect(html).toContain('Banaan');
-    expect(html).toContain('Vanavond tellen: deze 2 artikelen.');
+    expect(html).toContain('Vanavond tellen');
+    expect(html).toMatch(/tabular-nums text-muted-foreground">2<\/span>/);
     expect(html).not.toContain('Morgen kiest de app');
     expect(html).toContain('Ook iets anders tellen (3)');
-    expect(html).toContain('morgen besteldag Kooyman');
-    expect(html).toContain('tel in: kist');
-    expect(html).toContain('>geteld<');
+    expect(html).not.toContain('morgen besteldag Kooyman');
+    expect(html).not.toContain('tel in: kist');
+    expect(html).toContain('aria-label="geteld vandaag"');
     expect(html).not.toContain('Cranberry');
     expect(html).not.toContain('Druif');
     expect(html).not.toContain('Endive');
@@ -127,10 +134,10 @@ describe('fase 2 telblok met telpool', () => {
   test('drie klaar waarvan één controle en twee vrije telartikelen', () => {
     const controlePool = pool.map((r) => r.telartikel_id === 't3' ? { ...r, klaar: true, controle: true, volgorde: 0, reden: 'controletelling' } : r);
     const html = renderToString(createElement(KeukenTelblok, { regels, pool: controlePool, laden: false, bezig: false, onOpslaan: async () => {} }));
-    expect(html).toContain('>controle<');
-    expect(html).toContain('Vanavond tellen: deze 3 artikelen.');
-    expect(html).toContain('1 daarvan is een controletelling');
-    expect(html).toContain('controletelling: gisteren week de telling sterk af van het verwachte verbruik');
+    expect(html).toContain('aria-label="Controletelling Cranberry"');
+    expect(html).toContain('Vanavond tellen');
+    expect(html).toMatch(/tabular-nums text-muted-foreground">3<\/span>/);
+    expect(html).not.toContain('Controletelling: de vorige telling week sterk af van het verwachte verbruik.');
     expect(html).toContain('Ook iets anders tellen (2)');
     expect(html).not.toContain('Morgen kiest de app');
   });
@@ -139,28 +146,30 @@ describe('fase 2 telblok met telpool', () => {
     const html = renderToString(createElement(KeukenTelblok, { regels, laden: false, bezig: false, onOpslaan: async () => {} }));
     for (const nm of ['Ananas', 'Banaan', 'Cranberry', 'Druif', 'Endive']) expect(html).toContain(nm);
     expect(html).not.toContain('Ook iets anders tellen');
-    expect(html).not.toContain('Vanavond tellen');
+    expect(html).toContain('Vanavond tellen');
   });
 
   test('nul klaar: kop zonder hardloper, alles in het inklapbare deel', () => {
     const nietsKlaar = pool.map((r) => ({ ...r, klaar: false, geteld_vandaag: false }));
     const html = renderToString(createElement(KeukenTelblok, { regels, pool: nietsKlaar, laden: false, bezig: false, onOpslaan: async () => {} }));
-    expect(html).toContain('Vanavond geen hardloper aan de beurt. Je kunt wel iets anders tellen.');
+    expect(html).toMatch(/tabular-nums text-muted-foreground">0<\/span>/);
     expect(html).toContain('Ook iets anders tellen (5)');
-    expect(html).not.toContain('Vanavond tellen');
+    expect(html).toContain('Vanavond tellen');
   });
 
   test('één klaar: kop met dit artikel', () => {
     const eenKlaar = pool.map((r) => ({ ...r, klaar: r.telartikel_id === 't1' }));
     const html = renderToString(createElement(KeukenTelblok, { regels, pool: eenKlaar, laden: false, bezig: false, onOpslaan: async () => {} }));
-    expect(html).toContain('Vanavond tellen: dit artikel.');
+    expect(html).toContain('Vanavond tellen');
+    expect(html).toMatch(/tabular-nums text-muted-foreground">1<\/span>/);
     expect(html).toContain('Ook iets anders tellen (4)');
   });
 
   test('twee klaar: kop met deze 2 artikelen', () => {
     const tweeKlaar = pool.map((r) => ({ ...r, klaar: r.telartikel_id === 't1' || r.telartikel_id === 't2' }));
     const html = renderToString(createElement(KeukenTelblok, { regels, pool: tweeKlaar, laden: false, bezig: false, onOpslaan: async () => {} }));
-    expect(html).toContain('Vanavond tellen: deze 2 artikelen.');
+    expect(html).toContain('Vanavond tellen');
+    expect(html).toMatch(/tabular-nums text-muted-foreground">2<\/span>/);
     expect(html).toContain('Ook iets anders tellen (3)');
   });
 });
@@ -168,15 +177,16 @@ describe('fase 2 telblok met telpool', () => {
 describe('fase 2 telhints en plaatje', () => {
   const stand = (telartikel_id: string, naam: string): KeukenStandRegel => ({ telartikel_id, artikel_id: null, naam, basis_eenheid: 'kg', laatste_telling: null, geteld: null, ontvangen: null, verbruik: null, opslag: null, stand: null, volledig: false, reden: null });
   test('regel met hint en afbeelding: hint zichtbaar en knopje plaatje aanwezig', () => {
-    const telinfo = { zalm: { tel_label: 'stuk', tel_factor: 1, basis_eenheid: 'kg', tel_hint: '1 hele zijde ≈ 1,5 kg', tel_afbeelding: '/telkaart/zalmzijde-visueel.png' } };
+    const telinfo = { zalm: { tel_label: 'stuk', tel_factor: 1, basis_eenheid: 'kg', tel_hint: '≈ 1,5 kg/zijde', tel_afbeelding: '/telkaart/zalmzijde-visueel.png' } };
     const html = renderToString(createElement(KeukenTelblok, { regels: [stand('zalm', 'Zalmzijde')], telinfo, laden: false, bezig: false, onOpslaan: async () => {} }));
-    expect(html).toContain('1 hele zijde ≈ 1,5 kg');
-    expect(html).toContain('plaatje');
+    expect(html).toContain('≈ 1,5 kg/zijde');
+    expect(html).toContain('aria-label="Plaatje Zalmzijde"');
+    expect(html).not.toContain('>plaatje<');
   });
   test('regel zonder hint: geen knopje plaatje', () => {
     const telinfo = { zalm: { tel_label: 'stuk', tel_factor: 1, basis_eenheid: 'kg' } };
     const html = renderToString(createElement(KeukenTelblok, { regels: [stand('zalm', 'Zalmzijde')], telinfo, laden: false, bezig: false, onOpslaan: async () => {} }));
-    expect(html).not.toContain('plaatje');
+    expect(html).not.toContain('aria-label="Plaatje Zalmzijde"');
     expect(html).not.toContain('1 hele zijde');
   });
   test('dichte avond: kop met schuift-door-tekst in plaats van 0-tekst', () => {
@@ -186,8 +196,60 @@ describe('fase 2 telhints en plaatje', () => {
       { telartikel_id: 't2', naam: 'Wortel', basis_eenheid: 'kg', tel_label: null, leverancier_naam: null, in_telpool: true, laatste_telling: null, morgen_besteldag: true, klaar: false, geteld_vandaag: false, volgorde: 2, reden: 'vestiging dicht: schuift door' },
     ];
     const html = renderToString(createElement(KeukenTelblok, { regels, pool: dichtePool, laden: false, bezig: false, onOpslaan: async () => {} }));
-    expect(html).toContain('Vanavond dicht: niemand tellen. Wat aan de beurt was schuift door naar de volgende open avond.');
+    expect(html).toContain('Vanavond dicht');
+    expect(html).toContain('aria-label="Info vanavond dicht"');
+    expect(html).not.toContain('Niemand tellen. Wat aan de beurt was schuift door naar de volgende open avond.');
     expect(html).not.toContain('Vanavond geen hardloper aan de beurt');
     expect(html).toContain('Ook iets anders tellen (2)');
+  });
+});
+
+
+describe('compacte telrij en opslaggedrag', () => {
+  const regel: KeukenStandRegel = { telartikel_id: 'zalm', artikel_id: null, naam: 'Zalmzijde', basis_eenheid: 'kg', laatste_telling: '2026-10-30', geteld: null, ontvangen: null, verbruik: null, opslag: null, stand: 1.5, volledig: false, reden: null };
+  test('naam, aantal, eenheid en opslag aanwezig; uitleg alleen achter info', () => {
+    const html = renderToString(createElement(KeukenTelblok, { regels: [regel], laden: false, bezig: false, onOpslaan: async () => {} }));
+    expect(html).toContain('Zalmzijde');
+    expect(html).toContain('aria-label="Aantal Zalmzijde in kg"');
+    expect(html).toContain('>kg</span>');
+    expect(html).toContain('aria-label="Opslaan Zalmzijde"');
+    expect(html).toContain('aria-label="Info Zalmzijde"');
+    for (const tekst of ['laatst geteld', 'nog niet geteld', 'tel in:', 'Verwachte stand:', 'Controletelling:']) expect(html).not.toContain(tekst);
+  });
+
+  function vindActie(node: ReactNode, label: string): ReactElement<{ onClick: () => Promise<void>; disabled: boolean }> | undefined {
+    if (Array.isArray(node)) {
+      for (const kind of node) { const gevonden = vindActie(kind, label); if (gevonden) return gevonden; }
+    } else if (node && typeof node === 'object' && 'props' in node) {
+      const element = node as ReactElement<{ 'aria-label'?: string; children?: ReactNode; onClick: () => Promise<void>; disabled: boolean }>;
+      if (element.props['aria-label'] === label) return element;
+      return vindActie(element.props.children, label);
+    }
+  }
+
+  test('opslaan gebruikt hetzelfde telartikel en geparseerd aantal; wist invoer na succes', async () => {
+    const onOpslaan = vi.fn(async () => {});
+    const setInvoer = vi.fn();
+    vi.mocked(useState).mockReturnValueOnce([{ zalm: '1,5' }, setInvoer]);
+    const element = KeukenTelblok({ regels: [regel], laden: false, bezig: false, onOpslaan });
+    const knop = vindActie(element, 'Opslaan Zalmzijde');
+    expect(knop).toBeDefined();
+    if (!knop) throw new Error('Opslaan ontbreekt');
+    expect(knop.props.disabled).toBe(false);
+    await knop.props.onClick();
+    expect(onOpslaan).toHaveBeenCalledExactlyOnceWith('zalm', 1.5);
+    expect(setInvoer).toHaveBeenCalledTimes(1);
+    expect(setInvoer.mock.calls[0][0]({ zalm: '1,5', ander: '2' })).toEqual({ zalm: '', ander: '2' });
+  });
+
+  test('mislukte opslag bewaart de invoer', async () => {
+    const onOpslaan = vi.fn(async () => { throw new Error('Verbinding weg'); });
+    const setInvoer = vi.fn();
+    vi.mocked(useState).mockReturnValueOnce([{ zalm: '2' }, setInvoer]);
+    const knop = vindActie(KeukenTelblok({ regels: [regel], laden: false, bezig: false, onOpslaan }), 'Opslaan Zalmzijde');
+    if (!knop) throw new Error('Opslaan ontbreekt');
+    await knop.props.onClick();
+    expect(onOpslaan).toHaveBeenCalledExactlyOnceWith('zalm', 2);
+    expect(setInvoer).not.toHaveBeenCalled();
   });
 });
