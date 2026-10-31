@@ -8759,9 +8759,13 @@ export type Database = {
           bestellen: boolean
           eenheid: string
           groep: string
+          ontvangen_sinds: number
           per_week: number
           stand: number
+          telling_aantal: number
+          telling_datum: string
           toelichting: string
+          verbruik_sinds: number
         }[]
       }
       drank_advies_kern: {
@@ -8774,9 +8778,13 @@ export type Database = {
           bestellen: boolean
           eenheid: string
           groep: string
+          ontvangen_sinds: number
           per_week: number
           stand: number
+          telling_aantal: number
+          telling_datum: string
           toelichting: string
+          verbruik_sinds: number
         }[]
       }
       eenheid_tekst: {
