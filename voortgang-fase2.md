@@ -34,5 +34,6 @@ Yorick bevestigde de bestaande servercontrole van stap 93b: Test niet geclaimd, 
 
 - Vaste Vitest-set: 177 bestaande + 26 nieuwe tests = **203/203 geslaagd**, exitcode 0.
 - Bestaande bain-marie/stickerregistratietests: **5/5 geslaagd**, Bun exitcode 0.
-- Type-/bouwcontrole en versie worden in de afsluitende verificatie vastgelegd. Handmatige `tsc` wordt niet uitgevoerd vanwege de platformregel.
+- Automatische type-/bouwcontrole: laatste resultaat **build OK** (31 oktober 2026, 15:56:17 UTC); de eerdere testcompatibiliteitsfout is hersteld. Handmatige `tsc` niet uitgevoerd vanwege de platformregel; geen afzonderlijke tsc-exitcode.
+- Geverifieerde code-/testcommit: `0965acfeac3108f5ffbe3363330d60b568b3023a`; de afsluitende documentatie kan een latere platformcommit krijgen.
 - Geen echte printer- of ingelogde schermtest: alle printketens zijn uitsluitend met mocks uitgevoerd.

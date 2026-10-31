@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Stap 94 (plan goedgekeurd): bestaande printmakers behouden, gemockte tests West/Midsland/Test en onbekend per aanroepketen, vaste testset en automatische type-/bouwcontrole; voortgang-fase2.md bijwerken. Geen prints, databasewerk, bridge-/wachtrijwijzigingen of deployment/publicatie.
+- [x] Stap 94: bestaande printmakers ongewijzigd; 26 gemockte tests voor zes ketens met West/Midsland/Test/null. Vaste Vitest-set 203/203, stickertests 5/5, automatische type-/bouwcontrole build OK; voortgang-fase2.md bijgewerkt. Geen prints, databasecontact, bridge-/wachtrijwijzigingen, deployment of publicatie. Handmatige tsc niet toegestaan, dus geen afzonderlijke tsc-exitcode.
 
 - [x] Stap 77: ingeklapt drankadvies naast keukentelling, bestaande vlag/toegang, RPC-foutcodes verborgen; 132 tests geslaagd en geïsoleerde mobiele controle met mock RPC op 390px; geen databasewijzigingen/publicatie.
 - [ ] Stap 77 echte schermcontrole — eigen controlesessie blijft op inloggen; echte drankadviesgegevens en zichtbaarheid in aangemelde Bestelbord-sessie niet bevestigd.
