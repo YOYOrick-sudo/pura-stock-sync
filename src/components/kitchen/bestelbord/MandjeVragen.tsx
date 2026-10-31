@@ -27,7 +27,7 @@ export function MandjeVragen({ modus, vragen }: { modus: OntvangstModus; vragen:
   });
 
   return <>
-    <LijstKaart kop={<KaartKop icoon={Hourglass} titel="Nog niet binnen" teller={vragen.length} />}>
+    <LijstKaart kop={<KaartKop icoon={Hourglass} titel="Te beslissen" teller={vragen.length} />}>
       <div className="divide-y divide-border">{vragen.map((v) => <div key={v.regel_id} className="flex flex-wrap items-center gap-2 px-4 py-2">
         <div className="min-w-0 flex-1">
           <span className="flex min-w-0 items-center gap-1.5"><span className="truncate font-medium">{v.naam}</span><span className="rounded-full bg-muted px-2 text-sm font-semibold tabular-nums">{Number(v.aantal)}</span>{v.eenheid && <span className="text-xs text-muted-foreground">{v.eenheid}</span>}</span>
