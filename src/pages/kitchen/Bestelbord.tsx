@@ -566,7 +566,7 @@ export default function Bestelbord() {
               <TabsContent value="bord" className="mt-0 space-y-4">
                 {v2 && modus.magBeslissen && <MandjeVragen modus={modus} vragen={ontvangst.mandje.data ?? []} />}
                 <LijstKaart>
-        <div className={cn('space-y-3 border-b border-border bg-muted/30 p-3', test && 'hidden')}>
+        <div className={cn('space-y-3 border-b border-border bg-muted/30 p-3 sm:px-4 lg:px-6', test && 'hidden')}>
           <Invoerbalk>
             <div className="relative min-w-0 basis-full sm:flex-1 sm:basis-auto">
               <Plus className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
