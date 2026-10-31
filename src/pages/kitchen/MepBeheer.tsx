@@ -21,6 +21,7 @@ import {
   useMepOpendagenBeheer,
   MepTemplate,
 } from '@/hooks/useMepPlanning';
+import { telwoord } from '@/lib/hoeveelheid';
 
 const DAGEN = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
 const PRIOS = [
@@ -224,7 +225,7 @@ function OpendagenTab({ location }: { location: string }) {
       {
         onSuccess: (r) => {
           if (r.verplaatst > 0 && r.naar) {
-            toast.success(`${r.verplaatst} regels verplaatst naar ${r.naar}`, {
+            toast.success(`${telwoord(r.verplaatst, 'regel', 'regels')} verplaatst naar ${r.naar}`, {
               action: {
                 label: 'Ongedaan maken',
                 onClick: () => zetTerug.mutate({ ids: r.ids, datum }),

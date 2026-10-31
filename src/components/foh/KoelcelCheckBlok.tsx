@@ -21,6 +21,7 @@ import {
   type VoorraadPlek,
 } from '@/hooks/useKoelcelCheck';
 import { useCreateStickerPrintJob } from '@/hooks/useStickerProducten';
+import { telwoord } from '@/lib/hoeveelheid';
 
 const lettertype = 'Inter, sans-serif';
 
@@ -754,7 +755,7 @@ export function KoelcelCheckBlok({ vestiging, datum }: { vestiging: string; datu
 
   const handleAllesOpPeil = (teZetten: KoelcelCheckItem[]) => {
     zetAllesAanwezig.mutate(teZetten, {
-      onSuccess: (r) => toast.success(`${r.aantal} regels op peil gezet`),
+      onSuccess: (r) => toast.success(`${telwoord(r.aantal, 'regel', 'regels')} op peil gezet`),
       onError: () => toast.error('Niet opgeslagen — probeer opnieuw'),
     });
   };

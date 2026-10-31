@@ -22,6 +22,7 @@ import {
   useMethodes,
   useSaveMethode,
 } from '@/hooks/useHalffabricaatMethodes';
+import { telwoord } from '@/lib/hoeveelheid';
 
 const EENHEDEN = ['gram', 'kg', 'ml', 'liter', 'stuks', 'bakken', 'zakken', 'porties'];
 
@@ -146,7 +147,7 @@ export function MethodesKaart({ receptId, kanBeheren = true }: Props) {
                   {m.houdbaarheid != null && (
                     <span className="inline-flex items-center gap-1">
                       <CalendarClock className="w-4 h-4" />
-                      {m.houdbaarheid} dagen houdbaar
+                      {telwoord(m.houdbaarheid, 'dag', 'dagen')} houdbaar
                     </span>
                   )}
                 </div>

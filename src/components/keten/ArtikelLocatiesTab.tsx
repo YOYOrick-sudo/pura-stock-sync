@@ -11,6 +11,7 @@ import {
   VESTIGINGEN,
   type ArtikelLocatie,
 } from '@/hooks/useKeten';
+import { telwoord } from '@/lib/hoeveelheid';
 
 const GEEN = '__geen__';
 
@@ -66,7 +67,7 @@ export function ArtikelLocatiesTab() {
           placeholder="Zoek artikel…"
           className="h-11 max-w-sm"
         />
-        <span className="text-xs text-muted-foreground">{rijen.length} artikelen</span>
+        <span className="text-xs text-muted-foreground">{telwoord(rijen.length, 'artikel', 'artikelen')}</span>
       </div>
 
       {isLoading ? (

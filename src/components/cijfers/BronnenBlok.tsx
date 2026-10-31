@@ -11,6 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import { BackfillProgressDialog, type BackfillState, type WeekResult } from './BackfillProgressDialog';
 import { SyncStoringBlok } from './SyncStoringBlok';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { telwoord } from '@/lib/hoeveelheid';
 
 function addDaysISO(iso: string, days: number): string {
   const d = new Date(`${iso}T00:00:00Z`);
@@ -278,7 +279,7 @@ export function BronnenBlok() {
     },
     onSuccess: (res: any, vars) => {
       if (res.path === 'backfill') {
-        toast({ title: `Backfill gestart`, description: `${vars.vestiging}: ${res.dagen} dagen in ${splitInWeken(vars.van, vars.tot).length} weken` });
+        toast({ title: `Backfill gestart`, description: `${vars.vestiging}: ${telwoord(res.dagen, 'dag', 'dagen')} in ${telwoord(splitInWeken(vars.van, vars.tot).length, 'week', 'weken')}` });
       } else {
         toast({ title: 'Sync klaar', description: `${vars.vestiging}: ${res.bonnen ?? 0} bonnen` });
         qc.invalidateQueries();
