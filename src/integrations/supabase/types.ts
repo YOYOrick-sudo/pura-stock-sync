@@ -1326,6 +1326,42 @@ export type Database = {
           },
         ]
       }
+      drank_koffie_verdeling: {
+        Row: {
+          aandeel: number
+          bijgewerkt_op: string
+          reden: string
+          voorraad_artikel_id: string
+        }
+        Insert: {
+          aandeel: number
+          bijgewerkt_op?: string
+          reden: string
+          voorraad_artikel_id: string
+        }
+        Update: {
+          aandeel?: number
+          bijgewerkt_op?: string
+          reden?: string
+          voorraad_artikel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drank_koffie_verdeling_voorraad_artikel_id_fkey"
+            columns: ["voorraad_artikel_id"]
+            isOneToOne: true
+            referencedRelation: "v_voorraad_stand"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drank_koffie_verdeling_voorraad_artikel_id_fkey"
+            columns: ["voorraad_artikel_id"]
+            isOneToOne: true
+            referencedRelation: "voorraad_artikel"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drukte_kalender: {
         Row: {
           bron: string
@@ -8622,9 +8658,11 @@ export type Database = {
           advies_per_week: number
           artikel: string
           bestel_eenheid: string
+          bestellen: boolean
           eenheid: string
           groep: string
           per_week: number
+          stand: number
           toelichting: string
         }[]
       }
@@ -8635,9 +8673,11 @@ export type Database = {
           advies_per_week: number
           artikel: string
           bestel_eenheid: string
+          bestellen: boolean
           eenheid: string
           groep: string
           per_week: number
+          stand: number
           toelichting: string
         }[]
       }
