@@ -40,7 +40,7 @@ function Rijen({ regels }: { regels: DrankAdviesRegel[] }) {
 }
 
 export function DrankAdviesInhoud({ regels }: { regels: DrankAdviesRegel[] }) {
-  if (!regels.some((r) => r.bestellen) && !regels.length) return <p className="px-4 py-3 text-sm text-muted-foreground lg:px-6">Niets te bestellen</p>;
+  if (!regels.length) return <p className="px-4 py-3 text-sm text-muted-foreground lg:px-6">Niets te bestellen</p>;
   return <div className="divide-y divide-border">
     {groepen.map(({ groep, titel }) => {
       const eigen = regels.filter((r) => r.groep === groep);

@@ -357,7 +357,7 @@ describe('drankadvies via locatiegebonden RPC', () => {
   });
 
   test('alleen regels zonder bestelling toont Niets te bestellen plus ingeklapte lijst', () => {
-    const html = renderToString(createElement(DrankAdviesInhoud, { regels: regels.filter((r) => !r.bestellen) }));
+    const html = renderToString(createElement(DrankAdviesInhoud, { regels: regels.filter((r) => !r.bestellen) })).replace(/<!-- -->/g, '');
     expect(html).toContain('Niets te bestellen');
     expect(html).toContain('Geen bestelling nodig (2)');
   });
