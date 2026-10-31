@@ -6,6 +6,8 @@ import { BordTabel } from './BordTabel';
 import { KeukenAdviesTabel } from './KeukenAdviesTabel';
 import { KeukenTelblok } from './KeukenTelblok';
 import { readFileSync } from 'node:fs';
+import { Tabs } from '@/components/ui/tabs';
+import { BestelbordTabs, bestelbordTabsKlasse } from './BestelbordTabs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { resolve } from 'node:path';
 import { NageleverdKaart } from './OntvangstOnderweg';
