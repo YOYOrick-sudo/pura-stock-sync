@@ -82,9 +82,9 @@ export function KaartKop({ icoon: Icoon, titel, teller, rechts }: { icoon?: Luci
   </div>;
 }
 
-/** Lijstkaart: kaartkop + tabel van rand tot rand + optionele voetregel. */
-export function LijstKaart({ kop, children, voet }: { kop?: ReactNode; children: ReactNode; voet?: ReactNode }) {
-  return <Card className="overflow-hidden">
+/** Lijstkaart: kaartkop + tabel van rand tot rand + optionele voetregel. clip=false alleen als inhoud (bijv. een suggestielijst) buiten de kaart moet vallen. */
+export function LijstKaart({ kop, children, voet, clip = true }: { kop?: ReactNode; children: ReactNode; voet?: ReactNode; clip?: boolean }) {
+  return <Card className={clip ? 'overflow-hidden' : undefined}>
     {kop}
     <div className="min-w-0">{children}</div>
     {voet && <div className="border-t border-border px-4 py-2 text-xs lg:px-6 text-muted-foreground">{voet}</div>}
