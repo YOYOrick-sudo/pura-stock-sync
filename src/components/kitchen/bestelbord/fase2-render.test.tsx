@@ -48,18 +48,40 @@ describe('fase 2 zichtbaar in HTML', () => {
   });
   test("advies keuken toont streepje bij geen advies in plaats van 0", () => {
     const regels: KeukenAdviesRegel[] = [
-      { telartikel_id: 'a1', naam: 'Komkommer', basis_eenheid: null, leverancier_naam: null, stand: 3, onderweg_op_tijd: 0, onderweg_restant: 0, behoefte: null, vorm: null, advies_vormen: null, status: 'geen_advies', reden: 'leverdagen onbekend; bestelvorm zonder inhoud' },
+      { telartikel_id: 'a1', naam: 'Komkommer', basis_eenheid: 'st', leverancier_naam: null, stand: 3, onderweg_op_tijd: 0, onderweg_restant: 0, behoefte: null, vorm: null, advies_vormen: null, status: 'geen_advies', reden: 'leverdagen onbekend; bestelvorm zonder inhoud' },
       { telartikel_id: 'a2', naam: 'Granaatappel', basis_eenheid: null, leverancier_naam: null, stand: null, onderweg_op_tijd: 0, onderweg_restant: 0, behoefte: null, vorm: null, advies_vormen: null, status: 'geen_advies', reden: null },
       { telartikel_id: 'a3', naam: 'IJsbergsla', basis_eenheid: null, leverancier_naam: null, stand: 1, onderweg_op_tijd: 0, onderweg_restant: 0, behoefte: 3, vorm: 'stuk', advies_vormen: 2, status: 'advies', reden: null },
     ];
     const html = renderToString(createElement(KeukenAdviesTabel, { regels, laden: false }));
-    expect(html).toContain('>3<');
+    expect(html).toContain('3 st');
     expect(html.match(/Geen advies/g)).toHaveLength(2);
     const rijVan = (naam: string) => html.split('<tr>').find((r) => r.includes(naam)) ?? '';
     expect(rijVan('Komkommer')).toContain('>—</td>');
     expect(rijVan('Komkommer')).not.toContain('font-semibold">0<');
     expect(rijVan('Granaatappel')).not.toContain('font-semibold">0<');
     expect(rijVan('IJsbergsla')).toContain('font-semibold">2<');
+  });
+});
+
+describe('fase 2 teleenheden in HTML', () => {
+  const telinfo = { rucola: { tel_label: 'zak (250 g)', tel_factor: 250, basis_eenheid: 'g' } };
+  test('advies toont teleenheden en totale inhoud van bestelvorm', () => {
+    const regels: KeukenAdviesRegel[] = [
+      { telartikel_id: 'rucola', naam: 'Rucola', basis_eenheid: 'g', leverancier_naam: null, stand: 500, behoefte: 125, onderweg_op_tijd: 0, onderweg_restant: 0, advies_vormen: 1, vorm: 'zak 250 g', inhoud_vorm: 250, status: 'advies', reden: null },
+      { telartikel_id: 'komkommer', naam: 'Komkommer', basis_eenheid: 'st', leverancier_naam: null, stand: 3, behoefte: null, onderweg_op_tijd: 0, onderweg_restant: 0, advies_vormen: null, vorm: null, status: 'geen_advies', reden: null },
+    ];
+    const html = renderToString(createElement(KeukenAdviesTabel, { regels, telinfo, laden: false }));
+    expect(html).toContain('2 zak (500 g)');
+    expect(html).toContain('0,5 zak (125 g)');
+    expect(html.replace(/<!-- -->/g, '')).toContain('(250 g)');
+    expect(html).not.toContain('>500<');
+    expect(html).toContain('3 st');
+  });
+  test('telblok toont stand in zakken en placeholder met teleenheid', () => {
+    const regels: KeukenStandRegel[] = [{ telartikel_id: 'rucola', artikel_id: null, naam: 'Rucola', basis_eenheid: 'g', stand: 500, laatste_telling: null, geteld: null, ontvangen: null, verbruik: null, opslag: null, volledig: false, reden: null }];
+    const html = renderToString(createElement(KeukenTelblok, { regels, telinfo, laden: false, bezig: false, onOpslaan: async () => {} }));
+    expect(html).toContain('2 zak (500 g)');
+    expect(html).toContain('placeholder="Aantal zak"');
   });
 });
 describe('fase 2 telblok met telpool', () => {
