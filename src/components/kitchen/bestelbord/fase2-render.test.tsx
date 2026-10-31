@@ -7,7 +7,7 @@ import { KeukenAdviesTabel } from './KeukenAdviesTabel';
 import { KeukenTelblok } from './KeukenTelblok';
 import { openRestVoorArtikel } from '@/lib/ontvangstV2';
 import type { BestelSignaal } from '@/hooks/useBestelbord';
-import type { KeukenAdviesRegel, KeukenStandRegel, OntvangstRestant } from '@/hooks/useOntvangstV2';
+import type { KeukenAdviesRegel, KeukenStandRegel, KeukenTelpoolRegel, OntvangstRestant } from '@/hooks/useOntvangstV2';
 
 describe('fase 2 zichtbaar in HTML', () => {
   test('Wortelspread zonder artikel of leverancier toont Komt nog 2 via naam-match', () => {
