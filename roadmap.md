@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Stap 95: alleen lokale ophaalvensters en dagnotatie aanpassen; Deno + vaste Vitest-set en automatische build-check. Geen deploy, publicatie, databasecontact of cronwijziging.
+
 - [x] Stap 94: bestaande printmakers ongewijzigd; 26 gemockte tests voor zes ketens met West/Midsland/Test/null. Vaste Vitest-set 203/203, stickertests 5/5, automatische type-/bouwcontrole build OK; voortgang-fase2.md bijgewerkt. Geen prints, databasecontact, bridge-/wachtrijwijzigingen, deployment of publicatie. Handmatige tsc niet toegestaan, dus geen afzonderlijke tsc-exitcode.
 
 - [x] Stap 77: ingeklapt drankadvies naast keukentelling, bestaande vlag/toegang, RPC-foutcodes verborgen; 132 tests geslaagd en geïsoleerde mobiele controle met mock RPC op 390px; geen databasewijzigingen/publicatie.
