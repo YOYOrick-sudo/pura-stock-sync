@@ -1,4 +1,5 @@
 /** Pure helpers voor ontvangst v2 (achter schakelaar). Geen schrijfacties. */
+import type { KeukenStandRegel, KeukenTelpoolRegel } from '@/hooks/useOntvangstV2';
 
 export type Schakelaar = { vestiging: string; vlag: string; aan: boolean; mag_beslissen: boolean };
 
@@ -215,4 +216,23 @@ export function afrondWaarschuwingen(res: unknown): string[] {
 /** Vandaag binnen: open restanten zonder pakbon (mist/backorder) staan al in de Onderweg-blokken. */
 export function vandaagZonderOpenRest<T extends { soort: string }>(regels: T[]): T[] {
   return regels.filter((r) => r.soort !== 'mist' && r.soort !== 'backorder');
+}
+
+/** Telblok: regels waarvan de telpool klaar is tellen vandaag; de rest onderaan, op naam. */
+export function splitsTelpool(regels: KeukenStandRegel[], pool: KeukenTelpoolRegel[] | undefined): {
+  vandaag: (KeukenStandRegel & { pool?: KeukenTelpoolRegel })[];
+  overig: (KeukenStandRegel & { pool?: KeukenTelpoolRegel })[];
+} {
+  if (!pool || !pool.length) return { vandaag: regels.map((r) => ({ ...r })), overig: [] };
+  const opId = new Map(pool.map((p) => [p.telartikel_id, p]));
+  const vandaag: (KeukenStandRegel & { pool?: KeukenTelpoolRegel })[] = [];
+  const overig: (KeukenStandRegel & { pool?: KeukenTelpoolRegel })[] = [];
+  for (const r of regels) {
+    const p = opId.get(r.telartikel_id);
+    const rij = p ? { ...r, pool: p } : { ...r };
+    if (!p || p.klaar) vandaag.push(rij); else overig.push(rij);
+  }
+  vandaag.sort((a, b) => (a.pool?.volgorde ?? 0) - (b.pool?.volgorde ?? 0));
+  overig.sort((a, b) => a.naam.localeCompare(b.naam));
+  return { vandaag, overig };
 }

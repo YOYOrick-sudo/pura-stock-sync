@@ -3292,6 +3292,7 @@ export type Database = {
           bron_vestiging: string
           created_at: string
           id: string
+          in_telpool: boolean
           leverancier_id: string | null
           notitie: string | null
           opslag_pct: number
@@ -3309,6 +3310,7 @@ export type Database = {
           bron_vestiging: string
           created_at?: string
           id?: string
+          in_telpool?: boolean
           leverancier_id?: string | null
           notitie?: string | null
           opslag_pct?: number
@@ -3326,6 +3328,7 @@ export type Database = {
           bron_vestiging?: string
           created_at?: string
           id?: string
+          in_telpool?: boolean
           leverancier_id?: string | null
           notitie?: string | null
           opslag_pct?: number
@@ -8742,6 +8745,23 @@ export type Database = {
           p_telartikel_id: string
         }
         Returns: string
+      }
+      keuken_telpool_dag: {
+        Args: { p_datum?: string; p_vestiging: string }
+        Returns: {
+          basis_eenheid: string
+          geteld_vandaag: boolean
+          in_telpool: boolean
+          klaar: boolean
+          laatste_telling: string
+          leverancier_naam: string
+          morgen_besteldag: boolean
+          naam: string
+          reden: string
+          tel_label: string
+          telartikel_id: string
+          volgorde: number
+        }[]
       }
       keuken_verwachte_verkoop: {
         Args: { p_tot: string; p_van: string; p_vestiging: string }
