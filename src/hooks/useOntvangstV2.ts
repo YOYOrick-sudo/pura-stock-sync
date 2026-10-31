@@ -52,7 +52,7 @@ export type KeukenStandRegel = {
 export type KeukenTelpoolRegel = {
   telartikel_id: string; naam: string; basis_eenheid: string | null; tel_label: string | null; leverancier_naam: string | null;
   in_telpool: boolean; laatste_telling: string | null; morgen_besteldag: boolean; klaar: boolean;
-  geteld_vandaag: boolean; volgorde: number; reden: string | null;
+  geteld_vandaag: boolean; volgorde: number; reden: string | null; controle?: boolean;
 };
 
 async function leesFase2Schakelaars(): Promise<Schakelaar[]> {

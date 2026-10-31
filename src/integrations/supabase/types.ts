@@ -8725,6 +8725,21 @@ export type Database = {
           referentiedagen: string
         }[]
       }
+      keuken_controle_afwijking: {
+        Args: { p_datum: string; p_telartikel_id: string }
+        Returns: {
+          afwijking: number
+          afwijking_pct: number
+          controle: boolean
+          geteld_basis: number
+          ontvangen: number
+          volledig: boolean
+          voorspeld: number
+          vorige_basis: number
+          vorige_datum: string
+          werkelijk: number
+        }[]
+      }
       keuken_gerecht_verkoop_dag: {
         Args: { p_tot: string; p_van: string; p_vestiging: string }
         Returns: {
@@ -8750,6 +8765,7 @@ export type Database = {
         Args: { p_datum?: string; p_vestiging: string }
         Returns: {
           basis_eenheid: string
+          controle: boolean
           geteld_vandaag: boolean
           in_telpool: boolean
           klaar: boolean

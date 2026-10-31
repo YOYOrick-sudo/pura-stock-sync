@@ -275,6 +275,13 @@ describe('splitsTelpool', () => {
     expect(vandaag.map((r) => r.telartikel_id)).toEqual(['t2', 't3']);
     expect(overig.map((r) => r.naam)).toEqual(['Ananas', 'Cranberry', 'Endive']);
   });
+  test('controle met volgorde 0 staat bovenaan vandaag', () => {
+    const p = [pool('t2', true, 1), { ...pool('t3', true, 0), controle: true, reden: 'controletelling' }, pool('t1', true, 2), pool('t4', false, 3), pool('t5', false, 4)];
+    const { vandaag, overig } = splitsTelpool(regels, p);
+    expect(vandaag.map((r) => r.telartikel_id)).toEqual(['t3', 't2', 't1']);
+    expect(vandaag[0].pool?.controle).toBe(true);
+    expect(overig).toHaveLength(2);
+  });
   test('regel zonder poolregel gaat naar vandaag', () => {
     const p = [pool('t2', true, 1)];
     const { vandaag, overig } = splitsTelpool(regels, p);

@@ -113,7 +113,8 @@ describe('fase 2 telblok met telpool', () => {
     const html = renderToString(createElement(KeukenTelblok, { regels, pool, laden: false, bezig: false, onOpslaan: async () => {} }));
     expect(html).toContain('Ananas');
     expect(html).toContain('Banaan');
-    expect(html).toContain('Vanavond tellen: deze 2 artikelen. Morgen kiest de app weer andere.');
+    expect(html).toContain('Vanavond tellen: deze 2 artikelen.');
+    expect(html).not.toContain('Morgen kiest de app');
     expect(html).toContain('Ook iets anders tellen (3)');
     expect(html).toContain('morgen besteldag Kooyman');
     expect(html).toContain('tel in: kist');
@@ -121,6 +122,17 @@ describe('fase 2 telblok met telpool', () => {
     expect(html).not.toContain('Cranberry');
     expect(html).not.toContain('Druif');
     expect(html).not.toContain('Endive');
+  });
+
+  test('drie klaar waarvan één controle en twee vrije telartikelen', () => {
+    const controlePool = pool.map((r) => r.telartikel_id === 't3' ? { ...r, klaar: true, controle: true, volgorde: 0, reden: 'controletelling' } : r);
+    const html = renderToString(createElement(KeukenTelblok, { regels, pool: controlePool, laden: false, bezig: false, onOpslaan: async () => {} }));
+    expect(html).toContain('>controle<');
+    expect(html).toContain('Vanavond tellen: deze 3 artikelen.');
+    expect(html).toContain('1 daarvan is een controletelling');
+    expect(html).toContain('controletelling: gisteren week de telling sterk af van het verwachte verbruik');
+    expect(html).toContain('Ook iets anders tellen (2)');
+    expect(html).not.toContain('Morgen kiest de app');
   });
 
   test('zonder pool: alle 5 namen zichtbaar, geen inklaptekst', () => {
