@@ -133,6 +133,7 @@ type Regel = { groep: string; regel: string; doe: React.ReactNode; niet: React.R
 export const REGELS: Regel[] = [
   { groep: 'Opbouw', regel: 'Paginabalk, dan werkvlak; rechts op groot scherm één overzichtskaart', doe: 'Tabs links, "+ Product" rechts, daaronder de lijst.', niet: 'Eigen H1, uitlegblok en drie knoppen bovenaan.' },
   { groep: 'Opbouw', regel: 'Afstand 16 tussen blokken, 12 in kaarten, 8 tussen kleine delen', doe: 'space-y-4 · p-4 · gap-2', niet: 'space-y-5, p-6, gap-3 door elkaar.' },
+  { groep: 'Opbouw', regel: 'Zijmarge in kaarten: 16, vanaf desktop 24; kop, rijen en voet gelijk', doe: 'Tabel in kaart krijgt kaartRandKlasse.', niet: 'Tekst of bedragen 8px van de kaartrand.' },
   { groep: 'Opbouw', regel: 'Eén primaire (groene) knop per pagina, op een vaste plek', doe: <Button size="touch">Opslaan</Button>, niet: <div className="flex gap-2"><Button size="touch">Opslaan</Button><Button size="touch">Delen</Button></div> },
   { groep: 'Lijsten', regel: 'Elke lijst: kaartkop → kolomkoppen één keer → groepsrijen → voetregel', doe: 'Eén tabel, leveranciers als tussenrij.', niet: 'Per leverancier een losse tabel met eigen koppen.' },
   { groep: 'Lijsten', regel: 'Getallen rechts, gelijk breed, eenheid klein erachter', doe: <p className="text-right tabular-nums">12 <span className="text-xs text-muted-foreground">kg</span><br />4 <span className="text-xs text-muted-foreground">bak</span></p>, niet: <p>12kg<br />4 bak</p> },

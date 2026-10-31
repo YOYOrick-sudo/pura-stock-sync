@@ -65,12 +65,14 @@ export function Invoerbalk({ children }: { children: ReactNode }) {
 
 /** Klasse voor TabsList als aaneengesloten segmentbalk zonder gaten. */
 export const segmentTabsKlasse = 'flex h-auto w-full min-w-0 gap-0 p-1 sm:w-auto [&>button]:min-h-11 [&>button]:flex-1 [&>button]:gap-1.5 [&>button]:px-3 sm:[&>button]:flex-none';
+/** Vaste zijmarge in kaarten: 16px, 24px vanaf desktop; kop, rijen en voet gelijk. Zet op een tabel binnen een kaart. */
+export const kaartRandKlasse = '[&_tr>*:first-child]:pl-4 [&_tr>*:last-child]:pr-4 lg:[&_tr>*:first-child]:pl-6 lg:[&_tr>*:last-child]:pr-6';
 
 /* ===================== Kaarten & lijsten ===================== */
 
 /** Kaartkop: icoon + titel + teller links, één compacte actie rechts. */
 export function KaartKop({ icoon: Icoon, titel, teller, rechts }: { icoon?: LucideIcon; titel: ReactNode; teller?: number; rechts?: ReactNode }) {
-  return <div className="flex min-h-12 items-center justify-between gap-2 border-b border-border px-4 py-2">
+  return <div className="flex min-h-12 items-center justify-between gap-2 border-b border-border px-4 py-2 lg:px-6">
     <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-foreground">
       {Icoon && <Icoon className="h-5 w-5 shrink-0 text-muted-foreground" />}
       <span className="truncate">{titel}</span>
@@ -85,20 +87,20 @@ export function LijstKaart({ kop, children, voet }: { kop?: ReactNode; children:
   return <Card className="overflow-hidden">
     {kop}
     <div className="min-w-0">{children}</div>
-    {voet && <div className="border-t border-border px-4 py-2 text-xs text-muted-foreground">{voet}</div>}
+    {voet && <div className="border-t border-border px-4 py-2 text-xs lg:px-6 text-muted-foreground">{voet}</div>}
   </Card>;
 }
 
 /** Laadrijen: skelet in dezelfde rijhoogte als de lijst. */
 export function LaadRijen({ aantal = 3 }: { aantal?: number }) {
   return <div className="divide-y divide-border" aria-busy="true" aria-label="Laden">
-    {Array.from({ length: aantal }, (_, i) => <div key={i} className="flex h-12 items-center gap-3 px-4"><Skeleton className="h-5 w-5 rounded-full" /><Skeleton className="h-4 flex-1" /><Skeleton className="h-4 w-12" /></div>)}
+    {Array.from({ length: aantal }, (_, i) => <div key={i} className="flex h-12 items-center gap-3 px-4 lg:px-6"><Skeleton className="h-5 w-5 rounded-full" /><Skeleton className="h-4 flex-1" /><Skeleton className="h-4 w-12" /></div>)}
   </div>;
 }
 
 /** Foutregel met één herstelactie. */
 export function FoutRegel({ tekst = 'Laden mislukt.', onOpnieuw }: { tekst?: string; onOpnieuw?: () => void }) {
-  return <div className="flex min-h-12 items-center justify-between gap-2 px-4 text-sm">
+  return <div className="flex min-h-12 items-center justify-between gap-2 px-4 text-sm lg:px-6">
     <StatusDot toon="fout" label={tekst} />
     {onOpnieuw && <Button variant="ghost" size="touch" onClick={onOpnieuw}><RotateCw className="h-4 w-4" />Opnieuw</Button>}
   </div>;

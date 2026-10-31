@@ -1,4 +1,5 @@
 import { ChefHat, Hourglass, Info } from 'lucide-react';
+import { kaartRandKlasse } from '@/components/pura';
 import { KaartKop, LaadRijen, LijstKaart } from '@/components/pura/patronen';
 import { EmptyState } from '@/components/pura/EmptyState';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +20,7 @@ export function KeukenAdviesTabel({ regels, laden }: { regels: KeukenAdviesRegel
   return <LijstKaart kop={<KaartKop icoon={ChefHat} titel="Advies keuken" teller={regels.length || undefined} />}>
     {laden ? <LaadRijen /> : !regels.length ? <EmptyState icon={ChefHat} title="Geen advies" description="" className="border-0 shadow-none" /> :
       <div className="overflow-x-auto">
-        <Table className="[&_td]:px-2 [&_td]:py-1 [&_th]:h-9 [&_th]:px-2 [&_th]:text-xs">
+        <Table className={`[&_td]:px-2 [&_td]:py-1 [&_th]:h-9 [&_th]:px-2 [&_th]:text-xs ${kaartRandKlasse}`}>
           <TableHeader><TableRow>
             <TableHead className="sticky left-0 bg-card">Product</TableHead>
             <TableHead className="text-right">Stand</TableHead>
