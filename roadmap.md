@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Tahinidressing: West-magazijnbron naar zelf maken corrigeren, routering gemockt testen en bestaande bestel-/MEP-regels read-only controleren; lopende actie niet automatisch omzetten.
+- [x] Tahinidressing: West-magazijnbron naar zelf_west gecorrigeerd en teruggelezen; routering/keten 12/12 tests geslaagd. Bestaande bestelregel staat besteld; twee open MEP-taken voor 1 november aangetroffen (Tahinidressing en Tahini citroen dressing), geen lopende regels veranderd, niets geprint of gepubliceerd.
+- [ ] Tahinidressing lopende actie herstellen — eerst akkoord nodig over de al als besteld gemarkeerde regel en de twee bestaande open MEP-taken; niets automatisch verwijderen of verdubbelen.
 
 - [x] Stap 95: lokale Amsterdamse ophaalvensters aangepast; Deno 32/32 (exit 0), vaste Vitest-set 209/209 (exit 0), overige app-tests 88/88 via Vitest en ontwerpregels 4/4 via Bun. Automatische type-/bouwcontrole build OK. dekking_dagen heeft geen weergave in src; gedeelde telwoord-optie voor breukdagen getest met 0/1/1,5/2/2,5/3. Drie bestaande testtypefouten opgelost zonder productielogica te wijzigen. Geen deploy, publicatie, databasecontact of cronwijziging; kooyman_sync_live en leverancier_besteldagen niet aangeraakt.
 
