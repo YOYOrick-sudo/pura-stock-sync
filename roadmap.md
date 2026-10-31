@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Tahinidressing: West-magazijnbron naar zelf maken corrigeren, routering gemockt testen en bestaande bestel-/MEP-regels read-only controleren; lopende actie niet automatisch omzetten.
+
 - [x] Stap 95: lokale Amsterdamse ophaalvensters aangepast; Deno 32/32 (exit 0), vaste Vitest-set 209/209 (exit 0), overige app-tests 88/88 via Vitest en ontwerpregels 4/4 via Bun. Automatische type-/bouwcontrole build OK. dekking_dagen heeft geen weergave in src; gedeelde telwoord-optie voor breukdagen getest met 0/1/1,5/2/2,5/3. Drie bestaande testtypefouten opgelost zonder productielogica te wijzigen. Geen deploy, publicatie, databasecontact of cronwijziging; kooyman_sync_live en leverancier_besteldagen niet aangeraakt.
 
 - [x] Stap 94: bestaande printmakers ongewijzigd; 26 gemockte tests voor zes ketens met West/Midsland/Test/null. Vaste Vitest-set 203/203, stickertests 5/5, automatische type-/bouwcontrole build OK; voortgang-fase2.md bijgewerkt. Geen prints, databasecontact, bridge-/wachtrijwijzigingen, deployment of publicatie. Handmatige tsc niet toegestaan, dus geen afzonderlijke tsc-exitcode.
