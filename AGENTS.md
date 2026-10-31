@@ -14,3 +14,4 @@ Pura building blocks live in src/components/pura (patronen.tsx, lijst.tsx, blokk
 Mobile navigation partitions only the items supplied by useNavigatieItems between the bottom bar and a bottom Drawer; desktop keeps AppSidebar and PolarHeader, because presentation must not introduce independent visibility rules.
 Bain-marie print jobs bypass the quick-print suggestion registration through registreerStickerGebruik, because its RPC does not accept the bain type and a post-insert error retries an already queued label.
 App-shell service workers register only through src/lib/pwa.ts with development, preview, iframe and kill-switch guards; cleanup targets only app-shell workers and their caches, because stale preview bundles must not persist or disrupt messaging workers.
+Kooyman receipt sync uses GET-only supplier requests, strips price fields, and gates operational writes separately from Test and comparison runs, because manual trials must not mutate live receipt flows.
