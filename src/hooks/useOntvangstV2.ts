@@ -146,11 +146,11 @@ export type DrankAdviesRegel = {
 export function useDrankAdvies(vestiging: string | null) {
   return useQuery({
     queryKey: ['drank_advies', vestiging], enabled: !!vestiging, retry: false,
-    queryFn: async (): Promise<DrankAdviesRegel[]> => {
+    queryFn: async (): Promise<DrankAdviesRegel[] | null> => {
       const { data, error } = await rpc('drank_advies', { p_vestiging: vestiging });
       const code = error && 'code' in error ? error.code : null;
-      if (code === '55000' || code === '42501') return [];
-      if (error) throw new Error(error.message);
+      if (code === '55000' || code === '42501') return null;
+      if (error) { console.warn('drank_advies mislukt', code, error.message); throw new Error(error.message); }
       return (data ?? []) as DrankAdviesRegel[];
     },
   });

@@ -40,15 +40,17 @@ function Rijen({ regels }: { regels: DrankAdviesRegel[] }) {
 }
 
 export function DrankAdviesInhoud({ regels }: { regels: DrankAdviesRegel[] }) {
+  if (!regels.some((r) => r.bestellen) && !regels.length) return <p className="px-4 py-3 text-sm text-muted-foreground lg:px-6">Niets te bestellen</p>;
   return <div className="divide-y divide-border">
     {groepen.map(({ groep, titel }) => {
       const eigen = regels.filter((r) => r.groep === groep);
       const bestellen = eigen.filter((r) => r.bestellen);
       const rest = eigen.filter((r) => !r.bestellen);
+      if (!eigen.length) return null;
       return <section key={groep} aria-label={titel}>
         <div className="px-4 pt-2 lg:px-6"><SectieKop titel={titel} /></div>
         {rest.length > 0 && bestellen.length > 0 && <p className="px-4 pt-1 text-xs text-muted-foreground lg:px-6">Deze week bestellen ({bestellen.length})</p>}
-        <Rijen regels={bestellen} />
+        {bestellen.length ? <Rijen regels={bestellen} /> : <p className="px-4 py-2 text-sm text-muted-foreground lg:px-6">Niets te bestellen</p>}
         {rest.length > 0 && <Collapsible className="group/geen">
           <CollapsibleTrigger asChild>
             <Button type="button" variant="ghost" size="touch" className="w-full justify-between px-4 text-muted-foreground lg:px-6">
@@ -65,14 +67,21 @@ export function DrankAdviesInhoud({ regels }: { regels: DrankAdviesRegel[] }) {
 
 export function DrankAdvies({ vestiging }: { vestiging: string }) {
   const advies = useDrankAdvies(vestiging);
-  if (advies.isError || (!advies.isLoading && !advies.data?.length)) return null;
-  return <LijstKaart><Collapsible className="group/drank">
+  if (advies.data === null) return null;
+  return <LijstKaart><Collapsible defaultOpen className="group/drank">
     <CollapsibleTrigger asChild>
       <Button type="button" variant="ghost" size="touch" className="h-auto min-h-12 w-full justify-between px-4 py-2 lg:px-6">
         <span className="flex min-w-0 items-center gap-2"><Wine className="size-4 shrink-0 text-muted-foreground" /><span className="truncate">Drankadvies per week</span></span>
         <ChevronDown className="size-4 shrink-0 text-muted-foreground group-data-[state=open]/drank:rotate-180" />
       </Button>
     </CollapsibleTrigger>
-    <CollapsibleContent>{advies.isLoading ? <LaadRijen /> : <DrankAdviesInhoud regels={advies.data ?? []} />}</CollapsibleContent>
+    <CollapsibleContent>
+      {advies.isLoading ? <LaadRijen /> : advies.isError
+        ? <div className="flex items-center justify-between gap-3 px-4 py-3 lg:px-6">
+            <p className="text-sm text-muted-foreground">Drankadvies kon niet geladen worden. Probeer het later opnieuw.</p>
+            <Button type="button" variant="outline" size="sm" onClick={() => void advies.refetch()}>Opnieuw</Button>
+          </div>
+        : <DrankAdviesInhoud regels={advies.data ?? []} />}
+    </CollapsibleContent>
   </Collapsible></LijstKaart>;
 }
