@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Blauwe bessen: gekoppelde werkbankregel vraagt bij bestellen eerst Aanvullen uit koelcel / Koelcel is leeg. Bestaande mutaties en retry behouden. 16/16 gerichte tests; echte AfvinkRonde met volledig gemockte hooks in browser gecontroleerd (aanvullen 0 orders, expliciet leeg 1 mockorder), geen echte writes/publicatie, automatische build OK.
+- [ ] Blauwe bessen bestaande open bestelregel herstellen — wacht op akkoord en bevestiging of de koelcel werkelijk leeg was; bestaande regel ongewijzigd.
+
 - [x] Tahinidressing: West-magazijnbron naar zelf_west gecorrigeerd en teruggelezen; routering/keten 12/12 tests geslaagd. Bestaande bestelregel staat besteld; twee open MEP-taken voor 1 november aangetroffen (Tahinidressing en Tahini citroen dressing), geen lopende regels veranderd, niets geprint of gepubliceerd.
 - [ ] Tahinidressing lopende actie herstellen — eerst akkoord nodig over de al als besteld gemarkeerde regel en de twee bestaande open MEP-taken; niets automatisch verwijderen of verdubbelen.
 
