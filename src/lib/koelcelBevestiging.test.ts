@@ -1,5 +1,6 @@
 // @ts-ignore bun test runner
 import { expect, mock, test } from 'bun:test';
+// @ts-ignore node test API is outside the browser app types
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
 import type { KoelcelCheckItem } from '@/hooks/useKoelcelCheck';
@@ -35,7 +36,7 @@ function handler(name: string, scope: Record<string, unknown>) {
   const code = ts.transpileModule(`const action = (${expression});`, {
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
   }).outputText;
-  return new Function(...Object.keys(scope), `${code}; return action;`)(...Object.values(scope));
+  return new Function(...Object.keys(scope), `${code}; const ${name} = action; return action;`)(...Object.values(scope));
 }
 
 test('werkbank vereist koelcelcontrole, koelcel zelf en andere producten niet', () => {
