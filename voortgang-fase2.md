@@ -28,7 +28,7 @@ De vestiging komt in beide hooks uit `useUserLocation()`. Bain-marie/voorraadron
 - `print-bridge`, `claim_next_print_job`, `print_bridge_*`, wachtrijlogica, printstatuslezers en bain-marie-dubbelcheck ongewijzigd.
 - `sticker_producten_bump` registreert productgebruik en maakt geen printjob; ongewijzigd.
 
-Yorick bevestigde de bestaande servercontrole van stap 93b: Test niet geclaimd, null naar West. In stap 94 niet opnieuw met de database gecontroleerd.
+De App-bot controleerde in stap 93b read-only binnen een rollback dat de actieve claim_next_print_job filtert: Test werd niet geclaimd en NULL gaat naar West.
 
 ### Verificatie
 
