@@ -19,7 +19,7 @@ export const TikIcoon = forwardRef<HTMLButtonElement, TikIcoonProps>(
       type={type}
       variant="ghost"
       size="touch-icon"
-      className={cn('h-11 min-h-11 min-w-11 flex-none shrink-0', className)}
+      className={cn('min-h-11 min-w-11 flex-none shrink-0', className)}
     />
   ),
 );

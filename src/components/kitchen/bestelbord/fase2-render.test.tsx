@@ -219,7 +219,7 @@ describe('compacte telrij en opslaggedrag', () => {
   test('TikIcoon heeft geen breakpoint-klasse die het vak onder 44px brengt', () => {
     const html = renderToString(createElement(TikIcoon, { 'aria-label': 'Info telregel' }, createElement(Info)));
     const klassen = html.match(/class="([^"]*)"/)?.[1].split(' ') ?? [];
-    expect(klassen).toEqual(expect.arrayContaining(['h-11', 'min-h-11', 'min-w-11', 'flex-none']));
+    expect(klassen).toEqual(expect.arrayContaining(['h-11', 'w-11', 'min-h-11', 'min-w-11', 'flex-none']));
     for (const k of klassen) expect(k).not.toMatch(/^(sm|md|lg|xl|2xl):(min-)?(w|h|size)-(?!11|12|auto)/);
     expect(klassen.some((k) => /^(sm|md|lg|xl|2xl):(min-)?(w|h|size)-/.test(k))).toBe(false);
   });
