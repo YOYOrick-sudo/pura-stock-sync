@@ -5,6 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { formatPeriod } from "@/lib/personeel-utils";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
+import { telwoord } from '@/lib/hoeveelheid';
 
 interface PlanningBlockProps {
   person: Person;
@@ -57,7 +58,7 @@ export function PlanningBlock({ person, housing, windowStart, cellWidth, rowHeig
           </div>
           {locationName && <div className="text-sm">{locationName}</div>}
           {person.days_per_week && (
-            <div className="text-sm">{person.days_per_week} dagen per week</div>
+            <div className="text-sm">{telwoord(person.days_per_week, 'dag', 'dagen')} per week</div>
           )}
           {person.notes && (
             <div className="text-sm text-muted-foreground border-t pt-2 mt-2">{person.notes}</div>

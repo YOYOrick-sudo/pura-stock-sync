@@ -37,6 +37,7 @@ import {
 
 import { ExtraBestellenDialog } from '@/components/voorraad/ExtraBestellenDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { telwoord } from '@/lib/hoeveelheid';
 
 const STATUS_KLEUR: Record<string, string> = {
   te_tellen: 'bg-muted text-muted-foreground',
@@ -172,7 +173,7 @@ function RouteKaart({ route, onClick }: { route: DashboardRoute; onClick: () => 
         <div className="flex-1 min-w-0">
           <div className="font-medium truncate">{route.naam}</div>
           <div className={isMobile ? 'truncate text-xs text-muted-foreground' : 'text-xs text-muted-foreground'}>
-            {route.artikelen} artikelen
+            {telwoord(route.artikelen, 'artikel', 'artikelen')}
             {route.deadline ? ` · deadline ${route.deadline.slice(0, 5)}` : ''}
             {route.conceptRegels > 0 ? ` · ${route.conceptRegels} op het voorstel` : ''}
             {route.onderweg > 0 ? ` · ${route.onderweg} onderweg` : ''}
@@ -351,7 +352,7 @@ function RouteDetail({
       )}
       {!afgerond && geteld > 0 && nietGeteld.length > 0 && (
         <p className="text-xs text-muted-foreground text-center">
-          {nietGeteld.length} artikelen nog niet geteld — die blijven straks als "niet geteld" staan.
+          {telwoord(nietGeteld.length, 'artikel', 'artikelen')} nog niet geteld — die blijven straks als "niet geteld" staan.
         </p>
       )}
 

@@ -69,6 +69,7 @@ import {
   useProductieBatches,
   ymd,
 } from '@/hooks/useMepTaken';
+import { telwoord } from '@/lib/hoeveelheid';
 
 const PRIO_LABEL: Record<number, string> = { 1: 'Belangrijk' };
 const PRIO_CLASS: Record<number, string> = {
@@ -233,7 +234,7 @@ export default function MepDag() {
         ),
       );
       toast.success(
-        actie === 'vandaag' ? `${rijen.length} taken staan nu op ${doorschuifLabel}` : `${rijen.length} taken vervallen`,
+        actie === 'vandaag' ? `${telwoord(rijen.length, 'taak staat', 'taken staan')} nu op ${doorschuifLabel}` : `${telwoord(rijen.length, 'taak vervalt', 'taken vervallen')}`,
         { action: { label: 'Ongedaan maken', onClick: () => { oud.forEach((o) => bijwerken.mutate(o)); } } },
       );
     } catch (e: any) {
