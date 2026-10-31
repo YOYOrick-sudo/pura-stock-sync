@@ -265,3 +265,14 @@ export function splitsTelpool(regels: KeukenStandRegel[], pool: KeukenTelpoolReg
   overig.sort((a, b) => a.naam.localeCompare(b.naam));
   return { vandaag, overig };
 }
+
+/** Telblok-koptekst op basis van het aantal artikelen dat vandaag aan de beurt is. */
+export function telKopTekst(aantal: number, controles: number): string {
+  if (aantal <= 0) return 'Vanavond geen hardloper aan de beurt. Je kunt wel iets anders tellen.';
+  if (aantal === 1) {
+    const extra = controles === 1 ? ' Dit is een controletelling.' : '';
+    return `Vanavond tellen: dit artikel.${extra}`;
+  }
+  const extra = controles === 1 ? ' 1 daarvan is een controletelling.' : controles > 1 ? ` ${controles} daarvan zijn controletellingen.` : '';
+  return `Vanavond tellen: deze ${aantal} artikelen.${extra}`;
+}
