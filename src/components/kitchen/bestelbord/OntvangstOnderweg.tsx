@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 import { CompacteTabel } from './CompacteTabel';
 import { zoekBordSuggesties, type BordSuggestie } from '@/hooks/useBestelbord';
 import { useOntvangstMutaties, type NaleveringKandidaat, type OntvangstRestant, type OntvangstVandaag } from '@/hooks/useOntvangstV2';
-import { afrondWaarschuwingen, onderwegBlokken, isAutomatisch, bouwRegel, eindcheckFout, kortDatum, restantVan, type EindcheckInvoer, type OntvangstModus, type RestBron } from '@/lib/ontvangstV2';
+import { vandaagZonderOpenRest, afrondWaarschuwingen, onderwegBlokken, isAutomatisch, bouwRegel, eindcheckFout, kortDatum, restantVan, type EindcheckInvoer, type OntvangstModus, type RestBron } from '@/lib/ontvangstV2';
 
 const BRONNEN: { id: RestBron; naam: string }[] = [{ id: 'pakbon', naam: 'Pakbon' }, { id: 'mail', naam: 'Mail' }, { id: 'orderbevestiging', naam: 'Bevestiging' }];
 const sleutelVan = (r: OntvangstVandaag) => r.open_regel_id ?? r.signaal_id ?? r.pakbon_regel_id ?? r.naam;
