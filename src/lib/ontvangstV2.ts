@@ -59,7 +59,7 @@ export function telInvoer(tekst: string): number | null {
   return Number.isFinite(aantal) && aantal >= 0 && aantal <= 100000 ? aantal : null;
 }
 
-export type TelInfo = { tel_label: string | null; tel_factor: number | null; basis_eenheid: string | null };
+export type TelInfo = { tel_label: string | null; tel_factor: number | null; basis_eenheid: string | null; tel_hint?: string | null; tel_afbeelding?: string | null };
 
 export function telEenheidKort(label: string | null): string | null {
   if (label === null) return null;
@@ -267,7 +267,8 @@ export function splitsTelpool(regels: KeukenStandRegel[], pool: KeukenTelpoolReg
 }
 
 /** Telblok-koptekst op basis van het aantal artikelen dat vandaag aan de beurt is. */
-export function telKopTekst(aantal: number, controles: number): string {
+export function telKopTekst(aantal: number, controles: number, dicht = false): string {
+  if (dicht) return 'Vanavond dicht: niemand tellen. Wat aan de beurt was schuift door naar de volgende open avond.';
   if (aantal <= 0) return 'Vanavond geen hardloper aan de beurt. Je kunt wel iets anders tellen.';
   if (aantal === 1) {
     const extra = controles === 1 ? ' Dit is een controletelling.' : '';

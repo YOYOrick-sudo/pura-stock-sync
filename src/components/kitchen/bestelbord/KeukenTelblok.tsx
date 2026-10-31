@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Calculator, ChevronDown } from 'lucide-react';
+import { Calculator, ChevronDown, ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Invoerbalk, KaartKop, LaadRijen, LijstKaart } from '@/components/pura';
 import { EmptyState } from '@/components/pura/EmptyState';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type { KeukenStandRegel, KeukenTelpoolRegel } from '@/hooks/useOntvangstV2';
 import { formatTelHoeveelheid, kortDatum, splitsTelpool, telEenheidKort, telInvoer, telKopTekst, type TelInfo } from '@/lib/ontvangstV2';
@@ -25,6 +26,7 @@ export function KeukenTelblok({ regels, pool, telinfo, laden, onOpslaan, bezig }
   const [invoer, setInvoer] = useState<Record<string, string>>({});
   const { vandaag, overig } = splitsTelpool(regels, pool);
   const controles = vandaag.filter((r) => r.pool?.controle).length;
+  const dicht = !!pool?.length && vandaag.length === 0 && overig.every((r) => r.pool?.reden === 'vestiging dicht: schuift door');
 
   async function opslaan(r: KeukenStandRegel) {
     const aantal = telInvoer(invoer[r.telartikel_id] ?? '');
@@ -53,6 +55,18 @@ export function KeukenTelblok({ regels, pool, telinfo, laden, onOpslaan, bezig }
       <p className="text-xs text-muted-foreground">{r.laatste_telling ? `laatst geteld ${kortDatum(r.laatste_telling)}` : 'nog niet geteld'}</p>
       {(r.pool?.controle || r.pool?.reden) && <p className="truncate text-xs text-muted-foreground">{r.pool?.controle ? 'controletelling: gisteren week de telling sterk af van het verwachte verbruik' : r.pool?.reden}</p>}
       {r.pool?.tel_label && <p className="truncate text-xs text-muted-foreground">{`tel in: ${r.pool.tel_label}`}</p>}
+      {info.tel_hint && <p className="text-xs text-muted-foreground">{info.tel_hint}</p>}
+      {info.tel_afbeelding && (
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button type="button" variant="outline" size="touch" className="mt-1"><ImageIcon className="size-4" />plaatje</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-sm">
+            <DialogTitle className="sr-only">{r.naam}</DialogTitle>
+            <img src={info.tel_afbeelding} alt={r.naam} className="h-auto w-full" />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
     <span className="text-right text-sm tabular-nums">{formatTelHoeveelheid(r.stand, info) ?? 'onbekend'}</span>
     <div className="col-span-2 min-w-0 sm:col-span-1">
@@ -70,7 +84,7 @@ export function KeukenTelblok({ regels, pool, telinfo, laden, onOpslaan, bezig }
 
   return <LijstKaart kop={<KaartKop titel="Tellen" icoon={Calculator} teller={vandaag.length} />}>
     {pool?.length ? (
-      <p className="px-4 pb-1 text-xs text-muted-foreground lg:px-6">{telKopTekst(vandaag.length, controles)}</p>
+      <p className="px-4 pb-1 text-xs text-muted-foreground lg:px-6">{telKopTekst(vandaag.length, controles, dicht)}</p>
     ) : null}
     {laden ? <LaadRijen /> : !regels.length ? <EmptyState icon={Calculator} title="Nog geen telartikelen" description="" className="border-0 shadow-none" /> : <>
       <div className="divide-y divide-border">{vandaag.map(rij)}</div>

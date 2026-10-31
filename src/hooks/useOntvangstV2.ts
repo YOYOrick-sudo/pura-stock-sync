@@ -130,7 +130,7 @@ export function useKeukenTelInfo(m: OntvangstModus) {
     queryKey: ['keuken_telinfo', m.pVestiging], enabled: m.keukenadvies && !!m.pVestiging,
     queryFn: async (): Promise<Record<string, TelInfo>> => {
       const { data, error } = await supabase.from('keuken_telartikel')
-        .select('id, tel_label, tel_factor, basis_eenheid').eq('vestiging', m.pVestiging);
+        .select('id, tel_label, tel_factor, basis_eenheid, tel_hint, tel_afbeelding').eq('vestiging', m.pVestiging);
       if (error) throw new Error(error.message);
       return Object.fromEntries((data ?? []).map(({ id, ...info }) => [id, info]));
     },

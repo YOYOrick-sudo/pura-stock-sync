@@ -164,3 +164,30 @@ describe('fase 2 telblok met telpool', () => {
     expect(html).toContain('Ook iets anders tellen (3)');
   });
 });
+
+describe('fase 2 telhints en plaatje', () => {
+  const stand = (telartikel_id: string, naam: string): KeukenStandRegel => ({ telartikel_id, artikel_id: null, naam, basis_eenheid: 'kg', laatste_telling: null, geteld: null, ontvangen: null, verbruik: null, opslag: null, stand: null, volledig: false, reden: null });
+  test('regel met hint en afbeelding: hint zichtbaar en knopje plaatje aanwezig', () => {
+    const telinfo = { zalm: { tel_label: 'stuk', tel_factor: 1, basis_eenheid: 'kg', tel_hint: '1 hele zijde ≈ 1,5 kg', tel_afbeelding: '/telkaart/zalmzijde-visueel.png' } };
+    const html = renderToString(createElement(KeukenTelblok, { regels: [stand('zalm', 'Zalmzijde')], telinfo, laden: false, bezig: false, onOpslaan: async () => {} }));
+    expect(html).toContain('1 hele zijde ≈ 1,5 kg');
+    expect(html).toContain('plaatje');
+  });
+  test('regel zonder hint: geen knopje plaatje', () => {
+    const telinfo = { zalm: { tel_label: 'stuk', tel_factor: 1, basis_eenheid: 'kg' } };
+    const html = renderToString(createElement(KeukenTelblok, { regels: [stand('zalm', 'Zalmzijde')], telinfo, laden: false, bezig: false, onOpslaan: async () => {} }));
+    expect(html).not.toContain('plaatje');
+    expect(html).not.toContain('1 hele zijde');
+  });
+  test('dichte avond: kop met schuift-door-tekst in plaats van 0-tekst', () => {
+    const regels = [stand('t1', 'Zalmzijde'), stand('t2', 'Wortel')];
+    const dichtePool: KeukenTelpoolRegel[] = [
+      { telartikel_id: 't1', naam: 'Zalmzijde', basis_eenheid: 'kg', tel_label: null, leverancier_naam: null, in_telpool: true, laatste_telling: null, morgen_besteldag: true, klaar: false, geteld_vandaag: false, volgorde: 1, reden: 'vestiging dicht: schuift door' },
+      { telartikel_id: 't2', naam: 'Wortel', basis_eenheid: 'kg', tel_label: null, leverancier_naam: null, in_telpool: true, laatste_telling: null, morgen_besteldag: true, klaar: false, geteld_vandaag: false, volgorde: 2, reden: 'vestiging dicht: schuift door' },
+    ];
+    const html = renderToString(createElement(KeukenTelblok, { regels, pool: dichtePool, laden: false, bezig: false, onOpslaan: async () => {} }));
+    expect(html).toContain('Vanavond dicht: niemand tellen. Wat aan de beurt was schuift door naar de volgende open avond.');
+    expect(html).not.toContain('Vanavond geen hardloper aan de beurt');
+    expect(html).toContain('Ook iets anders tellen (2)');
+  });
+});
