@@ -333,7 +333,15 @@ describe('drankadvies via locatiegebonden RPC', () => {
     expect(html).not.toContain('0 ×');
     expect(html).not.toContain('Tonic');
     expect(html).not.toContain('stand 10');
-    expect(html).toContain('2 × doos 24');
+    expect(html).toContain('2 × dozen 24');
+  });
+
+  test.each([
+    [1, 'doos', '1 × doos'], [2, 'doos', '2 × dozen'], [1, 'krat', '1 × krat'], [3, 'krat', '3 × kratten'], [2, 'pak 1 L', '2 × pakken 1 L'],
+  ])('bestelhoeveelheid %s %s toont %s voluit', (aantal, eenheid, verwacht) => {
+    const regel = { ...regels[0], advies_per_week: aantal as number, bestel_eenheid: eenheid as string };
+    const html = renderToString(createElement(DrankAdviesInhoud, { regels: [regel] }));
+    expect(html).toContain(`>${verwacht}<`);
   });
 
   test('blok staat standaard open', () => {

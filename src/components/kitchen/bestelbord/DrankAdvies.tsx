@@ -12,6 +12,15 @@ const groepen = [
   { groep: 'D3 melk', titel: 'Melk' },
 ] as const;
 const getal = (waarde: number | null) => waarde == null ? '—' : new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 2 }).format(waarde);
+const meervouden: Record<string, string> = { doos: 'dozen', krat: 'kratten', zak: 'zakken', fles: 'flessen', blik: 'blikken', pak: 'pakken' };
+/** Eenheid voluit met juist enkel/meervoud; alleen het eerste woord wisselt, onbekende eenheden blijven gelijk. */
+export function eenheidVoluit(aantal: number | null, eenheid: string | null) {
+  if (!eenheid) return '';
+  const [eerste, ...rest] = eenheid.split(' ');
+  const meervoud = meervouden[eerste.toLowerCase()];
+  if (!meervoud || aantal == null || aantal <= 1) return eenheid;
+  return [meervoud, ...rest].join(' ');
+}
 const eerstTellen = (r: DrankAdviesRegel) => !!r.toelichting?.trim().toLowerCase().startsWith('eerst tellen');
 
 function DrankRij({ r }: { r: DrankAdviesRegel }) {
@@ -19,10 +28,10 @@ function DrankRij({ r }: { r: DrankAdviesRegel }) {
   return <div className="flex min-w-0 items-center gap-2 px-4 py-2 lg:px-6">
     <div className="min-w-0 flex-1">
       <p className="line-clamp-2 break-words text-sm font-medium">{r.artikel}</p>
-      <p className="text-xs tabular-nums text-muted-foreground">{getal(r.per_week)} {r.eenheid}</p>
+      <p className="text-xs tabular-nums text-muted-foreground">{`${getal(r.per_week)} ${eenheidVoluit(r.per_week, r.eenheid)}`}</p>
     </div>
     {r.bestellen
-      ? <p className="max-w-32 break-words text-right text-sm tabular-nums">{getal(r.advies_per_week)} × {r.bestel_eenheid}</p>
+      ? <p className="shrink-0 whitespace-nowrap text-right text-sm tabular-nums">{`${getal(r.advies_per_week)} × ${eenheidVoluit(r.advies_per_week, r.bestel_eenheid)}`}</p>
       : eerstTellen(r) && <Badge variant="secondary" className="shrink-0 whitespace-nowrap">eerst tellen</Badge>}
     {info && <Popover>
       <PopoverTrigger asChild><TikIcoon aria-label={`Info ${r.artikel}`} className="text-muted-foreground"><Info /></TikIcoon></PopoverTrigger>
