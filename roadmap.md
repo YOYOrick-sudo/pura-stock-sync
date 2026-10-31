@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Stap 94: alle printmakers inventariseren, bekende actieve vestiging doorgeven, alleen gemockte payloadtests; geen prints, databasewerk, bridge-/wachtrijwijzigingen of deployment/publicatie. Eerst plan ter goedkeuring.
+
 - [x] Stap 77: ingeklapt drankadvies naast keukentelling, bestaande vlag/toegang, RPC-foutcodes verborgen; 132 tests geslaagd en geïsoleerde mobiele controle met mock RPC op 390px; geen databasewijzigingen/publicatie.
 - [ ] Stap 77 echte schermcontrole — eigen controlesessie blijft op inloggen; echte drankadviesgegevens en zichtbaarheid in aangemelde Bestelbord-sessie niet bevestigd.
 
