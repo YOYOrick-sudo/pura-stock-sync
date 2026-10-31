@@ -4,6 +4,7 @@ import { useRole } from '@/hooks/useRole';
 import { useIsMtLid } from '@/hooks/useIsMtLid';
 import { useHeeftRol } from '@/hooks/useHeeftRol';
 import { MT_ROUTES } from '@/lib/mt';
+import { useFase2VlagAan } from '@/hooks/useOntvangstV2';
 
 export const allNavigationItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home, group: 'overzicht' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
@@ -26,9 +27,14 @@ export const allNavigationItems = [
   { title: 'MT-punten', url: '/mt-punt', icon: MessageSquarePlus, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false, mtOnly: true },
 ];
 
+export function midslandKeukenUrls(midslandBord: boolean): string[] {
+  return ['/kitchen/mep', '/kitchen/gerechten', ...(midslandBord ? ['/kitchen/bestelbord'] : [])];
+}
+
 /** Zichtbare menu-items: één bron voor zijbalk/menu en mobiele onderbalk. */
 export function useNavigatieItems() {
   const { userLocation } = useUserLocation();
+  const midslandBord = useFase2VlagAan(userLocation === 'Midsland' ? 'Midsland' : null, 'ontvangst_v2');
   const { isManager, isOwner } = useRole();
   const { isMtLid } = useIsMtLid();
   const { heeftRol } = useHeeftRol();
@@ -46,7 +52,7 @@ export function useNavigatieItems() {
     .filter(item => !(
       userLocation === 'Midsland' &&
       item.group === 'keuken' &&
-      !['/kitchen/mep', '/kitchen/gerechten'].includes(item.url)
+      !midslandKeukenUrls(midslandBord).includes(item.url)
     ));
 }
 

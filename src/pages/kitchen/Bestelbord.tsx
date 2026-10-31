@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useOntvangstModus, useOntvangstData, useKeukenAdvies } from '@/hooks/useOntvangstV2';
 import { NageleverdKaart, EindcheckKaart } from '@/components/kitchen/bestelbord/OntvangstOnderweg';
 import { MandjeVragen } from '@/components/kitchen/bestelbord/MandjeVragen';
-import { bordRestStatusPerSignaal, onderwegMetRest, onderwegTellers } from '@/lib/ontvangstV2';
+import { bordRestStatusPerSignaal, onderwegMetRest, onderwegTellers, openRestVoorArtikel, restWaarschuwing } from '@/lib/ontvangstV2';
 import { KeukenAdviesTabel } from '@/components/kitchen/bestelbord/KeukenAdviesTabel';
 import { DetailLade, KaartKop, LaadRijen, LijstKaart, Invoerbalk, segmentTabsKlasse } from '@/components/pura/patronen';
 import { TabelVoet } from '@/components/pura/lijst';
@@ -379,6 +379,8 @@ export default function Bestelbord() {
     if (onderwegMatch) {
       toast(`Let op: al onderweg, verwacht ${leverDatumLabel(onderwegMatch.verwachte_levering)}`);
     }
+    const rest = v2 ? openRestVoorArtikel(restanten, { artikel_id: koppeling?.artikel_id ?? null, naam: n }) : null;
+    if (rest) toast.warning(restWaarschuwing(rest));
     toevoegen.mutate(
       { naam: n, aantal, eenheid, koppeling },
       {
@@ -392,6 +394,8 @@ export default function Bestelbord() {
   /** Advies op het bord: gewone open regel (of ophogen bij dezelfde naam), nooit besteld. */
   const adviesOpBord = async (a: BestelAdvies) => {
     if (test || !vestiging || isLoading || adviesBezig) return;
+    const rest = v2 ? openRestVoorArtikel(restanten, { artikel_id: a.artikel_id ?? null, naam: a.artikel }) : null;
+    if (rest) toast.warning(restWaarschuwing(rest));
     const v = a.artikel_vorm_id ? vormById.get(a.artikel_vorm_id) : undefined;
     const eenheid = v?.eenheid ?? a.eenheid ?? 'stuks';
     const aantalA = Number(a.hoeveelheid) > 0 ? Number(a.hoeveelheid) : 1;
@@ -529,7 +533,7 @@ export default function Bestelbord() {
   const tab = tabKeuze ?? (!isLoading && telOverzicht.geladen && telOverzicht.open > 0 && open.length === 0 ? 'tellen' : 'bord');
   const adviesRegels = advies.data?.regels ?? [];
   const leveranciersTabel = <LeveranciersOverzicht open={open} onderweg={besteld} leverancier={leverancier} prijsVan={prijsVan} />;
-  const bordProps = { ...(v2 ? { restStatus: (s: BestelSignaal) => restStatusPerSignaal.get(s.id) ?? null, alleenLezen: test } : {}), regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen };
+  const bordProps = { ...(v2 ? { restStatus: (s: BestelSignaal) => restStatusPerSignaal.get(s.id) ?? null, artikelRest: (s: BestelSignaal) => restStatusPerSignaal.has(s.id) ? null : openRestVoorArtikel(restanten, { artikel_id: s.artikel_id ?? null, naam: s.naam }), alleenLezen: test } : {}), regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen };
   const positieveAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) > 0 && !(v2 && a.artikel_id && nageleverdArtikelen.has(a.artikel_id)));
   const nulAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) <= 0);
   const openPrijzen = open.map(prijsVan).filter((p) => p != null);

@@ -1,12 +1,58 @@
-// @ts-ignore bun test runner
-import { describe, expect, test } from 'bun:test';
-import { vandaagZonderOpenRest, afrondWaarschuwingen, annuleerGeldig, bordRestStatus, bordRestStatusPerSignaal, onderwegBlokken, onderwegMetRest, onderwegTellers, isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, type EindcheckInvoer } from './ontvangstV2';
+// @ts-ignore vitest types are not installed in the app tsconfig
+import { describe, expect, test } from 'vitest';
+import { openRestVoorArtikel, restWaarschuwing, vandaagZonderOpenRest, afrondWaarschuwingen, annuleerGeldig, bordRestStatus, bordRestStatusPerSignaal, onderwegBlokken, onderwegMetRest, onderwegTellers, isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, type EindcheckInvoer } from './ontvangstV2';
 
 const basis: EindcheckInvoer = {
   soort: 'onderweg', signaal_id: 's1', open_regel_id: null, pakbon_regel_id: null, geleverd_vorm_id: null,
   besteld: 5, binnen: 3, kapot: 0, ander_product: false, ander_product_tekst: '', nageleverd: false,
   rest_bron: null, rest_notitie: '', verwacht_op: '', opmerking: '', automatisch: false,
 };
+
+describe('openRestVoorArtikel', () => {
+  const rij = { artikel_id: 'a1', naam: 'Koksroom', telt_als_onderweg: true, opnieuw_besteld: false };
+  test('artikel-id gaat voor een eerdere naam-match', () => {
+    const naamMatch = { ...rij, artikel_id: 'a2' };
+    expect(openRestVoorArtikel([naamMatch, rij], { artikel_id: 'a1', naam: 'Koksroom' })).toBe(rij);
+  });
+  test('naam-match normaliseert hoofdletters en extra spaties', () => {
+    const r = { ...rij, naam: '  Koksroom   Vol  ' };
+    expect(openRestVoorArtikel([r], { naam: ' KOKSROOM  vol ' })).toBe(r);
+    expect(openRestVoorArtikel([r], { artikel_id: 'ander', naam: 'koksroom vol' })).toBe(r);
+  });
+  test('opnieuw bestelde rijen worden genegeerd, ook bij naam-match', () => {
+    expect(openRestVoorArtikel([{ ...rij, opnieuw_besteld: true }], { artikel_id: 'a1', naam: 'Koksroom' })).toBe(null);
+  });
+  test('rijen die niet als onderweg tellen worden genegeerd', () => {
+    expect(openRestVoorArtikel([{ ...rij, telt_als_onderweg: false }], { artikel_id: 'a1', naam: 'Koksroom' })).toBe(null);
+  });
+  test('lege lijst geeft null', () => {
+    expect(openRestVoorArtikel([], { artikel_id: 'a1', naam: 'Koksroom' })).toBe(null);
+  });
+  test('lege invoer en onbekend artikel geven null', () => {
+    expect(openRestVoorArtikel([rij], {})).toBe(null);
+    expect(openRestVoorArtikel([rij], { artikel_id: null, naam: '  ' })).toBe(null);
+    expect(openRestVoorArtikel([rij], { artikel_id: 'ander', naam: 'Melk' })).toBe(null);
+  });
+});
+
+describe('restWaarschuwing', () => {
+  const rest = { soort: 'mist', aantal: 2, eenheid: 'doos', sinds: '2026-11-05', verwacht_op: null };
+  test('mist zonder verwachte datum', () => {
+    expect(restWaarschuwing(rest)).toBe('Let op: 2 doos mist nog sinds do 5 nov');
+  });
+  test('mist met verwachte datum', () => {
+    expect(restWaarschuwing({ ...rest, verwacht_op: '2026-11-06' })).toBe('Let op: 2 doos mist nog sinds do 5 nov, verwacht vr 6 nov');
+  });
+  test('nageleverd zonder eenheid, ook bij een lege eenheid', () => {
+    expect(restWaarschuwing({ ...rest, soort: 'wordt_nageleverd', eenheid: null })).toBe('Let op: 2 wordt nog nageleverd sinds do 5 nov');
+    expect(restWaarschuwing({ ...rest, soort: 'wordt_nageleverd', eenheid: '  ' })).toBe('Let op: 2 wordt nog nageleverd sinds do 5 nov');
+  });
+  test('ook de API-soort backorder geeft alleen personeelstaal', () => {
+    const tekst = restWaarschuwing({ ...rest, soort: 'backorder' });
+    expect(tekst).toBe('Let op: 2 doos wordt nog nageleverd sinds do 5 nov');
+    expect(tekst.toLowerCase()).not.toContain('backorder');
+  });
+});
 
 describe('schakelaar', () => {
   test('geen rijen of mislukte rpc: alles uit', () => {
