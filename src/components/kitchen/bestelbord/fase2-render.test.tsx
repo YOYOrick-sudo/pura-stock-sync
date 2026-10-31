@@ -5,6 +5,7 @@ import { renderToString } from 'react-dom/server';
 import { BordTabel } from './BordTabel';
 import { KeukenAdviesTabel } from './KeukenAdviesTabel';
 import { KeukenTelblok } from './KeukenTelblok';
+import { hoeveelheid as gedeeldeHoeveelheid, telwoord } from '@/lib/hoeveelheid';
 import { DrankAdvies, DrankAdviesInhoud, hoeveelheid, uitlegRegel } from './DrankAdvies';
 import { useDrankAdvies, type DrankAdviesRegel } from '@/hooks/useOntvangstV2';
 import { useQuery } from '@tanstack/react-query';
@@ -69,6 +70,11 @@ describe('fase 2 zichtbaar in HTML', () => {
       { telartikel_id: 'a3', naam: 'IJsbergsla', basis_eenheid: null, leverancier_naam: null, stand: 1, onderweg_op_tijd: 0, onderweg_restant: 0, behoefte: 3, vorm: 'stuk', advies_vormen: 2, status: 'advies', reden: null },
     ];
     const html = renderToString(createElement(KeukenAdviesTabel, { regels, laden: false }));
+    const naamKlasse = html.match(/<span class="([^"]*)">Komkommer/)?.[1] ?? '';
+    expect(naamKlasse).toContain('line-clamp-2');
+    expect(naamKlasse).toContain('break-words');
+    expect(naamKlasse).not.toMatch(/truncate|line-clamp-1|max-w-/);
+    expect(html).not.toContain('max-w-[10rem]');
     expect(html).toContain('3 st');
     expect(html.match(/Geen advies/g)).toHaveLength(2);
     const rijVan = (naam: string) => html.split('<tr>').find((r) => r.includes(naam)) ?? '';
@@ -387,5 +393,19 @@ describe('drankadvies via locatiegebonden RPC', () => {
     expect(data).toBeNull();
     vi.mocked(useQuery).mockReturnValueOnce({ data, isLoading: false, isError: false } as ReturnType<typeof useQuery>);
     expect(renderToString(createElement(DrankAdvies, { vestiging: 'Test' }))).toBe('');
+  });
+});
+
+describe('gedeelde hoeveelheid-notatie', () => {
+  test.each([
+    [1, 'doos', '1 doos'], [2, 'doos', '2 dozen'], [36, 'pak 1 L', '36 pakken (1 L)'], [1, 'stuk', '1 stuk'], [4, 'stuk', '4 stuks'],
+    [2, 'bakje', '2 bakjes'], [3, 'emmer', '3 emmers'], [2, 'tray', '2 trays'], [5, 'zakje', '5 zakjes'], [2, 'pot', '2 potten'],
+    [3, 'rol', '3 rollen'], [2, 'bus', '2 bussen'], [0, 'kist', '0 kisten'], [1, 'dozen', '1 doos'], [2.82, 'kg', '2,82 kg'], [3, 'colli', '3 colli'],
+  ])('hoeveelheid(%s, %s) = %s', (aantal, eenheid, verwacht) => {
+    expect(gedeeldeHoeveelheid(aantal as number, eenheid as string)).toBe(verwacht);
+  });
+  test('telwoord enkel/meervoud', () => {
+    expect(telwoord(1, 'regel', 'regels')).toBe('1 regel');
+    expect(telwoord(3, 'regel', 'regels')).toBe('3 regels');
   });
 });
