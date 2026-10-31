@@ -3,6 +3,13 @@ import type { KeukenStandRegel, KeukenTelpoolRegel } from '@/hooks/useOntvangstV
 
 export type Schakelaar = { vestiging: string; vlag: string; aan: boolean; mag_beslissen: boolean };
 
+export function leesTab(waarde: string | null): 'bord' | 'advies' | 'keuken' | 'tellen' | 'onderweg' | null {
+  switch (waarde) {
+    case 'bord': case 'advies': case 'keuken': case 'tellen': case 'onderweg': return waarde;
+    default: return null;
+  }
+}
+
 export type OntvangstModus = {
   test: boolean;
   ontvangstV2: boolean;

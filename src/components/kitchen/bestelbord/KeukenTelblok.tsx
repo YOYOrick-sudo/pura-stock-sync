@@ -41,7 +41,7 @@ export function KeukenTelblok({ regels, pool, telinfo, laden, onOpslaan, bezig }
 
   const rij = (r: Rij) => {
     const info = telinfo?.[r.telartikel_id] ?? { tel_label: null, tel_factor: 1, basis_eenheid: r.basis_eenheid };
-    const kort = telEenheidKort(info.tel_label);
+    const kort = telEenheidKort(info.tel_label) ?? r.basis_eenheid;
     return <div key={r.telartikel_id} className="grid min-w-0 grid-cols-2 items-center gap-2 px-4 py-2 lg:px-6 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
     <div className="min-w-0">
       <div className="flex min-w-0 items-center gap-1.5">
@@ -55,9 +55,11 @@ export function KeukenTelblok({ regels, pool, telinfo, laden, onOpslaan, bezig }
     <span className="text-right text-sm tabular-nums">{formatTelHoeveelheid(r.stand, info) ?? 'onbekend'}</span>
     <div className="col-span-2 min-w-0 sm:col-span-1">
       <Invoerbalk>
-        <Input inputMode="decimal" min={0} aria-label={`Aantal ${r.naam}`} placeholder={kort ? `Aantal ${kort}` : 'Aantal'} value={invoer[r.telartikel_id] ?? ''} disabled={bezig}
+        <label htmlFor={`keuken-telling-${r.telartikel_id}`} className="sr-only">Aantal</label>
+        <Input id={`keuken-telling-${r.telartikel_id}`} inputMode="decimal" min={0} aria-label={`Aantal ${r.naam} in ${kort ?? ''}`} placeholder="Aantal" value={invoer[r.telartikel_id] ?? ''} disabled={bezig}
           onChange={(e) => setInvoer((vorig) => ({ ...vorig, [r.telartikel_id]: e.target.value }))}
-          className="h-11 min-w-0 flex-1 basis-0 text-base sm:w-24" />
+          className="h-11 w-24 min-w-[6rem] flex-1 basis-0 text-base" />
+        <span className="whitespace-nowrap text-sm text-muted-foreground">{kort}</span>
         <Button type="button" variant="outline" size="touch" disabled={bezig || telInvoer(invoer[r.telartikel_id] ?? '') === null} onClick={() => opslaan(r)}>Opslaan</Button>
       </Invoerbalk>
     </div>

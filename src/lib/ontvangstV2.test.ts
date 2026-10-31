@@ -1,7 +1,16 @@
 // @ts-ignore vitest types are not installed in the app tsconfig
 import { describe, expect, test } from 'vitest';
-import { formatTelHoeveelheid, telEenheidKort } from './ontvangstV2';
+import { formatTelHoeveelheid, telEenheidKort, leesTab } from './ontvangstV2';
 import { telInvoer, openRestVoorArtikel, restWaarschuwing, vandaagZonderOpenRest, afrondWaarschuwingen, annuleerGeldig, bordRestStatus, bordRestStatusPerSignaal, onderwegBlokken, onderwegMetRest, onderwegTellers, isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, splitsTelpool, type EindcheckInvoer } from './ontvangstV2';
+
+describe('leesTab', () => {
+  test.each(['bord', 'advies', 'keuken', 'tellen', 'onderweg'])('%s blijft gekozen', (waarde: string) => {
+    expect(leesTab(waarde)).toBe(waarde);
+  });
+  test.each(['xyz', null])('onbekende of ontbrekende tab %s geeft null', (waarde: string | null) => {
+    expect(leesTab(waarde)).toBeNull();
+  });
+});
 
 describe('telInvoer', () => {
   test.each([

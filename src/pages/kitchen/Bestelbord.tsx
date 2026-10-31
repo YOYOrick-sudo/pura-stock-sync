@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Check, AlertCircle, Search, ChefHat, Hourglass } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useOntvangstModus, useOntvangstData, useKeukenAdvies, useKeukenStand, useKeukenTelpool, useKeukenTelInfo, useKeukenTelling } from '@/hooks/useOntvangstV2';
 import { NageleverdKaart, EindcheckKaart } from '@/components/kitchen/bestelbord/OntvangstOnderweg';
 import { MandjeVragen } from '@/components/kitchen/bestelbord/MandjeVragen';
-import { bordRestStatusPerSignaal, onderwegMetRest, onderwegTellers, openRestVoorArtikel, restWaarschuwing } from '@/lib/ontvangstV2';
+import { bordRestStatusPerSignaal, onderwegMetRest, onderwegTellers, openRestVoorArtikel, restWaarschuwing, leesTab } from '@/lib/ontvangstV2';
 import { KeukenAdviesTabel } from '@/components/kitchen/bestelbord/KeukenAdviesTabel';
 import { KeukenTelblok } from '@/components/kitchen/bestelbord/KeukenTelblok';
 import { DetailLade, KaartKop, LaadRijen, LijstKaart, Invoerbalk, segmentTabsKlasse } from '@/components/pura/patronen';
@@ -233,12 +234,26 @@ export default function Bestelbord() {
   const vandaagStr = ymd(new Date());
   const advies = useBestelAdvies(vestiging || null, vandaagStr);
   const [adviesBezig, setAdviesBezig] = useState(false);
-  const [tabKeuze, setTabKeuze] = useState<string | null>(null);
+  const [params, setSearchParams] = useSearchParams();
+  const tabKeuze = leesTab(params.get('tab'));
+  const setTabKeuze = useCallback((waarde: string | null) => {
+    setSearchParams((vorig) => {
+      const volgend = new URLSearchParams(vorig);
+      const gekozenTab = leesTab(waarde);
+      if (gekozenTab) volgend.set('tab', gekozenTab);
+      else volgend.delete('tab');
+      return volgend;
+    }, { replace: true });
+  }, [setSearchParams]);
+  const vorigeVestiging = useRef(vestiging);
   const zoek = '';
   const [alleenZonderPrijs, setAlleenZonderPrijs] = useState(false);
   const [telOverzicht, setTelOverzicht] = useState({ open: 0, geladen: false });
   const rapporteerTellen = useCallback((a: { open: number; geladen: boolean }) => setTelOverzicht(a), []);
-  useEffect(() => { setTabKeuze(null); }, [vestiging]);
+  useEffect(() => {
+    if (vorigeVestiging.current && vorigeVestiging.current !== vestiging) setTabKeuze(null);
+    vorigeVestiging.current = vestiging;
+  }, [vestiging, setTabKeuze]);
 
 
   const vandaag = useMemo(() => new Date(), []);
@@ -535,7 +550,7 @@ export default function Bestelbord() {
   };
 
   const isMobile = useIsMobile();
-  const tab = tabKeuze ?? (!isLoading && telOverzicht.geladen && telOverzicht.open > 0 && open.length === 0 ? 'tellen' : 'bord');
+  const tab = tabKeuze === 'keuken' && !modus.keukenadvies ? 'bord' : tabKeuze ?? (!isLoading && telOverzicht.geladen && telOverzicht.open > 0 && open.length === 0 ? 'tellen' : 'bord');
   const adviesRegels = advies.data?.regels ?? [];
   const leveranciersTabel = <LeveranciersOverzicht open={open} onderweg={besteld} leverancier={leverancier} prijsVan={prijsVan} />;
   const bordProps = { ...(v2 ? { restStatus: (s: BestelSignaal) => restStatusPerSignaal.get(s.id) ?? null, artikelRest: (s: BestelSignaal) => restStatusPerSignaal.has(s.id) ? null : openRestVoorArtikel(restanten, { artikel_id: s.artikel_id ?? null, naam: s.naam }), alleenLezen: test } : {}), regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen };
@@ -688,7 +703,7 @@ export default function Bestelbord() {
                 {!!nulAdviezen.length && <LijstKaart kop={<KaartKop icoon={Check} titel="Niet nodig" teller={nulAdviezen.length} />}><AdviesTabel regels={nulAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} deadlineHint={deadlineHint} nul /></LijstKaart>}
               </TabsContent>
               {modus.keukenadvies && <TabsContent value="keuken" className="mt-0 space-y-4"><KeukenTelblok regels={keukenStand.data ?? []} pool={keukenTelpool.data} telinfo={keukenTelInfo.data} laden={keukenStand.isLoading} bezig={telling.isPending} onOpslaan={(id, n) => telling.mutateAsync({ telartikelId: id, aantal: n })} /><KeukenAdviesTabel regels={keukenAdvies.data ?? []} telinfo={keukenTelInfo.data} laden={keukenAdvies.isLoading} /></TabsContent>}
-              <div hidden={tab !== 'tellen'}>{test ? <LijstKaart><p className="px-4 py-6 text-center text-sm text-muted-foreground">Niet beschikbaar in testmodus</p></LijstKaart> : <Voorraadproef key={vestiging} vestiging={vestiging} onOverzicht={rapporteerTellen} />}</div>
+              <div hidden={tab !== 'tellen'}>{test ? <LijstKaart><p className="px-4 py-6 text-center text-sm text-muted-foreground">Tellen staat uit in testmodus, omdat dit de echte voorraad van {vestiging} aanpast.<br />De keukentelling test je op het tabblad Advies keuken.</p></LijstKaart> : <Voorraadproef key={vestiging} vestiging={vestiging} onOverzicht={rapporteerTellen} />}</div>
               <TabsContent value="onderweg" className="mt-0 space-y-4">
                 {v2 && <><NageleverdKaart modus={modus} regels={restanten} /><EindcheckKaart modus={modus} restanten={restanten} regels={ontvangst.vandaag.data ?? []} laden={ontvangst.vandaag.isLoading} leveranciers={leveranciers} /></>}
                 {[...(v2 ? [] : [{ titel: 'Vandaag te checken', regels: teCheckenZicht }]), { titel: 'Onderweg', regels: onderwegGroepZicht }, { titel: 'Zonder datum', regels: zonderDatumZicht }].filter((g) => g.regels.length).map((groep) => <LijstKaart key={groep.titel} kop={<KaartKop icoon={Truck} titel={groep.titel} teller={groep.regels.length} />}><OnderwegTabel groepen={groepeer(groep.regels)} {...groepProps} onBewerk={openBewerk} datumLabel={datumLabel} leverDatumLabel={leverDatumLabel} {...(v2 ? { zonderDeels: true, alleenLezen: test, restStatus: (s: BestelSignaal) => restStatusPerSignaal.get(s.id) ?? null } : {})} /><TabelVoet links={`${groep.regels.length} ${groep.regels.length === 1 ? 'product' : 'producten'}`} /></LijstKaart>)}

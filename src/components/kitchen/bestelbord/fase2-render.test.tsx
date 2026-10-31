@@ -77,11 +77,20 @@ describe('fase 2 teleenheden in HTML', () => {
     expect(html).not.toContain('>500<');
     expect(html).toContain('3 st');
   });
-  test('telblok toont stand in zakken en placeholder met teleenheid', () => {
+  test('telblok toont stand in zakken en zichtbare teleenheid naast het veld', () => {
     const regels: KeukenStandRegel[] = [{ telartikel_id: 'rucola', artikel_id: null, naam: 'Rucola', basis_eenheid: 'g', stand: 500, laatste_telling: null, geteld: null, ontvangen: null, verbruik: null, opslag: null, volledig: false, reden: null }];
     const html = renderToString(createElement(KeukenTelblok, { regels, telinfo, laden: false, bezig: false, onOpslaan: async () => {} }));
     expect(html).toContain('2 zak (500 g)');
-    expect(html).toContain('placeholder="Aantal zak"');
+    expect(html).toContain('placeholder="Aantal"');
+    expect(html).toMatch(/<span class="whitespace-nowrap text-sm text-muted-foreground">zak<\/span>/);
+    expect(html).toContain('aria-label="Aantal Rucola in zak"');
+  });
+  test('telblok toont basiseenheid naast het veld zonder telinfo', () => {
+    const regels: KeukenStandRegel[] = [{ telartikel_id: 'komkommer', artikel_id: null, naam: 'Komkommer', basis_eenheid: 'st', stand: 3, laatste_telling: null, geteld: null, ontvangen: null, verbruik: null, opslag: null, volledig: false, reden: null }];
+    const html = renderToString(createElement(KeukenTelblok, { regels, laden: false, bezig: false, onOpslaan: async () => {} }));
+    expect(html).toMatch(/<span class="whitespace-nowrap text-sm text-muted-foreground">st<\/span>/);
+    expect(html).toContain('placeholder="Aantal"');
+    expect(html).toContain('aria-label="Aantal Komkommer in st"');
   });
 });
 describe('fase 2 telblok met telpool', () => {
