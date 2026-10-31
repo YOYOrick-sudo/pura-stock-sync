@@ -1,6 +1,6 @@
 // @ts-ignore bun test runner
 import { describe, expect, test } from 'bun:test';
-import { afrondWaarschuwingen, annuleerGeldig, bordRestStatus, bordRestStatusPerSignaal, onderwegBlokken, onderwegMetRest, onderwegTellers, isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, type EindcheckInvoer } from './ontvangstV2';
+import { vandaagZonderOpenRest, afrondWaarschuwingen, annuleerGeldig, bordRestStatus, bordRestStatusPerSignaal, onderwegBlokken, onderwegMetRest, onderwegTellers, isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, type EindcheckInvoer } from './ontvangstV2';
 
 const basis: EindcheckInvoer = {
   soort: 'onderweg', signaal_id: 's1', open_regel_id: null, pakbon_regel_id: null, geleverd_vorm_id: null,
@@ -145,5 +145,19 @@ describe('onderweg-blokken en badges', () => {
       { regel: 'r2', naam: 'Melk', waarschuwing: 'geen inhoud per verpakking: telt niet in voorraad' },
     ] })).toEqual(['Oatly Barista Light: let op: ook opnieuw besteld']);
     expect(afrondWaarschuwingen(null)).toEqual([]);
+  });
+});
+
+describe('vandaagZonderOpenRest', () => {
+  const r = (soort: string, id: string) => ({ soort, id });
+  test('mist en backorder eruit', () => {
+    expect(vandaagZonderOpenRest([r('mist', 'a'), r('backorder', 'b')])).toEqual([]);
+  });
+  test('nalevering, onderweg en alleen_pakbon blijven in volgorde', () => {
+    const lijst = [r('alleen_pakbon', '1'), r('mist', 'x'), r('onderweg', '2'), r('backorder', 'y'), r('nalevering', '3')];
+    expect(vandaagZonderOpenRest(lijst).map((x) => x.id)).toEqual(['1', '2', '3']);
+  });
+  test('lege lijst', () => {
+    expect(vandaagZonderOpenRest([])).toEqual([]);
   });
 });
