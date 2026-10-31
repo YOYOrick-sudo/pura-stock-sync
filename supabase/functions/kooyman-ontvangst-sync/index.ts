@@ -34,6 +34,21 @@ const amsterdam = (d = new Date()) => new Intl.DateTimeFormat("sv-SE", {
   hour: "2-digit", minute: "2-digit", hour12: false,
 }).format(d);
 
+export function amsterdamWeekdagEnTijd(d: Date) {
+  const delen = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Amsterdam", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).formatToParts(d);
+  const deel = (type: string) => delen.find((p) => p.type === type)?.value ?? "";
+  return { weekdag: deel("weekday"), hm: `${deel("hour")}:${deel("minute")}` };
+}
+
+export function binnenOphaalVenster(d: Date): boolean {
+  const { weekdag, hm } = amsterdamWeekdagEnTijd(d);
+  if (weekdag === "Sat") return hm >= "12:20" && hm <= "12:45";
+  if (!["Mon", "Tue", "Wed", "Thu", "Fri"].includes(weekdag)) return false;
+  return (hm >= "11:20" && hm <= "11:45") || (hm >= "17:20" && hm <= "17:45");
+}
+
 async function kooyman(bron: keyof typeof KEY_ENV, path: string): Promise<[number, unknown]> {
   const key = Deno.env.get(KEY_ENV[bron]);
   if (!key) throw new Error(`secret ${KEY_ENV[bron]} ontbreekt`);
@@ -108,8 +123,8 @@ export async function handler(req: Request): Promise<Response> {
       return json({ fout: "handmatig alleen doel Test of modus vergelijk" }, 403);
     }
     if (body.alleen_op_tijd) {
-      const hm = amsterdam().slice(11, 16);
-      if (!(hm >= "07:20" && hm <= "07:45") && !(hm >= "14:20" && hm <= "14:45")) return json({ overgeslagen: hm });
+      const nu = new Date();
+      if (!binnenOphaalVenster(nu)) return json({ overgeslagen: amsterdamWeekdagEnTijd(nu).hm });
     }
     const { data: inst, error: instError } = await sb.from("ontvangst_instelling").select("waarde").eq("sleutel", "kooyman_sync_live").maybeSingle();
     if (instError) return json({ fout: "kooyman_sync_live kon niet worden gelezen" }, 500);
