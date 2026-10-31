@@ -333,7 +333,7 @@ describe('drankadvies via locatiegebonden RPC', () => {
     expect(html).not.toContain('0 ×');
     expect(html).not.toContain('Tonic');
     expect(html).not.toContain('stand 10');
-    expect(html).toContain('2 × doos 24');
+    expect(html).toContain('2 × dozen 24');
   });
 
   test.each([
