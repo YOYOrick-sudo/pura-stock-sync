@@ -3614,6 +3614,54 @@ export type Database = {
           },
         ]
       }
+      kooyman_sync_log: {
+        Row: {
+          backorders: Json | null
+          bron: string
+          doel: string
+          fout: string | null
+          gestart_op: string
+          id: string
+          leveringen: Json | null
+          modus: string
+          n_backorder_regels: number | null
+          n_backorders: number | null
+          n_pakbon_regels: number | null
+          n_pakbonnen: number | null
+          uitkomst: Json | null
+        }
+        Insert: {
+          backorders?: Json | null
+          bron: string
+          doel: string
+          fout?: string | null
+          gestart_op?: string
+          id?: string
+          leveringen?: Json | null
+          modus: string
+          n_backorder_regels?: number | null
+          n_backorders?: number | null
+          n_pakbon_regels?: number | null
+          n_pakbonnen?: number | null
+          uitkomst?: Json | null
+        }
+        Update: {
+          backorders?: Json | null
+          bron?: string
+          doel?: string
+          fout?: string | null
+          gestart_op?: string
+          id?: string
+          leveringen?: Json | null
+          modus?: string
+          n_backorder_regels?: number | null
+          n_backorders?: number | null
+          n_pakbon_regels?: number | null
+          n_pakbonnen?: number | null
+          uitkomst?: Json | null
+        }
+        Relationships: []
+      }
       leave_requests: {
         Row: {
           created_at: string
