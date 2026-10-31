@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/pura/EmptyState';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type { KeukenStandRegel, KeukenTelpoolRegel } from '@/hooks/useOntvangstV2';
 import { formatTelHoeveelheid, kortDatum, splitsTelpool, telEenheidKort, telInvoer, telKopTekst, type TelInfo } from '@/lib/ontvangstV2';
@@ -82,7 +83,7 @@ export function KeukenTelblok({ regels, pool, telinfo, laden, onOpslaan, bezig }
 
   return <LijstKaart kop={<KaartKop titel="Tellen" icoon={Calculator} teller={vandaag.length} />}>
     {pool?.length ? (
-      <p className="px-4 pb-1 text-xs text-muted-foreground lg:px-6">{telKopTekst(vandaag.length, controles)}</p>
+      <p className="px-4 pb-1 text-xs text-muted-foreground lg:px-6">{telKopTekst(vandaag.length, controles, dicht)}</p>
     ) : null}
     {laden ? <LaadRijen /> : !regels.length ? <EmptyState icon={Calculator} title="Nog geen telartikelen" description="" className="border-0 shadow-none" /> : <>
       <div className="divide-y divide-border">{vandaag.map(rij)}</div>
