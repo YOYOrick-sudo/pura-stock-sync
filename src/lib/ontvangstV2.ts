@@ -1,4 +1,5 @@
 /** Pure helpers voor ontvangst v2 (achter schakelaar). Geen schrijfacties. */
+import type { KeukenStandRegel, KeukenTelpoolRegel } from '@/hooks/useOntvangstV2';
 
 export type Schakelaar = { vestiging: string; vlag: string; aan: boolean; mag_beslissen: boolean };
 
