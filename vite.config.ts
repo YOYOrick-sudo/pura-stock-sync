@@ -15,6 +15,8 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: null,
+      devOptions: { enabled: false },
       includeAssets: ['favicon.ico', 'icons/*.png'],
       workbox: {
         cleanupOutdatedCaches: true,
