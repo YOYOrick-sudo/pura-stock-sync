@@ -315,4 +315,7 @@ describe('telKopTekst', () => {
   test('aantal 3 met 2 controles', () => {
     expect(telKopTekst(3, 2)).toBe('Vanavond tellen: deze 3 artikelen. 2 daarvan zijn controletellingen.');
   });
+  test('dichte avond: schuift door', () => {
+    expect(telKopTekst(0, 0, true)).toBe('Vanavond dicht: niemand tellen. Wat aan de beurt was schuift door naar de volgende open avond.');
+  });
 });
