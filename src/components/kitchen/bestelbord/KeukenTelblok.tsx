@@ -45,7 +45,7 @@ export function KeukenTelblok({ regels, pool, laden, onOpslaan, bezig }: Props) 
       </div>
       <p className="text-xs text-muted-foreground">{r.laatste_telling ? `laatst geteld ${kortDatum(r.laatste_telling)}` : 'nog niet geteld'}</p>
       {r.pool?.reden && <p className="truncate text-xs text-muted-foreground">{r.pool.reden}</p>}
-      {r.pool?.tel_label && <p className="truncate text-xs text-muted-foreground">tel in: {r.pool.tel_label}</p>}
+      {r.pool?.tel_label && <p className="truncate text-xs text-muted-foreground">{`tel in: ${r.pool.tel_label}`}</p>}
     </div>
     <span className="text-right text-sm tabular-nums">{r.stand === null ? 'onbekend' : `${r.stand}${r.basis_eenheid ? ` ${r.basis_eenheid}` : ''}`}</span>
     <div className="col-span-2 min-w-0 sm:col-span-1">
