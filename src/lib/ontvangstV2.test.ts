@@ -234,8 +234,8 @@ describe('splitsTelpool', () => {
   test('regel zonder poolregel gaat naar vandaag', () => {
     const p = [pool('t2', true, 1)];
     const { vandaag, overig } = splitsTelpool(regels, p);
-    expect(vandaag.map((r) => r.telartikel_id)).toContain('t1');
-    expect(overig).toHaveLength(4);
+    expect(vandaag.map((r) => r.telartikel_id)).toEqual(['t2', 't1', 't3', 't4', 't5']);
+    expect(overig).toEqual([]);
   });
   test('pool leeg of undefined: alles vandaag, overig leeg', () => {
     expect(splitsTelpool(regels, undefined).vandaag).toHaveLength(5);
