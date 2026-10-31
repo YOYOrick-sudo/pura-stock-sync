@@ -26,7 +26,7 @@ export function KeukenTelblok({ regels, pool, telinfo, laden, onOpslaan, bezig }
   const [invoer, setInvoer] = useState<Record<string, string>>({});
   const { vandaag, overig } = splitsTelpool(regels, pool);
   const controles = vandaag.filter((r) => r.pool?.controle).length;
-  const dicht = !!pool?.length && vandaag.length === 0 && overig.every((r) => r.reden === 'vestiging dicht: schuift door');
+  const dicht = !!pool?.length && vandaag.length === 0 && overig.every((r) => r.pool?.reden === 'vestiging dicht: schuift door');
 
   async function opslaan(r: KeukenStandRegel) {
     const aantal = telInvoer(invoer[r.telartikel_id] ?? '');
