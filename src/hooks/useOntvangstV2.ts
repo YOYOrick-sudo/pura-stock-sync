@@ -49,6 +49,12 @@ export type KeukenStandRegel = {
   opslag: number | null; stand: number | null; volledig: boolean; reden: string | null;
 };
 
+export type KeukenTelpoolRegel = {
+  telartikel_id: string; naam: string; basis_eenheid: string | null; tel_label: string | null; leverancier_naam: string | null;
+  in_telpool: boolean; laatste_telling: string | null; morgen_besteldag: boolean; klaar: boolean;
+  geteld_vandaag: boolean; volgorde: number; reden: string | null;
+};
+
 async function leesFase2Schakelaars(): Promise<Schakelaar[]> {
   try { return await lees<Schakelaar[]>('fase2_schakelaars'); } catch { return []; }
 }
@@ -112,6 +118,13 @@ export function useKeukenStand(m: OntvangstModus) {
   });
 }
 
+export function useKeukenTelpool(m: OntvangstModus) {
+  return useQuery({
+    queryKey: ['keuken_telpool_dag', m.pVestiging], enabled: m.keukenadvies && !!m.pVestiging,
+    queryFn: () => lees<KeukenTelpoolRegel[]>('keuken_telpool_dag', { p_vestiging: m.pVestiging, p_datum: null }),
+  });
+}
+
 export function useKeukenTelling() {
   const qc = useQueryClient();
   return useMutation({
@@ -121,6 +134,7 @@ export function useKeukenTelling() {
       await Promise.all([
         qc.invalidateQueries({ queryKey: ['keuken_voorraad_stand'] }),
         qc.invalidateQueries({ queryKey: ['keuken_advies'] }),
+        qc.invalidateQueries({ queryKey: ['keuken_telpool_dag'] }),
       ]);
     },
   });
