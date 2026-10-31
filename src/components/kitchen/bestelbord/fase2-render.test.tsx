@@ -20,11 +20,11 @@ import { openRestVoorArtikel } from '@/lib/ontvangstV2';
 import type { BestelSignaal } from '@/hooks/useBestelbord';
 import type { KeukenAdviesRegel, KeukenStandRegel, KeukenTelpoolRegel, OntvangstRestant } from '@/hooks/useOntvangstV2';
 
-vi.mock('react', async (origineel) => {
+vi.mock('react', async (origineel: <T>() => Promise<T>) => {
   const react = await origineel<typeof import('react')>();
   return { ...react, useState: vi.fn(react.useState) };
 });
-vi.mock('@tanstack/react-query', async (origineel) => {
+vi.mock('@tanstack/react-query', async (origineel: <T>() => Promise<T>) => {
   const query = await origineel<typeof import('@tanstack/react-query')>();
   return { ...query, useQuery: vi.fn(query.useQuery) };
 });

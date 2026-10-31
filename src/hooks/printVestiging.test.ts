@@ -1,5 +1,6 @@
 // @ts-ignore vitest runs from the existing isolated test environment
 import { beforeEach, describe, expect, test, vi } from 'vitest';
+// @ts-ignore node test API is outside the browser app types
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
 import { useCreatePrintJob } from './usePrintJobs';

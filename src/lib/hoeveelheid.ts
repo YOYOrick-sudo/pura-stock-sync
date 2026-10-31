@@ -30,4 +30,10 @@ export function eenheidVorm(aantal: number | null, eenheid: string | null) {
 }
 
 /** Telwoord met juist enkel/meervoud: telwoord(1, 'regel', 'regels') → '1 regel'. */
-export const telwoord = (n: number, enkel: string, meer: string) => `${n} ${n === 1 ? enkel : meer}`;
+export const telwoord = (n: number, enkel: string, meer: string, opties?: { breukenEnkelvoud: boolean }) => {
+  const enkelvoud = n === 1 || (opties?.breukenEnkelvoud && !Number.isInteger(n));
+  const aantal = opties?.breukenEnkelvoud
+    ? new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 1 }).format(n)
+    : String(n);
+  return `${aantal} ${enkelvoud ? enkel : meer}`;
+};
