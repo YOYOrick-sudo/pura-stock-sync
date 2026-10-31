@@ -8567,6 +8567,32 @@ export type Database = {
         }[]
       }
       current_user_location: { Args: never; Returns: string }
+      drank_advies: {
+        Args: { p_vestiging: string }
+        Returns: {
+          aanname: boolean
+          advies_per_week: number
+          artikel: string
+          bestel_eenheid: string
+          eenheid: string
+          groep: string
+          per_week: number
+          toelichting: string
+        }[]
+      }
+      drank_advies_kern: {
+        Args: { p_vestiging: string }
+        Returns: {
+          aanname: boolean
+          advies_per_week: number
+          artikel: string
+          bestel_eenheid: string
+          eenheid: string
+          groep: string
+          per_week: number
+          toelichting: string
+        }[]
+      }
       eenheid_tekst: {
         Args: { p_eenheid: string; p_waarde: number }
         Returns: string
