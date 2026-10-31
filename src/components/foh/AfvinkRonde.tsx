@@ -3,6 +3,8 @@ import { toast } from 'sonner';
 import { Check, ChefHat, Loader2, PackageX, RotateCcw, WifiOff } from 'lucide-react';
 import { SectieBalk } from './SectieBalk';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { vraagtKoelcelBevestiging } from '@/lib/koelcelBevestiging';
 import { cn } from '@/lib/utils';
 import {
   useKoelcelCheckItems,
@@ -55,6 +57,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
   const { zetStatus, naarMepDirect, bronOp } = useKoelcelCheckMutaties(vestiging, datum, items);
   const [bezig, setBezig] = useState<Set<string>>(new Set());
   const [mislukt, setMislukt] = useState<Record<string, () => void>>({});
+  const [koelcelKeuze, setKoelcelKeuze] = useState<KoelcelCheckItem | null>(null);
 
   // Snelknop "Bijvullen" op het dashboard: ernaartoe scrollen.
   useEffect(() => {
@@ -142,14 +145,18 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
     );
   };
 
-  const op = (item: KoelcelCheckItem) => {
+  const op = (item: KoelcelCheckItem, koelcelLeeg = false) => {
+    if (!koelcelLeeg && vraagtKoelcelBevestiging(item, items)) {
+      setKoelcelKeuze(item);
+      return;
+    }
     metStatus(
       item.id,
       async () => {
         const r = await bronOp.mutateAsync({ item, taakDatum });
         toast.success(`${r.bronItem.naam} ${BEVESTIG[r.bestemming.soort] ?? 'is gemeld'}`);
       },
-      () => op(item),
+      () => op(item, koelcelLeeg),
     );
   };
 
@@ -326,6 +333,31 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
             );
           })}
       </div>
+      <Dialog open={!!koelcelKeuze} onOpenChange={(open) => { if (!open) setKoelcelKeuze(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{koelcelKeuze?.naam}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-3">
+            <Button variant="outline" size="touch" onClick={() => {
+              if (!koelcelKeuze) return;
+              const item = koelcelKeuze;
+              setKoelcelKeuze(null);
+              vink(item);
+            }}>
+              <Check className="h-4 w-4" /> Aanvullen uit koelcel
+            </Button>
+            <Button variant="outline" size="touch" onClick={() => {
+              if (!koelcelKeuze) return;
+              const item = koelcelKeuze;
+              setKoelcelKeuze(null);
+              op(item, true);
+            }}>
+              <PackageX className="h-4 w-4" /> Koelcel is leeg — bijbestellen
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
