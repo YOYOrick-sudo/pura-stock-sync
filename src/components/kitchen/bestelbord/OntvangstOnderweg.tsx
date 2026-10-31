@@ -48,9 +48,9 @@ export function NageleverdKaart({ modus, regels }: { modus: OntvangstModus; rege
     if (!d.actief.length && !d.opnieuw.length) return null;
     const Icoon = icoon;
     const rij = (r: OntvangstRestant, licht: boolean) => <TableRow key={r.regel_id ?? r.api_backorder_id ?? r.naam} className={cn(licht && 'text-muted-foreground')}>
-      <TableCell className="!px-0"><div className="mx-auto flex h-11 w-11 items-center justify-center"><Icoon className={cn('h-4 w-4', warn && !licht ? 'text-warning' : 'text-muted-foreground')} aria-hidden /></div></TableCell>
+      <TableCell className="!px-0"><div className="mx-auto flex h-11 w-8 items-center justify-center"><Icoon className={cn('size-4', warn && !licht ? 'text-warning' : 'text-muted-foreground')} aria-hidden /></div></TableCell>
       <TableCell><div className="flex min-h-11 min-w-0 flex-col justify-center">
-        <span className="min-w-0 line-clamp-2 break-words font-medium">{r.naam}</span>
+        <span className="min-w-0 break-words font-medium">{r.naam}</span>
         <RijMeta altijd>{licht ? <Badge variant="secondary">mogelijke nalevering</Badge> : warn && <Badge variant="warning">Mist</Badge>}<span className="min-w-0 break-words">{[r.leverancier_naam, kortDatum(r.verwacht_op ?? r.controle_op)].filter(Boolean).join(' · ')}</span></RijMeta>
       </div></TableCell>
       <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex items-center gap-1.5"><span className="rounded-full bg-muted px-2 text-sm font-semibold">{Number(r.aantal)}</span>{r.eenheid && <span className="text-xs text-muted-foreground">{eenheidVorm(Number(r.aantal), r.eenheid)}</span>}</span></TableCell>
@@ -58,7 +58,7 @@ export function NageleverdKaart({ modus, regels }: { modus: OntvangstModus; rege
       <TableCell className="!px-0">{licht && modus.magBeslissen && r.regel_id && <RijMenu naam={r.naam} acties={[{ label: 'Geannuleerd door leverancier', gevaar: true, onClick: () => setAnnuleer(r) }]} />}</TableCell>
     </TableRow>;
     return <LijstKaart kop={<KaartKop icoon={Icoon} titel={titel} teller={d.actief.length} />}>
-      <CompacteTabel zonderKop onderweg kinderen={<TableBody>{d.actief.map((r) => rij(r, false))}{d.opnieuw.map((r) => rij(r, true))}</TableBody>} />
+      <CompacteTabel zonderKop onderweg smal kinderen={<TableBody>{d.actief.map((r) => rij(r, false))}{d.opnieuw.map((r) => rij(r, true))}</TableBody>} />
     </LijstKaart>;
   };
   return <>
