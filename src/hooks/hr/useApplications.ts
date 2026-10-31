@@ -101,7 +101,7 @@ export function useUpdateApplication() {
     mutationFn: async ({ id, data }: { id: string; data: Partial<Application> }): Promise<Application> => {
       const { data: application, error } = await supabase
         .from('applications')
-        .update(data)
+        .update(data as never)
         .eq('id', id)
         .select()
         .single();
@@ -182,7 +182,7 @@ export function useUpdateApplicationStatus() {
 
       const { error } = await supabase
         .from('applications')
-        .update(updateData)
+        .update(updateData as never)
         .eq('id', id);
 
       if (error) throw error;
