@@ -43,6 +43,21 @@ export type KeukenAdviesRegel = {
   vorm: string | null; advies_vormen: number | null; status: string | null; reden: string | null;
 };
 
+async function leesFase2Schakelaars(): Promise<Schakelaar[]> {
+  try { return await lees<Schakelaar[]>('fase2_schakelaars'); } catch { return []; }
+}
+
+export function useFase2VlagAan(vestiging: string | null | undefined, vlag: string): boolean {
+  const { data } = useQuery({
+    queryKey: ['fase2_schakelaars'],
+    queryFn: leesFase2Schakelaars,
+    enabled: !!vestiging,
+    staleTime: 60_000,
+    retry: false,
+  });
+  return !!vestiging && !!data?.some((r) => r.vestiging === vestiging && r.vlag === vlag && r.aan === true);
+}
+
 /** Schakelaar per actieve vestiging; fout of geen rij = uit. */
 export function useOntvangstModus(vestiging: string): OntvangstModus {
   const [params] = useSearchParams();
@@ -52,9 +67,7 @@ export function useOntvangstModus(vestiging: string): OntvangstModus {
     enabled: !!vestiging,
     staleTime: 60_000,
     retry: false,
-    queryFn: async () => {
-      try { return await lees<Schakelaar[]>('fase2_schakelaars'); } catch { return []; }
-    },
+    queryFn: leesFase2Schakelaars,
   });
   return useMemo(() => bepaalModus(data, vestiging, testGevraagd), [data, vestiging, testGevraagd]);
 }

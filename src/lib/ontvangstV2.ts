@@ -43,6 +43,25 @@ export function kortDatum(d: string | null | undefined): string {
   return new Date(y, m - 1, dag).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '');
 }
 
+/** Actief restant van hetzelfde artikel; artikel-id gaat voor een genormaliseerde naam. */
+export function openRestVoorArtikel<T extends { artikel_id: string | null; naam: string; telt_als_onderweg: boolean; opnieuw_besteld: boolean }>(rijen: T[], zoek: { artikel_id?: string | null; naam?: string | null }): T | null {
+  const actief = rijen.filter((r) => r.telt_als_onderweg === true && r.opnieuw_besteld === false);
+  if (zoek.artikel_id) {
+    const opId = actief.find((r) => r.artikel_id === zoek.artikel_id);
+    if (opId) return opId;
+  }
+  const normaliseer = (naam: string) => naam.trim().toLowerCase().replace(/\s+/g, ' ');
+  const naam = normaliseer(zoek.naam ?? '');
+  return naam ? actief.find((r) => normaliseer(r.naam) === naam) ?? null : null;
+}
+
+/** Waarschuwing zonder bestelactie te blokkeren. */
+export function restWaarschuwing(r: { soort: string; aantal: number; eenheid: string | null; sinds: string | null; verwacht_op: string | null }): string {
+  const status = restSoortLabel(r.soort) === 'Mist' ? 'mist nog' : 'wordt nog nageleverd';
+  const tekst = ['Let op:', r.aantal, r.eenheid?.trim(), status, 'sinds', kortDatum(r.sinds)].filter((deel) => deel !== null && deel !== undefined && deel !== '').join(' ');
+  return r.verwacht_op ? `${tekst}, verwacht ${kortDatum(r.verwacht_op)}` : tekst;
+}
+
 export type RestBron = 'pakbon' | 'mail' | 'orderbevestiging';
 
 export type EindcheckInvoer = {
