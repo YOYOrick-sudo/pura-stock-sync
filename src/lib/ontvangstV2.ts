@@ -52,6 +52,28 @@ export function telInvoer(tekst: string): number | null {
   return Number.isFinite(aantal) && aantal >= 0 && aantal <= 100000 ? aantal : null;
 }
 
+export type TelInfo = { tel_label: string | null; tel_factor: number | null; basis_eenheid: string | null };
+
+export function telEenheidKort(label: string | null): string | null {
+  if (label === null) return null;
+  const kort = label.replace(/\([^)]*\)/g, '').trim();
+  return !kort || kort === 'stuks' || kort === 'stuk' ? 'st' : kort;
+}
+
+export function formatTelHoeveelheid(basis: number | null | undefined, info: TelInfo | undefined): string | null {
+  if (basis == null) return null;
+  const b = Number(basis);
+  const e = info?.basis_eenheid ?? '';
+  const decimaal = (n: number, cijfers: number) => n.toLocaleString('nl-NL', { maximumFractionDigits: cijfers, useGrouping: false });
+  const basisTekst = [decimaal(b, e === 'g' || e === 'ml' ? 0 : 1), e].filter(Boolean).join(' ');
+  const kort = telEenheidKort(info?.tel_label ?? null);
+  const factor = info?.tel_factor;
+  if (!info || !factor || factor === 1 || !kort || kort === e || kort === 'st') return basisTekst;
+  const n = Math.round((b / factor) * 10) / 10;
+  const benadering = Math.abs(n * factor - b) > 0.01 ? '≈' : '';
+  return `${benadering}${decimaal(n, 1)} ${kort} (${basisTekst})`;
+}
+
 /** Actief restant van hetzelfde artikel; artikel-id gaat voor een genormaliseerde naam. */
 export function openRestVoorArtikel<T extends { artikel_id: string | null; naam: string; telt_als_onderweg: boolean; opnieuw_besteld: boolean }>(rijen: T[], zoek: { artikel_id?: string | null; naam?: string | null }): T | null {
   const actief = rijen.filter((r) => r.telt_als_onderweg === true && r.opnieuw_besteld === false);

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { bepaalModus, type OntvangstModus, type Schakelaar } from '@/lib/ontvangstV2';
+import { bepaalModus, type OntvangstModus, type Schakelaar, type TelInfo } from '@/lib/ontvangstV2';
 
 // Functies staan nog niet in de gegenereerde types: lokale definities + cast.
 const rpc = (naam: string, args?: Record<string, unknown>) =>
@@ -40,7 +40,7 @@ export type NaleveringKandidaat = { regel_id: string; soort: string; naam: strin
 export type KeukenAdviesRegel = {
   telartikel_id: string; naam: string; basis_eenheid: string | null; leverancier_naam: string | null;
   stand: number | null; onderweg_op_tijd: number | null; onderweg_restant: number | null; behoefte: number | null;
-  vorm: string | null; advies_vormen: number | null; status: string | null; reden: string | null;
+  vorm: string | null; advies_vormen: number | null; inhoud_vorm?: number | null; status: string | null; reden: string | null;
 };
 
 export type KeukenStandRegel = {
@@ -122,6 +122,18 @@ export function useKeukenTelpool(m: OntvangstModus) {
   return useQuery({
     queryKey: ['keuken_telpool_dag', m.pVestiging], enabled: m.keukenadvies && !!m.pVestiging,
     queryFn: () => lees<KeukenTelpoolRegel[]>('keuken_telpool_dag', { p_vestiging: m.pVestiging, p_datum: null }),
+  });
+}
+
+export function useKeukenTelInfo(m: OntvangstModus) {
+  return useQuery({
+    queryKey: ['keuken_telinfo', m.pVestiging], enabled: m.keukenadvies && !!m.pVestiging,
+    queryFn: async (): Promise<Record<string, TelInfo>> => {
+      const { data, error } = await supabase.from('keuken_telartikel')
+        .select('id, tel_label, tel_factor, basis_eenheid').eq('vestiging', m.pVestiging);
+      if (error) throw new Error(error.message);
+      return Object.fromEntries((data ?? []).map(({ id, ...info }) => [id, info]));
+    },
   });
 }
 

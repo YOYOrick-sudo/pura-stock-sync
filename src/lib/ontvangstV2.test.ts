@@ -1,5 +1,6 @@
 // @ts-ignore vitest types are not installed in the app tsconfig
 import { describe, expect, test } from 'vitest';
+import { formatTelHoeveelheid, telEenheidKort } from './ontvangstV2';
 import { telInvoer, openRestVoorArtikel, restWaarschuwing, vandaagZonderOpenRest, afrondWaarschuwingen, annuleerGeldig, bordRestStatus, bordRestStatusPerSignaal, onderwegBlokken, onderwegMetRest, onderwegTellers, isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, splitsTelpool, type EindcheckInvoer } from './ontvangstV2';
 
 describe('telInvoer', () => {
@@ -8,6 +9,40 @@ describe('telInvoer', () => {
     ['0', 0], ['100000', 100000], ['Infinity', null], ['2,5,1', null],
   ])('%s geeft %s', (tekst: string, verwacht: number | null) => {
     expect(telInvoer(tekst)).toBe(verwacht);
+  });
+});
+
+describe('telhoeveelheid', () => {
+  const zak = { tel_label: 'zak (250 g)', tel_factor: 250, basis_eenheid: 'g' };
+  test.each([
+    [500, '2 zak (500 g)'], [375, '1,5 zak (375 g)'], [929.2, '≈3,7 zak (929 g)'],
+    [0, '0 zak (0 g)'], [-250, '-1 zak (-250 g)'],
+  ])('%s gram in zakken', (basis: number, verwacht: string) => {
+    expect(formatTelHoeveelheid(basis, zak)).toBe(verwacht);
+  });
+  test('stuks blijven basiseenheid', () => {
+    expect(formatTelHoeveelheid(3, { tel_label: 'stuks', tel_factor: 1, basis_eenheid: 'st' })).toBe('3 st');
+  });
+  test.each([null, undefined])('ontbrekende hoeveelheid %s', (basis: null | undefined) => {
+    expect(formatTelHoeveelheid(basis, zak)).toBeNull();
+  });
+  test('geen info toont alleen het getal', () => {
+    expect(formatTelHoeveelheid(3, undefined)).toBe('3');
+  });
+  test('lege factor of factor 1 blijft basis', () => {
+    expect(formatTelHoeveelheid(500, { ...zak, tel_factor: null })).toBe('500 g');
+    expect(formatTelHoeveelheid(500, { ...zak, tel_factor: 1 })).toBe('500 g');
+  });
+  test('zelfde teleenheid of st blijft basis', () => {
+    expect(formatTelHoeveelheid(500, { ...zak, tel_label: 'g' })).toBe('500 g');
+    expect(formatTelHoeveelheid(500, { ...zak, tel_label: 'stuk' })).toBe('500 g');
+  });
+  test('basiseenheden ronden af met Nederlandse komma', () => {
+    expect(formatTelHoeveelheid(3.25, { tel_label: null, tel_factor: 1, basis_eenheid: 'st' })).toBe('3,3 st');
+    expect(formatTelHoeveelheid(929.2, { tel_label: null, tel_factor: 1, basis_eenheid: 'ml' })).toBe('929 ml');
+  });
+  test.each([['zak (1 kg)', 'zak'], ['stuks', 'st'], ['stuk', 'st'], ['', 'st'], ['   ', 'st'], [null, null]])('korte eenheid %s', (label: string | null, verwacht: string | null) => {
+    expect(telEenheidKort(label)).toBe(verwacht);
   });
 });
 
