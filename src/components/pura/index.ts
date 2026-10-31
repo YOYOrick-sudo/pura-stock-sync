@@ -3,6 +3,7 @@ export { StatusBadge, toneColor, type StatusTone, type StatusVariant } from './S
 export { SegmentedTabs } from './SegmentedTabs';
 export { StatCard } from './StatCard';
 export { EmptyState } from './EmptyState';
+export { TikIcoon } from './TikIcoon';
 export * from './patronen';
 export * from './lijst';
 export * from './blokken';

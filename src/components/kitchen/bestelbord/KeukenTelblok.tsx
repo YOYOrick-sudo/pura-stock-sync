@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Calculator, Check, CheckCircle, ChevronDown, ImageIcon, Info, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
-import { KaartKop, LaadRijen, LijstKaart } from '@/components/pura';
+import { KaartKop, LaadRijen, LijstKaart, TikIcoon } from '@/components/pura';
 import { EmptyState } from '@/components/pura/EmptyState';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -48,18 +48,30 @@ export function KeukenTelblok({ regels, pool, telinfo, laden, onOpslaan, bezig }
     return <div key={r.telartikel_id} className="flex min-w-0 items-center gap-1 px-4 py-2 lg:gap-2 lg:px-6">
     <div className="flex min-w-0 flex-1 items-center gap-1">
       <p className="min-w-0 flex-1 truncate whitespace-nowrap text-sm font-medium">{r.naam}</p>
-      {r.pool?.geteld_vandaag && <CheckCircle role="img" aria-label="geteld vandaag" className="size-4 shrink-0 text-muted-foreground" />}
+      {r.pool?.geteld_vandaag && <Popover>
+        <PopoverTrigger asChild>
+          <TikIcoon aria-label="geteld vandaag" className="text-muted-foreground"><CheckCircle /></TikIcoon>
+        </PopoverTrigger>
+        <PopoverContent className="text-sm">Vandaag geteld</PopoverContent>
+      </Popover>}
       {r.pool?.controle && <Popover>
         <PopoverTrigger asChild>
-          <Button type="button" variant="ghost" size="touch-icon" className="w-4 shrink-0 text-warning" aria-label={`Controletelling ${r.naam}`}><RefreshCw /></Button>
+          <TikIcoon className="text-warning" aria-label={`Controletelling ${r.naam}`}><RefreshCw /></TikIcoon>
         </PopoverTrigger>
         <PopoverContent className="text-sm">Controletelling: de vorige telling week sterk af van het verwachte verbruik.</PopoverContent>
       </Popover>}
-      {info.tel_hint && <Badge variant="secondary" className="max-w-24 shrink-0 whitespace-nowrap px-1"><span className="truncate">{info.tel_hint}</span></Badge>}
+      {info.tel_hint && <Popover>
+        <PopoverTrigger asChild>
+          <TikIcoon aria-label={`Hint ${r.naam}`} className="w-auto max-w-24">
+            <Badge variant="secondary" className="max-w-24 whitespace-nowrap px-1"><span className="truncate">{info.tel_hint}</span></Badge>
+          </TikIcoon>
+        </PopoverTrigger>
+        <PopoverContent className="text-sm">{info.tel_hint}</PopoverContent>
+      </Popover>}
       {info.tel_afbeelding && (
         <Dialog>
           <DialogTrigger asChild>
-            <Button type="button" variant="ghost" size="touch-icon" className="w-4 shrink-0 text-muted-foreground" aria-label={`Plaatje ${r.naam}`}><ImageIcon /></Button>
+            <TikIcoon className="text-muted-foreground" aria-label={`Plaatje ${r.naam}`}><ImageIcon /></TikIcoon>
           </DialogTrigger>
           <DialogContent className="max-w-sm">
             <DialogTitle className="sr-only">{r.naam}</DialogTitle>
@@ -69,7 +81,7 @@ export function KeukenTelblok({ regels, pool, telinfo, laden, onOpslaan, bezig }
       )}
       <Popover>
         <PopoverTrigger asChild>
-          <Button type="button" variant="ghost" size="touch-icon" className="w-4 shrink-0 text-muted-foreground" aria-label={`Info ${r.naam}`}><Info /></Button>
+          <TikIcoon className="text-muted-foreground" aria-label={`Info ${r.naam}`}><Info /></TikIcoon>
         </PopoverTrigger>
         <PopoverContent className="space-y-1 text-sm">
           <p className="font-medium">{r.naam}</p>
@@ -91,7 +103,7 @@ export function KeukenTelblok({ regels, pool, telinfo, laden, onOpslaan, bezig }
   };
 
   return <LijstKaart kop={<KaartKop titel={dicht ? 'Vanavond dicht' : 'Vanavond tellen'} icoon={Calculator} teller={dicht ? undefined : vandaag.length} rechts={dicht ? <Popover>
-    <PopoverTrigger asChild><Button type="button" variant="ghost" size="touch-icon" className="text-muted-foreground" aria-label="Info vanavond dicht"><Info /></Button></PopoverTrigger>
+    <PopoverTrigger asChild><TikIcoon className="text-muted-foreground" aria-label="Info vanavond dicht"><Info /></TikIcoon></PopoverTrigger>
     <PopoverContent className="text-sm">Niemand tellen. Wat aan de beurt was schuift door naar de volgende open avond.</PopoverContent>
   </Popover> : undefined} />}>
     {laden ? <LaadRijen /> : !regels.length ? <EmptyState icon={Calculator} title="Nog geen telartikelen" description="" className="border-0 shadow-none" /> : <>
