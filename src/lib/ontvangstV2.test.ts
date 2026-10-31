@@ -1,6 +1,6 @@
 // @ts-ignore vitest types are not installed in the app tsconfig
 import { describe, expect, test } from 'vitest';
-import { formatTelHoeveelheid, telEenheidKort, leesTab } from './ontvangstV2';
+import { formatTelHoeveelheid, telEenheidKort, leesTab, telKopTekst } from './ontvangstV2';
 import { telInvoer, openRestVoorArtikel, restWaarschuwing, vandaagZonderOpenRest, afrondWaarschuwingen, annuleerGeldig, bordRestStatus, bordRestStatusPerSignaal, onderwegBlokken, onderwegMetRest, onderwegTellers, isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, splitsTelpool, type EindcheckInvoer } from './ontvangstV2';
 
 describe('leesTab', () => {
@@ -293,5 +293,26 @@ describe('splitsTelpool', () => {
     expect(splitsTelpool(regels, undefined).overig).toEqual([]);
     expect(splitsTelpool(regels, []).vandaag).toHaveLength(5);
     expect(splitsTelpool(regels, []).overig).toEqual([]);
+  });
+});
+
+describe('telKopTekst', () => {
+  test('aantal 0: geen hardloper', () => {
+    expect(telKopTekst(0, 0)).toBe('Vanavond geen hardloper aan de beurt. Je kunt wel iets anders tellen.');
+  });
+  test('aantal 1 zonder controle', () => {
+    expect(telKopTekst(1, 0)).toBe('Vanavond tellen: dit artikel.');
+  });
+  test('aantal 1 met controle', () => {
+    expect(telKopTekst(1, 1)).toBe('Vanavond tellen: dit artikel. Dit is een controletelling.');
+  });
+  test('aantal 2 zonder controle', () => {
+    expect(telKopTekst(2, 0)).toBe('Vanavond tellen: deze 2 artikelen.');
+  });
+  test('aantal 3 met 1 controle', () => {
+    expect(telKopTekst(3, 1)).toBe('Vanavond tellen: deze 3 artikelen. 1 daarvan is een controletelling.');
+  });
+  test('aantal 3 met 2 controles', () => {
+    expect(telKopTekst(3, 2)).toBe('Vanavond tellen: deze 3 artikelen. 2 daarvan zijn controletellingen.');
   });
 });

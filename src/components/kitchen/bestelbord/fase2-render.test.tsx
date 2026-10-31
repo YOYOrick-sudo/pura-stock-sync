@@ -141,4 +141,26 @@ describe('fase 2 telblok met telpool', () => {
     expect(html).not.toContain('Ook iets anders tellen');
     expect(html).not.toContain('Vanavond tellen');
   });
+
+  test('nul klaar: kop zonder hardloper, alles in het inklapbare deel', () => {
+    const nietsKlaar = pool.map((r) => ({ ...r, klaar: false, geteld_vandaag: false }));
+    const html = renderToString(createElement(KeukenTelblok, { regels, pool: nietsKlaar, laden: false, bezig: false, onOpslaan: async () => {} }));
+    expect(html).toContain('Vanavond geen hardloper aan de beurt. Je kunt wel iets anders tellen.');
+    expect(html).toContain('Ook iets anders tellen (5)');
+    expect(html).not.toContain('Vanavond tellen');
+  });
+
+  test('één klaar: kop met dit artikel', () => {
+    const eenKlaar = pool.map((r) => ({ ...r, klaar: r.telartikel_id === 't1' }));
+    const html = renderToString(createElement(KeukenTelblok, { regels, pool: eenKlaar, laden: false, bezig: false, onOpslaan: async () => {} }));
+    expect(html).toContain('Vanavond tellen: dit artikel.');
+    expect(html).toContain('Ook iets anders tellen (4)');
+  });
+
+  test('twee klaar: kop met deze 2 artikelen', () => {
+    const tweeKlaar = pool.map((r) => ({ ...r, klaar: r.telartikel_id === 't1' || r.telartikel_id === 't2' }));
+    const html = renderToString(createElement(KeukenTelblok, { regels, pool: tweeKlaar, laden: false, bezig: false, onOpslaan: async () => {} }));
+    expect(html).toContain('Vanavond tellen: deze 2 artikelen.');
+    expect(html).toContain('Ook iets anders tellen (3)');
+  });
 });
