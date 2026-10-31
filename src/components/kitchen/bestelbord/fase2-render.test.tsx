@@ -5,6 +5,8 @@ import { renderToString } from 'react-dom/server';
 import { BordTabel } from './BordTabel';
 import { KeukenAdviesTabel } from './KeukenAdviesTabel';
 import { KeukenTelblok } from './KeukenTelblok';
+import { TikIcoon } from '@/components/pura';
+import { Info } from 'lucide-react';
 import { openRestVoorArtikel } from '@/lib/ontvangstV2';
 import type { BestelSignaal } from '@/hooks/useBestelbord';
 import type { KeukenAdviesRegel, KeukenStandRegel, KeukenTelpoolRegel, OntvangstRestant } from '@/hooks/useOntvangstV2';
@@ -206,6 +208,14 @@ describe('fase 2 telhints en plaatje', () => {
 
 
 describe('compacte telrij en opslaggedrag', () => {
+  test('TikIcoon heeft een toegankelijk label en een onzichtbaar minimaal 44px tikvlak', () => {
+    const html = renderToString(createElement(TikIcoon, { 'aria-label': 'Info telregel' }, createElement(Info)));
+    expect(html).toContain('aria-label="Info telregel"');
+    expect(html).toContain('after:h-11');
+    expect(html).toContain('after:min-w-11');
+    expect(html).toContain('after:absolute');
+    expect(html).toContain('focus-visible:ring-2');
+  });
   const regel: KeukenStandRegel = { telartikel_id: 'zalm', artikel_id: null, naam: 'Zalmzijde', basis_eenheid: 'kg', laatste_telling: '2026-10-30', geteld: null, ontvangen: null, verbruik: null, opslag: null, stand: 1.5, volledig: false, reden: null };
   test('naam, aantal, eenheid en opslag aanwezig; uitleg alleen achter info', () => {
     const html = renderToString(createElement(KeukenTelblok, { regels: [regel], laden: false, bezig: false, onOpslaan: async () => {} }));
