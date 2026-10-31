@@ -13,7 +13,7 @@ import { BestelbordTabs } from '@/components/kitchen/bestelbord/BestelbordTabs';
 import { KeukenAdviesTabel } from '@/components/kitchen/bestelbord/KeukenAdviesTabel';
 import { KeukenTelblok } from '@/components/kitchen/bestelbord/KeukenTelblok';
 import { DrankAdvies } from '@/components/kitchen/bestelbord/DrankAdvies';
-import { DetailLade, KaartKop, LaadRijen, LijstKaart, Invoerbalk, segmentTabsKlasse } from '@/components/pura/patronen';
+import { DetailLade, KaartKop, LaadRijen, LijstKaart, Invoerbalk } from '@/components/pura/patronen';
 import { TabelVoet } from '@/components/pura/lijst';
 import { EmptyState } from '@/components/pura/EmptyState';
 import { Stappen } from '@/components/pura/blokken';
@@ -35,7 +35,7 @@ import { Voorraadproef } from '@/components/kitchen/Voorraadproef';
 import { usePrijsSignalen } from '@/hooks/usePrijsSignalen';
 import { zoekSignaal, type PrijsSignaal } from '@/lib/prijsSignaal';
 
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { BordTabel } from '@/components/kitchen/bestelbord/BordTabel';
 import { OnderwegTabel } from '@/components/kitchen/bestelbord/OnderwegTabel';
