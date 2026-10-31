@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calculator, ChevronDown } from 'lucide-react';
+import { Calculator, ChevronDown, ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Invoerbalk, KaartKop, LaadRijen, LijstKaart } from '@/components/pura';
 import { EmptyState } from '@/components/pura/EmptyState';
