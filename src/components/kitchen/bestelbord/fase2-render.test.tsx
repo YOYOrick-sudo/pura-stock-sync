@@ -62,3 +62,40 @@ describe('fase 2 zichtbaar in HTML', () => {
     expect(rijVan('IJsbergsla')).toContain('font-semibold">2<');
   });
 });
+describe('fase 2 telblok met telpool', () => {
+  const regels: KeukenStandRegel[] = [
+    { telartikel_id: 't1', artikel_id: null, naam: 'Ananas', basis_eenheid: null, laatste_telling: null, geteld: null, ontvangen: null, verbruik: null, opslag: null, stand: null, volledig: false, reden: null },
+    { telartikel_id: 't2', artikel_id: null, naam: 'Banaan', basis_eenheid: null, laatste_telling: null, geteld: null, ontvangen: null, verbruik: null, opslag: null, stand: null, volledig: false, reden: null },
+    { telartikel_id: 't3', artikel_id: null, naam: 'Cranberry', basis_eenheid: null, laatste_telling: null, geteld: null, ontvangen: null, verbruik: null, opslag: null, stand: null, volledig: false, reden: null },
+    { telartikel_id: 't4', artikel_id: null, naam: 'Druif', basis_eenheid: null, laatste_telling: null, geteld: null, ontvangen: null, verbruik: null, opslag: null, stand: null, volledig: false, reden: null },
+    { telartikel_id: 't5', artikel_id: null, naam: 'Endive', basis_eenheid: null, laatste_telling: null, geteld: null, ontvangen: null, verbruik: null, opslag: null, stand: null, volledig: false, reden: null },
+  ];
+  const pool: KeukenTelpoolRegel[] = [
+    { telartikel_id: 't2', naam: 'Banaan', basis_eenheid: null, tel_label: 'kist', leverancier_naam: 'Kooyman', in_telpool: true, laatste_telling: null, morgen_besteldag: true, klaar: true, geteld_vandaag: true, volgorde: 1, reden: 'morgen besteldag Kooyman' },
+    { telartikel_id: 't1', naam: 'Ananas', basis_eenheid: null, tel_label: null, leverancier_naam: 'Kooyman', in_telpool: true, laatste_telling: null, morgen_besteldag: true, klaar: true, geteld_vandaag: false, volgorde: 2, reden: 'morgen besteldag Kooyman; 3 dagen niet geteld' },
+    { telartikel_id: 't3', naam: 'Cranberry', basis_eenheid: null, tel_label: null, leverancier_naam: null, in_telpool: true, laatste_telling: null, morgen_besteldag: false, klaar: false, geteld_vandaag: false, volgorde: 3, reden: null },
+    { telartikel_id: 't4', naam: 'Druif', basis_eenheid: null, tel_label: null, leverancier_naam: null, in_telpool: true, laatste_telling: null, morgen_besteldag: false, klaar: false, geteld_vandaag: false, volgorde: 4, reden: null },
+    { telartikel_id: 't5', naam: 'Endive', basis_eenheid: null, tel_label: null, leverancier_naam: null, in_telpool: true, laatste_telling: null, morgen_besteldag: false, klaar: false, geteld_vandaag: false, volgorde: 5, reden: null },
+  ];
+
+  test('toont alleen vandaag, uitleg, reden en geteld-badge; overig dichtgeklapt', () => {
+    const html = renderToString(createElement(KeukenTelblok, { regels, pool, laden: false, bezig: false, onOpslaan: async () => {} }));
+    expect(html).toContain('Ananas');
+    expect(html).toContain('Banaan');
+    expect(html).toContain('Vanavond tellen: deze 2 artikelen. Morgen kiest de app weer andere.');
+    expect(html).toContain('Ook iets anders tellen (3)');
+    expect(html).toContain('morgen besteldag Kooyman');
+    expect(html).toContain('tel in: kist');
+    expect(html).toContain('>geteld<');
+    expect(html).not.toContain('Cranberry');
+    expect(html).not.toContain('Druif');
+    expect(html).not.toContain('Endive');
+  });
+
+  test('zonder pool: alle 5 namen zichtbaar, geen inklaptekst', () => {
+    const html = renderToString(createElement(KeukenTelblok, { regels, laden: false, bezig: false, onOpslaan: async () => {} }));
+    for (const nm of ['Ananas', 'Banaan', 'Cranberry', 'Druif', 'Endive']) expect(html).toContain(nm);
+    expect(html).not.toContain('Ook iets anders tellen');
+    expect(html).not.toContain('Vanavond tellen');
+  });
+});

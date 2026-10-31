@@ -216,3 +216,31 @@ describe('vandaagZonderOpenRest', () => {
     expect(vandaagZonderOpenRest([])).toEqual([]);
   });
 });
+
+describe('splitsTelpool', () => {
+  const stand = (id: string, naam: string) => ({ telartikel_id: id, naam, artikel_id: null, basis_eenheid: null, laatste_telling: null, geteld: null, ontvangen: null, verbruik: null, opslag: null, stand: null, volledig: false, reden: null });
+  const pool = (telartikel_id: string, klaar: boolean, volgorde: number) => ({
+    telartikel_id, naam: '', basis_eenheid: null, tel_label: null, leverancier_naam: null, in_telpool: true,
+    laatste_telling: null, morgen_besteldag: false, klaar, geteld_vandaag: false, volgorde, reden: null,
+  });
+  const regels = [stand('t1', 'Cranberry'), stand('t2', 'Banaan'), stand('t3', 'Druif'), stand('t4', 'Ananas'), stand('t5', 'Endive')];
+
+  test('twee klaar (volgorde 2 en 1) komen eerst in volgorde, rest op naam', () => {
+    const p = [pool('t3', true, 2), pool('t2', true, 1), pool('t1', false, 3), pool('t4', false, 4), pool('t5', false, 5)];
+    const { vandaag, overig } = splitsTelpool(regels, p);
+    expect(vandaag.map((r) => r.telartikel_id)).toEqual(['t2', 't3']);
+    expect(overig.map((r) => r.naam)).toEqual(['Ananas', 'Cranberry', 'Endive']);
+  });
+  test('regel zonder poolregel gaat naar vandaag', () => {
+    const p = [pool('t2', true, 1)];
+    const { vandaag, overig } = splitsTelpool(regels, p);
+    expect(vandaag.map((r) => r.telartikel_id)).toContain('t1');
+    expect(overig).toHaveLength(4);
+  });
+  test('pool leeg of undefined: alles vandaag, overig leeg', () => {
+    expect(splitsTelpool(regels, undefined).vandaag).toHaveLength(5);
+    expect(splitsTelpool(regels, undefined).overig).toEqual([]);
+    expect(splitsTelpool(regels, []).vandaag).toHaveLength(5);
+    expect(splitsTelpool(regels, []).overig).toEqual([]);
+  });
+});
