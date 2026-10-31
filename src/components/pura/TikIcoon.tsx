@@ -8,7 +8,8 @@ type TikIcoonProps = Omit<ButtonProps, 'size' | 'variant' | 'aria-label'> & {
 
 /** Standard icon button for compact rows: a size-4 icon in its own at least
  * 44 × 44 px layout slot, with the shared Button focus ring. Use a gap between
- * neighbours; tap targets never extend outside their layout slots.
+ * neighbours (gap-1 or more); the slot is fixed on every breakpoint, so never
+ * add responsive size classes. Tap targets never extend outside their layout slots.
  */
 export const TikIcoon = forwardRef<HTMLButtonElement, TikIcoonProps>(
   ({ className, type = 'button', ...props }, ref) => (
@@ -18,7 +19,7 @@ export const TikIcoon = forwardRef<HTMLButtonElement, TikIcoonProps>(
       type={type}
       variant="ghost"
       size="touch-icon"
-      className={cn('min-h-11 min-w-11 shrink-0', className)}
+      className={cn('h-11 min-h-11 min-w-11 flex-none shrink-0', className)}
     />
   ),
 );

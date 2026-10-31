@@ -216,6 +216,14 @@ describe('fase 2 telhints en plaatje', () => {
 
 
 describe('compacte telrij en opslaggedrag', () => {
+  test('TikIcoon heeft geen breakpoint-klasse die het vak onder 44px brengt', () => {
+    const html = renderToString(createElement(TikIcoon, { 'aria-label': 'Info telregel' }, createElement(Info)));
+    const klassen = html.match(/class="([^"]*)"/)?.[1].split(' ') ?? [];
+    expect(klassen).toEqual(expect.arrayContaining(['h-11', 'min-h-11', 'min-w-11', 'flex-none']));
+    for (const k of klassen) expect(k).not.toMatch(/^(sm|md|lg|xl|2xl):(min-)?(w|h|size)-(?!11|12|auto)/);
+    expect(klassen.some((k) => /^(sm|md|lg|xl|2xl):(min-)?(w|h|size)-/.test(k))).toBe(false);
+  });
+
   test('TikIcoon heeft een eigen minimaal 44px tikvlak zonder negatieve marges', () => {
     const html = renderToString(createElement(TikIcoon, { 'aria-label': 'Info telregel' }, createElement(Info)));
     expect(html).toContain('aria-label="Info telregel"');
@@ -280,9 +288,11 @@ describe('compacte telrij en opslaggedrag', () => {
 
 describe('drankadvies via locatiegebonden RPC', () => {
   const regels: DrankAdviesRegel[] = [
-    { groep: 'D1 flessen', artikel: 'Fritz Kola', eenheid: 'fles', per_week: 48, bestel_eenheid: 'doos 24', advies_per_week: 2, aanname: false, toelichting: null },
-    { groep: 'D2 koffie', artikel: 'Espressobonen', eenheid: 'kg', per_week: 1.5, bestel_eenheid: 'zak 3 kg', advies_per_week: 0.5, aanname: true, toelichting: 'geen kassaknop: keuken controleert het verbruik' },
-    { groep: 'D3 melk', artikel: 'Havermelk', eenheid: 'liter', per_week: 12, bestel_eenheid: 'doos 6', advies_per_week: 2, aanname: false, toelichting: 'nieuw (stap 77): eerste voorstel' },
+    { groep: 'D1 flessen', artikel: 'Fritz Kola', eenheid: 'fles', per_week: 48, bestel_eenheid: 'doos 24', advies_per_week: 2, aanname: false, toelichting: null, stand: 10, bestellen: true },
+    { groep: 'D1 flessen', artikel: 'Tonic', eenheid: 'fles', per_week: 6, bestel_eenheid: 'doos 24', advies_per_week: 0, aanname: false, toelichting: 'eerst tellen: stand onbekend', stand: null, bestellen: false },
+    { groep: 'D1 flessen', artikel: 'Cola Zero', eenheid: 'fles', per_week: 4, bestel_eenheid: 'doos 24', advies_per_week: 0, aanname: false, toelichting: null, stand: 30, bestellen: false },
+    { groep: 'D2 koffie', artikel: 'Espressobonen', eenheid: 'kg', per_week: 1.5, bestel_eenheid: 'zak 3 kg', advies_per_week: 0.5, aanname: true, toelichting: 'geen kassaknop: keuken controleert het verbruik', stand: null, bestellen: true },
+    { groep: 'D3 melk', artikel: 'Havermelk', eenheid: 'liter', per_week: 12, bestel_eenheid: 'doos 6', advies_per_week: 2, aanname: false, toelichting: 'nieuw (stap 77): eerste voorstel', stand: 4, bestellen: true },
   ];
 
   async function leesMock(error: { code: string; message: string } | null = null) {
@@ -314,6 +324,16 @@ describe('drankadvies via locatiegebonden RPC', () => {
     expect(html).not.toContain('aanname, keuken checkt');
     expect(html).not.toContain('geen kassaknop');
     expect(html).not.toContain('nieuw (stap 77)');
+  });
+
+  test('flessen zonder bestelling staan ingeklapt met teller en zonder 0 ×', () => {
+    const html = renderToString(createElement(DrankAdviesInhoud, { regels })).replace(/<!-- -->/g, '');
+    expect(html).toContain('Deze week bestellen (1)');
+    expect(html).toContain('Geen bestelling nodig (2)');
+    expect(html).not.toContain('0 ×');
+    expect(html).not.toContain('Tonic');
+    expect(html).not.toContain('stand 10');
+    expect(html).toContain('2 × doos 24');
   });
 
   test('blok begint ingeklapt', () => {
