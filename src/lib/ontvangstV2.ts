@@ -43,6 +43,14 @@ export function kortDatum(d: string | null | undefined): string {
   return new Date(y, m - 1, dag).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '');
 }
 
+/** Telinvoer: decimale komma toegestaan, alleen aantallen van 0 t/m 100000. */
+export function telInvoer(tekst: string): number | null {
+  const invoer = tekst.trim().replace(',', '.');
+  if (!invoer || !/^\d+(?:\.\d+)?$/.test(invoer)) return null;
+  const aantal = Number(invoer);
+  return Number.isFinite(aantal) && aantal >= 0 && aantal <= 100000 ? aantal : null;
+}
+
 /** Actief restant van hetzelfde artikel; artikel-id gaat voor een genormaliseerde naam. */
 export function openRestVoorArtikel<T extends { artikel_id: string | null; naam: string; telt_als_onderweg: boolean; opnieuw_besteld: boolean }>(rijen: T[], zoek: { artikel_id?: string | null; naam?: string | null }): T | null {
   const actief = rijen.filter((r) => r.telt_als_onderweg === true && r.opnieuw_besteld === false);

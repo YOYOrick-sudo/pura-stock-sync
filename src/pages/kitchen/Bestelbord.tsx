@@ -3,11 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Check, AlertCircle, Search, ChefHat, Hourglass } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { useOntvangstModus, useOntvangstData, useKeukenAdvies } from '@/hooks/useOntvangstV2';
+import { useOntvangstModus, useOntvangstData, useKeukenAdvies, useKeukenStand, useKeukenTelling } from '@/hooks/useOntvangstV2';
 import { NageleverdKaart, EindcheckKaart } from '@/components/kitchen/bestelbord/OntvangstOnderweg';
 import { MandjeVragen } from '@/components/kitchen/bestelbord/MandjeVragen';
 import { bordRestStatusPerSignaal, onderwegMetRest, onderwegTellers, openRestVoorArtikel, restWaarschuwing } from '@/lib/ontvangstV2';
 import { KeukenAdviesTabel } from '@/components/kitchen/bestelbord/KeukenAdviesTabel';
+import { KeukenTelblok } from '@/components/kitchen/bestelbord/KeukenTelblok';
 import { DetailLade, KaartKop, LaadRijen, LijstKaart, Invoerbalk, segmentTabsKlasse } from '@/components/pura/patronen';
 import { TabelVoet } from '@/components/pura/lijst';
 import { EmptyState } from '@/components/pura/EmptyState';
@@ -197,6 +198,8 @@ export default function Bestelbord() {
   const test = modus.test;
   const ontvangst = useOntvangstData(modus);
   const keukenAdvies = useKeukenAdvies(modus);
+  const keukenStand = useKeukenStand(modus);
+  const telling = useKeukenTelling();
   const restanten = v2 ? ontvangst.restanten.data ?? [] : [];
   const restStatusPerSignaal = bordRestStatusPerSignaal(restanten);
   const nageleverdArtikelen = new Set(restanten.filter((x) => x.telt_als_onderweg && !x.opnieuw_besteld && x.artikel_id).map((x) => x.artikel_id as string));
@@ -682,7 +685,7 @@ export default function Bestelbord() {
                 </LijstKaart>
                 {!!nulAdviezen.length && <LijstKaart kop={<KaartKop icoon={Check} titel="Niet nodig" teller={nulAdviezen.length} />}><AdviesTabel regels={nulAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} deadlineHint={deadlineHint} nul /></LijstKaart>}
               </TabsContent>
-              {modus.keukenadvies && <TabsContent value="keuken" className="mt-0 space-y-4"><KeukenAdviesTabel regels={keukenAdvies.data ?? []} laden={keukenAdvies.isLoading} /></TabsContent>}
+              {modus.keukenadvies && <TabsContent value="keuken" className="mt-0 space-y-4"><KeukenTelblok regels={keukenStand.data ?? []} laden={keukenStand.isLoading} bezig={telling.isPending} onOpslaan={(id, n) => telling.mutateAsync({ telartikelId: id, aantal: n })} /><KeukenAdviesTabel regels={keukenAdvies.data ?? []} laden={keukenAdvies.isLoading} /></TabsContent>}
               <div hidden={tab !== 'tellen'}>{test ? <LijstKaart><p className="px-4 py-6 text-center text-sm text-muted-foreground">Niet beschikbaar in testmodus</p></LijstKaart> : <Voorraadproef key={vestiging} vestiging={vestiging} onOverzicht={rapporteerTellen} />}</div>
               <TabsContent value="onderweg" className="mt-0 space-y-4">
                 {v2 && <><NageleverdKaart modus={modus} regels={restanten} /><EindcheckKaart modus={modus} restanten={restanten} regels={ontvangst.vandaag.data ?? []} laden={ontvangst.vandaag.isLoading} leveranciers={leveranciers} /></>}

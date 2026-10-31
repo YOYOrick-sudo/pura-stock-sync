@@ -1,6 +1,15 @@
 // @ts-ignore vitest types are not installed in the app tsconfig
 import { describe, expect, test } from 'vitest';
-import { openRestVoorArtikel, restWaarschuwing, vandaagZonderOpenRest, afrondWaarschuwingen, annuleerGeldig, bordRestStatus, bordRestStatusPerSignaal, onderwegBlokken, onderwegMetRest, onderwegTellers, isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, type EindcheckInvoer } from './ontvangstV2';
+import { telInvoer, openRestVoorArtikel, restWaarschuwing, vandaagZonderOpenRest, afrondWaarschuwingen, annuleerGeldig, bordRestStatus, bordRestStatusPerSignaal, onderwegBlokken, onderwegMetRest, onderwegTellers, isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, type EindcheckInvoer } from './ontvangstV2';
+
+describe('telInvoer', () => {
+  test.each([
+    ['3', 3], ['2,5', 2.5], [' 4 ', 4], ['', null], ['-1', null], ['abc', null], ['100001', null],
+    ['0', 0], ['100000', 100000], ['Infinity', null], ['2,5,1', null],
+  ])('%s geeft %s', (tekst: string, verwacht: number | null) => {
+    expect(telInvoer(tekst)).toBe(verwacht);
+  });
+});
 
 const basis: EindcheckInvoer = {
   soort: 'onderweg', signaal_id: 's1', open_regel_id: null, pakbon_regel_id: null, geleverd_vorm_id: null,
