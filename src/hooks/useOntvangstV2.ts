@@ -141,6 +141,7 @@ export type DrankAdviesRegel = {
   groep: 'D1 flessen' | 'D2 koffie' | 'D3 melk'; artikel: string; eenheid: string | null;
   per_week: number | null; bestel_eenheid: string | null; advies_per_week: number | null;
   aanname: boolean; toelichting: string | null; stand: number | null; bestellen: boolean;
+  telling_aantal?: number | null; telling_datum?: string | null; ontvangen_sinds?: number | null; verbruik_sinds?: number | null;
 };
 
 export function useDrankAdvies(vestiging: string | null) {
