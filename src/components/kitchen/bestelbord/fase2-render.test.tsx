@@ -5,6 +5,10 @@ import { renderToString } from 'react-dom/server';
 import { BordTabel } from './BordTabel';
 import { KeukenAdviesTabel } from './KeukenAdviesTabel';
 import { KeukenTelblok } from './KeukenTelblok';
+import { DrankAdvies, DrankAdviesInhoud } from './DrankAdvies';
+import { useDrankAdvies, type DrankAdviesRegel } from '@/hooks/useOntvangstV2';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { TikIcoon } from '@/components/pura';
 import { Info } from 'lucide-react';
 import { openRestVoorArtikel } from '@/lib/ontvangstV2';
@@ -14,6 +18,10 @@ import type { KeukenAdviesRegel, KeukenStandRegel, KeukenTelpoolRegel, Ontvangst
 vi.mock('react', async (origineel) => {
   const react = await origineel<typeof import('react')>();
   return { ...react, useState: vi.fn(react.useState) };
+});
+vi.mock('@tanstack/react-query', async (origineel) => {
+  const query = await origineel<typeof import('@tanstack/react-query')>();
+  return { ...query, useQuery: vi.fn(query.useQuery) };
 });
 
 describe('fase 2 zichtbaar in HTML', () => {
@@ -267,5 +275,59 @@ describe('compacte telrij en opslaggedrag', () => {
     await knop.props.onClick();
     expect(onOpslaan).toHaveBeenCalledExactlyOnceWith('zalm', 2);
     expect(setInvoer).not.toHaveBeenCalled();
+  });
+});
+
+describe('drankadvies via locatiegebonden RPC', () => {
+  const regels: DrankAdviesRegel[] = [
+    { groep: 'D1 flessen', artikel: 'Fritz Kola', eenheid: 'fles', per_week: 48, bestel_eenheid: 'doos 24', advies_per_week: 2, aanname: false, toelichting: null },
+    { groep: 'D2 koffie', artikel: 'Espressobonen', eenheid: 'kg', per_week: 1.5, bestel_eenheid: 'zak 3 kg', advies_per_week: 0.5, aanname: true, toelichting: 'geen kassaknop: keuken controleert het verbruik' },
+    { groep: 'D3 melk', artikel: 'Havermelk', eenheid: 'liter', per_week: 12, bestel_eenheid: 'doos 6', advies_per_week: 2, aanname: false, toelichting: 'nieuw (stap 77): eerste voorstel' },
+  ];
+
+  async function leesMock(error: { code: string; message: string } | null = null) {
+    let opties: { queryKey: unknown[]; enabled: boolean; retry: boolean; queryFn: () => Promise<DrankAdviesRegel[]> } | undefined;
+    vi.mocked(useQuery).mockImplementationOnce((config: unknown) => {
+      opties = config as typeof opties;
+      return {} as ReturnType<typeof useQuery>;
+    });
+    const rpc = vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({ data: error ? null : regels, error } as never);
+    useDrankAdvies('Test');
+    if (!opties) throw new Error('Query ontbreekt');
+    try {
+      const data = await opties.queryFn();
+      expect(rpc).toHaveBeenCalledExactlyOnceWith('drank_advies', { p_vestiging: 'Test' });
+      expect(opties.queryKey).toEqual(['drank_advies', 'Test']);
+      expect(opties.enabled).toBe(true);
+      expect(opties.retry).toBe(false);
+      return data;
+    } finally { rpc.mockRestore(); }
+  }
+
+  test('mock RPC toont Flessen, Koffie en Melk met Nederlandse hoeveelheden en verborgen aanname-uitleg', async () => {
+    const data = await leesMock();
+    const html = renderToString(createElement(DrankAdviesInhoud, { regels: data }));
+    for (const titel of ['Flessen', 'Koffie', 'Melk']) expect(html).toContain(`aria-label="${titel}"`);
+    expect(html).toContain('Fritz Kola');
+    expect(html.replace(/<!-- -->/g, '')).toContain('0,5 × zak 3 kg');
+    expect(html).toContain('aria-label="Info Espressobonen"');
+    expect(html).not.toContain('aanname, keuken checkt');
+    expect(html).not.toContain('geen kassaknop');
+    expect(html).not.toContain('nieuw (stap 77)');
+  });
+
+  test('blok begint ingeklapt', () => {
+    vi.mocked(useQuery).mockReturnValueOnce({ data: regels, isLoading: false, isError: false } as ReturnType<typeof useQuery>);
+    const html = renderToString(createElement(DrankAdvies, { vestiging: 'Test' }));
+    expect(html).toContain('Drankadvies per week');
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).not.toContain('Fritz Kola');
+  });
+
+  test.each(['55000', '42501'])('RPC-fout %s toont geen blok', async (code: string) => {
+    const data = await leesMock({ code, message: 'Niet beschikbaar' });
+    expect(data).toEqual([]);
+    vi.mocked(useQuery).mockReturnValueOnce({ data, isLoading: false, isError: false } as ReturnType<typeof useQuery>);
+    expect(renderToString(createElement(DrankAdvies, { vestiging: 'Test' }))).toBe('');
   });
 });
