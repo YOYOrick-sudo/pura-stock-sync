@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type { KeukenStandRegel, KeukenTelpoolRegel } from '@/hooks/useOntvangstV2';
-import { formatTelHoeveelheid, kortDatum, splitsTelpool, telEenheidKort, telInvoer, type TelInfo } from '@/lib/ontvangstV2';
+import { formatTelHoeveelheid, kortDatum, splitsTelpool, telEenheidKort, telInvoer, telKopTekst, type TelInfo } from '@/lib/ontvangstV2';
 
 type Rij = KeukenStandRegel & { pool?: KeukenTelpoolRegel };
 
@@ -69,8 +69,8 @@ export function KeukenTelblok({ regels, pool, telinfo, laden, onOpslaan, bezig }
   };
 
   return <LijstKaart kop={<KaartKop titel="Tellen" icoon={Calculator} teller={vandaag.length} />}>
-    {pool?.length && vandaag.length > 0 ? (
-      <p className="px-4 pb-1 text-xs text-muted-foreground lg:px-6">{`Vanavond tellen: deze ${vandaag.length} artikelen.${controles > 0 ? ` ${controles} daarvan is een controletelling.` : ''}`}</p>
+    {pool?.length ? (
+      <p className="px-4 pb-1 text-xs text-muted-foreground lg:px-6">{telKopTekst(vandaag.length, controles)}</p>
     ) : null}
     {laden ? <LaadRijen /> : !regels.length ? <EmptyState icon={Calculator} title="Nog geen telartikelen" description="" className="border-0 shadow-none" /> : <>
       <div className="divide-y divide-border">{vandaag.map(rij)}</div>
