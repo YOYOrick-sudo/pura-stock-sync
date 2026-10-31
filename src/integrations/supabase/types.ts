@@ -1326,6 +1326,39 @@ export type Database = {
           },
         ]
       }
+      drank_bar_checkt: {
+        Row: {
+          bron: string | null
+          created_at: string
+          id: string
+          lightspeed_product_id: string | null
+          onderwerp: string
+          status: string
+          vestiging: string
+          vraag: string
+        }
+        Insert: {
+          bron?: string | null
+          created_at?: string
+          id?: string
+          lightspeed_product_id?: string | null
+          onderwerp: string
+          status?: string
+          vestiging: string
+          vraag: string
+        }
+        Update: {
+          bron?: string | null
+          created_at?: string
+          id?: string
+          lightspeed_product_id?: string | null
+          onderwerp?: string
+          status?: string
+          vestiging?: string
+          vraag?: string
+        }
+        Relationships: []
+      }
       drank_koffie_verdeling: {
         Row: {
           aandeel: number
@@ -7486,6 +7519,71 @@ export type Database = {
           {
             foreignKeyName: "voorraad_telvraag_voorraad_artikel_id_fkey"
             columns: ["voorraad_artikel_id"]
+            isOneToOne: false
+            referencedRelation: "voorraad_artikel"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voorraad_verbruik_alternatief: {
+        Row: {
+          aanname: boolean
+          alternatief_artikel_id: string
+          created_at: string
+          id: string
+          lightspeed_product_id: string
+          notitie: string | null
+          verkopen_per_fles: number
+          vestiging: string
+          voorkeur_artikel_id: string
+        }
+        Insert: {
+          aanname?: boolean
+          alternatief_artikel_id: string
+          created_at?: string
+          id?: string
+          lightspeed_product_id: string
+          notitie?: string | null
+          verkopen_per_fles: number
+          vestiging: string
+          voorkeur_artikel_id: string
+        }
+        Update: {
+          aanname?: boolean
+          alternatief_artikel_id?: string
+          created_at?: string
+          id?: string
+          lightspeed_product_id?: string
+          notitie?: string | null
+          verkopen_per_fles?: number
+          vestiging?: string
+          voorkeur_artikel_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voorraad_verbruik_alternatief_alternatief_artikel_id_fkey"
+            columns: ["alternatief_artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_voorraad_stand"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voorraad_verbruik_alternatief_alternatief_artikel_id_fkey"
+            columns: ["alternatief_artikel_id"]
+            isOneToOne: false
+            referencedRelation: "voorraad_artikel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voorraad_verbruik_alternatief_voorkeur_artikel_id_fkey"
+            columns: ["voorkeur_artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_voorraad_stand"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voorraad_verbruik_alternatief_voorkeur_artikel_id_fkey"
+            columns: ["voorkeur_artikel_id"]
             isOneToOne: false
             referencedRelation: "voorraad_artikel"
             referencedColumns: ["id"]
