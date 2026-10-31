@@ -13,30 +13,43 @@ const groepen = [
 ] as const;
 const getal = (waarde: number | null) => waarde == null ? '—' : new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 2 }).format(waarde);
 const meervouden: Record<string, string> = { doos: 'dozen', krat: 'kratten', zak: 'zakken', fles: 'flessen', blik: 'blikken', pak: 'pakken' };
-/** Eenheid voluit met juist enkel/meervoud; alleen het eerste woord wisselt, onbekende eenheden blijven gelijk. */
-export function eenheidVoluit(aantal: number | null, eenheid: string | null) {
-  if (!eenheid) return '';
+/** Getal plus juiste enkel/meervoudsvorm; formaat tussen haakjes ('36 pakken (1 L)'). Onbekende eenheden ongewijzigd. */
+export function hoeveelheid(aantal: number | null, eenheid: string | null) {
+  if (!eenheid) return getal(aantal);
   const [eerste, ...rest] = eenheid.split(' ');
   const meervoud = meervouden[eerste.toLowerCase()];
-  if (!meervoud || aantal == null || aantal <= 1) return eenheid;
-  return [meervoud, ...rest].join(' ');
+  if (!meervoud) return `${getal(aantal)} ${eenheid}`;
+  const vorm = aantal === 1 ? eerste : meervoud;
+  return `${getal(aantal)} ${vorm}${rest.length ? ` (${rest.join(' ')})` : ''}`;
+}
+/** Korte uitleg onder de stand: telling met mutaties, of schatting zonder telling. */
+export function uitlegRegel(r: DrankAdviesRegel) {
+  if (r.telling_aantal != null) {
+    const [, mm, dd] = (r.telling_datum ?? '').split('-');
+    const datum = dd && mm ? ` op ${dd}-${mm}` : '';
+    return `geteld ${getal(r.telling_aantal)}${datum} · +${getal(r.ontvangen_sinds ?? 0)} besteld · −${getal(r.verbruik_sinds ?? 0)} verbruik`;
+  }
+  if (r.groep === 'D3 melk') return null;
+  return r.advies_per_week != null || r.per_week != null ? 'geschat op weekverbruik' : null;
 }
 const eerstTellen = (r: DrankAdviesRegel) => !!r.toelichting?.trim().toLowerCase().startsWith('eerst tellen');
 
 function DrankRij({ r }: { r: DrankAdviesRegel }) {
-  const info = r.aanname || r.toelichting || r.stand != null;
+  const uitleg = uitlegRegel(r);
+  const info = r.aanname || r.toelichting || r.stand != null || uitleg;
   return <div className="flex min-w-0 items-center gap-2 px-4 py-2 lg:px-6">
     <div className="min-w-0 flex-1">
       <p className="line-clamp-2 break-words text-sm font-medium">{r.artikel}</p>
-      <p className="text-xs tabular-nums text-muted-foreground">{`${getal(r.per_week)} ${eenheidVoluit(r.per_week, r.eenheid)}`}</p>
+      <p className="text-xs tabular-nums text-muted-foreground">{hoeveelheid(r.per_week, r.eenheid)}</p>
     </div>
     {r.bestellen
-      ? <p className="shrink-0 whitespace-nowrap text-right text-sm tabular-nums">{`${getal(r.advies_per_week)} × ${eenheidVoluit(r.advies_per_week, r.bestel_eenheid)}`}</p>
+      ? <p className="shrink-0 whitespace-nowrap text-right text-sm tabular-nums">{hoeveelheid(r.advies_per_week, r.bestel_eenheid)}</p>
       : eerstTellen(r) && <Badge variant="secondary" className="shrink-0 whitespace-nowrap">eerst tellen</Badge>}
     {info && <Popover>
       <PopoverTrigger asChild><TikIcoon aria-label={`Info ${r.artikel}`} className="text-muted-foreground"><Info /></TikIcoon></PopoverTrigger>
       <PopoverContent className="space-y-1 text-sm">
         {r.stand != null && <p className="tabular-nums">stand {getal(r.stand)}</p>}
+        {uitleg && <p className="text-xs tabular-nums text-muted-foreground">{uitleg}</p>}
         {r.aanname && <p className="font-medium">aanname, keuken checkt</p>}
         {r.toelichting && <p>{r.toelichting}</p>}
       </PopoverContent>

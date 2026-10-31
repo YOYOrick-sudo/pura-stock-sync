@@ -5,7 +5,7 @@ import { renderToString } from 'react-dom/server';
 import { BordTabel } from './BordTabel';
 import { KeukenAdviesTabel } from './KeukenAdviesTabel';
 import { KeukenTelblok } from './KeukenTelblok';
-import { DrankAdvies, DrankAdviesInhoud } from './DrankAdvies';
+import { DrankAdvies, DrankAdviesInhoud, hoeveelheid, uitlegRegel } from './DrankAdvies';
 import { useDrankAdvies, type DrankAdviesRegel } from '@/hooks/useOntvangstV2';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -319,7 +319,7 @@ describe('drankadvies via locatiegebonden RPC', () => {
     const html = renderToString(createElement(DrankAdviesInhoud, { regels: data }));
     for (const titel of ['Flessen', 'Koffie', 'Melk']) expect(html).toContain(`aria-label="${titel}"`);
     expect(html).toContain('Fritz Kola');
-    expect(html.replace(/<!-- -->/g, '')).toContain('0,5 × zak 3 kg');
+    expect(html.replace(/<!-- -->/g, '')).toContain('0,5 zakken (3 kg)');
     expect(html).toContain('aria-label="Info Espressobonen"');
     expect(html).not.toContain('aanname, keuken checkt');
     expect(html).not.toContain('geen kassaknop');
@@ -330,18 +330,30 @@ describe('drankadvies via locatiegebonden RPC', () => {
     const html = renderToString(createElement(DrankAdviesInhoud, { regels })).replace(/<!-- -->/g, '');
     expect(html).toContain('Deze week bestellen (1)');
     expect(html).toContain('Geen bestelling nodig (2)');
-    expect(html).not.toContain('0 ×');
+    expect(html).not.toContain('×');
     expect(html).not.toContain('Tonic');
     expect(html).not.toContain('stand 10');
-    expect(html).toContain('2 × dozen 24');
+    expect(html).toContain('2 dozen (24)');
   });
 
   test.each([
-    [1, 'doos', '1 × doos'], [2, 'doos', '2 × dozen'], [1, 'krat', '1 × krat'], [3, 'krat', '3 × kratten'], [2, 'pak 1 L', '2 × pakken 1 L'],
+    [1, 'doos', '1 doos'], [2, 'doos', '2 dozen'], [36, 'pak 1 L', '36 pakken (1 L)'], [1, 'pak 1 L', '1 pak (1 L)'], [3, 'krat', '3 kratten'], [2.82, 'kg', '2,82 kg'],
   ])('bestelhoeveelheid %s %s toont %s voluit', (aantal, eenheid, verwacht) => {
     const regel = { ...regels[0], advies_per_week: aantal as number, bestel_eenheid: eenheid as string };
     const html = renderToString(createElement(DrankAdviesInhoud, { regels: [regel] }));
     expect(html).toContain(`>${verwacht}<`);
+    expect(html).not.toContain('×');
+  });
+
+  test('hoeveelheid zet meervoud ook bij 0 en 2,5', () => {
+    expect(hoeveelheid(0, 'doos')).toBe('0 dozen');
+    expect(hoeveelheid(2.5, 'zak')).toBe('2,5 zakken');
+  });
+
+  test('uitlegregel met en zonder telling', () => {
+    expect(uitlegRegel({ ...regels[0], telling_aantal: 11, telling_datum: '2026-10-29', ontvangen_sinds: 0, verbruik_sinds: 0.5 })).toBe('geteld 11 op 29-10 · +0 besteld · −0,5 verbruik');
+    expect(uitlegRegel({ ...regels[0], telling_aantal: null })).toBe('geschat op weekverbruik');
+    expect(uitlegRegel({ ...regels[0], groep: 'D3 melk', telling_aantal: null })).toBeNull();
   });
 
   test('blok staat standaard open', () => {
