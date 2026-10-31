@@ -1,3 +1,4 @@
+import { eenheidVorm } from '@/lib/hoeveelheid';
 import { Fragment } from 'react';
 import { AlertCircle, Check, Hourglass } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -36,7 +37,7 @@ export function OnderwegTabel({ groepen, regelInfo, deadlineHint, dagenTeLaatVan
             <RegelInfo info={regelInfo?.(s)} />
             {(laat > 0 || s.verwachte_levering) && <RijMeta altijd={laat > 0}>{laat > 0 && <StatusLabel toon="fout">{laat}d te laat</StatusLabel>}{s.verwachte_levering && <span className="sm:hidden">{leverDatumLabel(s.verwachte_levering)}</span>}</RijMeta>}
           </div></TableCell>
-          <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex min-h-6 items-center justify-end gap-1.5"><span className="inline-flex items-center rounded-full bg-muted px-2 text-sm font-semibold">{Number(s.aantal)}</span>{s.eenheid && <span className="text-xs text-muted-foreground">{s.eenheid}</span>}</span></TableCell>
+          <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex min-h-6 items-center justify-end gap-1.5"><span className="inline-flex items-center rounded-full bg-muted px-2 text-sm font-semibold">{Number(s.aantal)}</span>{s.eenheid && <span className="text-xs text-muted-foreground">{eenheidVorm(Number(s.aantal), s.eenheid)}</span>}</span></TableCell>
           <TableCell className="!px-0 text-right text-muted-foreground sm:!px-2"><span className="hidden sm:inline">{s.verwachte_levering ? leverDatumLabel(s.verwachte_levering) : ''}</span></TableCell>
           <TableCell className="!px-0" onClick={(e) => e.stopPropagation()}>{!alleenLezen && <RijMenu naam={s.naam} acties={[{ label: 'Bewerken', onClick: () => onBewerk(s) }, { label: 'Leverdatum aanpassen', onClick: () => onDatum(s) }, ...(zonderDeels ? [] : [{ label: 'Deels geleverd', onClick: () => onDeelsGeleverd(s) }]), { label: 'Niet geleverd', onClick: () => onNietGeleverd(s), gevaar: true }]} />}</TableCell>
         </TableRow>;

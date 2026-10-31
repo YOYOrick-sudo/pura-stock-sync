@@ -1,3 +1,4 @@
+import { eenheidVorm } from '@/lib/hoeveelheid';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { AlertCircle, Hourglass, Minus, PackageCheck, Plus, Truck } from 'lucide-react';
@@ -50,9 +51,9 @@ export function NageleverdKaart({ modus, regels }: { modus: OntvangstModus; rege
       <TableCell className="!px-0"><div className="mx-auto flex h-11 w-11 items-center justify-center"><Icoon className={cn('h-4 w-4', warn && !licht ? 'text-warning' : 'text-muted-foreground')} aria-hidden /></div></TableCell>
       <TableCell><div className="flex min-h-11 min-w-0 flex-col justify-center">
         <span className="min-w-0 line-clamp-2 break-words font-medium">{r.naam}</span>
-        <RijMeta altijd>{licht ? <Badge variant="secondary">mogelijke nalevering</Badge> : warn && <Badge variant="warning">Mist</Badge>}<span className="truncate">{[r.leverancier_naam, kortDatum(r.verwacht_op ?? r.controle_op)].filter(Boolean).join(' · ')}</span></RijMeta>
+        <RijMeta altijd>{licht ? <Badge variant="secondary">mogelijke nalevering</Badge> : warn && <Badge variant="warning">Mist</Badge>}<span className="min-w-0 break-words">{[r.leverancier_naam, kortDatum(r.verwacht_op ?? r.controle_op)].filter(Boolean).join(' · ')}</span></RijMeta>
       </div></TableCell>
-      <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex items-center gap-1.5"><span className="rounded-full bg-muted px-2 text-sm font-semibold">{Number(r.aantal)}</span>{r.eenheid && <span className="text-xs text-muted-foreground">{r.eenheid}</span>}</span></TableCell>
+      <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex items-center gap-1.5"><span className="rounded-full bg-muted px-2 text-sm font-semibold">{Number(r.aantal)}</span>{r.eenheid && <span className="text-xs text-muted-foreground">{eenheidVorm(Number(r.aantal), r.eenheid)}</span>}</span></TableCell>
       <TableCell className="!px-0" />
       <TableCell className="!px-0">{licht && modus.magBeslissen && r.regel_id && <RijMenu naam={r.naam} acties={[{ label: 'Geannuleerd door leverancier', gevaar: true, onClick: () => setAnnuleer(r) }]} />}</TableCell>
     </TableRow>;
@@ -123,7 +124,7 @@ export function EindcheckKaart({ modus, regels: alleRegels, restanten, laden, le
                 <span className="flex min-w-0 items-center gap-1.5"><span className="min-w-0 line-clamp-2 break-words font-medium">{r.naam}</span>{r.soort !== 'onderweg' && r.soort !== 'alleen_pakbon' && <Hourglass className="h-4 w-4 shrink-0 text-muted-foreground" aria-label="Wordt nageleverd" />}</span>
                 {(rest > 0 || r.te_laat) && <RijMeta altijd>{rest > 0 && <Badge variant={v.nageleverd || v.automatisch ? 'info' : 'warning'}>{rest} {v.nageleverd || v.automatisch ? 'wordt nageleverd' : 'mist'}</Badge>}</RijMeta>}
               </div></TableCell>
-              <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex items-center gap-1.5"><span className="rounded-full bg-muted px-2 text-sm font-semibold">{v.binnen}</span><span className="text-xs text-muted-foreground">/ {v.besteld} {r.eenheid ?? ''}</span></span></TableCell>
+              <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex items-center gap-1.5"><span className="rounded-full bg-muted px-2 text-sm font-semibold">{v.binnen}</span><span className="text-xs text-muted-foreground">/ {v.besteld} {eenheidVorm(Number(v.besteld), r.eenheid)}</span></span></TableCell>
               <TableCell className="!px-0" /><TableCell className="!px-0" />
             </TableRow>;
           })}

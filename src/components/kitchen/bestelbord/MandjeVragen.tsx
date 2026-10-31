@@ -1,3 +1,4 @@
+import { eenheidVorm } from '@/lib/hoeveelheid';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Hourglass } from 'lucide-react';
@@ -30,7 +31,7 @@ export function MandjeVragen({ modus, vragen }: { modus: OntvangstModus; vragen:
     <LijstKaart kop={<KaartKop icoon={Hourglass} titel="Te beslissen" teller={vragen.length} />}>
       <div className="divide-y divide-border">{vragen.map((v) => <div key={v.regel_id} className="flex flex-wrap items-center gap-2 px-4 py-2">
         <div className="min-w-0 flex-1">
-          <span className="flex min-w-0 items-center gap-1.5"><span className="min-w-0 line-clamp-2 break-words font-medium">{v.naam}</span><span className="rounded-full bg-muted px-2 text-sm font-semibold tabular-nums">{Number(v.aantal)}</span>{v.eenheid && <span className="text-xs text-muted-foreground">{v.eenheid}</span>}</span>
+          <span className="flex min-w-0 items-center gap-1.5"><span className="min-w-0 line-clamp-2 break-words font-medium">{v.naam}</span><span className="rounded-full bg-muted px-2 text-sm font-semibold tabular-nums">{Number(v.aantal)}</span>{v.eenheid && <span className="text-xs text-muted-foreground">{eenheidVorm(Number(v.aantal), v.eenheid)}</span>}</span>
           <RijMeta altijd>
             <Badge variant={v.soort === 'mist' ? 'warning' : 'info'}>{v.soort === 'mist' ? `mist${v.sinds ? ` sinds ${kortDatum(v.sinds)}` : ''}` : restSoortLabel(v.soort).toLowerCase()}</Badge>
             <span>{v.reden === 'besteldeadline' && v.deadline ? `besteldeadline ${tijd(v.deadline)}` : mandjeRedenLabel(v.reden)}</span>

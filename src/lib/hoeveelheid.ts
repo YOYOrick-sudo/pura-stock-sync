@@ -11,12 +11,22 @@ export const meervouden: Record<string, string> = {
 export function hoeveelheid(aantal: number | null, eenheid: string | null) {
   if (!eenheid) return getal(aantal);
   const [eerste, ...rest] = eenheid.split(' ');
-  const sleutel = eerste.toLowerCase();
-  const enkel = Object.entries(meervouden).find(([, m]) => m === sleutel)?.[0];
-  const basis = enkel ?? (meervouden[sleutel] ? sleutel : null);
-  if (!basis) return `${getal(aantal)} ${eenheid}`;
-  const vorm = aantal === 1 ? basis : meervouden[basis];
-  return `${getal(aantal)} ${vorm}${rest.length ? ` (${rest.join(' ')})` : ''}`;
+  if (!vormVan(eerste)) return `${getal(aantal)} ${eenheid}`;
+  return `${getal(aantal)} ${eenheidVorm(aantal, eerste)}${rest.length ? ` (${rest.join(' ')})` : ''}`;
+}
+
+function vormVan(woord: string) {
+  const sleutel = woord.toLowerCase();
+  return Object.entries(meervouden).find(([, m]) => m === sleutel)?.[0] ?? (meervouden[sleutel] ? sleutel : null);
+}
+
+/** Alleen de eenheid in juiste vorm bij dit aantal ('stuks' bij 1 → 'stuk'); onbekende eenheden ongewijzigd. Voor plekken waar getal en eenheid apart staan. */
+export function eenheidVorm(aantal: number | null, eenheid: string | null) {
+  if (!eenheid) return '';
+  const [eerste, ...rest] = eenheid.split(' ');
+  const basis = vormVan(eerste);
+  if (!basis) return eenheid;
+  return [aantal === 1 ? basis : meervouden[basis], ...rest].join(' ');
 }
 
 /** Telwoord met juist enkel/meervoud: telwoord(1, 'regel', 'regels') → '1 regel'. */

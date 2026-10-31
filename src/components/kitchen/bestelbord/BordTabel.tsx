@@ -1,3 +1,4 @@
+import { eenheidVorm } from '@/lib/hoeveelheid';
 import { Fragment } from 'react';
 import { AlertCircle, Check, Hourglass } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -44,7 +45,7 @@ export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsV
             {rest && <RijMeta altijd><Badge variant="outline" title={restWaarschuwing(rest)}><Hourglass className="mr-1 h-3 w-3" aria-hidden />{rest.soort === 'mist' ? 'Mist nog' : 'Komt nog'} {rest.aantal}</Badge></RijMeta>}
             {info ? <RijMeta altijd>{info}</RijMeta> : <RijMeta>{prijs ? euro(prijs.totaal) : '—'}</RijMeta>}
           </div></TableCell>
-          <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex min-h-6 items-center justify-end gap-1.5"><span className="inline-flex items-center rounded-full bg-muted px-2 text-sm font-semibold">{Number(s.aantal)}</span>{s.eenheid && <span className="text-xs text-muted-foreground">{s.eenheid}</span>}</span></TableCell>
+          <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex min-h-6 items-center justify-end gap-1.5"><span className="inline-flex items-center rounded-full bg-muted px-2 text-sm font-semibold">{Number(s.aantal)}</span>{s.eenheid && <span className="text-xs text-muted-foreground">{eenheidVorm(Number(s.aantal), s.eenheid)}</span>}</span></TableCell>
           <TableCell className="!px-0 text-right sm:!px-2" onClick={(e) => e.stopPropagation()}><div className="hidden sm:block">{prijs ? <Tooltip><TooltipTrigger asChild><span className="inline-flex h-11 items-center justify-end gap-1 tabular-nums" tabIndex={0}><PrijsPijl signaal={prijsSignaal(s)} eenheid={s.eenheid} alleenDuurder />{euro(prijs.totaal)}</span></TooltipTrigger><TooltipContent>{prijsTip(prijs.vorm)}</TooltipContent></Tooltip> : <span className="text-muted-foreground">—</span>}</div></TableCell>
           <TableCell className="!px-0" onClick={(e) => e.stopPropagation()}>{!alleenLezen && <RijMenu naam={s.naam} acties={geleverd ? [{ label: 'Terug naar onderweg', onClick: () => onTerug?.(s) }] : [{ label: 'Bewerken', onClick: () => onBewerk(s) }, { label: 'Vervallen', onClick: () => onVervallen(s), gevaar: true }]} />}</TableCell>
         </TableRow>;

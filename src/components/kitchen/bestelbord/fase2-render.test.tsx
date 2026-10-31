@@ -5,7 +5,11 @@ import { renderToString } from 'react-dom/server';
 import { BordTabel } from './BordTabel';
 import { KeukenAdviesTabel } from './KeukenAdviesTabel';
 import { KeukenTelblok } from './KeukenTelblok';
-import { hoeveelheid as gedeeldeHoeveelheid, telwoord } from '@/lib/hoeveelheid';
+import { readFileSync } from 'node:fs';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { resolve } from 'node:path';
+import { NageleverdKaart } from './OntvangstOnderweg';
+import { eenheidVorm, hoeveelheid as gedeeldeHoeveelheid, telwoord } from '@/lib/hoeveelheid';
 import { DrankAdvies, DrankAdviesInhoud, hoeveelheid, uitlegRegel } from './DrankAdvies';
 import { useDrankAdvies, type DrankAdviesRegel } from '@/hooks/useOntvangstV2';
 import { useQuery } from '@tanstack/react-query';
@@ -407,5 +411,42 @@ describe('gedeelde hoeveelheid-notatie', () => {
   test('telwoord enkel/meervoud', () => {
     expect(telwoord(1, 'regel', 'regels')).toBe('1 regel');
     expect(telwoord(3, 'regel', 'regels')).toBe('3 regels');
+  });
+});
+
+describe('stap 89: namen, tikvlak, eenheden en tabs', () => {
+  const rest: OntvangstRestant = {
+    soort: 'wordt_nageleverd', regel_id: 'r1', api_backorder_id: null, bestel_signaal_id: null, artikel_id: null,
+    leverancier_id: null, leverancier_naam: 'Kooyman', naam: 'Broadbeans Smokehouse gerookte tuinbonen extra lang', aantal: 1, eenheid: 'stuks',
+    bron: null, notitie: null, sinds: null, verwacht_op: null, controle_op: null, opnieuw_besteld: false, telt_als_onderweg: true,
+  };
+  test('naam in Wordt nageleverd niet afgekapt en 1 stuk enkelvoud', () => {
+    const html = renderToString(createElement(QueryClientProvider, { client: new QueryClient() }, createElement(NageleverdKaart, { modus: { magBeslissen: false } as never, regels: [rest] })));
+    const klasse = html.match(/<span class="([^"]*)">Broadbeans/)?.[1] ?? '';
+    expect(klasse).toContain('line-clamp-2');
+    expect(klasse).not.toMatch(/truncate|line-clamp-1|max-w-/);
+    expect(html).toContain('>stuk<');
+  });
+  test('selectie op het bord heeft een tikvlak van 44 px', () => {
+    const regel = { id: 's1', naam: 'Komkommer', aantal: 1, eenheid: 'stuks', status: 'open', artikel_id: null } as never;
+    const html = renderToString(createElement(BordTabel, {
+      regels: [regel], leverancier: () => 'X', deadlineHint: () => null, prijsVan: () => null, prijsSignaal: () => null, prijsTip: () => '',
+      onBesteld: () => {}, onBewerk: () => {}, onVervallen: () => {},
+    }));
+    expect(html).toMatch(/<label class="[^"]*h-11 w-11[^"]*"><button[^>]*role="checkbox"/);
+    expect(html).toContain('>stuk<');
+  });
+  test.each([[1, 'stuks', 'stuk'], [2, 'stuks', 'stuks'], [1, 'stuk', 'stuk'], [3, 'doos', 'dozen'], [1, 'kg', 'kg']])('eenheidVorm(%s, %s) = %s', (n, e, v) => {
+    expect(eenheidVorm(n as number, e as string)).toBe(v);
+  });
+  test('hoeveelheid zet 1 stuks naar 1 stuk', () => {
+    expect(gedeeldeHoeveelheid(1, 'stuks')).toBe('1 stuk');
+    expect(gedeeldeHoeveelheid(2, 'stuks')).toBe('2 stuks');
+  });
+  test('tablabels zonder truncate en alle 5 aanwezig', () => {
+    const bron = readFileSync(resolve(__dirname, '../../../pages/kitchen/Bestelbord.tsx'), 'utf8');
+    const tabs = bron.slice(bron.indexOf('<TabsList'), bron.indexOf('</TabsList>'));
+    for (const kort of ['Bord', 'Advies', 'Keuken', 'Tellen', 'Onderweg']) expect(tabs).toContain(`kort: '${kort}'`);
+    expect(tabs).not.toMatch(/truncate|whitespace-nowrap|overflow-x-auto/);
   });
 });
