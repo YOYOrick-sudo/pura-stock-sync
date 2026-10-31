@@ -129,7 +129,7 @@ describe.each(['snel_printen', 'recept', 'mep', 'bain_marie', 'voorraadronde', '
     const rows = mocks.insert.mock.calls[0]?.[0] as Array<Record<string, unknown>>;
     expect(rows.length).toBeGreaterThan(0);
     for (const row of rows) {
-      expect(Object.hasOwn(row, 'vestiging')).toBe(true);
+      expect(Object.prototype.hasOwnProperty.call(row, 'vestiging')).toBe(true);
       expect(row.vestiging).toBe(location || null);
       expect(row.bron).toBe(chain === 'voorraadronde' || chain === 'koelcelcheck' ? 'koelcel_check' : chain);
     }
