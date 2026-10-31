@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Stap 77: ingeklapt drankadvies naast keukentelling, bestaande vlag/toegang, RPC-foutcodes verborgen, vaste tests en mobiele controle; geen databasewijzigingen/publicatie.
+
 - [x] Ontvangst v2 achter schakelaar (ontvangst_v2/keukenadvies + testmodus ?locatie=Test): eindcheck Onderweg, Wordt nageleverd-blok, bordbadge, mandjevragen, Advies keuken-tab; niet publiceren.
 - [ ] Ontvangst v2 controle in het scherm — met ?locatie=Test en echte levering; niet zelf bekeken, Test-rij in schakelaars nodig.
 

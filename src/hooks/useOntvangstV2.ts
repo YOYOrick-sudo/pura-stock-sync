@@ -137,6 +137,25 @@ export function useKeukenTelInfo(m: OntvangstModus) {
   });
 }
 
+export type DrankAdviesRegel = {
+  groep: 'D1 flessen' | 'D2 koffie' | 'D3 melk'; artikel: string; eenheid: string | null;
+  per_week: number | null; bestel_eenheid: string | null; advies_per_week: number | null;
+  aanname: boolean; toelichting: string | null;
+};
+
+export function useDrankAdvies(vestiging: string | null) {
+  return useQuery({
+    queryKey: ['drank_advies', vestiging], enabled: !!vestiging, retry: false,
+    queryFn: async (): Promise<DrankAdviesRegel[]> => {
+      const { data, error } = await rpc('drank_advies', { p_vestiging: vestiging });
+      const code = error && 'code' in error ? error.code : null;
+      if (code === '55000' || code === '42501') return [];
+      if (error) throw new Error(error.message);
+      return (data ?? []) as DrankAdviesRegel[];
+    },
+  });
+}
+
 export function useKeukenTelling() {
   const qc = useQueryClient();
   return useMutation({
