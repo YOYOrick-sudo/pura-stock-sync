@@ -53,6 +53,18 @@ export function KeukenTelblok({ regels, pool, telinfo, laden, onOpslaan, bezig }
       <p className="text-xs text-muted-foreground">{r.laatste_telling ? `laatst geteld ${kortDatum(r.laatste_telling)}` : 'nog niet geteld'}</p>
       {(r.pool?.controle || r.pool?.reden) && <p className="truncate text-xs text-muted-foreground">{r.pool?.controle ? 'controletelling: gisteren week de telling sterk af van het verwachte verbruik' : r.pool?.reden}</p>}
       {r.pool?.tel_label && <p className="truncate text-xs text-muted-foreground">{`tel in: ${r.pool.tel_label}`}</p>}
+      {info.tel_hint && <p className="text-xs text-muted-foreground">{info.tel_hint}</p>}
+      {info.tel_afbeelding && (
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button type="button" variant="outline" size="touch" className="mt-1"><ImageIcon className="size-4" />plaatje</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-sm">
+            <DialogTitle className="sr-only">{r.naam}</DialogTitle>
+            <img src={info.tel_afbeelding} alt={r.naam} className="h-auto w-full" />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
     <span className="text-right text-sm tabular-nums">{formatTelHoeveelheid(r.stand, info) ?? 'onbekend'}</span>
     <div className="col-span-2 min-w-0 sm:col-span-1">
