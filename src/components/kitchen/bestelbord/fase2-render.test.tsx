@@ -336,17 +336,35 @@ describe('drankadvies via locatiegebonden RPC', () => {
     expect(html).toContain('2 × doos 24');
   });
 
-  test('blok begint ingeklapt', () => {
+  test('blok staat standaard open', () => {
     vi.mocked(useQuery).mockReturnValueOnce({ data: regels, isLoading: false, isError: false } as ReturnType<typeof useQuery>);
     const html = renderToString(createElement(DrankAdvies, { vestiging: 'Test' }));
     expect(html).toContain('Drankadvies per week');
-    expect(html).toContain('aria-expanded="false"');
-    expect(html).not.toContain('Fritz Kola');
+    expect(html).toContain('aria-expanded="true"');
+    expect(html).toContain('Fritz Kola');
+  });
+
+  test('fout houdt de kaart zichtbaar met Opnieuw', () => {
+    vi.mocked(useQuery).mockReturnValueOnce({ data: undefined, isLoading: false, isError: true, refetch: vi.fn() } as unknown as ReturnType<typeof useQuery>);
+    const html = renderToString(createElement(DrankAdvies, { vestiging: 'Test' }));
+    expect(html).toContain('Drankadvies kon niet geladen worden');
+    expect(html).toContain('Opnieuw');
+  });
+
+  test('lege lijst toont Niets te bestellen', () => {
+    vi.mocked(useQuery).mockReturnValueOnce({ data: [], isLoading: false, isError: false } as ReturnType<typeof useQuery>);
+    expect(renderToString(createElement(DrankAdvies, { vestiging: 'Test' }))).toContain('Niets te bestellen');
+  });
+
+  test('alleen regels zonder bestelling toont Niets te bestellen plus ingeklapte lijst', () => {
+    const html = renderToString(createElement(DrankAdviesInhoud, { regels: regels.filter((r) => !r.bestellen) })).replace(/<!-- -->/g, '');
+    expect(html).toContain('Niets te bestellen');
+    expect(html).toContain('Geen bestelling nodig (2)');
   });
 
   test.each(['55000', '42501'])('RPC-fout %s toont geen blok', async (code: string) => {
     const data = await leesMock({ code, message: 'Niet beschikbaar' });
-    expect(data).toEqual([]);
+    expect(data).toBeNull();
     vi.mocked(useQuery).mockReturnValueOnce({ data, isLoading: false, isError: false } as ReturnType<typeof useQuery>);
     expect(renderToString(createElement(DrankAdvies, { vestiging: 'Test' }))).toBe('');
   });

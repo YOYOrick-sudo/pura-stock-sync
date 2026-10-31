@@ -46,9 +46,9 @@ export function KeukenTelblok({ regels, pool, telinfo, laden, onOpslaan, bezig }
     const info = telinfo?.[r.telartikel_id] ?? { tel_label: null, tel_factor: 1, basis_eenheid: r.basis_eenheid };
     const kort = telEenheidKort(info.tel_label) ?? r.basis_eenheid;
     return <div key={r.telartikel_id} className="flex min-w-0 flex-wrap items-center gap-2 px-4 py-2 lg:px-6">
-    <div className="flex min-w-0 flex-1 basis-64 flex-wrap items-center gap-1">
+    <div className="flex min-w-0 flex-1 basis-64 flex-wrap items-center gap-3">
       <p className="min-w-0 flex-1 basis-32 line-clamp-2 break-words text-sm font-medium">{r.naam}</p>
-      <div className="flex max-w-full flex-wrap items-center gap-1">
+      <div className="flex max-w-full flex-wrap items-center gap-3">
       {r.pool?.geteld_vandaag && <Popover>
         <PopoverTrigger asChild>
           <TikIcoon aria-label="geteld vandaag" className="text-muted-foreground"><CheckCircle /></TikIcoon>
@@ -95,7 +95,7 @@ export function KeukenTelblok({ regels, pool, telinfo, laden, onOpslaan, bezig }
       </Popover>
       </div>
     </div>
-    <div className="ml-auto flex shrink-0 items-center gap-1">
+    <div className="ml-auto flex shrink-0 items-center gap-3">
         <label htmlFor={`keuken-telling-${r.telartikel_id}`} className="sr-only">Aantal</label>
         <Input id={`keuken-telling-${r.telartikel_id}`} inputMode="decimal" min={0} aria-label={`Aantal ${r.naam} in ${kort ?? ''}`} placeholder="Aantal" value={invoer[r.telartikel_id] ?? ''} disabled={bezig}
           onChange={(e) => setInvoer((vorig) => ({ ...vorig, [r.telartikel_id]: e.target.value }))}
