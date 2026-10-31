@@ -153,6 +153,15 @@ export function bordRestStatusPerSignaal(rijen: (RestRij & { bestel_signaal_id?:
   return uit;
 }
 
+/** Alleen te-checkenregels met een restbadge blijven bovenaan Onderweg zichtbaar. */
+export function onderwegMetRest<T extends { id: string }>(
+  teChecken: T[],
+  onderweg: T[],
+  status: ReadonlyMap<string, 'nageleverd' | 'mist'>,
+): T[] {
+  return [...teChecken.filter((r) => status.has(r.id)), ...onderweg];
+}
+
 /** Annuleren mag pas met een bron en een notitie van minstens 3 tekens. */
 export function annuleerGeldig(bron: string | null | undefined, notitie: string): boolean {
   return !!bron && notitie.trim().length >= 3;

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useOntvangstModus, useOntvangstData, useKeukenAdvies } from '@/hooks/useOntvangstV2';
 import { NageleverdKaart, EindcheckKaart } from '@/components/kitchen/bestelbord/OntvangstOnderweg';
 import { MandjeVragen } from '@/components/kitchen/bestelbord/MandjeVragen';
-import { bordRestStatusPerSignaal, onderwegTellers } from '@/lib/ontvangstV2';
+import { bordRestStatusPerSignaal, onderwegMetRest, onderwegTellers } from '@/lib/ontvangstV2';
 import { KeukenAdviesTabel } from '@/components/kitchen/bestelbord/KeukenAdviesTabel';
 import { DetailLade, KaartKop, LaadRijen, LijstKaart, Invoerbalk, segmentTabsKlasse } from '@/components/pura/patronen';
 import { TabelVoet } from '@/components/pura/lijst';
@@ -540,6 +540,7 @@ export default function Bestelbord() {
   const openZicht = filter(open).filter((s) => leverancier(s) !== 'Leverancier onbekend');
   const teCheckenZicht = filter(teChecken);
   const onderwegZicht = filter(onderweg);
+  const onderwegGroepZicht = v2 ? onderwegMetRest(teCheckenZicht, onderwegZicht, restStatusPerSignaal) : onderwegZicht;
   const zonderDatumZicht = filter(zonderDatum);
   const geleverdZicht = filter(geleverd);
   const besteldZicht = [...teCheckenZicht, ...onderwegZicht, ...zonderDatumZicht];
@@ -681,7 +682,7 @@ export default function Bestelbord() {
               <div hidden={tab !== 'tellen'}>{test ? <LijstKaart><p className="px-4 py-6 text-center text-sm text-muted-foreground">Niet beschikbaar in testmodus</p></LijstKaart> : <Voorraadproef key={vestiging} vestiging={vestiging} onOverzicht={rapporteerTellen} />}</div>
               <TabsContent value="onderweg" className="mt-0 space-y-4">
                 {v2 && <><NageleverdKaart modus={modus} regels={restanten} /><EindcheckKaart modus={modus} restanten={restanten} regels={ontvangst.vandaag.data ?? []} laden={ontvangst.vandaag.isLoading} leveranciers={leveranciers} /></>}
-                {[...(v2 ? [] : [{ titel: 'Vandaag te checken', regels: teCheckenZicht }]), { titel: 'Onderweg', regels: onderwegZicht }, { titel: 'Zonder datum', regels: zonderDatumZicht }].filter((g) => g.regels.length).map((groep) => <LijstKaart key={groep.titel} kop={<KaartKop icoon={Truck} titel={groep.titel} teller={groep.regels.length} />}><OnderwegTabel groepen={groepeer(groep.regels)} {...groepProps} onBewerk={openBewerk} datumLabel={datumLabel} leverDatumLabel={leverDatumLabel} {...(v2 ? { zonderDeels: true, alleenLezen: test } : {})} /><TabelVoet links={`${groep.regels.length} ${groep.regels.length === 1 ? 'product' : 'producten'}`} /></LijstKaart>)}
+                {[...(v2 ? [] : [{ titel: 'Vandaag te checken', regels: teCheckenZicht }]), { titel: 'Onderweg', regels: onderwegGroepZicht }, { titel: 'Zonder datum', regels: zonderDatumZicht }].filter((g) => g.regels.length).map((groep) => <LijstKaart key={groep.titel} kop={<KaartKop icoon={Truck} titel={groep.titel} teller={groep.regels.length} />}><OnderwegTabel groepen={groepeer(groep.regels)} {...groepProps} onBewerk={openBewerk} datumLabel={datumLabel} leverDatumLabel={leverDatumLabel} {...(v2 ? { zonderDeels: true, alleenLezen: test, restStatus: (s: BestelSignaal) => restStatusPerSignaal.get(s.id) ?? null } : {})} /><TabelVoet links={`${groep.regels.length} ${groep.regels.length === 1 ? 'product' : 'producten'}`} /></LijstKaart>)}
                 {!v2 && !besteldZicht.length && <LijstKaart>{leegKaart('Niets onderweg')}</LijstKaart>}
                 {!!geleverdZicht.length && <LijstKaart kop={<KaartKop icoon={Check} titel="Geleverd" teller={geleverdZicht.length} />}><BordTabel regels={geleverdZicht} {...bordProps} geleverd onTerug={(s) => !test && terugNaarBesteld.mutate(s.id)} detail={(s) => [s.geleverd_op ? datumLabel(s.geleverd_op) : '', s.geleverd_door ? namen?.get(s.geleverd_door) : '', s.levering_status === 'deels' ? 'Deels' : '', s.levering_opmerking].filter(Boolean).join(' · ')} /></LijstKaart>}
               </TabsContent>

@@ -1,6 +1,6 @@
 // @ts-ignore bun test runner
 import { describe, expect, test } from 'bun:test';
-import { afrondWaarschuwingen, annuleerGeldig, bordRestStatus, bordRestStatusPerSignaal, onderwegBlokken, onderwegTellers, isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, type EindcheckInvoer } from './ontvangstV2';
+import { afrondWaarschuwingen, annuleerGeldig, bordRestStatus, bordRestStatusPerSignaal, onderwegBlokken, onderwegMetRest, onderwegTellers, isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, type EindcheckInvoer } from './ontvangstV2';
 
 const basis: EindcheckInvoer = {
   soort: 'onderweg', signaal_id: 's1', open_regel_id: null, pakbon_regel_id: null, geleverd_vorm_id: null,
@@ -76,6 +76,28 @@ describe('eindcheck', () => {
   test('personeel ziet nooit backorder', () => {
     expect(restSoortLabel('backorder')).toBe('Wordt nageleverd');
     expect(restSoortLabel('mist')).toBe('Mist');
+  });
+});
+
+describe('onderweg met reststatus', () => {
+  const teChecken = [{ id: 'mist' }, { id: 'zonder' }, { id: 'nageleverd' }];
+  const onderweg = [{ id: 'later-2' }, { id: 'later-1' }];
+  const status = new Map<string, 'nageleverd' | 'mist'>([['mist', 'mist'], ['nageleverd', 'nageleverd']]);
+  test('te-checkenregels met status staan eerst, in dezelfde volgorde', () => {
+    expect(onderwegMetRest(teChecken, onderweg, status).map((r) => r.id)).toEqual(['mist', 'nageleverd', 'later-2', 'later-1']);
+  });
+  test('te-checkenregels zonder status blijven verborgen', () => {
+    expect(onderwegMetRest([{ id: 'zonder' }], [], status)).toEqual([]);
+  });
+  test('bestaande onderwegregels en invoerlijsten blijven ongewijzigd', () => {
+    const resultaat = onderwegMetRest(teChecken, onderweg, status);
+    expect(resultaat.slice(2)).toEqual(onderweg);
+    expect(resultaat[2]).toBe(onderweg[0]);
+    expect(teChecken.map((r) => r.id)).toEqual(['mist', 'zonder', 'nageleverd']);
+    expect(onderweg.map((r) => r.id)).toEqual(['later-2', 'later-1']);
+  });
+  test('lege statusmap geeft alleen de ongewijzigde onderweglijst', () => {
+    expect(onderwegMetRest(teChecken, onderweg, new Map())).toEqual(onderweg);
   });
 });
 
