@@ -84,7 +84,7 @@ export function KeukenTelblok({ regels, pool, telinfo, laden, onOpslaan, bezig }
         <label htmlFor={`keuken-telling-${r.telartikel_id}`} className="sr-only">Aantal</label>
         <Input id={`keuken-telling-${r.telartikel_id}`} inputMode="decimal" min={0} aria-label={`Aantal ${r.naam} in ${kort ?? ''}`} placeholder="Aantal" value={invoer[r.telartikel_id] ?? ''} disabled={bezig}
           onChange={(e) => setInvoer((vorig) => ({ ...vorig, [r.telartikel_id]: e.target.value }))}
-          className="h-11 w-16 shrink-0 text-base tabular-nums sm:w-24" />
+          className="h-11 w-20 shrink-0 px-2 text-base tabular-nums sm:w-24" />
         <span className="shrink-0 whitespace-nowrap text-sm text-muted-foreground">{kort}</span>
         <Button type="button" variant="outline" size="touch-icon" className="shrink-0" aria-label={`Opslaan ${r.naam}`} disabled={bezig || telInvoer(invoer[r.telartikel_id] ?? '') === null} onClick={() => opslaan(r)}><Check /></Button>
   </div>;
