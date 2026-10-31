@@ -49,7 +49,7 @@ export function NageleverdKaart({ modus, regels }: { modus: OntvangstModus; rege
     const rij = (r: OntvangstRestant, licht: boolean) => <TableRow key={r.regel_id ?? r.api_backorder_id ?? r.naam} className={cn(licht && 'text-muted-foreground')}>
       <TableCell className="!px-0"><div className="mx-auto flex h-11 w-11 items-center justify-center"><Icoon className={cn('h-4 w-4', warn && !licht ? 'text-warning' : 'text-muted-foreground')} aria-hidden /></div></TableCell>
       <TableCell><div className="flex min-h-11 min-w-0 flex-col justify-center">
-        <span className="truncate font-medium">{r.naam}</span>
+        <span className="min-w-0 line-clamp-2 break-words font-medium">{r.naam}</span>
         <RijMeta altijd>{licht ? <Badge variant="secondary">mogelijke nalevering</Badge> : warn && <Badge variant="warning">Mist</Badge>}<span className="truncate">{[r.leverancier_naam, kortDatum(r.verwacht_op ?? r.controle_op)].filter(Boolean).join(' · ')}</span></RijMeta>
       </div></TableCell>
       <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex items-center gap-1.5"><span className="rounded-full bg-muted px-2 text-sm font-semibold">{Number(r.aantal)}</span>{r.eenheid && <span className="text-xs text-muted-foreground">{r.eenheid}</span>}</span></TableCell>
@@ -120,7 +120,7 @@ export function EindcheckKaart({ modus, regels: alleRegels, restanten, laden, le
             return <TableRow key={k} className="cursor-pointer" onClick={() => { kies(k, true); setOpen(k); }}>
               <TableCell className="!px-0" onClick={(e) => e.stopPropagation()}><label className="mx-auto flex h-11 w-11 cursor-pointer items-center justify-center"><Checkbox aria-label={`${r.naam} meenemen`} checked={gekozen.has(k)} onCheckedChange={(b) => kies(k, b === true)} /></label></TableCell>
               <TableCell><div className="flex min-h-11 min-w-0 flex-col justify-center">
-                <span className="flex min-w-0 items-center gap-1.5"><span className="truncate font-medium">{r.naam}</span>{r.soort !== 'onderweg' && r.soort !== 'alleen_pakbon' && <Hourglass className="h-4 w-4 shrink-0 text-muted-foreground" aria-label="Wordt nageleverd" />}</span>
+                <span className="flex min-w-0 items-center gap-1.5"><span className="min-w-0 line-clamp-2 break-words font-medium">{r.naam}</span>{r.soort !== 'onderweg' && r.soort !== 'alleen_pakbon' && <Hourglass className="h-4 w-4 shrink-0 text-muted-foreground" aria-label="Wordt nageleverd" />}</span>
                 {(rest > 0 || r.te_laat) && <RijMeta altijd>{rest > 0 && <Badge variant={v.nageleverd || v.automatisch ? 'info' : 'warning'}>{rest} {v.nageleverd || v.automatisch ? 'wordt nageleverd' : 'mist'}</Badge>}</RijMeta>}
               </div></TableCell>
               <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex items-center gap-1.5"><span className="rounded-full bg-muted px-2 text-sm font-semibold">{v.binnen}</span><span className="text-xs text-muted-foreground">/ {v.besteld} {r.eenheid ?? ''}</span></span></TableCell>
@@ -199,7 +199,7 @@ function ZonderOrderLade({ open, onOpenChange, modus, leveranciers }: { open: bo
     {lijst ? <div className="space-y-3">
       <p className="text-base">Is dit een nalevering?</p>
       <div className="divide-y divide-border rounded-polar-md border border-border">{lijst.map((k) => <Button key={k.regel_id} variant="ghost" className="flex min-h-12 w-full items-center justify-between gap-2 rounded-none px-3 text-left" disabled={afronden.isPending} onClick={() => afronden.mutate([{ open_regel_id: k.regel_id, binnen: aantal }], { onSuccess: klaar, onError: fout })}>
-        <span className="min-w-0 truncate font-medium">{k.naam}</span>
+        <span className="min-w-0 line-clamp-2 break-words font-medium">{k.naam}</span>
         <span className="shrink-0 text-xs text-muted-foreground">{[`${Number(k.aantal)} ${k.eenheid ?? ''}`.trim(), k.sinds ? kortDatum(k.sinds) : ''].filter(Boolean).join(' · ')}</span>
       </Button>)}</div>
       <Button variant="outline" className="h-12 w-full" disabled={zonderOrder.isPending} onClick={naarZonderOrder}>Nee, los ontvangen</Button>

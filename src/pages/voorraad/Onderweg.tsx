@@ -1,3 +1,4 @@
+import { hoeveelheid, telwoord } from '@/lib/hoeveelheid';
 import { useState } from 'react';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
@@ -98,9 +99,9 @@ function OrderKaart({ order, open, onToggle }: { order: OnderwegOrder; open: boo
     <Card className={isMobile ? 'min-w-0 space-y-2 p-3' : 'p-4 space-y-3'}>
       <button onClick={onToggle} className={isMobile ? 'flex min-h-12 w-full min-w-0 items-center gap-2 text-left' : 'w-full flex items-center gap-3 text-left min-h-[48px]'}>
         <div className="flex-1 min-w-0">
-          <div className="font-medium truncate">{order.titel}</div>
+          <div className="min-w-0 line-clamp-2 break-words font-medium">{order.titel}</div>
           <div className={isMobile ? 'break-words text-xs text-muted-foreground' : 'text-xs text-muted-foreground'}>
-            {order.nummer} · {order.regels.length} regels
+            {order.nummer} · {telwoord(order.regels.length, 'regel', 'regels')}
             {order.leverdatum
               ? ` · ${new Date(`${order.leverdatum}T12:00:00`).toLocaleDateString('nl-NL', {
                   weekday: 'short',
@@ -119,9 +120,9 @@ function OrderKaart({ order, open, onToggle }: { order: OnderwegOrder; open: boo
           {order.regels.map((r) => (
             <div key={r.id} className={isMobile ? 'flex min-h-12 min-w-0 flex-nowrap items-center gap-2 border-b border-border py-2 last:border-0' : 'flex flex-wrap items-center gap-3 border-b border-border py-2 last:border-0 sm:flex-nowrap'}>
               <div className="flex-1 min-w-0">
-                <div className="truncate">{r.omschrijving}</div>
+                <div className="min-w-0 line-clamp-2 break-words">{r.omschrijving}</div>
                 <div className="text-xs text-muted-foreground">
-                  besteld {r.aantal} {r.eenheid}
+                  besteld {hoeveelheid(r.aantal, r.eenheid)}
                   {r.ontvangen !== null ? ` · ontvangen ${r.ontvangen}` : ''}
                   {r.backorder ? ' · nalevering' : ''}
                 </div>
