@@ -94,7 +94,7 @@ export function useLadeMutaties(vestiging: string) {
     }) => {
       const patch: Record<string, unknown> = { lade_id: ladeId };
       if (volgorde !== undefined) patch.volgorde = volgorde;
-      const { error } = await supabase.from('koelcel_check_items').update(patch).eq('id', itemId);
+      const { error } = await supabase.from('koelcel_check_items').update(patch as never).eq('id', itemId);
       if (error) throw error;
     },
     onMutate: async ({ itemId, ladeId }) => {

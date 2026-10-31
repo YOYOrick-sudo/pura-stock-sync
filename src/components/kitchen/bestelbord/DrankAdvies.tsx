@@ -1,5 +1,6 @@
 import { ChevronDown, Info, Wine } from 'lucide-react';
 import { LaadRijen, LijstKaart, SectieKop, TikIcoon } from '@/components/pura';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -11,28 +12,54 @@ const groepen = [
   { groep: 'D3 melk', titel: 'Melk' },
 ] as const;
 const getal = (waarde: number | null) => waarde == null ? '—' : new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 2 }).format(waarde);
+const eerstTellen = (r: DrankAdviesRegel) => !!r.toelichting?.trim().toLowerCase().startsWith('eerst tellen');
+
+function DrankRij({ r }: { r: DrankAdviesRegel }) {
+  const info = r.aanname || r.toelichting || r.stand != null;
+  return <div className="flex min-w-0 items-center gap-2 px-4 py-2 lg:px-6">
+    <div className="min-w-0 flex-1">
+      <p className="line-clamp-2 break-words text-sm font-medium">{r.artikel}</p>
+      <p className="text-xs tabular-nums text-muted-foreground">{getal(r.per_week)} {r.eenheid}</p>
+    </div>
+    {r.bestellen
+      ? <p className="max-w-32 break-words text-right text-sm tabular-nums">{getal(r.advies_per_week)} × {r.bestel_eenheid}</p>
+      : eerstTellen(r) && <Badge variant="secondary" className="shrink-0 whitespace-nowrap">eerst tellen</Badge>}
+    {info && <Popover>
+      <PopoverTrigger asChild><TikIcoon aria-label={`Info ${r.artikel}`} className="text-muted-foreground"><Info /></TikIcoon></PopoverTrigger>
+      <PopoverContent className="space-y-1 text-sm">
+        {r.stand != null && <p className="tabular-nums">stand {getal(r.stand)}</p>}
+        {r.aanname && <p className="font-medium">aanname, keuken checkt</p>}
+        {r.toelichting && <p>{r.toelichting}</p>}
+      </PopoverContent>
+    </Popover>}
+  </div>;
+}
+
+function Rijen({ regels }: { regels: DrankAdviesRegel[] }) {
+  return <div className="divide-y divide-border">{regels.map((r, i) => <DrankRij key={`${r.artikel}-${i}`} r={r} />)}</div>;
+}
 
 export function DrankAdviesInhoud({ regels }: { regels: DrankAdviesRegel[] }) {
   return <div className="divide-y divide-border">
-    {groepen.map(({ groep, titel }) => <section key={groep} aria-label={titel}>
-      <div className="px-4 pt-2 lg:px-6"><SectieKop titel={titel} /></div>
-      <div className="divide-y divide-border">
-        {regels.filter((r) => r.groep === groep).map((r, i) => <div key={`${r.artikel}-${i}`} className="flex min-w-0 items-center gap-2 px-4 py-2 lg:px-6">
-          <div className="min-w-0 flex-1">
-            <p className="line-clamp-2 break-words text-sm font-medium">{r.artikel}</p>
-            <p className="text-xs tabular-nums text-muted-foreground">{getal(r.per_week)} {r.eenheid}</p>
-          </div>
-          <p className="max-w-32 break-words text-right text-sm tabular-nums">{getal(r.advies_per_week)} × {r.bestel_eenheid}</p>
-          {(r.aanname || r.toelichting) && <Popover>
-            <PopoverTrigger asChild><TikIcoon aria-label={`Info ${r.artikel}`} className="text-muted-foreground"><Info /></TikIcoon></PopoverTrigger>
-            <PopoverContent className="space-y-1 text-sm">
-              {r.aanname && <p className="font-medium">aanname, keuken checkt</p>}
-              {r.toelichting && <p>{r.toelichting}</p>}
-            </PopoverContent>
-          </Popover>}
-        </div>)}
-      </div>
-    </section>)}
+    {groepen.map(({ groep, titel }) => {
+      const eigen = regels.filter((r) => r.groep === groep);
+      const bestellen = eigen.filter((r) => r.bestellen);
+      const rest = eigen.filter((r) => !r.bestellen);
+      return <section key={groep} aria-label={titel}>
+        <div className="px-4 pt-2 lg:px-6"><SectieKop titel={titel} /></div>
+        {rest.length > 0 && bestellen.length > 0 && <p className="px-4 pt-1 text-xs text-muted-foreground lg:px-6">Deze week bestellen ({bestellen.length})</p>}
+        <Rijen regels={bestellen} />
+        {rest.length > 0 && <Collapsible className="group/geen">
+          <CollapsibleTrigger asChild>
+            <Button type="button" variant="ghost" size="touch" className="w-full justify-between px-4 text-muted-foreground lg:px-6">
+              <span className="truncate">Geen bestelling nodig ({rest.length})</span>
+              <ChevronDown className="group-data-[state=open]/geen:rotate-180" />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent><Rijen regels={rest} /></CollapsibleContent>
+        </Collapsible>}
+      </section>;
+    })}
   </div>;
 }
 

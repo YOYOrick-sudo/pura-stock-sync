@@ -140,7 +140,7 @@ export function useKeukenTelInfo(m: OntvangstModus) {
 export type DrankAdviesRegel = {
   groep: 'D1 flessen' | 'D2 koffie' | 'D3 melk'; artikel: string; eenheid: string | null;
   per_week: number | null; bestel_eenheid: string | null; advies_per_week: number | null;
-  aanname: boolean; toelichting: string | null;
+  aanname: boolean; toelichting: string | null; stand: number | null; bestellen: boolean;
 };
 
 export function useDrankAdvies(vestiging: string | null) {

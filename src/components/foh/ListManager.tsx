@@ -680,7 +680,7 @@ export function ListManager({
 
     await supabase
       .from('foh_tasks')
-      .update(updateFields)
+      .update(updateFields as never)
       .eq('template_id', templateId)
       .eq('due_date', todayNL)
       .eq('archived', false);

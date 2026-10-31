@@ -129,7 +129,7 @@ export function VoorraadCheckBeheer({ location }: { location: string }) {
 
   const bijwerken = useMutation({
     mutationFn: async ({ id, velden }: { id: string; velden: Record<string, unknown> }) => {
-      const { error } = await supabase.from('koelcel_check_items').update(velden).eq('id', id);
+      const { error } = await supabase.from('koelcel_check_items').update(velden as never).eq('id', id);
       if (error) throw error;
     },
     onSuccess: ververs,
