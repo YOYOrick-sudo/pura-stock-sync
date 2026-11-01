@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -63,7 +63,11 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { supabase } from "@/integrations/supabase/client";
 import { focusManager } from "@tanstack/react-query";
 import { abortAlles, herstelOfHerlaad, zorgVoorSessie } from "@/lib/appWake";
-import { useEffect } from "react";
+import Omzet from "./pages/Omzet";
+
+const OmzetVoorbeeld = import.meta.env.DEV
+  ? lazy(() => import("./pages/OmzetVoorbeeld").then((m) => ({ default: m.OmzetVoorbeeld })))
+  : null;
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -329,6 +333,10 @@ const App = () => {
             <Route path="/kitchen/mep/beheer" element={<ProtectedRoute><RequireWest><MepBeheer /></RequireWest></ProtectedRoute>} />
             <Route path="/kitchen/bestelbord" element={<ProtectedRoute><Bestelbord /></ProtectedRoute>} />
             <Route path="/mt-punt" element={<ProtectedRoute><RequireMtLid><MtPunt /></RequireMtLid></ProtectedRoute>} />
+            <Route path="/omzet" element={<ProtectedRoute><RequireMtLid><Omzet /></RequireMtLid></ProtectedRoute>} />
+            {OmzetVoorbeeld && (
+              <Route path="/omzet-voorbeeld" element={<Suspense fallback={null}><OmzetVoorbeeld /></Suspense>} />
+            )}
             <Route path="/settings/mep" element={<ProtectedRoute><MepInstellingen /></ProtectedRoute>} />
             <Route path="/settings/keten" element={<ProtectedRoute><RequireManager><KetenBeheer /></RequireManager></ProtectedRoute>} />
             <Route path="/settings/koelwerkbank" element={<ProtectedRoute><RequireManager><KoelwerkbankIndeling /></RequireManager></ProtectedRoute>} />

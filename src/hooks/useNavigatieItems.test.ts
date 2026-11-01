@@ -4,10 +4,10 @@ import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { allNavigationItems, midslandKeukenUrls, useNavigatieItems } from './useNavigatieItems';
 
-const state = vi.hoisted(() => ({ location: 'Midsland', vlagAan: false }));
+const state = vi.hoisted(() => ({ location: 'Midsland', vlagAan: false, isMtLid: true }));
 vi.mock('@/contexts/UserLocationContext', () => ({ useUserLocation: () => ({ userLocation: state.location }) }));
 vi.mock('@/hooks/useRole', () => ({ useRole: () => ({ isManager: true, isOwner: true }) }));
-vi.mock('@/hooks/useIsMtLid', () => ({ useIsMtLid: () => ({ isMtLid: true }) }));
+vi.mock('@/hooks/useIsMtLid', () => ({ useIsMtLid: () => ({ isMtLid: state.isMtLid }) }));
 vi.mock('@/hooks/useHeeftRol', () => ({ useHeeftRol: () => ({ heeftRol: true }) }));
 vi.mock('@/hooks/useOntvangstV2', () => ({
   useFase2VlagAan: (vestiging: string | null, vlag: string) => vestiging === 'Midsland' && vlag === 'ontvangst_v2' && state.vlagAan,
@@ -24,7 +24,14 @@ function zichtbareUrls(): string[] {
 }
 
 describe('Midsland Bestelbord achter ontvangst_v2', () => {
-  beforeEach(() => { state.location = 'Midsland'; state.vlagAan = false; });
+  beforeEach(() => { state.location = 'Midsland'; state.vlagAan = false; state.isMtLid = true; });
+  test('Omzet staat alleen in het menu van een MT-lid', () => {
+    state.location = 'West';
+    state.isMtLid = false;
+    expect(zichtbareUrls()).not.toContain('/omzet');
+    state.isMtLid = true;
+    expect(zichtbareUrls()).toContain('/omzet');
+  });
   test('Midsland zonder schakelaar heeft alleen de bestaande keuken-items', () => {
     expect(midslandKeukenUrls(false)).toEqual(['/kitchen/mep', '/kitchen/gerechten']);
     expect(zichtbareUrls()).not.toContain('/kitchen/bestelbord');

@@ -53,6 +53,8 @@ export function SidebarLayout({
       '/taken/beheer': 'Lijst bewerken',
       '/onderhoud': 'Onderhoud',
       '/mt-punt': 'MT-punten',
+      '/omzet': 'Omzet',
+      '/omzet-voorbeeld': 'Omzet',
       '/kas-controle': 'Kas-controle',
       '/hr': 'HR',
       '/hr/applicants/new': 'Nieuwe kandidaat',
