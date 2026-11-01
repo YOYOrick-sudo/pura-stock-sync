@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { StatusLabel } from '@/components/pura/lijst';
 import { amsterdamDatum, tellingTotaal, type TelPlek } from '@/lib/voorraadproef';
-import { useVoorraadproef, type ProefStand, type ProefTelling, type TellingInvoer } from '@/hooks/useVoorraadproef';
+import { useVoorraadproef, voorraadServerfout, type ProefStand, type ProefTelling, type TellingInvoer } from '@/hooks/useVoorraadproef';
 import { telMoment } from './bestelbord/presentatie';
 
 const getal = (n: number | null | undefined) => n == null ? '—' : new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 3 }).format(n);
@@ -17,8 +17,8 @@ function plekkenVan(a: ProefStand): TelPlek[] {
   return a.opslagplekken.flatMap((p) => p && typeof p === 'object' && !Array.isArray(p) && typeof p.naam === 'string' && typeof p.eenheid === 'string' && typeof p.factor === 'number' ? [{ naam: p.naam, eenheid: p.eenheid, factor: p.factor }] : []);
 }
 
-export function Voorraadproef({ vestiging, onOverzicht }: { vestiging: string; onOverzicht?: (a: { open: number; geladen: boolean }) => void }) {
-  const { standen, opslaan } = useVoorraadproef(vestiging);
+export function Voorraadproef({ vestiging, actief = true, onOverzicht }: { vestiging: string; actief?: boolean; onOverzicht?: (a: { open: number; geladen: boolean }) => void }) {
+  const { standen, opslaan } = useVoorraadproef(vestiging, actief);
   const artikelen = standen.data ?? [];
   const openVragen = artikelen.filter((a) => a.tellen_nodig).length;
   useEffect(() => { onOverzicht?.({ open: openVragen, geladen: standen.isSuccess }); }, [openVragen, standen.isSuccess, onOverzicht]);
@@ -84,7 +84,7 @@ export function Voorraadproef({ vestiging, onOverzicht }: { vestiging: string; o
 
   return <div className="space-y-3">
     {rollen.length > 1 && <Tabs value={rol} onValueChange={setRol}><TabsList className={segmentTabsKlasse}><TabsTrigger value="bediening" disabled={vergrendeld}>Bediening</TabsTrigger><TabsTrigger value="keuken" disabled={vergrendeld}>Keuken</TabsTrigger></TabsList></Tabs>}
-    {standen.isLoading ? <LijstKaart><LaadRijen /></LijstKaart> : standen.isError ? <LijstKaart><div role="alert"><FoutRegel tekst="Voorraad niet opgehaald." onOpnieuw={() => standen.refetch()} /></div></LijstKaart> : <>
+    {standen.isLoading ? <LijstKaart><LaadRijen /></LijstKaart> : standen.isError ? <LijstKaart><div role="alert"><FoutRegel tekst={voorraadServerfout(standen.error) ? 'Voorraad niet opgehaald. De server reageerde te traag. Probeer het zo opnieuw.' : 'Voorraad niet opgehaald.'} onOpnieuw={() => standen.refetch()} /></div></LijstKaart> : <>
       <Card className="overflow-hidden">
         <KaartKop icoon={Calculator} titel={<span className="flex items-center gap-1">Vandaag<Popover><PopoverTrigger asChild><Button variant="ghost" size="touch-icon" aria-label="Informatie over tellen"><Info className="h-4 w-4 text-muted-foreground" /></Button></PopoverTrigger><PopoverContent className="max-w-xs text-sm">Tel wat er nu staat, per plek. Je ziet de verwachte stand pas na opslaan.</PopoverContent></Popover></span>} rechts={<span className="text-sm tabular-nums text-muted-foreground">{geteld}/{vandaag.length}</span>} />
         <div className="flex h-1 bg-muted" aria-label="Voortgang telling" role="progressbar" aria-valuemin={0} aria-valuemax={vandaag.length || 1} aria-valuenow={geteld}>{vandaag.map((a, i) => <span key={a.id} className={i < geteld ? 'flex-1 bg-primary' : 'flex-1'} />)}</div>
