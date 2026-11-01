@@ -25,3 +25,5 @@ project_id = "ajtqzzzpawqcoaphdkaz"
     verify_jwt = false
   [functions.weather-ai-advisor]
     verify_jwt = false
+  [functions.kooyman-ontvangst-sync]
+    verify_jwt = false

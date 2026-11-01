@@ -9626,6 +9626,18 @@ export type Database = {
         Args: { p_id: string; p_naam: string; p_tel_eenheid: string }
         Returns: string
       }
+      voorraad_bewegingen_artikel: {
+        Args: { p_artikel: string }
+        Returns: {
+          bron_ref: string
+          bronkwaliteit: string
+          datum: string
+          hoeveelheid: number
+          soort: string
+          vestiging: string
+          voorraad_artikel_id: string
+        }[]
+      }
       voorraad_bewegingen_lezen: {
         Args: { p_vestiging: string }
         Returns: {

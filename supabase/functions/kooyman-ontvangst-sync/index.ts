@@ -1,6 +1,6 @@
 // Stap 78: alleen GET bij Kooyman; vergelijken schrijft uitsluitend het sync-log.
 import { createClient } from "npm:@supabase/supabase-js@2.118.0";
-import { corsHeaders } from "npm:@supabase/supabase-js@2.118.0/cors";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { z } from "npm:zod@3";
 
 const KOOYMAN_URL = "https://v2.kooyman-grootverbruik.nl/api/public/v1";
@@ -105,8 +105,11 @@ export async function handler(req: Request): Promise<Response> {
     const auth = req.headers.get("Authorization") ?? "";
     const sb = createClient(url, service, { auth: { persistSession: false, autoRefreshToken: false } });
     const isService = auth === `Bearer ${service}`;
+    const cronToken = Deno.env.get("CRON_SYNC_TOKEN") ?? "";
+    const syncHeader = req.headers.get("x-sync-token") ?? "";
+    const isCron = cronToken.length > 0 && syncHeader === cronToken;
     let uid: string | undefined;
-    if (!isService) {
+    if (!(isService || isCron)) {
       if (!auth.startsWith("Bearer ")) return json({ fout: "niet toegestaan" }, 401);
       const { data, error } = await sb.auth.getUser(auth.slice(7));
       uid = data?.user?.id;
@@ -119,7 +122,7 @@ export async function handler(req: Request): Promise<Response> {
     const parsed = BodySchema.safeParse(raw);
     if (!parsed.success) return json({ fout: "ongeldige invoer", details: parsed.error.issues.map((i) => ({ veld: i.path.join("."), melding: i.message })) }, 400);
     const body = parsed.data;
-    if (!isService && body.doel !== "Test" && body.modus !== "vergelijk") {
+    if (!(isService || isCron) && body.doel !== "Test" && body.modus !== "vergelijk") {
       return json({ fout: "handmatig alleen doel Test of modus vergelijk" }, 403);
     }
     if (body.alleen_op_tijd) {
