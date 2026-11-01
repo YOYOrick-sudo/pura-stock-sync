@@ -39,6 +39,8 @@ export type MaandPunt = {
   procent: number | null;
   /** Omzet per kalenderjaar. null = dicht, geen 0. */
   perJaar: Record<number, number | null>;
+  /** De maand is bezig; de cijfers lopen tot vandaag, niet tot de maandultimo. */
+  loopt: boolean;
 };
 
 export type GelijkJaar = {
@@ -62,6 +64,7 @@ export type OmzetBeeld = {
     perDagVerschil: Verschil;
     gemBonNu: number | null;
     gemBonToen: number | null;
+    loopt: boolean;
   };
   ytd: {
     van: string;
@@ -269,6 +272,17 @@ export function maandOpen(openDagen: number, jaar: number, maand: number): boole
   return openDagen * 2 >= dagenInMaand(jaar, maand);
 }
 
+export type MaandFase = 'verstreken' | 'loopt' | 'komt';
+
+/** Verstreken, bezig, of nog niet begonnen, afgezet tegen vandaag in Amsterdam. */
+export function maandFase(jaar: number, maand: number, vandaag: string): MaandFase {
+  const start = `${jaar}-${pad(maand)}-01`;
+  const eind = `${jaar}-${pad(maand)}-${pad(dagenInMaand(jaar, maand))}`;
+  if (vandaag < start) return 'komt';
+  if (vandaag > eind) return 'verstreken';
+  return 'loopt';
+}
+
 /** Tekst voor de tooltip: bedrag, verschil in euro en procent. Zonder data: dicht. */
 export function maandDetail(punt: MaandPunt, jaar: number, zichtbaar: { ditJaar: boolean; vorigJaar: boolean } = { ditJaar: true, vorigJaar: true }) {
   const beideZichtbaar = zichtbaar.ditJaar && zichtbaar.vorigJaar;
@@ -291,8 +305,9 @@ export function bouwOmzetBeeld(regels: OmzetRegel[], keuze: VestigingKeuze, jaar
     ? { jaar, maand: gekozenMaand }
     : standaard;
 
-  const nuMaand = som(dagen, (d) => inKeuze(d, keuze) && inMaand(d, maand.jaar, maand.maand));
-  const toenMaand = som(dagen, (d) => inKeuze(d, keuze) && inMaand(d, maand.jaar - 1, maand.maand));
+  const maandLoopt = maandFase(maand.jaar, maand.maand, vandaag) === 'loopt';
+  const nuMaand = som(dagen, (d) => inKeuze(d, keuze) && inMaandTot(d, maand.jaar, maand.maand, maandLoopt ? zelfdeDag(maand.jaar, maand.maand, vandaag) : null));
+  const toenMaand = som(dagen, (d) => inKeuze(d, keuze) && inMaandTot(d, maand.jaar - 1, maand.maand, maandLoopt ? zelfdeDag(maand.jaar - 1, maand.maand, vandaag) : null));
   const nuYtd = som(dagen, (d) => inKeuze(d, keuze) && inBereik(d, `${jaar}-01-01`, eind));
   const toenYtd = som(dagen, (d) => inKeuze(d, keuze) && inBereik(d, `${jaar - 1}-01-01`, toenEind));
   const gelijkMaanden = vergelijkbareMaanden(dagen, jaar, eind);
@@ -303,14 +318,18 @@ export function bouwOmzetBeeld(regels: OmzetRegel[], keuze: VestigingKeuze, jaar
   const maanden: MaandPunt[] = [];
   const dichtMaanden: number[] = [];
   for (let m = 1; m <= 12; m += 1) {
-    const dit = som(dagen, (d) => inKeuze(d, keuze) && inMaand(d, jaar, m));
-    const vorig = som(dagen, (d) => inKeuze(d, keuze) && inMaand(d, jaar - 1, m));
+    const fase = maandFase(jaar, m, vandaag);
+    if (fase === 'komt') continue;
+    const loopt = fase === 'loopt';
+    const dit = som(dagen, (d) => inKeuze(d, keuze) && inMaandTot(d, jaar, m, loopt ? zelfdeDag(jaar, m, vandaag) : null));
+    if (loopt && dit.dicht) continue;
+    const vorig = som(dagen, (d) => inKeuze(d, keuze) && inMaandTot(d, jaar - 1, m, loopt ? zelfdeDag(jaar - 1, m, vandaag) : null));
     const perJaar: Record<number, number | null> = {};
     for (const j of jaren) {
-      const vanJaar = som(dagen, (d) => inKeuze(d, keuze) && inMaand(d, j, m));
+      const vanJaar = som(dagen, (d) => inKeuze(d, keuze) && inMaandTot(d, j, m, loopt ? zelfdeDag(j, m, vandaag) : null));
       perJaar[j] = vanJaar.dicht ? null : vanJaar.omzet;
     }
-    if (dit.dicht) dichtMaanden.push(m);
+    if (!loopt && dit.dicht) dichtMaanden.push(m);
     const verschil = verschilOmzet(dit, vorig);
     maanden.push({
       maand: m,
@@ -319,6 +338,7 @@ export function bouwOmzetBeeld(regels: OmzetRegel[], keuze: VestigingKeuze, jaar
       vorigJaar: vorig.dicht ? null : vorig.omzet,
       procent: verschil.procent,
       perJaar,
+      loopt,
     });
   }
 
@@ -340,6 +360,7 @@ export function bouwOmzetBeeld(regels: OmzetRegel[], keuze: VestigingKeuze, jaar
       perDagVerschil: verschilGetal(perDagNu, perDagToen),
       gemBonNu: gemiddeldeBon(nuMaand),
       gemBonToen: gemiddeldeBon(toenMaand),
+      loopt: maandLoopt,
     },
     ytd: {
       van: `${jaar}-01-01`,
@@ -487,6 +508,16 @@ function inKeuze(dag: Dag, keuze: VestigingKeuze): boolean {
 
 function inMaand(dag: Dag, jaar: number, maand: number): boolean {
   return dag.werkdag.startsWith(`${jaar}-${pad(maand)}`);
+}
+
+function inMaandTot(dag: Dag, jaar: number, maand: number, tot: string | null): boolean {
+  return inMaand(dag, jaar, maand) && (!tot || dag.werkdag <= tot);
+}
+
+/** Zelfde kalenderdag in een ander jaar, voor een lopende maand. */
+function zelfdeDag(jaar: number, maand: number, vandaag: string): string {
+  const dag = Math.min(Number(vandaag.slice(8, 10)), dagenInMaand(jaar, maand));
+  return `${jaar}-${pad(maand)}-${pad(dag)}`;
 }
 
 function inBereik(dag: Dag, van: string, tot: string): boolean {

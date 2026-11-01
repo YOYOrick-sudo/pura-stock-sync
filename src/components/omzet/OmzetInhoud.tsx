@@ -207,7 +207,7 @@ function MaandKaarten({
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <KengetalVerdeling
-        label="Omzet"
+        label={beeld.maand.loopt ? 'Omzet · loopt nog' : 'Omzet'}
         waarde={beeld.maand.nu.dicht ? 'dicht' : formatEuro(beeld.maand.nu.omzet)}
         regels={vergelijkRegels(beeld.maand.nu.dicht, beeld.maand.verschil, beeld.maand.toen.dicht ? null : beeld.maand.toen.omzet, jaar - 1)}
       />

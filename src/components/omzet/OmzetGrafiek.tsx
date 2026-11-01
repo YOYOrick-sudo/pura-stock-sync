@@ -179,7 +179,7 @@ function TipBlok({ punt, jaar, jaren, aan }: { punt: MaandPunt; jaar: number; ja
   const aflopend = [...jaren].filter((j) => aan.includes(j)).sort((a, b) => b - a);
   return (
     <div data-testid="omzet-tooltip" className="min-w-40 rounded-polar-md border border-border bg-card px-3 py-2 text-xs shadow-md">
-      <p className="mb-1 font-medium capitalize text-foreground">{detail.naam}</p>
+      <p className="mb-1 font-medium capitalize text-foreground">{detail.naam}{punt.loopt ? ' · loopt nog' : ''}</p>
       {aflopend.map((j) => (
         <TipRij key={j} label={String(j)} waarde={punt.perJaar[j] == null ? 'dicht' : formatEuro(punt.perJaar[j]!)} />
       ))}
