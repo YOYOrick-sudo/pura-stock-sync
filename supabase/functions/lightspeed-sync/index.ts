@@ -324,7 +324,7 @@ type Receipt = {
  */
 export type Logica = 'oud' | 'nieuw';
 export const STATUSSEN: Record<Logica, readonly string[]> = { oud: ['PAID'], nieuw: ['PAID', 'DONE'] };
-export const SCHRIJF_LOGICA: Logica = 'oud';
+export const SCHRIJF_LOGICA: Logica = 'nieuw';
 
 export function plaatsBon(r: Receipt, logica: Logica): { werkdag: string; uur: number } {
   const viaTs = computeWerkdagUur(r.timestamp);
