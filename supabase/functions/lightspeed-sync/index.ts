@@ -272,7 +272,7 @@ async function getValidToken(admin: any, vestiging: string): Promise<{ token: st
 // - Filter: status === 'PAID' (alleen betaalde bonnen tellen als omzet).
 // ------------------------------------------------------------------
 type ReceiptItem = { product_id: string; naam: string; aantal: number; incl: number; excl: number };
-type Receipt = { timestamp: string; total_incl: number; total_excl: number; items?: ReceiptItem[] };
+type Receipt = { timestamp: string; total_incl: number; total_excl: number; items?: ReceiptItem[]; ophaaldag?: string };
 
 /** Productregels uit een L-Series receipt (items[]). Sleutel: prodId → productId → naam. */
 export function extractItems(r: any): ReceiptItem[] {
@@ -318,9 +318,82 @@ function pickReceiptTs(r: any): string | null {
   return null;
 }
 
+// ------------------------------------------------------------------
+// Droge run (dry_run): diagnose-verzameling. Alleen gevuld als er een diag-object
+// wordt meegegeven; het normale (schrijvende) pad geeft niets mee en blijft gelijk.
+// ------------------------------------------------------------------
+type Bedrag = { n: number; incl: number; excl: number };
+export type DryDiag = {
+  status: Record<string, Bedrag>;              // alle bonnen per status (PAID en de rest)
+  paid_zonder_tijd: Bedrag;                     // PAID maar geen bruikbare timestamp → sync slaat over
+  paid_zonder_excl_veld: Bedrag;                // PAID zonder totalWithoutTax/totalExcludingTax → excl telt als 0
+  ts_bron: Record<string, number>;              // welk veld pickReceiptTs koos
+  per_ophaaldag: Record<string, { status: Record<string, Bedrag> }>;
+  ids: Map<string, string[]>;                   // bon-id → ophaaldagen (dubbelen over dagen)
+  id_veld: string | null;
+  paginas: number;
+};
+
+export function nieuweDiag(): DryDiag {
+  return {
+    status: {}, paid_zonder_tijd: { n: 0, incl: 0, excl: 0 }, paid_zonder_excl_veld: { n: 0, incl: 0, excl: 0 },
+    ts_bron: {}, per_ophaaldag: {}, ids: new Map(), id_veld: null, paginas: 0,
+  };
+}
+
+function telOp(b: Bedrag, incl: number, excl: number) { b.n += 1; b.incl += incl; b.excl += excl; }
+
+/** Welk veld pickReceiptTs gebruikt (zelfde volgorde en skip-regels). Alleen voor diagnose. */
+function pickReceiptTsBron(r: any): string | null {
+  const namen = ['modificationDate', 'creationDate', 'closingDate', 'printDate'];
+  for (const k of namen) {
+    const c = r?.[k];
+    if (c == null || c === '') continue;
+    const s = String(c);
+    if (s.startsWith('1970-') || s.startsWith('1969-')) continue;
+    if (typeof c === 'number' || /^\d+$/.test(s)) {
+      const n = typeof c === 'number' ? c : Number(s);
+      if (!Number.isFinite(n) || n <= 0) continue;
+      const ms = n < 1e12 ? n * 1000 : n;
+      if (ms < 946684800000) continue;
+      return k;
+    }
+    return k;
+  }
+  return null;
+}
+
+/** Leg één ruwe Lightspeed-bon vast in de diagnose (alle statussen). */
+export function diagBon(diag: DryDiag, date: string, r: any) {
+  const status = String(r?.status ?? '').toUpperCase() || '(leeg)';
+  const incl = Number(r?.total ?? 0) || 0;
+  const exclRaw = r?.totalWithoutTax ?? r?.totalExcludingTax;
+  const excl = Number(exclRaw ?? 0) || 0;
+  diag.status[status] ??= { n: 0, incl: 0, excl: 0 };
+  telOp(diag.status[status], incl, excl);
+  const dag = (diag.per_ophaaldag[date] ??= { status: {} });
+  dag.status[status] ??= { n: 0, incl: 0, excl: 0 };
+  telOp(dag.status[status], incl, excl);
+  if (status === 'PAID') {
+    const bron = pickReceiptTsBron(r);
+    if (!bron) telOp(diag.paid_zonder_tijd, incl, excl);
+    diag.ts_bron[bron ?? '(geen)'] = (diag.ts_bron[bron ?? '(geen)'] ?? 0) + 1;
+    if (exclRaw == null || exclRaw === '') telOp(diag.paid_zonder_excl_veld, incl, excl);
+  }
+  const idVeld = ['id', 'receiptId', 'uuid', 'receiptNumber'].find((k) => r?.[k] != null && r?.[k] !== '');
+  if (idVeld) {
+    diag.id_veld ??= idVeld;
+    const id = `${status}|${String(r[idVeld])}`;
+    const l = diag.ids.get(id) ?? [];
+    l.push(date);
+    diag.ids.set(id, l);
+  }
+}
+
 async function fetchReceiptsForDay(
   accessToken: string,
   date: string, // YYYY-MM-DD (NL-werkdag; Lightspeed interpreteert als lokale dag)
+  diag?: DryDiag, // alleen bij dry_run; normaal pad geeft niets mee
 ): Promise<{ receipts: Receipt[]; total_raw: number; paid_raw: number } | { error: string; detail: string }> {
   const kept: Receipt[] = [];
   let offset = 0;
@@ -364,6 +437,7 @@ async function fetchReceiptsForDay(
       return { error: 'receipts_unexpected_shape', detail: JSON.stringify(parsed).slice(0, 500) };
     }
     totalRaw += arr.length;
+    if (diag) { diag.paginas += 1; for (const r of arr) diagBon(diag, date, r); }
 
     // Per-pagina epoch-scan aggregaat (debug)
     let pagePaid = 0;
@@ -455,6 +529,7 @@ async function fetchReceipts(
   _merchantId: string,
   van: string,
   tot: string,
+  diag?: DryDiag, // alleen bij dry_run
 ): Promise<{ receipts: Receipt[]; meta: { days: number; total_raw: number; paid_raw: number } } | { error: string; detail: string }> {
   const start = new Date(`${van}T00:00:00Z`);
   const end = new Date(`${tot}T00:00:00Z`);
@@ -466,8 +541,9 @@ async function fetchReceipts(
   for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
     const day = d.toISOString().slice(0, 10);
     if (days > 0) await sleep(250); // burst-spreiding tussen dagen
-    const res = await fetchReceiptsForDay(accessToken, day);
+    const res = await fetchReceiptsForDay(accessToken, day, diag);
     if ('error' in res) return res;
+    if (diag) for (const r of res.receipts) r.ophaaldag = day;
     all.push(...res.receipts);
     totalRaw += res.total_raw;
     paidRaw += res.paid_raw;
@@ -481,11 +557,8 @@ async function fetchReceipts(
 // ------------------------------------------------------------------
 // Aggregatie + upsert
 // ------------------------------------------------------------------
-async function aggregateAndUpsert(
-  admin: any,
-  vestiging: string,
-  receipts: Receipt[],
-): Promise<number> {
+/** Bonnen → buckets per (werkdag, uur). Gedeeld door de echte upsert en de droge run. */
+export function bucketize(receipts: Receipt[]) {
   const buckets = new Map<string, { werkdag: string; uur: number; incl: number; excl: number; count: number }>();
   for (const r of receipts) {
     const { werkdag, uur } = computeWerkdagUur(r.timestamp);
@@ -496,6 +569,15 @@ async function aggregateAndUpsert(
     b.count += 1;
     buckets.set(key, b);
   }
+  return buckets;
+}
+
+async function aggregateAndUpsert(
+  admin: any,
+  vestiging: string,
+  receipts: Receipt[],
+): Promise<number> {
+  const buckets = bucketize(receipts);
   if (buckets.size === 0) return 0;
 
   // Guard: weiger te schrijven zolang er demo-data bestaat voor deze vestiging.
@@ -694,6 +776,139 @@ async function backfillVerkoop(admin: any, body: any): Promise<Response> {
 }
 
 // ------------------------------------------------------------------
+// Droge run: zelfde ophalen + aggregatie als runSync, maar NIETS schrijven
+// (geen omzet_uren, kassa_verkoop_dag, sync_runs, laatste_sync_op/laatste_fout, geen job-lease).
+// Enige mogelijke schrijfactie: de normale token-refresh in getValidToken als het
+// access-token verlopen is (nodig: Lightspeed roteert de refresh-token).
+// ------------------------------------------------------------------
+const DRY_RUN_MAX_DAGEN = 35;
+const r2 = (n: number) => Number(n.toFixed(2));
+const rb = (b: Bedrag) => ({ n: b.n, incl: r2(b.incl), excl: r2(b.excl) });
+
+function dagVerschil(a: string, b: string): number {
+  return Math.round((new Date(`${a}T00:00:00Z`).getTime() - new Date(`${b}T00:00:00Z`).getTime()) / 86400000);
+}
+
+/** Pure samenvatting van een droge run (testbaar zonder API). */
+export function samenvattingDryRun(receipts: Receipt[], van: string, tot: string, diag?: DryDiag) {
+  const buckets = bucketize(receipts);
+  // Exact de rijen die runSync zou upserten (zelfde afronding).
+  const rijen = [...buckets.values()]
+    .sort((a, b) => (a.werkdag + String(a.uur).padStart(2, '0')).localeCompare(b.werkdag + String(b.uur).padStart(2, '0')))
+    .map((b) => ({ werkdag: b.werkdag, uur: b.uur, omzet_excl: r2(b.excl), omzet_incl: r2(b.incl), aantal_bonnen: b.count }));
+  const binnen = (w: string) => w >= van && w <= tot;
+  const randrijen = rijen.filter((r) => !binnen(r.werkdag));
+
+  const perWerkdag: Record<string, Bedrag> = {};
+  const perMaand: Record<string, Bedrag & { dagen: number }> = {};
+  const nacht = { totaal: { n: 0, incl: 0, excl: 0 }, werkdag_is_ophaaldag_min1: { n: 0, incl: 0, excl: 0 }, werkdag_is_ophaaldag: { n: 0, incl: 0, excl: 0 }, anders: { n: 0, incl: 0, excl: 0 } };
+  const verschuiving: Record<string, Bedrag> = {}; // werkdag t.o.v. ophaaldag (dagen)
+  const perOphaalMaandPaid: Record<string, Bedrag> = {};
+  for (const r of receipts) {
+    const { werkdag, uur } = computeWerkdagUur(r.timestamp);
+    perWerkdag[werkdag] ??= { n: 0, incl: 0, excl: 0 };
+    telOp(perWerkdag[werkdag], r.total_incl || 0, r.total_excl || 0);
+    if (uur < 6) {
+      telOp(nacht.totaal, r.total_incl || 0, r.total_excl || 0);
+      if (r.ophaaldag) {
+        const d = dagVerschil(werkdag, r.ophaaldag);
+        const k = d === -1 ? 'werkdag_is_ophaaldag_min1' : d === 0 ? 'werkdag_is_ophaaldag' : 'anders';
+        telOp(nacht[k], r.total_incl || 0, r.total_excl || 0);
+      }
+    }
+    if (r.ophaaldag) {
+      const d = String(dagVerschil(werkdag, r.ophaaldag));
+      verschuiving[d] ??= { n: 0, incl: 0, excl: 0 };
+      telOp(verschuiving[d], r.total_incl || 0, r.total_excl || 0);
+      const om = r.ophaaldag.slice(0, 7);
+      perOphaalMaandPaid[om] ??= { n: 0, incl: 0, excl: 0 };
+      telOp(perOphaalMaandPaid[om], r.total_incl || 0, r.total_excl || 0);
+    }
+  }
+  for (const [w, b] of Object.entries(perWerkdag)) {
+    if (!binnen(w)) continue;
+    const m = w.slice(0, 7);
+    perMaand[m] ??= { n: 0, incl: 0, excl: 0, dagen: 0 };
+    perMaand[m].n += b.n; perMaand[m].incl += b.incl; perMaand[m].excl += b.excl;
+    if (b.excl > 0) perMaand[m].dagen += 1;
+  }
+
+  const uit: any = {
+    van, tot,
+    bonnen_meegeteld: receipts.length,
+    totaal_alle_rijen: rb(receipts.reduce((a, r) => { telOp(a, r.total_incl || 0, r.total_excl || 0); return a; }, { n: 0, incl: 0, excl: 0 })),
+    maanden_werkdag_binnen_bereik: Object.fromEntries(Object.entries(perMaand).sort().map(([m, b]) => [m, { ...rb(b), open_dagen: b.dagen }])),
+    per_werkdag: Object.fromEntries(Object.entries(perWerkdag).sort().map(([w, b]) => [w, rb(b)])),
+    nachtgrens: {
+      uitleg: 'PAID-bonnen met tijd 00:00-05:59 Amsterdam; die horen bij werkdag = kalenderdag - 1',
+      totaal: rb(nacht.totaal),
+      werkdag_is_ophaaldag_min1: rb(nacht.werkdag_is_ophaaldag_min1),
+      werkdag_is_ophaaldag: rb(nacht.werkdag_is_ophaaldag),
+      anders: rb(nacht.anders),
+    },
+    werkdag_min_ophaaldag: Object.fromEntries(Object.entries(verschuiving).sort((a, b) => Number(a[0]) - Number(b[0])).map(([d, b]) => [d, rb(b)])),
+    paid_per_ophaalmaand: Object.fromEntries(Object.entries(perOphaalMaandPaid).sort().map(([m, b]) => [m, rb(b)])),
+    randrijen: { uitleg: 'rijen buiten van..tot die een echte run ook zou upserten (met mogelijk maar een deel van de bonnen)', aantal: randrijen.length, rijen: randrijen },
+    rijen_aantal: rijen.length,
+    rijen,
+  };
+  if (diag) {
+    const dubbel = [...diag.ids.entries()].filter(([, d]) => d.length > 1);
+    const statusPerOphaalMaand: Record<string, Record<string, Bedrag>> = {};
+    for (const [dag, v] of Object.entries(diag.per_ophaaldag)) {
+      const m = dag.slice(0, 7);
+      statusPerOphaalMaand[m] ??= {};
+      for (const [st, b] of Object.entries(v.status)) {
+        statusPerOphaalMaand[m][st] ??= { n: 0, incl: 0, excl: 0 };
+        const t = statusPerOphaalMaand[m][st]; t.n += b.n; t.incl += b.incl; t.excl += b.excl;
+      }
+    }
+    uit.diagnose = {
+      paginas: diag.paginas,
+      status: Object.fromEntries(Object.entries(diag.status).sort().map(([k, b]) => [k, rb(b)])),
+      status_per_ophaalmaand: Object.fromEntries(Object.entries(statusPerOphaalMaand).sort().map(([m, v]) => [m, Object.fromEntries(Object.entries(v).sort().map(([k, b]) => [k, rb(b)]))])),
+      status_per_ophaaldag: Object.fromEntries(Object.entries(diag.per_ophaaldag).sort().map(([d, v]) => [d, Object.fromEntries(Object.entries(v.status).sort().map(([k, b]) => [k, rb(b)]))])),
+      paid_zonder_bruikbare_tijd: rb(diag.paid_zonder_tijd),
+      paid_zonder_excl_veld: rb(diag.paid_zonder_excl_veld),
+      tijdveld_gekozen: diag.ts_bron,
+      id_veld: diag.id_veld,
+      dubbel_over_ophaaldagen: { aantal: dubbel.length, voorbeelden: dubbel.slice(0, 10).map(([id, d]) => ({ status_id: id, ophaaldagen: d })) },
+    };
+  }
+  return uit;
+}
+
+async function dryRun(admin: any, body: any): Promise<Response> {
+  const vestiging = body?.vestiging;
+  if (!['Midsland', 'West'].includes(vestiging)) return json({ error: 'invalid_vestiging' }, 400);
+  const van = String(body?.van ?? '');
+  const tot = String(body?.tot ?? van);
+  const re = /^\d{4}-\d{2}-\d{2}$/;
+  if (!re.test(van) || !re.test(tot) || tot < van || isNaN(new Date(`${van}T00:00:00Z`).getTime()) || isNaN(new Date(`${tot}T00:00:00Z`).getTime())) {
+    return json({ error: 'invalid_date_range', detail: `${van}..${tot}` }, 400);
+  }
+  if (dagVerschil(tot, van) + 1 > DRY_RUN_MAX_DAGEN) return json({ error: 'range_too_large', max_dagen: DRY_RUN_MAX_DAGEN }, 400);
+  const t0 = Date.now();
+
+  // Testpad zonder Lightspeed: mock_receipts (zelfde vorm als bij mock-sync). Schrijft ook niets.
+  if (Array.isArray(body?.mock_receipts)) {
+    return json({ ok: true, dry_run: true, bron: 'mock', vestiging, ...samenvattingDryRun(body.mock_receipts as Receipt[], van, tot), duur_ms: Date.now() - t0 });
+  }
+
+  const tok = await getValidToken(admin, vestiging);
+  if ('error' in tok) return json({ ok: false, dry_run: true, error: tok.error }, 200); // detail niet teruggeven
+  const diag = nieuweDiag();
+  const rx = await fetchReceipts(tok.token, '', van, tot, diag);
+  if ('error' in rx) return json({ ok: false, dry_run: true, error: rx.error, detail: rx.detail.replace(/Bearer\s+\S+/g, 'Bearer ***').slice(0, 300) }, 200);
+  return json({
+    ok: true, dry_run: true, bron: 'lightspeed', vestiging,
+    opgehaald: rx.meta,
+    ...samenvattingDryRun(rx.receipts, van, tot, diag),
+    duur_ms: Date.now() - t0,
+  });
+}
+
+// ------------------------------------------------------------------
 // HTTP entry
 // ------------------------------------------------------------------
 Deno.serve(async (req) => {
@@ -709,6 +924,12 @@ Deno.serve(async (req) => {
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
   const type = body?.type;
+
+  // Droge run vóór alle schrijvende paden. Elke aanwezige waarde behalve false telt
+  // als droge run (ook "true" als tekst), zodat een tikfout nooit een schrijvende run wordt.
+  if (body?.dry_run !== undefined && body?.dry_run !== null && body?.dry_run !== false) {
+    return await dryRun(admin, body);
+  }
 
   if (type === 'backfill_verkoop') return await backfillVerkoop(admin, body);
 
@@ -741,7 +962,7 @@ Deno.serve(async (req) => {
 
   if (type === 'handmatig') {
     if (!['Midsland', 'West'].includes(body.vestiging)) return json({ error: 'invalid_vestiging' }, 400);
-    const van = body.van ?? new Date(Date.now() - 24 * 3600 * 1000).toISOString().slice(0, 10);
+    const van = body.van ?? new Date().toISOString().slice(0, 10);
     const tot = body.tot ?? van;
     const r = await runSync(admin, body.vestiging, van, tot, 'handmatig');
     return json(r);
