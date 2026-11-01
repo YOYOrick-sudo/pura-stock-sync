@@ -32,6 +32,7 @@ import {
   type BestelSignaal, type ArtikelVorm, type BordSuggestie, type BestelAdvies,
 } from '@/hooks/useBestelbord';
 import { Voorraadproef } from '@/components/kitchen/Voorraadproef';
+import { useOpenTelvragen } from '@/hooks/useVoorraadproef';
 import { usePrijsSignalen } from '@/hooks/usePrijsSignalen';
 import { zoekSignaal, type PrijsSignaal } from '@/lib/prijsSignaal';
 
@@ -251,8 +252,8 @@ export default function Bestelbord() {
   const vorigeVestiging = useRef(vestiging);
   const zoek = '';
   const [alleenZonderPrijs, setAlleenZonderPrijs] = useState(false);
-  const [telOverzicht, setTelOverzicht] = useState({ open: 0, geladen: false });
-  const rapporteerTellen = useCallback((a: { open: number; geladen: boolean }) => setTelOverzicht(a), []);
+  const openTelvragen = useOpenTelvragen(vestiging, !test);
+  const telOverzicht = { open: test ? 0 : openTelvragen.data ?? 0, geladen: !test && openTelvragen.isSuccess };
   useEffect(() => {
     if (vorigeVestiging.current && vorigeVestiging.current !== vestiging) setTabKeuze(null);
     vorigeVestiging.current = vestiging;
@@ -710,7 +711,7 @@ export default function Bestelbord() {
                 {!!nulAdviezen.length && <LijstKaart kop={<KaartKop icoon={Check} titel="Niet nodig" teller={nulAdviezen.length} />}><AdviesTabel regels={nulAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} deadlineHint={deadlineHint} nul /></LijstKaart>}
               </TabsContent>
               {modus.keukenadvies && <TabsContent value="keuken" className="mt-0 space-y-4"><KeukenTelblok regels={keukenStand.data ?? []} pool={keukenTelpool.data} telinfo={keukenTelInfo.data} laden={keukenStand.isLoading} bezig={telling.isPending} onOpslaan={(id, n) => telling.mutateAsync({ telartikelId: id, aantal: n })} /><DrankAdvies vestiging={modus.pVestiging} /><KeukenAdviesTabel regels={keukenAdvies.data ?? []} telinfo={keukenTelInfo.data} laden={keukenAdvies.isLoading} /></TabsContent>}
-              <div hidden={tab !== 'tellen'}>{test ? <LijstKaart><p className="px-4 py-6 text-center text-sm text-muted-foreground">Tellen staat uit in testmodus, omdat dit de echte voorraad van {vestiging} aanpast.<br />De keukentelling test je op het tabblad Advies keuken.</p></LijstKaart> : <Voorraadproef key={vestiging} vestiging={vestiging} onOverzicht={rapporteerTellen} />}</div>
+              <div hidden={tab !== 'tellen'}>{test ? <LijstKaart><p className="px-4 py-6 text-center text-sm text-muted-foreground">Tellen staat uit in testmodus, omdat dit de echte voorraad van {vestiging} aanpast.<br />De keukentelling test je op het tabblad Advies keuken.</p></LijstKaart> : <Voorraadproef key={vestiging} vestiging={vestiging} actief={tab === 'tellen'} />}</div>
               <TabsContent value="onderweg" className="mt-0 space-y-4">
                 {v2 && <><NageleverdKaart modus={modus} regels={restanten} /><EindcheckKaart modus={modus} restanten={restanten} regels={ontvangst.vandaag.data ?? []} laden={ontvangst.vandaag.isLoading} leveranciers={leveranciers} /></>}
                 {[...(v2 ? [] : [{ titel: 'Vandaag te checken', regels: teCheckenZicht }]), { titel: 'Onderweg', regels: onderwegGroepZicht }, { titel: 'Zonder datum', regels: zonderDatumZicht }].filter((g) => g.regels.length).map((groep) => <LijstKaart key={groep.titel} kop={<KaartKop icoon={Truck} titel={groep.titel} teller={groep.regels.length} />}><OnderwegTabel groepen={groepeer(groep.regels)} {...groepProps} onBewerk={openBewerk} datumLabel={datumLabel} leverDatumLabel={leverDatumLabel} {...(v2 ? { zonderDeels: true, alleenLezen: test, restStatus: (s: BestelSignaal) => restStatusPerSignaal.get(s.id) ?? null } : {})} /><TabelVoet links={`${groep.regels.length} ${groep.regels.length === 1 ? 'product' : 'producten'}`} /></LijstKaart>)}
