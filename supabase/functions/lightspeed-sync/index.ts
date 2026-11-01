@@ -331,7 +331,7 @@ export const STATUSSEN: Record<Logica, readonly string[]> = {
   nieuw: ['PAID', 'DONE'],
   accepted: ['PAID', 'DONE', 'ACCEPTED'],
 };
-export const SCHRIJF_LOGICA: Logica = 'nieuw';
+export const SCHRIJF_LOGICA: Logica = 'accepted';
 
 export function plaatsBon(r: Receipt, logica: Logica): { werkdag: string; uur: number } {
   const viaTs = computeWerkdagUur(r.timestamp);
