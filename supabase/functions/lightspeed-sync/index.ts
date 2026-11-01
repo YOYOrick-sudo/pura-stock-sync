@@ -962,7 +962,7 @@ Deno.serve(async (req) => {
 
   if (type === 'handmatig') {
     if (!['Midsland', 'West'].includes(body.vestiging)) return json({ error: 'invalid_vestiging' }, 400);
-    const van = body.van ?? new Date().toISOString().slice(0, 10);
+    const van = body.van ?? new Date(Date.now() - 24 * 3600 * 1000).toISOString().slice(0, 10);
     const tot = body.tot ?? van;
     const r = await runSync(admin, body.vestiging, van, tot, 'handmatig');
     return json(r);
