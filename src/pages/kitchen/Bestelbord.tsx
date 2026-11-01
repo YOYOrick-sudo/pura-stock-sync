@@ -3,9 +3,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Check, Search, ChefHat } from 'lucide-react';
+import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Check, Search, ChefHat, Link2, ShoppingBag, Warehouse } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { useOntvangstModus, useOntvangstData, useKeukenAdvies, useKeukenStand, useKeukenTelpool, useKeukenTelInfo, useKeukenTelling } from '@/hooks/useOntvangstV2';
+import { useOntvangstModus, useOntvangstData, useKeukenAdvies, useKeukenStand, useKeukenTelpool, useKeukenTelInfo, useKeukenTelling, useFase2VlagAan } from '@/hooks/useOntvangstV2';
 import { NageleverdKaart, EindcheckKaart } from '@/components/kitchen/bestelbord/OntvangstOnderweg';
 import { MandjeVragen } from '@/components/kitchen/bestelbord/MandjeVragen';
 import { bordRestStatusPerSignaal, onderwegMetRest, openRestVoorArtikel, restWaarschuwing, leesTab } from '@/lib/ontvangstV2';
@@ -28,9 +28,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { dagenTeLaat, parseYmd, ymd } from '@/lib/leverdatum';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import {
-  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useVestigingOpenDagen, useArtikelVormen, zoekBordSuggesties, useBestelAdvies, useBordRegelInfo,
+  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useLeverancierSoorten, useLeveranciersVoorVestiging, useVestigingOpenDagen, useArtikelVormen, zoekBordSuggesties, useBestelAdvies, useBordRegelInfo,
   type BestelSignaal, type ArtikelVorm, type BordSuggestie, type BestelAdvies,
 } from '@/hooks/useBestelbord';
+import { useRole } from '@/hooks/useRole';
 import { Voorraadproef } from '@/components/kitchen/Voorraadproef';
 import { useOpenTelvragen } from '@/hooks/useVoorraadproef';
 import { usePrijsSignalen } from '@/hooks/usePrijsSignalen';
@@ -43,7 +44,10 @@ import { OnderwegTabel } from '@/components/kitchen/bestelbord/OnderwegTabel';
 import { AdviesTabel } from '@/components/kitchen/bestelbord/AdviesTabel';
 import { LeveranciersOverzicht } from '@/components/kitchen/bestelbord/LeveranciersOverzicht';
 import { eerderVrijeRegels, filterEerderSuggesties } from '@/lib/bordSnelkeuze';
-import { leverancierNaam, onderwegTabTeller } from '@/components/kitchen/bestelbord/presentatie';
+import { leverancierNaam, leverancierSoort, onderwegTabTeller } from '@/components/kitchen/bestelbord/presentatie';
+import { ZelfHalenTabel } from '@/components/kitchen/bestelbord/ZelfHalenTabel';
+import { KoppelPaneel } from '@/components/kitchen/bestelbord/KoppelPaneel';
+import { koppelAanBestaand, koppelNieuwArtikel, leverancierKeuzeLabel, type AanmaakVelden } from '@/components/kitchen/bestelbord/koppelActies';
 import { useBesteldeadlines } from '@/hooks/useBesteldeadlines';
 import { RegelInfo } from '@/components/kitchen/bestelbord/RegelInfo';
 import { verpakkingWeergave, eenheidLabel } from '@/components/kitchen/bestelbord/verpakking';
@@ -55,6 +59,11 @@ function datumLabel(iso: string): string {
 }
 
 const norm = (s: string) => s.trim().toLowerCase();
+const foutmelding = (e: unknown) => {
+  if (e instanceof Error && e.message) return e.message;
+  if (typeof e === 'object' && e && 'message' in e && typeof e.message === 'string' && e.message) return e.message;
+  return 'onbekende fout';
+};
 
 function Stepper({ waarde, onChange, eenheid, uit }: { waarde: number | null; onChange: (n: number | null) => void; eenheid?: string; uit?: boolean }) {
   return (
@@ -189,14 +198,20 @@ function leverDatumLabel(datum: string | null): string {
 
 export default function Bestelbord() {
   const { userLocation } = useUserLocation();
+  const [params, setSearchParams] = useSearchParams();
   const vestiging = userLocation ?? '';
   const deadlineVoor = useBesteldeadlines(vestiging);
   const { data: signalen = [], isLoading } = useBestelSignalen(vestiging || null);
   const {
     toevoegen, zetBesteld, verwijderen, herstel, wijzig,
     markeerGeleverd, nietGeleverd, deelsGeleverd, terugNaarBesteld, zetVerwachteLevering,
+    koppelen, artikelAanmaken,
   } = useBestelbordMutaties(vestiging);
   const { data: leveranciers } = useLeveranciers();
+  const koppelVlag = useFase2VlagAan(vestiging, 'leverancier_kiezen');
+  const { data: leverancierSoorten } = useLeverancierSoorten();
+  const { data: leverancierKeuze = [] } = useLeveranciersVoorVestiging(koppelVlag ? vestiging || null : null);
+  const { isManager } = useRole();
   // Ontvangst v2: alleen actief bij schakelaar aan of testmodus; uit = huidig gedrag.
   const modus = useOntvangstModus(vestiging);
   const v2 = modus.ontvangstV2;
@@ -237,7 +252,6 @@ export default function Bestelbord() {
   const vandaagStr = ymd(new Date());
   const advies = useBestelAdvies(vestiging || null, vandaagStr);
   const [adviesBezig, setAdviesBezig] = useState(false);
-  const [params, setSearchParams] = useSearchParams();
   const tabKeuze = leesTab(params.get('tab'));
   const setTabKeuze = useCallback((waarde: string | null) => {
     setSearchParams((vorig) => {
@@ -552,6 +566,35 @@ export default function Bestelbord() {
     setBewerkVormId(regelInfo(s)?.eenheid_controleren && heeftVormen ? null : s.artikel_vorm_id);
   };
 
+  const koppelBestaand = async (keuze: { artikelId: string; artikelVormId: string; leverancierNaam: string }) => {
+    if (test || !bewerk || bewerkAantal == null) return;
+    try {
+      await koppelAanBestaand({
+        test, koppelen: (v) => koppelen.mutateAsync(v), wijzig: (v) => wijzig.mutateAsync(v),
+        signaalId: bewerk.id, aantal: bewerkAantal, artikelId: keuze.artikelId, artikelVormId: keuze.artikelVormId,
+      });
+      toast.success(`${bewerk.naam} gekoppeld aan ${keuze.leverancierNaam}`);
+      setBewerk(null);
+    } catch (e: unknown) {
+      toast.error('Niet opgeslagen: ' + foutmelding(e));
+    }
+  };
+
+  const maakEnKoppel = async (velden: AanmaakVelden) => {
+    if (test || !bewerk || bewerkAantal == null) return;
+    try {
+      await koppelNieuwArtikel({
+        test, aanmaken: (v) => artikelAanmaken.mutateAsync(v), koppelen: (v) => koppelen.mutateAsync(v), wijzig: (v) => wijzig.mutateAsync(v),
+        signaalId: bewerk.id, aantal: bewerkAantal, velden,
+      });
+      const lev = leverancierKeuze.find((l) => l.id === velden.leverancierId);
+      toast.success(`${velden.naam} gekoppeld aan ${lev ? leverancierKeuzeLabel(lev) : 'leverancier'}`);
+      setBewerk(null);
+    } catch (e: unknown) {
+      toast.error('Niet opgeslagen: ' + foutmelding(e));
+    }
+  };
+
   const isMobile = useIsMobile();
   const tab = tabKeuze === 'keuken' && !modus.keukenadvies ? 'bord' : tabKeuze ?? (!isLoading && telOverzicht.geladen && telOverzicht.open > 0 && open.length === 0 ? 'tellen' : 'bord');
   const adviesRegels = advies.data?.regels ?? [];
@@ -559,16 +602,20 @@ export default function Bestelbord() {
   const bordProps = { ...(v2 ? { restStatus: (s: BestelSignaal) => restStatusPerSignaal.get(s.id) ?? null, artikelRest: (s: BestelSignaal) => restStatusPerSignaal.has(s.id) ? null : openRestVoorArtikel(restanten, { artikel_id: s.artikel_id ?? null, naam: s.naam }), alleenLezen: test } : {}), regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen };
   const positieveAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) > 0 && !(v2 && a.artikel_id && nageleverdArtikelen.has(a.artikel_id)));
   const nulAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) <= 0);
-  const openPrijzen = open.map(prijsVan).filter((p) => p != null);
-    const zonderPrijs = [...open, ...besteld].filter((s) => !prijsVan(s)).length;
+  const zonderPrijs = [...open, ...besteld].filter((s) => !prijsVan(s)).length;
   const onderwegWeergave = onderwegTabTeller({ besteldIds: besteld.map((s) => s.id), teChecken: teChecken.length, restanten });
   const zonderPrijsFilter = (className: string) => (tab === 'bord' || tab === 'onderweg')
     ? <ZonderPrijsFilter aantal={zonderPrijs} aan={alleenZonderPrijs} onToggle={() => setAlleenZonderPrijs((v) => !v)} className={className} />
     : null;
   const q = zoek.trim().toLowerCase();
   const filter = (r: BestelSignaal[]) => r.filter((s) => (!q || s.naam.toLowerCase().includes(q)) && (!alleenZonderPrijs || !prijsVan(s)));
-  const onbekendZicht = filter(open).filter((s) => leverancier(s) === 'Leverancier onbekend');
-  const openZicht = filter(open).filter((s) => leverancier(s) !== 'Leverancier onbekend');
+  const soortVan = (s: BestelSignaal) => koppelVlag ? leverancierSoort(s, leverancierSoorten, vormById) : null;
+  const isWinkel = (s: BestelSignaal) => soortVan(s) === 'winkel';
+  const isIntern = (s: BestelSignaal) => soortVan(s) === 'intern';
+  const onbekendZicht = filter(open).filter((s) => leverancier(s) === 'Leverancier onbekend' && !isWinkel(s) && !isIntern(s));
+  const winkelZicht = koppelVlag ? filter(open).filter(isWinkel) : [];
+  const internZicht = koppelVlag ? filter(open).filter(isIntern) : [];
+  const openZicht = filter(open).filter((s) => leverancier(s) !== 'Leverancier onbekend' && !isWinkel(s) && !isIntern(s));
   const teCheckenZicht = filter(teChecken);
   const onderwegZicht = filter(onderweg);
   const onderwegGroepZicht = v2 ? onderwegMetRest(teCheckenZicht, onderwegZicht, restStatusPerSignaal) : onderwegZicht;
@@ -576,7 +623,9 @@ export default function Bestelbord() {
   const geleverdZicht = filter(geleverd);
   const besteldZicht = [...teCheckenZicht, ...onderwegZicht, ...zonderDatumZicht];
   const filterAan = !!q || alleenZonderPrijs;
+  const openPrijzen = (koppelVlag ? openZicht : open).map(prijsVan).filter((p) => p != null);
   const openTotaal = openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : '—';
+  const koppelModus = koppelVlag && !!bewerk && !bewerk.artikel_id && bewerk.status === 'open';
     const leegKaart = (titel: string) => <EmptyState icon={filterAan ? Search : ClipboardList} title={filterAan ? 'Niets gevonden' : titel} description={filterAan ? 'Pas je zoekopdracht of filter aan.' : ''} className="border-0 shadow-none" action={filterAan ? <Button variant="outline" size="touch" onClick={() => { setAlleenZonderPrijs(false); }}>Filter wissen</Button> : undefined} />;
 
   return (
@@ -701,10 +750,12 @@ export default function Bestelbord() {
           {gekozenVorm && <VerpakkingRegel vorm={gekozenVorm} aantal={aantal} />}
         </div>
 
-                {isLoading ? <LaadRijen /> : openZicht.length ? <BordTabel regels={openZicht} {...bordProps} /> : onbekendZicht.length ? null : leegKaart('Niets openstaand')}
+                {isLoading ? <LaadRijen /> : openZicht.length ? <BordTabel regels={openZicht} {...bordProps} /> : (onbekendZicht.length || winkelZicht.length || internZicht.length) ? null : leegKaart('Niets openstaand')}
                 {!isLoading && openZicht.length > 0 && <TabelVoet links={`${openZicht.length} ${openZicht.length === 1 ? 'product' : 'producten'}`} rechts={openTotaal} />}
                 </LijstKaart>
-                {!isLoading && onbekendZicht.length > 0 && <LijstKaart kop={<KaartKop icoon={Truck} titel="Leverancier kiezen" teller={onbekendZicht.length} />}><BordTabel regels={onbekendZicht} {...bordProps} /></LijstKaart>}
+                {!isLoading && onbekendZicht.length > 0 && <LijstKaart kop={<KaartKop icoon={koppelVlag ? Link2 : Truck} titel={koppelVlag ? 'Nog koppelen' : 'Leverancier kiezen'} teller={onbekendZicht.length} />}><BordTabel regels={onbekendZicht} {...bordProps} /></LijstKaart>}
+                {koppelVlag && !isLoading && winkelZicht.length > 0 && <LijstKaart kop={<KaartKop icoon={ShoppingBag} titel="Zelf halen" teller={winkelZicht.length} />}><ZelfHalenTabel soort="winkel" regels={winkelZicht} leverancier={leverancier} onGehaald={(s) => vinkGeleverd([s.id], s.naam)} onAllesGehaald={(ids) => vinkGeleverd(ids, `${ids.length} ${ids.length === 1 ? 'regel' : 'regels'}`)} onBewerk={openBewerk} onVervallen={vervallen} alleenLezen={test} /></LijstKaart>}
+                {koppelVlag && !isLoading && internZicht.length > 0 && <LijstKaart kop={<KaartKop icoon={Warehouse} titel="Intern uit Midsland" teller={internZicht.length} />}><p className="border-b border-border px-4 py-2 text-sm text-muted-foreground lg:px-6">Komt op de MEP van Midsland</p><ZelfHalenTabel soort="intern" regels={internZicht} leverancier={leverancier} onGehaald={(s) => vinkGeleverd([s.id], s.naam)} onAllesGehaald={(ids) => vinkGeleverd(ids, `${ids.length} ${ids.length === 1 ? 'regel' : 'regels'}`)} onBewerk={openBewerk} onVervallen={vervallen} alleenLezen={test} /></LijstKaart>}
                 {(open.length > 0 || besteld.length > 0) && <LijstKaart kop={<KaartKop icoon={ClipboardList} titel="Per leverancier" />}>{leveranciersTabel}</LijstKaart>}
               </TabsContent>
               <TabsContent value="advies" className="mt-0 space-y-4">
@@ -738,7 +789,7 @@ export default function Bestelbord() {
                 : <Stepper waarde={bewerkAantal} onChange={setBewerkAantal} {...(bewerkVormen.length > 0 ? { eenheid: '', uit: true } : {})} />}
               {bewerkVormId && vormById.get(bewerkVormId) && <VerpakkingRegel vorm={vormById.get(bewerkVormId)!} aantal={bewerkAantal} />}
             </div>
-            {(bewerkVormen.length > 1 || (bewerkVormen.length > 0 && !bewerkVormId)) && (
+            {!koppelModus && (bewerkVormen.length > 1 || (bewerkVormen.length > 0 && !bewerkVormId)) && (
               <VormKeuze
                 vormen={bewerkVormen}
                 gekozen={bewerkVormId}
@@ -746,8 +797,25 @@ export default function Bestelbord() {
                 onKies={(v) => { if (bewerkVormId && v.id !== bewerkVormId) setBewerkAantal(null); setBewerkVormId(v.id); setBewerkSoort(v.eenheid); }}
               />
             )}
-            {(!bewerk?.artikel_id || bewerkVormen.length === 0) && <SoortKeuze waarde={bewerkSoort} onChange={setBewerkSoort} />}
-            <Button
+            {!koppelModus && (!bewerk?.artikel_id || bewerkVormen.length === 0) && <SoortKeuze waarde={bewerkSoort} onChange={setBewerkSoort} />}
+            {koppelModus && bewerk && <KoppelPaneel
+              key={bewerk.id}
+              vestiging={vestiging}
+              beginNaam={bewerk.naam}
+              leveranciers={leveranciers}
+              leveranciersKeuze={leverancierKeuze}
+              isManager={isManager}
+              zoek={zoekBordSuggesties}
+              bereidVormen={metBlokkade}
+              kanOpslaan={bewerkAantal != null}
+              bezig={koppelen.isPending || artikelAanmaken.isPending || wijzig.isPending}
+              beginNieuw={{ eenheid: (SOORTEN as readonly string[]).includes(bewerk.eenheid) ? bewerk.eenheid : null }}
+              renderVormKeuze={(vormenLijst, gekozenId, onKies) => <VormKeuze vormen={vormenLijst} gekozen={gekozenId} leveranciers={leveranciers} onKies={onKies} />}
+              renderSoortKeuze={(waarde, onChange) => <SoortKeuze waarde={waarde} onChange={onChange} />}
+              onKoppel={koppelBestaand}
+              onAanmaken={maakEnKoppel}
+            />}
+            {!koppelModus && <Button
               className="h-12 w-full"
               disabled={bewerkAantal == null || (bewerkVormen.length > 0 && !bewerkVormId)}
               onClick={() => {
@@ -770,7 +838,7 @@ export default function Bestelbord() {
               }}
             >
               Opslaan
-            </Button>
+            </Button>}
           </div>
       </DetailLade>
       <Dialog open={!!datumVoor} onOpenChange={(o) => !o && setDatumVoor(null)}>

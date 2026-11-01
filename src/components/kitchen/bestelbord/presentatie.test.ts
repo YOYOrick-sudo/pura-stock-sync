@@ -1,6 +1,6 @@
 // @ts-ignore bun test runner
 import { expect, test } from 'bun:test';
-import { leverancierNaam, onderwegTabTeller, perLeverancier, telMoment } from './presentatie';
+import { leverancierNaam, leverancierSoort, onderwegTabTeller, perLeverancier, telMoment } from './presentatie';
 import type { ArtikelVorm, BestelSignaal } from '@/hooks/useBestelbord';
 
 test('dagelijks roulerend gebruikt voor_opening', () => {
@@ -18,6 +18,17 @@ test('leverancier van signaal gaat voor artikelvorm, daarna onbekend', () => {
   expect(leverancierNaam(s, leveranciers, vormen)).toBe('A');
   expect(leverancierNaam({ ...s, leverancier_id: null }, leveranciers, vormen)).toBe('B');
   expect(leverancierNaam({ ...s, leverancier_id: null, artikel_vorm_id: null }, leveranciers, vormen)).toBe('Leverancier onbekend');
+});
+test('leverancierSoort volgt dezelfde id als de naam en is null als de soort ontbreekt', () => {
+  const s = { leverancier_id: 'a', artikel_vorm_id: 'vorm' } as BestelSignaal;
+  const vormen = new Map([['vorm', { leverancier_id: 'b' } as ArtikelVorm]]);
+  const soorten = new Map([['a', 'extern' as const], ['b', 'winkel' as const], ['c', 'intern' as const]]);
+  expect(leverancierSoort(s, soorten, vormen)).toBe('extern');
+  expect(leverancierSoort({ ...s, leverancier_id: null }, soorten, vormen)).toBe('winkel');
+  expect(leverancierSoort({ ...s, leverancier_id: 'c', artikel_vorm_id: 'vorm' }, soorten, vormen)).toBe('intern');
+  expect(leverancierSoort({ ...s, leverancier_id: null, artikel_vorm_id: null }, soorten, vormen)).toBe(null);
+  expect(leverancierSoort({ ...s, leverancier_id: 'ontbreekt' }, soorten, vormen)).toBe(null);
+  expect(leverancierSoort(s, undefined, vormen)).toBe(null);
 });
 test('onderweg-tab telt besteld en losse nalevering als één getal', () => {
   const metStip = onderwegTabTeller({
