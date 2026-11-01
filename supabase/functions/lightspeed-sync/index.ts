@@ -10,12 +10,12 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 const corsHeaders = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-sync-token' };
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const ANON = Deno.env.get('SUPABASE_ANON_KEY')!;
-const CLIENT_ID = Deno.env.get('LIGHTSPEED_CLIENT_ID')!;
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
+const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+const ANON = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+const CLIENT_ID = Deno.env.get('LIGHTSPEED_CLIENT_ID') ?? '';
 const CLIENT_SECRET = Deno.env.get('LIGHTSPEED_CLIENT_SECRET') ?? '';
-const SYNC_TOKEN = Deno.env.get('LIGHTSPEED_SYNC_TOKEN')!;
+const SYNC_TOKEN = Deno.env.get('LIGHTSPEED_SYNC_TOKEN') ?? '';
 // Tweede geldig cron-token: staat ook in vault (cron_sync_token) zodat
 // trigger_sync_edge() de sync kan starten zonder service_role key.
 const CRON_TOKEN = Deno.env.get('CRON_SYNC_TOKEN') ?? '';
@@ -53,7 +53,11 @@ export function computeWerkdagUur(iso: string): { werkdag: string; uur: number }
     hour: '2-digit', hour12: false,
   });
   const parts = fmt.formatToParts(new Date(iso));
-  const get = (t: string) => parts.find((p) => p.type === t)!.value;
+  const get = (t: string) => {
+    const p = parts.find((x) => x.type === t);
+    if (!p) throw new Error(`datum_onleesbaar: ${iso}`);
+    return p.value;
+  };
   const year = +get('year');
   const month = +get('month');
   const day = +get('day');
@@ -75,6 +79,40 @@ export function computeWerkdagUur(iso: string): { werkdag: string; uur: number }
 // ------------------------------------------------------------------
 // Auth gate: cron token OF owner JWT
 // ------------------------------------------------------------------
+function gelijkeTekst(a: string, b: string): boolean {
+  if (!a || !b || a.length !== b.length) return false;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return d === 0;
+}
+
+export function jwtRol(jwt: string): string | null {
+  try {
+    const [, payloadB64] = jwt.split('.');
+    if (!payloadB64) return null;
+    const pad = payloadB64 + '='.repeat((4 - (payloadB64.length % 4)) % 4);
+    const payload = JSON.parse(atob(pad.replace(/-/g, '+').replace(/_/g, '/')));
+    return typeof payload?.role === 'string' ? payload.role : null;
+  } catch {
+    return null;
+  }
+}
+
+async function isEchteServiceRole(jwt: string): Promise<boolean> {
+  if (gelijkeTekst(jwt, SERVICE_ROLE)) return true;
+  if (jwtRol(jwt) !== 'service_role') return false;
+  // Handtekening laten controleren: PostgREST weigert (401) een token met een ongeldige handtekening.
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/lightspeed_connections?select=vestiging&limit=1`, {
+      headers: { apikey: ANON, Authorization: `Bearer ${jwt}`, Accept: 'application/json' },
+    });
+    await r.body?.cancel();
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
 async function requireAuth(req: Request): Promise<Response | null> {
   // 1) Cron header token
   const syncHeader = req.headers.get('x-sync-token');
@@ -84,15 +122,11 @@ async function requireAuth(req: Request): Promise<Response | null> {
   const jwt = auth.replace('Bearer ', '');
   if (!jwt) return json({ error: 'unauthorized' }, 401);
 
-  // 2) Service-role JWT (cron via net.http_post met vault-secret)
-  try {
-    const [, payloadB64] = jwt.split('.');
-    if (payloadB64) {
-      const pad = payloadB64 + '='.repeat((4 - (payloadB64.length % 4)) % 4);
-      const payload = JSON.parse(atob(pad.replace(/-/g, '+').replace(/_/g, '/')));
-      if (payload?.role === 'service_role') return null;
-    }
-  } catch { /* val door naar user-jwt check */ }
+  // 2) Service-role JWT (cron via net.http_post met vault-secret).
+  //    Alleen een ECHTE service-role token telt: exact gelijk aan SERVICE_ROLE, of een token met
+  //    role=service_role waarvan de handtekening door PostgREST (project-JWT-secret) is goedgekeurd.
+  //    Een zelfgemaakte token met alleen de claim role=service_role komt er niet meer door.
+  if (await isEchteServiceRole(jwt)) return null;
 
   // 3) User JWT met owner-rol
   const userClient = createClient(SUPABASE_URL, ANON, {
@@ -197,7 +231,7 @@ async function getValidToken(admin: any, vestiging: string): Promise<{ token: st
   }
   if (!conn.refresh_token) return { error: 'no_refresh_token', detail: '' };
 
-  if (tokenStillValid(conn)) return { token: conn.access_token! };
+  if (tokenStillValid(conn) && conn.access_token) return { token: conn.access_token };
 
   // Probeer lease te claimen
   let leaseToken = await tryClaimLease(admin);
@@ -208,7 +242,7 @@ async function getValidToken(admin: any, vestiging: string): Promise<{ token: st
     while (Date.now() < deadline) {
       await sleep(LEASE_POLL_MS);
       const fresh = await readConnection(admin, vestiging);
-      if (fresh && tokenStillValid(fresh)) return { token: fresh.access_token! };
+      if (fresh && tokenStillValid(fresh) && fresh.access_token) return { token: fresh.access_token };
       if (fresh && fresh.status === 'token_verlopen') {
         return { error: 'token_verlopen', detail: 'ander proces markeerde token als verlopen' };
       }
@@ -269,10 +303,39 @@ async function getValidToken(admin: any, vestiging: string): Promise<{ token: st
 //   uur-bucket. Fallback-keten: modificationDate → creationDate → closingDate →
 //   printDate, met sanity-skip voor epoch/pre-2000 waardes.
 // - UTC (ISO Z) → computeWerkdagUur() bucketet naar Europe/Amsterdam vóór upsert.
-// - Filter: status === 'PAID' (alleen betaalde bonnen tellen als omzet).
+// - Filter: statussen uit STATUSSEN[logica]. 'oud' = alleen PAID; 'nieuw' = PAID en DONE
+//   (Lightspeed geeft afgerekende bonnen beide statussen; PAID+DONE = Lightspeed-rapport op de cent).
+// - Werkdag ('nieuw'): de opgehaalde Lightspeed-dag (date=), niet de aanpastijd. Zie plaatsBon().
 // ------------------------------------------------------------------
 type ReceiptItem = { product_id: string; naam: string; aantal: number; incl: number; excl: number };
-type Receipt = { timestamp: string; total_incl: number; total_excl: number; items?: ReceiptItem[]; ophaaldag?: string };
+type Receipt = {
+  timestamp: string; total_incl: number; total_excl: number; items?: ReceiptItem[]; ophaaldag?: string;
+  status?: string; creatie_ts?: string | null;
+};
+
+/**
+ * Logica voor status-filter en werkdag/uur.
+ *  - 'oud':   alleen PAID; werkdag+uur uit timestamp (modificationDate eerst), kanteluur 06:00.
+ *  - 'nieuw': PAID en DONE; werkdag = ophaaldag (Lightspeed date=). Uur uit timestamp als die
+ *             op de ophaaldag valt (kanteluur 06:00), anders uit creationDate als die op de
+ *             ophaaldag valt, anders uit timestamp. Zo kan een later aangepaste bon nooit
+ *             een uur van een andere dag overschrijven.
+ * Bonnen zonder ophaaldag (mock_receipts) vallen in beide logica's terug op de timestamp.
+ */
+export type Logica = 'oud' | 'nieuw';
+export const STATUSSEN: Record<Logica, readonly string[]> = { oud: ['PAID'], nieuw: ['PAID', 'DONE'] };
+export const SCHRIJF_LOGICA: Logica = 'oud';
+
+export function plaatsBon(r: Receipt, logica: Logica): { werkdag: string; uur: number } {
+  const viaTs = computeWerkdagUur(r.timestamp);
+  if (logica === 'oud' || !r.ophaaldag) return viaTs;
+  if (viaTs.werkdag === r.ophaaldag) return viaTs;
+  if (r.creatie_ts) {
+    const c = computeWerkdagUur(r.creatie_ts);
+    if (c.werkdag === r.ophaaldag) return { werkdag: r.ophaaldag, uur: c.uur };
+  }
+  return { werkdag: r.ophaaldag, uur: viaTs.uur };
+}
 
 /** Productregels uit een L-Series receipt (items[]). Sleutel: prodId → productId → naam. */
 export function extractItems(r: any): ReceiptItem[] {
@@ -325,8 +388,9 @@ function pickReceiptTs(r: any): string | null {
 type Bedrag = { n: number; incl: number; excl: number };
 export type DryDiag = {
   status: Record<string, Bedrag>;              // alle bonnen per status (PAID en de rest)
-  paid_zonder_tijd: Bedrag;                     // PAID maar geen bruikbare timestamp → sync slaat over
-  paid_zonder_excl_veld: Bedrag;                // PAID zonder totalWithoutTax/totalExcludingTax → excl telt als 0
+  meetellen: readonly string[];                 // statussen die de sync meetelt (STATUSSEN[logica])
+  paid_zonder_tijd: Bedrag;                     // meegeteld maar geen bruikbare timestamp → sync slaat over
+  paid_zonder_excl_veld: Bedrag;                // meegeteld zonder totalWithoutTax/totalExcludingTax → excl telt als 0
   ts_bron: Record<string, number>;              // welk veld pickReceiptTs koos
   per_ophaaldag: Record<string, { status: Record<string, Bedrag> }>;
   ids: Map<string, string[]>;                   // bon-id → ophaaldagen (dubbelen over dagen)
@@ -334,9 +398,9 @@ export type DryDiag = {
   paginas: number;
 };
 
-export function nieuweDiag(): DryDiag {
+export function nieuweDiag(meetellen: readonly string[] = STATUSSEN.oud): DryDiag {
   return {
-    status: {}, paid_zonder_tijd: { n: 0, incl: 0, excl: 0 }, paid_zonder_excl_veld: { n: 0, incl: 0, excl: 0 },
+    status: {}, meetellen, paid_zonder_tijd: { n: 0, incl: 0, excl: 0 }, paid_zonder_excl_veld: { n: 0, incl: 0, excl: 0 },
     ts_bron: {}, per_ophaaldag: {}, ids: new Map(), id_veld: null, paginas: 0,
   };
 }
@@ -374,7 +438,7 @@ export function diagBon(diag: DryDiag, date: string, r: any) {
   const dag = (diag.per_ophaaldag[date] ??= { status: {} });
   dag.status[status] ??= { n: 0, incl: 0, excl: 0 };
   telOp(dag.status[status], incl, excl);
-  if (status === 'PAID') {
+  if (diag.meetellen.includes(status)) {
     const bron = pickReceiptTsBron(r);
     if (!bron) telOp(diag.paid_zonder_tijd, incl, excl);
     diag.ts_bron[bron ?? '(geen)'] = (diag.ts_bron[bron ?? '(geen)'] ?? 0) + 1;
@@ -394,6 +458,7 @@ async function fetchReceiptsForDay(
   accessToken: string,
   date: string, // YYYY-MM-DD (NL-werkdag; Lightspeed interpreteert als lokale dag)
   diag?: DryDiag, // alleen bij dry_run; normaal pad geeft niets mee
+  statussen: readonly string[] = STATUSSEN[SCHRIJF_LOGICA],
 ): Promise<{ receipts: Receipt[]; total_raw: number; paid_raw: number } | { error: string; detail: string }> {
   const kept: Receipt[] = [];
   let offset = 0;
@@ -449,7 +514,7 @@ async function fetchReceiptsForDay(
 
     for (const r of arr) {
       const status = String(r?.status ?? '').toUpperCase();
-      if (status !== 'PAID') continue;
+      if (!statussen.includes(status)) continue;
       paidRaw += 1;
       pagePaid += 1;
 
@@ -510,7 +575,10 @@ async function fetchReceiptsForDay(
       if (!iso) continue;
       const incl = Number(r?.total ?? 0);
       const excl = Number(r?.totalWithoutTax ?? r?.totalExcludingTax ?? 0);
-      kept.push({ timestamp: iso, total_incl: incl, total_excl: excl, items: extractItems(r) });
+      kept.push({
+        timestamp: iso, total_incl: incl, total_excl: excl, items: extractItems(r),
+        ophaaldag: date, status, creatie_ts: pickReceiptTs({ creationDate: r?.creationDate }),
+      });
     }
 
     console.log(`[epoch-scan] page=${page} n_paid=${pagePaid} n_closing_epoch=${pageClosingEpoch} n_closing_real=${pageClosingReal} n_creation_real=${pageCreationReal} n_mod_real=${pageModReal}`);
@@ -530,6 +598,7 @@ async function fetchReceipts(
   van: string,
   tot: string,
   diag?: DryDiag, // alleen bij dry_run
+  statussen: readonly string[] = STATUSSEN[SCHRIJF_LOGICA],
 ): Promise<{ receipts: Receipt[]; meta: { days: number; total_raw: number; paid_raw: number } } | { error: string; detail: string }> {
   const start = new Date(`${van}T00:00:00Z`);
   const end = new Date(`${tot}T00:00:00Z`);
@@ -541,9 +610,8 @@ async function fetchReceipts(
   for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
     const day = d.toISOString().slice(0, 10);
     if (days > 0) await sleep(250); // burst-spreiding tussen dagen
-    const res = await fetchReceiptsForDay(accessToken, day, diag);
+    const res = await fetchReceiptsForDay(accessToken, day, diag, statussen);
     if ('error' in res) return res;
-    if (diag) for (const r of res.receipts) r.ophaaldag = day;
     all.push(...res.receipts);
     totalRaw += res.total_raw;
     paidRaw += res.paid_raw;
@@ -558,10 +626,10 @@ async function fetchReceipts(
 // Aggregatie + upsert
 // ------------------------------------------------------------------
 /** Bonnen → buckets per (werkdag, uur). Gedeeld door de echte upsert en de droge run. */
-export function bucketize(receipts: Receipt[]) {
+export function bucketize(receipts: Receipt[], logica: Logica = SCHRIJF_LOGICA) {
   const buckets = new Map<string, { werkdag: string; uur: number; incl: number; excl: number; count: number }>();
   for (const r of receipts) {
-    const { werkdag, uur } = computeWerkdagUur(r.timestamp);
+    const { werkdag, uur } = plaatsBon(r, logica);
     const key = `${werkdag}|${uur}`;
     const b = buckets.get(key) ?? { werkdag, uur, incl: 0, excl: 0, count: 0 };
     b.incl += Number(r.total_incl) || 0;
@@ -576,8 +644,9 @@ async function aggregateAndUpsert(
   admin: any,
   vestiging: string,
   receipts: Receipt[],
+  logica: Logica = SCHRIJF_LOGICA,
 ): Promise<number> {
-  const buckets = bucketize(receipts);
+  const buckets = bucketize(receipts, logica);
   if (buckets.size === 0) return 0;
 
   // Guard: weiger te schrijven zolang er demo-data bestaat voor deze vestiging.
@@ -617,10 +686,10 @@ async function aggregateAndUpsert(
 // Idempotent: alle opgegeven werkdagen volledig herberekend; upsert + daarna
 // rijen van die dagen die niet meer voorkomen (oude updated_at) verwijderen.
 // ------------------------------------------------------------------
-export function aggregateVerkoop(receipts: Receipt[], dagen: Set<string>) {
+export function aggregateVerkoop(receipts: Receipt[], dagen: Set<string>, logica: Logica = SCHRIJF_LOGICA) {
   const m = new Map<string, { datum: string; pid: string; naam: string; aantal: number; incl: number; excl: number }>();
   for (const r of receipts) {
-    const { werkdag } = computeWerkdagUur(r.timestamp);
+    const { werkdag } = plaatsBon(r, logica);
     if (!dagen.has(werkdag)) continue;
     for (const it of r.items ?? []) {
       const k = `${werkdag}|${it.product_id}`;
@@ -644,10 +713,14 @@ function plusDag(day: string, n: number): string {
   const d = new Date(`${day}T00:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10);
 }
 
-async function upsertVerkoop(admin: any, vestiging: string, receipts: Receipt[], dagen: string[]): Promise<number> {
+async function upsertVerkoop(
+  admin: any, vestiging: string, receipts: Receipt[], dagen: string[],
+  logica: Logica = SCHRIJF_LOGICA,
+  opruimen = true, // false: alleen upserten, oude productregels van die dagen blijven staan (niets verwijderen)
+): Promise<number> {
   if (dagen.length === 0) return 0;
   const stamp = new Date().toISOString();
-  const rows = aggregateVerkoop(receipts, new Set(dagen)).map((b) => ({
+  const rows = aggregateVerkoop(receipts, new Set(dagen), logica).map((b) => ({
     vestiging, datum: b.datum, lightspeed_product_id: b.pid, productnaam: b.naam,
     aantal: Number(b.aantal.toFixed(3)), omzet_incl: Number(b.incl.toFixed(2)), omzet_excl: Number(b.excl.toFixed(2)),
     updated_at: stamp,
@@ -656,14 +729,20 @@ async function upsertVerkoop(admin: any, vestiging: string, receipts: Receipt[],
     const { error } = await admin.from('kassa_verkoop_dag').upsert(rows.slice(i, i + 500), { onConflict: 'vestiging,datum,lightspeed_product_id' });
     if (error) throw new Error(`verkoop_upsert_failed: ${error.message}`);
   }
+  if (!opruimen) return rows.length;
   const { error: delErr } = await admin.from('kassa_verkoop_dag').delete()
     .eq('vestiging', vestiging).in('datum', dagen).lt('updated_at', stamp);
   if (delErr) throw new Error(`verkoop_cleanup_failed: ${delErr.message}`);
   return rows.length;
 }
 
-/** Werkdagen die volledig in van..tot zitten: tot zelf alleen als tot >= vandaag (NL). */
-function volledigeWerkdagen(van: string, tot: string): string[] {
+/**
+ * Werkdagen die volledig in van..tot zitten.
+ *  - 'oud':   tot zelf alleen als tot >= vandaag (NL) (nachtbonnen van tot kwamen pas met date=tot+1).
+ *  - 'nieuw': elke opgehaalde dag is een complete werkdag (werkdag = ophaaldag), dus van..tot.
+ */
+export function volledigeWerkdagen(van: string, tot: string, logica: Logica = SCHRIJF_LOGICA): string[] {
+  if (logica === 'nieuw') return tot < van ? [] : dagenTussen(van, tot);
   const nlToday = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Amsterdam' }).format(new Date());
   const laatste = tot >= nlToday ? tot : plusDag(tot, -1);
   return laatste < van ? [] : dagenTussen(van, laatste);
@@ -679,6 +758,7 @@ async function runSync(
   tot: string,
   type: 'dagelijks' | 'handmatig' | 'backfill' | 'auto',
   mockReceipts?: Receipt[],
+  verkoopOpruimen = true,
 ): Promise<{ ok: true; bonnen: number } | { ok: false; error: string }> {
   const { data: runRow } = await admin.from('sync_runs').insert({
     bron: 'lightspeed', vestiging, type, periode_van: van, periode_tot: tot, status: 'bezig',
@@ -693,13 +773,16 @@ async function runSync(
       const tok = await getValidToken(admin, vestiging);
       if ('error' in tok) throw new Error(`${tok.error}: ${tok.detail}`);
       const conn = await readConnection(admin, vestiging);
-      const rx = await fetchReceipts(tok.token, conn!.merchant_id, van, tot);
+      if (!conn) throw new Error(`no_connection_row: ${vestiging}`);
+      const rx = await fetchReceipts(tok.token, conn.merchant_id, van, tot);
       if ('error' in rx) throw new Error(`${rx.error}: ${rx.detail}`);
       receipts = rx.receipts;
     }
 
-    const bonnen = await aggregateAndUpsert(admin, vestiging, receipts);
-    const verkoopRijen = mockReceipts ? 0 : await upsertVerkoop(admin, vestiging, receipts, volledigeWerkdagen(van, tot));
+    const bonnen = await aggregateAndUpsert(admin, vestiging, receipts, SCHRIJF_LOGICA);
+    const verkoopRijen = mockReceipts ? 0 : await upsertVerkoop(
+      admin, vestiging, receipts, volledigeWerkdagen(van, tot, SCHRIJF_LOGICA), SCHRIJF_LOGICA, verkoopOpruimen,
+    );
 
     await admin.from('sync_runs').update({
       status: 'ok', bonnen_verwerkt: bonnen, details: { verkoop_rijen: verkoopRijen }, klaar_op: new Date().toISOString(),
@@ -754,10 +837,11 @@ async function backfillVerkoop(admin: any, body: any): Promise<Response> {
     const tok = await getValidToken(admin, vestiging);
     if ('error' in tok) throw new Error(`${tok.error}: ${tok.detail}`);
     const conn = await readConnection(admin, vestiging);
+    if (!conn) throw new Error(`no_connection_row: ${vestiging}`);
     // Eén dag extra ophalen: na-middernacht-bonnen horen bij werkdag 'tot'.
-    const rx = await fetchReceipts(tok.token, conn!.merchant_id, van, plusDag(tot, 1));
+    const rx = await fetchReceipts(tok.token, conn.merchant_id, van, plusDag(tot, 1));
     if ('error' in rx) throw new Error(`${rx.error}: ${rx.detail}`);
-    const rijen = await upsertVerkoop(admin, vestiging, rx.receipts, dagenTussen(van, tot));
+    const rijen = await upsertVerkoop(admin, vestiging, rx.receipts, dagenTussen(van, tot), SCHRIJF_LOGICA);
     const cursor = plusDag(tot, 1);
     await admin.from('sync_runs').update({
       status: 'ok', bonnen_verwerkt: rx.meta.paid_raw, klaar_op: new Date().toISOString(),
@@ -790,8 +874,8 @@ function dagVerschil(a: string, b: string): number {
 }
 
 /** Pure samenvatting van een droge run (testbaar zonder API). */
-export function samenvattingDryRun(receipts: Receipt[], van: string, tot: string, diag?: DryDiag) {
-  const buckets = bucketize(receipts);
+export function samenvattingDryRun(receipts: Receipt[], van: string, tot: string, diag?: DryDiag, logica: Logica = SCHRIJF_LOGICA) {
+  const buckets = bucketize(receipts, logica);
   // Exact de rijen die runSync zou upserten (zelfde afronding).
   const rijen = [...buckets.values()]
     .sort((a, b) => (a.werkdag + String(a.uur).padStart(2, '0')).localeCompare(b.werkdag + String(b.uur).padStart(2, '0')))
@@ -804,10 +888,17 @@ export function samenvattingDryRun(receipts: Receipt[], van: string, tot: string
   const nacht = { totaal: { n: 0, incl: 0, excl: 0 }, werkdag_is_ophaaldag_min1: { n: 0, incl: 0, excl: 0 }, werkdag_is_ophaaldag: { n: 0, incl: 0, excl: 0 }, anders: { n: 0, incl: 0, excl: 0 } };
   const verschuiving: Record<string, Bedrag> = {}; // werkdag t.o.v. ophaaldag (dagen)
   const perOphaalMaandPaid: Record<string, Bedrag> = {};
+  const perStatus: Record<string, Bedrag> = {};
   for (const r of receipts) {
+    // perWerkdag volgt de gekozen logica (= wat de sync schrijft); nachtgrens en
+    // werkdag_min_ophaaldag blijven op de tijd van de bon (diagnose: wat zou verschuiven).
+    const plek = plaatsBon(r, logica);
+    perWerkdag[plek.werkdag] ??= { n: 0, incl: 0, excl: 0 };
+    telOp(perWerkdag[plek.werkdag], r.total_incl || 0, r.total_excl || 0);
+    const st = r.status ?? '(onbekend)';
+    perStatus[st] ??= { n: 0, incl: 0, excl: 0 };
+    telOp(perStatus[st], r.total_incl || 0, r.total_excl || 0);
     const { werkdag, uur } = computeWerkdagUur(r.timestamp);
-    perWerkdag[werkdag] ??= { n: 0, incl: 0, excl: 0 };
-    telOp(perWerkdag[werkdag], r.total_incl || 0, r.total_excl || 0);
     if (uur < 6) {
       telOp(nacht.totaal, r.total_incl || 0, r.total_excl || 0);
       if (r.ophaaldag) {
@@ -834,13 +925,14 @@ export function samenvattingDryRun(receipts: Receipt[], van: string, tot: string
   }
 
   const uit: any = {
-    van, tot,
+    van, tot, logica,
     bonnen_meegeteld: receipts.length,
+    meegeteld_per_status: Object.fromEntries(Object.entries(perStatus).sort().map(([k, b]) => [k, rb(b)])),
     totaal_alle_rijen: rb(receipts.reduce((a, r) => { telOp(a, r.total_incl || 0, r.total_excl || 0); return a; }, { n: 0, incl: 0, excl: 0 })),
     maanden_werkdag_binnen_bereik: Object.fromEntries(Object.entries(perMaand).sort().map(([m, b]) => [m, { ...rb(b), open_dagen: b.dagen }])),
     per_werkdag: Object.fromEntries(Object.entries(perWerkdag).sort().map(([w, b]) => [w, rb(b)])),
     nachtgrens: {
-      uitleg: 'PAID-bonnen met tijd 00:00-05:59 Amsterdam; die horen bij werkdag = kalenderdag - 1',
+      uitleg: 'meegetelde bonnen met tijd 00:00-05:59 Amsterdam; die horen bij werkdag = kalenderdag - 1 (op de tijd van de bon)',
       totaal: rb(nacht.totaal),
       werkdag_is_ophaaldag_min1: rb(nacht.werkdag_is_ophaaldag_min1),
       werkdag_is_ophaaldag: rb(nacht.werkdag_is_ophaaldag),
@@ -888,22 +980,25 @@ async function dryRun(admin: any, body: any): Promise<Response> {
     return json({ error: 'invalid_date_range', detail: `${van}..${tot}` }, 400);
   }
   if (dagVerschil(tot, van) + 1 > DRY_RUN_MAX_DAGEN) return json({ error: 'range_too_large', max_dagen: DRY_RUN_MAX_DAGEN }, 400);
+  // Logica voor de droge run: standaard 'nieuw'; 'oud' = de vorige telling, om te vergelijken.
+  const logica: Logica = body?.logica === undefined || body?.logica === null ? 'nieuw' : body.logica;
+  if (logica !== 'oud' && logica !== 'nieuw') return json({ error: 'invalid_logica', toegestaan: ['oud', 'nieuw'] }, 400);
   const t0 = Date.now();
 
   // Testpad zonder Lightspeed: mock_receipts (zelfde vorm als bij mock-sync). Schrijft ook niets.
   if (Array.isArray(body?.mock_receipts)) {
-    return json({ ok: true, dry_run: true, bron: 'mock', vestiging, ...samenvattingDryRun(body.mock_receipts as Receipt[], van, tot), duur_ms: Date.now() - t0 });
+    return json({ ok: true, dry_run: true, bron: 'mock', vestiging, schrijf_logica: SCHRIJF_LOGICA, ...samenvattingDryRun(body.mock_receipts as Receipt[], van, tot, undefined, logica), duur_ms: Date.now() - t0 });
   }
 
   const tok = await getValidToken(admin, vestiging);
   if ('error' in tok) return json({ ok: false, dry_run: true, error: tok.error }, 200); // detail niet teruggeven
-  const diag = nieuweDiag();
-  const rx = await fetchReceipts(tok.token, '', van, tot, diag);
+  const diag = nieuweDiag(STATUSSEN[logica]);
+  const rx = await fetchReceipts(tok.token, '', van, tot, diag, STATUSSEN[logica]);
   if ('error' in rx) return json({ ok: false, dry_run: true, error: rx.error, detail: rx.detail.replace(/Bearer\s+\S+/g, 'Bearer ***').slice(0, 300) }, 200);
   return json({
-    ok: true, dry_run: true, bron: 'lightspeed', vestiging,
+    ok: true, dry_run: true, bron: 'lightspeed', vestiging, schrijf_logica: SCHRIJF_LOGICA,
     opgehaald: rx.meta,
-    ...samenvattingDryRun(rx.receipts, van, tot, diag),
+    ...samenvattingDryRun(rx.receipts, van, tot, diag, logica),
     duur_ms: Date.now() - t0,
   });
 }
@@ -964,7 +1059,10 @@ Deno.serve(async (req) => {
     if (!['Midsland', 'West'].includes(body.vestiging)) return json({ error: 'invalid_vestiging' }, 400);
     const van = body.van ?? new Date(Date.now() - 24 * 3600 * 1000).toISOString().slice(0, 10);
     const tot = body.tot ?? van;
-    const r = await runSync(admin, body.vestiging, van, tot, 'handmatig');
+    // verkoop_opruimen: alleen afwezig of true ruimt oude productregels op; elke andere waarde
+    // (bv. false) = alleen upserten, niets verwijderen in kassa_verkoop_dag.
+    const opruimen = body.verkoop_opruimen === undefined || body.verkoop_opruimen === true;
+    const r = await runSync(admin, body.vestiging, van, tot, 'handmatig', undefined, opruimen);
     return json(r);
   }
 
