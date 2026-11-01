@@ -1,7 +1,7 @@
 // Pure tests voor de droge run en de telling (geen netwerk, schrijven niets).
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  aggregateVerkoop, bucketize, diagBon, nieuweDiag, plaatsBon, samenvattingDryRun, STATUSSEN, volledigeWerkdagen,
+  aggregateVerkoop, bucketize, diagBon, nieuweDiag, plaatsBon, samenvattingDryRun, STATUSSEN, volledigeWerkdagen, LOGICAS,
 } from "./index.ts";
 
 const bonnen = [
@@ -120,4 +120,34 @@ Deno.test("nieuw: DST-grenzen (laatste zondag okt en mrt)", () => {
   assertEquals(plaatsBon(nb({ timestamp: "2025-10-26T02:30:00Z", ophaaldag: "2025-10-25" }), "nieuw"), { werkdag: "2025-10-25", uur: 3 });
   // 30-03-2025 01:30 UTC = 03:30 zomertijd
   assertEquals(plaatsBon(nb({ timestamp: "2025-03-30T01:30:00Z", ophaaldag: "2025-03-29" }), "nieuw"), { werkdag: "2025-03-29", uur: 3 });
+});
+
+// ---------------- ACCEPTED (klus 8 vervolg, besluit Yorick 1-11-2026) ----------------
+Deno.test("accepted: statussen PAID, DONE en ACCEPTED; nieuw en oud ongewijzigd", () => {
+  assertEquals([...LOGICAS], ["oud", "nieuw", "accepted"]);
+  assertEquals([...STATUSSEN.accepted], ["PAID", "DONE", "ACCEPTED"]);
+  assertEquals([...STATUSSEN.nieuw], ["PAID", "DONE"]);
+  assertEquals([...STATUSSEN.oud], ["PAID"]);
+  const d = nieuweDiag(STATUSSEN.accepted);
+  diagBon(d, "2026-04-14", { id: 1, status: "ACCEPTED", modificationDate: null, total: 5, totalWithoutTax: 4 });
+  diagBon(d, "2026-04-14", { id: 2, status: "OPEN", modificationDate: null, total: 5, totalWithoutTax: 4 });
+  assertEquals(d.paid_zonder_tijd.n, 1); // ACCEPTED telt mee, OPEN niet
+  const n = nieuweDiag(STATUSSEN.nieuw);
+  diagBon(n, "2026-04-14", { id: 3, status: "ACCEPTED", modificationDate: null, total: 5, totalWithoutTax: 4 });
+  assertEquals(n.paid_zonder_tijd.n, 0); // in 'nieuw' telt ACCEPTED niet
+});
+
+Deno.test("accepted: zelfde werkdag/uur en volledige dagen als nieuw", () => {
+  const rs = [
+    nb({ timestamp: "2025-10-14T23:30:00Z", ophaaldag: "2025-10-14" }),
+    nb({ timestamp: "2026-04-09T18:05:00Z", creatie_ts: "2025-10-14T11:20:00Z", ophaaldag: "2025-10-14" }),
+    nb({ timestamp: "2025-10-20T08:00:00Z", creatie_ts: "2025-10-19T08:00:00Z", ophaaldag: "2025-10-14" }),
+    nb({ timestamp: "2026-07-04T02:30:00+02:00" }),
+  ];
+  for (const r of rs) assertEquals(plaatsBon(r, "accepted"), plaatsBon(r, "nieuw"));
+  assertEquals(volledigeWerkdagen("2025-10-14", "2025-10-15", "accepted"), ["2025-10-14", "2025-10-15"]);
+  assertEquals(volledigeWerkdagen("2025-10-15", "2025-10-14", "accepted"), []);
+  const s = samenvattingDryRun(rs.slice(0, 3), "2025-10-14", "2025-10-14", undefined, "accepted");
+  assertEquals(s.logica, "accepted");
+  assertEquals(s.randrijen.aantal, 0);
 });
