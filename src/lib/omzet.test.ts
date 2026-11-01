@@ -7,8 +7,14 @@ import {
   bouwOmzetBeeld,
   formatEuro,
   formatProcent,
+  jarenUit,
+  maandDetail,
   maandOpen,
+  maandVensters,
   procent1,
+  standaardZichtbareJaren,
+  tintVoorJaar,
+  voegDagen,
   werkdagVanIso,
   amsterdamDatum,
   type OmzetRegel,
@@ -17,8 +23,8 @@ import {
 const VANDAAG = '2026-11-01';
 const regels = controleRegels();
 
-function beeld(keuze: 'Totaal' | 'Midsland' | 'West', extra: OmzetRegel[] = []) {
-  return bouwOmzetBeeld([...regels, ...extra], keuze, 2026, VANDAAG);
+function beeld(keuze: 'Totaal' | 'Midsland' | 'West', extra: OmzetRegel[] = [], maand?: number) {
+  return bouwOmzetBeeld([...regels, ...extra], keuze, 2026, VANDAAG, maand);
 }
 
 describe('omzet oktober 2026 tegen 2025', () => {
@@ -103,6 +109,45 @@ describe('jaar tot nu toe en maanden die in beide jaren open waren', () => {
   });
 });
 
+describe('gekozen maand en tooltip', () => {
+  it('zonder keuze blijft oktober de vorige volle maand', () => {
+    expect(beeld('Totaal', [], 10).maand.nu.omzet).toBe(beeld('Totaal').maand.nu.omzet);
+  });
+
+  it('juni toont juni, niet oktober', () => {
+    const juni = beeld('Totaal', [], 6);
+    expect(juni.maand.maand).toBe(6);
+    expect(juni.maand.nu.omzet).toBe(244256);
+    expect(juni.maand.toen.omzet).toBe(239927);
+    expect(juni.maand.verschil.euro).toBe(4329);
+    expect(procent1(juni.maand.verschil.procent!)).toBe(1.8);
+    expect(juni.ytd.nu.omzet).toBe(1079434);
+  });
+
+  it('tooltip noemt bedrag, euroverschil en procent, en dicht is geen nul', () => {
+    const okt = maandDetail(beeld('Totaal').maanden[9], 2026);
+    expect(okt.dit).toContain('96.028');
+    expect(okt.vorig).toContain('100.226');
+    expect(okt.euro).toContain('4.198');
+    expect(okt.procent).toBe('−4,2%');
+    const maart = beeld('Totaal').maanden[2];
+    expect(maart.ditJaar).toBeNull();
+    const dicht = maandDetail(maart, 2026);
+    expect(dicht.dit).toBe('dicht');
+    expect(dicht.euro).toBe('dicht');
+    expect(dicht.procent).toBe('dicht');
+    expect(beeld('Totaal', [], 3).maand.nu.dicht).toBe(true);
+    expect(beeld('Totaal', [], 3).maand.verschil.procent).toBeNull();
+  });
+
+  it('een verborgen lijn haalt het verschil uit de tooltip', () => {
+    const detail = maandDetail(beeld('Midsland').maanden[9], 2026, { ditJaar: true, vorigJaar: false });
+    expect(detail.vorig).toBeNull();
+    expect(detail.euro).toBe('dicht');
+    expect(detail.dit).toContain('66.340');
+  });
+});
+
 describe('maanden zonder data', () => {
   it('een dichte maand is dicht, niet −100%', () => {
     const maart = beeld('Totaal').maanden[2];
@@ -166,6 +211,50 @@ describe('werkdag, open dag en bon', () => {
     expect(grens.werkdag).toBe('2026-10-31');
     expect(beeldNaGrens.maand.nu.omzet).toBe(80);
     expect(beeldNaGrens.maanden[10].ditJaar).toBeNull();
+  });
+});
+
+describe('alle jaren', () => {
+  it('loopt van het eerste tot het laatste jaar met kassadata', () => {
+    expect(jarenUit(controleRegels())).toEqual([2026, 2025]);
+    const metGat = [
+      { werkdag: '2026-05-01', isDemo: false },
+      { werkdag: '2023-06-12', isDemo: false },
+      { werkdag: '1970-01-01', isDemo: true },
+    ];
+    expect(jarenUit(metGat)).toEqual([2026, 2025, 2024, 2023]);
+  });
+
+  it('zet standaard het gekozen jaar en het jaar ervoor aan', () => {
+    expect(standaardZichtbareJaren([2024, 2025, 2026], 2026)).toEqual([2026, 2025]);
+    expect(tintVoorJaar(2026, [2024, 2025, 2026])).toBe('hsl(var(--primary))');
+    expect(tintVoorJaar(2025, [2024, 2025, 2026])).toBe('hsl(var(--chart-prev-line))');
+    expect(tintVoorJaar(2024, [2024, 2025, 2026])).toBe('hsl(var(--muted-foreground))');
+  });
+
+  it('elk jaar staat op de maand, dicht blijft null', () => {
+    const okt = beeld('Totaal').maanden[9];
+    expect(okt.perJaar[2026]).toBe(96028);
+    expect(okt.perJaar[2025]).toBe(100226);
+    expect(beeld('Totaal').maanden[2].perJaar[2026]).toBeNull();
+  });
+
+  it('maandvensters sluiten op elkaar aan en dagen uit uren worden één', () => {
+    expect(maandVensters('2025-01-15', '2025-03-02')).toEqual([
+      { van: '2025-01-15', tot: '2025-01-31' },
+      { van: '2025-02-01', tot: '2025-02-28' },
+      { van: '2025-03-01', tot: '2025-03-02' },
+    ]);
+    const samen = voegDagen([
+      { vestiging: 'West', werkdag: '2026-10-03', omzetExcl: 10.1, aantalBonnen: 1 },
+      { vestiging: 'West', werkdag: '2026-10-03', omzetExcl: 0.2, aantalBonnen: 2 },
+      { vestiging: 'Midsland', werkdag: '2026-10-03', omzetExcl: 5, aantalBonnen: 1 },
+      { vestiging: 'West', werkdag: '2026-10-04', omzetExcl: 1, aantalBonnen: 1, isDemo: true },
+    ]);
+    expect(samen).toHaveLength(2);
+    expect(samen.find((rij) => rij.vestiging === 'West')).toEqual({
+      vestiging: 'West', werkdag: '2026-10-03', omzetExcl: 10.3, aantalBonnen: 3,
+    });
   });
 });
 

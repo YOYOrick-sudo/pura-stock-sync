@@ -19,7 +19,16 @@ function start(): { tab: 'maanden' | 'maand' | 'jaar'; keuze: VestigingKeuze } {
 /** Alleen voor een lokale schermafdruk. De route wordt niet in productie geregistreerd. */
 export function OmzetVoorbeeld() {
   const begin = useMemo(start, []);
-  const regels = useMemo(() => controleRegels(), []);
+  const regels = useMemo(() => {
+    const basis = controleRegels();
+    const eerder = basis.filter((regel) => regel.werkdag.startsWith('2025-')).map((regel) => ({
+      ...regel,
+      werkdag: regel.werkdag.replace('2025-', '2024-'),
+      omzetExcl: Math.round(regel.omzetExcl * 0.9),
+    }));
+    return [...eerder, ...basis];
+  }, []);
+  const jaren = useMemo(() => jarenUit(regels), [regels]);
   const [jaar, setJaar] = useState(2026);
   const [keuze, setKeuze] = useState<VestigingKeuze>(begin.keuze);
 
@@ -29,7 +38,7 @@ export function OmzetVoorbeeld() {
         <OmzetInhoud
           regels={regels}
           jaar={jaar}
-          jaren={jarenUit(VANDAAG)}
+          jaren={jaren}
           onJaar={setJaar}
           keuze={keuze}
           onKeuze={setKeuze}

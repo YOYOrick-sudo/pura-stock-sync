@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState, FoutRegel, KaartKop, KengetalVerdeling, LijstKaart, PaginaBalk, segmentTabsKlasse } from '@/components/pura';
 import { BarChart3 } from 'lucide-react';
-import { OmzetGrafiek } from './OmzetGrafiek';
+import { OmzetGrafiek, type GrafiekVorm } from './OmzetGrafiek';
 import {
   bouwOmzetBeeld,
   formatAantal,
@@ -59,9 +59,12 @@ export function OmzetInhoud({
   melding?: string;
 }) {
   const [tab, setTab] = useState(startTab);
-  const beeld = useMemo(() => bouwOmzetBeeld(regels, keuze, jaar, vandaag), [regels, keuze, jaar, vandaag]);
-  const midsland = useMemo(() => bouwOmzetBeeld(regels, 'Midsland', jaar, vandaag), [regels, jaar, vandaag]);
-  const west = useMemo(() => bouwOmzetBeeld(regels, 'West', jaar, vandaag), [regels, jaar, vandaag]);
+  const [vorm, setVorm] = useState<GrafiekVorm>('lijn');
+  const [gekozenMaand, setGekozenMaand] = useState<number | null>(null);
+  useEffect(() => { setGekozenMaand(null); }, [jaar]);
+  const beeld = useMemo(() => bouwOmzetBeeld(regels, keuze, jaar, vandaag, gekozenMaand ?? undefined), [regels, keuze, jaar, vandaag, gekozenMaand]);
+  const midsland = useMemo(() => bouwOmzetBeeld(regels, 'Midsland', jaar, vandaag, gekozenMaand ?? undefined), [regels, jaar, vandaag, gekozenMaand]);
+  const west = useMemo(() => bouwOmzetBeeld(regels, 'West', jaar, vandaag, gekozenMaand ?? undefined), [regels, jaar, vandaag, gekozenMaand]);
   const maandNaam = hoofdletter(beeld.maand.naam);
   const leeg = !laden && !fout && regels.length === 0;
 
@@ -110,13 +113,26 @@ export function OmzetInhoud({
             <TabsTrigger value="jaar">{jaar}</TabsTrigger>
           </TabsList>
           <div className="mt-4">
-            <TabsContent value="maanden" className="mt-0">
+            <TabsContent value="maanden" className="mt-0 space-y-4">
               <LijstKaart
                 kop={<KaartKop titel="Per maand" />}
                 voet={beeld.dichtMaanden.length > 0 ? `Dicht in ${jaar}: ${beeld.dichtMaanden.map((m) => MAAND_KORT[m - 1]).join(', ')}` : undefined}
               >
                 <div className="min-w-0 px-2 py-3 sm:px-4">
-                  <OmzetGrafiek punten={beeld.maanden} jaar={jaar} />
+                  <Tabs value={vorm} onValueChange={(waarde) => setVorm(waarde as GrafiekVorm)}>
+                    <TabsList className="mb-3 flex h-auto w-full justify-start gap-0 p-1 sm:w-fit [&>button]:min-h-11 [&>button]:flex-1 [&>button]:px-4 sm:[&>button]:flex-none" aria-label="Grafiek">
+                      <TabsTrigger value="staaf">Staaf</TabsTrigger>
+                      <TabsTrigger value="lijn">Lijn</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                  <OmzetGrafiek
+                    punten={beeld.maanden}
+                    jaren={jaren}
+                    jaar={jaar}
+                    vorm={vorm}
+                    gekozen={beeld.maand.jaar === jaar ? beeld.maand.maand : 0}
+                    onKies={setGekozenMaand}
+                  />
                   <ul className="sr-only">
                     {beeld.maanden.map((punt) => (
                       <li key={punt.maand}>
@@ -127,38 +143,10 @@ export function OmzetInhoud({
                   </ul>
                 </div>
               </LijstKaart>
+              <MaandKaarten keuze={keuze} jaar={jaar} beeld={beeld} midsland={midsland} west={west} />
             </TabsContent>
             <TabsContent value="maand" className="mt-0">
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <KengetalVerdeling
-                  label="Omzet"
-                  waarde={beeld.maand.nu.dicht ? 'dicht' : formatEuro(beeld.maand.nu.omzet)}
-                  regels={vergelijkRegels(beeld.maand.nu.dicht, beeld.maand.verschil, beeld.maand.toen.dicht ? null : beeld.maand.toen.omzet, jaar - 1)}
-                />
-                <KengetalVerdeling
-                  label="Open dagen"
-                  waarde={openDagenWaarde(keuze, beeld.maand.nu.dicht, beeld.maand.nu.openDagen, midsland.maand.nu.openDagen, west.maand.nu.openDagen)}
-                  regels={keuze === 'Totaal'
-                    ? [
-                      { naam: 'Vorig jaar', waarde: `${formatAantal(midsland.maand.toen.openDagen)} · ${formatAantal(west.maand.toen.openDagen)}` },
-                      { naam: 'Midsland per dag', waarde: formatProcent(midsland.maand.perDagVerschil.procent), toon: toonVan(midsland.maand.perDagVerschil.procent) },
-                      { naam: 'West per dag', waarde: formatProcent(west.maand.perDagVerschil.procent), toon: toonVan(west.maand.perDagVerschil.procent) },
-                    ]
-                    : [
-                      { naam: 'Vorig jaar', waarde: beeld.maand.toen.dicht ? 'dicht' : formatAantal(beeld.maand.toen.openDagen) },
-                      { naam: 'Per dag', waarde: beeld.maand.perDagNu == null ? 'dicht' : formatEuro(beeld.maand.perDagNu) },
-                      { naam: 'Tegen vorig jaar', waarde: formatProcent(beeld.maand.perDagVerschil.procent), toon: toonVan(beeld.maand.perDagVerschil.procent) },
-                    ]}
-                />
-                <KengetalVerdeling
-                  label="Gemiddelde bon"
-                  waarde={beeld.maand.gemBonNu == null ? 'dicht' : formatEuro(beeld.maand.gemBonNu, true)}
-                  regels={[
-                    { naam: 'Bonnen', waarde: beeld.maand.nu.bonnen > 0 ? formatAantal(beeld.maand.nu.bonnen) : 'dicht' },
-                    { naam: 'Vorig jaar', waarde: beeld.maand.gemBonToen == null ? 'dicht' : formatEuro(beeld.maand.gemBonToen, true) },
-                  ]}
-                />
-              </div>
+              <MaandKaarten keuze={keuze} jaar={jaar} beeld={beeld} midsland={midsland} west={west} />
             </TabsContent>
             <TabsContent value="jaar" className="mt-0">
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -203,6 +191,49 @@ export function OmzetInhoud({
         </Tabs>
       )}
       <p className="text-xs text-muted-foreground">{VOET}</p>
+    </div>
+  );
+}
+
+function MaandKaarten({
+  keuze, jaar, beeld, midsland, west,
+}: {
+  keuze: VestigingKeuze;
+  jaar: number;
+  beeld: ReturnType<typeof bouwOmzetBeeld>;
+  midsland: ReturnType<typeof bouwOmzetBeeld>;
+  west: ReturnType<typeof bouwOmzetBeeld>;
+}) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <KengetalVerdeling
+        label="Omzet"
+        waarde={beeld.maand.nu.dicht ? 'dicht' : formatEuro(beeld.maand.nu.omzet)}
+        regels={vergelijkRegels(beeld.maand.nu.dicht, beeld.maand.verschil, beeld.maand.toen.dicht ? null : beeld.maand.toen.omzet, jaar - 1)}
+      />
+      <KengetalVerdeling
+        label="Open dagen"
+        waarde={openDagenWaarde(keuze, beeld.maand.nu.dicht, beeld.maand.nu.openDagen, midsland.maand.nu.openDagen, west.maand.nu.openDagen)}
+        regels={keuze === 'Totaal'
+          ? [
+            { naam: 'Vorig jaar', waarde: `${formatAantal(midsland.maand.toen.openDagen)} · ${formatAantal(west.maand.toen.openDagen)}` },
+            { naam: 'Midsland per dag', waarde: formatProcent(midsland.maand.perDagVerschil.procent), toon: toonVan(midsland.maand.perDagVerschil.procent) },
+            { naam: 'West per dag', waarde: formatProcent(west.maand.perDagVerschil.procent), toon: toonVan(west.maand.perDagVerschil.procent) },
+          ]
+          : [
+            { naam: 'Vorig jaar', waarde: beeld.maand.toen.dicht ? 'dicht' : formatAantal(beeld.maand.toen.openDagen) },
+            { naam: 'Per dag', waarde: beeld.maand.perDagNu == null ? 'dicht' : formatEuro(beeld.maand.perDagNu) },
+            { naam: 'Tegen vorig jaar', waarde: formatProcent(beeld.maand.perDagVerschil.procent), toon: toonVan(beeld.maand.perDagVerschil.procent) },
+          ]}
+      />
+      <KengetalVerdeling
+        label="Gemiddelde bon"
+        waarde={beeld.maand.gemBonNu == null ? 'dicht' : formatEuro(beeld.maand.gemBonNu, true)}
+        regels={[
+          { naam: 'Bonnen', waarde: beeld.maand.nu.bonnen > 0 ? formatAantal(beeld.maand.nu.bonnen) : 'dicht' },
+          { naam: 'Vorig jaar', waarde: beeld.maand.gemBonToen == null ? 'dicht' : formatEuro(beeld.maand.gemBonToen, true) },
+        ]}
+      />
     </div>
   );
 }

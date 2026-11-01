@@ -6,8 +6,6 @@
  */
 
 export const AMSTERDAM = 'Europe/Amsterdam';
-/** Eerste jaar met Lightspeed-sync in omzet_uren. */
-export const EERSTE_OMZET_JAAR = 2025;
 
 export type Vestiging = 'Midsland' | 'West';
 export type VestigingKeuze = Vestiging | 'Totaal';
@@ -39,6 +37,8 @@ export type MaandPunt = {
   ditJaar: number | null;
   vorigJaar: number | null;
   procent: number | null;
+  /** Omzet per kalenderjaar. null = dicht, geen 0. */
+  perJaar: Record<number, number | null>;
 };
 
 export type GelijkJaar = {
@@ -129,11 +129,83 @@ export function werkdagVanIso(iso: string): { werkdag: string; uur: number } {
   };
 }
 
-export function jarenUit(vandaag: string): number[] {
-  const huidig = Number(vandaag.slice(0, 4));
+/** Jaren van laatste tot eerste jaar waarin kassadata staat, inclusief lege jaren ertussen. */
+export function jarenUit(regels: readonly { werkdag: string; isDemo?: boolean }[]): number[] {
+  let min = Infinity;
+  let max = -Infinity;
+  for (const regel of regels) {
+    if (regel.isDemo || !regel.werkdag) continue;
+    const jaar = Number(regel.werkdag.slice(0, 4));
+    if (!Number.isFinite(jaar)) continue;
+    if (jaar < min) min = jaar;
+    if (jaar > max) max = jaar;
+  }
+  if (min === Infinity) return [];
   const uit: number[] = [];
-  for (let jaar = huidig; jaar >= EERSTE_OMZET_JAAR; jaar -= 1) uit.push(jaar);
-  return uit.length > 0 ? uit : [huidig];
+  for (let jaar = max; jaar >= min; jaar -= 1) uit.push(jaar);
+  return uit;
+}
+
+/** Maandvensters zonder overlap of gat, zodat pagineren per maand niets mist en niets dubbel telt. */
+export function maandVensters(van: string, tot: string): { van: string; tot: string }[] {
+  if (!van || !tot || tot < van) return [];
+  const uit: { van: string; tot: string }[] = [];
+  let jaar = Number(van.slice(0, 4));
+  let maand = Number(van.slice(5, 7));
+  const eindJaar = Number(tot.slice(0, 4));
+  const eindMaand = Number(tot.slice(5, 7));
+  while (jaar < eindJaar || (jaar === eindJaar && maand <= eindMaand)) {
+    const eerste = `${jaar}-${pad(maand)}-01`;
+    const laatste = `${jaar}-${pad(maand)}-${pad(dagenInMaand(jaar, maand))}`;
+    uit.push({ van: eerste < van ? van : eerste, tot: laatste > tot ? tot : laatste });
+    maand += 1;
+    if (maand === 13) {
+      maand = 1;
+      jaar += 1;
+    }
+  }
+  return uit;
+}
+
+/** Uren van dezelfde vestiging en werkdag tot één dag optellen. */
+export function voegDagen(regels: readonly OmzetRegel[]): OmzetRegel[] {
+  const map = new Map<string, { vestiging: string; werkdag: string; cent: number; bonnen: number }>();
+  for (const regel of regels) {
+    if (regel.isDemo) continue;
+    const sleutel = `${regel.vestiging}|${regel.werkdag}`;
+    const dag = map.get(sleutel) ?? { vestiging: regel.vestiging, werkdag: regel.werkdag, cent: 0, bonnen: 0 };
+    dag.cent += Math.round(regel.omzetExcl * 100);
+    dag.bonnen += regel.aantalBonnen;
+    map.set(sleutel, dag);
+  }
+  return [...map.values()].map((dag) => ({
+    vestiging: dag.vestiging,
+    werkdag: dag.werkdag,
+    omzetExcl: dag.cent / 100,
+    aantalBonnen: dag.bonnen,
+  }));
+}
+
+/** Rustige tinten uit het design system. Nieuwste jaar is primary, het jaar ervoor de vorige-jaarlijn. */
+export const JAAR_TINTEN = [
+  'hsl(var(--primary))',
+  'hsl(var(--chart-prev-line))',
+  'hsl(var(--muted-foreground))',
+  'hsl(var(--primary-hover))',
+  'hsl(var(--success))',
+  'hsl(var(--info))',
+  'hsl(var(--border-state))',
+  'hsl(var(--warning))',
+] as const;
+
+export function tintVoorJaar(jaar: number, jaren: readonly number[]): string {
+  const aflopend = [...jaren].sort((a, b) => b - a);
+  const index = aflopend.indexOf(jaar);
+  return JAAR_TINTEN[(index < 0 ? 0 : index) % JAAR_TINTEN.length];
+}
+
+export function standaardZichtbareJaren(jaren: readonly number[], gekozen: number): number[] {
+  return [gekozen, gekozen - 1].filter((jaar) => jaren.includes(jaar));
 }
 
 export function procent1(procent: number): number {
@@ -197,11 +269,27 @@ export function maandOpen(openDagen: number, jaar: number, maand: number): boole
   return openDagen * 2 >= dagenInMaand(jaar, maand);
 }
 
-export function bouwOmzetBeeld(regels: OmzetRegel[], keuze: VestigingKeuze, jaar: number, vandaag: string): OmzetBeeld {
+/** Tekst voor de tooltip: bedrag, verschil in euro en procent. Zonder data: dicht. */
+export function maandDetail(punt: MaandPunt, jaar: number, zichtbaar: { ditJaar: boolean; vorigJaar: boolean } = { ditJaar: true, vorigJaar: true }) {
+  const beideZichtbaar = zichtbaar.ditJaar && zichtbaar.vorigJaar;
+  const beideGetallen = punt.ditJaar != null && punt.vorigJaar != null;
+  return {
+    naam: MAAND_LANG[punt.maand - 1],
+    dit: !zichtbaar.ditJaar ? null : punt.ditJaar == null ? 'dicht' : formatEuro(punt.ditJaar),
+    vorig: !zichtbaar.vorigJaar ? null : punt.vorigJaar == null ? 'dicht' : formatEuro(punt.vorigJaar),
+    euro: beideZichtbaar && beideGetallen ? formatEuroVerschil(punt.ditJaar! - punt.vorigJaar!) : 'dicht',
+    procent: beideZichtbaar ? formatProcent(punt.procent) : 'dicht',
+  };
+}
+
+export function bouwOmzetBeeld(regels: OmzetRegel[], keuze: VestigingKeuze, jaar: number, vandaag: string, gekozenMaand?: number): OmzetBeeld {
   const dagen = dagenVan(regels);
   const eind = ytdEind(jaar, vandaag);
   const toenEind = verschuifJaar(eind, -1);
-  const maand = maandVoorScherm(jaar, vandaag);
+  const standaard = maandVoorScherm(jaar, vandaag);
+  const maand = gekozenMaand != null && gekozenMaand >= 1 && gekozenMaand <= 12
+    ? { jaar, maand: gekozenMaand }
+    : standaard;
 
   const nuMaand = som(dagen, (d) => inKeuze(d, keuze) && inMaand(d, maand.jaar, maand.maand));
   const toenMaand = som(dagen, (d) => inKeuze(d, keuze) && inMaand(d, maand.jaar - 1, maand.maand));
@@ -211,11 +299,17 @@ export function bouwOmzetBeeld(regels: OmzetRegel[], keuze: VestigingKeuze, jaar
   const nuGelijk = somMaanden(dagen, keuze, jaar, gelijkMaanden);
   const toenGelijk = somMaanden(dagen, keuze, jaar - 1, gelijkMaanden);
 
+  const jaren = jarenUit(dagen.map((dag) => ({ werkdag: dag.werkdag })));
   const maanden: MaandPunt[] = [];
   const dichtMaanden: number[] = [];
   for (let m = 1; m <= 12; m += 1) {
     const dit = som(dagen, (d) => inKeuze(d, keuze) && inMaand(d, jaar, m));
     const vorig = som(dagen, (d) => inKeuze(d, keuze) && inMaand(d, jaar - 1, m));
+    const perJaar: Record<number, number | null> = {};
+    for (const j of jaren) {
+      const vanJaar = som(dagen, (d) => inKeuze(d, keuze) && inMaand(d, j, m));
+      perJaar[j] = vanJaar.dicht ? null : vanJaar.omzet;
+    }
     if (dit.dicht) dichtMaanden.push(m);
     const verschil = verschilOmzet(dit, vorig);
     maanden.push({
@@ -224,6 +318,7 @@ export function bouwOmzetBeeld(regels: OmzetRegel[], keuze: VestigingKeuze, jaar
       ditJaar: dit.dicht ? null : dit.omzet,
       vorigJaar: vorig.dicht ? null : vorig.omzet,
       procent: verschil.procent,
+      perJaar,
     });
   }
 
