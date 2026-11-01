@@ -304,8 +304,9 @@ async function getValidToken(admin: any, vestiging: string): Promise<{ token: st
 //   printDate, met sanity-skip voor epoch/pre-2000 waardes.
 // - UTC (ISO Z) → computeWerkdagUur() bucketet naar Europe/Amsterdam vóór upsert.
 // - Filter: statussen uit STATUSSEN[logica]. 'oud' = alleen PAID; 'nieuw' = PAID en DONE
-//   (Lightspeed geeft afgerekende bonnen beide statussen; PAID+DONE = Lightspeed-rapport op de cent).
-// - Werkdag ('nieuw'): de opgehaalde Lightspeed-dag (date=), niet de aanpastijd. Zie plaatsBon().
+//   (Lightspeed geeft afgerekende bonnen beide statussen; PAID+DONE = Lightspeed-rapport op de cent);
+//   'accepted' = PAID, DONE en ACCEPTED (besluit Yorick 1-11-2026; ACCEPTED komt bij Midsland in 2026 voor).
+// - Werkdag ('nieuw' en 'accepted'): de opgehaalde Lightspeed-dag (date=), niet de aanpastijd. Zie plaatsBon().
 // ------------------------------------------------------------------
 type ReceiptItem = { product_id: string; naam: string; aantal: number; incl: number; excl: number };
 type Receipt = {
@@ -320,10 +321,16 @@ type Receipt = {
  *             op de ophaaldag valt (kanteluur 06:00), anders uit creationDate als die op de
  *             ophaaldag valt, anders uit timestamp. Zo kan een later aangepaste bon nooit
  *             een uur van een andere dag overschrijven.
- * Bonnen zonder ophaaldag (mock_receipts) vallen in beide logica's terug op de timestamp.
+ *  - 'accepted': als 'nieuw' (zelfde werkdag/uur), maar telt ook status ACCEPTED mee.
+ * Bonnen zonder ophaaldag (mock_receipts) vallen in alle logica's terug op de timestamp.
  */
-export type Logica = 'oud' | 'nieuw';
-export const STATUSSEN: Record<Logica, readonly string[]> = { oud: ['PAID'], nieuw: ['PAID', 'DONE'] };
+export type Logica = 'oud' | 'nieuw' | 'accepted';
+export const LOGICAS: readonly Logica[] = ['oud', 'nieuw', 'accepted'];
+export const STATUSSEN: Record<Logica, readonly string[]> = {
+  oud: ['PAID'],
+  nieuw: ['PAID', 'DONE'],
+  accepted: ['PAID', 'DONE', 'ACCEPTED'],
+};
 export const SCHRIJF_LOGICA: Logica = 'nieuw';
 
 export function plaatsBon(r: Receipt, logica: Logica): { werkdag: string; uur: number } {
@@ -742,7 +749,7 @@ async function upsertVerkoop(
  *  - 'nieuw': elke opgehaalde dag is een complete werkdag (werkdag = ophaaldag), dus van..tot.
  */
 export function volledigeWerkdagen(van: string, tot: string, logica: Logica = SCHRIJF_LOGICA): string[] {
-  if (logica === 'nieuw') return tot < van ? [] : dagenTussen(van, tot);
+  if (logica !== 'oud') return tot < van ? [] : dagenTussen(van, tot);
   const nlToday = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Amsterdam' }).format(new Date());
   const laatste = tot >= nlToday ? tot : plusDag(tot, -1);
   return laatste < van ? [] : dagenTussen(van, laatste);
@@ -980,9 +987,9 @@ async function dryRun(admin: any, body: any): Promise<Response> {
     return json({ error: 'invalid_date_range', detail: `${van}..${tot}` }, 400);
   }
   if (dagVerschil(tot, van) + 1 > DRY_RUN_MAX_DAGEN) return json({ error: 'range_too_large', max_dagen: DRY_RUN_MAX_DAGEN }, 400);
-  // Logica voor de droge run: standaard 'nieuw'; 'oud' = de vorige telling, om te vergelijken.
-  const logica: Logica = body?.logica === undefined || body?.logica === null ? 'nieuw' : body.logica;
-  if (logica !== 'oud' && logica !== 'nieuw') return json({ error: 'invalid_logica', toegestaan: ['oud', 'nieuw'] }, 400);
+  // Logica voor de droge run: standaard SCHRIJF_LOGICA (= wat de sync schrijft); 'oud', 'nieuw' of 'accepted' om te vergelijken.
+  const logica: Logica = body?.logica === undefined || body?.logica === null ? SCHRIJF_LOGICA : body.logica;
+  if (!LOGICAS.includes(logica)) return json({ error: 'invalid_logica', toegestaan: LOGICAS }, 400);
   const t0 = Date.now();
 
   // Testpad zonder Lightspeed: mock_receipts (zelfde vorm als bij mock-sync). Schrijft ook niets.
