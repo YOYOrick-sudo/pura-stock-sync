@@ -1,6 +1,6 @@
 // @ts-ignore bun test runner
 import { expect, test } from 'bun:test';
-import { leverancierNaam, perLeverancier, telMoment } from './presentatie';
+import { leverancierNaam, onderwegTabTeller, perLeverancier, telMoment } from './presentatie';
 import type { ArtikelVorm, BestelSignaal } from '@/hooks/useBestelbord';
 
 test('dagelijks roulerend gebruikt voor_opening', () => {
@@ -19,6 +19,40 @@ test('leverancier van signaal gaat voor artikelvorm, daarna onbekend', () => {
   expect(leverancierNaam({ ...s, leverancier_id: null }, leveranciers, vormen)).toBe('B');
   expect(leverancierNaam({ ...s, leverancier_id: null, artikel_vorm_id: null }, leveranciers, vormen)).toBe('Leverancier onbekend');
 });
+test('onderweg-tab telt besteld en losse nalevering als één getal', () => {
+  const metStip = onderwegTabTeller({
+    besteldIds: ['b1'],
+    teChecken: 1,
+    restanten: [
+      { soort: 'wordt_nageleverd', opnieuw_besteld: false, bestel_signaal_id: null },
+      { soort: 'wordt_nageleverd', opnieuw_besteld: false, bestel_signaal_id: null },
+      { soort: 'wordt_nageleverd', opnieuw_besteld: false, bestel_signaal_id: null },
+      { soort: 'wordt_nageleverd', opnieuw_besteld: false, bestel_signaal_id: null },
+      { soort: 'wordt_nageleverd', opnieuw_besteld: true, bestel_signaal_id: null },
+    ],
+  });
+  expect(metStip).toEqual({ aantal: 5, aandacht: 'te checken' });
+
+  const rust = onderwegTabTeller({ besteldIds: ['b1', 'b2'], teChecken: 0, restanten: [] });
+  expect(rust).toEqual({ aantal: 2, aandacht: null });
+});
+
+test('onderweg-tab telt een restant aan een bestelde regel niet dubbel', () => {
+  const gekoppeld = onderwegTabTeller({
+    besteldIds: ['b1'],
+    teChecken: 0,
+    restanten: [{ soort: 'wordt_nageleverd', opnieuw_besteld: false, bestel_signaal_id: 'b1' }],
+  });
+  expect(gekoppeld).toEqual({ aantal: 1, aandacht: null });
+
+  const mist = onderwegTabTeller({
+    besteldIds: ['b1'],
+    teChecken: 1,
+    restanten: [{ soort: 'mist', opnieuw_besteld: false, bestel_signaal_id: null }],
+  });
+  expect(mist).toEqual({ aantal: 2, aandacht: 'te checken en mist' });
+});
+
 test('onbekende leverancier staat onderaan zonder dubbele productregels', () => {
   const regels = [{ id: 1, lev: 'Leverancier onbekend' }, { id: 2, lev: 'Z' }, { id: 3, lev: 'A' }];
   const groepen = perLeverancier(regels, (r) => r.lev);

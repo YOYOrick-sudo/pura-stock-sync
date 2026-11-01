@@ -3,13 +3,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Check, AlertCircle, Search, ChefHat, Hourglass } from 'lucide-react';
+import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Check, Search, ChefHat } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useOntvangstModus, useOntvangstData, useKeukenAdvies, useKeukenStand, useKeukenTelpool, useKeukenTelInfo, useKeukenTelling } from '@/hooks/useOntvangstV2';
 import { NageleverdKaart, EindcheckKaart } from '@/components/kitchen/bestelbord/OntvangstOnderweg';
 import { MandjeVragen } from '@/components/kitchen/bestelbord/MandjeVragen';
-import { bordRestStatusPerSignaal, onderwegMetRest, onderwegTellers, openRestVoorArtikel, restWaarschuwing, leesTab } from '@/lib/ontvangstV2';
-import { BestelbordTabs } from '@/components/kitchen/bestelbord/BestelbordTabs';
+import { bordRestStatusPerSignaal, onderwegMetRest, openRestVoorArtikel, restWaarschuwing, leesTab } from '@/lib/ontvangstV2';
+import { BestelbordTabs, ZonderPrijsFilter } from '@/components/kitchen/bestelbord/BestelbordTabs';
 import { KeukenAdviesTabel } from '@/components/kitchen/bestelbord/KeukenAdviesTabel';
 import { KeukenTelblok } from '@/components/kitchen/bestelbord/KeukenTelblok';
 import { DrankAdvies } from '@/components/kitchen/bestelbord/DrankAdvies';
@@ -43,7 +43,7 @@ import { OnderwegTabel } from '@/components/kitchen/bestelbord/OnderwegTabel';
 import { AdviesTabel } from '@/components/kitchen/bestelbord/AdviesTabel';
 import { LeveranciersOverzicht } from '@/components/kitchen/bestelbord/LeveranciersOverzicht';
 import { eerderVrijeRegels, filterEerderSuggesties } from '@/lib/bordSnelkeuze';
-import { leverancierNaam } from '@/components/kitchen/bestelbord/presentatie';
+import { leverancierNaam, onderwegTabTeller } from '@/components/kitchen/bestelbord/presentatie';
 import { useBesteldeadlines } from '@/hooks/useBesteldeadlines';
 import { RegelInfo } from '@/components/kitchen/bestelbord/RegelInfo';
 import { verpakkingWeergave, eenheidLabel } from '@/components/kitchen/bestelbord/verpakking';
@@ -210,7 +210,6 @@ export default function Bestelbord() {
   const restanten = v2 ? ontvangst.restanten.data ?? [] : [];
   const restStatusPerSignaal = bordRestStatusPerSignaal(restanten);
   const nageleverdArtikelen = new Set(restanten.filter((x) => x.telt_als_onderweg && !x.opnieuw_besteld && x.artikel_id).map((x) => x.artikel_id as string));
-  const restTellers = onderwegTellers(restanten);
   const { isOpen } = useVestigingOpenDagen(vestiging || null);
   const [naam, setNaam] = useState('');
   const [aantal, setAantal] = useState<number | null>(1);
@@ -562,6 +561,10 @@ export default function Bestelbord() {
   const nulAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) <= 0);
   const openPrijzen = open.map(prijsVan).filter((p) => p != null);
     const zonderPrijs = [...open, ...besteld].filter((s) => !prijsVan(s)).length;
+  const onderwegWeergave = onderwegTabTeller({ besteldIds: besteld.map((s) => s.id), teChecken: teChecken.length, restanten });
+  const zonderPrijsFilter = (className: string) => (tab === 'bord' || tab === 'onderweg')
+    ? <ZonderPrijsFilter aantal={zonderPrijs} aan={alleenZonderPrijs} onToggle={() => setAlleenZonderPrijs((v) => !v)} className={className} />
+    : null;
   const q = zoek.trim().toLowerCase();
   const filter = (r: BestelSignaal[]) => r.filter((s) => (!q || s.naam.toLowerCase().includes(q)) && (!alleenZonderPrijs || !prijsVan(s)));
   const onbekendZicht = filter(open).filter((s) => leverancier(s) === 'Leverancier onbekend');
@@ -581,21 +584,22 @@ export default function Bestelbord() {
       <div className="space-y-4">
         <Tabs value={tab} onValueChange={setTabKeuze}>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="w-full min-w-0">
+            <div className="w-full min-w-0 lg:w-auto lg:flex-1">
             <BestelbordTabs tabs={[
               { id: 'bord', naam: 'Op het bord', kort: 'Bord', Icoon: ClipboardList, n: open.length },
               { id: 'advies', naam: 'Advies', kort: 'Advies', Icoon: Sparkles, n: positieveAdviezen.length },
               ...(modus.keukenadvies ? [{ id: 'keuken', naam: 'Advies keuken', kort: 'Keuken', Icoon: ChefHat, n: keukenAdvies.data?.length ?? 0 }] : []),
               { id: 'tellen', naam: 'Tellen', kort: 'Tellen', Icoon: Calculator, n: telOverzicht.open },
-              { id: 'onderweg', naam: 'Onderweg', kort: 'Onderweg', Icoon: Truck, n: besteld.length, extra: <>{v2 && restTellers.nageleverd > 0 && <span className="inline-flex items-center gap-0.5 tabular-nums text-muted-foreground"><Hourglass className="h-3 w-3" aria-hidden />{restTellers.nageleverd}</span>}{v2 && restTellers.mist > 0 && <span className="inline-flex items-center gap-0.5 tabular-nums text-warning" aria-label={`${restTellers.mist} mist`}><AlertCircle className="h-3 w-3" aria-hidden />{restTellers.mist}</span>}{teChecken.length > 0 && <span className="h-2 w-2 shrink-0 rounded-full bg-warning" aria-label={`${teChecken.length} te checken`} />}</> },
+              { id: 'onderweg', naam: 'Onderweg', kort: 'Onderweg', Icoon: Truck, n: onderwegWeergave.aantal, aandacht: onderwegWeergave.aandacht },
             ]} />
             </div>
             {test && <Badge variant="secondary">Test</Badge>}
-            {zonderPrijs > 0 && (tab === 'bord' || tab === 'onderweg') && <Button variant={alleenZonderPrijs ? 'default' : 'outline'} className="ml-auto min-h-11 shrink-0 gap-1.5" aria-pressed={alleenZonderPrijs} onClick={() => setAlleenZonderPrijs((v) => !v)}><AlertCircle className={cn('h-4 w-4', !alleenZonderPrijs && 'text-warning')} /><span className="tabular-nums">{zonderPrijs}</span><span>zonder prijs</span></Button>}
+            {zonderPrijsFilter('hidden lg:inline-flex')}
           </div>
           <div className="mt-4 min-w-0">
             <div className="min-w-0 space-y-4">
               <TabsContent value="bord" className="mt-0 space-y-4">
+                {zonderPrijsFilter('lg:hidden')}
                 {v2 && modus.magBeslissen && <MandjeVragen modus={modus} vragen={ontvangst.mandje.data ?? []} />}
                 <LijstKaart clip={false}>
         <div className={cn('space-y-3 rounded-t-polar-lg border-b border-border bg-muted/30 p-3 sm:px-4 lg:px-6', test && 'hidden')}>
@@ -713,6 +717,7 @@ export default function Bestelbord() {
               {modus.keukenadvies && <TabsContent value="keuken" className="mt-0 space-y-4"><KeukenTelblok regels={keukenStand.data ?? []} pool={keukenTelpool.data} telinfo={keukenTelInfo.data} laden={keukenStand.isLoading} bezig={telling.isPending} onOpslaan={(id, n) => telling.mutateAsync({ telartikelId: id, aantal: n })} /><DrankAdvies vestiging={modus.pVestiging} /><KeukenAdviesTabel regels={keukenAdvies.data ?? []} telinfo={keukenTelInfo.data} laden={keukenAdvies.isLoading} /></TabsContent>}
               <div hidden={tab !== 'tellen'}>{test ? <LijstKaart><p className="px-4 py-6 text-center text-sm text-muted-foreground">Tellen staat uit in testmodus, omdat dit de echte voorraad van {vestiging} aanpast.<br />De keukentelling test je op het tabblad Advies keuken.</p></LijstKaart> : <Voorraadproef key={vestiging} vestiging={vestiging} actief={tab === 'tellen'} />}</div>
               <TabsContent value="onderweg" className="mt-0 space-y-4">
+                {zonderPrijsFilter('lg:hidden')}
                 {v2 && <><NageleverdKaart modus={modus} regels={restanten} /><EindcheckKaart modus={modus} restanten={restanten} regels={ontvangst.vandaag.data ?? []} laden={ontvangst.vandaag.isLoading} leveranciers={leveranciers} /></>}
                 {[...(v2 ? [] : [{ titel: 'Vandaag te checken', regels: teCheckenZicht }]), { titel: 'Onderweg', regels: onderwegGroepZicht }, { titel: 'Zonder datum', regels: zonderDatumZicht }].filter((g) => g.regels.length).map((groep) => <LijstKaart key={groep.titel} kop={<KaartKop icoon={Truck} titel={groep.titel} teller={groep.regels.length} />}><OnderwegTabel groepen={groepeer(groep.regels)} {...groepProps} onBewerk={openBewerk} datumLabel={datumLabel} leverDatumLabel={leverDatumLabel} {...(v2 ? { zonderDeels: true, alleenLezen: test, restStatus: (s: BestelSignaal) => restStatusPerSignaal.get(s.id) ?? null } : {})} /><TabelVoet links={`${groep.regels.length} ${groep.regels.length === 1 ? 'product' : 'producten'}`} /></LijstKaart>)}
                 {!v2 && !besteldZicht.length && <LijstKaart>{leegKaart('Niets onderweg')}</LijstKaart>}
