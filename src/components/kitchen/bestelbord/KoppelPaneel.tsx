@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { ArtikelVorm, BordSuggestie, LeverancierKeuze } from '@/hooks/useBestelbord';
+import { useLeverancierSoorten, type ArtikelVorm, type BordSuggestie, type LeverancierKeuze } from '@/hooks/useBestelbord';
+import { suggestieOnderschrift } from '@/lib/leverancierSoort';
 import { bouwAanmaakVelden, leverancierKeuzeLabel, planKoppelZoek, type AanmaakVelden } from './koppelActies';
 
 const INHOUD_EENHEDEN = ['g', 'ml', 'stuk'] as const;
@@ -61,6 +62,7 @@ export function KoppelPaneel({
   const [inhoudEenheid, setInhoudEenheid] = useState<'g' | 'ml' | 'stuk' | null>(beginNieuw?.inhoudEenheid ?? null);
   const [artikelnummer, setArtikelnummer] = useState(beginNieuw?.artikelnummer ?? '');
   const [prijs, setPrijs] = useState(beginNieuw?.prijs ?? '');
+  const { data: soorten } = useLeverancierSoorten();
 
   useEffect(() => planKoppelZoek(zoekTekst, vestiging, !!gekozen, zoek, setSuggesties), [zoekTekst, vestiging, gekozen, zoek]);
 
@@ -101,8 +103,7 @@ export function KoppelPaneel({
         />
         {suggesties.length > 0 && <div role="listbox" aria-label="Suggesties" className="overflow-hidden rounded-polar-md border border-border">
           {suggesties.map((s) => {
-            const enige = s.vormen.length === 1 ? s.vormen[0] : null;
-            const sub = s.vormen.length > 1 ? `${s.vormen.length} verpakkingen` : [enige?.vorm, enige ? vormLeverancier(enige, leveranciers) : null].filter(Boolean).join(' · ');
+            const sub = suggestieOnderschrift(s, soorten, leveranciers);
             return <Button variant="ghost" key={s.artikel_id} type="button" role="option" onClick={() => kies(s)} className="block h-auto min-h-11 w-full justify-start rounded-none px-3 py-2 text-left">
               <span className="block text-sm font-medium text-foreground">{s.naam}</span>
               {sub && <span className="block text-xs font-normal text-muted-foreground">{sub}</span>}

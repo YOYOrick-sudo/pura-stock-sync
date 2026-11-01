@@ -115,10 +115,21 @@ describe('leverancierssoort en vestiging', () => {
       { id: 'd', soort: 'iets-anders' },
     ]);
     mocks.from.mockReturnValue(b);
-    expect(await opties?.queryFn?.()).toEqual(new Map([['a', 'extern'], ['b', 'winkel'], ['c', 'intern']]));
+    expect(await opties?.queryFn?.()).toEqual(new Map([['a', 'extern'], ['b', 'winkel'], ['c', 'intern'], ['d', 'extern']]));
     expect(mocks.from).toHaveBeenCalledWith('leveranciers');
     expect(b.select).toHaveBeenCalledWith('id, soort');
     expect(b.is).toHaveBeenCalledWith('deleted_at', null);
+  });
+
+  test('ontbrekende soort-kolom geeft een lege kaart, dus iedereen telt als extern', async () => {
+    useLeverancierSoorten();
+    const opties = mocks.queries.at(-1);
+    const klaar = Promise.resolve({ data: null, error: { code: '42703', message: 'column leveranciers.soort does not exist' } });
+    const b = { select: vi.fn(), is: vi.fn(), then: klaar.then.bind(klaar) };
+    b.select.mockReturnValue(b);
+    b.is.mockReturnValue(b);
+    mocks.from.mockReturnValue(b);
+    expect(await opties?.queryFn?.()).toEqual(new Map());
   });
 
   test('vestigingslijst leest geen klantnummer en sorteert extern, winkel, intern', async () => {

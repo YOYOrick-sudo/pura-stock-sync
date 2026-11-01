@@ -48,6 +48,7 @@ import { leverancierNaam, leverancierSoort, onderwegTabTeller } from '@/componen
 import { ZelfHalenTabel } from '@/components/kitchen/bestelbord/ZelfHalenTabel';
 import { KoppelPaneel } from '@/components/kitchen/bestelbord/KoppelPaneel';
 import { koppelAanBestaand, koppelNieuwArtikel, leverancierKeuzeLabel, type AanmaakVelden } from '@/components/kitchen/bestelbord/koppelActies';
+import { suggestieOnderschrift } from '@/lib/leverancierSoort';
 import { useBesteldeadlines } from '@/hooks/useBesteldeadlines';
 import { RegelInfo } from '@/components/kitchen/bestelbord/RegelInfo';
 import { verpakkingWeergave, eenheidLabel } from '@/components/kitchen/bestelbord/verpakking';
@@ -689,9 +690,7 @@ export default function Bestelbord() {
               {lijstOpen && naam.trim().length > 0 && suggesties.length > 0 && (
                 <div role="listbox" className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-polar-md border border-border bg-popover shadow-md">
                   {suggesties.map((s, i) => {
-                    const enige = s.vormen.length === 1 ? s.vormen[0] : null;
-                    const levNaam = enige ? enige.leverancier_naam ?? (enige.leverancier_id ? leveranciers?.get(enige.leverancier_id) : null) : null;
-                    const sub = s.vormen.length > 1 ? `${s.vormen.length} verpakkingen` : [enige?.vorm, levNaam].filter(Boolean).join(' · ');
+                    const sub = suggestieOnderschrift(s, leverancierSoorten, leveranciers);
                     return (
                       <Button variant="ghost"
                         key={s.artikel_id}

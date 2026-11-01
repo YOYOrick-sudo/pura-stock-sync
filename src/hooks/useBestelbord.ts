@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { alsSoort, soortKolomOntbreekt } from '@/lib/leverancierSoort';
 import { metHerstel } from '@/lib/appWake';
 import { useKanaalHerstel } from '@/lib/realtime';
 
@@ -413,11 +414,12 @@ export function useLeverancierSoorten() {
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await los.from('leveranciers').select('id, soort').is('deleted_at', null);
-      if (error) throw error;
-      const map = new Map<string, LeverancierSoort>();
-      for (const rij of (data ?? []) as { id: string; soort: string }[]) {
-        if (rij.soort === 'extern' || rij.soort === 'winkel' || rij.soort === 'intern') map.set(rij.id, rij.soort);
+      if (error) {
+        if (soortKolomOntbreekt(error)) return new Map<string, LeverancierSoort>();
+        throw error;
       }
+      const map = new Map<string, LeverancierSoort>();
+      for (const rij of (data ?? []) as { id: string; soort: string }[]) map.set(rij.id, alsSoort(rij.soort));
       return map;
     },
   });

@@ -17,7 +17,9 @@ import {
   useLeveranciers,
   useSaveLeverancier,
   VESTIGINGEN,
+  type Leverancier,
 } from '@/hooks/useKeten';
+import { alsSoort, kanaalVoorOpslaan, soortLabel } from '@/lib/leverancierSoort';
 
 const DAGEN = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
 const BEIDE = '__beide__';
@@ -235,6 +237,29 @@ function LeverancierArtikelen({ leverancierId }: { leverancierId: string }) {
   );
 }
 
+export function leverancierLijstLabel(l: Pick<Leverancier, 'soort' | 'kanaal'>) {
+  const soort = alsSoort(l.soort);
+  if (soort === 'extern') return l.kanaal ? `${soortLabel(soort)} · ${l.kanaal}` : soortLabel(soort);
+  return soortLabel(soort);
+}
+
+export function LeverancierKanaal({ leverancier, onKanaal }: { leverancier: Pick<Leverancier, 'soort' | 'kanaal'>; onKanaal: (kanaal: string) => void }) {
+  if (alsSoort(leverancier.soort) !== 'extern') {
+    return <p className="mt-1 flex h-11 items-center text-sm text-muted-foreground">{soortLabel(leverancier.soort)}</p>;
+  }
+  return (
+    <Select value={leverancier.kanaal} onValueChange={(v) => {
+      const kanaal = kanaalVoorOpslaan(leverancier.soort, v);
+      if (kanaal) onKanaal(kanaal);
+    }}>
+      <SelectTrigger className="h-11 mt-1"><SelectValue /></SelectTrigger>
+      <SelectContent>
+        {LEVERANCIER_KANALEN.map((k) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
+      </SelectContent>
+    </Select>
+  );
+}
+
 export function LeveranciersTab() {
   const { data: leveranciers = [], isLoading } = useLeveranciers();
   const save = useSaveLeverancier();
@@ -272,9 +297,9 @@ export function LeveranciersTab() {
                   geselecteerd === l.id ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted'
                 }`}
               >
-                <Truck className="h-4 w-4" />
-                {l.naam}
-                <span className="ml-auto text-xs text-muted-foreground">{l.kanaal}</span>
+                <Truck className="h-4 w-4 shrink-0" />
+                <span className="min-w-0 truncate">{l.naam}</span>
+                <span className="ml-auto shrink-0 text-xs text-muted-foreground">{leverancierLijstLabel(l)}</span>
               </button>
             ))}
           </div>
@@ -294,6 +319,7 @@ export function LeveranciersTab() {
           <>
             <Card className="p-4 sm:p-5 space-y-3">
               <h3 className="font-semibold">{actief.naam}</h3>
+              <p className="text-sm text-muted-foreground">{soortLabel(actief.soort)}</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs">Naam</Label>
@@ -305,12 +331,7 @@ export function LeveranciersTab() {
                 </div>
                 <div>
                   <Label className="text-xs">Kanaal</Label>
-                  <Select value={actief.kanaal} onValueChange={(v) => save.mutate({ id: actief.id, naam: actief.naam, kanaal: v } as any)}>
-                    <SelectTrigger className="h-11 mt-1"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {LEVERANCIER_KANALEN.map((k) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <LeverancierKanaal leverancier={actief} onKanaal={(kanaal) => save.mutate({ id: actief.id, naam: actief.naam, kanaal, soort: actief.soort })} />
                 </div>
                 <div>
                   <Label className="text-xs">E-mail</Label>

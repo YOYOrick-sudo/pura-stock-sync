@@ -15,7 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { CompacteTabel } from './CompacteTabel';
-import { zoekBordSuggesties, type BordSuggestie } from '@/hooks/useBestelbord';
+import { useLeverancierSoorten, zoekBordSuggesties, type BordSuggestie } from '@/hooks/useBestelbord';
+import { suggestieOnderschrift, zonderWinkelIntern } from '@/lib/leverancierSoort';
 import { useOntvangstMutaties, type NaleveringKandidaat, type OntvangstRestant, type OntvangstVandaag } from '@/hooks/useOntvangstV2';
 import { vandaagZonderOpenRest, afrondWaarschuwingen, onderwegBlokken, isAutomatisch, bouwRegel, eindcheckFout, kortDatum, restantVan, type EindcheckInvoer, type OntvangstModus, type RestBron } from '@/lib/ontvangstV2';
 
@@ -164,6 +165,8 @@ function Veld({ label, children }: { label: string; children: React.ReactNode })
 
 function ZonderOrderLade({ open, onOpenChange, modus, leveranciers }: { open: boolean; onOpenChange: (o: boolean) => void; modus: OntvangstModus; leveranciers?: Map<string, string> }) {
   const { afronden, zonderOrder, kandidaten } = useOntvangstMutaties(modus);
+  const { data: soorten } = useLeverancierSoorten();
+  const keuzes = zonderWinkelIntern([...(leveranciers ?? new Map()).entries()], soorten).sort((a, b) => a[1].localeCompare(b[1], 'nl'));
   const [levId, setLevId] = useState('');
   const [zoek, setZoek] = useState('');
   const [opties, setOpties] = useState<BordSuggestie[]>([]);
@@ -207,12 +210,18 @@ function ZonderOrderLade({ open, onOpenChange, modus, leveranciers }: { open: bo
     </div> : <div className="space-y-4">
       <Select value={levId} onValueChange={setLevId}>
         <SelectTrigger className="h-11 text-base" aria-label="Leverancier"><SelectValue placeholder="Leverancier" /></SelectTrigger>
-        <SelectContent>{[...(leveranciers ?? new Map()).entries()].sort((a, b) => a[1].localeCompare(b[1])).map(([id, naam]) => <SelectItem key={id} value={id}>{naam}</SelectItem>)}</SelectContent>
+        <SelectContent>{keuzes.map(([id, naam]) => <SelectItem key={id} value={id}>{naam}</SelectItem>)}</SelectContent>
       </Select>
       <div className="relative">
         <Input className="h-11 text-base" placeholder={vrij ? 'Omschrijving' : 'Zoek artikel'} value={artikel?.naam ?? zoek} onChange={(e) => { setArtikel(null); setZoek(e.target.value); }} />
         {opties.length > 0 && <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-polar-md border border-border bg-popover shadow-md">
-          {opties.map((o) => <Button key={o.artikel_id} variant="ghost" className="block min-h-12 w-full px-3 text-left" onClick={() => { setArtikel(o); setOpties([]); }}>{o.naam}</Button>)}
+          {opties.map((o) => {
+            const sub = suggestieOnderschrift(o, soorten, leveranciers);
+            return <Button key={o.artikel_id} variant="ghost" className="block h-auto min-h-12 w-full px-3 py-2 text-left" onClick={() => { setArtikel(o); setOpties([]); }}>
+              <span className="block text-sm font-medium">{o.naam}</span>
+              {sub && <span className="block text-xs font-normal text-muted-foreground">{sub}</span>}
+            </Button>;
+          })}
         </div>}
       </div>
       {!artikel && <Button type="button" variant={vrij ? 'default' : 'outline'} size="touch" className="w-full" aria-pressed={vrij} onClick={() => setVrij((x) => !x)}>Niet in de lijst</Button>}

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { leesRouteLeveranciers } from '@/lib/leverancierSoort';
 
 const db = supabase as any;
 
@@ -54,8 +55,8 @@ export function useBestelRoutes(vestiging?: string) {
     queryKey: ['bestelronde', 'routes', vestiging ?? 'geen'],
     enabled: !!vestiging,
     queryFn: async (): Promise<BestelRoute[]> => {
-      const [levRes, intRes] = await Promise.all([
-        db.from('leveranciers').select('id, naam, kanaal').eq('actief', true).is('deleted_at', null).order('naam'),
+      const [leveranciers, intRes] = await Promise.all([
+        leesRouteLeveranciers(db),
         db
           .from('artikel_locaties')
           .select('bron_vestiging')
@@ -64,15 +65,14 @@ export function useBestelRoutes(vestiging?: string) {
           .eq('is_actief', true)
           .is('deleted_at', null),
       ]);
-      if (levRes.error) throw levRes.error;
       if (intRes.error) throw intRes.error;
 
-      const routes: BestelRoute[] = (levRes.data ?? []).map((l: any) => ({
+      const routes: BestelRoute[] = leveranciers.map((l) => ({
         key: `lev:${l.id}`,
         type: 'leverancier' as const,
         id: l.id,
         naam: l.naam,
-        kanaal: l.kanaal,
+        kanaal: l.kanaal ?? undefined,
       }));
 
       const bronnen = Array.from(
