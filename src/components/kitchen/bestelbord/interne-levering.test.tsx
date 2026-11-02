@@ -6,10 +6,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { InternBestellen } from './InternBestellen';
 import { InternOnderweg } from './InternOnderweg';
+import { AantalStapper } from '@/components/kitchen/AantalStapper';
 import { MepVoorWest } from '@/components/kitchen/MepVoorWest';
 import {
-  inhoudPerEenheid, inhoudTotaal, internBestellenZichtbaar, klemAantal, mepDagLang,
-  onderwegMenuLabels, onderwegTabAantal, telInterneOnderweg,
+  inhoudPerEenheid, inhoudTotaal, internBestellenZichtbaar, klemAantal, maxGeleverdAantal, mepDagLang, mepKaartTitel,
+  onderwegMenuLabels, onderwegTabAantal, stapperBevestig, stapperTekst, telInterneOnderweg,
   type InterneBestelling, type InterneMepRegel, type InternProduct,
 } from '@/hooks/useInterneLevering';
 
@@ -163,24 +164,32 @@ describe('interne levering achter de schakelaar', () => {
     expect(staat.rpc.mock.calls.filter((c) => String(c[0]).startsWith('interne_'))).toEqual([]);
   });
 
-  test('testmodus en andere vestiging tonen niets', () => {
-    expect(internBestellenZichtbaar({ vlagAan: true, test: true, vestiging: 'West' })).toBe(false);
-    expect(internBestellenZichtbaar({ vlagAan: true, test: true, vestiging: 'Test' })).toBe(false);
-    expect(internBestellenZichtbaar({ vlagAan: true, test: false, vestiging: 'Test' })).toBe(false);
-    expect(internBestellenZichtbaar({ vlagAan: true, test: false, vestiging: 'Midsland' })).toBe(false);
-    expect(internBestellenZichtbaar({ vlagAan: false, test: false, vestiging: 'West' })).toBe(false);
-    expect(internBestellenZichtbaar({ vlagAan: true, test: false, vestiging: 'West' })).toBe(true);
+  test('testmodus toont niets', () => {
+    expect(internBestellenZichtbaar({ vlagAan: true, test: true })).toBe(false);
+    expect(internBestellenZichtbaar({ vlagAan: false, test: false })).toBe(false);
     staat.vlag = { West: true };
     staat.producten = [wortel];
     staat.bestellingen = [bestelling({ bestelling_id: 'b1', naam: 'Wortelspread', status: 'besteld' })];
     const html = htmlVan(createElement(Fragment, null,
-      createElement(InternBestellen, { vestiging: 'West', aan: internBestellenZichtbaar({ vlagAan: true, test: true, vestiging: 'West' }) }),
+      createElement(InternBestellen, { vestiging: 'West', aan: internBestellenZichtbaar({ vlagAan: true, test: true }) }),
       createElement(InternOnderweg, { vestiging: 'West', aan: false }),
       createElement(MepVoorWest, { vestiging: 'Test' }),
     ));
     expect(html).not.toContain('Wortelspread');
     expect(html).not.toContain('Van Midsland');
     expect(html).not.toContain('Voor West');
+  });
+
+  test('elke vestiging met vlag en productrijen toont de kaart, een lege lijst niet', () => {
+    expect(internBestellenZichtbaar({ vlagAan: true, test: false })).toBe(true);
+    staat.producten = [wortel];
+    const met = htmlVan(createElement(InternBestellen, { vestiging: 'Midsland', aan: true }));
+    expect(met).toContain('Intern uit Midsland');
+    expect(met).toContain('Wortelspread');
+    staat.producten = [];
+    const leeg = htmlVan(createElement(InternBestellen, { vestiging: 'Midsland', aan: true }));
+    expect(leeg).not.toContain('Intern uit Midsland');
+    expect(leeg).not.toContain('Wortelspread');
   });
 
   test('West met vlag: Wortelspread, stepper tot het maximum, en dezelfde aanvraagsleutel na een netwerkfout', async () => {
@@ -258,6 +267,7 @@ describe('interne levering achter de schakelaar', () => {
     ];
     const html = htmlVan(createElement(MepVoorWest, { vestiging: 'Midsland' })).replace(/<!-- -->/g, '');
     expect(html).toContain('Voor West');
+    expect(mepKaartTitel([mepRegel()])).toBe('Voor West');
     expect(html).toContain('Wortelspread');
     expect(html).toContain('2 bak · 6,4 kg · wo 4 nov');
     expect(html).toContain('te laat');
@@ -281,6 +291,39 @@ describe('interne levering achter de schakelaar', () => {
       p_bestelling_id: '44444444-4444-4444-8444-444444444444', p_aantal: null,
     });
     expect(toast.success).toHaveBeenCalledWith('Wortelspread meegegeven');
+  });
+
+  test('MEP-titel volgt naar_vestiging uit de regels', () => {
+    expect(mepKaartTitel([{ naar_vestiging: 'Noord', status: 'besteld' }])).toBe('Voor Noord');
+    staat.vlag = { Midsland: true };
+    staat.mep = [mepRegel({ naar_vestiging: 'Noord' })];
+    const html = htmlVan(createElement(MepVoorWest, { vestiging: 'Midsland' }));
+    expect(html).toContain('Voor Noord');
+    expect(html).not.toContain('Voor West');
+  });
+
+  test('stepper laat het veld leeg tijdens het typen en begrenst bij blur', () => {
+    expect(stapperTekst('')).toBe('');
+    expect(stapperTekst('2a')).toBe('2');
+    let tekst = stapperTekst('12');
+    tekst = stapperTekst('');
+    expect(tekst).toBe('');
+    tekst = stapperTekst('3');
+    expect(tekst).toBe('3');
+    expect(stapperBevestig(tekst, 1, 9)).toBe(3);
+    expect(stapperBevestig('', 1, 9)).toBe(1);
+    expect(stapperBevestig('15', 1, 9)).toBe(9);
+  });
+
+  test('ander aantal geleverd stopt bij het bestelde aantal', () => {
+    expect(maxGeleverdAantal(2)).toBe(2);
+    expect(klemAantal(5, 1, maxGeleverdAantal(2))).toBe(2);
+    staat.knoppen = [];
+    renderToString(createElement(AantalStapper, { waarde: 2, min: 1, max: maxGeleverdAantal(2), eenheid: 'bak', onChange: () => {}, label: 'Geleverd aantal Wortelspread' }));
+    expect(staat.knoppen.find((k) => k['aria-label'] === 'Meer')?.disabled).toBe(true);
+    staat.knoppen = [];
+    renderToString(createElement(AantalStapper, { waarde: 1, min: 1, max: maxGeleverdAantal(2), eenheid: 'bak', onChange: () => {}, label: 'Geleverd aantal Wortelspread' }));
+    expect(staat.knoppen.find((k) => k['aria-label'] === 'Meer')?.disabled).toBe(false);
   });
 
   test.each(['42501', '55000'])('RPC-fout %s verbergt de kaart zonder fouttekst', async (code) => {

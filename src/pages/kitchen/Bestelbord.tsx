@@ -221,8 +221,8 @@ export default function Bestelbord() {
   const modus = useOntvangstModus(vestiging);
   const v2 = modus.ontvangstV2;
   const test = modus.test;
-  // Interne levering: alleen West, nooit in testmodus, en geen RPC zolang de vlag uit staat.
-  const internAan = internBestellenZichtbaar({ vlagAan: internVlag, test, vestiging });
+  // Interne levering: vlag aan en geen testmodus. Zonder rijen uit de productlijst blijft de kaart weg, en er is geen RPC zolang de vlag uit staat.
+  const internAan = internBestellenZichtbaar({ vlagAan: internVlag, test });
   const interneOnderweg = useInterneBestellingen(internAan ? vestiging : null);
   const ontvangst = useOntvangstData(modus);
   const keukenAdvies = useKeukenAdvies(modus);

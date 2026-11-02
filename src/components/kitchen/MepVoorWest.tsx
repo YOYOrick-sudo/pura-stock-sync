@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { AantalStapper } from '@/components/kitchen/AantalStapper';
 import { getal } from '@/lib/hoeveelheid';
 import {
-  alsGetal, foutTekst, inhoudTotaal, mepDagKort,
+  alsGetal, foutTekst, inhoudTotaal, maxGeleverdAantal, mepDagKort, mepKaartTitel,
   useInterneGeleverd, useInterneMep,
   type InterneMepRegel,
 } from '@/hooks/useInterneLevering';
@@ -61,7 +61,7 @@ export function MepVoorWest({ vestiging }: { vestiging: string }) {
   if (!aan || q.data == null || regels.length === 0) return null;
 
   return (
-    <LijstKaart kop={<KaartKop icoon={Warehouse} titel="Voor West" teller={open.length} />}>
+    <LijstKaart kop={<KaartKop icoon={Warehouse} titel={mepKaartTitel(regels)} teller={open.length} />}>
       {open.length > 0 && (
         <div className="divide-y divide-border">
           {open.map((r) => {
@@ -81,7 +81,7 @@ export function MepVoorWest({ vestiging }: { vestiging: string }) {
                 />
                 {openAnder && (
                   <div className="flex flex-wrap items-center gap-2 px-4 pb-3 lg:px-6">
-                    <AantalStapper waarde={ander.aantal} min={1} max={null} eenheid={r.eenheid} label={`Geleverd aantal ${r.naam}`} onChange={(n) => setAnder({ id: r.bestelling_id, aantal: n })} />
+                    <AantalStapper waarde={ander.aantal} min={1} max={maxGeleverdAantal(r.aantal)} eenheid={r.eenheid} label={`Geleverd aantal ${r.naam}`} onChange={(n) => setAnder({ id: r.bestelling_id, aantal: n })} />
                     <Button type="button" size="touch" aria-label={`Geleverd ${r.naam} ander aantal`} disabled={geleverdMut.isPending} onClick={() => geleverd(r, ander.aantal)}>
                       Geleverd
                     </Button>

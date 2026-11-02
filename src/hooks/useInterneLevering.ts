@@ -99,9 +99,35 @@ export function klemAantal(waarde: number, min: number, max: number | null) {
   return max == null ? onder : Math.min(max, onder);
 }
 
-/** Alleen West, en niet in de testmodus van het bestelbord. */
-export function internBestellenZichtbaar(input: { vlagAan: boolean; test: boolean; vestiging: string }) {
-  return input.vlagAan && !input.test && input.vestiging === 'West';
+/** Vlag aan en geen testmodus. De kaart verschijnt daarna alleen als de productlijst rijen voor die vestiging teruggeeft. */
+export function internBestellenZichtbaar(input: { vlagAan: boolean; test: boolean }) {
+  return input.vlagAan && !input.test;
+}
+
+/** Ander aantal geleverd gaat niet boven het bestelde aantal. */
+export function maxGeleverdAantal(besteld: number | string | null | undefined) {
+  const n = alsGetal(besteld);
+  return n != null && n >= 1 ? n : 1;
+}
+
+/** Alleen cijfers; leeg mag, zodat een getal overgetypt kan worden. */
+export function stapperTekst(ingevoerd: string) {
+  return ingevoerd.replace(/[^0-9]/g, '');
+}
+
+/** Min en max gelden bij het verlaten van het veld. Leeg wordt het minimum. */
+export function stapperBevestig(tekst: string, min: number, max: number | null) {
+  if (!tekst) return min;
+  const n = Number(tekst);
+  return klemAantal(Number.isFinite(n) ? n : min, min, max);
+}
+
+/** Titel uit de bestemming van de regels, niet vast op één vestiging. */
+export function mepKaartTitel(regels: { naar_vestiging?: string | null; status?: string }[]) {
+  const open = regels.filter((r) => r.status === 'besteld');
+  const bron = open.length ? open : regels;
+  const naam = bron.map((r) => r.naar_vestiging?.trim()).find(Boolean);
+  return naam ? `Voor ${naam}` : 'Voor';
 }
 
 export function telInterneOnderweg(regels: InterneBestelling[] | null | undefined) {
