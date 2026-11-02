@@ -55,6 +55,13 @@ export function vergelijkingsperiode(van: string, tot: string, dagen = VERSCHUIV
   };
 }
 
+/** Zelfde venster en "t.o.v."-label voor omzet en loonkosten. Null bij gisteren, vorige week en vorig weekend. */
+export function weekdagVergelijking(mode: string, van: string, tot: string): (DatumBereik & { label: string }) | null {
+  if (!vergelijktZelfdeWeekdag(mode)) return null;
+  const periode = vergelijkingsperiode(van, tot);
+  return { van: periode.van, tot: periode.tot, label: labelVergelijking(periode.van, periode.tot) };
+}
+
 /** 0 = zondag … 6 = zaterdag, van de kalenderdag zelf. */
 export function weekdagIndex(iso: string): number {
   const { jaar, maand, dag } = parseKalender(iso);

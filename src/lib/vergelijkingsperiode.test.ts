@@ -8,6 +8,7 @@ import {
   vergelijktZelfdeWeekdag,
   verschuifKalenderdagen,
   weekdagIndex,
+  weekdagVergelijking,
 } from './vergelijkingsperiode';
 
 describe('zelfde weekdag, 364 kalenderdagen', () => {
@@ -80,5 +81,21 @@ describe('zelfde weekdag, 364 kalenderdagen', () => {
     expect(vergelijktZelfdeWeekdag('dag_prev')).toBe(false);
     expect(vergelijktZelfdeWeekdag('week_prev')).toBe(false);
     expect(vergelijktZelfdeWeekdag('weekend_prev')).toBe(false);
+  });
+
+  it('loonkosten gebruikt voor maand, jaar en aangepast hetzelfde label als omzet', () => {
+    expect(weekdagVergelijking('maand', '2026-10-01', '2026-10-30')).toEqual({
+      van: '2025-10-02', tot: '2025-10-31', label: 'do 2 okt – vr 31 okt 2025',
+    });
+    expect(weekdagVergelijking('jaar', '2026-01-01', '2026-10-30')).toEqual({
+      van: '2025-01-02', tot: '2025-10-31', label: 'do 2 jan – vr 31 okt 2025',
+    });
+    expect(weekdagVergelijking('custom', '2026-10-30', '2026-10-30')).toEqual({
+      van: '2025-10-31', tot: '2025-10-31', label: 'vr 31 okt 2025',
+    });
+    expect(weekdagVergelijking('maand', '2026-10-30', '2026-10-30')?.van).not.toBe('2025-10-30');
+    expect(weekdagVergelijking('dag_prev', '2026-10-30', '2026-10-30')).toBeNull();
+    expect(weekdagVergelijking('week_prev', '2026-10-19', '2026-10-25')).toBeNull();
+    expect(weekdagVergelijking('weekend_prev', '2026-10-24', '2026-10-25')).toBeNull();
   });
 });

@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AlertTriangle, Banknote, TrendingUp, Clock } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { EUR, EUR2, vestigingenVan, vergelijkModeVan, prevLabel, type Periode, type VestKeuze, type VergelijkMode } from './types';
+import { weekdagVergelijking } from '@/lib/vergelijkingsperiode';
 import { useCountUp } from './useCountUp';
 import { DeltaPill } from './chartHelpers';
 import type { DeltaIntent } from './deltaKleur';
@@ -30,6 +31,7 @@ type Sam = {
 export function CijfersLoonkostenBar({ periode, vestigingKeuze, van, tot, mode }: Props) {
   const vestigingen = vestigingenVan(vestigingKeuze);
   const effMode = mode ?? vergelijkModeVan(periode);
+  const vergelijk = weekdagVergelijking(effMode, van, tot);
   const q = useQuery({
     queryKey: ['cijfers-uren-samenvatting', periode, vestigingKeuze, van, tot, effMode],
     queryFn: async () => {
@@ -41,9 +43,21 @@ export function CijfersLoonkostenBar({ periode, vestigingKeuze, van, tot, mode }
     },
     refetchOnWindowFocus: true,
   });
+  const qToen = useQuery({
+    queryKey: ['cijfers-uren-samenvatting', 'weekdag-vorig-jaar', vestigingKeuze, vergelijk?.van, vergelijk?.tot],
+    enabled: vergelijk != null,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('rpc_cijfers_uren_samenvatting', {
+        p_vestigingen: vestigingen, p_van: vergelijk!.van, p_tot: vergelijk!.tot, p_mode: 'custom',
+      });
+      if (error) throw error;
+      return data as unknown as Sam;
+    },
+    refetchOnWindowFocus: true,
+  });
 
 
-  if (q.isLoading) {
+  if (q.isLoading || (vergelijk && qToen.isLoading)) {
     return (
       <div className="rounded-[20px] border border-border bg-card shadow-card cj-card-in overflow-hidden">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -61,13 +75,14 @@ export function CijfersLoonkostenBar({ periode, vestigingKeuze, van, tot, mode }
   if (q.isError || !q.data) return null;
 
   const t = q.data.totaal;
+  const toen = vergelijk ? qToen.data?.totaal : undefined;
   const loonkosten = Number(t.loonkosten ?? 0);
-  const prevLoon = Number(t.prev_loonkosten ?? 0);
+  const prevLoon = Number((vergelijk ? toen?.loonkosten : t.prev_loonkosten) ?? 0);
   const omzet = Number(t.omzet ?? 0);
-  const prevOmzet = Number(t.prev_omzet ?? 0);
+  const prevOmzet = Number((vergelijk ? toen?.omzet : t.prev_omzet) ?? 0);
   const gewerkt = Number(t.gewerkte_uren ?? 0);
   const gepland = Number(t.geplande_uren ?? 0);
-  const prevGewerkt = Number(t.prev_gewerkte_uren ?? 0);
+  const prevGewerkt = Number((vergelijk ? toen?.gewerkte_uren : t.prev_gewerkte_uren) ?? 0);
   const pctVanOmzet = t.loonkosten_pct_omzet != null ? Number(t.loonkosten_pct_omzet) : null;
   const omzPerUur = t.omzet_per_gewerkt_uur != null ? Number(t.omzet_per_gewerkt_uur) : null;
 
@@ -82,7 +97,9 @@ export function CijfersLoonkostenBar({ periode, vestigingKeuze, van, tot, mode }
   const berekend = Number(t.bron_mix?.berekend ?? 0);
   const omsEitje = Number(t.omzet_bron_mix?.eitje ?? 0);
 
-  const prevLbl = prevLabel(q.data.vorige_periode?.van, q.data.vorige_periode?.tot);
+  const prevLbl = vergelijk
+    ? vergelijk.label
+    : prevLabel(q.data.vorige_periode?.van, q.data.vorige_periode?.tot);
   const vsSub = prevLbl ? ` · vs ${prevLbl}` : '';
 
   return (
