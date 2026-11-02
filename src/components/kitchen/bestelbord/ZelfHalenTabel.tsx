@@ -26,7 +26,7 @@ export function ZelfHalenTabel({ soort, regels, leverancier, onGehaald, onAllesG
     {rs.map((s) => <TableRow key={s.id} className={alleenLezen ? undefined : 'cursor-pointer'} onClick={() => !alleenLezen && onBewerk(s)}>
       <TableCell><div className="flex min-h-11 min-w-0 flex-col justify-center"><span className="min-w-0 line-clamp-2 break-words font-medium">{s.naam}</span></div></TableCell>
       <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex min-h-6 items-center justify-end gap-1.5"><span className="inline-flex items-center rounded-full bg-muted px-2 text-sm font-semibold">{Number(s.aantal)}</span>{s.eenheid && <span className="text-xs text-muted-foreground">{eenheidVorm(Number(s.aantal), s.eenheid)}</span>}</span></TableCell>
-      {winkel && <TableCell className="!px-1 text-right" onClick={(e) => e.stopPropagation()}>{!alleenLezen && <Button variant="outline" size="touch" className="w-full px-2" onClick={() => onGehaald(s)}>Gehaald</Button>}</TableCell>}
+      {winkel && <TableCell className="!px-1 text-right align-middle" onClick={(e) => e.stopPropagation()}>{!alleenLezen && <Button variant="outline" size="touch" className="px-3" onClick={() => onGehaald(s)}>Gehaald</Button>}</TableCell>}
       <TableCell className="!px-0" onClick={(e) => e.stopPropagation()}>{!alleenLezen && <RijMenu naam={s.naam} acties={[{ label: 'Bewerken', onClick: () => onBewerk(s) }, { label: 'Vervallen', onClick: () => onVervallen(s), gevaar: true }]} />}</TableCell>
     </TableRow>)}
   </Fragment>)}</TableBody>} />;

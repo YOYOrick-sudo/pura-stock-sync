@@ -82,11 +82,12 @@ export function KoppelPaneel({
   };
 
   return <Tabs value={tab} onValueChange={(v) => setTab(v as 'koppel' | 'nieuw')}>
-    <TabsList className="grid h-auto w-full grid-cols-2 gap-1 p-1 [&>button]:min-h-11 [&>button]:px-3">
-      <TabsTrigger value="koppel">Koppel aan artikel</TabsTrigger>
-      <TabsTrigger value="nieuw">Nieuw artikel</TabsTrigger>
+    <TabsList className="grid h-auto w-full grid-cols-2 p-1 [&>button]:min-h-11 [&>button]:min-w-0 [&>button]:px-2">
+      <TabsTrigger value="koppel" className="whitespace-normal text-center leading-tight">Koppel aan artikel</TabsTrigger>
+      <TabsTrigger value="nieuw" className="whitespace-normal text-center leading-tight">Nieuw artikel</TabsTrigger>
     </TabsList>
     <TabsContent value="koppel" className="mt-4 space-y-4">
+      <p className="text-sm text-muted-foreground">Zoek een artikel dat je al kent.</p>
       <div className="space-y-2">
         <Label htmlFor="koppel-zoek">Zoek artikel</Label>
         <Input
@@ -119,6 +120,7 @@ export function KoppelPaneel({
       }}>Koppelen</Button>
     </TabsContent>
     <TabsContent value="nieuw" className="mt-4 space-y-4">
+      <p className="text-sm text-muted-foreground">Maak een artikel en koppel het meteen.</p>
       <div className="space-y-2">
         <Label htmlFor="nieuw-naam">Naam</Label>
         <Input id="nieuw-naam" value={nieuwNaam} onChange={(e) => setNieuwNaam(e.target.value)} className="h-11 text-base" />

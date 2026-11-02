@@ -19,6 +19,7 @@ import {
   VESTIGINGEN,
   type Leverancier,
 } from '@/hooks/useKeten';
+import { StatusBadge } from '@/components/pura';
 import { alsSoort, kanaalVoorOpslaan, soortLabel } from '@/lib/leverancierSoort';
 
 const DAGEN = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
@@ -245,7 +246,7 @@ export function leverancierLijstLabel(l: Pick<Leverancier, 'soort' | 'kanaal'>) 
 
 export function LeverancierKanaal({ leverancier, onKanaal }: { leverancier: Pick<Leverancier, 'soort' | 'kanaal'>; onKanaal: (kanaal: string) => void }) {
   if (alsSoort(leverancier.soort) !== 'extern') {
-    return <p className="mt-1 flex h-11 items-center text-sm text-muted-foreground">{soortLabel(leverancier.soort)}</p>;
+    return <Input value={soortLabel(leverancier.soort)} readOnly tabIndex={-1} aria-readonly="true" className="mt-1 h-11 bg-muted text-base text-muted-foreground focus-visible:ring-0" />;
   }
   return (
     <Select value={leverancier.kanaal} onValueChange={(v) => {
@@ -299,7 +300,7 @@ export function LeveranciersTab() {
               >
                 <Truck className="h-4 w-4 shrink-0" />
                 <span className="min-w-0 truncate">{l.naam}</span>
-                <span className="ml-auto shrink-0 text-xs text-muted-foreground">{leverancierLijstLabel(l)}</span>
+                <span className="ml-auto shrink-0"><StatusBadge tone="neutral" variant="soft" shape="label">{leverancierLijstLabel(l)}</StatusBadge></span>
               </button>
             ))}
           </div>
@@ -319,7 +320,7 @@ export function LeveranciersTab() {
           <>
             <Card className="p-4 sm:p-5 space-y-3">
               <h3 className="font-semibold">{actief.naam}</h3>
-              <p className="text-sm text-muted-foreground">{soortLabel(actief.soort)}</p>
+              <StatusBadge tone="neutral" variant="soft" shape="label">{soortLabel(actief.soort)}</StatusBadge>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs">Naam</Label>

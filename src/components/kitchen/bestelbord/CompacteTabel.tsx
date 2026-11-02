@@ -10,7 +10,7 @@ export function CompacteTabel({ kinderen, onderweg = false, advies = false, vink
       {toonVink && <col className={smal ? 'w-8' : 'w-14'} />}
       <col />
       <col className={smal ? 'w-20 sm:w-28' : 'w-24 sm:w-28'} />
-      {!zonderMidden && <col className={advies ? 'w-12' : zonderVink ? 'w-28' : 'w-0 sm:w-28'} />}
+      {!zonderMidden && <col className={advies ? 'w-12' : zonderVink ? 'w-32' : 'w-0 sm:w-28'} />}
       <col className={advies ? 'w-24' : 'w-12'} />
     </colgroup>
     {!zonderKop && <TableHeader><TableRow>
