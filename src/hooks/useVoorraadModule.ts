@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { kiesTelronde, vandaagNL } from '@/hooks/useBestelronde';
+import { leesRouteLeveranciers } from '@/lib/leverancierSoort';
 
 const db = supabase as any;
 
@@ -72,8 +73,8 @@ export function useRouteDashboard(vestiging?: string, datum?: string) {
     queryFn: async (): Promise<DashboardRoute[]> => {
       const dow = dowNL(dag);
 
-      const [levRes, locRes, bdRes, ilRes, trRes, inkRes, intRes] = await Promise.all([
-        db.from('leveranciers').select('id, naam, kanaal').eq('actief', true).is('deleted_at', null).order('naam'),
+      const [leveranciers, locRes, bdRes, ilRes, trRes, inkRes, intRes] = await Promise.all([
+        leesRouteLeveranciers(db),
         db
           .from('artikel_locaties')
           .select('artikel_id, aanvul_bron, bron_vestiging')
@@ -104,7 +105,7 @@ export function useRouteDashboard(vestiging?: string, datum?: string) {
           .eq('from_location', vestiging!),
       ]);
 
-      for (const r of [levRes, locRes, bdRes, ilRes, trRes, inkRes, intRes]) {
+      for (const r of [locRes, bdRes, ilRes, trRes, inkRes, intRes]) {
         if (r.error) throw r.error;
       }
 
@@ -113,7 +114,7 @@ export function useRouteDashboard(vestiging?: string, datum?: string) {
 
       const routes: DashboardRoute[] = [];
 
-      for (const l of levRes.data ?? []) {
+      for (const l of leveranciers) {
         const dagen = (bdRes.data ?? []).filter(
           (b: any) => b.leverancier_id === l.id && (b.vestiging === null || b.vestiging === vestiging),
         );

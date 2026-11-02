@@ -1,4 +1,4 @@
-import type { ArtikelVorm, BestelSignaal } from '@/hooks/useBestelbord';
+import type { ArtikelVorm, BestelSignaal, LeverancierSoort } from '@/hooks/useBestelbord';
 
 export const telMoment = (moment: string | null) => moment === 'na_sluiting' ? 'na_sluiting' as const : 'voor_opening' as const;
 
@@ -6,6 +6,15 @@ export function leverancierNaam(s: BestelSignaal, leveranciers?: Map<string, str
   const vorm = s.artikel_vorm_id ? vormen?.get(s.artikel_vorm_id) : undefined;
   const id = s.leverancier_id ?? vorm?.leverancier_id;
   return (id ? leveranciers?.get(id) : null) ?? vorm?.leverancier_naam ?? 'Leverancier onbekend';
+}
+
+/** Zelfde id-keuze als leverancierNaam. null = soort onbekend, dan blijft de regel bij de gewone lijst. */
+export function leverancierSoort(s: BestelSignaal, soorten?: Map<string, LeverancierSoort>, vormen?: Map<string, ArtikelVorm>): LeverancierSoort | null {
+  const vorm = s.artikel_vorm_id ? vormen?.get(s.artikel_vorm_id) : undefined;
+  const id = s.leverancier_id ?? vorm?.leverancier_id;
+  if (!id) return null;
+  const soort = soorten?.get(id);
+  return soort === 'extern' || soort === 'winkel' || soort === 'intern' ? soort : null;
 }
 
 export function perLeverancier<T>(regels: T[], naam: (regel: T) => string) {

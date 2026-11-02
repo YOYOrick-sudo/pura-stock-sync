@@ -134,9 +134,9 @@ export function FilterBalk({ zoek, filters, actie }: { zoek?: ReactNode; filters
 export function DetailLade({ open, onOpenChange, titel, children, voet }: { open: boolean; onOpenChange: (o: boolean) => void; titel: ReactNode; children: ReactNode; voet?: ReactNode }) {
   const smal = useSmal();
   return <Sheet open={open} onOpenChange={onOpenChange}>
-    <SheetContent side={smal ? 'bottom' : 'right'} className={cn('flex flex-col gap-0 p-0', smal ? 'max-h-[90vh] rounded-t-polar-2xl' : 'w-full sm:max-w-md')}>
-      <SheetHeader className="border-b border-border px-4 py-3 text-left"><SheetTitle className="pr-8 text-base">{titel}</SheetTitle></SheetHeader>
-      <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">{children}</div>
+    <SheetContent side={smal ? 'bottom' : 'right'} className={cn('flex flex-col gap-0 overflow-hidden p-0', smal ? 'max-h-[90vh] rounded-t-polar-2xl' : 'h-full w-full sm:max-w-md')}>
+      <SheetHeader className="shrink-0 border-b border-border px-4 py-3 text-left"><SheetTitle className="pr-8 text-base">{titel}</SheetTitle></SheetHeader>
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 pb-8 pt-4">{children}</div>
       {voet && <div className="flex justify-end gap-2 border-t border-border px-4 py-3">{voet}</div>}
     </SheetContent>
   </Sheet>;

@@ -1,8 +1,21 @@
 import { useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { alsSoort, soortKolomOntbreekt } from '@/lib/leverancierSoort';
 import { metHerstel } from '@/lib/appWake';
 import { useKanaalHerstel } from '@/lib/realtime';
+
+type LosAntwoord = { data: unknown; error: { message: string } | null };
+interface LosseQuery extends PromiseLike<LosAntwoord> {
+  select(kolommen: string): LosseQuery;
+  eq(kolom: string, waarde: unknown): LosseQuery;
+  is(kolom: string, waarde: null): LosseQuery;
+}
+/** `soort` en de nieuwe rpc's staan nog niet in de gegenereerde types. */
+const los = supabase as unknown as {
+  rpc(naam: string, args: Record<string, unknown>): Promise<LosAntwoord>;
+  from(tabel: string): LosseQuery;
+};
 
 export interface BestelSignaal {
   id: string;
@@ -66,6 +79,14 @@ export function useBestelSignalen(vestiging: string | null | undefined) {
   }, [vestiging, qc, key, poging, statusHandler]);
 
   return query;
+}
+
+export type LeverancierSoort = 'extern' | 'winkel' | 'intern';
+
+export interface LeverancierKeuze {
+  id: string;
+  naam: string;
+  soort: LeverancierSoort;
 }
 
 export interface ArtikelVorm {
@@ -331,7 +352,112 @@ export function useBestelbordMutaties(vestiging: string) {
     onSettled: ververs,
   });
 
-  return { toevoegen, zetBesteld, verwijderen, herstel, wijzig, markeerGeleverd, nietGeleverd, deelsGeleverd, terugNaarBesteld, zetVerwachteLevering };
+  const verversOokVormen = () => {
+    ververs();
+    qc.invalidateQueries({ queryKey: ['artikel-vormen', vestiging] });
+  };
+
+  const koppelen = useMutation({
+    mutationFn: async ({ signaalId, artikelId, artikelVormId }: { signaalId: string; artikelId: string; artikelVormId: string }) => {
+      const { data, error } = await los.rpc('bord_regel_koppelen', {
+        p_signaal_id: signaalId,
+        p_artikel_id: artikelId,
+        p_artikel_vorm_id: artikelVormId,
+      });
+      if (error) throw error;
+      return data as {
+        status: string; id: string; artikel_id: string; artikel_vorm_id: string; leverancier_id: string | null;
+        vorm: string | null; eenheid_vorm: string; eenheid_regel: string; eenheid_wijkt_af: boolean;
+      };
+    },
+    onSettled: verversOokVormen,
+  });
+
+  const artikelAanmaken = useMutation({
+    mutationFn: async ({ naam, leverancierId, eenheid, vorm, inhoudBasis, inhoudEenheid, artikelnummer, prijs }: {
+      naam: string; leverancierId: string; eenheid: string; vorm?: string | null;
+      inhoudBasis?: number | null; inhoudEenheid?: 'g' | 'ml' | 'stuk' | null;
+      artikelnummer?: string | null; prijs?: number | null;
+    }) => {
+      const leeg = (v: string | null | undefined) => {
+        if (v == null) return null;
+        const tekst = v.trim();
+        return tekst ? tekst : null;
+      };
+      const { data, error } = await los.rpc('bord_artikel_aanmaken', {
+        p_vestiging: vestiging,
+        p_naam: naam,
+        p_leverancier_id: leverancierId,
+        p_eenheid: eenheid,
+        p_vorm: leeg(vorm),
+        p_inhoud_basis: inhoudBasis == null || Number.isNaN(Number(inhoudBasis)) ? null : inhoudBasis,
+        p_inhoud_eenheid: leeg(inhoudEenheid),
+        p_artikelnummer: leeg(artikelnummer),
+        p_prijs: prijs == null || Number.isNaN(Number(prijs)) ? null : prijs,
+      });
+      if (error) throw error;
+      return data as {
+        status: string; artikel_id: string; artikel_vorm_id: string; artikel_nieuw: boolean; locatie_nieuw: boolean;
+        vorm_nieuw: boolean; leverancier_soort: string; eenheid: string; vorm: string | null; prijs: number | null;
+      };
+    },
+    onSettled: verversOokVormen,
+  });
+
+  return { toevoegen, zetBesteld, verwijderen, herstel, wijzig, markeerGeleverd, nietGeleverd, deelsGeleverd, terugNaarBesteld, zetVerwachteLevering, koppelen, artikelAanmaken };
+}
+
+/** id → soort. `soort` staat nog niet in de gegenereerde types. */
+export function useLeverancierSoorten() {
+  return useQuery({
+    queryKey: ['leveranciers-soort'],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await los.from('leveranciers').select('id, soort').is('deleted_at', null);
+      if (error) {
+        if (soortKolomOntbreekt(error)) return new Map<string, LeverancierSoort>();
+        throw error;
+      }
+      const map = new Map<string, LeverancierSoort>();
+      for (const rij of (data ?? []) as { id: string; soort: string }[]) map.set(rij.id, alsSoort(rij.soort));
+      return map;
+    },
+  });
+}
+
+const SOORT_VOLGORDE: Record<LeverancierSoort, number> = { extern: 0, winkel: 1, intern: 2 };
+
+/**
+ * Leveranciers die op deze vestiging besteld mogen worden.
+ * Leest van de config alleen leverancier_id, vestiging, actief en deleted_at.
+ */
+export function useLeveranciersVoorVestiging(vestiging: string | null | undefined) {
+  return useQuery({
+    queryKey: ['leveranciers-voor-vestiging', vestiging],
+    enabled: !!vestiging,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async (): Promise<LeverancierKeuze[]> => {
+      const { data, error } = await los
+        .from('leverancier_vestiging_config')
+        .select('leverancier_id, vestiging, actief, deleted_at, leveranciers!inner(id, naam, soort, actief, deleted_at)')
+        .eq('vestiging', vestiging!)
+        .eq('actief', true)
+        .is('deleted_at', null);
+      if (error) throw error;
+      const gezien = new Set<string>();
+      const lijst: LeverancierKeuze[] = [];
+      for (const rij of (data ?? []) as { leveranciers: { id: string; naam: string; soort: string; actief: boolean; deleted_at: string | null } | { id: string; naam: string; soort: string; actief: boolean; deleted_at: string | null }[] }[]) {
+        const ruw = rij.leveranciers;
+        const lev = Array.isArray(ruw) ? ruw[0] : ruw;
+        if (!lev || !lev.actief || lev.deleted_at) continue;
+        if (lev.soort !== 'extern' && lev.soort !== 'winkel' && lev.soort !== 'intern') continue;
+        if (gezien.has(lev.id)) continue;
+        gezien.add(lev.id);
+        lijst.push({ id: lev.id, naam: lev.naam, soort: lev.soort });
+      }
+      return lijst.sort((a, b) => SOORT_VOLGORDE[a.soort] - SOORT_VOLGORDE[b.soort] || a.naam.localeCompare(b.naam, 'nl'));
+    },
+  });
 }
 
 /** Leveranciers (id -> naam) voor groepering in het Onderweg-overzicht. */

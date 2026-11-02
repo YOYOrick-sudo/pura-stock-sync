@@ -18,7 +18,7 @@ import type { BordRegelInfo } from '@/hooks/useBestelbord';
 import type { OntvangstRestant } from '@/hooks/useOntvangstV2';
 import { restWaarschuwing } from '@/lib/ontvangstV2';
 
-export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal, prijsTip, onBesteld, onBewerk, onVervallen, geleverd = false, onTerug, detail, restStatus, artikelRest, alleenLezen = false }: {
+export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal, prijsTip, onBesteld, onBewerk, onVervallen, geleverd = false, onTerug, detail, restStatus, artikelRest, alleenLezen = false, plat = false }: {
   regels: BestelSignaal[]; leverancier: (s: BestelSignaal) => string;
   deadlineHint: (s: BestelSignaal) => string | null;
   prijsVan: (s: BestelSignaal) => { vorm: ArtikelVorm; totaal: number } | null;
@@ -28,11 +28,13 @@ export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsV
   regelInfo?: (s: BestelSignaal) => BordRegelInfo | undefined;
   restStatus?: (s: BestelSignaal) => 'nageleverd' | 'mist' | null; alleenLezen?: boolean;
   artikelRest?: (s: BestelSignaal) => OntvangstRestant | null;
+  /** Geen extra groepskop: de kaarttitel zegt al wat de lijst is. */
+  plat?: boolean;
 }) {
   return <CompacteTabel zonderKop vinkKop={geleverd ? undefined : 'Besteld'} kinderen={<TableBody>{perLeverancier(regels, leverancier).map(([lev, rs]) => {
     const prijzen = rs.map(prijsVan).filter((p) => p != null);
     return <Fragment key={lev}>
-      <GroepRij kolommen={5} naam={geleverd ? lev : <DeadlineNaam naam={lev} hint={rs[0] ? deadlineHint(rs[0]) : null} />} aantal={rs.length} totaal={prijzen.length ? euro(prijzen.reduce((n, p) => n + p.totaal, 0)) : undefined} gedimd={lev === 'Leverancier onbekend'} actie={<span className="w-8" aria-hidden />} />
+      {!plat && <GroepRij kolommen={5} naam={geleverd ? lev : <DeadlineNaam naam={lev} hint={rs[0] ? deadlineHint(rs[0]) : null} />} aantal={rs.length} totaal={prijzen.length ? euro(prijzen.reduce((n, p) => n + p.totaal, 0)) : undefined} gedimd={lev === 'Leverancier onbekend'} actie={<span className="w-8" aria-hidden />} />}
       {rs.map((s) => {
         const prijs = prijsVan(s);
         const info = geleverd ? detail?.(s) : '';

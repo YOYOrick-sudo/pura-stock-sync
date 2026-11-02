@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { kanaalVoorOpslaan, soortKolomOntbreekt } from '@/lib/leverancierSoort';
 
 const db = supabase as any;
 
@@ -54,6 +55,8 @@ export interface Leverancier {
   id: string;
   naam: string;
   kanaal: string;
+  /** Ontbreekt de kolom, dan telt de leverancier als extern. */
+  soort?: string | null;
   contact_email: string | null;
   contact_telefoon: string | null;
   api_basis_url: string | null;
@@ -257,12 +260,31 @@ export function useLeveranciers() {
   });
 }
 
+/** Haalt een kanaalwijziging van winkel/intern af, ook als de soort alleen in de database staat. */
+export async function leverancierUpdatePatch(dbClient: typeof db, id: string, input: Record<string, unknown>) {
+  const patch = { ...input };
+  if (typeof patch.kanaal === 'string') {
+    let soort = patch.soort;
+    if (soort == null) {
+      const huidig = await dbClient.from('leveranciers').select('soort').eq('id', id).maybeSingle();
+      if (huidig.error && !soortKolomOntbreekt(huidig.error)) throw huidig.error;
+      soort = huidig.error ? 'extern' : huidig.data?.soort;
+    }
+    const kanaal = kanaalVoorOpslaan(soort, patch.kanaal);
+    if (kanaal) patch.kanaal = kanaal;
+    else delete patch.kanaal;
+  }
+  delete patch.soort;
+  return patch;
+}
+
 export function useSaveLeverancier() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...input }: Partial<Leverancier> & { naam: string; id?: string }) => {
       if (id) {
-        const { error } = await db.from('leveranciers').update(input).eq('id', id);
+        const patch = await leverancierUpdatePatch(db, id, input as Record<string, unknown>);
+        const { error } = await db.from('leveranciers').update(patch).eq('id', id);
         if (error) throw error;
         return id;
       }
