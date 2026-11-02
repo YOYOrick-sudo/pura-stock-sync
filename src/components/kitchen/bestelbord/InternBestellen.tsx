@@ -30,10 +30,11 @@ export function InternBestelKaart({ producten, onBestellen, bezigId, bestaande }
   bestaande?: ReactNode;
 }) {
   const [aantallen, setAantallen] = useState<Record<string, number>>({});
+  const gekozen = useRef<Record<string, number>>({});
   const sleutels = useRef(new Map<string, string>());
   const lijst = [...producten].sort((a, b) => (a.volgorde ?? 0) - (b.volgorde ?? 0) || a.naam.localeCompare(b.naam, 'nl'));
 
-  const aantalVan = (p: InternProduct) => aantallen[p.product_id] ?? klemAantal(1, 1, maxVan(p));
+  const aantalVan = (p: InternProduct) => gekozen.current[p.product_id] ?? aantallen[p.product_id] ?? klemAantal(1, 1, maxVan(p));
 
   const sleutelVoor = (id: string) => {
     let sleutel = sleutels.current.get(id);
@@ -49,6 +50,7 @@ export function InternBestelKaart({ producten, onBestellen, bezigId, bestaande }
     try {
       const r = await onBestellen(p, aantalVan(p), sleutel);
       sleutels.current.delete(p.product_id);
+      gekozen.current[p.product_id] = 1;
       setAantallen((huidig) => ({ ...huidig, [p.product_id]: 1 }));
       const dag = mepDagLang(r?.mep_datum);
       toast.success(dag ? `${p.naam} staat op de MEP van Midsland voor ${dag}` : `${p.naam} staat op de MEP van Midsland`);
@@ -79,7 +81,10 @@ export function InternBestelKaart({ producten, onBestellen, bezigId, bestaande }
                   max={max}
                   eenheid={p.eenheid}
                   label={`Aantal ${p.naam}`}
-                  onChange={(n) => setAantallen((huidig) => ({ ...huidig, [p.product_id]: n }))}
+                  onChange={(n) => {
+                    gekozen.current[p.product_id] = n;
+                    setAantallen((huidig) => ({ ...huidig, [p.product_id]: n }));
+                  }}
                 />
                 <Button type="button" size="touch" className="min-w-[8rem] flex-1 sm:flex-none" aria-label={`Bestellen ${p.naam}`} disabled={bezigId === p.product_id} onClick={() => bestellen(p)}>
                   Bestellen

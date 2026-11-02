@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { klemAantal, stapperBevestig, stapperTekst } from '@/hooks/useInterneLevering';
 
-/** Stepper met eenheid. Tijdens het typen blijft de invoer staan; de grens geldt bij blur en op de knoppen. */
+/** Stepper met eenheid. Een gevulde invoer gaat meteen naar de ouder; blur vult alleen een leeg veld aan tot het minimum. */
 export function AantalStapper({ waarde, min, max, eenheid, onChange, label = 'Aantal' }: {
   waarde: number;
   min: number;
@@ -12,25 +12,34 @@ export function AantalStapper({ waarde, min, max, eenheid, onChange, label = 'Aa
   onChange: (n: number) => void;
   label?: string;
 }) {
+  const conceptRef = useRef<string | null>(null);
   const [concept, setConcept] = useState<string | null>(null);
+  const toon = (tekst: string | null) => {
+    conceptRef.current = tekst;
+    setConcept(tekst);
+  };
+  const lees = () => conceptRef.current == null ? waarde : stapperBevestig(conceptRef.current, min, max);
   const getoond = concept ?? String(waarde);
-  const gelezen = concept == null ? waarde : stapperBevestig(concept, min, max);
   const zet = (n: number) => {
-    setConcept(null);
+    toon(null);
     onChange(klemAantal(n, min, max));
   };
   return (
     <div className="flex items-center gap-0 rounded-polar-lg border border-input bg-background">
-      <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Minder" disabled={gelezen <= min} onClick={() => zet(gelezen - 1)}>
+      <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Minder" disabled={lees() <= min} onClick={() => zet(lees() - 1)}>
         <Minus className="h-4 w-4" />
       </Button>
       <label className="flex h-11 min-w-[5.5rem] cursor-text items-baseline justify-center gap-1 px-1">
         <input
           value={getoond}
-          onChange={(e) => setConcept(stapperTekst(e.target.value))}
+          onChange={(e) => {
+            const tekst = stapperTekst(e.target.value);
+            toon(tekst);
+            if (tekst) onChange(klemAantal(Number(tekst), min, max));
+          }}
           onBlur={() => {
-            onChange(stapperBevestig(concept ?? String(waarde), min, max));
-            setConcept(null);
+            if (conceptRef.current === '') onChange(min);
+            toon(null);
           }}
           inputMode="numeric"
           aria-label={label}
@@ -39,7 +48,7 @@ export function AantalStapper({ waarde, min, max, eenheid, onChange, label = 'Aa
         />
         {eenheid && <span className="text-sm text-muted-foreground">{eenheid}</span>}
       </label>
-      <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Meer" disabled={max != null && gelezen >= max} onClick={() => zet(gelezen + 1)}>
+      <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Meer" disabled={max != null && lees() >= max} onClick={() => zet(lees() + 1)}>
         <Plus className="h-4 w-4" />
       </Button>
     </div>

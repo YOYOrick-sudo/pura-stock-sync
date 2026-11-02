@@ -22,10 +22,33 @@ const staat = vi.hoisted(() => ({
   bestellingen: undefined as InterneBestelling[] | null | undefined,
   mep: undefined as InterneMepRegel[] | null | undefined,
   knoppen: [] as { children?: ReactNode; onClick?: () => void | Promise<void>; disabled?: boolean; 'aria-label'?: string }[],
+  invoeren: [] as { 'aria-label'?: string; onChange?: (e: { target: { value: string } }) => void; onBlur?: () => void }[],
   queries: [] as QueryOpts[],
   rpc: vi.fn(),
 }));
 
+function onthoudInvoer(type: unknown, props: unknown) {
+  if (type === 'input' && props && typeof props === 'object' && 'onChange' in props) staat.invoeren.push(props as typeof staat.invoeren[number]);
+}
+
+vi.mock('react/jsx-runtime', async (origineel: <T>() => Promise<T>) => {
+  const runtime = await origineel<typeof import('react/jsx-runtime')>();
+  return {
+    ...runtime,
+    jsx: (type: unknown, props: unknown, key: unknown) => { onthoudInvoer(type, props); return runtime.jsx(type as never, props as never, key as never); },
+    jsxs: (type: unknown, props: unknown, key: unknown) => { onthoudInvoer(type, props); return runtime.jsxs(type as never, props as never, key as never); },
+  };
+});
+vi.mock('react/jsx-dev-runtime', async (origineel: <T>() => Promise<T>) => {
+  const runtime = await origineel<typeof import('react/jsx-dev-runtime')>();
+  return {
+    ...runtime,
+    jsxDEV: (type: unknown, props: unknown, key: unknown, isStatic: boolean, source: unknown, self: unknown) => {
+      onthoudInvoer(type, props);
+      return runtime.jsxDEV(type as never, props as never, key as never, isStatic, source as never, self as never);
+    },
+  };
+});
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -121,9 +144,19 @@ function tekstVan(knoop: ReactNode): string {
 
 function htmlVan(node: ReactNode) {
   staat.knoppen = [];
+  staat.invoeren = [];
   staat.queries = [];
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   return renderToString(createElement(QueryClientProvider, { client }, node));
+}
+
+async function typEnKlik(invoerLabel: string, knopLabel: string, tekst = '5') {
+  const invoer = staat.invoeren.find((i) => i['aria-label'] === invoerLabel);
+  if (!invoer?.onChange) throw new Error(`invoer ${invoerLabel} ontbreekt`);
+  invoer.onChange({ target: { value: tekst } });
+  const knop = staat.knoppen.find((k) => k['aria-label'] === knopLabel);
+  if (!knop?.onClick) throw new Error(`knop ${knopLabel} ontbreekt`);
+  await knop.onClick();
 }
 
 function schermen(aan: boolean) {
@@ -144,6 +177,7 @@ beforeEach(() => {
   staat.bestellingen = undefined;
   staat.mep = undefined;
   staat.knoppen = [];
+  staat.invoeren = [];
   staat.queries = [];
   staat.rpc.mockReset();
   vi.mocked(toast.success).mockClear();
@@ -313,6 +347,38 @@ describe('interne levering achter de schakelaar', () => {
     expect(stapperBevestig(tekst, 1, 9)).toBe(3);
     expect(stapperBevestig('', 1, 9)).toBe(1);
     expect(stapperBevestig('15', 1, 9)).toBe(9);
+    const gezien: number[] = [];
+    renderToString(createElement(AantalStapper, { waarde: 2, min: 1, max: 9, onChange: (n) => gezien.push(n), label: 'Aantal proef' }));
+    const invoer = staat.invoeren.find((i) => i['aria-label'] === 'Aantal proef');
+    if (!invoer?.onChange || !invoer.onBlur) throw new Error('invoer ontbreekt');
+    invoer.onChange({ target: { value: '' } });
+    expect(gezien).toEqual([]);
+    invoer.onBlur();
+    expect(gezien).toEqual([1]);
+    invoer.onChange({ target: { value: '15' } });
+    expect(gezien.at(-1)).toBe(9);
+  });
+
+  test('getypt aantal gaat mee zonder blur bij Bestellen, Ontvangen en Geleverd', async () => {
+    staat.vlag = { West: true, Midsland: true };
+    staat.producten = [wortel];
+    staat.rpc.mockResolvedValue({ data: { bestelling_id: 'b1', mep_datum: '2026-11-04', mep_taak_id: 't1', taak_nieuw: true, doel_aantal: 5, eenheid: 'bak', bestond_al: false, status: 'ontvangen', geleverd_aantal: 5, al_gedaan: false }, error: null });
+    htmlVan(createElement(InternBestellen, { vestiging: 'West', aan: true }));
+    await typEnKlik('Aantal Wortelspread', 'Bestellen Wortelspread');
+    expect(staat.rpc).toHaveBeenCalledWith('interne_bestelling_plaatsen', expect.objectContaining({ p_product_id: wortel.product_id, p_aantal: 5 }));
+
+    const mee = bestelling({ bestelling_id: '22222222-2222-4222-8222-222222222222', naam: 'Wortelspread', status: 'geleverd', kan_ontvangen: true, geleverd_aantal: 2 });
+    staat.bestellingen = [mee];
+    staat.rpc.mockClear();
+    htmlVan(createElement(InternOnderweg, { vestiging: 'West', aan: true, startAnderId: mee.bestelling_id }));
+    await typEnKlik('Ontvangen aantal Wortelspread', 'Ontvangen Wortelspread ander aantal');
+    expect(staat.rpc).toHaveBeenCalledWith('interne_bestelling_ontvangen', expect.objectContaining({ p_bestelling_id: mee.bestelling_id, p_aantal: 5 }));
+
+    staat.mep = [mepRegel({ aantal: 9 })];
+    staat.rpc.mockClear();
+    htmlVan(createElement(MepVoorWest, { vestiging: 'Midsland', startAnderId: '44444444-4444-4444-8444-444444444444' }));
+    await typEnKlik('Geleverd aantal Wortelspread', 'Geleverd Wortelspread ander aantal');
+    expect(staat.rpc).toHaveBeenCalledWith('interne_bestelling_geleverd', expect.objectContaining({ p_bestelling_id: '44444444-4444-4444-8444-444444444444', p_aantal: 5 }));
   });
 
   test('ander aantal geleverd stopt bij het bestelde aantal', () => {

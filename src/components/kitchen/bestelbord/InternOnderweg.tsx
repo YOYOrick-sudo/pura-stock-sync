@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Warehouse } from 'lucide-react';
 import { toast } from 'sonner';
 import { Bevestig, KaartKop, LijstKaart } from '@/components/pura/patronen';
@@ -25,16 +25,23 @@ function startAantal(r: InterneBestelling) {
 }
 
 /** Open interne leveringen voor West: ontvangen of, zolang het nog op de MEP staat, annuleren. */
-export function InternOnderweg({ vestiging, aan }: { vestiging: string; aan: boolean }) {
+export function InternOnderweg({ vestiging, aan, startAnderId }: { vestiging: string; aan: boolean; startAnderId?: string }) {
   const q = useInterneBestellingen(aan ? vestiging : null);
   const ontvangenMut = useInterneOntvangen();
   const annulerenMut = useInterneAnnuleren();
   const [ander, setAnder] = useState<{ id: string; aantal: number; opmerking: string } | null>(null);
+  const anderRef = useRef(ander);
   const [annuleren, setAnnuleren] = useState<InterneBestelling | null>(null);
 
   const regels = (q.data ?? [])
     .filter((r) => r.status === 'besteld' || r.status === 'geleverd')
     .sort((a, b) => (a.status === b.status ? 0 : a.status === 'besteld' ? -1 : 1) || (a.mep_datum ?? '').localeCompare(b.mep_datum ?? ''));
+  const startRij = startAnderId ? regels.find((r) => r.bestelling_id === startAnderId) : undefined;
+  if (startRij && anderRef.current?.id !== startRij.bestelling_id) {
+    const volgend = { id: startRij.bestelling_id, aantal: startAantal(startRij), opmerking: '' };
+    anderRef.current = volgend;
+    setAnder(volgend);
+  }
 
   const ontvangen = async (r: InterneBestelling, aantal: number | null, opmerking: string | null) => {
     try {
@@ -88,8 +95,12 @@ export function InternOnderweg({ vestiging, aan }: { vestiging: string; aan: boo
                         label,
                         gevaar: label === 'Annuleren',
                         onClick: () => {
-                          if (label === 'Annuleren') setAnnuleren(r);
-                          else setAnder({ id: r.bestelling_id, aantal: startAantal(r), opmerking: '' });
+                        if (label === 'Annuleren') setAnnuleren(r);
+                        else {
+                          const volgend = { id: r.bestelling_id, aantal: startAantal(r), opmerking: '' };
+                          anderRef.current = volgend;
+                          setAnder(volgend);
+                        }
                         },
                       }))}
                     />
@@ -98,9 +109,19 @@ export function InternOnderweg({ vestiging, aan }: { vestiging: string; aan: boo
               </div>
               {openAnder && (
                 <div className="space-y-2">
-                  <AantalStapper waarde={ander.aantal} min={0} max={null} eenheid={r.eenheid} label={`Ontvangen aantal ${r.naam}`} onChange={(n) => setAnder({ ...ander, aantal: n })} />
-                  <Textarea value={ander.opmerking} onChange={(e) => setAnder({ ...ander, opmerking: e.target.value })} placeholder="Opmerking (optioneel)" className="text-base" />
-                  <Button type="button" size="touch" aria-label={`Ontvangen ${r.naam} ander aantal`} disabled={ontvangenMut.isPending} onClick={() => ontvangen(r, ander.aantal, ander.opmerking.trim() || null)}>
+                  <AantalStapper waarde={ander.aantal} min={0} max={null} eenheid={r.eenheid} label={`Ontvangen aantal ${r.naam}`} onChange={(n) => {
+                    anderRef.current = anderRef.current?.id === r.bestelling_id ? { ...anderRef.current, aantal: n } : anderRef.current;
+                    setAnder((h) => h && h.id === r.bestelling_id ? { ...h, aantal: n } : h);
+                  }} />
+                  <Textarea value={ander.opmerking} onChange={(e) => {
+                    const opmerking = e.target.value;
+                    if (anderRef.current?.id === r.bestelling_id) anderRef.current = { ...anderRef.current, opmerking };
+                    setAnder((h) => h && h.id === r.bestelling_id ? { ...h, opmerking } : h);
+                  }} placeholder="Opmerking (optioneel)" className="text-base" />
+                  <Button type="button" size="touch" aria-label={`Ontvangen ${r.naam} ander aantal`} disabled={ontvangenMut.isPending} onClick={() => {
+                    const gekozen = anderRef.current?.id === r.bestelling_id ? anderRef.current : ander;
+                    ontvangen(r, gekozen?.aantal ?? ander.aantal, (gekozen?.opmerking ?? '').trim() || null);
+                  }}>
                     Ontvangen
                   </Button>
                 </div>

@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { Warehouse } from 'lucide-react';
 import { toast } from 'sonner';
 import { useFase2VlagAan } from '@/hooks/useOntvangstV2';
@@ -39,13 +39,20 @@ function MepRij({ r, actie }: { r: InterneMepRegel; actie?: ReactNode }) {
 }
 
 /** Open bestellingen voor de makende vestiging. Bestaande MEP-taken blijven de Klaar-flow. */
-export function MepVoorWest({ vestiging }: { vestiging: string }) {
+export function MepVoorWest({ vestiging, startAnderId }: { vestiging: string; startAnderId?: string }) {
   const aan = useFase2VlagAan(vestiging || null, 'interne_levering');
   const q = useInterneMep(aan ? vestiging : null);
   const geleverdMut = useInterneGeleverd();
   const [ander, setAnder] = useState<{ id: string; aantal: number } | null>(null);
+  const anderRef = useRef(ander);
   const regels = q.data ?? [];
   const open = regels.filter((r) => r.status === 'besteld');
+  const startRij = startAnderId ? open.find((r) => r.bestelling_id === startAnderId) : undefined;
+  if (startRij && anderRef.current?.id !== startRij.bestelling_id) {
+    const volgend = { id: startRij.bestelling_id, aantal: Math.max(1, alsGetal(startRij.aantal) ?? 1) };
+    anderRef.current = volgend;
+    setAnder(volgend);
+  }
   const meegegeven = regels.filter((r) => r.status === 'geleverd' || r.status === 'ontvangen');
 
   const geleverd = async (r: InterneMepRegel, aantal: number | null) => {
@@ -76,13 +83,20 @@ export function MepVoorWest({ vestiging }: { vestiging: string }) {
                         Geleverd
                       </Button>
                     )}
-                    <RijMenu naam={r.naam} acties={[{ label: 'Ander aantal geleverd', onClick: () => setAnder({ id: r.bestelling_id, aantal: Math.max(1, alsGetal(r.aantal) ?? 1) }) }]} />
+                    <RijMenu naam={r.naam} acties={[{ label: 'Ander aantal geleverd', onClick: () => {
+                      const volgend = { id: r.bestelling_id, aantal: Math.max(1, alsGetal(r.aantal) ?? 1) };
+                      anderRef.current = volgend;
+                      setAnder(volgend);
+                    } }]} />
                   </>}
                 />
                 {openAnder && (
                   <div className="flex flex-wrap items-center gap-2 px-4 pb-3 lg:px-6">
-                    <AantalStapper waarde={ander.aantal} min={1} max={maxGeleverdAantal(r.aantal)} eenheid={r.eenheid} label={`Geleverd aantal ${r.naam}`} onChange={(n) => setAnder({ id: r.bestelling_id, aantal: n })} />
-                    <Button type="button" size="touch" aria-label={`Geleverd ${r.naam} ander aantal`} disabled={geleverdMut.isPending} onClick={() => geleverd(r, ander.aantal)}>
+                    <AantalStapper waarde={ander.aantal} min={1} max={maxGeleverdAantal(r.aantal)} eenheid={r.eenheid} label={`Geleverd aantal ${r.naam}`} onChange={(n) => {
+                      if (anderRef.current?.id === r.bestelling_id) anderRef.current = { ...anderRef.current, aantal: n };
+                      setAnder((h) => h && h.id === r.bestelling_id ? { ...h, aantal: n } : h);
+                    }} />
+                    <Button type="button" size="touch" aria-label={`Geleverd ${r.naam} ander aantal`} disabled={geleverdMut.isPending} onClick={() => geleverd(r, anderRef.current?.id === r.bestelling_id ? anderRef.current.aantal : ander.aantal)}>
                       Geleverd
                     </Button>
                   </div>
