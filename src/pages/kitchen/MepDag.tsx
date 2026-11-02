@@ -70,6 +70,7 @@ import {
   ymd,
 } from '@/hooks/useMepTaken';
 import { telwoord } from '@/lib/hoeveelheid';
+import { MepVoorWest } from '@/components/kitchen/MepVoorWest';
 
 const PRIO_LABEL: Record<number, string> = { 1: 'Belangrijk' };
 const PRIO_CLASS: Record<number, string> = {
@@ -409,6 +410,7 @@ export default function MepDag() {
         {/* Telefoon: weergave-tabs op één veegbare regel onder het invoerveld. */}
         {isMobile && <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none]">{weergaveTabs}</div>}
 
+        <MepVoorWest vestiging={vestiging} />
 
         {isLoading ? (
           <p className="py-10 text-center text-sm text-muted-foreground">Laden…</p>
