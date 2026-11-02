@@ -145,7 +145,7 @@ export default function Cijfers() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-[1.85fr_1fr] gap-5">
-          <CijfersHoofdgrafiek periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
+          <CijfersHoofdgrafiek periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} mode={effectiveMode} />
           <CijfersWeekdagVergelijk periode={periode} vestigingKeuze={vestKeuze} van={range.van} tot={range.tot} />
         </div>
 

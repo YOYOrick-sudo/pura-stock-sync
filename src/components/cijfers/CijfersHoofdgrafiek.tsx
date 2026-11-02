@@ -5,9 +5,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/pura/EmptyState';
 import { BarChart3 } from 'lucide-react';
 import {
-  granulariteitVoor, vestigingenVan,
-  type Periode, type VestKeuze,
+  granulariteitVoor, vergelijkModeVan, vestigingenVan,
+  type Periode, type VergelijkMode, type VestKeuze,
 } from './types';
+import { labelVergelijking, vergelijkingsperiode, vergelijktZelfdeWeekdag, verschuifKalenderdagen, amsterdamKalenderdag } from '@/lib/vergelijkingsperiode';
 import {
   EUR0, NUM, axisEUR, smoothPath, svgHoverIndex, TipCard, TipRow, tipTransform,
 } from './chartHelpers';
@@ -15,7 +16,7 @@ import {
 const DAG_NL = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
 const MND_NL = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
 
-interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
+interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string; mode?: VergelijkMode }
 type Row = { bucket: string; vestiging: string; omzet: number; bonnen: number | null; omzet_bron?: 'lightspeed' | 'eitje' | 'gemengd' | 'geen' };
 
 function labelVoor(bucket: string, gran: 'uur' | 'dag' | 'maand'): string {
@@ -29,12 +30,118 @@ function shift(date: string, dagen: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props) {
+function dagVanBucket(bucket: string): string {
+  const d = new Date(bucket);
+  if (Number.isNaN(d.getTime())) return bucket.slice(0, 10);
+  return amsterdamKalenderdag(d);
+}
+
+function uurVanBucket(bucket: string): number {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Amsterdam', hour: '2-digit', hourCycle: 'h23',
+  }).formatToParts(new Date(bucket));
+  const raw = Number(parts.find((p) => p.type === 'hour')?.value ?? '0');
+  return raw === 24 ? 0 : raw;
+}
+
+function huidigVanBucket(rows: Row[], bucket: string) {
+  let omzet = 0;
+  let bonnenSom = 0;
+  let bonnenGevonden = false;
+  const brons = new Set<string>();
+  for (const rij of rows) {
+    if (rij.bucket !== bucket) continue;
+    omzet += Number(rij.omzet);
+    if (rij.bonnen != null) { bonnenSom += Number(rij.bonnen); bonnenGevonden = true; }
+    if (rij.omzet_bron) brons.add(rij.omzet_bron);
+  }
+  let bron: Row['omzet_bron'] = 'geen';
+  const heeftLightspeed = brons.has('lightspeed');
+  const heeftEitje = brons.has('eitje') || brons.has('gemengd');
+  if (heeftLightspeed && heeftEitje) bron = 'gemengd';
+  else if (heeftLightspeed) bron = 'lightspeed';
+  else if (heeftEitje) bron = 'eitje';
+  const bonnen = bonnenGevonden && !brons.has('eitje') && !brons.has('gemengd') && !brons.has('geen') ? bonnenSom : null;
+  return { omzet, bonnen, bron };
+}
+
+/** Zet de reeks van 364 dagen eerder op dezelfde weekdag naast de huidige buckets. */
+function reeksOpWeekdag(cur: Row[], curBuckets: string[], prev: Row[], gran: 'uur' | 'dag' | 'maand', van: string, tot: string, prevVan: string) {
+  const labels: string[] = [];
+  const curArr: number[] = [];
+  const prevArr: number[] = [];
+  const bonnenArr: Array<number | null> = [];
+  const bronArr: Array<Row['omzet_bron']> = [];
+  const prevLabels: string[] = [];
+
+  if (gran === 'maand') {
+    const perMaand = new Map<string, { omzet: number; van: string; tot: string }>();
+    for (const rij of prev) {
+      const bronDag = dagVanBucket(rij.bucket);
+      const doel = verschuifKalenderdagen(bronDag, 364);
+      if (doel < van || doel > tot) continue;
+      const sleutel = doel.slice(0, 7);
+      const acc = perMaand.get(sleutel) ?? { omzet: 0, van: bronDag, tot: bronDag };
+      acc.omzet += Number(rij.omzet);
+      if (bronDag < acc.van) acc.van = bronDag;
+      if (bronDag > acc.tot) acc.tot = bronDag;
+      perMaand.set(sleutel, acc);
+    }
+    for (const bucket of curBuckets) {
+      const huidig = huidigVanBucket(cur, bucket);
+      const toen = perMaand.get(dagVanBucket(bucket).slice(0, 7));
+      labels.push(labelVoor(bucket, gran));
+      curArr.push(huidig.omzet);
+      prevArr.push(toen?.omzet ?? 0);
+      bonnenArr.push(huidig.bonnen);
+      bronArr.push(huidig.bron);
+      prevLabels.push(toen ? labelVergelijking(toen.van, toen.tot) : '');
+    }
+  } else if (gran === 'uur') {
+    const perUur = new Map<number, number>();
+    for (const rij of prev) {
+      const uur = uurVanBucket(rij.bucket);
+      perUur.set(uur, (perUur.get(uur) ?? 0) + Number(rij.omzet));
+    }
+    const label = labelVergelijking(prevVan, prevVan);
+    for (const bucket of curBuckets) {
+      const huidig = huidigVanBucket(cur, bucket);
+      labels.push(labelVoor(bucket, gran));
+      curArr.push(huidig.omzet);
+      prevArr.push(perUur.get(uurVanBucket(bucket)) ?? 0);
+      bonnenArr.push(huidig.bonnen);
+      bronArr.push(huidig.bron);
+      prevLabels.push(label);
+    }
+  } else {
+    const perDag = new Map<string, number>();
+    for (const rij of prev) {
+      const dag = dagVanBucket(rij.bucket);
+      perDag.set(dag, (perDag.get(dag) ?? 0) + Number(rij.omzet));
+    }
+    for (const bucket of curBuckets) {
+      const huidig = huidigVanBucket(cur, bucket);
+      const doel = verschuifKalenderdagen(dagVanBucket(bucket), -364);
+      labels.push(labelVoor(bucket, gran));
+      curArr.push(huidig.omzet);
+      prevArr.push(perDag.get(doel) ?? 0);
+      bonnenArr.push(huidig.bonnen);
+      bronArr.push(huidig.bron);
+      prevLabels.push(labelVergelijking(doel, doel));
+    }
+  }
+  return { labels, cur: curArr, prev: prevArr, bonnen: bonnenArr, bron: bronArr, prevLabels };
+}
+
+export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot, mode }: Props) {
   const vestigingen = vestigingenVan(vestigingKeuze);
   const gran = granulariteitVoor(periode, van, tot);
+  const effMode = mode ?? vergelijkModeVan(periode);
+  const vergelijk = vergelijktZelfdeWeekdag(effMode) ? vergelijkingsperiode(van, tot) : null;
   const lengte = Math.round((new Date(tot).getTime() - new Date(van).getTime()) / 86400000) + 1;
-  const prevVan = shift(van, lengte);
-  const prevTot = shift(tot, lengte);
+  const prevVan = vergelijk?.van ?? shift(van, lengte);
+  const prevTot = vergelijk?.tot ?? shift(tot, lengte);
+  const prevGran = vergelijk && gran === 'maand' ? 'dag' : gran;
 
   const curQ = useQuery({
     queryKey: ['cijfers-tijdreeks', 'cur', periode, vestigingKeuze, van, tot, gran],
@@ -48,10 +155,10 @@ export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props
     refetchOnWindowFocus: true,
   });
   const prevQ = useQuery({
-    queryKey: ['cijfers-tijdreeks', 'prev', periode, vestigingKeuze, prevVan, prevTot, gran],
+    queryKey: ['cijfers-tijdreeks', 'prev', periode, vestigingKeuze, prevVan, prevTot, prevGran],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('rpc_cijfers_tijdreeks', {
-        p_vestigingen: vestigingen, p_van: prevVan, p_tot: prevTot, p_granulariteit: gran,
+        p_vestigingen: vestigingen, p_van: prevVan, p_tot: prevTot, p_granulariteit: prevGran,
       });
       if (error) throw error;
       return (data ?? []) as Row[];
@@ -72,6 +179,7 @@ export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props
     const curBuckets: string[] = [];
     for (const r of cur) if (!curBuckets.includes(r.bucket)) curBuckets.push(r.bucket);
     curBuckets.sort();
+    if (vergelijk) return reeksOpWeekdag(cur, curBuckets, prev, gran, van, tot, prevVan);
     const prevBuckets: string[] = [];
     for (const r of prev) if (!prevBuckets.includes(r.bucket)) prevBuckets.push(r.bucket);
     prevBuckets.sort();
@@ -99,10 +207,10 @@ export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props
       else if (hasE) bron = 'eitje';
       bronArr.push(bron);
     }
-    return { labels, cur: curArr, prev: prevArr, bonnen: bonnenArr, bron: bronArr };
-  }, [curQ.data, prevQ.data, gran]);
+    return { labels, cur: curArr, prev: prevArr, bonnen: bonnenArr, bron: bronArr, prevLabels: labels.map(() => '') };
+  }, [curQ.data, prevQ.data, gran, vergelijk, van, tot, prevVan]);
 
-  if (curQ.isLoading) return <LoadingSkeleton />;
+  if (curQ.isLoading || (vergelijk && prevQ.isLoading)) return <LoadingSkeleton />;
   if (curQ.error) {
     return (
       <div className="bg-card border border-border rounded-[20px] shadow-card p-6 cj-card-in">
@@ -135,7 +243,7 @@ export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props
           </span>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <span style={{ width: 16, height: 3, borderRadius: 2, background: 'repeating-linear-gradient(90deg, hsl(var(--chart-prev-line)) 0 4px, transparent 4px 7px)' }} />
-            Vorige periode
+            {vergelijk ? `t.o.v. ${labelVergelijking(vergelijk.van, vergelijk.tot)}` : 'Vorige periode'}
           </span>
         </div>
       </div>
@@ -173,6 +281,7 @@ type SeriesData = {
   labels: string[]; cur: number[]; prev: number[];
   bonnen: Array<number | null>;
   bron: Array<Row['omzet_bron']>;
+  prevLabels: string[];
 };
 function LineChart({
   series, periode,
@@ -248,7 +357,7 @@ function LineChart({
           )}
         </div>
         <TipRow color="hsl(var(--primary))" label="Deze periode" value={EUR0.format(c)} />
-        {showCmp && <TipRow color="hsl(var(--chart-prev-line))" label="Vorige periode" value={EUR0.format(p)} />}
+        {showCmp && <TipRow color="hsl(var(--chart-prev-line))" label={series.prevLabels[hv] ? `t.o.v. ${series.prevLabels[hv]}` : 'Vorige periode'} value={EUR0.format(p)} />}
         <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid hsl(var(--border))', fontSize: 10.5, color: 'hsl(var(--muted-foreground))' }}>
           {series.bonnen[hv] != null
             ? `≈ ${NUM.format(series.bonnen[hv] as number)} bonnen`

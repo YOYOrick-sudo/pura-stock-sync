@@ -7,6 +7,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { EUR, EUR2, vestigingenVan, vergelijkModeVan, prevLabel, type Periode, type VestKeuze, type VergelijkMode } from './types';
+import { labelVergelijking, vergelijkingsperiode, vergelijktZelfdeWeekdag } from '@/lib/vergelijkingsperiode';
 import { useCountUp } from './useCountUp';
 import { DeltaPill } from './chartHelpers';
 import type { DeltaIntent } from './deltaKleur';
@@ -72,10 +73,23 @@ function fmtRange(van?: string, tot?: string): string {
   return `${format(dv, 'd MMM', { locale: nl })} – ${format(dt, showYear ? 'd MMM yyyy' : 'd MMM', { locale: nl })}`;
 }
 
+function heeftKassadata(s?: Samenvatting): boolean {
+  const mix = s?.totaal.omzet_bron_mix;
+  if (!mix) return false;
+  return Number(mix.lightspeed) + Number(mix.eitje) > 0;
+}
+
+function deltaProcent(nu: number | null, toen: number | null): number | null {
+  if (nu == null || toen == null || toen <= 0) return null;
+  return ((nu - toen) / toen) * 100;
+}
+
 export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot, mode }: Props) {
   const isMobile = useIsMobile();
   const vestigingen = vestigingenVan(vestigingKeuze);
   const effMode = mode ?? vergelijkModeVan(periode);
+  const weekdag = vergelijktZelfdeWeekdag(effMode);
+  const vergelijk = weekdag ? vergelijkingsperiode(van, tot) : null;
   const q = useQuery({
     queryKey: ['cijfers-samenvatting', periode, vestigingKeuze, van, tot, effMode],
     queryFn: async () => {
@@ -87,9 +101,21 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot, mode }: P
     },
     refetchOnWindowFocus: true,
   });
+  const qVergelijk = useQuery({
+    queryKey: ['cijfers-samenvatting', 'weekdag-vorig-jaar', vestigingKeuze, vergelijk?.van, vergelijk?.tot],
+    enabled: vergelijk != null,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('rpc_cijfers_samenvatting', {
+        p_vestigingen: vestigingen, p_van: vergelijk!.van, p_tot: vergelijk!.tot, p_mode: 'custom',
+      });
+      if (error) throw error;
+      return data as unknown as Samenvatting;
+    },
+    refetchOnWindowFocus: true,
+  });
 
 
-  if (q.isLoading) {
+  if (q.isLoading || (weekdag && qVergelijk.isLoading)) {
     return (
       <div className="rounded-[20px] border border-border bg-card shadow-card cj-card-in overflow-hidden">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
@@ -106,14 +132,24 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot, mode }: P
   }
 
   const s = q.data;
+  const toen = weekdag ? qVergelijk.data : undefined;
   const omzet = Number(s?.totaal.omzet ?? 0);
-  const prev = s?.totaal.vorige_omzet == null ? null : Number(s.totaal.vorige_omzet);
+  const prev = weekdag
+    ? (heeftKassadata(toen) ? Number(toen!.totaal.omzet) : null)
+    : (s?.totaal.vorige_omzet == null ? null : Number(s.totaal.vorige_omzet));
   const opnDgn = s?.totaal.open_dagen == null ? null : Number(s.totaal.open_dagen);
   const bonnen = s?.totaal.bonnen == null ? null : Number(s.totaal.bonnen);
   const gemDag = opnDgn != null && opnDgn > 0 ? omzet / opnDgn : null;
   const gemBon = bonnen != null && bonnen > 0 ? omzet / bonnen : null;
+  const prevBonnen = weekdag && toen?.totaal.bonnen != null ? Number(toen.totaal.bonnen) : null;
+  const prevOpen = weekdag && toen?.totaal.open_dagen != null ? Number(toen.totaal.open_dagen) : null;
+  const prevGemDag = prev != null && prevOpen != null && prevOpen > 0 ? prev / prevOpen : null;
+  const prevGemBon = prev != null && prevBonnen != null && prevBonnen > 0 ? prev / prevBonnen : null;
   const per = s?.per_vestiging ?? [];
-  const pct = prev != null && prev > 0 ? ((omzet - prev) / prev) * 100 : null;
+  const pct = deltaProcent(omzet, prev);
+  const pctBonnen = deltaProcent(bonnen, prevBonnen);
+  const pctGemBon = deltaProcent(gemBon, prevGemBon);
+  const pctGemDag = deltaProcent(gemDag, prevGemDag);
 
   const bronMix = s?.totaal.omzet_bron_mix;
   const nEitje = Number(bronMix?.eitje ?? 0);
@@ -123,8 +159,11 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot, mode }: P
 
   const dash = '—';
 
-  const prevLbl = prevLabel(s?.vorige_periode?.van, s?.vorige_periode?.tot);
+  const prevLbl = weekdag && vergelijk
+    ? labelVergelijking(vergelijk.van, vergelijk.tot)
+    : prevLabel(s?.vorige_periode?.van, s?.vorige_periode?.tot);
   const vsLabel = prevLbl ? `T.o.v. ${prevLbl}` : 'T.o.v. vorige periode';
+  const prevBron = weekdag ? toen?.totaal.omzet_bron_mix : s?.totaal.vorige_omzet_bron_mix;
 
   const cols: { label: string; value: React.ReactNode; sub: React.ReactNode; dp?: number | null; intent?: DeltaIntent }[] = [
     {
@@ -138,11 +177,15 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot, mode }: P
       label: 'Bonnen',
       value: bonnen == null ? <span>{dash}</span> : <Count v={bonnen} />,
       sub: bonnen == null ? 'niet beschikbaar bij Eitje-omzet' : 'aantal transacties',
+      dp: pctBonnen ?? undefined,
+      intent: 'hoger-is-goed',
     },
     {
       label: 'Gem. besteding / bon',
       value: gemBon == null ? <span>{dash}</span> : <Money v={gemBon} decimals={2} />,
       sub: gemBon == null ? 'niet beschikbaar bij Eitje-omzet' : 'per bon',
+      dp: pctGemBon ?? undefined,
+      intent: 'hoger-is-goed',
     },
     {
       label: 'Gem. per open dag',
@@ -150,16 +193,22 @@ export function CijfersMetricsBar({ periode, vestigingKeuze, van, tot, mode }: P
       sub: opnDgn == null
         ? 'niet beschikbaar bij Eitje-omzet'
         : `${opnDgn} open ${opnDgn === 1 ? 'dag' : 'dagen'}`,
+      dp: pctGemDag ?? undefined,
+      intent: 'hoger-is-goed',
     },
     {
       label: vsLabel,
       value: pct === null ? dash : `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`,
       sub: (() => {
-        const prevRange = fmtRange(s?.vorige_periode?.van, s?.vorige_periode?.tot);
-        const curRange = fmtRange(s?.periode?.van ?? van, s?.periode?.tot ?? tot);
+        const prevRange = weekdag && vergelijk
+          ? labelVergelijking(vergelijk.van, vergelijk.tot)
+          : fmtRange(s?.vorige_periode?.van, s?.vorige_periode?.tot);
+        const curRange = weekdag
+          ? labelVergelijking(van, tot)
+          : fmtRange(s?.periode?.van ?? van, s?.periode?.tot ?? tot);
         const curBron = bronLabel(s?.totaal.omzet_bron_mix);
-        const prvBron = bronLabel(s?.totaal.vorige_omzet_bron_mix);
-        const mismatch = bronMismatch(s?.totaal.omzet_bron_mix, s?.totaal.vorige_omzet_bron_mix);
+        const prvBron = bronLabel(prevBron);
+        const mismatch = bronMismatch(s?.totaal.omzet_bron_mix, prevBron);
         const label = prev == null ? 'geen vergelijkbare omzet' : `t.o.v. ${prevRange}`;
         const tip = (
           <div className="text-xs leading-snug space-y-1">
