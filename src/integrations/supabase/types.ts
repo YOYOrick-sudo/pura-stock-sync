@@ -1113,6 +1113,60 @@ export type Database = {
           },
         ]
       }
+      bord_vorm_auto: {
+        Row: {
+          aangeroepen_door: string | null
+          artikel_bron: string
+          artikel_id: string | null
+          artikel_vorm_id: string | null
+          bewijs: Json | null
+          bordregel_id: string
+          bron: string
+          created_at: string
+          gecontroleerd_door: string | null
+          gecontroleerd_op: string | null
+          id: string
+          leverancier_id: string | null
+          reden: string | null
+          ter_controle: boolean
+          vestiging: string
+        }
+        Insert: {
+          aangeroepen_door?: string | null
+          artikel_bron: string
+          artikel_id?: string | null
+          artikel_vorm_id?: string | null
+          bewijs?: Json | null
+          bordregel_id: string
+          bron: string
+          created_at?: string
+          gecontroleerd_door?: string | null
+          gecontroleerd_op?: string | null
+          id?: string
+          leverancier_id?: string | null
+          reden?: string | null
+          ter_controle?: boolean
+          vestiging: string
+        }
+        Update: {
+          aangeroepen_door?: string | null
+          artikel_bron?: string
+          artikel_id?: string | null
+          artikel_vorm_id?: string | null
+          bewijs?: Json | null
+          bordregel_id?: string
+          bron?: string
+          created_at?: string
+          gecontroleerd_door?: string | null
+          gecontroleerd_op?: string | null
+          id?: string
+          leverancier_id?: string | null
+          reden?: string | null
+          ter_controle?: boolean
+          vestiging?: string
+        }
+        Relationships: []
+      }
       bot_audit_log: {
         Row: {
           aanroeper_ip: string | null
@@ -3196,6 +3250,115 @@ export type Database = {
         }
         Relationships: []
       }
+      interne_bestelling: {
+        Row: {
+          aantal: number
+          aanvraag_sleutel: string | null
+          bestel_signaal_id: string | null
+          besteld_door: string | null
+          besteld_op: string
+          created_at: string
+          eenheid: string
+          geannuleerd_door: string | null
+          geannuleerd_op: string | null
+          geleverd_aantal: number | null
+          geleverd_door: string | null
+          geleverd_op: string | null
+          id: string
+          mep_datum: string
+          mep_taak_id: string | null
+          naar_vestiging: string
+          notitie: string | null
+          ontvangen_aantal: number | null
+          ontvangen_door: string | null
+          ontvangen_op: string | null
+          ontvangst_opmerking: string | null
+          ontvangst_regel_id: string | null
+          product_id: string
+          status: string
+          updated_at: string
+          van_vestiging: string
+        }
+        Insert: {
+          aantal: number
+          aanvraag_sleutel?: string | null
+          bestel_signaal_id?: string | null
+          besteld_door?: string | null
+          besteld_op?: string
+          created_at?: string
+          eenheid: string
+          geannuleerd_door?: string | null
+          geannuleerd_op?: string | null
+          geleverd_aantal?: number | null
+          geleverd_door?: string | null
+          geleverd_op?: string | null
+          id?: string
+          mep_datum: string
+          mep_taak_id?: string | null
+          naar_vestiging: string
+          notitie?: string | null
+          ontvangen_aantal?: number | null
+          ontvangen_door?: string | null
+          ontvangen_op?: string | null
+          ontvangst_opmerking?: string | null
+          ontvangst_regel_id?: string | null
+          product_id: string
+          status?: string
+          updated_at?: string
+          van_vestiging: string
+        }
+        Update: {
+          aantal?: number
+          aanvraag_sleutel?: string | null
+          bestel_signaal_id?: string | null
+          besteld_door?: string | null
+          besteld_op?: string
+          created_at?: string
+          eenheid?: string
+          geannuleerd_door?: string | null
+          geannuleerd_op?: string | null
+          geleverd_aantal?: number | null
+          geleverd_door?: string | null
+          geleverd_op?: string | null
+          id?: string
+          mep_datum?: string
+          mep_taak_id?: string | null
+          naar_vestiging?: string
+          notitie?: string | null
+          ontvangen_aantal?: number | null
+          ontvangen_door?: string | null
+          ontvangen_op?: string | null
+          ontvangst_opmerking?: string | null
+          ontvangst_regel_id?: string | null
+          product_id?: string
+          status?: string
+          updated_at?: string
+          van_vestiging?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interne_bestelling_mep_taak_id_fkey"
+            columns: ["mep_taak_id"]
+            isOneToOne: false
+            referencedRelation: "mep_taken"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interne_bestelling_ontvangst_regel_id_fkey"
+            columns: ["ontvangst_regel_id"]
+            isOneToOne: false
+            referencedRelation: "ontvangst_regel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interne_bestelling_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "interne_producten"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interne_leverdagen: {
         Row: {
           actief: boolean
@@ -3234,6 +3397,101 @@ export type Database = {
           weekdag?: number
         }
         Relationships: []
+      }
+      interne_producten: {
+        Row: {
+          actief: boolean
+          artikel_id: string | null
+          created_at: string
+          deleted_at: string | null
+          eenheid: string
+          gewijzigd_door: string | null
+          id: string
+          inhoud_eenheid: string | null
+          inhoud_per_eenheid: number | null
+          max_per_bestelling: number | null
+          mep_categorie: string | null
+          mep_handeling: string | null
+          naam: string
+          naar_vestiging: string
+          notitie: string | null
+          recept_id: string | null
+          updated_at: string
+          van_vestiging: string
+          volgorde: number
+        }
+        Insert: {
+          actief?: boolean
+          artikel_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          eenheid?: string
+          gewijzigd_door?: string | null
+          id?: string
+          inhoud_eenheid?: string | null
+          inhoud_per_eenheid?: number | null
+          max_per_bestelling?: number | null
+          mep_categorie?: string | null
+          mep_handeling?: string | null
+          naam: string
+          naar_vestiging: string
+          notitie?: string | null
+          recept_id?: string | null
+          updated_at?: string
+          van_vestiging: string
+          volgorde?: number
+        }
+        Update: {
+          actief?: boolean
+          artikel_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          eenheid?: string
+          gewijzigd_door?: string | null
+          id?: string
+          inhoud_eenheid?: string | null
+          inhoud_per_eenheid?: number | null
+          max_per_bestelling?: number | null
+          mep_categorie?: string | null
+          mep_handeling?: string | null
+          naam?: string
+          naar_vestiging?: string
+          notitie?: string | null
+          recept_id?: string | null
+          updated_at?: string
+          van_vestiging?: string
+          volgorde?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interne_producten_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "artikelen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interne_producten_artikel_id_fkey"
+            columns: ["artikel_id"]
+            isOneToOne: false
+            referencedRelation: "v_ingredienten_stats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interne_producten_recept_id_fkey"
+            columns: ["recept_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interne_producten_recept_id_fkey"
+            columns: ["recept_id"]
+            isOneToOne: false
+            referencedRelation: "v_recept_allergenen"
+            referencedColumns: ["recept_id"]
+          },
+        ]
       }
       kassa_afdrachten: {
         Row: {
@@ -4203,6 +4461,7 @@ export type Database = {
           kanaal: string
           naam: string
           notitie: string | null
+          soort: string
           updated_at: string
         }
         Insert: {
@@ -4216,6 +4475,7 @@ export type Database = {
           kanaal?: string
           naam: string
           notitie?: string | null
+          soort?: string
           updated_at?: string
         }
         Update: {
@@ -4229,6 +4489,7 @@ export type Database = {
           kanaal?: string
           naam?: string
           notitie?: string | null
+          soort?: string
           updated_at?: string
         }
         Relationships: []
@@ -8528,6 +8789,28 @@ export type Database = {
       }
     }
     Functions: {
+      _bord_vorm_kiezen: { Args: { p_bordregel: string }; Returns: Json }
+      _bord_vorm_toepassen: {
+        Args: { p_bordregel: string; p_door: string; p_toepassen: boolean }
+        Returns: Json
+      }
+      _bord_vorm_vastleggen: {
+        Args: {
+          p_artikel_id: string
+          p_artikelnummer: string
+          p_eenheid: string
+          p_inhoud_basis: number
+          p_inhoud_eenheid: string
+          p_leverancier_id: string
+          p_naam: string
+          p_prijs: number
+          p_prijs_bron: string
+          p_prijs_datum: string
+          p_vestiging: string
+          p_vorm: string
+        }
+        Returns: Json
+      }
       bestel_backorder_melden: {
         Args: {
           p_bron_vestiging?: string
@@ -8635,16 +8918,28 @@ export type Database = {
         Args: { p_audit_id: string; p_rijen: Json; p_vestiging: string }
         Returns: Json
       }
-      bestelbot_koppel: {
-        Args: {
-          p_artikel_id: string
-          p_id: string
-          p_leverancier_id: string
-          p_match: number
-          p_vestiging: string
-        }
-        Returns: Json
-      }
+      bestelbot_koppel:
+        | {
+            Args: {
+              p_artikel_id: string
+              p_id: string
+              p_leverancier_id: string
+              p_match: number
+              p_vestiging: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_artikel_id: string
+              p_artikel_vorm_id: string
+              p_id: string
+              p_leverancier_id: string
+              p_match: number
+              p_vestiging: string
+            }
+            Returns: Json
+          }
       bestelbot_lees_besteld: {
         Args: { p_vestiging: string }
         Returns: {
@@ -8729,6 +9024,10 @@ export type Database = {
       }
       bestelbot_normaliseer: { Args: { p_tekst: string }; Returns: string }
       bestelbot_prijzen_opslaan: { Args: { p_rijen: Json }; Returns: Json }
+      bestelbot_vorm_vastleggen: {
+        Args: { p_rij: Json; p_vestiging: string }
+        Returns: Json
+      }
       besteleenheid_norm: { Args: { p: string }; Returns: string }
       bord_afwijking: {
         Args: {
@@ -8739,6 +9038,36 @@ export type Database = {
           p_vestiging: string
         }
         Returns: string
+      }
+      bord_artikel_aanmaken: {
+        Args: {
+          p_artikelnummer?: string
+          p_eenheid: string
+          p_inhoud_basis?: number
+          p_inhoud_eenheid?: string
+          p_leverancier_id: string
+          p_naam: string
+          p_prijs?: number
+          p_vestiging: string
+          p_vorm?: string
+        }
+        Returns: Json
+      }
+      bord_regel_koppelen: {
+        Args: {
+          p_artikel_id: string
+          p_artikel_vorm_id: string
+          p_signaal_id: string
+        }
+        Returns: Json
+      }
+      bord_vorm_automatisch: {
+        Args: { p_bordregel: string; p_toepassen?: boolean }
+        Returns: Json
+      }
+      bord_vorm_automatisch_batch: {
+        Args: { p_toepassen?: boolean; p_vestiging: string }
+        Returns: Json
       }
       claim_next_print_job: {
         Args: never
@@ -8897,6 +9226,117 @@ export type Database = {
       ingredienten_merge: {
         Args: { _drop: string[]; _keep: string }
         Returns: number
+      }
+      interne_bestelling_annuleren: {
+        Args: { p_bestelling_id: string }
+        Returns: Json
+      }
+      interne_bestelling_geleverd: {
+        Args: { p_aantal?: number; p_bestelling_id: string }
+        Returns: Json
+      }
+      interne_bestelling_ontvangen: {
+        Args: {
+          p_aantal?: number
+          p_bestelling_id: string
+          p_opmerking?: string
+        }
+        Returns: Json
+      }
+      interne_bestelling_plaatsen: {
+        Args: {
+          p_aantal: number
+          p_aanvraag_sleutel?: string
+          p_bestel_signaal_id?: string
+          p_notitie?: string
+          p_product_id: string
+        }
+        Returns: Json
+      }
+      interne_bestellingen_lezen: {
+        Args: { p_dagen?: number; p_vestiging: string }
+        Returns: {
+          aantal: number
+          besteld_op: string
+          bestelling_id: string
+          eenheid: string
+          geleverd_aantal: number
+          geleverd_op: string
+          kan_annuleren: boolean
+          kan_ontvangen: boolean
+          mep_datum: string
+          naam: string
+          notitie: string
+          ontvangen_aantal: number
+          ontvangen_op: string
+          product_id: string
+          status: string
+          taak_status: string
+          van_vestiging: string
+        }[]
+      }
+      interne_levering_check: {
+        Args: { p_mijn: string; p_naar: string; p_van: string }
+        Returns: undefined
+      }
+      interne_levering_mep_datum: {
+        Args: { p_nu?: string; p_van: string }
+        Returns: string
+      }
+      interne_mep_lijst: {
+        Args: { p_vestiging: string }
+        Returns: {
+          aantal: number
+          besteld_op: string
+          bestelling_id: string
+          eenheid: string
+          geleverd_aantal: number
+          geleverd_op: string
+          inhoud_eenheid: string
+          inhoud_per_eenheid: number
+          mep_datum: string
+          mep_taak_id: string
+          naam: string
+          naar_vestiging: string
+          notitie: string
+          product_id: string
+          status: string
+          taak_status: string
+          te_laat: boolean
+        }[]
+      }
+      interne_product_opslaan: {
+        Args: {
+          p_actief?: boolean
+          p_artikel_id?: string
+          p_eenheid?: string
+          p_id: string
+          p_inhoud_eenheid?: string
+          p_inhoud_per_eenheid?: number
+          p_max_per_bestelling?: number
+          p_naam: string
+          p_naar: string
+          p_notitie?: string
+          p_recept_id?: string
+          p_van: string
+          p_volgorde?: number
+        }
+        Returns: string
+      }
+      interne_producten_lijst: {
+        Args: { p_vestiging: string }
+        Returns: {
+          eenheid: string
+          inhoud_eenheid: string
+          inhoud_per_eenheid: number
+          max_per_bestelling: number
+          naam: string
+          open_aantal: number
+          product_id: string
+          van_vestiging: string
+          volgende_mep_datum: string
+          volgorde: number
+        }[]
       }
       is_inkoop_beheerder: { Args: never; Returns: boolean }
       is_manager_same_location: {
