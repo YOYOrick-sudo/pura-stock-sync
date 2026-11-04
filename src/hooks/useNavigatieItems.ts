@@ -1,4 +1,4 @@
-import { Home, ListChecks, Settings, BookOpen, Printer, Calculator, ClipboardList, BarChart3, ChefHat, Cookie, MessageSquarePlus } from 'lucide-react';
+import { Home, ListChecks, Settings, BookOpen, Printer, Calculator, ClipboardList, BarChart3, ChefHat, Cookie, MessageSquarePlus, TrendingUp } from 'lucide-react';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useRole } from '@/hooks/useRole';
 import { useIsMtLid } from '@/hooks/useIsMtLid';
@@ -24,6 +24,7 @@ export const allNavigationItems = [
   { title: 'Kassatelling', url: '/kassatelling', icon: Calculator, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Onderhoud', url: '/onderhoud', icon: ClipboardList, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Settings', url: '/settings', icon: Settings, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: true },
+  { title: 'Omzet', url: '/omzet', icon: TrendingUp, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false, mtOnly: true },
   { title: 'MT-punten', url: '/mt-punt', icon: MessageSquarePlus, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false, mtOnly: true },
 ];
 
