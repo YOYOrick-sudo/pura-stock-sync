@@ -117,15 +117,16 @@ Deno.serve(async (req) => {
     }
 
     if (actie === "koppel") {
-      const { id, leverancier_id, artikel_id, match_zekerheid } = body as Record<string, unknown>;
+      const { id, leverancier_id, artikel_id, match_zekerheid, artikel_vorm_id } = body as Record<string, unknown>;
       const okUuid = (v: unknown) => v == null || UUID.test(String(v));
-      if (!UUID.test(String(id)) || !okUuid(leverancier_id) || !okUuid(artikel_id) ||
+      if (!UUID.test(String(id)) || !okUuid(leverancier_id) || !okUuid(artikel_id) || !okUuid(artikel_vorm_id) ||
         (match_zekerheid != null && (typeof match_zekerheid !== "number" || match_zekerheid < 0 || match_zekerheid > 1))) {
         return fout(400, "Ongeldige koppeling");
       }
       const { data, error } = await db.rpc("bestelbot_koppel", {
         p_vestiging: vestiging, p_id: id, p_leverancier_id: leverancier_id ?? null,
         p_artikel_id: artikel_id ?? null, p_match: match_zekerheid ?? null,
+        ...(artikel_vorm_id != null ? { p_artikel_vorm_id: artikel_vorm_id } : {}),
       });
       if (error) return fout(400, error.message);
       await sluit(data?.status === "ok", { http_status: 200, resultaat: data }, [String(id)]);
