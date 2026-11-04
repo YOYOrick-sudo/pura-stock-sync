@@ -356,7 +356,7 @@ describe('interne levering achter de schakelaar', () => {
     invoer.onBlur();
     expect(gezien).toEqual([1]);
     invoer.onChange({ target: { value: '15' } });
-    expect(gezien.at(-1)).toBe(9);
+    expect(gezien[gezien.length - 1]).toBe(9);
   });
 
   test('getypt aantal gaat mee zonder blur bij Bestellen, Ontvangen en Geleverd', async () => {
