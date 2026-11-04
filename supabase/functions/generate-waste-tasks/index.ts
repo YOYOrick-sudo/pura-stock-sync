@@ -66,7 +66,7 @@ function previousOpenDay(loc: Loc, pickupDateStr: string): string {
 }
 
 let cachedToken: string | null = null;
-async function loadToken(client: SupabaseClient): Promise<string> {
+async function loadToken(client: SupabaseClient<any, any, any>): Promise<string> {
   if (cachedToken) return cachedToken;
   const { data, error } = await client.rpc('get_waste_tasks_token');
   if (error || !data) throw new Error('token_unavailable');
