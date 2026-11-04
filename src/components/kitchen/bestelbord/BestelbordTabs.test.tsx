@@ -1,4 +1,3 @@
-// @ts-expect-error vitest types are not installed in the app tsconfig
 import { describe, expect, test } from 'vitest';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
