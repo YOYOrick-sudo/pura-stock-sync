@@ -187,7 +187,7 @@ describe('koppelen en nieuw artikel', () => {
       naam: ' Yoghurt ', leverancierId: 'lev', eenheid: 'bak', vorm: '  ', inhoud: '', inhoudEenheid: null,
       artikelnummer: ' ', prijs: '4,50', metPrijs: false,
     });
-    if (!velden.ok) throw new Error(velden.fout);
+    if (velden.ok === false) throw new Error(velden.fout);
     expect(velden.velden).toEqual({
       naam: 'Yoghurt', leverancierId: 'lev', eenheid: 'bak', vorm: null, inhoudBasis: null,
       inhoudEenheid: null, artikelnummer: null, prijs: null,

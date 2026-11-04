@@ -1,7 +1,11 @@
 // Stap 78: alleen GET bij Kooyman; vergelijken schrijft uitsluitend het sync-log.
-import { createClient } from "npm:@supabase/supabase-js@2.118.0";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { createClient } from "npm:@supabase/supabase-js@2";
 import { z } from "npm:zod@3";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 const KOOYMAN_URL = "https://v2.kooyman-grootverbruik.nl/api/public/v1";
 const KOOYMAN_ID = "42fb7e67-42ca-4c2e-80f4-9d947b2ea825";

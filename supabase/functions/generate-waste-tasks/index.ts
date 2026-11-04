@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -66,7 +66,7 @@ function previousOpenDay(loc: Loc, pickupDateStr: string): string {
 }
 
 let cachedToken: string | null = null;
-async function loadToken(client: ReturnType<typeof createClient>): Promise<string> {
+async function loadToken(client: SupabaseClient<any, any, any>): Promise<string> {
   if (cachedToken) return cachedToken;
   const { data, error } = await client.rpc('get_waste_tasks_token');
   if (error || !data) throw new Error('token_unavailable');

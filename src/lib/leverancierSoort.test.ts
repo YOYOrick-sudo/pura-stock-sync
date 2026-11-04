@@ -47,7 +47,7 @@ describe('soort van een leverancier', () => {
       ],
       error: null,
     });
-    const db = { from: vi.fn(() => b) };
+    const db = { from: vi.fn().mockReturnValue(b) };
     expect((await leesRouteLeveranciers(db)).map((l) => l.id)).toEqual(['boer', 'oud']);
     expect(b.select).toHaveBeenCalledWith('id, naam, kanaal, soort');
   });
