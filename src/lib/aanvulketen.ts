@@ -70,6 +70,13 @@ export function gevolgVanKeuze(keuze: AanvulKeuze): AanvulGevolg {
   }
 }
 
+/** Korte titel boven de knoppen van deze stap. */
+export function stapTitel(naam: string, stap: AanvulStap): string {
+  if (stap === 'koelcel') return `${naam}: waar komt het vandaan?`;
+  if (stap === 'vriezer') return `${naam}: ontdooien of bestellen?`;
+  return `${naam}: staat de lade op peil?`;
+}
+
 /** Doel van de lade, niet een gemeten voorraad. */
 export function doelLadeTekst(vulnorm: string | null | undefined): string {
   if (vulnorm === 'half') return 'Doel lade: minimaal ½ bak';

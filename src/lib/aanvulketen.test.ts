@@ -10,6 +10,7 @@ import {
   isFalafelVoorbeeld,
   ontdooiAantal,
   ontdooiInstructie,
+  stapTitel,
 } from './aanvulketen';
 
 describe('schakelaar', () => {
@@ -52,6 +53,12 @@ describe('keuzes', () => {
     expect(gevolgVanKeuze('ontdooien')).toEqual({ soort: 'ontdooien' });
     expect(gevolgVanKeuze('vriezer_onvoldoende')).toEqual({ soort: 'bestellen' });
   });
+});
+
+test('elke stap heeft een korte titel', () => {
+  expect(stapTitel('Falafel', 'lade')).toBe('Falafel: staat de lade op peil?');
+  expect(stapTitel('Falafel', 'koelcel')).toBe('Falafel: waar komt het vandaan?');
+  expect(stapTitel('Falafel', 'vriezer')).toBe('Falafel: ontdooien of bestellen?');
 });
 
 test('teksten noemen het doel en een concrete ontdooihoeveelheid', () => {
