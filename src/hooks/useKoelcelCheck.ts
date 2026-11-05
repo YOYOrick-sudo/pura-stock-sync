@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { ontdooiAantal } from '@/lib/aanvulketen';
 import { metHerstel } from '@/lib/appWake';
 import { useKanaalHerstel } from '@/lib/realtime';
 
@@ -459,6 +460,7 @@ async function mepTaakVoorItem(
   aantal: number,
   /** 1 = belangrijk (vandaag maken), 2 = normaal (mag morgen). */
   prioriteit: number = 2,
+  extra?: { notitie?: string },
 ): Promise<{ id: string; dubbel: boolean }> {
   const { data: bestaand, error: zoekFout } = await supabase
     .from('mep_taken')
@@ -504,6 +506,7 @@ async function mepTaakVoorItem(
         prioriteit,
         volgorde,
         created_by: user.user?.id ?? null,
+        ...(extra?.notitie ? { notitie: extra.notitie } : {}),
       })
       .select('id')
       .single(),
@@ -1099,6 +1102,53 @@ export function useKoelcelCheckMutaties(
     onSettled: naInvalidatie,
   });
 
+  /**
+   * Voorbeeld aanvulketen (falafel): ontdooien wordt een bestaande MEP-taak
+   * met handeling Ontdooien. Staat die er al, dan geen tweede.
+   */
+  const ontdooiDirect = useMutation({
+    retry: false,
+    mutationFn: async ({ item, taakDatum }: { item: KoelcelCheckItem; taakDatum: string }) => {
+      const aantal = ontdooiAantal(item);
+      const res = await mepTaakVoorItem(item, vestiging, taakDatum, 'Ontdooien', aantal, 2, {
+        notitie: 'Ontdooien uit de vriezer voor de volgende service',
+      });
+      await schrijfCheck({
+        item_id: item.id,
+        status: 'naar_mep',
+        doorgezet_naar: 'mep',
+        mep_taak_id: res.id,
+        aantal_doorgezet: aantal,
+      });
+      return { item, dubbel: res.dubbel, aantal };
+    },
+    onSettled: naInvalidatie,
+  });
+
+  /**
+   * Voorbeeld aanvulketen (falafel): vriezer onvoldoende maakt of werkt het
+   * open bestelsignaal bij. Zelfde tabel en dezelfde velden als de sluitlijst.
+   */
+  const bestelUitSluitlijst = useMutation({
+    retry: false,
+    mutationFn: async ({ item }: { item: KoelcelCheckItem }) => {
+      const doel = Number(item.doel_aantal ?? 1);
+      const opdracht = bestelOpdracht(item, doel > 0 ? doel : 1, 0);
+      const res = await opBestelbord(item, vestiging, opdracht.eenheden, {
+        eenheid: opdracht.eenheidNaam,
+        notitie: 'Vriezer onvoldoende bij sluiten',
+      });
+      await schrijfCheck({
+        item_id: item.id,
+        status: 'gemeld',
+        doorgezet_naar: 'bestelbord',
+        aantal_doorgezet: res.aantal,
+      });
+      return { item, dubbel: res.dubbel, aantal: res.aantal };
+    },
+    onSettled: naInvalidatie,
+  });
+
   return {
     zetStatus,
     meldOp,
@@ -1107,6 +1157,8 @@ export function useKoelcelCheckMutaties(
     naarMep: meldOp,
     naarMepDirect,
     bronOp,
+    ontdooiDirect,
+    bestelUitSluitlijst,
   };
 }
 

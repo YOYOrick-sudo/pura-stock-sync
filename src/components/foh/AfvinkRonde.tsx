@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Check, ChefHat, Loader2, PackageX, RotateCcw, WifiOff } from 'lucide-react';
 import { SectieBalk } from './SectieBalk';
+import { FalafelAanvulRij } from './FalafelAanvulRij';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { aanvulketenAan, isFalafelVoorbeeld } from '@/lib/aanvulketen';
 import { vraagtKoelcelBevestiging } from '@/lib/koelcelBevestiging';
+import { isPreviewHost } from '@/lib/pwa';
 import { cn } from '@/lib/utils';
 import {
   useKoelcelCheckItems,
@@ -54,7 +58,14 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
   const { data: lades = [] } = useVoorraadLades(vestiging);
   const { data: checksLijst = [] } = useKoelcelChecks(vestiging, datum);
   const kalender = useMepKalender(vestiging);
-  const { zetStatus, naarMepDirect, bronOp } = useKoelcelCheckMutaties(vestiging, datum, items);
+  const { zetStatus, naarMepDirect, bronOp, ontdooiDirect, bestelUitSluitlijst } = useKoelcelCheckMutaties(vestiging, datum, items);
+  const [zoekparams] = useSearchParams();
+  const ketenAan = aanvulketenAan({
+    vestiging,
+    env: (import.meta.env as { VITE_SLUIT_AANVULKETEN?: string }).VITE_SLUIT_AANVULKETEN,
+    search: zoekparams.toString(),
+    previewHost: typeof window !== 'undefined' && isPreviewHost(window.location.hostname),
+  });
   const [bezig, setBezig] = useState<Set<string>>(new Set());
   const [mislukt, setMislukt] = useState<Record<string, () => void>>({});
   const [koelcelKeuze, setKoelcelKeuze] = useState<KoelcelCheckItem | null>(null);
@@ -142,6 +153,28 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
         toast.success(r.dubbel ? `${item.naam} stond al op de MEP` : `${item.naam} staat op de MEP`);
       },
       () => mep(item),
+    );
+  };
+
+  const ontdooi = (item: KoelcelCheckItem) => {
+    metStatus(
+      item.id,
+      async () => {
+        const r = await ontdooiDirect.mutateAsync({ item, taakDatum });
+        toast.success(r.dubbel ? `${item.naam} stond al op de ontdooilijst` : `Ontdooien gestart voor ${item.naam}`);
+      },
+      () => ontdooi(item),
+    );
+  };
+
+  const bestelVoorbeeld = (item: KoelcelCheckItem) => {
+    metStatus(
+      item.id,
+      async () => {
+        const r = await bestelUitSluitlijst.mutateAsync({ item });
+        toast.success(r.dubbel ? `${item.naam} stond al op het bestelbord` : `${item.naam} staat op het bestelbord`);
+      },
+      () => bestelVoorbeeld(item),
     );
   };
 
@@ -240,6 +273,31 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                       </span>
                     );
                     const naam = /flessen/i.test(g.titel) ? i.naam.replace(/\s*\(fles\)\s*$/i, '') : i.naam;
+                    if (ketenAan && isFalafelVoorbeeld(i)) {
+                      return (
+                        <FalafelAanvulRij
+                          key={i.id}
+                          naam={naam}
+                          vulnorm={i.vulnorm}
+                          eenheid={i.eenheid}
+                          doelAantal={i.doel_aantal}
+                          batchAantal={i.batch_aantal}
+                          afgevinkt={!!afgevinkt}
+                          doorgezet={!!doorgezet}
+                          doorgezetNaar={c?.doorgezet_naar}
+                          laden={laden}
+                          fout={fout}
+                          onOpPeil={() => vink(i)}
+                          onAangevuld={() => vink(i)}
+                          onOntdooien={() => ontdooi(i)}
+                          onBestellen={() => bestelVoorbeeld(i)}
+                          onHerstel={() =>
+                            metStatus(i.id, () => zetStatus.mutateAsync({ item: i, status: 'aanwezig', uit: true }), () => {})
+                          }
+                          onVink={() => vink(i)}
+                        />
+                      );
+                    }
                     return (
                       <li
                         key={i.id}
