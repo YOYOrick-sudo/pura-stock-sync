@@ -16,3 +16,5 @@ Bain-marie print jobs bypass the quick-print suggestion registration through reg
 App-shell service workers register only through src/lib/pwa.ts with development, preview, iframe and kill-switch guards; cleanup targets only app-shell workers and their caches, because stale preview bundles must not persist or disrupt messaging workers.
 Kooyman receipt sync uses GET-only supplier requests, strips price fields, gates operational writes separately from Test and comparison runs, and evaluates pickup windows through a pure Amsterdam weekday/time helper, because manual trials must not mutate live receipt flows and UTC weekdays must not affect local scheduling.
 Source-availability confirmations in AfvinkRonde reuse existing check/order mutations and preserve explicit confirmation on retry, because presentation must not infer an empty source or duplicate operational actions.
+
+Task English translations are filled by the translate-task function only when the English field is empty or still equals the app's own last auto-translation, because manual English must never be overwritten.
