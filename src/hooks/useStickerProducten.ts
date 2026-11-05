@@ -75,6 +75,9 @@ export function useCreateStickerPrintJob() {
   const qc = useQueryClient();
   const { userLocation } = useUserLocation();
   return useMutation({
+    // Een printopdracht is niet idempotent. De globale retry in App.tsx
+    // zou na een fout dezelfde sticker opnieuw in de wachtrij zetten.
+    retry: false,
     mutationFn: async (input: CreateStickerJobInput) => {
       const zpl = buildStickerZpl(input);
       const label_omschrijving = buildStickerOmschrijving(input);
@@ -90,13 +93,19 @@ export function useCreateStickerPrintJob() {
       const { error: jobErr } = await metHerstel(() => supabase.from('print_jobs').insert(rows));
       if (jobErr) throw jobErr;
 
-      await registreerStickerGebruik(input.type, (type) => metHerstel(() =>
-        supabase.rpc('sticker_producten_bump', {
-          _naam: input.naam,
-          _type: type,
-          _tht: input.type === 'vrij' ? null : (input.tht_dagen ?? null),
-        }),
-      ));
+      // De sticker staat al in de wachtrij. Een mislukte telstap mag de
+      // mutatie niet laten falen, anders wordt de printopdracht herhaald.
+      try {
+        await registreerStickerGebruik(input.type, (type) => metHerstel(() =>
+          supabase.rpc('sticker_producten_bump', {
+            _naam: input.naam,
+            _type: type,
+            _tht: input.type === 'vrij' ? null : (input.tht_dagen ?? null),
+          }),
+        ));
+      } catch (fout) {
+        console.warn('Stickerregistratie mislukt', fout);
+      }
 
       return { count: n };
     },
