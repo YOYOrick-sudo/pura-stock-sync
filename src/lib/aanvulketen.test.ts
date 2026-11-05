@@ -78,6 +78,10 @@ test('teksten noemen het doel en een concrete ontdooihoeveelheid', () => {
 test('de sluitlijst toont de keten alleen achter de schakelaar en alleen voor falafel', () => {
   const tekst = readFileSync(new URL('../components/foh/AfvinkRonde.tsx', import.meta.url), 'utf8');
   expect(tekst).toContain('ketenAan && isFalafelVoorbeeld');
+  expect(tekst).toContain('heeftVriezerNaarKoelcel');
+  expect(tekst).toContain('VriezerNaarKoelcelRij');
+  expect(tekst).toContain('ontdooiStickerOpdracht');
+  expect(tekst).not.toContain(".from('print_jobs')");
   expect(tekst).toContain('ontdooiDirect');
   expect(tekst).toContain('bestelUitSluitlijst');
   const hook = readFileSync(new URL('../hooks/useKoelcelCheck.ts', import.meta.url), 'utf8');

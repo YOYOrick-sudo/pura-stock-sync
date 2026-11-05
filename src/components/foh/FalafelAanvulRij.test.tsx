@@ -66,6 +66,18 @@ test('koelcel en vriezer tonen alleen de knoppen van die stap', () => {
   expect(vriezer).not.toContain('Aangevuld uit koelcel');
 });
 
+test('na pakken uit de koelcel verdwijnen de vragen en blijft alleen terug', () => {
+  const uit = html({ koelcelGepakt: true, onTerugVanKoelcel: stil });
+  expect(uit).toContain('Lade aangevuld uit de koelcel.');
+  expect(uit).toContain('Min. ½');
+  expect(uit).toContain('Terug');
+  expect(uit).toContain('disabled');
+  expect(uit).not.toContain('Aangevuld uit koelcel');
+  expect(uit).not.toContain('Koelcel onvoldoende');
+  expect(uit).not.toContain('>Op peil<');
+  expect(uit).not.toContain('Aanvullen');
+});
+
 test('afgevinkt en doorgezet tonen de uitkomst, geen nieuwe keuzes', () => {
   const klaar = html({ afgevinkt: true });
   expect(klaar).toContain('Op peil');
