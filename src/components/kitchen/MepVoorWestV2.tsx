@@ -13,20 +13,22 @@ import {
   useInterneV2Meegegeven, useInterneV2Producten,
 } from '@/hooks/useInterneLeveringV2';
 import {
-  aantalRegel, INTERNE_LEVERING_V2, leverdagTekst, mepRegels, MEP_TITEL, nogMeeTeGeven, nogTeVerdelen,
-  statusWeergave,   uitvoeringGeblokkeerd, v2MepZichtbaar, vandaagAmsterdam, type Aanvraag,
+  aantalRegel, INTERNE_LEVERING_V2, leverdagTekst, mepRegels, meldingInplannenOpTest, meldingUitInplanFout,
+  MEP_TITEL, nogMeeTeGeven, nogTeVerdelen, statusWeergave, uitvoeringGeblokkeerd, v2MepZichtbaar,
+  vandaagAmsterdam, type Aanvraag,
 } from '@/lib/interneLeveringV2';
 
 type Modus = 'mep' | 'voorraad' | 'koppel' | null;
 
 export function MepVoorWestV2Kaart({
-  regels, producten, gekozenDag, vandaag, bezig,
+  regels, producten, gekozenDag, vandaag, vestiging, bezig,
   onInplannen, onKlaarzetten, onMeegeven, onKoppelen,
 }: {
   regels: Aanvraag[];
   producten: { id: string; naam: string }[];
   gekozenDag: string | null;
   vandaag: string;
+  vestiging?: string | null;
   bezig?: boolean;
   onInplannen: (a: Aanvraag, aantal: number, mepDatum: string, leverdag: string) => Promise<unknown>;
   onKlaarzetten: (a: Aanvraag, aantal: number, leverdag: string, meegeven: boolean) => Promise<unknown>;
@@ -42,6 +44,10 @@ export function MepVoorWestV2Kaart({
   const [mepDatum, setMepDatum] = useState(gekozenDag && gekozenDag >= vandaag ? gekozenDag : vandaag);
   const [leverdag, setLeverdag] = useState(vandaag);
   const [productId, setProductId] = useState(producten[0]?.id ?? '');
+  const [inplanFout, setInplanFout] = useState<string | null>(null);
+  const zonderMep = meldingInplannenOpTest(vestiging);
+  const kanInplannen = open.some((a) => !uitvoeringGeblokkeerd(a) && nogTeVerdelen(a) > 0);
+  const melding = (zonderMep && kanInplannen) ? zonderMep : inplanFout;
 
   const start = (a: Aanvraag, volgende: Modus) => {
     setOpenId(a.id);
@@ -66,6 +72,7 @@ export function MepVoorWestV2Kaart({
         Alle open aanvragen, los van de dag die je hierboven koos.
         {nieuw > 0 ? ` ${nieuw} nieuw.` : ''}
       </p>
+      {melding && <p role="alert" className="px-4 pb-2 text-sm text-foreground lg:px-6">{melding}</p>}
       {open.length === 0 && <p className="px-4 py-4 text-sm text-muted-foreground lg:px-6">Geen open aanvragen.</p>}
       <div className="divide-y divide-border">
         {open.map((a) => {
@@ -93,7 +100,7 @@ export function MepVoorWestV2Kaart({
                   <Button type="button" size="touch" aria-label={`Koppelen ${a.naam}`} onClick={() => start(a, 'koppel')}>Artikel koppelen</Button>
                 ) : (
                   <>
-                    {nogTeVerdelen(a) > 0 && (
+                    {nogTeVerdelen(a) > 0 && !zonderMep && (
                       <Button type="button" size="touch" aria-label={`Inplannen ${a.naam}`} onClick={() => start(a, 'mep')}>Inplannen op MEP</Button>
                     )}
                     {nogTeVerdelen(a) > 0 && (
@@ -143,9 +150,12 @@ export function MepVoorWestV2Kaart({
                       try {
                         await onInplannen(a, aantal, mepDatum, leverdag);
                         setOpenId(null);
+                        setInplanFout(null);
                         toast.success(`${a.naam} staat op de MEP`);
                       } catch (e) {
-                        toast.error(foutTekst(e));
+                        const netjes = meldingUitInplanFout(e);
+                        if (netjes) setInplanFout(netjes);
+                        else toast.error(foutTekst(e));
                       }
                     }}>Inplannen</Button>
                   ) : (
@@ -193,6 +203,7 @@ export function MepVoorWestV2({ vestiging, gekozenDag }: { vestiging: string; ge
       producten={(producten.data ?? []).map((p) => ({ id: p.product_id, naam: p.naam }))}
       gekozenDag={gekozenDag}
       vandaag={vandaagAmsterdam()}
+      vestiging={vestiging}
       bezig={inplannen.isPending || klaarzetten.isPending || mee.isPending || koppelen.isPending}
       onInplannen={(a, aantal, mepDatum, leverdag) => inplannen.mutateAsync({ vestiging, id: a.id, aantal, mepDatum, leverdag })}
       onKlaarzetten={(a, aantal, leverdag, meegeven) => klaarzetten.mutateAsync({ vestiging, id: a.id, aantal, leverdag, meegeven })}

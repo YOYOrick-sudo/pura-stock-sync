@@ -75,6 +75,7 @@ export default function InterneLeveringV2Voorbeeld() {
           producten={producten.map((p) => ({ id: p.product_id, naam: p.naam }))}
           gekozenDag="2026-11-01"
           vandaag={VANDAAG}
+          vestiging="Test"
           onKoppelen={async (a, productId) => {
             const product = producten.find((p) => p.product_id === productId);
             if (!product) return;

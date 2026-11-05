@@ -8,6 +8,24 @@ export const MEP_TITEL = 'Voor West';
 export const VAN_VESTIGING = 'Midsland';
 export const NAAR_VESTIGING = 'West';
 
+/** Zelfde zin als interne_v2_inplannen wanneer de aanvraag een proef op Test is. */
+export const GEEN_MEP_OP_TEST = 'Op Test is er geen MEP. Gebruik Uit voorraad klaarzetten.';
+
+/** Op Test bestaat geen MEP-taak. De knop Inplannen hoort dan deze zin te tonen. */
+export function meldingInplannenOpTest(vestiging: string | null | undefined): string | null {
+  return vestiging === 'Test' ? GEEN_MEP_OP_TEST : null;
+}
+
+/** Haalt die zin uit een rpc-fout, ook als Postgres er context omheen zet. */
+export function meldingUitInplanFout(fout: unknown): string | null {
+  const tekst = fout instanceof Error
+    ? fout.message
+    : typeof fout === 'string'
+      ? fout
+      : (typeof fout === 'object' && fout && 'message' in fout && typeof fout.message === 'string' ? fout.message : '');
+  return tekst.includes(GEEN_MEP_OP_TEST) ? GEEN_MEP_OP_TEST : null;
+}
+
 export const EENHEDEN = ['stuks', 'bak', 'kg', 'g', 'pak', 'zak', 'doos', 'emmer', 'tray', 'fust'] as const;
 
 export type StatusLabel =

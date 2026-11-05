@@ -2,9 +2,9 @@
 import { describe, expect, test } from 'vitest';
 import {
   GROEP_TITEL, MEP_TITEL, ZICHTBARE_VELDEN, annuleerRest, doelNaMinder, doelNaPlan, geefMee,
-  klaarUitVoorraad, koppelArtikel, mepDatumBijPlaatsen, mepRegels, ontvang, openRestant,
-  plaatsProduct, plaatsVrijeNaam, planOpMep, statusWeergave, uitvoeringGeblokkeerd, v1InternZichtbaar,
-  v2BordZichtbaar, v2MepZichtbaar, verdeelMepKlaar, zonderPrijzen, type Aanvraag,
+  klaarUitVoorraad, koppelArtikel, mepDatumBijPlaatsen, mepRegels, meldingInplannenOpTest, meldingUitInplanFout,
+  ontvang, openRestant, plaatsProduct, plaatsVrijeNaam, planOpMep, statusWeergave, uitvoeringGeblokkeerd,
+  v1InternZichtbaar, v2BordZichtbaar, v2MepZichtbaar, verdeelMepKlaar, zonderPrijzen, type Aanvraag,
 } from './interneLeveringV2';
 
 const VANDAAG = '2026-11-05';
@@ -97,6 +97,15 @@ describe('stap 2 bevestigen', () => {
     ];
     const zichtbaar = mepRegels(regels, '2026-11-07').map((r) => r.id);
     expect(zichtbaar).toEqual(['1', '2', '3']);
+  });
+
+  test('op Test is er geen MEP en de melding wijst naar uit voorraad', () => {
+    expect(meldingInplannenOpTest('Test')).toBe('Op Test is er geen MEP. Gebruik Uit voorraad klaarzetten.');
+    expect(meldingInplannenOpTest('Midsland')).toBeNull();
+    expect(meldingInplannenOpTest('West')).toBeNull();
+    expect(meldingUitInplanFout(new Error('Op Test is er geen MEP. Gebruik Uit voorraad klaarzetten.'))).toBe('Op Test is er geen MEP. Gebruik Uit voorraad klaarzetten.');
+    expect(meldingUitInplanFout(new Error('ERROR: Op Test is er geen MEP. Gebruik Uit voorraad klaarzetten.\nCONTEXT: interne_v2_inplannen'))).toBe('Op Test is er geen MEP. Gebruik Uit voorraad klaarzetten.');
+    expect(meldingUitInplanFout(new Error('Ongeldige vestiging: Test'))).toBeNull();
   });
 
   test('inplannen bevestigt, bewaart het aantal per aanvraag en verhoogt alleen het doel', () => {

@@ -106,6 +106,11 @@ REVOKE ALL ON TABLE public.interne_aanvraag FROM PUBLIC, anon, authenticated;
 GRANT SELECT ON TABLE public.interne_aanvraag TO authenticated;
 GRANT ALL ON TABLE public.interne_aanvraag TO service_role;
 
+-- FIX Programmeerbot 5-11: fase2_vlag_vlag_check kende interne_levering_v2 niet (zelfde aanpak als klus 10).
+ALTER TABLE public.fase2_vlag DROP CONSTRAINT IF EXISTS fase2_vlag_vlag_check;
+ALTER TABLE public.fase2_vlag ADD CONSTRAINT fase2_vlag_vlag_check
+  CHECK (vlag = ANY (ARRAY['ontvangst_v2'::text, 'keukenadvies'::text, 'leverancier_kiezen'::text, 'interne_levering'::text, 'interne_levering_v2'::text]));
+
 INSERT INTO public.fase2_vlag (vestiging, vlag, aan, notitie)
 SELECT v.vestiging, 'interne_levering_v2', v.aan, v.notitie
 FROM (VALUES
@@ -298,7 +303,7 @@ BEGIN
           SELECT round(sum(GREATEST(0, a.besteld_aantal - a.ontvangen_aantal - a.geannuleerd_aantal)), 3)
           FROM public.interne_aanvraag a
           WHERE a.product_id = p.id
-            AND a.proef IS (p_vestiging = 'Test')
+            AND a.proef IS NOT DISTINCT FROM (p_vestiging = 'Test')  -- FIX Programmeerbot 5-11: 'IS (expr)' is geen geldige SQL
             AND a.besteld_aantal > a.ontvangen_aantal + a.geannuleerd_aantal
         ), 0)
       ) AS obj
@@ -639,6 +644,11 @@ BEGIN
   IF r.product_id IS NULL THEN
     RAISE EXCEPTION 'Koppel eerst een bestaand artikel' USING ERRCODE = '22023';
   END IF;
+  -- FIX Programmeerbot 5-11: validate_mep_taak staat alleen West en Midsland toe, dus op Test
+  -- kan geen MEP-taak bestaan. Duidelijke melding in plaats van 'Ongeldige vestiging: Test'.
+  IF r.proef IS TRUE THEN
+    RAISE EXCEPTION 'Op Test is er geen MEP. Gebruik Uit voorraad klaarzetten.' USING ERRCODE = '22023';
+  END IF;
   IF p_mep_datum IS NULL OR p_verwachte_leverdag IS NULL THEN
     RAISE EXCEPTION 'Kies een MEP-dag en de verwachte leverdag' USING ERRCODE = '22023';
   END IF;
@@ -678,6 +688,9 @@ BEGIN
       AND t.status = 'open'
       AND t.handeling = 'Bereiden'
       AND t.doel_eenheid = r.eenheid
+      -- FIX Programmeerbot 5-11: niet optellen bij een v1-taak (interne_bestelling), anders telt
+      -- mep_klaar productie van v1 mee voor v2.
+      AND NOT EXISTS (SELECT 1 FROM public.interne_bestelling b WHERE b.mep_taak_id = t.id)
     ORDER BY t.created_at
     LIMIT 1
     FOR UPDATE;
@@ -818,7 +831,7 @@ BEGIN
   FOR r IN
     SELECT * FROM public.interne_aanvraag
     WHERE mep_taak_id = p_taak_id
-      AND proef IS (p_vestiging = 'Test')
+      AND proef IS NOT DISTINCT FROM (p_vestiging = 'Test')  -- FIX Programmeerbot 5-11: 'IS (expr)' is geen geldige SQL
       AND status <> 'geannuleerd'
     ORDER BY besteld_op, id
     FOR UPDATE
@@ -895,12 +908,15 @@ BEGIN
     INSERT INTO public.ontvangst_regel (
       levering_id, sleutel, vestiging, bron, bron_vestiging, leverancier_id,
       artikel_id, omschrijving, aantal, besteld_aantal, eenheid,
-      uitkomst, ontvangen_op, geregistreerd_door, opmerking, telt_voorraad
+      uitkomst, ontvangen_op, geregistreerd_door, opmerking
+      -- FIX Programmeerbot 5-11: telt_voorraad is een gegenereerde kolom (binnen => true, net als v1); niet invullen.
     ) VALUES (
       r.id, 'intern-v2:' || r.id::text || ':' || gen_random_uuid()::text,
-      v_vestiging, 'intern', 'Midsland', v_lev,
+      -- FIX Programmeerbot 5-11: bron_check kent geen 'intern' en ontvangst_regel_check eist
+      -- vestiging = bron_vestiging (of Test). Zelfde waarden als v1: bron eindcheck, bron_vestiging West.
+      v_vestiging, 'eindcheck', 'West', v_lev,
       r.artikel_id, COALESCE(v_naam, 'Intern'), round(p_aantal, 3), r.besteld_aantal, r.eenheid,
-      'binnen', timezone('Europe/Amsterdam', now()), auth.uid(), v_opmerking, false
+      'binnen', (timezone('Europe/Amsterdam', now()))::date, auth.uid(), v_opmerking
     ) RETURNING id INTO v_regel;
   END IF;
 
