@@ -708,6 +708,19 @@ export function ListManager({
       }
       await syncToToday(id, patch);
       flashSaved();
+      if (patch.title !== undefined || patch.description !== undefined) {
+        const huidig = (queryClient.getQueryData<TemplateTask[]>(['list-manager-templates', location, phase, department]) || []).find((t) => t.id === id);
+        if (huidig && huidig.title && magAutoVertalenVoor(id, huidig.title_en)) {
+          void vertaalTaken([{ title: huidig.title, description: huidig.description }]).then((r) => {
+            const v = r?.[0];
+            if (!v?.title_en) return;
+            onthoudAuto(id, v.title_en);
+            const enPatch: Partial<TemplateTask> = { title_en: v.title_en };
+            if (!(huidig.description_en ?? '').trim()) enPatch.description_en = v.description_en;
+            void updateTaskRef.current?.(id, enPatch);
+          });
+        }
+      }
       // Geen invalidate hier — optimistic state is al correct, voorkomt flicker
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
       queryClient.invalidateQueries({ queryKey: ['foh-weekly-templates'] });
@@ -715,6 +728,8 @@ export function ListManager({
     },
     [location, phase, department, isCurrentActive, queryClient],
   );
+  const updateTaskRef = useRef(updateTask);
+  updateTaskRef.current = updateTask;
 
   const deleteTask = async (id: string) => {
     const task = currentTasks.find((t) => t.id === id);
@@ -795,6 +810,13 @@ export function ListManager({
         archived: false,
       });
     }
+
+    void vertaalTaken([{ title }]).then((r) => {
+      const v = r?.[0];
+      if (!v?.title_en) return;
+      onthoudAuto(inserted.id, v.title_en);
+      void updateTaskRef.current?.(inserted.id, { title_en: v.title_en });
+    });
 
     setNewTaskTitle('');
     setAddingTaskInCategory(null);
