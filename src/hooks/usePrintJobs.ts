@@ -23,6 +23,9 @@ function fmtStickerDate(d: Date): string {
 export function useCreatePrintJob() {
   const { userLocation } = useUserLocation();
   return useMutation({
+    // Een printopdracht is niet idempotent. De globale retry in App.tsx
+    // zou na een fout dezelfde sticker opnieuw in de wachtrij zetten.
+    retry: false,
     mutationFn: async (recipe: PrintableRecipe) => {
       const zpl = buildRecipeLabelZpl(recipe);
       const dagen = recipe.tht_dagen ?? 3;
@@ -54,7 +57,7 @@ export function useCreatePrintJob() {
           : 'Sticker in de wachtrij — check de statusbalk als er niets uitkomt',
       );
     },
-    onError: (e: any) => {
+    onError: (e: { message?: string }) => {
       toast.error(e?.message ?? 'Kon sticker niet aanmaken');
     },
   });
