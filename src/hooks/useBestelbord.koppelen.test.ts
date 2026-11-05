@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import { useBestelbordMutaties, useLeverancierSoorten, useLeveranciersVoorVestiging, zoekBordSuggesties } from './useBestelbord';
+import { useBestelbordMutaties, useLeverancierSoorten, useLeveranciersVoorVestiging, zoekArtikelstam, zoekBordSuggesties } from './useBestelbord';
+
+vi.mock('@/lib/appWake', () => ({ metHerstel: (operation: () => unknown) => operation() }));
 
 const mocks = vi.hoisted(() => ({
   invalidate: vi.fn(),
@@ -100,6 +102,46 @@ describe('bord koppelen en artikel aanmaken', () => {
       [{ queryKey: ['bestel-signalen', 'West'] }],
       [{ queryKey: ['artikel-vormen', 'West'] }],
     ]);
+  });
+});
+
+describe('artikelstam op het bord', () => {
+  test('koppelen schrijft alleen artikel_id op een bestelde vrije regel', async () => {
+    useBestelbordMutaties('West');
+    const opties = mocks.mutaties.find((m) => m.mutationFn?.toString().includes(".is('artikel_id', null)"));
+    if (!opties?.mutationFn) throw new Error('koppelAlleenArtikel ontbreekt');
+    const update = vi.fn();
+    const eq = vi.fn();
+    const is = vi.fn();
+    const select = vi.fn();
+    const klaar = Promise.resolve({ data: [{ id: 's1' }], error: null });
+    const b = { update, eq, is, select, then: klaar.then.bind(klaar) };
+    update.mockReturnValue(b);
+    eq.mockReturnValue(b);
+    is.mockReturnValue(b);
+    select.mockReturnValue(b);
+    mocks.from.mockReturnValue(b);
+    await opties.mutationFn({ id: 's1', artikelId: 'a1' } as never);
+    expect(mocks.from).toHaveBeenCalledWith('bestel_signalen');
+    expect(update).toHaveBeenCalledWith({ artikel_id: 'a1' });
+    expect(eq.mock.calls).toEqual([['id', 's1'], ['status', 'besteld']]);
+    expect(is).toHaveBeenCalledWith('artikel_id', null);
+    expect(select).toHaveBeenCalledWith('id');
+    const bron = String(opties.mutationFn);
+    expect(bron).not.toMatch(/leverancier_id:|status:|aantal:/);
+  });
+
+  test('zoeken vraagt artikel_zoek_v2 en houdt historie apart', async () => {
+    mocks.rpc.mockResolvedValue({
+      data: [{
+        artikel_id: 'a1', naam: 'Dragonfruit', score: '1.000', status: 'concept', bron: 'artikel',
+        standaard_vorm: 'stuk', standaard_eenheid: 'stuk', op_vestiging: true,
+      }],
+      error: null,
+    });
+    const uit = await zoekArtikelstam('Test', 'dragon');
+    expect(mocks.rpc).toHaveBeenCalledWith('artikel_zoek_v2', { p_vestiging: 'Test', p_tekst: 'dragon', p_limit: 15 });
+    expect(uit[0]).toMatchObject({ artikel_id: 'a1', status: 'concept', bron: 'artikel', score: 1 });
   });
 });
 

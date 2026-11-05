@@ -5,6 +5,7 @@ import { alsSoort, soortKolomOntbreekt } from '@/lib/leverancierSoort';
 import { metHerstel } from '@/lib/appWake';
 import { useKanaalHerstel } from '@/lib/realtime';
 import { BORD_SUGGESTIE_LIMIET, herhaalNormen, type BordBron } from '@/lib/bordZoeken';
+import type { ArtikelZoekRij } from '@/lib/artikelstam';
 
 type LosAntwoord = { data: unknown; error: { message: string } | null };
 interface LosseQuery extends PromiseLike<LosAntwoord> {
@@ -453,7 +454,72 @@ export function useBestelbordMutaties(vestiging: string) {
     onSettled: verversOokVormen,
   });
 
-  return { toevoegen, zetBesteld, verwijderen, herstel, wijzig, markeerGeleverd, nietGeleverd, deelsGeleverd, terugNaarBesteld, zetVerwachteLevering, koppelen, artikelAanmaken };
+  /**
+   * Alleen artikel_id, en alleen op een bestelde regel die er nog geen heeft.
+   * Geen andere kolom van bestel_signalen.
+   */
+  const koppelAlleenArtikel = useMutation({
+    mutationFn: async ({ id, artikelId }: { id: string; artikelId: string }) => {
+      const { data, error } = await metHerstel(() =>
+        supabase
+          .from('bestel_signalen')
+          .update({ artikel_id: artikelId })
+          .eq('id', id)
+          .eq('status', 'besteld')
+          .is('artikel_id', null)
+          .select('id'),
+      );
+      if (error) throw error;
+      if (!data?.length) throw new Error('De regel staat niet meer als besteld');
+    },
+    onSettled: ververs,
+  });
+
+  return { toevoegen, zetBesteld, verwijderen, herstel, wijzig, markeerGeleverd, nietGeleverd, deelsGeleverd, terugNaarBesteld, zetVerwachteLevering, koppelen, artikelAanmaken, koppelAlleenArtikel };
+}
+
+/** Zoeken in de stam. Ontbreekt de functie, dan gooit de aanroep door naar de fallback. */
+export async function zoekArtikelstam(vestiging: string, tekst: string): Promise<ArtikelZoekRij[]> {
+  const { data, error } = await los.rpc('artikel_zoek_v2', {
+    p_vestiging: vestiging,
+    p_tekst: tekst,
+    p_limit: BORD_SUGGESTIE_LIMIET,
+  });
+  if (error) throw error;
+  return ((data ?? []) as {
+    artikel_id?: string | null;
+    naam?: string | null;
+    score?: number | string | null;
+    status?: string | null;
+    bron?: string | null;
+    standaard_vorm?: string | null;
+    standaard_eenheid?: string | null;
+    op_vestiging?: boolean | null;
+  }[]).map((r) => ({
+    artikel_id: r.artikel_id ?? null,
+    naam: r.naam ?? '',
+    score: Number(r.score ?? 0),
+    status: r.status ?? null,
+    bron: r.bron === 'historie' ? 'historie' : 'artikel',
+    standaard_vorm: r.standaard_vorm ?? null,
+    standaard_eenheid: r.standaard_eenheid ?? null,
+    op_vestiging: r.op_vestiging === true,
+  }));
+}
+
+/** Concept-artikel, locatie en alias. De koppeling van de bordregel doet de app daarna zelf. */
+export async function maakConceptArtikel(
+  vestiging: string,
+  naam: string,
+  leverancierId: string | null,
+): Promise<{ artikel_id: string }> {
+  const { data, error } = await los.rpc('rpc_bord_maak_concept_artikel_v2', {
+    p_vestiging: vestiging,
+    p_naam: naam,
+    p_leverancier_id: leverancierId,
+  });
+  if (error) throw error;
+  return { artikel_id: typeof data === 'string' ? data : '' };
 }
 
 /** id → soort. `soort` staat nog niet in de gegenereerde types. */
