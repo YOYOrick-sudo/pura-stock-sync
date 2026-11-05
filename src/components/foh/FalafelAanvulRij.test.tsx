@@ -37,7 +37,12 @@ test('start toont de peilbalk en compacte knoppen, zonder bestellen', () => {
   expect(uit).toContain('Aanvullen');
   expect(uit).toContain('bg-warning');
   expect(uit).toContain('h-11');
+  expect(uit).toContain('animate-in');
+  expect(uit).toContain('duration-200');
+  expect(uit).toContain('active:scale-[0.98]');
   expect(uit).not.toContain('min-h-16');
+  expect(uit).not.toContain('animate-bounce');
+  expect(uit).not.toContain('repeat-infinite');
   expect(uit).not.toContain('Bijbestellen');
   expect(uit).not.toContain('Vriezer onvoldoende');
 });
