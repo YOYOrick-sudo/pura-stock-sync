@@ -35,6 +35,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { vertaalTaken, magAutoVertalenVoor, onthoudAuto } from '@/lib/taakVertaling';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   DndContext,
