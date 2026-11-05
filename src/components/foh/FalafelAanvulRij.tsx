@@ -45,6 +45,10 @@ const TINT: Record<Tint, string> = {
   info: 'border-transparent bg-info text-info-foreground hover:bg-info/90',
 };
 
+/** Korte fade/slide. Transform raakt de hoogte van de lijst niet. */
+const STAP_MOTION = 'motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-200 motion-safe:ease-out';
+const DRUK = 'transition-transform duration-150 ease-out motion-safe:active:scale-[0.98]';
+
 function Keuze({
   children,
   icon,
@@ -66,7 +70,7 @@ function Keuze({
       variant="ghost"
       size="touch"
       title={title}
-      className={cn('h-11 shrink-0 gap-1.5 px-3 text-[13px] font-medium', TINT[tint])}
+      className={cn('h-11 shrink-0 gap-1.5 px-3 text-[13px] font-medium', DRUK, TINT[tint])}
       disabled={disabled}
       onClick={onClick}
     >
@@ -151,14 +155,14 @@ export function FalafelAanvulRij({
               <span className="text-[13px] font-medium text-foreground">{peilKort(vulnorm)}</span>
             </span>
             <span className="text-muted-foreground/60" aria-hidden>·</span>
-            <span className="text-[13px] text-muted-foreground">
+            <span key={klaar ? 'klaar' : stap} className={cn('text-[13px] text-muted-foreground', !klaar && STAP_MOTION)}>
               {afgevinkt ? 'Op peil' : doorgezet ? aanvulUitkomst(doorgezetNaar) : hint}
             </span>
           </span>
         </div>
       </div>
       {!klaar && (
-        <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+        <div key={stap} className={cn('flex shrink-0 flex-wrap items-center justify-end gap-1.5', STAP_MOTION)}>
           {stap === 'lade' && (
             <>
               <Keuze tint="succes" icon={<Check className="h-4 w-4" aria-hidden />} disabled={laden} onClick={onOpPeil}>Op peil</Keuze>
@@ -169,14 +173,14 @@ export function FalafelAanvulRij({
             <>
               <Keuze tint="succes" icon={<Check className="h-4 w-4" aria-hidden />} disabled={laden} onClick={onAangevuld}>Aangevuld uit koelcel</Keuze>
               <Keuze tint="fout" icon={<TriangleAlert className="h-4 w-4" aria-hidden />} disabled={laden} onClick={() => setStap('vriezer')}>Koelcel onvoldoende</Keuze>
-              <Button type="button" variant="ghost" className="h-11 shrink-0 px-2 text-[13px] text-muted-foreground" disabled={laden} onClick={() => setStap('lade')}>Terug</Button>
+              <Button type="button" variant="ghost" className={cn('h-11 shrink-0 px-2 text-[13px] text-muted-foreground', DRUK)} disabled={laden} onClick={() => setStap('lade')}>Terug</Button>
             </>
           )}
           {stap === 'vriezer' && (
             <>
               <Keuze tint="info" icon={<Snowflake className="h-4 w-4" aria-hidden />} disabled={laden} onClick={onOntdooien}>Ontdooien gestart</Keuze>
               <Keuze tint="fout" icon={<ShoppingCart className="h-4 w-4" aria-hidden />} title="Bestelsignaal" disabled={laden} onClick={onBestellen}>Vriezer onvoldoende</Keuze>
-              <Button type="button" variant="ghost" className="h-11 shrink-0 px-2 text-[13px] text-muted-foreground" disabled={laden} onClick={() => setStap('koelcel')}>Terug</Button>
+              <Button type="button" variant="ghost" className={cn('h-11 shrink-0 px-2 text-[13px] text-muted-foreground', DRUK)} disabled={laden} onClick={() => setStap('koelcel')}>Terug</Button>
             </>
           )}
         </div>
