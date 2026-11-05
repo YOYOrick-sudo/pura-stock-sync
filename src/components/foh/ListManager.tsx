@@ -35,6 +35,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { vertaalTaken, magAutoVertalenVoor, onthoudAuto } from '@/lib/taakVertaling';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   DndContext,
@@ -708,6 +709,19 @@ export function ListManager({
       }
       await syncToToday(id, patch);
       flashSaved();
+      if (patch.title !== undefined || patch.description !== undefined) {
+        const huidig = (queryClient.getQueryData<TemplateTask[]>(['list-manager-templates', location, phase, department]) || []).find((t) => t.id === id);
+        if (huidig && huidig.title && magAutoVertalenVoor(id, huidig.title_en)) {
+          void vertaalTaken([{ title: huidig.title, description: huidig.description }]).then((r) => {
+            const v = r?.[0];
+            if (!v?.title_en) return;
+            onthoudAuto(id, v.title_en);
+            const enPatch: Partial<TemplateTask> = { title_en: v.title_en };
+            if (!(huidig.description_en ?? '').trim()) enPatch.description_en = v.description_en;
+            void updateTaskRef.current?.(id, enPatch);
+          });
+        }
+      }
       // Geen invalidate hier — optimistic state is al correct, voorkomt flicker
       queryClient.invalidateQueries({ queryKey: ['foh-templates'] });
       queryClient.invalidateQueries({ queryKey: ['foh-weekly-templates'] });
@@ -715,6 +729,33 @@ export function ListManager({
     },
     [location, phase, department, isCurrentActive, queryClient],
   );
+  const updateTaskRef = useRef(updateTask);
+  updateTaskRef.current = updateTask;
+
+  const [vertalenBezig, setVertalenBezig] = useState(false);
+  const vulVertalingenAan = async () => {
+    const zonder = currentTasks.filter((t) => t.title && !(t.title_en ?? '').trim()).slice(0, 40);
+    if (zonder.length === 0) {
+      toast.success('Alle taken hebben al een vertaling');
+      return;
+    }
+    setVertalenBezig(true);
+    const r = await vertaalTaken(zonder.map((t) => ({ title: t.title, description: t.description })));
+    setVertalenBezig(false);
+    if (!r) {
+      toast.error('Vertalen lukte niet, probeer het zo opnieuw');
+      return;
+    }
+    for (let i = 0; i < zonder.length; i++) {
+      const v = r[i];
+      if (!v?.title_en) continue;
+      onthoudAuto(zonder[i].id, v.title_en);
+      const p: Partial<TemplateTask> = { title_en: v.title_en };
+      if (!(zonder[i].description_en ?? '').trim() && v.description_en) p.description_en = v.description_en;
+      await updateTask(zonder[i].id, p);
+    }
+    toast.success(`${zonder.length} ${zonder.length === 1 ? 'taak' : 'taken'} vertaald`);
+  };
 
   const deleteTask = async (id: string) => {
     const task = currentTasks.find((t) => t.id === id);
@@ -795,6 +836,13 @@ export function ListManager({
         archived: false,
       });
     }
+
+    void vertaalTaken([{ title }]).then((r) => {
+      const v = r?.[0];
+      if (!v?.title_en) return;
+      onthoudAuto(inserted.id, v.title_en);
+      void updateTaskRef.current?.(inserted.id, { title_en: v.title_en });
+    });
 
     setNewTaskTitle('');
     setAddingTaskInCategory(null);
@@ -1163,6 +1211,17 @@ export function ListManager({
                 aria-label="Nieuwe lijst"
               >
                 <Plus size={14} />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={vertalenBezig}
+                onClick={vulVertalingenAan}
+                style={{ borderRadius: 12, height: 40, fontSize: 13, fontFamily: 'Inter, sans-serif' }}
+                aria-label="Ontbrekende vertalingen aanvullen"
+                title="Ontbrekende Engelse vertalingen aanvullen"
+              >
+                {vertalenBezig ? <Loader2 size={14} className="animate-spin" /> : 'EN'}
               </Button>
             </div>
           )}
