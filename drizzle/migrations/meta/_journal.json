@@ -470,6 +470,13 @@
       "when": 1793873800000,
       "tag": "0066_bord_suggesties_historie",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1793875200000,
+      "tag": "0067_artikelstam_fase1",
+      "breakpoints": true
     }
   ]
 }

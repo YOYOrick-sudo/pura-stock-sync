@@ -28,7 +28,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { dagenTeLaat, parseYmd, ymd } from '@/lib/leverdatum';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import {
-  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useLeverancierSoorten, useLeveranciersVoorVestiging, useVestigingOpenDagen, useArtikelVormen, zoekBordSuggesties, useBestelAdvies, useBordRegelInfo, useBordHerhaalNamen,
+  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useLeverancierSoorten, useLeveranciersVoorVestiging, useVestigingOpenDagen, useArtikelVormen, zoekBordSuggesties, zoekArtikelstam, maakConceptArtikel, useBestelAdvies, useBordRegelInfo, useBordHerhaalNamen,
   type BestelSignaal, type ArtikelVorm, type BordSuggestie, type BestelAdvies,
 } from '@/hooks/useBestelbord';
 import { useRole } from '@/hooks/useRole';
@@ -53,6 +53,7 @@ import { KoppelPaneel } from '@/components/kitchen/bestelbord/KoppelPaneel';
 import { koppelAanBestaand, koppelNieuwArtikel, leverancierKeuzeLabel, type AanmaakVelden } from '@/components/kitchen/bestelbord/koppelActies';
 import { suggestieOnderschrift } from '@/lib/leverancierSoort';
 import { actieveSuggestieIndex, bestelbotNormaliseer, enterKiestSuggestie, suggestieSubtekst } from '@/lib/bordZoeken';
+import { artikelstamLabel, naEersteBestelling } from '@/lib/artikelstam';
 import { useBesteldeadlines } from '@/hooks/useBesteldeadlines';
 import { RegelInfo } from '@/components/kitchen/bestelbord/RegelInfo';
 import { verpakkingWeergave, eenheidLabel } from '@/components/kitchen/bestelbord/verpakking';
@@ -210,7 +211,7 @@ export default function Bestelbord() {
   const {
     toevoegen, zetBesteld, verwijderen, herstel, wijzig,
     markeerGeleverd, nietGeleverd, deelsGeleverd, terugNaarBesteld, zetVerwachteLevering,
-    koppelen, artikelAanmaken,
+    koppelen, artikelAanmaken, koppelAlleenArtikel,
   } = useBestelbordMutaties(vestiging);
   const { data: leveranciers } = useLeveranciers();
   const koppelVlag = useFase2VlagAan(vestiging, 'leverancier_kiezen');
@@ -506,10 +507,44 @@ export default function Bestelbord() {
     !test && zetBesteld.mutate(
       { id: s.id, besteld: b },
       {
-        onSuccess: () =>
-          b && toast.success(`${s.naam} besteld`, {
+        onSuccess: () => {
+          if (!b) return;
+          toast.success(`${s.naam} besteld`, {
             action: { label: 'Ongedaan maken', onClick: () => zetBesteld.mutate({ id: s.id, besteld: false }) },
-          }),
+          });
+          // Vrije regel: eerst zoeken. Zonder de nieuwe functies blijft het bij deze bestelling.
+          if (s.artikel_id) return;
+          void naEersteBestelling(
+            { id: s.id, naam: s.naam, artikel_id: null, leverancier_id: s.leverancier_id, vestiging: s.vestiging },
+            {
+              zoek: zoekArtikelstam,
+              maak: maakConceptArtikel,
+              koppel: (id, artikelId) => koppelAlleenArtikel.mutateAsync({ id, artikelId }),
+            },
+          ).then((uit) => {
+            if (uit.soort === 'voorstel') {
+              const label = artikelstamLabel(uit.status);
+              toast(`${s.naam} lijkt op ${uit.naam}`, {
+                description: label || undefined,
+                duration: 15000,
+                action: {
+                  label: 'Koppelen',
+                  onClick: () => koppelAlleenArtikel.mutate(
+                    { id: s.id, artikelId: uit.artikel_id },
+                    {
+                      onSuccess: () => toast.success(`${s.naam} gekoppeld aan ${uit.naam}`),
+                      onError: (e: unknown) => toast.error('Koppelen mislukt: ' + foutmelding(e)),
+                    },
+                  ),
+                },
+              });
+            } else if (uit.soort === 'aangemaakt') {
+              toast.success(`${s.naam} staat in de artikelstam`, { description: 'Nieuw, nog bevestigen' });
+            } else if (uit.soort === 'fout') {
+              toast.error('Stam bijwerken mislukt: ' + uit.bericht);
+            }
+          }).catch((e: unknown) => toast.error('Stam bijwerken mislukt: ' + foutmelding(e)));
+        },
       },
     );
 
