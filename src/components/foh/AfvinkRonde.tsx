@@ -227,11 +227,11 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
     }
     if (actie === 'bestelbord') {
       try {
-        await vervolg.bestelbord(item);
+        const r = await vervolg.bestelbord(item);
+        toast.success(r.dubbel ? `${item.naam} stond al op het bestelbord` : `${item.naam} staat op het bestelbord`);
       } catch (e) {
-        throw new VervolgFout(e instanceof Error && e.message ? e.message : 'De bordregel is niet gekoppeld.');
+        throw new VervolgFout(e instanceof Error && e.message ? e.message : 'Het bestelbord is niet bijgewerkt.');
       }
-      toast.success(`${item.naam} staat op het bestelbord`);
     }
   };
 

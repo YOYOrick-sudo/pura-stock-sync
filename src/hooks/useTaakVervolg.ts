@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { bestelbordViaRpc, type BordClient } from '@/lib/taakVervolgBord';
+import { bestelOpdracht, opBestelbord, type KoelcelCheckItem } from '@/hooks/useKoelcelCheck';
 import { useInternePlaatsen } from '@/hooks/useInterneLevering';
 import {
   normaliseerVervolg,
@@ -16,43 +16,6 @@ const los = supabase as unknown as {
     select(kolommen: string): Promise<{ data: unknown; error: RpcFout }>;
   };
 };
-
-function bordClient(): BordClient {
-  return {
-    rpc: (naam, args) => los.rpc(naam, args),
-    openSignaal: async (vestiging, naam) => {
-      const { data, error } = await supabase
-        .from('bestel_signalen')
-        .select('id')
-        .eq('vestiging', vestiging)
-        .eq('status', 'open')
-        .ilike('naam', naam)
-        .limit(1);
-      if (error) throw error;
-      const id = (data?.[0] as { id?: string } | undefined)?.id;
-      return id ? { id } : null;
-    },
-    zoek: async (vestiging, naam) => {
-      const { data, error } = await los.rpc('rpc_bord_suggesties', {
-        p_vestiging: vestiging,
-        p_tekst: naam,
-        p_limit: 5,
-      });
-      if (error) throw new Error(error.message);
-      const rij = (Array.isArray(data) ? data[0] : null) as {
-        artikel_id?: string | null;
-        leverancier_id?: string | null;
-        vormen?: { id?: string | null }[] | null;
-      } | null;
-      if (!rij) return null;
-      return {
-        artikelId: rij.artikel_id ?? null,
-        artikelVormId: rij.vormen?.find((vorm) => vorm.id)?.id ?? null,
-        leverancierId: rij.leverancier_id ?? null,
-      };
-    },
-  };
-}
 
 async function schrijfDoorgezet(input: {
   itemId: string;
@@ -126,16 +89,14 @@ export function useTaakVervolg(vestiging: string, datum: string, aan: boolean) {
     },
   });
 
-  const bestelbord = async (item: { id: string; naam: string; eenheid?: string | null; doel_aantal?: number | null; leverancier?: string | null }) => {
-    const uit = await bestelbordViaRpc(bordClient(), {
-      vestiging,
-      naam: item.naam,
-      eenheid: item.eenheid || 'stuk',
-      leverancierId: null,
+  const bestelbord = async (item: KoelcelCheckItem) => {
+    const doel = Number(item.doel_aantal ?? 1);
+    const opdracht = bestelOpdracht(item, doel > 0 ? doel : 1, 0);
+    const uit = await opBestelbord(item, vestiging, opdracht.eenheden, {
+      eenheid: opdracht.eenheidNaam,
+      notitie: 'Vanuit de sluitlijst',
     });
-    if (!uit.gekoppeld) throw new Error(uit.reden || 'De bordregel is niet gekoppeld.');
-    const aantal = Number(item.doel_aantal ?? 1) || 1;
-    await schrijfDoorgezet({ itemId: item.id, vestiging, datum, naar: 'bestelbord', aantal });
+    await schrijfDoorgezet({ itemId: item.id, vestiging, datum, naar: 'bestelbord', aantal: uit.aantal });
     qc.invalidateQueries({ queryKey: ['koelcel-checks', vestiging, datum] });
     qc.invalidateQueries({ queryKey: ['bestel-signalen', vestiging] });
     return uit;

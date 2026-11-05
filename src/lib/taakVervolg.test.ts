@@ -1,5 +1,7 @@
 // @ts-ignore vitest types are not installed in the app tsconfig
 import { describe, expect, test } from 'vitest';
+// @ts-ignore node test API is outside the browser app types
+import { readFileSync } from 'node:fs';
 import { isEigenaarAccount } from './eigenaar';
 import {
   VERVOLG_ZAAD,
@@ -160,9 +162,12 @@ describe('bestelbord via de bestaande RPC', () => {
     expect(JSON.stringify(plan)).not.toContain('bestel_signalen');
   });
 
-  test('zonder open regel komt er geen schrijfactie', () => {
-    const plan = planBordVervolg({ vestiging: 'West', naam: 'Falafel', eenheid: 'bak', artikelId: 'a1', artikelVormId: 'v1' });
-    expect(plan).toEqual([{ rpc: 'geen', reden: expect.stringMatching(/geen open bordregel/i) }]);
+  test('zonder open regel maakt het vervolg een bordregel via opBestelbord', () => {
+    const hook = readFileSync(new URL('../hooks/useTaakVervolg.ts', import.meta.url), 'utf8');
+    expect(hook).toContain('opBestelbord');
+    expect(hook).toContain('bestelOpdracht');
+    expect(hook).not.toContain('bestelbordViaRpc');
+    expect(hook).not.toContain('geen open bordregel');
   });
 });
 
