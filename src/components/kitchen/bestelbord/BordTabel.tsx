@@ -2,6 +2,7 @@ import { eenheidVorm } from '@/lib/hoeveelheid';
 import { Fragment } from 'react';
 import { AlertCircle, Check, Hourglass } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { TableBody, TableCell, TableRow } from '@/components/ui/table';
@@ -18,12 +19,13 @@ import type { BordRegelInfo } from '@/hooks/useBestelbord';
 import type { OntvangstRestant } from '@/hooks/useOntvangstV2';
 import { restWaarschuwing } from '@/lib/ontvangstV2';
 
-export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal, prijsTip, onBesteld, onBewerk, onVervallen, geleverd = false, onTerug, detail, restStatus, artikelRest, alleenLezen = false, plat = false }: {
+export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal, prijsTip, onBesteld, onBewerk, onVervallen, geleverd = false, onTerug, detail, restStatus, artikelRest, alleenLezen = false, plat = false, toonMaakArtikel, onMaakArtikel }: {
   regels: BestelSignaal[]; leverancier: (s: BestelSignaal) => string;
   deadlineHint: (s: BestelSignaal) => string | null;
   prijsVan: (s: BestelSignaal) => { vorm: ArtikelVorm; totaal: number } | null;
   prijsSignaal: (s: BestelSignaal) => PrijsSignaal | null; prijsTip: (v: ArtikelVorm) => string;
   onBesteld: (s: BestelSignaal, b: boolean) => void; onBewerk: (s: BestelSignaal) => void; onVervallen: (s: BestelSignaal) => void;
+  toonMaakArtikel?: (s: BestelSignaal) => boolean; onMaakArtikel?: (s: BestelSignaal) => void;
   geleverd?: boolean; onTerug?: (s: BestelSignaal) => void; detail?: (s: BestelSignaal) => string;
   regelInfo?: (s: BestelSignaal) => BordRegelInfo | undefined;
   restStatus?: (s: BestelSignaal) => 'nageleverd' | 'mist' | null; alleenLezen?: boolean;
@@ -46,6 +48,7 @@ export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsV
             {restStatus?.(s) === 'nageleverd' && <RijMeta altijd><Hourglass className="h-4 w-4" aria-hidden /><Badge variant="info">al besteld, wordt nageleverd</Badge></RijMeta>}{restStatus?.(s) === 'mist' && <RijMeta altijd><AlertCircle className="h-4 w-4 text-warning" aria-hidden /><Badge variant="warning">mist</Badge></RijMeta>}
             {rest && <RijMeta altijd><Badge variant="outline" title={restWaarschuwing(rest)}><Hourglass className="mr-1 h-3 w-3" aria-hidden />{rest.soort === 'mist' ? 'Mist nog' : 'Komt nog'} {rest.aantal}</Badge></RijMeta>}
             {info ? <RijMeta altijd>{info}</RijMeta> : <RijMeta>{prijs ? euro(prijs.totaal) : '—'}</RijMeta>}
+            {!geleverd && !alleenLezen && onMaakArtikel && toonMaakArtikel?.(s) && <div className="mt-1"><Button type="button" variant="outline" size="touch" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onMaakArtikel(s); }}>Maak artikel</Button></div>}
           </div></TableCell>
           <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex min-h-6 items-center justify-end gap-1.5"><span className="inline-flex items-center rounded-full bg-muted px-2 text-sm font-semibold">{Number(s.aantal)}</span>{s.eenheid && <span className="text-xs text-muted-foreground">{eenheidVorm(Number(s.aantal), s.eenheid)}</span>}</span></TableCell>
           <TableCell className="!px-0 text-right sm:!px-2" onClick={(e) => e.stopPropagation()}><div className="hidden sm:block">{prijs ? <Tooltip><TooltipTrigger asChild><span className="inline-flex h-11 items-center justify-end gap-1 tabular-nums" tabIndex={0}><PrijsPijl signaal={prijsSignaal(s)} eenheid={s.eenheid} alleenDuurder />{euro(prijs.totaal)}</span></TooltipTrigger><TooltipContent>{prijsTip(prijs.vorm)}</TooltipContent></Tooltip> : <span className="text-muted-foreground">—</span>}</div></TableCell>

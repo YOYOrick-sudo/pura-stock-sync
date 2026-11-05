@@ -157,6 +157,27 @@ describe('bestelbord leverancier kiezen', () => {
     expect(html).not.toContain('aria-label="Roomsaus besteld"');
   });
 
+  test('twee vrije regels met dezelfde naam tonen Maak artikel', () => {
+    staat.vlag = true;
+    staat.signalen = [
+      signaal({ id: 'a', naam: 'Taugé' }),
+      signaal({ id: 'b', naam: 'tauge' }),
+      signaal({ id: 'c', naam: 'Melk' }),
+    ];
+    bordHtml();
+    const knoppen = staat.knoppen.filter((k) => tekstVan(k.children) === 'Maak artikel');
+    expect(knoppen).toHaveLength(2);
+  });
+
+  test('één vrije regel of de koppelflow uit toont geen Maak artikel', () => {
+    staat.vlag = true;
+    staat.signalen = [signaal({ id: 'a', naam: 'Taugé' })];
+    expect(bordHtml()).not.toContain('Maak artikel');
+    staat.vlag = false;
+    staat.signalen = [signaal({ id: 'a', naam: 'Taugé' }), signaal({ id: 'b', naam: 'tauge' })];
+    expect(bordHtml()).not.toContain('Maak artikel');
+  });
+
   test('Gehaald roept markeerGeleverd aan met het regel-id', () => {
     staat.vlag = true;
     bordHtml();
@@ -204,7 +225,7 @@ describe('koppelen en nieuw artikel', () => {
   test('de knop Koppelen geeft artikel, vorm en leverancier door', () => {
     const onKoppel = vi.fn();
     const suggestie: BordSuggestie = {
-      artikel_id: 'a1', naam: 'Yoghurt', leverancier_id: 'lev', score: 1, standaard_eenheid: 'bak', standaard_vorm: 'bak',
+      artikel_id: 'a1', naam: 'Yoghurt', leverancier_id: 'lev', score: 1, standaard_eenheid: 'bak', standaard_vorm: 'bak', bron: 'artikel',
       vormen: [{ id: 'v1', artikel_id: 'a1', vorm: 'bak', eenheid: 'bak', leverancier_id: 'lev', leverancier_naam: 'Spar (zelf halen)', prijs: null, prijs_datum: null, prijs_bron: null, is_standaard: true }],
     };
     staat.knoppen.length = 0;

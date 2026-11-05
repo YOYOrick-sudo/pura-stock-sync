@@ -4,6 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { ensureIngredientMaster, useIngredientSuggestions } from '@/hooks/useIngredienten';
+import { bestelbotNormaliseer } from '@/lib/bordZoeken';
 import { toast } from 'sonner';
 
 interface Props {
@@ -32,7 +33,7 @@ export function IngredientCombobox({ value, ingredientId, onChange, onCreated, p
   const term = query.trim();
   const { data: suggestions = [], isFetching } = useIngredientSuggestions(term);
 
-  const exactMatch = suggestions.find((s) => s.naam.toLowerCase() === term.toLowerCase());
+  const exactMatch = suggestions.find((s) => bestelbotNormaliseer(s.naam) === bestelbotNormaliseer(term));
   const showCreate = term.length >= 2 && !exactMatch;
 
   const handleSelect = (naam: string, id: string) => {

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { INGREDIENT_LIMIET } from '@/lib/bordZoeken';
 
 export interface IngredientMaster {
   id: string;
@@ -13,20 +14,18 @@ export interface IngredientStat {
   laatst_gebruikt: string | null;
 }
 
-/** Autosuggest: max 8 hits, alfabetisch, ilike. */
+/** Autosuggest via rpc_ingredient_suggesties: zelfde normalisatie als het bord, limiet 15. */
 export function useIngredientSuggestions(term: string) {
   const q = term.trim();
   return useQuery({
-    queryKey: ['ingredienten', 'suggest', q.toLowerCase()],
+    queryKey: ['ingredienten', 'suggest', q],
     enabled: q.length >= 2,
     staleTime: 30_000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('artikelen')
-        .select('id, naam')
-        .ilike('naam', `%${q}%`)
-        .order('naam', { ascending: true })
-        .limit(8);
+      const { data, error } = await supabase.rpc('rpc_ingredient_suggesties', {
+        p_tekst: q,
+        p_limit: INGREDIENT_LIMIET,
+      });
       if (error) throw error;
       return (data ?? []) as IngredientMaster[];
     },

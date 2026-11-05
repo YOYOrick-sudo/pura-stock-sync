@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { alsSoort, soortKolomOntbreekt } from '@/lib/leverancierSoort';
 import { metHerstel } from '@/lib/appWake';
 import { useKanaalHerstel } from '@/lib/realtime';
+import { BORD_SUGGESTIE_LIMIET, herhaalNormen, type BordBron } from '@/lib/bordZoeken';
 
 type LosAntwoord = { data: unknown; error: { message: string } | null };
 interface LosseQuery extends PromiseLike<LosAntwoord> {
@@ -106,20 +107,68 @@ export interface ArtikelVorm {
 }
 
 export interface BordSuggestie {
-  artikel_id: string;
+  artikel_id: string | null;
   naam: string;
   leverancier_id: string | null;
   score: number;
   standaard_eenheid: string | null;
   standaard_vorm: string | null;
   vormen: ArtikelVorm[];
+  /** artikel = catalogus, historie = import zonder actief artikel, concept = vrije bordnaam. */
+  bron: BordBron;
 }
 
-/** Zoeksuggesties uit de productdatabase (al vanaf 1 letter, tikfouten opgevangen). */
+/** Zoeksuggesties: artikelen, aliassen, historie en vrije bordnamen. */
 export async function zoekBordSuggesties(vestiging: string, tekst: string): Promise<BordSuggestie[]> {
-  const { data, error } = await supabase.rpc('rpc_bord_suggesties', { p_vestiging: vestiging, p_tekst: tekst, p_limit: 8 });
+  const { data, error } = await supabase.rpc('rpc_bord_suggesties', {
+    p_vestiging: vestiging,
+    p_tekst: tekst,
+    p_limit: BORD_SUGGESTIE_LIMIET,
+  });
   if (error) throw error;
-  return ((data ?? []) as unknown[]).map((r: any) => ({ ...r, vormen: (r.vormen ?? []) as ArtikelVorm[] }));
+  return ((data ?? []) as {
+    artikel_id?: string | null;
+    naam?: string | null;
+    leverancier_id?: string | null;
+    score?: number | string | null;
+    standaard_eenheid?: string | null;
+    standaard_vorm?: string | null;
+    vormen?: ArtikelVorm[] | null;
+    bron?: string | null;
+  }[]).map((r) => ({
+    artikel_id: r.artikel_id ?? null,
+    naam: r.naam ?? '',
+    leverancier_id: r.leverancier_id ?? null,
+    score: Number(r.score ?? 0),
+    standaard_eenheid: r.standaard_eenheid ?? null,
+    standaard_vorm: r.standaard_vorm ?? null,
+    vormen: r.vormen ?? [],
+    bron: r.bron === 'historie' || r.bron === 'concept' ? r.bron : 'artikel',
+  }));
+}
+
+const BORD_VESTIGINGEN = new Set(['West', 'Midsland']);
+
+/**
+ * Genormaliseerde namen die vaak genoeg vrij voorkwamen om «Maak artikel» te tonen.
+ * De RPC telt bord én historie; tot die functie live is tellen de geladen vrije regels mee.
+ */
+export function useBordHerhaalNamen(
+  vestiging: string | null | undefined,
+  signalen: { naam: string; artikel_id: string | null; status: string }[],
+): Set<string> {
+  const query = useQuery({
+    queryKey: ['bord-herhaal-namen', vestiging],
+    enabled: !!vestiging && BORD_VESTIGINGEN.has(vestiging),
+    staleTime: 60_000,
+    retry: false,
+    queryFn: async (): Promise<string[]> => {
+      const { data, error } = await supabase.rpc('rpc_bord_herhaal_namen', { p_vestiging: vestiging! });
+      if (error) throw error;
+      return ((data ?? []) as { norm: string | null }[]).map((r) => r.norm ?? '').filter(Boolean);
+    },
+  });
+  return useMemo(() => herhaalNormen(signalen, query.data ?? []), [signalen, query.data]);
 }
 
 /** Alle actieve verpakkingsvormen van een vestiging (voor indicatieprijzen). */

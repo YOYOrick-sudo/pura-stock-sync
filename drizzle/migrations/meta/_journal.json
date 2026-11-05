@@ -463,6 +463,13 @@
       "when": 1793868805749,
       "tag": "0065_foh_template_update_sync_today",
       "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1793873800000,
+      "tag": "0066_bord_suggesties_historie",
+      "breakpoints": true
     }
   ]
 }

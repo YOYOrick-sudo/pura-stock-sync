@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { CompacteTabel } from './CompacteTabel';
 import { useLeverancierSoorten, zoekBordSuggesties, type BordSuggestie } from '@/hooks/useBestelbord';
 import { suggestieOnderschrift, zonderWinkelIntern } from '@/lib/leverancierSoort';
+import { isArtikelSuggestie } from '@/lib/bordZoeken';
 import { useOntvangstMutaties, type NaleveringKandidaat, type OntvangstRestant, type OntvangstVandaag } from '@/hooks/useOntvangstV2';
 import { vandaagZonderOpenRest, afrondWaarschuwingen, onderwegBlokken, isAutomatisch, bouwRegel, eindcheckFout, kortDatum, restantVan, type EindcheckInvoer, type OntvangstModus, type RestBron } from '@/lib/ontvangstV2';
 
@@ -214,8 +215,8 @@ function ZonderOrderLade({ open, onOpenChange, modus, leveranciers }: { open: bo
       </Select>
       <div className="relative">
         <Input className="h-11 text-base" placeholder={vrij ? 'Omschrijving' : 'Zoek artikel'} value={artikel?.naam ?? zoek} onChange={(e) => { setArtikel(null); setZoek(e.target.value); }} />
-        {opties.length > 0 && <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-polar-md border border-border bg-popover shadow-md">
-          {opties.map((o) => {
+        {opties.some(isArtikelSuggestie) && <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-polar-md border border-border bg-popover shadow-md">
+          {opties.filter(isArtikelSuggestie).map((o) => {
             const sub = suggestieOnderschrift(o, soorten, leveranciers);
             return <Button key={o.artikel_id} variant="ghost" className="block h-auto min-h-12 w-full px-3 py-2 text-left" onClick={() => { setArtikel(o); setOpties([]); }}>
               <span className="block text-sm font-medium">{o.naam}</span>

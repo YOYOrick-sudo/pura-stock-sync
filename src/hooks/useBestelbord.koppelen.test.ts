@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import { useBestelbordMutaties, useLeverancierSoorten, useLeveranciersVoorVestiging } from './useBestelbord';
+import { useBestelbordMutaties, useLeverancierSoorten, useLeveranciersVoorVestiging, zoekBordSuggesties } from './useBestelbord';
 
 const mocks = vi.hoisted(() => ({
   invalidate: vi.fn(),
@@ -100,6 +100,23 @@ describe('bord koppelen en artikel aanmaken', () => {
       [{ queryKey: ['bestel-signalen', 'West'] }],
       [{ queryKey: ['artikel-vormen', 'West'] }],
     ]);
+  });
+});
+
+describe('bordzoeken', () => {
+  test('vraagt 15 rijen en houdt historie en concept uit elkaar', async () => {
+    mocks.rpc.mockResolvedValue({
+      data: [
+        { artikel_id: null, naam: 'Naturfrisk ginger beer', leverancier_id: null, score: '0.850', standaard_eenheid: null, standaard_vorm: null, vormen: [], bron: 'historie' },
+        { artikel_id: null, naam: 'losse munt', leverancier_id: null, score: 0.85, standaard_eenheid: null, standaard_vorm: null, vormen: [], bron: 'concept' },
+      ],
+      error: null,
+    });
+    const uit = await zoekBordSuggesties('West', 'naturfrisk');
+    expect(mocks.rpc).toHaveBeenCalledWith('rpc_bord_suggesties', { p_vestiging: 'West', p_tekst: 'naturfrisk', p_limit: 15 });
+    expect(uit.map((r) => r.bron)).toEqual(['historie', 'concept']);
+    expect(uit[0].artikel_id).toBeNull();
+    expect(uit[0].score).toBeCloseTo(0.85);
   });
 });
 

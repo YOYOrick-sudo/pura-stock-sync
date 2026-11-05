@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLeverancierSoorten, type ArtikelVorm, type BordSuggestie, type LeverancierKeuze } from '@/hooks/useBestelbord';
 import { suggestieOnderschrift } from '@/lib/leverancierSoort';
 import { bouwAanmaakVelden, leverancierKeuzeLabel, planKoppelZoek, type AanmaakVelden } from './koppelActies';
+import { isArtikelSuggestie } from '@/lib/bordZoeken';
 
 const INHOUD_EENHEDEN = ['g', 'ml', 'stuk'] as const;
 
@@ -102,8 +103,8 @@ export function KoppelPaneel({
           placeholder="Naam van het artikel"
           aria-label="Zoek artikel"
         />
-        {suggesties.length > 0 && <div role="listbox" aria-label="Suggesties" className="overflow-hidden rounded-polar-md border border-border">
-          {suggesties.map((s) => {
+        {suggesties.some(isArtikelSuggestie) && <div role="listbox" aria-label="Suggesties" className="overflow-hidden rounded-polar-md border border-border">
+          {suggesties.filter(isArtikelSuggestie).map((s) => {
             const sub = suggestieOnderschrift(s, soorten, leveranciers);
             return <Button variant="ghost" key={s.artikel_id} type="button" role="option" onClick={() => kies(s)} className="block h-auto min-h-11 w-full justify-start rounded-none px-3 py-2 text-left">
               <span className="block text-sm font-medium text-foreground">{s.naam}</span>
@@ -115,7 +116,7 @@ export function KoppelPaneel({
       {gekozen && gekozen.vormen.length > 1 && renderVormKeuze(bereidVormen(gekozen.vormen), vormId, (v) => setVormId(v.id))}
       {gekozenVorm && <p className="text-sm text-muted-foreground">{gekozen.naam} · {vormLeverancier(gekozenVorm, leveranciers)}</p>}
       <Button className="h-12 w-full" disabled={!kanOpslaan || bezig || !gekozen || !gekozenVorm || !!gekozenVorm.geblokkeerd} onClick={() => {
-        if (!gekozen || !gekozenVorm) return;
+        if (!gekozen?.artikel_id || !gekozenVorm) return;
         void onKoppel({ artikelId: gekozen.artikel_id, artikelVormId: gekozenVorm.id, leverancierNaam: vormLeverancier(gekozenVorm, leveranciers), artikelNaam: gekozen.naam });
       }}>Koppelen</Button>
     </TabsContent>

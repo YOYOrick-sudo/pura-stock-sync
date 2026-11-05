@@ -9850,15 +9850,30 @@ export type Database = {
         Args: { _vestiging: string }
         Returns: undefined
       }
+      rpc_ingredient_suggesties: {
+        Args: { p_limit?: number; p_tekst: string }
+        Returns: {
+          id: string
+          naam: string
+        }[]
+      }
+      rpc_bord_herhaal_namen: {
+        Args: { p_vestiging: string }
+        Returns: {
+          keer: number
+          norm: string
+        }[]
+      }
       rpc_bord_suggesties: {
         Args: { p_limit?: number; p_tekst: string; p_vestiging: string }
         Returns: {
-          artikel_id: string
-          leverancier_id: string
+          artikel_id: string | null
+          bron: string
+          leverancier_id: string | null
           naam: string
           score: number
-          standaard_eenheid: string
-          standaard_vorm: string
+          standaard_eenheid: string | null
+          standaard_vorm: string | null
           vormen: Json
         }[]
       }
