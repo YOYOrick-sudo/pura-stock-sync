@@ -28,7 +28,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { dagenTeLaat, parseYmd, ymd } from '@/lib/leverdatum';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import {
-  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useLeverancierSoorten, useLeveranciersVoorVestiging, useVestigingOpenDagen, useArtikelVormen, zoekBordSuggesties, useBestelAdvies, useBordRegelInfo,
+  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useLeverancierSoorten, useLeveranciersVoorVestiging, useVestigingOpenDagen, useArtikelVormen, zoekBordSuggesties, useBestelAdvies, useBordRegelInfo, useBordHerhaalNamen,
   type BestelSignaal, type ArtikelVorm, type BordSuggestie, type BestelAdvies,
 } from '@/hooks/useBestelbord';
 import { useRole } from '@/hooks/useRole';
@@ -52,6 +52,7 @@ import { internBestellenZichtbaar, onderwegTabAantal, useInterneBestellingen } f
 import { KoppelPaneel } from '@/components/kitchen/bestelbord/KoppelPaneel';
 import { koppelAanBestaand, koppelNieuwArtikel, leverancierKeuzeLabel, type AanmaakVelden } from '@/components/kitchen/bestelbord/koppelActies';
 import { suggestieOnderschrift } from '@/lib/leverancierSoort';
+import { actieveSuggestieIndex, bestelbotNormaliseer, enterKiestSuggestie, suggestieSubtekst } from '@/lib/bordZoeken';
 import { useBesteldeadlines } from '@/hooks/useBesteldeadlines';
 import { RegelInfo } from '@/components/kitchen/bestelbord/RegelInfo';
 import { verpakkingWeergave, eenheidLabel } from '@/components/kitchen/bestelbord/verpakking';
@@ -238,6 +239,7 @@ export default function Bestelbord() {
   const [aantal, setAantal] = useState<number | null>(1);
   const [soort, setSoort] = useState<string | null>(null);
   const [bewerk, setBewerk] = useState<BestelSignaal | null>(null);
+  const [koppelTab, setKoppelTab] = useState<'koppel' | 'nieuw'>('koppel');
   const [bewerkAantal, setBewerkAantal] = useState<number | null>(1);
   const [bewerkSoort, setBewerkSoort] = useState<string | null>(null);
   const [datumVoor, setDatumVoor] = useState<BestelSignaal | null>(null);
@@ -341,7 +343,7 @@ export default function Bestelbord() {
         .then((r) => {
           if (nr !== zoekNr.current) return;
           setSuggesties(r);
-          setActief(-1);
+          setActief(actieveSuggestieIndex(r));
         })
         .catch(() => nr === zoekNr.current && setSuggesties([]));
     }, 150);
@@ -565,8 +567,9 @@ export default function Bestelbord() {
     onDeelsGeleverd: (s: BestelSignaal) => openLeveringActie(s, 'deels'),
   };
 
-  const openBewerk = (s: BestelSignaal) => {
+  const openBewerk = (s: BestelSignaal, tab: 'koppel' | 'nieuw' = 'koppel') => {
     if (test) return;
+    setKoppelTab(tab);
     setBewerk(s);
     setBewerkAantal(Math.max(1, Number(s.aantal) || 1));
     setBewerkSoort(s.eenheid);
@@ -607,7 +610,9 @@ export default function Bestelbord() {
   const tab = tabKeuze === 'keuken' && !modus.keukenadvies ? 'bord' : tabKeuze ?? (!isLoading && telOverzicht.geladen && telOverzicht.open > 0 && open.length === 0 ? 'tellen' : 'bord');
   const adviesRegels = advies.data?.regels ?? [];
   const leveranciersTabel = <LeveranciersOverzicht open={open} onderweg={besteld} leverancier={leverancier} prijsVan={prijsVan} />;
-  const bordProps = { ...(v2 ? { restStatus: (s: BestelSignaal) => restStatusPerSignaal.get(s.id) ?? null, artikelRest: (s: BestelSignaal) => restStatusPerSignaal.has(s.id) ? null : openRestVoorArtikel(restanten, { artikel_id: s.artikel_id ?? null, naam: s.naam }), alleenLezen: test } : {}), regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen };
+  const herhaalNamen = useBordHerhaalNamen(vestiging || null, signalen);
+  const toonMaakArtikel = (s: BestelSignaal) => koppelVlag && !test && s.status === 'open' && !s.artikel_id && herhaalNamen.has(bestelbotNormaliseer(s.naam));
+  const bordProps = { ...(v2 ? { restStatus: (s: BestelSignaal) => restStatusPerSignaal.get(s.id) ?? null, artikelRest: (s: BestelSignaal) => restStatusPerSignaal.has(s.id) ? null : openRestVoorArtikel(restanten, { artikel_id: s.artikel_id ?? null, naam: s.naam }), alleenLezen: test } : {}), regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen, toonMaakArtikel, onMaakArtikel: (s: BestelSignaal) => openBewerk(s, 'nieuw') };
   const positieveAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) > 0 && !(v2 && a.artikel_id && nageleverdArtikelen.has(a.artikel_id)));
   const nulAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) <= 0);
   const zonderPrijs = [...open, ...besteld].filter((s) => !prijsVan(s)).length;
@@ -694,7 +699,7 @@ export default function Bestelbord() {
                     setActief(-1);
                   } else if (e.key === 'Enter') {
                     e.preventDefault();
-                    if (zichtbaar && actief >= 0) kiesArtikel(suggesties[actief]);
+                    if (enterKiestSuggestie(zichtbaar, actief)) kiesArtikel(suggesties[actief]);
                     else voegToe();
                   }
                 }}
@@ -708,10 +713,10 @@ export default function Bestelbord() {
               {lijstOpen && naam.trim().length > 0 && suggesties.length > 0 && (
                 <div role="listbox" className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-polar-md border border-border bg-popover shadow-md">
                   {suggesties.map((s, i) => {
-                    const sub = suggestieOnderschrift(s, leverancierSoorten, leveranciers);
+                    const sub = suggestieSubtekst(s.bron, suggestieOnderschrift(s, leverancierSoorten, leveranciers));
                     return (
                       <Button variant="ghost"
-                        key={s.artikel_id}
+                        key={s.artikel_id ?? `${s.bron}-${s.naam}`}
                         type="button"
                         role="option"
                         aria-selected={i === actief}
@@ -817,9 +822,10 @@ export default function Bestelbord() {
             )}
             {!koppelModus && (!bewerk?.artikel_id || bewerkVormen.length === 0) && <SoortKeuze waarde={bewerkSoort} onChange={setBewerkSoort} />}
             {koppelModus && bewerk && <KoppelPaneel
-              key={bewerk.id}
+              key={`${bewerk.id}-${koppelTab}`}
               vestiging={vestiging}
               beginNaam={bewerk.naam}
+              startTab={koppelTab}
               leveranciers={leveranciers}
               leveranciersKeuze={leverancierKeuze}
               isManager={isManager}
