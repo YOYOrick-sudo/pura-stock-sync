@@ -42,6 +42,7 @@ import KoelwerkbankIndeling from "./pages/settings/KoelwerkbankIndeling";
 
 import MepBeheer from "./pages/kitchen/MepBeheer";
 import Bestelbord from "./pages/kitchen/Bestelbord";
+import InterneLeveringV2Voorbeeld from "./pages/kitchen/InterneLeveringV2Voorbeeld";
 // HR Module
 import { HrInbox, ApplicantDetail, ApplicantForm, HousingPlanner, HousingForm } from "./pages/hr";
 // Maintenance Module
@@ -408,6 +409,7 @@ const App = () => {
               <Route path="settings" element={<PersoneelSettings />} />
             </Route>
 
+            {import.meta.env.DEV && <Route path="/preview/interne-levering-v2" element={<InterneLeveringV2Voorbeeld />} />}
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
             </Routes>

@@ -71,6 +71,11 @@ import {
 } from '@/hooks/useMepTaken';
 import { telwoord } from '@/lib/hoeveelheid';
 import { MepVoorWest } from '@/components/kitchen/MepVoorWest';
+import { MepVoorWestV2 } from '@/components/kitchen/MepVoorWestV2';
+import { useFase2VlagAan } from '@/hooks/useOntvangstV2';
+import { useInterneV2MepKlaar } from '@/hooks/useInterneLeveringV2';
+import { INTERNE_LEVERING_V2, v2MepZichtbaar } from '@/lib/interneLeveringV2';
+import { foutTekst } from '@/hooks/useInterneLevering';
 
 const PRIO_LABEL: Record<number, string> = { 1: 'Belangrijk' };
 const PRIO_CLASS: Record<number, string> = {
@@ -101,6 +106,9 @@ export default function MepDag() {
   const { data: taken = [], isLoading } = useMepTaken(vestiging, datum);
   const { data: batches = [] } = useProductieBatches(vestiging, datum);
   const { data: medewerkers = [] } = useKeukenMedewerkers(vestiging);
+  const internV2 = useFase2VlagAan(vestiging || null, INTERNE_LEVERING_V2);
+  const toonV2Mep = v2MepZichtbaar(vestiging, internV2);
+  const v2Klaar = useInterneV2MepKlaar();
   const { toevoegen, bijwerken, verwijderen, afronden, heropenen, herordenen } =
     useMepTaakMutaties(vestiging, datum);
 
@@ -410,7 +418,7 @@ export default function MepDag() {
         {/* Telefoon: weergave-tabs op één veegbare regel onder het invoerveld. */}
         {isMobile && <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none]">{weergaveTabs}</div>}
 
-        <MepVoorWest vestiging={vestiging} />
+        {toonV2Mep ? <MepVoorWestV2 vestiging={vestiging} gekozenDag={datum} /> : <MepVoorWest vestiging={vestiging} />}
 
         {isLoading ? (
           <p className="py-10 text-center text-sm text-muted-foreground">Laden…</p>
@@ -539,7 +547,15 @@ export default function MepDag() {
       <MepAfrondDialog
         taak={afrondTaak}
         onOpenChange={(v) => !v && setAfrondTaak(null)}
-        onAfronden={(args) => afronden.mutateAsync(args)}
+        onAfronden={toonV2Mep ? async (args) => {
+          const res = await afronden.mutateAsync(args);
+          try {
+            await v2Klaar.mutateAsync({ vestiging, taakId: args.taakId, aantal: args.aantal });
+          } catch (e: unknown) {
+            toast.warning(`De taak is afgerond. Het klaar-aantal voor West is niet bijgewerkt: ${foutTekst(e)}`);
+          }
+          return res;
+        } : (args) => afronden.mutateAsync(args)}
         printen={vestiging !== 'Midsland'}
       />
 
