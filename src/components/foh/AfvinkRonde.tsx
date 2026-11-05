@@ -1,12 +1,27 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Check, ChefHat, Loader2, PackageX, RotateCcw, WifiOff } from 'lucide-react';
 import { SectieBalk } from './SectieBalk';
 import { FalafelAanvulRij } from './FalafelAanvulRij';
+import { VriezerNaarKoelcelRij } from './VriezerNaarKoelcelRij';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { aanvulketenAan, isFalafelVoorbeeld } from '@/lib/aanvulketen';
+import { useCreateStickerPrintJob } from '@/hooks/useStickerProducten';
+import {
+  aanvulketenAan,
+  heeftVriezerNaarKoelcel,
+  hoeveelheidTekst,
+  isFalafelVoorbeeld,
+  koelcelRegelVoor,
+  leesVriezerStappen,
+  ontdooiStickerOpdracht,
+  vriezerNaarKoelcelAantal,
+  vriezerNaarKoelcelEenheid,
+  vriezerNaarKoelcelTitel,
+  vriezerStapSleutel,
+  type VriezerStapStand,
+} from '@/lib/aanvulketen';
 import { vraagtKoelcelBevestiging } from '@/lib/koelcelBevestiging';
 import { isPreviewHost } from '@/lib/pwa';
 import { cn } from '@/lib/utils';
@@ -66,6 +81,40 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
     search: zoekparams.toString(),
     previewHost: typeof window !== 'undefined' && isPreviewHost(window.location.hostname),
   });
+  const printSticker = useCreateStickerPrintJob();
+  const [vriezerStappen, setVriezerStappen] = useState<Record<string, VriezerStapStand>>(() => {
+    if (typeof sessionStorage === 'undefined') return {};
+    try {
+      return leesVriezerStappen(sessionStorage.getItem(vriezerStapSleutel(vestiging, datum)));
+    } catch {
+      return {};
+    }
+  });
+  const stappenRef = useRef(vriezerStappen);
+  stappenRef.current = vriezerStappen;
+
+  useEffect(() => {
+    try {
+      const gelezen = leesVriezerStappen(sessionStorage.getItem(vriezerStapSleutel(vestiging, datum)));
+      stappenRef.current = gelezen;
+      setVriezerStappen(gelezen);
+    } catch {
+      /* stil */
+    }
+  }, [vestiging, datum]);
+
+  const bewaarVriezerStap = (id: string, stand: VriezerStapStand | null) => {
+    const next = { ...stappenRef.current };
+    if (stand) next[id] = stand;
+    else delete next[id];
+    stappenRef.current = next;
+    setVriezerStappen(next);
+    try {
+      sessionStorage.setItem(vriezerStapSleutel(vestiging, datum), JSON.stringify(next));
+    } catch {
+      /* stil */
+    }
+  };
   const [bezig, setBezig] = useState<Set<string>>(new Set());
   const [mislukt, setMislukt] = useState<Record<string, () => void>>({});
   const [koelcelKeuze, setKoelcelKeuze] = useState<KoelcelCheckItem | null>(null);
@@ -164,6 +213,27 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
         toast.success(r.dubbel ? `${item.naam} stond al op de ontdooilijst` : `Ontdooien gestart voor ${item.naam}`);
       },
       () => ontdooi(item),
+    );
+  };
+
+  const vinkUitVriezer = (item: KoelcelCheckItem, aantal: number, stickerNaam: string) => {
+    const uit = checks.has(item.id);
+    metStatus(
+      item.id,
+      async () => {
+        await zetStatus.mutateAsync({ item, status: 'aanwezig', uit });
+        if (!uit) {
+          try {
+            await printSticker.mutateAsync(ontdooiStickerOpdracht(stickerNaam, aantal, new Date()));
+            toast.success(`Sticker "Ontdooid · ${stickerNaam}" wordt geprint`);
+          } catch (e) {
+            const bericht = e instanceof Error ? e.message : 'onbekende fout';
+            toast.error(`Stap opgeslagen. Sticker niet geprint: ${bericht}`);
+          }
+        }
+        bewaarVriezerStap(item.id, uit ? 'open' : 'af');
+      },
+      () => vinkUitVriezer(item, aantal, stickerNaam),
     );
   };
 
@@ -274,28 +344,59 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                     );
                     const naam = /flessen/i.test(g.titel) ? i.naam.replace(/\s*\(fles\)\s*$/i, '') : i.naam;
                     if (ketenAan && isFalafelVoorbeeld(i)) {
+                      const stand = vriezerStappen[i.id];
+                      const keten = heeftVriezerNaarKoelcel(i);
+                      const koelcel = koelcelRegelVoor(i, items);
+                      const hoeveel = vriezerNaarKoelcelAantal(i, koelcel);
+                      const eenheid = vriezerNaarKoelcelEenheid(hoeveel.bron, i, koelcel);
+                      const toonStap = keten && (stand === 'open' || (stand === 'af' && !!afgevinkt));
                       return (
-                        <FalafelAanvulRij
-                          key={i.id}
-                          naam={naam}
-                          vulnorm={i.vulnorm}
-                          eenheid={i.eenheid}
-                          doelAantal={i.doel_aantal}
-                          batchAantal={i.batch_aantal}
-                          afgevinkt={!!afgevinkt}
-                          doorgezet={!!doorgezet}
-                          doorgezetNaar={c?.doorgezet_naar}
-                          laden={laden}
-                          fout={fout}
-                          onOpPeil={() => vink(i)}
-                          onAangevuld={() => vink(i)}
-                          onOntdooien={() => ontdooi(i)}
-                          onBestellen={() => bestelVoorbeeld(i)}
-                          onHerstel={() =>
-                            metStatus(i.id, () => zetStatus.mutateAsync({ item: i, status: 'aanwezig', uit: true }), () => {})
-                          }
-                          onVink={() => vink(i)}
-                        />
+                        <Fragment key={i.id}>
+                          <FalafelAanvulRij
+                            naam={naam}
+                            vulnorm={i.vulnorm}
+                            eenheid={i.eenheid}
+                            doelAantal={i.doel_aantal}
+                            batchAantal={i.batch_aantal}
+                            afgevinkt={!!afgevinkt}
+                            doorgezet={!!doorgezet}
+                            doorgezetNaar={c?.doorgezet_naar}
+                            laden={laden}
+                            fout={stand === 'open' ? false : fout}
+                            koelcelGepakt={stand === 'open'}
+                            beginStap={stand === 'open' ? 'koelcel' : 'lade'}
+                            onOpPeil={() => {
+                              bewaarVriezerStap(i.id, null);
+                              vink(i);
+                            }}
+                            onAangevuld={() => {
+                              if (keten) bewaarVriezerStap(i.id, 'open');
+                              else vink(i);
+                            }}
+                            onOntdooien={() => ontdooi(i)}
+                            onBestellen={() => bestelVoorbeeld(i)}
+                            onHerstel={() => {
+                              bewaarVriezerStap(i.id, null);
+                              metStatus(i.id, () => zetStatus.mutateAsync({ item: i, status: 'aanwezig', uit: true }), () => {});
+                            }}
+                            onVink={() => {
+                              if (stand === 'open') return;
+                              bewaarVriezerStap(i.id, null);
+                              vink(i);
+                            }}
+                            onTerugVanKoelcel={() => bewaarVriezerStap(i.id, null)}
+                          />
+                          {toonStap && (
+                            <VriezerNaarKoelcelRij
+                              titel={vriezerNaarKoelcelTitel(naam)}
+                              aantalTekst={hoeveelheidTekst(hoeveel.aantal, eenheid)}
+                              afgevinkt={stand === 'af' && !!afgevinkt}
+                              laden={laden}
+                              fout={stand === 'open' && fout}
+                              onVink={() => vinkUitVriezer(i, hoeveel.aantal, naam)}
+                            />
+                          )}
+                        </Fragment>
                       );
                     }
                     return (

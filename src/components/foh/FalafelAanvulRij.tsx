@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Check, Loader2, PackagePlus, ShoppingCart, Snowflake, TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VulPeil } from './VulPeil';
+import { DRUK, STAP_MOTION } from './aanvulMotion';
 import { cn } from '@/lib/utils';
 import {
   aanvulTekst,
@@ -28,12 +29,15 @@ type Props = {
   fout: boolean;
   /** Alleen voor tests en schermafbeeldingen; de medewerker begint op de lade. */
   beginStap?: AanvulStap;
+  /** De lade is net uit de koelcel gepakt; de vriezer-stap staat eronder. */
+  koelcelGepakt?: boolean;
   onOpPeil: () => void;
   onAangevuld: () => void;
   onOntdooien: () => void;
   onBestellen: () => void;
   onHerstel: () => void;
   onVink: () => void;
+  onTerugVanKoelcel?: () => void;
 };
 
 type Tint = 'succes' | 'letop' | 'fout' | 'info';
@@ -44,10 +48,6 @@ const TINT: Record<Tint, string> = {
   fout: 'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90',
   info: 'border-transparent bg-info text-info-foreground hover:bg-info/90',
 };
-
-/** Korte fade/slide. Transform raakt de hoogte van de lijst niet. */
-const STAP_MOTION = 'motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-200 motion-safe:ease-out';
-const DRUK = 'transition-transform duration-150 ease-out motion-safe:active:scale-[0.98]';
 
 function Keuze({
   children,
@@ -96,18 +96,22 @@ export function FalafelAanvulRij({
   laden,
   fout,
   beginStap = 'lade',
+  koelcelGepakt = false,
   onOpPeil,
   onAangevuld,
   onOntdooien,
   onBestellen,
   onHerstel,
   onVink,
+  onTerugVanKoelcel,
 }: Props) {
   const [stap, setStap] = useState<AanvulStap>(beginStap);
   const klaar = afgevinkt || doorgezet;
-  const hint = stap === 'vriezer'
-    ? ontdooiInstructie({ eenheid, doel_aantal: doelAantal, batch_aantal: batchAantal })
-    : stapTitel(naam, stap);
+  const hint = koelcelGepakt
+    ? 'Lade aangevuld uit de koelcel.'
+    : stap === 'vriezer'
+      ? ontdooiInstructie({ eenheid, doel_aantal: doelAantal, batch_aantal: batchAantal })
+      : stapTitel(naam, stap);
 
   return (
     <li
@@ -121,7 +125,7 @@ export function FalafelAanvulRij({
         type="button"
         aria-label={`${naam} afvinken`}
         aria-pressed={afgevinkt}
-        disabled={laden || doorgezet}
+        disabled={laden || doorgezet || koelcelGepakt}
         onClick={onVink}
         className="flex h-11 w-11 shrink-0 items-center justify-center"
       >
@@ -155,13 +159,18 @@ export function FalafelAanvulRij({
               <span className="text-[13px] font-medium text-foreground">{peilKort(vulnorm)}</span>
             </span>
             <span className="text-muted-foreground/60" aria-hidden>·</span>
-            <span key={klaar ? 'klaar' : stap} className={cn('text-[13px] text-muted-foreground', !klaar && STAP_MOTION)}>
+            <span key={klaar ? 'klaar' : koelcelGepakt ? 'koelcel-gepakt' : stap} className={cn('text-[13px] text-muted-foreground', !klaar && STAP_MOTION)}>
               {afgevinkt ? 'Op peil' : doorgezet ? aanvulUitkomst(doorgezetNaar) : hint}
             </span>
           </span>
         </div>
       </div>
-      {!klaar && (
+      {!klaar && koelcelGepakt && onTerugVanKoelcel && (
+        <Button type="button" variant="ghost" className={cn('h-11 shrink-0 px-2 text-[13px] text-muted-foreground', DRUK)} disabled={laden} onClick={onTerugVanKoelcel}>
+          Terug
+        </Button>
+      )}
+      {!klaar && !koelcelGepakt && (
         <div key={stap} className={cn('flex shrink-0 flex-wrap items-center justify-end gap-1.5', STAP_MOTION)}>
           {stap === 'lade' && (
             <>
