@@ -456,6 +456,13 @@
       "when": 1793309176930,
       "tag": "0064_openpunten_leverdagen",
       "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1793868805749,
+      "tag": "0065_foh_template_update_sync_today",
+      "breakpoints": true
     }
   ]
 }
