@@ -26,22 +26,25 @@ function html(extra: Record<string, unknown> = {}) {
   }));
 }
 
-test('start toont doel en de twee eerste knoppen, zonder bestellen', () => {
+test('start toont de peilbalk en compacte knoppen, zonder bestellen', () => {
   const uit = html();
-  expect(uit).toContain('Falafel: staat de lade op peil?');
-  expect(uit).toContain('Doel lade: minimaal ½ bak');
+  expect(uit).toContain('Falafel');
+  expect(uit).toContain('Min. ½');
+  expect(uit).toContain('Minstens half vol');
+  expect(uit).toContain('Staat de lade op peil?');
   expect(uit).toContain('Op peil');
   expect(uit).toContain('bg-success');
   expect(uit).toContain('Aanvullen');
   expect(uit).toContain('bg-warning');
-  expect(uit).toContain('min-h-16');
+  expect(uit).toContain('h-11');
+  expect(uit).not.toContain('min-h-16');
   expect(uit).not.toContain('Bijbestellen');
   expect(uit).not.toContain('Vriezer onvoldoende');
 });
 
 test('koelcel en vriezer tonen alleen de knoppen van die stap', () => {
   const koelcel = html({ beginStap: 'koelcel' });
-  expect(koelcel).toContain('Falafel: waar komt het vandaan?');
+  expect(koelcel).toContain('Min. ½');
   expect(koelcel).toContain('Vul de lade aan uit de koelcel.');
   expect(koelcel).toContain('Aangevuld uit koelcel');
   expect(koelcel).toContain('Koelcel onvoldoende');
@@ -49,9 +52,9 @@ test('koelcel en vriezer tonen alleen de knoppen van die stap', () => {
   expect(koelcel).not.toContain('Vriezer onvoldoende');
 
   const vriezer = html({ beginStap: 'vriezer' });
-  expect(vriezer).toContain('Falafel: ontdooien of bestellen?');
+  expect(vriezer).toContain('Min. ½');
   expect(vriezer).toContain('Zet 1 bak uit de vriezer in de koelcel voor de volgende service.');
-  expect(vriezer).toContain('Ontdooien gestart (uit vriezer)');
+  expect(vriezer).toContain('Ontdooien gestart');
   expect(vriezer).toContain('bg-info');
   expect(vriezer).toContain('Vriezer onvoldoende');
   expect(vriezer).toContain('Bestelsignaal');
@@ -59,8 +62,10 @@ test('koelcel en vriezer tonen alleen de knoppen van die stap', () => {
 });
 
 test('afgevinkt en doorgezet tonen de uitkomst, geen nieuwe keuzes', () => {
-  expect(html({ afgevinkt: true })).toContain('Op peil');
-  expect(html({ afgevinkt: true })).not.toContain('Aanvullen');
+  const klaar = html({ afgevinkt: true });
+  expect(klaar).toContain('Op peil');
+  expect(klaar).toContain('Min. ½');
+  expect(klaar).not.toContain('Aanvullen');
   const ontdooit = html({ doorgezet: true, doorgezetNaar: 'mep' });
   expect(ontdooit).toContain('In ontdooiing · lade later aanvullen');
   expect(ontdooit).toContain('Herstel');

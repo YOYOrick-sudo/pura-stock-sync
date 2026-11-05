@@ -70,11 +70,11 @@ export function gevolgVanKeuze(keuze: AanvulKeuze): AanvulGevolg {
   }
 }
 
-/** Korte titel boven de knoppen van deze stap. */
-export function stapTitel(naam: string, stap: AanvulStap): string {
-  if (stap === 'koelcel') return `${naam}: waar komt het vandaan?`;
-  if (stap === 'vriezer') return `${naam}: ontdooien of bestellen?`;
-  return `${naam}: staat de lade op peil?`;
+/** Korte vraag op de regel, zelfde plek als de herkomst bij de andere producten. */
+export function stapTitel(_naam: string, stap: AanvulStap): string {
+  if (stap === 'koelcel') return 'Vul de lade aan uit de koelcel.';
+  if (stap === 'vriezer') return 'Ontdooien of bestellen?';
+  return 'Staat de lade op peil?';
 }
 
 /** Doel van de lade, niet een gemeten voorraad. */

@@ -56,9 +56,9 @@ describe('keuzes', () => {
 });
 
 test('elke stap heeft een korte titel', () => {
-  expect(stapTitel('Falafel', 'lade')).toBe('Falafel: staat de lade op peil?');
-  expect(stapTitel('Falafel', 'koelcel')).toBe('Falafel: waar komt het vandaan?');
-  expect(stapTitel('Falafel', 'vriezer')).toBe('Falafel: ontdooien of bestellen?');
+  expect(stapTitel('Falafel', 'lade')).toBe('Staat de lade op peil?');
+  expect(stapTitel('Falafel', 'koelcel')).toBe('Vul de lade aan uit de koelcel.');
+  expect(stapTitel('Falafel', 'vriezer')).toBe('Ontdooien of bestellen?');
 });
 
 test('teksten noemen het doel en een concrete ontdooihoeveelheid', () => {
