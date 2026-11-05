@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Check, Loader2, PackagePlus, ShoppingCart, Snowflake, TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { TaakBewerkKnop } from './TaakBewerkKnop';
 import { VulPeil } from './VulPeil';
 import { DRUK, STAP_MOTION } from './aanvulMotion';
 import { cn } from '@/lib/utils';
@@ -38,6 +39,10 @@ type Props = {
   onHerstel: () => void;
   onVink: () => void;
   onTerugVanKoelcel?: () => void;
+  /** Korte tekst onder de taak. Leeg laat de regel zoals hij was. */
+  instructie?: string | null;
+  /** Alleen de eigenaar, en alleen als de aanvulketen aan staat. */
+  onBewerk?: () => void;
 };
 
 type Tint = 'succes' | 'letop' | 'fout' | 'info';
@@ -104,6 +109,8 @@ export function FalafelAanvulRij({
   onHerstel,
   onVink,
   onTerugVanKoelcel,
+  instructie,
+  onBewerk,
 }: Props) {
   const [stap, setStap] = useState<AanvulStap>(beginStap);
   const klaar = afgevinkt || doorgezet;
@@ -148,7 +155,7 @@ export function FalafelAanvulRij({
           ) : null}
         </span>
       </button>
-      <div className="min-w-0 flex-1 py-1.5">
+      <div className={cn('min-w-0 flex-1 py-1.5', onBewerk && 'min-w-40')}>
         <p className={cn('text-[16px] font-medium leading-snug text-foreground', afgevinkt && 'text-muted-foreground line-through opacity-55')}>
           {naam}
         </p>
@@ -163,8 +170,12 @@ export function FalafelAanvulRij({
               {afgevinkt ? 'Op peil' : doorgezet ? aanvulUitkomst(doorgezetNaar) : hint}
             </span>
           </span>
+          {(instructie ?? '').trim() && (
+            <p className="mt-0.5 text-[13px] leading-snug text-foreground">{instructie?.trim()}</p>
+          )}
         </div>
       </div>
+      {onBewerk && <TaakBewerkKnop naam={naam} onClick={onBewerk} />}
       {!klaar && koelcelGepakt && onTerugVanKoelcel && (
         <Button type="button" variant="ghost" className={cn('h-11 shrink-0 px-2 text-[13px] text-muted-foreground', DRUK)} disabled={laden} onClick={onTerugVanKoelcel}>
           Terug
