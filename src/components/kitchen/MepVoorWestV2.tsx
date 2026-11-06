@@ -86,12 +86,12 @@ export function MepVoorWestV2Kaart({
               <div className="flex flex-wrap items-center gap-2">
                 <span className="min-w-0 break-words font-medium text-foreground">{a.naam}</span>
                 <StatusBadge tone={status.toon}>{status.label}</StatusBadge>
+                {status.nieuw && <StatusBadge tone="brand">Nieuw</StatusBadge>}
+                {status.verstreken && <StatusBadge tone="warning">Levermoment verstreken</StatusBadge>}
               </div>
               <p className="text-sm text-muted-foreground">
                 {[
                   aantalRegel(a),
-                  status.nieuw ? 'Nieuw' : '',
-                  status.verstreken ? 'Levermoment verstreken' : '',
                   a.vrije_naam && a.product_id ? `aangevraagd als ${a.vrije_naam}` : '',
                   a.gewenste_leverdag ? `gewenst ${leverdagTekst(a.gewenste_leverdag)}` : '',
                   a.verwachte_leverdag ? `verwacht ${leverdagTekst(a.verwachte_leverdag)}` : '',

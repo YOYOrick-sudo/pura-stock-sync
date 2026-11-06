@@ -53,7 +53,7 @@ export function MobielMeerBlad({ open, onOpenChange, items }: {
                 <DropdownMenuContent align="start">
                   {availableLocations.map(loc => (
                     <DropdownMenuItem key={loc} onSelect={() => setActiveLocation(loc)} className="min-h-11 gap-2">
-                      <Check className={cn('h-4 w-4', loc === userLocation ? 'text-foreground' : 'invisible')} />
+                      <Check className={cn('h-4 w-4', loc === userLocation ? 'text-primary' : 'opacity-0')} />
                       {getLocationDisplayName(loc)}
                     </DropdownMenuItem>
                   ))}

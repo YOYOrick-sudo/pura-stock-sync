@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { RijMenu, segmentTabsKlasse } from '@/components/pura';
@@ -8,12 +9,13 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { LegeStaatBlok } from '@/components/pura/canoniek';
+import { EmptyState } from '@/components/kitchen/EmptyState';
 import { MepToevoegenDialog } from '@/components/kitchen/MepToevoegenDialog';
 import { MepPerPersoon } from '@/components/kitchen/MepPerPersoon';
 import { MepVerbindingBanner } from '@/components/kitchen/MepVerbindingBanner';
 import {
   Plus,
+  Clock,
   ArrowRight,
   ArrowLeft,
   Trash2,
@@ -183,7 +185,7 @@ function MepRij({
 
 export default function MepPlanning() {
   const isMobile = useIsMobile();
-  const Layout = SidebarLayout;
+  const Layout = isMobile ? SidebarLayout : KitchenLayout;
   const { userLocation } = useUserLocation();
   const navigate = useNavigate();
   const kalender = useMepKalender(userLocation);
@@ -259,7 +261,7 @@ export default function MepPlanning() {
   ];
 
   return (
-    <Layout>
+    <Layout title="Mise-en-place" subtitle={`${format(kalender.vandaag, 'EEEE d MMMM', { locale: nl })}`}>
       <div className={isMobile ? 'min-w-0 max-w-full space-y-4 [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:text-base' : 'space-y-5'}>
         <MepVerbindingBanner
           realtimeOk={planning.verbinding.realtimeOk}
@@ -353,9 +355,11 @@ export default function MepPlanning() {
         {planning.loading ? (
           <p className="text-sm text-muted-foreground">Laden…</p>
         ) : regels.length === 0 ? (
-          <LegeStaatBlok
-            tekst="Nog niets gepland Voeg halfproducten of vrije taken toe voor deze dag"
-            actie={<Button type="button" variant="ghost" size="touch" onClick={() => setDialogOpen(true)}>Toevoegen</Button>}
+          <EmptyState
+            icon={Clock}
+            title="Nog niets gepland"
+            description="Voeg halfproducten of vrije taken toe voor deze dag"
+            action={{ label: 'Toevoegen', onClick: () => setDialogOpen(true) }}
           />
         ) : weergave === 'persoon' ? (
           <MepPerPersoon

@@ -29,34 +29,12 @@ export function GroepRij({ naam, aantal, totaal, kolommen, gedimd = false, actie
   </TableRow>;
 }
 
-const kengetalKleur = {
-  neutraal: 'text-foreground',
-  'let-op': 'text-warning',
-  goed: 'text-success',
-  fout: 'text-destructive',
-} as const;
-
-/** Kengetal: label, icoon van 16 px, getal op 24 px. */
-export function Kengetal({
-  icoon: Icoon,
-  label,
-  waarde,
-  toon = 'neutraal',
-}: {
-  icoon?: LucideIcon;
-  label: string;
-  waarde: ReactNode;
-  toon?: keyof typeof kengetalKleur;
-}) {
-  return (
-    <div className="min-w-0 space-y-1 rounded-polar-lg border border-border bg-card px-4 py-4 shadow-sm">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        {Icoon ? <Icoon className="h-4 w-4 shrink-0" /> : null}
-        <span className="truncate">{label}</span>
-      </div>
-      <p className={cn('truncate text-2xl font-semibold tabular-nums leading-8', kengetalKleur[toon])}>{waarde}</p>
-    </div>
-  );
+/** Kengetal: icoon + label klein, groot getal eronder. Meerdere naast elkaar in één kaart. */
+export function Kengetal({ icoon: Icoon, label, waarde, toon = 'neutraal' }: { icoon: LucideIcon; label: string; waarde: ReactNode; toon?: 'neutraal' | 'let-op' }) {
+  return <div className="min-w-0 space-y-1 px-3 py-4">
+    <div className="flex items-center gap-1 text-xs text-muted-foreground"><Icoon className={cn('h-4 w-4 shrink-0', toon === 'let-op' && 'text-warning')} /><span className="truncate leading-tight">{label}</span></div>
+    <div className={cn('truncate text-xl font-semibold tabular-nums', toon === 'let-op' ? 'text-warning' : 'text-foreground')}>{waarde}</div>
+  </div>;
 }
 
 /** Eén samenvattingskaart: kengetallen elk in een eigen vak, optioneel inhoud eronder. */
@@ -95,10 +73,10 @@ export const kaartRandKlasse = '[&_tr>*:first-child]:pl-4 [&_tr>*:last-child]:pr
 /** Kaartkop: icoon + titel + teller links, één compacte actie rechts. */
 export function KaartKop({ icoon: Icoon, titel, teller, rechts }: { icoon?: LucideIcon; titel: ReactNode; teller?: number; rechts?: ReactNode }) {
   return <div className="flex min-h-12 items-center justify-between gap-2 border-b border-border px-4 py-2 lg:px-6">
-    <div className="flex min-w-0 items-center gap-2 text-base font-semibold tracking-tight text-foreground">
-      {Icoon && <Icoon className="h-4 w-4 shrink-0 text-muted-foreground" strokeWidth={2} />}
+    <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-foreground">
+      {Icoon && <Icoon className="h-5 w-5 shrink-0 text-muted-foreground" />}
       <span className="truncate">{titel}</span>
-      {teller != null && <span className="text-xs font-normal tabular-nums text-muted-foreground">{teller}</span>}
+      {teller != null && <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium tabular-nums text-muted-foreground">{teller}</span>}
     </div>
     {rechts && <div className="flex shrink-0 items-center gap-1">{rechts}</div>}
   </div>;

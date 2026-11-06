@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, ChefHat } from 'lucide-react';
-import { LegeStaatBlok } from '@/components/pura/canoniek';
+import { Plus, Search, BookOpen, ChefHat } from 'lucide-react';
+import { EmptyState } from '@/components/kitchen/EmptyState';
 import { useNavigate } from 'react-router-dom';
 import { useRecipes, useRecipeCategories } from '@/hooks/useRecipes';
 import { VestigingFilter, VestigingToggles } from '@/components/kitchen/VestigingKoppeling';
@@ -114,9 +114,14 @@ export default function Recipes() {
         {isLoading ? (
           <div className="text-center py-12 text-muted-foreground">Laden…</div>
         ) : recipes.length === 0 ? (
-          <LegeStaatBlok
-            tekst={`Geen recepten gevonden ${search || category ? 'Pas je zoekopdracht aan' : 'Voeg je eerste recept toe om te beginnen'}`}
-            actie={<Button type="button" variant="ghost" size="touch" onClick={() => navigate('/kitchen/recipes/nieuw')}>Nieuw recept</Button>}
+          <EmptyState
+            icon={BookOpen}
+            title="Geen recepten gevonden"
+            description={search || category ? 'Pas je zoekopdracht aan' : 'Voeg je eerste recept toe om te beginnen'}
+            action={{
+              label: 'Nieuw recept',
+              onClick: () => navigate('/kitchen/recipes/nieuw'),
+            }}
           />
         ) : (
           <Card className="bg-card shadow-sm overflow-hidden">

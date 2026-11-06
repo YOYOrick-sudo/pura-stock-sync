@@ -3,8 +3,8 @@ import { SidebarLayout } from '@/components/SidebarLayout';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, Search, AlertTriangle, Pencil, Archive, ArchiveRestore, Leaf } from 'lucide-react';
-import { LegeStaatBlok } from '@/components/pura/canoniek';
+import { Plus, Search, AlertTriangle, Pencil, Archive, ArchiveRestore, Cookie, Leaf } from 'lucide-react';
+import { EmptyState } from '@/components/kitchen/EmptyState';
 import { cn } from '@/lib/utils';
 import { useRole } from '@/hooks/useRole';
 import { useArchiveerGerecht, useGerechten, useGerechtAllergenen, type Gerecht } from '@/hooks/useGerechten';
@@ -301,15 +301,17 @@ export default function Gerechten() {
         ) : isLoading ? (
           <div className="text-center py-12 text-muted-foreground">Laden…</div>
         ) : veilig.length === 0 && onzeker.length === 0 ? (
-          <LegeStaatBlok
-            tekst={`Geen gerechten gevonden ${
+          <EmptyState
+            icon={Cookie}
+            title="Geen gerechten gevonden"
+            description={
               filterActief
                 ? 'Geen enkel gerecht voldoet aan deze combinatie. Vraag na in de keuken.'
                 : search
                   ? 'Pas je zoekopdracht aan'
                   : 'Voeg je eerste gerecht toe'
-            }`}
-            actie={isManager && !filterActief ? <Button type="button" variant="ghost" size="touch" onClick={openNieuw}>Nieuw gerecht</Button> : undefined}
+            }
+            action={isManager && !filterActief ? { label: 'Nieuw gerecht', onClick: openNieuw } : undefined}
           />
         ) : (
           <>

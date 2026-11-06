@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Plus, AlertTriangle, Clock, CheckCircle2, Image as ImageIcon } from 'lucide-react';
+import { Plus, AlertTriangle, Clock, CheckCircle2, MapPin, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMaintenanceTickets, useTicketCounts } from '@/hooks/maintenance/useMaintenanceTickets';
 import { useSignedPhotoUrl } from '@/hooks/maintenance/useMaintenancePhoto';
 import type { MaintenanceActor, MaintenanceTicket, TicketStatus } from '@/types/maintenance';
@@ -10,14 +9,15 @@ import { formatDistanceToNow } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
+  PageSubheader,
   StatusBadge,
-  Kengetal,
-  LegeStaatBlok,
+  SegmentedTabs,
+  StatCard,
+  EmptyState,
   toneColor,
   type StatusTone,
   LijstKaart,
   StatusLabel,
-  segmentTabsKlasse,
 } from '@/components/pura';
 
 interface TicketListProps {
@@ -37,11 +37,11 @@ const prioriteitConfig: Record<
 
 const statusConfig: Record<
   TicketStatus,
-  { tone: StatusTone; label: string }
+  { tone: StatusTone; label: string; icon: typeof AlertTriangle }
 > = {
-  nieuw: { tone: 'danger', label: 'Open' },
-  in_behandeling: { tone: 'warning', label: 'Bezig' },
-  afgehandeld: { tone: 'success', label: 'Klaar' },
+  nieuw: { tone: 'danger', label: 'Open', icon: AlertTriangle },
+  in_behandeling: { tone: 'warning', label: 'Bezig', icon: Clock },
+  afgehandeld: { tone: 'success', label: 'Klaar', icon: CheckCircle2 },
 };
 
 type StatusFilter = 'open' | 'klaar' | 'alles';
@@ -75,40 +75,42 @@ export function TicketList({ actor, onNewTicket, onTicketClick }: TicketListProp
     <div className={isMobile ? 'min-w-0 space-y-4' : 'space-y-4'}>
       {/* KPI Tellers */}
       <div className={isMobile ? 'grid min-w-0 grid-cols-3 gap-2 [&>div]:min-w-0 [&>div]:flex-col [&>div]:items-start [&>div]:!gap-2 [&>div]:!p-3 [&>div>div]:max-w-full [&_svg]:shrink-0 [&_p]:break-words' : 'grid grid-cols-3 gap-3 sm:gap-4'}>
-        <Kengetal
+        <StatCard
           label="Hoog"
-          waarde={isLoading ? <Skeleton className="h-7 w-8" /> : counts.hoog}
-          icoon={AlertTriangle}
-          toon="fout"
+          value={isLoading ? <Skeleton className="h-7 w-8" /> : counts.hoog}
+          icon={<AlertTriangle />}
+          tone="danger"
         />
-        <Kengetal
+        <StatCard
           label="Openstaand"
-          waarde={isLoading ? <Skeleton className="h-7 w-8" /> : counts.openstaand}
-          icoon={Clock}
-          toon="let-op"
+          value={isLoading ? <Skeleton className="h-7 w-8" /> : counts.openstaand}
+          icon={<Clock />}
+          tone="warning"
         />
-        <Kengetal
+        <StatCard
           label="Klaar"
-          waarde={isLoading ? <Skeleton className="h-7 w-8" /> : counts.afgehandeld}
-          icoon={CheckCircle2}
-          toon="goed"
+          value={isLoading ? <Skeleton className="h-7 w-8" /> : counts.afgehandeld}
+          icon={<CheckCircle2 />}
+          tone="success"
         />
       </div>
 
       <div className={isMobile ? 'flex min-w-0 flex-col gap-2 [&>div]:max-w-full [&>div]:overflow-x-auto [&>div]:flex-nowrap [&_button]:min-h-11 [&_button]:shrink-0 [&_button]:whitespace-nowrap' : 'flex flex-wrap items-center justify-between gap-3'}>
-        <Tabs value={statusFilter} onValueChange={(waarde) => setStatusFilter(waarde as StatusFilter)}>
-          <TabsList className={segmentTabsKlasse}>
-            <TabsTrigger value="open">Open</TabsTrigger>
-            <TabsTrigger value="klaar">Klaar</TabsTrigger>
-            <TabsTrigger value="alles">Alles</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <SegmentedTabs<StatusFilter>
+          value={statusFilter}
+          onValueChange={setStatusFilter}
+          options={[
+            { value: 'open', label: 'Open' },
+            { value: 'klaar', label: 'Klaar' },
+            { value: 'alles', label: 'Alles' },
+          ]}
+        />
         <Button
           onClick={onNewTicket}
-          size="touch"
-          className={isMobile ? 'w-full gap-2' : 'gap-2'}
+          size="lg"
+          className={isMobile ? 'h-11 w-full gap-2' : 'h-11 px-5 text-[15px] gap-2 rounded-polar-xl'}
         >
-          <Plus className="h-4 w-4" strokeWidth={2} />
+          <Plus className="h-[18px] w-[18px]" strokeWidth={2} />
           Nieuwe melding
         </Button>
       </div>
@@ -117,10 +119,14 @@ export function TicketList({ actor, onNewTicket, onTicketClick }: TicketListProp
       <div className="space-y-3">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-polar-lg" />
+            <Skeleton key={i} className="h-24 w-full rounded-polar-xl" />
           ))
         ) : sortedTickets.length === 0 ? (
-          <LegeStaatBlok tekst="Niks te melden hier Zie je iets dat niet in de haak is? Tik op 'Nieuwe melding' rechtsboven." />
+          <EmptyState
+            icon={CheckCircle2}
+            title="Niks te melden hier"
+            description="Zie je iets dat niet in de haak is? Tik op 'Nieuwe melding' rechtsboven."
+          />
         ) : (
           isMobile ? (
             <LijstKaart>
@@ -143,6 +149,7 @@ function TicketCard({ ticket, onClick }: { ticket: MaintenanceTicket; onClick: (
   const isMobile = useIsMobile();
   const prio = prioriteitConfig[ticket.prioriteit];
   const status = statusConfig[ticket.status];
+  const StatusIcon = status.icon;
   const thumbUrl = useSignedPhotoUrl(ticket.foto_url);
   const melderNaam = ticket.melder_naam ?? ticket.melder?.naam ?? 'Onbekend';
 
@@ -168,7 +175,7 @@ function TicketCard({ ticket, onClick }: { ticket: MaintenanceTicket; onClick: (
   return (
     <button
       onClick={onClick}
-      className="flex w-full overflow-hidden rounded-polar-lg border border-border bg-card text-left shadow-sm hover:border-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="w-full text-left bg-card border border-border rounded-polar-xl shadow-card overflow-hidden flex transition-all duration-200 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       {/* Urgency strip */}
       <div
@@ -180,16 +187,16 @@ function TicketCard({ ticket, onClick }: { ticket: MaintenanceTicket; onClick: (
       <div className="flex-1 min-w-0 flex gap-3 p-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-            <StatusBadge tone={status.tone}>
+            <StatusBadge tone={status.tone} shape="label" icon={<StatusIcon />}>
               {status.label}
             </StatusBadge>
             {ticket.plek && (
-              <StatusBadge tone="neutral">
+              <StatusBadge tone="neutral" shape="label" icon={<MapPin />}>
                 {ticket.plek}
               </StatusBadge>
             )}
           </div>
-          <h3 className="mb-1 line-clamp-2 text-base font-semibold leading-snug text-foreground">
+          <h3 className="text-[15px] font-semibold text-foreground leading-snug mb-1 line-clamp-2">
             {ticket.titel}
           </h3>
           <p className="text-xs text-muted-foreground">

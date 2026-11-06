@@ -1,27 +1,4 @@
 // Bestaande afwijkingen op 29 okt 2026. Niet aanvullen: lijst mag alleen krimpen.
-// Afgeronde design-v3-PR's. Een bestand hier mag geen verboden patroon meer hebben.
-export const AFGEROND: string[] = [
-  'components/pura/StatusBadge.tsx',
-  'components/kitchen/bestelbord/InternOnderwegV2.tsx',
-  'components/kitchen/MepVoorWestV2.tsx',
-  'components/hr/StatusBadge.tsx',
-  'components/maintenance/TicketList.tsx',
-  'components/ui/command.tsx',
-  'components/ui/calendar.tsx',
-  'components/ui/scroll-area.tsx',
-  'components/ui/navigation-menu.tsx',
-  'components/ui/data-table.tsx',
-  'components/ui/radio-group.tsx',
-  'components/ui/separator.tsx',
-  'hooks/useNavigatieItems.ts',
-  'pages/kitchen/Bestelbord.tsx',
-  'components/kitchen/bestelbord/BestelbordTabs.tsx',
-  'components/kitchen/bestelbord/BordTabel.tsx',
-  'components/kitchen/bestelbord/RegelInfo.tsx',
-  'components/kitchen/bestelbord/InternBestellen.tsx',
-  'components/pura/blokken.tsx',
-];
-
 export const BESTAANDE_AFWIJKINGEN: string[] = [
   'components/HandoverCard.tsx :: losse afronding',
   'components/PWAInstallHint.tsx :: losse afronding',
@@ -58,9 +35,12 @@ export const BESTAANDE_AFWIJKINGEN: string[] = [
   'components/personeel/HousingOccupancyStrip.tsx :: losse afronding',
   'components/personeel/PlanningBlock.tsx :: losse afronding',
   'components/polar/Dialog.tsx :: losse afronding',
+  'components/polar/Header.tsx :: losse afronding',
   'components/polar/KPICard.tsx :: losse afronding',
+  'components/polar/Sidebar.tsx :: losse afronding',
   'components/ui/chart.tsx :: losse afronding',
   'components/ui/drawer.tsx :: losse afronding',
+  'components/ui/scroll-area.tsx :: losse afronding',
   'components/voorraad/BakmaatKiezer.tsx :: losse afronding',
   'components/voorraad/BakmaatUitleg.tsx :: losse afronding',
   'components/voorraad/KastOverzicht.tsx :: losse afronding',

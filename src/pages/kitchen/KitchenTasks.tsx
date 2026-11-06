@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { SidebarLayout } from '@/components/SidebarLayout';
+import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Plus } from 'lucide-react';
-import { LegeStaatBlok } from '@/components/pura/canoniek';
+import { Plus, CheckSquare } from 'lucide-react';
+import { EmptyState } from '@/components/kitchen/EmptyState';
 import { devLog } from "@/lib/devLog";
 
 export default function KitchenTasks() {
@@ -32,7 +32,11 @@ export default function KitchenTasks() {
   const renderTaskList = (tasks: any[]) => {
     if (tasks.length === 0) {
       return (
-        <LegeStaatBlok tekst="Geen taken Alle taken zijn voltooid of er zijn nog geen taken toegevoegd" />
+        <EmptyState
+          icon={CheckSquare}
+          title="Geen taken"
+          description="Alle taken zijn voltooid of er zijn nog geen taken toegevoegd"
+        />
       );
     }
 
@@ -85,7 +89,7 @@ export default function KitchenTasks() {
   };
 
   return (
-    <SidebarLayout>
+    <KitchenLayout title="Taken" subtitle="Schoonmaak & onderhoud">
       <div className="space-y-6">
         <div className="flex justify-end">
           <Button className="bg-primary hover:bg-primary-hover">
@@ -108,6 +112,6 @@ export default function KitchenTasks() {
           <TabsContent value="maintenance">{renderTaskList(maintenanceTasks)}</TabsContent>
         </Tabs>
       </div>
-    </SidebarLayout>
+    </KitchenLayout>
   );
 }

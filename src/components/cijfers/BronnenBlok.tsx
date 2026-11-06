@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, ExternalLink, RefreshCw, Link2, Search, Users } from 'lucide-react';
+import { Loader2, ExternalLink, RefreshCw, Link2, AlertCircle, Search, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { StatusBadge, type StatusTone } from '@/components/pura/StatusBadge';
-import { LegeStaatBlok } from '@/components/pura/canoniek';
+import { EmptyState } from '@/components/pura/EmptyState';
 import { toast } from '@/hooks/use-toast';
 import { BackfillProgressDialog, type BackfillState, type WeekResult } from './BackfillProgressDialog';
 import { SyncStoringBlok } from './SyncStoringBlok';
@@ -347,7 +347,7 @@ export function BronnenBlok() {
       {statusQ.isLoading ? (
         <div className="flex justify-center py-6"><Loader2 className="animate-spin text-primary" /></div>
       ) : statusQ.error ? (
-        <LegeStaatBlok tekst={`Kan status niet laden ${(statusQ.error as Error).message}`} />
+        <EmptyState icon={AlertCircle} title="Kan status niet laden" description={(statusQ.error as Error).message} />
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {(statusQ.data ?? []).map((row) => (

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Check, ChefHat, Link2, ShoppingBag, ArrowLeftRight } from 'lucide-react';
+import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Check, Search, ChefHat, Link2, ShoppingBag, Warehouse } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useOntvangstModus, useOntvangstData, useKeukenAdvies, useKeukenStand, useKeukenTelpool, useKeukenTelInfo, useKeukenTelling, useFase2VlagAan } from '@/hooks/useOntvangstV2';
 import { NageleverdKaart, EindcheckKaart } from '@/components/kitchen/bestelbord/OntvangstOnderweg';
@@ -13,9 +13,9 @@ import { BestelbordTabs, ZonderPrijsFilter } from '@/components/kitchen/bestelbo
 import { KeukenAdviesTabel } from '@/components/kitchen/bestelbord/KeukenAdviesTabel';
 import { KeukenTelblok } from '@/components/kitchen/bestelbord/KeukenTelblok';
 import { DrankAdvies } from '@/components/kitchen/bestelbord/DrankAdvies';
-import { DetailLade, FoutRegel, KaartKop, LaadRijen, LijstKaart, Invoerbalk } from '@/components/pura/patronen';
+import { DetailLade, KaartKop, LaadRijen, LijstKaart, Invoerbalk } from '@/components/pura/patronen';
 import { TabelVoet } from '@/components/pura/lijst';
-import { LegeStaatBlok, Paginakop, Sectiekop } from '@/components/pura/canoniek';
+import { EmptyState } from '@/components/pura/EmptyState';
 import { Stappen } from '@/components/pura/blokken';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -77,12 +77,12 @@ const foutmelding = (e: unknown) => {
 
 function Stepper({ waarde, onChange, eenheid, uit }: { waarde: number | null; onChange: (n: number | null) => void; eenheid?: string; uit?: boolean }) {
   return (
-    <div className={cn('flex items-center gap-1', eenheid !== undefined && 'gap-0 rounded-polar-md border border-input bg-background')}>
+    <div className={cn('flex items-center gap-1', eenheid !== undefined && 'gap-0 rounded-polar-lg border border-input bg-background')}>
       <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Minder" disabled={uit} onClick={() => onChange(Math.max(1, (waarde ?? 1) - 1))}>
         <Minus className="h-4 w-4" />
       </Button>
       {eenheid !== undefined ? (
-        <label className="flex h-11 min-w-[6.5rem] cursor-text items-baseline justify-center gap-1 px-1">
+        <label className={cn('flex h-11 min-w-[6.5rem] cursor-text items-baseline justify-center gap-1 px-1', uit && 'opacity-50')}>
           {uit ? <span className="self-center text-sm text-muted-foreground">kies verpakking</span> : <>
             <input
               value={waarde == null ? '' : String(waarde)}
@@ -127,12 +127,11 @@ function SoortKeuze({ waarde, onChange }: { waarde: string | null; onChange: (s:
   return (
     <div className="flex flex-wrap gap-1.5">
       {SOORTEN.map((s) => (
-        <Button variant="outline"
+        <Button variant={waarde === s ? 'default' : 'outline'}
           key={s}
           type="button"
           onClick={() => onChange(s)}
-          className={cn('h-11 px-3.5', waarde === s && 'border-foreground')}
-          aria-pressed={waarde === s}
+          className="h-11 px-3.5"
         >
           {s}
         </Button>
@@ -179,14 +178,14 @@ function VormKeuze({
               disabled={geblokkeerd}
               onClick={() => onKies(v)}
               className={cn(
-                'flex min-h-11 w-full flex-col items-start gap-0.5 rounded-polar-md border px-3 py-2.5 text-left transition-colors duration-150',
-                actief ? 'border-foreground bg-muted' : 'border-border bg-card hover:bg-muted/60',
-                geblokkeerd && 'cursor-not-allowed bg-muted text-muted-foreground',
+                'flex min-h-14 w-full flex-col items-start gap-0.5 rounded-polar-md border px-3 py-2.5 text-left transition-colors duration-150',
+                actief ? 'border-primary bg-primary/10 ring-1 ring-primary' : 'border-border bg-card hover:bg-muted/60',
+                geblokkeerd && 'cursor-not-allowed opacity-50',
               )}
             >
               <span className="flex w-full items-center justify-between gap-2">
                 <span className="text-base font-semibold leading-tight text-foreground">{titel}</span>
-                {actief && <Check className="h-4 w-4 text-foreground" />}
+                {actief && <Check className="h-4 w-4 text-primary" />}
               </span>
               <span className="text-sm text-foreground tabular-nums">
                 {[w.inhoud, w.totaal && w.inhoud !== w.totaal ? `= ${w.totaal}` : null].filter(Boolean).join(' ') || '—'}
@@ -212,10 +211,7 @@ export default function Bestelbord() {
   const [params, setSearchParams] = useSearchParams();
   const vestiging = userLocation ?? '';
   const deadlineVoor = useBesteldeadlines(vestiging);
-  const signalenQuery = useBestelSignalen(vestiging || null);
-  const signalen = signalenQuery.data ?? [];
-  const isLoading = signalenQuery.isLoading;
-  const bordMislukt = signalenQuery.isError && signalenQuery.data == null;
+  const { data: signalen = [], isLoading } = useBestelSignalen(vestiging || null);
   const {
     toevoegen, zetBesteld, verwijderen, herstel, wijzig,
     markeerGeleverd, nietGeleverd, deelsGeleverd, terugNaarBesteld, zetVerwachteLevering,
@@ -692,33 +688,32 @@ export default function Bestelbord() {
     </>
   ) : null;
   const internKaart = internRegels
-    ? <LijstKaart kop={<KaartKop icoon={ArrowLeftRight} titel="Intern uit Midsland" teller={internZicht.length} />}>{internRegels}</LijstKaart>
+    ? <LijstKaart kop={<KaartKop icoon={Warehouse} titel="Intern uit Midsland" teller={internZicht.length} />}>{internRegels}</LijstKaart>
     : null;
   const internOnderwegBezig = internAan && interneOnderweg.data === undefined && !interneOnderweg.isError;
   const filterAan = !!q || alleenZonderPrijs;
   const openPrijzen = (koppelVlag ? openZicht : open).map(prijsVan).filter((p) => p != null);
   const openTotaal = openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : '—';
   const koppelModus = koppelVlag && !!bewerk && !bewerk.artikel_id && bewerk.status === 'open';
-    const leegKaart = (titel: string) => <LegeStaatBlok tekst={filterAan ? 'Niets gevonden Pas je zoekopdracht of filter aan.' : titel} actie={filterAan ? <Button variant="outline" size="touch" onClick={() => { setAlleenZonderPrijs(false); }}>Filter wissen</Button> : undefined} />;
-    const adviesMislukt = advies.isError && advies.data == null;
-    const adviesTitel = advies.data?.leverdag ? `Voor ${leverDatumLabel(advies.data.leverdag)}` : 'Advies';
-    const filterKnop = zonderPrijsFilter('hidden lg:inline-flex');
+    const leegKaart = (titel: string) => <EmptyState icon={filterAan ? Search : ClipboardList} title={filterAan ? 'Niets gevonden' : titel} description={filterAan ? 'Pas je zoekopdracht of filter aan.' : ''} className="border-0 shadow-none" action={filterAan ? <Button variant="outline" size="touch" onClick={() => { setAlleenZonderPrijs(false); }}>Filter wissen</Button> : undefined} />;
 
   return (
     <SidebarLayout>
       <div className="space-y-4">
         <Tabs value={tab} onValueChange={setTabKeuze}>
-          <Paginakop
-            titel="Bestelbord"
-            links={<div className="w-full min-w-0"><BestelbordTabs tabs={[
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="w-full min-w-0 lg:w-auto lg:flex-1">
+            <BestelbordTabs tabs={[
               { id: 'bord', naam: 'Op het bord', kort: 'Bord', Icoon: ClipboardList, n: open.length },
               { id: 'advies', naam: 'Advies', kort: 'Advies', Icoon: Sparkles, n: positieveAdviezen.length },
               ...(modus.keukenadvies ? [{ id: 'keuken', naam: 'Advies keuken', kort: 'Keuken', Icoon: ChefHat, n: keukenAdvies.data?.length ?? 0 }] : []),
               { id: 'tellen', naam: 'Tellen', kort: 'Tellen', Icoon: Calculator, n: telOverzicht.open },
               { id: 'onderweg', naam: 'Onderweg', kort: 'Onderweg', Icoon: Truck, n: onderwegAantal, aandacht: onderwegWeergave.aandacht },
-            ]} /></div>}
-            actie={(test || filterKnop) ? <div className="flex flex-wrap items-center gap-2">{test && <Badge variant="secondary">Test</Badge>}{filterKnop}</div> : undefined}
-          />
+            ]} />
+            </div>
+            {test && <Badge variant="secondary">Test</Badge>}
+            {zonderPrijsFilter('hidden lg:inline-flex')}
+          </div>
           <div className="mt-4 min-w-0">
             <div className="min-w-0 space-y-4">
               <TabsContent value="bord" className="mt-0 space-y-4">
@@ -772,7 +767,7 @@ export default function Bestelbord() {
                         aria-selected={i === actief}
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => kiesArtikel(s)}
-                        className={cn('block h-auto min-h-12 w-full px-3 py-2 text-left', i === actief ? 'bg-muted' : 'hover:bg-muted/60')}
+                        className={cn('block w-full px-3 py-2 text-left min-h-[48px]', i === actief ? 'bg-muted' : 'hover:bg-muted/60')}
                       >
                         <span className="block text-sm font-medium text-foreground">{s.naam}</span>
                         {sub && <span className="block text-xs text-muted-foreground">{sub}</span>}
@@ -804,8 +799,8 @@ export default function Bestelbord() {
           {eerderSuggesties.length > 0 && (
             <div className={isMobile ? 'flex gap-1.5 overflow-x-auto [scrollbar-width:none]' : 'flex flex-wrap gap-1.5'}>
               {eerderSuggesties.map((s) => (
-                <Button variant="ghost" size="touch" key={s.id} type="button" onClick={() => kiesEerder(s)}
-                  className="shrink-0 px-3">
+                <Button variant="ghost" key={s.id} type="button" onClick={() => kiesEerder(s)}
+                  className="min-h-11 shrink-0 px-3">
                   {s.naam} · {Number(s.aantal)} {s.eenheid}
                 </Button>
               ))}
@@ -822,10 +817,9 @@ export default function Bestelbord() {
           {gekozenVorm && <VerpakkingRegel vorm={gekozenVorm} aantal={aantal} />}
         </div>
 
-                {bordMislukt ? <FoutRegel onOpnieuw={() => signalenQuery.refetch()} /> : isLoading ? <LaadRijen /> : openZicht.length ? <BordTabel regels={openZicht} {...bordProps} /> : null}
-                {!bordMislukt && !isLoading && openZicht.length > 0 && <TabelVoet links={`${openZicht.length} ${openZicht.length === 1 ? 'product' : 'producten'}`} rechts={openTotaal} />}
+                {isLoading ? <LaadRijen /> : openZicht.length ? <BordTabel regels={openZicht} {...bordProps} /> : (onbekendZicht.length || winkelZicht.length || internZicht.length) ? null : leegKaart('Niets openstaand')}
+                {!isLoading && openZicht.length > 0 && <TabelVoet links={`${openZicht.length} ${openZicht.length === 1 ? 'product' : 'producten'}`} rechts={openTotaal} />}
                 </LijstKaart>
-                {!bordMislukt && !isLoading && !openZicht.length && !(onbekendZicht.length || winkelZicht.length || internZicht.length) && leegKaart('Niets openstaand')}
                 {!isLoading && onbekendZicht.length > 0 && <LijstKaart kop={<KaartKop icoon={koppelVlag ? Link2 : Truck} titel={koppelVlag ? 'Nog koppelen' : 'Leverancier kiezen'} teller={onbekendZicht.length} />}>{koppelVlag && <p className="px-4 pb-1 pt-3 text-sm text-muted-foreground lg:px-6">Koppel aan een artikel, of maak een nieuw.</p>}<BordTabel regels={onbekendZicht} {...bordProps} plat={koppelVlag} /></LijstKaart>}
                 {koppelVlag && !isLoading && winkelZicht.length > 0 && <LijstKaart kop={<KaartKop icoon={ShoppingBag} titel="Zelf halen" teller={winkelZicht.length} />}><p className="px-4 pb-1 pt-3 text-sm text-muted-foreground lg:px-6">Haal je zelf. Tik op Gehaald als het binnen is.</p><ZelfHalenTabel soort="winkel" regels={winkelZicht} leverancier={leverancier} onGehaald={(s) => vinkGeleverd([s.id], s.naam)} onAllesGehaald={(ids) => vinkGeleverd(ids, `${ids.length} ${ids.length === 1 ? 'regel' : 'regels'}`)} onBewerk={openBewerk} onVervallen={vervallen} alleenLezen={test} /></LijstKaart>}
                 {!isLoading && toonV2Bord && <InternGroepV2 vestiging={vestiging} losse={internZicht.map((s) => ({ id: s.id, naam: s.naam, aantal: Number(s.aantal), eenheid: s.eenheid }))} onLosseWeg={(id) => verwijderen.mutate(id)} />}
@@ -833,13 +827,10 @@ export default function Bestelbord() {
                 {(open.length > 0 || besteld.length > 0) && <LijstKaart kop={<KaartKop icoon={ClipboardList} titel="Per leverancier" />}>{leveranciersTabel}</LijstKaart>}
               </TabsContent>
               <TabsContent value="advies" className="mt-0 space-y-4">
-                {positieveAdviezen.length ? <LijstKaart kop={<KaartKop icoon={Sparkles} titel={adviesTitel} />}>
-                  <AdviesTabel regels={positieveAdviezen} open={open} bezig={adviesBezig || test} onOpBord={adviesOpBord} deadlineHint={deadlineHint} />
-                  <TabelVoet links={`${positieveAdviezen.length} ${positieveAdviezen.length === 1 ? 'voorstel' : 'voorstellen'}`} />
-                </LijstKaart> : advies.isLoading ? <LijstKaart kop={<KaartKop icoon={Sparkles} titel={adviesTitel} />}><LaadRijen /></LijstKaart> : adviesMislukt ? <LijstKaart kop={<KaartKop icoon={Sparkles} titel={adviesTitel} />}><FoutRegel onOpnieuw={() => advies.refetch()} /></LijstKaart> : <>
-                  <Sectiekop titel={adviesTitel} icoon={Sparkles} />
-                  <LegeStaatBlok tekst="Geen voorstellen" />
-                </>}
+                <LijstKaart kop={<KaartKop icoon={Sparkles} titel={advies.data?.leverdag ? `Voor ${leverDatumLabel(advies.data.leverdag)}` : 'Advies'} />}>
+                  {advies.isLoading ? <LaadRijen /> : positieveAdviezen.length ? <AdviesTabel regels={positieveAdviezen} open={open} bezig={adviesBezig || test} onOpBord={adviesOpBord} deadlineHint={deadlineHint} /> : <EmptyState icon={Sparkles} title="Geen voorstellen" description="" className="border-0 shadow-none" />}
+                  {!advies.isLoading && positieveAdviezen.length > 0 && <TabelVoet links={`${positieveAdviezen.length} ${positieveAdviezen.length === 1 ? 'voorstel' : 'voorstellen'}`} />}
+                </LijstKaart>
                 {!!nulAdviezen.length && <LijstKaart kop={<KaartKop icoon={Check} titel="Niet nodig" teller={nulAdviezen.length} />}><AdviesTabel regels={nulAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} deadlineHint={deadlineHint} nul /></LijstKaart>}
               </TabsContent>
               {modus.keukenadvies && <TabsContent value="keuken" className="mt-0 space-y-4"><KeukenTelblok regels={keukenStand.data ?? []} pool={keukenTelpool.data} telinfo={keukenTelInfo.data} laden={keukenStand.isLoading} bezig={telling.isPending} onOpslaan={(id, n) => telling.mutateAsync({ telartikelId: id, aantal: n })} /><DrankAdvies vestiging={modus.pVestiging} /><KeukenAdviesTabel regels={keukenAdvies.data ?? []} telinfo={keukenTelInfo.data} laden={keukenAdvies.isLoading} /></TabsContent>}
@@ -849,7 +840,7 @@ export default function Bestelbord() {
                 {toonV2Bord ? <InternOnderwegV2 vestiging={vestiging} /> : <InternOnderweg vestiging={vestiging} aan={internAan} />}
                 {v2 && <><NageleverdKaart modus={modus} regels={restanten} /><EindcheckKaart modus={modus} restanten={restanten} regels={ontvangst.vandaag.data ?? []} laden={ontvangst.vandaag.isLoading} leveranciers={leveranciers} /></>}
                 {[...(v2 ? [] : [{ titel: 'Vandaag te checken', regels: teCheckenZicht }]), { titel: 'Onderweg', regels: onderwegGroepZicht }, { titel: 'Zonder datum', regels: zonderDatumZicht }].filter((g) => g.regels.length).map((groep) => <LijstKaart key={groep.titel} kop={<KaartKop icoon={Truck} titel={groep.titel} teller={groep.regels.length} />}><OnderwegTabel groepen={groepeer(groep.regels)} {...groepProps} onBewerk={openBewerk} datumLabel={datumLabel} leverDatumLabel={leverDatumLabel} {...(v2 ? { zonderDeels: true, alleenLezen: test, restStatus: (s: BestelSignaal) => restStatusPerSignaal.get(s.id) ?? null } : {})} /><TabelVoet links={`${groep.regels.length} ${groep.regels.length === 1 ? 'product' : 'producten'}`} /></LijstKaart>)}
-                {!v2 && !besteldZicht.length && !internOnderwegBezig && onderwegAantal === onderwegWeergave.aantal && leegKaart('Niets onderweg')}
+                {!v2 && !besteldZicht.length && !internOnderwegBezig && onderwegAantal === onderwegWeergave.aantal && <LijstKaart>{leegKaart('Niets onderweg')}</LijstKaart>}
                 {!!geleverdZicht.length && <LijstKaart kop={<KaartKop icoon={Check} titel="Geleverd" teller={geleverdZicht.length} />}><BordTabel regels={geleverdZicht} {...bordProps} geleverd onTerug={(s) => !test && terugNaarBesteld.mutate(s.id)} detail={(s) => [s.geleverd_op ? datumLabel(s.geleverd_op) : '', s.geleverd_door ? namen?.get(s.geleverd_door) : '', s.levering_status === 'deels' ? 'Deels' : '', s.levering_opmerking].filter(Boolean).join(' · ')} /></LijstKaart>}
               </TabsContent>
             </div>
@@ -895,8 +886,7 @@ export default function Bestelbord() {
               onAanmaken={maakEnKoppel}
             />}
             {!koppelModus && <Button
-              size="touch"
-              className="w-full"
+              className="h-12 w-full"
               disabled={bewerkAantal == null || (bewerkVormen.length > 0 && !bewerkVormId)}
               onClick={() => {
                 if (!bewerk || bewerkAantal == null) return;
@@ -932,11 +922,10 @@ export default function Bestelbord() {
               value={datumKeuze}
               min={ymd(new Date())}
               onChange={(e) => setDatumKeuze(e.target.value)}
-              className="h-11 text-base"
+              className="h-12 text-base"
             />
             <Button
-              size="touch"
-              className="w-full"
+              className="h-12 w-full"
               disabled={!datumKeuze}
               onClick={() => {
                 if (!datumVoor || !datumKeuze) return;
@@ -972,7 +961,7 @@ export default function Bestelbord() {
               placeholder="Korte opmerking (bijv. waarom niet geleverd)"
               className="text-base"
             />
-            <Button size="touch" className="w-full" onClick={bevestigLeveringActie}>
+            <Button className="h-12 w-full" onClick={bevestigLeveringActie}>
               {leveringActie?.type === 'niet' ? 'Terug op het bord' : 'Restant terug op het bord'}
             </Button>
           </div>

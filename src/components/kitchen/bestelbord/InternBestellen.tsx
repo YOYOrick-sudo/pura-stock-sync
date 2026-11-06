@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode } from 'react';
-import { ArrowLeftRight } from 'lucide-react';
+import { Warehouse } from 'lucide-react';
 import { toast } from 'sonner';
 import { KaartKop, LijstKaart } from '@/components/pura/patronen';
 import { RijMeta } from '@/components/pura/lijst';
@@ -61,7 +61,7 @@ export function InternBestelKaart({ producten, onBestellen, bezigId, bestaande }
   };
 
   return (
-    <LijstKaart kop={<KaartKop icoon={ArrowLeftRight} titel="Intern uit Midsland" teller={lijst.length} />}>
+    <LijstKaart kop={<KaartKop icoon={Warehouse} titel="Intern uit Midsland" teller={lijst.length} />}>
       <p className="px-4 py-2 text-sm text-muted-foreground lg:px-6">{subregel(lijst)}</p>
       <div>
         {lijst.map((p) => {
@@ -75,7 +75,7 @@ export function InternBestelKaart({ producten, onBestellen, bezigId, bestaande }
                   <span className="min-w-0 truncate text-sm font-medium text-foreground">{p.naam}</span>
                   {open > 0 && <Badge variant="info" className="shrink-0 whitespace-nowrap font-medium">{`${getal(open)} onderweg`}</Badge>}
                 </div>
-                {per ? <RijMeta altijd>{per}</RijMeta> : null}
+                <RijMeta altijd>{per || '—'}</RijMeta>
               </div>
               <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-2">
                 <AantalStapper

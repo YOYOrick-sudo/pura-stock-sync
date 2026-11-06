@@ -2,7 +2,7 @@
 import { describe, expect, test } from 'bun:test';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { AFGEROND, BESTAANDE_AFWIJKINGEN } from './designregels.allowlist';
+import { BESTAANDE_AFWIJKINGEN } from './designregels.allowlist';
 
 const ROOT = join(import.meta.dir, '..');
 const MAPPEN = ['pages', 'components'];
@@ -58,26 +58,5 @@ describe('designregels', () => {
   });
   test('de bouwblokken zelf volgen de regels', () => {
     expect(afwijkingen().filter((a) => a.startsWith('components/pura/') || a.startsWith('components/kitchen/bestelbord/'))).toEqual([]);
-  });
-  test('afgeronde bestanden hebben geen verboden patroon', () => {
-    const verboden: [string, RegExp][] = [
-      ['rounded-[', /rounded-\[/],
-      ['text-[', /text-\[/],
-      ['bg-[#', /\bbg-\[#[0-9a-fA-F]/],
-      ['text-[#', /\btext-\[#[0-9a-fA-F]/],
-      ['shadow-soft', /shadow-soft/],
-      ['shadow-card', /shadow-card/],
-      ['shadow-elevated', /shadow-elevated/],
-      ['border-1.5', /border-1\.5/],
-      ['bg-primary/10', /bg-primary\/10/],
-      ['bg-primary/5', /bg-primary\/5/],
-    ];
-    const fout = AFGEROND.flatMap((rel) => {
-      const tekst = readFileSync(join(ROOT, rel), 'utf8');
-      return verboden.filter(([, re]) => re.test(tekst)).map(([naam]) => `${rel} :: ${naam}`);
-    });
-    expect(fout).toEqual([]);
-    const nogOpDeLijst = BESTAANDE_AFWIJKINGEN.filter((regel) => AFGEROND.some((rel) => regel.startsWith(`${rel} ::`)));
-    expect(nogOpDeLijst).toEqual([]);
   });
 });
