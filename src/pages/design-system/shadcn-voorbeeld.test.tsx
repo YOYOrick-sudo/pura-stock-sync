@@ -2,12 +2,11 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, test } from 'vitest';
-import { PURA_THEME_V3, ShadcnVergelijking, VoorstelScherm } from './ShadcnVoorbeeld';
+import { ShadcnVergelijking, VoorstelScherm } from './ShadcnVoorbeeld';
 
 describe('shadcn-voorbeeld', () => {
   test('toont hetzelfde West-scherm in huidig en voorstel', () => {
     const html = renderToString(<ShadcnVergelijking tokens />);
-    expect(html).toContain(PURA_THEME_V3);
     expect(html).toContain('Bestelbord');
     expect(html).toContain('Wortelspread');
     expect(html).toContain('Granola');
@@ -33,12 +32,13 @@ describe('shadcn-voorbeeld', () => {
     expect(html.match(/bg-primary text-primary-foreground/g)?.length).toBe(1);
   });
 
-  test('het voorstel staat niet op :root', () => {
+  test('de tokens van het boek staan op :root', () => {
     const css = readFileSync(fileURLToPath(new URL('../../index.css', import.meta.url)), 'utf8');
     const root = css.slice(css.indexOf(':root {'), css.indexOf('.dark {'));
-    expect(root).toContain('--background: 45 8% 95%');
-    expect(root).not.toContain(PURA_THEME_V3);
-    expect(css).toContain(`.${PURA_THEME_V3} {`);
-    expect(css).toContain('--background: 0 0% 100%');
+    expect(root).toContain('--background: 0 0% 100%');
+    expect(root).toContain('--muted-foreground: 0 0% 32%');
+    expect(root).toContain('--ring: 0 0% 32%');
+    expect(root).toContain('--primary: 163 65% 26%');
+    expect(css).not.toContain('.pura-theme-v3 {');
   });
 });

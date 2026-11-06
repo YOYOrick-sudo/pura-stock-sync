@@ -45,11 +45,6 @@ export default {
         // Shadcn semantic tokens
         border: {
           DEFAULT: "hsl(var(--border))",
-          state: "hsl(var(--border-state))",
-          // Semantic border colors for interactive states
-          subtle: "hsl(var(--primary) / 0.1)",   // Subtle brand hint
-          accent: "hsl(var(--primary) / 0.2)",   // Active/focus states
-          strong: "hsl(var(--primary) / 0.3)",   // Hover states
         },
         input: "hsl(var(--input))",
         "input-surface": "hsl(var(--input-surface))",
@@ -85,20 +80,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        notification: {
-          badge: "hsl(var(--notification-badge))",
-        },
-        sidebar: {
-          bg: "hsl(var(--sidebar-bg))",
-          active: "hsl(var(--sidebar-active))",
-          hover: "hsl(var(--sidebar-hover))",
-        },
       },
       boxShadow: {
         'soft': '0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px 0 rgb(0 0 0 / 0.02)',
-        'card': '0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05)',
+        'card': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
         'elevated': '0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05)',
-        'hover': '0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05)',
       },
       borderRadius: {
         // Polar UI radius system
