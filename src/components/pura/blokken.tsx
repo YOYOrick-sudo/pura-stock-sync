@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 /** Stappen: voortgang van een proces (besteld → onderweg → geleverd). Alleen tonen, nooit klikbaar. */
 export function Stappen({ stappen, huidig }: { stappen: string[]; huidig: number }) {
   return <ol className="flex items-start" aria-label="Voortgang">
-    {stappen.map((s, i) => <li key={s} className="flex flex-1 flex-col items-center gap-1 text-center" aria-current={i === huidig ? 'step' : undefined}>
+    {stappen.map((s, i) => <li key={s} className="flex flex-1 flex-col items-center gap-2 text-center" aria-current={i === huidig ? 'step' : undefined}>
       <div className="flex w-full items-center">
         <span className={cn('h-0.5 flex-1', i === 0 ? 'bg-transparent' : i <= huidig ? 'bg-primary' : 'bg-border')} />
         <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-xs', i < huidig ? 'border-primary bg-primary text-primary-foreground' : i === huidig ? 'border-primary bg-background text-primary' : 'border-border bg-background text-muted-foreground')}>{i < huidig ? <Check className="h-3 w-3" /> : i + 1}</span>

@@ -2,7 +2,8 @@ import type { ComponentType } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { segmentTabsKlasse, StatusBadge } from '@/components/pura';
+import { segmentTabsKlasse } from '@/components/pura';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 export type BestelbordTab = {
@@ -18,19 +19,13 @@ export type BestelbordTab = {
 /** Tabbalk: altijd volle breedte, tabs zo breed als hun label (nooit afgekapt). Onder lg kort label met teller eronder; vanaf lg icoon + volledige naam op één regel. */
 export const bestelbordTabsKlasse = cn(
   segmentTabsKlasse,
-  'w-full sm:w-full justify-start flex-nowrap [&>button]:flex-auto sm:[&>button]:flex-auto [&>button]:min-w-0 [&>button]:flex-col [&>button]:gap-1 [&>button]:px-1 [&>button]:text-xs lg:[&>button]:flex-row lg:[&>button]:gap-1.5 lg:[&>button]:px-2 lg:[&>button]:text-sm',
+  'w-full sm:w-full justify-start flex-nowrap [&>button]:flex-auto sm:[&>button]:flex-auto [&>button]:min-w-0 [&>button]:flex-col [&>button]:gap-2 [&>button]:px-2 [&>button]:text-xs lg:[&>button]:flex-row lg:[&>button]:gap-2 lg:[&>button]:px-2 lg:[&>button]:text-sm',
 );
 
 function TabTeller({ n, aandacht }: { n: number; aandacht?: string | null }) {
   if (n <= 0 && !aandacht) return null;
   return (
-    <StatusBadge
-      tone={aandacht ? 'warning' : 'neutral'}
-      variant="soft"
-      className={cn('h-5 shrink-0 border px-1.5 py-0 text-xs font-medium leading-none tabular-nums', aandacht ? 'border-warning/40' : 'border-border bg-card text-muted-foreground')}
-    >
-      {n}
-    </StatusBadge>
+    <Badge variant={aandacht ? 'warning' : 'secondary'} className="shrink-0 tabular-nums">{n}</Badge>
   );
 }
 
@@ -52,7 +47,7 @@ export function ZonderPrijsFilter({ aantal, aan, onToggle, className }: { aantal
       type="button"
       variant={aan ? 'default' : 'outline'}
       size="touch"
-      className={cn('shrink-0 gap-1.5', !aan && 'border-warning/40 text-warning hover:bg-warning/10 hover:text-warning', className)}
+      className={cn('shrink-0 gap-2', !aan && 'border-warning/40 text-warning hover:bg-warning/10 hover:text-warning', className)}
       aria-pressed={aan}
       onClick={onToggle}
     >
