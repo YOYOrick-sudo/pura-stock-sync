@@ -10,6 +10,7 @@ import {
 import {
   EUR0, NUM, axisEUR, smoothPath, svgHoverIndex, TipCard, TipRow, tipTransform,
 } from './chartHelpers';
+import { zelfdeWeekdagVorigJaar } from './vorigJaar';
 
 const DAG_NL = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
 const MND_NL = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
@@ -23,17 +24,12 @@ function labelVoor(bucket: string, gran: 'uur' | 'dag' | 'maand'): string {
   if (gran === 'dag')  return `${DAG_NL[d.getDay()]}`;
   return MND_NL[d.getMonth()];
 }
-function shift(date: string, dagen: number): string {
-  const d = new Date(date); d.setDate(d.getDate() - dagen);
-  return d.toISOString().slice(0, 10);
-}
 
 export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props) {
   const vestigingen = vestigingenVan(vestigingKeuze);
   const gran = granulariteitVoor(periode, van, tot);
-  const lengte = Math.round((new Date(tot).getTime() - new Date(van).getTime()) / 86400000) + 1;
-  const prevVan = shift(van, lengte);
-  const prevTot = shift(tot, lengte);
+  const prevVan = zelfdeWeekdagVorigJaar(van);
+  const prevTot = zelfdeWeekdagVorigJaar(tot);
 
   const curQ = useQuery({
     queryKey: ['cijfers-tijdreeks', 'cur', periode, vestigingKeuze, van, tot, gran],

@@ -484,6 +484,13 @@
       "when": 1793880600000,
       "tag": "0069_interne_levering_voorraad_annuleren",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1793994523977,
+      "tag": "0069_vorige_periode_zelfde_weekdag",
+      "breakpoints": true
     }
   ]
 }
