@@ -27,6 +27,7 @@ export interface Recipe {
   created_at: string;
   updated_at: string;
   ingredient_count?: number;
+  ingredient_namen?: string[];
 }
 
 export interface RecipeInput {
@@ -47,7 +48,7 @@ export function useRecipes(search: string, category: string | null) {
       const data = await allesOphalen(async (van, tot) => {
         let query = supabase
           .from('recipes')
-          .select('*, recept_ingredienten(id)')
+          .select('*, recept_ingredienten(naam)')
           .eq('is_gearchiveerd', false)
           .order('name', { ascending: true })
           .order('id', { ascending: true });
@@ -59,10 +60,14 @@ export function useRecipes(search: string, category: string | null) {
         if (error) throw error;
         return rij ?? [];
       });
-      return data.map((r: any) => ({
-        ...r,
-        ingredient_count: Array.isArray(r.recept_ingredienten) ? r.recept_ingredienten.length : 0,
-      })) as Recipe[];
+      return data.map((r: any) => {
+        const regels = Array.isArray(r.recept_ingredienten) ? r.recept_ingredienten : [];
+        return {
+          ...r,
+          ingredient_count: regels.length,
+          ingredient_namen: regels.map((regel: { naam?: string | null }) => regel.naam).filter((naam: string | null | undefined): naam is string => !!naam?.trim()),
+        };
+      }) as Recipe[];
     },
   });
 }
