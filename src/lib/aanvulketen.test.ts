@@ -75,15 +75,15 @@ test('teksten noemen het doel en een concrete ontdooihoeveelheid', () => {
   expect(aanvulUitkomst('bestelbord')).toBe('Bijbesteld · op het bestelbord');
 });
 
-test('de sluitlijst toont de keten alleen achter de schakelaar en alleen voor falafel', () => {
+test('de sluitlijst toont de stappen op een preview en maakt alleen aan als de schakelaar aan staat', () => {
   const tekst = readFileSync(new URL('../components/foh/AfvinkRonde.tsx', import.meta.url), 'utf8');
-  expect(tekst).toContain('ketenAan && isFalafelVoorbeeld');
-  expect(tekst).toContain('heeftVriezerNaarKoelcel');
-  expect(tekst).toContain('VriezerNaarKoelcelRij');
+  expect(tekst).toContain('const toonKeten = schrijfKeten || previewHost');
+  expect(tekst).toContain('if (!schrijfKeten)');
   expect(tekst).toContain('ontdooiStickerOpdracht');
+  expect(tekst).toContain('planKeten');
   expect(tekst).not.toContain(".from('print_jobs')");
-  expect(tekst).toContain('ontdooiDirect');
-  expect(tekst).toContain('bestelUitSluitlijst');
+  expect(tekst).not.toContain('side="bottom"');
+  expect(tekst).not.toContain('FalafelAanvulRij');
   const hook = readFileSync(new URL('../hooks/useKoelcelCheck.ts', import.meta.url), 'utf8');
   const ontdooi = hook.slice(hook.indexOf('const ontdooiDirect'), hook.indexOf('const bestelUitSluitlijst'));
   const bestel = hook.slice(hook.indexOf('const bestelUitSluitlijst'), hook.indexOf('return {', hook.indexOf('const bestelUitSluitlijst')));
