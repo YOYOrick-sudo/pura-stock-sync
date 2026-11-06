@@ -240,6 +240,10 @@ describe('interne levering achter de schakelaar', () => {
     expect(html).toContain('3,2 kg per bak');
     expect(html).toContain('1 onderweg');
     expect(html).toContain('>bak<');
+    const bestelKnop = html.match(/<button[^>]*aria-label="Bestellen Wortelspread"[^>]*>/)?.[0] ?? '';
+    expect(bestelKnop).toContain('h-9');
+    expect(bestelKnop).not.toContain('flex-1');
+    expect(bestelKnop).not.toContain('w-full');
     expect(staat.knoppen.find((k) => k['aria-label'] === 'Meer')?.disabled).toBe(false);
     expect(klemAantal(10, 1, 9)).toBe(9);
     expect(klemAantal(0, 1, 9)).toBe(1);
@@ -427,6 +431,10 @@ describe('interne levering achter de schakelaar', () => {
     expect(onderwegTabAantal(4, true, regels)).toBe(6);
     expect(mepDagLang('2026-11-04')).toBe('woensdag 4 nov');
     expect(inhoudPerEenheid(3.2, 'kg', 'bak')).toBe('3,2 kg per bak');
+    expect(inhoudPerEenheid(3200, 'g', 'bak')).toBe('3,2 kg per bak');
+    expect(inhoudPerEenheid(500, 'g', 'bak')).toBe('500 g per bak');
+    expect(inhoudPerEenheid(1500, 'ml', 'fles')).toBe('1,5 L per fles');
     expect(inhoudTotaal(2, 3.2, 'kg')).toBe('6,4 kg');
+    expect(inhoudTotaal(2, 3200, 'g')).toBe('6,4 kg');
   });
 });

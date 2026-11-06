@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { getal } from '@/lib/hoeveelheid';
+import { basisWeergave } from '@/components/kitchen/bestelbord/verpakking';
 import { kortDatum } from '@/lib/ontvangstV2';
 
 // Functies staan niet in de gegenereerde types: zelfde rpc-cast als useOntvangstV2.
@@ -155,13 +155,13 @@ export function mepDagLang(iso: string | null | undefined) {
 export function inhoudPerEenheid(per: number | string | null | undefined, inhoudEenheid: string | null | undefined, eenheid: string) {
   const n = alsGetal(per);
   if (n == null || !inhoudEenheid) return null;
-  return `${getal(n)} ${inhoudEenheid} per ${eenheid}`;
+  return `${basisWeergave(n, inhoudEenheid)} per ${eenheid}`;
 }
 
 export function inhoudTotaal(aantal: number, per: number | string | null | undefined, inhoudEenheid: string | null | undefined) {
   const n = alsGetal(per);
   if (n == null || !inhoudEenheid) return null;
-  return `${getal(Math.round(aantal * n * 1000) / 1000)} ${inhoudEenheid}`;
+  return basisWeergave(Math.round(aantal * n * 1000) / 1000, inhoudEenheid);
 }
 
 export function foutTekst(e: unknown) {

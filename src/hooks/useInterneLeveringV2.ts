@@ -269,6 +269,23 @@ export function useInterneV2ArtikelenZoeken(vestiging: string | null, zoek: stri
   });
 }
 
+export function useInterneVormOpslaan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (a: { productId: string; eenheid: string; inhoud: number | null; inhoudEenheid: string | null }) =>
+      leesJson<{ product_id: string; artikel_vorm_id: string; eenheid: string; inhoud_basis: number | null; inhoud_eenheid: string | null }>('interne_vorm_opslaan', {
+        p_product_id: a.productId,
+        p_eenheid: a.eenheid,
+        p_inhoud: a.inhoud,
+        p_inhoud_eenheid: a.inhoudEenheid,
+      }),
+    onSuccess: () => {
+      herlaad(qc);
+      qc.invalidateQueries({ queryKey: ['interne_producten_lijst'] });
+    },
+  });
+}
+
 export function useInterneV2ProductOpslaan() {
   const qc = useQueryClient();
   return useMutation({

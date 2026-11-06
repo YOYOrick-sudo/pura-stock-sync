@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Warehouse } from 'lucide-react';
 import { toast } from 'sonner';
 import { KaartKop, LijstKaart } from '@/components/pura/patronen';
+import { RijMeta } from '@/components/pura/lijst';
 import { StatusBadge } from '@/components/pura/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -89,14 +90,17 @@ export function InternGroepV2Kaart({
           const per = inhoudPerEenheid(p.inhoud_per_eenheid, p.inhoud_eenheid, p.eenheid);
           const max = maxVan(p);
           return (
-            <div key={p.product_id} className="space-y-2 px-4 py-3 lg:px-6">
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <span className="min-w-0 break-words font-medium text-foreground">{p.naam}</span>
-                {p.open_aantal > 0 && <StatusBadge tone="info">{`${getal(p.open_aantal)} open`}</StatusBadge>}
+            <div key={p.product_id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 lg:px-6">
+              <div className="min-w-[8rem] flex-1">
+                <div className="flex min-h-11 min-w-0 flex-wrap items-center gap-1.5">
+                  <span className="min-w-0 break-words font-medium text-foreground">{p.naam}</span>
+                  {p.open_aantal > 0 && <StatusBadge tone="info" className="px-2 py-0.5">{`${getal(p.open_aantal)} onderweg`}</StatusBadge>}
+                </div>
+                {per && <RijMeta altijd>{per}</RijMeta>}
               </div>
-              {per && <p className="text-xs text-muted-foreground">{per}</p>}
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2">
                 <AantalStapper
+                  compact
                   waarde={aantallen[p.product_id] ?? klemAantal(1, 1, max)}
                   min={1}
                   max={max}
@@ -110,9 +114,9 @@ export function InternGroepV2Kaart({
                   min={vandaag}
                   onChange={(e) => setDagen((h) => ({ ...h, [p.product_id]: e.target.value }))}
                   aria-label={`Gewenste leverdag ${p.naam}`}
-                  className="h-11 w-[11rem] text-base"
+                  className="h-9 w-[9.5rem] text-sm"
                 />
-                <Button type="button" size="touch" className="min-w-[8rem]" aria-label={`Bestellen ${p.naam}`} disabled={bezig} onClick={() => bestellen(p)}>
+                <Button type="button" size="sm" className="shrink-0 px-3" aria-label={`Bestellen ${p.naam}`} disabled={bezig} onClick={() => bestellen(p)}>
                   Bestellen
                 </Button>
               </div>
@@ -124,7 +128,7 @@ export function InternGroepV2Kaart({
           <p className="text-xs text-muted-foreground">Typ de naam. Midsland koppelt die aan een bestaand artikel voor ze het maken of meegeven.</p>
           <div className="flex flex-wrap items-center gap-2">
             <Input value={vrijNaam} onChange={(e) => setVrijNaam(e.target.value)} aria-label="Vrije naam" placeholder="Naam" className="h-11 min-w-[10rem] flex-1 text-base" />
-            <AantalStapper waarde={vrijAantal} min={1} max={null} eenheid={vrijEenheid} label="Aantal vrije naam" onChange={setVrijAantal} />
+            <AantalStapper compact waarde={vrijAantal} min={1} max={null} eenheid={vrijEenheid} label="Aantal vrije naam" onChange={setVrijAantal} />
             <select
               value={vrijEenheid}
               onChange={(e) => setVrijEenheid(e.target.value)}
@@ -134,7 +138,7 @@ export function InternGroepV2Kaart({
               {EENHEDEN.map((e) => <option key={e} value={e}>{e}</option>)}
             </select>
             <Input type="date" value={vrijDag} min={vandaag} onChange={(e) => setVrijDag(e.target.value)} aria-label="Gewenste leverdag vrije naam" className="h-11 w-[11rem] text-base" />
-            <Button type="button" size="touch" aria-label="Vrije naam bestellen" disabled={bezig} onClick={vrijBestellen}>Bestellen</Button>
+            <Button type="button" size="sm" className="shrink-0 px-3" aria-label="Vrije naam bestellen" disabled={bezig} onClick={vrijBestellen}>Bestellen</Button>
           </div>
         </div>
       </div>
@@ -165,7 +169,7 @@ export function InternGroepV2Kaart({
             <div key={r.id} className="flex flex-wrap items-center gap-2 px-4 py-3 lg:px-6">
               <span className="min-w-0 flex-1 font-medium text-foreground">{r.naam}</span>
               <span className="text-sm text-muted-foreground">{getal(r.aantal)} {r.eenheid}</span>
-              <Button type="button" size="touch" variant="outline" aria-label={`Doorzetten ${r.naam}`} disabled={bezig} onClick={() => onDoorzetten(r).catch((e) => toast.error(foutTekst(e)))}>
+              <Button type="button" size="sm" variant="outline" className="shrink-0 px-3" aria-label={`Doorzetten ${r.naam}`} disabled={bezig} onClick={() => onDoorzetten(r).catch((e) => toast.error(foutTekst(e)))}>
                 Doorzetten
               </Button>
             </div>

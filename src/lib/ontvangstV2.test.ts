@@ -1,7 +1,7 @@
 // @ts-ignore vitest types are not installed in the app tsconfig
 import { describe, expect, test } from 'vitest';
 import { formatTelHoeveelheid, telEenheidKort, leesTab, telKopTekst } from './ontvangstV2';
-import { telInvoer, openRestVoorArtikel, restWaarschuwing, vandaagZonderOpenRest, afrondWaarschuwingen, annuleerGeldig, bordRestStatus, bordRestStatusPerSignaal, onderwegBlokken, onderwegMetRest, onderwegTellers, isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, splitsTelpool, type EindcheckInvoer } from './ontvangstV2';
+import { telInvoer, openRestVoorArtikel, restWaarschuwing, vandaagZonderOpenRest, afrondWaarschuwingen, annuleerGeldig, bordRestStatus, bordRestStatusPerSignaal, onderwegBlokken, onderwegMetRest, onderwegTellers, isAutomatisch, bepaalModus, bouwRegel, eindcheckFout, restSoortLabel, splitsTelpool, splitsVandaagBinnen, type EindcheckInvoer, type VandaagRegel } from './ontvangstV2';
 
 describe('leesTab', () => {
   test.each(['bord', 'advies', 'keuken', 'tellen', 'onderweg'])('%s blijft gekozen', (waarde: string) => {
@@ -293,6 +293,46 @@ describe('splitsTelpool', () => {
     expect(splitsTelpool(regels, undefined).overig).toEqual([]);
     expect(splitsTelpool(regels, []).vandaag).toHaveLength(5);
     expect(splitsTelpool(regels, []).overig).toEqual([]);
+  });
+});
+
+function vandaagRegel(deel: Partial<VandaagRegel> & Pick<VandaagRegel, 'naam' | 'soort'>): VandaagRegel {
+  return {
+    te_laat: false,
+    verwachte_levering: '2026-11-06',
+    pakbon_aantal: 1,
+    besteld_aantal: 1,
+    voorstel_aantal: 1,
+    ...deel,
+  };
+}
+
+describe('splitsVandaagBinnen', () => {
+  const vandaag = '2026-11-06';
+  test('vandaag is de datum van de regel, ouder en ruis blijven staan', () => {
+    const regels = [
+      vandaagRegel({ naam: 'Amandelmeel', soort: 'onderweg' }),
+      vandaagRegel({ naam: 'Like mayonaise', soort: 'onderweg', verwachte_levering: '2026-11-05', te_laat: true }),
+      vandaagRegel({ naam: 'Zonder datum', soort: 'onderweg', verwachte_levering: null, te_laat: false }),
+      vandaagRegel({ naam: 'Pakbon vandaag', soort: 'alleen_pakbon', besteld_aantal: null, pakbon_aantal: 2 }),
+      vandaagRegel({ naam: 'Bakpoeder', soort: 'alleen_pakbon', besteld_aantal: null, pakbon_aantal: 0, voorstel_aantal: 0 }),
+      vandaagRegel({ naam: 'Emballage  5,00', soort: 'alleen_pakbon', verwachte_levering: '2026-11-02', te_laat: true, pakbon_aantal: 1 }),
+      vandaagRegel({ naam: 'Oude pakbon', soort: 'alleen_pakbon', verwachte_levering: '2026-11-02', te_laat: true, pakbon_aantal: 4 }),
+    ];
+    const uit = splitsVandaagBinnen(regels, vandaag);
+    expect(uit.vandaag.map((r) => r.naam)).toEqual(['Amandelmeel', 'Zonder datum', 'Pakbon vandaag']);
+    expect(uit.eerder.map((r) => r.naam)).toEqual(['Like mayonaise', 'Bakpoeder', 'Emballage  5,00', 'Oude pakbon']);
+    expect(uit.vandaag.length + uit.eerder.length).toBe(regels.length);
+  });
+
+  test('emballage en aantal 0 van vandaag verdwijnen niet', () => {
+    const regels = [
+      vandaagRegel({ naam: 'Emballage statiegeld', soort: 'alleen_pakbon', pakbon_aantal: 1 }),
+      vandaagRegel({ naam: 'Leeg', soort: 'onderweg', besteld_aantal: 0, pakbon_aantal: null, voorstel_aantal: 0 }),
+    ];
+    const uit = splitsVandaagBinnen(regels, vandaag);
+    expect(uit.vandaag).toEqual([]);
+    expect(uit.eerder).toHaveLength(2);
   });
 });
 

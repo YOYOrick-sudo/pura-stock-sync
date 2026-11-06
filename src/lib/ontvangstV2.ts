@@ -247,6 +247,52 @@ export function vandaagZonderOpenRest<T extends { soort: string }>(regels: T[]):
   return regels.filter((r) => r.soort !== 'mist' && r.soort !== 'backorder');
 }
 
+export type VandaagRegel = {
+  soort: string;
+  naam: string;
+  te_laat: boolean;
+  /** Bord: verwachte levering. Pakbon zonder bordregel: pakbon_datum, zelfde kolom uit ontvangst_vandaag. */
+  verwachte_levering: string | null;
+  pakbon_aantal: number | null;
+  besteld_aantal: number | null;
+  voorstel_aantal: number | null;
+};
+
+export function isEmballage(naam: string | null | undefined) {
+  return (naam ?? '').toLowerCase().includes('emballage');
+}
+
+/** Aantal dat de regel zelf binnenbrengt. Een pakbon zonder aantal telt als 0. */
+export function regelAantal(r: Pick<VandaagRegel, 'soort' | 'pakbon_aantal' | 'besteld_aantal' | 'voorstel_aantal'>) {
+  if (r.soort === 'alleen_pakbon') return Number(r.pakbon_aantal ?? r.voorstel_aantal ?? 0);
+  const aantal = r.besteld_aantal ?? r.pakbon_aantal ?? r.voorstel_aantal;
+  return aantal == null ? 0 : Number(aantal);
+}
+
+export function regelDatum(r: Pick<VandaagRegel, 'verwachte_levering'>) {
+  const datum = (r.verwachte_levering ?? '').slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(datum) ? datum : null;
+}
+
+/**
+ * Twee blokken, niets weg.
+ * Vandaag: datum = vandaag, geen emballage en geen aantal 0.
+ * Eerder: te late bordregels, oudere pakbonnen, en de ruis van vandaag.
+ * Een bordregel zonder datum hoort bij vandaag zolang de RPC hem niet te laat noemt.
+ */
+export function splitsVandaagBinnen<T extends VandaagRegel>(regels: T[], vandaag: string): { vandaag: T[]; eerder: T[] } {
+  const vanVandaag: T[] = [];
+  const eerder: T[] = [];
+  for (const regel of regels) {
+    const datum = regelDatum(regel);
+    const opDezeDag = datum === vandaag || (datum == null && !regel.te_laat);
+    const ruis = isEmballage(regel.naam) || regelAantal(regel) === 0;
+    if (opDezeDag && !ruis) vanVandaag.push(regel);
+    else eerder.push(regel);
+  }
+  return { vandaag: vanVandaag, eerder };
+}
+
 /** Telblok: regels waarvan de telpool klaar is tellen vandaag; de rest onderaan, op naam. */
 export function splitsTelpool(regels: KeukenStandRegel[], pool: KeukenTelpoolRegel[] | undefined): {
   vandaag: (KeukenStandRegel & { pool?: KeukenTelpoolRegel })[];
