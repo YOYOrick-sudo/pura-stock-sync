@@ -26,6 +26,7 @@ import Settings from "./pages/Settings";
 import StyleGuide from "./pages/StyleGuide";
 import DesignPreview from "./pages/DesignPreview";
 import DesignSystem from "./pages/DesignSystem";
+import DesignSystemVoorbeeld from "./pages/DesignSystemVoorbeeld";
 import KasControle from "./pages/KasControle";
 import Recipes from "./pages/kitchen/Recipes";
 import Gerechten from "./pages/kitchen/Gerechten";
@@ -282,6 +283,7 @@ const App = () => {
             />
             {/* Public Design System route - no login needed */}
             <Route path="/design-system" element={<DesignSystem />} />
+            <Route path="/design-system/voorbeeld" element={<DesignSystemVoorbeeld />} />
 
             {/* Kas-controle — alleen managers/owners/admins */}
             <Route

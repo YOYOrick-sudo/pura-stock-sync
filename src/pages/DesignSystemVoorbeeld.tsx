@@ -1,0 +1,32 @@
+import { useSearchParams } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { PURA_THEME_V3, ShadcnVergelijking, type VoorbeeldToon } from '@/pages/design-system/ShadcnVoorbeeld';
+
+function toonVan(waarde: string | null): VoorbeeldToon {
+  if (waarde === 'nieuw' || waarde === 'huidig') return waarde;
+  return 'beide';
+}
+
+/** Losse pagina zodat het voorbeeld op 390, 834 en 1280 te meten is. */
+export default function DesignSystemVoorbeeld() {
+  const [params] = useSearchParams();
+  const toon = toonVan(params.get('toon'));
+  const alleenNieuw = toon === 'nieuw';
+  return (
+    <div className={`${alleenNieuw ? PURA_THEME_V3 : ''} min-h-screen bg-background text-foreground`}>
+      <header className="border-b border-border">
+        <div className="mx-auto flex h-12 max-w-[1200px] items-center justify-between gap-2 px-4 lg:px-6">
+          <p className="truncate text-sm font-medium">Shadcn-voorbeeld</p>
+          <Button variant="ghost" size="touch" asChild><a href="/design-system#shadcn-voorbeeld">Naslag</a></Button>
+        </div>
+      </header>
+      <main className={`mx-auto space-y-4 px-4 py-6 lg:px-6 ${alleenNieuw ? 'max-w-[960px]' : 'max-w-[1200px]'}`}>
+        <div className="space-y-2">
+          <p className="text-sm text-foreground">{alleenNieuw ? 'West, vandaag, in het voorstel.' : 'West, vandaag. Dezelfde blokken: huidig thema naast het voorstel.'}</p>
+          <p className="text-xs text-muted-foreground">Het voorstel leeft alleen in .{PURA_THEME_V3}. Bestaande schermen en :root blijven zoals ze zijn.</p>
+        </div>
+        <ShadcnVergelijking toon={toon} tokens />
+      </main>
+    </div>
+  );
+}
