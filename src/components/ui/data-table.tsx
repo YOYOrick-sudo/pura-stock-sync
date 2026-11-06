@@ -50,7 +50,7 @@ export function StatusDot({ tone = 'warning', children }: { tone?: 'warning' | '
       className={cn(
         'inline-flex items-center gap-1.5 text-sm font-medium',
         tone === 'warning' && 'text-warning',
-        tone === 'success' && 'text-primary',
+        tone === 'success' && 'text-success',
         tone === 'muted' && 'text-muted-foreground',
         tone === 'destructive' && 'text-destructive',
       )}
