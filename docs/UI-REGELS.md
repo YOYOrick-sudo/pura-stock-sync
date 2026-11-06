@@ -61,7 +61,7 @@ Afgeleide rollen krijgen geen eigen kleur. `card-foreground`, `popover-foregroun
 
 ### Contrast
 
-Tekst onder 24 px, en vette tekst onder 18,7 px, minstens 4,5:1. Dat geldt voor alles in dit boek behalve de paginatitel en het kengetal, die 24 px zijn en daarmee grote tekst (minstens 3:1, en hier ook boven 4,5). Een vette badge van 12 px telt als normale tekst. Een focusring of een rand die een toestand draagt minstens 3:1. De haarlijn `#e5e5e5` is versiering en haalt 3:1 niet; zij mag, zolang de toestand ook in tekst of in de ring zit.
+Tekst onder 24 px, en vette tekst onder 18,7 px, minstens 4,5:1. De paginatitel op 390 is 20 px en telt dus als normale tekst. Vanaf 834 is de titel 24 px, net als het kengetal: grote tekst (minstens 3:1, en hier ook boven 4,5). Een vette badge van 12 px telt als normale tekst. Een focusring of een rand die een toestand draagt minstens 3:1. De haarlijn `#e5e5e5` is versiering en haalt 3:1 niet; zij mag, zolang de toestand ook in tekst of in de ring zit.
 
 Licht:
 
@@ -99,7 +99,7 @@ Donker:
 | info `#a9b5c6` | 9,53 | 7,29 |
 | `#525252` op `#0a0a0a` (niet als ring) | 2,53, zakt door 3:1 | — |
 
-Fouttekst staat op background of card. In licht is dat wit; op muted zakt `#e6000b` door AA. Meta mag op muted: `#525252` haalt daar 7,17 en `#a3a3a3` haalt in donker 6,00. Een disabled onderdeel is in WCAG uitgezonderd; we kleuren hem toch als muted-tekst op muted, zodat hij in slecht licht leesbaar blijft (7,17 in licht, 6,00 in donker). Geen `opacity-50` en geen `brightness-*`: die maken de gemeten verhouding ongeldig.
+Fouttekst staat op background of card. In licht is dat wit; op muted zakt `#e6000b` door AA (4,41). Meta mag op muted: `#525252` haalt daar 7,17 en `#a3a3a3` haalt in donker 6,00. Warning op muted haalt 5,04 en success 6,04, dus die badges blijven leesbaar op een grijs vlak. Een fout-badge niet: de pill heeft vulling `bg-background`, zodat het woord nooit op de rij eronder staat. Hover van een rij is daarom geen `bg-muted` onder die badge. Op een scherm met hover is het een haarlijn. Op een tablet is er geen hover-vulling. Een disabled onderdeel is in WCAG uitgezonderd; we kleuren hem toch als muted-tekst op muted, zodat hij in slecht licht leesbaar blijft (7,17 in licht, 6,00 in donker). Geen `opacity-50` en geen `brightness-*`: die maken de gemeten verhouding ongeldig.
 
 ### Rand en schaduw
 
@@ -113,14 +113,17 @@ De schaal is 8, 12, 16 en 24, via de polar-namen:
 
 | Naam | px | Waar |
 | --- | --- | --- |
-| `rounded-polar-sm` | 8 | Veld, checkbox, toast, menu-item |
+| `rounded-polar-sm` | 8 | Checkbox-vak, toast |
 | `rounded-polar` | 14 | Niet voor nieuw werk |
-| `rounded-polar-md` | 12 | Tablijst |
-| `rounded-polar-lg` | 16 | Knop, kaart, tabel, lege staat, sheet |
+| `rounded-polar-md` | 12 | Elke control van 44 hoog: knop, veld, select, stapper, tab, menu-item, zijbalk-item, sluitknop van een sheet of dialoog |
+| `rounded-polar-lg` | 16 | Kaart, tabel, lege staat, sheet van opzij, menu-paneel |
 | `rounded-polar-xl` | 20 | Niet voor nieuw werk |
-| `rounded-polar-2xl` | 24 | Dialoog |
+| `rounded-polar-2xl` | 24 | Dialoog, blad van onderen |
+| `rounded-full` | pill | Badge, stip, segment |
 
-Geneste radius geldt voor een vlak dat in de hoek van zijn ouder ligt: binnenhoek = max(0, buitenhoek − padding van die ring). Een kaart van 16 met rijen tegen de rand laat de rij de hoek knippen, binnenhoek 0. Een knop die in de padding staat en de hoek niet raakt, houdt zijn eigen 16. Een binnenhoek die de hoek deelt mag niet ronder zijn dan de buitenhoek. `rounded-full` is voor een pill, een stip of een segment, niet voor een kaart of een knop.
+Alles wat 44 hoog is en naast elkaar staat, heeft dezelfde hoek. Een zoekveld naast een filterknop is allebei 12. De tablijst is 16 met 4 px padding, zodat de tab van 12 precies in de geneste hoek past (16 − 4).
+
+Geneste radius geldt voor een vlak dat in de hoek van zijn ouder ligt: binnenhoek = max(0, buitenhoek − padding van die ring). Een kaart van 16 met rijen tegen de rand laat de rij de hoek knippen, binnenhoek 0. Een knop die in de padding staat en de hoek niet raakt, houdt 12. Een binnenhoek die de hoek deelt mag niet ronder zijn dan de buitenhoek. Het checkbox-vak is 8. Een geneste berekening zou daar 6 van maken, en 6 zit niet in de schaal. Voor dat vak geldt de geneste regel niet.
 
 `rounded-lg`, `rounded-xl` en `rounded-2xl` zijn niet de schaal hierboven (`lg` is 12, `xl` is 16, `2xl` is 20). Nieuw werk gebruikt de polar-namen of `rounded-full`.
 
@@ -130,7 +133,8 @@ Inter. De rol zet zelf de grootte; niet leunen op de 15 px van `body`.
 
 | Rol | Maat | Gewicht | Regelhoogte | Tracking |
 | --- | --- | --- | --- | --- |
-| Paginatitel | `text-2xl` 24 px | 600 | 32 px | `tracking-tight` −0,025 em |
+| Paginatitel op 390 | `text-xl` 20 px | 600 | 28 px | `tracking-tight` −0,025 em |
+| Paginatitel vanaf 834 | `text-2xl` 24 px | 600 | 32 px | `tracking-tight` −0,025 em |
 | Kengetal | `text-2xl` 24 px | 600 | 32 px | normaal, `tabular-nums` |
 | Dialoogtitel | `text-lg` 18 px | 600 | 28 px | `tracking-tight` |
 | Sectiekop | `text-base` 16 px | 600 | 24 px | `tracking-tight` |
@@ -157,7 +161,7 @@ Alleen 8, 12, 16 en 24.
 Staten die voor elk tikbaar onderdeel gelden, tenzij hieronder anders:
 
 - **default** zoals de variant.
-- **hover** een stap donkerder of `bg-muted`. Op een muted vlak is de hover `bg-background`, anders verdwijnt hij. Geen schaduw, geen groene rand, geen `brightness-*`.
+- **hover** een stap donkerder of `bg-muted`. Op een muted vlak is de hover `bg-background`, anders verdwijnt hij. Een rij met een fout-badge krijgt geen muted-vulling: daar is de hover een haarlijn, en op een tablet helemaal geen hover-vulling. Geen schaduw, geen groene rand, geen `brightness-*`.
 - **focus** de ring-token, 2 px, offset 2. In licht `#525252`, in donker `#a3a3a3`. Geen `outline-none` zonder die ring.
 - **active** dezelfde kleur als hover.
 - **disabled** zelfde maat, `bg-muted`, tekst muted-foreground, `pointer-events-none`. Geen kleinere knop, geen `opacity-50`.
@@ -166,7 +170,7 @@ Staten die voor elk tikbaar onderdeel gelden, tenzij hieronder anders:
 
 ### Button
 
-Anatomie: label, optioneel één icoon van 16 px links, gap 8. Hoogte 44 (`h-11`, `size="touch"`), padding horizontaal 16, radius 16, `text-sm` gewicht 500.
+Anatomie: label, optioneel één icoon van 16 px links, gap 8. Hoogte 44 (`h-11`, `size="touch"`), padding horizontaal 16, radius 12, `text-sm` gewicht 500.
 
 Varianten op de werkvloer: `default` (de groene), `outline`, `ghost`, `destructive`. `secondary` en `link` blijven in de code voor bestaande schermen buiten de keuken; nieuw keukenwerk gebruikt ze niet.
 
@@ -176,7 +180,7 @@ Niet gebruiken als status. Niet twee gevulde groene knoppen tegelijk in beeld. `
 
 ### Input
 
-Anatomie: hoogte 44, radius 8, rand 1 px, tekst 16 px, padding horizontaal 12. Achtergrond `bg-background`. 16 px omdat de waarde op armlengte leesbaar moet zijn, en een veld onder 16 px de pagina inzoomt op een telefoon.
+Anatomie: hoogte 44, radius 12, rand 1 px, tekst 16 px, padding horizontaal 12. Achtergrond `bg-background`. Dezelfde hoek als de knop ernaast. 16 px tekst omdat de waarde op armlengte leesbaar moet zijn, en een veld onder 16 px de pagina inzoomt op een telefoon.
 
 Varianten: één regel is 44 hoog. Een textarea begint op twee regels (88) en groeit. Een optie in een select is 44 hoog.
 
@@ -188,7 +192,7 @@ Vervangt `border-1.5`, `focus:border-primary` en `bg-input-surface` als enig rus
 
 ### Checkbox
 
-Anatomie: het tikvlak is 44×44, het vakje is 20×20, radius 8, rand 1 px. Het vinkje is lucide `Check`, 12 px.
+Anatomie: het tikvlak is 44×44, het vakje is 20×20, radius 8, rand 1 px. De geneste-radiusregel geldt niet voor dit vak: die zou 6 px geven, en 6 zit niet in de schaal. Het vinkje is lucide `Check`, 12 px.
 
 Aangevinkt: vlak `foreground`, vinkje `background`. Niet primary. Reden: groen blijft de knop. In donker is het vlak `#fafafa` en het vinkje `#0a0a0a`.
 
@@ -198,17 +202,17 @@ Vervangt de gevulde cirkel met `border-2`.
 
 ### Badge
 
-Anatomie: hoogte 20, `text-xs` gewicht 500, padding horizontaal 8, `rounded-full`, rand 1 px, transparante vulling, tekst in de statuskleur.
+Anatomie: hoogte 20, `text-xs` gewicht 500, padding horizontaal 8, `rounded-full`, rand 1 px, vulling `bg-background`, tekst in de statuskleur. Optioneel één icoon links, 12 px: `CircleCheck` bij goed, `AlertTriangle` bij let op, `CircleAlert` bij fout. Info heeft geen icoon. Het woord blijft.
 
 Varianten: success, warning, error, info, en een grijze `secondary` zonder betekenis. Geen gevulde groene `default` op de werkvloer.
 
-Eén badge per rij, op background of op een kaart. De badge zegt de status in een woord. Geen tweede label, geen stip ernaast, geen icoon erin. Niet op een muted vlak: fouttekst zakt daar in licht door AA.
+Eén badge per rij. De pill dekt de rij, zodat het woord op background staat en niet op een muted hover. Geen tweede label en geen stip ernaast.
 
 Niet gebruiken voor een teller (dat is meta-tekst) en niet voor een knop.
 
 ### AantalStapper
 
-Anatomie: één rand om het geheel, hoogte 44, radius 16. Min en plus zijn 44×44, `rounded-none`, ghost, icoon 16. Het getal staat in het midden: `text-sm` gewicht 600, `tabular-nums`, `leading-none`. De eenheid is `text-xs` muted, op dezelfde regel, verticaal gecentreerd.
+Anatomie: één rand om het geheel, hoogte 44, radius 12. Min en plus zijn 44×44, `rounded-none`, ghost, icoon 16. Het getal staat in het midden: `text-sm` gewicht 600, `tabular-nums`, `leading-none`. De eenheid is `text-xs` muted, op dezelfde regel, verticaal gecentreerd.
 
 Gebruik naast de bestelknop. De knop is ook 44 hoog. Niet een tweede rand om de plus of de min. Niet de compacte 36 px uit het voorbeeldscherm.
 
@@ -216,7 +220,7 @@ Vervangt de losse plus-minknoppen met elk een eigen rand.
 
 ### Card
 
-Anatomie: rand 1 px, radius 16, schaduw `shadow-sm`, achtergrond `bg-card`. Padding 16, vanaf `lg` 24. Eén kop: titel `text-base` gewicht 600, optioneel een teller in meta. Geen beschrijving die de titel herhaalt.
+Anatomie: rand 1 px, radius 16, schaduw `shadow-sm`, achtergrond `bg-card`. Padding 16, vanaf `lg` 24. Eén kop: optioneel één vast icoon, 16 px, muted-foreground, links van de titel. Daarna titel `text-base` gewicht 600, optioneel een teller in meta. Geen beschrijving die de titel herhaalt. Het icoon komt uit de vaste lijst en alleen voor bestelbord, intern, koelcel, vriezer, magazijn, taken of MEP. Geen icoon zonder die betekenis.
 
 Gebruik als de inhoud één groep is: een formulier, of een tabel met een kop. Niet om een losse lijst (die is een sectie). Niet om één knop. Niet in een andere kaart.
 
@@ -256,7 +260,7 @@ Vervangt een kaart per rij op tablet en desktop.
 
 ### Sectiekop
 
-Anatomie: `min-h-12`, titel `text-base` gewicht 600 `tracking-tight`, optioneel een teller in meta rechts. Geen icoon.
+Anatomie: `min-h-12`, optioneel één vast icoon, 16 px, muted-foreground, links van de titel. Titel `text-base` gewicht 600 `tracking-tight`, optioneel een teller in meta rechts. Zelfde iconen als de kaartkop: alleen bestelbord, intern, koelcel, vriezer, magazijn, taken of MEP. Geen ander icoon.
 
 Gebruik boven een losse sectie. Niet onder een kaartkop die hetzelfde zegt. Niet als paginatitel.
 
@@ -268,19 +272,19 @@ Gebruik alleen na een geslaagde lege uitkomst. Niet tijdens laden. Niet bij een 
 
 ### Dialog
 
-Anatomie: radius 24, rand 1 px, `shadow-lg`, padding 16 en vanaf `sm` 24. Titel `text-lg` gewicht 600. Sluiten is 44×44, icoon foreground, niet `opacity-70`. Eén bevestiging in de footer, rechts: groen, of rood als het verwijderen is. Links daarvan een ghost “Annuleren”.
+Anatomie: radius 24, rand 1 px, `shadow-lg`, padding 16 en vanaf `sm` 24. Titel `text-lg` gewicht 600. Sluiten is 44×44, radius 12, icoon foreground, niet `opacity-70`. Eén bevestiging in de footer, rechts: groen, of rood als het verwijderen is. Links daarvan een ghost “Annuleren”.
 
 Gebruik voor een korte bevestiging of een klein formulier dat de pagina blokkeert. Niet voor een lang formulier (dat is een sheet of een pagina). Niet voor informatie die in de rij past.
 
 ### Sheet
 
-Anatomie: radius 16 aan de open zijde, rand 1 px, `shadow-lg`, dezelfde titelregel als de dialoog. Sluiten 44×44, icoon foreground, niet `opacity-70`.
+Anatomie: een sheet van opzij heeft radius 16 aan de open zijde. Een blad van onderen heeft bovenhoeken 24, gelijk aan de dialoog. Rand 1 px, `shadow-lg`, dezelfde titelregel als de dialoog. Sluiten is 44×44, radius 12, icoon foreground, niet `opacity-70`.
 
 Gebruik voor een formulier of een rij-detail dat de lijst in beeld laat. Niet als er al een dialoog open is.
 
 ### Tabs
 
-Anatomie: de lijst is `bg-muted`, radius 12, padding 4. Een tab is minstens 44 hoog, radius 8. Actief: vlak `bg-background`, `shadow-sm`, tekst foreground. Inactief: muted-foreground. Geen groene rand.
+Anatomie: de lijst is `bg-muted`, radius 16, padding 4. Een tab is minstens 44 hoog, radius 12. Met 4 px padding valt die hoek gelijk met de lijst (16 − 4). Actief: vlak `bg-background`, `shadow-sm`, tekst foreground. Inactief: muted-foreground. Geen groene rand.
 
 Gebruik voor twee tot vier echte pagina-delen (Bestellen, Tellen). Niet voor filters (dat is een outline-knop) en niet voor meer dan vier (dan een rij of een menu).
 
@@ -292,7 +296,7 @@ Gebruik voor een bevestiging die de pagina niet blokkeert. De actie in de toast 
 
 ## 4. Pagina
 
-De paginakop heeft de enige titel: `text-2xl` gewicht 600 `tracking-tight`, daaronder één regel meta. Een kengetal mag dezelfde maat hebben en is geen titel. De actie staat rechts van de titel. Tabs of filters staan op de regel eronder en zijn geen tweede kop. De shell (hoofdstuk 5) draagt het kruimelpad, de locatie en het account, niet deze titel. `Paginakop` tekent vandaag alleen de tabregel en de actie; de titel staat erboven tot dat component de titel zelf krijgt.
+De paginakop heeft de enige titel. Op 390 is die `text-xl` (20 px), zodat titel en groene knop op één regel passen. Vanaf 834 is het `text-2xl` (24 px). Allebei gewicht 600 `tracking-tight`, daaronder één regel meta. Een kengetal blijft `text-2xl` en is geen titel. Op 390 is dat groter dan de paginatitel. De actie staat rechts van de titel. Tabs of filters staan op de regel eronder en zijn geen tweede kop. De shell (hoofdstuk 5) draagt het kruimelpad, de locatie en het account, niet deze titel. `Paginakop` tekent vandaag alleen de tabregel en de actie; de titel staat erboven tot dat component de titel zelf krijgt.
 
 Eén groene knop in beeld. Staat hij in de kop, dan is elke andere knop outline of ghost. Staat hij nergens, dan heeft de pagina geen primaire actie. Een open dialoog dekt de pagina: alleen de knop in de dialoog telt.
 
@@ -312,6 +316,8 @@ De shell staat in hoofdstuk 5. Zij tekent geen paginatitel.
 
 ## 5. App-shell
 
+Voorstel, wacht op keuze Yorick. De keuze tussen sidebar-07 en de andere shadcn-shells ligt nog bij hem. Tot die keuze is dit hoofdstuk geen besluit.
+
 Eén shell voor elk scherm dat nu `SidebarLayout` of `KitchenLayout` gebruikt. De opbouw volgt shadcn sidebar-07 en dashboard-01: een zijbalk die kan inklappen, groepen, de gebruiker onderin, en een bovenbalk met trigger en kruimelpad. Twee dingen daarvan nemen we niet over. De zijbalk van de huidige dashboard-01 zweeft als inset, met marge en een eigen hoek; dat is een tweede kader, en de shell is geen groep die een kaart nodig heeft. De menuknoppen van shadcn zijn 32 px hoog; op de vloer is de rij 48.
 
 De primitive blijft `src/components/ui/sidebar.tsx`. Die kent al de breedte 16rem (256 px) en de rail van 3rem (48 px). De nieuwere dashboard-01 gebruikt 18rem. We houden 16rem, omdat op 834 anders te weinig overblijft voor de tabel. 256 en 48 zijn maten van de shell, geen stap uit de reeks 8/12/16/24. De kleuren van de shell zijn background, foreground, muted en border. `bg-sidebar` en `text-sidebar-foreground` in de primitive worden die rollen. Geen eigen sidebar-palet.
@@ -326,7 +332,7 @@ De kop is één rij van 48. Links het beeldmerk in een vak van 44, daarin hoogui
 
 **Groepen.** Overzicht, Keuken, Voorraad, Beheer, in die volgorde. Een groep zonder zichtbare items valt weg. Het label is `text-xs` muted, als een zin (“Keuken”), niet in kapitalen. De items komen alleen uit `useNavigatieItems`. De shell voegt geen bestemming en geen rechten toe.
 
-**Item.** Rij 48, de hele rij is het tikvlak. Icoon 16 px, stroke 2, gap 8, label `text-sm` gewicht 500. Actief: `bg-muted`, tekst foreground, `aria-current="page"`. Niet primary, geen groene ring. Eén actief item, op de regel die `isNavActief` al gebruikt. Hover is muted, focus is de ring. Ingeklapt: het icoon zit in een knop van 44, met `aria-label` en een tooltip met de naam. De tooltip is extra. Het kruimelpad blijft de leesbare naam.
+**Item.** Rij 48, radius 12, de hele rij is het tikvlak. Icoon 16 px, stroke 2, gap 8, label `text-sm` gewicht 500. Actief: `bg-muted`, tekst foreground, `aria-current="page"`. Niet primary, geen groene ring. Eén actief item, op de regel die `isNavActief` al gebruikt. Hover is muted, focus is de ring. Ingeklapt: het icoon zit in een knop van 44, met `aria-label` en een tooltip met de naam. De tooltip is extra. Het kruimelpad blijft de leesbare naam.
 
 Twee items delen geen icoon. `Settings` is alleen Instellingen. Voorraadketen, koelwerkbank en onderhoud hebben nu hetzelfde icoon als een ander item; dat staat bij de open punten.
 
@@ -395,8 +401,8 @@ Per bestand het oude dat weg moet of om moet, zodra dat scherm of die laag aan d
 
 **Atomen die de regel nog niet halen**
 
-- `src/components/ui/button.tsx` — `shadow-sm`, `hover:brightness-125`, outline en secondary met `border-1.5` en schaduw, secondary krijgt `hover:border-primary/30`. `default` is `h-12`, `sm` is `h-9` (36 px). De werkvloer gebruikt `touch` (`h-11`). `link` is `text-primary`.
-- `src/components/ui/input.tsx`, `select.tsx`, `textarea.tsx` — `h-10` (40 px), `border-1.5`, `rounded-polar-lg` (16, doel is 8), focus via `border-primary`. Tekst is `text-sm`; doel is `text-base`.
+- `src/components/ui/button.tsx` — `shadow-sm`, `hover:brightness-125`, `rounded-polar-lg` (16, doel is 12), outline en secondary met `border-1.5` en schaduw, secondary krijgt `hover:border-primary/30`. `default` is `h-12`, `sm` is `h-9` (36 px). De werkvloer gebruikt `touch` (`h-11`). `link` is `text-primary`.
+- `src/components/ui/input.tsx`, `select.tsx`, `textarea.tsx` — `h-10` (40 px), `border-1.5`, `rounded-polar-lg` (16). Doel is radius 12, focus via de ring, tekst `text-base`.
 - `src/components/ui/checkbox.tsx` — cirkel `rounded-full border-2`, gevuld met primary, geen vinkje, tikvlak 20 px. Doel: vak 20 in een tikvlak van 44, radius 8, aangevinkt `bg-foreground`.
 - `src/components/ui/badge.tsx` — `default` is gevuld primary. Statusvarianten zijn gevuld (`bg-success/15` en zo) in plaats van een outline-pill. `pending` is een tweede warning. `px-2.5` is 10 px.
 - `src/components/ui/card.tsx` — `shadow-soft`. Doel is `shadow-sm` en een rand van 1 px.
@@ -413,11 +419,11 @@ Per bestand het oude dat weg moet of om moet, zodra dat scherm of die laag aan d
 
 - `Paginakop` tekent geen titel. De commentaarregel zegt “geen titel”. Dat is de regel die vervalt.
 - `Lijstrij`, `Afvinkrij` en `Telrij` zetten via `RijMeta altijd` een “—” als de meta leeg is.
-- `Sectiekop` is `text-sm`, niet `text-base`, en zet `VoortgangRing` in `stroke-primary`. De ring verdwijnt; de teller wordt tekst.
+- `Sectiekop` is `text-sm`, niet `text-base`, en zet `VoortgangRing` in `stroke-primary`. De ring verdwijnt; de teller wordt tekst. Een icoon mag alleen als het een vaste plek is (bestelbord, intern, koelcel, vriezer, magazijn, taken, MEP), 16 px, muted-foreground.
 - `AantalStapper` heeft de buitenrand, maar de plus en de min erven de radius van de knop. Doel: `rounded-none` op die twee, één rand om het geheel.
 - `LegeStaatBlok` is `py-6`, gecentreerd, zin in muted, optioneel een icoon van 20 px. Doel: het compacte gestreepte blok.
-- `Statusbadge` mag een icoon in de pill zetten. Doel: alleen het woord.
-- `Werkkaart` neemt een icoon in de kop. Doel: de kop is de titel en een teller.
+- `Statusbadge` mag elk statusicoon in de pill zetten. Doel: het woord blijft, en hooguit één van `CircleCheck`, `AlertTriangle` of `CircleAlert` op 12 px.
+- `Werkkaart` zet een willekeurig icoon in de kop. Doel: hooguit het vaste plek-icoon, 16 px, muted-foreground, plus titel en teller.
 
 **Dubbele systemen**
 
@@ -464,12 +470,11 @@ Per bestand het oude dat weg moet of om moet, zodra dat scherm of die laag aan d
 
 1. **Meta op `#525252` in plaats van het shadcn-grijs `#737373`.** Advies: hou `#525252`. Het shadcn-grijs zakt op muted door AA (4,35:1). Op `main` staat muted-foreground nog op `220 9% 46%`, en in `.pura-theme-v3` op `#737373`. Allebei wijken af van dit boek.
 2. **Het vinkje in de tekstkleur in plaats van groen.** Advies: `foreground`, niet primary. Groen blijft de knop. In donker wordt het vak licht, anders verdwijnt een zwart vak op zwart.
-3. **De paginatitel en het kengetal zijn allebei `text-2xl`.** Advies: zo laten. De titel opent de pagina, het getal staat in een kaart en is geen kop.
-4. **`body` is 15 px.** Advies: de rollen winnen (14 voor een rij, 16 voor een veld en een sectiekop). `body` later naar 16 px, samen met de balk.
-5. **Of de keuken donker überhaupt gebruikt.** De waarden staan in hoofdstuk 2, omdat de lichte ring en het lichte olijfgroen op bijna-zwart door AA zakken. Advies: de tokens vastleggen, geen donker scherm bouwen tot iemand daar werkt.
-6. **Drie lege staten.** Advies: `LegeStaatBlok` wint, nadat hij zelf het compacte blok is geworden. `pura/EmptyState` en `kitchen/EmptyState` verdwijnen per scherm.
-7. **Dienstkleuren in het rooster.** Advies: de gekozen kleur blijft data in `PlanningBlock` en de kleurkiezer. Alleen de chrome (rand, tekst, tikvlak) gaat naar de tokens.
-8. **Dubbele menu-iconen.** `Settings` zit op Voorraadketen, Koelwerkbank en Instellingen. `ClipboardList` zit op Bestelbord en Onderhoud. Advies: Instellingen houdt `Settings`, Bestelbord houdt `ClipboardList`. Voorraadketen krijgt `Network`, koelwerkbank `Refrigerator`, onderhoud `Wrench`. Nog niet bouwen.
+3. **`body` is 15 px.** Advies: de rollen winnen (14 voor een rij, 16 voor een veld en een sectiekop). `body` later naar 16 px, samen met de balk.
+4. **Of de keuken donker überhaupt gebruikt.** De waarden staan in hoofdstuk 2, omdat de lichte ring en het lichte olijfgroen op bijna-zwart door AA zakken. Advies: de tokens vastleggen, geen donker scherm bouwen tot iemand daar werkt.
+5. **Drie lege staten.** Advies: `LegeStaatBlok` wint, nadat hij zelf het compacte blok is geworden. `pura/EmptyState` en `kitchen/EmptyState` verdwijnen per scherm.
+6. **Dienstkleuren in het rooster.** Advies: de gekozen kleur blijft data in `PlanningBlock` en de kleurkiezer. Alleen de chrome (rand, tekst, tikvlak) gaat naar de tokens.
+7. **Dubbele menu-iconen.** `Settings` zit op Voorraadketen, Koelwerkbank en Instellingen. `ClipboardList` zit op Bestelbord en Onderhoud. Advies: Instellingen houdt `Settings`, Bestelbord houdt `ClipboardList`. Voorraadketen krijgt `Network`, koelwerkbank `Refrigerator`, onderhoud `Wrench`. Nog niet bouwen.
 
 ## Checklist voor een PR die dit boek uitvoert
 
