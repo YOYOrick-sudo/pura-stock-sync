@@ -59,6 +59,19 @@ Donker (`html.dark`). De ring en de meta uit licht (`#525252` op `#0a0a0a` is 2,
 
 Afgeleide rollen krijgen geen eigen kleur. `card-foreground`, `popover-foreground`, `secondary-foreground` en `accent-foreground` zijn `foreground`. `accent` is `muted`. `input` is `border`. `--notification-badge` vervalt: een teller is meta, geen eigen rood. `--sidebar-bg`, `--sidebar-active` en `--sidebar-hover` vervallen: de balk gebruikt background, muted en foreground.
 
+### Grafiek
+
+Een reeks gebruikt een `--chart-*` token, nooit een `#hex` in het component. Omzet en Midsland blijven `primary`. De vier die er al zijn blijven: `chart-grid`, `chart-prev-line`, `chart-idle-bar`, `chart-track`. Daar komen bij:
+
+| Token | Licht | Donker | Reeks |
+| --- | --- | --- | --- |
+| `chart-west` | `199 89% 48%` | `199 89% 64%` | West, nu `#0EA5E9` |
+| `chart-loon` | `24 76% 52%` | `24 76% 64%` | Loonkosten, nu `#E27726` |
+| `chart-goed` | `142 71% 45%` | `142 60% 55%` | Onder het loondoel |
+| `chart-slecht` | `0 72% 51%` | `0 75% 64%` | Boven het loondoel |
+
+Wit op een grafiekpil is `primary-foreground`, niet `#fff`. De Cijfer-PR’s zetten deze tokens. Tot die PR blijven de waarden hier de bron, ook als `index.css` ze nog niet alle vier heeft.
+
 ### Contrast
 
 Tekst onder 24 px, en vette tekst onder 18,7 px, minstens 4,5:1. De paginatitel op 390 is 20 px en telt dus als normale tekst. Vanaf 834 is de titel 24 px, net als het kengetal: grote tekst (minstens 3:1, en hier ook boven 4,5). Een vette badge van 12 px telt als normale tekst. Een focusring of een rand die een toestand draagt minstens 3:1. De haarlijn `#e5e5e5` is versiering en haalt 3:1 niet; zij mag, zolang de toestand ook in tekst of in de ring zit.
@@ -129,7 +142,7 @@ Geneste radius geldt voor een vlak dat in de hoek van zijn ouder ligt: binnenhoe
 
 ### Typografie
 
-Inter. De rol zet zelf de grootte; niet leunen op de 15 px van `body`.
+Inter. De rol zet zelf de grootte. `body` is nu 15 px en wordt 16 px in de opruim-PR. Tot die PR leunt een blok niet op de maat van `body`.
 
 | Rol | Maat | Gewicht | Regelhoogte | Tracking |
 | --- | --- | --- | --- | --- |
@@ -454,7 +467,7 @@ Per bestand het oude dat weg moet of om moet, zodra dat scherm of die laag aan d
 - `src/components/maintenance/` — `NewTicketForm`, `TicketDetail`, `TicketList`.
 - `src/components/personeel/` — `HousingCard`, `HousingOccupancyStrip`. `ColorPickerModal`, `PlanningBlock` en `src/lib/personeel-utils.ts` bewaren een dienstkleur als data. De chrome eromheen volgt de tokens; de gekozen kleur blijft data.
 - `src/components/voorraad/` — `BakmaatKiezer`, `BakmaatUitleg`, `KastOverzicht`, `KetenPerProduct`, `LadeGrid`, `LadePositie`, `PlekItemsBeheer`.
-- `src/components/ui/calendar.tsx` — type. `scroll-area.tsx` — radius. `chart.tsx` — hex en radius; een reeks hoort in de chart-tokens, niet in het component.
+- `src/components/ui/calendar.tsx` — type. `scroll-area.tsx` — radius. `chart.tsx` — hex en radius; een reeks gebruikt de `--chart-*` tokens uit hoofdstuk 2, niet een hex in het component.
 - `src/pages/Auth.tsx` — radius, type, `shadow-card`, `hover:-translate-y`, focusring in primary.
 - `src/pages/auth/SetPassword.tsx` — radius.
 - `src/pages/Cijfers.tsx` — hex, type.
@@ -470,11 +483,11 @@ Per bestand het oude dat weg moet of om moet, zodra dat scherm of die laag aan d
 
 1. **Meta op `#525252` in plaats van het shadcn-grijs `#737373`.** Advies: hou `#525252`. Het shadcn-grijs zakt op muted door AA (4,35:1). Op `main` staat muted-foreground nog op `220 9% 46%`, en in `.pura-theme-v3` op `#737373`. Allebei wijken af van dit boek.
 2. **Het vinkje in de tekstkleur in plaats van groen.** Advies: `foreground`, niet primary. Groen blijft de knop. In donker wordt het vak licht, anders verdwijnt een zwart vak op zwart.
-3. **`body` is 15 px.** Advies: de rollen winnen (14 voor een rij, 16 voor een veld en een sectiekop). `body` later naar 16 px, samen met de balk.
+3. **`body` wordt 16 px.** Besloten. De opruim-PR zet `body` van 15 px naar 16 px. De rollen blijven 14 voor een rij en 16 voor een veld en een sectiekop.
 4. **Of de keuken donker überhaupt gebruikt.** De waarden staan in hoofdstuk 2, omdat de lichte ring en het lichte olijfgroen op bijna-zwart door AA zakken. Advies: de tokens vastleggen, geen donker scherm bouwen tot iemand daar werkt.
 5. **Drie lege staten.** Advies: `LegeStaatBlok` wint, nadat hij zelf het compacte blok is geworden. `pura/EmptyState` en `kitchen/EmptyState` verdwijnen per scherm.
 6. **Dienstkleuren in het rooster.** Advies: de gekozen kleur blijft data in `PlanningBlock` en de kleurkiezer. Alleen de chrome (rand, tekst, tikvlak) gaat naar de tokens.
-7. **Dubbele menu-iconen.** `Settings` zit op Voorraadketen, Koelwerkbank en Instellingen. `ClipboardList` zit op Bestelbord en Onderhoud. Advies: Instellingen houdt `Settings`, Bestelbord houdt `ClipboardList`. Voorraadketen krijgt `Network`, koelwerkbank `Refrigerator`, onderhoud `Wrench`. Nog niet bouwen.
+7. **Menu-iconen.** Besloten. Instellingen houdt `Settings`, Bestelbord houdt `ClipboardList`. Voorraadketen krijgt `Network`, koelwerkbank `Refrigerator`, onderhoud `Wrench`.
 
 ## Checklist voor een PR die dit boek uitvoert
 
