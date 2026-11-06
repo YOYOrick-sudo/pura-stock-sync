@@ -127,7 +127,7 @@ export async function zoekBordSuggesties(vestiging: string, tekst: string): Prom
     p_limit: BORD_SUGGESTIE_LIMIET,
   });
   if (error) throw error;
-  return ((data ?? []) as {
+  return ((data ?? []) as unknown as {
     artikel_id?: string | null;
     naam?: string | null;
     leverancier_id?: string | null;
