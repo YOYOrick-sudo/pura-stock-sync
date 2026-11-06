@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Calculator, Check, CheckCircle, ChevronDown, ImageIcon, Info, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { KaartKop, LaadRijen, LijstKaart, TikIcoon } from '@/components/pura';
-import { EmptyState } from '@/components/pura/EmptyState';
+import { LegeStaatBlok } from '@/components/pura/canoniek';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -110,7 +110,7 @@ export function KeukenTelblok({ regels, pool, telinfo, laden, onOpslaan, bezig }
     <PopoverTrigger asChild><TikIcoon className="text-muted-foreground" aria-label="Info vanavond dicht"><Info /></TikIcoon></PopoverTrigger>
     <PopoverContent className="text-sm">Niemand tellen. Wat aan de beurt was schuift door naar de volgende open avond.</PopoverContent>
   </Popover> : undefined} />}>
-    {laden ? <LaadRijen /> : !regels.length ? <EmptyState icon={Calculator} title="Nog geen telartikelen" description="" className="border-0 shadow-none" /> : <>
+    {laden ? <LaadRijen /> : !regels.length ? <LegeStaatBlok tekst="Nog geen telartikelen" /> : <>
       <div className="divide-y divide-border">{vandaag.map(rij)}</div>
       {overig.length > 0 && <Collapsible className="border-t border-border">
         <CollapsibleTrigger asChild>

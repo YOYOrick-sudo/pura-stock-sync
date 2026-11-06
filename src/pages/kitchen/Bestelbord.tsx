@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Check, Search, ChefHat, Link2, ShoppingBag, Warehouse } from 'lucide-react';
+import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Check, ChefHat, Link2, ShoppingBag, Warehouse } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useOntvangstModus, useOntvangstData, useKeukenAdvies, useKeukenStand, useKeukenTelpool, useKeukenTelInfo, useKeukenTelling, useFase2VlagAan } from '@/hooks/useOntvangstV2';
 import { NageleverdKaart, EindcheckKaart } from '@/components/kitchen/bestelbord/OntvangstOnderweg';
@@ -15,7 +15,7 @@ import { KeukenTelblok } from '@/components/kitchen/bestelbord/KeukenTelblok';
 import { DrankAdvies } from '@/components/kitchen/bestelbord/DrankAdvies';
 import { DetailLade, KaartKop, LaadRijen, LijstKaart, Invoerbalk } from '@/components/pura/patronen';
 import { TabelVoet } from '@/components/pura/lijst';
-import { EmptyState } from '@/components/pura/EmptyState';
+import { LegeStaatBlok } from '@/components/pura/canoniek';
 import { Stappen } from '@/components/pura/blokken';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -695,7 +695,7 @@ export default function Bestelbord() {
   const openPrijzen = (koppelVlag ? openZicht : open).map(prijsVan).filter((p) => p != null);
   const openTotaal = openPrijzen.length ? euro(openPrijzen.reduce((n, p) => n + p.totaal, 0)) : '—';
   const koppelModus = koppelVlag && !!bewerk && !bewerk.artikel_id && bewerk.status === 'open';
-    const leegKaart = (titel: string) => <EmptyState icon={filterAan ? Search : ClipboardList} title={filterAan ? 'Niets gevonden' : titel} description={filterAan ? 'Pas je zoekopdracht of filter aan.' : ''} className="border-0 shadow-none" action={filterAan ? <Button variant="outline" size="touch" onClick={() => { setAlleenZonderPrijs(false); }}>Filter wissen</Button> : undefined} />;
+    const leegKaart = (titel: string) => <LegeStaatBlok tekst={filterAan ? 'Niets gevonden Pas je zoekopdracht of filter aan.' : titel} actie={filterAan ? <Button variant="outline" size="touch" onClick={() => { setAlleenZonderPrijs(false); }}>Filter wissen</Button> : undefined} />;
 
   return (
     <SidebarLayout>
@@ -828,7 +828,7 @@ export default function Bestelbord() {
               </TabsContent>
               <TabsContent value="advies" className="mt-0 space-y-4">
                 <LijstKaart kop={<KaartKop icoon={Sparkles} titel={advies.data?.leverdag ? `Voor ${leverDatumLabel(advies.data.leverdag)}` : 'Advies'} />}>
-                  {advies.isLoading ? <LaadRijen /> : positieveAdviezen.length ? <AdviesTabel regels={positieveAdviezen} open={open} bezig={adviesBezig || test} onOpBord={adviesOpBord} deadlineHint={deadlineHint} /> : <EmptyState icon={Sparkles} title="Geen voorstellen" description="" className="border-0 shadow-none" />}
+                  {advies.isLoading ? <LaadRijen /> : positieveAdviezen.length ? <AdviesTabel regels={positieveAdviezen} open={open} bezig={adviesBezig || test} onOpBord={adviesOpBord} deadlineHint={deadlineHint} /> : <LegeStaatBlok tekst="Geen voorstellen" />}
                   {!advies.isLoading && positieveAdviezen.length > 0 && <TabelVoet links={`${positieveAdviezen.length} ${positieveAdviezen.length === 1 ? 'voorstel' : 'voorstellen'}`} />}
                 </LijstKaart>
                 {!!nulAdviezen.length && <LijstKaart kop={<KaartKop icoon={Check} titel="Niet nodig" teller={nulAdviezen.length} />}><AdviesTabel regels={nulAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} deadlineHint={deadlineHint} nul /></LijstKaart>}

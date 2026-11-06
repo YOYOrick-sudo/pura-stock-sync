@@ -8,13 +8,12 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { EmptyState } from '@/components/kitchen/EmptyState';
+import { LegeStaatBlok } from '@/components/pura/canoniek';
 import { MepToevoegenDialog } from '@/components/kitchen/MepToevoegenDialog';
 import { MepPerPersoon } from '@/components/kitchen/MepPerPersoon';
 import { MepVerbindingBanner } from '@/components/kitchen/MepVerbindingBanner';
 import {
   Plus,
-  Clock,
   ArrowRight,
   ArrowLeft,
   Trash2,
@@ -354,11 +353,9 @@ export default function MepPlanning() {
         {planning.loading ? (
           <p className="text-sm text-muted-foreground">Laden…</p>
         ) : regels.length === 0 ? (
-          <EmptyState
-            icon={Clock}
-            title="Nog niets gepland"
-            description="Voeg halfproducten of vrije taken toe voor deze dag"
-            action={{ label: 'Toevoegen', onClick: () => setDialogOpen(true) }}
+          <LegeStaatBlok
+            tekst="Nog niets gepland Voeg halfproducten of vrije taken toe voor deze dag"
+            actie={<Button type="button" variant="ghost" size="touch" onClick={() => setDialogOpen(true)}>Toevoegen</Button>}
           />
         ) : weergave === 'persoon' ? (
           <MepPerPersoon

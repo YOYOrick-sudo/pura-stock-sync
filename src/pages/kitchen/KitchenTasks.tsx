@@ -5,8 +5,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Plus, CheckSquare } from 'lucide-react';
-import { EmptyState } from '@/components/kitchen/EmptyState';
+import { Plus } from 'lucide-react';
+import { LegeStaatBlok } from '@/components/pura/canoniek';
 import { devLog } from "@/lib/devLog";
 
 export default function KitchenTasks() {
@@ -32,11 +32,7 @@ export default function KitchenTasks() {
   const renderTaskList = (tasks: any[]) => {
     if (tasks.length === 0) {
       return (
-        <EmptyState
-          icon={CheckSquare}
-          title="Geen taken"
-          description="Alle taken zijn voltooid of er zijn nog geen taken toegevoegd"
-        />
+        <LegeStaatBlok tekst="Geen taken Alle taken zijn voltooid of er zijn nog geen taken toegevoegd" />
       );
     }
 
