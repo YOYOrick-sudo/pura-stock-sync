@@ -77,12 +77,12 @@ const foutmelding = (e: unknown) => {
 
 function Stepper({ waarde, onChange, eenheid, uit }: { waarde: number | null; onChange: (n: number | null) => void; eenheid?: string; uit?: boolean }) {
   return (
-    <div className={cn('flex items-center gap-1', eenheid !== undefined && 'gap-0 rounded-polar-lg border border-input bg-background')}>
-      <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Minder" disabled={uit} onClick={() => onChange(Math.max(1, (waarde ?? 1) - 1))}>
+    <div className={cn('flex items-center gap-2', eenheid !== undefined && 'gap-0 rounded-polar-lg border border-input bg-background')}>
+      <Button type="button" variant="ghost" size="touch-icon" aria-label="Minder" disabled={uit} onClick={() => onChange(Math.max(1, (waarde ?? 1) - 1))}>
         <Minus className="h-4 w-4" />
       </Button>
       {eenheid !== undefined ? (
-        <label className={cn('flex h-11 min-w-[6.5rem] cursor-text items-baseline justify-center gap-1 px-1', uit && 'opacity-50')}>
+        <label className={cn('flex h-11 min-w-[6.5rem] cursor-text items-baseline justify-center gap-2 px-2', uit && 'opacity-50')}>
           {uit ? <span className="self-center text-sm text-muted-foreground">kies verpakking</span> : <>
             <input
               value={waarde == null ? '' : String(waarde)}
@@ -104,7 +104,7 @@ function Stepper({ waarde, onChange, eenheid, uit }: { waarde: number | null; on
           aria-label="Aantal"
         />
       )}
-      <Button type="button" variant="ghost" className="h-11 w-11 p-0" aria-label="Meer" disabled={uit} onClick={() => onChange((waarde ?? 0) + 1)}>
+      <Button type="button" variant="ghost" size="touch-icon" aria-label="Meer" disabled={uit} onClick={() => onChange((waarde ?? 0) + 1)}>
         <Plus className="h-4 w-4" />
       </Button>
     </div>
@@ -125,13 +125,13 @@ function VerpakkingRegel({ vorm, aantal }: { vorm: ArtikelVorm; aantal: number |
 
 function SoortKeuze({ waarde, onChange }: { waarde: string | null; onChange: (s: string) => void }) {
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-2">
       {SOORTEN.map((s) => (
         <Button variant={waarde === s ? 'default' : 'outline'}
           key={s}
           type="button"
+          size="touch"
           onClick={() => onChange(s)}
-          className="h-11 px-3.5"
         >
           {s}
         </Button>
@@ -160,7 +160,7 @@ function VormKeuze({
   onKies: (v: ArtikelVorm) => void;
 }) {
   return (
-    <div className="w-full space-y-1.5">
+    <div className="w-full space-y-2">
       <p className="text-sm font-medium text-foreground">Bestellen per</p>
       <div className="grid w-full grid-cols-2 gap-2" role="radiogroup" aria-label="Verpakkingsvorm">
         {vormen.map((v) => {
@@ -178,7 +178,7 @@ function VormKeuze({
               disabled={geblokkeerd}
               onClick={() => onKies(v)}
               className={cn(
-                'flex min-h-14 w-full flex-col items-start gap-0.5 rounded-polar-md border px-3 py-2.5 text-left transition-colors duration-150',
+                'flex min-h-11 w-full flex-col items-start gap-2 rounded-polar-lg border px-4 py-2 text-left transition-colors duration-150',
                 actief ? 'border-primary bg-primary/10 ring-1 ring-primary' : 'border-border bg-card hover:bg-muted/60',
                 geblokkeerd && 'cursor-not-allowed opacity-50',
               )}
@@ -683,7 +683,7 @@ export default function Bestelbord() {
   const besteldZicht = [...teCheckenZicht, ...onderwegZicht, ...zonderDatumZicht];
   const internRegels = !toonV2Bord && koppelVlag && !isLoading && internZicht.length > 0 ? (
     <>
-      <p className="px-4 pb-1 pt-3 text-sm text-muted-foreground lg:px-6">Komt op de MEP van Midsland.</p>
+      <p className="px-4 py-2 text-sm text-muted-foreground lg:px-6">Komt op de MEP van Midsland.</p>
       <ZelfHalenTabel soort="intern" regels={internZicht} leverancier={leverancier} onGehaald={(s) => vinkGeleverd([s.id], s.naam)} onAllesGehaald={(ids) => vinkGeleverd(ids, `${ids.length} ${ids.length === 1 ? 'regel' : 'regels'}`)} onBewerk={openBewerk} onVervallen={vervallen} alleenLezen={test} />
     </>
   ) : null;
@@ -720,7 +720,7 @@ export default function Bestelbord() {
                 {zonderPrijsFilter('lg:hidden')}
                 {v2 && modus.magBeslissen && <MandjeVragen modus={modus} vragen={ontvangst.mandje.data ?? []} />}
                 <LijstKaart clip={false}>
-        <div className={cn('space-y-3 rounded-t-polar-lg border-b border-border bg-muted/30 p-3 sm:px-4 lg:px-6', test && 'hidden')}>
+        <div className={cn('space-y-4 rounded-t-polar-lg border-b border-border bg-muted/30 p-4 lg:px-6', test && 'hidden')}>
           <Invoerbalk>
             <div className="relative min-w-0 basis-full sm:flex-1 sm:basis-auto">
               <Plus className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
@@ -756,7 +756,7 @@ export default function Bestelbord() {
                 aria-autocomplete="list"
               />
               {lijstOpen && naam.trim().length > 0 && suggesties.length > 0 && (
-                <div role="listbox" className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-polar-md border border-border bg-popover shadow-md">
+                <div role="listbox" className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-polar-lg border border-border bg-popover shadow-md">
                   {suggesties.map((s, i) => {
                     const sub = suggestieSubtekst(s.bron, suggestieOnderschrift(s, leverancierSoorten, leveranciers));
                     return (
@@ -767,7 +767,7 @@ export default function Bestelbord() {
                         aria-selected={i === actief}
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => kiesArtikel(s)}
-                        className={cn('block w-full px-3 py-2 text-left min-h-[48px]', i === actief ? 'bg-muted' : 'hover:bg-muted/60')}
+                        className={cn('block h-auto min-h-11 w-full px-4 py-2 text-left', i === actief ? 'bg-muted' : 'hover:bg-muted/60')}
                       >
                         <span className="block text-sm font-medium text-foreground">{s.naam}</span>
                         {sub && <span className="block text-xs text-muted-foreground">{sub}</span>}
@@ -791,16 +791,16 @@ export default function Bestelbord() {
                 </SelectContent>
               </Select>
             </>}
-            {naam.trim().length >= 2 && !vormNodig && <Button size="touch" className="ml-auto gap-1 px-3" aria-label="Erbij zetten" onClick={voegToe} disabled={!vestiging || isLoading || aantal == null || !!gekozenVorm?.geblokkeerd || !!(gekozenVorm && vormById.get(gekozenVorm.id)?.geblokkeerd)}>
+            {naam.trim().length >= 2 && !vormNodig && <Button size="touch" className="ml-auto gap-2" aria-label="Erbij zetten" onClick={voegToe} disabled={!vestiging || isLoading || aantal == null || !!gekozenVorm?.geblokkeerd || !!(gekozenVorm && vormById.get(gekozenVorm.id)?.geblokkeerd)}>
               <Check className="h-4 w-4" /><span>Toevoegen</span>
             </Button>}
             </>}
           </Invoerbalk>
           {eerderSuggesties.length > 0 && (
-            <div className={isMobile ? 'flex gap-1.5 overflow-x-auto [scrollbar-width:none]' : 'flex flex-wrap gap-1.5'}>
+            <div className={isMobile ? 'flex gap-2 overflow-x-auto [scrollbar-width:none]' : 'flex flex-wrap gap-2'}>
               {eerderSuggesties.map((s) => (
-                <Button variant="ghost" key={s.id} type="button" onClick={() => kiesEerder(s)}
-                  className="min-h-11 shrink-0 px-3">
+                <Button variant="ghost" size="touch" key={s.id} type="button" onClick={() => kiesEerder(s)}
+                  className="shrink-0">
                   {s.naam} · {Number(s.aantal)} {s.eenheid}
                 </Button>
               ))}
@@ -820,8 +820,8 @@ export default function Bestelbord() {
                 {isLoading ? <LaadRijen /> : openZicht.length ? <BordTabel regels={openZicht} {...bordProps} /> : (onbekendZicht.length || winkelZicht.length || internZicht.length) ? null : leegKaart('Niets openstaand')}
                 {!isLoading && openZicht.length > 0 && <TabelVoet links={`${openZicht.length} ${openZicht.length === 1 ? 'product' : 'producten'}`} rechts={openTotaal} />}
                 </LijstKaart>
-                {!isLoading && onbekendZicht.length > 0 && <LijstKaart kop={<KaartKop icoon={koppelVlag ? Link2 : Truck} titel={koppelVlag ? 'Nog koppelen' : 'Leverancier kiezen'} teller={onbekendZicht.length} />}>{koppelVlag && <p className="px-4 pb-1 pt-3 text-sm text-muted-foreground lg:px-6">Koppel aan een artikel, of maak een nieuw.</p>}<BordTabel regels={onbekendZicht} {...bordProps} plat={koppelVlag} /></LijstKaart>}
-                {koppelVlag && !isLoading && winkelZicht.length > 0 && <LijstKaart kop={<KaartKop icoon={ShoppingBag} titel="Zelf halen" teller={winkelZicht.length} />}><p className="px-4 pb-1 pt-3 text-sm text-muted-foreground lg:px-6">Haal je zelf. Tik op Gehaald als het binnen is.</p><ZelfHalenTabel soort="winkel" regels={winkelZicht} leverancier={leverancier} onGehaald={(s) => vinkGeleverd([s.id], s.naam)} onAllesGehaald={(ids) => vinkGeleverd(ids, `${ids.length} ${ids.length === 1 ? 'regel' : 'regels'}`)} onBewerk={openBewerk} onVervallen={vervallen} alleenLezen={test} /></LijstKaart>}
+                {!isLoading && onbekendZicht.length > 0 && <LijstKaart kop={<KaartKop icoon={koppelVlag ? Link2 : Truck} titel={koppelVlag ? 'Nog koppelen' : 'Leverancier kiezen'} teller={onbekendZicht.length} />}>{koppelVlag && <p className="px-4 py-2 text-sm text-muted-foreground lg:px-6">Koppel aan een artikel, of maak een nieuw.</p>}<BordTabel regels={onbekendZicht} {...bordProps} plat={koppelVlag} /></LijstKaart>}
+                {koppelVlag && !isLoading && winkelZicht.length > 0 && <LijstKaart kop={<KaartKop icoon={ShoppingBag} titel="Zelf halen" teller={winkelZicht.length} />}><p className="px-4 py-2 text-sm text-muted-foreground lg:px-6">Haal je zelf. Tik op Gehaald als het binnen is.</p><ZelfHalenTabel soort="winkel" regels={winkelZicht} leverancier={leverancier} onGehaald={(s) => vinkGeleverd([s.id], s.naam)} onAllesGehaald={(ids) => vinkGeleverd(ids, `${ids.length} ${ids.length === 1 ? 'regel' : 'regels'}`)} onBewerk={openBewerk} onVervallen={vervallen} alleenLezen={test} /></LijstKaart>}
                 {!isLoading && toonV2Bord && <InternGroepV2 vestiging={vestiging} losse={internZicht.map((s) => ({ id: s.id, naam: s.naam, aantal: Number(s.aantal), eenheid: s.eenheid }))} onLosseWeg={(id) => verwijderen.mutate(id)} />}
                 {!isLoading && <InternBestellen vestiging={vestiging} aan={internAan} bestaande={internRegels} losseKaart={internKaart} />}
                 {(open.length > 0 || besteld.length > 0) && <LijstKaart kop={<KaartKop icoon={ClipboardList} titel="Per leverancier" />}>{leveranciersTabel}</LijstKaart>}
@@ -852,7 +852,7 @@ export default function Bestelbord() {
           <div className="space-y-4">
             {bewerk && <Stappen stappen={['Op bord', 'Besteld', 'Geleverd']} huidig={bewerk.status === 'geleverd' ? 2 : bewerk.status === 'besteld' ? 1 : 0} />}
             {bewerk && <RegelInfo info={regelInfo(bewerk)} detail />}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {bewerkVormId && vormById.get(bewerkVormId)
                 ? <Stepper waarde={bewerkAantal} onChange={setBewerkAantal} eenheid={eenheidLabel(vormById.get(bewerkVormId)!.eenheid, bewerkAantal)} />
                 : <Stepper waarde={bewerkAantal} onChange={setBewerkAantal} {...(bewerkVormen.length > 0 ? { eenheid: '', uit: true } : {})} />}
@@ -886,7 +886,8 @@ export default function Bestelbord() {
               onAanmaken={maakEnKoppel}
             />}
             {!koppelModus && <Button
-              className="h-12 w-full"
+              size="touch"
+              className="w-full"
               disabled={bewerkAantal == null || (bewerkVormen.length > 0 && !bewerkVormId)}
               onClick={() => {
                 if (!bewerk || bewerkAantal == null) return;
@@ -912,20 +913,21 @@ export default function Bestelbord() {
           </div>
       </DetailLade>
       <Dialog open={!!datumVoor} onOpenChange={(o) => !o && setDatumVoor(null)}>
-        <DialogContent className="max-w-[650px] rounded-polar-xl">
+        <DialogContent className="max-w-[650px] rounded-polar-lg">
           <DialogHeader>
             <DialogTitle>Verwachte levering — {datumVoor?.naam}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
+          <div className="space-y-4">
             <Input
               type="date"
               value={datumKeuze}
               min={ymd(new Date())}
               onChange={(e) => setDatumKeuze(e.target.value)}
-              className="h-12 text-base"
+              className="h-11 text-base"
             />
             <Button
-              className="h-12 w-full"
+              size="touch"
+              className="w-full"
               disabled={!datumKeuze}
               onClick={() => {
                 if (!datumVoor || !datumKeuze) return;
@@ -940,15 +942,15 @@ export default function Bestelbord() {
       </Dialog>
 
       <Dialog open={!!leveringActie} onOpenChange={(o) => !o && setLeveringActie(null)}>
-        <DialogContent className="max-w-[650px] rounded-polar-xl">
+        <DialogContent className="max-w-[650px] rounded-polar-lg">
           <DialogHeader>
             <DialogTitle>
               {leveringActie?.type === 'niet' ? 'Niet geleverd' : 'Deels geleverd'} — {leveringActie?.signaal.naam}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {leveringActie?.type === 'deels' && (
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
                   Hoeveel is er binnen? (besteld: {Number(leveringActie.signaal.aantal)} {leveringActie.signaal.eenheid})
                 </p>
@@ -961,7 +963,7 @@ export default function Bestelbord() {
               placeholder="Korte opmerking (bijv. waarom niet geleverd)"
               className="text-base"
             />
-            <Button className="h-12 w-full" onClick={bevestigLeveringActie}>
+            <Button size="touch" className="w-full" onClick={bevestigLeveringActie}>
               {leveringActie?.type === 'niet' ? 'Terug op het bord' : 'Restant terug op het bord'}
             </Button>
           </div>

@@ -69,11 +69,11 @@ export function InternBestelKaart({ producten, onBestellen, bezigId, bestaande }
           const per = inhoudPerEenheid(p.inhoud_per_eenheid, p.inhoud_eenheid, p.eenheid);
           const max = maxVan(p);
           return (
-            <div key={p.product_id} className="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-2 border-b border-border px-4 py-2 last:border-0 lg:px-6">
+            <div key={p.product_id} className="flex min-h-12 flex-wrap items-center gap-2 border-b border-border px-4 py-2 last:border-0 lg:px-6">
               <div className="min-w-0 flex-1 basis-full sm:basis-0">
                 <div className="flex min-h-6 min-w-0 items-center gap-2">
                   <span className="min-w-0 truncate text-sm font-medium text-foreground">{p.naam}</span>
-                  {open > 0 && <Badge variant="info" className="shrink-0 whitespace-nowrap font-medium">{`${getal(open)} onderweg`}</Badge>}
+                  {open > 0 && <Badge variant="info" className="shrink-0 whitespace-nowrap">{`${getal(open)} onderweg`}</Badge>}
                 </div>
                 <RijMeta altijd>{per || '—'}</RijMeta>
               </div>
