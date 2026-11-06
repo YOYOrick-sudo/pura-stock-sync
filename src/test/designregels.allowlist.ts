@@ -14,12 +14,6 @@ export const AFGEROND: string[] = [
   'components/ui/radio-group.tsx',
   'components/ui/separator.tsx',
   'hooks/useNavigatieItems.ts',
-  'pages/kitchen/Bestelbord.tsx',
-  'components/kitchen/bestelbord/BestelbordTabs.tsx',
-  'components/kitchen/bestelbord/BordTabel.tsx',
-  'components/kitchen/bestelbord/RegelInfo.tsx',
-  'components/kitchen/bestelbord/InternBestellen.tsx',
-  'components/pura/blokken.tsx',
 ];
 
 export const BESTAANDE_AFWIJKINGEN: string[] = [
