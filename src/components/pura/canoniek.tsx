@@ -77,8 +77,8 @@ export function AantalStapper({ waarde, min, max, eenheid, onChange, label = 'Aa
     onChange(klemAantal(n, min, max));
   };
   return (
-    <div className="flex h-11 shrink-0 items-center rounded-polar-lg border border-input bg-background">
-      <Button type="button" variant="ghost" size="touch-icon" aria-label="Minder" disabled={lees() <= min} onClick={() => zet(lees() - 1)}>
+    <div className="flex h-11 shrink-0 items-center rounded-polar-md border border-border bg-background">
+      <Button type="button" variant="ghost" size="touch-icon" className="rounded-none" aria-label="Minder" disabled={lees() <= min} onClick={() => zet(lees() - 1)}>
         <Minus className="h-4 w-4" />
       </Button>
       <label className="flex h-11 min-w-[5.5rem] cursor-text items-center justify-center gap-2 px-1 leading-none">
@@ -100,7 +100,7 @@ export function AantalStapper({ waarde, min, max, eenheid, onChange, label = 'Aa
         />
         {eenheid && <span className="text-xs leading-none text-muted-foreground">{eenheid}</span>}
       </label>
-      <Button type="button" variant="ghost" size="touch-icon" aria-label="Meer" disabled={max != null && lees() >= max} onClick={() => zet(lees() + 1)}>
+      <Button type="button" variant="ghost" size="touch-icon" className="rounded-none" aria-label="Meer" disabled={max != null && lees() >= max} onClick={() => zet(lees() + 1)}>
         <Plus className="h-4 w-4" />
       </Button>
     </div>

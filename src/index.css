@@ -31,7 +31,6 @@
     --destructive-foreground: 0 0% 100%;
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --input-surface: 0 0% 100%;
     --ring: 0 0% 32%;
     --radius: 0.75rem;
     --success: 152 24% 32%;
@@ -69,7 +68,6 @@
     --destructive-foreground: 0 0% 3.9%;
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
-    --input-surface: 0 0% 3.9%;
     --ring: 0 0% 64%;
     --success: 152 30% 70%;
     --success-foreground: 0 0% 3.9%;
