@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, UserX, Users } from 'lucide-react';
-import { EmptyState } from '@/components/kitchen/EmptyState';
+import { LegeStaatBlok } from '@/components/pura/canoniek';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -164,11 +164,7 @@ export function ServiceStaff() {
       </div>
 
       {staff.length === 0 ? (
-        <EmptyState
-          icon={Users}
-          title="Geen medewerkers"
-          description="Voeg je eerste medewerker toe om te beginnen"
-        />
+        <LegeStaatBlok tekst="Geen medewerkers Voeg je eerste medewerker toe om te beginnen" />
       ) : (
         <div className="grid gap-3">
           {staff.map((member) => (

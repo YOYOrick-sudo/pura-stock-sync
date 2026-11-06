@@ -6,7 +6,7 @@ import {
 import { Pencil, Target } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { EmptyState } from '@/components/pura/EmptyState';
+import { LegeStaatBlok } from '@/components/pura/canoniek';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -224,7 +224,7 @@ export function CijfersLoonkostenDoelGrafiek({ vestigingKeuze, van, tot }: Props
       {q.isLoading ? (
         <Skeleton className="h-[280px] w-full" />
       ) : data.length === 0 ? (
-        <EmptyState icon={Target} title="Geen data" description="Geen dagen met omzet in deze periode." />
+        <LegeStaatBlok tekst="Geen data Geen dagen met omzet in deze periode." />
       ) : (
         <div style={{ width: '100%', height: 300 }}>
           <ResponsiveContainer width="100%" height="100%">

@@ -1,7 +1,7 @@
 import { ChefHat, Hourglass, Info } from 'lucide-react';
 import { kaartRandKlasse } from '@/components/pura';
 import { KaartKop, LaadRijen, LijstKaart } from '@/components/pura/patronen';
-import { EmptyState } from '@/components/pura/EmptyState';
+import { LegeStaatBlok } from '@/components/pura/canoniek';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -18,7 +18,7 @@ const STATUS: Record<string, { label: string; variant: 'success' | 'warning' | '
 /** 8.2 Advies keuken: alleen lezen. */
 export function KeukenAdviesTabel({ regels, laden, telinfo }: { regels: KeukenAdviesRegel[]; laden: boolean; telinfo?: Record<string, TelInfo> }) {
   return <LijstKaart kop={<KaartKop icoon={ChefHat} titel="Advies keuken" teller={regels.length || undefined} />}>
-    {laden ? <LaadRijen /> : !regels.length ? <EmptyState icon={ChefHat} title="Geen advies" description="" className="border-0 shadow-none" /> :
+    {laden ? <LaadRijen /> : !regels.length ? <LegeStaatBlok tekst="Geen advies" /> :
       <div className="overflow-x-auto">
         <Table className={`[&_td]:whitespace-nowrap [&_td]:px-2 [&_td]:py-1 [&_th]:h-9 [&_th]:px-2 [&_th]:text-xs ${kaartRandKlasse}`}>
           <TableHeader><TableRow>

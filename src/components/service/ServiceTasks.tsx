@@ -3,8 +3,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Plus, CheckSquare } from 'lucide-react';
-import { EmptyState } from '@/components/kitchen/EmptyState';
+import { Plus } from 'lucide-react';
+import { LegeStaatBlok } from '@/components/pura/canoniek';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -246,11 +246,7 @@ export function ServiceTasks() {
 
         <TabsContent value="today">
           {todayTasks.length === 0 ? (
-            <EmptyState
-              icon={CheckSquare}
-              title="Geen taken vandaag"
-              description="Alle taken zijn voltooid of er zijn geen taken voor vandaag"
-            />
+            <LegeStaatBlok tekst="Geen taken vandaag Alle taken zijn voltooid of er zijn geen taken voor vandaag" />
           ) : (
             <div className="space-y-3">
               {todayTasks.map((task) => (
@@ -297,11 +293,7 @@ export function ServiceTasks() {
 
         <TabsContent value="all">
           {allTasks.length === 0 ? (
-            <EmptyState
-              icon={CheckSquare}
-              title="Geen taken"
-              description="Er zijn nog geen taken toegevoegd"
-            />
+            <LegeStaatBlok tekst="Geen taken Er zijn nog geen taken toegevoegd" />
           ) : (
             <div className="space-y-3">
               {allTasks.map((task) => (

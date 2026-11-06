@@ -2,8 +2,7 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { EmptyState } from '@/components/pura/EmptyState';
-import { BarChart3 } from 'lucide-react';
+import { LegeStaatBlok } from '@/components/pura/canoniek';
 import {
   granulariteitVoor, vestigingenVan,
   type Periode, type VestKeuze,
@@ -106,7 +105,7 @@ export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props
   if (curQ.error) {
     return (
       <div className="bg-card border border-border rounded-[20px] shadow-card p-6 cj-card-in">
-        <EmptyState icon={BarChart3} title="Kan grafiek niet laden" description={(curQ.error as Error).message} />
+        <LegeStaatBlok tekst={`Kan grafiek niet laden ${(curQ.error as Error).message}`} />
       </div>
     );
   }
@@ -114,7 +113,7 @@ export function CijfersHoofdgrafiek({ periode, vestigingKeuze, van, tot }: Props
     return (
       <div className="bg-card border border-border rounded-[20px] shadow-card p-[22px_24px_16px] cj-card-in">
         <Header sub={perfSub} />
-        <EmptyState icon={BarChart3} title="Geen data in deze periode" description="Zodra er omzet is, verschijnt hij hier." />
+        <LegeStaatBlok tekst="Geen data in deze periode Zodra er omzet is, verschijnt hij hier." />
       </div>
     );
   }

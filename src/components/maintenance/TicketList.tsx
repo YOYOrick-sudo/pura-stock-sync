@@ -13,7 +13,7 @@ import {
   StatusBadge,
   SegmentedTabs,
   StatCard,
-  EmptyState,
+  LegeStaatBlok,
   toneColor,
   type StatusTone,
   LijstKaart,
@@ -122,11 +122,7 @@ export function TicketList({ actor, onNewTicket, onTicketClick }: TicketListProp
             <Skeleton key={i} className="h-24 w-full rounded-polar-xl" />
           ))
         ) : sortedTickets.length === 0 ? (
-          <EmptyState
-            icon={CheckCircle2}
-            title="Niks te melden hier"
-            description="Zie je iets dat niet in de haak is? Tik op 'Nieuwe melding' rechtsboven."
-          />
+          <LegeStaatBlok tekst="Niks te melden hier Zie je iets dat niet in de haak is? Tik op 'Nieuwe melding' rechtsboven." />
         ) : (
           isMobile ? (
             <LijstKaart>
