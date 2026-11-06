@@ -392,6 +392,68 @@ export function annuleerRest(a: Aanvraag, aantal: number): Aanvraag {
   };
 }
 
+/** Ook onderweg (meegegeven, nog niet helemaal ontvangen) blijft annuleerbaar. */
+export function magAnnuleren(a: Aanvraag) {
+  return nogTeAnnuleren(a) > 0;
+}
+
+/**
+ * Zelfde sleutel als interne_v2_ontvangen: het nieuwe ontvangen totaal.
+ * Een tweede keer dezelfde ontvangst raakt de unieke sleutel en telt niet nog eens.
+ */
+export function interneOntvangstSleutel(aanvraagId: string, ontvangenNa: number) {
+  return `intern-v2:${aanvraagId}:tot:${rond(ontvangenNa).toFixed(3)}`;
+}
+
+export const VOORRAAD_ZONDER_INHOUD = 'geen inhoud per verpakking: telt niet in voorraad';
+
+/** Null als de regel op dezelfde manier in de keukenstand kan tellen als een leveranciersontvangst. */
+export function redenGeenVoorraad(artikelId: string | null, inhoudPerEenheid: number | null, basisEenheid: string | null): string | null {
+  if (!artikelId) return 'geen artikel: telt niet in voorraad';
+  if (inhoudPerEenheid == null || inhoudPerEenheid <= 0 || !basisEenheid || !basisEenheid.trim()) return VOORRAAD_ZONDER_INHOUD;
+  return null;
+}
+
+export function voorraadRedenUit(uit: unknown): string | null {
+  if (!uit || typeof uit !== 'object' || !('voorraad_reden' in uit)) return null;
+  const reden = (uit as { voorraad_reden?: unknown }).voorraad_reden;
+  return typeof reden === 'string' && reden ? reden : null;
+}
+
+function positiefGetal(uit: unknown, veld: string): number {
+  if (!uit || typeof uit !== 'object' || !(veld in uit)) return 0;
+  const n = Number((uit as Record<string, unknown>)[veld]);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+export function voorraadTerugUit(uit: unknown): number {
+  return positiefGetal(uit, 'voorraad_teruggedraaid');
+}
+
+export function voorraadNietGesplitstUit(uit: unknown): number {
+  return positiefGetal(uit, 'voorraad_niet_gesplitst');
+}
+
+export function annuleerMelding(naam: string, uit: unknown): string {
+  const terug = voorraadTerugUit(uit);
+  const open = voorraadNietGesplitstUit(uit);
+  if (terug > 0) return `${naam} geannuleerd. Te veel geboekte voorraad is teruggedraaid.`;
+  if (open > 0) return `${naam} geannuleerd. Een geboekte voorraadregel is groter dan het verschil en blijft staan.`;
+  return `${naam} geannuleerd`;
+}
+
+/** Tekst vóór het annuleren. Wat al ontvangen is, blijft in de voorraad staan. */
+export function annuleerTekst(a: Aanvraag): string {
+  const mep = 'Een open of bezige MEP-taak gaat omlaag met wat nog niet gemaakt is. Een taak die al klaar is, blijft afgerond.';
+  if (a.ontvangen_aantal > 0) {
+    return `Wat al ontvangen is (${getal(a.ontvangen_aantal)} ${a.eenheid}) blijft in de voorraad. Alleen de rest gaat dicht. ${mep}`;
+  }
+  if (nogTeOntvangen(a) > 0) {
+    return `Er is nog geen voorraad geboekt, ook al is dit al meegegeven. De bestelling gaat dicht. ${mep}`;
+  }
+  return `De bestelling gaat dicht. Er is nog geen voorraad geboekt. ${mep}`;
+}
+
 export function taakMinderBijAnnuleren(a: Aanvraag, aantal: number) {
   return rond(Math.min(aantal, Math.max(0, a.mep_aantal - a.mep_klaar_aantal)));
 }

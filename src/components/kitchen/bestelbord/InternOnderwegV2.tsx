@@ -9,7 +9,8 @@ import { AantalStapper } from '@/components/kitchen/AantalStapper';
 import { foutTekst } from '@/hooks/useInterneLevering';
 import { useInterneV2Aanvragen, useInterneV2Annuleren, useInterneV2Ontvangen } from '@/hooks/useInterneLeveringV2';
 import {
-  aantalRegel, leverdagTekst, nogTeAnnuleren, nogTeOntvangen, openRestant, statusWeergave, vandaagAmsterdam, type Aanvraag,
+  aantalRegel, annuleerMelding, annuleerTekst, leverdagTekst, magAnnuleren, nogTeAnnuleren, nogTeOntvangen, openRestant,
+  statusWeergave, voorraadRedenUit, vandaagAmsterdam, type Aanvraag,
 } from '@/lib/interneLeveringV2';
 
 export function InternOnderwegV2Kaart({
@@ -27,9 +28,10 @@ export function InternOnderwegV2Kaart({
 
   const ontvangen = async (a: Aanvraag, aantal: number | null, opmerking: string | null) => {
     try {
-      await onOntvangen(a, aantal, opmerking);
+      const uit = await onOntvangen(a, aantal, opmerking);
       setAnder(null);
-      toast.success(`${a.naam} ontvangen`);
+      const reden = voorraadRedenUit(uit);
+      toast.success(reden ? `${a.naam} ontvangen. ${reden}` : `${a.naam} ontvangen`);
     } catch (e) {
       toast.error(foutTekst(e));
     }
@@ -71,7 +73,7 @@ export function InternOnderwegV2Kaart({
                       Ander aantal
                     </Button>
                   )}
-                  {nogTeAnnuleren(a) > 0 && (
+                  {magAnnuleren(a) && (
                     <Button type="button" size="touch" variant="ghost" aria-label={`Annuleren ${a.naam}`} onClick={() => setAnnuleren(a)}>
                       Annuleren
                     </Button>
@@ -95,13 +97,15 @@ export function InternOnderwegV2Kaart({
         open={!!annuleren}
         onOpenChange={(openDialog) => !openDialog && setAnnuleren(null)}
         titel={annuleren ? `${annuleren.naam} annuleren?` : 'Annuleren'}
-        tekst="Alleen wat nog niet ontvangen is, gaat dicht. Wat al binnen is, blijft staan."
+        tekst={annuleren ? annuleerTekst(annuleren) : ''}
         actie="Ja, annuleren"
         onBevestig={() => {
           const regel = annuleren;
           setAnnuleren(null);
           if (!regel) return;
-          onAnnuleren(regel, nogTeAnnuleren(regel)).then(() => toast.success(`${regel.naam} geannuleerd`)).catch((e) => toast.error(foutTekst(e)));
+          onAnnuleren(regel, nogTeAnnuleren(regel)).then((uit) => {
+            toast.success(annuleerMelding(regel.naam, uit));
+          }).catch((e) => toast.error(foutTekst(e)));
         }}
       />
     </LijstKaart>

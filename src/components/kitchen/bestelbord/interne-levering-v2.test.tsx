@@ -72,6 +72,7 @@ describe('interne levering v2 schermen', () => {
       onKlaarzetten: noop,
       onMeegeven: noop,
       onKoppelen: noop,
+      onAnnuleren: noop,
     }));
     expect(tekst).toContain('Voor West');
     expect(tekst).toContain('Wortelspread');
@@ -97,6 +98,7 @@ describe('interne levering v2 schermen', () => {
       onKlaarzetten: noop,
       onMeegeven: noop,
       onKoppelen: noop,
+      onAnnuleren: noop,
     }));
     expect(tekst).toContain('Op Test is er geen MEP. Gebruik Uit voorraad klaarzetten.');
     expect(tekst).toContain('Uit voorraad klaarzetten');
@@ -122,7 +124,39 @@ describe('interne levering v2 schermen', () => {
     expect(tekst).toContain('Ontvangstverschil');
     expect(tekst).toContain('Levermoment verstreken');
     expect(tekst).toContain('Ontvangen');
+    expect(tekst).toContain('Annuleren');
     expect(tekst).not.toMatch(/€|prijs/);
+  });
+
+  test('onderweg blijft annuleerbaar op de MEP en bij ontvangst', () => {
+    const onderweg: Aanvraag = {
+      ...plaatsProduct({ id: '1', productId: 'p', naam: 'Wortelspread', eenheid: 'bak', aantal: 5, maxPerBestelling: null }),
+      bevestigd: true,
+      klaar_aantal: 5,
+      meegegeven_aantal: 5,
+    };
+    const mep = html(createElement(MepVoorWestV2Kaart, {
+      regels: [onderweg],
+      producten: [{ id: 'p', naam: 'Wortelspread' }],
+      gekozenDag: '2026-11-05',
+      vandaag: '2026-11-05',
+      vestiging: 'Midsland',
+      onInplannen: noop,
+      onKlaarzetten: noop,
+      onMeegeven: noop,
+      onKoppelen: noop,
+      onAnnuleren: noop,
+    }));
+    const west = html(createElement(InternOnderwegV2Kaart, {
+      aanvragen: [onderweg],
+      vandaag: '2026-11-05',
+      onOntvangen: noop,
+      onAnnuleren: noop,
+    }));
+    expect(mep).toContain('Onderweg');
+    expect(mep).toContain('Annuleren');
+    expect(west).toContain('Onderweg');
+    expect(west).toContain('Annuleren');
   });
 
   test('beheer koppelt een bestaand artikel en laat de huidige route met rust', () => {

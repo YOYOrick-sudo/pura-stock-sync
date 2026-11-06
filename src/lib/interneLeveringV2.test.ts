@@ -1,9 +1,9 @@
 // @ts-ignore vitest types are not installed in the app tsconfig
 import { describe, expect, test } from 'vitest';
 import {
-  GROEP_TITEL, MEP_TITEL, ZICHTBARE_VELDEN, annuleerRest, doelNaMinder, doelNaPlan, geefMee,
-  klaarUitVoorraad, koppelArtikel, mepDatumBijPlaatsen, mepRegels, meldingInplannenOpTest, meldingUitInplanFout,
-  ontvang, openRestant, plaatsProduct, plaatsVrijeNaam, planOpMep, statusWeergave, uitvoeringGeblokkeerd,
+  GROEP_TITEL, MEP_TITEL, VOORRAAD_ZONDER_INHOUD, ZICHTBARE_VELDEN, annuleerRest, annuleerTekst, doelNaMinder, doelNaPlan, geefMee,
+  annuleerMelding, interneOntvangstSleutel, klaarUitVoorraad, koppelArtikel, magAnnuleren, mepDatumBijPlaatsen, mepRegels, meldingInplannenOpTest, meldingUitInplanFout,
+  ontvang, openRestant, plaatsProduct, plaatsVrijeNaam, planOpMep, redenGeenVoorraad, statusWeergave, uitvoeringGeblokkeerd,
   v1InternZichtbaar, v2BordZichtbaar, v2MepZichtbaar, verdeelMepKlaar, zonderPrijzen, type Aanvraag,
 } from './interneLeveringV2';
 
@@ -208,6 +208,33 @@ describe('stap 3 aantallen', () => {
     expect(weg.klaar_aantal).toBe(0);
     expect(statusWeergave(weg, VANDAAG).label).toBe('Geannuleerd');
     expect(doelNaMinder(2, 2)).toEqual({ doel: 0, annuleren: true });
+  });
+
+  test('onderweg mag worden geannuleerd, ontvangen voorraad blijft benoemd', () => {
+    const onderweg = aanvraag({
+      id: '1', besteld_aantal: 5, klaar_aantal: 5, meegegeven_aantal: 5, bevestigd: true,
+    });
+    expect(statusWeergave(onderweg, VANDAAG).label).toBe('Onderweg');
+    expect(magAnnuleren(onderweg)).toBe(true);
+    expect(annuleerTekst(onderweg)).toMatch(/nog geen voorraad geboekt/i);
+    expect(annuleerTekst(onderweg)).toMatch(/MEP-taak/);
+    const deels = ontvang(onderweg, 2);
+    expect(statusWeergave(deels, VANDAAG).label).toBe('Onderweg');
+    expect(magAnnuleren(deels)).toBe(true);
+    expect(annuleerTekst(deels)).toMatch(/blijft in de voorraad/);
+    expect(annuleerRest(deels, 3).ontvangen_aantal).toBe(2);
+  });
+
+  test('dezelfde ontvangst heeft één sleutel en zonder inhoud telt die niet', () => {
+    expect(interneOntvangstSleutel('aanvraag-1', 4)).toBe('intern-v2:aanvraag-1:tot:4.000');
+    expect(interneOntvangstSleutel('aanvraag-1', 4)).toBe(interneOntvangstSleutel('aanvraag-1', 4));
+    expect(interneOntvangstSleutel('aanvraag-1', 6)).not.toBe(interneOntvangstSleutel('aanvraag-1', 4));
+    expect(redenGeenVoorraad(null, 3200, 'g')).toMatch(/geen artikel/);
+    expect(redenGeenVoorraad('artikel', null, 'g')).toBe(VOORRAAD_ZONDER_INHOUD);
+    expect(redenGeenVoorraad('artikel', 3200, 'g')).toBe(null);
+    expect(annuleerMelding('Hummus', { voorraad_teruggedraaid: 2 })).toMatch(/teruggedraaid/);
+    expect(annuleerMelding('Hummus', { voorraad_niet_gesplitst: 1 })).toMatch(/blijft staan/);
+    expect(annuleerMelding('Hummus', {})).toBe('Hummus geannuleerd');
   });
 
   test('geen prijzen of verrekening in de zichtbare velden', () => {
