@@ -11,7 +11,7 @@ import { nl } from 'date-fns/locale';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   StatusBadge,
-  StatCard,
+  Kengetal,
   LegeStaatBlok,
   toneColor,
   type StatusTone,
@@ -75,23 +75,23 @@ export function TicketList({ actor, onNewTicket, onTicketClick }: TicketListProp
     <div className={isMobile ? 'min-w-0 space-y-4' : 'space-y-4'}>
       {/* KPI Tellers */}
       <div className={isMobile ? 'grid min-w-0 grid-cols-3 gap-2 [&>div]:min-w-0 [&>div]:flex-col [&>div]:items-start [&>div]:!gap-2 [&>div]:!p-3 [&>div>div]:max-w-full [&_svg]:shrink-0 [&_p]:break-words' : 'grid grid-cols-3 gap-3 sm:gap-4'}>
-        <StatCard
+        <Kengetal
           label="Hoog"
-          value={isLoading ? <Skeleton className="h-7 w-8" /> : counts.hoog}
-          icon={<AlertTriangle />}
-          tone="danger"
+          waarde={isLoading ? <Skeleton className="h-7 w-8" /> : counts.hoog}
+          icoon={AlertTriangle}
+          toon="fout"
         />
-        <StatCard
+        <Kengetal
           label="Openstaand"
-          value={isLoading ? <Skeleton className="h-7 w-8" /> : counts.openstaand}
-          icon={<Clock />}
-          tone="warning"
+          waarde={isLoading ? <Skeleton className="h-7 w-8" /> : counts.openstaand}
+          icoon={Clock}
+          toon="let-op"
         />
-        <StatCard
+        <Kengetal
           label="Klaar"
-          value={isLoading ? <Skeleton className="h-7 w-8" /> : counts.afgehandeld}
-          icon={<CheckCircle2 />}
-          tone="success"
+          waarde={isLoading ? <Skeleton className="h-7 w-8" /> : counts.afgehandeld}
+          icoon={CheckCircle2}
+          toon="goed"
         />
       </div>
 
