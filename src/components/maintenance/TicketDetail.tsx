@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, AlertTriangle, Clock, CheckCircle2, Send, MapPin } from 'lucide-react';
+import { ArrowLeft, Clock, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useMaintenanceTicket, useUpdateTicketStatus } from '@/hooks/maintenance/useMaintenanceTickets';
@@ -32,11 +32,11 @@ const prioriteitConfig: Record<
 
 const statusConfig: Record<
   TicketStatus,
-  { tone: StatusTone; label: string; icon: typeof AlertTriangle }
+  { tone: StatusTone; label: string }
 > = {
-  nieuw: { tone: 'danger', label: 'Nieuw', icon: AlertTriangle },
-  in_behandeling: { tone: 'warning', label: 'In behandeling', icon: Clock },
-  afgehandeld: { tone: 'success', label: 'Afgehandeld', icon: CheckCircle2 },
+  nieuw: { tone: 'danger', label: 'Nieuw' },
+  in_behandeling: { tone: 'warning', label: 'In behandeling' },
+  afgehandeld: { tone: 'success', label: 'Afgehandeld' },
 };
 
 const statusFlow: TicketStatus[] = ['nieuw', 'in_behandeling', 'afgehandeld'];
@@ -73,7 +73,6 @@ export function TicketDetail({ ticketId, actor, onBack }: TicketDetailProps) {
 
   const prio = prioriteitConfig[ticket.prioriteit];
   const status = statusConfig[ticket.status];
-  const StatusIcon = status.icon;
 
   const handleStatusChange = async (newStatus: TicketStatus) => {
     try {
@@ -110,12 +109,12 @@ export function TicketDetail({ ticketId, actor, onBack }: TicketDetailProps) {
       {/* Ticket info card */}
       <div className="bg-card border border-border rounded-polar-xl shadow-card p-6">
         <div className="flex items-center gap-2 mb-4 flex-wrap">
-          <StatusBadge tone={prio.tone} shape="label">{prio.label}</StatusBadge>
-          <StatusBadge tone={status.tone} shape="label" icon={<StatusIcon />}>
+          <StatusBadge tone={prio.tone}>{prio.label}</StatusBadge>
+          <StatusBadge tone={status.tone}>
             {status.label}
           </StatusBadge>
           {ticket.plek && (
-            <StatusBadge tone="neutral" shape="label" icon={<MapPin />}>
+            <StatusBadge tone="neutral">
               {ticket.plek}
             </StatusBadge>
           )}

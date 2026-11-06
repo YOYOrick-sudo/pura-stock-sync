@@ -4,15 +4,11 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 export type StatusTone = 'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'brand';
-export type StatusVariant = 'soft' | 'solid' | 'outline';
 
 interface StatusBadgeProps {
   tone?: StatusTone;
-  variant?: StatusVariant;
-  icon?: ReactNode;
   children: ReactNode;
   className?: string;
-  shape?: 'chip' | 'label';
 }
 
 const badgeVariant = {
@@ -43,7 +39,7 @@ export function StatusBadge({ tone = 'neutral', children, className }: StatusBad
   const Icoon = statusIcoon[tone];
   return (
     <Badge variant={badgeVariant[tone]} className={cn('gap-1', className)}>
-      {Icoon ? <Icoon className="h-3 w-3" aria-hidden /> : null}
+      {Icoon ? <Icoon className="h-3 w-3 shrink-0" aria-hidden /> : null}
       {children}
     </Badge>
   );
