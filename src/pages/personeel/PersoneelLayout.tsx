@@ -36,7 +36,7 @@ export default function PersoneelLayout() {
 
   if (!unlocked) {
     return (
-      <SidebarLayout hideHeader>
+      <SidebarLayout>
         <div className="min-h-[70vh] flex items-center justify-center p-4 animate-fade-in">
           <PincodeNumpad title="Planning" onSubmit={handlePin} />
         </div>
@@ -45,11 +45,11 @@ export default function PersoneelLayout() {
   }
 
   return (
-    <SidebarLayout hideHeader>
+    <SidebarLayout>
       <div className={isMobile
         // Telefoon: precies de main-marge terugnemen (px 1rem+safe, pt-2), zodat niets wegvalt.
-        ? "min-h-full bg-background -mx-[calc(1rem+var(--safe-left))] -mt-2 min-w-0 overflow-hidden"
-        : "min-h-full bg-background -m-6 md:-mx-10 md:-my-8 lg:-mx-16 lg:-my-8 min-w-0 overflow-hidden"}>
+        ? "min-h-full bg-background -mx-4 -mt-4 min-w-0 overflow-hidden"
+        : "min-h-full bg-background -m-4 lg:-m-6 min-w-0 overflow-hidden"}>
         <div className="border-b border-border bg-card">
           <div className={isMobile ? 'px-4 md:px-10 lg:px-16 pt-4 min-w-0' : 'px-6 md:px-10 lg:px-16 pt-4'}>
             <div className={isMobile ? 'flex flex-wrap items-center justify-between mb-3 gap-3' : 'flex items-center justify-between mb-3 gap-3'}>

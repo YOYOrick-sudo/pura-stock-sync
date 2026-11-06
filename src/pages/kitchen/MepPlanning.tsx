@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { RijMenu, segmentTabsKlasse } from '@/components/pura';
@@ -185,7 +184,7 @@ function MepRij({
 
 export default function MepPlanning() {
   const isMobile = useIsMobile();
-  const Layout = isMobile ? SidebarLayout : KitchenLayout;
+  const Layout = SidebarLayout;
   const { userLocation } = useUserLocation();
   const navigate = useNavigate();
   const kalender = useMepKalender(userLocation);
@@ -261,7 +260,7 @@ export default function MepPlanning() {
   ];
 
   return (
-    <Layout title="Mise-en-place" subtitle={`${format(kalender.vandaag, 'EEEE d MMMM', { locale: nl })}`}>
+    <Layout>
       <div className={isMobile ? 'min-w-0 max-w-full space-y-4 [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:text-base' : 'space-y-5'}>
         <MepVerbindingBanner
           realtimeOk={planning.verbinding.realtimeOk}
