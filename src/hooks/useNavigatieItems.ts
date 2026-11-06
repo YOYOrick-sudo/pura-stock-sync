@@ -1,4 +1,4 @@
-import { Home, ListChecks, Settings, BookOpen, Printer, Calculator, ClipboardList, BarChart3, ChefHat, Cookie, MessageSquarePlus } from 'lucide-react';
+import { Home, ListChecks, Settings, BookOpen, Printer, Calculator, ClipboardList, BarChart3, ChefHat, Cookie, MessageSquarePlus, Network, Refrigerator, Wrench } from 'lucide-react';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import { useRole } from '@/hooks/useRole';
 import { useIsMtLid } from '@/hooks/useIsMtLid';
@@ -18,11 +18,11 @@ export const allNavigationItems = [
   // Bestellen is voorlopig verborgen voor beide vestigingen (module nog niet in gebruik).
   { title: 'Bestellen', url: '/voorraad', icon: ClipboardList, group: 'voorraad' as const, locations: [] as string[], managerOnly: false, ownerOnly: false },
 
-  { title: 'Voorraadketen', url: '/settings/keten', icon: Settings, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: true, ownerOnly: false },
-  { title: 'Koelwerkbank indelen', url: '/settings/koelwerkbank', icon: Settings, group: 'beheer' as const, locations: ['West'], managerOnly: true, ownerOnly: false },
+  { title: 'Voorraadketen', url: '/settings/keten', icon: Network, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: true, ownerOnly: false },
+  { title: 'Koelwerkbank indelen', url: '/settings/koelwerkbank', icon: Refrigerator, group: 'beheer' as const, locations: ['West'], managerOnly: true, ownerOnly: false },
   { title: 'Cijfers', url: '/cijfers', icon: BarChart3, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: true },
   { title: 'Kassatelling', url: '/kassatelling', icon: Calculator, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
-  { title: 'Onderhoud', url: '/onderhoud', icon: ClipboardList, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
+  { title: 'Onderhoud', url: '/onderhoud', icon: Wrench, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false },
   { title: 'Settings', url: '/settings', icon: Settings, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: true },
   { title: 'MT-punten', url: '/mt-punt', icon: MessageSquarePlus, group: 'beheer' as const, locations: ['West', 'Midsland'], managerOnly: false, ownerOnly: false, mtOnly: true },
 ];
