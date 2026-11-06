@@ -32,6 +32,12 @@ export { PolarTimePicker } from './TimePicker';
 export type { PolarTimePickerProps } from './TimePicker';
 
 // Layout
+export { PolarHeader } from './Header';
+export type { PolarHeaderProps } from './Header';
+
+export { PolarSidebar } from './Sidebar';
+export type { PolarSidebarProps, PolarSidebarItem } from './Sidebar';
+
 export { PolarSetupCard } from './SetupCard';
 export type { PolarSetupCardProps } from './SetupCard';
 

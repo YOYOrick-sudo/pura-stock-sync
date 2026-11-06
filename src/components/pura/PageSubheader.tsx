@@ -11,8 +11,8 @@ interface PageSubheaderProps {
 
 /**
  * PageSubheader — optionele context-regel direct onder de app-header.
- * De shell-balk draagt het kruimelpad, niet de paginatitel.
- * De actie hoort in de paginakop. Dit blok blijft tot het scherm hem zelf vervangt.
+ * De app-header (`PolarHeader`) is de enige plek voor titel + locatie + datum.
+ * Modules zetten hier NOOIT een tweede kop bovenop.
  */
 export function PageSubheader({ description, action, children }: PageSubheaderProps) {
   if (!description && !action && !children) return null;

@@ -6,18 +6,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
-/** Paginabalk: optionele titel, navigatie links, de ene actie rechts. Zonder titel blijft het de tabregel. */
-export function PaginaBalk({ titel, meta, links, actie }: { titel?: ReactNode; meta?: ReactNode; links: ReactNode; actie?: ReactNode }) {
-  return <div className="space-y-3">
-    {titel ? <div className="flex flex-wrap items-start justify-between gap-3">
-      <div className="min-w-0">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground md:text-2xl">{titel}</h1>
-        {meta ? <p className="text-sm text-muted-foreground">{meta}</p> : null}
-      </div>
-      {actie}
-    </div> : null}
-    <div className="flex flex-wrap items-center justify-between gap-3"><div className="min-w-0 flex-1 sm:flex-none">{links}</div>{titel ? null : actie}</div>
-  </div>;
+/** Paginabalk: navigatie/filters links, de ene primaire actie rechts. Geen titel: die staat in de app-header. */
+export function PaginaBalk({ links, actie }: { links: ReactNode; actie?: ReactNode }) {
+  return <div className="flex flex-wrap items-center justify-between gap-2"><div className="min-w-0 flex-1 sm:flex-none">{links}</div>{actie}</div>;
 }
 
 export type StatusToon = 'goed' | 'let-op' | 'fout' | 'neutraal';
