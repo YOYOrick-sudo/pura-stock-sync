@@ -241,7 +241,8 @@ describe('interne levering achter de schakelaar', () => {
     expect(html).toContain('1 onderweg');
     expect(html).toContain('>bak<');
     const bestelKnop = html.match(/<button[^>]*aria-label="Bestellen Wortelspread"[^>]*>/)?.[0] ?? '';
-    expect(bestelKnop).toContain('h-9');
+    expect(bestelKnop).toContain('h-11');
+    expect(bestelKnop).not.toContain('h-9');
     expect(bestelKnop).not.toContain('flex-1');
     expect(bestelKnop).not.toContain('w-full');
     expect(staat.knoppen.find((k) => k['aria-label'] === 'Meer')?.disabled).toBe(false);
