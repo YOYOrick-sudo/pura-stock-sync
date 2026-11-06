@@ -80,6 +80,27 @@ describe('interne levering v2 schermen', () => {
     expect(tekst).toContain('Uit voorraad klaarzetten');
     expect(tekst).toContain('Nieuw');
     expect(tekst).toContain('Bevestigd');
+    expect(tekst).not.toContain('Op Test is er geen MEP');
+  });
+
+  test('op Test verdwijnt inplannen en blijft de melding bij uit voorraad', () => {
+    const besteld = plaatsProduct({
+      id: '1', productId: 'p-wortel', naam: 'Wortelspread', eenheid: 'bak', aantal: 2, maxPerBestelling: 9,
+    });
+    const tekst = html(createElement(MepVoorWestV2Kaart, {
+      regels: [besteld],
+      producten: [{ id: 'p-wortel', naam: 'Wortelspread' }],
+      gekozenDag: '2026-11-05',
+      vandaag: '2026-11-05',
+      vestiging: 'Test',
+      onInplannen: noop,
+      onKlaarzetten: noop,
+      onMeegeven: noop,
+      onKoppelen: noop,
+    }));
+    expect(tekst).toContain('Op Test is er geen MEP. Gebruik Uit voorraad klaarzetten.');
+    expect(tekst).toContain('Uit voorraad klaarzetten');
+    expect(tekst).not.toContain('Inplannen op MEP');
   });
 
   test('ontvangst toont het verschil en laat het restant open', () => {

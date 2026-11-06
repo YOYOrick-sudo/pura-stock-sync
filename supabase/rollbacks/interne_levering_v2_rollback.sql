@@ -31,3 +31,8 @@ DROP TABLE IF EXISTS public.interne_aanvraag;
 ALTER TABLE public.interne_producten DROP COLUMN IF EXISTS v2_beschikbaar;
 
 DELETE FROM public.fase2_vlag WHERE vlag = 'interne_levering_v2';
+
+-- FIX Programmeerbot 5-11: check terug naar de stand van voor v2 (na het wissen van de v2-rijen).
+ALTER TABLE public.fase2_vlag DROP CONSTRAINT IF EXISTS fase2_vlag_vlag_check;
+ALTER TABLE public.fase2_vlag ADD CONSTRAINT fase2_vlag_vlag_check
+  CHECK (vlag = ANY (ARRAY['ontvangst_v2'::text, 'keukenadvies'::text, 'leverancier_kiezen'::text, 'interne_levering'::text]));
