@@ -13,7 +13,6 @@ export const AFGEROND: string[] = [
   'components/ui/data-table.tsx',
   'components/ui/radio-group.tsx',
   'components/ui/separator.tsx',
-  'hooks/useNavigatieItems.ts',
 ];
 
 export const BESTAANDE_AFWIJKINGEN: string[] = [
