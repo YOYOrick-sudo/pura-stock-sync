@@ -96,13 +96,15 @@ export default function RecipeDetail() {
           Recepten
         </button>
 
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <p className="text-sm font-semibold text-foreground">{toonNaam(recipe.name)}</p>
-            {recipe.category && <Badge variant="secondary">{recipe.category}</Badge>}
-            <Badge variant="outline">{recipe.type === 'halffabricaat' ? 'Halffabricaat' : 'Recept'}</Badge>
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 space-y-2">
+            <p className="text-xl font-semibold text-foreground">{toonNaam(recipe.name)}</p>
+            <div className="flex flex-wrap gap-2">
+              {recipe.category && <Badge variant="secondary">{recipe.category}</Badge>}
+              <Badge variant="outline">{recipe.type === 'halffabricaat' ? 'Halffabricaat' : 'Recept'}</Badge>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 lg:shrink-0">
             <Button type="button" variant="outline" size="touch" onClick={() => navigate(`/kitchen/recipes/${recipe.id}/bewerken`)}>
               <SquarePen aria-hidden />
               Bewerken
@@ -200,17 +202,19 @@ export default function RecipeDetail() {
                   disabled={!isManager}
                 />
               </Kenmerk>
-              <div className="space-y-2 px-4 py-2 lg:px-6">
-                <p className="text-sm text-muted-foreground">Allergenen</p>
-                <AllergenenBadges
-                  allergenen={allergenen?.allergenen ?? []}
-                  sporen={allergenen?.sporen ?? []}
-                  onbekend={allergenen?.onbekende_ingredienten ?? 0}
-                />
-                {allergenen?.allergenen_notitie && (
-                  <p className="text-sm text-muted-foreground">{allergenen.allergenen_notitie}</p>
-                )}
-              </div>
+              <Kenmerk label="Allergenen">
+                <div className="space-y-2">
+                  <AllergenenBadges
+                    className="justify-end"
+                    allergenen={allergenen?.allergenen ?? []}
+                    sporen={allergenen?.sporen ?? []}
+                    onbekend={allergenen?.onbekende_ingredienten ?? 0}
+                  />
+                  {allergenen?.allergenen_notitie && (
+                    <p className="text-xs text-muted-foreground">{allergenen.allergenen_notitie}</p>
+                  )}
+                </div>
+              </Kenmerk>
             </Card>
 
             <MethodesKaart receptId={recipe.id} kanBeheren={isManager} />

@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Pencil, Trash2, Clock, CalendarClock } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import {
   HalffabricaatMethode,
@@ -122,7 +123,11 @@ export function MethodesKaart({ receptId, kanBeheren = true }: Props) {
       </div>
 
       {isLoading && !isError ? (
-        <p className="px-4 py-2 text-sm text-muted-foreground lg:px-6">Laden…</p>
+        <div className="space-y-2 px-4 py-2 lg:px-6" aria-busy="true">
+          <span className="sr-only">Handelingen laden</span>
+          <Skeleton className="h-11 w-full rounded-polar-sm" />
+          <Skeleton className="h-11 w-2/3 rounded-polar-sm" />
+        </div>
       ) : methodes.length === 0 ? (
         <p className="px-4 py-2 text-sm text-muted-foreground lg:px-6">Geen handelingen.</p>
       ) : (

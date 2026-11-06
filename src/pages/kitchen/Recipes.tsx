@@ -23,7 +23,7 @@ import {
 } from '@/lib/receptCategorieen';
 
 const LEEG = new Set<string>();
-const KOLOMMEN = 'lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_6.5rem_3rem_4.5rem]';
+const KOLOMMEN = 'lg:grid-cols-[minmax(0,1fr)_10rem_4.5rem_3.5rem_4.75rem]';
 
 const VESTIGING_KEUZES: { label: string; value: Vestiging | null }[] = [
   { label: 'Alle', value: null },
@@ -52,7 +52,7 @@ function CategorieKnop({
       )}
     >
       <Icoon className={cn('h-4 w-4 shrink-0', actief ? 'text-primary' : 'text-muted-foreground')} aria-hidden />
-      <span className="min-w-0 flex-1 whitespace-normal">{keuze.label}</span>
+      <span className="min-w-0 flex-1 truncate whitespace-nowrap" title={keuze.label}>{keuze.label}</span>
       <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{keuze.aantal}</span>
     </button>
   );
@@ -69,8 +69,10 @@ function CategorieIcoon({ category }: { category: string }) {
 }
 
 function IngredientenCel({ aantal }: { aantal: number }) {
-  if (aantal <= 0) return <span className="text-sm text-muted-foreground">Geen ingrediënten</span>;
-  return <span className="text-sm tabular-nums text-foreground">{aantal}</span>;
+  if (aantal <= 0) {
+    return <span className="block text-right text-sm tabular-nums text-muted-foreground" title="Geen ingrediënten">—</span>;
+  }
+  return <span className="block text-right text-sm tabular-nums text-foreground">{aantal}</span>;
 }
 
 function ReceptRij({
@@ -100,16 +102,16 @@ function ReceptRij({
         tabIndex={0}
         onClick={onOpen}
         onKeyDown={open}
-        className={cn('hidden min-h-12 cursor-pointer items-center gap-2 border-b border-border px-4 py-2 last:border-b-0 hover:bg-muted lg:grid lg:px-6', KOLOMMEN)}
+        className={cn('hidden h-11 cursor-pointer items-center gap-2 border-b border-border px-4 hover:bg-muted lg:grid lg:px-6', KOLOMMEN)}
       >
-        <span className="min-w-0 break-words text-sm font-medium text-foreground">{naam}</span>
+        <span className="truncate text-sm font-medium text-foreground" title={naam}>{naam}</span>
         <span className="flex min-w-0 items-center gap-2 text-sm text-foreground">
           <CategorieIcoon category={recipe.category} />
-          <span className="min-w-0 break-words">{recipe.category}</span>
+          <span className="truncate whitespace-nowrap" title={recipe.category}>{recipe.category}</span>
         </span>
         <IngredientenCel aantal={recipe.ingredient_count ?? 0} />
-        <span className="text-sm tabular-nums text-foreground">{recipe.tht_dagen} d</span>
-        {toggles}
+        <span className="text-right text-sm tabular-nums text-foreground">{recipe.tht_dagen} d</span>
+        <span className="flex justify-end">{toggles}</span>
       </div>
       <div className="flex items-center gap-2 border-b border-border px-4 py-2 last:border-b-0 lg:hidden">
         <div
@@ -184,7 +186,7 @@ export default function Recipes() {
   return (
     <SidebarLayout>
       <div className="flex items-start gap-2">
-        <nav aria-label="Categorieën" className="sticky top-3 hidden max-h-[calc(100dvh-5.5rem)] w-80 shrink-0 flex-col lg:flex">
+        <nav aria-label="Categorieën" className="sticky top-3 hidden max-h-[calc(100dvh-5.5rem)] w-56 shrink-0 flex-col lg:flex">
           <p className="px-2 py-2 text-sm font-semibold text-foreground">Categorieën</p>
           <Card className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-2 py-2">
             {keuzes.map((keuze) => (
@@ -202,7 +204,7 @@ export default function Recipes() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <div className="min-w-0 flex-1">
-                <ZoekVeld waarde={search} onChange={setSearch} placeholder="Zoek recept of ingrediënt…" />
+                <ZoekVeld waarde={search} onChange={setSearch} placeholder="Zoek recept of ingrediënt" />
               </div>
               <div role="group" aria-label="Vestiging" className="flex h-11 shrink-0 items-center rounded-polar-lg bg-muted p-1">
                 {VESTIGING_KEUZES.map((optie) => {
@@ -271,13 +273,13 @@ export default function Recipes() {
           ) : recipes.length === 0 ? (
             <LegeStaatBlok tekst={search.trim() || category ? 'Geen recepten voor deze keuze.' : 'Nog geen recepten.'} />
           ) : (
-            <Card className="overflow-hidden">
-              <div className={cn('hidden min-h-12 items-center gap-2 border-b border-border px-4 text-xs text-muted-foreground lg:grid lg:px-6', KOLOMMEN)}>
+            <Card className="lg:max-h-[calc(100dvh-12rem)] lg:overflow-y-auto">
+              <div className={cn('sticky top-0 z-10 hidden h-11 items-center gap-2 border-b border-border bg-card px-4 text-xs text-muted-foreground lg:grid lg:px-6', KOLOMMEN)}>
                 <span>Naam</span>
                 <span>Categorie</span>
-                <span>Ingrediënten</span>
-                <span>THT</span>
-                <span>Vestigingen</span>
+                <span className="text-right">Ingrediënten</span>
+                <span className="text-right">THT</span>
+                <span className="text-right">Vestigingen</span>
               </div>
               {recipes.map((recipe) => (
                 <ReceptRij
