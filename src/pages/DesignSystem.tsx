@@ -3,11 +3,13 @@ import { Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MatenSectie, PatronenCompleet, TekstToon } from '@/pages/design-system/Uitbreiding';
 import { BasisVoorbeelden } from '@/pages/design-system/PatronenVoorbeelden';
+import { Canoniek } from '@/pages/design-system/Canoniek';
 import { Controle, NieuweBlokken, Recepten, Regels, StartKeuze } from '@/pages/design-system/Regelboek';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const SECTIES = [
   { id: 'start', label: 'Start', titel: 'Start', uitleg: 'Welk type pagina bouw je?' },
+  { id: 'canoniek', label: 'Canoniek', titel: 'Canoniek', uitleg: 'Tien patronen. Zelfde hoogte, dezelfde afstand, dezelfde kleurrol.' },
   { id: 'recepten', label: 'Recepten', titel: 'Paginarecepten', uitleg: 'Vier vaste opbouwen. Elke nieuwe module volgt er één.' },
   { id: 'basis', label: 'Basis', titel: 'Basis', uitleg: 'Tekstniveaus, afstand en statuskleur' },
   { id: 'maten', label: 'Maten', titel: 'Maten', uitleg: 'Hoogte, afronding en iconen zoals ze in de app staan' },
@@ -20,6 +22,7 @@ const SECTIES = [
 function Inhoud({ id }: { id: string }) {
   switch (id) {
     case 'start': return <StartKeuze />;
+    case 'canoniek': return <Canoniek />;
     case 'recepten': return <Recepten />;
     case 'basis': return <BasisVoorbeelden />;
     case 'maten': return <MatenSectie />;

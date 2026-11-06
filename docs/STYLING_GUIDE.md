@@ -1,237 +1,117 @@
-# Pura Vida Styling Conventions
+# Pura Vida — styling
 
-## Border Radius Standaarden
+Dit document is de enige bron voor vorm, afstand, type en kleur. `/design-system` (sectie Canoniek en het regelboek) laat dezelfde regels zien. `docs/UI-REGELS.md` is de checklist vóór review. Wijkt een scherm, een voorbeeld of de checklist af, dan geldt dit document.
 
-### Hiërarchie Overzicht
+Nieuwe schermen gebruiken alleen `src/components/pura/canoniek.tsx`, de oudere blokken in `src/components/pura` die hieronder nog genoemd worden, en `src/components/ui`. Geen nieuwe kleuren, radii of fontgroottes. Geen `#hex` in classes, geen `rounded-[..]`, geen `components/polar`.
 
-| Type | Token | Waarde | Gebruik |
-|------|-------|--------|---------|
-| Page sections | `rounded-polar-xl` | 20px | Grote container-panels, modals |
-| **Regular cards** | `rounded-polar-lg` | **16px** | Alle cards (KPI, Order, Task, etc.) |
-| Inner layers | `rounded-polar-md` | 12px | Icon boxes, geneste elementen, buttons |
-| Small elements | `rounded-polar-sm` | 8px | Sidebar items, badges, chips |
+Bestaande schermen wijken nog af. Die blijven staan tot hun eigen migratie-PR. Niet namaken.
 
----
+## Gesloten set
 
-## 🎯 Cards (16px = rounded-polar-lg)
+Tien patronen. Implementatie: `src/components/pura/canoniek.tsx`. Voorbeeld met doe en niet: `/design-system#canoniek`.
 
-**Alle reguliere cards gebruiken `rounded-polar-lg` (16px):**
-- KPI cards
-- Order cards
-- Task cards
-- Reservation cards
-- Staff cards
-- Form cards
-- Setup cards
-- Handover cards
-- Content cards
-- Alert cards
+| Patroon | Component | Vaste maat |
+|---|---|---|
+| Paginakop | `Paginakop` | Geen titel. Tabs links, hooguit één actie rechts. `gap-2`. Actie `size="touch"` (`h-11`, 44px). |
+| Werkkaart | `Werkkaart` | Kaart `rounded-polar-lg` (16). Kop `min-h-12`, `text-sm font-semibold`. Zijmarge 16, desktop 24 (`px-4 lg:px-6`). |
+| Sectiekop | `Sectiekop` | `text-sm font-semibold`, teller `text-muted-foreground`. Zin, geen kapitalen. |
+| Lijstrij met actie | `Lijstrij` | `min-h-12` (48). Naam `text-sm font-medium`. Meta altijd regel 2 via `RijMeta`. Actie rechts. Tik opent de lade. |
+| Afvinkrij | `Afvinkrij` | Zelfde rij. Vinkje in een vak van 44px. Klaar = doorgestreept. |
+| Telrij met stapper | `Telrij` | Zelfde rij. Stapper én knop `h-11`. Cijfer `text-sm font-semibold tabular-nums`. Eenheid `text-xs text-muted-foreground` met `items-center leading-none`. |
+| Statusbadge | `Statusbadge` | Eén per rij, altijd met tekst. `rounded-full`. |
+| Dialoog | `Dialoog` | `rounded-polar-xl` (20). Padding 16, vanaf `sm` 24. Annuleren ghost, één bevestiging. |
+| Formulierveld | `Formulierveld` | Label boven veld (`space-y-2`). Invoer `h-11 text-base`. Knoppen rechtsonder. |
+| Lege staat | `LegeStaatBlok` | Eén zin, `text-sm text-muted-foreground`, `px-4 py-6`. Geen icoon. |
 
-```tsx
-// ✅ Correct - Tailwind token
-<div className="rounded-polar-lg">
+Oudere blokken die blijven gelden tot een scherm overstapt: `PaginaBalk` (zelfde rol als Paginakop), `LijstKaart`, `KaartKop`, `RijMenu`, `RijMeta`, `TabelVoet`, `ZoekVeld`, `DetailLade`, `FilterBalk`, `InklapGroep`, `LaadRijen`, `FoutRegel`, `InstellingRij`, `FormKaart`, `Stappen`, `KengetalVerdeling`.
 
-// ✅ Als inline style nodig is
-style={{ borderRadius: '16px' }}
+Niet uitbreiden: `StatusBadge` (tweede badge naast `Statusbadge`), `EmptyState` (icoon en `text-[15px]`), `LegeStaat` (`py-8`, buiten de schaal), `components/kitchen/EmptyState`, `components/polar`.
 
-// ❌ Vermijd - inconsistent
-<div className="rounded-xl">  // = 12px (verkeerd)
-<div className="rounded-2xl"> // = 16px maar niet semantic
-```
+## Afstand
 
----
+Alleen 8, 12, 16 en 24.
 
-## 📦 Inner Layers (12px = rounded-polar-md)
+| px | Class | Waar |
+|---|---|---|
+| 8 | `gap-2`, `py-2` | Icoon en label, kleine delen in een rij |
+| 12 | `gap-3`, `p-3` | Compacte cluster in een rij of formuliergroep |
+| 16 | `gap-4`, `p-4`, `space-y-4` | Tussen blokken op de pagina; zijmarge in een kaart |
+| 24 | `lg:px-6`, `sm:p-6` | Zijmarge in een kaart vanaf desktop; dialoog vanaf `sm` |
 
-**Geneste elementen binnen cards:**
-- Icon containers
-- Chart containers  
-- Button elements
-- Interactive sub-elements
+Niet: `space-y-5`, `p-5`, `gap-1.5`, `gap-5`, `px-5`, losse px, en 8/12/16 door elkaar in hetzelfde cluster.
 
-```tsx
-// ✅ Correct
-<div className="rounded-polar-md">
+`page-stack` is nog `space-y-4 md:space-y-6`. Nieuwe pagina's zetten `space-y-4` op hun eigen stapel. De shell zelf verandert in een aparte PR.
 
-// ❌ Vermijd
-<div className="rounded-lg">
-```
+## Rijen en bediening
 
----
+- Elke rij in één kaart even hoog: `min-h-12`.
+- Meta (eenheid, gewicht, datum) altijd op regel 2. Ontbreekt de inhoud, dan `—`. Nooit de ene rij met een badge op de naam en de andere met een tweede regel.
+- Werkschermen: knoppen `size="touch"` of `size="touch-icon"` (`h-11`). Stapper en knop in dezelfde rij exact die hoogte.
+- Getal `font-semibold tabular-nums`, eenheid kleiner en niet vet, zelfde lijn (`items-center leading-none`).
+- Eén groene knop per kaart. Een werkwoord dat op elke rij staat (Bestellen, Opslaan) is `variant="outline"`. `Telrij` doet dat zelf; `primair` alleen als de kaart verder geen groene knop heeft.
+- Overige rij-acties in `RijMenu`. Gevaar onderaan, rood.
+- Tikdoel minstens 44px. Geen uitleg die alleen met hover verschijnt.
+- Geen horizontale scroll. Breedtes om te controleren: 390, 834, 1280. Op 390 draagt de meta-regel wat een brede tabel in een kolom zou zetten.
 
-## 🏔️ Large Panels (20px = rounded-polar-xl)
+## Typografie
 
-**Alleen voor grote containers:**
-- Modals
-- Full-width page sections
-- Feature hero cards
+Vier niveaus. De paginatitel staat alleen in de app-header. Modules hebben geen eigen `h1`. `/design-system` is de uitzondering: dat is de naslag, geen module.
 
----
+| Niveau | Class |
+|---|---|
+| Kaarttitel | `text-sm font-semibold` |
+| Rijnaam | `text-sm font-medium` |
+| Body | `text-sm` |
+| Meta | `text-xs text-muted-foreground` |
 
-## 📝 Small Elements (8px = rounded-polar-sm)
+Cijfers in een rij: `tabular-nums`. Een kengetal op een overzicht (`KengetalVerdeling`) mag `text-2xl font-semibold tabular-nums`. Dat is het enige grotere cijfer. Geen `text-[13px]`, `text-[15px]`, `text-[11px]`, `text-lg` in een stapper.
 
-**Compacte interactieve elementen:**
-- Sidebar menu items
-- Small badges
-- Chips
-- Tooltips
+## Kleur
 
----
+Rollen, geen losse hex in een class.
 
-## ❌ NOOIT inline styles gebruiken zonder reden!
+| Rol | Token | Betekenis |
+|---|---|---|
+| primary | `bg-primary`, `text-primary` | De ene actie, en “goed” |
+| muted | `bg-muted`, `text-muted-foreground` | Rust, meta, leeg |
+| border | `border-border` | Lijnen |
+| success | `text-success`, `bg-success/15` | Gelukt |
+| warning | `text-warning` | Let op |
+| destructive | `text-destructive` | Fout of gevaar |
+| info | `text-info` | Informatie, geen actie |
 
-```typescript
-// ❌ Vermijd random waardes:
-style={{ borderRadius: '14px' }}  // Niet standaard
-style={{ borderRadius: '10px' }}  // Niet standaard
-style={{ borderRadius: '24px' }}  // Niet in systeem
+Status: groen = goed, oranje = let op, rood = fout, grijs = neutraal. Altijd met een woord (`Statusbadge`). Een stip alleen is niet genoeg.
 
-// ✅ Gebruik Tailwind classes (preferred):
-className="rounded-polar-xl"      // 20px - grote panels
-className="rounded-polar-lg"      // 16px - cards ⭐
-className="rounded-polar-md"      // 12px - inner layers
-className="rounded-polar-sm"      // 8px - kleine elementen
+## Radius
 
-// ✅ Als inline style nodig is, gebruik standaard waardes:
-style={{ borderRadius: '20px' }}  // polar-xl
-style={{ borderRadius: '16px' }}  // polar-lg (cards)
-style={{ borderRadius: '12px' }}  // polar-md
-style={{ borderRadius: '8px' }}   // polar-sm
-```
+| Token | px | Gebruik |
+|---|---|---|
+| `rounded-polar-sm` | 8 | Kleine chips, sidebar-item |
+| `rounded-polar-md` | 12 | Binnenvlak, focusvlak |
+| `rounded-polar-lg` | 16 | Kaart, knop, invoer, stapper |
+| `rounded-polar-xl` | 20 | Dialoog |
+| `rounded-full` | — | Statusbadge, stip |
 
----
+`rounded-polar` (14) en `rounded-polar-2xl` (24) staan nog op oude dialogen en rijen. Nieuwe dialogen gebruiken `Dialoog` (`rounded-polar-xl`). Geen `rounded-xl`, `rounded-2xl` of `rounded-[14px]`.
 
-## Best Practices
+## Rand, schaduw, beweging
 
-1. **Gebruik Tailwind classes waar mogelijk** - Dit zorgt voor consistentie en maakt het gemakkelijker om aanpassingen te maken
-2. **Alleen inline styles voor dynamische waardes** - Bijvoorbeeld wanneer de border-radius afhankelijk is van een prop
-3. **Documenteer afwijkingen** - Als je om een goede reden moet afwijken van deze standaarden, leg het uit in een comment
-4. **Check bestaande componenten** - Kijk naar vergelijkbare componenten in de codebase voor consistentie
-5. **16px is de default voor cards** - Bij twijfel, gebruik `rounded-polar-lg`
+| | Class |
+|---|---|
+| Kaart, outline-knop, dialoog | `border-1.5 border-border` |
+| Invoer in rust | `border border-input` |
+| Statusrand, alleen als de badge die zelf heeft | niet zelf `border-2` optellen |
+| Kaartschaduw | de schaduw van `Card` / `LijstKaart` (`shadow-soft`). Geen los `shadow-sm` op een nieuwe kaart |
+| Hover | `duration-fast` (150ms) |
+| Gewone overgang | `duration-200` |
+| Dialoog | `duration-slow` (300ms) |
 
----
+Iconen: 16px (`h-4 w-4`) in knop en rij, 20px (`h-5 w-5`) in een kaartkop, 24px alleen bij een groot kengetal.
 
-## 🔲 Border Standaarden
+## Laden, leeg, fout
 
-### Border Dikte Hiërarchie
+Elke lijst heeft alle drie. Laden: `LaadRijen` (skelet op rijhoogte). Leeg: `LegeStaatBlok`. Fout: `FoutRegel` met één keer Opnieuw. Klaar- en nulregels zitten in `InklapGroep`, standaard dicht.
 
-> 💡 **TL;DR:** Twijfel je? Gebruik `border-1.5` — dit is de standaard voor 95% van alle elementen.
+## Controle
 
-| Dikte | Tailwind Class | Gebruik |
-|-------|----------------|---------|
-| 1px | `border` | Search inputs (alleen standaard state) |
-| **1.5px** | **`border-1.5`** | **STANDAARD** ⭐ Cards, Buttons (outline), Sidebar borders, Inputs (focus), Modals, Tables — basically alles wat klikbaar/interactief is |
-| 2px | `border-2` | Status indicators (success/warning/error badges), "LET OP!" elementen |
-
-### Border Kleur Hiërarchie
-
-| Context | Tailwind Class | Gebruik |
-|---------|----------------|---------|
-| Default | `border-border` | Standaard cards, containers |
-| State containers | `border-border-state` | Empty/error/loading states |
-| Subtle accent | `border-subtle` / `border-primary/10` | Subtiele brand hint |
-| Active/Focus | `border-accent` / `border-primary/20` | Active tabs, selected items |
-| Hover | `border-strong` / `border-primary/30` | Hover states |
-| Primary | `border-primary` | Geselecteerde/actieve items |
-
-### Per Component Type
-
-| Component | Default Border | Hover Border | Active Border |
-|-----------|---------------|--------------|---------------|
-| Cards | `border-1.5 border-border` | `hover:border-strong` | - |
-| Tab item (active) | - | - | `border-1.5 border-accent` |
-| Inputs | `border border-border` | `hover:border-strong` | `focus:border-primary` |
-| Dialogs/Modals | `border-1.5 border-border` | - | - |
-| Buttons (outline) | `border-1.5 border-border` | `hover:border-strong` | - |
-| Status badges | `border-2 border-{status}/50` | - | - |
-
-### ❌ Vermijd hardcoded borders
-
-```tsx
-// ❌ Vermijd - hardcoded hex colors
-className="border-[#1B7867]/20"
-className="border-[#E2E8F0]"
-
-// ✅ Correct - gebruik semantic tokens
-className="border-primary/20"    // of border-accent
-className="border-primary/10"    // of border-subtle
-className="border-primary/30"    // of border-strong
-className="border-border"        // standaard border
-className="border-border-state"  // state containers
-```
-
----
-
-## 🎨 Icon Sizes
-
-| Context | Size | Tailwind Class |
-|---------|------|----------------|
-| Navigation | 20px | `w-5 h-5` |
-| Buttons | 16px | `w-4 h-4` |
-| KPI/Cards | 20-24px | `w-5 h-5` / `w-6 h-6` |
-| Inline text | 16px | `w-4 h-4` |
-| Status dots | 6-8px | `w-1.5 h-1.5` / `w-2 h-2` |
-
----
-
-## 🔄 Interactive States Hiërarchie
-
-| State | Background | Border | Extra |
-|-------|------------|--------|-------|
-| Default | `transparent` / `bg-card` | `border-border` | - |
-| Hover | `bg-pv-bg-hover` | `border-primary/30` | - |
-| Active/Selected | `bg-primary` | `border-primary` | `shadow-sm` |
-| Focus | - | - | `ring-2 ring-primary/50` |
-| Disabled | - | - | `opacity-50` |
-
-```tsx
-// ✅ Correct hover pattern
-className="hover:bg-pv-bg-hover hover:border-primary/30 transition-colors duration-200"
-
-// ✅ Correct active pattern
-className="data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:border-primary/20"
-
-// ✅ Focus ring (use .focus-ring class or inline)
-className="focus-ring"
-// of
-className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
-```
-
----
-
-## ⏱️ Transition Durations
-
-| Type | Duration | Tailwind Class | Gebruik |
-|------|----------|----------------|---------|
-| Fast | 150ms | `duration-fast` | Hovers, micro-interactions |
-| Default | 200ms | `duration-200` | Standard UI changes |
-| Slow | 300ms | `duration-slow` | Larger animations, modals |
-
-```tsx
-// ✅ Standard transition
-className="transition-all duration-200"
-
-// ✅ Fast hover only
-className="transition-colors duration-fast"
-```
-
----
-
-## Tailwind Config Referentie
-
-Zie `tailwind.config.ts` voor de exacte definities van de Polar tokens:
-
-```typescript
-borderRadius: {
-  'polar-sm': '8px',   // kleine elementen
-  'polar-md': '12px',  // inner layers, buttons
-  'polar-lg': '16px',  // cards ⭐ (default)
-  'polar-xl': '20px',  // grote panels
-}
-
-transitionDuration: {
-  'fast': '150ms',     // hovers, micro-interactions
-  'DEFAULT': '200ms',  // standard UI changes
-  'slow': '300ms',     // larger animations
-}
-```
+Voor een scherm telt `docs/UI-REGELS.md` sectie B, op 390, 834 en 1280, naast `/design-system#canoniek`.

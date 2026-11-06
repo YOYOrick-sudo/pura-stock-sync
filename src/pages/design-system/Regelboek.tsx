@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import { Afvinkrij } from '@/components/pura/canoniek';
 import { GroepRij, KaartKop, LijstKaart, StatusDot, segmentTabsKlasse } from '@/components/pura/patronen';
 import { PaginaBalk, RijMenu, RijMeta, StatusLabel, TabelVoet, ZoekVeld } from '@/components/pura/lijst';
 import { FormKaart, GenummerdeStap, InstellingRij, KengetalVerdeling, Stappen } from '@/components/pura/blokken';
@@ -77,9 +78,9 @@ export function Recepten() {
 
     <Recept id="werk" titel="Werklijst (afvinken)" opbouw={['Tabs per fase', 'Kaart per groep', 'Vinkje links, naam, één status rechts', 'Klaar-regels ingeklapt']}>
       <LijstKaart kop={<KaartKop icoon={ListChecks} titel="Open" rechts={<span className="text-sm tabular-nums text-muted-foreground">1/3</span>} />}>
-        {[['Koffiemachine aanzetten', true, ''], ['Terras klaarzetten', false, ''], ['Koelcel temperatuur', false, 'Te laat']].map(([n, klaar, s]) => <label key={n as string} className="flex min-h-12 items-center gap-3 border-b border-border px-4 last:border-0">
-          <Checkbox defaultChecked={klaar as boolean} /><span className={klaar ? 'flex-1 text-sm text-muted-foreground line-through' : 'flex-1 text-sm font-medium'}>{n}</span>{s && <StatusLabel toon="let-op">{s}</StatusLabel>}
-        </label>)}
+        <Afvinkrij naam="Koffiemachine aanzetten" meta="Ochtend" klaar />
+        <Afvinkrij naam="Terras klaarzetten" meta="Buiten" />
+        <Afvinkrij naam="Koelcel temperatuur" meta="Sluit" status={<StatusLabel toon="let-op">Te laat</StatusLabel>} />
       </LijstKaart>
     </Recept>
 
@@ -132,7 +133,7 @@ function Blokje({ titel, wanneer, children }: { titel: string; wanneer: string; 
 type Regel = { groep: string; regel: string; doe: React.ReactNode; niet: React.ReactNode };
 export const REGELS: Regel[] = [
   { groep: 'Opbouw', regel: 'Paginabalk, dan werkvlak; rechts op groot scherm één overzichtskaart', doe: 'Tabs links, "+ Product" rechts, daaronder de lijst.', niet: 'Eigen H1, uitlegblok en drie knoppen bovenaan.' },
-  { groep: 'Opbouw', regel: 'Afstand 16 tussen blokken, 12 in kaarten, 8 tussen kleine delen', doe: 'space-y-4 · p-4 · gap-2', niet: 'space-y-5, p-6, gap-3 door elkaar.' },
+  { groep: 'Opbouw', regel: 'Afstand alleen 8, 12, 16 of 24', doe: 'gap-2 · gap-3 of p-3 · space-y-4 · px-4 lg:px-6', niet: 'space-y-5, p-5, gap-1.5 of een losse px-waarde.' },
   { groep: 'Opbouw', regel: 'Zijmarge in kaarten: 16, vanaf desktop 24; kop, rijen en voet gelijk', doe: 'Tabel in kaart krijgt kaartRandKlasse.', niet: 'Tekst of bedragen 8px van de kaartrand.' },
   { groep: 'Opbouw', regel: 'Eén primaire (groene) knop per pagina, op een vaste plek', doe: <Button size="touch">Opslaan</Button>, niet: <div className="flex gap-2"><Button size="touch">Opslaan</Button><Button size="touch">Delen</Button></div> },
   { groep: 'Lijsten', regel: 'Elke lijst: kaartkop → kolomkoppen één keer → groepsrijen → voetregel', doe: 'Eén tabel, leveranciers als tussenrij.', niet: 'Per leverancier een losse tabel met eigen koppen.' },

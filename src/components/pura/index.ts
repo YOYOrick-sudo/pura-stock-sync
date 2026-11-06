@@ -7,3 +7,16 @@ export { TikIcoon } from './TikIcoon';
 export * from './patronen';
 export * from './lijst';
 export * from './blokken';
+export {
+  CANONIEK,
+  Paginakop,
+  Werkkaart,
+  Sectiekop,
+  Lijstrij,
+  Afvinkrij,
+  Telrij,
+  Statusbadge,
+  Dialoog,
+  Formulierveld,
+  LegeStaatBlok,
+} from './canoniek';
