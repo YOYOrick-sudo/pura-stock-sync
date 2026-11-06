@@ -292,7 +292,7 @@ Gebruik voor een bevestiging die de pagina niet blokkeert. De actie in de toast 
 
 ## 4. Pagina
 
-De paginakop heeft de enige titel: `text-2xl` gewicht 600 `tracking-tight`, daaronder één regel meta. Een kengetal mag dezelfde maat hebben en is geen titel. De actie staat rechts van de titel. Tabs of filters staan op de regel eronder en zijn geen tweede kop. De app-balk draagt locatie en account, niet de paginatitel. `Paginakop` tekent vandaag alleen de tabregel en de actie; de titel staat erboven tot dat component de titel zelf krijgt.
+De paginakop heeft de enige titel: `text-2xl` gewicht 600 `tracking-tight`, daaronder één regel meta. Een kengetal mag dezelfde maat hebben en is geen titel. De actie staat rechts van de titel. Tabs of filters staan op de regel eronder en zijn geen tweede kop. De shell (hoofdstuk 5) draagt het kruimelpad, de locatie en het account, niet deze titel. `Paginakop` tekent vandaag alleen de tabregel en de actie; de titel staat erboven tot dat component de titel zelf krijgt.
 
 Eén groene knop in beeld. Staat hij in de kop, dan is elke andere knop outline of ghost. Staat hij nergens, dan heeft de pagina geen primaire actie. Een open dialoog dekt de pagina: alleen de knop in de dialoog telt.
 
@@ -304,11 +304,72 @@ Breedtes waarop je nakijkt: 390, 834 en 1280. De CSS-breuken zijn `sm` 640, `md`
 
 Elke pagina die data haalt heeft de drie blokken: skelet op rijhoogte 48 tijdens laden, het lege blok na een geslaagde lege lijst, een foutblok met één zin en één keer opnieuw. Het foutblok is geen lege staat.
 
-Iconen zijn lucide, 16 px (`h-4 w-4`), stroke 2. Een icoon vervangt het label alleen bij een actie die in elke rij terugkomt (meer, plus, min, zoeken als het veld het label draagt), met `aria-label`. Een primaire of destructieve knop heeft altijd een woord. Een icoon dat alleen uitleg geeft, opent op tik, niet op hover.
+Iconen zijn lucide, 16 px (`h-4 w-4`), stroke 2. Een icoon vervangt het label alleen bij een actie die in elke rij terugkomt (meer, plus, min, zoeken als het veld het label draagt), met `aria-label`. Een primaire of destructieve knop heeft altijd een woord. Een icoon dat alleen uitleg geeft, opent op tik, niet op hover. De ingeklapte zijbalk is de uitzondering uit hoofdstuk 5: het icoon heeft een `aria-label`, en het kruimelpad blijft de leesbare naam.
 
-Vaste betekenis: `ClipboardList` bestelbord, `ArrowLeftRight` intern, `Refrigerator` koelcel, `Snowflake` vriezer, `Warehouse` magazijn, `ListChecks` MEP, `CalendarClock` datum, `AlertTriangle` let op, `CircleAlert` fout, `CircleCheck` goed, `Plus` toevoegen, `MoreVertical` meer, `Search` zoeken, `Info` uitleg.
+Vaste betekenis: `ClipboardList` bestelbord, `ArrowLeftRight` intern, `Refrigerator` koelcel, `Snowflake` vriezer, `Warehouse` magazijn, `ListChecks` taken, `ChefHat` mise-en-place, `CalendarClock` datum, `AlertTriangle` let op, `CircleAlert` fout, `CircleCheck` goed, `Plus` toevoegen, `MoreVertical` meer, `Search` zoeken, `Info` uitleg.
 
-## 5. Verboden
+De shell staat in hoofdstuk 5. Zij tekent geen paginatitel.
+
+## 5. App-shell
+
+Eén shell voor elk scherm dat nu `SidebarLayout` of `KitchenLayout` gebruikt. De opbouw volgt shadcn sidebar-07 en dashboard-01: een zijbalk die kan inklappen, groepen, de gebruiker onderin, en een bovenbalk met trigger en kruimelpad. Twee dingen daarvan nemen we niet over. De zijbalk van de huidige dashboard-01 zweeft als inset, met marge en een eigen hoek; dat is een tweede kader, en de shell is geen groep die een kaart nodig heeft. De menuknoppen van shadcn zijn 32 px hoog; op de vloer is de rij 48.
+
+De primitive blijft `src/components/ui/sidebar.tsx`. Die kent al de breedte 16rem (256 px) en de rail van 3rem (48 px). De nieuwere dashboard-01 gebruikt 18rem. We houden 16rem, omdat op 834 anders te weinig overblijft voor de tabel. 256 en 48 zijn maten van de shell, geen stap uit de reeks 8/12/16/24. De kleuren van de shell zijn background, foreground, muted en border. `bg-sidebar` en `text-sidebar-foreground` in de primitive worden die rollen. Geen eigen sidebar-palet.
+
+### Zijbalk
+
+Vanaf `md` (dus op 834 en op 1280). Volle hoogte, tegen de rand, haarlijn rechts, geen radius, geen schaduw, geen marge. Open is 256 px. Ingeklapt is een rail van 48 px. De begintoestand is open, ook op 834. Een tablet heeft geen hover, en een rail van alleen iconen zegt dan niets. De gebruiker mag inklappen; die keuze blijft bewaard. Onder `md` is er geen zijbalk.
+
+De kop is één rij van 48. Links het beeldmerk in een vak van 44, daarin hooguit 32 px hoog. Daarnaast de locatie. Geen losse woordmerk van 54 px boven het menu; dat beeldmerk hoort op het inlogscherm.
+
+**Locatie.** Midsland en West, alleen als deze gebruiker beide heeft. Anders is het een label, geen knop. De knop is ghost, 44 hoog, met de twee namen voluit. Niet groen, niet `bg-primary/10`. Wisselen tekent het menu opnieuw vanuit `useNavigatieItems`. Bestaat de open pagina daarna niet meer voor die locatie, dan ga je naar `/dashboard`. Op de rail is het een icoonknop van 44 met `aria-label` “Vestiging, nu West” of “Vestiging, nu Midsland”.
+
+**Groepen.** Overzicht, Keuken, Voorraad, Beheer, in die volgorde. Een groep zonder zichtbare items valt weg. Het label is `text-xs` muted, als een zin (“Keuken”), niet in kapitalen. De items komen alleen uit `useNavigatieItems`. De shell voegt geen bestemming en geen rechten toe.
+
+**Item.** Rij 48, de hele rij is het tikvlak. Icoon 16 px, stroke 2, gap 8, label `text-sm` gewicht 500. Actief: `bg-muted`, tekst foreground, `aria-current="page"`. Niet primary, geen groene ring. Eén actief item, op de regel die `isNavActief` al gebruikt. Hover is muted, focus is de ring. Ingeklapt: het icoon zit in een knop van 44, met `aria-label` en een tooltip met de naam. De tooltip is extra. Het kruimelpad blijft de leesbare naam.
+
+Twee items delen geen icoon. `Settings` is alleen Instellingen. Voorraadketen, koelwerkbank en onderhoud hebben nu hetzelfde icoon als een ander item; dat staat bij de open punten.
+
+**Gebruiker onderin.** Haarlijn erboven. Naam `text-sm`, daaronder e-mail of rol in `text-xs` muted. De rij is 48 en opent een menu: thema en uitloggen. Uitloggen is geen losse knop van 36 naast de rij, en geen groene knop. Ingeklapt blijft één knop van 44 die hetzelfde menu opent.
+
+### Bovenbalk
+
+Hoogte 64, `bg-background`, haarlijn onder, geen schaduw. Zij blijft 64 als de zijbalk inklapt. Links: de trigger van 44 (inklapen of uitklappen), een scheider, het kruimelpad. Het kruimelpad is `text-sm`: de groep in muted, de huidige pagina in foreground. Een geneste pagina krijgt de tussenstap erbij (Keuken / Recepten / Recept bewerken). Het laatste kruimel is geen link. Het mag hetzelfde woord zijn als de paginatitel, maar het is geen tweede titel en nooit `text-2xl`. De shell tekent geen `h1`.
+
+Rechts, vanaf `md`: de datum als `text-sm` muted. Geen knop. Op 390 niet, daar is de balk het kruimelpad en de locatienaam. De locatienaam staat als tekst in de balk zolang er geen open zijbalk is, zodat je West of Midsland leest zonder een rail te verklaren. De wissel zelf zit niet in deze balk. De groene knop van de pagina zit niet in deze balk.
+
+Heeft een pagina nog geen eigen titel, dan is het laatste kruimel de enige naam en blijft dat `text-sm`. De shell vult daar geen `h1` voor in.
+
+`hideHeader` vervalt. De balk heeft geen titel, dus een pagina hoeft hem niet te verbergen om een dubbele kop te voorkomen.
+
+### 390
+
+Onderbalk, plus een blad voor de rest. Niet de zijbalk als sheet, wat shadcn op een smal scherm doet. Reden: Bestellen, Taken en MEP wissel je met één duim, terwijl de lijst in beeld blijft. Een sheet dekt de lijst en kost een tweede tik. De vier bestemmingen blijven de vier uit `mobieleNavigatie`: Start, Taken, MEP, Bestellen, plus Meer. Geen tweede lijst van wat belangrijk is.
+
+De balk is 64 hoog, plus de safe-area, haarlijn boven, `bg-background`. Vijf vakken, elk minstens 44 breed. Icoon 16 px, stroke 2, label `text-xs` eronder. Actief is foreground op muted, niet `text-primary`. Het icoon wordt niet dikker als het actief is.
+
+Meer opent een blad van onderen, hooguit 85 dvh, bovenhoeken 24. Daarin dezelfde groepen, de locatiewissel, en de gebruiker met thema en uitloggen. De wissel staat niet in de onderbalk: een mis-tik midden in de service bestelt voor de andere locatie. De locatienaam staat wel als tekst in de bovenbalk, zodat je ziet waar je bent zonder Meer te openen.
+
+De inhoud houdt onderaan 16 px over, plus de balk van 64, plus de safe-area. Niets blijft onder de balk liggen.
+
+### 834 en 1280
+
+Geen onderbalk. De zijbalk is de navigatie, begintoestand open (256 px). Op 834 blijft dan 578 px voor de inhoud, genoeg voor de tabel die vanaf `md` verschijnt. Op 1280 is de zijbalk ook open. Inklappen is overal dezelfde rail van 48.
+
+De inhoud heeft geen maximale breedte. Een bestelbord en een tabel gebruiken de ruimte die de zijbalk overlaat. Padding van de inhoud is de paginaregel: 16 onder `lg` (dat is 390 en 834), 24 vanaf `lg` (dat is 1280). De bovenbalk valt buiten die padding.
+
+### Wat vervangen wordt
+
+- `src/components/polar/Sidebar.tsx` — zwevende kaart van 230 px, ingeklapt 76 px, radius 20, schaduw, itemhoogte 42, actief in `bg-primary/10`. Vervalt. De shell gebruikt `ui/sidebar`.
+- `src/components/polar/Header.tsx` — de `h1` met de paginanaam, de datum, en de locatiewissel in het groen (`bg-primary/10`). Vervalt. Locatie gaat naar de zijbalk, de titel naar de pagina.
+- `src/components/AppSidebar.tsx` — de lijm op `PolarSidebar`, inclusief uitloggen als `h-9` en het logo op `h-[54px]`. Blijft de lijm, maar op `ui/sidebar`, met dezelfde `useNavigatieItems`.
+- `src/components/SidebarLayout.tsx` — `getPageTitle` als kop, `md:px-10` (40 px) en `lg:px-16` (64 px), en `--app-canvas` als pagina-kleur. De padding wordt 16 of 24. De pagina-kleur wordt `bg-background`.
+- `src/components/MobielOnderbalk.tsx` — de balk van 64 blijft. Weg: icoon van 20 px, stroke 1,75 of 2,25, en actief in `text-primary`.
+- `src/components/MobielMeerBlad.tsx` — het blad blijft. Het vinkje bij de locatie is niet primary.
+- `src/components/kitchen/KitchenLayout.tsx` — tweede shell, met een gecentreerde titel, `max-w-5xl` en een logo van 48 tot 64 px. MEP gebruikt `SidebarLayout` op elke breedte.
+- `src/components/pura/PageSubheader.tsx` — de commentaar zegt dat `PolarHeader` de enige titel is. Dat is de regel die vervalt. De actie hoort in de paginakop.
+
+## 6. Verboden
 
 - Geen `#hex` en geen `rgb(` in `className` of in een `style` op een component. Tokens horen in `src/index.css`.
 - Geen `rounded-[..]`, geen `text-[..]`, geen `h-[..]` voor een maat die de schaal al heeft.
@@ -324,9 +385,9 @@ Vaste betekenis: `ClipboardList` bestelbord, `ArrowLeftRight` intern, `Refrigera
 - Geen icoon-knop zonder `aria-label`. Geen primaire knop die alleen een icoon is.
 - Geen nieuwe donkere token-soort.
 
-## 6. Opruimlijst
+## 7. Opruimlijst
 
-Per bestand het oude dat weg moet of om moet, zodra dat scherm of die laag aan de beurt is. Dit boek verwijdert het niet. De lijst beschrijft `main` nu.
+Per bestand het oude dat weg moet of om moet, zodra dat scherm of die laag aan de beurt is. Dit boek verwijdert het niet. De lijst beschrijft `main` nu. De shell staat uitgewerkt in hoofdstuk 5; de bestanden daar zijn `polar/Sidebar.tsx`, `polar/Header.tsx`, `AppSidebar.tsx`, `SidebarLayout.tsx`, `MobielOnderbalk.tsx`, `MobielMeerBlad.tsx`, `kitchen/KitchenLayout.tsx` en `pura/PageSubheader.tsx`.
 
 **Tokens, `src/index.css`.** `:root` is nog het warme canvas: `--background` `45 8% 95%`, `--foreground` `220 26% 14%`, `--secondary` `163 30% 95%` (groen getint), `--muted` `40 5% 95%`, `--muted-foreground` `220 9% 46%`, `--destructive` `0 84% 60%`, `--border` `40 6% 88%`, `--ring` gelijk aan primary, `--success` `160 60% 45%`, `--warning` `38 92% 50%`, `--info` `217 91% 60%`. `--shadow-card` is een zware stapel, `--shadow-card-hover` ook. Het commentaar bij primary noemt `#1B7867`; de HSL rekent naar `#176d55`. `.dark` zet success gelijk aan primary en de ring op groen. `.pura-theme-v3` is het voorbeeld van de neutrale set, maar zijn muted-foreground (`0 0% 45.1%`, `#737373`) en ring (`0 0% 63.1%`, `#a1a1a1`) wijst dit boek af. `--notification-badge` en `--sidebar-bg`, `--sidebar-active`, `--sidebar-hover` zijn eigen kleuren en vervallen. De voorbeeldklasse verdwijnt als `:root` en `.dark` de waarden uit hoofdstuk 2 hebben.
 
@@ -399,16 +460,16 @@ Per bestand het oude dat weg moet of om moet, zodra dat scherm of die laag aan d
 - `src/pages/DesignPreview.tsx` en `src/pages/StyleGuide.tsx` — oude galerijen met `#1B7867` en een eigen schaal. Ze wijken voor `/design-system`.
 - `src/pages/design-system/Regelboek.tsx`, `Canoniek.tsx` en `ShadcnVoorbeeld.tsx` — tonen nog het vorige boek: geen paginatitel, lege staat met `py-6`, primary als `#1B7867`. Ze worden herschreven naar dit boek, in een latere PR. De “niet”-voorbeelden mogen de verboden vorm blijven tonen, als voorbeeld van wat niet mag.
 
-## 7. Open punten
+## 8. Open punten
 
 1. **Meta op `#525252` in plaats van het shadcn-grijs `#737373`.** Advies: hou `#525252`. Het shadcn-grijs zakt op muted door AA (4,35:1). Op `main` staat muted-foreground nog op `220 9% 46%`, en in `.pura-theme-v3` op `#737373`. Allebei wijken af van dit boek.
 2. **Het vinkje in de tekstkleur in plaats van groen.** Advies: `foreground`, niet primary. Groen blijft de knop. In donker wordt het vak licht, anders verdwijnt een zwart vak op zwart.
 3. **De paginatitel en het kengetal zijn allebei `text-2xl`.** Advies: zo laten. De titel opent de pagina, het getal staat in een kaart en is geen kop.
-4. **De app-balk toont nog de modulenaam, en `Paginakop` tekent geen titel.** Advies: de balk houdt locatie en account. De titel komt in de pagina, daarna in `Paginakop`. Dat is een aparte wijziging van `SidebarLayout`, `AppSidebar` en `polar/Header`.
-5. **`body` is 15 px.** Advies: de rollen winnen (14 voor een rij, 16 voor een veld en een sectiekop). `body` later naar 16 px, samen met de balk.
-6. **Of de keuken donker überhaupt gebruikt.** De waarden staan in hoofdstuk 2, omdat de lichte ring en het lichte olijfgroen op bijna-zwart door AA zakken. Advies: de tokens vastleggen, geen donker scherm bouwen tot iemand daar werkt.
-7. **Drie lege staten.** Advies: `LegeStaatBlok` wint, nadat hij zelf het compacte blok is geworden. `pura/EmptyState` en `kitchen/EmptyState` verdwijnen per scherm.
-8. **Dienstkleuren in het rooster.** Advies: de gekozen kleur blijft data in `PlanningBlock` en de kleurkiezer. Alleen de chrome (rand, tekst, tikvlak) gaat naar de tokens.
+4. **`body` is 15 px.** Advies: de rollen winnen (14 voor een rij, 16 voor een veld en een sectiekop). `body` later naar 16 px, samen met de balk.
+5. **Of de keuken donker überhaupt gebruikt.** De waarden staan in hoofdstuk 2, omdat de lichte ring en het lichte olijfgroen op bijna-zwart door AA zakken. Advies: de tokens vastleggen, geen donker scherm bouwen tot iemand daar werkt.
+6. **Drie lege staten.** Advies: `LegeStaatBlok` wint, nadat hij zelf het compacte blok is geworden. `pura/EmptyState` en `kitchen/EmptyState` verdwijnen per scherm.
+7. **Dienstkleuren in het rooster.** Advies: de gekozen kleur blijft data in `PlanningBlock` en de kleurkiezer. Alleen de chrome (rand, tekst, tikvlak) gaat naar de tokens.
+8. **Dubbele menu-iconen.** `Settings` zit op Voorraadketen, Koelwerkbank en Instellingen. `ClipboardList` zit op Bestelbord en Onderhoud. Advies: Instellingen houdt `Settings`, Bestelbord houdt `ClipboardList`. Voorraadketen krijgt `Network`, koelwerkbank `Refrigerator`, onderhoud `Wrench`. Nog niet bouwen.
 
 ## Checklist voor een PR die dit boek uitvoert
 
