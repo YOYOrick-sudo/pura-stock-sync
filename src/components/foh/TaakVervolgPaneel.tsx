@@ -168,6 +168,7 @@ export function TaakVervolgPaneel({
   internBeschikbaar,
   internLaden,
   opslaanBezig,
+  ketenAan = true,
   onOpenChange,
   onOpslaan,
 }: {
@@ -177,6 +178,8 @@ export function TaakVervolgPaneel({
   internBeschikbaar: boolean;
   internLaden: boolean;
   opslaanBezig: boolean;
+  /** Zonder aanvulketen bewaart het paneel wel, maar voert de lijst de actie nog niet uit. */
+  ketenAan?: boolean;
   onOpenChange: (open: boolean) => void;
   onOpslaan: (invoer: VervolgInvoer) => void;
 }) {
@@ -185,7 +188,11 @@ export function TaakVervolgPaneel({
       <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-polar px-4 pb-6 pt-4 duration-200">
         <SheetHeader className="mb-3 space-y-1 text-left">
           <SheetTitle className="text-[16px]">{naam}</SheetTitle>
-          <SheetDescription>Wat er moet gebeuren, en wat je daarna doet.</SheetDescription>
+          <SheetDescription>
+            {ketenAan
+              ? 'Wat er moet gebeuren, en wat je daarna doet.'
+              : 'Wat er moet gebeuren, en wat je daarna doet. Bewaren kan nu. Op de lijst volgt de actie, ook uit vriezer naar koelcel, pas als de aanvulketen aan staat.'}
+          </SheetDescription>
         </SheetHeader>
         <TaakVervolgFormulier
           naam={naam}

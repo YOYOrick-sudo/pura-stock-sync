@@ -40,7 +40,10 @@ async function schrijfDoorgezet(input: {
   if (error) throw error;
 }
 
-/** Lezen mag iedereen van de vestiging. Schrijven gaat alleen via de eigenaar-RPC. */
+/**
+ * Lezen mag iedereen van de vestiging. Schrijven gaat alleen via de eigenaar-RPC.
+ * `aan` zet alleen de leesquery aan. `taak_vervolg_config_opslaan` hangt er niet van af.
+ */
 export function useTaakVervolg(vestiging: string, datum: string, aan: boolean) {
   const qc = useQueryClient();
   const plaatsen = useInternePlaatsen();
