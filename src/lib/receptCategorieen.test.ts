@@ -5,7 +5,9 @@ import {
   categorieKeuzes,
   ingredientenLabel,
   pastBijZoekterm,
+  resultaatTekst,
   sorteerOpNaam,
+  toonNaam,
 } from './receptCategorieen';
 
 const vast = RECEPT_CATEGORIEEN.map((c) => c.naam);
@@ -58,5 +60,18 @@ describe('lijsthelpers', () => {
       'Brood',
       'Zoet',
     ]);
+  });
+
+  test('toont alleen de eerste letter als hoofdletter', () => {
+    expect(toonNaam('abrikozen')).toBe('Abrikozen');
+    expect(toonNaam('agave siroop')).toBe('Agave siroop');
+    expect(toonNaam('(Snelle) Croissant uit lade')).toBe('(Snelle) Croissant uit lade');
+    expect(toonNaam('  Amandel')).toBe('Amandel');
+  });
+
+  test('resultaatregel noemt de categorie alleen als die gekozen is', () => {
+    expect(resultaatTekst(608, null)).toBe('608 recepten');
+    expect(resultaatTekst(1, null)).toBe('1 recept');
+    expect(resultaatTekst(84, 'Sauzen, dressings & dips')).toBe('84 recepten in Sauzen, dressings & dips');
   });
 });

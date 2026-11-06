@@ -43,7 +43,7 @@ const leeg = {
 };
 
 export function MethodesKaart({ receptId, kanBeheren = true }: Props) {
-  const { data: methodes = [], isLoading } = useMethodes(receptId);
+  const { data: methodes = [], isLoading, isError } = useMethodes(receptId);
   const save = useSaveMethode();
   const del = useDeleteMethode();
 
@@ -110,63 +110,60 @@ export function MethodesKaart({ receptId, kanBeheren = true }: Props) {
   };
 
   return (
-    <Card className="p-5 sm:p-6 bg-card shadow-sm">
-      <div className="flex items-center justify-between pb-3 mb-3 border-b border-border/60">
-        <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Handelingen (mise en place)
-        </h2>
+    <Card>
+      <div className="flex min-h-12 items-center justify-between gap-2 border-b border-border px-4 lg:px-6">
+        <h2 className="text-sm font-semibold text-foreground">Handelingen</h2>
         {kanBeheren && (
-          <Button size="sm" variant="outline" className="h-8" onClick={openNieuw}>
-            <Plus className="w-4 h-4 mr-1.5" />
+          <Button size="touch" variant="outline" onClick={openNieuw}>
+            <Plus aria-hidden />
             Handeling
           </Button>
         )}
       </div>
 
-      {isLoading ? (
-        <p className="text-sm text-muted-foreground">Laden…</p>
+      {isLoading && !isError ? (
+        <p className="px-4 py-2 text-sm text-muted-foreground lg:px-6">Laden…</p>
       ) : methodes.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Nog geen handelingen. Voeg er één toe om dit recept op de MEP-lijst te kunnen plannen.
-        </p>
+        <p className="px-4 py-2 text-sm text-muted-foreground lg:px-6">Geen handelingen.</p>
       ) : (
-        <ul className="divide-y divide-border/60">
+        <ul>
           {methodes.map((m) => (
-            <li key={m.id} className="flex items-start justify-between gap-4 py-3">
-              <div className="min-w-0">
+            <li key={m.id} className="flex min-h-12 items-center gap-2 border-b border-border px-4 py-2 last:border-b-0 lg:px-6">
+              <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[15px] font-medium text-foreground">{m.type}</span>
-                  <Badge variant="secondary" className="font-normal">
+                  <span className="text-sm font-medium text-foreground">{m.type}</span>
+                  <Badge variant="secondary">
                     1 {m.visuele_eenheid} = {Number(m.output_hoeveelheid)} {m.output_eenheid}
                   </Badge>
                 </div>
-                <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                  <span className="inline-flex items-center gap-1">
-                    <Clock className="w-4 h-4" />~{m.standaard_duur} min
+                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-2">
+                    <Clock className="h-4 w-4" aria-hidden />~{m.standaard_duur} min
                   </span>
                   {m.houdbaarheid != null && (
-                    <span className="inline-flex items-center gap-1">
-                      <CalendarClock className="w-4 h-4" />
+                    <span className="inline-flex items-center gap-2">
+                      <CalendarClock className="h-4 w-4" aria-hidden />
                       {telwoord(m.houdbaarheid, 'dag', 'dagen')} houdbaar
                     </span>
                   )}
                 </div>
                 {m.instructie && (
-                  <p className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">{m.instructie}</p>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{m.instructie}</p>
                 )}
               </div>
               {kanBeheren && (
-                <div className="flex items-center gap-1 shrink-0">
-                  <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => openBewerk(m)}>
-                    <Pencil className="w-4 h-4" />
+                <div className="flex shrink-0 items-center gap-2">
+                  <Button size="touch-icon" variant="ghost" aria-label="Bewerken" onClick={() => openBewerk(m)}>
+                    <Pencil aria-hidden />
                   </Button>
                   <Button
-                    size="icon"
+                    size="touch-icon"
                     variant="ghost"
-                    className="h-9 w-9 text-destructive hover:text-destructive"
+                    className="text-destructive hover:text-destructive"
+                    aria-label="Verwijderen"
                     onClick={() => verwijder(m)}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 aria-hidden />
                   </Button>
                 </div>
               )}
@@ -182,7 +179,7 @@ export function MethodesKaart({ receptId, kanBeheren = true }: Props) {
           </DialogHeader>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Soort handeling</Label>
               <Select value={form.type} onValueChange={(v) => setForm((f) => ({ ...f, type: v }))}>
                 <SelectTrigger className="h-11">
@@ -198,7 +195,7 @@ export function MethodesKaart({ receptId, kanBeheren = true }: Props) {
               </Select>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Zichtbare eenheid</Label>
               <Input
                 className="h-11"
@@ -208,7 +205,7 @@ export function MethodesKaart({ receptId, kanBeheren = true }: Props) {
               />
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Opbrengst per eenheid</Label>
               <Input
                 className="h-11"
@@ -219,7 +216,7 @@ export function MethodesKaart({ receptId, kanBeheren = true }: Props) {
               />
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Eenheid opbrengst</Label>
               <Select
                 value={form.output_eenheid}
@@ -238,7 +235,7 @@ export function MethodesKaart({ receptId, kanBeheren = true }: Props) {
               </Select>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Standaardduur (minuten)</Label>
               <Input
                 className="h-11"
@@ -249,7 +246,7 @@ export function MethodesKaart({ receptId, kanBeheren = true }: Props) {
               />
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Houdbaarheid (dagen)</Label>
               <Input
                 className="h-11"
@@ -266,7 +263,7 @@ export function MethodesKaart({ receptId, kanBeheren = true }: Props) {
               />
             </div>
 
-            <div className="space-y-1.5 sm:col-span-2">
+            <div className="space-y-2 sm:col-span-2">
               <Label>Korte instructie (optioneel)</Label>
               <Textarea
                 rows={3}
