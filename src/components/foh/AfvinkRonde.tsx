@@ -95,9 +95,11 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
     previewHost: typeof window !== 'undefined' && isPreviewHost(window.location.hostname),
   });
   const eigenaar = useIsEigenaar();
-  const toonInstellen = ketenAan && eigenaar;
-  const vervolg = useTaakVervolg(vestiging, datum, ketenAan);
-  const internProducten = useInterneProducten(ketenAan ? vestiging : null);
+  // Potlood en paneel voor de eigenaar, ook zonder ?aanvulketen=1.
+  const toonInstellen = eigenaar;
+  // Lezen voor het paneel. De vlag zet alleen de query aan; opslaan niet.
+  const vervolg = useTaakVervolg(vestiging, datum, ketenAan || toonInstellen);
+  const internProducten = useInterneProducten((ketenAan || toonInstellen) ? vestiging : null);
   const [paneelItem, setPaneelItem] = useState<KoelcelCheckItem | null>(null);
   const printSticker = useCreateStickerPrintJob();
   const [vriezerStappen, setVriezerStappen] = useState<Record<string, VriezerStapStand>>(() => {
@@ -205,8 +207,19 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
     }
   };
 
+  // Uitvoeren blijft achter de schakelaar. Zonder keten is afvinken een gewoon vinkje:
+  // de stap uit vriezer naar koelcel (en de andere vervolgacties) verschijnt dan niet.
   const configVan = (item: KoelcelCheckItem) =>
     ketenAan ? configVoorTaak(item, vestiging, vervolg.rijen) : null;
+
+  const instellingVan = (item: KoelcelCheckItem): VervolgInvoer => {
+    const cfg = configVoorTaak(item, vestiging, vervolg.rijen);
+    return {
+      instructie: cfg?.instructie ?? '',
+      vervolgactie: cfg?.vervolgactie ?? 'geen',
+      vervolgAlsOp: cfg?.vervolgAlsOp ?? null,
+    };
+  };
 
   const voerActie = async (item: KoelcelCheckItem, actie: VervolgActie) => {
     if (actie === 'mep') {
@@ -623,11 +636,8 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
         <TaakVervolgPaneel
           open
           naam={paneelItem.naam}
-          waarde={{
-            instructie: configVan(paneelItem)?.instructie ?? '',
-            vervolgactie: configVan(paneelItem)?.vervolgactie ?? 'geen',
-            vervolgAlsOp: configVan(paneelItem)?.vervolgAlsOp ?? null,
-          }}
+          waarde={instellingVan(paneelItem)}
+          ketenAan={ketenAan}
           internBeschikbaar={!!interneProductVoor(paneelItem, internProducten.data)}
           internLaden={internProducten.isLoading}
           opslaanBezig={vervolg.bewaar.isPending}

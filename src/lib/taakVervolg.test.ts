@@ -208,3 +208,39 @@ describe('uitvoeren', () => {
     expect(uit).toEqual({ soort: 'vriezer_naar_koelcel' });
   });
 });
+
+describe('potlood zonder aanvulketen', () => {
+  test('de eigenaar ziet het potlood, de keten-stap blijft achter de schakelaar', () => {
+    const ronde = readFileSync(new URL('../components/foh/AfvinkRonde.tsx', import.meta.url), 'utf8');
+    expect(ronde).toContain('const toonInstellen = eigenaar');
+    expect(ronde).not.toContain('ketenAan && eigenaar');
+    expect(ronde).toContain('ketenAan && isFalafelVoorbeeld');
+    expect(ronde).toContain('useTaakVervolg(vestiging, datum, ketenAan || toonInstellen)');
+    // Uitvoeren, inclusief uit vriezer naar koelcel, blijft null zonder keten.
+    expect(ronde).toContain('ketenAan ? configVoorTaak');
+    const paneelStart = ronde.indexOf('<TaakVervolgPaneel');
+    const paneel = ronde.slice(paneelStart, ronde.indexOf('/>', paneelStart));
+    expect(paneel).toContain('instellingVan(paneelItem)');
+    expect(paneel).toContain('vervolg.bewaar.mutateAsync');
+    expect(paneel).not.toContain('configVan(');
+  });
+
+  test('opslaan via taak_vervolg_config_opslaan hangt niet aan de leesvlag of de keten', () => {
+    const hook = readFileSync(new URL('../hooks/useTaakVervolg.ts', import.meta.url), 'utf8');
+    const bewaar = hook.slice(hook.indexOf('const bewaar'), hook.indexOf('onSuccess:'));
+    expect(bewaar).toContain("rpc('taak_vervolg_config_opslaan'");
+    expect(bewaar).not.toContain('ketenAan');
+    expect(bewaar).not.toMatch(/if\s*\(\s*!?\s*aan\b/);
+    const query = hook.slice(hook.indexOf('const query'), hook.indexOf('const bewaar'));
+    expect(query).toContain('enabled: aan && !!vestiging');
+
+    const sql = readFileSync(new URL('../../drizzle/migrations/0068_taak_vervolg_config.sql', import.meta.url), 'utf8');
+    const fn = sql.slice(
+      sql.indexOf('FUNCTION public.taak_vervolg_config_opslaan'),
+      sql.indexOf('REVOKE ALL ON FUNCTION public.taak_vervolg_config_opslaan'),
+    );
+    expect(fn).toContain("v_email NOT LIKE 'yorick@%'");
+    expect(fn).not.toContain('aanvulketen');
+    expect(fn).not.toContain('ketenAan');
+  });
+});
