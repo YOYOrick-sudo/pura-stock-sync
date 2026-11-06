@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { AllergeenCode, AllergeenStatus } from '@/lib/allergenen';
+import { allesOphalen } from '@/lib/pagineer';
 
 export interface IngredientAllergenen {
   id: string;
@@ -57,10 +58,17 @@ export function useAlleReceptAllergenen() {
   return useQuery({
     queryKey: ['allergenen', 'recepten'],
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from('v_recept_allergenen').select('*');
-      if (error) throw error;
+      const data = await allesOphalen(async (van, tot) => {
+        const { data: rij, error } = await (supabase as any)
+          .from('v_recept_allergenen')
+          .select('*')
+          .order('recept_id', { ascending: true })
+          .range(van, tot);
+        if (error) throw error;
+        return (rij ?? []) as ReceptAllergenen[];
+      });
       const map = new Map<string, ReceptAllergenen>();
-      (data ?? []).forEach((r: ReceptAllergenen) => map.set(r.recept_id, r));
+      data.forEach((r: ReceptAllergenen) => map.set(r.recept_id, r));
       return map;
     },
   });

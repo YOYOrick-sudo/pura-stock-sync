@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserLocation } from '@/contexts/UserLocationContext';
+import { allesOphalen } from '@/lib/pagineer';
 
 export const VESTIGINGEN = ['West', 'Midsland'] as const;
 export type Vestiging = (typeof VESTIGINGEN)[number];
@@ -31,12 +32,17 @@ export function useVestigingKoppelingen(soort: KoppelSoort) {
     queryKey: ['vestiging-koppeling', soort],
     staleTime: 60_000,
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from(tabel)
-        .select(`${fk}, vestiging, is_actief`);
-      if (error) throw error;
+      const data = await allesOphalen(async (van, tot) => {
+        const { data: rij, error } = await (supabase as any)
+          .from(tabel)
+          .select(`${fk}, vestiging, is_actief, id`)
+          .order('id', { ascending: true })
+          .range(van, tot);
+        if (error) throw error;
+        return rij ?? [];
+      });
       const map = new Map<string, Set<string>>();
-      (data ?? []).forEach((row: any) => {
+      data.forEach((row: any) => {
         if (!row.is_actief) return;
         const key = row[fk] as string;
         if (!map.has(key)) map.set(key, new Set());
