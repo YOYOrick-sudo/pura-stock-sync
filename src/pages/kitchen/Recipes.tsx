@@ -23,7 +23,7 @@ import {
 } from '@/lib/receptCategorieen';
 
 const LEEG = new Set<string>();
-const KOLOMMEN = 'lg:grid-cols-[minmax(0,1fr)_10rem_4.5rem_3.5rem_4.75rem]';
+const KOLOMMEN = 'lg:grid-cols-[minmax(0,1fr)_15rem_6rem_3.5rem_4.75rem]';
 
 const VESTIGING_KEUZES: { label: string; value: Vestiging | null }[] = [
   { label: 'Alle', value: null },
@@ -47,13 +47,13 @@ function CategorieKnop({
       aria-current={actief ? 'true' : undefined}
       onClick={onKies}
       className={cn(
-        'flex min-h-11 w-full items-center gap-2 rounded-polar-sm border-l-2 px-2 py-2 text-left text-sm',
+        'flex w-full items-start gap-2 rounded-polar-sm border-l-2 px-2 py-2 text-left text-sm',
         actief ? 'border-primary bg-primary/10 text-primary' : 'border-transparent text-foreground hover:bg-muted',
       )}
     >
-      <Icoon className={cn('h-4 w-4 shrink-0', actief ? 'text-primary' : 'text-muted-foreground')} aria-hidden />
-      <span className="min-w-0 flex-1 truncate whitespace-nowrap" title={keuze.label}>{keuze.label}</span>
-      <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{keuze.aantal}</span>
+      <Icoon className={cn('mt-0.5 h-4 w-4 shrink-0', actief ? 'text-primary' : 'text-muted-foreground')} aria-hidden />
+      <span className="min-w-0 flex-1 leading-tight">{keuze.label}</span>
+      <span className="shrink-0 text-xs tabular-nums leading-tight text-muted-foreground">{keuze.aantal}</span>
     </button>
   );
 }
@@ -124,9 +124,11 @@ function ReceptRij({
           <CategorieIcoon category={recipe.category} />
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-medium text-foreground">{naam}</span>
-            <span className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-              <span>{recipe.category}</span>
-              <span>{(recipe.ingredient_count ?? 0) <= 0 ? 'Geen ingrediënten' : `${recipe.ingredient_count} ingrediënten`}</span>
+            <span className="block truncate whitespace-nowrap text-xs text-muted-foreground">
+              {recipe.category}
+              {' · '}
+              {(recipe.ingredient_count ?? 0) <= 0 ? 'geen ingr.' : recipe.ingredient_count === 1 ? '1 ingr.' : `${recipe.ingredient_count} ingr.`}
+              {' · '}
               <span className="tabular-nums">THT {recipe.tht_dagen} d</span>
             </span>
           </span>
@@ -186,7 +188,7 @@ export default function Recipes() {
   return (
     <SidebarLayout>
       <div className="flex items-start gap-2">
-        <nav aria-label="Categorieën" className="sticky top-3 hidden max-h-[calc(100dvh-5.5rem)] w-56 shrink-0 flex-col lg:flex">
+        <nav aria-label="Categorieën" className="sticky top-3 hidden max-h-[calc(100dvh-5.5rem)] w-60 shrink-0 flex-col lg:flex">
           <p className="px-2 py-2 text-sm font-semibold text-foreground">Categorieën</p>
           <Card className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-2 py-2">
             {keuzes.map((keuze) => (
@@ -202,11 +204,16 @@ export default function Recipes() {
 
         <div className="min-w-0 flex-1 space-y-4">
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="min-w-0 flex-1">
-                <ZoekVeld waarde={search} onChange={setSearch} placeholder="Zoek recept of ingrediënt" />
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="flex min-w-0 flex-1 gap-2">
+                <div className="min-w-0 flex-1">
+                  <ZoekVeld waarde={search} onChange={setSearch} placeholder="Zoek recept of ingrediënt" />
+                </div>
+                <Button type="button" size="touch-icon" className="shrink-0 sm:hidden" aria-label="Nieuw recept" onClick={() => navigate('/kitchen/recipes/nieuw')}>
+                  <Plus aria-hidden />
+                </Button>
               </div>
-              <div role="group" aria-label="Vestiging" className="flex h-11 shrink-0 items-center rounded-polar-lg bg-muted p-1">
+              <div role="group" aria-label="Vestiging" className="flex h-11 w-full shrink-0 items-center rounded-polar-lg bg-muted p-1 sm:w-auto">
                 {VESTIGING_KEUZES.map((optie) => {
                   const actief = vestiging === optie.value;
                   return (
@@ -216,7 +223,7 @@ export default function Recipes() {
                       aria-pressed={actief}
                       onClick={() => setVestiging(optie.value)}
                       className={cn(
-                        'h-full rounded-polar-md px-3 text-sm font-medium',
+                        'h-full flex-1 rounded-polar-md px-3 text-sm font-medium sm:flex-none',
                         actief ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
                       )}
                     >
@@ -225,9 +232,9 @@ export default function Recipes() {
                   );
                 })}
               </div>
-              <Button type="button" size="touch" className="shrink-0" onClick={() => navigate('/kitchen/recipes/nieuw')}>
+              <Button type="button" size="touch" className="hidden shrink-0 sm:inline-flex" onClick={() => navigate('/kitchen/recipes/nieuw')}>
                 <Plus aria-hidden />
-                <span className="max-sm:sr-only">Nieuw recept</span>
+                Nieuw recept
               </Button>
             </div>
 
