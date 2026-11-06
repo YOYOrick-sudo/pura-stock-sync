@@ -316,7 +316,7 @@ De shell staat in hoofdstuk 5. Zij tekent geen paginatitel.
 
 ## 5. App-shell
 
-Voorstel, wacht op keuze Yorick. De keuze tussen sidebar-07 en de andere shadcn-shells ligt nog bij hem. Tot die keuze is dit hoofdstuk geen besluit.
+Yorick kiest shell 2: sidebar-07, inklapbaar. Dit hoofdstuk is het besluit.
 
 Eén shell voor elk scherm dat nu `SidebarLayout` of `KitchenLayout` gebruikt. De opbouw volgt shadcn sidebar-07 en dashboard-01: een zijbalk die kan inklappen, groepen, de gebruiker onderin, en een bovenbalk met trigger en kruimelpad. Twee dingen daarvan nemen we niet over. De zijbalk van de huidige dashboard-01 zweeft als inset, met marge en een eigen hoek; dat is een tweede kader, en de shell is geen groep die een kaart nodig heeft. De menuknoppen van shadcn zijn 32 px hoog; op de vloer is de rij 48.
 
