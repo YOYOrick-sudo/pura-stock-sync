@@ -47,8 +47,12 @@ import { eerderVrijeRegels, filterEerderSuggesties } from '@/lib/bordSnelkeuze';
 import { leverancierNaam, leverancierSoort, onderwegTabTeller } from '@/components/kitchen/bestelbord/presentatie';
 import { ZelfHalenTabel } from '@/components/kitchen/bestelbord/ZelfHalenTabel';
 import { InternBestellen } from '@/components/kitchen/bestelbord/InternBestellen';
+import { InternGroepV2 } from '@/components/kitchen/bestelbord/InternGroepV2';
 import { InternOnderweg } from '@/components/kitchen/bestelbord/InternOnderweg';
+import { InternOnderwegV2 } from '@/components/kitchen/bestelbord/InternOnderwegV2';
 import { internBestellenZichtbaar, onderwegTabAantal, useInterneBestellingen } from '@/hooks/useInterneLevering';
+import { useInterneV2Aanvragen } from '@/hooks/useInterneLeveringV2';
+import { INTERNE_LEVERING_V2, telOpenAanvragen, v1InternZichtbaar, v2BordZichtbaar } from '@/lib/interneLeveringV2';
 import { KoppelPaneel } from '@/components/kitchen/bestelbord/KoppelPaneel';
 import { koppelAanBestaand, koppelNieuwArtikel, leverancierKeuzeLabel, type AanmaakVelden } from '@/components/kitchen/bestelbord/koppelActies';
 import { suggestieOnderschrift } from '@/lib/leverancierSoort';
@@ -216,6 +220,7 @@ export default function Bestelbord() {
   const { data: leveranciers } = useLeveranciers();
   const koppelVlag = useFase2VlagAan(vestiging, 'leverancier_kiezen');
   const internVlag = useFase2VlagAan(vestiging || null, 'interne_levering');
+  const internV2 = useFase2VlagAan(vestiging || null, INTERNE_LEVERING_V2);
   const { data: leverancierSoorten } = useLeverancierSoorten();
   const { data: leverancierKeuze = [] } = useLeveranciersVoorVestiging(koppelVlag ? vestiging || null : null);
   const { isManager } = useRole();
@@ -224,8 +229,11 @@ export default function Bestelbord() {
   const v2 = modus.ontvangstV2;
   const test = modus.test;
   // Interne levering: vlag aan en geen testmodus. Zonder rijen uit de productlijst blijft de kaart weg, en er is geen RPC zolang de vlag uit staat.
-  const internAan = internBestellenZichtbaar({ vlagAan: internVlag, test });
+  // v2 vervangt die kaart alleen waar interne_levering_v2 aan staat. Uit = de regel hierboven, ongewijzigd.
+  const toonV2Bord = v2BordZichtbaar(vestiging, internV2);
+  const internAan = v1InternZichtbaar(toonV2Bord, internBestellenZichtbaar({ vlagAan: internVlag, test }));
   const interneOnderweg = useInterneBestellingen(internAan ? vestiging : null);
+  const interneV2Open = useInterneV2Aanvragen(toonV2Bord ? vestiging : null, 'bord');
   const ontvangst = useOntvangstData(modus);
   const keukenAdvies = useKeukenAdvies(modus);
   const keukenStand = useKeukenStand(modus);
@@ -652,7 +660,9 @@ export default function Bestelbord() {
   const nulAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) <= 0);
   const zonderPrijs = [...open, ...besteld].filter((s) => !prijsVan(s)).length;
   const onderwegWeergave = onderwegTabTeller({ besteldIds: besteld.map((s) => s.id), teChecken: teChecken.length, restanten });
-  const onderwegAantal = onderwegTabAantal(onderwegWeergave.aantal, internAan, interneOnderweg.data);
+  const onderwegAantal = toonV2Bord
+    ? onderwegWeergave.aantal + telOpenAanvragen(interneV2Open.data ?? [])
+    : onderwegTabAantal(onderwegWeergave.aantal, internAan, interneOnderweg.data);
   const zonderPrijsFilter = (className: string) => (tab === 'bord' || tab === 'onderweg')
     ? <ZonderPrijsFilter aantal={zonderPrijs} aan={alleenZonderPrijs} onToggle={() => setAlleenZonderPrijs((v) => !v)} className={className} />
     : null;
@@ -671,7 +681,7 @@ export default function Bestelbord() {
   const zonderDatumZicht = filter(zonderDatum);
   const geleverdZicht = filter(geleverd);
   const besteldZicht = [...teCheckenZicht, ...onderwegZicht, ...zonderDatumZicht];
-  const internRegels = koppelVlag && !isLoading && internZicht.length > 0 ? (
+  const internRegels = !toonV2Bord && koppelVlag && !isLoading && internZicht.length > 0 ? (
     <>
       <p className="px-4 pb-1 pt-3 text-sm text-muted-foreground lg:px-6">Komt op de MEP van Midsland.</p>
       <ZelfHalenTabel soort="intern" regels={internZicht} leverancier={leverancier} onGehaald={(s) => vinkGeleverd([s.id], s.naam)} onAllesGehaald={(ids) => vinkGeleverd(ids, `${ids.length} ${ids.length === 1 ? 'regel' : 'regels'}`)} onBewerk={openBewerk} onVervallen={vervallen} alleenLezen={test} />
@@ -812,6 +822,7 @@ export default function Bestelbord() {
                 </LijstKaart>
                 {!isLoading && onbekendZicht.length > 0 && <LijstKaart kop={<KaartKop icoon={koppelVlag ? Link2 : Truck} titel={koppelVlag ? 'Nog koppelen' : 'Leverancier kiezen'} teller={onbekendZicht.length} />}>{koppelVlag && <p className="px-4 pb-1 pt-3 text-sm text-muted-foreground lg:px-6">Koppel aan een artikel, of maak een nieuw.</p>}<BordTabel regels={onbekendZicht} {...bordProps} plat={koppelVlag} /></LijstKaart>}
                 {koppelVlag && !isLoading && winkelZicht.length > 0 && <LijstKaart kop={<KaartKop icoon={ShoppingBag} titel="Zelf halen" teller={winkelZicht.length} />}><p className="px-4 pb-1 pt-3 text-sm text-muted-foreground lg:px-6">Haal je zelf. Tik op Gehaald als het binnen is.</p><ZelfHalenTabel soort="winkel" regels={winkelZicht} leverancier={leverancier} onGehaald={(s) => vinkGeleverd([s.id], s.naam)} onAllesGehaald={(ids) => vinkGeleverd(ids, `${ids.length} ${ids.length === 1 ? 'regel' : 'regels'}`)} onBewerk={openBewerk} onVervallen={vervallen} alleenLezen={test} /></LijstKaart>}
+                {!isLoading && toonV2Bord && <InternGroepV2 vestiging={vestiging} losse={internZicht.map((s) => ({ id: s.id, naam: s.naam, aantal: Number(s.aantal), eenheid: s.eenheid }))} onLosseWeg={(id) => verwijderen.mutate(id)} />}
                 {!isLoading && <InternBestellen vestiging={vestiging} aan={internAan} bestaande={internRegels} losseKaart={internKaart} />}
                 {(open.length > 0 || besteld.length > 0) && <LijstKaart kop={<KaartKop icoon={ClipboardList} titel="Per leverancier" />}>{leveranciersTabel}</LijstKaart>}
               </TabsContent>
@@ -826,7 +837,7 @@ export default function Bestelbord() {
               <div hidden={tab !== 'tellen'}>{test ? <LijstKaart><p className="px-4 py-6 text-center text-sm text-muted-foreground">Tellen staat uit in testmodus, omdat dit de echte voorraad van {vestiging} aanpast.<br />De keukentelling test je op het tabblad Advies keuken.</p></LijstKaart> : <Voorraadproef key={vestiging} vestiging={vestiging} actief={tab === 'tellen'} />}</div>
               <TabsContent value="onderweg" className="mt-0 space-y-4">
                 {zonderPrijsFilter('lg:hidden')}
-                <InternOnderweg vestiging={vestiging} aan={internAan} />
+                {toonV2Bord ? <InternOnderwegV2 vestiging={vestiging} /> : <InternOnderweg vestiging={vestiging} aan={internAan} />}
                 {v2 && <><NageleverdKaart modus={modus} regels={restanten} /><EindcheckKaart modus={modus} restanten={restanten} regels={ontvangst.vandaag.data ?? []} laden={ontvangst.vandaag.isLoading} leveranciers={leveranciers} /></>}
                 {[...(v2 ? [] : [{ titel: 'Vandaag te checken', regels: teCheckenZicht }]), { titel: 'Onderweg', regels: onderwegGroepZicht }, { titel: 'Zonder datum', regels: zonderDatumZicht }].filter((g) => g.regels.length).map((groep) => <LijstKaart key={groep.titel} kop={<KaartKop icoon={Truck} titel={groep.titel} teller={groep.regels.length} />}><OnderwegTabel groepen={groepeer(groep.regels)} {...groepProps} onBewerk={openBewerk} datumLabel={datumLabel} leverDatumLabel={leverDatumLabel} {...(v2 ? { zonderDeels: true, alleenLezen: test, restStatus: (s: BestelSignaal) => restStatusPerSignaal.get(s.id) ?? null } : {})} /><TabelVoet links={`${groep.regels.length} ${groep.regels.length === 1 ? 'product' : 'producten'}`} /></LijstKaart>)}
                 {!v2 && !besteldZicht.length && !internOnderwegBezig && onderwegAantal === onderwegWeergave.aantal && <LijstKaart>{leegKaart('Niets onderweg')}</LijstKaart>}

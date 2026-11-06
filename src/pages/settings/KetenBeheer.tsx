@@ -5,10 +5,16 @@ import { MethodesTab } from '@/components/keten/MethodesTab';
 import { LeveranciersTab } from '@/components/keten/LeveranciersTab';
 import { LeverdagenTab } from '@/components/keten/LeverdagenTab';
 import { ArtikelLocatiesTab } from '@/components/keten/ArtikelLocatiesTab';
+import { InterneProductenBeheer } from '@/components/keten/InterneProductenBeheer';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useUserLocation } from '@/contexts/UserLocationContext';
+import { useFase2VlagAan } from '@/hooks/useOntvangstV2';
+import { INTERNE_LEVERING_V2 } from '@/lib/interneLeveringV2';
 
 export default function KetenBeheer() {
   const isMobile = useIsMobile();
+  const { userLocation } = useUserLocation();
+  const internV2 = useFase2VlagAan(userLocation, INTERNE_LEVERING_V2);
   return (
     <SidebarLayout>
       <div className={isMobile ? 'page-stack min-w-0 max-w-full [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:min-h-11 [&_input]:min-w-0 [&_input]:text-base [&_.overflow-x-auto]:min-w-0 [&_.overflow-x-auto]:max-w-full [&_table]:min-w-[52rem] [&_tr>th:first-child]:sticky [&_tr>th:first-child]:left-0 [&_tr>th:first-child]:z-10 [&_tr>th:first-child]:bg-card [&_tr>td:first-child]:sticky [&_tr>td:first-child]:left-0 [&_tr>td:first-child]:z-10 [&_tr>td:first-child]:bg-card [&_tr>td:first-child]:max-w-48 [&_tr>td:first-child]:break-words [&_.flex-1]:min-w-0 [&_.justify-between]:flex-wrap [&_.justify-between]:gap-2' : 'page-stack'}>
@@ -24,6 +30,7 @@ export default function KetenBeheer() {
             <TabsTrigger value="leverdagen">Interne leverdagen</TabsTrigger>
             <TabsTrigger value="methodes">Methodes</TabsTrigger>
             <TabsTrigger value="fixlijst">Fixlijst</TabsTrigger>
+            {internV2 && <TabsTrigger value="intern">Intern beschikbaar</TabsTrigger>}
           </TabsList>
           </div>
 
@@ -32,6 +39,7 @@ export default function KetenBeheer() {
           <TabsContent value="leverdagen" className="mt-4"><LeverdagenTab /></TabsContent>
           <TabsContent value="methodes" className="mt-4"><MethodesTab /></TabsContent>
           <TabsContent value="fixlijst" className="mt-4"><FixlijstTab /></TabsContent>
+          {internV2 && userLocation && <TabsContent value="intern" className="mt-4"><InterneProductenBeheer vestiging={userLocation} /></TabsContent>}
         </Tabs>
       </div>
     </SidebarLayout>
