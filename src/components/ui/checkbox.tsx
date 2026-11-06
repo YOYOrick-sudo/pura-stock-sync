@@ -1,5 +1,6 @@
 import * as React from "react";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
+import { Check } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -10,13 +11,14 @@ const Checkbox = React.forwardRef<
   <CheckboxPrimitive.Root
     ref={ref}
     className={cn(
-      "peer h-5 w-5 shrink-0 rounded-full border-2 border-input ring-offset-background data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors",
+      "peer flex h-5 w-5 shrink-0 items-center justify-center rounded-polar-sm border border-input bg-background ring-offset-background data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors",
       className,
     )}
     {...props}
   >
-    {/* Volledig gevulde cirkel - geen binnenste indicator nodig */}
-    <CheckboxPrimitive.Indicator className={cn("flex items-center justify-center")} />
+    <CheckboxPrimitive.Indicator className="flex items-center justify-center">
+      <Check className="h-3 w-3" />
+    </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>
 ));
 Checkbox.displayName = CheckboxPrimitive.Root.displayName;
