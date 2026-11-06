@@ -31,7 +31,7 @@ const TabsTrigger = React.forwardRef<
       // Inactive states
       "text-muted-foreground hover:text-foreground hover:bg-muted",
       // Active states - brand accent
-      "data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-primary/20",
+      "data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
       // Focus
       "ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
       "disabled:pointer-events-none disabled:opacity-50",
