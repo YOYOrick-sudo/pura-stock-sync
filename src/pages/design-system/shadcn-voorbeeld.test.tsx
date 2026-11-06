@@ -33,12 +33,13 @@ describe('shadcn-voorbeeld', () => {
     expect(html.match(/bg-primary text-primary-foreground/g)?.length).toBe(1);
   });
 
-  test('het voorstel staat niet op :root', () => {
+  test('de v3-tokens staan op :root', () => {
     const css = readFileSync(fileURLToPath(new URL('../../index.css', import.meta.url)), 'utf8');
     const root = css.slice(css.indexOf(':root {'), css.indexOf('.dark {'));
-    expect(root).toContain('--background: 45 8% 95%');
-    expect(root).not.toContain(PURA_THEME_V3);
-    expect(css).toContain(`.${PURA_THEME_V3} {`);
-    expect(css).toContain('--background: 0 0% 100%');
+    expect(root).toContain('--background: 0 0% 100%');
+    expect(root).toContain('--primary: 163 65% 26%');
+    expect(root).toContain('--radius: 0.75rem');
+    expect(root).not.toContain('45 8% 95%');
+    expect(css).toContain(`.${PURA_THEME_V3}`);
   });
 });

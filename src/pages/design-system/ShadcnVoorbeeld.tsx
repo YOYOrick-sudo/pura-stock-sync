@@ -339,8 +339,8 @@ export function ShadcnVergelijking({ toon = 'beide', tokens = false }: { toon?: 
   return (
     <div className="space-y-4">
       <div className={`grid items-start gap-4 ${toon === 'beide' ? 'xl:grid-cols-2' : ''}`}>
-        {toon !== 'nieuw' && <Kolom label="Huidig" id="huidig" kader={toon === 'beide'} />}
-        {toon !== 'huidig' && <Kolom label="Voorstel" thema id="nieuw" kader={toon === 'beide'} />}
+        {toon !== 'nieuw' && <Kolom label="Oude opbouw" id="huidig" kader={toon === 'beide'} />}
+        {toon !== 'huidig' && <Kolom label="Nieuwe opbouw" thema id="nieuw" kader={toon === 'beide'} />}
       </div>
       {tokens && (
         <div className="space-y-2">

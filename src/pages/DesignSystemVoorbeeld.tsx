@@ -21,7 +21,7 @@ export default function DesignSystemVoorbeeld() {
         </div>
       </header>
       <main className={`mx-auto space-y-6 px-4 py-6 lg:px-6 ${alleenNieuw ? 'max-w-[1040px]' : 'max-w-[1200px]'}`}>
-        {alleenNieuw ? null : <p className="text-sm text-muted-foreground">Huidig thema naast het voorstel. Het voorstel staat alleen in .{PURA_THEME_V3}.</p>}
+        {alleenNieuw ? null : <p className="text-sm text-muted-foreground">De tokens staan app-breed. Links de oude opbouw, rechts de nieuwe.</p>}
         <ShadcnVergelijking toon={toon} tokens />
       </main>
     </div>
