@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Clock, Send } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Clock, CheckCircle2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useMaintenanceTicket, useUpdateTicketStatus } from '@/hooks/maintenance/useMaintenanceTickets';
@@ -32,11 +32,11 @@ const prioriteitConfig: Record<
 
 const statusConfig: Record<
   TicketStatus,
-  { tone: StatusTone; label: string }
+  { tone: StatusTone; label: string; icon: typeof AlertTriangle }
 > = {
-  nieuw: { tone: 'danger', label: 'Nieuw' },
-  in_behandeling: { tone: 'warning', label: 'In behandeling' },
-  afgehandeld: { tone: 'success', label: 'Afgehandeld' },
+  nieuw: { tone: 'danger', label: 'Nieuw', icon: AlertTriangle },
+  in_behandeling: { tone: 'warning', label: 'In behandeling', icon: Clock },
+  afgehandeld: { tone: 'success', label: 'Afgehandeld', icon: CheckCircle2 },
 };
 
 const statusFlow: TicketStatus[] = ['nieuw', 'in_behandeling', 'afgehandeld'];
