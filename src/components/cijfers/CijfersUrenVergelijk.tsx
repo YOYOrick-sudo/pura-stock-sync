@@ -5,7 +5,8 @@ import {
 } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LegeStaatBlok } from '@/components/pura/canoniek';
+import { EmptyState } from '@/components/pura/EmptyState';
+import { Clock } from 'lucide-react';
 import { vestigingenVan, type Periode, type VestKeuze } from './types';
 
 interface Props { periode: Periode; vestigingKeuze: VestKeuze; van: string; tot: string }
@@ -94,7 +95,7 @@ export function CijfersUrenVergelijk({ vestigingKeuze, van, tot }: Props) {
       {q.isLoading ? (
         <Skeleton className="h-[240px] w-full" />
       ) : data.length === 0 ? (
-        <LegeStaatBlok tekst="Geen data Nog geen uren gesynct voor deze periode." />
+        <EmptyState icon={Clock} title="Geen data" description="Nog geen uren gesynct voor deze periode." />
       ) : (
         <div style={{ width: '100%', height: 260 }}>
           <ResponsiveContainer width="100%" height="100%">

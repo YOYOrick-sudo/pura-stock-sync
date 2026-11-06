@@ -29,7 +29,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { segmentTabsKlasse } from '@/components/pura/patronen';
 import { RijMenu } from '@/components/pura/lijst';
-import { LegeStaatBlok } from '@/components/pura/canoniek';
+import { EmptyState } from '@/components/kitchen/EmptyState';
 import { MepTaakToevoegen } from '@/components/kitchen/MepTaakToevoegen';
 import { MepAfrondDialog } from '@/components/kitchen/MepAfrondDialog';
 import { MepTaakBewerken } from '@/components/kitchen/MepTaakBewerken';
@@ -423,7 +423,11 @@ export default function MepDag() {
         {isLoading ? (
           <p className="py-10 text-center text-sm text-muted-foreground">Laden…</p>
         ) : taken.length === 0 ? (
-          <LegeStaatBlok tekst="Nog geen MEP voor deze dag Gebruik het zoekveld hierboven om halffabricaten of vrije taken toe te voegen." />
+          <EmptyState
+            icon={Plus}
+            title="Nog geen MEP voor deze dag"
+            description="Gebruik het zoekveld hierboven om halffabricaten of vrije taken toe te voegen."
+          />
         ) : (
           <DndContext
             sensors={sensors}

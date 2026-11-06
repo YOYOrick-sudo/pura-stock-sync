@@ -5,7 +5,8 @@ import {
 } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LegeStaatBlok } from '@/components/pura/canoniek';
+import { EmptyState } from '@/components/pura/EmptyState';
+import { TrendingUp } from 'lucide-react';
 import { vestigingenVan, type Periode, type VestKeuze } from './types';
 import { EUR0, EUR2, axisEUR } from './chartHelpers';
 
@@ -122,7 +123,7 @@ export function CijfersLoonkostenGrafiek({ vestigingKeuze, van, tot }: Props) {
       {q.isLoading ? (
         <Skeleton className="h-[280px] w-full" />
       ) : data.length === 0 ? (
-        <LegeStaatBlok tekst="Geen data Nog geen uren- of omzetdata voor deze periode." />
+        <EmptyState icon={TrendingUp} title="Geen data" description="Nog geen uren- of omzetdata voor deze periode." />
       ) : (
         <div style={{ width: '100%', height: 300 }}>
           <ResponsiveContainer width="100%" height="100%">
