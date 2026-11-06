@@ -9,7 +9,6 @@ import { TableBody, TableCell, TableRow } from '@/components/ui/table';
 import type { ArtikelVorm, BestelSignaal } from '@/hooks/useBestelbord';
 import type { PrijsSignaal } from '@/lib/prijsSignaal';
 import { PrijsPijl } from '@/components/kitchen/PrijsPijl';
-import { GroepRij } from '@/components/pura/patronen';
 import { RijMenu, RijMeta } from '@/components/pura/lijst';
 import { CompacteTabel } from './CompacteTabel';
 import { euro, perLeverancier } from './presentatie';
@@ -18,6 +17,21 @@ import { RegelInfo } from './RegelInfo';
 import type { BordRegelInfo } from '@/hooks/useBestelbord';
 import type { OntvangstRestant } from '@/hooks/useOntvangstV2';
 import { restWaarschuwing } from '@/lib/ontvangstV2';
+import { cn } from '@/lib/utils';
+
+/** Aantal rechts in een vast spoor, eenheid links in een spoor zo breed als 'zakken'. */
+const aantalSpoor = 'ml-auto inline-grid grid-cols-[4ch_8ch] items-center gap-1 text-xs';
+
+function AantalCel({ aantal, eenheid }: { aantal: number; eenheid: string | null }) {
+  return (
+    <TableCell className="!px-0 whitespace-nowrap">
+      <span className={aantalSpoor}>
+        <span className="rounded-full bg-muted px-0.5 text-right text-sm font-semibold tabular-nums">{aantal}</span>
+        <span className="truncate text-left text-xs text-muted-foreground">{eenheid ? eenheidVorm(aantal, eenheid) : ''}</span>
+      </span>
+    </TableCell>
+  );
+}
 
 export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal, prijsTip, onBesteld, onBewerk, onVervallen, geleverd = false, onTerug, detail, restStatus, artikelRest, alleenLezen = false, plat = false, toonMaakArtikel, onMaakArtikel }: {
   regels: BestelSignaal[]; leverancier: (s: BestelSignaal) => string;
@@ -35,8 +49,21 @@ export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsV
 }) {
   return <CompacteTabel zonderKop vinkKop={geleverd ? undefined : 'Besteld'} kinderen={<TableBody>{perLeverancier(regels, leverancier).map(([lev, rs]) => {
     const prijzen = rs.map(prijsVan).filter((p) => p != null);
+    const subtotaal = prijzen.length ? euro(prijzen.reduce((n, p) => n + p.totaal, 0)) : null;
+    const gedimd = lev === 'Leverancier onbekend';
     return <Fragment key={lev}>
-      {!plat && <GroepRij kolommen={5} naam={geleverd ? lev : <DeadlineNaam naam={lev} hint={rs[0] ? deadlineHint(rs[0]) : null} />} aantal={rs.length} totaal={prijzen.length ? euro(prijzen.reduce((n, p) => n + p.totaal, 0)) : undefined} gedimd={lev === 'Leverancier onbekend'} actie={<span className="w-8" aria-hidden />} />}
+      {!plat && <TableRow className="bg-muted/50 hover:bg-muted/50">
+        <TableCell className="!px-0" />
+        <TableCell className="py-0">
+          <div className={cn('flex min-h-10 flex-col justify-center text-sm', gedimd ? 'text-muted-foreground' : 'text-foreground')}>
+            <span className="flex min-w-0 items-baseline gap-2"><span className="truncate font-semibold">{geleverd ? lev : <DeadlineNaam naam={lev} hint={rs[0] ? deadlineHint(rs[0]) : null} />}</span><span className="shrink-0 tabular-nums font-normal text-muted-foreground">{rs.length}</span></span>
+            {subtotaal != null && <span className="text-xs font-medium tabular-nums sm:hidden">{subtotaal}</span>}
+          </div>
+        </TableCell>
+        <TableCell className="py-0" />
+        <TableCell className="!px-0 py-0 text-right sm:!px-2">{subtotaal != null && <div className="hidden font-medium tabular-nums sm:block">{subtotaal}</div>}</TableCell>
+        <TableCell className="py-0" />
+      </TableRow>}
       {rs.map((s) => {
         const prijs = prijsVan(s);
         const info = geleverd ? detail?.(s) : '';
@@ -50,7 +77,7 @@ export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsV
             {info ? <RijMeta altijd>{info}</RijMeta> : <RijMeta>{prijs ? euro(prijs.totaal) : '—'}</RijMeta>}
             {!geleverd && !alleenLezen && onMaakArtikel && toonMaakArtikel?.(s) && <div className="mt-1"><Button type="button" variant="outline" size="touch" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onMaakArtikel(s); }}>Maak artikel</Button></div>}
           </div></TableCell>
-          <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex min-h-6 items-center justify-end gap-2"><span className="inline-flex items-center rounded-full bg-muted px-2 text-sm font-semibold">{Number(s.aantal)}</span>{s.eenheid && <span className="text-xs text-muted-foreground">{eenheidVorm(Number(s.aantal), s.eenheid)}</span>}</span></TableCell>
+          <AantalCel aantal={Number(s.aantal)} eenheid={s.eenheid} />
           <TableCell className="!px-0 text-right sm:!px-2" onClick={(e) => e.stopPropagation()}><div className="hidden sm:block">{prijs ? <Tooltip><TooltipTrigger asChild><span className="inline-flex h-11 items-center justify-end gap-2 tabular-nums" tabIndex={0}><PrijsPijl signaal={prijsSignaal(s)} eenheid={s.eenheid} alleenDuurder />{euro(prijs.totaal)}</span></TooltipTrigger><TooltipContent>{prijsTip(prijs.vorm)}</TooltipContent></Tooltip> : <span className="text-muted-foreground">—</span>}</div></TableCell>
           <TableCell className="!px-0" onClick={(e) => e.stopPropagation()}>{!alleenLezen && <RijMenu naam={s.naam} acties={geleverd ? [{ label: 'Terug naar onderweg', onClick: () => onTerug?.(s) }] : [{ label: 'Bewerken', onClick: () => onBewerk(s) }, { label: 'Vervallen', onClick: () => onVervallen(s), gevaar: true }]} />}</TableCell>
         </TableRow>;
