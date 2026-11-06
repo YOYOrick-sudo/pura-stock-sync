@@ -1,29 +1,36 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Check, ChefHat, Loader2, PackageX, RotateCcw, WifiOff } from 'lucide-react';
 import { SectieBalk } from './SectieBalk';
-import { FalafelAanvulRij } from './FalafelAanvulRij';
+import { KetenLijstRij } from './KetenLijstRij';
 import { TaakBewerkKnop } from './TaakBewerkKnop';
 import { TaakVervolgPaneel } from './TaakVervolgPaneel';
-import { VriezerNaarKoelcelRij } from './VriezerNaarKoelcelRij';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useCreateStickerPrintJob } from '@/hooks/useStickerProducten';
+import { useFase2VlagAan } from '@/hooks/useOntvangstV2';
+import { useInterneV2Producten } from '@/hooks/useInterneLeveringV2';
 import {
   aanvulketenAan,
-  heeftVriezerNaarKoelcel,
   hoeveelheidTekst,
-  isFalafelVoorbeeld,
   koelcelRegelVoor,
-  leesVriezerStappen,
   ontdooiStickerOpdracht,
   vriezerNaarKoelcelAantal,
   vriezerNaarKoelcelEenheid,
-  vriezerNaarKoelcelTitel,
-  vriezerStapSleutel,
-  type VriezerStapStand,
 } from '@/lib/aanvulketen';
+import {
+  ketenSessieSleutel,
+  ketenUitleg,
+  ketenVoor,
+  leesKetenSessie,
+  lijstKnop,
+  planKeten,
+  stapTitel,
+  type Eindactie,
+  type KetenSessie,
+} from '@/lib/keten';
+import { INTERNE_LEVERING_V2 } from '@/lib/interneLeveringV2';
 import { vraagtKoelcelBevestiging } from '@/lib/koelcelBevestiging';
 import { isPreviewHost } from '@/lib/pwa';
 import { cn } from '@/lib/utils';
@@ -43,12 +50,10 @@ import { useIsEigenaar } from '@/hooks/useIsEigenaar';
 import { useInterneProducten } from '@/hooks/useInterneLevering';
 import { useTaakVervolg } from '@/hooks/useTaakVervolg';
 import {
-  configVoorTaak,
   interneProductVoor,
   taakSleutelVan,
   VervolgFout,
-  type VervolgActie,
-  type VervolgInvoer,
+  type KetenInvoer,
 } from '@/lib/taakVervolg';
 import { VulPeil } from './VulPeil';
 
@@ -86,51 +91,65 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
   const { data: lades = [] } = useVoorraadLades(vestiging);
   const { data: checksLijst = [] } = useKoelcelChecks(vestiging, datum);
   const kalender = useMepKalender(vestiging);
-  const { zetStatus, naarMepDirect, bronOp, ontdooiDirect, bestelUitSluitlijst } = useKoelcelCheckMutaties(vestiging, datum, items);
+  const { zetStatus, naarMepDirect, bronOp } = useKoelcelCheckMutaties(vestiging, datum, items);
   const [zoekparams] = useSearchParams();
-  const ketenAan = aanvulketenAan({
+  const previewHost = typeof window !== 'undefined' && isPreviewHost(window.location.hostname);
+  const schrijfKeten = aanvulketenAan({
     vestiging,
     env: (import.meta.env as { VITE_SLUIT_AANVULKETEN?: string }).VITE_SLUIT_AANVULKETEN,
     search: zoekparams.toString(),
-    previewHost: typeof window !== 'undefined' && isPreviewHost(window.location.hostname),
+    previewHost,
   });
+  // Op een preview-host zijn de stappen zichtbaar zonder de schakelaar.
+  // Aanmaken (MEP, bestelbord, intern, sticker) blijft achter schrijfKeten.
+  const toonKeten = schrijfKeten || previewHost;
   const eigenaar = useIsEigenaar();
   // Potlood en paneel voor de eigenaar, ook zonder ?aanvulketen=1.
   const toonInstellen = eigenaar;
+  const leesKeten = schrijfKeten || toonInstellen || toonKeten;
   // Lezen voor het paneel. De vlag zet alleen de query aan; opslaan niet.
-  const vervolg = useTaakVervolg(vestiging, datum, ketenAan || toonInstellen);
-  const internProducten = useInterneProducten((ketenAan || toonInstellen) ? vestiging : null);
+  const vervolg = useTaakVervolg(vestiging, datum, leesKeten);
+  const internProducten = useInterneProducten(leesKeten ? vestiging : null);
+  const internV2 = useInterneV2Producten(leesKeten ? vestiging : null);
+  const v2Aan = useFase2VlagAan(vestiging, INTERNE_LEVERING_V2);
+  const internLijst = useMemo(() => {
+    const map = new Map<string, { product_id: string; naam: string }>();
+    for (const product of [...(internProducten.data ?? []), ...(internV2.data ?? [])]) {
+      if (product?.product_id && product.naam) map.set(product.product_id, { product_id: product.product_id, naam: product.naam });
+    }
+    return [...map.values()];
+  }, [internProducten.data, internV2.data]);
   const [paneelItem, setPaneelItem] = useState<KoelcelCheckItem | null>(null);
   const printSticker = useCreateStickerPrintJob();
-  const [vriezerStappen, setVriezerStappen] = useState<Record<string, VriezerStapStand>>(() => {
+  const [sessie, setSessie] = useState<Record<string, KetenSessie>>(() => {
     if (typeof sessionStorage === 'undefined') return {};
     try {
-      return leesVriezerStappen(sessionStorage.getItem(vriezerStapSleutel(vestiging, datum)));
+      return leesKetenSessie(sessionStorage.getItem(ketenSessieSleutel(vestiging, datum)));
     } catch {
       return {};
     }
   });
-  const stappenRef = useRef(vriezerStappen);
-  stappenRef.current = vriezerStappen;
+  const stappenRef = useRef(sessie);
+  stappenRef.current = sessie;
 
   useEffect(() => {
     try {
-      const gelezen = leesVriezerStappen(sessionStorage.getItem(vriezerStapSleutel(vestiging, datum)));
+      const gelezen = leesKetenSessie(sessionStorage.getItem(ketenSessieSleutel(vestiging, datum)));
       stappenRef.current = gelezen;
-      setVriezerStappen(gelezen);
+      setSessie(gelezen);
     } catch {
       /* stil */
     }
   }, [vestiging, datum]);
 
-  const bewaarVriezerStap = (id: string, stand: VriezerStapStand | null) => {
+  const bewaarSessie = (id: string, stand: KetenSessie | null) => {
     const next = { ...stappenRef.current };
     if (stand) next[id] = stand;
     else delete next[id];
     stappenRef.current = next;
-    setVriezerStappen(next);
+    setSessie(next);
     try {
-      sessionStorage.setItem(vriezerStapSleutel(vestiging, datum), JSON.stringify(next));
+      sessionStorage.setItem(ketenSessieSleutel(vestiging, datum), JSON.stringify(next));
     } catch {
       /* stil */
     }
@@ -195,7 +214,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
         delete n[id];
         return n;
       });
-    } catch (e: any) {
+    } catch (e: unknown) {
       setMislukt((m) => ({ ...m, [id]: opnieuw }));
       toast.error(e instanceof VervolgFout ? e.message : 'Niet opgeslagen. Controleer de wifi en probeer opnieuw.');
     } finally {
@@ -207,71 +226,50 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
     }
   };
 
-  // Uitvoeren blijft achter de schakelaar. Zonder keten is afvinken een gewoon vinkje:
-  // de stap uit vriezer naar koelcel (en de andere vervolgacties) verschijnt dan niet.
-  const configVan = (item: KoelcelCheckItem) =>
-    ketenAan ? configVoorTaak(item, vestiging, vervolg.rijen) : null;
+  const ketenVan = (item: KoelcelCheckItem) =>
+    ketenVoor(item, items, vestiging, vervolg.rijen, internLijst);
 
-  const instellingVan = (item: KoelcelCheckItem): VervolgInvoer => {
-    const cfg = configVoorTaak(item, vestiging, vervolg.rijen);
+  const instellingVan = (item: KoelcelCheckItem): KetenInvoer => {
+    const keten = ketenVan(item);
     return {
-      instructie: cfg?.instructie ?? '',
-      vervolgactie: cfg?.vervolgactie ?? 'geen',
-      vervolgAlsOp: cfg?.vervolgAlsOp ?? null,
+      instructie: keten.instructie,
+      stapKoelcel: keten.stappen.includes('koelcel'),
+      stapVriezer: keten.stappen.includes('vriezer'),
+      stapMagazijn: keten.stappen.includes('magazijn'),
+      eindactie: keten.eindactie,
+      komtUitMidsland: keten.komtUitMidsland,
     };
   };
 
-  const voerActie = async (item: KoelcelCheckItem, actie: VervolgActie) => {
+  const voerActie = async (item: KoelcelCheckItem, actie: Eindactie) => {
     if (actie === 'mep') {
       const r = await naarMepDirect.mutateAsync({ item, taakDatum });
       toast.success(r.dubbel ? `${item.naam} stond al op de MEP` : `${item.naam} staat op de MEP`);
       return;
     }
     if (actie === 'intern_midsland') {
-      const product = interneProductVoor(item, internProducten.data);
+      const product = interneProductVoor(item, internLijst);
       if (!product) throw new VervolgFout('Dit product staat niet in de interne producten.');
       try {
-        await vervolg.intern(item, product.product_id);
+        await vervolg.intern(item, product.product_id, v2Aan ? 'v2' : 'v1');
       } catch (e) {
         throw new VervolgFout(e instanceof Error && e.message ? e.message : 'Intern bestellen lukte niet.');
       }
       toast.success(`${item.naam} is intern bij Midsland besteld`);
       return;
     }
-    if (actie === 'bestelbord') {
-      try {
-        const r = await vervolg.bestelbord(item);
-        toast.success(r.dubbel ? `${item.naam} stond al op het bestelbord` : `${item.naam} staat op het bestelbord`);
-      } catch (e) {
-        throw new VervolgFout(e instanceof Error && e.message ? e.message : 'Het bestelbord is niet bijgewerkt.');
-      }
+    try {
+      const r = await vervolg.bestelbord(item);
+      toast.success(r.dubbel ? `${item.naam} stond al op het bestelbord` : `${item.naam} staat op het bestelbord`);
+    } catch (e) {
+      throw new VervolgFout(e instanceof Error && e.message ? e.message : 'Het bestelbord is niet bijgewerkt.');
     }
   };
 
-  const vink = (item: KoelcelCheckItem, metVervolg = true) => {
+  const vink = (item: KoelcelCheckItem) => {
     const uit = checks.has(item.id);
-    // typeof blijft veilig als een test alleen deze handler los uitvoert.
-    const cfg = metVervolg && typeof configVan === 'function' ? configVan(item) : null;
-    if (!uit && cfg?.vervolgactie === 'vriezer_naar_koelcel' && !isFalafelVoorbeeld(item)) {
-      if (vriezerStappen[item.id] !== 'open') bewaarVriezerStap(item.id, 'open');
-      return;
-    }
-    if (!uit && cfg && (cfg.vervolgactie === 'mep' || cfg.vervolgactie === 'bestelbord' || cfg.vervolgactie === 'intern_midsland')) {
-      metStatus(item.id, () => voerActie(item, cfg.vervolgactie), () => vink(item, true));
-      return;
-    }
-    metStatus(item.id, () => zetStatus.mutateAsync({ item, status: 'aanwezig', uit }), () => vink(item, metVervolg));
-  };
-
-  const nietBijTeVullen = (item: KoelcelCheckItem, actie: VervolgActie) => {
-    metStatus(
-      item.id,
-      async () => {
-        await voerActie(item, actie);
-        bewaarVriezerStap(item.id, null);
-      },
-      () => nietBijTeVullen(item, actie),
-    );
+    bewaarSessie(item.id, null);
+    metStatus(item.id, () => zetStatus.mutateAsync({ item, status: 'aanwezig', uit }), () => vink(item));
   };
 
   const mep = (item: KoelcelCheckItem) => {
@@ -285,46 +283,61 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
     );
   };
 
-  const ontdooi = (item: KoelcelCheckItem) => {
-    metStatus(
-      item.id,
-      async () => {
-        const r = await ontdooiDirect.mutateAsync({ item, taakDatum });
-        toast.success(r.dubbel ? `${item.naam} stond al op de ontdooilijst` : `Ontdooien gestart voor ${item.naam}`);
-      },
-      () => ontdooi(item),
+  // Eén tik, één plan. Schrijven alleen als schrijfKeten aan staat.
+  const opKeten = (item: KoelcelCheckItem, naam: string, gebeurtenis: 'op' | 'stap-af' | 'ook-op') => {
+    const keten = ketenVan(item);
+    const raw = stappenRef.current[item.id];
+    const check = checks.get(item.id);
+    const doorgezet = !!check && check.status !== 'aanwezig';
+    const openIndex = raw && !raw.af && !raw.voorbeeldEind && raw.index < keten.stappen.length ? raw.index : null;
+    const plan = planKeten(
+      keten,
+      gebeurtenis,
+      openIndex,
+      naam,
+      item.plek === 'werkblad' ? 'werkblad' : 'werkbank',
+      doorgezet || !!raw?.af || !!raw?.voorbeeldEind,
     );
-  };
-
-  const vinkUitVriezer = (item: KoelcelCheckItem, aantal: number, stickerNaam: string) => {
-    const uit = checks.has(item.id);
-    metStatus(
-      item.id,
-      async () => {
-        await zetStatus.mutateAsync({ item, status: 'aanwezig', uit });
-        if (!uit) {
+    if (plan.soort === 'niets') return;
+    if (plan.soort === 'open-stap') {
+      bewaarSessie(item.id, { index: plan.index, af: false });
+      return;
+    }
+    if (plan.soort === 'transfer') {
+      const index = openIndex ?? 0;
+      if (!schrijfKeten) {
+        bewaarSessie(item.id, { index, af: true });
+        return;
+      }
+      metStatus(item.id, async () => {
+        await zetStatus.mutateAsync({ item, status: 'aanwezig', uit: false });
+        if (plan.sticker) {
+          const koelcel = koelcelRegelVoor(item, items);
+          const hoeveel = vriezerNaarKoelcelAantal(item, koelcel);
           try {
-            await printSticker.mutateAsync(ontdooiStickerOpdracht(stickerNaam, aantal, new Date()));
-            toast.success(`Sticker "Ontdooid · ${stickerNaam}" wordt geprint`);
+            await printSticker.mutateAsync(ontdooiStickerOpdracht(naam, hoeveel.aantal, new Date()));
+            toast.success(`Sticker "Ontdooid · ${naam}" wordt geprint`);
           } catch (e) {
             const bericht = e instanceof Error ? e.message : 'onbekende fout';
             toast.error(`Stap opgeslagen. Sticker niet geprint: ${bericht}`);
           }
         }
-        bewaarVriezerStap(item.id, uit ? 'open' : 'af');
-      },
-      () => vinkUitVriezer(item, aantal, stickerNaam),
-    );
-  };
-
-  const bestelVoorbeeld = (item: KoelcelCheckItem) => {
+        bewaarSessie(item.id, { index, af: true });
+      }, () => opKeten(item, naam, gebeurtenis));
+      return;
+    }
+    if (!schrijfKeten) {
+      bewaarSessie(item.id, { index: openIndex ?? 0, af: false, voorbeeldEind: plan.actie });
+      toast.message('De aanvulketen staat uit. Er wordt niets aangemaakt.');
+      return;
+    }
     metStatus(
       item.id,
       async () => {
-        const r = await bestelUitSluitlijst.mutateAsync({ item });
-        toast.success(r.dubbel ? `${item.naam} stond al op het bestelbord` : `${item.naam} staat op het bestelbord`);
+        await voerActie(item, plan.actie);
+        bewaarSessie(item.id, null);
       },
-      () => bestelVoorbeeld(item),
+      () => opKeten(item, naam, gebeurtenis),
     );
   };
 
@@ -423,81 +436,58 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                       </span>
                     );
                     const naam = /flessen/i.test(g.titel) ? i.naam.replace(/\s*\(fles\)\s*$/i, '') : i.naam;
-                    const cfg = configVan(i);
-                    const instructie = cfg?.instructie ?? '';
                     const bewerk = toonInstellen ? () => setPaneelItem(i) : undefined;
-                    const internProduct = interneProductVoor(i, internProducten.data);
-                    const alsOpUitleg = cfg?.vervolgAlsOp === 'intern_midsland' && internProducten.isFetched && !internProduct
-                      ? 'Dit product staat niet bij de interne producten.'
-                      : null;
-                    if (ketenAan && isFalafelVoorbeeld(i)) {
-                      const stand = vriezerStappen[i.id];
-                      const keten = heeftVriezerNaarKoelcel(i, vervolg.rijen, vestiging);
-                      const koelcel = koelcelRegelVoor(i, items);
-                      const hoeveel = vriezerNaarKoelcelAantal(i, koelcel);
-                      const eenheid = vriezerNaarKoelcelEenheid(hoeveel.bron, i, koelcel);
-                      const toonStap = keten && (stand === 'open' || (stand === 'af' && !!afgevinkt));
+                    if (toonKeten) {
+                      const keten = ketenVan(i);
+                      const raw = sessie[i.id];
+                      const stapSoort = raw && !raw.voorbeeldEind && raw.index < keten.stappen.length ? keten.stappen[raw.index] : null;
+                      const stapOpen = !!raw && !raw.af && !raw.voorbeeldEind && !!stapSoort;
+                      const knop = raw?.af || raw?.voorbeeldEind ? null : lijstKnop(keten, stapOpen);
+                      const koelcel = stapSoort === 'vriezer' ? koelcelRegelVoor(i, items) : null;
+                      const hoeveel = stapSoort === 'vriezer' ? vriezerNaarKoelcelAantal(i, koelcel) : null;
+                      const eenheid = hoeveel ? vriezerNaarKoelcelEenheid(hoeveel.bron, i, koelcel) : null;
+                      const mepTint = keten.stappen.length === 0 && keten.eindactie === 'mep';
                       return (
-                        <Fragment key={i.id}>
-                          <FalafelAanvulRij
-                            naam={naam}
-                            vulnorm={i.vulnorm}
-                            eenheid={i.eenheid}
-                            doelAantal={i.doel_aantal}
-                            batchAantal={i.batch_aantal}
-                            afgevinkt={!!afgevinkt}
-                            doorgezet={!!doorgezet}
-                            doorgezetNaar={c?.doorgezet_naar}
-                            laden={laden}
-                            fout={stand === 'open' ? false : fout}
-                            koelcelGepakt={stand === 'open'}
-                            beginStap={stand === 'open' ? 'koelcel' : 'lade'}
-                            instructie={instructie}
-                            onBewerk={bewerk}
-                            onOpPeil={() => {
-                              bewaarVriezerStap(i.id, null);
-                              vink(i, false);
-                            }}
-                            onAangevuld={() => {
-                              if (keten) bewaarVriezerStap(i.id, 'open');
-                              else vink(i, true);
-                            }}
-                            onOntdooien={() => ontdooi(i)}
-                            onBestellen={() => bestelVoorbeeld(i)}
-                            onHerstel={() => {
-                              bewaarVriezerStap(i.id, null);
-                              metStatus(i.id, () => zetStatus.mutateAsync({ item: i, status: 'aanwezig', uit: true }), () => {});
-                            }}
-                            onVink={() => {
-                              if (stand === 'open') return;
-                              bewaarVriezerStap(i.id, null);
-                              vink(i, false);
-                            }}
-                            onTerugVanKoelcel={() => bewaarVriezerStap(i.id, null)}
-                          />
-                          {toonStap && (
-                            <VriezerNaarKoelcelRij
-                              titel={vriezerNaarKoelcelTitel(naam)}
-                              aantalTekst={hoeveelheidTekst(hoeveel.aantal, eenheid)}
-                              afgevinkt={stand === 'af' && !!afgevinkt}
-                              laden={laden}
-                              fout={stand === 'open' && fout}
-                              onVink={() => vinkUitVriezer(i, hoeveel.aantal, naam)}
-                              onNietBijTeVullen={cfg?.vervolgAlsOp && !alsOpUitleg ? () => nietBijTeVullen(i, cfg.vervolgAlsOp!) : undefined}
-                              nietBijTeVullenUitleg={cfg?.vervolgAlsOp ? alsOpUitleg : null}
-                            />
+                        <KetenLijstRij
+                          key={i.id}
+                          naam={naam}
+                          instructie={keten.instructie}
+                          afgevinkt={!!afgevinkt}
+                          doorgezet={!!doorgezet}
+                          laden={laden}
+                          fout={fout}
+                          knop={knop}
+                          voorbeeld={raw?.voorbeeldEind ? 'Voorbeeld. Er wordt niets op de MEP, het bestelbord of bij Midsland gezet.' : null}
+                          uitleg={doorgezet ? (UITKOMST[c!.doorgezet_naar ?? ''] ?? 'Gemeld') : (
+                            <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                              <span className="inline-flex items-center gap-2">
+                                <VulPeil procent={peilBlokjes(i.vulnorm)} label={aanvulTekst(i.vulnorm)} />
+                                <span className="text-[13px] font-medium text-foreground">{peilKort(i.vulnorm)}</span>
+                              </span>
+                              <span className="text-muted-foreground/60" aria-hidden>·</span>
+                              <span className={cn('text-[13px]', mepTint ? 'font-medium text-primary' : 'text-muted-foreground')}>
+                                {ketenUitleg(keten)}
+                              </span>
+                            </span>
                           )}
-                        </Fragment>
+                          stap={stapSoort ? {
+                            titel: stapTitel(naam, stapSoort, i.plek === 'werkblad' ? 'werkblad' : 'werkbank'),
+                            detail: hoeveel ? hoeveelheidTekst(hoeveel.aantal, eenheid) : null,
+                            afgevinkt: !!raw?.af,
+                            onAf: () => opKeten(i, naam, 'stap-af'),
+                            onOokOp: () => opKeten(i, naam, 'ook-op'),
+                          } : null}
+                          onAfvinken={() => vink(i)}
+                          onKnop={() => opKeten(i, naam, 'op')}
+                          onHerstel={() => {
+                            bewaarSessie(i.id, null);
+                            metStatus(i.id, () => zetStatus.mutateAsync({ item: i, status: 'aanwezig', uit: true }), () => {});
+                          }}
+                          onBewerk={bewerk}
+                        />
                       );
                     }
-                    const stand = vriezerStappen[i.id];
-                    const vriezerStap = !!cfg && cfg.vervolgactie === 'vriezer_naar_koelcel';
-                    const toonVriezer = vriezerStap && (stand === 'open' || (stand === 'af' && !!afgevinkt));
-                    const koelcel = vriezerStap ? koelcelRegelVoor(i, items) : null;
-                    const hoeveel = vriezerStap ? vriezerNaarKoelcelAantal(i, koelcel) : null;
-                    const eenheid = hoeveel ? vriezerNaarKoelcelEenheid(hoeveel.bron, i, koelcel) : null;
                     return (
-                      <Fragment key={i.id}>
                       <li
                         className={cn(
                           'flex items-center gap-1.5 rounded-[14px] border px-2 py-1 transition-colors sm:gap-3',
@@ -546,9 +536,6 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                               ? (UITKOMST[c!.doorgezet_naar ?? ''] ?? 'Gemeld')
                               : uitleg}
                           </div>
-                          {!!instructie.trim() && (
-                            <p className="mt-0.5 text-[13px] leading-snug text-foreground">{instructie.trim()}</p>
-                          )}
                         </div>
                         {bewerk && <TaakBewerkKnop naam={naam} onClick={bewerk} />}
                         {!afgevinkt && !doorgezet && (
@@ -587,19 +574,6 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                           </Button>
                         )}
                       </li>
-                      {toonVriezer && hoeveel && (
-                        <VriezerNaarKoelcelRij
-                          titel={vriezerNaarKoelcelTitel(naam)}
-                          aantalTekst={hoeveelheidTekst(hoeveel.aantal, eenheid)}
-                          afgevinkt={stand === 'af' && !!afgevinkt}
-                          laden={laden}
-                          fout={!!fout}
-                          onVink={() => vinkUitVriezer(i, hoeveel.aantal, naam)}
-                          onNietBijTeVullen={cfg?.vervolgAlsOp && !alsOpUitleg ? () => nietBijTeVullen(i, cfg.vervolgAlsOp!) : undefined}
-                          nietBijTeVullenUitleg={cfg?.vervolgAlsOp ? alsOpUitleg : null}
-                        />
-                      )}
-                      </Fragment>
                     );
                   })}
                 </ul>
@@ -637,14 +611,16 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
           open
           naam={paneelItem.naam}
           waarde={instellingVan(paneelItem)}
-          ketenAan={ketenAan}
-          internBeschikbaar={!!interneProductVoor(paneelItem, internProducten.data)}
-          internLaden={internProducten.isLoading}
+          midslandVast={ketenVan(paneelItem).midslandVast}
+          ketenAan={schrijfKeten}
+          internBeschikbaar={!!interneProductVoor(paneelItem, internLijst)}
+          internLaden={internProducten.isLoading || internV2.isLoading}
           opslaanBezig={vervolg.bewaar.isPending}
           onOpenChange={(open) => { if (!open) setPaneelItem(null); }}
           onOpslaan={(invoer) => {
             const item = paneelItem;
-            void vervolg.bewaar.mutateAsync({ taakSleutel: taakSleutelVan(item), invoer }).then(() => {
+            const vast = ketenVan(item).midslandVast;
+            void vervolg.bewaar.mutateAsync({ taakSleutel: taakSleutelVan(item), invoer, midslandVast: vast }).then(() => {
               toast.success(`Instelling voor ${item.naam} bewaard`);
               setPaneelItem(null);
             }).catch((e: unknown) => {

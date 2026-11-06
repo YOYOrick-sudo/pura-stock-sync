@@ -1,60 +1,69 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
+import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
-import { DRUK, STAP_MOTION } from './aanvulMotion';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { DRUK } from './aanvulMotion';
 import { cn } from '@/lib/utils';
 import {
-  VERVOLG_OPTIES,
-  normaliseerVervolg,
-  valideerVervolg,
-  type VervolgActie,
-  type VervolgInvoer,
-} from '@/lib/taakVervolg';
+  beschikbareEindacties,
+  eindLabel,
+  ketenSamenvatting,
+  normaliseerKeten,
+  valideerKeten,
+  type Eindactie,
+  type KetenInvoer,
+  type VoorraadStap,
+} from '@/lib/keten';
 
-const INTERN_UITLEG = 'Dit product staat niet bij de interne producten. Daarom kun je het niet bij Midsland bestellen.';
+const STAPPEN: readonly { id: VoorraadStap; label: string; veld: 'stapKoelcel' | 'stapVriezer' | 'stapMagazijn' }[] = [
+  { id: 'koelcel', label: 'Koelcel', veld: 'stapKoelcel' },
+  { id: 'vriezer', label: 'Vriezer', veld: 'stapVriezer' },
+  { id: 'magazijn', label: 'Magazijn', veld: 'stapMagazijn' },
+];
 
-function Keuze({
-  gekozen,
+function Chip({
+  actief,
   disabled,
   onClick,
   children,
 }: {
-  gekozen: boolean;
+  actief: boolean;
   disabled?: boolean;
   onClick: () => void;
-  children: ReactNode;
+  children: string;
 }) {
   return (
-    <Button
+    <button
       type="button"
-      variant="ghost"
-      aria-pressed={gekozen}
+      aria-pressed={actief}
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        'h-11 w-full justify-start rounded-polar px-3 text-left text-[13px] font-medium',
+        'min-h-11 rounded-polar border px-4 text-[14px] font-medium transition-colors disabled:opacity-50',
         DRUK,
-        gekozen
-          ? 'border border-primary/30 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary'
-          : 'border border-border bg-card text-foreground hover:bg-muted',
-        disabled && 'opacity-40',
+        actief
+          ? 'border-primary bg-primary text-primary-foreground'
+          : 'border-border bg-card text-foreground hover:bg-muted',
       )}
     >
       {children}
-    </Button>
+    </button>
   );
 }
 
 export function TaakVervolgFormulier({
   naam,
   waarde,
+  midslandVast,
   internBeschikbaar,
   internLaden,
   opslaanBezig,
@@ -62,35 +71,60 @@ export function TaakVervolgFormulier({
   onSluiten,
 }: {
   naam: string;
-  waarde: VervolgInvoer;
+  waarde: KetenInvoer;
+  midslandVast: boolean;
   internBeschikbaar: boolean;
   internLaden: boolean;
   opslaanBezig: boolean;
-  onOpslaan: (invoer: VervolgInvoer) => void;
+  onOpslaan: (invoer: KetenInvoer) => void;
   onSluiten: () => void;
 }) {
   const [instructie, setInstructie] = useState(waarde.instructie);
-  const [vervolgactie, setVervolgactie] = useState<VervolgActie>(waarde.vervolgactie);
-  const [vervolgAlsOp, setVervolgAlsOp] = useState<VervolgActie | null>(waarde.vervolgAlsOp);
+  const [stapKoelcel, setStapKoelcel] = useState(waarde.stapKoelcel);
+  const [stapVriezer, setStapVriezer] = useState(waarde.stapVriezer);
+  const [stapMagazijn, setStapMagazijn] = useState(waarde.stapMagazijn);
+  const [eindactie, setEindactie] = useState<Eindactie>(waarde.eindactie);
+  const [komtUitMidsland, setKomtUitMidsland] = useState(waarde.komtUitMidsland || midslandVast);
   const [fout, setFout] = useState<string | null>(null);
 
   useEffect(() => {
     setInstructie(waarde.instructie);
-    setVervolgactie(waarde.vervolgactie);
-    setVervolgAlsOp(waarde.vervolgAlsOp);
+    setStapKoelcel(waarde.stapKoelcel);
+    setStapVriezer(waarde.stapVriezer);
+    setStapMagazijn(waarde.stapMagazijn);
+    setEindactie(waarde.eindactie);
+    setKomtUitMidsland(waarde.komtUitMidsland || midslandVast);
     setFout(null);
-  }, [naam, waarde.instructie, waarde.vervolgactie, waarde.vervolgAlsOp]);
+  }, [
+    naam,
+    waarde.instructie,
+    waarde.stapKoelcel,
+    waarde.stapVriezer,
+    waarde.stapMagazijn,
+    waarde.eindactie,
+    waarde.komtUitMidsland,
+    midslandVast,
+  ]);
 
-  const internUit = internLaden || !internBeschikbaar;
-  const kies = (actie: VervolgActie) => {
-    if (actie === 'intern_midsland' && internUit) return;
-    setVervolgactie(actie);
-    if (actie === 'geen' || vervolgAlsOp === actie) setVervolgAlsOp(null);
+  const vlaggen = { stapKoelcel, stapVriezer, stapMagazijn };
+  const zetStap = (veld: keyof typeof vlaggen, aan: boolean) => {
+    if (veld === 'stapKoelcel') setStapKoelcel(aan);
+    if (veld === 'stapVriezer') setStapVriezer(aan);
+    if (veld === 'stapMagazijn') setStapMagazijn(aan);
   };
+  const stappen = STAPPEN.filter((stap) => vlaggen[stap.veld]).map((stap) => stap.id);
+  const midsland = midslandVast || komtUitMidsland;
 
   const bewaar = () => {
-    const invoer = normaliseerVervolg({ instructie, vervolgactie, vervolgAlsOp });
-    const melding = valideerVervolg(invoer, { internBeschikbaar: !internUit });
+    const invoer = normaliseerKeten({
+      instructie,
+      stapKoelcel,
+      stapVriezer,
+      stapMagazijn,
+      eindactie,
+      komtUitMidsland: midsland,
+    }, { midslandVast });
+    const melding = valideerKeten(invoer);
     if (melding) {
       setFout(melding);
       return;
@@ -100,10 +134,11 @@ export function TaakVervolgFormulier({
   };
 
   return (
-    <div className={cn('flex flex-col gap-4', STAP_MOTION)}>
-      <label className="flex flex-col gap-1.5 text-[13px] font-medium text-foreground">
-        Instructie
+    <div className="flex flex-col gap-4">
+      <div className="space-y-2">
+        <Label htmlFor="taak-instructie">Instructie</Label>
         <Textarea
+          id="taak-instructie"
           value={instructie}
           onChange={(event) => setInstructie(event.target.value)}
           placeholder="Korte tekst onder de taak"
@@ -111,52 +146,89 @@ export function TaakVervolgFormulier({
           className="min-h-11 text-[16px]"
           aria-label={`Instructie voor ${naam}`}
         />
-      </label>
-      <fieldset className="flex flex-col gap-1.5">
-        <legend className="mb-1 text-[13px] font-medium text-foreground">Na het afvinken</legend>
-        {VERVOLG_OPTIES.map((optie) => {
-          const uit = optie.id === 'intern_midsland' && internUit;
-          return (
-            <Keuze key={optie.id} gekozen={vervolgactie === optie.id} disabled={uit} onClick={() => kies(optie.id)}>
-              {optie.label}
-            </Keuze>
-          );
-        })}
-        {internUit && (
-          <p className="text-[13px] leading-snug text-muted-foreground">
-            {internLaden ? 'Even kijken of dit intern besteld kan worden.' : INTERN_UITLEG}
-          </p>
-        )}
+      </div>
+
+      <div className="rounded-polar border border-border bg-card px-3 py-2">
+        <button
+          type="button"
+          aria-pressed={midsland}
+          disabled={midslandVast}
+          onClick={() => {
+            if (midslandVast) return;
+            setKomtUitMidsland((aan) => {
+              const volgend = !aan;
+              if (!volgend) setEindactie((huidig) => huidig === 'intern_midsland' ? 'bestelbord' : huidig);
+              return volgend;
+            });
+          }}
+          className="flex min-h-11 w-full items-center gap-3 text-left disabled:opacity-100"
+        >
+          <span
+            className={cn(
+              'flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-polar-sm border-2 bg-background',
+              midsland ? 'border-primary bg-primary/15 text-primary' : 'border-border',
+            )}
+          >
+            {midsland ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : null}
+          </span>
+          <span className="text-[16px] font-medium text-foreground">Komt uit Midsland</span>
+        </button>
+        <p className="pb-1 pl-[38px] text-[13px] leading-snug text-muted-foreground">
+          {midslandVast
+            ? 'Dit product staat bij de interne producten. De eindactie is intern bestellen bij Midsland.'
+            : midsland
+              ? internLaden
+                ? 'Even kijken of dit intern besteld kan worden.'
+                : internBeschikbaar
+                  ? 'De eindactie is intern bestellen bij Midsland.'
+                  : 'De eindactie is intern bestellen bij Midsland. Bestellen lukt pas als het product bij de interne producten staat.'
+              : 'Staat dit uit, dan kies je hieronder Naar MEP of bijbestellen.'}
+        </p>
+      </div>
+
+      <fieldset className="space-y-2">
+        <legend className="text-[13px] font-medium text-foreground">Voorraadstappen</legend>
+        <p className="text-[13px] leading-snug text-muted-foreground">
+          Altijd in deze volgorde. Alleen de stappen die aan staan komen op de lijst.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {STAPPEN.map((stap) => (
+            <Chip
+              key={stap.id}
+              actief={vlaggen[stap.veld]}
+              onClick={() => zetStap(stap.veld, !vlaggen[stap.veld])}
+            >
+              {stap.label}
+            </Chip>
+          ))}
+        </div>
       </fieldset>
-      {vervolgactie !== 'geen' && (
-        <fieldset className={cn('flex flex-col gap-1.5', STAP_MOTION)}>
-          <legend className="mb-1 text-[13px] font-medium text-foreground">Als het niet bij te vullen is</legend>
-          <p className="text-[13px] leading-snug text-muted-foreground">Bijvoorbeeld als de vriezer leeg is.</p>
-          <Keuze gekozen={vervolgAlsOp == null} onClick={() => setVervolgAlsOp(null)}>Geen</Keuze>
-          {VERVOLG_OPTIES.filter((optie) => optie.id !== 'geen' && optie.id !== vervolgactie).map((optie) => {
-            const uit = optie.id === 'intern_midsland' && internUit;
-            return (
-              <Keuze
-                key={optie.id}
-                gekozen={vervolgAlsOp === optie.id}
-                disabled={uit}
-                onClick={() => { if (!uit) setVervolgAlsOp(optie.id); }}
-              >
-                {optie.label}
-              </Keuze>
-            );
-          })}
+
+      {!midsland && (
+        <fieldset className="space-y-2">
+          <legend className="text-[13px] font-medium text-foreground">Eindactie</legend>
+          <div className="flex flex-wrap gap-2">
+            {beschikbareEindacties(false).map((actie) => (
+              <Chip key={actie} actief={eindactie === actie} onClick={() => setEindactie(actie)}>
+                {eindLabel(actie)}
+              </Chip>
+            ))}
+          </div>
         </fieldset>
       )}
+
+      <p className="text-[13px] leading-snug text-muted-foreground">
+        {ketenSamenvatting(stappen, midsland ? 'intern_midsland' : (eindactie === 'intern_midsland' ? 'bestelbord' : eindactie))}
+      </p>
       {fout && <p className="text-[13px] text-destructive">{fout}</p>}
-      <div className="flex gap-2">
-        <Button type="button" variant="ghost" className={cn('h-11 flex-1', DRUK)} onClick={onSluiten} disabled={opslaanBezig}>
+      <DialogFooter className="gap-2 sm:gap-2">
+        <Button type="button" variant="ghost" className={cn('h-11', DRUK)} onClick={onSluiten} disabled={opslaanBezig}>
           Sluiten
         </Button>
-        <Button type="button" className={cn('h-11 flex-1', DRUK)} onClick={bewaar} disabled={opslaanBezig}>
+        <Button type="button" className={cn('h-11', DRUK)} onClick={bewaar} disabled={opslaanBezig}>
           {opslaanBezig ? 'Bewaren…' : 'Bewaar'}
         </Button>
-      </div>
+      </DialogFooter>
     </div>
   );
 }
@@ -165,6 +237,7 @@ export function TaakVervolgPaneel({
   open,
   naam,
   waarde,
+  midslandVast,
   internBeschikbaar,
   internLaden,
   opslaanBezig,
@@ -174,36 +247,38 @@ export function TaakVervolgPaneel({
 }: {
   open: boolean;
   naam: string;
-  waarde: VervolgInvoer;
+  waarde: KetenInvoer;
+  midslandVast: boolean;
   internBeschikbaar: boolean;
   internLaden: boolean;
   opslaanBezig: boolean;
-  /** Zonder aanvulketen bewaart het paneel wel, maar voert de lijst de actie nog niet uit. */
+  /** Zonder aanvulketen bewaart het paneel wel, maar de lijst maakt nog niets aan. */
   ketenAan?: boolean;
   onOpenChange: (open: boolean) => void;
-  onOpslaan: (invoer: VervolgInvoer) => void;
+  onOpslaan: (invoer: KetenInvoer) => void;
 }) {
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-polar px-4 pb-6 pt-4 duration-200">
-        <SheetHeader className="mb-3 space-y-1 text-left">
-          <SheetTitle className="text-[16px]">{naam}</SheetTitle>
-          <SheetDescription>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[650px] max-h-[90dvh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-left text-[16px]">{naam}</DialogTitle>
+          <DialogDescription className="text-left text-[13px]">
             {ketenAan
-              ? 'Wat er moet gebeuren, en wat je daarna doet.'
-              : 'Wat er moet gebeuren, en wat je daarna doet. Bewaren kan nu. Op de lijst volgt de actie, ook uit vriezer naar koelcel, pas als de aanvulketen aan staat.'}
-          </SheetDescription>
-        </SheetHeader>
+              ? 'Welke stappen gelden, en wat er gebeurt als het overal op is.'
+              : 'Welke stappen gelden, en wat er gebeurt als het overal op is. Bewaren kan nu. Op de lijst wordt er pas iets aangemaakt als de aanvulketen aan staat.'}
+          </DialogDescription>
+        </DialogHeader>
         <TaakVervolgFormulier
           naam={naam}
           waarde={waarde}
+          midslandVast={midslandVast}
           internBeschikbaar={internBeschikbaar}
           internLaden={internLaden}
           opslaanBezig={opslaanBezig}
           onOpslaan={onOpslaan}
           onSluiten={() => onOpenChange(false)}
         />
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }

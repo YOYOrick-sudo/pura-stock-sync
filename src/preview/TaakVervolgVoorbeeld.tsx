@@ -8,7 +8,7 @@ import { FalafelAanvulRij } from '@/components/foh/FalafelAanvulRij';
 import { TaakBewerkKnop } from '@/components/foh/TaakBewerkKnop';
 import { TaakVervolgPaneel } from '@/components/foh/TaakVervolgPaneel';
 import { cn } from '@/lib/utils';
-import type { VervolgInvoer } from '@/lib/taakVervolg';
+import type { KetenInvoer } from '@/lib/keten';
 
 const params = new URLSearchParams(window.location.search);
 const eigenaar = params.get('rol') !== 'medewerker';
@@ -50,10 +50,13 @@ function Rij({
 
 function Scherm() {
   const [open, setOpen] = useState(paneelOpen);
-  const [waarde, setWaarde] = useState<VervolgInvoer>({
+  const [waarde, setWaarde] = useState<KetenInvoer>({
     instructie: 'Zet 1 bak uit de vriezer in de koelcel.',
-    vervolgactie: 'vriezer_naar_koelcel',
-    vervolgAlsOp: 'bestelbord',
+    stapKoelcel: true,
+    stapVriezer: true,
+    stapMagazijn: false,
+    eindactie: 'bestelbord',
+    komtUitMidsland: false,
   });
   const bewerk = eigenaar ? () => setOpen(true) : undefined;
   return (
@@ -89,6 +92,7 @@ function Scherm() {
           open={open}
           naam="Falafel"
           waarde={waarde}
+          midslandVast={false}
           internBeschikbaar={false}
           internLaden={false}
           opslaanBezig={false}

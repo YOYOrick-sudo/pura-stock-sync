@@ -4,26 +4,28 @@ import { describe, expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { isEigenaarAccount } from './eigenaar';
 import {
-  VERVOLG_ZAAD,
+  KETEN_ZAAD,
   VRIEZER_NAAR_KOELCEL,
   configVoorTaak,
   heeftVriezerNaarKoelcel,
   interneProductVoor,
-  normaliseerVervolg,
+  ketenVoor,
   planBordVervolg,
   rijVanDatabase,
   taakSleutelVan,
-  valideerVervolg,
+  valideerKeten,
   voerVervolgUit,
-  type TaakVervolgRij,
+  type KetenRij,
 } from './taakVervolg';
 
-const falafel: TaakVervolgRij = {
+const falafel: KetenRij = {
   taakSleutel: 'falafel',
   vestiging: 'West',
   instructie: 'Zet een bak klaar',
-  vervolgactie: 'geen',
-  vervolgAlsOp: null,
+  stapKoelcel: false,
+  stapVriezer: false,
+  stapMagazijn: false,
+  eindactie: 'mep',
 };
 
 describe('eigenaar', () => {
@@ -40,17 +42,11 @@ describe('eigenaar', () => {
 });
 
 describe('zaad vervangt de vaste lijst', () => {
-  test('het zaad is alleen falafel naar de vriezer-stap', () => {
+  test('het zaad is falafel via de vriezer, en tahinidressing naar de MEP', () => {
     expect(VRIEZER_NAAR_KOELCEL.map((p) => p.sleutel)).toEqual(['falafel']);
-    expect(VERVOLG_ZAAD).toEqual([
-      {
-        taakSleutel: 'falafel',
-        vestiging: null,
-        instructie: '',
-        vervolgactie: 'vriezer_naar_koelcel',
-        vervolgAlsOp: null,
-      },
-    ]);
+    expect(KETEN_ZAAD.map((rij) => rij.taakSleutel)).toEqual(['falafel', 'tahinidressing']);
+    expect(KETEN_ZAAD[0]).toMatchObject({ stapKoelcel: true, stapVriezer: true, eindactie: 'bestelbord' });
+    expect(KETEN_ZAAD[1]).toMatchObject({ stapKoelcel: false, stapVriezer: false, stapMagazijn: false, eindactie: 'mep' });
   });
 
   test('zonder opgeslagen rij blijft falafel de vriezer-stap, een lookalike niet', () => {
@@ -60,34 +56,35 @@ describe('zaad vervangt de vaste lijst', () => {
     expect(heeftVriezerNaarKoelcel({ naam: 'Döner kebab', product_sleutel: 'doner-kebab' })).toBe(false);
   });
 
-  test('een opgeslagen rij wint van het zaad, ook als de actie geen is', () => {
+  test('een opgeslagen rij wint van het zaad, ook zonder vriezerstap', () => {
     expect(heeftVriezerNaarKoelcel({ naam: 'Falafel', product_sleutel: 'falafel' }, [falafel], 'West')).toBe(false);
     expect(configVoorTaak({ product_sleutel: 'falafel', naam: 'Falafel' }, 'West', [falafel])?.instructie).toBe('Zet een bak klaar');
+    expect(ketenVoor({ product_sleutel: 'falafel', naam: 'Falafel' }, [], 'West', [falafel], [])?.eindactie).toBe('mep');
   });
 
   test('een andere vestiging laat het zaad voor West staan', () => {
-    const midsland: TaakVervolgRij = { ...falafel, vestiging: 'Midsland', vervolgactie: 'mep' };
-    expect(configVoorTaak({ product_sleutel: 'falafel' }, 'West', [midsland])?.vervolgactie).toBe('vriezer_naar_koelcel');
-    expect(configVoorTaak({ product_sleutel: 'falafel' }, 'Midsland', [midsland])?.vervolgactie).toBe('mep');
+    const midsland: KetenRij = { ...falafel, vestiging: 'Midsland', eindactie: 'mep' };
+    expect(ketenVoor({ product_sleutel: 'falafel' }, [], 'West', [midsland], []).stappen).toEqual(['koelcel', 'vriezer']);
+    expect(ketenVoor({ product_sleutel: 'falafel' }, [], 'Midsland', [midsland], []).eindactie).toBe('mep');
   });
 
   test('een vestiging-rij wint van een rij voor alle vestigingen', () => {
-    const overal: TaakVervolgRij = { ...falafel, vestiging: null, vervolgactie: 'mep', instructie: 'overal' };
-    const west: TaakVervolgRij = { ...falafel, vervolgactie: 'bestelbord', instructie: 'west' };
+    const overal: KetenRij = { ...falafel, vestiging: null, eindactie: 'mep', instructie: 'overal' };
+    const west: KetenRij = { ...falafel, eindactie: 'bestelbord', instructie: 'west' };
     expect(configVoorTaak({ product_sleutel: 'falafel' }, 'West', [overal, west])?.instructie).toBe('west');
     expect(configVoorTaak({ product_sleutel: 'falafel' }, 'Test', [overal, west])?.instructie).toBe('overal');
   });
 
   test('de productsleutel gaat voor de naam', () => {
-    const iets: TaakVervolgRij = { ...falafel, taakSleutel: 'iets', vervolgactie: 'mep' };
-    expect(configVoorTaak({ product_sleutel: 'iets', naam: 'Falafel' }, 'West', [iets])?.vervolgactie).toBe('mep');
+    const iets: KetenRij = { ...falafel, taakSleutel: 'iets', eindactie: 'mep' };
+    expect(configVoorTaak({ product_sleutel: 'iets', naam: 'Falafel' }, 'West', [iets])?.eindactie).toBe('mep');
     expect(taakSleutelVan({ product_sleutel: ' Falafel ', naam: 'andere', id: '1' })).toBe('falafel');
     expect(taakSleutelVan({ naam: ' Hummus ', id: '1' })).toBe('hummus');
   });
 });
 
 describe('opslaan', () => {
-  test('een database-rij wordt een config, onbekende acties worden geen', () => {
+  test('een oude database-rij wordt een keten, een onbekende actie blijft leeg', () => {
     expect(rijVanDatabase({
       taak_sleutel: ' Hummus ',
       vestiging: ' West ',
@@ -98,30 +95,24 @@ describe('opslaan', () => {
       taakSleutel: 'hummus',
       vestiging: 'West',
       instructie: 'Vul bij',
-      vervolgactie: 'mep',
-      vervolgAlsOp: 'bestelbord',
+      stapKoelcel: false,
+      stapVriezer: false,
+      stapMagazijn: false,
+      eindactie: 'mep',
     });
-    expect(rijVanDatabase({ taak_sleutel: 'x', vervolgactie: 'verzin', vervolg_als_op: 'geen' })?.vervolgactie).toBe('geen');
+    expect(rijVanDatabase({ taak_sleutel: 'x', vervolgactie: 'verzin', vervolg_als_op: 'geen' })?.eindactie).toBeNull();
     expect(rijVanDatabase({ taak_sleutel: '  ' })).toBeNull();
   });
 
-  test('geen eerste stap wist de tweede, en dezelfde stap telt niet dubbel', () => {
-    expect(normaliseerVervolg({ instructie: '  haal bij  ', vervolgactie: 'geen', vervolgAlsOp: 'mep' })).toEqual({
-      instructie: 'haal bij',
-      vervolgactie: 'geen',
-      vervolgAlsOp: null,
-    });
-    expect(normaliseerVervolg({ instructie: '', vervolgactie: 'mep', vervolgAlsOp: 'mep' }).vervolgAlsOp).toBeNull();
-    expect(normaliseerVervolg({ instructie: '', vervolgactie: 'vriezer_naar_koelcel', vervolgAlsOp: 'intern_midsland' }).vervolgAlsOp)
-      .toBe('intern_midsland');
-  });
-
-  test('intern alleen als het product intern is, de instructie blijft kort', () => {
-    const intern = { instructie: 'bestel', vervolgactie: 'intern_midsland' as const, vervolgAlsOp: null };
-    expect(valideerVervolg(intern, { internBeschikbaar: false })).toMatch(/interne producten/);
-    expect(valideerVervolg(intern, { internBeschikbaar: true })).toBeNull();
-    expect(valideerVervolg({ instructie: 'x'.repeat(281), vervolgactie: 'geen', vervolgAlsOp: null }, { internBeschikbaar: true }))
-      .toMatch(/kort/);
+  test('de instructie blijft kort', () => {
+    expect(valideerKeten({
+      instructie: 'x'.repeat(281),
+      stapKoelcel: false,
+      stapVriezer: false,
+      stapMagazijn: false,
+      eindactie: 'mep',
+      komtUitMidsland: false,
+    })).toMatch(/kort/);
   });
 });
 
@@ -210,31 +201,38 @@ describe('uitvoeren', () => {
 });
 
 describe('potlood zonder aanvulketen', () => {
-  test('de eigenaar ziet het potlood, de keten-stap blijft achter de schakelaar', () => {
+  test('de eigenaar ziet het potlood, aanmaken blijft achter de schakelaar', () => {
     const ronde = readFileSync(new URL('../components/foh/AfvinkRonde.tsx', import.meta.url), 'utf8');
     expect(ronde).toContain('const toonInstellen = eigenaar');
     expect(ronde).not.toContain('ketenAan && eigenaar');
-    expect(ronde).toContain('ketenAan && isFalafelVoorbeeld');
-    expect(ronde).toContain('useTaakVervolg(vestiging, datum, ketenAan || toonInstellen)');
-    // Uitvoeren, inclusief uit vriezer naar koelcel, blijft null zonder keten.
-    expect(ronde).toContain('ketenAan ? configVoorTaak');
+    expect(ronde).toContain('schrijfKeten || toonInstellen || toonKeten');
+    expect(ronde).toContain('if (!schrijfKeten)');
     const paneelStart = ronde.indexOf('<TaakVervolgPaneel');
     const paneel = ronde.slice(paneelStart, ronde.indexOf('/>', paneelStart));
     expect(paneel).toContain('instellingVan(paneelItem)');
     expect(paneel).toContain('vervolg.bewaar.mutateAsync');
-    expect(paneel).not.toContain('configVan(');
+    expect(paneel).toContain('midslandVast');
+    const venster = readFileSync(new URL('../components/foh/TaakVervolgPaneel.tsx', import.meta.url), 'utf8');
+    expect(venster).toContain('Komt uit Midsland');
+    expect(venster).toContain('<Dialog ');
+    expect(venster).not.toContain('Sheet');
+    expect(venster).not.toContain('side="bottom"');
+    expect(venster).toContain('{!midsland && (');
+    expect(venster).toContain('beschikbareEindacties(false)');
   });
 
   test('opslaan via taak_vervolg_config_opslaan hangt niet aan de leesvlag of de keten', () => {
     const hook = readFileSync(new URL('../hooks/useTaakVervolg.ts', import.meta.url), 'utf8');
     const bewaar = hook.slice(hook.indexOf('const bewaar'), hook.indexOf('onSuccess:'));
     expect(bewaar).toContain("rpc('taak_vervolg_config_opslaan'");
+    expect(bewaar).toContain('p_stap_koelcel');
+    expect(bewaar).toContain('p_eindactie');
     expect(bewaar).not.toContain('ketenAan');
     expect(bewaar).not.toMatch(/if\s*\(\s*!?\s*aan\b/);
     const query = hook.slice(hook.indexOf('const query'), hook.indexOf('const bewaar'));
     expect(query).toContain('enabled: aan && !!vestiging');
 
-    const sql = readFileSync(new URL('../../drizzle/migrations/0068_taak_vervolg_config.sql', import.meta.url), 'utf8');
+    const sql = readFileSync(new URL('../../drizzle/migrations/0070_taak_vervolg_keten.sql', import.meta.url), 'utf8');
     const fn = sql.slice(
       sql.indexOf('FUNCTION public.taak_vervolg_config_opslaan'),
       sql.indexOf('REVOKE ALL ON FUNCTION public.taak_vervolg_config_opslaan'),
