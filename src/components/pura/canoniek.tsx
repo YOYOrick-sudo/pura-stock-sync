@@ -338,7 +338,6 @@ export function Dialoog({
   bevestigen,
   onBevestig,
   gevaar = false,
-  className,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -349,12 +348,10 @@ export function Dialoog({
   bevestigen?: string;
   onBevestig?: () => void;
   gevaar?: boolean;
-  /** Op de portaled inhoud, zodat een lokaal thema meekomt. */
-  className?: string;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn('gap-4', className)}>
+      <DialogContent className="gap-4">
         <DialogHeader className="space-y-2 text-left">
           <DialogTitle>{titel}</DialogTitle>
           {tekst ? <DialogDescription>{tekst}</DialogDescription> : null}

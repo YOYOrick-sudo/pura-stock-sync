@@ -11,9 +11,6 @@ import {
   Afvinkrij, Dialoog, Formulierveld, LegeStaatBlok, Lijstrij, Paginakop, Sectiekop, Statusbadge, Telrij, Werkkaart,
 } from '@/components/pura/canoniek';
 
-/** Klassenaam van het voorbeeldthema. Nooit op :root zetten. */
-export const PURA_THEME_V3 = 'pura-theme-v3';
-
 export type VoorbeeldToon = 'beide' | 'nieuw' | 'huidig';
 
 const TOKENS: { naam: string; shadcn: string; huidig: string; voorstel: string }[] = [
@@ -33,16 +30,12 @@ const TOKENS: { naam: string; shadcn: string; huidig: string; voorstel: string }
   { naam: 'rij / knop', shadcn: 'rij ~40, knop 32–36', huidig: 'rij 48, knop 44', voorstel: 'rij 48, herhaalde knop h-9, … is 32px' },
 ];
 
-function Menu({ naam, thema, acties }: { naam: string; thema?: boolean; acties: { label: string; onClick: () => void; gevaar?: boolean }[] }) {
-  return (
-    <span className="js-rijactie inline-flex">
-      <RijMenu naam={naam} className={thema ? PURA_THEME_V3 : undefined} acties={acties} />
-    </span>
-  );
+function Menu({ naam, acties }: { naam: string; acties: { label: string; onClick: () => void; gevaar?: boolean }[] }) {
+  return <RijMenu naam={naam} acties={acties} />;
 }
 
 /** Huidige opbouw: kaart op kaart. Blijft staan zodat het verschil zichtbaar is. */
-function HuidigScherm({ id, thema = false }: { id: string; thema?: boolean }) {
+function HuidigScherm({ id }: { id: string }) {
   const [tab, setTab] = useState('bord');
   const [klaar, setKlaar] = useState(true);
   const [wortel, setWortel] = useState(1);
@@ -53,7 +46,6 @@ function HuidigScherm({ id, thema = false }: { id: string; thema?: boolean }) {
   const menu = (naam: string) => (
     <Menu
       naam={naam}
-      thema={thema}
       acties={[
         { label: 'Bewerken', onClick: () => toast('Bewerken') },
         { label: 'Vervallen', onClick: () => toast('Vervallen'), gevaar: true },
@@ -123,7 +115,6 @@ function HuidigScherm({ id, thema = false }: { id: string; thema?: boolean }) {
       </Werkkaart>
 
       <Dialoog
-        className={thema ? PURA_THEME_V3 : undefined}
         open={open}
         onOpenChange={setOpen}
         titel="Regel archiveren?"
@@ -184,7 +175,6 @@ export function VoorstelScherm({ id }: { id: string }) {
   const menu = (naam: string, archief = false) => (
     <Menu
       naam={naam}
-      thema
       acties={[
         { label: 'Bewerken', onClick: () => toast('Bewerken') },
         ...(archief ? [{ label: 'Archiveren…', onClick: () => setOpen(true) }] : []),
@@ -281,7 +271,6 @@ export function VoorstelScherm({ id }: { id: string }) {
       </div>
 
       <Dialoog
-        className={PURA_THEME_V3}
         open={open}
         onOpenChange={setOpen}
         titel="Regel archiveren?"
@@ -327,14 +316,14 @@ function Kolom({ label, thema, id, kader }: { label: string; thema?: boolean; id
   return (
     <div className={`min-w-0 ${volgorde} ${kader ? 'space-y-2' : ''}`}>
       {kader ? <p className="text-xs text-muted-foreground">{label}</p> : null}
-      <div className={`${thema ? `${PURA_THEME_V3} js-voorbeeld-nieuw` : ''} ${kader ? 'rounded-polar-lg border border-border bg-background p-4 lg:p-6' : ''}`}>
+      <div className={kader ? 'rounded-polar-lg border border-border bg-background p-4 lg:p-6' : ''}>
         {thema ? <VoorstelScherm id={id} /> : <HuidigScherm id={id} />}
       </div>
     </div>
   );
 }
 
-/** Zelfde West-scherm in het huidige thema en in .pura-theme-v3. */
+/** Oude opbouw naast de nieuwe. Kleuren komen uit :root. */
 export function ShadcnVergelijking({ toon = 'beide', tokens = false }: { toon?: VoorbeeldToon; tokens?: boolean }) {
   return (
     <div className="space-y-4">

@@ -2,12 +2,12 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, test } from 'vitest';
-import { PURA_THEME_V3, ShadcnVergelijking, VoorstelScherm } from './ShadcnVoorbeeld';
+import { ShadcnVergelijking, VoorstelScherm } from './ShadcnVoorbeeld';
 
 describe('shadcn-voorbeeld', () => {
   test('toont hetzelfde West-scherm in huidig en voorstel', () => {
     const html = renderToString(<ShadcnVergelijking tokens />);
-    expect(html).toContain(PURA_THEME_V3);
+    expect(html).not.toContain('pura-theme-v3');
     expect(html).toContain('Bestelbord');
     expect(html).toContain('Wortelspread');
     expect(html).toContain('Granola');
@@ -40,6 +40,6 @@ describe('shadcn-voorbeeld', () => {
     expect(root).toContain('--primary: 163 65% 26%');
     expect(root).toContain('--radius: 0.75rem');
     expect(root).not.toContain('45 8% 95%');
-    expect(css).toContain(`.${PURA_THEME_V3}`);
+    expect(css).not.toContain('pura-theme-v3');
   });
 });

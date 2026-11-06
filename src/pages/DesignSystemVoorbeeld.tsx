@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { PURA_THEME_V3, ShadcnVergelijking, type VoorbeeldToon } from '@/pages/design-system/ShadcnVoorbeeld';
+import { ShadcnVergelijking, type VoorbeeldToon } from '@/pages/design-system/ShadcnVoorbeeld';
 
 function toonVan(waarde: string | null): VoorbeeldToon {
   if (waarde === 'nieuw' || waarde === 'huidig') return waarde;
@@ -13,7 +13,7 @@ export default function DesignSystemVoorbeeld() {
   const toon = toonVan(params.get('toon'));
   const alleenNieuw = toon === 'nieuw';
   return (
-    <div className={`${alleenNieuw ? PURA_THEME_V3 : ''} min-h-screen bg-background text-foreground`}>
+    <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
         <div className="mx-auto flex h-12 max-w-[1200px] items-center justify-between gap-2 px-4 lg:px-6">
           <p className="truncate text-xs text-muted-foreground">Shadcn-voorbeeld</p>

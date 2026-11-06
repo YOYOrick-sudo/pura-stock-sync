@@ -27,11 +27,11 @@ export function RijMeta({ children, altijd = false }: { children: ReactNode; alt
 export interface RijActie { label: string; onClick: () => void; gevaar?: boolean }
 
 /** Rijmenu "…": alle rij-acties op één vaste plek, gevaarlijke actie onderaan. */
-export function RijMenu({ naam, acties, className }: { naam: string; acties: RijActie[]; className?: string }) {
+export function RijMenu({ naam, acties }: { naam: string; acties: RijActie[] }) {
   const gewoon = acties.filter((a) => !a.gevaar), gevaar = acties.filter((a) => a.gevaar);
   return <DropdownMenu>
     <DropdownMenuTrigger asChild><Button variant="ghost" size="touch-icon" aria-label={`Opties ${naam}`} onClick={(e) => e.stopPropagation()}><MoreVertical className="h-4 w-4 text-muted-foreground" /></Button></DropdownMenuTrigger>
-    <DropdownMenuContent align="end" className={className}>
+    <DropdownMenuContent align="end">
       {gewoon.map((a) => <DropdownMenuItem key={a.label} className="min-h-11" onClick={a.onClick}>{a.label}</DropdownMenuItem>)}
       {!!gewoon.length && !!gevaar.length && <DropdownMenuSeparator />}
       {gevaar.map((a) => <DropdownMenuItem key={a.label} className="min-h-11 text-destructive focus:text-destructive" onClick={a.onClick}>{a.label}</DropdownMenuItem>)}
