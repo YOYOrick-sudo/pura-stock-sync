@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { FoutRegel, InklapGroep, KaartKop, LaadRijen, LegeStaat, LijstKaart, segmentTabsKlasse } from '@/components/pura/patronen';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { StatusLabel } from '@/components/pura/lijst';
+import { Badge } from '@/components/ui/badge';
 import { amsterdamDatum, tellingTotaal, type TelPlek } from '@/lib/voorraadproef';
 import { useVoorraadproef, voorraadServerfout, type ProefStand, type ProefTelling, type TellingInvoer } from '@/hooks/useVoorraadproef';
 import { telMoment } from './bestelbord/presentatie';
@@ -65,28 +65,28 @@ export function Voorraadproef({ vestiging, actief = true, onOverzicht }: { vesti
     const gereed = actief && resultaat?.betrouwbaar;
     const status = gereed || (a.telvraag_vandaag && !a.tellen_nodig) ? 'geteld' : a.tellen_nodig ? 'tellen' : 'onbekend';
     return <div key={a.id} className="border-b border-border last:border-0">
-      <Button variant="ghost" className="min-h-12 h-auto w-full justify-between gap-3 rounded-none px-3 py-2 text-left" onClick={() => begin(a)} disabled={vergrendeld} aria-expanded={actief}>
+      <Button variant="ghost" size="touch" className="h-auto min-h-11 w-full justify-between gap-2 px-4 py-2 text-left" onClick={() => begin(a)} disabled={vergrendeld} aria-expanded={actief}>
         <span className="min-w-0 break-words font-medium">{a.naam}</span>
         <span className="flex shrink-0 items-center gap-2 text-sm">
-          {!blind && !a.tellen_nodig && (gereed || a.stand != null) ? <span className="font-semibold tabular-nums">{getal(gereed ? resultaat?.totaal : a.stand)} <span className="font-normal text-muted-foreground">{a.tel_eenheid}</span></span> : <StatusLabel toon={status === 'geteld' ? 'goed' : status === 'tellen' ? 'let-op' : 'neutraal'}>{status === 'geteld' ? 'Geteld' : status === 'tellen' ? 'Tellen' : 'Onbekend'}</StatusLabel>}
+          {!blind && !a.tellen_nodig && (gereed || a.stand != null) ? <span className="inline-grid grid-cols-[7ch_8ch] items-center gap-2 text-xs"><span className="text-right text-sm font-semibold tabular-nums">{getal(gereed ? resultaat?.totaal : a.stand)}</span><span className="truncate text-left font-normal text-muted-foreground">{a.tel_eenheid}</span></span> : <Badge variant={status === 'tellen' ? 'warning' : status === 'geteld' ? 'info' : 'secondary'}>{status === 'geteld' ? 'Geteld' : status === 'tellen' ? 'Tellen' : 'Onbekend'}</Badge>}
           <ChevronDown className={actief ? 'h-4 w-4 rotate-180 text-muted-foreground' : 'h-4 w-4 text-muted-foreground'} />
         </span>
       </Button>
-      {actief && <div className="space-y-3 bg-muted/30 px-3 pb-3 pt-2">
-        {resultaat && !resultaat.betrouwbaar ? <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-medium">Tel nog één keer</p><Button className="min-h-11" onClick={() => { setOuder(resultaat); setResultaat(null); setWaarden({}); setFout(''); pending.current = null; }}>Opnieuw tellen</Button></div> : resultaat ? <p className="flex items-center gap-2 font-medium"><Check className="h-4 w-4 text-primary" />Opgeslagen: {getal(resultaat.totaal)} {a.tel_eenheid}</p> : <>
-          <div className="grid gap-3 sm:grid-cols-3">{plekken.map((p) => <label key={p.naam} className="min-w-0 text-sm font-medium">{p.naam}<div className="relative mt-1"><Input aria-label={`${a.naam} ${p.naam}`} className="h-11 pr-16 text-base" inputMode="decimal" value={waarden[p.naam] ?? ''} disabled={opslaan.isPending || !!pending.current} onChange={(e) => setWaarden((w) => ({ ...w, [p.naam]: e.target.value }))} /><span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm font-normal text-muted-foreground">{p.eenheid}</span></div></label>)}</div>
+      {actief && <div className="space-y-4 bg-muted/30 px-4 py-2 lg:px-6">
+        {resultaat && !resultaat.betrouwbaar ? <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-medium">Tel nog één keer</p><Button size="touch" onClick={() => { setOuder(resultaat); setResultaat(null); setWaarden({}); setFout(''); pending.current = null; }}>Opnieuw tellen</Button></div> : resultaat ? <p className="flex items-center gap-2 font-medium"><Check className="h-4 w-4 text-primary" />Opgeslagen: <span className="inline-grid grid-cols-[7ch_8ch] items-center gap-2 text-xs"><span className="text-right text-sm font-semibold tabular-nums">{getal(resultaat.totaal)}</span><span className="truncate text-left font-normal text-muted-foreground">{a.tel_eenheid}</span></span></p> : <>
+          <div className="grid gap-2 sm:grid-cols-3">{plekken.map((p) => <label key={p.naam} className="flex min-w-0 flex-col gap-2 text-sm font-medium">{p.naam}<div className="relative"><Input aria-label={`${a.naam} ${p.naam}`} className="h-11 pr-16 text-right text-base tabular-nums" inputMode="decimal" value={waarden[p.naam] ?? ''} disabled={opslaan.isPending || !!pending.current} onChange={(e) => setWaarden((w) => ({ ...w, [p.naam]: e.target.value }))} /><span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm font-normal text-muted-foreground">{p.eenheid}</span></div></label>)}</div>
           {fout && <p role="alert" className="text-sm text-destructive">{fout}</p>}
-          <div className="flex items-center justify-between gap-3"><span className="text-sm text-muted-foreground">Totaal <span className="text-lg font-semibold tabular-nums text-foreground">{getal(totaal)}</span> {a.tel_eenheid}</span><Button className="min-h-11" disabled={totaal == null || opslaan.isPending} onClick={bewaar}>{opslaan.isPending ? 'Opslaan…' : fout ? 'Opnieuw opslaan' : 'Opslaan'}</Button></div>
+          <div className="flex items-center justify-between gap-2"><span className="text-sm text-muted-foreground">Totaal <span className="inline-block min-w-[7ch] text-right text-lg font-semibold tabular-nums text-foreground">{getal(totaal)}</span> {a.tel_eenheid}</span><Button size="touch" disabled={totaal == null || opslaan.isPending} onClick={bewaar}>{opslaan.isPending ? 'Opslaan…' : fout ? 'Opnieuw opslaan' : 'Opslaan'}</Button></div>
         </>}
       </div>}
     </div>;
   };
 
-  return <div className="space-y-3">
+  return <div className="space-y-4">
     {rollen.length > 1 && <Tabs value={rol} onValueChange={setRol}><TabsList className={segmentTabsKlasse}><TabsTrigger value="bediening" disabled={vergrendeld}>Bediening</TabsTrigger><TabsTrigger value="keuken" disabled={vergrendeld}>Keuken</TabsTrigger></TabsList></Tabs>}
     {standen.isLoading ? <LijstKaart><LaadRijen /></LijstKaart> : standen.isError ? <LijstKaart><div role="alert"><FoutRegel tekst={voorraadServerfout(standen.error) ? 'Voorraad niet opgehaald. De server reageerde te traag. Probeer het zo opnieuw.' : 'Voorraad niet opgehaald.'} onOpnieuw={() => standen.refetch()} /></div></LijstKaart> : <>
       <Card className="overflow-hidden">
-        <KaartKop icoon={Calculator} titel={<span className="flex items-center gap-1">Vandaag<Popover><PopoverTrigger asChild><Button variant="ghost" size="touch-icon" aria-label="Informatie over tellen"><Info className="h-4 w-4 text-muted-foreground" /></Button></PopoverTrigger><PopoverContent className="max-w-xs text-sm">Tel wat er nu staat, per plek. Je ziet de verwachte stand pas na opslaan.</PopoverContent></Popover></span>} rechts={<span className="text-sm tabular-nums text-muted-foreground">{geteld}/{vandaag.length}</span>} />
+        <KaartKop icoon={Calculator} titel={<span className="flex items-center gap-2">Vandaag<Popover><PopoverTrigger asChild><Button variant="ghost" size="touch-icon" aria-label="Informatie over tellen"><Info className="h-4 w-4 text-muted-foreground" /></Button></PopoverTrigger><PopoverContent className="max-w-xs text-sm">Tel wat er nu staat, per plek. Je ziet de verwachte stand pas na opslaan.</PopoverContent></Popover></span>} rechts={<span className="text-right text-sm tabular-nums text-muted-foreground">{geteld}/{vandaag.length}</span>} />
         <div className="flex h-1 bg-muted" aria-label="Voortgang telling" role="progressbar" aria-valuemin={0} aria-valuemax={vandaag.length || 1} aria-valuenow={geteld}>{vandaag.map((a, i) => <span key={a.id} className={i < geteld ? 'flex-1 bg-primary' : 'flex-1'} />)}</div>
         {vandaag.length ? vandaag.map(rij) : <LegeStaat tekst="Vandaag niets te tellen." />}
       </Card>
