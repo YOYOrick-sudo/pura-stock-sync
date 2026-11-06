@@ -1,4 +1,10 @@
 // Bestaande afwijkingen op 29 okt 2026. Niet aanvullen: lijst mag alleen krimpen.
+// Afgeronde design-v3-PR's. Een bestand hier mag geen verboden patroon meer hebben.
+export const AFGEROND: string[] = [
+  'components/pura/EmptyState.tsx',
+  'components/kitchen/EmptyState.tsx',
+];
+
 export const BESTAANDE_AFWIJKINGEN: string[] = [
   'components/HandoverCard.tsx :: losse afronding',
   'components/PWAInstallHint.tsx :: losse afronding',

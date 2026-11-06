@@ -1,8 +1,9 @@
-import { Card } from '@/components/ui/card';
+import type { ComponentType } from 'react';
 import { Button } from '@/components/ui/button';
+import { LegeStaatBlok } from '@/components/pura/canoniek';
 
 interface EmptyStateProps {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   title: string;
   description: string;
   action?: {
@@ -11,21 +12,15 @@ interface EmptyStateProps {
   };
 }
 
-export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
+/** Zelfde titel, uitleg en knoptekst, nu het compacte lege blok. */
+export function EmptyState({ title, description, action }: EmptyStateProps) {
+  const tekst = description ? `${title} ${description}` : title;
   return (
-    <Card className="p-8 shadow-soft">
-      <div className="flex flex-col items-center justify-center py-4 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-primary/5 ring-1 ring-primary/10 flex items-center justify-center mb-4">
-          <Icon className="w-8 h-8 text-primary/60" />
-        </div>
-        <h3 className="text-lg font-semibold text-foreground mb-1">{title}</h3>
-        <p className="text-sm text-muted-foreground mb-6 max-w-sm">{description}</p>
-        {action && (
-          <Button onClick={action.onClick}>
-            {action.label}
-          </Button>
-        )}
-      </div>
-    </Card>
+    <LegeStaatBlok
+      tekst={tekst}
+      actie={action ? (
+        <Button type="button" variant="ghost" size="touch" onClick={action.onClick}>{action.label}</Button>
+      ) : undefined}
+    />
   );
 }
