@@ -6,13 +6,6 @@ export const AFGEROND: string[] = [
   'components/kitchen/MepVoorWestV2.tsx',
   'components/hr/StatusBadge.tsx',
   'components/maintenance/TicketList.tsx',
-  'components/ui/command.tsx',
-  'components/ui/calendar.tsx',
-  'components/ui/scroll-area.tsx',
-  'components/ui/navigation-menu.tsx',
-  'components/ui/data-table.tsx',
-  'components/ui/radio-group.tsx',
-  'components/ui/separator.tsx',
 ];
 
 export const BESTAANDE_AFWIJKINGEN: string[] = [
@@ -54,6 +47,7 @@ export const BESTAANDE_AFWIJKINGEN: string[] = [
   'components/polar/KPICard.tsx :: losse afronding',
   'components/ui/chart.tsx :: losse afronding',
   'components/ui/drawer.tsx :: losse afronding',
+  'components/ui/scroll-area.tsx :: losse afronding',
   'components/voorraad/BakmaatKiezer.tsx :: losse afronding',
   'components/voorraad/BakmaatUitleg.tsx :: losse afronding',
   'components/voorraad/KastOverzicht.tsx :: losse afronding',
