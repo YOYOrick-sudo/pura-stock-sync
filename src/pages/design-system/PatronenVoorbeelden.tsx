@@ -37,7 +37,7 @@ function DoeNiet({ titel, doe, niet }: { titel: string; doe: React.ReactNode; ni
 }
 
 export function BasisVoorbeelden() {
-  return <div className="space-y-6">
+  return <div className="space-y-4">
     <div className="space-y-2">
       <p className="text-sm font-semibold text-foreground">Tekst: vier niveaus</p>
       <div className="space-y-1 rounded-polar-md border border-border p-3">
@@ -49,7 +49,7 @@ export function BasisVoorbeelden() {
     </div>
     <div className="space-y-2">
       <p className="text-sm font-semibold text-foreground">Afstand</p>
-      <div className="flex items-end gap-4">{[1, 2, 3, 4].map((n) => <div key={n} className="space-y-1 text-center"><div className="bg-primary/20" style={{ width: n * 16, height: n * 16 }} /><span className="text-xs text-muted-foreground">{n * 4}px</span></div>)}</div>
+      <div className="flex items-end gap-4">{[8, 12, 16, 24].map((n) => <div key={n} className="space-y-1 text-center"><div className="bg-primary/20" style={{ width: n, height: n }} /><span className="text-xs text-muted-foreground">{n}</span></div>)}</div>
     </div>
     <div className="space-y-2">
       <p className="text-sm font-semibold text-foreground">Statuskleur</p>
