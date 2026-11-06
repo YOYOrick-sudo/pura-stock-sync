@@ -6,6 +6,7 @@ export const AFGEROND: string[] = [
   'components/kitchen/MepVoorWestV2.tsx',
   'components/hr/StatusBadge.tsx',
   'components/maintenance/TicketList.tsx',
+  'components/pura/StatCard.tsx',
 ];
 
 export const BESTAANDE_AFWIJKINGEN: string[] = [
