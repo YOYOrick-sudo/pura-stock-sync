@@ -157,7 +157,7 @@ Een nieuwe betekenis hoort eerst in deze tabel.
 
 ## Rand, schaduw, beweging
 
-Kaart: `border-1.5 border-border` en `shadow-soft` van `LijstKaart`. Geen los `shadow-sm` op een nieuwe kaart. Hover `duration-fast` (150ms), gewone overgang `duration-200`, dialoog `duration-slow` (300ms).
+Kaart: `border border-border` en `shadow-sm`. Hover `duration-fast` (150ms), gewone overgang `duration-200`, dialoog `duration-slow` (300ms).
 
 Focus: de ring van de knop of het veld. Niet `outline-none` zonder vervanging. Disabled: de disabled-stijl van het component, hoogte blijft 44px.
 

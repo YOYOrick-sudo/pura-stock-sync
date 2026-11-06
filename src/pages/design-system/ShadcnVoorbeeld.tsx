@@ -24,7 +24,7 @@ const TOKENS: { naam: string; shadcn: string; huidig: string; voorstel: string }
   { naam: 'ring', shadcn: '#a1a1a1', huidig: 'primary groen', voorstel: '0 0% 63.1% · #a1a1a1' },
   { naam: 'secondary / accent', shadcn: '#f5f5f5', huidig: '163 30% 95% · groene tint', voorstel: '0 0% 96.1% · #f5f5f5' },
   { naam: 'primary', shadcn: '#000000', huidig: '163 65% 26% · #1B7867', voorstel: 'ongewijzigd #1B7867, één knop' },
-  { naam: 'schaduw kaart', shadcn: '0 1px 2px rgb(0 0 0 / 0.05)', huidig: 'shadow-soft, iets dikker', voorstel: '0 1px 2px rgb(0 0 0 / 0.05)' },
+  { naam: 'schaduw kaart', shadcn: '0 1px 2px rgb(0 0 0 / 0.05)', huidig: 'zwaarder', voorstel: '0 1px 2px rgb(0 0 0 / 0.05)' },
   { naam: 'radius', shadcn: '10px, kaart 14px', huidig: 'kaart 16, dialoog 24', voorstel: 'schaal blijft 8 / 12 / 16 / 24' },
   { naam: 'badge', shadcn: '20px, 12/500, pill, px 8', huidig: 'pill, semibold, px 10', voorstel: 'pill, 500, px 8' },
   { naam: 'rij / knop', shadcn: 'rij ~40, knop 32–36', huidig: 'rij 48, knop 44', voorstel: 'rij 48, herhaalde knop h-9, … is 32px' },
