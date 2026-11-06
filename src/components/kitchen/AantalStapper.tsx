@@ -3,15 +3,17 @@ import { Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { klemAantal, stapperBevestig, stapperTekst } from '@/hooks/useInterneLevering';
 
-/** Stepper met eenheid. Een gevulde invoer gaat meteen naar de ouder; blur vult alleen een leeg veld aan tot het minimum. compact hoort bij een bordrij. */
-export function AantalStapper({ waarde, min, max, eenheid, onChange, label = 'Aantal', compact = false }: {
+/**
+ * Stepper met eenheid. Een gevulde invoer gaat meteen naar de ouder; blur vult alleen een leeg veld aan tot het minimum.
+ * Vorm gelijk aan TelStapper (pura/canoniek): 44px, cijfer text-sm, eenheid text-xs op dezelfde lijn.
+ */
+export function AantalStapper({ waarde, min, max, eenheid, onChange, label = 'Aantal' }: {
   waarde: number;
   min: number;
   max: number | null;
   eenheid?: string;
   onChange: (n: number) => void;
   label?: string;
-  compact?: boolean;
 }) {
   const conceptRef = useRef<string | null>(null);
   const [concept, setConcept] = useState<string | null>(null);
@@ -25,15 +27,12 @@ export function AantalStapper({ waarde, min, max, eenheid, onChange, label = 'Aa
     toon(null);
     onChange(klemAantal(n, min, max));
   };
-  const knop = compact ? 'h-9 w-9 p-0' : 'h-11 w-11 p-0';
-  const veld = compact ? 'h-9 min-w-[4.25rem]' : 'h-11 min-w-[5.5rem]';
-  const cijfer = compact ? 'text-sm' : 'text-lg';
   return (
-    <div className="flex shrink-0 items-center gap-0 rounded-polar-lg border border-input bg-background">
-      <Button type="button" variant="ghost" className={knop} aria-label="Minder" disabled={lees() <= min} onClick={() => zet(lees() - 1)}>
+    <div className="flex h-11 shrink-0 items-center rounded-polar-lg border border-input bg-background">
+      <Button type="button" variant="ghost" size="touch-icon" aria-label="Minder" disabled={lees() <= min} onClick={() => zet(lees() - 1)}>
         <Minus className="h-4 w-4" />
       </Button>
-      <label className={`flex cursor-text items-baseline justify-center gap-1 px-1 ${veld}`}>
+      <label className="flex h-11 min-w-[5.5rem] cursor-text items-center justify-center gap-2 px-1 leading-none">
         <input
           value={getoond}
           onChange={(e) => {
@@ -48,11 +47,11 @@ export function AantalStapper({ waarde, min, max, eenheid, onChange, label = 'Aa
           inputMode="numeric"
           aria-label={label}
           style={{ width: `${Math.max(1, getoond.length)}ch` }}
-          className={`bg-transparent p-0 text-center font-semibold tabular-nums text-foreground outline-none ${cijfer}`}
+          className="bg-transparent p-0 text-center text-sm font-semibold tabular-nums leading-none text-foreground outline-none"
         />
-        {eenheid && <span className="text-sm text-muted-foreground">{eenheid}</span>}
+        {eenheid && <span className="text-xs leading-none text-muted-foreground">{eenheid}</span>}
       </label>
-      <Button type="button" variant="ghost" className={knop} aria-label="Meer" disabled={max != null && lees() >= max} onClick={() => zet(lees() + 1)}>
+      <Button type="button" variant="ghost" size="touch-icon" aria-label="Meer" disabled={max != null && lees() >= max} onClick={() => zet(lees() + 1)}>
         <Plus className="h-4 w-4" />
       </Button>
     </div>

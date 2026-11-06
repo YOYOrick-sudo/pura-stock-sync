@@ -3,7 +3,7 @@ import { Warehouse } from 'lucide-react';
 import { toast } from 'sonner';
 import { KaartKop, LijstKaart } from '@/components/pura/patronen';
 import { RijMeta } from '@/components/pura/lijst';
-import { StatusBadge } from '@/components/pura/StatusBadge';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AantalStapper } from '@/components/kitchen/AantalStapper';
@@ -82,25 +82,24 @@ export function InternGroepV2Kaart({
 
   return (
     <LijstKaart kop={<KaartKop icoon={Warehouse} titel={GROEP_TITEL} teller={producten.length + open.length} />}>
-      <p className="px-4 pb-1 pt-3 text-sm text-muted-foreground lg:px-6">
+      <p className="px-4 py-2 text-sm text-muted-foreground lg:px-6">
         Alles wat je hier bestelt, gaat naar Midsland. Een vrije naam controleren ze eerst.
       </p>
-      <div className="divide-y divide-border">
+      <div>
         {producten.map((p) => {
           const per = inhoudPerEenheid(p.inhoud_per_eenheid, p.inhoud_eenheid, p.eenheid);
           const max = maxVan(p);
           return (
-            <div key={p.product_id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 lg:px-6">
-              <div className="min-w-[8rem] flex-1">
-                <div className="flex min-h-11 min-w-0 flex-wrap items-center gap-1.5">
-                  <span className="min-w-0 break-words font-medium text-foreground">{p.naam}</span>
-                  {p.open_aantal > 0 && <StatusBadge tone="info" className="px-2 py-0.5">{`${getal(p.open_aantal)} onderweg`}</StatusBadge>}
+            <div key={p.product_id} className="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-2 border-b border-border px-4 py-2 last:border-0 lg:px-6">
+              <div className="min-w-0 flex-1 basis-full sm:basis-0">
+                <div className="flex min-h-6 min-w-0 items-center gap-2">
+                  <span className="min-w-0 truncate text-sm font-medium text-foreground">{p.naam}</span>
+                  {p.open_aantal > 0 && <Badge variant="info" className="shrink-0 whitespace-nowrap font-medium">{`${getal(p.open_aantal)} onderweg`}</Badge>}
                 </div>
-                {per && <RijMeta altijd>{per}</RijMeta>}
+                <RijMeta altijd>{per || '—'}</RijMeta>
               </div>
-              <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2">
+              <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-2">
                 <AantalStapper
-                  compact
                   waarde={aantallen[p.product_id] ?? klemAantal(1, 1, max)}
                   min={1}
                   max={max}
@@ -114,62 +113,66 @@ export function InternGroepV2Kaart({
                   min={vandaag}
                   onChange={(e) => setDagen((h) => ({ ...h, [p.product_id]: e.target.value }))}
                   aria-label={`Gewenste leverdag ${p.naam}`}
-                  className="h-9 w-[9.5rem] text-sm"
+                  className="h-11 w-[11rem] shrink-0 text-base"
                 />
-                <Button type="button" size="sm" className="shrink-0 px-3" aria-label={`Bestellen ${p.naam}`} disabled={bezig} onClick={() => bestellen(p)}>
+                <Button type="button" size="touch" variant="outline" className="shrink-0" aria-label={`Bestellen ${p.naam}`} disabled={bezig} onClick={() => bestellen(p)}>
                   Bestellen
                 </Button>
               </div>
             </div>
           );
         })}
-        <div className="space-y-2 px-4 py-3 lg:px-6">
-          <p className="font-medium text-foreground">Iets anders</p>
-          <p className="text-xs text-muted-foreground">Typ de naam. Midsland koppelt die aan een bestaand artikel voor ze het maken of meegeven.</p>
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-2 border-b border-border px-4 py-2 last:border-0 lg:px-6">
+          <div className="min-w-0 flex-1 basis-full">
+            <p className="truncate text-sm font-medium text-foreground">Iets anders</p>
+            <RijMeta altijd>Typ de naam. Midsland koppelt die aan een bestaand artikel voor ze het maken of meegeven.</RijMeta>
+          </div>
+          <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-2">
             <Input value={vrijNaam} onChange={(e) => setVrijNaam(e.target.value)} aria-label="Vrije naam" placeholder="Naam" className="h-11 min-w-[10rem] flex-1 text-base" />
-            <AantalStapper compact waarde={vrijAantal} min={1} max={null} eenheid={vrijEenheid} label="Aantal vrije naam" onChange={setVrijAantal} />
+            <AantalStapper waarde={vrijAantal} min={1} max={null} eenheid={vrijEenheid} label="Aantal vrije naam" onChange={setVrijAantal} />
             <select
               value={vrijEenheid}
               onChange={(e) => setVrijEenheid(e.target.value)}
               aria-label="Eenheid vrije naam"
-              className="h-11 rounded-polar-lg border border-input bg-background px-2 text-base"
+              className="h-11 shrink-0 rounded-polar-lg border border-input bg-background px-2 text-base"
             >
               {EENHEDEN.map((e) => <option key={e} value={e}>{e}</option>)}
             </select>
-            <Input type="date" value={vrijDag} min={vandaag} onChange={(e) => setVrijDag(e.target.value)} aria-label="Gewenste leverdag vrije naam" className="h-11 w-[11rem] text-base" />
-            <Button type="button" size="sm" className="shrink-0 px-3" aria-label="Vrije naam bestellen" disabled={bezig} onClick={vrijBestellen}>Bestellen</Button>
+            <Input type="date" value={vrijDag} min={vandaag} onChange={(e) => setVrijDag(e.target.value)} aria-label="Gewenste leverdag vrije naam" className="h-11 w-[11rem] shrink-0 text-base" />
+            <Button type="button" size="touch" variant="outline" className="shrink-0" aria-label="Vrije naam bestellen" disabled={bezig} onClick={vrijBestellen}>Bestellen</Button>
           </div>
         </div>
       </div>
       {open.length > 0 && (
-        <div className="divide-y divide-border border-t border-border">
+        <div className="border-t border-border">
           {open.map((a) => {
             const status = statusWeergave(a, vandaag);
+            const toon = status.toon === 'success' ? 'success' : status.toon === 'warning' ? 'warning' : status.toon === 'neutral' ? 'secondary' : 'info';
+            const extra = [status.nieuw ? 'Nieuw' : '', status.verstreken ? 'Levermoment verstreken' : ''].filter(Boolean).join(' · ');
             return (
-              <div key={a.id} className="space-y-1 px-4 py-3 lg:px-6">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium text-foreground">{a.naam}</span>
-                  <StatusBadge tone={status.toon}>{status.label}</StatusBadge>
-                  {status.nieuw && <StatusBadge tone="brand">Nieuw</StatusBadge>}
-                  {status.verstreken && <StatusBadge tone="warning">Levermoment verstreken</StatusBadge>}
+              <div key={a.id} className="flex min-h-12 items-center gap-3 border-b border-border px-4 py-2 last:border-0 lg:px-6">
+                <div className="min-w-0 flex-1">
+                  <div className="flex min-h-6 min-w-0 items-center gap-2">
+                    <span className="min-w-0 truncate text-sm font-medium text-foreground">{a.naam}</span>
+                    <Badge variant={toon} className="shrink-0 whitespace-nowrap font-medium">{status.label}</Badge>
+                  </div>
+                  <RijMeta altijd>{[aantalRegel(a), a.verwachte_leverdag ? `leverdag ${leverdagTekst(a.verwachte_leverdag)}` : a.gewenste_leverdag ? `gewenst ${leverdagTekst(a.gewenste_leverdag)}` : '', extra].filter(Boolean).join(' · ')}</RijMeta>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {[aantalRegel(a), a.verwachte_leverdag ? `leverdag ${leverdagTekst(a.verwachte_leverdag)}` : a.gewenste_leverdag ? `gewenst ${leverdagTekst(a.gewenste_leverdag)}` : ''].filter(Boolean).join(' · ')}
-                </p>
               </div>
             );
           })}
         </div>
       )}
       {losse.length > 0 && (
-        <div className="divide-y divide-border border-t border-border">
-          <p className="px-4 pb-1 pt-3 text-sm text-muted-foreground lg:px-6">Deze regels staan nog los op het bord. Zet ze door, dan gaan ze naar Midsland.</p>
+        <div className="border-t border-border">
+          <p className="px-4 py-2 text-sm text-muted-foreground lg:px-6">Deze regels staan nog los op het bord. Zet ze door, dan gaan ze naar Midsland.</p>
           {losse.map((r) => (
-            <div key={r.id} className="flex flex-wrap items-center gap-2 px-4 py-3 lg:px-6">
-              <span className="min-w-0 flex-1 font-medium text-foreground">{r.naam}</span>
-              <span className="text-sm text-muted-foreground">{getal(r.aantal)} {r.eenheid}</span>
-              <Button type="button" size="sm" variant="outline" className="shrink-0 px-3" aria-label={`Doorzetten ${r.naam}`} disabled={bezig} onClick={() => onDoorzetten(r).catch((e) => toast.error(foutTekst(e)))}>
+            <div key={r.id} className="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-2 border-b border-border px-4 py-2 last:border-0 lg:px-6">
+              <div className="min-w-0 flex-1 basis-full sm:basis-0">
+                <span className="block truncate text-sm font-medium text-foreground">{r.naam}</span>
+                <RijMeta altijd>{getal(r.aantal)} {r.eenheid}</RijMeta>
+              </div>
+              <Button type="button" size="touch" variant="outline" className="ml-auto shrink-0" aria-label={`Doorzetten ${r.naam}`} disabled={bezig} onClick={() => onDoorzetten(r).catch((e) => toast.error(foutTekst(e)))}>
                 Doorzetten
               </Button>
             </div>

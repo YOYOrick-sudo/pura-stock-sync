@@ -3,7 +3,7 @@ import { Warehouse } from 'lucide-react';
 import { toast } from 'sonner';
 import { KaartKop, LijstKaart } from '@/components/pura/patronen';
 import { RijMeta } from '@/components/pura/lijst';
-import { StatusBadge } from '@/components/pura/StatusBadge';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AantalStapper } from '@/components/kitchen/AantalStapper';
 import { getal } from '@/lib/hoeveelheid';
@@ -62,24 +62,23 @@ export function InternBestelKaart({ producten, onBestellen, bezigId, bestaande }
 
   return (
     <LijstKaart kop={<KaartKop icoon={Warehouse} titel="Intern uit Midsland" teller={lijst.length} />}>
-      <p className="px-4 pb-1 pt-3 text-sm text-muted-foreground lg:px-6">{subregel(lijst)}</p>
-      <div className="divide-y divide-border">
+      <p className="px-4 py-2 text-sm text-muted-foreground lg:px-6">{subregel(lijst)}</p>
+      <div>
         {lijst.map((p) => {
           const open = alsGetal(p.open_aantal) ?? 0;
           const per = inhoudPerEenheid(p.inhoud_per_eenheid, p.inhoud_eenheid, p.eenheid);
           const max = maxVan(p);
           return (
-            <div key={p.product_id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 lg:px-6">
-              <div className="min-w-[8rem] flex-1">
-                <div className="flex min-h-11 min-w-0 flex-wrap items-center gap-1.5">
-                  <span className="min-w-0 break-words font-medium text-foreground">{p.naam}</span>
-                  {open > 0 && <StatusBadge tone="info" className="px-2 py-0.5">{`${getal(open)} onderweg`}</StatusBadge>}
+            <div key={p.product_id} className="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-2 border-b border-border px-4 py-2 last:border-0 lg:px-6">
+              <div className="min-w-0 flex-1 basis-full sm:basis-0">
+                <div className="flex min-h-6 min-w-0 items-center gap-2">
+                  <span className="min-w-0 truncate text-sm font-medium text-foreground">{p.naam}</span>
+                  {open > 0 && <Badge variant="info" className="shrink-0 whitespace-nowrap font-medium">{`${getal(open)} onderweg`}</Badge>}
                 </div>
-                {per && <RijMeta altijd>{per}</RijMeta>}
+                <RijMeta altijd>{per || '—'}</RijMeta>
               </div>
-              <div className="ml-auto flex shrink-0 items-center gap-2">
+              <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-2">
                 <AantalStapper
-                  compact
                   waarde={aantalVan(p)}
                   min={1}
                   max={max}
@@ -90,7 +89,7 @@ export function InternBestelKaart({ producten, onBestellen, bezigId, bestaande }
                     setAantallen((huidig) => ({ ...huidig, [p.product_id]: n }));
                   }}
                 />
-                <Button type="button" size="sm" className="shrink-0 px-3" aria-label={`Bestellen ${p.naam}`} disabled={bezigId === p.product_id} onClick={() => bestellen(p)}>
+                <Button type="button" size="touch" variant="outline" className="shrink-0" aria-label={`Bestellen ${p.naam}`} disabled={bezigId === p.product_id} onClick={() => bestellen(p)}>
                   Bestellen
                 </Button>
               </div>
