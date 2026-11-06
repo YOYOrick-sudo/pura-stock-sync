@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, test } from 'vitest';
-import { PURA_THEME_V3, ShadcnVergelijking } from './ShadcnVoorbeeld';
+import { PURA_THEME_V3, ShadcnVergelijking, VoorstelScherm } from './ShadcnVoorbeeld';
 
 describe('shadcn-voorbeeld', () => {
   test('toont hetzelfde West-scherm in huidig en voorstel', () => {
@@ -16,6 +16,21 @@ describe('shadcn-voorbeeld', () => {
     expect(html).toContain('Niets onderweg.');
     expect(html).toContain('min-h-12');
     expect(html.match(/bg-primary text-primary-foreground/g)?.length).toBe(2);
+  });
+
+  test('het voorstel heeft één titel en geen dubbele kop of streepje', () => {
+    const html = renderToString(<VoorstelScherm id="nieuw" />);
+    expect(html).toContain('text-2xl');
+    expect(html).toContain('tracking-tight');
+    expect(html).toContain('gewicht nog niet ingesteld');
+    expect(html).toContain('>Status<');
+    expect(html).toContain('Locatie');
+    expect(html).toContain('h-9');
+    expect(html).not.toContain('Op het bord');
+    expect(html).not.toContain('Open producten');
+    expect(html).not.toContain('Notitie');
+    expect(html).not.toContain('—');
+    expect(html.match(/bg-primary text-primary-foreground/g)?.length).toBe(1);
   });
 
   test('het voorstel staat niet op :root', () => {

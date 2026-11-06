@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { ArrowLeftRight, CalendarClock, ClipboardList, Plus, Refrigerator } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { ArrowLeftRight, CalendarClock, ClipboardList, Minus, Plus, Refrigerator, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RijMenu } from '@/components/pura/lijst';
@@ -29,10 +30,19 @@ const TOKENS: { naam: string; shadcn: string; huidig: string; voorstel: string }
   { naam: 'schaduw kaart', shadcn: '0 1px 2px rgb(0 0 0 / 0.05)', huidig: 'shadow-soft, iets dikker', voorstel: '0 1px 2px rgb(0 0 0 / 0.05)' },
   { naam: 'radius', shadcn: '10px, kaart 14px', huidig: 'kaart 16, dialoog 24', voorstel: 'schaal blijft 8 / 12 / 16 / 24' },
   { naam: 'badge', shadcn: '20px, 12/500, pill, px 8', huidig: 'pill, semibold, px 10', voorstel: 'pill, 500, px 8' },
-  { naam: 'rij / knop', shadcn: 'rij ~40, knop 32–36', huidig: 'rij 48, knop 44', voorstel: 'rij 48, knop 44' },
+  { naam: 'rij / knop', shadcn: 'rij ~40, knop 32–36', huidig: 'rij 48, knop 44', voorstel: 'rij 48, herhaalde knop h-9, … is 32px' },
 ];
 
-function Scherm({ id, thema = false }: { id: string; thema?: boolean }) {
+function Menu({ naam, thema, acties }: { naam: string; thema?: boolean; acties: { label: string; onClick: () => void; gevaar?: boolean }[] }) {
+  return (
+    <span className="js-rijactie inline-flex">
+      <RijMenu naam={naam} className={thema ? PURA_THEME_V3 : undefined} acties={acties} />
+    </span>
+  );
+}
+
+/** Huidige opbouw: kaart op kaart. Blijft staan zodat het verschil zichtbaar is. */
+function HuidigScherm({ id, thema = false }: { id: string; thema?: boolean }) {
   const [tab, setTab] = useState('bord');
   const [klaar, setKlaar] = useState(true);
   const [wortel, setWortel] = useState(1);
@@ -40,11 +50,10 @@ function Scherm({ id, thema = false }: { id: string; thema?: boolean }) {
   const [yoghurt, setYoghurt] = useState(6);
   const [hummus, setHummus] = useState(2);
   const [open, setOpen] = useState(false);
-  const portaal = thema ? PURA_THEME_V3 : undefined;
   const menu = (naam: string) => (
-    <RijMenu
+    <Menu
       naam={naam}
-      className={portaal}
+      thema={thema}
       acties={[
         { label: 'Bewerken', onClick: () => toast('Bewerken') },
         { label: 'Vervallen', onClick: () => toast('Vervallen'), gevaar: true },
@@ -114,7 +123,7 @@ function Scherm({ id, thema = false }: { id: string; thema?: boolean }) {
       </Werkkaart>
 
       <Dialoog
-        className={portaal}
+        className={thema ? PURA_THEME_V3 : undefined}
         open={open}
         onOpenChange={setOpen}
         titel="Regel archiveren?"
@@ -127,13 +136,199 @@ function Scherm({ id, thema = false }: { id: string; thema?: boolean }) {
   );
 }
 
+function CompactStapper({ waarde, eenheid, onChange, label }: { waarde: number; eenheid: string; onChange: (n: number) => void; label: string }) {
+  return (
+    <div className="inline-flex h-9 items-center rounded-polar-md border border-border bg-background">
+      <Button type="button" variant="ghost" size="sm" className="h-9 w-9 px-0" aria-label={`Minder ${label}`} onClick={() => onChange(Math.max(1, waarde - 1))}>
+        <Minus className="h-4 w-4" />
+      </Button>
+      <span className="flex min-w-[4.5rem] items-center justify-center gap-2 leading-none">
+        <span className="text-sm font-medium tabular-nums leading-none">{waarde}</span>
+        <span className="text-xs leading-none text-muted-foreground">{eenheid}</span>
+      </span>
+      <Button type="button" variant="ghost" size="sm" className="h-9 w-9 px-0" aria-label={`Meer ${label}`} onClick={() => onChange(waarde + 1)}>
+        <Plus className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+function Sectie({ titel, teller, children, lijn = false }: { titel: string; teller?: string; children: ReactNode; lijn?: boolean }) {
+  return (
+    <section className={lijn ? 'space-y-4 border-t border-border pt-6' : 'space-y-4'}>
+      <div className="flex items-baseline gap-2">
+        <h2 className="text-base font-semibold tracking-tight text-foreground">{titel}</h2>
+        {teller ? <span className="text-xs tabular-nums text-muted-foreground">{teller}</span> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+const BORD = [
+  { naam: 'Bloemkool', datum: 'di 4 nov', aantal: '', status: 'laat' as const },
+  { naam: 'Tuinkers', datum: '', aantal: '4 bak', status: '' as const },
+];
+
+/** Voorstel: hiërarchie van tasks. Eén titel, secties zonder extra kaart, tabel vanaf tablet. */
+export function VoorstelScherm({ id }: { id: string }) {
+  const [zoek, setZoek] = useState('');
+  const [klaar, setKlaar] = useState(true);
+  const [wortel, setWortel] = useState(1);
+  const [granola, setGranola] = useState(1);
+  const [yoghurt, setYoghurt] = useState(6);
+  const [hummus, setHummus] = useState(2);
+  const [open, setOpen] = useState(false);
+  const q = zoek.trim().toLowerCase();
+  const bord = BORD.filter((rij) => !q || rij.naam.toLowerCase().includes(q));
+  const menu = (naam: string, archief = false) => (
+    <Menu
+      naam={naam}
+      thema
+      acties={[
+        { label: 'Bewerken', onClick: () => toast('Bewerken') },
+        ...(archief ? [{ label: 'Archiveren…', onClick: () => setOpen(true) }] : []),
+        { label: 'Vervallen', onClick: () => toast('Vervallen'), gevaar: true },
+      ]}
+    />
+  );
+  return (
+    <div className="space-y-6">
+        <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">West</h1>
+          <p className="text-sm text-muted-foreground">Vandaag op het bord, intern uit Midsland en sluiten.</p>
+        </div>
+        <Button type="button" size="sm" onClick={() => toast('Product toevoegen')}><Plus className="h-4 w-4" />Product</Button>
+      </div>
+
+      <Sectie titel="Bestelbord" teller="2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative w-full sm:w-56">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <Input value={zoek} onChange={(e) => setZoek(e.target.value)} placeholder="Zoeken" aria-label="Zoeken op het bord" className="h-9 pl-9" />
+          </div>
+          <Button type="button" variant="outline" size="sm" onClick={() => toast('Filter status')}><Plus className="h-4 w-4" />Status</Button>
+          <Button type="button" variant="outline" size="sm" onClick={() => toast('Filter locatie')}><Plus className="h-4 w-4" />Locatie</Button>
+        </div>
+        <div className="hidden overflow-hidden rounded-polar-lg border border-border md:block">
+          <div className="grid h-10 grid-cols-[minmax(0,1fr)_7.5rem_8.5rem_2rem] items-center gap-3 border-b border-border px-4 text-xs font-medium text-muted-foreground">
+            <span>Product</span><span>Datum</span><span>Status</span><span className="sr-only">Acties</span>
+          </div>
+          {bord.map((rij) => (
+            <div key={rij.naam} className="grid min-h-12 grid-cols-[minmax(0,1fr)_7.5rem_8.5rem_2rem] items-center gap-3 border-b border-border px-4 last:border-0">
+              <p className="flex min-w-0 items-baseline gap-2">
+                <span className="truncate text-sm font-medium text-foreground">{rij.naam}</span>
+                {rij.aantal ? <span className="shrink-0 text-xs text-muted-foreground">{rij.aantal}</span> : null}
+              </p>
+              <p className="truncate text-sm text-muted-foreground">{rij.datum}</p>
+              <div>{rij.status === 'laat' ? <Statusbadge toon="fout" icoon>2d te laat</Statusbadge> : null}</div>
+              {menu(rij.naam, rij.naam === 'Bloemkool')}
+            </div>
+          ))}
+          {bord.length === 0 ? <p className="px-4 py-4 text-sm text-muted-foreground">Niets gevonden.</p> : null}
+        </div>
+        <div className="md:hidden">
+          {bord.map((rij) => (
+            <div key={rij.naam} className="flex min-h-12 items-center gap-3 border-b border-border py-2 last:border-0">
+              <div className="min-w-0 flex-1">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="truncate text-sm font-medium text-foreground">{rij.naam}</span>
+                  {rij.status === 'laat' ? <Statusbadge toon="fout" icoon>2d te laat</Statusbadge> : null}
+                </div>
+                <p className="text-xs text-muted-foreground">{[rij.datum, rij.aantal].filter(Boolean).join(' · ')}</p>
+              </div>
+              {menu(rij.naam, rij.naam === 'Bloemkool')}
+            </div>
+          ))}
+          {bord.length === 0 ? <p className="py-4 text-sm text-muted-foreground">Niets gevonden.</p> : null}
+        </div>
+      </Sectie>
+
+      <div className="border-t border-border" />
+
+      <Sectie titel="Intern uit Midsland" teller="2">
+        <div>
+          <TelRegel naam="Wortelspread" meta="3,2 kg per bak" waarde={wortel} eenheid="bak" onChange={setWortel} />
+          <TelRegel naam="Granola" meta="gewicht nog niet ingesteld" waarde={granola} eenheid="emmer" onChange={setGranola} />
+        </div>
+      </Sectie>
+
+      <div className="border-t border-border" />
+
+      <Sectie titel="Sluitlijst West" teller="1/3">
+        <div>
+          <Vink naam={`${id}-terras`} label="Terras klaarzetten" meta="Buiten" klaar={klaar} onKlaar={setKlaar} status={klaar ? <Statusbadge toon="goed" icoon>Klaar</Statusbadge> : undefined} />
+          <Vink naam={`${id}-koel`} label="Koelcel" meta="Temperatuur" status={<Statusbadge toon="let-op" icoon>Te laat</Statusbadge>} />
+          <Vink naam={`${id}-vloer`} label="Vloer dweilen" meta="Zaal" />
+        </div>
+      </Sectie>
+
+      <div className="border-t border-border" />
+
+      <Sectie titel="Tellen koelcel" teller="2">
+        <div>
+          <TelRegel naam="Yoghurt Grieks" meta="koelcel" waarde={yoghurt} eenheid="st" onChange={setYoghurt} bestellen={false} />
+          <TelRegel naam="Hummus" meta="koelcel" waarde={hummus} eenheid="bak" onChange={setHummus} bestellen={false} />
+        </div>
+      </Sectie>
+
+      <div className="border-t border-border" />
+
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-polar-lg border border-dashed border-border bg-muted px-4 py-3">
+        <p className="text-sm text-muted-foreground">Niets onderweg.</p>
+        <Button type="button" variant="ghost" size="sm" onClick={() => { setZoek(''); toast('Filter gewist'); }}>Filter wissen</Button>
+      </div>
+
+      <Dialoog
+        className={PURA_THEME_V3}
+        open={open}
+        onOpenChange={setOpen}
+        titel="Regel archiveren?"
+        tekst="Bloemkool blijft in de historie van West staan."
+        bevestigen="Archiveren"
+        gevaar
+        onBevestig={() => { setOpen(false); toast('Gearchiveerd'); }}
+      />
+    </div>
+  );
+}
+
+function TelRegel({ naam, meta, waarde, eenheid, onChange, bestellen = true }: { naam: string; meta: string; waarde: number; eenheid: string; onChange: (n: number) => void; bestellen?: boolean }) {
+  return (
+    <div className="flex min-h-12 flex-wrap items-center gap-3 border-b border-border py-2 last:border-0">
+      <div className="min-w-0 flex-1 basis-full sm:basis-0">
+        <p className="truncate text-sm font-medium text-foreground">{naam}</p>
+        <p className="text-xs text-muted-foreground">{meta}</p>
+      </div>
+      <div className="ml-auto flex items-center gap-2">
+        <CompactStapper waarde={waarde} eenheid={eenheid} label={naam} onChange={onChange} />
+        {bestellen ? <Button type="button" variant="outline" size="sm" onClick={() => toast('Besteld')}>Bestellen</Button> : null}
+      </div>
+    </div>
+  );
+}
+
+function Vink({ naam, label, meta, klaar = false, onKlaar, status }: { naam: string; label: string; meta: string; klaar?: boolean; onKlaar?: (v: boolean) => void; status?: ReactNode }) {
+  return (
+    <label htmlFor={naam} className="flex min-h-12 items-center gap-3 border-b border-border py-2 last:border-0">
+      <Checkbox id={naam} checked={klaar} onCheckedChange={(v) => onKlaar?.(v === true)} />
+      <span className="min-w-0 flex-1">
+        <span className={`block truncate text-sm ${klaar ? 'text-muted-foreground line-through' : 'font-medium text-foreground'}`}>{label}</span>
+        <span className="text-xs text-muted-foreground">{meta}</span>
+      </span>
+      {status ? <span className="shrink-0">{status}</span> : null}
+    </label>
+  );
+}
+
 function Kolom({ label, thema, id, kader }: { label: string; thema?: boolean; id: string; kader: boolean }) {
   const volgorde = kader ? (thema ? 'order-1 xl:order-2' : 'order-2 xl:order-1') : '';
   return (
     <div className={`min-w-0 ${volgorde} ${kader ? 'space-y-2' : ''}`}>
       {kader ? <p className="text-xs text-muted-foreground">{label}</p> : null}
       <div className={`${thema ? `${PURA_THEME_V3} js-voorbeeld-nieuw` : ''} ${kader ? 'rounded-polar-lg border border-border bg-background p-4 lg:p-6' : ''}`}>
-        <Scherm id={id} thema={thema} />
+        {thema ? <VoorstelScherm id={id} /> : <HuidigScherm id={id} />}
       </div>
     </div>
   );

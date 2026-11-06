@@ -321,6 +321,12 @@
   Het vinkje was een cirkel (16px, radius 8). Statuspillen waren gevuld.
   Ronde 2: de voortgangsring las als een leeg vinkje, en een sectiekop
   met groep zette een tweede lijn direct onder de kaartkop. Allebei weg.
+  Ronde 3: kleur alleen leek op het huidige thema. Het voorbeeld krijgt
+  de hiërarchie van tasks: één titel text-2xl, secties zonder kaart,
+  tabel op md+, facetbalk, stapper en Bestellen op h-9.
+  Ronde 4, naast tasks en dashboard: sectiekop naar text-base zodat hij
+  boven de rij uitsteekt, Product blijft rechts op 390, aantal op de
+  naamregel zodat tabelrijen één regel blijven.
 */
 .pura-theme-v3 {
   --background: 0 0% 100%;
@@ -446,5 +452,11 @@
 .pura-theme-v3 [role="menuitem"].text-destructive[data-highlighted] {
   background-color: hsl(var(--destructive) / 0.08);
   color: hsl(var(--destructive));
+}
+
+/* Rij-actie in het voorbeeld: ghost-icoon zoals de tasks-tabel, niet 44px. */
+.pura-theme-v3 .js-rijactie button {
+  height: 32px;
+  width: 32px;
 }
 

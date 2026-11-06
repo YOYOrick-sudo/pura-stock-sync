@@ -16,15 +16,12 @@ export default function DesignSystemVoorbeeld() {
     <div className={`${alleenNieuw ? PURA_THEME_V3 : ''} min-h-screen bg-background text-foreground`}>
       <header className="border-b border-border">
         <div className="mx-auto flex h-12 max-w-[1200px] items-center justify-between gap-2 px-4 lg:px-6">
-          <p className="truncate text-sm font-medium">Shadcn-voorbeeld</p>
+          <p className="truncate text-xs text-muted-foreground">Shadcn-voorbeeld</p>
           <Button variant="ghost" size="touch" asChild><a href="/design-system#shadcn-voorbeeld">Naslag</a></Button>
         </div>
       </header>
-      <main className={`mx-auto space-y-4 px-4 py-6 lg:px-6 ${alleenNieuw ? 'max-w-[960px]' : 'max-w-[1200px]'}`}>
-        <div className="space-y-2">
-          <p className="text-sm text-foreground">{alleenNieuw ? 'West, vandaag, in het voorstel.' : 'West, vandaag. Dezelfde blokken: huidig thema naast het voorstel.'}</p>
-          <p className="text-xs text-muted-foreground">Het voorstel leeft alleen in .{PURA_THEME_V3}. Bestaande schermen en :root blijven zoals ze zijn.</p>
-        </div>
+      <main className={`mx-auto space-y-6 px-4 py-6 lg:px-6 ${alleenNieuw ? 'max-w-[1040px]' : 'max-w-[1200px]'}`}>
+        {alleenNieuw ? null : <p className="text-sm text-muted-foreground">Huidig thema naast het voorstel. Het voorstel staat alleen in .{PURA_THEME_V3}.</p>}
         <ShadcnVergelijking toon={toon} tokens />
       </main>
     </div>
