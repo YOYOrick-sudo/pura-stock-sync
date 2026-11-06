@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { allesOphalen } from '@/lib/pagineer';
 
 export interface Ingredient {
   id?: string;
@@ -43,18 +44,22 @@ export function useRecipes(search: string, category: string | null) {
   return useQuery({
     queryKey: ['recipes', 'list', search, category],
     queryFn: async () => {
-      let query = supabase
-        .from('recipes')
-        .select('*, recept_ingredienten(id)')
-        .eq('is_gearchiveerd', false)
-        .order('name', { ascending: true });
+      const data = await allesOphalen(async (van, tot) => {
+        let query = supabase
+          .from('recipes')
+          .select('*, recept_ingredienten(id)')
+          .eq('is_gearchiveerd', false)
+          .order('name', { ascending: true })
+          .order('id', { ascending: true });
 
-      if (search.trim()) query = query.ilike('name', `%${search.trim()}%`);
-      if (category) query = query.eq('category', category);
+        if (search.trim()) query = query.ilike('name', `%${search.trim()}%`);
+        if (category) query = query.eq('category', category);
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return (data ?? []).map((r: any) => ({
+        const { data: rij, error } = await query.range(van, tot);
+        if (error) throw error;
+        return rij ?? [];
+      });
+      return data.map((r: any) => ({
         ...r,
         ingredient_count: Array.isArray(r.recept_ingredienten) ? r.recept_ingredienten.length : 0,
       })) as Recipe[];
@@ -66,13 +71,19 @@ export function useRecipeCategories() {
   return useQuery({
     queryKey: ['recipes', 'categories'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('recipes')
-        .select('category')
-        .eq('is_gearchiveerd', false);
-      if (error) throw error;
+      const data = await allesOphalen(async (van, tot) => {
+        const { data: rij, error } = await supabase
+          .from('recipes')
+          .select('category, id')
+          .eq('is_gearchiveerd', false)
+          .order('category', { ascending: true })
+          .order('id', { ascending: true })
+          .range(van, tot);
+        if (error) throw error;
+        return rij ?? [];
+      });
       const set = new Set<string>();
-      (data ?? []).forEach((r: any) => r.category && set.add(r.category));
+      data.forEach((r: any) => r.category && set.add(r.category));
       return Array.from(set).sort();
     },
   });
