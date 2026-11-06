@@ -1,6 +1,6 @@
 import { renderToString } from 'react-dom/server';
 import { describe, expect, test } from 'vitest';
-import { Afvinkrij, Formulierveld, LegeStaatBlok, Lijstrij, Statusbadge, Telrij, Werkkaart } from './canoniek';
+import { Afvinkrij, Formulierveld, LegeStaatBlok, Lijstrij, Sectiekop, Statusbadge, Telrij, Werkkaart } from './canoniek';
 
 describe('canonieke patronen', () => {
   test('telrij houdt stapper en knop op 44px en de eenheid op de cijferlijn', () => {
@@ -17,6 +17,14 @@ describe('canonieke patronen', () => {
     expect(html).toContain('bak');
     expect(html).not.toContain('items-baseline');
     expect(html).not.toContain('text-lg');
+    expect(html).not.toContain('bg-primary text-primary-foreground');
+  });
+
+  test('sectiekop is 48px, gelijk aan de rij', () => {
+    const html = renderToString(<Sectiekop titel="Klaar" teller="2/5" voortgang={40} />);
+    expect(html).toContain('min-h-12');
+    expect(html).toContain('Klaar');
+    expect(html).not.toContain('uppercase');
   });
 
   test('lijstrij en afvinkrij zijn even hoog en tonen meta', () => {

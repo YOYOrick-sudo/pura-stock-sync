@@ -1,6 +1,12 @@
 # Design-audit 6 november 2026
 
-Stap 1. Geen bestaand scherm is omgezet. Wel toegevoegd: de gesloten set in `src/components/pura/canoniek.tsx`, de sectie Canoniek op `/design-system`, en dit document. Bronnen: `docs/STYLING_GUIDE.md` (geldt), `/design-system`, `docs/UI-REGELS.md`.
+Stap 1. Geen bestaand scherm is omgezet in deze PR. De gesloten set staat in `src/components/pura/canoniek.tsx` en op `/design-system#canoniek`. Bron: `docs/STYLING_GUIDE.md`. Checklist: `docs/UI-REGELS.md` versie 2.
+
+## Besluit v2
+
+Yorick, definitief: één groene knop per pagina (rij-acties outline); Sectiekop 48px; tablet-test 834; `DialogTitle` blijft `text-lg`. Dialoog-radius blijft 24 (`rounded-polar-2xl`). `primary` is alleen de actie, `success` is “goed”. De stapper is `AantalStapper`, ook in `Telrij`.
+
+PR #23 heeft Intern uit Midsland al op die rij gezet (48px, outline Bestellen, eenheid `text-xs`). De foto’s hieronder van “Bestellen afgekapt” en een groene knop per rij beschrijven de stand vóór die PR. De migratiestap “intern + stapper” is daarmee gedaan; de lokale `Stepper` in `Bestelbord.tsx` nog niet.
 
 ## Hoe gekeken
 
@@ -13,7 +19,7 @@ De app draait lokaal (`vite`, poort 8080). Er is geen testaccount in de repo, du
 
 Op 390 kapt de intern-rij de knop Bestellen af tot “Be”. Op 1280 staan stapper, datum en Bestellen op één regel, met lege ruimte links en een groene knop per rij. Stickers toont op 1280 de stapper op 32px (`md:h-8`) en secties in kapitalen. MEP zonder taken toont de icoon-lege-staat, niet `LegeStaatBlok`.
 
-`docs/UI-REGELS.md` sectie D.1 beschrijft `AantalStapper compact` (h-9) naast `size="sm"`. In de huidige code zijn stapper en Bestellen allebei `h-11`. De baseline, de eenheid en de ongelijke rijen uit D.2–D.4 staan er nog.
+De inventaris hieronder is de stand van de eerste audit. Intern uit Midsland is daarna bijgewerkt in PR #23; die alinea is historisch.
 
 ## Inventaris per scherm
 
@@ -123,9 +129,9 @@ Ernst: hoog = elke dienst zichtbaar of breekt 390. Midden = zelfde scherm, ander
 
 Elke stap een aparte PR. Geen databasemigratie. Eerst het scherm dat de keuken elk uur aanraakt.
 
-1. **Bestelbord, intern + stapper.** `AantalStapper` en de lokale `Stepper` in `Bestelbord.tsx` naar de lijn van `Telrij` (of de rij vervangen door `Telrij`). `InternBestellen` en `InternGroepV2` op één rijhoogte, één `Statusbadge`, outline Bestellen. Alleen presentatie; dezelfde `onChange` / `onBestellen`.
+1. **Bestelbord, intern.** Gedaan in PR #23. Rest van deze stap: de lokale `Stepper` in `Bestelbord.tsx` naar `AantalStapper`, zonder het bestelgedrag te wijzigen.
 2. **Bestelbord, bord, advies en onderweg.** `BordTabel`, `OnderwegTabel`, `AdviesTabel`, `ZelfHalenTabel` naar `Lijstrij`. Aantal-pill weg. Eén `Statusbadge`. Leeg wordt `LegeStaatBlok`.
-3. **Bestelbord, tellen en advies keuken.** `Voorraadproef` en `KeukenAdviesTabel`: geen horizontale scroll, eenheid `text-xs`, één groene knop per kaart.
+3. **Bestelbord, tellen en advies keuken.** `Voorraadproef` en `KeukenAdviesTabel`: geen horizontale scroll, eenheid `text-xs`, één groene knop per pagina.
 4. **Sluitlijst.** `AfvinkRonde` naar `Werkkaart` + `Sectiekop` + `Afvinkrij`. Zelfde check- en bestelmutaties.
 5. **Taken bediening.** `FohTasks` van polar en `rounded-[10px]` af, rijen naar `Afvinkrij` / `Lijstrij`. Grootste bestand; in plakken (lijst, dialoog, beheer).
 6. **MEP-dag**, daarna week en beheer. Datumkop via de app-header / `Paginakop`. Taakrijen naar `Afvinkrij`.

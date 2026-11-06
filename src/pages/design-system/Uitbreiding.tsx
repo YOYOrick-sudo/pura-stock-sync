@@ -17,7 +17,7 @@ function Blok({ titel, wanneer, children }: { titel: string; wanneer: string; ch
 }
 
 export function MatenSectie() {
-  return <div className="space-y-6">
+  return <div className="space-y-4">
     <Blok titel="Hoogte bediening" wanneer="Tikken met natte handen: minimaal 44px.">
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1 text-center"><Button size="touch">Touch 44</Button><p className="text-xs text-muted-foreground">size="touch"</p></div>
@@ -41,9 +41,9 @@ const demo = [['Tuinkers', '4 stuks', 'besteld'], ['Courgette', '5 stuks', 'open
 export function PatronenCompleet() {
   const [lade, setLade] = useState(false);
   const [bevestig, setBevestig] = useState(false);
-  return <div className="space-y-8">
+  return <div className="space-y-4">
     <Blok titel="Lijstkaart met kaartkop en voetregel" wanneer="Elke lijst. Tabel van rand tot rand, status in eigen kolom.">
-      <LijstKaart kop={<KaartKop icoon={Truck} titel="Onderweg" teller={3} rechts={<Button variant="ghost" size="sm">Alles geleverd</Button>} />} voet="3 van 3">
+      <LijstKaart kop={<KaartKop icoon={Truck} titel="Onderweg" teller={3} rechts={<Button variant="ghost" size="touch">Alles geleverd</Button>} />} voet="3 van 3">
         <Table className="[&_td]:py-0"><TableHeader><TableRow><TableHead>Product</TableHead><TableHead className="text-right">Aantal</TableHead><TableHead className="w-28">Status</TableHead></TableRow></TableHeader>
           <TableBody>{demo.map(([n, a, s]) => <TableRow key={n} className="h-12 cursor-pointer" onClick={() => setLade(true)}><TableCell className="font-medium">{n}</TableCell><TableCell className="text-right tabular-nums">{a}</TableCell><TableCell><StatusDot toon={s === 'besteld' ? 'goed' : 'neutraal'} label={s} /></TableCell></TableRow>)}</TableBody></Table>
       </LijstKaart>

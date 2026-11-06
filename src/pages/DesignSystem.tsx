@@ -26,7 +26,7 @@ function Inhoud({ id }: { id: string }) {
     case 'recepten': return <Recepten />;
     case 'basis': return <BasisVoorbeelden />;
     case 'maten': return <MatenSectie />;
-    case 'blokken': return <div className="space-y-10"><PatronenCompleet /><NieuweBlokken /></div>;
+    case 'blokken': return <div className="space-y-4"><PatronenCompleet /><NieuweBlokken /></div>;
     case 'regels': return <Regels />;
     case 'toon': return <TekstToon />;
     default: return <Controle />;
@@ -46,9 +46,9 @@ export default function DesignSystem() {
       </div>
       <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4 pb-2 sm:px-6 lg:hidden">{SECTIES.map((s) => <Button key={s.id} variant={actief === s.id ? 'secondary' : 'ghost'} size="touch" className="shrink-0" onClick={() => ga(s.id)}>{s.label}</Button>)}</nav>
     </header>
-    <div className="mx-auto flex max-w-7xl gap-8 px-4 py-6 sm:px-6">
+    <div className="mx-auto flex max-w-7xl gap-4 px-4 py-6 sm:px-6">
       <nav className="hidden w-48 shrink-0 lg:block"><div className="sticky top-24 space-y-1">{SECTIES.map((s) => <Button key={s.id} variant={actief === s.id ? 'secondary' : 'ghost'} size="touch" className="w-full justify-start" onClick={() => ga(s.id)}>{s.label}</Button>)}</div></nav>
-      <main className="min-w-0 flex-1 space-y-10">{SECTIES.map((s) => <section key={s.id} id={s.id} className="scroll-mt-32 space-y-4">
+      <main className="min-w-0 flex-1 space-y-4">{SECTIES.map((s) => <section key={s.id} id={s.id} className="scroll-mt-32 space-y-4">
         <div><h2 className="text-xl font-semibold text-foreground">{s.titel}</h2><p className="text-sm text-muted-foreground">{s.uitleg}</p></div>
         <div className={`rounded-polar-lg border border-border bg-card p-4 sm:p-6 ${isMobile ? 'min-w-0 max-w-full overflow-x-auto [&_button]:min-h-11 [&_button]:min-w-11 [&_input]:min-h-11 [&_input]:text-base [&_[role=tablist]]:min-w-max [&_[role=tablist]]:overflow-x-auto [&_[role=tab]]:shrink-0 [&_[role=tab]]:whitespace-nowrap [&_table]:min-w-80' : ''}`}><Inhoud id={s.id} /></div>
       </section>)}</main>

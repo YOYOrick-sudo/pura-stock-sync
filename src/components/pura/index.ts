@@ -9,7 +9,11 @@ export * from './lijst';
 export * from './blokken';
 export {
   CANONIEK,
+  ICOON,
+  AantalStapper,
   Paginakop,
+  VoortgangBalk,
+  VoortgangRing,
   Werkkaart,
   Sectiekop,
   Lijstrij,

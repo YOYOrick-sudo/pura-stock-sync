@@ -1,31 +1,54 @@
 # Pura Vida — styling
 
-Dit document is de enige bron voor vorm, afstand, type en kleur. `/design-system` (sectie Canoniek en het regelboek) laat dezelfde regels zien. `docs/UI-REGELS.md` is de checklist vóór review. Wijkt een scherm, een voorbeeld of de checklist af, dan geldt dit document.
+Dit document is de bron voor vorm, afstand, type en kleur. `/design-system#canoniek` laat dezelfde regels zien, met doe en niet, en met laden, leeg, fout, disabled en focus. `docs/UI-REGELS.md` is de checklist vóór review. Wijkt een scherm of een ouder voorbeeld af, dan geldt dit document.
 
-Nieuwe schermen gebruiken alleen `src/components/pura/canoniek.tsx`, de oudere blokken in `src/components/pura` die hieronder nog genoemd worden, en `src/components/ui`. Geen nieuwe kleuren, radii of fontgroottes. Geen `#hex` in classes, geen `rounded-[..]`, geen `components/polar`.
+Nieuwe schermen gebruiken `src/components/pura/canoniek.tsx`, de ondersteunende blokken die hieronder nog genoemd worden, en `src/components/ui`. Geen nieuwe kleuren, radii of fontgroottes. Geen `#hex` in classes, geen `rounded-[..]`, geen `components/polar`.
 
-Bestaande schermen wijken nog af. Die blijven staan tot hun eigen migratie-PR. Niet namaken.
+Bestaande schermen wijken nog af. Die blijven staan tot hun eigen PR. Een token in `index.css` of `tailwind.config.ts` niet veranderen als daardoor een bestaand scherm meebeweegt.
 
-## Gesloten set
+## Keuzes
 
-Tien patronen. Implementatie: `src/components/pura/canoniek.tsx`. Voorbeeld met doe en niet: `/design-system#canoniek`.
+1. Eén gevulde primary-knop per pagina. Een werkwoord dat op elke rij staat is `variant="outline"`.
+2. Sectiekop is 48px, gelijk aan de rij.
+3. Screenshots en review op 390, 834 en 1280. De CSS-breekpunten blijven `sm 640 / md 744 / lg 1024 / xl 1280`.
+4. `DialogTitle` blijft `text-lg`. De dialoog houdt `rounded-polar-2xl` (24) van `DialogContent`.
 
-| Patroon | Component | Vaste maat |
+## Tien bouwstenen
+
+| Patroon | Component | Vast |
 |---|---|---|
-| Paginakop | `Paginakop` | Geen titel. Tabs links, hooguit één actie rechts. `gap-2`. Actie `size="touch"` (`h-11`, 44px). |
-| Werkkaart | `Werkkaart` | Kaart `rounded-polar-lg` (16). Kop `min-h-12`, `text-sm font-semibold`. Zijmarge 16, desktop 24 (`px-4 lg:px-6`). |
-| Sectiekop | `Sectiekop` | `text-sm font-semibold`, teller `text-muted-foreground`. Zin, geen kapitalen. |
-| Lijstrij met actie | `Lijstrij` | `min-h-12` (48). Naam `text-sm font-medium`. Meta altijd regel 2 via `RijMeta`. Actie rechts. Tik opent de lade. |
+| Paginakop | `Paginakop` (= `PaginaBalk`) | Geen titel. Tabs links, hooguit één primary rechts. `gap-2`. Actie `size="touch"`. |
+| Werkkaart | `Werkkaart` | Radius 16. Kop met icoon 20px. Zijmarge 16, desktop 24. Optioneel een balk `h-1`. |
+| Sectiekop | `Sectiekop` | `min-h-12`. Zin, geen kapitalen. Zelfde zijmarge als de rijen. Ring voor een percentage. |
+| Lijstrij | `Lijstrij` | `min-h-12`. Naam, hooguit één status, meta op regel 2, actie rechts. |
 | Afvinkrij | `Afvinkrij` | Zelfde rij. Vinkje in een vak van 44px. Klaar = doorgestreept. |
-| Telrij met stapper | `Telrij` | Zelfde rij. Stapper én knop `h-11`. Cijfer `text-sm font-semibold tabular-nums`. Eenheid `text-xs text-muted-foreground` met `items-center leading-none`. |
-| Statusbadge | `Statusbadge` | Eén per rij, altijd met tekst. `rounded-full`. |
-| Dialoog | `Dialoog` | `rounded-polar-xl` (20). Padding 16, vanaf `sm` 24. Annuleren ghost, één bevestiging. |
-| Formulierveld | `Formulierveld` | Label boven veld (`space-y-2`). Invoer `h-11 text-base`. Knoppen rechtsonder. |
-| Lege staat | `LegeStaatBlok` | Eén zin, `text-sm text-muted-foreground`, `px-4 py-6`. Geen icoon. |
+| Telrij | `Telrij` | `AantalStapper` en outline-knop, allebei `h-11`. Op 390 blijft het label heel. |
+| Statusbadge | `Statusbadge` (= `StatusLabel` + optioneel icoon) | Pill `rounded-full`. Tekst verplicht. Goed = `success`, niet `primary`. |
+| Dialoog | `Dialoog` | Shell-dialog: radius 24, titel `text-lg`, padding 16 / vanaf `sm` 24. Ghost + één bevestiging. |
+| Formulierveld | `Formulierveld` | Label boven veld, `space-y-2`. Veld `h-11 text-base` (de invoer zelf is 40px). |
+| Lege staat | `LegeStaatBlok` | Alleen ná laden, als er niets is. Eén zin, `px-4 py-6`. Geen illustratie. |
 
-Oudere blokken die blijven gelden tot een scherm overstapt: `PaginaBalk` (zelfde rol als Paginakop), `LijstKaart`, `KaartKop`, `RijMenu`, `RijMeta`, `TabelVoet`, `ZoekVeld`, `DetailLade`, `FilterBalk`, `InklapGroep`, `LaadRijen`, `FoutRegel`, `InstellingRij`, `FormKaart`, `Stappen`, `KengetalVerdeling`.
+De stapper bestaat één keer: `AantalStapper`. `Telrij` gebruikt die. `src/components/kitchen/AantalStapper.tsx` exporteert hetzelfde veld, zodat bestaande imports gelijk blijven.
 
-Niet uitbreiden: `StatusBadge` (tweede badge naast `Statusbadge`), `EmptyState` (icoon en `text-[15px]`), `LegeStaat` (`py-8`, buiten de schaal), `components/kitchen/EmptyState`, `components/polar`.
+Niet uitbreiden: `StatusBadge` (tweede pill), `EmptyState` (icoon en `text-[15px]`), `LegeStaat` (`py-8`), `components/kitchen/EmptyState`, `components/polar`.
+
+## Ondersteunend
+
+| Patroon | Waar |
+|---|---|
+| Laden | `LaadRijen` of `Skeleton`, rijhoogte 48 |
+| Fout | `FoutRegel`, één keer Opnieuw |
+| Rij-acties | `RijMenu`; gevaar rood, onderaan |
+| Meta | `RijMeta`; ontbreekt de inhoud, dan `—` |
+| Lade | `DetailLade` (Sheet). Rij-tik. Rechts vanaf tablet, onder op de telefoon |
+| Melding | Sonner (`toast`). Kort, één actie |
+| Tabs | `Tabs` + `segmentTabsKlasse`. Tekst, ook op 390. Hoogte 44 |
+| Voortgang | `VoortgangBalk` is `h-1`. `VoortgangRing` in de sectiekop. De primitive `Progress` is `h-4`; die niet zo laten in een lijst |
+| Zoeken | `ZoekVeld`, icoon `Search`, 44px |
+| Beheer | `InstellingRij`, `FormKaart` |
+| Kengetal | `KengetalVerdeling`, het enige `text-2xl` |
+
+Leeg is niet hetzelfde als laden. Een mislukte request is `FoutRegel`, geen lege staat.
 
 ## Afstand
 
@@ -33,85 +56,113 @@ Alleen 8, 12, 16 en 24.
 
 | px | Class | Waar |
 |---|---|---|
-| 8 | `gap-2`, `py-2` | Icoon en label, kleine delen in een rij |
-| 12 | `gap-3`, `p-3` | Compacte cluster in een rij of formuliergroep |
-| 16 | `gap-4`, `p-4`, `space-y-4` | Tussen blokken op de pagina; zijmarge in een kaart |
-| 24 | `lg:px-6`, `sm:p-6` | Zijmarge in een kaart vanaf desktop; dialoog vanaf `sm` |
+| 8 | `gap-2`, `py-2`, `space-y-2` | Icoon en label, label en veld |
+| 12 | `gap-3`, `p-3` | Cluster in een rij |
+| 16 | `gap-4`, `p-4`, `space-y-4`, `px-4` | Tussen blokken; zijmarge in een kaart |
+| 24 | `lg:px-6`, `sm:p-6`, `py-6` | Zijmarge desktop; dialoog vanaf `sm`; lege staat verticaal |
 
-Niet: `space-y-5`, `p-5`, `gap-1.5`, `gap-5`, `px-5`, losse px, en 8/12/16 door elkaar in hetzelfde cluster.
+Niet: `gap-1.5`, `p-5`, `px-5`, `space-y-5`, `space-y-6`, `space-y-8`, `space-y-10`, losse px.
 
-`page-stack` is nog `space-y-4 md:space-y-6`. Nieuwe pagina's zetten `space-y-4` op hun eigen stapel. De shell zelf verandert in een aparte PR.
+Witruimte scheidt blokken. Een lijn alleen tussen rijen, en de `groep`-lijn op een sectiekop. Geen kader om een cluster dat al in een kaart zit.
 
-## Rijen en bediening
+`page-stack` is nog `space-y-4 md:space-y-6`. Dat blijft tot een eigen shell-PR. Nieuwe pagina's gebruiken `space-y-4`.
 
-- Elke rij in één kaart even hoog: `min-h-12`.
-- Meta (eenheid, gewicht, datum) altijd op regel 2. Ontbreekt de inhoud, dan `—`. Nooit de ene rij met een badge op de naam en de andere met een tweede regel.
-- Werkschermen: knoppen `size="touch"` of `size="touch-icon"` (`h-11`). Stapper en knop in dezelfde rij exact die hoogte.
-- Getal `font-semibold tabular-nums`, eenheid kleiner en niet vet, zelfde lijn (`items-center leading-none`).
-- Eén groene knop per kaart. Een werkwoord dat op elke rij staat (Bestellen, Opslaan) is `variant="outline"`. `Telrij` doet dat zelf; `primair` alleen als de kaart verder geen groene knop heeft.
-- Overige rij-acties in `RijMenu`. Gevaar onderaan, rood.
-- Tikdoel minstens 44px. Geen uitleg die alleen met hover verschijnt.
-- Geen horizontale scroll. Breedtes om te controleren: 390, 834, 1280. Op 390 draagt de meta-regel wat een brede tabel in een kolom zou zetten.
+## Hoogte
+
+| Wat | px | Class |
+|---|---|---|
+| Rij, sectiekop, tabelvoet | 48 | `min-h-12` |
+| Knop, invoer, stapper | 44 | `h-11`, `size="touch"` |
+| Trefvlak van het vinkje | 44 | het vak; het vinkje zelf mag kleiner |
+
+Werkschermen gebruiken `size="touch"`, niet de default-knop van 48px (`h-12`) en niet `size="sm"` (`h-9`).
 
 ## Typografie
 
-Vier niveaus. De paginatitel staat alleen in de app-header. Modules hebben geen eigen `h1`. `/design-system` is de uitzondering: dat is de naslag, geen module.
-
 | Niveau | Class |
 |---|---|
-| Kaarttitel | `text-sm font-semibold` |
+| Kaarttitel, sectiekop | `text-sm font-semibold` |
 | Rijnaam | `text-sm font-medium` |
 | Body | `text-sm` |
 | Meta | `text-xs text-muted-foreground` |
 
-Cijfers in een rij: `tabular-nums`. Een kengetal op een overzicht (`KengetalVerdeling`) mag `text-2xl font-semibold tabular-nums`. Dat is het enige grotere cijfer. Geen `text-[13px]`, `text-[15px]`, `text-[11px]`, `text-lg` in een stapper.
+Uitzonderingen: invoer `text-base` (anders zoomt iOS). Kengetal `text-2xl font-semibold tabular-nums`. Dialoogtitel `text-lg` van `DialogTitle`. De body van de app is 15px in `index.css`; bouwstenen blijven op `text-sm` en `text-xs`.
 
-## Kleur
+Cijfers: `tabular-nums`. Eenheid kleiner, niet vet, zelfde lijn (`items-center leading-none`).
 
-Rollen, geen losse hex in een class.
-
-| Rol | Token | Betekenis |
-|---|---|---|
-| primary | `bg-primary`, `text-primary` | De ene actie, en “goed” |
-| muted | `bg-muted`, `text-muted-foreground` | Rust, meta, leeg |
-| border | `border-border` | Lijnen |
-| success | `text-success`, `bg-success/15` | Gelukt |
-| warning | `text-warning` | Let op |
-| destructive | `text-destructive` | Fout of gevaar |
-| info | `text-info` | Informatie, geen actie |
-
-Status: groen = goed, oranje = let op, rood = fout, grijs = neutraal. Altijd met een woord (`Statusbadge`). Een stip alleen is niet genoeg.
+Modules hebben geen eigen `h1`. De titel staat in de app-header. `/design-system` is de naslag en heeft wel een titel.
 
 ## Radius
 
 | Token | px | Gebruik |
 |---|---|---|
-| `rounded-polar-sm` | 8 | Kleine chips, sidebar-item |
-| `rounded-polar-md` | 12 | Binnenvlak, focusvlak |
-| `rounded-polar-lg` | 16 | Kaart, knop, invoer, stapper |
-| `rounded-polar-xl` | 20 | Dialoog |
-| `rounded-full` | — | Statusbadge, stip |
+| `rounded-full` | — | Statusbadge, stip, segment |
+| `rounded-polar-sm` | 8 | Chip, sidebar-item |
+| `rounded-polar-md` | 12 | Vlak in een kaart |
+| `rounded-polar-lg` | 16 | Kaart, knop, veld, stapper |
+| `rounded-polar-2xl` | 24 | Dialoog (`DialogContent`) |
 
-`rounded-polar` (14) en `rounded-polar-2xl` (24) staan nog op oude dialogen en rijen. Nieuwe dialogen gebruiken `Dialoog` (`rounded-polar-xl`). Geen `rounded-xl`, `rounded-2xl` of `rounded-[14px]`.
+Geneste radius: binnen = buiten − padding van die ring. Een kaart van 16 met 16px padding heeft van binnen geen rondere hoek dan 0. Nooit een binnenhoek ronder dan de buitenhoek.
+
+`rounded-polar` (14) en `rounded-polar-xl` (20) niet nieuw gebruiken. `rounded-xl` en `rounded-2xl` ook niet.
+
+## Kleur
+
+| Rol | Betekenis |
+|---|---|
+| `primary` | De ene gevulde actie |
+| `success` | Status goed |
+| `warning` | Let op |
+| `destructive` | Fout of gevaar |
+| `info` | Informatie, geen actie |
+| `muted` | Rust, meta, leeg |
+| `border` | Schaarse lijnen |
+| `input` | Veld in rust |
+
+Primary en success zijn niet dezelfde rol. Een “gelukt”-pill gebruikt `success` plus icoon of woord, nooit `bg-primary`.
+
+## Status en voortgang
+
+| Vorm | Wanneer |
+|---|---|
+| Pill `Statusbadge` | De status heeft een woord nodig |
+| Stip 8px | Alleen naast tekst die al zichtbaar is |
+| Ring `VoortgangRing` | Percentage in een sectiekop |
+| Balk `h-1` of `h-2` | Percentage in een kaart |
+
+Kleur nooit alleen. Icoonknoppen hebben een `aria-label`. Voortgang heeft `aria-label` of `aria-valuenow`.
+
+## Iconen
+
+Alleen lucide, alleen deze betekenis. 16px in knop en rij, 20px in een kaartkop, 24px alleen bij een kengetal.
+
+| Betekenis | Icoon |
+|---|---|
+| Bestelbord | `ClipboardList` |
+| Intern | `ArrowLeftRight` |
+| Koelcel | `Refrigerator` |
+| Vriezer | `Snowflake` |
+| Magazijn | `Warehouse` |
+| MEP | `ListChecks` |
+| Datum | `CalendarClock` |
+| Let op | `AlertTriangle` |
+| Fout | `CircleAlert` |
+| Goed | `CircleCheck` |
+| Toevoegen | `Plus` |
+| Opties | `MoreVertical` |
+| Zoeken | `Search` |
+| Uitleg | `Info` |
+
+Een nieuwe betekenis hoort eerst in deze tabel.
 
 ## Rand, schaduw, beweging
 
-| | Class |
-|---|---|
-| Kaart, outline-knop, dialoog | `border-1.5 border-border` |
-| Invoer in rust | `border border-input` |
-| Statusrand, alleen als de badge die zelf heeft | niet zelf `border-2` optellen |
-| Kaartschaduw | de schaduw van `Card` / `LijstKaart` (`shadow-soft`). Geen los `shadow-sm` op een nieuwe kaart |
-| Hover | `duration-fast` (150ms) |
-| Gewone overgang | `duration-200` |
-| Dialoog | `duration-slow` (300ms) |
+Kaart: `border-1.5 border-border` en `shadow-soft` van `LijstKaart`. Geen los `shadow-sm` op een nieuwe kaart. Hover `duration-fast` (150ms), gewone overgang `duration-200`, dialoog `duration-slow` (300ms).
 
-Iconen: 16px (`h-4 w-4`) in knop en rij, 20px (`h-5 w-5`) in een kaartkop, 24px alleen bij een groot kengetal.
+Focus: de ring van de knop of het veld. Niet `outline-none` zonder vervanging. Disabled: de disabled-stijl van het component, hoogte blijft 44px.
 
 ## Laden, leeg, fout
 
-Elke lijst heeft alle drie. Laden: `LaadRijen` (skelet op rijhoogte). Leeg: `LegeStaatBlok`. Fout: `FoutRegel` met één keer Opnieuw. Klaar- en nulregels zitten in `InklapGroep`, standaard dicht.
+Elke lijst heeft alle drie. Klaar- en nulregels zitten in `InklapGroep`, standaard dicht. Geen emoji, geen illustratie, geen marketingzin.
 
-## Controle
-
-Voor een scherm telt `docs/UI-REGELS.md` sectie B, op 390, 834 en 1280, naast `/design-system#canoniek`.
+Op 390 geen horizontale scroll en geen kale `Table` die dat afdwingt. Extra kolommen gaan naar `RijMeta`.

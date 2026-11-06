@@ -37,7 +37,7 @@ function DoeNiet({ titel, doe, niet }: { titel: string; doe: React.ReactNode; ni
 }
 
 export function BasisVoorbeelden() {
-  return <div className="space-y-6">
+  return <div className="space-y-4">
     <div className="space-y-2">
       <p className="text-sm font-semibold text-foreground">Tekst: vier niveaus</p>
       <div className="space-y-1 rounded-polar-md border border-border p-3">

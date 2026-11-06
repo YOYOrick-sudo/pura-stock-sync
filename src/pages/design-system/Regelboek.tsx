@@ -53,7 +53,7 @@ const rijen = [
 
 export function Recepten() {
   const [aan, setAan] = useState(true);
-  return <div className="space-y-10">
+  return <div className="space-y-4">
     <Recept id="lijst" titel="Lijstpagina" opbouw={['Paginabalk: tabs links, één primaire knop rechts', 'Lijstkaart met kop', 'Kolomkoppen één keer', 'Groepen als tussenrij', 'Voetregel met totaal', 'Rij tikken = lade, rest in …']}>
       <div className="space-y-4">
         <PaginaBalk links={<Tabs defaultValue="a"><TabsList className={segmentTabsKlasse}><TabsTrigger value="a">Op het bord <span className="tabular-nums text-muted-foreground">3</span></TabsTrigger><TabsTrigger value="b">Onderweg</TabsTrigger></TabsList></Tabs>} actie={<Button size="touch" className="gap-1"><Plus className="h-4 w-4" />Product</Button>} />
@@ -156,7 +156,7 @@ export const REGELS: Regel[] = [
 export function Regels() {
   const groepen = [...new Set(REGELS.map((r) => r.groep))];
   let nr = 0;
-  return <div className="space-y-8">{groepen.map((g) => <div key={g} className="space-y-4">
+  return <div className="space-y-4">{groepen.map((g) => <div key={g} className="space-y-4">
     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{g}</p>
     {REGELS.filter((r) => r.groep === g).map((r) => { nr += 1; return <div key={r.regel} className="space-y-2">
       <p className="text-sm font-semibold text-foreground"><span className="mr-2 tabular-nums text-muted-foreground">{nr}.</span>{r.regel}</p>
