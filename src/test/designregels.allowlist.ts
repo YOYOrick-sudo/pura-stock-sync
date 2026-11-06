@@ -1,6 +1,9 @@
 // Bestaande afwijkingen op 29 okt 2026. Niet aanvullen: lijst mag alleen krimpen.
 // Afgeronde design-v3-PR's. Een bestand hier mag geen verboden patroon meer hebben.
 export const AFGEROND: string[] = [
+  'components/pura/StatusBadge.tsx',
+  'components/kitchen/bestelbord/InternOnderwegV2.tsx',
+  'components/kitchen/MepVoorWestV2.tsx',
 ];
 
 export const BESTAANDE_AFWIJKINGEN: string[] = [

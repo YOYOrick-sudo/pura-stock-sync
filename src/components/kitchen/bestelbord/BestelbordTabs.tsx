@@ -26,8 +26,7 @@ function TabTeller({ n, aandacht }: { n: number; aandacht?: string | null }) {
   return (
     <StatusBadge
       tone={aandacht ? 'warning' : 'neutral'}
-      variant="soft"
-      className={cn('h-5 shrink-0 border px-1.5 py-0 text-xs font-medium leading-none tabular-nums', aandacht ? 'border-warning/40' : 'border-border bg-card text-muted-foreground')}
+      className={cn('h-5 shrink-0 px-1.5 py-0 leading-none tabular-nums', aandacht ? 'border-warning/40' : 'border-border bg-card text-muted-foreground')}
     >
       {n}
     </StatusBadge>

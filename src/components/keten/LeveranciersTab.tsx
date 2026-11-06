@@ -300,7 +300,7 @@ export function LeveranciersTab() {
               >
                 <Truck className="h-4 w-4 shrink-0" />
                 <span className="min-w-0 truncate">{l.naam}</span>
-                <span className="ml-auto shrink-0"><StatusBadge tone="neutral" variant="soft" shape="label">{leverancierLijstLabel(l)}</StatusBadge></span>
+                <span className="ml-auto shrink-0"><StatusBadge tone="neutral">{leverancierLijstLabel(l)}</StatusBadge></span>
               </button>
             ))}
           </div>
@@ -320,7 +320,7 @@ export function LeveranciersTab() {
           <>
             <Card className="p-4 sm:p-5 space-y-3">
               <h3 className="font-semibold">{actief.naam}</h3>
-              <StatusBadge tone="neutral" variant="soft" shape="label">{soortLabel(actief.soort)}</StatusBadge>
+              <StatusBadge tone="neutral">{soortLabel(actief.soort)}</StatusBadge>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs">Naam</Label>
