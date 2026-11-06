@@ -38,6 +38,33 @@ export function basisTekst(hoeveel: number, eenheid: 'g' | 'ml' | 'stuk'): { waa
   return { waarde: hoeveel, eenheid: 'stuks' };
 }
 
+/** Eenheden die artikel_vormen.eenheid toestaat. */
+export const STAM_VORM_EENHEDEN = ['stuks', 'doos', 'zak', 'fles', 'pak', 'bak', 'emmer', 'kg', 'bos', 'tray', 'rol', 'fust'] as const;
+
+/** Invoer in het beheer. Opslag is altijd g, ml of stuk. */
+export const STAM_INHOUD_EENHEDEN = ['g', 'kg', 'ml', 'L', 'stuk'] as const;
+
+/** kg en L worden gram en milliliter. Onbekende eenheid geeft null. */
+export function naarBasis(hoeveel: number, eenheid: string): { waarde: number; eenheid: 'g' | 'ml' | 'stuk' } | null {
+  if (!Number.isFinite(hoeveel)) return null;
+  const e = eenheid.trim().toLowerCase();
+  const keerDuizend = () => Math.round(hoeveel * 1000);
+  if (e === 'g') return { waarde: hoeveel, eenheid: 'g' };
+  if (e === 'kg') return { waarde: keerDuizend(), eenheid: 'g' };
+  if (e === 'ml') return { waarde: hoeveel, eenheid: 'ml' };
+  if (e === 'l' || e === 'liter') return { waarde: keerDuizend(), eenheid: 'ml' };
+  if (e === 'st' || e === 'stuk' || e === 'stuks') return { waarde: hoeveel, eenheid: 'stuk' };
+  return null;
+}
+
+/** Zelfde getal als op het bord: 3200 g wordt 3,2 kg, 500 g blijft 500 g. */
+export function basisWeergave(hoeveel: number, eenheid: string): string {
+  const omgezet = naarBasis(hoeveel, eenheid);
+  if (!omgezet) return `${fmt(hoeveel)} ${eenheid.trim()}`;
+  const tekst = basisTekst(omgezet.waarde, omgezet.eenheid);
+  return `${fmt(tekst.waarde)} ${tekst.eenheid}`;
+}
+
 export interface VerpakkingWeergave {
   eenheid: string;
   inhoud: string;

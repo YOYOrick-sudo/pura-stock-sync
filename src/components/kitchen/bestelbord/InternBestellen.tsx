@@ -2,6 +2,7 @@ import { useRef, useState, type ReactNode } from 'react';
 import { Warehouse } from 'lucide-react';
 import { toast } from 'sonner';
 import { KaartKop, LijstKaart } from '@/components/pura/patronen';
+import { RijMeta } from '@/components/pura/lijst';
 import { StatusBadge } from '@/components/pura/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { AantalStapper } from '@/components/kitchen/AantalStapper';
@@ -68,14 +69,17 @@ export function InternBestelKaart({ producten, onBestellen, bezigId, bestaande }
           const per = inhoudPerEenheid(p.inhoud_per_eenheid, p.inhoud_eenheid, p.eenheid);
           const max = maxVan(p);
           return (
-            <div key={p.product_id} className="space-y-2 px-4 py-3 lg:px-6">
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <span className="min-w-0 break-words font-medium text-foreground">{p.naam}</span>
-                {open > 0 && <StatusBadge tone="info">{`${getal(open)} onderweg`}</StatusBadge>}
+            <div key={p.product_id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 lg:px-6">
+              <div className="min-w-[8rem] flex-1">
+                <div className="flex min-h-11 min-w-0 flex-wrap items-center gap-1.5">
+                  <span className="min-w-0 break-words font-medium text-foreground">{p.naam}</span>
+                  {open > 0 && <StatusBadge tone="info" className="px-2 py-0.5">{`${getal(open)} onderweg`}</StatusBadge>}
+                </div>
+                {per && <RijMeta altijd>{per}</RijMeta>}
               </div>
-              {per && <p className="text-xs text-muted-foreground">{per}</p>}
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="ml-auto flex shrink-0 items-center gap-2">
                 <AantalStapper
+                  compact
                   waarde={aantalVan(p)}
                   min={1}
                   max={max}
@@ -86,7 +90,7 @@ export function InternBestelKaart({ producten, onBestellen, bezigId, bestaande }
                     setAantallen((huidig) => ({ ...huidig, [p.product_id]: n }));
                   }}
                 />
-                <Button type="button" size="touch" className="min-w-[8rem] flex-1 sm:flex-none" aria-label={`Bestellen ${p.naam}`} disabled={bezigId === p.product_id} onClick={() => bestellen(p)}>
+                <Button type="button" size="sm" className="shrink-0 px-3" aria-label={`Bestellen ${p.naam}`} disabled={bezigId === p.product_id} onClick={() => bestellen(p)}>
                   Bestellen
                 </Button>
               </div>

@@ -1,7 +1,8 @@
 import { eenheidVorm } from '@/lib/hoeveelheid';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { AlertCircle, Hourglass, Minus, PackageCheck, Plus, Truck } from 'lucide-react';
+import { AlertCircle, ChevronDown, Clock, Hourglass, Minus, PackageCheck, Plus, Truck } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DetailLade, GroepRij, KaartKop, LaadRijen, LijstKaart } from '@/components/pura/patronen';
 import { RijMenu, RijMeta } from '@/components/pura/lijst';
 import { AnnuleerLade } from './MandjeVragen';
@@ -19,7 +20,8 @@ import { useLeverancierSoorten, zoekBordSuggesties, type BordSuggestie } from '@
 import { suggestieOnderschrift, zonderWinkelIntern } from '@/lib/leverancierSoort';
 import { isArtikelSuggestie } from '@/lib/bordZoeken';
 import { useOntvangstMutaties, type NaleveringKandidaat, type OntvangstRestant, type OntvangstVandaag } from '@/hooks/useOntvangstV2';
-import { vandaagZonderOpenRest, afrondWaarschuwingen, onderwegBlokken, isAutomatisch, bouwRegel, eindcheckFout, kortDatum, restantVan, type EindcheckInvoer, type OntvangstModus, type RestBron } from '@/lib/ontvangstV2';
+import { vandaagAmsterdam } from '@/lib/interneLeveringV2';
+import { splitsVandaagBinnen, vandaagZonderOpenRest, afrondWaarschuwingen, onderwegBlokken, isAutomatisch, bouwRegel, eindcheckFout, kortDatum, restantVan, type EindcheckInvoer, type OntvangstModus, type RestBron } from '@/lib/ontvangstV2';
 
 const BRONNEN: { id: RestBron; naam: string }[] = [{ id: 'pakbon', naam: 'Pakbon' }, { id: 'mail', naam: 'Mail' }, { id: 'orderbevestiging', naam: 'Bevestiging' }];
 const sleutelVan = (r: OntvangstVandaag) => r.open_regel_id ?? r.signaal_id ?? r.pakbon_regel_id ?? r.naam;
@@ -75,25 +77,26 @@ export function toonWaarschuwingen(res: unknown) {
   afrondWaarschuwingen(res).forEach((w) => toast.warning(w));
 }
 
-/** 5.3 Eindcheck: wat is er vandaag binnen; restant standaard 'Mist'. */
+/** 5.3 Eindcheck: wat is er vandaag binnen; restant standaard 'Mist'. Oudere open regels blijven in een dicht blok. */
 export function EindcheckKaart({ modus, regels: alleRegels, restanten, laden, leveranciers }: { modus: OntvangstModus; regels: OntvangstVandaag[]; restanten: OntvangstRestant[]; laden: boolean; leveranciers?: Map<string, string> }) {
   const regels = useMemo(() => vandaagZonderOpenRest(alleRegels), [alleRegels]);
+  const blokken = useMemo(() => splitsVandaagBinnen(regels, vandaagAmsterdam()), [regels]);
   const { afronden } = useOntvangstMutaties(modus);
   const [invoer, setInvoer] = useState<Record<string, EindcheckInvoer>>({});
   const [gekozen, setGekozen] = useState<Set<string>>(new Set());
   const [open, setOpen] = useState<string | null>(null);
   const [zonderOrder, setZonderOrder] = useState(false);
 
+  const getoond = useMemo(() => Object.fromEntries(regels.map((r) => {
+    const k = sleutelVan(r);
+    const bestaand = invoer[k];
+    return [k, bestaand ? { ...bestaand, automatisch: isAutomatisch(r, restanten) } : startInvoer(r, restanten)];
+  })), [regels, restanten, invoer]);
+
   useEffect(() => {
     setInvoer((oud) => Object.fromEntries(regels.map((r) => [sleutelVan(r), { ...(oud[sleutelVan(r)] ?? startInvoer(r, restanten)), automatisch: isAutomatisch(r, restanten) }])));
     setGekozen((oud) => new Set([...oud].filter((k) => regels.some((r) => sleutelVan(r) === k))));
   }, [regels, restanten]);
-
-  const groepen = useMemo(() => {
-    const m = new Map<string, OntvangstVandaag[]>();
-    for (const r of regels) m.set(r.leverancier_naam ?? 'Leverancier onbekend', [...(m.get(r.leverancier_naam ?? 'Leverancier onbekend') ?? []), r]);
-    return [...m.entries()];
-  }, [regels]);
 
   const zet = (k: string, d: Partial<EindcheckInvoer>) => setInvoer((o) => ({ ...o, [k]: { ...o[k], ...d } }));
   const kies = (k: string, aan: boolean) => setGekozen((o) => { const n = new Set(o); if (aan) n.add(k); else n.delete(k); return n; });
@@ -109,31 +112,35 @@ export function EindcheckKaart({ modus, regels: alleRegels, restanten, laden, le
     });
   };
 
-  const huidig = open ? invoer[open] : null;
+  const huidig = open ? getoond[open] : null;
   const huidigeRegel = open ? regels.find((r) => sleutelVan(r) === open) : null;
+  const lijstVan = (rijen: OntvangstVandaag[]) => <EindcheckLijst rijen={rijen} invoer={getoond} gekozen={gekozen} kies={kies} openRij={setOpen} />;
+  const afrondbalk = () => <div className="border-t border-border p-3"><Button className="h-12 w-full" disabled={!n || afronden.isPending} onClick={rondAf}>Levering afronden ({n})</Button></div>;
 
   return <>
-    <LijstKaart kop={<KaartKop icoon={PackageCheck} titel="Vandaag binnen" teller={regels.length} rechts={<Button variant="ghost" size="touch" className="-my-1 gap-1 px-2" onClick={() => setZonderOrder(true)}><Plus className="h-4 w-4" />Zonder order</Button>} />}>
-      {laden ? <LaadRijen /> : regels.length === 0 ? <p className="px-4 py-6 text-center text-sm text-muted-foreground">Niets te checken</p> : <>
-        <CompacteTabel zonderKop onderweg vinkKop="Binnen" kinderen={<TableBody>{groepen.map(([lev, rs]) => <Fragment key={lev}>
-          <GroepRij kolommen={5} naam={lev} aantal={rs.length} />
-          {rs.map((r) => {
-            const k = sleutelVan(r); const v = invoer[k]; if (!v) return null;
-            const rest = restantVan(v);
-            return <TableRow key={k} className="cursor-pointer" onClick={() => { kies(k, true); setOpen(k); }}>
-              <TableCell className="!px-0" onClick={(e) => e.stopPropagation()}><label className="mx-auto flex h-11 w-11 cursor-pointer items-center justify-center"><Checkbox aria-label={`${r.naam} meenemen`} checked={gekozen.has(k)} onCheckedChange={(b) => kies(k, b === true)} /></label></TableCell>
-              <TableCell><div className="flex min-h-11 min-w-0 flex-col justify-center">
-                <span className="flex min-w-0 items-center gap-1.5"><span className="min-w-0 line-clamp-2 break-words font-medium">{r.naam}</span>{r.soort !== 'onderweg' && r.soort !== 'alleen_pakbon' && <Hourglass className="h-4 w-4 shrink-0 text-muted-foreground" aria-label="Wordt nageleverd" />}</span>
-                {(rest > 0 || r.te_laat) && <RijMeta altijd>{rest > 0 && <Badge variant={v.nageleverd || v.automatisch ? 'info' : 'warning'}>{rest} {v.nageleverd || v.automatisch ? 'wordt nageleverd' : 'mist'}</Badge>}</RijMeta>}
-              </div></TableCell>
-              <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex items-center gap-1.5"><span className="rounded-full bg-muted px-2 text-sm font-semibold">{v.binnen}</span><span className="text-xs text-muted-foreground">/ {v.besteld} {eenheidVorm(Number(v.besteld), r.eenheid)}</span></span></TableCell>
-              <TableCell className="!px-0" /><TableCell className="!px-0" />
-            </TableRow>;
-          })}
-        </Fragment>)}</TableBody>} />
-        <div className="border-t border-border p-3"><Button className="h-12 w-full" disabled={!n || afronden.isPending} onClick={rondAf}>Levering afronden ({n})</Button></div>
-      </>}
+    <LijstKaart kop={<KaartKop icoon={PackageCheck} titel="Vandaag binnen" teller={blokken.vandaag.length} rechts={<Button variant="ghost" size="touch" className="-my-1 gap-1 px-2" onClick={() => setZonderOrder(true)}><Plus className="h-4 w-4" />Zonder order</Button>} />}>
+      {laden ? <LaadRijen /> : blokken.vandaag.length === 0
+        ? <p className="px-4 py-6 text-center text-sm text-muted-foreground">{blokken.eerder.length ? 'Niets van vandaag' : 'Niets te checken'}</p>
+        : <>{lijstVan(blokken.vandaag)}{afrondbalk()}</>}
     </LijstKaart>
+    {!laden && blokken.eerder.length > 0 && <LijstKaart>
+      <Collapsible className="group/eerder">
+        <CollapsibleTrigger asChild>
+          <Button type="button" variant="ghost" className="h-auto min-h-12 w-full justify-between rounded-none px-4 py-2 lg:px-6">
+            <span className="flex min-w-0 items-center gap-2 text-sm font-semibold text-foreground">
+              <Clock className="h-5 w-5 shrink-0 text-muted-foreground" />
+              <span className="truncate">Nog open van eerder</span>
+              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium tabular-nums text-muted-foreground">{blokken.eerder.length}</span>
+            </span>
+            <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground group-data-[state=open]/eerder:rotate-180" />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          {lijstVan(blokken.eerder)}
+          {afrondbalk()}
+        </CollapsibleContent>
+      </Collapsible>
+    </LijstKaart>}
 
     <DetailLade open={!!huidig} onOpenChange={(o) => !o && setOpen(null)} titel={huidigeRegel?.naam}>
       {huidig && open && <div className="space-y-4">
@@ -158,6 +165,36 @@ export function EindcheckKaart({ modus, regels: alleRegels, restanten, laden, le
 
     <ZonderOrderLade open={zonderOrder} onOpenChange={setZonderOrder} modus={modus} leveranciers={leveranciers} />
   </>;
+}
+
+function EindcheckLijst({ rijen, invoer, gekozen, kies, openRij }: {
+  rijen: OntvangstVandaag[];
+  invoer: Record<string, EindcheckInvoer>;
+  gekozen: Set<string>;
+  kies: (k: string, aan: boolean) => void;
+  openRij: (k: string) => void;
+}) {
+  const groepen = new Map<string, OntvangstVandaag[]>();
+  for (const r of rijen) {
+    const naam = r.leverancier_naam ?? 'Leverancier onbekend';
+    groepen.set(naam, [...(groepen.get(naam) ?? []), r]);
+  }
+  return <CompacteTabel zonderKop onderweg vinkKop="Binnen" kinderen={<TableBody>{[...groepen.entries()].map(([lev, rs]) => <Fragment key={lev}>
+    <GroepRij kolommen={5} naam={lev} aantal={rs.length} />
+    {rs.map((r) => {
+      const k = sleutelVan(r); const v = invoer[k]; if (!v) return null;
+      const rest = restantVan(v);
+      return <TableRow key={k} className="cursor-pointer" onClick={() => { kies(k, true); openRij(k); }}>
+        <TableCell className="!px-0" onClick={(e) => e.stopPropagation()}><label className="mx-auto flex h-11 w-11 cursor-pointer items-center justify-center"><Checkbox aria-label={`${r.naam} meenemen`} checked={gekozen.has(k)} onCheckedChange={(b) => kies(k, b === true)} /></label></TableCell>
+        <TableCell><div className="flex min-h-11 min-w-0 flex-col justify-center">
+          <span className="flex min-w-0 items-center gap-1.5"><span className="min-w-0 line-clamp-2 break-words font-medium">{r.naam}</span>{r.soort !== 'onderweg' && r.soort !== 'alleen_pakbon' && <Hourglass className="h-4 w-4 shrink-0 text-muted-foreground" aria-label="Wordt nageleverd" />}</span>
+          {(rest > 0 || r.te_laat) && <RijMeta altijd>{rest > 0 && <Badge variant={v.nageleverd || v.automatisch ? 'info' : 'warning'}>{rest} {v.nageleverd || v.automatisch ? 'wordt nageleverd' : 'mist'}</Badge>}{r.te_laat && <span>{kortDatum(r.verwachte_levering)}</span>}</RijMeta>}
+        </div></TableCell>
+        <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex items-center gap-1.5"><span className="rounded-full bg-muted px-2 text-sm font-semibold">{v.binnen}</span><span className="text-xs text-muted-foreground">/ {v.besteld} {eenheidVorm(Number(v.besteld), r.eenheid)}</span></span></TableCell>
+        <TableCell className="!px-0" /><TableCell className="!px-0" />
+      </TableRow>;
+    })}
+  </Fragment>)}</TableBody>} />;
 }
 
 function Veld({ label, children }: { label: string; children: React.ReactNode }) {

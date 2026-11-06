@@ -182,5 +182,32 @@ describe('interne levering v2 schermen', () => {
     expect(tekst).toContain('geen nieuw artikel');
     expect(tekst).toContain('al beschikbaar');
     expect(tekst).toContain('Beschikbaar maken');
+    expect(tekst).not.toContain('Bewerken');
+  });
+
+  test('de eigenaar bewerkt een bestaand product in een dialoog', () => {
+    const tekst = html(createElement(InterneProductenBeheerKaart, {
+      producten: [
+        { product_id: '1', artikel_id: 'a', naam: 'Wortelspread', eenheid: 'bak', inhoud_per_eenheid: 3200, inhoud_eenheid: 'g', max_per_bestelling: 9, v2_beschikbaar: false, huidige_route: true },
+      ],
+      artikelen: [],
+      zoek: '',
+      gekozen: null,
+      eenheid: 'bak',
+      inhoud: '',
+      inhoudEenheid: '',
+      max: '',
+      bewerken: true,
+      onZoek: () => {},
+      onKies: () => {},
+      onEenheid: () => {},
+      onInhoud: () => {},
+      onInhoudEenheid: () => {},
+      onMax: () => {},
+      onOpslaan: () => {},
+      onBewerk: () => {},
+    }));
+    expect(tekst).toContain('Bewerken Wortelspread');
+    expect(tekst).toContain('3,2 kg per bak');
   });
 });

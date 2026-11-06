@@ -1,20 +1,23 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { KaartKop, LijstKaart } from '@/components/pura/patronen';
 import { StatusBadge } from '@/components/pura/StatusBadge';
 import { Package } from 'lucide-react';
-import { foutTekst } from '@/hooks/useInterneLevering';
+import { STAM_INHOUD_EENHEDEN, STAM_VORM_EENHEDEN } from '@/components/kitchen/bestelbord/verpakking';
+import { foutTekst, inhoudPerEenheid } from '@/hooks/useInterneLevering';
+import { useIsEigenaar } from '@/hooks/useIsEigenaar';
 import {
-  useInterneV2ArtikelenZoeken, useInterneV2Beheer, useInterneV2ProductOpslaan,
+  useInterneV2ArtikelenZoeken, useInterneV2Beheer, useInterneV2ProductOpslaan, useInterneVormOpslaan,
   type InternV2BeheerProduct, type StamArtikel,
 } from '@/hooks/useInterneLeveringV2';
 import { EENHEDEN } from '@/lib/interneLeveringV2';
 
 export function InterneProductenBeheerKaart({
-  producten, artikelen, zoek, gekozen, eenheid, inhoud, inhoudEenheid, max, bezig,
-  onZoek, onKies, onEenheid, onInhoud, onInhoudEenheid, onMax, onOpslaan,
+  producten, artikelen, zoek, gekozen, eenheid, inhoud, inhoudEenheid,   max, bezig, bewerken,
+  onZoek, onKies, onEenheid, onInhoud, onInhoudEenheid, onMax, onOpslaan, onBewerk,
 }: {
   producten: InternV2BeheerProduct[];
   artikelen: StamArtikel[];
@@ -32,6 +35,8 @@ export function InterneProductenBeheerKaart({
   onInhoudEenheid: (waarde: string) => void;
   onMax: (waarde: string) => void;
   onOpslaan: () => void;
+  bewerken?: boolean;
+  onBewerk?: (product: InternV2BeheerProduct) => void;
 }) {
   const huidig = producten.filter((p) => p.huidige_route);
   const nieuw = producten.filter((p) => !p.huidige_route);
@@ -72,11 +77,7 @@ export function InterneProductenBeheerKaart({
         <LijstKaart kop={<KaartKop titel="Huidige route" teller={huidig.length} />}>
           <div className="divide-y divide-border">
             {huidig.map((p) => (
-              <div key={p.product_id} className="flex flex-wrap items-center gap-2 px-4 py-3 lg:px-6">
-                <span className="font-medium text-foreground">{p.naam}</span>
-                <StatusBadge tone="neutral">al beschikbaar</StatusBadge>
-                <span className="text-sm text-muted-foreground">{p.eenheid}</span>
-              </div>
+              <ProductRij key={p.product_id} product={p} bewerken={bewerken} onBewerk={onBewerk} />
             ))}
           </div>
         </LijstKaart>
@@ -85,10 +86,7 @@ export function InterneProductenBeheerKaart({
         <LijstKaart kop={<KaartKop titel="Alleen nieuwe route" teller={nieuw.length} />}>
           <div className="divide-y divide-border">
             {nieuw.map((p) => (
-              <div key={p.product_id} className="px-4 py-3 lg:px-6">
-                <p className="font-medium text-foreground">{p.naam}</p>
-                <p className="text-sm text-muted-foreground">{[p.eenheid, p.inhoud_per_eenheid && p.inhoud_eenheid ? `${p.inhoud_per_eenheid} ${p.inhoud_eenheid} per ${p.eenheid}` : ''].filter(Boolean).join(' · ')}</p>
-              </div>
+              <ProductRij key={p.product_id} product={p} bewerken={bewerken} onBewerk={onBewerk} />
             ))}
           </div>
         </LijstKaart>
@@ -97,9 +95,88 @@ export function InterneProductenBeheerKaart({
   );
 }
 
+function ProductRij({ product: p, bewerken, onBewerk }: { product: InternV2BeheerProduct; bewerken?: boolean; onBewerk?: (product: InternV2BeheerProduct) => void }) {
+  const per = inhoudPerEenheid(p.inhoud_per_eenheid, p.inhoud_eenheid, p.eenheid);
+  return (
+    <div className="flex flex-wrap items-center gap-2 px-4 py-3 lg:px-6">
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-medium text-foreground">{p.naam}</span>
+          {p.huidige_route && <StatusBadge tone="neutral">al beschikbaar</StatusBadge>}
+        </div>
+        <p className="text-sm text-muted-foreground">{[p.eenheid, per].filter(Boolean).join(' · ')}</p>
+      </div>
+      {bewerken && onBewerk && <Button type="button" variant="outline" size="sm" aria-label={`Bewerken ${p.naam}`} onClick={() => onBewerk(p)}>Bewerken</Button>}
+    </div>
+  );
+}
+
+function zitErin(lijst: readonly string[], waarde: string) {
+  return lijst.includes(waarde);
+}
+
+function VormFormulier({ product, bezig, onOpslaan }: {
+  product: InternV2BeheerProduct;
+  bezig?: boolean;
+  onOpslaan: (eenheid: string, inhoud: string, inhoudEenheid: string) => void;
+}) {
+  const startEenheid = product.eenheid || STAM_VORM_EENHEDEN[0];
+  const [eenheid, setEenheid] = useState(startEenheid);
+  const [inhoud, setInhoud] = useState(product.inhoud_per_eenheid == null ? '' : String(product.inhoud_per_eenheid).replace('.', ','));
+  const [inhoudEenheid, setInhoudEenheid] = useState(product.inhoud_eenheid && zitErin(STAM_INHOUD_EENHEDEN, product.inhoud_eenheid) ? product.inhoud_eenheid : STAM_INHOUD_EENHEDEN[0]);
+  const getal = inhoud.trim() ? Number(inhoud.replace(',', '.')) : null;
+  const voorbeeld = getal != null && Number.isFinite(getal) ? inhoudPerEenheid(getal, inhoudEenheid, eenheid) : null;
+  const eenheden = zitErin(STAM_VORM_EENHEDEN, eenheid) ? STAM_VORM_EENHEDEN : [eenheid, ...STAM_VORM_EENHEDEN];
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle className="text-left text-[16px]">{product.naam}</DialogTitle>
+        <DialogDescription className="text-left text-[13px]">Eenheid en inhoud horen bij de artikelstam. Gram vanaf 1000 wordt als kilogram getoond.</DialogDescription>
+      </DialogHeader>
+      <div className="space-y-3">
+        <label className="block space-y-1 text-sm font-medium">Eenheid
+          <select value={eenheid} onChange={(e) => setEenheid(e.target.value)} aria-label="Eenheid van de verpakking" className="h-11 w-full rounded-polar-lg border border-input bg-background px-2 text-base font-normal">
+            {eenheden.map((e) => <option key={e} value={e}>{e}</option>)}
+          </select>
+        </label>
+        <div className="flex flex-wrap gap-2">
+          <label className="block min-w-[8rem] flex-1 space-y-1 text-sm font-medium">Inhoud
+            <Input value={inhoud} onChange={(e) => setInhoud(e.target.value)} inputMode="decimal" aria-label="Inhoud" placeholder="leeg laten mag" className="h-11 text-base font-normal" />
+          </label>
+          <label className="block w-28 space-y-1 text-sm font-medium">Inhoud-eenheid
+            <select value={inhoudEenheid} onChange={(e) => setInhoudEenheid(e.target.value)} aria-label="Inhoud-eenheid" className="h-11 w-full rounded-polar-lg border border-input bg-background px-2 text-base font-normal">
+              {STAM_INHOUD_EENHEDEN.map((e) => <option key={e} value={e}>{e}</option>)}
+            </select>
+          </label>
+        </div>
+        {voorbeeld && <p className="text-sm text-muted-foreground">Op het bord: {voorbeeld}</p>}
+        <Button type="button" className="h-11" disabled={bezig} onClick={() => onOpslaan(eenheid, inhoud, inhoudEenheid)}>Opslaan</Button>
+      </div>
+    </>
+  );
+}
+
+function VormDialog({ product, bezig, onSluit, onOpslaan }: {
+  product: InternV2BeheerProduct | null;
+  bezig?: boolean;
+  onSluit: () => void;
+  onOpslaan: (eenheid: string, inhoud: string, inhoudEenheid: string) => void;
+}) {
+  return (
+    <Dialog open={!!product} onOpenChange={(open) => { if (!open) onSluit(); }}>
+      <DialogContent className="max-w-[650px]">
+        {product && <VormFormulier key={product.product_id} product={product} bezig={bezig} onOpslaan={onOpslaan} />}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function InterneProductenBeheer({ vestiging }: { vestiging: string }) {
   const lijst = useInterneV2Beheer(vestiging);
   const opslaan = useInterneV2ProductOpslaan();
+  const vormOpslaan = useInterneVormOpslaan();
+  const eigenaar = useIsEigenaar();
+  const [bewerk, setBewerk] = useState<InternV2BeheerProduct | null>(null);
   const [zoek, setZoek] = useState('');
   const [gekozen, setGekozen] = useState<StamArtikel | null>(null);
   const [eenheid, setEenheid] = useState<string>(EENHEDEN[0]);
@@ -108,6 +185,27 @@ export function InterneProductenBeheer({ vestiging }: { vestiging: string }) {
   const [max, setMax] = useState('');
   const artikelen = useInterneV2ArtikelenZoeken(vestiging, zoek);
   if (lijst.data == null && !lijst.isLoading) return null;
+
+  const bewaarVorm = async (vormEenheid: string, vormInhoud: string, vormInhoudEenheid: string) => {
+    if (!bewerk) return;
+    const inhoudGetal = vormInhoud.trim() ? Number(vormInhoud.replace(',', '.')) : null;
+    if (vormInhoud.trim() && (inhoudGetal == null || !Number.isFinite(inhoudGetal))) {
+      toast.error('Vul een getal in voor de inhoud');
+      return;
+    }
+    try {
+      await vormOpslaan.mutateAsync({
+        productId: bewerk.product_id,
+        eenheid: vormEenheid,
+        inhoud: inhoudGetal,
+        inhoudEenheid: inhoudGetal == null ? null : vormInhoudEenheid,
+      });
+      toast.success(`${bewerk.naam} staat in de artikelstam`);
+      setBewerk(null);
+    } catch (e) {
+      toast.error(foutTekst(e));
+    }
+  };
 
   const bewaar = async () => {
     if (!gekozen) return;
@@ -136,23 +234,28 @@ export function InterneProductenBeheer({ vestiging }: { vestiging: string }) {
   };
 
   return (
-    <InterneProductenBeheerKaart
-      producten={lijst.data ?? []}
-      artikelen={artikelen.data ?? []}
-      zoek={zoek}
-      gekozen={gekozen}
-      eenheid={eenheid}
-      inhoud={inhoud}
-      inhoudEenheid={inhoudEenheid}
-      max={max}
-      bezig={opslaan.isPending}
-      onZoek={setZoek}
-      onKies={setGekozen}
-      onEenheid={setEenheid}
-      onInhoud={setInhoud}
-      onInhoudEenheid={setInhoudEenheid}
-      onMax={setMax}
-      onOpslaan={bewaar}
-    />
+    <>
+      <InterneProductenBeheerKaart
+        producten={lijst.data ?? []}
+        artikelen={artikelen.data ?? []}
+        zoek={zoek}
+        gekozen={gekozen}
+        eenheid={eenheid}
+        inhoud={inhoud}
+        inhoudEenheid={inhoudEenheid}
+        max={max}
+        bezig={opslaan.isPending}
+        bewerken={eigenaar}
+        onZoek={setZoek}
+        onKies={setGekozen}
+        onEenheid={setEenheid}
+        onInhoud={setInhoud}
+        onInhoudEenheid={setInhoudEenheid}
+        onMax={setMax}
+        onOpslaan={bewaar}
+        onBewerk={setBewerk}
+      />
+      <VormDialog product={eigenaar ? bewerk : null} bezig={vormOpslaan.isPending} onSluit={() => setBewerk(null)} onOpslaan={bewaarVorm} />
+    </>
   );
 }
