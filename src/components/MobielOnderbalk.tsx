@@ -35,11 +35,11 @@ export function MobielOnderbalk() {
       onClick={onClick}
       aria-current={actief ? 'page' : undefined}
       className={cn(
-        'flex h-auto min-h-11 min-w-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-none px-1 text-xs font-medium transition-colors',
-        actief ? 'text-primary' : 'text-muted-foreground'
+        'flex h-auto min-h-11 min-w-11 flex-1 flex-col items-center justify-center gap-1 rounded-none px-1 text-xs font-medium transition-colors',
+        actief ? 'bg-muted text-foreground' : 'text-muted-foreground'
       )}
     >
-      <Icon className="h-5 w-5" strokeWidth={actief ? 2.25 : 1.75} />
+      <Icon className="h-4 w-4" strokeWidth={2} />
       {label}
     </Button>
   );

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { KitchenLayout } from '@/components/kitchen/KitchenLayout';
 import { SidebarLayout } from '@/components/SidebarLayout';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { segmentTabsKlasse } from '@/components/pura';
@@ -305,11 +304,11 @@ export { OpendagenTab };
 
 export default function MepBeheer() {
   const isMobile = useIsMobile();
-  const Layout = isMobile ? SidebarLayout : KitchenLayout;
+  const Layout = SidebarLayout;
   const { userLocation } = useUserLocation();
 
   return (
-    <Layout title="Mise-en-place beheren" subtitle={userLocation} backTo="/kitchen/mep" backLabel="Mise-en-place">
+    <Layout>
       <Tabs defaultValue="templates" className={isMobile ? 'min-w-0 max-w-full [&_input]:h-11 [&_input]:min-w-0 [&_input]:max-w-full [&_input]:text-base [&_button]:min-h-11 [&_button]:min-w-11 [&_button]:shrink-0 [&_button[role=switch]]:!h-11 [&_button[role=switch]]:!w-11 [&_button[role=switch]]:shrink-0 [&_[data-radix-select-trigger]]:min-w-0 [&_p]:break-words' : undefined}>
         <TabsList className={isMobile ? `${segmentTabsKlasse} !w-full flex-nowrap overflow-x-auto [&>button]:!flex-none [&>button]:shrink-0 [&>button]:whitespace-nowrap` : 'w-full grid grid-cols-3'}>
           <TabsTrigger value="templates">Templates</TabsTrigger>

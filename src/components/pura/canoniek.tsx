@@ -35,7 +35,8 @@ export const ICOON = {
   koelcel: 'Refrigerator',
   vriezer: 'Snowflake',
   magazijn: 'Warehouse',
-  mep: 'ListChecks',
+  mep: 'ChefHat',
+  taken: 'ListChecks',
   datum: 'CalendarClock',
   letOp: 'AlertTriangle',
   fout: 'CircleAlert',
@@ -77,8 +78,8 @@ export function AantalStapper({ waarde, min, max, eenheid, onChange, label = 'Aa
     onChange(klemAantal(n, min, max));
   };
   return (
-    <div className="flex h-11 shrink-0 items-center rounded-polar-lg border border-input bg-background">
-      <Button type="button" variant="ghost" size="touch-icon" aria-label="Minder" disabled={lees() <= min} onClick={() => zet(lees() - 1)}>
+    <div className="flex h-11 shrink-0 items-center rounded-polar-md border border-border bg-background">
+      <Button type="button" variant="ghost" size="touch-icon" className="rounded-none" aria-label="Minder" disabled={lees() <= min} onClick={() => zet(lees() - 1)}>
         <Minus className="h-4 w-4" />
       </Button>
       <label className="flex h-11 min-w-[5.5rem] cursor-text items-center justify-center gap-2 px-1 leading-none">
@@ -100,16 +101,16 @@ export function AantalStapper({ waarde, min, max, eenheid, onChange, label = 'Aa
         />
         {eenheid && <span className="text-xs leading-none text-muted-foreground">{eenheid}</span>}
       </label>
-      <Button type="button" variant="ghost" size="touch-icon" aria-label="Meer" disabled={max != null && lees() >= max} onClick={() => zet(lees() + 1)}>
+      <Button type="button" variant="ghost" size="touch-icon" className="rounded-none" aria-label="Meer" disabled={max != null && lees() >= max} onClick={() => zet(lees() + 1)}>
         <Plus className="h-4 w-4" />
       </Button>
     </div>
   );
 }
 
-/** Paginakop is PaginaBalk: geen titel. Links tabs, rechts hooguit één primaire actie. */
-export function Paginakop({ links, actie }: { links: ReactNode; actie?: ReactNode }) {
-  return <PaginaBalk links={links} actie={actie} />;
+/** Paginakop: titel op 390 in text-xl, vanaf md in text-2xl. Zonder titel blijft de tabregel. */
+export function Paginakop({ titel, meta, links, actie }: { titel?: ReactNode; meta?: ReactNode; links: ReactNode; actie?: ReactNode }) {
+  return <PaginaBalk titel={titel} meta={meta} links={links} actie={actie} />;
 }
 
 /** Dunne voortgangsbalk. De primitive is h-4; in een kaart blijft hij h-1. */
@@ -170,24 +171,27 @@ export function Werkkaart({
   );
 }
 
-/** Sectiekop: 48px, zin, zelfde zijmarge als de rijen. `groep` zet alleen een lijn. */
+/** Sectiekop: 48px, zin, zelfde zijmarge als de rijen. `groep` zet alleen een lijn. `voortgang` blijft in de aanroep maar tekent geen ring. */
 export function Sectiekop({
   titel,
   teller,
   actie,
+  icoon: Icoon,
   voortgang,
   groep = false,
 }: {
   titel: ReactNode;
   teller?: ReactNode;
   actie?: ReactNode;
+  icoon?: LucideIcon;
   voortgang?: number;
   groep?: boolean;
 }) {
+  void voortgang;
   return (
     <div className={cn('flex min-h-12 items-center justify-between gap-3 px-4 lg:px-6', groep && 'border-t border-border')}>
-      <div className="flex min-w-0 items-center gap-3 text-sm font-semibold text-foreground">
-        {voortgang != null && <VoortgangRing waarde={voortgang} label="Voortgang" />}
+      <div className="flex min-w-0 items-center gap-2 text-base font-semibold tracking-tight text-foreground">
+        {Icoon ? <Icoon className="h-4 w-4 shrink-0 text-muted-foreground" strokeWidth={2} aria-hidden /> : null}
         <span className="truncate">{titel}</span>
         {teller != null && <span className="tabular-nums font-normal text-muted-foreground">{teller}</span>}
       </div>
@@ -223,7 +227,7 @@ export function Lijstrij({
           <span className="truncate text-sm font-medium text-foreground">{naam}</span>
           {status}
         </div>
-        <RijMeta altijd>{meta ?? '—'}</RijMeta>
+        {meta ? <RijMeta altijd>{meta}</RijMeta> : null}
       </div>
       {actie ? (
         <div className="flex shrink-0 items-center gap-2" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
@@ -259,7 +263,7 @@ export function Afvinkrij({
       </span>
       <span className="min-w-0 flex-1">
         <span className={cn('block truncate text-sm', klaar ? 'text-muted-foreground line-through' : 'font-medium text-foreground')}>{naam}</span>
-        <RijMeta altijd>{meta ?? '—'}</RijMeta>
+        {meta ? <RijMeta altijd>{meta}</RijMeta> : null}
       </span>
       {status ? <span className="shrink-0">{status}</span> : null}
     </label>
@@ -297,7 +301,7 @@ export function Telrij({
     <div className="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-2 border-b border-border px-4 py-2 last:border-0 lg:px-6">
       <div className="min-w-0 flex-1 basis-full sm:basis-0">
         <span className="block truncate text-sm font-medium text-foreground">{naam}</span>
-        <RijMeta altijd>{meta ?? '—'}</RijMeta>
+        {meta ? <RijMeta altijd>{meta}</RijMeta> : null}
       </div>
       <div className="ml-auto flex shrink-0 items-center gap-2">
         <AantalStapper waarde={waarde} min={min} max={max} eenheid={eenheid} label={`Aantal ${naam}`} onChange={onChange} />
@@ -313,11 +317,11 @@ export function Telrij({
 
 /** Zelfde pill als StatusLabel. Optioneel het vaste icoon bij de toon. Tekst blijft verplicht. */
 export function Statusbadge({ toon = 'neutraal', icoon, children }: { toon?: StatusToon; icoon?: boolean; children: ReactNode }) {
-  const Icoon = icoon ? statusIcoon[toon] : undefined;
+  const Icoon = icoon && (toon === 'goed' || toon === 'let-op' || toon === 'fout') ? statusIcoon[toon] : undefined;
   return (
     <StatusLabel toon={toon}>
-      <span className="inline-flex items-center gap-2">
-        {Icoon ? <Icoon className="h-4 w-4" aria-hidden /> : null}
+      <span className="inline-flex items-center gap-1">
+        {Icoon ? <Icoon className="h-3 w-3" aria-hidden /> : null}
         {children}
       </span>
     </StatusLabel>
@@ -395,11 +399,10 @@ export function Formulierveld({
 }
 
 /** Lege lijst nadat laden klaar is. Eén zin. Icoon en actie blijven uit tenzij je ze zet. */
-export function LegeStaatBlok({ tekst, actie, icoon: Icoon }: { tekst: string; actie?: ReactNode; icoon?: LucideIcon }) {
+export function LegeStaatBlok({ tekst, actie }: { tekst: string; actie?: ReactNode; icoon?: LucideIcon }) {
   return (
-    <div className="flex flex-col items-center gap-2 px-4 py-6 text-center">
-      {Icoon ? <Icoon className="h-5 w-5 text-muted-foreground" aria-hidden /> : null}
-      <p className="text-sm text-muted-foreground">{tekst}</p>
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-polar-lg border border-dashed border-border bg-muted px-4 py-3">
+      <p className="text-sm text-foreground">{tekst}</p>
       {actie}
     </div>
   );

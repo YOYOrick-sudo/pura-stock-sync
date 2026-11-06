@@ -11,130 +11,75 @@
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --safe-left: env(safe-area-inset-left, 0px);
     --onderbalk: 0px;
-    /* === CLEAN SaaS PALETTE — Green primary, neutral grays === */
-    
-    /* Page background - fresh light gray (no clay feel) */
-    --background: 45 8% 95%;                /* #F5F4F2 - fresh light, less clay */
-    --app-canvas: 45 8% 95%;                /* alias for explicit canvas usage */
-    --shadow-card: 0 20px 40px -12px rgba(0,0,0,0.08), 0 8px 16px -8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
-    --shadow-card-hover: 0 24px 48px -12px rgba(0,0,0,0.10), 0 10px 20px -8px rgba(0,0,0,0.05);
-    /* Chart-specific neutrals (matched to reference #EAE8E3 / #C9C6C0 / #E4E2DD / #EEEDEA) */
-    --chart-grid: 40 8% 90%;
-    --chart-prev-line: 40 5% 78%;
-    --chart-idle-bar: 42 8% 87%;
-    --chart-track: 40 8% 93%;
-    --foreground: 220 26% 14%;              /* #1F2937 - Gray-800 */
-    
-    /* Card surfaces - warm off-white, matches canvas */
-    --card: 40 5% 98%;
-    --card-foreground: 220 26% 14%;
-    
-    --popover: 40 5% 98%;
-    --popover-foreground: 220 26% 14%;
-    
-    /* Primary - Pura Vida Green */
-    --primary: 163 65% 26%;                 /* #1B7867 */
+    /* Regelboek v3. Hex-commentaar is het berekende resultaat, geen tweede bron. */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 163 65% 26%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 163 65% 21%;           /* #156556 */
-    
-    /* Secondary - Subtle green tint */
-    --secondary: 163 30% 95%;              /* #EDF7F5 */
-    --secondary-foreground: 163 65% 26%;
-    
-    /* Muted - Gray, matches canvas family */
-    --muted: 40 5% 95%;                     /* aligned with canvas */
-    --muted-foreground: 220 9% 46%;         /* #6B7280 - Gray-500 */
-    
-    /* Accent - keep green as accent too */
-    --accent: 163 30% 95%;
-    --accent-foreground: 163 65% 26%;
-    
-    /* Destructive */
-    --destructive: 0 84% 60%;              /* #EF4444 */
+    --primary-hover: 163 65% 21%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 3.9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 32%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 3.9%;
+    --destructive: 357 100% 45%;
     --destructive-foreground: 0 0% 100%;
-    
-    /* Notification badge */
-    --notification-badge: 0 70% 60%;
-    
-    /* Borders - warm soft, matches off-white family */
-    --border: 40 6% 88%;                    /* warm soft border */
-    --border-state: 40 6% 80%;              /* stronger warm border */
-    --input: 40 6% 82%;                     /* input border, warm */
-    --input-surface: 0 0% 100%;             /* input fill: crisp but not harsh vs #FAFAF8 */
-    --ring: 163 65% 26%;                    /* Primary green */
-    
-    /* Radius */
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 32%;
     --radius: 0.75rem;
-    
-    /* Status colors as tokens */
-    --success: 160 60% 45%;                 /* #22C55E-ish */
+    --success: 152 24% 32%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;                  /* #F59E0B */
+    --warning: 32 55% 36%;
     --warning-foreground: 0 0% 100%;
-    --info: 217 91% 60%;                    /* #3B82F6 */
+    --info: 215 14% 42%;
     --info-foreground: 0 0% 100%;
-    
-    /* Sidebar - matches card family */
-    --sidebar-bg: 40 5% 98%;                /* #FAFAF8 - same as cards */
-    --sidebar-active: 163 30% 95%;          /* Light green tint */
-    --sidebar-hover: 45 8% 93%;             /* subtle warm hover */
+    --app-canvas: 0 0% 100%;
+    --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-card-hover: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --chart-grid: 0 0% 92%;
+    --chart-prev-line: 0 0% 64%;
+    --chart-idle-bar: 0 0% 90%;
+    --chart-track: 0 0% 96%;
   }
 
   .dark {
-    /* === DARK MODE - Proper contrast === */
-    --background: 220 26% 10%;              /* #111827 - Gray-900 */
-    --foreground: 210 20% 98%;              /* #F9FAFB - Gray-50 */
-    
-    --card: 220 20% 14%;                    /* #1F2937 - Gray-800 */
-    --card-foreground: 210 20% 98%;
-    
-    --popover: 220 20% 14%;
-    --popover-foreground: 210 20% 98%;
-    
-    /* Primary - brighter green for dark bg */
-    --primary: 160 55% 50%;                 /* #3DB88C */
-    --primary-foreground: 220 26% 10%;
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 160 55% 50%;
+    --primary-foreground: 0 0% 3.9%;
     --primary-hover: 160 55% 55%;
-    
-    --secondary: 220 20% 18%;
-    --secondary-foreground: 210 20% 98%;
-    
-    --muted: 220 20% 18%;                   /* Gray-800 */
-    --muted-foreground: 220 9% 64%;         /* Gray-400 */
-    
-    --accent: 220 20% 18%;
-    --accent-foreground: 210 20% 98%;
-    
-    --destructive: 0 72% 55%;
-    --destructive-foreground: 0 0% 100%;
-    
-    --notification-badge: 0 70% 65%;
-    
-    --app-canvas: 220 26% 10%;              /* dark canvas, matcht --background */
-    --border: 220 20% 15%;                  /* zeer subtiel, matcht card bijna */
-    --border-state: 220 15% 28%;            /* iets zichtbaarder voor inputs/hover */
-    --input: 220 17% 24%;
-    --input-surface: 220 20% 16%;
-    --ring: 160 55% 50%;
-
-    /* Chart-specific neutrals (dark) */
-    --chart-grid: 220 15% 22%;
-    --chart-prev-line: 220 10% 42%;
-    --chart-idle-bar: 220 15% 24%;
-    --chart-track: 220 18% 20%;
-    
-    /* Status colors */
-    --success: 160 55% 50%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 55%;
-    --warning-foreground: 220 26% 10%;
-    --info: 217 91% 65%;
-    --info-foreground: 0 0% 100%;
-    
-    /* Sidebar dark */
-    --sidebar-bg: 220 26% 10%;
-    --sidebar-active: 220 20% 18%;
-    --sidebar-hover: 220 20% 16%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 70% 65%;
+    --destructive-foreground: 0 0% 3.9%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 64%;
+    --success: 152 30% 70%;
+    --success-foreground: 0 0% 3.9%;
+    --warning: 32 55% 70%;
+    --warning-foreground: 0 0% 3.9%;
+    --info: 215 20% 72%;
+    --info-foreground: 0 0% 3.9%;
+    --app-canvas: 0 0% 3.9%;
+    --chart-grid: 0 0% 18%;
+    --chart-prev-line: 0 0% 42%;
+    --chart-idle-bar: 0 0% 16%;
+    --chart-track: 0 0% 14.9%;
   }
 }
 
@@ -287,7 +232,7 @@
 /* === INTERACTIVE FOCUS STATES === */
 @layer components {
   .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
   }
 }
 
@@ -304,159 +249,3 @@
 @keyframes cj-fadeUp   { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes cj-pulseDot { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
 .cj-card-in { animation: cj-fadeUp .5s ease both; }
-
-/*
-  Voorbeeldthema v3. Alleen op .pura-theme-v3, nooit op :root.
-  Gemeten op ui.shadcn.com (neutral, licht) 6 nov 2026:
-  background #fff, card #fff, border 1px #e5e5e5, muted #f5f5f5,
-  muted-foreground #737373, foreground #0a0a0a, ring #a1a1a1,
-  radius-token 10px (kaart afgeleid 14px), schaduw 0 1px 2px rgb(0 0 0 / 0.05),
-  kaart-padding verticaal 24px, badge 20px / 12px / 500 / pill / px 8,
-  tabelkop 40px, cel p 8, knop op de site 32–36px.
-  Pura houdt daarbinnen: rij 48, control 44, afstand 8/12/16/24,
-  radius 8/12/16/24, primary #1B7867, Inter.
-
-  Ronde 1, naast tasks/card/dialog/badge:
-  het alleen-voorstel zat in een halve gridkolom en in een extra kader.
-  Het vinkje was een cirkel (16px, radius 8). Statuspillen waren gevuld.
-  Ronde 2: de voortgangsring las als een leeg vinkje, en een sectiekop
-  met groep zette een tweede lijn direct onder de kaartkop. Allebei weg.
-  Ronde 3: kleur alleen leek op het huidige thema. Het voorbeeld krijgt
-  de hiërarchie van tasks: één titel text-2xl, secties zonder kaart,
-  tabel op md+, facetbalk, stapper en Bestellen op h-9.
-  Ronde 4, naast tasks en dashboard: sectiekop naar text-base zodat hij
-  boven de rij uitsteekt, Product blijft rechts op 390, aantal op de
-  naamregel zodat tabelrijen één regel blijven.
-*/
-.pura-theme-v3 {
-  --background: 0 0% 100%;
-  --app-canvas: 0 0% 100%;
-  --foreground: 0 0% 3.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 3.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 3.9%;
-  --primary: 163 65% 26%;
-  --primary-foreground: 0 0% 100%;
-  --primary-hover: 163 65% 21%;
-  --secondary: 0 0% 96.1%;
-  --secondary-foreground: 0 0% 9%;
-  --muted: 0 0% 96.1%;
-  --muted-foreground: 0 0% 45.1%;
-  --accent: 0 0% 96.1%;
-  --accent-foreground: 0 0% 9%;
-  --destructive: 357 100% 45%;
-  --destructive-foreground: 0 0% 100%;
-  --notification-badge: 357 100% 45%;
-  --border: 0 0% 89.8%;
-  --border-state: 0 0% 83.1%;
-  --input: 0 0% 89.8%;
-  --input-surface: 0 0% 100%;
-  --ring: 0 0% 63.1%;
-  --success: 152 24% 32%;
-  --success-foreground: 0 0% 100%;
-  --warning: 32 55% 36%;
-  --warning-foreground: 0 0% 100%;
-  --info: 215 14% 42%;
-  --info-foreground: 0 0% 100%;
-  --sidebar-bg: 0 0% 98%;
-  --sidebar-active: 0 0% 96.1%;
-  --sidebar-hover: 0 0% 96.1%;
-  --chart-grid: 0 0% 92%;
-  --chart-prev-line: 0 0% 64%;
-  --chart-idle-bar: 0 0% 90%;
-  --chart-track: 0 0% 96%;
-  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  color-scheme: light;
-}
-
-.pura-theme-v3 .border-1\.5 {
-  border-width: 1px;
-}
-
-.pura-theme-v3 .shadow-soft {
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-}
-
-.pura-theme-v3 button.bg-primary,
-.pura-theme-v3 button.bg-destructive,
-.pura-theme-v3 button.border-1\.5 {
-  box-shadow: none;
-}
-
-.pura-theme-v3 button.bg-primary:hover:not(:disabled) {
-  filter: none;
-  background-color: hsl(var(--primary-hover));
-}
-
-.pura-theme-v3 button.bg-destructive:hover:not(:disabled) {
-  filter: none;
-  background-color: hsl(357 100% 40%);
-}
-
-.pura-theme-v3 [role="tab"][data-state="active"] {
-  border-color: transparent;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-}
-
-.pura-theme-v3 .rounded-full.px-2\.5 {
-  padding-left: 8px;
-  padding-right: 8px;
-  font-weight: 500;
-}
-
-.pura-theme-v3 .bg-success\/15,
-.pura-theme-v3 .bg-warning\/15,
-.pura-theme-v3 .bg-destructive\/15,
-.pura-theme-v3 .bg-info\/15 {
-  background-color: transparent;
-}
-
-.pura-theme-v3 .bg-success\/15 { border-color: hsl(var(--success) / 0.4); }
-.pura-theme-v3 .bg-warning\/15 { border-color: hsl(var(--warning) / 0.4); }
-.pura-theme-v3 .bg-destructive\/15 { border-color: hsl(var(--destructive) / 0.35); }
-.pura-theme-v3 .bg-info\/15 { border-color: hsl(var(--info) / 0.35); }
-
-.pura-theme-v3 button[role="checkbox"] {
-  display: inline-flex;
-  height: 20px;
-  width: 20px;
-  align-items: center;
-  justify-content: center;
-  border-width: 1px;
-  border-radius: 8px;
-  background-color: hsl(var(--background));
-}
-
-.pura-theme-v3 button[role="checkbox"][data-state="checked"] {
-  background-color: hsl(var(--primary));
-  border-color: hsl(var(--primary));
-}
-
-.pura-theme-v3 button[role="checkbox"][data-state="checked"]::after {
-  content: "";
-  display: block;
-  width: 8px;
-  height: 4px;
-  margin-top: -2px;
-  border-left: 1.5px solid hsl(var(--primary-foreground));
-  border-bottom: 1.5px solid hsl(var(--primary-foreground));
-  transform: rotate(-45deg);
-}
-
-.pura-theme-v3 [role="menuitem"][data-highlighted]:not(.text-destructive) {
-  background-color: hsl(var(--accent));
-  color: hsl(var(--foreground));
-}
-
-.pura-theme-v3 [role="menuitem"].text-destructive[data-highlighted] {
-  background-color: hsl(var(--destructive) / 0.08);
-  color: hsl(var(--destructive));
-}
-
-/* Rij-actie in het voorbeeld: ghost-icoon zoals de tasks-tabel, niet 44px. */
-.pura-theme-v3 .js-rijactie button {
-  height: 32px;
-  width: 32px;
-}
-

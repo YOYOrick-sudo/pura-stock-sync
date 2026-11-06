@@ -73,10 +73,10 @@ export const kaartRandKlasse = '[&_tr>*:first-child]:pl-4 [&_tr>*:last-child]:pr
 /** Kaartkop: icoon + titel + teller links, één compacte actie rechts. */
 export function KaartKop({ icoon: Icoon, titel, teller, rechts }: { icoon?: LucideIcon; titel: ReactNode; teller?: number; rechts?: ReactNode }) {
   return <div className="flex min-h-12 items-center justify-between gap-2 border-b border-border px-4 py-2 lg:px-6">
-    <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-foreground">
-      {Icoon && <Icoon className="h-5 w-5 shrink-0 text-muted-foreground" />}
+    <div className="flex min-w-0 items-center gap-2 text-base font-semibold tracking-tight text-foreground">
+      {Icoon && <Icoon className="h-4 w-4 shrink-0 text-muted-foreground" strokeWidth={2} />}
       <span className="truncate">{titel}</span>
-      {teller != null && <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium tabular-nums text-muted-foreground">{teller}</span>}
+      {teller != null && <span className="text-xs font-normal tabular-nums text-muted-foreground">{teller}</span>}
     </div>
     {rechts && <div className="flex shrink-0 items-center gap-1">{rechts}</div>}
   </div>;

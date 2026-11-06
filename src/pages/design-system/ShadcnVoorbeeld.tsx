@@ -11,9 +11,6 @@ import {
   Afvinkrij, Dialoog, Formulierveld, LegeStaatBlok, Lijstrij, Paginakop, Sectiekop, Statusbadge, Telrij, Werkkaart,
 } from '@/components/pura/canoniek';
 
-/** Klassenaam van het voorbeeldthema. Nooit op :root zetten. */
-export const PURA_THEME_V3 = 'pura-theme-v3';
-
 export type VoorbeeldToon = 'beide' | 'nieuw' | 'huidig';
 
 const TOKENS: { naam: string; shadcn: string; huidig: string; voorstel: string }[] = [
@@ -21,28 +18,28 @@ const TOKENS: { naam: string; shadcn: string; huidig: string; voorstel: string }
   { naam: 'card', shadcn: '#ffffff', huidig: '40 5% 98%', voorstel: '0 0% 100% · #ffffff' },
   { naam: 'foreground', shadcn: '#0a0a0a', huidig: '220 26% 14% · #1F2937', voorstel: '0 0% 3.9% · #0a0a0a' },
   { naam: 'muted', shadcn: '#f5f5f5', huidig: '40 5% 95%', voorstel: '0 0% 96.1% · #f5f5f5' },
-  { naam: 'muted-foreground', shadcn: '#737373', huidig: '220 9% 46% · #6B7280', voorstel: '0 0% 45.1% · #737373' },
+  { naam: 'muted-foreground', shadcn: '#737373', huidig: '220 9% 46% · #6B7280', voorstel: '0 0% 32% · #525252' },
   { naam: 'border', shadcn: '1px #e5e5e5', huidig: '40 6% 88%, vaak 1.5px', voorstel: '0 0% 89.8% · #e5e5e5, 1px' },
   { naam: 'input', shadcn: '#e5e5e5', huidig: '40 6% 82%', voorstel: '0 0% 89.8% · gelijk aan border' },
-  { naam: 'ring', shadcn: '#a1a1a1', huidig: 'primary groen', voorstel: '0 0% 63.1% · #a1a1a1' },
+  { naam: 'ring', shadcn: '#a1a1a1', huidig: 'primary groen', voorstel: '0 0% 32% · #525252' },
   { naam: 'secondary / accent', shadcn: '#f5f5f5', huidig: '163 30% 95% · groene tint', voorstel: '0 0% 96.1% · #f5f5f5' },
-  { naam: 'primary', shadcn: '#000000', huidig: '163 65% 26% · #1B7867', voorstel: 'ongewijzigd #1B7867, één knop' },
+  { naam: 'primary', shadcn: '#000000', huidig: '163 65% 26% · #176d55', voorstel: '163 65% 26% · #176d55, één knop' },
   { naam: 'schaduw kaart', shadcn: '0 1px 2px rgb(0 0 0 / 0.05)', huidig: 'shadow-soft, iets dikker', voorstel: '0 1px 2px rgb(0 0 0 / 0.05)' },
   { naam: 'radius', shadcn: '10px, kaart 14px', huidig: 'kaart 16, dialoog 24', voorstel: 'schaal blijft 8 / 12 / 16 / 24' },
   { naam: 'badge', shadcn: '20px, 12/500, pill, px 8', huidig: 'pill, semibold, px 10', voorstel: 'pill, 500, px 8' },
   { naam: 'rij / knop', shadcn: 'rij ~40, knop 32–36', huidig: 'rij 48, knop 44', voorstel: 'rij 48, herhaalde knop h-9, … is 32px' },
 ];
 
-function Menu({ naam, thema, acties }: { naam: string; thema?: boolean; acties: { label: string; onClick: () => void; gevaar?: boolean }[] }) {
+function Menu({ naam, acties }: { naam: string; acties: { label: string; onClick: () => void; gevaar?: boolean }[] }) {
   return (
     <span className="js-rijactie inline-flex">
-      <RijMenu naam={naam} className={thema ? PURA_THEME_V3 : undefined} acties={acties} />
+      <RijMenu naam={naam} acties={acties} />
     </span>
   );
 }
 
 /** Huidige opbouw: kaart op kaart. Blijft staan zodat het verschil zichtbaar is. */
-function HuidigScherm({ id, thema = false }: { id: string; thema?: boolean }) {
+function HuidigScherm({ id }: { id: string }) {
   const [tab, setTab] = useState('bord');
   const [klaar, setKlaar] = useState(true);
   const [wortel, setWortel] = useState(1);
@@ -53,7 +50,6 @@ function HuidigScherm({ id, thema = false }: { id: string; thema?: boolean }) {
   const menu = (naam: string) => (
     <Menu
       naam={naam}
-      thema={thema}
       acties={[
         { label: 'Bewerken', onClick: () => toast('Bewerken') },
         { label: 'Vervallen', onClick: () => toast('Vervallen'), gevaar: true },
@@ -123,7 +119,6 @@ function HuidigScherm({ id, thema = false }: { id: string; thema?: boolean }) {
       </Werkkaart>
 
       <Dialoog
-        className={thema ? PURA_THEME_V3 : undefined}
         open={open}
         onOpenChange={setOpen}
         titel="Regel archiveren?"
@@ -184,7 +179,6 @@ export function VoorstelScherm({ id }: { id: string }) {
   const menu = (naam: string, archief = false) => (
     <Menu
       naam={naam}
-      thema
       acties={[
         { label: 'Bewerken', onClick: () => toast('Bewerken') },
         ...(archief ? [{ label: 'Archiveren…', onClick: () => setOpen(true) }] : []),
@@ -281,7 +275,6 @@ export function VoorstelScherm({ id }: { id: string }) {
       </div>
 
       <Dialoog
-        className={PURA_THEME_V3}
         open={open}
         onOpenChange={setOpen}
         titel="Regel archiveren?"
@@ -327,14 +320,14 @@ function Kolom({ label, thema, id, kader }: { label: string; thema?: boolean; id
   return (
     <div className={`min-w-0 ${volgorde} ${kader ? 'space-y-2' : ''}`}>
       {kader ? <p className="text-xs text-muted-foreground">{label}</p> : null}
-      <div className={`${thema ? `${PURA_THEME_V3} js-voorbeeld-nieuw` : ''} ${kader ? 'rounded-polar-lg border border-border bg-background p-4 lg:p-6' : ''}`}>
+      <div className={`${thema ? 'js-voorbeeld-nieuw' : ''} ${kader ? 'rounded-polar-lg border border-border bg-background p-4 lg:p-6' : ''}`}>
         {thema ? <VoorstelScherm id={id} /> : <HuidigScherm id={id} />}
       </div>
     </div>
   );
 }
 
-/** Zelfde West-scherm in het huidige thema en in .pura-theme-v3. */
+/** Zelfde West-scherm in de oude opbouw en in de opbouw uit het regelboek. */
 export function ShadcnVergelijking({ toon = 'beide', tokens = false }: { toon?: VoorbeeldToon; tokens?: boolean }) {
   return (
     <div className="space-y-4">
