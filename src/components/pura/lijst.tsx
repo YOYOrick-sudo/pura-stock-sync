@@ -16,7 +16,7 @@ export function PaginaBalk({ titel, meta, links, actie }: { titel?: ReactNode; m
       </div>
       {actie}
     </div> : null}
-    <div className="flex flex-wrap items-center justify-between gap-3"><div className="min-w-0 flex-1 sm:flex-none">{links}</div>{titel ? null : actie}</div>
+    <div className={cn('flex flex-wrap items-center justify-between gap-3', titel && 'w-full')}><div className={cn('min-w-0', titel ? 'w-full' : 'flex-1 sm:flex-none')}>{links}</div>{titel ? null : actie}</div>
   </div>;
 }
 
