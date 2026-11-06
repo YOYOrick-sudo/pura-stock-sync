@@ -53,10 +53,9 @@ export function InternOnderwegV2Kaart({
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-medium text-foreground">{a.naam}</p>
                     <StatusBadge tone={status.toon}>{status.label}</StatusBadge>
-                    {status.verstreken && <StatusBadge tone="warning">Levermoment verstreken</StatusBadge>}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {[aantalRegel(a), a.verwachte_leverdag ? `leverdag ${leverdagTekst(a.verwachte_leverdag)}` : ''].filter(Boolean).join(' · ')}
+                    {[aantalRegel(a), a.verwachte_leverdag ? `leverdag ${leverdagTekst(a.verwachte_leverdag)}` : '', status.verstreken ? 'Levermoment verstreken' : ''].filter(Boolean).join(' · ')}
                   </p>
                   {status.ontvangstVerschil != null && (
                     <p className="text-sm text-foreground">Ontvangstverschil {status.ontvangstVerschil > 0 ? '+' : ''}{status.ontvangstVerschil}. Het restant blijft open.</p>
