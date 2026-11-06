@@ -16,7 +16,6 @@ const badgeVariants = cva(
         warning: "border-warning/40 bg-transparent text-warning",
         error: "border-destructive/40 bg-transparent text-destructive",
         info: "border-info/40 bg-transparent text-info",
-        pending: "border-warning/40 bg-transparent text-warning",
       },
     },
     defaultVariants: {
