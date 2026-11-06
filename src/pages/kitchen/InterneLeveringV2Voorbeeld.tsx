@@ -89,6 +89,7 @@ export default function InterneLeveringV2Voorbeeld() {
             zet(klaarUitVoorraad(a, { aantal, verwachteLeverdag: leverdag, meegeven }));
           }}
           onMeegeven={async (a, aantal) => zet(geefMee(a, aantal))}
+          onAnnuleren={async (a, aantal) => zet(annuleerRest(a, aantal))}
         />
       </section>
       <section className="space-y-2" aria-label="Ontvangst West">

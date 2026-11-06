@@ -477,6 +477,13 @@
       "when": 1793875200000,
       "tag": "0067_artikelstam_fase1",
       "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1793880600000,
+      "tag": "0069_interne_levering_voorraad_annuleren",
+      "breakpoints": true
     }
   ]
 }

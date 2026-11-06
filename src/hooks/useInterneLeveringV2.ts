@@ -212,7 +212,11 @@ export function useInterneV2Ontvangen() {
       leesJson('interne_v2_ontvangen', {
         p_vestiging: a.vestiging, p_aanvraag_id: a.id, p_aantal: a.aantal, p_opmerking: a.opmerking,
       }),
-    onSuccess: () => herlaad(qc),
+    onSuccess: () => {
+      herlaad(qc);
+      qc.invalidateQueries({ queryKey: ['keuken_voorraad_stand'] });
+      qc.invalidateQueries({ queryKey: ['keuken_advies'] });
+    },
   });
 }
 
@@ -221,7 +225,11 @@ export function useInterneV2Annuleren() {
   return useMutation({
     mutationFn: (a: { vestiging: string; id: string; aantal: number | null }) =>
       leesJson('interne_v2_annuleren', { p_vestiging: a.vestiging, p_aanvraag_id: a.id, p_aantal: a.aantal }),
-    onSuccess: () => herlaad(qc, true),
+    onSuccess: () => {
+      herlaad(qc, true);
+      qc.invalidateQueries({ queryKey: ['keuken_voorraad_stand'] });
+      qc.invalidateQueries({ queryKey: ['keuken_advies'] });
+    },
   });
 }
 

@@ -2,19 +2,19 @@ import { useState } from 'react';
 import { Warehouse } from 'lucide-react';
 import { toast } from 'sonner';
 import { useFase2VlagAan } from '@/hooks/useOntvangstV2';
-import { InklapGroep, KaartKop, LijstKaart } from '@/components/pura/patronen';
+import { Bevestig, InklapGroep, KaartKop, LijstKaart } from '@/components/pura/patronen';
 import { StatusBadge } from '@/components/pura/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AantalStapper } from '@/components/kitchen/AantalStapper';
 import { foutTekst } from '@/hooks/useInterneLevering';
 import {
-  useInterneV2Aanvragen, useInterneV2Inplannen, useInterneV2Klaarzetten, useInterneV2Koppelen,
+  useInterneV2Aanvragen, useInterneV2Annuleren, useInterneV2Inplannen, useInterneV2Klaarzetten, useInterneV2Koppelen,
   useInterneV2Meegegeven, useInterneV2Producten,
 } from '@/hooks/useInterneLeveringV2';
 import {
-  aantalRegel, INTERNE_LEVERING_V2, leverdagTekst, mepRegels, meldingInplannenOpTest, meldingUitInplanFout,
-  MEP_TITEL, nogMeeTeGeven, nogTeVerdelen, statusWeergave, uitvoeringGeblokkeerd, v2MepZichtbaar,
+  aantalRegel, annuleerMelding, annuleerTekst, INTERNE_LEVERING_V2, leverdagTekst, magAnnuleren, mepRegels, meldingInplannenOpTest, meldingUitInplanFout,
+  MEP_TITEL, nogMeeTeGeven, nogTeAnnuleren, nogTeVerdelen, statusWeergave, uitvoeringGeblokkeerd, v2MepZichtbaar,
   vandaagAmsterdam, type Aanvraag,
 } from '@/lib/interneLeveringV2';
 
@@ -22,7 +22,7 @@ type Modus = 'mep' | 'voorraad' | 'koppel' | null;
 
 export function MepVoorWestV2Kaart({
   regels, producten, gekozenDag, vandaag, vestiging, bezig,
-  onInplannen, onKlaarzetten, onMeegeven, onKoppelen,
+  onInplannen, onKlaarzetten, onMeegeven, onKoppelen, onAnnuleren,
 }: {
   regels: Aanvraag[];
   producten: { id: string; naam: string }[];
@@ -34,6 +34,7 @@ export function MepVoorWestV2Kaart({
   onKlaarzetten: (a: Aanvraag, aantal: number, leverdag: string, meegeven: boolean) => Promise<unknown>;
   onMeegeven: (a: Aanvraag, aantal: number) => Promise<unknown>;
   onKoppelen: (a: Aanvraag, productId: string) => Promise<unknown>;
+  onAnnuleren: (a: Aanvraag, aantal: number) => Promise<unknown>;
 }) {
   const open = mepRegels(regels, gekozenDag);
   const afgerond = regels.filter((r) => !open.some((o) => o.id === r.id));
@@ -45,6 +46,7 @@ export function MepVoorWestV2Kaart({
   const [leverdag, setLeverdag] = useState(vandaag);
   const [productId, setProductId] = useState(producten[0]?.id ?? '');
   const [inplanFout, setInplanFout] = useState<string | null>(null);
+  const [annuleren, setAnnuleren] = useState<Aanvraag | null>(null);
   const zonderMep = meldingInplannenOpTest(vestiging);
   const kanInplannen = open.some((a) => !uitvoeringGeblokkeerd(a) && nogTeVerdelen(a) > 0);
   const melding = (zonderMep && kanInplannen) ? zonderMep : inplanFout;
@@ -115,6 +117,11 @@ export function MepVoorWestV2Kaart({
                     )}
                   </>
                 )}
+                {magAnnuleren(a) && (
+                  <Button type="button" size="touch" variant="ghost" aria-label={`Annuleren ${a.naam}`} onClick={() => setAnnuleren(a)}>
+                    Annuleren
+                  </Button>
+                )}
               </div>
               {formulier && modus === 'koppel' && (
                 <div className="flex flex-wrap items-center gap-2">
@@ -170,6 +177,21 @@ export function MepVoorWestV2Kaart({
           );
         })}
       </div>
+      <Bevestig
+        open={!!annuleren}
+        onOpenChange={(openDialog) => !openDialog && setAnnuleren(null)}
+        titel={annuleren ? `${annuleren.naam} annuleren?` : 'Annuleren'}
+        tekst={annuleren ? annuleerTekst(annuleren) : ''}
+        actie="Ja, annuleren"
+        onBevestig={() => {
+          const regel = annuleren;
+          setAnnuleren(null);
+          if (!regel) return;
+          onAnnuleren(regel, nogTeAnnuleren(regel)).then((uit) => {
+            toast.success(annuleerMelding(regel.naam, uit));
+          }).catch((e) => toast.error(foutTekst(e)));
+        }}
+      />
       {afgerond.length > 0 && (
         <InklapGroep titel="Afgerond" aantal={afgerond.length}>
           <div className="divide-y divide-border border-t border-border">
@@ -196,6 +218,7 @@ export function MepVoorWestV2({ vestiging, gekozenDag }: { vestiging: string; ge
   const klaarzetten = useInterneV2Klaarzetten();
   const mee = useInterneV2Meegegeven();
   const koppelen = useInterneV2Koppelen();
+  const annuleren = useInterneV2Annuleren();
   if (!zichtbaar || aanvragen.data == null) return null;
   return (
     <MepVoorWestV2Kaart
@@ -204,11 +227,12 @@ export function MepVoorWestV2({ vestiging, gekozenDag }: { vestiging: string; ge
       gekozenDag={gekozenDag}
       vandaag={vandaagAmsterdam()}
       vestiging={vestiging}
-      bezig={inplannen.isPending || klaarzetten.isPending || mee.isPending || koppelen.isPending}
+      bezig={inplannen.isPending || klaarzetten.isPending || mee.isPending || koppelen.isPending || annuleren.isPending}
       onInplannen={(a, aantal, mepDatum, leverdag) => inplannen.mutateAsync({ vestiging, id: a.id, aantal, mepDatum, leverdag })}
       onKlaarzetten={(a, aantal, leverdag, meegeven) => klaarzetten.mutateAsync({ vestiging, id: a.id, aantal, leverdag, meegeven })}
       onMeegeven={(a, aantal) => mee.mutateAsync({ vestiging, id: a.id, aantal })}
       onKoppelen={(a, productId) => koppelen.mutateAsync({ vestiging, aanvraagId: a.id, productId })}
+      onAnnuleren={(a, aantal) => annuleren.mutateAsync({ vestiging, id: a.id, aantal })}
     />
   );
 }
