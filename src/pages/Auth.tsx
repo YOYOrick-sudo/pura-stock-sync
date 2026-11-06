@@ -156,7 +156,7 @@ const Auth = () => {
             />
           </div>
           <div className="text-center">
-            <div className="text-[12px] text-muted-foreground/80 flex items-center justify-center gap-2">
+            <div className="text-xs text-muted-foreground flex items-center justify-center gap-2">
               <span>Operationeel Systeem</span>
               <span className="text-border">•</span>
               <span>Pura Vida Foodbar</span>
@@ -168,7 +168,7 @@ const Auth = () => {
         <div className="px-5 md:px-8 pt-6 pb-8">
           <form onSubmit={handleLogin} className="flex flex-col gap-5">
             <div>
-              <label className="text-[11px] font-medium text-foreground/45 block mb-2">
+              <label className="text-xs font-medium text-muted-foreground block mb-2">
                 Kies inlogmethode
               </label>
               <div className="grid grid-cols-3 gap-2 md:gap-3">
@@ -197,7 +197,7 @@ const Auth = () => {
 
             {mode === 'personal' && (
               <div>
-                <label htmlFor="pemail" className="text-[11px] font-medium text-foreground/45 block mb-2">
+                <label htmlFor="pemail" className="text-xs font-medium text-muted-foreground block mb-2">
                   E-mail
                 </label>
                 <input
@@ -216,7 +216,7 @@ const Auth = () => {
 
 
             <div>
-              <label htmlFor="password" className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80 block mb-2">
+              <label htmlFor="password" className="text-xs font-medium text-muted-foreground block mb-2">
                 Wachtwoord
               </label>
               <input

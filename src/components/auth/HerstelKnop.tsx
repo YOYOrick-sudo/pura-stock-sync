@@ -47,7 +47,7 @@ export const HerstelKnop = () => {
       type="button"
       onClick={herstel}
       disabled={bezig}
-      className="w-full min-h-[44px] text-[13px] text-muted-foreground/80 hover:text-foreground transition-colors flex items-center justify-center gap-2"
+      className="flex min-h-11 w-full items-center justify-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
     >
       {bezig ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
       <span>{bezig ? 'Bezig met herstellen…' : 'App reageert niet? Herstel'}</span>
