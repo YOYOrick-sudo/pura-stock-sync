@@ -1,5 +1,6 @@
 export { PageSubheader } from './PageSubheader';
 export { StatusBadge, toneColor, type StatusTone } from './StatusBadge';
+export { SegmentedTabs } from './SegmentedTabs';
 export { StatCard } from './StatCard';
 export { TikIcoon } from './TikIcoon';
 export * from './patronen';

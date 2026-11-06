@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Plus, AlertTriangle, Clock, CheckCircle2, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMaintenanceTickets, useTicketCounts } from '@/hooks/maintenance/useMaintenanceTickets';
 import { useSignedPhotoUrl } from '@/hooks/maintenance/useMaintenancePhoto';
 import type { MaintenanceActor, MaintenanceTicket, TicketStatus } from '@/types/maintenance';
@@ -10,14 +9,15 @@ import { formatDistanceToNow } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
+  PageSubheader,
   StatusBadge,
+  SegmentedTabs,
   StatCard,
   LegeStaatBlok,
   toneColor,
   type StatusTone,
   LijstKaart,
   StatusLabel,
-  segmentTabsKlasse,
 } from '@/components/pura';
 
 interface TicketListProps {
@@ -96,19 +96,21 @@ export function TicketList({ actor, onNewTicket, onTicketClick }: TicketListProp
       </div>
 
       <div className={isMobile ? 'flex min-w-0 flex-col gap-2 [&>div]:max-w-full [&>div]:overflow-x-auto [&>div]:flex-nowrap [&_button]:min-h-11 [&_button]:shrink-0 [&_button]:whitespace-nowrap' : 'flex flex-wrap items-center justify-between gap-3'}>
-        <Tabs value={statusFilter} onValueChange={(waarde) => setStatusFilter(waarde as StatusFilter)}>
-          <TabsList className={segmentTabsKlasse}>
-            <TabsTrigger value="open">Open</TabsTrigger>
-            <TabsTrigger value="klaar">Klaar</TabsTrigger>
-            <TabsTrigger value="alles">Alles</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <SegmentedTabs<StatusFilter>
+          value={statusFilter}
+          onValueChange={setStatusFilter}
+          options={[
+            { value: 'open', label: 'Open' },
+            { value: 'klaar', label: 'Klaar' },
+            { value: 'alles', label: 'Alles' },
+          ]}
+        />
         <Button
           onClick={onNewTicket}
-          size="touch"
-          className={isMobile ? 'w-full gap-2' : 'gap-2'}
+          size="lg"
+          className={isMobile ? 'h-11 w-full gap-2' : 'h-11 px-5 text-[15px] gap-2 rounded-polar-xl'}
         >
-          <Plus className="h-4 w-4" strokeWidth={2} />
+          <Plus className="h-[18px] w-[18px]" strokeWidth={2} />
           Nieuwe melding
         </Button>
       </div>
@@ -117,7 +119,7 @@ export function TicketList({ actor, onNewTicket, onTicketClick }: TicketListProp
       <div className="space-y-3">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-polar-lg" />
+            <Skeleton key={i} className="h-24 w-full rounded-polar-xl" />
           ))
         ) : sortedTickets.length === 0 ? (
           <LegeStaatBlok tekst="Niks te melden hier Zie je iets dat niet in de haak is? Tik op 'Nieuwe melding' rechtsboven." />
@@ -168,7 +170,7 @@ function TicketCard({ ticket, onClick }: { ticket: MaintenanceTicket; onClick: (
   return (
     <button
       onClick={onClick}
-      className="flex w-full overflow-hidden rounded-polar-lg border border-border bg-card text-left shadow-sm hover:border-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="w-full text-left bg-card border border-border rounded-polar-xl shadow-card overflow-hidden flex transition-all duration-200 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       {/* Urgency strip */}
       <div
@@ -189,7 +191,7 @@ function TicketCard({ ticket, onClick }: { ticket: MaintenanceTicket; onClick: (
               </StatusBadge>
             )}
           </div>
-          <h3 className="mb-1 line-clamp-2 text-base font-semibold leading-snug text-foreground">
+          <h3 className="text-[15px] font-semibold text-foreground leading-snug mb-1 line-clamp-2">
             {ticket.titel}
           </h3>
           <p className="text-xs text-muted-foreground">
