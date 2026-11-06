@@ -2,7 +2,7 @@ import type { ComponentType } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { segmentTabsKlasse, StatusBadge } from '@/components/pura';
+import { segmentTabsKlasse } from '@/components/pura';
 import { cn } from '@/lib/utils';
 
 export type BestelbordTab = {
@@ -23,14 +23,7 @@ export const bestelbordTabsKlasse = cn(
 
 function TabTeller({ n, aandacht }: { n: number; aandacht?: string | null }) {
   if (n <= 0 && !aandacht) return null;
-  return (
-    <StatusBadge
-      tone={aandacht ? 'warning' : 'neutral'}
-      className={cn('h-5 shrink-0 px-1.5 py-0 leading-none tabular-nums', aandacht ? 'border-warning/40' : 'border-border bg-card text-muted-foreground')}
-    >
-      {n}
-    </StatusBadge>
-  );
+  return <span className={cn('tabular-nums text-xs', aandacht ? 'font-medium text-warning' : 'text-muted-foreground')}>{n}</span>;
 }
 
 export function BestelbordTabs({ tabs }: { tabs: BestelbordTab[] }) {
@@ -49,9 +42,9 @@ export function ZonderPrijsFilter({ aantal, aan, onToggle, className }: { aantal
   return (
     <Button
       type="button"
-      variant={aan ? 'default' : 'outline'}
+      variant="outline"
       size="touch"
-      className={cn('shrink-0 gap-1.5', !aan && 'border-warning/40 text-warning hover:bg-warning/10 hover:text-warning', className)}
+      className={cn('shrink-0 gap-1.5', aan ? 'border-foreground' : 'border-warning/40 text-warning hover:bg-warning/10 hover:text-warning', className)}
       aria-pressed={aan}
       onClick={onToggle}
     >

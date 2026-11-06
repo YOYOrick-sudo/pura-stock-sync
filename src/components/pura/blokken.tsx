@@ -8,9 +8,9 @@ export function Stappen({ stappen, huidig }: { stappen: string[]; huidig: number
   return <ol className="flex items-start" aria-label="Voortgang">
     {stappen.map((s, i) => <li key={s} className="flex flex-1 flex-col items-center gap-1 text-center" aria-current={i === huidig ? 'step' : undefined}>
       <div className="flex w-full items-center">
-        <span className={cn('h-0.5 flex-1', i === 0 ? 'bg-transparent' : i <= huidig ? 'bg-primary' : 'bg-border')} />
-        <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-xs', i < huidig ? 'border-primary bg-primary text-primary-foreground' : i === huidig ? 'border-primary bg-background text-primary' : 'border-border bg-background text-muted-foreground')}>{i < huidig ? <Check className="h-3 w-3" /> : i + 1}</span>
-        <span className={cn('h-0.5 flex-1', i === stappen.length - 1 ? 'bg-transparent' : i < huidig ? 'bg-primary' : 'bg-border')} />
+        <span className={cn('h-0.5 flex-1', i === 0 ? 'bg-transparent' : i <= huidig ? 'bg-foreground' : 'bg-border')} />
+        <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-xs', i < huidig ? 'border-foreground bg-foreground text-background' : i === huidig ? 'border-foreground bg-background text-foreground' : 'border-border bg-background text-muted-foreground')}>{i < huidig ? <Check className="h-3 w-3" /> : i + 1}</span>
+        <span className={cn('h-0.5 flex-1', i === stappen.length - 1 ? 'bg-transparent' : i < huidig ? 'bg-foreground' : 'bg-border')} />
       </div>
       <span className={cn('text-xs', i === huidig ? 'font-semibold text-foreground' : 'text-muted-foreground')}>{s}</span>
     </li>)}
@@ -20,7 +20,7 @@ export function Stappen({ stappen, huidig }: { stappen: string[]; huidig: number
 /** Genummerde stap in een instructie (kassa, sluiten). */
 export function GenummerdeStap({ nummer, titel, children }: { nummer: number; titel: ReactNode; children?: ReactNode }) {
   return <div className="flex gap-3">
-    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold tabular-nums text-primary">{nummer}</span>
+    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold tabular-nums text-foreground">{nummer}</span>
     <div className="min-w-0 space-y-1"><p className="text-sm font-medium text-foreground">{titel}</p>{children && <div className="text-sm text-muted-foreground">{children}</div>}</div>
   </div>;
 }
