@@ -23,7 +23,7 @@ import {
 } from '@/lib/receptCategorieen';
 
 const LEEG = new Set<string>();
-const KOLOMMEN = 'lg:grid-cols-[minmax(0,1fr)_15rem_6rem_3.5rem_4.75rem]';
+const KOLOMMEN = 'lg:grid-cols-[minmax(0,1fr)_10.5rem_5.5rem_3.5rem_5.5rem]';
 
 const VESTIGING_KEUZES: { label: string; value: Vestiging | null }[] = [
   { label: 'Alle', value: null },
@@ -105,9 +105,9 @@ function ReceptRij({
         className={cn('hidden h-11 cursor-pointer items-center gap-2 border-b border-border px-4 hover:bg-muted lg:grid lg:px-6', KOLOMMEN)}
       >
         <span className="truncate text-sm font-medium text-foreground" title={naam}>{naam}</span>
-        <span className="flex min-w-0 items-center gap-2 text-sm text-foreground">
+        <span className="flex min-w-0 max-w-[12rem] items-center gap-2 overflow-hidden text-sm text-foreground">
           <CategorieIcoon category={recipe.category} />
-          <span className="truncate whitespace-nowrap" title={recipe.category}>{recipe.category}</span>
+          <span className="min-w-0 truncate whitespace-nowrap" title={recipe.category}>{recipe.category}</span>
         </span>
         <IngredientenCel aantal={recipe.ingredient_count ?? 0} />
         <span className="text-right text-sm tabular-nums text-foreground">{recipe.tht_dagen} d</span>
