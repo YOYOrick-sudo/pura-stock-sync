@@ -559,7 +559,7 @@ async function openstaandVoorProduct(
  * Eén open signaal per product: de nieuwste telling overschrijft het aantal,
  * hij telt er niet bij op.
  */
-async function opBestelbord(
+export async function opBestelbord(
   item: KoelcelCheckItem,
   vestiging: string,
   behoefte: number,

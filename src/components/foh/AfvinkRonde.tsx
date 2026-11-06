@@ -4,6 +4,8 @@ import { toast } from 'sonner';
 import { Check, ChefHat, Loader2, PackageX, RotateCcw, WifiOff } from 'lucide-react';
 import { SectieBalk } from './SectieBalk';
 import { FalafelAanvulRij } from './FalafelAanvulRij';
+import { TaakBewerkKnop } from './TaakBewerkKnop';
+import { TaakVervolgPaneel } from './TaakVervolgPaneel';
 import { VriezerNaarKoelcelRij } from './VriezerNaarKoelcelRij';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -37,6 +39,17 @@ import {
 import { useVoorraadLades, positieLabel } from '@/hooks/useVoorraadLades';
 import { useMepKalender } from '@/hooks/useMepPlanning';
 import { soortVanBron, volgendeOpenDag, aanvulTekst, herkomstLabel, peilBlokjes, peilKort } from '@/lib/sluitronde';
+import { useIsEigenaar } from '@/hooks/useIsEigenaar';
+import { useInterneProducten } from '@/hooks/useInterneLevering';
+import { useTaakVervolg } from '@/hooks/useTaakVervolg';
+import {
+  configVoorTaak,
+  interneProductVoor,
+  taakSleutelVan,
+  VervolgFout,
+  type VervolgActie,
+  type VervolgInvoer,
+} from '@/lib/taakVervolg';
 import { VulPeil } from './VulPeil';
 
 interface Groep {
@@ -81,6 +94,11 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
     search: zoekparams.toString(),
     previewHost: typeof window !== 'undefined' && isPreviewHost(window.location.hostname),
   });
+  const eigenaar = useIsEigenaar();
+  const toonInstellen = ketenAan && eigenaar;
+  const vervolg = useTaakVervolg(vestiging, datum, ketenAan);
+  const internProducten = useInterneProducten(ketenAan ? vestiging : null);
+  const [paneelItem, setPaneelItem] = useState<KoelcelCheckItem | null>(null);
   const printSticker = useCreateStickerPrintJob();
   const [vriezerStappen, setVriezerStappen] = useState<Record<string, VriezerStapStand>>(() => {
     if (typeof sessionStorage === 'undefined') return {};
@@ -177,7 +195,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
       });
     } catch (e: any) {
       setMislukt((m) => ({ ...m, [id]: opnieuw }));
-      toast.error('Niet opgeslagen. Controleer de wifi en probeer opnieuw.');
+      toast.error(e instanceof VervolgFout ? e.message : 'Niet opgeslagen. Controleer de wifi en probeer opnieuw.');
     } finally {
       setBezig((s) => {
         const n = new Set(s);
@@ -187,11 +205,60 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
     }
   };
 
-  const vink = (item: KoelcelCheckItem) => {
+  const configVan = (item: KoelcelCheckItem) =>
+    ketenAan ? configVoorTaak(item, vestiging, vervolg.rijen) : null;
+
+  const voerActie = async (item: KoelcelCheckItem, actie: VervolgActie) => {
+    if (actie === 'mep') {
+      const r = await naarMepDirect.mutateAsync({ item, taakDatum });
+      toast.success(r.dubbel ? `${item.naam} stond al op de MEP` : `${item.naam} staat op de MEP`);
+      return;
+    }
+    if (actie === 'intern_midsland') {
+      const product = interneProductVoor(item, internProducten.data);
+      if (!product) throw new VervolgFout('Dit product staat niet in de interne producten.');
+      try {
+        await vervolg.intern(item, product.product_id);
+      } catch (e) {
+        throw new VervolgFout(e instanceof Error && e.message ? e.message : 'Intern bestellen lukte niet.');
+      }
+      toast.success(`${item.naam} is intern bij Midsland besteld`);
+      return;
+    }
+    if (actie === 'bestelbord') {
+      try {
+        const r = await vervolg.bestelbord(item);
+        toast.success(r.dubbel ? `${item.naam} stond al op het bestelbord` : `${item.naam} staat op het bestelbord`);
+      } catch (e) {
+        throw new VervolgFout(e instanceof Error && e.message ? e.message : 'Het bestelbord is niet bijgewerkt.');
+      }
+    }
+  };
+
+  const vink = (item: KoelcelCheckItem, metVervolg = true) => {
     const uit = checks.has(item.id);
-    const run = () =>
-      metStatus(item.id, () => zetStatus.mutateAsync({ item, status: 'aanwezig', uit }), () => vink(item));
-    run();
+    // typeof blijft veilig als een test alleen deze handler los uitvoert.
+    const cfg = metVervolg && typeof configVan === 'function' ? configVan(item) : null;
+    if (!uit && cfg?.vervolgactie === 'vriezer_naar_koelcel' && !isFalafelVoorbeeld(item)) {
+      if (vriezerStappen[item.id] !== 'open') bewaarVriezerStap(item.id, 'open');
+      return;
+    }
+    if (!uit && cfg && (cfg.vervolgactie === 'mep' || cfg.vervolgactie === 'bestelbord' || cfg.vervolgactie === 'intern_midsland')) {
+      metStatus(item.id, () => voerActie(item, cfg.vervolgactie), () => vink(item, true));
+      return;
+    }
+    metStatus(item.id, () => zetStatus.mutateAsync({ item, status: 'aanwezig', uit }), () => vink(item, metVervolg));
+  };
+
+  const nietBijTeVullen = (item: KoelcelCheckItem, actie: VervolgActie) => {
+    metStatus(
+      item.id,
+      async () => {
+        await voerActie(item, actie);
+        bewaarVriezerStap(item.id, null);
+      },
+      () => nietBijTeVullen(item, actie),
+    );
   };
 
   const mep = (item: KoelcelCheckItem) => {
@@ -343,9 +410,16 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                       </span>
                     );
                     const naam = /flessen/i.test(g.titel) ? i.naam.replace(/\s*\(fles\)\s*$/i, '') : i.naam;
+                    const cfg = configVan(i);
+                    const instructie = cfg?.instructie ?? '';
+                    const bewerk = toonInstellen ? () => setPaneelItem(i) : undefined;
+                    const internProduct = interneProductVoor(i, internProducten.data);
+                    const alsOpUitleg = cfg?.vervolgAlsOp === 'intern_midsland' && internProducten.isFetched && !internProduct
+                      ? 'Dit product staat niet bij de interne producten.'
+                      : null;
                     if (ketenAan && isFalafelVoorbeeld(i)) {
                       const stand = vriezerStappen[i.id];
-                      const keten = heeftVriezerNaarKoelcel(i);
+                      const keten = heeftVriezerNaarKoelcel(i, vervolg.rijen, vestiging);
                       const koelcel = koelcelRegelVoor(i, items);
                       const hoeveel = vriezerNaarKoelcelAantal(i, koelcel);
                       const eenheid = vriezerNaarKoelcelEenheid(hoeveel.bron, i, koelcel);
@@ -365,13 +439,15 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                             fout={stand === 'open' ? false : fout}
                             koelcelGepakt={stand === 'open'}
                             beginStap={stand === 'open' ? 'koelcel' : 'lade'}
+                            instructie={instructie}
+                            onBewerk={bewerk}
                             onOpPeil={() => {
                               bewaarVriezerStap(i.id, null);
-                              vink(i);
+                              vink(i, false);
                             }}
                             onAangevuld={() => {
                               if (keten) bewaarVriezerStap(i.id, 'open');
-                              else vink(i);
+                              else vink(i, true);
                             }}
                             onOntdooien={() => ontdooi(i)}
                             onBestellen={() => bestelVoorbeeld(i)}
@@ -382,7 +458,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                             onVink={() => {
                               if (stand === 'open') return;
                               bewaarVriezerStap(i.id, null);
-                              vink(i);
+                              vink(i, false);
                             }}
                             onTerugVanKoelcel={() => bewaarVriezerStap(i.id, null)}
                           />
@@ -394,16 +470,25 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                               laden={laden}
                               fout={stand === 'open' && fout}
                               onVink={() => vinkUitVriezer(i, hoeveel.aantal, naam)}
+                              onNietBijTeVullen={cfg?.vervolgAlsOp && !alsOpUitleg ? () => nietBijTeVullen(i, cfg.vervolgAlsOp!) : undefined}
+                              nietBijTeVullenUitleg={cfg?.vervolgAlsOp ? alsOpUitleg : null}
                             />
                           )}
                         </Fragment>
                       );
                     }
+                    const stand = vriezerStappen[i.id];
+                    const vriezerStap = !!cfg && cfg.vervolgactie === 'vriezer_naar_koelcel';
+                    const toonVriezer = vriezerStap && (stand === 'open' || (stand === 'af' && !!afgevinkt));
+                    const koelcel = vriezerStap ? koelcelRegelVoor(i, items) : null;
+                    const hoeveel = vriezerStap ? vriezerNaarKoelcelAantal(i, koelcel) : null;
+                    const eenheid = hoeveel ? vriezerNaarKoelcelEenheid(hoeveel.bron, i, koelcel) : null;
                     return (
+                      <Fragment key={i.id}>
                       <li
-                        key={i.id}
                         className={cn(
                           'flex items-center gap-1.5 rounded-[14px] border px-2 py-1 transition-colors sm:gap-3',
+                          toonInstellen && 'flex-wrap',
                           afgevinkt ? 'border-transparent bg-muted/40' : doorgezet ? 'border-warning/30 bg-warning/5' : 'border-border bg-card',
                         )}
                       >
@@ -434,7 +519,7 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                             ) : null}
                           </span>
                         </button>
-                        <div className="min-w-0 flex-1 py-1.5">
+                        <div className={cn('min-w-0 flex-1 py-1.5', bewerk && 'min-w-40')}>
                           <p
                             className={cn(
                               'text-[16px] font-medium leading-snug text-foreground',
@@ -448,7 +533,11 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                               ? (UITKOMST[c!.doorgezet_naar ?? ''] ?? 'Gemeld')
                               : uitleg}
                           </div>
+                          {!!instructie.trim() && (
+                            <p className="mt-0.5 text-[13px] leading-snug text-foreground">{instructie.trim()}</p>
+                          )}
                         </div>
+                        {bewerk && <TaakBewerkKnop naam={naam} onClick={bewerk} />}
                         {!afgevinkt && !doorgezet && (
                           soort === 'pakken' ? (
                             <Button
@@ -485,6 +574,19 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
                           </Button>
                         )}
                       </li>
+                      {toonVriezer && hoeveel && (
+                        <VriezerNaarKoelcelRij
+                          titel={vriezerNaarKoelcelTitel(naam)}
+                          aantalTekst={hoeveelheidTekst(hoeveel.aantal, eenheid)}
+                          afgevinkt={stand === 'af' && !!afgevinkt}
+                          laden={laden}
+                          fout={!!fout}
+                          onVink={() => vinkUitVriezer(i, hoeveel.aantal, naam)}
+                          onNietBijTeVullen={cfg?.vervolgAlsOp && !alsOpUitleg ? () => nietBijTeVullen(i, cfg.vervolgAlsOp!) : undefined}
+                          nietBijTeVullenUitleg={cfg?.vervolgAlsOp ? alsOpUitleg : null}
+                        />
+                      )}
+                      </Fragment>
                     );
                   })}
                 </ul>
@@ -517,6 +619,31 @@ export function AfvinkRonde({ vestiging, datum }: { vestiging: string; datum: st
           </div>
         </DialogContent>
       </Dialog>
+      {toonInstellen && paneelItem && (
+        <TaakVervolgPaneel
+          open
+          naam={paneelItem.naam}
+          waarde={{
+            instructie: configVan(paneelItem)?.instructie ?? '',
+            vervolgactie: configVan(paneelItem)?.vervolgactie ?? 'geen',
+            vervolgAlsOp: configVan(paneelItem)?.vervolgAlsOp ?? null,
+          }}
+          internBeschikbaar={!!interneProductVoor(paneelItem, internProducten.data)}
+          internLaden={internProducten.isLoading}
+          opslaanBezig={vervolg.bewaar.isPending}
+          onOpenChange={(open) => { if (!open) setPaneelItem(null); }}
+          onOpslaan={(invoer) => {
+            const item = paneelItem;
+            void vervolg.bewaar.mutateAsync({ taakSleutel: taakSleutelVan(item), invoer }).then(() => {
+              toast.success(`Instelling voor ${item.naam} bewaard`);
+              setPaneelItem(null);
+            }).catch((e: unknown) => {
+              const bericht = e instanceof Error && e.message ? e.message : 'Niet opgeslagen';
+              toast.error(bericht.includes('taak_vervolg_config') ? 'De instelling staat nog niet in de database.' : bericht);
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

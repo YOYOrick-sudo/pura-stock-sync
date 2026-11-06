@@ -1,4 +1,5 @@
 import { Check, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { DRUK, STAP_MOTION } from './aanvulMotion';
 
@@ -9,13 +10,25 @@ type Props = {
   laden: boolean;
   fout: boolean;
   onVink: () => void;
+  /** Tweede vervolg als de stap niet bij te vullen is. Ontbreekt hij, dan blijft de regel een vinkje. */
+  onNietBijTeVullen?: () => void;
+  nietBijTeVullenUitleg?: string | null;
 };
 
 /**
  * Vaste vervolgstap na pakken uit de koelcel. Geen vraag: dezelfde
  * afvinkregel als de rest van de sluitlijst, met het aantal eronder.
  */
-export function VriezerNaarKoelcelRij({ titel, aantalTekst, afgevinkt, laden, fout, onVink }: Props) {
+export function VriezerNaarKoelcelRij({
+  titel,
+  aantalTekst,
+  afgevinkt,
+  laden,
+  fout,
+  onVink,
+  onNietBijTeVullen,
+  nietBijTeVullenUitleg,
+}: Props) {
   return (
     <li
       data-aanvulketen="vriezer-koelcel"
@@ -61,6 +74,21 @@ export function VriezerNaarKoelcelRij({ titel, aantalTekst, afgevinkt, laden, fo
         </p>
         <p className="mt-0.5 text-[13px] leading-snug text-muted-foreground">{aantalTekst}</p>
       </div>
+      {onNietBijTeVullen && !afgevinkt && (
+        <Button
+          type="button"
+          variant="ghost"
+          className={cn('h-11 shrink-0 px-3 text-[13px] font-medium text-foreground', DRUK)}
+          disabled={laden}
+          title={nietBijTeVullenUitleg ?? undefined}
+          onClick={onNietBijTeVullen}
+        >
+          Niet bij te vullen
+        </Button>
+      )}
+      {nietBijTeVullenUitleg && !afgevinkt && (
+        <p className="w-full text-[13px] text-muted-foreground">{nietBijTeVullenUitleg}</p>
+      )}
       {fout && !afgevinkt && <p className="w-full text-[13px] text-destructive">Niet opgeslagen. Tik opnieuw.</p>}
     </li>
   );

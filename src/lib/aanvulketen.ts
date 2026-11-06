@@ -117,26 +117,10 @@ export function aanvulUitkomst(doorgezetNaar: string | null | undefined): string
   return 'Gemeld';
 }
 
-/**
- * Producten waarbij pakken uit de koelcel meteen een vaste stap
- * "uit vriezer naar koelcel" opent. Nu alleen falafel; een volgend product
- * komt erbij als een regel in deze lijst.
- */
-export type VriezerKoelcelProduct = {
-  sleutel: string;
-  past: (item: { naam?: string | null; product_sleutel?: string | null }) => boolean;
-};
-
-export const VRIEZER_NAAR_KOELCEL: readonly VriezerKoelcelProduct[] = [
-  { sleutel: 'falafel', past: isFalafelVoorbeeld },
-];
-
-export function heeftVriezerNaarKoelcel(item: {
-  naam?: string | null;
-  product_sleutel?: string | null;
-}): boolean {
-  return VRIEZER_NAAR_KOELCEL.some((product) => product.past(item));
-}
+export {
+  VRIEZER_NAAR_KOELCEL,
+  heeftVriezerNaarKoelcel,
+} from './taakVervolg';
 
 /** Vaste titel van de vervolgstap. De productnaam komt uit de sluitlijst. */
 export function vriezerNaarKoelcelTitel(naam: string): string {
