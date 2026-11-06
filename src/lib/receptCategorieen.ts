@@ -117,6 +117,18 @@ export function ingredientenLabel(aantal: number): string {
   return aantal === 1 ? '1 ingrediënt' : `${aantal} ingrediënten`;
 }
 
+/** Alleen de eerste letter, voor weergave. De opgeslagen naam blijft zoals hij is. */
+export function toonNaam(naam: string): string {
+  const schoon = naam.trim();
+  if (!schoon) return schoon;
+  return schoon.charAt(0).toLocaleUpperCase('nl-NL') + schoon.slice(1);
+}
+
+export function resultaatTekst(aantal: number, categorie: string | null): string {
+  const woord = aantal === 1 ? 'recept' : 'recepten';
+  return categorie ? `${aantal} ${woord} in ${categorie}` : `${aantal} ${woord}`;
+}
+
 export function sorteerOpNaam<T extends { name: string }>(recepten: T[]): T[] {
   return [...recepten].sort((a, b) => a.name.localeCompare(b.name, 'nl', { sensitivity: 'base' }));
 }

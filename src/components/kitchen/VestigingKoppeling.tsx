@@ -73,8 +73,8 @@ export function VestigingToggles({ soort, id, actieve, disabled, className }: To
               'h-8 w-8 rounded-full text-xs font-semibold transition-colors border',
               aan
                 ? 'bg-primary/10 text-primary border-primary/30'
-                : 'bg-muted text-muted-foreground border-transparent',
-              disabled ? 'cursor-default opacity-70' : 'hover:opacity-80',
+                : 'bg-transparent text-muted-foreground border-border',
+              disabled ? 'cursor-default' : 'hover:bg-muted',
             )}
           >
             {KORT[v] ?? v.slice(0, 1)}
