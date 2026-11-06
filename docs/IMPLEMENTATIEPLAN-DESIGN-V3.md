@@ -76,7 +76,7 @@ Canonieke blokken die bijna overal horen: `Paginakop` mét titel (`text-xl` op 3
 | `/preview/interne-levering-v2` | `pages/kitchen/InterneLeveringV2Voorbeeld.tsx`, `preview/TaakVervolgVoorbeeld.tsx` | Alleen in dev. TaakVervolgVoorbeeld: `rounded-[` 4, `text-[` 6, `bg-primary/10`. | Meenemen met de intern-PR. Geen productroute. |
 | `*` | `pages/NotFound.tsx` | Geen treffer. | Korte lege staat, geen illustratie. |
 
-Niet in de router, wel in `src`: `pages/HomeHub.tsx` met `WaveBackground.tsx`, `KitchenTasks.tsx`, `KitchenMenu.tsx`, `ServiceModule.tsx`, `Kassa.tsx`, `KassatellingOverdag.tsx`, `components/reservations/*`. `NotificationsDropdown.tsx` (`text-[` 4, `shadow-elevated`, `text-primary`) heeft geen importeur. Die stylen of schrappen we niet tot Yorick zegt dat ze blijven. Zie open vragen.
+Niet in de router, wel in `src`: `pages/HomeHub.tsx` met `WaveBackground.tsx`, `KitchenTasks.tsx`, `KitchenMenu.tsx`, `ServiceModule.tsx`, `Kassa.tsx`, `KassatellingOverdag.tsx`, `components/reservations/*` en `NotificationsDropdown.tsx`. Yorick: deze acht worden verwijderd in de opruim-PR, niet gestyled.
 
 `ui/button.tsx` heeft `text-primary` op de variant `link`. Dat is de atoom, geen scherm. De opruim-PR haalt die klasse weg of de grep-regel sluit `text-primary-foreground` uit en laat `link` als laatste vallen.
 
@@ -92,7 +92,7 @@ Eerst blokken die veel schermen raken, zodat een scherm-PR niet steeds dezelfde 
 4. **Tabs in onderhoud.** `SegmentedTabs` wordt `ui/tabs`.
 5. **Kengetal.** `StatCard` wordt `Kengetal`.
 6. **Subkop.** `PageSubheader` verdwijnt uit TicketList; de actie gaat naar de paginakop.
-7. **Menu-iconen.** Alleen `useNavigatieItems.ts`, na de keuze hieronder.
+7. **Menu-iconen.** Alleen `useNavigatieItems.ts`, gestapeld na 7b. Voorraadketen `Network`, koelwerkbank `Refrigerator`, onderhoud `Wrench`. Instellingen houdt `Settings`, Bestelbord houdt `ClipboardList`. Url en rechten blijven.
 7b. **Kleine ui-primitieven.** `ui/command.tsx`, `ui/calendar.tsx`, `ui/scroll-area.tsx`, `ui/navigation-menu.tsx`, `ui/data-table.tsx`, `ui/radio-group.tsx`, `ui/separator.tsx` hebben nog een `h-[` of `text-primary`. Eén PR, vóór de schermen die ze gebruiken (stickers, artikelstam, takenlijst, bain-marie, cijfers).
 
 ### Werkvloer
@@ -188,7 +188,7 @@ Risico dat voor elke vloer-PR geldt: `RequireWest`, `RequireManager`, `RequireOw
 | 23 | Settings, Team, Bronnen, MepInstellingen, `MtLedenUitnodigen.tsx` (`h-[` 3, `min-h-[` 3, `text-primary`) | Owner of de bestaande rol. Uitnodigen van een MT-lid blijft dezelfde mutatie. Geen nieuwe knop die een owner-actie aan een ander geeft. |
 | 24 | `MtPunt.tsx` | RequireMtLid. Een niet-MT account komt niet op de pagina. |
 | 25 | `Cijfers.tsx`, `BronnenBlok.tsx`, backfill, sync | Owner. Lightspeed-koppeling en sync-knop blijven. Test: bronnenlijst, geen sync starten tenzij de knop dezelfde mutatie aanroept. |
-| 26 | de grafiekbestanden, `deltaKleur.ts`, `types.ts` | Alleen kleur en kader. Getallen en reeksen blijven. Hex van een reeks verhuist naar `--chart-*` of blijft data als Yorick dat kiest. |
+| 26 | de grafiekbestanden, `deltaKleur.ts`, `types.ts` | Alleen kleur en kader. Getallen en reeksen blijven. Elke reekskleur wordt een `--chart-*` token uit het regelboek: West `chart-west`, loonkosten `chart-loon`, onder doel `chart-goed`, boven doel `chart-slecht`. Midsland en omzet blijven `primary`. Geen `#hex` in het component. |
 | 27 | `PersoneelLayout.tsx`, `Tijdlijn.tsx`, `PincodeNumpad.tsx` (`text-[`) | De pincode-poort blijft, inclusief het numpad. `overflow-auto` op de tijdlijn weg zonder dat een dag onbereikbaar wordt: de dag wordt een rij of een blok onder elkaar. Manager. |
 | 28 | `Wonen.tsx`, `WonenDetail.tsx`, `HousingCard.tsx` | Bezetting en woningmutatie blijven. |
 | 29 | `Collegas.tsx`, `PersonModal.tsx` | Nieuw en bewerken blijven. |
@@ -203,9 +203,9 @@ Risico dat voor elke vloer-PR geldt: `RequireWest`, `RequireManager`, `RequireOw
 | 38 | `TakenBeheer.tsx`, `TakenAdmin.tsx`, `FohAnalytics.tsx` | `PolarDialog` wordt `Dialoog`. Lijstbeheer blijft. |
 | 39 | Auth, SetPassword, StartScherm, HerstelKnop, PWAInstallHint, ProtectedRoute, Require*, NotFound | Login met de twee keukenlocaties blijft. Geen wachtwoord in de diff. PWA-registratie niet aanraken buiten de hint-kaart. |
 | 40 | `pages/design-system/*`, `DesignSystemVoorbeeld.tsx` | De voorbeelden tonen het boek. Hex in de shadcn-vergelijkingstabel mag, als chrome-klasse niet. |
-| 41 | StyleGuide, DesignPreview, de twee routes | Niets importeert ze daarna. Grep op de bestandsnamen is 0. |
+| 41 | StyleGuide, DesignPreview, en de acht zonder route: `HomeHub.tsx`, `WaveBackground.tsx`, `KitchenTasks.tsx`, `KitchenMenu.tsx`, `ServiceModule.tsx`, `Kassa.tsx`, `KassatellingOverdag.tsx`, `components/reservations/*`, `NotificationsDropdown.tsx` | Niets importeert ze daarna. Grep op de bestandsnamen is 0. |
 | 42 | `components/polar/**` | Grep `from '@/components/polar` is 0, dan de map weg. |
-| 43 | `tailwind.config.ts`, `index.css`, `ui/table.tsx`, `designregels.allowlist.ts` | Grep op de verboden patronen in `src` is 0, met de uitzonderingen in hoofdstuk 5. Allowlist leeg. |
+| 43 | `tailwind.config.ts`, `index.css`, `ui/table.tsx`, `designregels.allowlist.ts` | `body` wordt 16 px. De `--chart-*` tokens uit het boek staan in `index.css` als de Cijfer-PR ze nog niet zette. Grep op de verboden patronen in `src` is 0, met de uitzonderingen in hoofdstuk 5. Allowlist leeg. |
 
 ## 4. Vangnet
 
@@ -230,13 +230,13 @@ Het traject is klaar als dit allemaal waar is:
 - Elke productroute uit de tabel in hoofdstuk 1 is door Yorick nagelopen op 390, 834 en 1280.
 - De allowlist is leeg.
 
-## 6. Open vragen
+## 6. Besluiten
 
-Alleen keuzes die het boek niet al vastlegt.
+Yorick, 6 nov 2026.
 
-1. **Menu-iconen.** Het boek stelt voor: Instellingen houdt `Settings`, Bestelbord houdt `ClipboardList`, Voorraadketen krijgt `Network`, koelwerkbank `Refrigerator`, onderhoud `Wrench`. Klopt dat, of kies je andere?
-2. **Reekskleur in cijfers.** Hex in `types.ts` en een paar grafieken is de kleur van een lijn, niet van een knop. Advies: verhuizen naar de bestaande `--chart-*` tokens. Mogen die hex-waarden blijven staan als data?
-3. **Pagina’s buiten de router.** `HomeHub` (met `WaveBackground`), `KitchenTasks`, `KitchenMenu`, `ServiceModule`, `Kassa`, `KassatellingOverdag`, `components/reservations` en `NotificationsDropdown` (geen importeur) hebben geen route. Advies: niet stylen en in de opruim-PR verwijderen als niets ze importeert. Moeten ze blijven?
-4. **`body` is 15 px.** Het boek zet de rollen op 14 en 16. Advies: in PR 43 `body` naar 16 px. Ja of nee?
+1. **Menu-iconen.** Ja. Instellingen houdt `Settings`. Bestelbord houdt `ClipboardList`. Voorraadketen krijgt `Network`. Koelwerkbank krijgt `Refrigerator`. Onderhoud krijgt `Wrench`. PR 7 bouwt dat, gestapeld na 7b. Url, groep en rechten blijven.
+2. **Reekskleur.** Geen hex in een grafiek. De Cijfer-PR’s gebruiken de `--chart-*` tokens uit het regelboek. Midsland en omzet blijven `primary`.
+3. **Buiten de router.** `HomeHub` met `WaveBackground`, `KitchenTasks`, `KitchenMenu`, `ServiceModule`, `Kassa`, `KassatellingOverdag`, `components/reservations` en `NotificationsDropdown` worden verwijderd in de opruim-PR. Niet stylen.
+4. **`body`.** In PR 43 van 15 px naar 16 px. De rollen (14 en 16) blijven zoals ze staan.
 
-Geen vraag meer over de shell, de radius, het vinkje of de meta-kleur. Dat staat in het boek.
+Geen open vraag meer over de shell, de radius, het vinkje of de meta-kleur.
