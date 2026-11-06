@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, AlertTriangle, Clock, CheckCircle2, Image as ImageIcon } from 'lucide-react';
+import { Plus, AlertTriangle, Clock, CheckCircle2, MapPin, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useMaintenanceTickets, useTicketCounts } from '@/hooks/maintenance/useMaintenanceTickets';
 import { useSignedPhotoUrl } from '@/hooks/maintenance/useMaintenancePhoto';
@@ -37,11 +37,11 @@ const prioriteitConfig: Record<
 
 const statusConfig: Record<
   TicketStatus,
-  { tone: StatusTone; label: string }
+  { tone: StatusTone; label: string; icon: typeof AlertTriangle }
 > = {
-  nieuw: { tone: 'danger', label: 'Open' },
-  in_behandeling: { tone: 'warning', label: 'Bezig' },
-  afgehandeld: { tone: 'success', label: 'Klaar' },
+  nieuw: { tone: 'danger', label: 'Open', icon: AlertTriangle },
+  in_behandeling: { tone: 'warning', label: 'Bezig', icon: Clock },
+  afgehandeld: { tone: 'success', label: 'Klaar', icon: CheckCircle2 },
 };
 
 type StatusFilter = 'open' | 'klaar' | 'alles';
@@ -145,6 +145,7 @@ function TicketCard({ ticket, onClick }: { ticket: MaintenanceTicket; onClick: (
   const isMobile = useIsMobile();
   const prio = prioriteitConfig[ticket.prioriteit];
   const status = statusConfig[ticket.status];
+  const StatusIcon = status.icon;
   const thumbUrl = useSignedPhotoUrl(ticket.foto_url);
   const melderNaam = ticket.melder_naam ?? ticket.melder?.naam ?? 'Onbekend';
 
@@ -182,11 +183,11 @@ function TicketCard({ ticket, onClick }: { ticket: MaintenanceTicket; onClick: (
       <div className="flex-1 min-w-0 flex gap-3 p-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-            <StatusBadge tone={status.tone}>
+            <StatusBadge tone={status.tone} shape="label" icon={<StatusIcon />}>
               {status.label}
             </StatusBadge>
             {ticket.plek && (
-              <StatusBadge tone="neutral">
+              <StatusBadge tone="neutral" shape="label" icon={<MapPin />}>
                 {ticket.plek}
               </StatusBadge>
             )}

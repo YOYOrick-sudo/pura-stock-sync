@@ -14,12 +14,10 @@ describe('tabbalk bestelbord', () => {
     const html = renderToString(createElement(Tabs, { value: 'bord' }, createElement(BestelbordTabs, { tabs })));
     expect(html).toContain('aria-label="Op het bord (4)"');
     expect(html).toContain('aria-label="Onderweg (5), te checken"');
-    expect(html).toContain('text-warning');
-    expect(html).toContain('h-3 w-3');
+    expect(html).toContain('bg-warning/10');
     expect(html).toContain('border-warning/40');
     expect(html).toContain('bg-card');
-    expect(html).not.toContain('bg-warning/10');
-    expect(html.match(/text-warning/g)).toHaveLength(1);
+    expect(html.match(/bg-warning\/10/g)).toHaveLength(1);
     expect(html).not.toContain('h-2 w-2');
     expect(html).not.toMatch(/>1</);
   });

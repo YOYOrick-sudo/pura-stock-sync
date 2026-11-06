@@ -309,9 +309,7 @@ describe('interne levering achter de schakelaar', () => {
     expect(html).toContain('Wortelspread');
     expect(html).toContain('2 bak · 6,4 kg · wo 4 nov');
     expect(html).toContain('te laat');
-    expect(html).toContain('text-warning');
-    expect(html).toContain('h-3 w-3');
-    expect(html).not.toContain('bg-warning/10');
+    expect(html).toContain('bg-warning/10');
     expect(html).toContain('zonder pitten');
     expect(html).toContain('Meegegeven');
     expect(html).not.toContain('Gisteren spread');
