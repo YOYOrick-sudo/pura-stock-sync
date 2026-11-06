@@ -186,7 +186,7 @@ export function Sectiekop({
 }) {
   return (
     <div className={cn('flex min-h-12 items-center justify-between gap-3 px-4 lg:px-6', groep && 'border-t border-border')}>
-      <div className="flex min-w-0 items-center gap-3 text-sm font-semibold text-foreground">
+      <div className="flex min-w-0 items-center gap-3 text-base font-semibold tracking-tight text-foreground">
         {voortgang != null && <VoortgangRing waarde={voortgang} label="Voortgang" />}
         <span className="truncate">{titel}</span>
         {teller != null && <span className="tabular-nums font-normal text-muted-foreground">{teller}</span>}
@@ -223,7 +223,7 @@ export function Lijstrij({
           <span className="truncate text-sm font-medium text-foreground">{naam}</span>
           {status}
         </div>
-        <RijMeta altijd>{meta ?? '—'}</RijMeta>
+        {meta ? <RijMeta altijd>{meta}</RijMeta> : null}
       </div>
       {actie ? (
         <div className="flex shrink-0 items-center gap-2" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
@@ -259,7 +259,7 @@ export function Afvinkrij({
       </span>
       <span className="min-w-0 flex-1">
         <span className={cn('block truncate text-sm', klaar ? 'text-muted-foreground line-through' : 'font-medium text-foreground')}>{naam}</span>
-        <RijMeta altijd>{meta ?? '—'}</RijMeta>
+        {meta ? <RijMeta altijd>{meta}</RijMeta> : null}
       </span>
       {status ? <span className="shrink-0">{status}</span> : null}
     </label>
@@ -297,7 +297,7 @@ export function Telrij({
     <div className="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-2 border-b border-border px-4 py-2 last:border-0 lg:px-6">
       <div className="min-w-0 flex-1 basis-full sm:basis-0">
         <span className="block truncate text-sm font-medium text-foreground">{naam}</span>
-        <RijMeta altijd>{meta ?? '—'}</RijMeta>
+        {meta ? <RijMeta altijd>{meta}</RijMeta> : null}
       </div>
       <div className="ml-auto flex shrink-0 items-center gap-2">
         <AantalStapper waarde={waarde} min={min} max={max} eenheid={eenheid} label={`Aantal ${naam}`} onChange={onChange} />
@@ -394,12 +394,12 @@ export function Formulierveld({
   );
 }
 
-/** Lege lijst nadat laden klaar is. Eén zin. Icoon en actie blijven uit tenzij je ze zet. */
+/** Lege lijst nadat laden klaar is. Eén zin, compact. Icoon en actie blijven uit tenzij je ze zet. */
 export function LegeStaatBlok({ tekst, actie, icoon: Icoon }: { tekst: string; actie?: ReactNode; icoon?: LucideIcon }) {
   return (
-    <div className="flex flex-col items-center gap-2 px-4 py-6 text-center">
-      {Icoon ? <Icoon className="h-5 w-5 text-muted-foreground" aria-hidden /> : null}
-      <p className="text-sm text-muted-foreground">{tekst}</p>
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-polar-lg border border-dashed border-border bg-muted px-4 py-3">
+      {Icoon ? <Icoon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden /> : null}
+      <p className="min-w-0 flex-1 text-sm text-muted-foreground">{tekst}</p>
       {actie}
     </div>
   );

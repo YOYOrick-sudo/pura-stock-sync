@@ -42,7 +42,8 @@ describe('canonieke patronen', () => {
     const kaart = renderToString(<Werkkaart titel="Open"><LegeStaatBlok tekst="Niets openstaand." /></Werkkaart>);
     const veld = renderToString(<Formulierveld id="naam" label="Naam"><input id="naam" /></Formulierveld>);
     expect(kaart).toContain('Niets openstaand.');
-    expect(kaart).toContain('py-6');
+    expect(kaart).toContain('border-dashed');
+    expect(kaart).toContain('py-3');
     expect(veld).toContain('space-y-2');
     expect(veld).toContain('Naam');
   });
