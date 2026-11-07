@@ -1,6 +1,6 @@
 // @ts-ignore bun test runner
 import { describe, expect, test } from 'bun:test';
-import { besteldeadlineHint, type BesteldeadlineHintRij } from './besteldeadline';
+import { besteldeadlineHint, deadlineVerstreken, type BesteldeadlineHintRij } from './besteldeadline';
 
 const rij = (besteldag: string, deadline_tijd: string | null, volgende_besteldag: string | null, leverancier_id = 'sligro'): BesteldeadlineHintRij => ({ leverancier_id, besteldag, deadline_tijd, volgende_besteldag });
 const hint = (rijen: BesteldeadlineHintRij[], iso: string) => besteldeadlineHint(rijen, 'sligro', new Date(iso));
@@ -23,4 +23,13 @@ describe('besteldeadlinehint (uit bestel_deadline_hints)', () => {
   test('exacte deadline met seconden is verstreken', () => expect(hint([rij('2026-10-29', '21:00:30', '2026-10-30')], '2026-10-29T20:00:30Z')).toBe('morgen'));
   test('weekovergang: zondag naar maandag is morgen', () => expect(hint([rij('2026-11-01', '21:00:00', '2026-11-02')], '2026-11-01T20:00:00Z')).toBe('morgen'));
   test('wintertijdwissel: za 24 okt naar zo 25 okt is morgen', () => expect(hint([rij('2026-10-24', '21:00:00', '2026-10-25')], '2026-10-24T19:30:00Z')).toBe('morgen'));
+});
+
+describe('deadlineVerstreken', () => {
+  const voorbij = (iso: string, rijen = [rij('2026-10-29', '21:00:00', '2026-10-30')]) => deadlineVerstreken(rijen, 'sligro', new Date(iso));
+  test('vóór de deadline nog niet', () => expect(voorbij('2026-10-29T19:59:59Z')).toBe(false));
+  test('precies op de deadline wel', () => expect(voorbij('2026-10-29T20:00:00Z')).toBe(true));
+  test('geen deadline vandaag geen waarschuwing', () => expect(voorbij('2026-10-29T20:01:00Z', [rij('2026-10-29', null, '2026-10-30')])).toBe(false));
+  test('andere leverancier nooit', () => expect(deadlineVerstreken([rij('2026-10-29', '21:00:00', '2026-10-30')], 'ander', new Date('2026-10-29T20:01:00Z'))).toBe(false));
+  test('zonder leverancier nooit', () => expect(deadlineVerstreken([rij('2026-10-29', '21:00:00', '2026-10-30')], null, new Date('2026-10-29T20:01:00Z'))).toBe(false));
 });

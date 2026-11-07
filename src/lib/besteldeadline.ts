@@ -27,3 +27,16 @@ export function besteldeadlineHint(rijen: BesteldeadlineHintRij[], leverancierId
   if (verschil === 1) return 'morgen';
   return weekdagen[new Date(`${rij.volgende_besteldag}T12:00:00Z`).getUTCDay()];
 }
+
+/** True zodra de besteldeadline van vandaag voor deze leverancier voorbij is. Geen rij vandaag: geen waarschuwing. */
+export function deadlineVerstreken(rijen: BesteldeadlineHintRij[], leverancierId: string | null | undefined, nu: Date): boolean {
+  if (!leverancierId) return false;
+  const lokaal = formatInTimeZone(nu, 'Europe/Amsterdam', 'yyyy-MM-dd HH:mm:ss');
+  const vandaag = lokaal.slice(0, 10);
+  const rij = rijen.find((r) => r.leverancier_id === leverancierId && r.besteldag === vandaag);
+  if (!rij?.deadline_tijd) return false;
+  const [uur, minuut, seconde = '0'] = rij.deadline_tijd.split(':');
+  const deadline = Number(uur) * 3600 + Number(minuut) * 60 + Number(seconde);
+  const [h, m, s] = lokaal.slice(11).split(':').map(Number);
+  return h * 3600 + m * 60 + s >= deadline;
+}
