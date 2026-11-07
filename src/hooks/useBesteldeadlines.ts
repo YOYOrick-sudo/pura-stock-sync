@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { formatInTimeZone } from 'date-fns-tz';
 import { supabase } from '@/integrations/supabase/client';
-import { besteldeadlineHint, type BesteldeadlineHintRij } from '@/lib/besteldeadline';
+import { besteldeadlineHint, deadlineVerstreken, type BesteldeadlineHintRij } from '@/lib/besteldeadline';
 
 /** Locatiegebonden, read-only hints uit de database (bestel_deadline_hints); bij een leesfout geen verouderde hint tonen. */
 export function useBesteldeadlines(vestiging: string) {
@@ -22,5 +22,9 @@ export function useBesteldeadlines(vestiging: string) {
       return (data ?? []) as BesteldeadlineHintRij[];
     },
   });
-  return (leverancierId: string | null | undefined) => query.isError ? null : besteldeadlineHint(query.data ?? [], leverancierId, nu);
+  const rijen = query.isError ? [] : query.data ?? [];
+  return {
+    hint: (leverancierId: string | null | undefined) => query.isError ? null : besteldeadlineHint(rijen, leverancierId, nu),
+    verstreken: (leverancierId: string | null | undefined) => deadlineVerstreken(rijen, leverancierId, nu),
+  };
 }

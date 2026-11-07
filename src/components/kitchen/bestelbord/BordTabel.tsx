@@ -33,9 +33,11 @@ function AantalCel({ aantal, eenheid }: { aantal: number; eenheid: string | null
   );
 }
 
-export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal, prijsTip, onBesteld, onBewerk, onVervallen, geleverd = false, onTerug, detail, restStatus, artikelRest, alleenLezen = false, plat = false, toonMaakArtikel, onMaakArtikel }: {
+export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, deadlineVoorbij, prijsVan, prijsSignaal, prijsTip, onBesteld, onBewerk, onVervallen, onGroepBesteld, geleverd = false, onTerug, detail, restStatus, artikelRest, alleenLezen = false, plat = false, toonMaakArtikel, onMaakArtikel }: {
   regels: BestelSignaal[]; leverancier: (s: BestelSignaal) => string;
   deadlineHint: (s: BestelSignaal) => string | null;
+  deadlineVoorbij?: (s: BestelSignaal) => boolean;
+  onGroepBesteld?: (regels: BestelSignaal[]) => void;
   prijsVan: (s: BestelSignaal) => { vorm: ArtikelVorm; totaal: number } | null;
   prijsSignaal: (s: BestelSignaal) => PrijsSignaal | null; prijsTip: (v: ArtikelVorm) => string;
   onBesteld: (s: BestelSignaal, b: boolean) => void; onBewerk: (s: BestelSignaal) => void; onVervallen: (s: BestelSignaal) => void;
@@ -54,10 +56,13 @@ export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, prijsV
     return <Fragment key={lev}>
       {!plat && <TableRow className="bg-muted/50 hover:bg-muted/50">
         <TableCell className="!px-0" />
-        <TableCell className="py-0">
-          <div className={cn('flex min-h-10 flex-col justify-center text-sm', gedimd ? 'text-muted-foreground' : 'text-foreground')}>
-            <span className="flex min-w-0 items-baseline gap-2"><span className="truncate font-semibold">{geleverd ? lev : <DeadlineNaam naam={lev} hint={rs[0] ? deadlineHint(rs[0]) : null} />}</span><span className="shrink-0 tabular-nums font-normal text-muted-foreground">{rs.length}</span></span>
-            {subtotaal != null && <span className="text-xs font-medium tabular-nums sm:hidden">{subtotaal}</span>}
+        <TableCell className="py-2">
+          <div className={cn('flex min-h-11 flex-wrap items-center justify-between gap-2 text-sm', gedimd ? 'text-muted-foreground' : 'text-foreground')}>
+            <span className="flex w-full min-w-0 flex-col justify-center sm:w-auto sm:flex-1">
+              <span className="flex min-w-0 items-baseline gap-2"><span className="truncate font-semibold">{geleverd ? lev : <DeadlineNaam naam={lev} hint={rs[0] ? deadlineHint(rs[0]) : null} letOp={!geleverd && !!deadlineVoorbij?.(rs[0])} />}</span><span className="shrink-0 tabular-nums font-normal text-muted-foreground">{rs.length}</span></span>
+              {subtotaal != null && <span className="text-xs font-medium tabular-nums sm:hidden">{subtotaal}</span>}
+            </span>
+            {!geleverd && !alleenLezen && onGroepBesteld && <Button type="button" variant="outline" size="touch" className="shrink-0" onClick={() => onGroepBesteld(rs)}>Besteld</Button>}
           </div>
         </TableCell>
         <TableCell className="py-0" />

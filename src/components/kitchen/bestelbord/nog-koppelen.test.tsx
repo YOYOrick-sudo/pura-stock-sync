@@ -27,7 +27,7 @@ vi.mock('@/components/SidebarLayout', () => ({ SidebarLayout: ({ children }: { c
 vi.mock('@/components/kitchen/Voorraadproef', () => ({ Voorraadproef: () => null }));
 vi.mock('@/contexts/UserLocationContext', () => ({ useUserLocation: () => ({ userLocation: 'Test' }) }));
 vi.mock('@/hooks/useRole', () => ({ useRole: () => ({ isManager: staat.isManager, loading: false }) }));
-vi.mock('@/hooks/useBesteldeadlines', () => ({ useBesteldeadlines: () => () => null }));
+vi.mock('@/hooks/useBesteldeadlines', () => ({ useBesteldeadlines: () => ({ hint: () => null, verstreken: () => false }) }));
 vi.mock('@/hooks/usePrijsSignalen', () => ({ usePrijsSignalen: () => ({ data: [] }) }));
 vi.mock('@/hooks/useVoorraadproef', () => ({ useOpenTelvragen: () => ({ data: 0, isSuccess: true }) }));
 vi.mock('@/hooks/useOntvangstV2', () => ({
@@ -55,7 +55,7 @@ vi.mock('@/hooks/useBestelbord', async () => {
     useBordRegelInfo: () => ({ data: new Map() }),
     useBestelAdvies: () => ({ data: { leverdag: null, regels: [] }, isLoading: false, zetOpBord: { mutateAsync: vi.fn() } }),
     useBestelbordMutaties: () => ({
-      toevoegen: mut(), zetBesteld: mut(), verwijderen: mut(), herstel: mut(), wijzig: mut(),
+      toevoegen: mut(), zetBesteld: mut(), markeerBesteldRegels: mut(), verwijderen: mut(), herstel: mut(), wijzig: mut(),
       markeerGeleverd: { mutate: staat.markeer, mutateAsync: vi.fn(), isPending: false },
       nietGeleverd: mut(), deelsGeleverd: mut(), terugNaarBesteld: mut(), zetVerwachteLevering: mut(),
       koppelen: mut(), artikelAanmaken: mut(),

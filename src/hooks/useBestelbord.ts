@@ -5,6 +5,7 @@ import { alsSoort, soortKolomOntbreekt } from '@/lib/leverancierSoort';
 import { metHerstel } from '@/lib/appWake';
 import { useKanaalHerstel } from '@/lib/realtime';
 import { BORD_SUGGESTIE_LIMIET, herhaalNormen, type BordBron } from '@/lib/bordZoeken';
+import type { BesteldagRegel } from '@/lib/standaardLeverdag';
 import type { ArtikelZoekRij } from '@/lib/artikelstam';
 
 type LosAntwoord = { data: unknown; error: { message: string } | null };
@@ -261,16 +262,64 @@ export function useBestelbordMutaties(vestiging: string) {
       const { error } = await metHerstel(() =>
         supabase
           .from('bestel_signalen')
-          .update({
-            status: besteld ? 'besteld' : 'open',
-            besteld_op: besteld ? new Date().toISOString() : null,
-            besteld_door: besteld ? user.user?.id ?? null : null,
-            // De database vult verwachte_levering zelf (morgen/volgende open dag); bij terugzetten weer leeg.
-            verwachte_levering: null,
-          })
+          .update(besteld
+            ? {
+              status: 'besteld',
+              besteld_op: new Date().toISOString(),
+              besteld_door: user.user?.id ?? null,
+              besteld_via: 'handmatig',
+              // Leeg laten: de trigger vult de standaard leverdag. De knop en het vinkje gaan via bord_markeer_besteld.
+              verwachte_levering: null,
+            }
+            : {
+              status: 'open',
+              besteld_op: null,
+              besteld_door: null,
+              besteld_via: null,
+              bestelreferentie: null,
+              verwachte_levering: null,
+            })
           .eq('id', id),
       );
       if (error) throw error;
+    },
+    onSettled: ververs,
+  });
+
+  /** Open regels op besteld, met leverdag en optioneel ordernummer. Zelfde controles als de bestelbot, voor de ingelogde gebruiker. */
+  const markeerBesteldRegels = useMutation({
+    mutationFn: async ({ ids, leverdatum, referentie }: { ids: string[]; leverdatum: string; referentie: string | null }) => {
+      if (vestiging !== 'West' && vestiging !== 'Midsland') throw new Error('Vestiging nog niet geladen, probeer het zo opnieuw');
+      if (ids.length < 1 || ids.length > 100) throw new Error('Kies tussen 1 en 100 regels');
+      const { data, error } = await metHerstel(() =>
+        los.rpc('bord_markeer_besteld', {
+          p_vestiging: vestiging,
+          p_regels: ids.map((id) => ({ id, bestelreferentie: referentie, verwachte_levering: leverdatum })),
+        }),
+      );
+      // Tot de migratie live is blijft de bestaande bord-update de velden zetten. Daarna geldt de RPC.
+      const fout = error as { message?: string; code?: string } | null;
+      const ontbreekt = !!fout && (fout.code === 'PGRST202' || /schema cache|does not exist|niet gevonden/i.test(fout.message ?? ''));
+      if (ontbreekt) {
+        const { data: user } = await supabase.auth.getUser();
+        const { data: gezet, error: schrijfFout } = await metHerstel(() =>
+          supabase.from('bestel_signalen').update({
+            status: 'besteld',
+            besteld_op: new Date().toISOString(),
+            besteld_door: user.user?.id ?? null,
+            besteld_via: 'handmatig',
+            bestelreferentie: referentie,
+            verwachte_levering: leverdatum,
+          }).in('id', ids).eq('vestiging', vestiging).eq('status', 'open').select('id'),
+        );
+        if (schrijfFout) throw schrijfFout;
+        const gezetIds = new Set((gezet ?? []).map((r) => r.id as string));
+        return ids.map((id) => gezetIds.has(id)
+          ? { id, status: 'ok', verwachte_levering: leverdatum }
+          : { id, status: 'overgeslagen', reden: 'status is niet open' });
+      }
+      if (error) throw error;
+      return (Array.isArray(data) ? data : []) as { id: string; status: string; reden?: string; verwachte_levering?: string | null }[];
     },
     onSettled: ververs,
   });
@@ -475,7 +524,7 @@ export function useBestelbordMutaties(vestiging: string) {
     onSettled: ververs,
   });
 
-  return { toevoegen, zetBesteld, verwijderen, herstel, wijzig, markeerGeleverd, nietGeleverd, deelsGeleverd, terugNaarBesteld, zetVerwachteLevering, koppelen, artikelAanmaken, koppelAlleenArtikel };
+  return { toevoegen, zetBesteld, markeerBesteldRegels, verwijderen, herstel, wijzig, markeerGeleverd, nietGeleverd, deelsGeleverd, terugNaarBesteld, zetVerwachteLevering, koppelen, artikelAanmaken, koppelAlleenArtikel };
 }
 
 /** Zoeken in de stam. Ontbreekt de functie, dan gooit de aanroep door naar de fallback. */
@@ -584,6 +633,36 @@ export function useLeveranciers() {
       const { data, error } = await supabase.from('leveranciers').select('id, naam').is('deleted_at', null);
       if (error) throw error;
       return new Map((data ?? []).map((l) => [l.id as string, l.naam as string]));
+    },
+  });
+}
+
+/** Besteldagen van deze vestiging plus gedeelde rijen (vestiging leeg). Andere vestiging blijft buiten de query. */
+export function useLeverancierBesteldagen(vestiging: string | null | undefined) {
+  const geldig = vestiging === 'West' || vestiging === 'Midsland';
+  return useQuery({
+    queryKey: ['leverancier-besteldagen', vestiging],
+    enabled: geldig,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async (): Promise<BesteldagRegel[]> => {
+      const { data, error } = await supabase
+        .from('leverancier_besteldagen')
+        .select('id, leverancier_id, vestiging, weekdag, deadline_tijd, leverdag_offset, actief, geldig_vanaf, geldig_tot, updated_at')
+        .is('deleted_at', null)
+        .or(`vestiging.eq.${vestiging},vestiging.is.null`);
+      if (error) throw error;
+      return (data ?? []).map((r) => ({
+        id: r.id,
+        leverancierId: r.leverancier_id,
+        vestiging: r.vestiging,
+        weekdag: r.weekdag,
+        deadlineTijd: r.deadline_tijd,
+        offset: r.leverdag_offset,
+        actief: r.actief,
+        geldigVanaf: r.geldig_vanaf,
+        geldigTot: r.geldig_tot,
+        updatedAt: r.updated_at,
+      }));
     },
   });
 }

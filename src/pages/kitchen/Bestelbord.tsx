@@ -2,6 +2,7 @@ import { hoeveelheid } from '@/lib/hoeveelheid';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
+import { formatInTimeZone } from 'date-fns-tz';
 import { toast } from 'sonner';
 import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Check, Search, ChefHat, Link2, ShoppingBag, Warehouse } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -26,9 +27,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { dagenTeLaat, parseYmd, ymd } from '@/lib/leverdatum';
+import { eerstvolgendeLeverdagen, plusDagenYmd, standaardLeverdag } from '@/lib/standaardLeverdag';
+import { groepeerBestellingen } from '@/lib/orderGroepen';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import {
-  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useLeverancierSoorten, useLeveranciersVoorVestiging, useVestigingOpenDagen, useArtikelVormen, zoekBordSuggesties, zoekArtikelstam, maakConceptArtikel, useBestelAdvies, useBordRegelInfo, useBordHerhaalNamen,
+  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useLeverancierSoorten, useLeveranciersVoorVestiging, useLeverancierBesteldagen, useVestigingOpenDagen, useArtikelVormen, zoekBordSuggesties, zoekArtikelstam, maakConceptArtikel, useBestelAdvies, useBordRegelInfo, useBordHerhaalNamen,
   type BestelSignaal, type ArtikelVorm, type BordSuggestie, type BestelAdvies,
 } from '@/hooks/useBestelbord';
 import { useRole } from '@/hooks/useRole';
@@ -40,6 +43,7 @@ import { zoekSignaal, type PrijsSignaal } from '@/lib/prijsSignaal';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { BordTabel } from '@/components/kitchen/bestelbord/BordTabel';
+import { BesteldDialoog } from '@/components/kitchen/bestelbord/BesteldDialoog';
 import { OnderwegTabel } from '@/components/kitchen/bestelbord/OnderwegTabel';
 import { AdviesTabel } from '@/components/kitchen/bestelbord/AdviesTabel';
 import { LeveranciersOverzicht } from '@/components/kitchen/bestelbord/LeveranciersOverzicht';
@@ -210,10 +214,10 @@ export default function Bestelbord() {
   const { userLocation } = useUserLocation();
   const [params, setSearchParams] = useSearchParams();
   const vestiging = userLocation ?? '';
-  const deadlineVoor = useBesteldeadlines(vestiging);
+  const deadlines = useBesteldeadlines(vestiging);
   const { data: signalen = [], isLoading } = useBestelSignalen(vestiging || null);
   const {
-    toevoegen, zetBesteld, verwijderen, herstel, wijzig,
+    toevoegen, zetBesteld, markeerBesteldRegels, verwijderen, herstel, wijzig,
     markeerGeleverd, nietGeleverd, deelsGeleverd, terugNaarBesteld, zetVerwachteLevering,
     koppelen, artikelAanmaken, koppelAlleenArtikel,
   } = useBestelbordMutaties(vestiging);
@@ -244,6 +248,7 @@ export default function Bestelbord() {
   const restStatusPerSignaal = bordRestStatusPerSignaal(restanten);
   const nageleverdArtikelen = new Set(restanten.filter((x) => x.telt_als_onderweg && !x.opnieuw_besteld && x.artikel_id).map((x) => x.artikel_id as string));
   const { isOpen } = useVestigingOpenDagen(vestiging || null);
+  const { data: besteldagen = [] } = useLeverancierBesteldagen(vestiging || null);
   const [naam, setNaam] = useState('');
   const [aantal, setAantal] = useState<number | null>(1);
   const [soort, setSoort] = useState<string | null>(null);
@@ -253,6 +258,7 @@ export default function Bestelbord() {
   const [bewerkSoort, setBewerkSoort] = useState<string | null>(null);
   const [datumVoor, setDatumVoor] = useState<BestelSignaal | null>(null);
   const [datumKeuze, setDatumKeuze] = useState('');
+  const [besteldGroep, setBesteldGroep] = useState<{ naam: string; regels: BestelSignaal[] } | null>(null);
   const [leveringActie, setLeveringActie] = useState<{ signaal: BestelSignaal; type: 'niet' | 'deels' } | null>(null);
   const [leveringOpmerking, setLeveringOpmerking] = useState('');
   const [deelsOntvangen, setDeelsOntvangen] = useState(1);
@@ -321,14 +327,6 @@ export default function Bestelbord() {
 
   /** Alleen presentatie: leverancier uit signaal, dan artikelvorm; order blijft apart. */
   const leverancier = (s: BestelSignaal) => leverancierNaam(s, leveranciers, vormById);
-  const groepeer = (regels: BestelSignaal[]) => {
-    const m = new Map<string, BestelSignaal[]>();
-    for (const s of regels) {
-      const key = `${leverancier(s)}|${s.bestelreferentie ?? s.besteld_op ?? ''}`;
-      m.set(key, [...(m.get(key) ?? []), s]);
-    }
-    return [...m.entries()].map(([key, regels]) => ({ key, titel: leverancier(regels[0]), regels })).sort((a, b) => a.titel === b.titel ? 0 : a.titel === 'Leverancier onbekend' ? 1 : b.titel === 'Leverancier onbekend' ? -1 : a.titel.localeCompare(b.titel));
-  };
 
   const { teChecken, onderweg, zonderDatum } = useMemo(() => {
     const vandaagYmd = ymd(vandaag);
@@ -488,7 +486,26 @@ export default function Bestelbord() {
 
   // Indicatieprijs per regel.
   const vormById = useMemo(() => new Map((vormen ?? []).map((v) => [v.id, v])), [vormen]);
-  const deadlineHint = (s: BestelSignaal | BestelAdvies) => deadlineVoor(s.leverancier_id ?? (s.artikel_vorm_id ? vormById.get(s.artikel_vorm_id)?.leverancier_id : null));
+  const leverancierIdVan = (s: { leverancier_id?: string | null; artikel_vorm_id?: string | null }) => s.leverancier_id ?? (s.artikel_vorm_id ? vormById.get(s.artikel_vorm_id)?.leverancier_id ?? null : null);
+  const deadlineHint = (s: BestelSignaal | BestelAdvies) => deadlines.hint(leverancierIdVan(s));
+  const deadlineVoorbij = (s: BestelSignaal) => deadlines.verstreken(leverancierIdVan(s));
+  const leverdagVoor = (leverancierId: string | null) => {
+    const lokaal = formatInTimeZone(new Date(), 'Europe/Amsterdam', 'yyyy-MM-dd HH:mm:ss');
+    const vandaag = lokaal.slice(0, 10);
+    const ruw = standaardLeverdag({
+      basis: vandaag,
+      tijd: lokaal.slice(11),
+      leverancierId,
+      vestiging,
+      regels: besteldagen,
+      isOpen: (dag) => isOpen(parseYmd(dag)),
+    });
+    const max = plusDagenYmd(vandaag, 30);
+    if (ruw < vandaag) return vandaag;
+    if (ruw > max) return max;
+    return ruw;
+  };
+  const amsterdamVandaag = formatInTimeZone(new Date(), 'Europe/Amsterdam', 'yyyy-MM-dd');
   const prijsVan = (s: BestelSignaal): { vorm: ArtikelVorm; totaal: number } | null => {
     let v: ArtikelVorm | undefined;
     if (s.artikel_vorm_id) v = vormById.get(s.artikel_vorm_id);
@@ -511,18 +528,16 @@ export default function Bestelbord() {
     [bewerk, vormen],
   );
 
-  const markeerBesteld = (s: BestelSignaal, b: boolean) =>
-    !test && zetBesteld.mutate(
-      { id: s.id, besteld: b },
-      {
-        onSuccess: () => {
-          if (!b) return;
-          toast.success(`${s.naam} besteld`, {
-            action: { label: 'Ongedaan maken', onClick: () => zetBesteld.mutate({ id: s.id, besteld: false }) },
-          });
-          // Vrije regel: eerst zoeken. Zonder de nieuwe functies blijft het bij deze bestelling.
-          if (s.artikel_id) return;
-          void naEersteBestelling(
+  const naBesteld = (okIds: string[], regels: BestelSignaal[]) => {
+    if (!okIds.length) return;
+    const label = okIds.length === 1 ? (regels.find((s) => s.id === okIds[0])?.naam ?? '1 regel') : `${okIds.length} regels`;
+    toast.success(`${label} besteld`, {
+      action: { label: 'Ongedaan maken', onClick: () => okIds.forEach((id) => zetBesteld.mutate({ id, besteld: false })) },
+    });
+    if (okIds.length !== 1) return;
+    const s = regels.find((r) => r.id === okIds[0]);
+    if (!s || s.artikel_id) return;
+    void naEersteBestelling(
             { id: s.id, naam: s.naam, artikel_id: null, leverancier_id: s.leverancier_id, vestiging: s.vestiging },
             {
               zoek: zoekArtikelstam,
@@ -552,9 +567,33 @@ export default function Bestelbord() {
               toast.error('Stam bijwerken mislukt: ' + uit.bericht);
             }
           }).catch((e: unknown) => toast.error('Stam bijwerken mislukt: ' + foutmelding(e)));
+  };
+
+  const rondBestellingAf = (regels: BestelSignaal[], leverdatum: string, referentie: string) => {
+    if (test || !regels.length) return;
+    markeerBesteldRegels.mutate(
+      { ids: regels.map((s) => s.id), leverdatum, referentie: referentie.trim() || null },
+      {
+        onSuccess: (uit) => {
+          const ok = uit.filter((r) => r.status === 'ok').map((r) => r.id);
+          const mis = uit.filter((r) => r.status !== 'ok');
+          naBesteld(ok, regels);
+          if (mis.length) toast.error(mis.map((m) => m.reden || 'overgeslagen').join('; '));
+          if (ok.length) setBesteldGroep(null);
         },
+        onError: (e: unknown) => toast.error('Niet opgeslagen: ' + foutmelding(e)),
       },
     );
+  };
+
+  const markeerBesteld = (s: BestelSignaal, b: boolean) => {
+    if (test) return;
+    if (!b) {
+      zetBesteld.mutate({ id: s.id, besteld: false });
+      return;
+    }
+    rondBestellingAf([s], leverdagVoor(leverancierIdVan(s)), '');
+  };
 
   const vervallen = (s: BestelSignaal) =>
     !test && verwijderen.mutate(s.id, {
@@ -601,8 +640,11 @@ export default function Bestelbord() {
 
   const groepProps = {
     regelInfo,
-    deadlineHint,
     dagenTeLaatVan: teLaatVan,
+    onTerugBord: (s: BestelSignaal) => !test && zetBesteld.mutate({ id: s.id, besteld: false }, {
+      onSuccess: () => toast(`${s.naam} staat weer op het bord`),
+      onError: (e: unknown) => toast.error('Niet opgeslagen: ' + foutmelding(e)),
+    }),
     onAllesGeleverd: (ids: string[]) => vinkGeleverd(ids, `${ids.length} ${ids.length === 1 ? 'regel' : 'regels'}`),
     onGeleverd: (s: BestelSignaal) => vinkGeleverd([s.id], s.naam),
     onDatum: openDatum,
@@ -655,7 +697,7 @@ export default function Bestelbord() {
   const leveranciersTabel = <LeveranciersOverzicht open={open} onderweg={besteld} leverancier={leverancier} prijsVan={prijsVan} />;
   const herhaalNamen = useBordHerhaalNamen(vestiging || null, signalen);
   const toonMaakArtikel = (s: BestelSignaal) => koppelVlag && !test && s.status === 'open' && !s.artikel_id && herhaalNamen.has(bestelbotNormaliseer(s.naam));
-  const bordProps = { ...(v2 ? { restStatus: (s: BestelSignaal) => restStatusPerSignaal.get(s.id) ?? null, artikelRest: (s: BestelSignaal) => restStatusPerSignaal.has(s.id) ? null : openRestVoorArtikel(restanten, { artikel_id: s.artikel_id ?? null, naam: s.naam }), alleenLezen: test } : {}), regelInfo, leverancier, deadlineHint, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onBewerk: openBewerk, onVervallen: vervallen, toonMaakArtikel, onMaakArtikel: (s: BestelSignaal) => openBewerk(s, 'nieuw') };
+  const bordProps = { ...(v2 ? { restStatus: (s: BestelSignaal) => restStatusPerSignaal.get(s.id) ?? null, artikelRest: (s: BestelSignaal) => restStatusPerSignaal.has(s.id) ? null : openRestVoorArtikel(restanten, { artikel_id: s.artikel_id ?? null, naam: s.naam }), alleenLezen: test } : {}), regelInfo, leverancier, deadlineHint, deadlineVoorbij, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onGroepBesteld: test ? undefined : (rs: BestelSignaal[]) => setBesteldGroep({ naam: leverancier(rs[0]), regels: rs }), onBewerk: openBewerk, onVervallen: vervallen, toonMaakArtikel, onMaakArtikel: (s: BestelSignaal) => openBewerk(s, 'nieuw') };
   const positieveAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) > 0 && !(v2 && a.artikel_id && nageleverdArtikelen.has(a.artikel_id)));
   const nulAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) <= 0);
   const zonderPrijs = [...open, ...besteld].filter((s) => !prijsVan(s)).length;
@@ -679,6 +721,22 @@ export default function Bestelbord() {
   const onderwegZicht = filter(onderweg);
   const onderwegGroepZicht = v2 ? onderwegMetRest(teCheckenZicht, onderwegZicht, restStatusPerSignaal) : onderwegZicht;
   const zonderDatumZicht = filter(zonderDatum);
+  const orderBron = [...new Map((v2 ? [...onderwegGroepZicht, ...zonderDatumZicht] : [...teCheckenZicht, ...onderwegZicht, ...zonderDatumZicht]).map((s) => [s.id, s])).values()];
+  const orderGroepen = groepeerBestellingen(orderBron, amsterdamVandaag, leverancier).map((g) => {
+    const prijzen = g.regels.map(prijsVan).filter((p) => p != null);
+    const laat = Math.max(0, ...g.regels.map(teLaatVan));
+    const achterstallig = !!g.leverdatum && g.leverdatum < amsterdamVandaag;
+    return {
+      key: g.key,
+      titel: g.leverancier,
+      referentie: g.referentie,
+      besteldag: g.besteldag,
+      leverdatum: g.leverdatum,
+      laatLabel: achterstallig ? (laat > 0 ? `${laat}d te laat` : 'te laat') : null,
+      totaal: prijzen.length ? euro(prijzen.reduce((n, p) => n + p.totaal, 0)) : null,
+      regels: g.regels,
+    };
+  });
   const geleverdZicht = filter(geleverd);
   const besteldZicht = [...teCheckenZicht, ...onderwegZicht, ...zonderDatumZicht];
   const internRegels = !toonV2Bord && koppelVlag && !isLoading && internZicht.length > 0 ? (
@@ -839,7 +897,7 @@ export default function Bestelbord() {
                 {zonderPrijsFilter('lg:hidden')}
                 {toonV2Bord ? <InternOnderwegV2 vestiging={vestiging} /> : <InternOnderweg vestiging={vestiging} aan={internAan} />}
                 {v2 && <><NageleverdKaart modus={modus} regels={restanten} /><EindcheckKaart modus={modus} restanten={restanten} regels={ontvangst.vandaag.data ?? []} laden={ontvangst.vandaag.isLoading} leveranciers={leveranciers} /></>}
-                {[...(v2 ? [] : [{ titel: 'Vandaag te checken', regels: teCheckenZicht }]), { titel: 'Onderweg', regels: onderwegGroepZicht }, { titel: 'Zonder datum', regels: zonderDatumZicht }].filter((g) => g.regels.length).map((groep) => <LijstKaart key={groep.titel} kop={<KaartKop icoon={Truck} titel={groep.titel} teller={groep.regels.length} />}><OnderwegTabel groepen={groepeer(groep.regels)} {...groepProps} onBewerk={openBewerk} datumLabel={datumLabel} leverDatumLabel={leverDatumLabel} {...(v2 ? { zonderDeels: true, alleenLezen: test, restStatus: (s: BestelSignaal) => restStatusPerSignaal.get(s.id) ?? null } : {})} /><TabelVoet links={`${groep.regels.length} ${groep.regels.length === 1 ? 'product' : 'producten'}`} /></LijstKaart>)}
+                {orderGroepen.length > 0 && <LijstKaart><OnderwegTabel groepen={orderGroepen} {...groepProps} onBewerk={openBewerk} leverDatumLabel={leverDatumLabel} {...(v2 ? { zonderDeels: true, alleenLezen: test, restStatus: (s: BestelSignaal) => restStatusPerSignaal.get(s.id) ?? null } : {})} /><TabelVoet links={`${orderBron.length} ${orderBron.length === 1 ? 'product' : 'producten'}`} /></LijstKaart>}
                 {!v2 && !besteldZicht.length && !internOnderwegBezig && onderwegAantal === onderwegWeergave.aantal && <LijstKaart>{leegKaart('Niets onderweg')}</LijstKaart>}
                 {!!geleverdZicht.length && <LijstKaart kop={<KaartKop icoon={Check} titel="Geleverd" teller={geleverdZicht.length} />}><BordTabel regels={geleverdZicht} {...bordProps} geleverd onTerug={(s) => !test && terugNaarBesteld.mutate(s.id)} detail={(s) => [s.geleverd_op ? datumLabel(s.geleverd_op) : '', s.geleverd_door ? namen?.get(s.geleverd_door) : '', s.levering_status === 'deels' ? 'Deels' : '', s.levering_opmerking].filter(Boolean).join(' · ')} /></LijstKaart>}
               </TabsContent>
@@ -912,6 +970,16 @@ export default function Bestelbord() {
             </Button>}
           </div>
       </DetailLade>
+      <BesteldDialoog
+        groep={besteldGroep}
+        leverdatum={besteldGroep ? leverdagVoor(leverancierIdVan(besteldGroep.regels[0])) : amsterdamVandaag}
+        keuzes={besteldGroep ? eerstvolgendeLeverdagen(leverdagVoor(leverancierIdVan(besteldGroep.regels[0])), amsterdamVandaag, plusDagenYmd(amsterdamVandaag, 30), (dag) => isOpen(parseYmd(dag))) : []}
+        minDatum={amsterdamVandaag}
+        maxDatum={plusDagenYmd(amsterdamVandaag, 30)}
+        bezig={markeerBesteldRegels.isPending}
+        onSluiten={() => setBesteldGroep(null)}
+        onBevestig={rondBestellingAf}
+      />
       <Dialog open={!!datumVoor} onOpenChange={(o) => !o && setDatumVoor(null)}>
         <DialogContent className="max-w-[650px] rounded-polar-lg">
           <DialogHeader>
