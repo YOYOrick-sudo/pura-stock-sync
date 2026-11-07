@@ -27,7 +27,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { dagenTeLaat, parseYmd, ymd } from '@/lib/leverdatum';
-import { plusDagenYmd, standaardLeverdag } from '@/lib/standaardLeverdag';
+import { eerstvolgendeLeverdagen, plusDagenYmd, standaardLeverdag } from '@/lib/standaardLeverdag';
 import { groepeerBestellingen } from '@/lib/orderGroepen';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import {
@@ -973,6 +973,7 @@ export default function Bestelbord() {
       <BesteldDialoog
         groep={besteldGroep}
         leverdatum={besteldGroep ? leverdagVoor(leverancierIdVan(besteldGroep.regels[0])) : amsterdamVandaag}
+        keuzes={besteldGroep ? eerstvolgendeLeverdagen(leverdagVoor(leverancierIdVan(besteldGroep.regels[0])), amsterdamVandaag, plusDagenYmd(amsterdamVandaag, 30), (dag) => isOpen(parseYmd(dag))) : []}
         minDatum={amsterdamVandaag}
         maxDatum={plusDagenYmd(amsterdamVandaag, 30)}
         bezig={markeerBesteldRegels.isPending}

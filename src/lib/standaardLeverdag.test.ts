@@ -1,6 +1,6 @@
 // @ts-ignore vitest types are not installed in the app tsconfig
 import { describe, expect, test } from 'vitest';
-import { standaardLeverdag, type BesteldagRegel } from './standaardLeverdag';
+import { eerstvolgendeLeverdagen, leverdagLabel, standaardLeverdag, type BesteldagRegel } from './standaardLeverdag';
 
 const open = () => true;
 const midsDicht = new Set([1, 2]);
@@ -98,5 +98,26 @@ describe('standaardLeverdag', () => {
 
   test('een andere leverancier telt niet', () => {
     expect(dag([regel({ weekdag: 4, leverancierId: 'keen', offset: 0, deadlineTijd: null })], '10:00:00')).toBe('2026-11-06');
+  });
+});
+
+describe('leverdagLabel', () => {
+  test('maandag 9 november is ma 9 nov', () => {
+    expect(leverdagLabel('2026-11-09')).toBe('ma 9 nov');
+    expect(leverdagLabel('2026-11-10')).toBe('di 10 nov');
+  });
+});
+
+describe('eerstvolgendeLeverdagen', () => {
+  test('begint bij het voorstel en slaat dichte dagen over', () => {
+    const dicht = new Set([1, 2]);
+    const open = (d: string) => !dicht.has(new Date(`${d}T12:00:00Z`).getUTCDay());
+    // wo 4 nov, Midsland ma+di dicht
+    expect(eerstvolgendeLeverdagen('2026-11-04', '2026-11-04', '2026-11-20', open)).toEqual([
+      '2026-11-04', '2026-11-05', '2026-11-06', '2026-11-07',
+    ]);
+    expect(eerstvolgendeLeverdagen('2026-11-08', '2026-11-07', '2026-11-20', open).map(leverdagLabel)).toEqual([
+      'zo 8 nov', 'wo 11 nov', 'do 12 nov', 'vr 13 nov',
+    ]);
   });
 });

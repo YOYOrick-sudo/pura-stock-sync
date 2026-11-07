@@ -1,6 +1,6 @@
 import { eenheidVorm } from '@/lib/hoeveelheid';
 import { Fragment } from 'react';
-import { AlertCircle, Check, Hourglass } from 'lucide-react';
+import { AlertCircle, Hourglass } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -50,7 +50,7 @@ export function OnderwegTabel({ groepen, regelInfo, dagenTeLaatVan, onAllesGelev
               {meta && <span className="text-xs text-muted-foreground">{meta}</span>}
               {totaal != null && <span className="text-xs font-medium tabular-nums sm:hidden">{totaal}</span>}
             </span>
-            {!alleenLezen && <Button type="button" variant="ghost" size="touch" className="shrink-0 gap-1 px-2" onClick={() => onAllesGeleverd(regels.map((s) => s.id))}><Check className="h-4 w-4" />Alles geleverd</Button>}
+            {!alleenLezen && <Button type="button" variant="outline" size="touch" className="shrink-0" onClick={() => onAllesGeleverd(regels.map((s) => s.id))}>Alles ontvangen</Button>}
           </div>
         </TableCell>
         <TableCell className="py-0" />

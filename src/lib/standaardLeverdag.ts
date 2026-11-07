@@ -105,3 +105,34 @@ export function standaardLeverdag(invoer: StandaardLeverdagInvoer): string {
   }
   return eersteOpen(vroegste ?? plusDagenYmd(basis, 1), isOpen);
 }
+
+const WEEKDAGEN = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
+const MAANDEN = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+
+/** Korte Nederlandse datum: 'ma 9 nov'. */
+export function leverdagLabel(dag: string): string {
+  const [y, m, d] = dag.split('-').map(Number);
+  const weekdag = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  return `${WEEKDAGEN[weekdag]} ${d} ${MAANDEN[m - 1]}`;
+}
+
+/**
+ * De eerstvolgende leverdagen vanaf het voorstel: het voorstel zelf en de
+ * open dagen erna, tot `aantal` of de maximale datum.
+ */
+export function eerstvolgendeLeverdagen(
+  voorstel: string,
+  min: string,
+  max: string,
+  isOpen: (dag: string) => boolean,
+  aantal = 4,
+): string[] {
+  if (!min || !max || min > max || aantal < 1) return [];
+  let dag = voorstel >= min && voorstel <= max ? voorstel : min;
+  const uit: string[] = [];
+  for (let guard = 0; uit.length < aantal && dag <= max && guard < 45; guard++) {
+    if (dag === voorstel || isOpen(dag)) uit.push(dag);
+    dag = plusDagenYmd(dag, 1);
+  }
+  return uit;
+}

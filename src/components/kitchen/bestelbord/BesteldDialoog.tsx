@@ -1,15 +1,22 @@
 import { useEffect, useState } from 'react';
+import { nl } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { BestelSignaal } from '@/hooks/useBestelbord';
+import { parseYmd, ymd } from '@/lib/leverdatum';
+import { leverdagLabel } from '@/lib/standaardLeverdag';
+import { cn } from '@/lib/utils';
 
 /** Bevestiging per leveranciersgroep: leverdag, optioneel ordernummer, regels aan of uit. */
-export function BesteldDialoog({ groep, leverdatum, minDatum, maxDatum, bezig, onSluiten, onBevestig }: {
+export function BesteldDialoog({ groep, leverdatum, keuzes, minDatum, maxDatum, bezig, onSluiten, onBevestig }: {
   groep: { naam: string; regels: BestelSignaal[] } | null;
   leverdatum: string;
+  keuzes: string[];
   minDatum: string;
   maxDatum: string;
   bezig: boolean;
@@ -19,6 +26,7 @@ export function BesteldDialoog({ groep, leverdatum, minDatum, maxDatum, bezig, o
   const [datum, setDatum] = useState(leverdatum);
   const [referentie, setReferentie] = useState('');
   const [aan, setAan] = useState<string[]>([]);
+  const [kalenderOpen, setKalenderOpen] = useState(false);
   const sleutel = groep ? `${groep.naam}|${groep.regels.map((r) => r.id).join(',')}|${leverdatum}` : '';
 
   useEffect(() => {
@@ -26,30 +34,62 @@ export function BesteldDialoog({ groep, leverdatum, minDatum, maxDatum, bezig, o
     setDatum(leverdatum);
     setReferentie('');
     setAan(groep.regels.map((r) => r.id));
+    setKalenderOpen(false);
   }, [sleutel, groep, leverdatum]);
 
   const gekozen = groep?.regels.filter((r) => aan.includes(r.id)) ?? [];
   const datumOk = !!datum && datum >= minDatum && datum <= maxDatum;
+  const andere = !!datum && !keuzes.includes(datum);
 
   return (
     <Dialog open={!!groep} onOpenChange={(open) => { if (!open && !bezig) onSluiten(); }}>
       <DialogContent className="gap-4">
         <DialogHeader>
-          <DialogTitle>Besteld — {groep?.naam}</DialogTitle>
+          <DialogTitle>Besteld bij {groep?.naam}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="besteld-leverdag">Leverdag</Label>
-            <Input
-              id="besteld-leverdag"
-              type="date"
-              value={datum}
-              min={minDatum}
-              max={maxDatum}
-              onChange={(e) => setDatum(e.target.value)}
-              className="h-11 text-base"
-            />
-            <p className="text-xs text-muted-foreground">Voorstel uit het leverschema. Pas de dag aan als de levering anders is.</p>
+            <Label id="besteld-leverdag">Leverdag</Label>
+            <div className="flex flex-wrap gap-2" role="group" aria-labelledby="besteld-leverdag">
+              {keuzes.map((dag) => (
+                <Button
+                  key={dag}
+                  type="button"
+                  variant="outline"
+                  size="touch"
+                  aria-pressed={datum === dag}
+                  className={cn(datum === dag && 'border-foreground bg-muted')}
+                  onClick={() => { setDatum(dag); setKalenderOpen(false); }}
+                >
+                  {leverdagLabel(dag)}
+                </Button>
+              ))}
+              <Popover open={kalenderOpen} onOpenChange={setKalenderOpen}>
+                <PopoverTrigger asChild>
+                  <Button type="button" variant="outline" size="touch" aria-pressed={andere} className={cn(andere && 'border-foreground bg-muted')}>
+                    {andere ? leverdagLabel(datum) : 'andere datum'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="z-[60] w-auto rounded-polar-lg p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    locale={nl}
+                    weekStartsOn={1}
+                    selected={datum ? parseYmd(datum) : undefined}
+                    defaultMonth={parseYmd(datum || minDatum)}
+                    disabled={{ before: parseYmd(minDatum), after: parseYmd(maxDatum) }}
+                    onSelect={(d) => {
+                      if (!d) return;
+                      const gekozenDag = ymd(d);
+                      if (gekozenDag < minDatum || gekozenDag > maxDatum) return;
+                      setDatum(gekozenDag);
+                      setKalenderOpen(false);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <p className="text-xs text-muted-foreground">Voorstel uit het leverschema.</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="besteld-ordernummer">Ordernummer</Label>
