@@ -5,12 +5,35 @@ const VESTIGINGEN = new Set(["West", "Midsland"]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 import { verwachteLeveringGeldig } from "./datum.ts";
 import { adviesMetadataGeldig } from "./advies-metadata.ts";
+import { leesDeactiveren, rpcOntbreekt } from "./deactiveren.ts";
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+
+/** Zelfde uitkomst als de RPC, zolang de migratie nog niet draait: alleen status vervallen. */
+async function deactiveerZonderFunctie(db: { from: (tabel: string) => any }, vestiging: string, ids: string[]) {
+  const { data, error } = await db.from("bestel_signalen").select("id,status,vestiging").in("id", ids);
+  if (error) throw new Error(error.message);
+  const gevonden = new Map((data ?? []).map((r) => [r.id, r]));
+  const openIds = ids.filter((id) => {
+    const r = gevonden.get(id);
+    return !!r && r.vestiging === vestiging && r.status === "open";
+  });
+  if (openIds.length) {
+    const schrijf = await db.from("bestel_signalen").update({ status: "vervallen" }).in("id", openIds).eq("vestiging", vestiging).eq("status", "open");
+    if (schrijf.error) throw new Error(schrijf.error.message);
+  }
+  return ids.map((id) => {
+    const r = gevonden.get(id);
+    if (!r || r.vestiging !== vestiging) return { id, status: "overgeslagen", reden: "niet gevonden voor deze vestiging" };
+    if (r.status === "vervallen") return { id, status: "ok", reden: "al weg" };
+    if (r.status === "open") return { id, status: "ok" };
+    return { id, status: "overgeslagen", reden: "status is " + r.status };
+  });
+}
 
 async function tokenKlopt(header: string | null): Promise<boolean> {
   const verwacht = Deno.env.get("BOT_BESTELBORD_TOKEN");
@@ -175,6 +198,23 @@ Deno.serve(async (req) => {
       if (error) return fout(400, error.message);
       await sluit(true, { http_status: 200, resultaat: data });
       return json(200, { ok: true, aantal: data?.aantal ?? 0, gekoppeld: data?.gekoppeld ?? 0, gelogd: data?.gelogd ?? 0 });
+    }
+
+    if (actie === "deactiveren") {
+      const invoer = leesDeactiveren(body.regels, body.reden);
+      if (!invoer.ok) return fout(400, invoer.fout);
+      const { ids, reden } = invoer;
+      const { data, error } = await db.rpc("bestelbot_deactiveer", {
+        p_vestiging: vestiging, p_ids: ids, p_reden: reden,
+      });
+      if (rpcOntbreekt(error)) {
+        const uit = await deactiveerZonderFunctie(db, vestiging, ids);
+        await sluit(true, { http_status: 200, resultaat: uit, fallback: true }, ids);
+        return json(200, { vestiging, resultaat: uit });
+      }
+      if (error) return fout(400, error.message);
+      await sluit(true, { http_status: 200, resultaat: data }, ids);
+      return json(200, { vestiging, resultaat: data });
     }
 
     return fout(400, "Onbekende actie");
