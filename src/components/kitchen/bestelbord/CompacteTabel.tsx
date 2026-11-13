@@ -3,7 +3,7 @@ import { kaartRandKlasse } from '@/components/pura';
 import { Table, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 /** Eén rij-opbouw voor bord, onderweg en advies: vink links, naam vult, aantal/prijs/menu vast rechts. Kolombreedtes via colgroup, zodat de verborgen kop niets verschuift. */
-export function CompacteTabel({ kinderen, onderweg = false, advies = false, vinkKop, zonderKop = false, smal = false, zonderVink = false, zonderMidden = false }: { kinderen: ReactNode; onderweg?: boolean; advies?: boolean; vinkKop?: string; zonderKop?: boolean; smal?: boolean; zonderVink?: boolean; zonderMidden?: boolean }) {
+export function CompacteTabel({ kinderen, onderweg = false, advies = false, vinkKop, zonderKop = false, smal = false, zonderVink = false, zonderMidden = false, ruimeActie = false }: { kinderen: ReactNode; onderweg?: boolean; advies?: boolean; vinkKop?: string; zonderKop?: boolean; smal?: boolean; zonderVink?: boolean; zonderMidden?: boolean; ruimeActie?: boolean }) {
   const toonVink = !advies && !zonderVink;
   return <Table className={`table-fixed [&_td]:px-2 [&_td]:py-1 [&_th]:h-9 [&_th]:px-2 [&_th]:text-xs ${kaartRandKlasse}`}>
     <colgroup>
@@ -11,7 +11,7 @@ export function CompacteTabel({ kinderen, onderweg = false, advies = false, vink
       <col />
       <col className={smal ? 'w-20 sm:w-28' : 'w-24 sm:w-28'} />
       {!zonderMidden && <col className={advies ? 'w-12' : zonderVink ? 'w-32' : 'w-0 sm:w-28'} />}
-      <col className={advies ? 'w-24' : 'w-12'} />
+      <col className={ruimeActie ? 'w-24' : advies ? 'w-24' : 'w-12'} />
     </colgroup>
     {!zonderKop && <TableHeader><TableRow>
       {toonVink && <TableHead className="text-center">{vinkKop ?? <span className="sr-only">Status</span>}</TableHead>}

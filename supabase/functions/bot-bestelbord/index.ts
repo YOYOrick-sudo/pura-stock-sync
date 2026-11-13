@@ -5,12 +5,49 @@ const VESTIGINGEN = new Set(["West", "Midsland"]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 import { verwachteLeveringGeldig } from "./datum.ts";
 import { adviesMetadataGeldig } from "./advies-metadata.ts";
+import { leesDeactiveren, rpcOntbreekt } from "./deactiveren.ts";
+import { leesOntvangen, planOntvangst, type BordRegel, type OntvangstPlan } from "./ontvangen.ts";
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+
+/** Zelfde uitkomst als de RPC, zolang de migratie nog niet draait: alleen status vervallen. */
+async function deactiveerZonderFunctie(db: { from: (tabel: string) => any }, vestiging: string, ids: string[]) {
+  const { data, error } = await db.from("bestel_signalen").select("id,status,vestiging").in("id", ids);
+  if (error) throw new Error(error.message);
+  const gevonden = new Map((data ?? []).map((r) => [r.id, r]));
+  const openIds = ids.filter((id) => {
+    const r = gevonden.get(id);
+    return !!r && r.vestiging === vestiging && r.status === "open";
+  });
+  const gezet = new Set<string>();
+  if (openIds.length) {
+    const schrijf = await db.from("bestel_signalen").update({ status: "vervallen" }).in("id", openIds).eq("vestiging", vestiging).eq("status", "open").select("id");
+    if (schrijf.error) throw new Error(schrijf.error.message);
+    for (const rij of schrijf.data ?? []) gezet.add(rij.id);
+  }
+  return ids.map((id) => {
+    const r = gevonden.get(id);
+    if (!r || r.vestiging !== vestiging) return { id, status: "overgeslagen", reden: "niet gevonden voor deze vestiging" };
+    if (r.status === "vervallen") return { id, status: "ok", reden: "al weg" };
+    if (r.status === "open" && gezet.has(id)) return { id, status: "ok" };
+    if (r.status === "open") return { id, status: "overgeslagen", reden: "status is intussen gewijzigd" };
+    return { id, status: "overgeslagen", reden: "status is " + r.status };
+  });
+}
+
+async function pasOntvangstToe(db: { from: (tabel: string) => any }, plan: Exclude<OntvangstPlan, { soort: "fout" }>, id: string, vestiging: string) {
+  const schrijf = await db.from("bestel_signalen").update(plan.update).eq("id", id).eq("vestiging", vestiging).eq("status", "besteld").select("id");
+  if (schrijf.error) throw new Error(schrijf.error.message);
+  if (!schrijf.data?.length) throw new Error("status is niet besteld");
+  if (plan.soort === "deels") {
+    const nieuw = await db.from("bestel_signalen").insert(plan.restant);
+    if (nieuw.error) throw new Error(nieuw.error.message);
+  }
+}
 
 async function tokenKlopt(header: string | null): Promise<boolean> {
   const verwacht = Deno.env.get("BOT_BESTELBORD_TOKEN");
@@ -175,6 +212,53 @@ Deno.serve(async (req) => {
       if (error) return fout(400, error.message);
       await sluit(true, { http_status: 200, resultaat: data });
       return json(200, { ok: true, aantal: data?.aantal ?? 0, gekoppeld: data?.gekoppeld ?? 0, gelogd: data?.gelogd ?? 0 });
+    }
+
+    if (actie === "deactiveren") {
+      const invoer = leesDeactiveren(body.regels, body.reden);
+      if (!invoer.ok) return fout(400, invoer.fout);
+      const { ids, reden } = invoer;
+      const { data, error } = await db.rpc("bestelbot_deactiveer", {
+        p_vestiging: vestiging, p_ids: ids, p_reden: reden,
+      });
+      if (rpcOntbreekt(error)) {
+        const uit = await deactiveerZonderFunctie(db, vestiging, ids);
+        await sluit(true, { http_status: 200, resultaat: uit, fallback: true }, ids);
+        return json(200, { vestiging, resultaat: uit });
+      }
+      if (error) return fout(400, error.message);
+      await sluit(true, { http_status: 200, resultaat: data }, ids);
+      return json(200, { vestiging, resultaat: data });
+    }
+
+    if (actie === "ontvangen") {
+      const invoer = leesOntvangen(body.regels);
+      if (!invoer.ok) return fout(400, invoer.fout);
+      const ids = invoer.regels.map((r) => r.id);
+      const { data, error } = await db.from("bestel_signalen")
+        .select("id,vestiging,status,naam,aantal,eenheid,leverancier_id,artikel_id,artikel_vorm_id")
+        .in("id", ids);
+      if (error) return fout(400, error.message);
+      const gevonden = new Map(((data ?? []) as BordRegel[]).map((r) => [r.id, r]));
+      const nu = new Date().toISOString();
+      const resultaat: { id: string; status: string; reden?: string; restant_aantal?: number }[] = [];
+      for (const regel of invoer.regels) {
+        const plan = planOntvangst(gevonden.get(regel.id) ?? null, regel, nu, vestiging);
+        if (plan.soort === "fout") {
+          resultaat.push({ id: regel.id, status: "error", reden: plan.reden });
+          continue;
+        }
+        try {
+          await pasOntvangstToe(db, plan, regel.id, vestiging);
+          resultaat.push(plan.soort === "deels"
+            ? { id: regel.id, status: "ok", restant_aantal: plan.restantAantal }
+            : { id: regel.id, status: "ok" });
+        } catch (e) {
+          resultaat.push({ id: regel.id, status: "error", reden: e instanceof Error ? e.message : "niet opgeslagen" });
+        }
+      }
+      await sluit(resultaat.every((r) => r.status === "ok"), { http_status: 200, resultaat }, ids);
+      return json(200, { vestiging, resultaat });
     }
 
     return fout(400, "Onbekende actie");

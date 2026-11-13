@@ -17,6 +17,7 @@ const staat = vi.hoisted(() => ({
   soorten: new Map<string, 'extern' | 'winkel' | 'intern'>(),
   leveranciers: new Map<string, string>(),
   markeer: vi.fn(),
+  weg: vi.fn(),
   knoppen: [] as { children?: ReactNode; onClick?: () => void }[],
 }));
 
@@ -55,7 +56,7 @@ vi.mock('@/hooks/useBestelbord', async () => {
     useBordRegelInfo: () => ({ data: new Map() }),
     useBestelAdvies: () => ({ data: { leverdag: null, regels: [] }, isLoading: false, zetOpBord: { mutateAsync: vi.fn() } }),
     useBestelbordMutaties: () => ({
-      toevoegen: mut(), zetBesteld: mut(), markeerBesteldRegels: mut(), verwijderen: mut(), herstel: mut(), wijzig: mut(),
+      toevoegen: mut(), zetBesteld: mut(), markeerBesteldRegels: mut(), verwijderen: { mutate: staat.weg, mutateAsync: vi.fn(), isPending: false }, herstel: mut(), wijzig: mut(),
       markeerGeleverd: { mutate: staat.markeer, mutateAsync: vi.fn(), isPending: false },
       nietGeleverd: mut(), deelsGeleverd: mut(), terugNaarBesteld: mut(), zetVerwachteLevering: mut(),
       koppelen: mut(), artikelAanmaken: mut(),
@@ -109,6 +110,7 @@ beforeEach(() => {
   staat.vlag = false;
   staat.isManager = false;
   staat.markeer.mockClear();
+  staat.weg.mockClear();
   staat.vormen = [vorm('vorm-spar', 'lev-spar'), vorm('vorm-mid', 'lev-mid'), vorm('vorm-boer', 'lev-boer')];
   staat.soorten = new Map([['lev-spar', 'winkel'], ['lev-mid', 'intern'], ['lev-boer', 'extern']]);
   staat.leveranciers = new Map([['lev-spar', 'Spar (zelf halen)'], ['lev-mid', 'Midsland (intern)'], ['lev-boer', 'Boer & Chef']]);
@@ -176,6 +178,24 @@ describe('bestelbord leverancier kiezen', () => {
     staat.vlag = false;
     staat.signalen = [signaal({ id: 'a', naam: 'Taugé' }), signaal({ id: 'b', naam: 'tauge' })];
     expect(bordHtml()).not.toContain('Maak artikel');
+  });
+
+  test('open regel heeft Weg; een bestelde regel staat niet op het scherm', () => {
+    staat.signalen = [
+      signaal({ id: 'tomaat', naam: 'Cherry tomaat', artikel_id: 'art-tomaat', artikel_vorm_id: 'vorm-boer' }),
+      signaal({ id: 'oud', naam: 'Oude mayo', status: 'besteld', verwachte_levering: '2026-10-01' }),
+    ];
+    const html = bordHtml();
+    expect(html).toContain('Cherry tomaat');
+    expect(html).toContain('>Weg<');
+    expect(html).not.toContain('>Advies<');
+    expect(html).not.toContain('>Tellen<');
+    expect(html).not.toContain('Oude mayo');
+    expect(html).not.toContain('>Onderweg<');
+    const knop = staat.knoppen.find((k) => tekstVan(k.children) === 'Weg');
+    if (!knop?.onClick) throw new Error('knop Weg ontbreekt');
+    knop.onClick();
+    expect(staat.weg).toHaveBeenCalledWith('tomaat', expect.any(Object));
   });
 
   test('Gehaald roept markeerGeleverd aan met het regel-id', () => {

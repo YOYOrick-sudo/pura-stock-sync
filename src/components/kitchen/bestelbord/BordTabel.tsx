@@ -49,25 +49,23 @@ export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, deadli
   /** Geen extra groepskop: de kaarttitel zegt al wat de lijst is. */
   plat?: boolean;
 }) {
-  return <CompacteTabel zonderKop vinkKop={geleverd ? undefined : 'Besteld'} kinderen={<TableBody>{perLeverancier(regels, leverancier).map(([lev, rs]) => {
+  return <CompacteTabel zonderKop ruimeActie={!geleverd} vinkKop={geleverd ? undefined : 'Besteld'} kinderen={<TableBody>{perLeverancier(regels, leverancier).map(([lev, rs]) => {
     const prijzen = rs.map(prijsVan).filter((p) => p != null);
     const subtotaal = prijzen.length ? euro(prijzen.reduce((n, p) => n + p.totaal, 0)) : null;
     const gedimd = lev === 'Leverancier onbekend';
     return <Fragment key={lev}>
       {!plat && <TableRow className="bg-muted/50 hover:bg-muted/50">
-        <TableCell className="!px-0" />
-        <TableCell className="py-2">
+        <TableCell colSpan={5} className="py-2">
           <div className={cn('flex min-h-11 flex-wrap items-center justify-between gap-2 text-sm', gedimd ? 'text-muted-foreground' : 'text-foreground')}>
-            <span className="flex w-full min-w-0 flex-col justify-center sm:w-auto sm:flex-1">
-              <span className="flex min-w-0 items-baseline gap-2"><span className="truncate font-semibold">{geleverd ? lev : <DeadlineNaam naam={lev} hint={rs[0] ? deadlineHint(rs[0]) : null} letOp={!geleverd && !!deadlineVoorbij?.(rs[0])} />}</span><span className="shrink-0 tabular-nums font-normal text-muted-foreground">{rs.length}</span></span>
-              {subtotaal != null && <span className="text-xs font-medium tabular-nums sm:hidden">{subtotaal}</span>}
+            <span className="flex min-w-0 basis-full items-baseline gap-2 sm:basis-auto sm:flex-1">
+              <span className="min-w-0 font-semibold">{geleverd ? lev : <DeadlineNaam naam={lev} hint={rs[0] ? deadlineHint(rs[0]) : null} letOp={!geleverd && !!deadlineVoorbij?.(rs[0])} />}</span>
+              <span className="shrink-0 tabular-nums font-normal text-muted-foreground">{rs.length}</span>
+              {subtotaal != null && <span className="shrink-0 text-xs font-medium tabular-nums sm:hidden">{subtotaal}</span>}
             </span>
+            {subtotaal != null && <span className="hidden font-medium tabular-nums sm:block">{subtotaal}</span>}
             {!geleverd && !alleenLezen && onGroepBesteld && <Button type="button" variant="outline" size="touch" className="shrink-0" onClick={() => onGroepBesteld(rs)}>Besteld</Button>}
           </div>
         </TableCell>
-        <TableCell className="py-0" />
-        <TableCell className="!px-0 py-0 text-right sm:!px-2">{subtotaal != null && <div className="hidden font-medium tabular-nums sm:block">{subtotaal}</div>}</TableCell>
-        <TableCell className="py-0" />
       </TableRow>}
       {rs.map((s) => {
         const prijs = prijsVan(s);
@@ -76,7 +74,7 @@ export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, deadli
         return <TableRow key={s.id} className={geleverd || s.status === 'besteld' ? 'text-muted-foreground' : 'cursor-pointer'} onClick={() => !geleverd && !alleenLezen && onBewerk(s)}>
           <TableCell className="!px-0" onClick={(e) => e.stopPropagation()}>{geleverd ? <div className="mx-auto flex h-11 w-11 items-center justify-center"><Check className="h-4 w-4 text-primary" aria-label="Geleverd" /></div> : <label className="mx-auto flex h-11 w-11 cursor-pointer items-center justify-center"><Checkbox disabled={alleenLezen} checked={s.status === 'besteld'} aria-label={`${s.naam} besteld`} onCheckedChange={(b) => onBesteld(s, b === true)} /></label>}</TableCell>
           <TableCell><div className="flex min-h-11 min-w-0 flex-col justify-center">
-            <span className="flex min-w-0 items-center gap-2"><span className="min-w-0 line-clamp-2 break-words font-medium">{s.naam}</span><RegelInfo info={regelInfo?.(s)} /></span>
+            <span className="flex min-w-0 items-center gap-2"><span className="min-w-0 line-clamp-2 break-normal font-medium">{s.naam}</span><RegelInfo info={regelInfo?.(s)} /></span>
             {restStatus?.(s) === 'nageleverd' && <RijMeta altijd><Hourglass className="h-4 w-4" aria-hidden /><Badge variant="info">al besteld, wordt nageleverd</Badge></RijMeta>}{restStatus?.(s) === 'mist' && <RijMeta altijd><AlertCircle className="h-4 w-4 text-warning" aria-hidden /><Badge variant="warning">mist</Badge></RijMeta>}
             {rest && <RijMeta altijd><Badge variant="outline" title={restWaarschuwing(rest)}><Hourglass className="mr-1 h-3 w-3" aria-hidden />{rest.soort === 'mist' ? 'Mist nog' : 'Komt nog'} {rest.aantal}</Badge></RijMeta>}
             {info ? <RijMeta altijd>{info}</RijMeta> : <RijMeta>{prijs ? euro(prijs.totaal) : '—'}</RijMeta>}
@@ -84,7 +82,9 @@ export function BordTabel({ regels, regelInfo, leverancier, deadlineHint, deadli
           </div></TableCell>
           <AantalCel aantal={Number(s.aantal)} eenheid={s.eenheid} />
           <TableCell className="!px-0 text-right sm:!px-2" onClick={(e) => e.stopPropagation()}><div className="hidden sm:block">{prijs ? <Tooltip><TooltipTrigger asChild><span className="inline-flex h-11 items-center justify-end gap-2 tabular-nums" tabIndex={0}><PrijsPijl signaal={prijsSignaal(s)} eenheid={s.eenheid} alleenDuurder />{euro(prijs.totaal)}</span></TooltipTrigger><TooltipContent>{prijsTip(prijs.vorm)}</TooltipContent></Tooltip> : <span className="text-muted-foreground">—</span>}</div></TableCell>
-          <TableCell className="!px-0" onClick={(e) => e.stopPropagation()}>{!alleenLezen && <RijMenu naam={s.naam} acties={geleverd ? [{ label: 'Terug naar onderweg', onClick: () => onTerug?.(s) }] : [{ label: 'Bewerken', onClick: () => onBewerk(s) }, { label: 'Vervallen', onClick: () => onVervallen(s), gevaar: true }]} />}</TableCell>
+          <TableCell className="!px-0" onClick={(e) => e.stopPropagation()}>{!alleenLezen && (geleverd
+            ? <RijMenu naam={s.naam} acties={[{ label: 'Terug naar onderweg', onClick: () => onTerug?.(s) }]} />
+            : <Button type="button" variant="outline" size="touch" aria-label={`${s.naam} weg`} onClick={() => onVervallen(s)}>Weg</Button>)}</TableCell>
         </TableRow>;
       })}
     </Fragment>;
