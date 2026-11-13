@@ -1007,8 +1007,10 @@ export type Database = {
           bestelreferentie: string | null
           bron: string
           created_at: string
+          deactivatie_reden: string | null
           eenheid: string
           eenheid_controleren: boolean
+          gedeactiveerd_op: string | null
           geleverd_door: string | null
           geleverd_op: string | null
           gemeld_door: string | null
@@ -1039,8 +1041,10 @@ export type Database = {
           bestelreferentie?: string | null
           bron?: string
           created_at?: string
+          deactivatie_reden?: string | null
           eenheid?: string
           eenheid_controleren?: boolean
+          gedeactiveerd_op?: string | null
           geleverd_door?: string | null
           geleverd_op?: string | null
           gemeld_door?: string | null
@@ -1071,8 +1075,10 @@ export type Database = {
           bestelreferentie?: string | null
           bron?: string
           created_at?: string
+          deactivatie_reden?: string | null
           eenheid?: string
           eenheid_controleren?: boolean
+          gedeactiveerd_op?: string | null
           geleverd_door?: string | null
           geleverd_op?: string | null
           gemeld_door?: string | null
@@ -9277,6 +9283,10 @@ export type Database = {
           p_regels: Json
           p_vestiging: string
         }
+        Returns: Json
+      }
+      bestelbot_deactiveer: {
+        Args: { p_ids: string[]; p_reden: string; p_vestiging: string }
         Returns: Json
       }
       bestelbot_import_historie: {
