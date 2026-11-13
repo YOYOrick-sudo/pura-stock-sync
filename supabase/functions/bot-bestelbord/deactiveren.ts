@@ -17,7 +17,10 @@ export function leesDeactiveren(regels: unknown, reden: unknown): DeactiverenInv
   return { ok: true, ids, reden: tekst ? tekst : null };
 }
 
+/** Alleen als de functie zelf nog niet in de database staat. Een inhoudelijke fout valt hier niet onder. */
 export function rpcOntbreekt(error: { code?: string; message?: string } | null): boolean {
   if (!error) return false;
-  return error.code === "PGRST202" || /schema cache|does not exist|niet gevonden|bestelbot_deactiveer/i.test(error.message ?? "");
+  if (error.code === "PGRST202") return true;
+  const m = error.message ?? "";
+  return /schema cache/i.test(m) || /could not find the function/i.test(m) || /function .* does not exist/i.test(m);
 }

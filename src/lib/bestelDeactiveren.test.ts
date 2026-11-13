@@ -16,9 +16,11 @@ describe('deactiveren invoer', () => {
     expect(leesDeactiveren([{ id: ID }], null).ok).toBe(false);
   });
 
-  test('herkent een ontbrekende functie', () => {
+  test('herkent alleen een ontbrekende functie, geen inhoudelijke fout', () => {
     expect(rpcOntbreekt({ code: 'PGRST202', message: 'schema cache' })).toBe(true);
-    expect(rpcOntbreekt({ message: 'function bestelbot_deactiveer does not exist' })).toBe(true);
+    expect(rpcOntbreekt({ message: 'function public.bestelbot_deactiveer(text, uuid[], text) does not exist' })).toBe(true);
+    expect(rpcOntbreekt({ message: 'Could not find the function public.bestelbot_deactiveer' })).toBe(true);
+    expect(rpcOntbreekt({ message: 'niet gevonden voor deze vestiging' })).toBe(false);
     expect(rpcOntbreekt({ message: 'status is besteld' })).toBe(false);
     expect(rpcOntbreekt(null)).toBe(false);
   });

@@ -188,7 +188,8 @@ describe('bestelbord leverancier kiezen', () => {
     const html = bordHtml();
     expect(html).toContain('Cherry tomaat');
     expect(html).toContain('>Weg<');
-    expect(html).toContain('Te bestellen');
+    expect(html).not.toContain('>Advies<');
+    expect(html).not.toContain('>Tellen<');
     expect(html).not.toContain('Oude mayo');
     expect(html).not.toContain('>Onderweg<');
     const knop = staat.knoppen.find((k) => tekstVan(k.children) === 'Weg');

@@ -1,17 +1,12 @@
 import { hoeveelheid } from '@/lib/hoeveelheid';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { toast } from 'sonner';
-import { Minus, Plus, Truck, ClipboardList, Calculator, Sparkles, Check, Search, ChefHat, Link2, ShoppingBag, Warehouse } from 'lucide-react';
+import { Minus, Plus, Truck, ClipboardList, Check, Search, Link2, ShoppingBag, Warehouse } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { useOntvangstModus, useOntvangstData, useKeukenAdvies, useKeukenStand, useKeukenTelpool, useKeukenTelInfo, useKeukenTelling, useFase2VlagAan } from '@/hooks/useOntvangstV2';
-import { MandjeVragen } from '@/components/kitchen/bestelbord/MandjeVragen';
-import { bordRestStatusPerSignaal, openRestVoorArtikel, restWaarschuwing, leesTab } from '@/lib/ontvangstV2';
-import { BestelbordTabs, ZonderPrijsFilter } from '@/components/kitchen/bestelbord/BestelbordTabs';
-import { KeukenAdviesTabel } from '@/components/kitchen/bestelbord/KeukenAdviesTabel';
-import { KeukenTelblok } from '@/components/kitchen/bestelbord/KeukenTelblok';
-import { DrankAdvies } from '@/components/kitchen/bestelbord/DrankAdvies';
+import { useOntvangstModus, useOntvangstData, useFase2VlagAan } from '@/hooks/useOntvangstV2';
+import { bordRestStatusPerSignaal, openRestVoorArtikel, restWaarschuwing } from '@/lib/ontvangstV2';
+import { ZonderPrijsFilter } from '@/components/kitchen/bestelbord/BestelbordTabs';
 import { DetailLade, KaartKop, LaadRijen, LijstKaart, Invoerbalk } from '@/components/pura/patronen';
 import { TabelVoet } from '@/components/pura/lijst';
 import { EmptyState } from '@/components/pura/EmptyState';
@@ -21,24 +16,20 @@ import { SidebarLayout } from '@/components/SidebarLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { parseYmd, ymd } from '@/lib/leverdatum';
+import { parseYmd } from '@/lib/leverdatum';
 import { eerstvolgendeLeverdagen, plusDagenYmd, standaardLeverdag } from '@/lib/standaardLeverdag';
 import { useUserLocation } from '@/contexts/UserLocationContext';
 import {
-  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useLeverancierSoorten, useLeveranciersVoorVestiging, useLeverancierBesteldagen, useVestigingOpenDagen, useArtikelVormen, zoekBordSuggesties, zoekArtikelstam, maakConceptArtikel, useBestelAdvies, useBordRegelInfo, useBordHerhaalNamen,
-  type BestelSignaal, type ArtikelVorm, type BordSuggestie, type BestelAdvies,
+  useBestelSignalen, useBestelbordMutaties, useLeveranciers, useLeverancierSoorten, useLeveranciersVoorVestiging, useLeverancierBesteldagen, useVestigingOpenDagen, useArtikelVormen, zoekBordSuggesties, zoekArtikelstam, maakConceptArtikel, useBordRegelInfo, useBordHerhaalNamen,
+  type BestelSignaal, type ArtikelVorm, type BordSuggestie,
 } from '@/hooks/useBestelbord';
 import { useRole } from '@/hooks/useRole';
-import { Voorraadproef } from '@/components/kitchen/Voorraadproef';
-import { useOpenTelvragen } from '@/hooks/useVoorraadproef';
 import { usePrijsSignalen } from '@/hooks/usePrijsSignalen';
 import { zoekSignaal, type PrijsSignaal } from '@/lib/prijsSignaal';
 
-import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { BordTabel } from '@/components/kitchen/bestelbord/BordTabel';
 import { BesteldDialoog } from '@/components/kitchen/bestelbord/BesteldDialoog';
-import { AdviesTabel } from '@/components/kitchen/bestelbord/AdviesTabel';
 import { LeveranciersOverzicht } from '@/components/kitchen/bestelbord/LeveranciersOverzicht';
 import { eerderVrijeRegels, filterEerderSuggesties } from '@/lib/bordSnelkeuze';
 import { leverancierNaam, leverancierSoort } from '@/components/kitchen/bestelbord/presentatie';
@@ -198,7 +189,6 @@ function leverDatumLabel(datum: string | null): string {
 
 export default function Bestelbord() {
   const { userLocation } = useUserLocation();
-  const [params, setSearchParams] = useSearchParams();
   const vestiging = userLocation ?? '';
   const deadlines = useBesteldeadlines(vestiging);
   const { data: signalen = [], isLoading } = useBestelSignalen(vestiging || null);
@@ -223,14 +213,8 @@ export default function Bestelbord() {
   const toonV2Bord = v2BordZichtbaar(vestiging, internV2);
   const internAan = v1InternZichtbaar(toonV2Bord, internBestellenZichtbaar({ vlagAan: internVlag, test }));
   const ontvangst = useOntvangstData(modus);
-  const keukenAdvies = useKeukenAdvies(modus);
-  const keukenStand = useKeukenStand(modus);
-  const keukenTelpool = useKeukenTelpool(modus);
-  const keukenTelInfo = useKeukenTelInfo(modus);
-  const telling = useKeukenTelling();
   const restanten = v2 ? ontvangst.restanten.data ?? [] : [];
   const restStatusPerSignaal = bordRestStatusPerSignaal(restanten);
-  const nageleverdArtikelen = new Set(restanten.filter((x) => x.telt_als_onderweg && !x.opnieuw_besteld && x.artikel_id).map((x) => x.artikel_id as string));
   const { isOpen } = useVestigingOpenDagen(vestiging || null);
   const { data: besteldagen = [] } = useLeverancierBesteldagen(vestiging || null);
   const [naam, setNaam] = useState('');
@@ -253,28 +237,8 @@ export default function Bestelbord() {
   const [vormId, setVormId] = useState<string | null>(null);
   const [bewerkVormId, setBewerkVormId] = useState<string | null>(null);
   const zoekNr = useRef(0);
-  const vandaagStr = ymd(new Date());
-  const advies = useBestelAdvies(vestiging || null, vandaagStr);
-  const [adviesBezig, setAdviesBezig] = useState(false);
-  const tabKeuze = leesTab(params.get('tab'));
-  const setTabKeuze = useCallback((waarde: string | null) => {
-    setSearchParams((vorig) => {
-      const volgend = new URLSearchParams(vorig);
-      const gekozenTab = leesTab(waarde);
-      if (gekozenTab) volgend.set('tab', gekozenTab);
-      else volgend.delete('tab');
-      return volgend;
-    }, { replace: true });
-  }, [setSearchParams]);
-  const vorigeVestiging = useRef(vestiging);
   const zoek = '';
   const [alleenZonderPrijs, setAlleenZonderPrijs] = useState(false);
-  const openTelvragen = useOpenTelvragen(vestiging, !test);
-  const telOverzicht = { open: test ? 0 : openTelvragen.data ?? 0, geladen: !test && openTelvragen.isSuccess };
-  useEffect(() => {
-    if (vorigeVestiging.current && vorigeVestiging.current !== vestiging) setTabKeuze(null);
-    vorigeVestiging.current = vestiging;
-  }, [vestiging, setTabKeuze]);
 
 
   const { open, besteld } = useMemo(
@@ -396,49 +360,10 @@ export default function Bestelbord() {
     leeg();
   };
 
-  /** Advies op het bord: gewone open regel (of ophogen bij dezelfde naam), nooit besteld. */
-  const adviesOpBord = async (a: BestelAdvies) => {
-    if (test || !vestiging || isLoading || adviesBezig) return;
-    const rest = v2 ? openRestVoorArtikel(restanten, { artikel_id: a.artikel_id ?? null, naam: a.artikel }) : null;
-    if (rest) toast.warning(restWaarschuwing(rest));
-    const v = a.artikel_vorm_id ? vormById.get(a.artikel_vorm_id) : undefined;
-    const eenheid = v?.eenheid ?? a.eenheid ?? 'stuks';
-    const aantalA = Number(a.hoeveelheid) > 0 ? Number(a.hoeveelheid) : 1;
-    setAdviesBezig(true);
-    try {
-      const bestaand = open.find((s) => norm(s.naam) === norm(a.artikel) && (s.artikel_vorm_id ?? null) === (v?.id ?? null));
-      if (bestaand) {
-        const oud = Number(bestaand.aantal);
-        await wijzig.mutateAsync({ id: bestaand.id, aantal: oud + aantalA, eenheid: bestaand.eenheid });
-        await advies.zetOpBord.mutateAsync({ id: a.id, regelId: bestaand.id });
-        toast.success(`${a.artikel}: +${aantalA} erbij`, {
-          action: {
-            label: 'Ongedaan maken',
-            onClick: () => {
-              wijzig.mutate({ id: bestaand.id, aantal: oud, eenheid: bestaand.eenheid });
-              advies.zetOpBord.mutate({ id: a.id, regelId: null });
-            },
-          },
-        });
-      } else {
-        const koppeling = v
-          ? { artikel_id: v.artikel_id, leverancier_id: v.leverancier_id, artikel_vorm_id: v.id }
-          : { artikel_id: a.artikel_id, leverancier_id: a.leverancier_id, artikel_vorm_id: null };
-        const id = await toevoegen.mutateAsync({ naam: a.artikel, aantal: aantalA, eenheid, koppeling });
-        await advies.zetOpBord.mutateAsync({ id: a.id, regelId: id });
-        toast.success(`${a.artikel} — ${aantalA} ${eenheid} staat erop`);
-      }
-    } catch (e: any) {
-      toast.error('Niet opgeslagen: ' + (e?.message ?? 'onbekende fout'));
-    } finally {
-      setAdviesBezig(false);
-    }
-  };
-
   // Indicatieprijs per regel.
   const vormById = useMemo(() => new Map((vormen ?? []).map((v) => [v.id, v])), [vormen]);
   const leverancierIdVan = (s: { leverancier_id?: string | null; artikel_vorm_id?: string | null }) => s.leverancier_id ?? (s.artikel_vorm_id ? vormById.get(s.artikel_vorm_id)?.leverancier_id ?? null : null);
-  const deadlineHint = (s: BestelSignaal | BestelAdvies) => deadlines.hint(leverancierIdVan(s));
+  const deadlineHint = (s: BestelSignaal) => deadlines.hint(leverancierIdVan(s));
   const deadlineVoorbij = (s: BestelSignaal) => deadlines.verstreken(leverancierIdVan(s));
   const leverdagVoor = (leverancierId: string | null) => {
     const lokaal = formatInTimeZone(new Date(), 'Europe/Amsterdam', 'yyyy-MM-dd HH:mm:ss');
@@ -601,19 +526,12 @@ export default function Bestelbord() {
   };
 
   const isMobile = useIsMobile();
-  const tabBron = tabKeuze === 'onderweg' ? 'bord' : tabKeuze;
-  const tab = tabBron === 'keuken' && !modus.keukenadvies ? 'bord' : tabBron ?? (!isLoading && telOverzicht.geladen && telOverzicht.open > 0 && open.length === 0 ? 'tellen' : 'bord');
-  const adviesRegels = advies.data?.regels ?? [];
   const leveranciersTabel = <LeveranciersOverzicht open={open} leverancier={leverancier} prijsVan={prijsVan} />;
   const herhaalNamen = useBordHerhaalNamen(vestiging || null, signalen);
   const toonMaakArtikel = (s: BestelSignaal) => koppelVlag && !test && s.status === 'open' && !s.artikel_id && herhaalNamen.has(bestelbotNormaliseer(s.naam));
   const bordProps = { ...(v2 ? { restStatus: (s: BestelSignaal) => restStatusPerSignaal.get(s.id) ?? null, artikelRest: (s: BestelSignaal) => restStatusPerSignaal.has(s.id) ? null : openRestVoorArtikel(restanten, { artikel_id: s.artikel_id ?? null, naam: s.naam }), alleenLezen: test } : {}), regelInfo, leverancier, deadlineHint, deadlineVoorbij, prijsVan, prijsSignaal: signaalVan, prijsTip, onBesteld: markeerBesteld, onGroepBesteld: test ? undefined : (rs: BestelSignaal[]) => setBesteldGroep({ naam: leverancier(rs[0]), regels: rs }), onBewerk: openBewerk, onVervallen: vervallen, toonMaakArtikel, onMaakArtikel: (s: BestelSignaal) => openBewerk(s, 'nieuw') };
-  const positieveAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) > 0 && !(v2 && a.artikel_id && nageleverdArtikelen.has(a.artikel_id)));
-  const nulAdviezen = adviesRegels.filter((a) => Number(a.hoeveelheid) <= 0);
   const zonderPrijs = open.filter((s) => !prijsVan(s)).length;
-  const zonderPrijsFilter = (className: string) => (tab === 'bord')
-    ? <ZonderPrijsFilter aantal={zonderPrijs} aan={alleenZonderPrijs} onToggle={() => setAlleenZonderPrijs((v) => !v)} className={className} />
-    : null;
+  const zonderPrijsFilter = (className: string) => <ZonderPrijsFilter aantal={zonderPrijs} aan={alleenZonderPrijs} onToggle={() => setAlleenZonderPrijs((v) => !v)} className={className} />;
   const q = zoek.trim().toLowerCase();
   const filter = (r: BestelSignaal[]) => r.filter((s) => (!q || s.naam.toLowerCase().includes(q)) && (!alleenZonderPrijs || !prijsVan(s)));
   const soortVan = (s: BestelSignaal) => koppelVlag ? leverancierSoort(s, leverancierSoorten, vormById) : null;
@@ -641,24 +559,12 @@ export default function Bestelbord() {
   return (
     <SidebarLayout>
       <div className="space-y-4">
-        <Tabs value={tab} onValueChange={setTabKeuze}>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="w-full min-w-0 lg:w-auto lg:flex-1">
-            <BestelbordTabs tabs={[
-              { id: 'bord', naam: 'Te bestellen', kort: 'Bestellen', Icoon: ClipboardList, n: open.length },
-              { id: 'advies', naam: 'Advies', kort: 'Advies', Icoon: Sparkles, n: positieveAdviezen.length },
-              ...(modus.keukenadvies ? [{ id: 'keuken', naam: 'Advies keuken', kort: 'Keuken', Icoon: ChefHat, n: keukenAdvies.data?.length ?? 0 }] : []),
-              { id: 'tellen', naam: 'Tellen', kort: 'Tellen', Icoon: Calculator, n: telOverzicht.open },
-            ]} />
-            </div>
             {test && <Badge variant="secondary">Test</Badge>}
             {zonderPrijsFilter('hidden lg:inline-flex')}
           </div>
-          <div className="mt-4 min-w-0">
             <div className="min-w-0 space-y-4">
-              <TabsContent value="bord" className="mt-0 space-y-4">
                 {zonderPrijsFilter('lg:hidden')}
-                {v2 && modus.magBeslissen && <MandjeVragen modus={modus} vragen={ontvangst.mandje.data ?? []} />}
                 <LijstKaart clip={false}>
         <div className={cn('space-y-4 rounded-t-polar-lg border-b border-border bg-muted/30 p-4 lg:px-6', test && 'hidden')}>
           <Invoerbalk>
@@ -765,19 +671,7 @@ export default function Bestelbord() {
                 {!isLoading && toonV2Bord && <InternGroepV2 vestiging={vestiging} losse={internZicht.map((s) => ({ id: s.id, naam: s.naam, aantal: Number(s.aantal), eenheid: s.eenheid }))} onLosseWeg={(id) => verwijderen.mutate(id)} />}
                 {!isLoading && <InternBestellen vestiging={vestiging} aan={internAan} bestaande={internRegels} losseKaart={internKaart} />}
                 {open.length > 0 && <LijstKaart kop={<KaartKop icoon={ClipboardList} titel="Per leverancier" />}>{leveranciersTabel}</LijstKaart>}
-              </TabsContent>
-              <TabsContent value="advies" className="mt-0 space-y-4">
-                <LijstKaart kop={<KaartKop icoon={Sparkles} titel={advies.data?.leverdag ? `Voor ${leverDatumLabel(advies.data.leverdag)}` : 'Advies'} />}>
-                  {advies.isLoading ? <LaadRijen /> : positieveAdviezen.length ? <AdviesTabel regels={positieveAdviezen} open={open} bezig={adviesBezig || test} onOpBord={adviesOpBord} deadlineHint={deadlineHint} /> : <EmptyState icon={Sparkles} title="Geen voorstellen" description="" className="border-0 shadow-none" />}
-                  {!advies.isLoading && positieveAdviezen.length > 0 && <TabelVoet links={`${positieveAdviezen.length} ${positieveAdviezen.length === 1 ? 'voorstel' : 'voorstellen'}`} />}
-                </LijstKaart>
-                {!!nulAdviezen.length && <LijstKaart kop={<KaartKop icoon={Check} titel="Niet nodig" teller={nulAdviezen.length} />}><AdviesTabel regels={nulAdviezen} open={open} bezig={adviesBezig} onOpBord={adviesOpBord} deadlineHint={deadlineHint} nul /></LijstKaart>}
-              </TabsContent>
-              {modus.keukenadvies && <TabsContent value="keuken" className="mt-0 space-y-4"><KeukenTelblok regels={keukenStand.data ?? []} pool={keukenTelpool.data} telinfo={keukenTelInfo.data} laden={keukenStand.isLoading} bezig={telling.isPending} onOpslaan={(id, n) => telling.mutateAsync({ telartikelId: id, aantal: n })} /><DrankAdvies vestiging={modus.pVestiging} /><KeukenAdviesTabel regels={keukenAdvies.data ?? []} telinfo={keukenTelInfo.data} laden={keukenAdvies.isLoading} /></TabsContent>}
-              <div hidden={tab !== 'tellen'}>{test ? <LijstKaart><p className="px-4 py-6 text-center text-sm text-muted-foreground">Tellen staat uit in testmodus, omdat dit de echte voorraad van {vestiging} aanpast.<br />De keukentelling test je op het tabblad Advies keuken.</p></LijstKaart> : <Voorraadproef key={vestiging} vestiging={vestiging} actief={tab === 'tellen'} />}</div>
             </div>
-          </div>
-        </Tabs>
       </div>
 
       <DetailLade open={!!bewerk} onOpenChange={(o) => !o && setBewerk(null)} titel={bewerk?.naam}>

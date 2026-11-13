@@ -20,13 +20,18 @@ export function ZelfHalenTabel({ soort, regels, leverancier, onGehaald, onAllesG
   alleenLezen?: boolean;
 }) {
   const winkel = soort === 'winkel';
-  return <CompacteTabel zonderKop zonderVink zonderMidden={!winkel} ruimeActie kinderen={<TableBody>{perLeverancier(regels, leverancier).map(([lev, rs]) => <Fragment key={lev}>
-    <GroepRij kolommen={winkel ? 4 : 3} naam={lev} aantal={rs.length} actie={winkel && !alleenLezen ? <Button variant="ghost" size="touch" className="-my-1 gap-1 px-2" onClick={() => onAllesGehaald(rs.map((s) => s.id))}><Check className="h-4 w-4" />Alles gehaald</Button> : undefined} />
+  const kolommen = winkel ? 4 : 3;
+  return <CompacteTabel zonderKop zonderVink zonderMidden={!winkel} kinderen={<TableBody>{perLeverancier(regels, leverancier).map(([lev, rs]) => <Fragment key={lev}>
+    <GroepRij kolommen={kolommen} naam={lev} aantal={rs.length} actie={winkel && !alleenLezen ? <Button variant="ghost" size="touch" className="-my-1 gap-1 px-2" onClick={() => onAllesGehaald(rs.map((s) => s.id))}><Check className="h-4 w-4" />Alles gehaald</Button> : undefined} />
     {rs.map((s) => <TableRow key={s.id} className={alleenLezen ? undefined : 'cursor-pointer'} onClick={() => !alleenLezen && onBewerk(s)}>
-      <TableCell><div className="flex min-h-11 min-w-0 flex-col justify-center"><span className="min-w-0 line-clamp-2 break-words font-medium">{s.naam}</span></div></TableCell>
-      <TableCell className="whitespace-nowrap text-right tabular-nums"><span className="inline-flex min-h-6 items-center justify-end gap-1.5"><span className="inline-flex items-center rounded-full bg-muted px-2 text-sm font-semibold">{Number(s.aantal)}</span>{s.eenheid && <span className="text-xs text-muted-foreground">{eenheidVorm(Number(s.aantal), s.eenheid)}</span>}</span></TableCell>
-      {winkel && <TableCell className="!px-1 text-right align-middle" onClick={(e) => e.stopPropagation()}>{!alleenLezen && <Button variant="outline" size="touch" className="px-3" onClick={() => onGehaald(s)}>Gehaald</Button>}</TableCell>}
-      <TableCell className="!px-0" onClick={(e) => e.stopPropagation()}>{!alleenLezen && <Button type="button" variant="outline" size="touch" aria-label={`${s.naam} weg`} onClick={() => onVervallen(s)}>Weg</Button>}</TableCell>
+      <TableCell colSpan={kolommen}>
+        <div className="flex min-h-11 flex-wrap items-center gap-2">
+          <span className="min-w-0 basis-full break-normal font-medium sm:flex-1 sm:basis-0">{s.naam}</span>
+          <span className="inline-flex items-center gap-2 whitespace-nowrap tabular-nums"><span className="inline-flex items-center rounded-full bg-muted px-2 text-sm font-semibold">{Number(s.aantal)}</span>{s.eenheid && <span className="text-xs text-muted-foreground">{eenheidVorm(Number(s.aantal), s.eenheid)}</span>}</span>
+          {winkel && !alleenLezen && <Button type="button" variant="outline" size="touch" className="px-3" onClick={(e) => { e?.stopPropagation(); onGehaald(s); }}>Gehaald</Button>}
+          {!alleenLezen && <Button type="button" variant="outline" size="touch" aria-label={`${s.naam} weg`} onClick={(e) => { e?.stopPropagation(); onVervallen(s); }}>Weg</Button>}
+        </div>
+      </TableCell>
     </TableRow>)}
   </Fragment>)}</TableBody>} />;
 }
