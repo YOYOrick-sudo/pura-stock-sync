@@ -9935,6 +9935,7 @@ export type Database = {
         }
         Returns: Json
       }
+      is_actief_teamlid: { Args: never; Returns: boolean }
       is_inkoop_beheerder: { Args: never; Returns: boolean }
       is_manager_same_location: {
         Args: { _profile_user_id: string }
