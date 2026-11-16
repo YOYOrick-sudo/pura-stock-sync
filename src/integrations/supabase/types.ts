@@ -7204,6 +7204,27 @@ export type Database = {
         }
         Relationships: []
       }
+      tazza_tussenweg_staat: {
+        Row: {
+          gestopt: string | null
+          open_dagen: string[]
+          updated_at: string
+          vestiging: string
+        }
+        Insert: {
+          gestopt?: string | null
+          open_dagen?: string[]
+          updated_at?: string
+          vestiging: string
+        }
+        Update: {
+          gestopt?: string | null
+          open_dagen?: string[]
+          updated_at?: string
+          vestiging?: string
+        }
+        Relationships: []
+      }
       telronde_regels: {
         Row: {
           artikel_id: string

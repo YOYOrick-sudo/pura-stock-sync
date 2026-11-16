@@ -498,6 +498,13 @@
       "when": 1794696891365,
       "tag": "0070_rls_actief_teamlid",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1794848643713,
+      "tag": "0071_tazza_tussenweg_staat",
+      "breakpoints": true
     }
   ]
 }

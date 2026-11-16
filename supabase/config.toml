@@ -27,3 +27,5 @@ project_id = "ajtqzzzpawqcoaphdkaz"
     verify_jwt = false
   [functions.kooyman-ontvangst-sync]
     verify_jwt = false
+  [functions.kassa-tussenweg-doorsturen]
+    verify_jwt = false
