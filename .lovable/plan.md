@@ -14,12 +14,18 @@ Eilandbezorger stuurt een betaalde bestelling naar ons. Wij slaan hem op, contro
 8. Schakelaar `eilandbezorger_live` per vestiging (bestaande Fase 2-vlaggen), standaard uit. Live-bestelling terwijl de schakelaar uit staat: status `geblokkeerd` met melding, nooit `test_ok`.
 9. Overzichtspagina `/cijfers/eilandbezorger` (alleen manager/eigenaar): compacte tabel, filter "Aandacht nodig", detaillade met regels en geschiedenis. "Opnieuw proberen" alleen bij een zekere fout (Lightspeed weigerde expliciet). Beheeracties lopen via een server-functie die zelf de rol controleert.
 10. Actieve meldingen: bij `uitkomst_onbekend`, `geblokkeerd`, of `verzenden` langer dan 2 minuten komt een melding in de bestaande notificaties voor managers van die vestiging.
-11. Aansluitinstructie voor Karin als document.
+11. Elke verzendpoging apart vastgelegd in `externe_bestelling_poging` (tijd, verzoek-ID, uitkomst, Lightspeed-antwoord). Eén poging tegelijk per bestelling; een laat binnenkomend antwoord van een oude poging wordt nog verwerkt maar kan nooit een nieuwe poging starten.
+12. Onzekere verzending: eerst teruglezen via `GET /rest/onlineordering/order/{orderId}` (als een order-ID bekend is) of zoeken op ons referentienummer. Herverzenden pas na een tweede bevestiging door een manager met reden; "niet zichtbaar op de kassa" alleen is onvoldoende. Een gevonden order betekent niet dat hij geprint of betaald is.
+13. Annuleren van een nog niet verstuurde bestelling (`gepland`, `geblokkeerd`, `afgekeurd`) als beheeractie; annuleren, ophaaltijd wijzigen en verzenden gebruiken dezelfde atomaire statusovergang en een versienummer, zodat ze elkaar niet doorkruisen.
+14. Geblokkeerde bestellingen worden nooit automatisch verstuurd als live aangaat; ze verschijnen onder "Beoordeling nodig" en moeten per stuk vrijgegeven worden (met waarschuwing als de ophaaltijd voorbij is).
+15. Kortingen: het aanleverbericht bevat oorspronkelijk bedrag, actiecode, kortingsbedrag, wie de korting betaalt en restaurantbedrag. Elke korting wordt nu afgekeurd met reden "korting nog niet ondersteund" tot een kassaproef bewijst hoe actieprijzen in Lightspeed komen.
+16. Ophaaltijd en bezorgtijd apart: `ophaaltijd` (wanneer de bezorger ophaalt) stuurt de keukenplanning; `bezorgtijd` wordt apart bewaard. Welk Lightspeed-veld (`deliveryDate` is het bezorgmoment) de ophaaltijd krijgt, wordt bij de kassaproef vastgesteld.
+17. Aansluitinstructie voor Karin: testadres, veilige sleuteloverdracht, voorbeeldbestelling, statusopvraag en foutafhandeling.
 
 ## Statussen
-`ontvangen` -> `afgekeurd` | `test_ok` | `geblokkeerd` | `gepland` -> `verzenden` -> `verzonden` | `geweigerd` | `uitkomst_onbekend`.
+`ontvangen` -> `afgekeurd` | `test_ok` | `geblokkeerd` | `gepland` | `geannuleerd` -> `verzenden` -> `verzonden` | `geweigerd` | `uitkomst_onbekend`.
 - `verzonden` betekent alleen: Lightspeed heeft de order aangenomen en een order-ID gegeven. Het bewijst geen correcte keukenbon of betaling; daarvoor is de proefbestelling op de kassa nodig.
-- `uitkomst_onbekend`: timeout, afgebroken verbinding of opslagfout na verzending. Geen herhaalknop; de manager controleert in de kassa en markeert "Staat in kassa" of "Niet in kassa, opnieuw versturen".
+- `uitkomst_onbekend`: timeout, afgebroken verbinding of opslagfout na verzending. Geen herhaalknop; eerst automatisch teruglezen, daarna manager-beoordeling met reden.
 - Antwoorden aan Eilandbezorger: 201 nieuw, 200 identieke herhaling, 400 ongeldig, 401 sleutel fout, 409 conflict, 422 afgekeurd met reden.
 
 ## Wat ik test
@@ -29,6 +35,10 @@ Eilandbezorger stuurt een betaalde bestelling naar ons. Wij slaan hem op, contro
 - Testsleutel terwijl live aan staat: `test_ok`, niets verstuurd.
 - Live-sleutel terwijl live uit staat: `geblokkeerd`.
 - Vooruitbestelling met gewijzigde ophaaltijd, vóór en na verzending.
+- Annuleren tegelijk met verzenden: precies één wint.
+- Laat antwoord van oude poging na nieuwe poging: geen tweede order.
+- Live aanzetten met geblokkeerde bestellingen: niets automatisch verstuurd.
+- Bestelling met korting: afgekeurd met reden.
 - Tokenvernieuwing gelijktijdig vanuit omzetophaling en orderverwerking (gesimuleerd): één vernieuwing, beide gebruiken de nieuwste tokens.
 - Controles op bedragen, producten, extra's, betaalwijze, vestiging.
 - Functietest zonder sleutel (401) en met testsleutel (TEST-bestelnummer, opruimen pas na jouw OK). Overzichtspagina ingelogd bekeken.
@@ -38,7 +48,8 @@ Eilandbezorger stuurt een betaalde bestelling naar ons. Wij slaan hem op, contro
 - Generieke klant-ID per vestiging (aanmaken in Lightspeed).
 - Betaalwijze-ID "vooraf betaald Eilandbezorger" per vestiging.
 - Actuele producten/PLU's en bezorgprijzen voor de koppeltabel.
-- Of en hoe Lightspeed een orderstatus terug laat opvragen; tot die tijd blijft `verzonden` het eindpunt.
+- Daadwerkelijk formaat van de betaalregels (documentatievoorbeelden zijn niet consistent).
+- Hoe actieprijzen correct in Lightspeed komen (kortingsproef).
 - Gecontroleerde proefbestelling op de echte kassa met iemand die keukenbon en bedrag controleert.
 - Van Karin: bestelnummer-formaat, productcodes, ophaaltijdafstemming en handmatige werkwijze voor wijzigen/annuleren.
 
