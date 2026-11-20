@@ -1,45 +1,51 @@
 # Eilandbezorger -> Lightspeed L-Series: beveiligde bestelkoppeling
 
 ## Wat het doet (in de praktijk)
-Eilandbezorger stuurt een betaalde bestelling naar ons. Wij slaan hem op, controleren hem (vestiging, producten, extra's, bedragen, betaalwijze) en sturen hem pas door naar de kassa van Midsland of West als echte verzending aan staat. Standaard staat alles in testmodus: er gaat niets naar Lightspeed. Managers zien op een overzichtspagina welke bestellingen binnen zijn, wat afgekeurd is en waarom.
-
-Wat er gebeurt als het misgaat:
-- Dubbel verstuurd door Eilandbezorger: herkend op hun bestelnummer, geen tweede kassabon.
-- Lightspeed traag of fout: bestelling blijft staan als "fout", zichtbaar in het overzicht, opnieuw proberen met de hand. Geen automatische herhaling naar de kassa (risico op dubbele keukenbon).
-- Onbekend product of afwijkend bedrag: afgekeurd met reden, Eilandbezorger krijgt dat direct terug.
+Eilandbezorger stuurt een betaalde bestelling naar ons. Wij slaan hem op, controleren hem en sturen hem pas door naar de kassa van Midsland of West als die bestelling live is én live verzending voor die vestiging aan staat. Standaard staat live verzending uit. Managers zien op een overzichtspagina wat binnen is, wat vastzit en waarom; problemen worden ook actief gemeld.
 
 ## Wat gebouwd wordt
-1. Ontvangfunctie `eilandbezorger-bestelling` (server). Eigen sleutel voor Eilandbezorger in kop `x-eilandbezorger-sleutel`, vergeleken met nieuw geheim `EILANDBEZORGER_SLEUTEL` (jij vult het in via een invulveld; nooit in chat). Ook een statusopvraag op bestelnummer.
-2. Opslag: tabel `externe_bestellingen` (bestelnummer Eilandbezorger uniek per vestiging, ruwe invoer, gecontroleerde regels, status, foutreden, Lightspeed-antwoord, tijden) plus `externe_bestelling_log` voor statusgeschiedenis. Alleen leesbaar voor manager/eigenaar; schrijven alleen door de server. Niets wordt verwijderd.
-3. Productkoppeling: tabel `externe_product_koppeling` (vestiging, Eilandbezorger-code -> Lightspeed product-ID/PLU, verwachte prijs, toegestane extra's). Bestellingen met niet-gekoppelde producten worden afgekeurd. Vullen gebeurt later bewust door jullie.
-4. Controle: vestiging moet 36864 of 41121 zijn en een actieve koppeling hebben; producten en extra's gekoppeld; regelbedragen kloppen met koppelprijs (afwijking 1 cent toegestaan); totaal = som regels; betaalwijze moet "vooraf betaald" zijn.
-5. Doorsturen: aparte module die het L-Series orderbericht opbouwt (`POST /rest/onlineordering/customer/{customerId}/order`). Gebruikt hetzelfde tokenbeheer en dezelfde vergrendeling als de omzetophaling, zodat er nooit twee tokenvernieuwingen tegelijk lopen. De huidige callback en omzetophaling worden niet aangeraakt.
-6. Schakelaars: `eilandbezorger_live` per vestiging (bestaande Fase 2-vlaggen), standaard uit. Uit = testmodus: volledige controle en opslag, het orderbericht wordt opgebouwd en bewaard, maar niet verstuurd. Status wordt dan `test_ok`.
-7. Overzichtspagina `/cijfers/eilandbezorger` (alleen manager/eigenaar): compacte tabel met tijd, vestiging, bestelnummer, bedrag, één statuslabel; filter "Fout / onverwerkt"; detaillade met reden, regels en geschiedenis; knop "Opnieuw proberen" alleen bij fout en alleen als live aan staat.
-8. Aansluitinstructie voor Karin als document (ontvangadres, sleutel-methode, voorbeeldbestelling, statuscodes en wat te doen per status).
+1. Ontvangfunctie `eilandbezorger-bestelling` met twee aparte sleutels: `EILANDBEZORGER_SLEUTEL_TEST` en `EILANDBEZORGER_SLEUTEL_LIVE` (via invulveld, nooit in chat). De gebruikte sleutel legt bij ontvangst vast of een bestelling test of live is. Testbestellingen gaan nooit naar Lightspeed, ook niet als live aan staat. Daarnaast een statusopvraag op bestelnummer. Karins sleutels kunnen alleen aanleveren en status opvragen, geen beheeracties.
+2. Opslag: `externe_bestellingen` (uniek op bron + modus + vestiging + bestelnummer, ruwe invoer, inhoudsvingerafdruk, gecontroleerde regels, gewenste ophaaltijd, status, reden, Lightspeed-order-ID en -antwoord) plus `externe_bestelling_log` voor statusgeschiedenis. Niets wordt verwijderd.
+3. Productkoppeling `externe_product_koppeling` (vestiging, Eilandbezorger-code -> Lightspeed product-ID/PLU, verwachte prijs, toegestane extra's). Leeg tot jullie hem vullen.
+4. Controle: vestiging 36864 of 41121 met actieve koppeling; producten en extra's gekoppeld; regelprijzen kloppen (1 cent marge); betaalwijze "vooraf betaald". Bedragen gescheiden: restaurantbedrag (regels + extra's) wordt gecontroleerd en naar de kassa gestuurd; bezorgkosten, fooi en korting van Eilandbezorger worden apart opgeslagen en niet als kassaregel meegestuurd tot jullie anders beslissen.
+5. Dubbele aanlevering: identieke herhaling geeft de bestaande status terug (200). Zelfde bestelnummer met andere inhoud geeft 409 en wordt niet verwerkt; wijzigingen lopen voorlopig handmatig.
+6. Vooruitbestellingen: een bestelling met ophaaltijd verder dan een instelbaar venster (standaard 45 minuten) krijgt `gepland` en wordt pas binnen dat venster verstuurd (geplande ronde elke 5 minuten, alleen zolang er geplande live-bestellingen zijn). Een gewijzigde ophaaltijd vóór verzending mag via een aparte, versiegebonden aanroep; ná verzending geeft dat 409 en een melding voor handmatige afhandeling in de kassa.
+7. Doorsturen via een losse ordermodule (`POST /rest/onlineordering/customer/{customerId}/order`), met één bewust gekozen generieke klant per vestiging waarvan de gegevens niet overschreven worden; gastnaam en telefoon in de bestelnotitie. Gebruikt het bestaande tokenbeheer.
+8. Schakelaar `eilandbezorger_live` per vestiging (bestaande Fase 2-vlaggen), standaard uit. Live-bestelling terwijl de schakelaar uit staat: status `geblokkeerd` met melding, nooit `test_ok`.
+9. Overzichtspagina `/cijfers/eilandbezorger` (alleen manager/eigenaar): compacte tabel, filter "Aandacht nodig", detaillade met regels en geschiedenis. "Opnieuw proberen" alleen bij een zekere fout (Lightspeed weigerde expliciet). Beheeracties lopen via een server-functie die zelf de rol controleert.
+10. Actieve meldingen: bij `uitkomst_onbekend`, `geblokkeerd`, of `verzenden` langer dan 2 minuten komt een melding in de bestaande notificaties voor managers van die vestiging.
+11. Aansluitinstructie voor Karin als document.
 
 ## Statussen
-`ontvangen` -> `afgekeurd` (controle faalt) | `test_ok` (testmodus) | `verzenden` -> `verzonden` | `fout`.
-Antwoorden aan Eilandbezorger: 201 nieuw, 200 al bekend (zelfde status terug), 400 ongeldig, 401 sleutel fout, 422 afgekeurd met reden.
+`ontvangen` -> `afgekeurd` | `test_ok` | `geblokkeerd` | `gepland` -> `verzenden` -> `verzonden` | `geweigerd` | `uitkomst_onbekend`.
+- `verzonden` betekent alleen: Lightspeed heeft de order aangenomen en een order-ID gegeven. Het bewijst geen correcte keukenbon of betaling; daarvoor is de proefbestelling op de kassa nodig.
+- `uitkomst_onbekend`: timeout, afgebroken verbinding of opslagfout na verzending. Geen herhaalknop; de manager controleert in de kassa en markeert "Staat in kassa" of "Niet in kassa, opnieuw versturen".
+- Antwoorden aan Eilandbezorger: 201 nieuw, 200 identieke herhaling, 400 ongeldig, 401 sleutel fout, 409 conflict, 422 afgekeurd met reden.
 
 ## Wat ik test
-- Unit-tests: controle (bedragen, onbekend product, extra's, betaalwijze, vestiging), dubbele aanlevering, opbouw orderbericht, statusbepaling.
-- Functietest: zonder sleutel 401; met sleutel een TEST-bestelling in testmodus -> `test_ok`, niets naar Lightspeed. Testregels krijgen TEST-nummer en worden pas na jouw OK opgeruimd.
-- Overzichtspagina ingelogd bekijken.
+- Twee gelijktijdige identieke bestellingen: één verwerking.
+- Zelfde bestelnummer, andere inhoud: 409.
+- Lightspeed verwerkt, antwoord gaat verloren (gesimuleerd): `uitkomst_onbekend`, geen herverzending.
+- Testsleutel terwijl live aan staat: `test_ok`, niets verstuurd.
+- Live-sleutel terwijl live uit staat: `geblokkeerd`.
+- Vooruitbestelling met gewijzigde ophaaltijd, vóór en na verzending.
+- Tokenvernieuwing gelijktijdig vanuit omzetophaling en orderverwerking (gesimuleerd): één vernieuwing, beide gebruiken de nieuwste tokens.
+- Controles op bedragen, producten, extra's, betaalwijze, vestiging.
+- Functietest zonder sleutel (401) en met testsleutel (TEST-bestelnummer, opruimen pas na jouw OK). Overzichtspagina ingelogd bekeken.
 
 ## Wat nog ontbreekt (blokkeert echte verzending, niet de bouw)
-- Bevestiging van Lightspeed welke orderroute bij onze accounts hoort (gewoon of establishment) en of onze koppeling bestelrechten heeft; onze autorisatie vraagt geen expliciete rechten aan.
-- Lightspeed klant-ID (of hoe een klant aangemaakt moet worden) per vestiging.
-- Betaalwijze-ID voor "vooraf betaald Eilandbezorger" per vestiging.
+- Bevestiging welke orderroute bij onze accounts hoort (gewoon of establishment) en de werkelijke Lightspeed-bedrijfsidentiteit per koppeling. Rechten: Mark bevestigde dat alle scopes standaard zijn toegekend; echte orderinvoer moet nog getest worden.
+- Generieke klant-ID per vestiging (aanmaken in Lightspeed).
+- Betaalwijze-ID "vooraf betaald Eilandbezorger" per vestiging.
 - Actuele producten/PLU's en bezorgprijzen voor de koppeltabel.
-- Een gecontroleerde proefbestelling op de echte kassa, met iemand erbij die keukenbon en bedrag controleert.
-- Van Karin: haar bestelnummer-formaat, productcodes en hoe zij annuleringen en wijzigingen wil doen (die bouw ik nu niet; annuleren gebeurt in de kassa).
+- Of en hoe Lightspeed een orderstatus terug laat opvragen; tot die tijd blijft `verzonden` het eindpunt.
+- Gecontroleerde proefbestelling op de echte kassa met iemand die keukenbon en bedrag controleert.
+- Van Karin: bestelnummer-formaat, productcodes, ophaaltijdafstemming en handmatige werkwijze voor wijzigen/annuleren.
 
 ## Technische details
-- Tokenlogica (`readConnection`, `getValidToken`, `refreshAtLightspeed`, lease `lightspeed`) wordt gekopieerd naar `supabase/functions/_shared/lightspeedToken.ts`; `lightspeed-sync` en `lightspeed-oauth` blijven byte-gelijk. Zelfde lease-bron, dus serialisatie met de omzetsync blijft gegarandeerd.
-- Sleutelvergelijking in constante tijd; sleutel nooit gelogd of teruggegeven. Zod-validatie, CORS, veilige foutmeldingen.
-- Uniek: (`vestiging`, `extern_id`); insert met conflictafhandeling. Overgang naar `verzenden` via atomaire update (`where status in ('ontvangen','fout')`) zodat twee aanroepen nooit tegelijk verzenden.
-- Ordermodule losgemaakt zodat veldnamen na Lightspeed-bevestiging op één plek aangepast worden; tot die bevestiging blijft de live-vlag uit.
-- RLS met `has_role` voor manager/owner/admin; GRANT alleen select voor authenticated, alles voor service_role.
-- Route toevoegen aan getPageTitle; pagina volgt Pura-lijstrecept en designregels.
-- Geen publicatie; functie wordt gedeployed omdat Karin anders niet kan testen.
+- Tokenlogica wordt gekopieerd naar `supabase/functions/_shared/lightspeedToken.ts`; `lightspeed-sync`, `lightspeed-oauth` en de callback blijven ongewijzigd. Zelfde lease-bron `lightspeed`; na het verkrijgen van de lease worden tokens opnieuw gelezen en de nieuwe refresh-token direct opgeslagen.
+- Overgang naar `verzenden` via atomaire update op status; verzendingen die >2 min op `verzenden` blijven worden door de geplande ronde naar `uitkomst_onbekend` gezet.
+- Vingerafdruk = SHA-256 van genormaliseerde bestelinhoud; sleutelvergelijking in constante tijd; nooit loggen.
+- RLS met `has_role`; select voor managers/eigenaren, schrijven alleen via service_role. Beheerfunctie controleert rol via `auth.getUser()`.
+- Geplande ronde via pg_cron elke 5 minuten (288 runs per dag); stopt direct als er niets gepland of vastgelopen is.
+- Geen publicatie van de app; de functies worden gedeployed zodat Karin in testmodus kan aansluiten.
