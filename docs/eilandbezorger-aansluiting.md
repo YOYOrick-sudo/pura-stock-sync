@@ -66,6 +66,9 @@ Antwoord (ook bij aanleveren):
   "reden": null, "referentie": "EB-T-36864-EB-2026-0001", "ophaaltijd": "...", "bijgewerkt_op": "..." }
 ```
 
+## Foutantwoorden
+Fouten hebben de vorm `{ "fout": "<uitleg>" }`, bij 400 met `velden` per ongeldig veld. Bij 409 en 422 staat ook de bestaande status in het antwoord.
+
 ## HTTP-codes
 | Code | Betekenis | Wat te doen |
 |---|---|---|
@@ -94,3 +97,21 @@ Bij een time-out: stuur exact dezelfde bestelling opnieuw of vraag de status op.
 | `geannuleerd` | Door Pura geannuleerd vóór verzending |
 
 Annuleren of wijzigen ná verzending: telefonisch met het restaurant.
+
+## Getest (20 november 2026, op de echte ontvangfunctie)
+- Verkeerde sleutel: 401.
+- Bestelling zonder modus: 400. West (41121): 400.
+- Twee gelijktijdige identieke testbestellingen: één opgeslagen; de tweede kreeg de bestaande status (200).
+- Identieke herhaling: 200. Zelfde nummer, andere inhoud: 409.
+- Statusopvraag met modus toont `"modus": "test"`; dezelfde vraag met `modus=live`: 404; zonder modus: 400.
+- Testbestelling ging niet naar Lightspeed (nul verzendpogingen).
+- Daarnaast 17 automatische tests: bedragen, extra's, betaalwijze, korting, venster, dubbele verzending, verloren antwoord, laat antwoord, tokenvernieuwing.
+
+## Nog niet klaar of niet getest
+- **Productcodes zijn nog niet gekoppeld.** Tot Pura de lijst vult, wordt elke bestelling afgekeurd met "Onbekend product". Stuur Pura je productcodes en prijzen.
+- Daardoor is `test_ok` nog niet echt bereikt; de route ernaartoe is wel automatisch getest.
+- **Live verzending naar de kassa staat uit.** Live-bestellingen worden nu `geblokkeerd`.
+- Orderformaat richting Lightspeed, vaste klant, betaalwijze en de orderroute zijn nog niet bevestigd; daarna volgt een gecontroleerde proefbestelling op de kassa.
+- Automatisch doorsturen van geplande bestellingen wordt pas aangezet als live aangaat.
+- Kortingen worden afgekeurd tot een kassaproef.
+- Annuleren of wijzigen na verzending gaat telefonisch.
